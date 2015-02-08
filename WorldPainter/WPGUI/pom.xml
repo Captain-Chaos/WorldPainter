@@ -1,0 +1,91 @@
+<project>
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.pepsoft.worldpainter</groupId>
+        <artifactId>WorldPainter</artifactId>
+        <version>1.10.5-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>WPGUI</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.pepsoft.worldpainter</groupId>
+            <artifactId>WPCore</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.intellij</groupId>
+            <artifactId>annotations</artifactId>
+            <version>12.0</version>
+            <scope>provided</scope> <!-- Not really, but these annotations aren't needed at runtime. -->
+        </dependency>
+
+        <dependency>
+            <!-- Commercial product; you will need to obtain a license to use JIDE (an open source license is free). -->
+            <groupId>com.jidesoft</groupId>
+            <artifactId>jide-common</artifactId>
+            <version>3.5.14</version>
+        </dependency>
+        <dependency>
+            <!-- Commercial product; you will need to obtain a license to use JIDE (an open source license is free). -->
+            <groupId>com.jidesoft</groupId>
+            <artifactId>jide-dock</artifactId>
+            <version>3.5.14</version>
+        </dependency>
+        <dependency>
+            <!-- Commercial product; you will need to obtain a license to use JIDE (an open source license is free).
+                 This module is optional, but it will make JIDE look better on Java 7+. -->
+            <groupId>com.jidesoft</groupId>
+            <artifactId>jide-plaf-jdk7</artifactId>
+            <version>3.5.14</version>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <!-- This jar is part of NetBeans; specifically the Dark Look and Feel Themes plugin. Get it from there and
+                 install it in your local Maven repo. This module is optional, but without it the dark themes won't
+                 work. -->
+            <groupId>org.netbeans.swing</groupId>
+            <artifactId>laf-dark</artifactId>
+            <version>201403101706</version>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <configuration>
+                        <forkMode>always</forkMode>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <configuration>
+                        <executable>java</executable>
+                        <arguments>
+                            <argument>-cp</argument>
+                            <classpath/>
+                            <argument>-Dorg.pepsoft.worldpainter.devMode=true</argument>
+                            <argument>org.pepsoft.worldpainter.Main</argument>
+                        </arguments>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+</project>

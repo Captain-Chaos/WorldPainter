@@ -1,0 +1,959 @@
+-- Version 1.10.4, released 4-1-2015
+
+ * Support 1.8.1 jar for biome calculations
+ * When loading the custom brushes at start-up, if there is a problem with one, just skip it instead of giving an error message. An error will be logged in the log file (%APPDATA%\WorldPainter\logfile0.txt on Windows)
+ * Bug fix: make the Biomes Viewer work with Minecraft 1.8
+ * Bug fix: don't crash if Exporting a world takes less than one second
+ * Bug fix: don't crash when saving a world, or performing other operations on it, of which the maximum height has been changed from 256 or below to higher, or vice versa
+ 
+-- Version 1.10.3, released 26-10-2014
+
+ * Added lily pad support to the Custom Plants layer
+ * Support 1.8 jar for biome calculations, and rename 1.7 to 1.8 in user interface. Full support for new 1.8 blocks and features coming later
+ * Added advanced mechanism for specifying block IDs on which the Frost layer must not place snow. See this wiki page for details: http://www.worldpainter.net/trac/wiki/AdvancedSettings
+
+-- Version 1.10.2, released 12-9-2014
+
+ * Scripting engine: added support for mapping colours to layer or terrain values, allowing the use of terrain type maps to set the terrain, biome, etc.. See the scripting API page for details: http://www.worldpainter.net/trac/wiki/Scripting/API
+
+-- Version 1.10.1, released 12-9-2014
+
+ * Better error handling when loading and scaling overlay images
+ * Scripting engine: added support for filtering with the same kind of filters as are possible in the GUI using the brush settings panel (slope, terrain height, terrain type, layer, water, land, etc.). The filters can be combined with a height map, or can be applied on their own to a layer or terrain type. See the scripting API page for details: http://www.worldpainter.net/trac/wiki/Scripting/API. PLEASE NOTE: just like in the GUI, filtering on slope only works well on worlds created from high resolution (16-bit) height maps, or sculpted manually in WorldPainter!
+ * Scripting engine: bug fix: wp.saveWorld() always resulted in a "world may not be null" error; this has been fixed
+
+-- Version 1.10.0, released 5-9-2014
+
+ * Added a new custom layer type: Custom Plants layers. They allow you to create layers with a custom mix of any type of plant (single or double height), crop or sapling. At any stage (or range of stages) of growth. For crops it can automatically turn the grass or dirt underneath it to tilled dirt, to create fields of crops easily. The layer is a binary (on/off, like Frost) layer instead of an intensity based layer such as custom object layers, giving you full control over where plants will occur. Layer present => plant present (unless the terrain type doesn't allow it)
+ * Added Quartz to the Resources layer. For the surface dimension, and for existing worlds, it is set to 0‰ by default (in other words: no quartz). For newly added Nether dimensions it will be set to 6‰, which is the approximate frequency of quartz in Minecraft. For existing worlds with a Nether you will need to set the frequency manually, if you want there to be quartz in it
+ * Introducing the scripting engine. For now it supports exporting worlds, creating worlds from height maps, and applying height maps as layers or terrain types (something which isn't possible in the GUI). Note that the scripting engine is UNSUPPORTED! You can find more information online: http://www.worldpainter.net/trac/wiki/Scripting
+ * Renamed block ID 95 to "Stained Glass" (it was named "Locked Chest", which it used to be in the 2011 April Fools edition of Minecraft)
+ * The way region boundary fixups are performed has changed. Instead of at the end of the export they are now done during the export, making the time remaining estimate more reliable and hopefully preventing some hangs and crashes when exporting very large worlds. It is possible that exporting large worlds with extensive Custom Object Layer usage may be slightly slower
+ * The maximum offset of the image overlay has been increased to 999,999, to be consistent with the height map import functionality
+ * Bug fix: when creating a new world from an offset height map, or from a tile selection, scroll to it in the editor when first displayed
+ * Bug fix: fix garbage trails behind the brush due to the brush being drawn off-centre, by working around a docking framework bug 
+ * Bug fix: fix a long standing bug in the random noise generator. This will have consequences for existing worlds! Hills will be slightly lower, chasms and caverns slightly smaller, etc. It will hardly be noticeable in new worlds, but if you use WorldPainter to expand an existing world you might find that hills, caverns, chasms, etc. will not line up exactly any more between the new and old parts. Version 1.9.3 will remain available if it is necessary to export old worlds exactly as they were previously exported
+ * Bug fix: resources with a low occurrence are now exported (at the correct frequency) even when the layer is painted at less than 50% intensity. Note that the intensity response of the Resources layer has changed slightly as a result. At 1% intensity, the resource frequency will be about 1/8th of the configured value; at 50% it will be exactly the configured value (like it is now) and at 100% it will be twice the configured value
+ * Bug fix: the Chasms and Caverns layers now take the actual top layer depth into account (chasms and caverns never protrude into the top layer), instead of assuming a top layer depth of three blocks; they will still stay at least three blocks beneath the surface though (if "break the surface" is not selected of course)
+ * Bug fix: don't crash when exporting custom objects with tile entities (chests, etc.) that end up below bedrock or above the map height
+
+-- Version 1.9.3, released 29-7-2014
+
+ * The image overlay painting code has been tweaked in an attempt to solve the lag problem some people are experiencing
+ * Bug fix: make exporting a world as an image work again if it contains lava
+
+-- Version 1.9.2, released 6-7-2014
+
+ * When loading a pre-1.9.2 world, WorldPainter now offers to fix the overlay offsets, which were stored incorrectly in versions prior to 1.9.0. The reason it asks instead of always fixing it automatically is because you might have already fixed them manually in version 1.9.0 or 1.9.1
+ * When using Void (including the edges of circular worlds), whenever it is adjacent to water WorldPainter now pregenerates water cascading into the void, preventing long pauses as Minecraft loads the chunks
+ * Bug fix: fix "juddering" and misalignment of brush outline and overlay image when zoomed in, and associated "trails" behind the brush when moving it
+
+-- Version 1.9.1, released 28-6-2014
+
+ * Improve the handling of the occurrences colum on the Custom Material editing screen. It now tries its best to keep the proportions of the other materials the same as you add, remove or change the occurrence of materials. In addition, the restriction on removing, or changing the occurrence of, the first row has been removed
+ * Give a clear error message when trying to run on Java 6 on Linux
+ * Error handling during loading of configuration, loading of Minecraft jars and importing of corrupted Minecraft maps has been made a bit more robust. WorldPainter will try to continue if it can instead of giving an error message
+ * Bug fix: make exporting the world as an image work again
+ * Bug fix: prevent collapse of status bar fields when starting WorldPainter by opening a .world file
+ * Bug fix: make changing the contour line separation work again
+ * Bug fix: don't crash when adding material to a Custom Material for which the total of the occurrences of all rows but the first is more than 900
+ * Bug fix: don't try to extend vines down into the void, causing errors during Export or Merge
+
+-- Version 1.9.0, released 22-6-2014
+
+ * Performance improvements:
+   - The editor now uses tile based painting instead of maintaining one large image of the entire world. This increases performance when working at highly zoomed out levels, makes creating and loading large worlds faster and conserves memory, making it possible to create larger worlds, and works around a Java bug that causes display corruption for large worlds
+   - Creating large new worlds now takes advantage of multiple cores, significantly speeding up the process for multicore CPU's
+   - The performance of the Export process has been improved. Exports should be noticeably quicker
+ * The editor now displays the configured border, and if it can find a compatible Minecraft.jar file also the Minecraft biomes outside the border, so you can better judge how the map integrates into the Minecraft world:
+   - The border, if any, is separated from the map by a dotted line so you can see where the map ends and the border begins
+   - The biomes outside the border are shown in faded colours to distinguish them from the generated portion of the map
+   - The scrollbars only allow scrolling within the area of the actual WorldPainter world, but you can get to the surrounding areas by panning the map with the middle mouse button or the space bar
+   - The status bar will tell you when the mouse is over the border, or over the Minecraft generated area outside the border
+ * The visual style of the application can be changed to a number of different looks from the Preferences screen, including two dark themes
+ * Some basic bulk modifications are now available for existing maps: you can remove trees and/or other vegetation, remove man made structures, remove resources/ores and fill in caves. The options are on the Merge screen. You can control *where* these modifications will be performed using the Read-Only layer and or the tile selection on the Merge screen. The modifications are performed *before* the WorldPainter layers are applied, so you can use them to replace trees or ores, etc.
+ * The Custom Underground Pockets layer has been improved; instead of a simple material it is now possible to configure either a custom (mixed) material, or a terrain type, allowing you to use things like Mesa which aren't possible to do with a mixed material. Note that you can set the occurrence to 1000‰ to completely replace the underground material. This can be used to locally replicate the "keep steep terrain covered" effect without enabling it for the entire map
+ * Some Custom Material/Custom Terrain related changes:
+   - Custom Materials/Custom Terrains can now consist of layers in addition to blobs or noise, so you can make your own Mesa-like custom terrain types. The layers can repeat, or not, and can have random variation applied to them as well as be angled away from the horizontal
+   - The Custom Material screen now shows a preview of the material so you can better judge the settings
+ * Custom layers are now saved with the world even if they aren't currently in use, so that they are still there when you next load the world
+ * Some new ways of working with Automatic Biomes have been added:
+   - There is a new Auto Biomes submenu under Biomes in the "only on" and "except on" menus on the Brush Settings panel. It allows you to filter on a particular automatic biome, or on *all* automatic biomes.
+   - The same applies to the Global Operations screen. If you want to apply an operation to all biomes of a specific type, manual *and* auto, you'll have to perform the operation twice: once for the manual biome and once for the auto biome.
+   - A new "make automatic biomes permanent" option has been added to the Global Operations screen, which will fix all the automatic biomes and make them manual biomes. Of course after this operation the biomes will not be automatically updated any more as you edit the world; you become fully responsible yourself for editing the biomes as needed.
+ * The zoom level is now restricted between 6% and 6400%
+ * Extended block ID's are now supported for schematics
+ * Incomplete double high plants are more thoroughly removed, however they came to be, to prevent invisible but breakable blocks
+ * Unknown blocks are treated as being fully transparent during lighting calculations, which should create fewer visible lighting bugs
+ * When exporting custom objects, if unknown tile entities are encountered these are now exported instead of causing an error. PLEASE NOTE: WorldPainter can't verify that the corresponding block still exists; if it doesn't, the map could cause Minecraft to crash!
+ * The Minecraft 1.7.9 jar file is now supported for the Biomes Viewer
+ * The Minecraft jars are now only scanned once, when the program is started. If you upgrade Minecraft or otherwise change something that would affect a Minecraft jar that WorldPainter might use, you should restart WorldPainter or risk getting errors
+ * Some small cosmetic changes:
+   - Biome ID's are more prominently displayed on the status bar and the Biomes palette
+   - Layer intensity is shown as a percentage on the status bar to correspond to the intensity slider setting used when painting it
+   - "Show" and "Solo" labels added above the checkboxes on the layer palettes to make it more clear what they do
+   - Unknown block types are shown in cyan instead of black to differentiate them from for instance Bedrock or Obsidian
+ * Bug fix: don't respond to Alt+left mouse button drag for panning the map. The correct way to pan the map is to press the middle mouse button (mouse wheel) or the space bar
+ * Bug fix: round all values below 128 up to 128 for the width and height on the New World screen
+ * Bug fix: fixed an error that occurred when annotating text that was too long
+ * Bug fix: properly place rotated multi line text
+ * Bug fix: don't allow selection of non-existent tiles on Merge and Export screens
+ * Bug fix: prevent an error that sometimes occured when exporting resources on maps which go all the way up to the maximum height
+ * Bug fix: prevent an error that occured when setting a layer factor higher than 100% in the settings of a Combined Layer
+
+-- Version 1.8.5, released 19-3-2014
+
+ * Don't put snow on packed ice blocks, since Minecraft does not allow that
+ * The Deep Snow terrain type no longer has thin Snow on top. This is to facilitate easier generation of ice spikes by setting the biome to Ice Plains Spikes and painting Populate in the same area. Of course if you use the Frost layer in the same area, that will still place Snow and prevent ice spikes from forming!
+ * Bug fix: don't crash upon encountering unknown tile entities in schematics; instead log a warning in the log file. Note that for unknown tile entities WorldPainter can't check whether the corresponding block still exists. If it doesn't (because it was replaced by something else, for instance), Minecraft may crash
+ * Bug fix: configuring a colour for the material of a Custom Ground Cover layer would result in an error; this has been fixed
+
+-- Version 1.8.4, released 16-3-2014
+
+ * It is now possible to replace a particular block type in custom objects with air when placing the object:
+   - The Edit Object Attributes screen now has a new checkbox called "replace with air". If you select it you can then specify a block ID and data value
+   - By default the block ID is set to 35 and the data value to 2, which is Magenta Wool, but you can use any block type you want
+   - For objects where this option is active, any blocks in the object with the specified ID and data value will be replaced with air when the objects is rendered
+   - Note that for the collision calculations the original block type is used
+   - One way to use this is to create dungeons or other hollow spaces underground with schematics, something which was not previously possible. Just replace the air blocks with magenta wool blocks before exporting the schematic, and activate the "replace with air" option in WorldPainter
+   - Another way to use this is to expand the "collision envelope" of objects, in other words increase the guaranteed distance from other objects, by placing a few Magenta Wool blocks as a buffer around the outside of the object, which will collide with solid blocks, but rendered as air
+ * The tool panels and palettes now use the JIDE Docking Framework for much improved management and organisation
+   - When a world is saved WorldPainter will remember the workspace layout (in its own settings, not in the .world file, so they will not travel with the file) and will restore it when you load the world again
+   - You can also set the default workspace layout from the menu: View -> Save workspace layout
+   - By default custom layer palettes are tabbed with the regular Layers palette, and the custom brush palettes are tabbed with the regular Brushes palette, but you can drag them away and create your own layout of panes and/or tabs for optimum convenience
+   - Panels can be moved and docked in various places by dragging the title bar (which will move all the tabs), or by dragging the individual tabs
+   - Panels can be floated by clicking the float icon on their titlebar, or by dragging them onto the editor, or out of the window. They can be unfloated by clicking the unfloat icon
+   - Panels can be set to autohide by clicking the pin icon
+   - Panels can be dragged onto a workspace edge to create a new pane, onto the titlebar of an existing pane to add a tab, or in between panes to insert a new pane between the existing ones
+   - If you want to move all tabs but one to a new pane it's easier to first drag the entire pane to a new location, and then drag only the one tab which you wish to remain in its original location back
+   - If you mess up the layout or lose a panel you can restore to factory defaults from the menu: View -> Reset workspace layout
+ * The default export settings (world type, game mode, etc.) can now be configured on the Preferences screen (Edit menu)
+ * Worlds created from height maps now inherit more default settings from the Preferences screen (such as the default export settings and the default border, surface layer depth, bottomless world and layer configuration settings)
+ * Bedrock walls are now solid bedrock (instead of being hollow in the middle), to avoid triggering a bug in Minecraft
+ * Bug fix: don't export custom terrains with incorrect biome ID's, causing Minecraft to crash. Unfortunately such worlds will have to be reexported to fix the biomes
+ * Bug fix: the Grass terrain type should no longer render empty but breakable blocks on top of some tall grass blocks
+ * Bug fix: when importing a height map don't turn pixels with value 0 into void (unless requested)
+ * Bug fix: when importing a height map correctly initialise the default water level to the stored defaults
+ * Bug fix: remove tile entity data for tile entities (chests, etc.) which did not end up in the exported map (because they were replaced by something else, for instance) to prevent Minecraft crashes
+
+-- Version 1.8.3, released 24-2-2014
+
+ * Bug fix: make importing height maps work again without generating an error message
+
+-- Version 1.8.2, released 23-2-2014
+
+ * The Grass terrain type (which is the default terrain type) now generates the new flowers and double high plants of Minecraft 1.7. It generates as many flowers and as much grass as previously, but anywhere it previously generated a dandelion or poppy it can now generate any flower (including double high ones), and anywhere it previously generated tall grass or ferns it can now also generate double high grass or ferns
+ * Zoom support has been added to the 3D view. Note that it is a simple zoom; i.e. it just enlarges the pixels. No additional detail will be visible when zooming in. You can zoom in or out by pressing the - or + buttons on the keyboard, by scrolling the mouse wheel or by using the new toolbar buttons. You can zoom a maximum of three levels in either direction. Note that zooming out large worlds will cost a lot of memory and performance!
+
+-- Version 1.8.1, released 17-2-2014
+
+ * Bug fix: make the Global Operations tool work again, without hanging WorldPainter
+ * Bug fix: merging maps with Mesa terrain now works correctly, without building higher and higher columns of clay
+ 
+-- Version 1.8.0, released 16-2-2014
+
+ * A new feature has been added: Annotations. They allow you to add lines (both straight and free form) and text to the map view as guides or reminders. It has the following properties:
+   - Activate by selecting the Annotations layer button. An options panel will be displayed which allows you to select a tool and a colour.
+   - The Pencil tool allows you to draw lines and to erase annotations
+     + It uses the shape and size of the brush. By reducing the brush radius all the way to zero you can draw single pixel lines
+     + Click one with the Pencil tool to draw a single point
+     + Click and drag with the left mouse button to draw a free form line
+     + Press Shift while clicking with the left mouse button to draw a straight line from the last point you drew
+     + Press Ctrl and Shift while clicking with the left mouse button to draw a straight line from the last point you drew, snapped to the nearest 45 degree angle
+     + Press Ctrl and drag with the left mouse button to draw a straight free form line, snapped to the nearest 45 degree angle
+     + You can do all of the above with the right mouse button instead of the left to erase annotations instead of drawing. You might want to use a larger brush size for that
+   - The Text tool allows you to draw text
+     + Select it and left click where you want to place the text
+     + A dialog box will appear allowing you to enter the text you want to draw, as well as select a font, font size, bold and/or italics, and angle (allowing you to draw the text on its side or upside down)
+     + The text may have multiple lines
+     + Note that if you select a different angle than zero degrees, the text will be rotated around the point where you clicked. In other words, if for instance you selected 180 degrees, the text will be placed above and to the left of where you clicked
+   - The colour palette determines the colour of any lines or text you draw
+   - You can erase annotations by right clicking with the Pencil tool (use a larger brush size for convenience)
+   - The Annotations layer is mainly meant for creating guides and reminders for the world creation process, not for actual exporting to the Minecraft map. However, it *is* possible to do that by checking the "export the annotations" checkbox on the Other Layers tab of the Export or Dimension Properties screens. The annotations will be exported as coloured wool on top of the landscape
+ * The height map import dialog has been slightly improved:
+   - The settings on the Terrain tab can now be saved as defaults, so you don't have to keep changing them if you use the same settings a lot
+   - It once again supports importing RGB ("colour") images. Note that only the red channel will be used!
+   - It now properly supports 16-bit height maps (height maps with 65536 discrete values per pixel, instead of 256). Such height maps can be used in two ways:
+     + Creating worlds higher than 256 blocks. WorldPainter automatically chooses this mode if the highest value in the image is below 2048. Otherwise WorldPainter chooses the next mode by default:
+     + "High resolution" world creation: a world with a normal 256 world height, but with additional resolution to the height information, resulting in better looking Smooth Snow (which will be turned on by default, as opposed to normal "low res" height maps), and smoother terrain operations. The additional resolution does not show up in Minecraft (other than in the Smooth Snow), but it makes editing the world after importing the height map work better
+   - Note that it does not support scaling for grey scale images with alpha channels. Remove the alpha channel from such images using a program such as GIMP or PhotoShop in order to be able to scale it in WorldPainter
+ * Bug fix: tile entities (chests, signs, etc.) from schematics are now correctly placed, even if the schematic has a non-zero offset
+   - Note that there is a bug in WorldEdit causing it not to include paintings or item frames in exported schematics. They will be lost, but there is nothing WorldPainter can do about that unfortunately
+   - There are a few known bugs which will be fixed in the future:
+     + Severed heads aren't supported; both the rotation and the type of head will be lost
+     + Rail track corners aren't rotated properly
+
+-- Version 1.7.1, released 1-12-2013
+
+ * Made the terrain type menu on the brush filter panel shorter by breaking off the stained clays and the custom terrain types into their own sub menus
+ * The default "ocean" and "land" seeds have changed to seeds which work with Minecraft 1.7's new biome algorithm (but therefore are no longer correct for Minecraft 1.6). Note that Minecraft 1.7 has no large oceans any more, so even the default "ocean" seed will only result in a relatively small ocean around the origin (the nearest land is approximately 1400 blocks away)
+ * Made several small usability improvements and bug fixes to the Biomes Viewer
+ * Bug fix: actually use the custom terrain colours, when configured, in the editor
+
+-- Version 1.7.0, released 30-11-2013
+
+ * Added support for Minecraft 1.7 biomes in various places:
+   - The Biomes layer
+   - The Biomes Viewer tool
+   - Because there are so many biomes now the Biomes panel has been refactored. Instead of having buttons for all biomes there are, it has buttons for the base biomes (to which have been added Birch Forest, Roofed Forest, Mega Taiga, Mega Spruce Taiga, Savanna, Mesa, Stone Beach, Cold Beach and Cold Taiga) and checkboxes for a number of options ("hills/shore", "edge/plateau", "M", "F" and "variant"). The "variant" option is for things like Flower Forest, Extreme Hills+, Mesa (Bryce) and Ice Plains Spikes
+ * Various changes were made to the Custom and Automatic Biomes support:
+   - The legacy biomes support (where WorldPainter would calculate the biomes according to the Minecraft seed) has been removed
+   - Custom Biomes is now *always* enabled (and therefore the option has been removed). Note that if you export a world to the MCRegion (Minecraft 1.1 and earlier) format the biome information will not be exported and therefore be ignored!
+   - Automatic Biomes have been refactored and work differently. It is no longer an option; instead it is always available. New worlds are initialised to have automatic biomes everywhere, which you can override by painting biomes manually with the Biomes layer. To reset to Automatic Biomes, right-click with the Biomes layer (it doesn't matter which biome you have selected), or use the Global Operations tool to reset it everywhere. Automatic Biomes will now no longer overwrite your manual changes whenever you edit the terrain or the layers
+   - Existing worlds may have Automatic Biomes enabled if it was disabled, or disabled if it was enabled, depending on exactly which options were enabled previously. WorldPainter will warn you when it does this. For more information, including how to disable or reenable Automatic Biomes, see this web page: http://www.worldpainter.net/trac/wiki/NewAutomaticBiomes
+ * The colour schemes have been updated and expanded for Minecraft 1.7:
+   - The default colour scheme has been altered to more accurately represent the actual colours in Minecraft. You can change the colour scheme from the View menu
+   - Some more colour schemes have been added, corresponding to popular texture packs: DokuDark, DokuHigh and DokuLight (DokuCraft), Misa (Realistic) and Sphax (PureBDCraft)
+   - With thanks to mikeprimm from Dynmap!
+ * The terrain types were also updated for Minecraft 1.7:
+   - Added new terrain types for the new Minecraft 1.7 biomes. The simple terrain types (which consist of a single block type throughout) added are: Permadirt (Dirt on which grass won't grow), Podzol, Red Sand, Hardened Clay and all sixteen colours of Stained Clay. When Importing a Minecraft map WorldPainter will now use these new terrain types
+   - In addition, two new complex terrain types have been added: Mesa and Red Desert. Mesa consist of random horizontal layers of Hardened Clay, Red Sand and White, Yellow, Orange, Light Grey, Red and Brown Stained Clay. The layers vary up and down randomly and on top are many dead shrubs. The associated Automatic Biome is Mesa. The second complex terrain type is Red Desert, which is very similar to Desert, except that it places Red Sand, has fewer cactuses and the associated Automatic Biome is also Mesa
+   - The Terrains panel has changed to accomodate the new terrain types. Dirt has been replaced with Permadirt (the idea is that if you are placing Dirt manually you most likely want it to stay Dirt). Podzol, Red Sand and Hardened Clay have been added, as well as Mesa and Red Desert. Resources has been removed. An extra More Terrains panel has been added, which can be opened with the new + button on the Terrains panel, and which contains all the Stained Clays
+ * You can now donate bitcoins! If you find WorldPainter fun or useful, or you make money with it, please consider donating an amount of your choice. The bitcoin address for donations is: 1NK8PFYFetTiWReujPsQXDcarXKJuYtqgF
+ * WorldPainter now targets Minecraft 1.7 in principle. While the map format has not changed and it can still generate Minecraft 1.6 compatible maps in principle, you have to make sure yourself not to use any block types or biomes which Minecraft 1.6 does not support, if you are targeting Minecraft 1.6. Note that Automatic Biomes (which is used by default on new worlds) *will* choose biomes which Minecraft 1.6 does not support, so you will have to paint the biomes manually. See http://www.worldpainter.net/trac/wiki/NewAutomaticBiomes for more information. WorldPainter 1.6.7 will also remain available
+ * Bug fix: make painting custom terrain types work correctly again (the wrong terrain was being painted)
+ * Bug fix: some small zoom related bugs were fixed in tile selection screens
+
+-- Version 1.6.7, released 15-11-2013
+
+ * Bug fix: fix an error while importing a map that was caused by encountering a Dirt or Sand block with an unknown data value. Such blocks will now be counted as regular Dirt or Sand blocks (with a data value of zero)
+ * Bug fix: make changing the colour of custom terrain types work again
+
+-- Version 1.6.6, released 10-11-2013
+
+ * New feature: layer palettes! This allows you to group custom layers together on separate palettes, alleviating the problem that if you have too many custom layers they don't fit on the screen any more. To use: right-click on a layer button, choose "Move to palette", then choose the name of an existing palette or "New palette" to create a new one. In the future you will be able to hide and/or collapse these palettes, but as of now that is not yet possible
+ * New option: "keep steep terrain covered". It's on the Dimension Properties/Export screen next to the top layer depth settings. It is on by default for new worlds; for existing worlds it remains off. It does what it says: it makes sure that the surface layer is extended downwards on steep terrain as much as needed to prevent the subsurface material from being visible. It prevents the stone underground showing through on cliffs and steep mountain sides, for instance. If you *want* that effect you can of course turn it off
+ * It is now possible to select custom biomes for the "only on" or "except on" brush filter settings
+ * Added support (names, light calculation, rotation and mirroring, etc.) for new blocks in Minecraft 1.7
+ * When importing existing Minecraft maps, as a temporary solution until full Minecraft 1.7 support arrives, WorldPainter will create custom terrain types for the new biome surface blocks (red sand, hardened clay, stained clay, permadirt and podzol) so these biomes can be more or less correctly imported and edited
+ * New import option: when importing an existing map there is a new setting (which is also the new default) for when to mark chunks read only: "chunks with man made blocks *above ground*". This will prevent chunks from being marked read only just because there are underground structures such as abandoned mines or strongholds. The old option of man made chunks at any level is also still available
+ * WorldPainter will try to remove blocks that would pop off in Minecraft anyway because they are placed on invalid blocks. It already did this for some block types (for instance flowers on anything but Grass or Dirt blocks), but it has been expanded to include Snow and Wheat blocks. Other invalid configurations will be added in the future. The reason is that large areas of these invalid block configurations have been known to crash Minecraft upon loading the map or entering the area
+ * Bug fix: make the "bottomless world" option work with the Cave/Tunnel layer
+ 
+-- Version 1.6.5, released 28-10-2013
+
+ * Bug fix: fixed a bug that prevented multiple ground cover layers in the same location from being exported if they had the same thickness
+ * Bug fix: fixed an error that occurred when importing a Combined Layer which refers to a Custom Terrain which is not present in the current world. For existing Combined Layers, the Custom Terrain setting has been lost and a warning will be displayed. For Combined Layers exported from now on, the Custom Terrain settings will be saved with the layer, and restored when it is imported
+ * Bug fix: don't remove red or brown mushrooms from mycelium blocks
+ * Bug fix: wheat no longer replaces water when used in a Custom Ground Cover layer
+ * Bug fix: make the bedrock wall option work again when no border is selected
+ * Bug fix: select the correct radiobutton for configured materials when editing existing Cave/Tunnel layers
+ * Various small bug fixes
+
+-- Version 1.6.4, released 25-9-2013
+
+ * Bug fix: make importing existing Minecraft maps work again. Sorry about that!
+ * Bug fix: make tile selection on the Export screen work for Nether and End
+
+-- Version 1.6.3, released 22-9-2013
+
+ * The Custom Ground Cover layer type has been expanded with more settings, making it more powerful:
+   - Instead of a simple block ID and data value the material can now be a complex custom material with a mix of block ID's
+   - The thickness setting can now be negative, which will cause the layer to dig into the ground, instead of being placed on top of it
+   - The edges of the layer can now be shaped in different ways. There is an edge shape and an edge width setting. The shapes are as follows:
+     + Sheer - the layer has a constant height right up to the edge; the edges are completely sheer. The edge width is ignored for this shape
+     + Linear - the edge forms a diagonal but straight line down to the ground. For an exact 45 degree angle, set the edge width to one less than the layer thickness
+     + Smooth - the edge forms a sinuous, smooth shape which meets the ground and the top horizontally with a smooth transition in between
+     + Rounded - the edge forms a quarter circle, meeting the top horizontally and the ground vertically with a smooth transition in between
+   - Of course these shapes will only become apparent at higher thicknesses and edge widths! Minecraft's blocky nature means that for thin layers and edges the difference will be negligible
+   - A random variation can now be added to the thickness, with the same settings as used in the Caves/Tunnels layer. The randomness is applied to the flat sections as well as the edges
+   - All these new settings can be combined to do things like add glaciers (with or without deep snow on top), rivers including a riverbed, holes in the ground (by using Air as the material), etc., etc.
+   - All existing ground cover layers will by default get an edge width of one, and an edge shape of "sheer" (if the thickness is one) or "rounded" (if the thickness is more than one). For one block thick layers there will be no change in behaviour, but layers with a higher thickness will have different looking edges, so you should inspect those
+ * A new brush type has been added: Dome. This has the shape of a half sphere. If you start with a flat surface, and raise the ground until the center is raised (or lowered) exactly the same amount as the brush radius, the resulting shape will be an exact half sphere. (This was already added in the previous release, but was omitted from the release notes)
+
+-- Version 1.6.2, released 20-9-2013
+
+ * The accuracy of the brush has been improved for small brush sizes and when zoomed in, making it easier to work on small details. As long as the brush is not rotated, or rotated at a 90 degree angle, the brush now indicates *exactly* which blocks will be affected even when zoomed in and with small brush sizes. For round brushes it is only the blocks which lie completely inside the circle
+   - In a related change, the brush may now have a radius of zero, which affects only the block the mouse cursor is on, for even more detailed work
+   - The spawn point marker is also drawn more accurately across the actual block where you will spawn
+ * The Caves/Tunnels layer behaviour has changed slightly with respect to the absolute minimum and maximum heights for floor and ceiling. The noise, if any, is now applied *after* the minimum and maximum, so that the level sections of the cave still have random variation applied, instead of being perfectly flat
+ * It is now possible to create separate palettes for custom brushes, by placing them in subdirectories inside the custom brush directory (which you can open from the Tools menu). The name of each subdirectory will be used as the name of the palette. In the near future this will be expanded with the possibility of collapsing palettes, and creating palettes for custom layers
+ * After exporting a world some statistics about its total area, size on disk, export speed, etc. are displayed
+ * Bug fix: fixed a small irregularity in Smooth Snow, making it *slightly* smoother
+ 
+-- Version 1.6.1, released 15-9-2013
+
+ * Added some new options for the Caves/Tunnels layer:
+   - "Remove water or lava" option - off by default (including existing layers) - when off, water (or lava) will not be removed, and floor, wall and roof materials will not be placed in water. When on, water will be removed, and floor, wall and roof materials will be placed underwater. Note: this only applies to water or lava from WorldPainter's Flood tool, not to water from the Resources layer or some custom layer. Turn this on and use Glass for all materials to create underwater habitats, for example
+   - "Flood the caves/tunnels" option - off by default (including existing layers) - when turned on, the caves or tunnels created by that layer will be flooded. You can specify the level to which it should be flooded, and whether it should be flooded with water or lava
+ * Added some keyboard and mouse controls for the brush rotation:
+   - Pressing Alt while rotating the mouse wheel will rotate the brush fifteen degrees counterclockwise (when scrolling up) or clockwise (when scrolling down)
+   - Alt+0 (on the main keyboard or numeric keypad) will reset the rotation to zero degrees
+   - Alt+- and Alt++ (on the main keyboard or numeric keypad) will rotate the brush fifteen degrees counterclockwise or clockwise, respectively
+   - Alt+3 (on the main keyboard or numeric keypad) will rotate the brush 30 degrees clockwise
+   - Alt+4 (on the main keyboard or numeric keypad) will rotate the brush 45 degrees clockwise
+   - Alt+9 (on the main keyboard or numeric keypad) will rotate the brush 90 degrees clockwise
+ * Added some keyboard controls for finer control of the brush size:
+   - Pressing Shift while rotating the mouse wheel will change the brush size by one pixel at a time
+   - Shift+- and Shift++ (on the main keyboard or numeric keypad) will change the brush size by one pixel at a time
+ * Bug fix: restored ability to remove Read Only layer with Global Operations tool
+
+-- Version 1.6.0, released 10-9-2013
+
+ * Brush rotation! Brushes can now be rotated from -180 to 180 degrees clockwise at 15 degree intervals using a new slider on the Brush Settings panel
+ * Caves/Tunnels layer! A new custom layer type has been added which allows you to create underground caves and tunnels with specific elevations, shapes and floor/wall/ceiling materials. See http://www.worldpainter.net/trac/wiki/CavesAndTunnels for details
+ * You can now change the spawn point from the tile selection screen on the Export screen, saving you from having to exit all the way out of the Export screen to change the spawn point
+ * The way borders and bedrock walls are generated has changed for irregularly shaped worlds (including circular worlds). They used to form a rectangular shape around all the tiles, potentially being a huge distance away and greatly increasing the surface area and disk space requirements of the map. Now they are only generated around the tiles which are actually present, more closely following the shape of the world
+ * When you use the Ocean Minecraft seed, the world type is now set to Large Biomes by default, to make an even larger ocean around your map
+ * Bug fix: fixed an error that occurred when exporting a world with custom objects that dig into the ground placed at low altitudes
+ * Bug fix: fixed an error that occurred when adding tiles to some existing worlds. Unfortunately for those worlds new tiles will be flat, as the information about what the landscape should like like was lost
+ * Bug fix: the 3D view shows underground Grass, Mycelium and Tilled Earth blocks as Dirt, as they will be exported, and as it used to do previously
+
+--- Version 1.5.5, released 23-8-2013
+
+ * Bug fix: fix a bug introduced in version 1.5.4 which prevented some worlds from being loaded
+ * Bug fix: fix a bug which prevented very old worlds from being loaded
+
+--- Version 1.5.4, released 23-8-2013
+
+ * Bug fix: fix a bug that prevented version 1.5.3 from loading worlds created in 1.5.2 or earlier and containing custom object layers
+ * Bug fix: fix a bug that prevented editing the properties of existing custom object layers
+
+--- Version 1.5.3, released 22-8-2013
+
+ * The leaf decay behaviour for custom object layers has changed. The default value of the leaf decay setting is now "as exported", so by default the old behaviour is back where leaves will decay or not according to how the object creator created them. To make it easier to change that there is now a leaf decay settings section on the main layer settings panel, in addition to the one on the individual object settings panel. It shows whether or not the currently loaded objects have decaying leaves or not (or a mix), and allows you to override the default for all objects at once with one button click
+ * Bug fix: hopefully implemented a workaround for an error some people get when enabling solo mode for some layers
+ * Bug fix: fixed an error that occurred when creating or opening a world while having a layer soloed
+ * Bug fix: fixed an error that occurred when creating or opening a world while having the Nether or End dimension active
+ * Bug fix: fixed an error that occurred when soloing a layer on a dimension with contains lava
+
+--- Version 1.5.2, released 12-8-2013
+
+ * Bug fix: the long standing bug that left patches of water after canceling a Flood operation has *finally* been fixed!
+ * Bug fix: a bug that prevented height maps that contained at least one pixel with value 0 from being imported at all, introduced in version 1.5.1, has been fixed
+
+--- Version 1.5.1, released 11-8-2013
+
+ * A few Frost related changes have been made to imported Minecraft maps and height maps:
+   - Smooth snow is now turned off by default for imported height maps (it already was for Minecraft maps), but both are now imported in such a way that turning on smooth snow will not result in a half block thick layer of snow (it will be regular one layer thick). *Note* however that it still won't be smooth snow! Smooth snow is not compatible with imported worlds
+   - The merge process had been tweaked so that it leaves *existing* smooth snow alone (as long as you haven't removed the Frost layer of course). Note that this may give strange effects if you changed the slope of the land
+   - You can now remove snow and ice from an existing map by importing it, removing the Frost layer and merging it (making sure that the chunks where you want to remove snow and ice are not marked read-only)
+ * Add support for Minecraft 1.6.2 jar file
+ * Bug fix: fixed (hopefully) a nasty bug related to combined layers which would cause floods of NullPointerExceptions in unpredictable circumstances
+ * Bug fix: the minimum and maximum Chasms layer settings in the Dimension Properties now work (and are saved)
+ * Bug fix: a problem with the stored water level in world files has been fixed, which among other things makes the Sponge tool work correctly again for restoring the default water level by right-clicking
+ * Bug fix: actually use the default top layer depth and bottomless world settings from the Preferences screen for newly created worlds
+
+--- Version 1.5.0, released 21-7-2013
+
+ * A new custom layer type has been added: "combined" layers. These allow you to combine a terrain type and/or a biome and/or one or more layers (both standard and custom) into one layer, making it easier to apply a number of layers at once in the same location.
+   You have the option of hiding the layers that you add to the combined layer so they don't clutter up the layers panel. When you paint the layer your chosen terrain and/or biome (if any) are applied immediately; any layers you configured will be applied when the world is exported.
+   You can also "apply" the layer (from the popup menu on the layer button), which will replace the combined layer with its constituent layers and make the changes permanent.
+   You can use custom terrain types and biome IDs in combined layers, by defining the terrain type or biome ID first. They will be included in the selection menus when you add a new combined layer
+ * Support for custom biome IDs has been added. To use it, "custom biomes" must be enabled (on the New World screen or from the Edit menu). Show the Biomes panel by clicking on the Biomes button, and then click on the + button to add a custom biome ID
+ * A second column of "solo" checkboxes has been added in front of the layer buttons. Checking these will show only that layer, allowing you to quickly declutter the view
+ * The brush options have been expanded with two new filters: slope and water/land. The slope filter allows you to apply an operation only to terrain above or below a certain slope, specified in degrees from horizontal. This is a good way to change the terrain type of cliffs and mountain sides to stone, for instance. The water and land choices in the "only on" and "except on" selection menus behave as you would expect
+ * A new custom object setting has been added: leaf decay mode. This allows you to override the leaf decay behaviour of placed custom objects. By default (including existing custom object layers) it is set to "decay", meaning that all leaf blocks from the object will decay if there is no more wood nearby. You can also set it to "not decay" (should be obvious), or to "as exported", which is the old behaviour of placing the leaf blocks exactly as they are stored in the bo2 file or schematic. As with the other custom object settings you can change the setting for a number of objects at once by selecting them all in the list and clicking the Edit button next to the list
+ * It is now possible to pan the view using the space bar in addition to the middle mouse button
+ * The default behaviour of the Frost layer has changed to put snow and ice under trees (leaf or wood blocks), which it would not previously do. The setting can be changed on the Other Layers page of the Dimension Properties or Export screens. For existing worlds the old behaviour remains the default. Note that snow will always penetrate a single leaf or wood block, so there will still be snow around the edges and under thin canopies even with this setting turned off
+ * Tilled Earth can now be used as a custom terrain type without crashing Minecraft, because WorldPainter will change all but the topmost Tilled Earth block to Dirt (like it already does for Grass and Mycelium blocks)
+ * The Flood and Lava tools now don't change the fluid level when you click them (left or right) on a different fluid type. This makes it easier to change lava into water or vice versa without the risk of flooding the entire world
+ * Allow changing the relative frequencies of multiple objects at once from the custom object screen
+ * Bug fix: changing the scale of individual materials for custom terrain types set to "blobs" now works correctly
+ * Bug fix: fix the names of some blocks newly added in Minecraft 1.6
+ * Bug fix: correctly export metadata from tile entities in schematics. This makes it possible to place tile entities (chests, furnaces, mob spawners, etc.) with contents and configuration intact using schematics and a custom objects layer
+
+--- Version 1.4.0, released 9-6-2013
+
+ * Custom layers (of all types: objects, ground cover and underground pockets) can now be saved to and loaded from files on disk, allowing you to reuse them from world to world. Export from the layer's context menu (right-click on the layer button) and import from the File -> Import menu, or the + button on the layers panel. The files have a *.layer extension and can be sent to and used by anyone with WorldPainter version 1.4.0 or higher. Note that for custom object layers the object data is stored inside the layer file, so you don't need to keep or send the original object files separately
+ * Custom terrain types can now be saved to and loaded from files on disk, allowing you to reuse them between worlds. Export and import custom terrains from the terrain's context menu (right-click on the custom terrain button). The files have a *.terrain extension and can be sent to and used by anyone with WorldPainter version 1.4.0 or higher
+ * Added support block ID's between 255 and 4096, as used by various mods. The support can be enabled for each world individually from the New World screen, or later from the Edit menu, and the default can be set on the Preferences screen
+ * Added twelve more custom terrain types, for a total of 24
+ * Added support for Minecraft 1.5.2 jar file
+ * Bug fix: fixed changing the height of the map for worlds loaded from disk
+
+--- Version 1.3.1, released 12-5-2013
+
+ * Bug fix: fix an error that would occur when trying to load or save a world when another world is already loaded, but not being displayed
+
+--- Version 1.3.0, released 12-5-2013
+
+ * Tile selections are now also supported for Merging, in addition to Exporting, making it easier to merge just part of a map, without having to mark everything read-only. This also fixes the problem that merging a world which has an active tile selection from an export operation only merges those tiles
+ * The last view position is now remembered for each dimension, and will be restored any time the dimension is opened or switched to
+ * Removed a feature which made it impossible to add tall grass or flowers to an existing map. This can now be done, preferably using Custom Ground Cover layers. Old imported worlds, with Grass instead of Bare Grass as the terrain type will now cause some random patches of tall grass and flowers to be added to existing maps, which would previously have been prevented
+ * Custom objects will not be placed adjacent to each other (or to the terrain) if that would cause fence blocks to connect to other fence blocks or solid blocks, to avoid creating accidental fences. The same goes for nether brick fences, iron bars, cobblestone walls and glass panes
+ * Bug fix: make the Mountain tool work with any brush. It still works best with brushes that smoothly flow to a bright peak somewhere near the middle though
+ * Bug fix: an obscure bug that, if two custom layers had the same name and were both used within a tile, caused one of the layers not to be rendered in that tile, has been fixed. It's still a good idea to give custom layers different names though
+ * Bug fix: don't warn about using both populate and superflat on export, if the preset contains the decoration tag
+
+--- Version 1.3.0-RC2, released 9-5-2013
+
+ * Bug fix: properly save the new custom terrain types with the world when a .world file is saved
+
+--- Version 1.3.0-RC1, released 5-5-2013
+
+ * The custom terrain types now allow more than one type of material, in either random pockets or completely random noise, with configurable frequencies and pocket sizes
+ * Added seven more custom terrain types, for a total of twelve
+ * Split up the toolbars to make them easier to use on small screens or with many custom layers and/or brushes
+ * Added an offset/origin viewer to the offset adjustment screen for custom objects, to make it easier to see what you're doing when adjusting the offset
+ * Made Beaches terrain type (and other terrain types with pockets of different materials, like Rock and Netherlike) more three dimensional (they vary going up and down instead of being the same all the way down from the surface)
+ * Sand is now only supported with sandstone if it is floating over air. Sand on top of solid blocks will remain sand, so you have to be even more careful when digging straight up! This fixes the problem with thin layers of sand (for instance in beaches) turning to sandstone
+ * Increased the maximum offset for overlay images tenfold
+ * Bug fix: don't place snow on top of nonsensical blocks. Only solid blocks will receive snow on top of them
+ * Bug fix: also apply Frost layer to custom objects placed along region boundaries. This fixes the strange snow-free grid lines through snowy custom object forests
+
+--- Version 1.2.5, released 22-4-2013
+
+ * Added more settings for custom objects:
+   - "on air" will allow objects to spawn over Void
+   - "on water" will allow objects to spawn on water (as opposed to under water on the floor). Note that such "floating" objects won't be placed if any solid blocks in the objects intersect the floor
+   - "on lava" will similarly allow objects to spawn on lava
+   - A "collide with" setting which allows you to control whether objects can overlap one another:
+     + The default is "solid blocks", meaning objects won't be placed if a solid block from the object intersects with any existing solid (above ground) block
+     + "any blocks" means that objects won't be placed if a solid block from the object intersects with any existing (above ground) block (except water, lava or air)
+     + "nothing" means that the objects will always be placed, regardless of what is already there. This will allow objects to intersect, but also means existing objects will be partially cut off or replaced. Note that objects are always placed at ground (or water) level, never "on top" of each other
+   - A "replace underground blocks" setting which allows you to control what happens if part of the object extends underground:
+     + The default is "always", meaning every block that is present in the object (including air) will replace what is already there
+     + "if object block is solid" means that only solid blocks from the object will be placed. This allows you for instance to create bushes with "underground" leaf blocks which will only be placed if the bush is placed on a cliff or a ledge and the "underground" part extends into the air
+     + "if existing block is air" means that only air blocks (from caves, for instance) will be replaced with blocks from the object
+ * Added a way to change the settings of multiple custom objects at once:
+   - To change the settings of one object, double-click on it, or select it and press the Edit button to the right of the list
+   - To change the settings of multiple objects, select them all and press the Edit button. The checkboxes will initially be in "indeterminate" state, meaning that the existing setting won't be changed (in case the setting is different among the selected objects). Change the value of any settings you want to apply to all selected objects and press OK
+ * Added links to places where you can read about custom objects and block ID's and data values to various settings screens
+
+--- Version 1.2.4, released 26-3-2013
+
+ * Bug fix: resources that were set to 1 per mille in the Resources layer settings were not being exported at all; this has been fixed
+
+--- Version 1.2.3, released 24-3-2013
+
+ * Bug fix: fix a fatal error occuring during exports with certain layers active
+
+--- Version 1.2.2, released 24-3-2013
+
+ * Add support for Minecraft 1.5.1 jar and new block types
+ * Bug fix: fix the empty seams along region borders in custom object layers
+ * Bug fix: don't export resources that have been set to an occurence of zero
+ * Bug fix: don't create unnecessary extra tiles when importing a height map that is a whole number of tiles big
+
+--- Version 1.2.1, released 3-3-2013
+
+ * Added an "except on" restriction to the brush, analogous to the "only on" option. Only one of the two can be selected at a time
+ * Expand map import dialog to detect (and skip by default, although you can choose to include them) rogue outlying chunks, as well as show some statistics
+ * Bug fix: export Nether and End dimensions with correct biomes
+
+--- Version 1.2.0, released 1-2-2013
+
+ * New feature: limit the brush to particular altitudes, terrain types, layers or biomes! An oft requested feature, this makes it possible to easily replace terrain types or biomes, or paint layers or terrain types only on certain levels. Note that the options have also been added to the Global Operations tool (Tools panel or press Ctrl+G), so you can easily paint a layer on certain altitudes or replace a terrain type worldwide in one go
+ * New feature: it is now possible to limit the Caverns and Chasms layers to specific levels. For instance, you could set them to occur only from level 70 upwards so they only occur in mountains. Or you could have Caverns only low down in the map and Chasms all the way to the surface. Or any other combination
+ * A major overhaul has been given to the custom object layer settings:
+   - You can customise the origin of each object (use this to fix "floating" or "buried" objects)
+   - You can indicate per object whether it may be rotated and mirrored randomly, and whether it can spawn in water or lava
+   - You can change the relative frequecy of objects to make them more prevalent, or more rare, than the other objects in the layer (without having to add objects to the layer multiple times)
+   - Because individual objects can now have different settings, you can no longer include a directory in the list. You can still select directories, but the objects from it will all be added to the list individually
+   - You can explicitly choose to reload the objects from disk
+   - Schematics can optionally contain an offset. If the schematic offset is present and points *inside* the object, it is used as the default WorldPainter offset. Otherwise WorldPainter makes an educated guess for the default offset. For bo2 objects the offset is always initialised to the offset stored in the file
+ * Border tiles now include an ocean bottom. It is at more or less the same depth as in Minecraft, and consists of dirt, sand, clay and gravel on top and the subsurface material configured on the Export screen below. Any layers that have been selected to be applied everywhere (such as Caverns or Chasms) will also be applied to the border chunks. This feature was already present since version 1.1.0, but was not included in the release notes
+ * Support Minecraft 1.4.7 minecraft.jar file in biomes viewer
+ * Bug fix: import bo2 objects correctly rotated. This fixes mismatched vines, horizontal logs, etc.. If you are experiencing such problems you will have to reload those bo2 files in WorldPainter to fix them
+ * Bug fix: disable inappropriate fields on New World screen
+ * Bug fix: correct title of New World screen when adding Nether or End
+
+--- Version 1.1.1, released 13-1-2013
+
+ * Bug fix: make the bottomless map option actually operational
+
+--- Version 1.1.0, released 13-1-2013
+
+ * Added a new type of cave layer: Chasms! These are flat and windy, ravine-, chasm- or tunnellike caves. They are much smaller than the large, smooth caverns generated by the Caverns layer. You get the best effect if you use both cave layers, Caverns and Chasms, in the same area so they intersect
+ * Add option to generate a bottomless map: a map with no bedrock at the bottom (so dig very carefully!) and with caverns and chasms open to the void at the bottom
+ * Add option to configure the thickness of the surface layer
+ * Removed warning when setting the spawn point lower than 63, since Minecraft no longer appears to be restricted by that
+ * Bug fix: merge wall signs correctly
+
+--- Version 1.0.3, released 16-11-2012
+
+ * Maintenance release: fine-tune the statistics reported to WorldPainter HQ
+
+--- Version 1.0.2, released 11-11-2012
+
+ * Bug fix: fixed a major bug in version 1.0.0 and 1.0.1 that prevented the program from starting up on new installs
+
+--- Version 1.0.1, released 11-11-2012
+
+ * Bug fix: fixed a major bug in version 1.0.0 that made it impossible to open existing .world files
+
+--- Version 1.0.0, released 11-11-2012
+
+ * WorldPainter is gold!!!
+ * Added new terrain type: Bare Grass. As the name suggests, this is grass without any tall grass, ferns, flowers or sugar cane generated on top
+ * The Grass, Desert and Beach terrain types will now randomly spawn sugar cane on blocks adjacent to water
+ * There is a new Structures checkbox on the Export screen, which allows you to control the "generate structures" Minecraft option. *Please note:* it only applies when you use the Populate layer! It controls whether Minecraft will generate NPC villages, strongholds, abandoned mines, jungle temples and desert temples
+ * Support for Minecraft biome schemes has been removed. You will still be able to load worlds which use a Minecraft biome scheme, but you cannot create new ones. If you want to see what the biomes will be *outside* the generated map, you can still use the biomes viewer for that
+ * The only biomes related options are now Automatic Biomes and Custom Biomes. If you disable both, the biome will be Plains everywhere. Letting Minecraft calculate the biomes is no longer an option, because Minecraft behaves weirdly and occasionally crashes if no biomes are set at all
+ * The Import and Merge processes have been made a bit more robust. If they encounter data corruption in the existing map they will try to continue importing or merging the rest of the map, although the problem chunks will be missing or damaged
+ * When exporting a world with no automatic or custom biomes, the biomes are set to Plains everywhere, because Minecraft does weird things and crashes occasionally if no biomes are set at all
+ * Bug fix: fixed a few errors that occurred when exporting worlds with extremely low or extremely high elevations
+ * Bug fix: fixed an error that occurred when cancelling the colour selector on a custom layer configuration screen
+ * Bug fix: fixed an absure bug that caused an error message when removing tiles from the world
+ * Bug fix: implement a workaround for a bug that causes uninitialised custom terrain types to end up being used in a world. Such terrain types will now render and export as dirt
+ 
+--- Version 0.11.2, released 24-10-2012
+
+* Bug fix: fixed another problem with the random rotation of tile entities (chests, furnaces, etc.) that was preventing it from working correctly whenever an object was rotated one quarter or three quarter turns
+* Bug fix: custom objects were not being placed if they collided with the ground, which was not by design. The collision detection now only works above ground. An object will dig into the ground if the ground slopes upward from the point where the origin of the object is placed. *Please note:* this means that objects will now be placed more frequently, especially on hilly ground!
+
+--- Version 0.11.1, released 22-10-2012
+
+* Added a thickness setting to custom ground cover layers, enabling you to create layers that are more than one block thick. You can make a glacier, for instance, by setting the block type to Ice, the thickness to 5 and painting it in with a solid brush and maximum intensity (don't forget to also paint a cold biome in the same area, otherwise the ice will melt)
+* Bug fix: fixed a problem that caused tile entities (chests, furnaces, etc.) from schematics to lose their metadata (contents, etc.). To fix existing custom object layers, open their settings (by right-clicking on the layer button and choosing Edit...) and save them by pressing OK. This will cause the custom object files to be reloaded
+
+--- Version 0.11, released 20-10-2012
+
+* Added a Jungle forest layer. When painted at 50% intensity it should be similar to a Minecraft generated jungle, only more irregular. All features should be present, such as cocoa trees. All Minecraft vegetation types are now supported in WorldPainter, meaning that you should no longer need to use Populate
+* Added support for .schematic files to the custom object layers. They will be randomly mirrored and rotated to add variety. You can mix bo2 objects and schematics in the same layer if you want to
+* Tile entities and entities are supported for schematics, but this could not be tested due to a current bug in WorldEdit
+* Custom objects will no longer collide or intersect each other (except for insubstantial blocks such as leaf blocks)
+* Set the default brush for terrain type and layers to the plateau
+* Improved the response and usability of the intensity slider
+* When you create a new custom layer it is now automatically selected so that you can start to use it immediately
+* The custom terrain buttons now have no terrain type selected by default, instead of defaulting to Dirt. If you click on them when they don't have a terrain type selected, the block type selection popup is automatically shown
+* Bug fix: fixed a bunch of bugs with the random rotation and mirroring of custom objects, as well as adding support for some new block types
+* Bug fix: attempt to work around a bug in Java that causes the biomes toolbar to be invisible when the Biomes layer is selected for the second time
+
+--- Version 0.10.5, released 14-10-2012
+
+* Added minimum height setting to Resources layer settings as well as Custom Underground Pockets layers
+* Bug fix: correctly calculate light under water even when Resources layer is turned off
+* Bug fix: render grass as dirt under water again
+* Bug fix: when changing Resource layer settings of a world, the default settings on the Preferences screen would also change. This has been fixed and the Resource layer settings in the preferences will be reset to the defaults one time (even if you changed them manually, unfortunately)
+
+--- Version 0.10.4, released 12-10-2012
+
+* Bug fix: all biome buttons would be disabled if custom biomes was enabled, but no biome scheme was selected. This has been fixed
+* All sand is now supported with a layer of sandstone, to prevent cave ins when using the Populate and Caverns layers together
+* Adventure mode is now supported when exporting a world
+* The randomRotation property of custom bo2 objects is now honoured. If it is present and set to false, the object will not be randomly rotated *or* mirrored
+* Bug fix: wooden logs in custom bo2 objects are now rotated correctly
+
+--- Version 0.10.3, released 16-9-2012
+
+* Added a preview to the New World screen for immediate feedback of the topography and surface material settings
+* The default Minecraft seed for new worlds is now fixed to seed 202961, which has a very large ocean around the origin. This means that you can create ocean all around the edges of your world and it will integrate neatly into the Minecraft world (if you leave the water level at the default of 62). Of course it also means that there will be no other land masses nearby
+* Added an "always on top" button to the toolbar of the 3D view to keep the 3D view on top of the editor window
+* Added option to Cavern layer settings to disable removal of water (and lava) above cavern openings, to stop holes from forming in oceans. Also changed default for new worlds to *not* removing the water
+* Turn on "smooth snow" by default (also for existing installations), to make more people aware of it. You can turn it off per world on the Dimension Properties screen, or turn it off by default on the Preferences screen. Imported worlds will still have it turned off by default
+* Added a maximum brush size option to the Preferences screen for powerful machines that can support large brush sizes. Be careful with setting this too large; performance exponentially goes down with larger brush sizes!
+* The "circular world" option has been added to the Preferences screen
+* Partial support for custom biomes from mods (maps with such biomes can now be imported and the custom biomes will be displayed using question marks, but you cannot paint custom biomes)
+* Biomes that are not supported by the currently selected biome scheme are now disabled on the biomes palette when the Biomes tool is selected
+* Better handling of attempted import of invalid or incomplete Minecraft maps
+* Don't enable emerald by default for worlds last saved with a pre-emerald version of WorldPainter, to prevent problems when exporting to a pre-emerald version of Minecraft. You can still enable it manually on the Dimension Properties screen (Ctrl+P or Edit -> Dimension properties...)
+
+--- Version 0.10.2, released 26-8-2012
+
+* Added support for the Minecraft 1.3.2 minecraft.jar file
+* When saving and exporting worlds, filenames are now sanitised so that they don't contain illegal characters causing errors
+* WorldPainter now notifies you if it can't export or merge a world because it is in use by another program (such as Minecraft, Windows Explorer, a text editor with a mod config file open in it, etc.)
+* Allow larger scaling (up to 10000%) and offset values (between -10000 and 10000) for overlay images
+* Better handling of the user failing to provide a valid and correct minecraft.jar file when asked
+* Better handling of the user failing to select a valid level.dat file when importing a map
+* Bug fix: the custom object layer screen no longer allows selection of directories with no custom objects in them
+* Bug fix: fixed an obscure error message that would occur in certain circumstances when trying to zoom using the mouse scroll wheel
+* Bug fix: fixed an obscure error message that would occur in certain circumstances when trying to drag the map with the middle mouse button
+
+--- Version 0.10.1, released 11-8-2012
+
+* A bug was fixed that caused an error when exporting a world created with a previous version of WorldPainter
+
+--- Version 0.10, released 11-8-2012
+
+* Added support for Minecraft 1.3.1:
+  - Support for using Minecraft 1.3.1. minecraft.jar for calculating and displaying biomes
+  - Support for large biomes in the editor, the biomes viewer and the Export screen
+  - Added emerald to the Resources layers. Note that it behaves differently than in Minecraft! Minecraft only generates emerald ore in Extreme Hills and Extreme Hills Edge biomes. WorldPainter makes no such distinction and generates them everywhere. If you don't want that, set the occurrence of emerald to 0‰ and use a custom underground pockets layer with block ID 129 to add emerald ore in the places and frequencies you want. Note also that emerald will also be added to existing .world files. If you don't want that, set the occurrence to 0‰
+  - New setting on the Export screen to enable or disable cheats (single player commands)
+* Added customisation of hill height and horizontal size to New World screen, along with new settings for defaults on the Preferences screen
+* Added light direction to Preferences screen
+* Added a link to the documentation (such as it is) on worldpainter.net to the Help menu, also accessible by pressing F1
+
+--- Version 0.9.2, released 11-7-2012
+
+* Create backups of existing files when saving .world files. The backups have a number appended to the filename, in front of the .world extension. The number of backups to keep can be configured on the Preferences screen. The default is three. If you do not want WorldPainter to create backups, set it to zero
+* When merging, remove land entirely wherever the Void layer is used (an exception to the standard behaviour of not making any changes to the existing map below the surface)
+* Assign shortcut Alt+w to Swamp layer
+* Make error reporting work correctly on Java 7
+
+--- Version 0.9.1, released 28-6-2012
+
+* Bug fix: fix floating chunks of resources and custom underground pockets in caverns.
+
+--- Version 0.9, released 28-6-2012
+
+* New tree layer type: Swamp! It generates the same shape of trees as the Deciduous layer, but they are further apart and have vines on them. In addition it will have more mushrooms, lily pads will be placed on any water covered by the layer, and the default biome (if you are using Automatic Biomes) is Swampland.
+* New custom layer type: underground pockets! It allows you to generate underground pockets of arbitrary block types. Use the plus button on the Layers panel to add it.
+* You can now create circular worlds by checking the new "circular" check box on the Create New World screen. The first dimension spinner box becomes the diameter of the circle, which will be centred on the origin (coordinates 0,0). You can set the diameter in increments of 2 instead of 128, and it will create only the necessary tiles and use the Void layer to create the edge of the world. It will also set the border type to Void and border size to 256 blocks by default.
+* The functionality to edit existing custom layers of all types has been added, by richt-clicking on the layer button and selecting Edit...
+* It is now possible to delete existing custom layers by right-clicking on the layer button and selecting Remove...
+* Keyboard shortcuts have been added for quickly selecting an intensity using the number keys: 1 through 9 select 10% through 90% intensity and 0 selects 100% intensity
+
+--- Version 0.8.9, released 14-6-2012
+
+* Bug fix: fix a deadlock which occurred when performing an Undo while the 3D view was open and still rendering tiles
+* Bug fix: fix an error that occurred when falling back to the WorldPainter Backups directory in the user's home directory and it already existed
+
+--- Version 0.8.8, released 14-6-2012
+
+* Saving has been split into Save (which saves to the last used filename without prompting) and Save As (which asks for a filename and asks permission to overwrite), making it more similar to other programs
+* When importing a height map, the biome scheme will now be set to automatic for 1.2 maps and none for 1.1 and earlier maps, and custom biomes will be enabled by default
+* Memory usage while importing height maps has been slightly improved
+* Some small cosmetic changes
+* Bug fix: don't override the grid and contour display settings of existing .world files with the defaults configured in the preferences
+* Bug fix: prevent an error related to using custom terrain types and automatic biomes
+* Bug fix: work around a bug causing repeated error messages when painting the biomes under some circumstances
+* Bug fix: work around a bug causing an error message when disabling the display of some layers
+
+--- Version 0.8.7, released 12-5-2012
+
+* World size is now configured and displayed in blocks instead of tiles (still in multiples of 128 though). Hopefully the psychological effect will make people want to create smaller maps
+* The program tries to estimate whether you have enough memory to create the requested world size, and if not warns you (but still allows you to proceed, since it is hard to estimate accurately)
+* The WorldPainter configuration directory (which also contains your custom brushes, if any) has been relocated to a more appropriate location on Windows and Mac OS X. WorldPainter will take care of migrating the existing directory and its contents, if any (excluding the log files)
+* The undo and redo actions are now disabled whenever there is no more undo or redo information
+* The Export screen now warns you if you export part of the map, and the spawn point is not on the selected tiles
+* The warnings on the Export screen have been combined, so that it only ever shows one popup
+* Bug fix: work around a mysterious error that occurs immediately after starting the program
+* Bug fix: fix an error that occurred when rotating a world that has a Minecraft biome scheme selected and no custom biomes, but for which no minecraft.jar was provided
+
+--- Version 0.8.6, released 29-4-2012
+
+* Added a Reset button to the Preferences screen to reset the default world settings
+* Worlds imported from existing Minecraft 1.2 ("Anvil") maps now have no default biome scheme selected. Custom biomes is still enabled by default, but right-clicking with the Biomes tool does nothing until you explicitly select a biome scheme from the Edit menu
+* Bug fix: don't ignore the "surface material" setting in the default world settings section of the Preferences screen
+* Bug fix: correctly position the 3D view when opening it even if the world is smaller than the main editor view
+* Bug fix: correctly hide the Biomes layer when switching to the Nether or End dimensions
+* Bug fix: correctly disable the Set Spawn Point tool and the Move To Spawn Point actions for the Nether and End dimensions
+
+--- Version 0.8.5, released 28-4-2012
+
+* Added Preferences screen (in Edit menu) for configuration of default view and world settings
+* Increased the default number of undo levels to 100. It is now configurable on the new Preferences screen
+* You can now rotate the direction of the light in the main editor view by pressing l or r on your keyboard, or the lightbulb icons on the toolbar
+* Added buttons to toolbar of both the main view and the 3D view to quickly go to the spawn location or the origin (coordinates 0,0)
+* When you open the 3D view it shows the same area as is currently visible in the main editor, instead of starting in the middle. If you press Ctrl+3 while the 3D view is already open, it will move to the currenlty visible area in the main view
+* The 3D view now rotates around the centre of the view (more or less), instead of resetting to the middle whenever you rotate the view
+* You can lock the toolbars so that you can't accidentally move them (View -> Lock toolbars...)
+* Hidden layers are now indicated on the editor by displaying the layer icon with a red prohibition sign across them
+* Added Tech Info tab to the About screen with technical information about the WorldPainter installation and runtime
+* Bug fix: merging large worlds could cause I/O errors; this should be fixed now
+* Bug fix: improve stability when zooming in and out with the mouse
+* Bug fix: when Flooding with water or lava, stop at places that have been painted with the Void layer
+* Bug fix: don't draw contour lines over places that have been painted with the Void layer
+* Bug fix: fix obscure error when closing 3D view and/or entire program
+
+--- Version 0.8.4, released 25-4-2012
+
+* Bug fix: when selecting a subset of tiles for export on the Export screen not all selected tiles were being exported. This has been fixed!
+
+--- Version 0.8.3, released 24-4-2012
+
+* Bug fix: restore the export of borders and bedrock walls, and fix the lighting calculation of border chunks. Note that there is a bug in Minecraft which is triggered by using a lava border without a bedrock wall. If the lava abuts large amounts of water on the outside, Minecraft may crash. Also note that borders and bedrock walls are not exported if you make a tile selection on the Export screen (even if you select all tiles)
+
+--- Version 0.8.2, released 23-4-2012
+
+* Added optional display of the view distance around the cursor. Click the new "eye" button on the toolbar to enable it. It shows a dotted circle around the cursor indicating how far you would be able to see (when using the "far" view distance setting) if you were standing at that location
+* Added optional display of walking distances around the cursor. Click the new button showing a person and an arrow on the toolbar to enable it. It shows three concentric dotted circles around the cursor showing respectively how far you could walk in five minutes, thirteen minutes (a full day including dusk and dawn) and twenty minutes (a full day/night cycle). Note that these circles are very large, so you will only see them if the map is big enough and you have zoomed out sufficiently!
+* Added new custom layer type: "ground cover layer", which adds a one block thick layer of any block type you wish on top of the terrain. Use it to add vegetation, etc.
+* Added the "dimension properties", "change height" and "rotate" functions to the tool bar
+* Added "smooth snow" option to Frost layer, which causes snow blocks to have varying heights and look smoother. Note that it only works with worlds created in WorldPainter, not worlds imported from Minecraft maps!
+* Added "reset all water" and "reset all terrain" functions to global operations which respectively reset all water and lava to the default level and type, and reset all terrain types to the altitude dependent defaults
+* Bug fix: fix a structural error when using the "merge biomes only" option
+* Bug fix: fix trails left behind the brush when zoomed out
+
+--- Version 0.8.1, released 22-4-2012
+
+* The Great Shift of 2012! The coordinate system has been rotated and shifted so that it now corresponds to Minecraft's and north is now finally up! The consequence is that worlds imported *before* the Great Shift can no longer be merged using this version of WorldPainter. If you have imported worlds which you absolutely need to be able to merge, keep a copy of version 0.7.3 around! But for most people that should not be necessary; you can just import the map again with the new version. Also, biome calculation for Minecraft versions is disabled for worlds created before the Great Shift (automatic and custom biomes still work)
+* As part of the Great Shift a world rotation function had been added. WorldPainter will automatically offer to rotate existing worlds when you load them, so that north is up. You can also rotate worlds later using the new Rotate... menu item in the Edit menu, which allows you to rotate it 90 or 180 degrees. The rotate function rotates all dimensions
+* New parallel export process which makes use of multiple cores and is *much* quicker than the old process
+* Added configurable height contour lines. By default they are turned on and displayed every ten blocks. They can be configured using the toolbar button or the Configure view... (Ctrl+V) menu item in the View menu 
+* New function to export the world image as an image file. It is accessible through the menu as File -> Export -> Export as image file.... The Export as Minecraft map... function has been moved to this new Export sub menu as well. The image will be exported as displayed on screen, with the exception of the grid and the overlay image, so make sure to configure the visible layers as you want them before exporting the image
+* New function to export the world image as a height map. It is accessible through the menu as File -> Export -> Export as height map.... A height map is a grey scale image file which is brighter for higher areas. The image format to use will be determined from the file name extension. If you don't type an extension, PNG will be used. If your world is higher than 256, make sure to use a format which supports 16-bit grey scale (such as PNG)! And be aware that not all software can work (well) with 16-bit grey scale images
+* Added toolbar for quick access to often used menu items and draw attention to some little known functionality
+* Added toolbar to 3D view with rotate buttons to draw attention to the view rotation functionality
+* New function to export the 3D world view as an image file by pressing the new export button on the toolbar of the 3D view
+* Decreased maximum memory allocation for 32-bit Windows systems to 1 GB in an effort to reduce JVM startup errors
+* Bug fix: fixed a sporadic error while exporting custom bo2 objects at very high altitudes
+* Bug fix: fixed a sporadic error from the graphical user interface when a layer is not selected
+
+--- Version 0.8, not released
+
+--- Version 0.7.3, released 13-4-2012
+
+* Installer now automatically sets the maximum memory allocation to the recommended maximum
+* Bug fix: update automatic biomes when applicable on the global operations screen
+* Bug fix: correctly take needsFoundation property into account when rendering custom bo2 objects
+
+--- Version 0.7.2, released 11-4-2012
+
+* Bug fix: don't render air as black blocks in the bo2 object preview
+* Bug fix: biomes were not being merged or exported under some circumstances on worlds which were imported from an existing map. This has been fixed; when applicable the biomes will now always be merged, including manual edits, if any
+
+--- Version 0.7.1, released 8-4-2012
+
+* Bug fix: disabling the biome scheme was not saved with the world file, so that when it was next loaded the biome scheme was active again. This has been fixed. You will need to disable the biome scheme and save the file one last time to make it stick
+
+--- Version 0.7, released 7-4-2012
+
+* Partial exports! It is now possible to export only part of the world by selecting tiles from the Exporting screen, for instance to create relatively quick test renders of large worlds
+* Automatic biomes! A new biome scheme, which is now the default, which sets the biome automatically according to the terrain type and layers used
+* Java 5 is no longer supported, from this release Java 6 or higher is required
+* Mountain and Height tools speeds have been increased. The half way setting of the intensity slider now corresponds to the old maximum speed, the full setting is four times faster
+* It is now possible to turn the noisy edges of the terrain types when using the Mountain tool or right-clicking with the Terrain tool on and off on the Default Terrain tab of the Edit Dimension Properties screen
+* Added button to copy error details to clipboard to error dialog
+
+--- Version 0.6.12, released 3-4-2012
+
+* Add support for Minecraft 1.2.5 jar file
+* Add specific error message when trying to import a map which is too large
+* Add button to tools panel for global (fill and clear) operations
+* Changed caching mechanism for exporting the world, which should take about the same time using less memory, and might even be faster when exporting very large worlds on a memory constrained system
+
+--- Version 0.6.11, released 29-3-2012
+
+* Bug fix: auto update checking mechanism was accidentally disabled, it has now been reenabled
+
+--- Version 0.6.10, released 29-3-2012
+
+* Add support for creating an End dimension!
+* When adding a Nether, don't enable resources by default, and use the same terrain for all altitudes by default
+
+--- Version 0.6.9, released 29-3-2012
+
+* New functionality: configure altitude to terrain type mapping. This is the mapping used when right-clicking with a Terrain tool selected, or when using the Mountain tool. A new tab called Default Terrain has been added to the dimension properties editor (Edit -> Dimension properties or Ctrl+P) which allows you to change the levels and default terrain types and add or remove terrain types. The same tab (called Terrain) is also available when importing a height map
+* New functionality: global operations. Accessible as Edit -> Global operations... or by pressing Ctrl+G, this new screen allows you to fill the entire world with a particular terrain type, layer or biome, and remove or invert layers
+* Show terrain type icon wherever you can select a terrain type
+
+--- Version 0.6.8, released 27-3-2012
+
+* New, powerful and easy to use add/remove tiles screen for increasing or decreasing the size of the world (Edit -> Add/remove tiles... or press Ctrl+T)
+* New way of creating new worlds in particular locations or shapes using the Biomes viewer (Tools -> Biomes viewer, select tiles using left mouse button, select Create world in toolbar)
+* Add support for Minecraft 1.2.4 minecraft.jar
+* Custom biomes have been made the default for new worlds
+* Bug fix: don't hide biomes when checkbox is deselected while the Biomes tool is selected
+
+--- Version 0.6.7, released 18-3-2012
+
+* Make edges of patches of tall grass on Grass terrain more irregular
+* Export chunk sections that contain no blocks but do contain lighting, improving initial lighting when first loading map
+* When rendering custom bo2 objects always replace underground blocks, allowing objects do dig out voids, replace dirt and stone, etc.
+* Bug fix: don't mirror custom bo2 object preview in file selector
+* Bug fix: properly mirror blocks when mirroring custom objects
+* Bug fix: properly rotate custom objects
+* Bug fix: properly constrain terrain height when reducing maximum world height
+* Bug fix: prevent obscure error when closing biome viewer and/or main window
+
+--- Version 0.6.6, released 17-3-2012
+
+* Add change log to About screen
+* Bug fix: fix an error introduced in the previous release that occurred when loading a world that contains custom bo2 object layers
+
+--- Version 0.6.5, released 15-3-2012
+
+* Add option to merge only the biomes to an imported map, which is much quicker and less destructive than merging everything
+* Fix size of various windows on Windows
+* Offer to save unsaved changes before importing a Minecraft map or height map
+* Bug fix: correctly rotate blocks from when rendering rotated and/or mirrored bo2 custom objects
+
+--- Version 0.6.4, released 14-3-2012
+
+* Bug fix: don't remove glowstone when importing and then merging a map
+* Remember the directory from which a bo2 custom object file or files was last loaded
+* Attempt to support Mac OS X Tiger
+
+--- Version 0.6.3, released 9-3-2012
+
+* Bug fix: import flowing/active water correctly
+* Bug fix: determine height difference more correctly when merging worlds (try to prevent buried trees, etc.)
+
+--- Version 0.6.2, released 8-3-2012
+
+* Add a store of wood and a crafting table to the chest of goodies
+* When creating caverns the floor of the caverns is correctly set to the top block type of the selected underground material, for instance grass or mycelium
+* When creating a new world use the best available biome scheme as the default, instead of always using Minecraft 1.2
+* Bug fix: don't throw NPE when loading a world and the user does not select a valid minecraft.jar
+* Bug fix: make adding tiles work once again in terms of calculating the biomes and clearing the undo history
+* Bug fix: fix sporadic error message when exporting a world with caverns
+
+--- Version 0.6.1, released 7-3-2012
+
+* Bug fix: various errors fixed when importing existing Minecraft maps
+* Bug fix: attempt to fix repaint problem with biomes palette on Windows
+
+--- Version 0.6, released 6-3-2012
+
+* Biome painting! The biome scheme setting has been moved from the View menu to the Edit menu. Set the biome scheme to "custom biomes" to customise the biomes and then use the Biomes layer button like any other layer to paint the biomes. When you select the Biomes layer, a new biomes palette pops up on which you can select the biome to paint. Right-clicking restores the biomes to what they were before you switched to custom biomes
+* When creating a new world you can now choose the biome scheme, and you can also indicate that you want to customise the biomes
+* You can use this functionality to change the biomes of existing Minecraft maps. Don't forget to remove the read-only layer everywhere you want to change the biomes! As long as you leave the terrain height alone this should not be dangerous
+* The "Biomes viewer" tool now also supports Minecraft 1.2. You can switch between Minecraft 1.1 and 1.2
+* Bug fix: mycelium is now only rendered on top of the terrain; the blocks underneath are rendered as dirt (just like with the grass terrain type)
+* Bug fix: the Mountain tool works better with lower intensity settings. It still does not work well with custom brushes though. Specifically, it does not work well with brushes where the centre pixel is not at full intensity
+* Bug fix: on imported worlds "resources everywhere" is now turned off (just as previously the subsurface material was set to Stone instead of Resources). This should make newly imported worlds merge quicker. As part of this change the subsurface material selection has also been removed from the Merge screen
+
+--- Version 0.5.14, released 4-3-2012
+
+* Bug fix: intensity settings were being mixed up between the terrain height tools and the terrain type and layer painting tools. One symptom of this is that the Mountain tool intermittently appeared to stop working completely
+
+--- Version 0.5.13, released 3-3-2012
+
+* Add support for Minecraft 1.2 for the biomes preview. This is not yet custom biome painting!
+
+--- Version 0.5.12, released 3-3-2012
+
+* Change default world height to 256 and default map format to "Anvil", now that Minecraft 1.2 has been released
+
+--- Version 0.5.11, released 29-2-2012
+
+* Bug fix: don't generate resources in underground water and lava pools
+* Bug fix: make opening .world files in WorldPainter from the Finder on a Mac work
+
+--- Version 0.5.10, released 23-2-2012
+
+* A bug that was introduced in the previous version that was triggered when merging imported worlds has been fixed
+
+--- Version 0.5.9, released 23-2-2012
+
+* Fixed various lighting bugs so that exported maps should now be lighted correctly everywhere, and possibly load a bit faster
+
+--- Version 0.5.8, released 22-2-2012
+
+* Fixed bug which caused an error when merging a world which had been imported using a previous version of WorldPainter
+* Fixed bug which caused the spawn point to slowly wander away every time the world was exported or merged
+* Fixed bug which caused an error if there is no chunk at the location where the goodies chest would otherwise be (if the spawn point is very close to the world's edge)
+
+--- Version 0.5.7, released 21-2-2012
+
+* Fixed bug which prevented WorldPainter from starting up
+
+--- Version 0.5.6, released 21-2-2012
+
+* Added a new tool: the Sponge. It dries up any water or lava, and is especially useful to clean up the messy patches of water you get when lowering terrain which is dry but had previously been flooded. Left-click to remove any water or lava comletely; right-click to reset the water level to the default
+* Bug fix: exporting a world with caverns breaking the surface in Minecraft 1.2 could cause an error message. This has been fixed
+
+--- Version 0.5.5, released 20-2-2012
+
+* Bug fix: importing a non-standard height existing Minecraft map resulted in an error message. This has been fixed
+
+--- Version 0.5.4, released 20-2-2012
+
+* Bug fix: the underground material / resources settings of older .world files were not being imported correctly. This has been fixed
+* Bug fix: underground water and lava is exported as flowing instead of stationary so that it will once again flow into caverns and out of cliffs
+* Bug fix: a bug has been fixed which prevented older Minecraft maps from being imported
+* Bug fix: increasing the height of an older world resulted in an error. This has been fixed
+
+--- Version 0.5.3, released 12-2-2012
+
+* Bug fix: fix worlds imported from a non-standard height world with version 0.5 or earlier of WorldPainter, which were not correctly imported. It should now once again be possible to export or merge these worlds.
+
+--- Version 0.5.2, released 12-2-2012
+
+* Bug fix: border and bedrock wall chunks were still being exported in the old format, even for Minecraft 1.2 exports. This has been fixed. Note that Minecraft build 12w07b still crashes when loading bedrock wall chunks! I don't know if this is a bug in Minecraft or in WorldPainter, but for now don't use bedrock walls for Minecraft 1.2 exports!
+
+--- Version 0.5.1, released 12-2-2012
+
+* Added support for the new Minecraft 1.2 file format! To use it, create a world of height 256 (or change the height of an existing world to 256 using Edit -> Change height...) and choose "Minecraft 1.2" for the Map format on the Export screen
+* The undo buffer is no longer thrown away to make room if WorldPainter is short on memory. This means you may need more memory for the same operations, but you will always be able to undo the operation
+* The Flood tool now displays a dialog box if it takes longer than two seconds, allowing you to cancel the operation if you unintentionally clicked to flood a large area
+* A progress dialog is now also displayed for calculating the biomes, which can take a long time for large maps
+
+--- Version 0.5, released 9-2-2012
+
+* Added Resources layer!
+* Added support for SpoutCraft client mod for non-standard height maps
+* Show progress dialogs for lengthy file operations
+* Show the time taken by export or merge operations
+* Improved tooltips
+* Switched terrain and layer panels to use screen space more efficiently
+
+--- Version 0.4, released 1-2-2012
+
+* Non standard map heights!! Create maps from 32 blocks high to 2048 blocks high! Both the DynamicHeight mod and the Height Mod are supported
+* The height of existing maps can be changed too, with Edit -> Change height... Use the same screen to change the height of the landscape without changing the height of the map
+* Height map imports!! Create maps from existing height map images. File -> Import -> Heightmap...
+* Custom object support!! Add custom layers with bo2 objects or multiple bo2 objects and paint with them
+* Superflat option added to Export screen. This will tell Minecraft to use the Superflat land generator. The advantage of that is that Minecraft will not draw fog and dark skies on low altitudes
+* Promoted 3D view to full feature. View -> Show 3D view... or Ctrl+3 to open, press l or r to rotate left (counter clockwise) or right (clockwise)
+* Promoted Biomes Viewer to full feature. It's in the View menu. It only supports Minecraft 1.1. biomes, and you have to select the minecraft.jar for vanilla Minecraft 1.1. first if you have not already done so
+* Added north arrow to editor. North is right for historical reasons
+* Bug fix: layer settings on Export or Dimension Properties screen always taken into account when exporting world
+* Bug fix: update biomes preview after changing seed on dimension properties screen
+
+--- Version 0.3.2, released 22-1-2012
+
+* Bug fix: don't render deciduous trees as pine trees!
+
+--- Version 0.3.1, released 17-1-2012
+
+* Taiga biome in Minecraft 1.1 now rendered white, since it has become snowy
+* Changed minimum spawn point height warning back to 63, the change to 62 was just a mirage
+* Support Mac OS X for finding the Minecraft saves directory
+* Another thing
+
+--- Version 0.3, released 14-1-2012
+
+* Added support for Minecraft 1.1 biomes! Note that due to the increased number of biomes memory usage has increased, so you may need more memory to create maps of the same size
+* Bug fix: render snow and ice biomes correctly in the biomes preview
+* Bug fix: make it work with Java 5 again
+* Added a credit for the LogoCraft font used in the splash images
+* Removed the thousands separators from Minecraft seed value input fields, to make copying them easier
+* Changed the minimum spawn point height warning to 62
+
+--- Version 0.2.1, released 4-1-2012
+
+* Bug fix: fix disabling of transparent overlay image
+* Improve supporting of sand and gravel in the roof of caverns
+
+--- Version 0.2, released 2-1-2012
+
+* Added possibility to overlay a transparent image with configurable scale, transparency and offset
+* Added configurable grid lines
+* Added possibility to select the biome scheme from the biomes browser
+* Allow more custom materials and end stone in the editor, as well as for the sub surface material
+* Allow custom materials and end stone for surface material when creating new world
+* Expand contents of chest of goodies
+* Slightly improved icons for Desert and Netherlike materials
+* Some slight performance improvements
+
+--- Released 27-10-2011
+
+* Brush selection has been simplified, combining shape and falloff into one
+* Custom bitmap brushes!
+* Tweaked the pine trees a little (they're a little taller and the base of the canopy is straighter
+* Tweaked the user interface on Windows a little, should take a little less room
+
+--- Released 15-10-2011
+
+* Intensity slider re-enabled for tools
+* Bug fix: tile entity data now merged correctly (such as the contents of chests)
+* Support for showing 1.9 prelease 4 biomes (you need the corresponding minecraft.jar)
+
+--- Released 14-10-2011
+
+* Support for showing 1.9 prelease 3 biomes (you need the corresponding minecraft.jar)
+* Custom materials can now also be used as underground material
+* Export directory should now default to Minecraft saves directory on new installs
+* Radius limited to 300 blocks maximum
+* Some speed improvements on Java 5
+* Bug fix: hopefully fix AssertionErrors and hanging tools
+
+--- Released 11-10-2011
+
+* Multiple colour schemes, with new default scheme (copied from DynMap)
+* Custom materials!
+* Void layer!
+* Undo now works for every change, instead of only when a different tool is selected
+* Added clay to "beaches" terrain
+* Support 1.8 block types for lighting calculations
+* Added a memory monitor
+* Bug fix: use correct spawn point in export dialog
+* Bug fix: fix placement of goodies chest
+
+--- Released 16-7-2011 ...
+
+* Support for manually painting the Nether
+* Pine tree layer added
+* Merge improvements:
+  - When merging a world, the in-game maps, player data and Nether are copied
+  - Lighting is calculated better
+* Some more performance enhancements
+* Two more falloffs: plateau and spike
+* Border size now configurable
+* Options panel now moved to the right side of the window
