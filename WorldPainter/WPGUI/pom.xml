@@ -45,14 +45,12 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-            <!-- This jar is part of NetBeans; specifically the Dark Look and Feel Themes plugin. Get it from there and
-                 install it in your local Maven repo. This module is optional, but without it the dark themes won't
-                 work. -->
+            <!-- Not in Maven central; here it comes from the
+                 worldpainter-private repo. -->
             <groupId>org.netbeans.swing</groupId>
             <artifactId>laf-dark</artifactId>
             <version>201403101706</version>
             <scope>runtime</scope>
-            <optional>true</optional>
         </dependency>
 
         <dependency>

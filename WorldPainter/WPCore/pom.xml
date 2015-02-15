@@ -22,8 +22,8 @@
         </dependency>
 
         <dependency>
-            <!-- This artifact is not present in Maven Central. Download it yourself and install it in your local Maven
-                 repo. -->
+            <!-- Not in Maven central; here it comes from the
+                 worldpainter-private repo. -->
             <groupId>net.sourceforge</groupId>
             <artifactId>jpen</artifactId>
             <version>2-121204</version>

@@ -12,6 +12,13 @@
         <module>WPGUI</module>
     </modules>
 
+    <repositories>
+        <repository>
+            <id>worldpainter-private</id>
+            <url>http://www.worldpainter.net/maven-repo/</url>
+        </repository>
+    </repositories>
+
     <build>
         <pluginManagement>
             <plugins>
