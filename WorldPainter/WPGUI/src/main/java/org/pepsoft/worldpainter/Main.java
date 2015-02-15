@@ -9,10 +9,7 @@ import com.jidesoft.plaf.LookAndFeelFactory;
 import com.jidesoft.utils.Lm;
 import java.awt.Color;
 import java.awt.Frame;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
@@ -268,10 +265,17 @@ public class Main {
 //            world = WorldFactory.createFancyWorld(config, new Random().nextLong());
         }
 
-        // Install JIDE licence
-        Properties jideLicenceProps = new Properties();
-        jideLicenceProps.load(ClassLoader.getSystemResourceAsStream("jide_licence.properties"));
-        Lm.verifyLicense(jideLicenceProps.getProperty("companyName"), jideLicenceProps.getProperty("projectName"), jideLicenceProps.getProperty("licenceKey"));
+        // Install JIDE licence, if present
+        InputStream in = ClassLoader.getSystemResourceAsStream("jide_licence.properties");
+        if (in != null) {
+            try {
+                Properties jideLicenceProps = new Properties();
+                jideLicenceProps.load(in);
+                Lm.verifyLicense(jideLicenceProps.getProperty("companyName"), jideLicenceProps.getProperty("projectName"), jideLicenceProps.getProperty("licenceKey"));
+            } finally {
+                in.close();
+            }
+        }
         
         final Configuration.LookAndFeel lookAndFeel = (config.getLookAndFeel() != null) ? config.getLookAndFeel() : Configuration.LookAndFeel.SYSTEM;
         SwingUtilities.invokeLater(new Runnable() {
