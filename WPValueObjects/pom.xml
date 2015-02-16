@@ -5,6 +5,32 @@
     <artifactId>WPValueObjects</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
+    <name>WPValueObjects</name>
+    <description>Some simple JavaBeans for WorldPainter usage data.</description>
+    <inceptionYear>2011</inceptionYear>
+
+    <licenses>
+        <license>
+            <name>GNU General Public License, version 3</name>
+            <url>http://www.gnu.org/licenses/gpl-3.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <organization>
+        <name>pepsoft.org</name>
+        <url>http://www.pepsoft.org/</url>
+    </organization>
+
+    <developers>
+        <developer>
+            <name>Pepijn Schmitz</name>
+            <organization>pepsoft.org</organization>
+            <email>Pepijn.Schmitz@pepsoft.org</email>
+            <timezone>Europe/Amsterdam</timezone>
+        </developer>
+    </developers>
+
     <build>
         <pluginManagement>
             <plugins>

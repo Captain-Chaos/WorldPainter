@@ -6,6 +6,33 @@
     <version>1.10.5-SNAPSHOT</version>
     <packaging>pom</packaging>
 
+    <name>WorldPainter</name>
+    <description>WorldPainter is an interactive map generator for Minecraft. It allows you to "paint" landscapes using similar tools as a regular paint program. Sculpt and mould the terrain, paint materials, trees, snow and ice, etc. onto it, and much more.</description>
+    <url>http://www.worldpainter.net/</url>
+    <inceptionYear>2011</inceptionYear>
+
+    <licenses>
+        <license>
+            <name>GNU General Public License, version 3</name>
+            <url>http://www.gnu.org/licenses/gpl-3.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <organization>
+        <name>pepsoft.org</name>
+        <url>http://www.pepsoft.org/</url>
+    </organization>
+
+    <developers>
+        <developer>
+            <name>Pepijn Schmitz</name>
+            <organization>pepsoft.org</organization>
+            <email>Pepijn.Schmitz@pepsoft.org</email>
+            <timezone>Europe/Amsterdam</timezone>
+        </developer>
+    </developers>
+
     <modules>
         <module>WPUtils</module>
         <module>WPCore</module>
