@@ -251,7 +251,10 @@ public class BiomeSchemeManager {
         // wild that it does, so check for it
         if (files != null) {
             for (File file: files) {
-                if (file.isDirectory()) {
+                if (file.getName().toLowerCase().contains("optifine")) {
+                    // Skip anything OptiFine-related, as OptiFine creates Minecraft profiles with invalid json files.
+                    continue;
+                } if (file.isDirectory()) {
                     scanDir(file);
                 } else {
                     Checksum hash = FileUtils.getMD5(file);
@@ -342,7 +345,11 @@ public class BiomeSchemeManager {
                 for (Iterator<Map.Entry<Integer, File>> i = minecraftJars.entrySet().iterator(); i.hasNext(); ) {
                     Map.Entry<Integer, File> entry = i.next();
                     File file = entry.getValue();
-                    if (processedFiles.contains(file)) {
+                    if (file.getAbsolutePath().toLowerCase().contains("optifine")) {
+                        // OptiFine-created files create problems, so filter them out if the configuration somehow got
+                        // polluted with them
+                        continue;
+                    } else if (processedFiles.contains(file)) {
                         continue;
                     } else if ((! file.isFile()) || (! file.canRead())) {
                         // The file is no longer there, or it's not accessible;
