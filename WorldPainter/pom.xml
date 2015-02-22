@@ -46,6 +46,11 @@
         </repository>
     </repositories>
 
+    <scm>
+        <connection>scm:git:https://github.com/Captain-Chaos/WorldPainter.git</connection>
+        <url>https://github.com/Captain-Chaos/WorldPainter</url>
+    </scm>
+
     <build>
         <pluginManagement>
             <plugins>
