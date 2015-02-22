@@ -1,3 +1,7 @@
+-- Version 1.10.5, released ...
+
+ * Ignore invalid Minecraft profiles created by OptiFine mod while finding Minecraft jars
+
 -- Version 1.10.4, released 4-1-2015
 
  * Support 1.8.1 jar for biome calculations
