@@ -51,6 +51,7 @@
             <artifactId>laf-dark</artifactId>
             <version>201403101706</version>
             <scope>runtime</scope>
+            <optional>true</optional>
         </dependency>
 
         <dependency>
