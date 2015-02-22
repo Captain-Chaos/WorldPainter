@@ -78,28 +78,26 @@
                 <filtering>false</filtering>
             </resource>
         </resources>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <artifactId>maven-surefire-plugin</artifactId>
-                    <configuration>
-                        <forkMode>always</forkMode>
-                    </configuration>
-                </plugin>
-                <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>exec-maven-plugin</artifactId>
-                    <configuration>
-                        <executable>java</executable>
-                        <arguments>
-                            <argument>-cp</argument>
-                            <classpath/>
-                            <argument>-Dorg.pepsoft.worldpainter.devMode=true</argument>
-                            <argument>org.pepsoft.worldpainter.Main</argument>
-                        </arguments>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
+        <plugins>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <forkMode>always</forkMode>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <configuration>
+                    <executable>java</executable>
+                    <arguments>
+                        <argument>-cp</argument>
+                        <classpath/>
+                        <argument>-Dorg.pepsoft.worldpainter.devMode=true</argument>
+                        <argument>org.pepsoft.worldpainter.Main</argument>
+                    </arguments>
+                </configuration>
+            </plugin>
+        </plugins>
     </build>
 </project>
