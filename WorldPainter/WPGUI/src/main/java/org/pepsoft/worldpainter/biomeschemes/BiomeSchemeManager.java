@@ -326,7 +326,7 @@ public class BiomeSchemeManager {
                     scanDir(minecraftDir);
                 }
 
-                // Collect the names of the files we alread looked at so we can skip
+                // Collect the names of the files we already looked at so we can skip
                 // them below
                 Set<File> processedFiles = new HashSet<File>();
                 for (Map.Entry<Integer, SortedMap<Version, BiomeJar>> entry: BIOME_JARS.entrySet()) {
