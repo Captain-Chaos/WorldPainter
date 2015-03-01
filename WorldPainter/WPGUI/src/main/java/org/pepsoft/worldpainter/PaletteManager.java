@@ -5,16 +5,12 @@
  */
 package org.pepsoft.worldpainter;
 
-import java.awt.Component;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.Layer;
+
+import java.awt.*;
+import java.util.*;
+import java.util.List;
 
 /**
  * Manages a set of layers, including managing palettes, layer buttons, etc.
@@ -30,14 +26,22 @@ public class PaletteManager {
         return Collections.unmodifiableList(paletteList);
     }
 
-    public Set<CustomLayer> getLayers() {
-        Set<CustomLayer> layers = new HashSet<CustomLayer>();
+    public List<CustomLayer> getLayers() {
+        List<CustomLayer> layers = new ArrayList<CustomLayer>();
         for (Palette palette: paletteList) {
             layers.addAll(palette.getLayers());
         }
         return layers;
     }
-    
+
+    public Map<String, Collection<CustomLayer>> getLayersByPalette() {
+        Map<String, Collection<CustomLayer>> layers = new HashMap<String, Collection<CustomLayer>>(paletteList.size());
+        for (Palette palette: paletteList) {
+            layers.put(palette.getName(), palette.getLayers());
+        }
+        return layers;
+    }
+
     public boolean contains(Layer layer) {
         for (Palette palette: paletteList) {
             if (palette.contains(layer)) {
