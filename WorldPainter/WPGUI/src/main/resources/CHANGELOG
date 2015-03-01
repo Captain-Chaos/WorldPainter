@@ -1,6 +1,9 @@
--- Version 1.10.5, released ...
+-- Version 1.10.5, released 1-3-2015
 
- * Ignore invalid Minecraft profiles created by OptiFine mod while finding Minecraft jars
+ * It is now possible to enable both "only on" and "except on" at the same time in the brush options. This includes the Global Operations screen, and filters created in the scripting engine. The "except on" setting takes precedence; in other words: if a location matches both the "only on" and "except on" filters the operation will *not* be applied.
+ * If there are more than fifteen custom layers configured, split them into submenus by palette in the "only on" and "except on" menus to try and prevent the menu from becoming so long that it doesn't fit on the screen.
+ * Support Minecraft 1.8.3 jar for biome calculations
+ * Ignore invalid Minecraft profiles created by OptiFine mod while finding Minecraft jars. Will prevent errors for people trying to open the Biomes Viewer with Optifine installed
 
 -- Version 1.10.4, released 4-1-2015
 
