@@ -3,7 +3,7 @@
 
     <groupId>org.pepsoft.worldpainter</groupId>
     <artifactId>WPValueObjects</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
 
     <name>WPValueObjects</name>
     <description>Some simple JavaBeans for WorldPainter usage data.</description>
