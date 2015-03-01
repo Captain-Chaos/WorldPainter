@@ -43,121 +43,114 @@ public class CreateFilterOp extends AbstractOperation<FilterImpl> {
     }
     
     public CreateFilterOp onlyOnTerrain(int terrainIndex) throws ScriptException {
-        if (replace != null) {
-            throw new ScriptException("Only one \"only on\" or \"except on\" condition may be specified");
+        if (onlyOn != null) {
+            throw new ScriptException("Only one \"only on\" or condition may be specified");
         }
-        replace = Terrain.VALUES[terrainIndex];
+        onlyOn = Terrain.VALUES[terrainIndex];
         return this;
     }
     
     public CreateFilterOp onlyOnLayer(Layer layer) throws ScriptException {
-        if (replace != null) {
-            throw new ScriptException("Only one \"only on\" or \"except on\" condition may be specified");
+        if (onlyOn != null) {
+            throw new ScriptException("Only one \"only on\" or condition may be specified");
         }
-        replace = layer;
+        onlyOn = layer;
         return this;
     }
     
     public CreateFilterOp onlyOnBiome(int biomeIndex) throws ScriptException {
-        if (replace != null) {
-            throw new ScriptException("Only one \"only on\" or \"except on\" condition may be specified");
+        if (onlyOn != null) {
+            throw new ScriptException("Only one \"only on\" or condition may be specified");
         }
-        replace = biomeIndex;
+        onlyOn = biomeIndex;
         return this;
     }
     
     public CreateFilterOp onlyOnAutoBiome(int biomeIndex) throws ScriptException {
-        if (replace != null) {
-            throw new ScriptException("Only one \"only on\" or \"except on\" condition may be specified");
+        if (onlyOn != null) {
+            throw new ScriptException("Only one \"only on\" or condition may be specified");
         }
-        replace = -biomeIndex;
+        onlyOn = -biomeIndex;
         return this;
     }
     
     public CreateFilterOp onlyOnAutoBiomes() throws ScriptException {
-        if (replace != null) {
-            throw new ScriptException("Only one \"only on\" or \"except on\" condition may be specified");
+        if (onlyOn != null) {
+            throw new ScriptException("Only one \"only on\" or condition may be specified");
         }
-        replace = BrushOptions.AUTO_BIOMES;
+        onlyOn = BrushOptions.AUTO_BIOMES;
         return this;
     }
     
     public CreateFilterOp onlyOnWater() throws ScriptException {
-        if (replace != null) {
-            throw new ScriptException("Only one \"only on\" or \"except on\" condition may be specified");
+        if (onlyOn != null) {
+            throw new ScriptException("Only one \"only on\" or condition may be specified");
         }
-        replace = BrushOptions.WATER;
+        onlyOn = BrushOptions.WATER;
         return this;
     }
     
     public CreateFilterOp onlyOnLand() throws ScriptException {
-        if (replace != null) {
-            throw new ScriptException("Only one \"only on\" or \"except on\" condition may be specified");
+        if (onlyOn != null) {
+            throw new ScriptException("Only one \"only on\" or condition may be specified");
         }
-        replace = BrushOptions.LAND;
+        onlyOn = BrushOptions.LAND;
         return this;
     }
     
     public CreateFilterOp exceptOnTerrain(int terrainIndex) throws ScriptException {
-        if (replace != null) {
-            throw new ScriptException("Only one \"only on\" or \"except on\" condition may be specified");
+        if (exceptOn != null) {
+            throw new ScriptException("Only one or \"except on\" condition may be specified");
         }
-        replace = Terrain.VALUES[terrainIndex];
-        replaceIsExcept = true;
+        exceptOn = Terrain.VALUES[terrainIndex];
         return this;
     }
     
     public CreateFilterOp exceptOnLayer(Layer layer) throws ScriptException {
-        if (replace != null) {
-            throw new ScriptException("Only one \"only on\" or \"except on\" condition may be specified");
+        if (exceptOn != null) {
+            throw new ScriptException("Only one or \"except on\" condition may be specified");
         }
-        replace = layer;
-        replaceIsExcept = true;
+        exceptOn = layer;
         return this;
     }
     
     public CreateFilterOp exceptOnBiome(int biomeIndex) throws ScriptException {
-        if (replace != null) {
-            throw new ScriptException("Only one \"only on\" or \"except on\" condition may be specified");
+        if (exceptOn != null) {
+            throw new ScriptException("Only one or \"except on\" condition may be specified");
         }
-        replace = biomeIndex;
-        replaceIsExcept = true;
+        exceptOn = biomeIndex;
         return this;
     }
     
     public CreateFilterOp exceptOnAutoBiome(int biomeIndex) throws ScriptException {
-        if (replace != null) {
-            throw new ScriptException("Only one \"only on\" or \"except on\" condition may be specified");
+        if (exceptOn != null) {
+            throw new ScriptException("Only one or \"except on\" condition may be specified");
         }
-        replace = -biomeIndex;
-        replaceIsExcept = true;
+        exceptOn = -biomeIndex;
         return this;
     }
     
     public CreateFilterOp exceptOnAutoBiomes() throws ScriptException {
-        if (replace != null) {
-            throw new ScriptException("Only one \"only on\" or \"except on\" condition may be specified");
+        if (exceptOn != null) {
+            throw new ScriptException("Only one or \"except on\" condition may be specified");
         }
-        replace = BrushOptions.AUTO_BIOMES;
-        replaceIsExcept = true;
+        exceptOn = BrushOptions.AUTO_BIOMES;
         return this;
     }
     
     public CreateFilterOp exceptOnWater() throws ScriptException {
-        if (replace != null) {
-            throw new ScriptException("Only one \"only on\" or \"except on\" condition may be specified");
+        if (exceptOn != null) {
+            throw new ScriptException("Only one or \"except on\" condition may be specified");
         }
-        replace = BrushOptions.WATER;
-        replaceIsExcept = true;
+        exceptOn = BrushOptions.WATER;
         return this;
     }
     
     public CreateFilterOp exceptOnLand() throws ScriptException {
-        if (replace != null) {
-            throw new ScriptException("Only one \"only on\" or \"except on\" condition may be specified");
+        if (exceptOn != null) {
+            throw new ScriptException("Only one or \"except on\" condition may be specified");
         }
-        replace = BrushOptions.LAND;
-        replaceIsExcept = true;
+        exceptOn = BrushOptions.LAND;
         return this;
     }
     
@@ -186,10 +179,10 @@ public class CreateFilterOp extends AbstractOperation<FilterImpl> {
     
     @Override
     public FilterImpl go() throws ScriptException {
-        return new FilterImpl(null, aboveLevel, belowLevel, feather, replace, replaceIsExcept, degrees, slopeIsAbove);
+        return new FilterImpl(null, aboveLevel, belowLevel, feather, onlyOn, exceptOn, degrees, slopeIsAbove);
     }
     
     private int aboveLevel = -1, belowLevel = -1, degrees = -1;
-    private boolean feather, replaceIsExcept, slopeIsAbove;
-    private Object replace;
+    private boolean feather, slopeIsAbove;
+    private Object onlyOn, exceptOn;
 }

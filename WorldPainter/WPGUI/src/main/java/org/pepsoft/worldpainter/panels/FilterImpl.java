@@ -17,7 +17,7 @@ import org.pepsoft.worldpainter.operations.Filter;
  * @author pepijn
  */
 public final class FilterImpl implements Filter {
-    public FilterImpl(Dimension dimension, int aboveLevel, int belowLevel, boolean feather, Object replace, boolean replaceIsExcept, int degrees, boolean slopeIsAbove) {
+    public FilterImpl(Dimension dimension, int aboveLevel, int belowLevel, boolean feather, Object onlyOn, Object exceptOn, int aboveDegrees, boolean slopeIsAbove) {
         this.dimension = dimension;
         this.aboveLevel = aboveLevel;
         this.belowLevel = belowLevel;
@@ -44,65 +44,118 @@ public final class FilterImpl implements Filter {
             levelType = null;
         }
         this.feather = feather;
-        if (replace instanceof Terrain) {
-            this.replace = true;
-            objectType = ObjectType.TERRAIN;
-            terrain = (Terrain) replace;
-            layer = null;
-            biome = -1;
-        } else if (replace instanceof Layer) {
-            this.replace = true;
-            if ((((Layer) replace).getDataSize() == DataSize.BIT) || (((Layer) replace).getDataSize() == DataSize.BIT_PER_CHUNK)) {
-                objectType = ObjectType.BIT_LAYER;
+        if (onlyOn instanceof Terrain) {
+            this.onlyOn = true;
+            onlyOnObjectType = ObjectType.TERRAIN;
+            onlyOnTerrain = (Terrain) onlyOn;
+            onlyOnLayer = null;
+            onlyOnBiome = -1;
+        } else if (onlyOn instanceof Layer) {
+            this.onlyOn = true;
+            if ((((Layer) onlyOn).getDataSize() == DataSize.BIT) || (((Layer) onlyOn).getDataSize() == DataSize.BIT_PER_CHUNK)) {
+                onlyOnObjectType = ObjectType.BIT_LAYER;
             } else {
-                objectType = ObjectType.INT_LAYER;
+                onlyOnObjectType = ObjectType.INT_LAYER;
             }
-            terrain = null;
-            layer = (Layer) replace;
-            biome = -1;
-        } else if (replace instanceof Integer) {
-            this.replace = true;
-            if ((Integer) replace < 0) {
-                objectType = ObjectType.AUTO_BIOME;
-                terrain = null;
-                layer = null;
-                biome = -(Integer) replace;
+            onlyOnTerrain = null;
+            onlyOnLayer = (Layer) onlyOn;
+            onlyOnBiome = -1;
+        } else if (onlyOn instanceof Integer) {
+            this.onlyOn = true;
+            if ((Integer) onlyOn < 0) {
+                onlyOnObjectType = ObjectType.AUTO_BIOME;
+                onlyOnTerrain = null;
+                onlyOnLayer = null;
+                onlyOnBiome = -(Integer) onlyOn;
             } else {
-                objectType = ObjectType.BIOME;
-                terrain = null;
-                layer = null;
-                biome = (Integer) replace;
+                onlyOnObjectType = ObjectType.BIOME;
+                onlyOnTerrain = null;
+                onlyOnLayer = null;
+                onlyOnBiome = (Integer) onlyOn;
             }
-        } else if (BrushOptions.WATER.equals(replace)) {
-            this.replace = true;
-            objectType = ObjectType.WATER;
-            terrain = null;
-            layer = null;
-            biome = -1;
-        } else if (BrushOptions.LAND.equals(replace)) {
-            this.replace = true;
-            objectType = ObjectType.LAND;
-            terrain = null;
-            layer = null;
-            biome = -1;
-        } else if (BrushOptions.AUTO_BIOMES.equals(replace)) {
-            this.replace = true;
-            objectType = ObjectType.BIOME;
-            terrain = null;
-            layer = null;
-            biome = 255;
+        } else if (BrushOptions.WATER.equals(onlyOn)) {
+            this.onlyOn = true;
+            onlyOnObjectType = ObjectType.WATER;
+            onlyOnTerrain = null;
+            onlyOnLayer = null;
+            onlyOnBiome = -1;
+        } else if (BrushOptions.LAND.equals(onlyOn)) {
+            this.onlyOn = true;
+            onlyOnObjectType = ObjectType.LAND;
+            onlyOnTerrain = null;
+            onlyOnLayer = null;
+            onlyOnBiome = -1;
+        } else if (BrushOptions.AUTO_BIOMES.equals(onlyOn)) {
+            this.onlyOn = true;
+            onlyOnObjectType = ObjectType.BIOME;
+            onlyOnTerrain = null;
+            onlyOnLayer = null;
+            onlyOnBiome = 255;
         } else {
-            this.replace = false;
-            objectType = null;
-            terrain = null;
-            layer = null;
-            biome = -1;
+            this.onlyOn = false;
+            onlyOnObjectType = null;
+            onlyOnTerrain = null;
+            onlyOnLayer = null;
+            onlyOnBiome = -1;
         }
-        this.replaceIsExcept = replaceIsExcept;
-        this.degrees = degrees;
-        checkSlope = degrees >= 0;
+        if (exceptOn instanceof Terrain) {
+            this.exceptOn = true;
+            exceptOnObjectType = ObjectType.TERRAIN;
+            exceptOnTerrain = (Terrain) exceptOn;
+            exceptOnLayer = null;
+            exceptOnBiome = -1;
+        } else if (exceptOn instanceof Layer) {
+            this.exceptOn = true;
+            if ((((Layer) exceptOn).getDataSize() == DataSize.BIT) || (((Layer) exceptOn).getDataSize() == DataSize.BIT_PER_CHUNK)) {
+                exceptOnObjectType = ObjectType.BIT_LAYER;
+            } else {
+                exceptOnObjectType = ObjectType.INT_LAYER;
+            }
+            exceptOnTerrain = null;
+            exceptOnLayer = (Layer) exceptOn;
+            exceptOnBiome = -1;
+        } else if (exceptOn instanceof Integer) {
+            this.exceptOn = true;
+            if ((Integer) exceptOn < 0) {
+                exceptOnObjectType = ObjectType.AUTO_BIOME;
+                exceptOnTerrain = null;
+                exceptOnLayer = null;
+                exceptOnBiome = -(Integer) exceptOn;
+            } else {
+                exceptOnObjectType = ObjectType.BIOME;
+                exceptOnTerrain = null;
+                exceptOnLayer = null;
+                exceptOnBiome = (Integer) exceptOn;
+            }
+        } else if (BrushOptions.WATER.equals(exceptOn)) {
+            this.exceptOn = true;
+            exceptOnObjectType = ObjectType.WATER;
+            exceptOnTerrain = null;
+            exceptOnLayer = null;
+            exceptOnBiome = -1;
+        } else if (BrushOptions.LAND.equals(exceptOn)) {
+            this.exceptOn = true;
+            exceptOnObjectType = ObjectType.LAND;
+            exceptOnTerrain = null;
+            exceptOnLayer = null;
+            exceptOnBiome = -1;
+        } else if (BrushOptions.AUTO_BIOMES.equals(exceptOn)) {
+            this.exceptOn = true;
+            exceptOnObjectType = ObjectType.BIOME;
+            exceptOnTerrain = null;
+            exceptOnLayer = null;
+            exceptOnBiome = 255;
+        } else {
+            this.exceptOn = false;
+            exceptOnObjectType = null;
+            exceptOnTerrain = null;
+            exceptOnLayer = null;
+            exceptOnBiome = -1;
+        }
+        this.degrees = aboveDegrees;
+        checkSlope = aboveDegrees >= 0;
         if (checkSlope) {
-            this.slope = (float) Math.tan(degrees / (180 / Math.PI));
+            this.slope = (float) Math.tan(aboveDegrees / (180 / Math.PI));
     //        System.out.println(degrees + "° -> " + slope);
         } else {
             slope = 0.0f;
@@ -131,40 +184,79 @@ public final class FilterImpl implements Filter {
     @Override
     public float modifyStrength(int x, int y, float strength) {
         if (strength > 0.0f) {
-            if (replace) {
-                switch (objectType) {
+            if (exceptOn) {
+                switch (exceptOnObjectType) {
                     case BIOME:
-                        if ((dimension.getLayerValueAt(Biome.INSTANCE, x, y) != biome) ^ replaceIsExcept) {
+                        if (dimension.getLayerValueAt(Biome.INSTANCE, x, y) == exceptOnBiome) {
                             return 0.0f;
                         }
                         break;
                     case AUTO_BIOME:
-                        if (((dimension.getLayerValueAt(Biome.INSTANCE, x, y) != 255) || (dimension.getAutoBiome(x, y) != biome)) ^ replaceIsExcept) {
+                        if (dimension.getAutoBiome(x, y) == exceptOnBiome) {
                             return 0.0f;
                         }
                         break;
                     case BIT_LAYER:
-                        if ((!dimension.getBitLayerValueAt(layer, x, y)) ^ replaceIsExcept) {
+                        if (dimension.getBitLayerValueAt(exceptOnLayer, x, y)) {
                             return 0.0f;
                         }
                         break;
                     case INT_LAYER:
-                        if ((dimension.getLayerValueAt(layer, x, y) == 0) ^ replaceIsExcept) {
+                        if (dimension.getLayerValueAt(exceptOnLayer, x, y) != 0) {
                             return 0.0f;
                         }
                         break;
                     case TERRAIN:
-                        if ((dimension.getTerrainAt(x, y) != terrain) ^ replaceIsExcept) {
+                        if (dimension.getTerrainAt(x, y) == exceptOnTerrain) {
                             return 0.0f;
                         }
                         break;
                     case WATER:
-                        if (((dimension.getWaterLevelAt(x, y) <= dimension.getIntHeightAt(x, y)) || dimension.getBitLayerValueAt(FloodWithLava.INSTANCE, x, y)) ^ replaceIsExcept) {
+                        if ((dimension.getWaterLevelAt(x, y) > dimension.getIntHeightAt(x, y)) && (! dimension.getBitLayerValueAt(FloodWithLava.INSTANCE, x, y))) {
                             return 0.0f;
                         }
                         break;
                     case LAND:
-                        if ((dimension.getWaterLevelAt(x, y) > dimension.getIntHeightAt(x, y)) ^ replaceIsExcept) {
+                        if (dimension.getWaterLevelAt(x, y) <= dimension.getIntHeightAt(x, y)) {
+                            return 0.0f;
+                        }
+                        break;
+                }
+            }
+            if (onlyOn) {
+                switch (onlyOnObjectType) {
+                    case BIOME:
+                        if (dimension.getLayerValueAt(Biome.INSTANCE, x, y) != onlyOnBiome) {
+                            return 0.0f;
+                        }
+                        break;
+                    case AUTO_BIOME:
+                        if ((dimension.getLayerValueAt(Biome.INSTANCE, x, y) != 255) || (dimension.getAutoBiome(x, y) != onlyOnBiome)) {
+                            return 0.0f;
+                        }
+                        break;
+                    case BIT_LAYER:
+                        if (!dimension.getBitLayerValueAt(onlyOnLayer, x, y)) {
+                            return 0.0f;
+                        }
+                        break;
+                    case INT_LAYER:
+                        if (dimension.getLayerValueAt(onlyOnLayer, x, y) == 0) {
+                            return 0.0f;
+                        }
+                        break;
+                    case TERRAIN:
+                        if (dimension.getTerrainAt(x, y) != onlyOnTerrain) {
+                            return 0.0f;
+                        }
+                        break;
+                    case WATER:
+                        if ((dimension.getWaterLevelAt(x, y) <= dimension.getIntHeightAt(x, y)) || dimension.getBitLayerValueAt(FloodWithLava.INSTANCE, x, y)) {
+                            return 0.0f;
+                        }
+                        break;
+                    case LAND:
+                        if (dimension.getWaterLevelAt(x, y) > dimension.getIntHeightAt(x, y)) {
                             return 0.0f;
                         }
                         break;
@@ -208,16 +300,15 @@ public final class FilterImpl implements Filter {
     }
     
     final boolean checkLevel;
-    final boolean replace;
+    final boolean onlyOn, exceptOn;
     final boolean feather;
     final LevelType levelType;
-    final ObjectType objectType;
-    final boolean replaceIsExcept;
+    final ObjectType onlyOnObjectType, exceptOnObjectType;
     final int aboveLevel;
     final int belowLevel;
-    final int biome;
-    final Terrain terrain;
-    final Layer layer;
+    final int onlyOnBiome, exceptOnBiome;
+    final Terrain onlyOnTerrain, exceptOnTerrain;
+    final Layer onlyOnLayer, exceptOnLayer;
     final float slope;
     final boolean checkSlope;
     final boolean slopeIsAbove;

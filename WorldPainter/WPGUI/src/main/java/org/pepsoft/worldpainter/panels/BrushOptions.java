@@ -6,7 +6,7 @@ package org.pepsoft.worldpainter.panels;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.List;
+import java.util.*;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Icon;
@@ -17,16 +17,14 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JSpinner.NumberEditor;
 import javax.swing.SpinnerNumberModel;
-import org.pepsoft.worldpainter.App;
-import org.pepsoft.worldpainter.BiomeScheme;
-import org.pepsoft.worldpainter.ColourScheme;
-import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.Terrain;
+
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.biomeschemes.AutoBiomeScheme;
 import org.pepsoft.worldpainter.biomeschemes.BiomeHelper;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiome;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.Biome;
+import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.LayerManager;
 import org.pepsoft.worldpainter.operations.Filter;
@@ -54,8 +52,8 @@ public class BrushOptions extends javax.swing.JPanel {
                     checkBoxAbove.isSelected() ? (Integer) spinnerAbove.getValue() : -1,
                     checkBoxBelow.isSelected() ? (Integer) spinnerBelow.getValue() : -1,
                     checkBoxFeather.isSelected(),
-                    checkBoxReplace.isSelected() ? onlyOn : (checkBoxExceptOn.isSelected() ? exceptOn : null),
-                    checkBoxExceptOn.isSelected(),
+                    checkBoxReplace.isSelected() ? onlyOn : null,
+                    checkBoxExceptOn.isSelected() ? exceptOn : null,
                     (checkBoxAboveSlope.isSelected() || checkBoxBelowSlope.isSelected()) ? (Integer) spinnerSlope.getValue() : -1,
                     checkBoxAboveSlope.isSelected());
         } else {
@@ -86,71 +84,76 @@ public class BrushOptions extends javax.swing.JPanel {
             if (myFilter.degrees >= 0) {
                 spinnerSlope.setValue(myFilter.degrees);
             }
-            checkBoxReplace.setSelected((myFilter.objectType != null) && (! myFilter.replaceIsExcept));
-            checkBoxExceptOn.setSelected((myFilter.objectType != null) && myFilter.replaceIsExcept);
-            if (myFilter.objectType != null) {
-                final App app = App.getInstance();
-                switch (myFilter.objectType) {
+            checkBoxReplace.setSelected(myFilter.onlyOnObjectType != null);
+            checkBoxExceptOn.setSelected(myFilter.exceptOnObjectType != null);
+            final App app = App.getInstance();
+            if (myFilter.onlyOnObjectType != null) {
+                switch (myFilter.onlyOnObjectType) {
                     case BIOME:
-                        int biome = myFilter.biome;
+                        int biome = myFilter.onlyOnBiome;
                         BiomeHelper biomeHelper = new BiomeHelper(autoBiomeScheme, app.getColourScheme(), app.getCustomBiomeManager());
-                        if (myFilter.replaceIsExcept) {
-                            exceptOn = biome;
-                            buttonExceptOn.setText(biomeHelper.getBiomeName(biome));
-                            buttonExceptOn.setIcon(biomeHelper.getBiomeIcon(biome));
-                        } else {
-                            onlyOn = biome;
-                            buttonReplace.setText(biomeHelper.getBiomeName(biome));
-                            buttonReplace.setIcon(biomeHelper.getBiomeIcon(biome));
-                        }
+                        onlyOn = biome;
+                        buttonReplace.setText(biomeHelper.getBiomeName(biome));
+                        buttonReplace.setIcon(biomeHelper.getBiomeIcon(biome));
                         break;
                     case BIT_LAYER:
                     case INT_LAYER:
-                        Layer layer = myFilter.layer;
-                        if (myFilter.replaceIsExcept) {
-                            exceptOn = layer;
-                            buttonExceptOn.setText(layer.getName());
-                            buttonExceptOn.setIcon(new ImageIcon(layer.getIcon()));
-                        } else {
-                            onlyOn = layer;
-                            buttonReplace.setText(layer.getName());
-                            buttonReplace.setIcon(new ImageIcon(layer.getIcon()));
-                        }
+                        Layer layer = myFilter.onlyOnLayer;
+                        onlyOn = layer;
+                        buttonReplace.setText(layer.getName());
+                        buttonReplace.setIcon(new ImageIcon(layer.getIcon()));
                         break;
                     case TERRAIN:
-                        Terrain terrain = myFilter.terrain;
+                        Terrain terrain = myFilter.onlyOnTerrain;
                         ColourScheme colourScheme = app.getColourScheme();
-                        if (myFilter.replaceIsExcept) {
-                            exceptOn = terrain;
-                            buttonExceptOn.setText(terrain.getName());
-                            buttonExceptOn.setIcon(new ImageIcon(terrain.getIcon(colourScheme)));
-                        } else {
-                            onlyOn = terrain;
-                            buttonReplace.setText(terrain.getName());
-                            buttonReplace.setIcon(new ImageIcon(terrain.getIcon(colourScheme)));
-                        }
+                        onlyOn = terrain;
+                        buttonReplace.setText(terrain.getName());
+                        buttonReplace.setIcon(new ImageIcon(terrain.getIcon(colourScheme)));
                         break;
                     case WATER:
-                        if (myFilter.replaceIsExcept) {
-                            exceptOn = WATER;
-                            buttonExceptOn.setText("Water");
-                            buttonExceptOn.setIcon(null);
-                        } else {
-                            onlyOn = WATER;
-                            buttonReplace.setText("Water");
-                            buttonReplace.setIcon(null);
-                        }
+                        onlyOn = WATER;
+                        buttonReplace.setText("Water");
+                        buttonReplace.setIcon(null);
                         break;
                     case LAND:
-                        if (myFilter.replaceIsExcept) {
-                            exceptOn = LAND;
-                            buttonExceptOn.setText("Land");
-                            buttonExceptOn.setIcon(null);
-                        } else {
-                            onlyOn = LAND;
-                            buttonReplace.setText("Land");
-                            buttonReplace.setIcon(null);
-                        }
+                        onlyOn = LAND;
+                        buttonReplace.setText("Land");
+                        buttonReplace.setIcon(null);
+                        break;
+                }
+            }
+            if (myFilter.exceptOnObjectType != null) {
+                switch (myFilter.exceptOnObjectType) {
+                    case BIOME:
+                        int biome = myFilter.exceptOnBiome;
+                        BiomeHelper biomeHelper = new BiomeHelper(autoBiomeScheme, app.getColourScheme(), app.getCustomBiomeManager());
+                        exceptOn = biome;
+                        buttonExceptOn.setText(biomeHelper.getBiomeName(biome));
+                        buttonExceptOn.setIcon(biomeHelper.getBiomeIcon(biome));
+                        break;
+                    case BIT_LAYER:
+                    case INT_LAYER:
+                        Layer layer = myFilter.exceptOnLayer;
+                        exceptOn = layer;
+                        buttonExceptOn.setText(layer.getName());
+                        buttonExceptOn.setIcon(new ImageIcon(layer.getIcon()));
+                        break;
+                    case TERRAIN:
+                        Terrain terrain = myFilter.exceptOnTerrain;
+                        ColourScheme colourScheme = app.getColourScheme();
+                        exceptOn = terrain;
+                        buttonExceptOn.setText(terrain.getName());
+                        buttonExceptOn.setIcon(new ImageIcon(terrain.getIcon(colourScheme)));
+                        break;
+                    case WATER:
+                        exceptOn = WATER;
+                        buttonExceptOn.setText("Water");
+                        buttonExceptOn.setIcon(null);
+                        break;
+                    case LAND:
+                        exceptOn = LAND;
+                        buttonExceptOn.setText("Land");
+                        buttonExceptOn.setIcon(null);
                         break;
                 }
             }
@@ -285,18 +288,43 @@ public class BrushOptions extends javax.swing.JPanel {
             });
             layerMenu.add(menuItem);
         }
-        for (Layer layer: app.getCustomLayers()) {
-            final Layer selectedLayer = layer;
-            final String name = layer.getName();
-            final Icon icon = new ImageIcon(layer.getIcon());
-            JMenuItem menuItem = new JMenuItem(name, icon);
-            menuItem.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    listener.objectSelected(selectedLayer, name, icon);
+        Set<CustomLayer> customLayers = app.getCustomLayers();
+        if (customLayers.size() > 15) {
+            // If there are ten or more custom layers, split them by palette and
+            // move them to separate submenus to try and conserve screen space
+            Map<String, Collection<CustomLayer>> layersByPalette = app.getCustomLayersByPalette();
+            for (Map.Entry<String, Collection<CustomLayer>> entry: layersByPalette.entrySet()) {
+                String palette = entry.getKey();
+                JMenu paletteMenu = new JMenu(palette != null ? palette : "Hidden Layers");
+                for (CustomLayer layer: entry.getValue()) {
+                    final Layer selectedLayer = layer;
+                    final String name = layer.getName();
+                    final Icon icon = new ImageIcon(layer.getIcon());
+                    JMenuItem menuItem = new JMenuItem(name, icon);
+                    menuItem.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            listener.objectSelected(selectedLayer, name, icon);
+                        }
+                    });
+                    paletteMenu.add(menuItem);
                 }
-            });
-            layerMenu.add(menuItem);
+                layerMenu.add(paletteMenu);
+            }
+        } else {
+            for (CustomLayer layer: customLayers) {
+                final Layer selectedLayer = layer;
+                final String name = layer.getName();
+                final Icon icon = new ImageIcon(layer.getIcon());
+                JMenuItem menuItem = new JMenuItem(name, icon);
+                menuItem.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        listener.objectSelected(selectedLayer, name, icon);
+                    }
+                });
+                layerMenu.add(menuItem);
+            }
         }
         popupMenu.add(layerMenu);
         
@@ -308,7 +336,7 @@ public class BrushOptions extends javax.swing.JPanel {
             JMenu customBiomeMenu = new JMenu("Custom");
             for (CustomBiome customBiome: customBiomes) {
                 final int selectedBiome = customBiome.getId();
-                final String name = biomeHelper.getBiomeName(selectedBiome);
+                final String name = biomeHelper.getBiomeName(selectedBiome) + " (" + selectedBiome + ")";
                 final Icon icon = biomeHelper.getBiomeIcon(selectedBiome);
                 final JMenuItem menuItem = new JMenuItem(name, icon);
                 menuItem.addActionListener(new ActionListener() {
@@ -324,7 +352,7 @@ public class BrushOptions extends javax.swing.JPanel {
         for (int i = 0; i < autoBiomeScheme.getBiomeCount(); i++) {
             if (autoBiomeScheme.isBiomePresent(i) && (! (autoBiomeScheme.getBiomeName(i).endsWith("+") || autoBiomeScheme.getBiomeName(i).endsWith(" F") || autoBiomeScheme.getBiomeName(i).endsWith(" M") || autoBiomeScheme.getBiomeName(i).endsWith(" F M") || autoBiomeScheme.getBiomeName(i).endsWith(" Edge") || autoBiomeScheme.getBiomeName(i).endsWith(" Shore")))) {
                 final int selectedBiome = i;
-                final String name = biomeHelper.getBiomeName(i);
+                final String name = biomeHelper.getBiomeName(i) + " (" + selectedBiome + ")";
                 final Icon icon = biomeHelper.getBiomeIcon(i);
                 final JMenuItem menuItem = new JMenuItem(name, icon);
                 menuItem.addActionListener(new ActionListener() {
@@ -363,7 +391,7 @@ public class BrushOptions extends javax.swing.JPanel {
         for (int i = 0; i < autoBiomeScheme.getBiomeCount(); i++) {
             if (autoBiomeScheme.isBiomePresent(i) && (autoBiomeScheme.getBiomeName(i).endsWith("+") || autoBiomeScheme.getBiomeName(i).endsWith(" F") || autoBiomeScheme.getBiomeName(i).endsWith(" M") || autoBiomeScheme.getBiomeName(i).endsWith(" F M") || autoBiomeScheme.getBiomeName(i).endsWith(" Edge") || autoBiomeScheme.getBiomeName(i).endsWith(" Shore"))) {
                 final int selectedBiome = i;
-                final String name = biomeHelper.getBiomeName(i);
+                final String name = biomeHelper.getBiomeName(i) + " (" + selectedBiome + ")";
                 final Icon icon = biomeHelper.getBiomeIcon(i);
                 final JMenuItem menuItem = new JMenuItem(name, icon);
                 menuItem.addActionListener(new ActionListener() {
@@ -629,9 +657,6 @@ public class BrushOptions extends javax.swing.JPanel {
 
     private void checkBoxReplaceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxReplaceActionPerformed
         initialiseIfNecessary();
-        if (checkBoxReplace.isSelected()) {
-            checkBoxExceptOn.setSelected(false);
-        }
         setControlStates();
         if (checkBoxReplace.isSelected() && (onlyOn == null)) {
             showReplaceMenu();
@@ -658,9 +683,6 @@ public class BrushOptions extends javax.swing.JPanel {
 
     private void checkBoxExceptOnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxExceptOnActionPerformed
         initialiseIfNecessary();
-        if (checkBoxExceptOn.isSelected()) {
-            checkBoxReplace.setSelected(false);
-        }
         setControlStates();
         if (checkBoxExceptOn.isSelected() && (exceptOn == null)) {
             showExceptOnMenu();
