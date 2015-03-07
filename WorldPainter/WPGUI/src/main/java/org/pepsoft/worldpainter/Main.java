@@ -65,10 +65,6 @@ public class Main {
         // translations are implemented
         Locale.setDefault(Locale.US);
         
-        if (processCommandLine(args)) {
-            return;
-        }
-        
         System.setProperty("sun.awt.exception.handler", ExceptionHandler.class.getName());
         Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler());
 
@@ -364,13 +360,6 @@ public class Main {
 
     private static void configError(Throwable e) {
         JOptionPane.showMessageDialog(null, "Could not read configuration file! Resetting configuration.\n\nException type: " + e.getClass().getSimpleName() + "\nMessage: " + e.getMessage(), "Configuration Error", JOptionPane.ERROR_MESSAGE);
-    }
-    
-    private static boolean processCommandLine(String[] args) {
-        for (int i = 0; i < args.length; i++) {
-            // TODO: finish
-        }
-        return false;
     }
     
     private static final Logger logger = Logger.getLogger(Main.class.getName());
