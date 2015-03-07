@@ -6,6 +6,7 @@
 
 package org.pepsoft.worldpainter.tools;
 
+import org.pepsoft.worldpainter.Version;
 import org.pepsoft.worldpainter.tools.scripts.ScriptingContext;
 import java.io.File;
 import java.io.FileReader;
@@ -33,24 +34,42 @@ public class ScriptingTool {
         // Initialise logging
         System.setProperty("java.util.logging.SimpleFormatter.format", "[%4$s] %5$s%6$s%n");
         Logger.getLogger("").setLevel(Level.WARNING);
-        
+
+        System.err.println("WorldPainter scripting host version " + Version.VERSION + ".\n" +
+                "Copyright 2011-2015 pepsoft.org, The Netherlands.\n" +
+                "This is free software distributed under the terms of the GPL, version 3, a copy\n" +
+                "of which you can find in the installation directory.\n");
+
+        // Check arguments
+        if (args.length < 1) {
+            System.out.println("Usage:\n" +
+                    "\n" +
+                    "    wpscript <scriptfile> [<scriptarg> ...]\n" +
+                    "\n" +
+                    "Where <scriptfile> is the filename, including extension, of the script to\n" +
+                    "execute, and [<scriptarg> ...] an optional list of one or more arguments for\n" +
+                    "the script, which will be available to the script in the arguments (from index\n" +
+                    "0) or argv (from index 1) array.");
+            System.exit(1);
+        }
+
         // Load script
         File scriptFile = new File(args[0]);
         if (! scriptFile.isFile()) {
-            logger.severe(args[0] + " does not exist or is not a regular file");
+            System.err.println(args[0] + " does not exist or is not a regular file");
             System.exit(1);
         }
         String scriptFileName = scriptFile.getName();
         int p = scriptFileName.lastIndexOf('.');
         if (p == -1) {
-            logger.severe("Script file name " + scriptFileName + " has no extension");
+            System.err.println("Script file name " + scriptFileName + " has no extension");
             System.exit(1);
         }
         String extension = scriptFileName.substring(p + 1);
         ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
         ScriptEngine scriptEngine = scriptEngineManager.getEngineByExtension(extension);
         if (scriptEngine == null) {
-            logger.severe("Script file language " + extension + " not supported");
+            System.err.println("Script file language " + extension + " not supported");
             System.exit(1);
         }
         scriptEngine.put(ScriptEngine.FILENAME, scriptFileName);
@@ -83,7 +102,20 @@ public class ScriptingTool {
             logger.severe("Trusted root certificate not available; not loading plugins");
         }
         WPPluginManager.initialise(config.getUuid());
-        
+
+        if (args.length > 1) {
+            System.err.print("Executing script \"" + scriptFileName + "\" with arguments ");
+            for (int i = 1; i < args.length; i++) {
+                if (i > 1) {
+                    System.err.print(", ");
+                }
+                System.err.print("\"" + args[i] + "\"");
+            }
+            System.err.println("\n");
+        } else {
+            System.err.println("Executing script \"" + scriptFileName + "\" with no arguments.\n");
+        }
+
         // Initialise script context
         ScriptingContext context = new ScriptingContext();
         Bindings bindings = scriptEngine.getBindings(ScriptContext.ENGINE_SCOPE);
