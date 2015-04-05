@@ -33,7 +33,7 @@
                   </Group>
                   <Group type="102" attributes="0">
                       <Component id="jLabel3" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace pref="44" max="32767" attributes="0"/>
+                      <EmptySpace max="32767" attributes="0"/>
                       <Component id="buttonReset" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="buttonClear" min="-2" max="-2" attributes="0"/>
@@ -48,7 +48,7 @@
                           <Group type="102" attributes="0">
                               <Component id="panelPlantControls" min="-2" max="-2" attributes="0"/>
                               <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                              <Component id="panelPlantControls2" max="32767" attributes="0"/>
+                              <Component id="panelPlantControls2" max="-2" attributes="0"/>
                           </Group>
                           <Group type="102" attributes="0">
                               <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
@@ -95,8 +95,8 @@
                       <Component id="checkBoxGenerateTilledDirt" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="panelPlantControls2" max="32767" attributes="0"/>
-                          <Component id="panelPlantControls" max="32767" attributes="0"/>
+                          <Component id="panelPlantControls2" max="-2" attributes="0"/>
+                          <Component id="panelPlantControls" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Component id="jLabel3" min="-2" max="-2" attributes="0"/>

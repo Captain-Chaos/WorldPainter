@@ -6,6 +6,16 @@
 
 package org.pepsoft.worldpainter.layers.plants;
 
+import org.pepsoft.minecraft.Entity;
+import org.pepsoft.minecraft.Material;
+import org.pepsoft.minecraft.TileEntity;
+import org.pepsoft.util.Version;
+import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
+import org.pepsoft.worldpainter.exporting.MinecraftWorld;
+import org.pepsoft.worldpainter.objects.WPObject;
+
+import javax.imageio.ImageIO;
+import javax.vecmath.Point3i;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -18,16 +28,9 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.imageio.ImageIO;
-import javax.vecmath.Point3i;
+
+import static org.pepsoft.minecraft.Block.BLOCKS;
 import static org.pepsoft.minecraft.Constants.*;
-import org.pepsoft.minecraft.Entity;
-import org.pepsoft.minecraft.Material;
-import org.pepsoft.minecraft.TileEntity;
-import org.pepsoft.util.Version;
-import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
-import org.pepsoft.worldpainter.exporting.MinecraftWorld;
-import org.pepsoft.worldpainter.objects.WPObject;
 import static org.pepsoft.worldpainter.layers.plants.Plant.Category.*;
 
 /**
@@ -35,14 +38,27 @@ import static org.pepsoft.worldpainter.layers.plants.Plant.Category.*;
  * @author pepijn
  */
 public class Plant implements WPObject {
-    public Plant(String name, Material material, int height, int maxData, Category category, String iconName) {
+    public Plant(String name, Material material, int height, int maxGrowth, Category category, String iconName) {
         this.name = name;
-        this.material = material;
+        if (category == CROPS) {
+            // Adjust the material for the specified maximum growth factor:
+            if ((material.getBlockType() == BLK_CARROTS) || (material.getBlockType() == BLK_POTATOES)) {
+                if (maxGrowth == 3) {
+                    this.material = Material.get(material.getBlockType(), 7);
+                } else {
+                    this.material = Material.get(material.getBlockType(), maxGrowth * 2);
+                }
+            } else {
+                this.material = Material.get(material.getBlockType(), maxGrowth);
+            }
+        } else {
+            this.material = material;
+        }
         this.category = category;
-        this.maxData = maxData;
+        this.maxData = maxGrowth;
         dimensions = new Point3i(1, 1, height);
         icon = (iconName != null) ? findIcon(iconName) : null;
-        growth = maxData;
+        growth = maxGrowth;
     }
     
     private Plant(Plant plant, int growth) {
@@ -100,7 +116,7 @@ public class Plant implements WPObject {
             case MUSHROOMS:
                 // If it's dark enough mushrooms can be placed on pretty much
                 // anything
-                return (! VERY_INSUBSTANTIAL_BLOCKS.get(blockType))
+                return (! BLOCKS[blockType].veryInsubstantial)
                     && (blockType != BLK_GLASS)
                     && (blockType != BLK_ICE);
             case PLANTS_AND_FLOWERS:
@@ -217,7 +233,7 @@ public class Plant implements WPObject {
     
     private boolean isSolid(MinecraftWorld world, int x, int y, int height) {
         int blockType = world.getBlockTypeAt(x, y, height);
-        return (blockType == BLK_CACTUS) || (! VERY_INSUBSTANTIAL_BLOCKS.get(blockType));
+        return (blockType == BLK_CACTUS) || (! BLOCKS[blockType].veryInsubstantial);
     }
     
     private boolean isWater(MinecraftWorld world, int x, int y, int height) {

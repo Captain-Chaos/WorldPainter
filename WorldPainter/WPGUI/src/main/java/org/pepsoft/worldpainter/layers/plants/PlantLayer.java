@@ -6,16 +6,17 @@
 
 package org.pepsoft.worldpainter.layers.plants;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.Serializable;
-import java.util.List;
-import java.util.Random;
 import org.pepsoft.worldpainter.exporting.LayerExporter;
 import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.bo2.Bo2ObjectProvider;
 import org.pepsoft.worldpainter.objects.WPObject;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
+import java.util.List;
+import java.util.Random;
 
 /**
  *
@@ -70,14 +71,10 @@ public class PlantLayer extends CustomLayer {
             public WPObject getObject() {
                 final int index = random.nextInt(pool.length);
                 final Plant plant = Plant.ALL_PLANTS[pool[index]];
-                if ((growthOffset[index] > 0) || (growthRange[index] > 0)) {
-                    if (growthRange[index] == 0) {
-                        return plant.withGrowth(growthOffset[index]);
-                    } else {
-                        return plant.withGrowth(growthOffset[index] + random.nextInt(growthRange[index] + 1));
-                    }
+                if (growthRange[index] == 0) {
+                    return plant.withGrowth(growthOffset[index]);
                 } else {
-                    return plant;
+                    return plant.withGrowth(growthOffset[index] + random.nextInt(growthRange[index] + 1));
                 }
             }
 

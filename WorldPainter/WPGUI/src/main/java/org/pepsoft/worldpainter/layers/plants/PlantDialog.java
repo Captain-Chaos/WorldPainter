@@ -6,25 +6,16 @@
 
 package org.pepsoft.worldpainter.layers.plants;
 
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.Window;
-import javax.swing.ImageIcon;
-import javax.swing.JColorChooser;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JSpinner;
-import javax.swing.SpinnerModel;
-import javax.swing.SpinnerNumberModel;
+import org.pepsoft.worldpainter.layers.CustomLayerDialog;
+
+import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import org.pepsoft.worldpainter.layers.CustomLayerDialog;
-import static org.pepsoft.worldpainter.util.I18nHelper.*;
+import java.awt.*;
+
+import static org.pepsoft.worldpainter.util.I18nHelper.m;
 
 /**
  *
@@ -40,7 +31,6 @@ public class PlantDialog extends CustomLayerDialog<PlantLayer> {
         
         initComponents();
         initPlantControls();
-        pack();
         setLocationRelativeTo(parent);
 
         fieldName.getDocument().addDocumentListener(new DocumentListener() {
@@ -65,6 +55,9 @@ public class PlantDialog extends CustomLayerDialog<PlantLayer> {
         setControlStates();
         
         getRootPane().setDefaultButton(buttonOK);
+
+        pack();
+        setLocationRelativeTo(parent); // super() has already done so, but our size has changed so redo it
     }
 
     // CustomLayerDialog
@@ -168,21 +161,30 @@ public class PlantDialog extends CustomLayerDialog<PlantLayer> {
         cropsSelected = false;
         for (int i = 0; i < spinners.length; i++) {
             int value = (Integer) spinners[i].getValue();
-            if ((value == 0) && (percentageLabels[i].getText() != null)) {
+            if ((value == 0) && percentageLabels[i].isEnabled()) {
+                percentageLabels[i].setEnabled(false);
                 plantLabels[i].setFont(normalFont);
-                percentageLabels[i].setText(null);
+                percentageLabels[i].setText("   %");
                 if ((growthFromSpinners[i] != null) && growthFromSpinners[i].isEnabled()) {
                     growthFromSpinners[i].setEnabled(false);
                     growthToSpinners[i].setEnabled(false);
                 }
             } else if (value > 0) {
+                if (! percentageLabels[i].isEnabled()) {
+                    percentageLabels[i].setEnabled(true);
+                    plantLabels[i].setFont(boldFont);
+                }
                 if (Plant.ALL_PLANTS[i].getCategory() == Plant.Category.CROPS) {
                     cropsSelected = true;
                 }
-                if (percentageLabels[i].getText() == null) {
-                    plantLabels[i].setFont(boldFont);
+                int percentage = value * 100 / totalOccurrence;
+                if (percentage < 10) {
+                    percentageLabels[i].setText("  " + percentage + "%");
+                } else if (percentage < 100) {
+                    percentageLabels[i].setText(" " + percentage + "%");
+                } else {
+                    percentageLabels[i].setText(percentage + "%");
                 }
-                percentageLabels[i].setText((value * 100 / totalOccurrence) + "%");
                 if ((growthFromSpinners[i] != null) && (! growthFromSpinners[i].isEnabled())) {
                     growthFromSpinners[i].setEnabled(true);
                     growthToSpinners[i].setEnabled(true);
@@ -373,7 +375,7 @@ public class PlantDialog extends CustomLayerDialog<PlantLayer> {
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 44, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(buttonReset)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buttonClear)
@@ -387,7 +389,7 @@ public class PlantDialog extends CustomLayerDialog<PlantLayer> {
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(panelPlantControls, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(panelPlantControls2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addComponent(panelPlantControls2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel1)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -424,8 +426,8 @@ public class PlantDialog extends CustomLayerDialog<PlantLayer> {
                         .addComponent(checkBoxGenerateTilledDirt)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(panelPlantControls2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(panelPlantControls, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addComponent(panelPlantControls2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(panelPlantControls, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(18, 18, 18)
                         .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
