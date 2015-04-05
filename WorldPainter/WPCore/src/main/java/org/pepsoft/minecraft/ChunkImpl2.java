@@ -170,6 +170,9 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk {
         int level = y >> 4;
         Section section = sections[level];
         if (section == null) {
+            if (blockType == BLK_AIR) {
+                return;
+            }
             section = new Section((byte) level);
             sections[level] = section;
         }
@@ -207,6 +210,9 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk {
         int level = y >> 4;
         Section section = sections[level];
         if (section == null) {
+            if (dataValue == 0) {
+                return;
+            }
             section = new Section((byte) level);
             sections[level] = section;
         }
@@ -234,6 +240,9 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk {
         int level = y >> 4;
         Section section = sections[level];
         if (section == null) {
+            if (skyLightLevel == 15) {
+                return;
+            }
             section = new Section((byte) level);
             sections[level] = section;
         }
@@ -261,6 +270,9 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk {
         int level = y >> 4;
         Section section = sections[level];
         if (section == null) {
+            if (blockLightLevel == 0) {
+                return;
+            }
             section = new Section((byte) level);
             sections[level] = section;
         }
@@ -346,6 +358,9 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk {
         int level = y >> 4;
         Section section = sections[level];
         if (section == null) {
+            if (material == Material.AIR) {
+                return;
+            }
             section = new Section((byte) level);
             sections[level] = section;
         }
