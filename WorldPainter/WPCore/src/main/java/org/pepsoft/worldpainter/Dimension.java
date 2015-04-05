@@ -5,61 +5,39 @@
 
 package org.pepsoft.worldpainter;
 
-import java.awt.Point;
-import java.awt.Rectangle;
+import org.pepsoft.util.MathUtils;
+import org.pepsoft.util.PerlinNoise;
+import org.pepsoft.util.ProgressReceiver;
+import org.pepsoft.util.ProgressReceiver.OperationCancelled;
+import org.pepsoft.util.undo.UndoManager;
+import org.pepsoft.worldpainter.biomeschemes.CustomBiome;
+import org.pepsoft.worldpainter.gardenofeden.Garden;
+import org.pepsoft.worldpainter.gardenofeden.Seed;
+import org.pepsoft.worldpainter.layers.*;
+import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
+import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter.ResourcesExporterSettings;
+
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.FileImageInputStream;
+import javax.imageio.stream.ImageInputStream;
+import javax.swing.*;
+import javax.vecmath.Point3i;
+import java.awt.*;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
-import javax.imageio.stream.FileImageInputStream;
-import javax.imageio.stream.ImageInputStream;
-import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
-import javax.vecmath.Point3i;
-
-import org.pepsoft.util.MathUtils;
-import org.pepsoft.util.PerlinNoise;
-import org.pepsoft.util.ProgressReceiver;
-import org.pepsoft.util.ProgressReceiver.OperationCancelled;
-import org.pepsoft.util.undo.UndoManager;
-import org.pepsoft.worldpainter.gardenofeden.Garden;
-import org.pepsoft.worldpainter.gardenofeden.Seed;
-import org.pepsoft.worldpainter.layers.DeciduousForest;
-import org.pepsoft.worldpainter.layers.FloodWithLava;
-import org.pepsoft.worldpainter.layers.Frost;
-import org.pepsoft.worldpainter.layers.GardenCategory;
-import org.pepsoft.worldpainter.layers.Jungle;
-import org.pepsoft.worldpainter.layers.Layer;
-import org.pepsoft.worldpainter.layers.PineForest;
-import org.pepsoft.worldpainter.layers.Resources;
-import org.pepsoft.worldpainter.layers.SwampLand;
-import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
-import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter.ResourcesExporterSettings;
 
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.biomeschemes.AbstractMinecraft1_7BiomeScheme.*;
-import org.pepsoft.worldpainter.biomeschemes.CustomBiome;
-import org.pepsoft.worldpainter.layers.CustomLayer;
-import org.pepsoft.worldpainter.layers.LayerContainer;
-import org.pepsoft.worldpainter.layers.River;
 
 /**
  *
@@ -861,7 +839,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public void setOverlay(File overlay) {
-        if ((overlay != null) ? (! overlay.equals(this.overlay)) : (overlay == null)) {
+        if ((overlay != null) ? (! overlay.equals(this.overlay)) : (this.overlay == null)) {
             File oldOverlay = this.overlay;
             this.overlay = overlay;
             dirty = true;
@@ -1014,7 +992,6 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public void setTopLayerVariation(int topLayerVariation) {
-        this.topLayerVariation = topLayerVariation;
         if (topLayerVariation != this.topLayerVariation) {
             int oldTopLayerVariation = this.topLayerVariation;
             this.topLayerVariation = topLayerVariation;
@@ -1056,7 +1033,6 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public void setCustomBiomes(List<CustomBiome> customBiomes) {
-        this.customBiomes = customBiomes;
         if ((customBiomes != null) ? (! customBiomes.equals(this.customBiomes)) : (this.customBiomes != null)) {
             List<CustomBiome> oldCustomBiomes = this.customBiomes;
             this.customBiomes = customBiomes;
@@ -1608,7 +1584,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     private Map<Point, Tile> tiles = new HashMap<Point, Tile>();
     private final TileFactory tileFactory;
     private int lowestX = Integer.MAX_VALUE, highestX = Integer.MIN_VALUE, lowestY = Integer.MAX_VALUE, highestY = Integer.MIN_VALUE;
-    private Terrain subsurfaceMaterial = Terrain.STONE;
+    private Terrain subsurfaceMaterial = Terrain.STONE_MIX;
     private boolean populate;
     private Border border;
     private int borderLevel = 62, borderSize = 2;
