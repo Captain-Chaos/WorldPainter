@@ -1004,20 +1004,20 @@ public final class App extends JFrame implements RadiusControl,
     }
     
     public boolean editCustomMaterial(int customMaterialIndex) {
-        MixedMaterial oldMaterial = Terrain.getCustomMaterial(customMaterialIndex);
+        MixedMaterial material = Terrain.getCustomMaterial(customMaterialIndex);
         CustomMaterialDialog dialog;
-        if (oldMaterial == null) {
-            MixedMaterial material = MixedMaterial.create(BLK_DIRT);
+        if (material == null) {
+            material = MixedMaterial.create(BLK_DIRT);
             dialog = new CustomMaterialDialog(App.this, material, world.isExtendedBlockIds(), selectedColourScheme);
         } else {
-            dialog = new CustomMaterialDialog(App.this, oldMaterial, world.isExtendedBlockIds(), selectedColourScheme);
+            dialog = new CustomMaterialDialog(App.this, material, world.isExtendedBlockIds(), selectedColourScheme);
         }
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
-            MixedMaterial newMaterial = dialog.getMaterial();
-            Terrain.setCustomMaterial(customMaterialIndex, newMaterial);
-            customMaterialButtons[customMaterialIndex].setIcon(new ImageIcon(newMaterial.getIcon(selectedColourScheme)));
-            customMaterialButtons[customMaterialIndex].setToolTipText(MessageFormat.format(strings.getString("customMaterial.0.right.click.to.change"), newMaterial));
+            material = MixedMaterialManager.getInstance().register(material);
+            Terrain.setCustomMaterial(customMaterialIndex, material);
+            customMaterialButtons[customMaterialIndex].setIcon(new ImageIcon(material.getIcon(selectedColourScheme)));
+            customMaterialButtons[customMaterialIndex].setToolTipText(MessageFormat.format(strings.getString("customMaterial.0.right.click.to.change"), material));
             view.refreshTiles();
             return true;
         }
@@ -1087,7 +1087,70 @@ public final class App extends JFrame implements RadiusControl,
     public CustomBiomeManager getCustomBiomeManager() {
         return customBiomeManager;
     }
-    
+
+    public void showCustomTerrainButtonPopup(final int customMaterialIndex) {
+        final JToggleButton button = customMaterialButtons[customMaterialIndex];
+        JPopupMenu popupMenu = new JPopupMenu();
+        final MixedMaterial material = Terrain.getCustomMaterial(customMaterialIndex);
+//        JLabel label = new JLabel(MessageFormat.format(strings.getString("current.material.0"), (material != null) ? material : "none"));
+//        popupMenu.add(label);
+
+        MixedMaterial[] customMaterials = MixedMaterialManager.getInstance().getMaterials();
+        if (customMaterials.length > 0) {
+            JMenu existingMaterialsMenu = new JMenu("Select existing material");
+            for (final MixedMaterial customMaterial: customMaterials) {
+                JMenuItem menuItem = new JMenuItem(customMaterial.getName());
+                menuItem.setIcon(new ImageIcon(customMaterial.getIcon(selectedColourScheme)));
+                menuItem.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        Terrain.setCustomMaterial(customMaterialIndex, customMaterial);
+                        button.setIcon(new ImageIcon(customMaterial.getIcon(selectedColourScheme)));
+                        button.setToolTipText(MessageFormat.format(strings.getString("customMaterial.0.right.click.to.change"), customMaterial));
+                        view.refreshTiles();
+                    }
+                });
+                existingMaterialsMenu.add(menuItem);
+            }
+            popupMenu.add(existingMaterialsMenu);
+        }
+
+        JMenuItem menuItem = new JMenuItem(((material != null) ? "Edit custom material" : strings.getString("select.custom.material")) + "...");
+        menuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (editCustomMaterial(customMaterialIndex)) {
+                    button.setSelected(true);
+                }
+            }
+        });
+        popupMenu.add(menuItem);
+
+        menuItem = new JMenuItem("Import from file...");
+        menuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (importCustomMaterial(customMaterialIndex)) {
+                    button.setSelected(true);
+                }
+            }
+        });
+        popupMenu.add(menuItem);
+
+        if (material != null) {
+            menuItem = new JMenuItem("Export to file...");
+            menuItem.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    exportCustomMaterial(customMaterialIndex);
+                }
+            });
+            popupMenu.add(menuItem);
+        }
+
+        popupMenu.show(button, button.getWidth(), 0);
+    }
+
     // BrushOptions.Listener
 
     @Override
@@ -1152,7 +1215,7 @@ public final class App extends JFrame implements RadiusControl,
                 }
                 return false;
             }
-            
+
             private final String[] extensions = ImageIO.getReaderFileSuffixes();
         });
         List<Brush> brushes = new ArrayList<Brush>();
@@ -2263,7 +2326,12 @@ public final class App extends JFrame implements RadiusControl,
         terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.STONE)));
         terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.ROCK)));
         terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.SANDSTONE)));
-        
+
+        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.STONE_MIX)));
+        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.GRANITE)));
+        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.DIORITE)));
+        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.ANDESITE)));
+
         terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.PODZOL)));
         terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.COBBLESTONE)));
         terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.MOSSY_COBBLESTONE)));
@@ -2288,6 +2356,8 @@ public final class App extends JFrame implements RadiusControl,
         terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.HARDENED_CLAY)));
         terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.RED_DESERT)));
         terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.MESA)));
+
+        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.RED_SANDSTONE)));
 
         return terrainPanel;
     }
@@ -2577,7 +2647,7 @@ public final class App extends JFrame implements RadiusControl,
                     showPopup(e);
                 }
             }
-            
+
             private void showPopup(MouseEvent e) {
                 JPopupMenu popup = new JPopupMenu();
                 JMenuItem menuItem = new JMenuItem(strings.getString("edit") + "...");
@@ -2604,7 +2674,7 @@ public final class App extends JFrame implements RadiusControl,
                     }
                 });
                 popup.add(menuItem);
-                
+
                 JMenu paletteMenu = new JMenu("Move to palette");
 
                 for (final Palette palette: paletteManager.getPalettes()) {
@@ -2638,10 +2708,10 @@ public final class App extends JFrame implements RadiusControl,
                         popup.add(new JMenuItem(action));
                     }
                 }
-                
+
                 popup.show(button, e.getX(), e.getY());
             }
-            
+
             private void edit() {
                 int previousColour = layer.getColour();
                 CustomLayerDialog<? extends CustomLayer> dialog;
@@ -2690,7 +2760,7 @@ public final class App extends JFrame implements RadiusControl,
                     }
                 }
             }
-            
+
             private void remove() {
                 if (JOptionPane.showConfirmDialog(App.this, MessageFormat.format(strings.getString("are.you.sure.you.want.to.remove.the.0.layer"), layer.getName()), MessageFormat.format(strings.getString("confirm.0.removal"), layer.getName()), JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
                     if ((activeOperation instanceof LayerPaint) && (((LayerPaint) activeOperation).getLayer() == layer)) {
@@ -2703,7 +2773,7 @@ public final class App extends JFrame implements RadiusControl,
                         dimension.setEventsInhibited(false);
                     }
                     unregisterCustomLayer(layer);
-                    
+
                     boolean visibleLayersChanged = false;
                     if (hiddenLayers.contains(layer)) {
                         hiddenLayers.remove(layer);
@@ -2840,10 +2910,21 @@ public final class App extends JFrame implements RadiusControl,
             menuItem.setMnemonic('h');
             menuItem.setAccelerator(KeyStroke.getKeyStroke(VK_M, PLATFORM_COMMAND_MASK));
             subMenu.add(menuItem);
+
             menuItem = new JMenuItem(ACTION_IMPORT_LAYER);
             menuItem.setMnemonic('l');
             menuItem.setText("Custom layer(s)...");
             subMenu.add(menuItem);
+
+//            menuItem = new JMenuItem("Existing Minecraft map into current world...");
+//            menuItem.addActionListener(new ActionListener() {
+//                @Override
+//                public void actionPerformed(ActionEvent e) {
+//                    importMapIntoWorld();
+//                }
+//            });
+//            subMenu.add(menuItem);
+
             menu.add(subMenu);
         } else {
             menuItem = new JMenuItem(ACTION_IMPORT_MAP);
@@ -2976,6 +3057,15 @@ public final class App extends JFrame implements RadiusControl,
         addNetherMenuItem.setMnemonic('n');
         menu.add(addNetherMenuItem);
 
+        removeNetherMenuItem = new JMenuItem("Remove Nether...");
+        removeNetherMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                removeNether();
+            }
+        });
+        menu.add(removeNetherMenuItem);
+
         addEndMenuItem = new JMenuItem(strings.getString("add.end") + "...");
         addEndMenuItem.addActionListener(new ActionListener() {
             @Override
@@ -2986,6 +3076,15 @@ public final class App extends JFrame implements RadiusControl,
         addEndMenuItem.setMnemonic('d');
         menu.add(addEndMenuItem);
         
+        removeEndMenuItem = new JMenuItem("Remove End...");
+        removeEndMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                removeEnd();
+            }
+        });
+        menu.add(removeEndMenuItem);
+
         menu.addSeparator();
 
 //        final JMenuItem easyModeItem = new JCheckBoxMenuItem("Advanced mode");
@@ -3367,7 +3466,72 @@ public final class App extends JFrame implements RadiusControl,
         
         return menuBar;
     }
-    
+
+//    private void importMapIntoWorld() {
+//        JFileChooser fileChooser = new JFileChooser(Configuration.getInstance().getExportDirectory());
+//        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+//        fileChooser.setFileFilter(new FileFilter() {
+//            @Override
+//            public boolean accept(File f) {
+//                return f.isDirectory() || f.equals("level.dat");
+//            }
+//
+//            @Override
+//            public String getDescription() {
+//                return "Minecraft map level files (level.dat)";
+//            }
+//        });
+//        if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+//            File levelDatFile = fileChooser.getSelectedFile();
+//            view.addTileProvider(new TileProvider() {
+//                @Override
+//                public int getTileSize() {
+//                    return 0;
+//                }
+//
+//                @Override
+//                public BufferedImage getTile(int x, int y) {
+//                    return null;
+//                }
+//
+//                @Override
+//                public int getTilePriority(int x, int y) {
+//                    return 0;
+//                }
+//
+//                @Override
+//                public Rectangle getExtent() {
+//                    return null;
+//                }
+//
+//                @Override
+//                public void addTileListener(TileListener tileListener) {
+//
+//                }
+//
+//                @Override
+//                public void removeTileListener(TileListener tileListener) {
+//
+//                }
+//
+//                @Override
+//                public boolean isZoomSupported() {
+//                    return false;
+//                }
+//
+//                @Override
+//                public int getZoom() {
+//                    return 0;
+//                }
+//
+//                @Override
+//                public void setZoom(int zoom) {
+//
+//                }
+//            });
+//        }
+//    }
+
     private JToolBar createToolBar() {
         JToolBar toolBar = new JToolBar();
         toolBar.add(ACTION_NEW_WORLD);
@@ -3464,6 +3628,17 @@ public final class App extends JFrame implements RadiusControl,
             propertiesDialog.setVisible(true);
         }
     }
+
+    private void removeNether() {
+        if (JOptionPane.showConfirmDialog(this, "Are you sure you want to completely remove the Nether dimension?\nThis action cannot be undone!", "Confirm Nether Deletion", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+            if ((dimension != null) && (dimension.getDim() == DIM_NETHER)) {
+                viewDimension(DIM_NORMAL);
+            }
+            world.removeDimension(DIM_NETHER);
+            setDimensionControlStates();
+            JOptionPane.showMessageDialog(this, "The Nether dimension was successfully deleted", "Success", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
     
     private void addEnd() {
         final NewWorldDialog dialog = new NewWorldDialog(this, world.getName(), dimension.getSeed() + 1, DIM_END, world.getMaxHeight());
@@ -3492,7 +3667,18 @@ public final class App extends JFrame implements RadiusControl,
             setDimensionControlStates();
         }
     }
-    
+
+    private void removeEnd() {
+        if (JOptionPane.showConfirmDialog(this, "Are you sure you want to completely remove the End dimension?\nThis action cannot be undone!", "Confirm Nether Deletion", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+            if ((dimension != null) && (dimension.getDim() == DIM_END)) {
+                viewDimension(DIM_NORMAL);
+            }
+            world.removeDimension(DIM_END);
+            setDimensionControlStates();
+            JOptionPane.showMessageDialog(this, "The End dimension was successfully deleted", "Success", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
     private void viewDimension(int dim) {
         if (dim != dimension.getDim()) {
             setDimension(world.getDimension(dim));
@@ -3938,7 +4124,9 @@ public final class App extends JFrame implements RadiusControl,
         boolean nether = (world != null) && (world.getDimension(DIM_NETHER) != null);
         boolean end = (world != null) && (world.getDimension(DIM_END) != null);
         addNetherMenuItem.setEnabled((! imported) && (! nether));
+        removeNetherMenuItem.setEnabled((! imported) && nether);
         addEndMenuItem.setEnabled((! imported) && (! end));
+        removeEndMenuItem.setEnabled((! imported) && end);
         viewSurfaceMenuItem.setEnabled(nether || end);
         viewNetherMenuItem.setEnabled(nether);
         viewEndMenuItem.setEnabled(end);
@@ -3967,146 +4155,39 @@ public final class App extends JFrame implements RadiusControl,
             @Override
             public void mousePressed(MouseEvent e) {
                 if (e.isPopupTrigger()) {
-                    showPopup(e);
+                    showPopup();
                 }
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
                 if (e.isPopupTrigger()) {
-                    showPopup(e);
+                    showPopup();
                 }
             }
             
-            private void showPopup(MouseEvent e) {
-                JPopupMenu popupMenu = new JPopupMenu();
-                MixedMaterial material = Terrain.getCustomMaterial(customMaterialIndex);
-                JLabel label = new JLabel(MessageFormat.format(strings.getString("current.material.0"), (material != null) ? material : "none"));
-                popupMenu.add(label);
-                
-                JMenuItem menuItem = new JMenuItem(strings.getString("select.custom.material") + "...");
-                menuItem.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        if (editCustomMaterial(customMaterialIndex)) {
-                            button.setSelected(true);
-                        }
-                    }
-                });
-                popupMenu.add(menuItem);
-                
-                menuItem = new JMenuItem("Import from file...");
-                menuItem.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        if (importCustomMaterial(customMaterialIndex)) {
-                            button.setSelected(true);
-                        }
-                    }
-                });
-                popupMenu.add(menuItem);
-                
-                if (material != null) {
-                    menuItem = new JMenuItem("Export to file...");
-                    menuItem.addActionListener(new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                            exportCustomMaterial(customMaterialIndex);
-                        }
-                    });
-                    popupMenu.add(menuItem);
-                }
-                
-                popupMenu.show(button, e.getX(), e.getY());
+            private void showPopup() {
+                showCustomTerrainButtonPopup(customMaterialIndex);
             }
         });
     }
 
     private boolean importCustomMaterial(int customMaterialIndex) {
-        Configuration config = Configuration.getInstance();
-        File terrainDirectory = config.getTerrainDirectory();
-        if ((terrainDirectory == null) || (! terrainDirectory.isDirectory())) {
-            terrainDirectory = DesktopUtils.getDocumentsFolder();
+        MixedMaterial customMaterial = MixedMaterialHelper.load(this);
+        if (customMaterial != null) {
+            customMaterial = MixedMaterialManager.getInstance().register(customMaterial);
+            Terrain.setCustomMaterial(customMaterialIndex, customMaterial);
+            customMaterialButtons[customMaterialIndex].setIcon(new ImageIcon(customMaterial.getIcon(selectedColourScheme)));
+            customMaterialButtons[customMaterialIndex].setToolTipText(MessageFormat.format(strings.getString("customMaterial.0.right.click.to.change"), customMaterial));
+            view.refreshTiles();
+            return true;
+        } else {
+            return false;
         }
-        JFileChooser fileChooser = new JFileChooser(terrainDirectory);
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        fileChooser.setFileFilter(new FileFilter() {
-            @Override
-            public boolean accept(File f) {
-                return f.isDirectory() || f.getName().toLowerCase().endsWith(".terrain");
-            }
-
-            @Override
-            public String getDescription() {
-                return "WorldPainter Custom Terrains (*.terrain)";
-            }
-        });
-        if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            File selectedFile = fileChooser.getSelectedFile();
-            try {
-                ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new BufferedInputStream(new FileInputStream(selectedFile))));
-                try {
-                    MixedMaterial customMaterial = (MixedMaterial) in.readObject();
-                    Terrain.setCustomMaterial(customMaterialIndex, customMaterial);
-                    customMaterialButtons[customMaterialIndex].setIcon(new ImageIcon(customMaterial.getIcon(selectedColourScheme)));
-                    customMaterialButtons[customMaterialIndex].setToolTipText(MessageFormat.format(strings.getString("customMaterial.0.right.click.to.change"), customMaterial));
-                    view.refreshTiles();
-                    return true;
-                } finally {
-                    in.close();
-                }
-            } catch (IOException e) {
-                throw new RuntimeException("I/O error while reading " + selectedFile, e);
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException("Class not found exception while reading " + selectedFile, e);
-            }
-        }
-        return false;
     }
 
     private void exportCustomMaterial(int customMaterialIndex) {
-        Configuration config = Configuration.getInstance();
-        File terrainDirectory = config.getTerrainDirectory();
-        if ((terrainDirectory == null) || (! terrainDirectory.isDirectory())) {
-            terrainDirectory = DesktopUtils.getDocumentsFolder();
-        }
-        MixedMaterial material = Terrain.getCustomMaterial(customMaterialIndex);
-        File selectedFile = new File(terrainDirectory, FileUtils.sanitiseName(material.getName()) + ".terrain");
-        JFileChooser fileChooser = new JFileChooser(terrainDirectory);
-        fileChooser.setSelectedFile(selectedFile);
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        fileChooser.setFileFilter(new FileFilter() {
-            @Override
-            public boolean accept(File f) {
-                return f.isDirectory() || f.getName().toLowerCase().endsWith(".terrain");
-            }
-
-            @Override
-            public String getDescription() {
-                return "WorldPainter Custom Terrains (*.terrain)";
-            }
-        });
-        if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-            selectedFile = fileChooser.getSelectedFile();
-            if (! selectedFile.getName().toLowerCase().endsWith(".terrain")) {
-                selectedFile = new File(selectedFile.getPath() + ".terrain");
-            }
-            if (selectedFile.isFile() && (JOptionPane.showConfirmDialog(this, "The file " + selectedFile.getName() + " already exists.\nDo you want to overwrite it?", "Overwrite File", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION)) {
-                return;
-            }
-            try {
-                ObjectOutputStream out = new ObjectOutputStream(new GZIPOutputStream(new BufferedOutputStream(new FileOutputStream(selectedFile))));
-                try {
-                    out.writeObject(material);
-                } finally {
-                    out.close();
-                }
-            } catch (IOException e) {
-                throw new RuntimeException("I/O error while trying to write " + selectedFile, e);
-            }
-            config.setTerrainDirectory(selectedFile.getParentFile());
-            JOptionPane.showMessageDialog(this, "Custom terrain " + material.getName() + " exported successfully", "Success", JOptionPane.INFORMATION_MESSAGE);
-        }
+        MixedMaterialHelper.save(this, Terrain.getCustomMaterial(customMaterialIndex));
     }
 
     private void loadCustomMaterials() {
@@ -4911,22 +4992,28 @@ public final class App extends JFrame implements RadiusControl,
         {
             setShortDescription(strings.getString("enable.or.disable.image.overlay"));
         }
-        
+
         @Override
         public void performAction(ActionEvent e) {
-            if ((! dimension.isOverlayEnabled()) && (dimension.getOverlay() == null)) {
+            if (view.isDrawOverlay()) {
+                // An overlay is showing; disable it
+                view.setDrawOverlay(false);
+                dimension.setOverlayEnabled(false);
+                setSelected(false);
+            } else if ((dimension.getOverlay() != null) && dimension.getOverlay().isFile()) {
+                // No overlay is being shown, but there is one configured and it can be found, so enable it
+                view.setDrawOverlay(true); // This will cause the overlay configured in the dimension to be loaded
+                dimension.setOverlayEnabled(true);
+                setSelected(true);
+            } else {
+                // Otherwise show the configure view dialog so the user can (re)configure an overlay
                 ConfigureViewDialog dialog = new ConfigureViewDialog(App.this, dimension, view, true);
                 dialog.setVisible(true);
                 setSelected(view.isDrawOverlay());
                 ACTION_GRID.setSelected(view.isDrawGrid());
                 ACTION_CONTOURS.setSelected(view.isDrawContours());
-            } else {
-                view.setDrawOverlay(! view.isDrawOverlay());
-                dimension.setOverlayEnabled(view.isDrawOverlay());
-                setSelected(view.isDrawOverlay());
             }
         }
-
         private static final long serialVersionUID = 1L;
     };
     
@@ -5312,7 +5399,7 @@ public final class App extends JFrame implements RadiusControl,
     private GlassPane glassPane;
     private JCheckBox readOnlyCheckBox, biomesCheckBox, annotationsCheckBox, readOnlySoloCheckBox, biomesSoloCheckBox, annotationsSoloCheckBox;
     private JToggleButton readOnlyToggleButton, biomesToggleButton, annotationsToggleButton, setSpawnPointToggleButton;
-    private JMenuItem addNetherMenuItem, addEndMenuItem;
+    private JMenuItem addNetherMenuItem, removeNetherMenuItem, addEndMenuItem, removeEndMenuItem;
     private JCheckBoxMenuItem viewSurfaceMenuItem, viewNetherMenuItem, viewEndMenuItem, extendedBlockIdsMenuItem;
     private final JToggleButton[] customMaterialButtons = new JToggleButton[Terrain.CUSTOM_TERRAIN_COUNT];
     private final ColourScheme[] colourSchemes;
@@ -5360,7 +5447,7 @@ public final class App extends JFrame implements RadiusControl,
     private static final Logger logger = Logger.getLogger(App.class.getName());
 
     private static final Icon ICON_NEW_WORLD            = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/page_white.png");
-    private static final Icon ICON_OPEN_WORLD           = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/page_white_get.png");
+    private static final Icon ICON_OPEN_WORLD           = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/folder_page_white.png");
     private static final Icon ICON_SAVE_WORLD           = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/disk.png");
     private static final Icon ICON_EXPORT_WORLD         = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/map_go.png");
     private static final Icon ICON_EXIT                 = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/door_in.png");
