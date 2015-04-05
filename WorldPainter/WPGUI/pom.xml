@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.pepsoft.worldpainter</groupId>
         <artifactId>WorldPainter</artifactId>
-        <version>1.10.7-SNAPSHOT</version>
+        <version>1.11.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>WPGUI</artifactId>
