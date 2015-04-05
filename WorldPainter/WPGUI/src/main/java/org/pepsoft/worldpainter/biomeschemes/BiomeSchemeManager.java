@@ -4,24 +4,6 @@
  */
 package org.pepsoft.worldpainter.biomeschemes;
 
-import java.awt.Component;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import java.util.logging.Logger;
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
-import javax.swing.filechooser.FileFilter;
 import org.pepsoft.util.Checksum;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.Version;
@@ -31,6 +13,18 @@ import org.pepsoft.worldpainter.Configuration;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.util.MinecraftUtil;
 
+import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  *
  * @author pepijn
@@ -39,15 +33,15 @@ public class BiomeSchemeManager {
     public static BiomeScheme getBiomeScheme(int biomeAlgorithm, Component parent) {
         return getBiomeScheme(null, biomeAlgorithm, parent, true);
     }
-    
+
     public static BiomeScheme getBiomeScheme(int biomeAlgorithm, Component parent, boolean askUser) {
         return getBiomeScheme(null, biomeAlgorithm, parent, askUser);
     }
-    
+
     public static BiomeScheme getBiomeScheme(Dimension dimension, int biomeAlgorithm, Component parent) {
         return getBiomeScheme(dimension, biomeAlgorithm, parent, true);
     }
-    
+
     public static BiomeScheme getBiomeScheme(final Dimension dimension, final int biomeAlgorithm, final Component parent, final boolean askUser) {
         if (biomeAlgorithm == BIOME_ALGORITHM_1_7_3) {
             logger.info("Creating biome scheme 1.7.3");
@@ -56,13 +50,13 @@ public class BiomeSchemeManager {
             logger.info("Creating automatic biome scheme");
             return new AutoBiomeScheme(dimension);
         }
-        
+
         synchronized (initialisationLock) {
             if (! initialised) {
                 initialise();
             }
         }
-        
+
         if (BIOME_SCHEMES.containsKey(biomeAlgorithm)) {
             // We already previously found and initialised a biome scheme for
             // this algorithm, so reuse it. Note that this could be a problem
@@ -164,11 +158,11 @@ public class BiomeSchemeManager {
             }
         }
     }
-    
+
     /**
      * Get all found Minecraft jars which are supported by WorldPainter for
      * calculating biomes.
-     * 
+     *
      * @return All found Minecraft jars which are supported by WorldPainter for
      *     calculating biomes.
      */
@@ -187,10 +181,10 @@ public class BiomeSchemeManager {
         }
         return files;
     }
-    
+
     /**
      * Get all found Minecraft jars.
-     * 
+     *
      * @return All found Minecraft jars.
      */
     public static SortedMap<Version, File> getAllMinecraftJars() {
@@ -202,7 +196,7 @@ public class BiomeSchemeManager {
 
         return Collections.unmodifiableSortedMap(ALL_JARS);
     }
-    
+
     public static BufferedImage createImage(BiomeScheme biomeScheme, int biome, ColourScheme colourScheme) {
         int backgroundColour = biomeScheme.getColour(biome, colourScheme);
         boolean[][] pattern = biomeScheme.getPattern(biome);
@@ -218,7 +212,7 @@ public class BiomeSchemeManager {
         }
         return image;
     }
-    
+
     /**
      * Starts background initialisation of the biome scheme manager, so that
      * subsequent invocations of the <code>getBiomeScheme</code> methods won't
@@ -233,13 +227,17 @@ public class BiomeSchemeManager {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    doInitialisation();
+                    try {
+                        doInitialisation();
+                    } catch (Throwable t) {
+                        logger.log(Level.SEVERE, t.getClass().getSimpleName() + " while scanning for Minecraft jars", t);
+                    }
                 }
             }, "Biome Scheme Manager Initialiser").start();
         }
     }
 
-    private static void scanDir(File dir) throws IOException {
+    private static void scanDir(File dir) {
         File[] files = dir.listFiles(new java.io.FileFilter() {
             @Override
             public boolean accept(File pathname) {
@@ -251,41 +249,45 @@ public class BiomeSchemeManager {
         // wild that it does, so check for it
         if (files != null) {
             for (File file: files) {
-                if (file.getName().toLowerCase().contains("optifine")) {
-                    // Skip anything OptiFine-related, as OptiFine creates Minecraft profiles with invalid json files.
-                    continue;
-                } if (file.isDirectory()) {
-                    scanDir(file);
-                } else {
-                    Checksum hash = FileUtils.getMD5(file);
-                    if (DESCRIPTORS.containsKey(hash)) {
-                        for (BiomeSchemeDescriptor descriptor: DESCRIPTORS.get(hash)) {
-                            SortedMap<Version, BiomeJar> jars = BIOME_JARS.get(descriptor.biomeScheme);
-                            if (jars == null) {
-                                jars = new TreeMap<Version, BiomeJar>();
-                                BIOME_JARS.put(descriptor.biomeScheme, jars);
-                            }
-                            jars.put(descriptor.minecraftVersion, new BiomeJar(file, hash, descriptor));
-                            // Also store it as a resources jar
-                            ALL_JARS.put(descriptor.minecraftVersion, file);
-                        }
+                try  {
+                    if (file.getName().toLowerCase().contains("optifine")) {
+                        // Skip anything OptiFine-related, as OptiFine creates Minecraft profiles with invalid json files.
+                        continue;
+                    } if (file.isDirectory()) {
+                        scanDir(file);
                     } else {
-                        // It's not a supported jar, but see if the filename is
-                        // just a version number so that we can assume it's a
-                        // Minecraft jar we can at least use for loading
-                        // resources
-                        try {
-                            Version version = Version.parse(file.getName().substring(0, file.getName().length() - 4));
-                            ALL_JARS.put(version, file);
-                        } catch (NumberFormatException e) {
-                            // Skip silently
+                        Checksum hash = FileUtils.getMD5(file);
+                        if (DESCRIPTORS.containsKey(hash)) {
+                            for (BiomeSchemeDescriptor descriptor: DESCRIPTORS.get(hash)) {
+                                SortedMap<Version, BiomeJar> jars = BIOME_JARS.get(descriptor.biomeScheme);
+                                if (jars == null) {
+                                    jars = new TreeMap<Version, BiomeJar>();
+                                    BIOME_JARS.put(descriptor.biomeScheme, jars);
+                                }
+                                jars.put(descriptor.minecraftVersion, new BiomeJar(file, hash, descriptor));
+                                // Also store it as a resources jar
+                                ALL_JARS.put(descriptor.minecraftVersion, file);
+                            }
+                        } else {
+                            // It's not a supported jar, but see if the filename is
+                            // just a version number so that we can assume it's a
+                            // Minecraft jar we can at least use for loading
+                            // resources
+                            try {
+                                Version version = Version.parse(file.getName().substring(0, file.getName().length() - 4));
+                                ALL_JARS.put(version, file);
+                            } catch (NumberFormatException e) {
+                                // Skip silently
+                            }
                         }
                     }
+                } catch (IOException e) {
+                    logger.log(Level.SEVERE, "I/O error while scanning potential Minecraft jar or directory " + file.getAbsolutePath() + "; skipping file", e);
                 }
             }
         }
     }
-    
+
     private static BiomeSchemeDescriptor identify(Checksum checksum, int desiredBiomeScheme) {
         if (DESCRIPTORS.containsKey(checksum)) {
             SortedMap<Version, BiomeSchemeDescriptor> matchingDescriptors = new TreeMap<Version, BiomeSchemeDescriptor>();
@@ -319,7 +321,7 @@ public class BiomeSchemeManager {
             }
         }
     }
-    
+
     private static void doInitialisation() {
         synchronized (initialisationLock) {
             try {
@@ -346,8 +348,10 @@ public class BiomeSchemeManager {
                     Map.Entry<Integer, File> entry = i.next();
                     File file = entry.getValue();
                     if (file.getAbsolutePath().toLowerCase().contains("optifine")) {
-                        // OptiFine-created files create problems, so filter them out if the configuration somehow got
-                        // polluted with them
+                        // OptiFine-created files create problems, so filter
+                        // them out if the configuration somehow got polluted
+                        // with them
+                        i.remove();
                         continue;
                     } else if (processedFiles.contains(file)) {
                         continue;
@@ -357,45 +361,47 @@ public class BiomeSchemeManager {
                         i.remove();
                         continue;
                     }
-                    Checksum checksum = FileUtils.getMD5(file);
-                    if (DESCRIPTORS.containsKey(checksum)) {
-                        for (BiomeSchemeDescriptor descriptor: DESCRIPTORS.get(checksum)) {
-                            SortedMap<Version, BiomeJar> jars = BIOME_JARS.get(descriptor.biomeScheme);
-                            if (jars == null) {
-                                jars = new TreeMap<Version, BiomeJar>();
-                                BIOME_JARS.put(descriptor.biomeScheme, jars);
+                    try {
+                        Checksum checksum = FileUtils.getMD5(file);
+                        if (DESCRIPTORS.containsKey(checksum)) {
+                            for (BiomeSchemeDescriptor descriptor: DESCRIPTORS.get(checksum)) {
+                                SortedMap<Version, BiomeJar> jars = BIOME_JARS.get(descriptor.biomeScheme);
+                                if (jars == null) {
+                                    jars = new TreeMap<Version, BiomeJar>();
+                                    BIOME_JARS.put(descriptor.biomeScheme, jars);
+                                }
+                                jars.put(descriptor.minecraftVersion, new BiomeJar(file, checksum, descriptor));
+                                // Also store it as a resources jar
+                                ALL_JARS.put(descriptor.minecraftVersion, file);
                             }
-                            jars.put(descriptor.minecraftVersion, new BiomeJar(file, checksum, descriptor));
-                            // Also store it as a resources jar
-                            ALL_JARS.put(descriptor.minecraftVersion, file);
+                        } else {
+                            // It's not a supported jar, but see if the filename is
+                            // just a version number so that we can assume it's a
+                            // Minecraft jar we can at least use for loading
+                            // resources
+                            try {
+                                Version version = Version.parse(file.getName().substring(0, file.getName().length() - 4));
+                                ALL_JARS.put(version, file);
+                            } catch (NumberFormatException e) {
+                                // We don't recognize this jar. Perhaps it has been
+                                // replaced with an unsupported version. In any
+                                // case, remove it from the configuration
+                                i.remove();
+                            }
                         }
-                    } else {
-                        // It's not a supported jar, but see if the filename is
-                        // just a version number so that we can assume it's a
-                        // Minecraft jar we can at least use for loading
-                        // resources
-                        try {
-                            Version version = Version.parse(file.getName().substring(0, file.getName().length() - 4));
-                            ALL_JARS.put(version, file);
-                        } catch (NumberFormatException e) {
-                            // We don't recognize this jar. Perhaps it has been
-                            // replaced with an unsupported version. In any
-                            // case, remove it from the configuration
-                            i.remove();
-                        }
+                    } catch (IOException e) {
+                        logger.log(Level.SEVERE, "I/O error while scanning Minecraft jar " + file.getAbsolutePath() + "; skipping file", e);
                     }
                 }
-
+            } finally {
                 // Done
                 initialised = true;
                 initialising = false;
                 initialisationLock.notifyAll();
-            } catch (IOException e) {
-                throw new RuntimeException("I/O error while scanning for Minecraft jars", e);
             }
         }
     }
-    
+
     private static final Map<Checksum, Set<BiomeSchemeDescriptor>> DESCRIPTORS = new HashMap<Checksum, Set<BiomeSchemeDescriptor>>();
     private static final Map<Integer, BiomeScheme> BIOME_SCHEMES = new HashMap<Integer, BiomeScheme>();
     private static final Map<Integer, SortedMap<Version, BiomeJar>> BIOME_JARS = new HashMap<Integer, SortedMap<Version, BiomeJar>>();
@@ -410,13 +416,13 @@ public class BiomeSchemeManager {
     public static final int BIOME_ALGORITHM_1_0_0               =  3;
     public static final int BIOME_ALGORITHM_1_1                 =  4;
     public static final int BIOME_ALGORITHM_1_2_AND_1_3_DEFAULT =  5;
-    public static final int BIOME_ALGORITHM_AUTO_BIOMES         =  7; 
+    public static final int BIOME_ALGORITHM_AUTO_BIOMES         =  7;
     public static final int BIOME_ALGORITHM_1_3_LARGE           =  8;
     public static final int BIOME_ALGORITHM_1_7_DEFAULT         =  9;
     public static final int BIOME_ALGORITHM_1_7_LARGE           = 10;
-    
+
     public static final String[] BIOME_ALGORITHM_NAMES = {"Beta 1.7.3", "Beta 1.9", "Beta 1.8.1", "1.0.0", "1.1", "1.2-1.6 Default", "Custom", "Auto", "1.3-1.6 Large", "1.7 Default", "1.7 Large"};
-    
+
     static {
         addDescriptor(new Checksum(new byte[] {(byte) -8, (byte) -59, (byte) -94, (byte) -52, (byte) -45, (byte) -68, (byte) -103, (byte) 103, (byte) -110, (byte) -69, (byte) -28, (byte) 54, (byte) -40, (byte) -52, (byte) 8, (byte) -68}), new BiomeSchemeDescriptor(new Version(0, 1, 8, 1), BIOME_ALGORITHM_1_8_1, Minecraft1_8_1BiomeScheme.class, false));
 
@@ -425,11 +431,11 @@ public class BiomeSchemeManager {
         addDescriptor(new Checksum(new byte[] {(byte) 98, (byte) 88, (byte) -60, (byte) -14, (byte) -109, (byte) -71, (byte) 57, (byte) 17, (byte) 126, (byte) -2, (byte) 100, (byte) 14, (byte) -38, (byte) 118, (byte) -36, (byte) -92}),  new BiomeSchemeDescriptor(new Version(0, 1, 9, 0, 5), BIOME_ALGORITHM_1_9, Minecraft1_9BiomeScheme.class, false));
         addDescriptor(new Checksum(new byte[] {(byte) 36, (byte) 104, (byte) 32, (byte) 81, (byte) 84, (byte) 55, (byte) 74, (byte) -2, (byte) 95, (byte) -100, (byte) -86, (byte) -70, (byte) 47, (byte) -5, (byte) -11, (byte) -8}),       new BiomeSchemeDescriptor(new Version(0, 1, 9, 0, 6), BIOME_ALGORITHM_1_9, Minecraft1_9BiomeScheme.class, false));
         addDescriptor(new Checksum(new byte[] {(byte) -67, (byte) 86, (byte) -99, (byte) 32, (byte) -35, (byte) 61, (byte) -40, (byte) -104, (byte) -1, (byte) 67, (byte) 113, (byte) -81, (byte) -101, (byte) -66, (byte) 20, (byte) -31}), new BiomeSchemeDescriptor(new Version(0, 1, 9, 1, 2), BIOME_ALGORITHM_1_9, Minecraft1_9BiomeScheme.class, false));
-    
+
         addDescriptor(new Checksum(new byte[] {(byte) 56, (byte) 32, (byte) -46, (byte) 34, (byte) -71, (byte) 93, (byte) 11, (byte) -116, (byte) 82, (byte) 13, (byte) -107, (byte) -106, (byte) -89, (byte) 86, (byte) -90, (byte) -26}), new BiomeSchemeDescriptor(new Version(1, 0, 0), BIOME_ALGORITHM_1_0_0, Minecraft1_0BiomeScheme.class, false));
-        
+
         addDescriptor(new Checksum(new byte[] {(byte) -23, (byte) 35, (byte) 2, (byte) -46, (byte) -84, (byte) -37, (byte) -89, (byte) -55, (byte) 126, (byte) 13, (byte) -115, (byte) -15, (byte) -31, (byte) 13, (byte) 32, (byte) 6}), new BiomeSchemeDescriptor(new Version(1, 1), BIOME_ALGORITHM_1_1, Minecraft1_1BiomeScheme.class, false));
-        
+
         addDescriptor(new Checksum(new byte[] {(byte) 18, (byte) -10, (byte) -60, (byte) -79, (byte) -67, (byte) -52, (byte) 99, (byte) -16, (byte) 41, (byte) -29, (byte) -64, (byte) -120, (byte) -93, (byte) 100, (byte) -72, (byte) -28}),  new BiomeSchemeDescriptor(new Version(1, 2, 3), BIOME_ALGORITHM_1_2_AND_1_3_DEFAULT, Minecraft1_2BiomeScheme.class, false)); // guess
         addDescriptor(new Checksum(new byte[] {(byte) 37, (byte) 66, (byte) 62, (byte) -85, (byte) 109, (byte) -121, (byte) 7, (byte) -7, (byte) 108, (byte) -58, (byte) -83, (byte) -118, (byte) 33, (byte) -89, (byte) 37, (byte) 10}),       new BiomeSchemeDescriptor(new Version(1, 2, 4), BIOME_ALGORITHM_1_2_AND_1_3_DEFAULT, Minecraft1_2BiomeScheme.class, false)); // guess
         addDescriptor(new Checksum(new byte[] {(byte) -114, (byte) -121, (byte) 120, (byte) 7, (byte) -118, (byte) 23, (byte) 90, (byte) 51, (byte) 96, (byte) 58, (byte) 88, (byte) 82, (byte) 87, (byte) -14, (byte) -123, (byte) 99}),       new BiomeSchemeDescriptor(new Version(1, 2, 5), BIOME_ALGORITHM_1_2_AND_1_3_DEFAULT, Minecraft1_2BiomeScheme.class, false)); // guess
@@ -464,7 +470,7 @@ public class BiomeSchemeManager {
         addDescriptor(new Checksum(new byte[] {(byte) 92, (byte) -102, (byte) -81, (byte) 49, (byte) 25, (byte) -97, (byte) 118, (byte) 62, (byte) -7, (byte) 8, (byte) 92, (byte) -55, (byte) -74, (byte) -112, (byte) 43, (byte) 29}),        new BiomeSchemeDescriptor(new Version(1, 8, 1), BIOME_ALGORITHM_1_7_LARGE, Minecraft1_8LargeBiomeScheme.class, true));
         addDescriptor(new Checksum(new byte[] {(byte) -108, (byte) 55, (byte) -76, (byte) -114, (byte) 5, (byte) 27, (byte) 12, (byte) -24, (byte) -127, (byte) 124, (byte) -104, (byte) -98, (byte) 89, (byte) -25, (byte) -103, (byte) 79}),  new BiomeSchemeDescriptor(new Version(1, 8, 3), BIOME_ALGORITHM_1_7_LARGE, Minecraft1_8LargeBiomeScheme.class, true));
     }
-    
+
     private static void addDescriptor(Checksum checksum, BiomeSchemeDescriptor descriptor) {
         Set<BiomeSchemeDescriptor> descriptors = DESCRIPTORS.get(checksum);
         if (descriptors == null) {
@@ -473,9 +479,9 @@ public class BiomeSchemeManager {
         }
         descriptors.add(descriptor);
     }
-    
+
     private static final Logger logger = Logger.getLogger(BiomeSchemeManager.class.getName());
-    
+
     static class BiomeSchemeDescriptor {
         BiomeSchemeDescriptor(Version minecraftVersion, int biomeScheme, Class<? extends BiomeScheme> _class, boolean addLibraries) {
             this.minecraftVersion = minecraftVersion;
@@ -484,8 +490,8 @@ public class BiomeSchemeManager {
             this.addLibraries = addLibraries;
             try {
                 constructor = addLibraries
-                    ? _class.getConstructor(File.class, File.class, Checksum.class)
-                    : _class.getConstructor(File.class, Checksum.class);
+                        ? _class.getConstructor(File.class, File.class, Checksum.class)
+                        : _class.getConstructor(File.class, Checksum.class);
             } catch (NoSuchMethodException e) {
                 throw new RuntimeException(e);
             }
@@ -507,14 +513,14 @@ public class BiomeSchemeManager {
                 throw new RuntimeException("Exception thrown while instantiating biome scheme", e);
             }
         }
-        
+
         final Version minecraftVersion;
         final int biomeScheme;
         final Class<? extends BiomeScheme> _class;
         final Constructor<? extends BiomeScheme> constructor;
         private final boolean addLibraries;
     }
-    
+
     static class BiomeJar {
         BiomeJar(File file, Checksum checksum, BiomeSchemeDescriptor descriptor) {
             this.file = file;
