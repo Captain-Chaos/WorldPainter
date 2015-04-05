@@ -12,7 +12,7 @@ import java.io.Serializable;
  *
  * @author SchmitzP
  */
-public class NoiseSettings implements Serializable {
+public class NoiseSettings implements Serializable, Cloneable {
     /**
      * The seed to use to initialise the noise generator.
      */
@@ -61,7 +61,16 @@ public class NoiseSettings implements Serializable {
     public void setRoughness(int roughness) {
         this.roughness = roughness;
     }
-    
+
+    @Override
+    public NoiseSettings clone() {
+        try {
+            return (NoiseSettings) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new InternalError();
+        }
+    }
+
     private long seed;
     private int range, roughness;
     private float scale = 1.0f;
