@@ -5,18 +5,18 @@
  */
 package org.pepsoft.worldpainter.layers.tunnel;
 
-import java.awt.Dimension;
-import java.awt.Insets;
-import java.awt.Window;
-import java.awt.image.BufferedImage;
-import javax.swing.ImageIcon;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import org.pepsoft.worldpainter.ColourScheme;
+import org.pepsoft.worldpainter.MixedMaterial;
+import org.pepsoft.worldpainter.MixedMaterialManager;
 import org.pepsoft.worldpainter.NoiseSettings;
 import org.pepsoft.worldpainter.layers.CustomLayerDialog;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.Mode;
+
+import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 
 /**
  *
@@ -105,7 +105,7 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
         spinnerFloorLevel.setValue(layer.getFloorLevel());
         spinnerFloorMin.setValue(layer.getFloorMin());
         spinnerFloorMax.setValue(Math.min(layer.getFloorMax(), maxHeight - 1));
-        mixedMaterialSelectorFloor.setMixedMaterial(layer.getFloorMaterial());
+        mixedMaterialSelectorFloor.setMaterial(layer.getFloorMaterial());
         switch (layer.getFloorMode()) {
             case CONSTANT_DEPTH:
                 radioButtonFloorFixedDepth.setSelected(true);
@@ -125,7 +125,7 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
         spinnerRoofLevel.setValue(layer.getRoofLevel());
         spinnerRoofMin.setValue(layer.getRoofMin());
         spinnerRoofMax.setValue(Math.min(layer.getRoofMax(), maxHeight - 1));
-        mixedMaterialSelectorRoof.setMixedMaterial(layer.getRoofMaterial());
+        mixedMaterialSelectorRoof.setMaterial(layer.getRoofMaterial());
         switch (layer.getRoofMode()) {
             case CONSTANT_DEPTH:
                 radioButtonRoofFixedDepth.setSelected(true);
@@ -144,7 +144,7 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
         noiseSettingsEditorRoof.setNoiseSettings(roofNoise);
         spinnerWallFloorDepth.setValue(layer.getFloorWallDepth());
         spinnerWallRoofDepth.setValue(layer.getRoofWallDepth());
-        mixedMaterialSelectorWall.setMixedMaterial(layer.getWallMaterial());
+        mixedMaterialSelectorWall.setMaterial(layer.getWallMaterial());
         textFieldName.setText(layer.getName());
         colourEditor1.setColour(layer.getColour());
         checkBoxRemoveWater.setSelected(layer.isRemoveWater());
@@ -158,7 +158,12 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
         layer.setFloorLevel((Integer) spinnerFloorLevel.getValue());
         layer.setFloorMin((Integer) spinnerFloorMin.getValue());
         layer.setFloorMax((Integer) spinnerFloorMax.getValue());
-        layer.setFloorMaterial(mixedMaterialSelectorFloor.getMixedMaterial());
+        MixedMaterial floorMaterial = mixedMaterialSelectorFloor.getMaterial();
+        if (floorMaterial != null) {
+            // Make sure the material is registered, in case it's new
+            floorMaterial = MixedMaterialManager.getInstance().register(floorMaterial);
+        }
+        layer.setFloorMaterial(floorMaterial);
         if (radioButtonFloorFixedDepth.isSelected()) {
             layer.setFloorMode(Mode.CONSTANT_DEPTH);
         } else if (radioButtonFloorFixedLevel.isSelected()) {
@@ -175,7 +180,12 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
         layer.setRoofLevel((Integer) spinnerRoofLevel.getValue());
         layer.setRoofMin((Integer) spinnerRoofMin.getValue());
         layer.setRoofMax((Integer) spinnerRoofMax.getValue());
-        layer.setRoofMaterial(mixedMaterialSelectorRoof.getMixedMaterial());
+        MixedMaterial roofMaterial = mixedMaterialSelectorRoof.getMaterial();
+        if (roofMaterial != null) {
+            // Make sure the material is registered, in case it's new
+            roofMaterial = MixedMaterialManager.getInstance().register(roofMaterial);
+        }
+        layer.setRoofMaterial(roofMaterial);
         if (radioButtonRoofFixedDepth.isSelected()) {
             layer.setRoofMode(Mode.CONSTANT_DEPTH);
         } else if (radioButtonRoofFixedLevel.isSelected()) {
@@ -191,7 +201,12 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
         }
         layer.setFloorWallDepth((Integer) spinnerWallFloorDepth.getValue());
         layer.setRoofWallDepth((Integer) spinnerWallRoofDepth.getValue());
-        layer.setWallMaterial(mixedMaterialSelectorWall.getMixedMaterial());
+        MixedMaterial wallMaterial = mixedMaterialSelectorWall.getMaterial();
+        if (wallMaterial != null) {
+            // Make sure the material is registered, in case it's new
+            wallMaterial = MixedMaterialManager.getInstance().register(wallMaterial);
+        }
+        layer.setWallMaterial(wallMaterial);
         layer.setName(textFieldName.getText().trim());
         layer.setColour(colourEditor1.getColour());
         layer.setRemoveWater(checkBoxRemoveWater.isSelected());

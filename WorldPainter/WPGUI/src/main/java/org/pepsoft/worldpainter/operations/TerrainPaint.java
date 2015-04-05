@@ -5,11 +5,7 @@
 
 package org.pepsoft.worldpainter.operations;
 
-import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.MapDragControl;
-import org.pepsoft.worldpainter.RadiusControl;
-import org.pepsoft.worldpainter.Terrain;
-import org.pepsoft.worldpainter.WorldPainter;
+import org.pepsoft.worldpainter.*;
 
 /**
  *
@@ -36,6 +32,9 @@ public class TerrainPaint extends RadiusOperation implements TerrainOperation {
 
     @Override
     protected void tick(int centreX, int centreY, boolean inverse, boolean first, float dynamicLevel) {
+        if ((! inverse) && (! terrain.isConfigured())) {
+            return;
+        }
         Dimension dimension = getDimension();
         dimension.setEventsInhibited(true);
         try {

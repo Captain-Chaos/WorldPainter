@@ -47,37 +47,11 @@
                       <Component id="buttonAddMaterial" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <Component id="jScrollPane1" alignment="1" max="32767" attributes="0"/>
-                  <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
-                  <Group type="102" alignment="0" attributes="0">
-                      <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="radioButtonLayered" alignment="0" min="-2" max="-2" attributes="0"/>
-                          <Component id="radioButtonBlobs" alignment="0" min="-2" max="-2" attributes="0"/>
-                      </Group>
-                      <EmptySpace min="-2" max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="0" attributes="0">
-                          <Group type="102" alignment="0" attributes="0">
-                              <Component id="jLabel6" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace max="-2" attributes="0"/>
-                              <Component id="noiseSettingsEditorLayeredVariation" min="-2" max="-2" attributes="0"/>
-                          </Group>
-                          <Group type="102" alignment="0" attributes="0">
-                              <Component id="jLabel7" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace max="-2" attributes="0"/>
-                              <Component id="spinnerLayeredXAngle" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace type="separate" max="-2" attributes="0"/>
-                              <Component id="jLabel9" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace max="-2" attributes="0"/>
-                              <Component id="spinnerLayeredYAngle" min="-2" max="-2" attributes="0"/>
-                          </Group>
-                          <Group type="102" alignment="0" attributes="0">
-                              <Component id="jLabel3" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace max="-2" attributes="0"/>
-                              <Component id="spinnerScale" min="-2" max="-2" attributes="0"/>
-                          </Group>
-                          <Component id="checkBoxLayeredRepeat" alignment="0" min="-2" max="-2" attributes="0"/>
-                      </Group>
-                  </Group>
                   <Group type="102" alignment="1" attributes="0">
+                      <Component id="buttonLoad" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="buttonSave" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="32767" attributes="0"/>
                       <Component id="buttonOK" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="buttonCancel" min="-2" max="-2" attributes="0"/>
@@ -105,6 +79,41 @@
                       </Group>
                       <EmptySpace type="separate" min="-2" max="-2" attributes="0"/>
                       <Component id="jPanel1" max="32767" attributes="0"/>
+                  </Group>
+                  <Group type="102" attributes="0">
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
+                          <Group type="102" alignment="0" attributes="0">
+                              <Group type="103" groupAlignment="0" attributes="0">
+                                  <Component id="radioButtonLayered" alignment="0" min="-2" max="-2" attributes="0"/>
+                                  <Component id="radioButtonBlobs" alignment="0" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                              <EmptySpace min="-2" max="-2" attributes="0"/>
+                              <Group type="103" groupAlignment="0" attributes="0">
+                                  <Group type="102" alignment="0" attributes="0">
+                                      <Component id="jLabel6" min="-2" max="-2" attributes="0"/>
+                                      <EmptySpace max="-2" attributes="0"/>
+                                      <Component id="noiseSettingsEditorLayeredVariation" min="-2" max="-2" attributes="0"/>
+                                  </Group>
+                                  <Group type="102" alignment="0" attributes="0">
+                                      <Component id="jLabel7" min="-2" max="-2" attributes="0"/>
+                                      <EmptySpace max="-2" attributes="0"/>
+                                      <Component id="spinnerLayeredXAngle" min="-2" max="-2" attributes="0"/>
+                                      <EmptySpace type="separate" max="-2" attributes="0"/>
+                                      <Component id="jLabel9" min="-2" max="-2" attributes="0"/>
+                                      <EmptySpace max="-2" attributes="0"/>
+                                      <Component id="spinnerLayeredYAngle" min="-2" max="-2" attributes="0"/>
+                                  </Group>
+                                  <Group type="102" alignment="0" attributes="0">
+                                      <Component id="jLabel3" min="-2" max="-2" attributes="0"/>
+                                      <EmptySpace max="-2" attributes="0"/>
+                                      <Component id="spinnerScale" min="-2" max="-2" attributes="0"/>
+                                  </Group>
+                                  <Component id="checkBoxLayeredRepeat" alignment="0" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                          </Group>
+                      </Group>
+                      <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                   </Group>
               </Group>
               <EmptySpace min="-2" max="-2" attributes="0"/>
@@ -170,6 +179,8 @@
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="buttonCancel" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="buttonOK" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="buttonLoad" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="buttonSave" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
@@ -424,5 +435,33 @@
         </Component>
       </SubComponents>
     </Container>
+    <Component class="javax.swing.JButton" name="buttonLoad">
+      <Properties>
+        <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+          <Image iconType="3" name="/org/pepsoft/worldpainter/icons/folder_page_white.png"/>
+        </Property>
+        <Property name="toolTipText" type="java.lang.String" value="Load this custom material from a file"/>
+        <Property name="margin" type="java.awt.Insets" editor="org.netbeans.beaninfo.editors.InsetsEditor">
+          <Insets value="[2, 2, 2, 2]"/>
+        </Property>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonLoadActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JButton" name="buttonSave">
+      <Properties>
+        <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+          <Image iconType="3" name="/org/pepsoft/worldpainter/icons/disk.png"/>
+        </Property>
+        <Property name="toolTipText" type="java.lang.String" value="Save this custom material to a file"/>
+        <Property name="margin" type="java.awt.Insets" editor="org.netbeans.beaninfo.editors.InsetsEditor">
+          <Insets value="[2, 2, 2, 2]"/>
+        </Property>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonSaveActionPerformed"/>
+      </Events>
+    </Component>
   </SubComponents>
 </Form>

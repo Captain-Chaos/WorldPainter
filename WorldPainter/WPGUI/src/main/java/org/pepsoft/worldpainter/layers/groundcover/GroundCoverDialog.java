@@ -10,16 +10,16 @@
  */
 package org.pepsoft.worldpainter.layers.groundcover;
 
-import javax.swing.JColorChooser;
-import java.awt.Color;
-import java.awt.Window;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import org.pepsoft.worldpainter.ColourScheme;
-import org.pepsoft.worldpainter.CustomMaterialDialog;
 import org.pepsoft.worldpainter.MixedMaterial;
+import org.pepsoft.worldpainter.MixedMaterialManager;
 import org.pepsoft.worldpainter.NoiseSettings;
 import org.pepsoft.worldpainter.layers.CustomLayerDialog;
+
+import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import java.awt.*;
 
 /**
  *
@@ -36,10 +36,10 @@ public class GroundCoverDialog extends CustomLayerDialog<GroundCoverLayer> {
     
     public GroundCoverDialog(Window parent, MixedMaterial material, GroundCoverLayer existingLayer, ColourScheme colourScheme, boolean extendedBlockIds) {
         super(parent);
-        this.colourScheme = colourScheme;
-        this.extendedBlockIds = extendedBlockIds;
 
         initComponents();
+        mixedMaterialSelector1.setColourScheme(colourScheme);
+        mixedMaterialSelector1.setExtendedBlockIds(extendedBlockIds);
         
         if (! "true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.westerosCraftMode"))) {
             checkBoxSmooth.setVisible(false);
@@ -48,7 +48,6 @@ public class GroundCoverDialog extends CustomLayerDialog<GroundCoverLayer> {
         
         if (existingLayer != null) {
             layer = existingLayer;
-            this.material = layer.getMaterial();
             fieldName.setText(existingLayer.getName());
             spinnerThickness.setValue(existingLayer.getThickness());
             selectedColour = existingLayer.getColour();
@@ -71,14 +70,14 @@ public class GroundCoverDialog extends CustomLayerDialog<GroundCoverLayer> {
                 noiseSettingsEditor1.setNoiseSettings(layer.getNoiseSettings());
             }
             checkBoxSmooth.setSelected(layer.isSmooth());
+            mixedMaterialSelector1.setMaterial(layer.getMaterial());
         } else {
-            this.material = material;
             fieldName.setText(material.getName());
             if (material.getColour() != null) {
                 selectedColour = material.getColour();
             }
+            mixedMaterialSelector1.setMaterial(material);
         }
-        labelMixedMaterial.setText("<html><u>" + this.material.getName() + "</u></html>");
         
         setLabelColour();
         setControlStates();
@@ -112,6 +111,9 @@ public class GroundCoverDialog extends CustomLayerDialog<GroundCoverLayer> {
     
     @Override
     protected void ok() {
+        MixedMaterial material = mixedMaterialSelector1.getMaterial();
+        // Make sure the material is registered, in case it's new
+        material = MixedMaterialManager.getInstance().register(material);
         if (layer == null) {
             layer = new GroundCoverLayer(fieldName.getText(), material, selectedColour);
         } else {
@@ -162,25 +164,6 @@ public class GroundCoverDialog extends CustomLayerDialog<GroundCoverLayer> {
         buttonOK.setEnabled((thickness != 0) && (! fieldName.getText().trim().isEmpty()));
     }
     
-    private void configureMaterial() {
-        String previousMaterialName = material.getName();
-        CustomMaterialDialog dialog = new CustomMaterialDialog(this, material, extendedBlockIds, colourScheme);
-        dialog.setVisible(true);
-        if (! dialog.isCancelled()) {
-            material = dialog.getMaterial();
-            labelMixedMaterial.setText("<html><u>" + material.getName() + "</u></html>");
-            if (fieldName.getText().equals(previousMaterialName)) {
-                // Only update name and colour if the name was previously the
-                // same as the name of the material
-                fieldName.setText(material.getName());
-                if (material.getColour() != null) {
-                    selectedColour = material.getColour();
-                    setLabelColour();
-                }
-            }
-        }
-    }
-    
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -212,7 +195,6 @@ public class GroundCoverDialog extends CustomLayerDialog<GroundCoverLayer> {
         radioButtonRoundedEdge = new javax.swing.JRadioButton();
         jLabel13 = new javax.swing.JLabel();
         noiseSettingsEditor1 = new org.pepsoft.worldpainter.NoiseSettingsEditor();
-        labelMixedMaterial = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         jLabel8 = new javax.swing.JLabel();
@@ -220,6 +202,7 @@ public class GroundCoverDialog extends CustomLayerDialog<GroundCoverLayer> {
         jLabel15 = new javax.swing.JLabel();
         checkBoxSmooth = new javax.swing.JCheckBox();
         labelWesterosCraftFeature = new javax.swing.JLabel();
+        mixedMaterialSelector1 = new org.pepsoft.worldpainter.MixedMaterialChooser();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Define Custom Ground Cover Layer");
@@ -314,16 +297,6 @@ public class GroundCoverDialog extends CustomLayerDialog<GroundCoverLayer> {
 
         jLabel13.setText("Variation:");
 
-        labelMixedMaterial.setForeground(new java.awt.Color(0, 0, 255));
-        labelMixedMaterial.setText("<html><u>click to configure</u></html>");
-        labelMixedMaterial.setToolTipText("");
-        labelMixedMaterial.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        labelMixedMaterial.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                labelMixedMaterialMouseClicked(evt);
-            }
-        });
-
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/edge_sheer.png"))); // NOI18N
 
         jLabel3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/edge_linear.png"))); // NOI18N
@@ -352,7 +325,7 @@ public class GroundCoverDialog extends CustomLayerDialog<GroundCoverLayer> {
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel2)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(labelMixedMaterial, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(mixedMaterialSelector1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel7)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -422,7 +395,7 @@ public class GroundCoverDialog extends CustomLayerDialog<GroundCoverLayer> {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
-                    .addComponent(labelMixedMaterial, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(mixedMaterialSelector1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel7)
@@ -461,7 +434,7 @@ public class GroundCoverDialog extends CustomLayerDialog<GroundCoverLayer> {
                     .addComponent(jLabel5)
                     .addComponent(jButton1)
                     .addComponent(jLabel15))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 6, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(buttonCancel)
                     .addComponent(buttonOK))
@@ -503,10 +476,6 @@ public class GroundCoverDialog extends CustomLayerDialog<GroundCoverLayer> {
         setControlStates();
     }//GEN-LAST:event_radioButtonRoundedEdgeActionPerformed
 
-    private void labelMixedMaterialMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_labelMixedMaterialMouseClicked
-        configureMaterial();
-    }//GEN-LAST:event_labelMixedMaterialMouseClicked
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonCancel;
     private javax.swing.ButtonGroup buttonGroup1;
@@ -529,8 +498,8 @@ public class GroundCoverDialog extends CustomLayerDialog<GroundCoverLayer> {
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
-    private javax.swing.JLabel labelMixedMaterial;
     private javax.swing.JLabel labelWesterosCraftFeature;
+    private org.pepsoft.worldpainter.MixedMaterialChooser mixedMaterialSelector1;
     private org.pepsoft.worldpainter.NoiseSettingsEditor noiseSettingsEditor1;
     private javax.swing.JRadioButton radioButtonLinearEdge;
     private javax.swing.JRadioButton radioButtonRoundedEdge;
@@ -540,11 +509,8 @@ public class GroundCoverDialog extends CustomLayerDialog<GroundCoverLayer> {
     private javax.swing.JSpinner spinnerThickness;
     // End of variables declaration//GEN-END:variables
     
-    private final ColourScheme colourScheme;
-    private final boolean extendedBlockIds;
     private GroundCoverLayer layer;
     private int selectedColour = Color.RED.getRGB();
-    private MixedMaterial material;
 
     private static final long serialVersionUID = 1L;
 }

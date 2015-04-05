@@ -4,23 +4,19 @@
  */
 package org.pepsoft.worldpainter.layers.pockets;
 
-import java.awt.Color;
-import java.awt.Window;
+import org.pepsoft.worldpainter.ColourScheme;
+import org.pepsoft.worldpainter.MixedMaterial;
+import org.pepsoft.worldpainter.MixedMaterialManager;
+import org.pepsoft.worldpainter.Terrain;
+import org.pepsoft.worldpainter.layers.CustomLayerDialog;
+import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
+
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.ImageIcon;
-import javax.swing.JColorChooser;
-import javax.swing.JSpinner;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.Timer;
-import org.pepsoft.worldpainter.ColourScheme;
-import org.pepsoft.worldpainter.MixedMaterial;
-import org.pepsoft.worldpainter.Terrain;
-import org.pepsoft.worldpainter.layers.CustomLayerDialog;
-import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
 
 /**
  *
@@ -107,6 +103,10 @@ public class UndergroundPocketsDialog extends CustomLayerDialog<UndergroundPocke
     protected void ok() {
         String name = fieldName.getText();
         MixedMaterial material = radioButtonCustomMaterial.isSelected() ? mixedMaterialChooser.getMaterial() : null;
+        if (material != null) {
+            // Make sure the material is registered, in case it's new
+            material = MixedMaterialManager.getInstance().register(material);
+        }
         Terrain terrain = radioButtonTerrain.isSelected() ? (Terrain) comboBoxTerrain.getSelectedItem() : null;
         int occurrence = (Integer) spinnerOccurrence.getValue();
         int scale = (Integer) spinnerScale.getValue();
@@ -186,6 +186,9 @@ public class UndergroundPocketsDialog extends CustomLayerDialog<UndergroundPocke
         }
         MixedMaterial material = radioButtonCustomMaterial.isSelected() ? mixedMaterialChooser.getMaterial() : null;
         Terrain terrain = radioButtonTerrain.isSelected() ? (Terrain) comboBoxTerrain.getSelectedItem() : null;
+        if ((material == null) && (terrain == null)) {
+            return;
+        }
         int occurrence = (Integer) spinnerOccurrence.getValue();
         int scale = (Integer) spinnerScale.getValue();
         int minLevel = (Integer) spinnerMinLevel.getValue();
@@ -225,9 +228,9 @@ public class UndergroundPocketsDialog extends CustomLayerDialog<UndergroundPocke
         radioButtonCustomMaterial = new javax.swing.JRadioButton();
         radioButtonTerrain = new javax.swing.JRadioButton();
         comboBoxTerrain = new javax.swing.JComboBox();
-        mixedMaterialChooser = new org.pepsoft.worldpainter.MixedMaterialChooser();
         jPanel1 = new javax.swing.JPanel();
         labelPreview = new javax.swing.JLabel();
+        mixedMaterialChooser = new org.pepsoft.worldpainter.MixedMaterialChooser();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Configure Underground Pockets Layer");
@@ -345,7 +348,7 @@ public class UndergroundPocketsDialog extends CustomLayerDialog<UndergroundPocke
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(labelPreview, javax.swing.GroupLayout.DEFAULT_SIZE, 100, Short.MAX_VALUE)
+            .addComponent(labelPreview, javax.swing.GroupLayout.DEFAULT_SIZE, 128, Short.MAX_VALUE)
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)

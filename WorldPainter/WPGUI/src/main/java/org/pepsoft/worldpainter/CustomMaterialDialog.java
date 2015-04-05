@@ -10,8 +10,16 @@
  */
 package org.pepsoft.worldpainter;
 
-import java.awt.Color;
-import java.awt.Window;
+import org.pepsoft.minecraft.Material;
+import org.pepsoft.util.DesktopUtils;
+import org.pepsoft.worldpainter.MixedMaterial.Row;
+import org.pepsoft.worldpainter.themes.JSpinnerTableCellEditor;
+
+import javax.swing.*;
+import javax.swing.event.*;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
@@ -19,82 +27,180 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Comparator;
-import javax.swing.ImageIcon;
 
-import javax.swing.JColorChooser;
-import javax.swing.SpinnerModel;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.Timer;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableColumnModel;
-import org.pepsoft.minecraft.Material;
-
-import org.pepsoft.util.DesktopUtils;
-import org.pepsoft.worldpainter.MixedMaterial.Row;
-
-import org.pepsoft.worldpainter.themes.JSpinnerTableCellEditor;
+import static org.pepsoft.minecraft.Block.BLOCK_TYPE_NAMES;
+import static org.pepsoft.minecraft.Constants.HIGHEST_KNOWN_BLOCK_ID;
 import static org.pepsoft.worldpainter.MixedMaterialTableModel.*;
-import static org.pepsoft.minecraft.Constants.*;
 
 /**
  *
  * @author pepijn
  */
 public class CustomMaterialDialog extends WorldPainterDialog {
-    public CustomMaterialDialog(Window parent, MixedMaterial mixedMaterial, boolean extendedBlockIds, ColourScheme colourScheme) {
+    public CustomMaterialDialog(Window parent, MixedMaterial material, boolean extendedBlockIds, ColourScheme colourScheme) {
         super(parent);
+        this.material = material;
         this.extendedBlockIds = extendedBlockIds;
-        this.biome = mixedMaterial.getBiome();
         this.colourScheme = colourScheme;
         
         initComponents();
 
-        fieldName.setText(mixedMaterial.getName());
-        tableModel = new MixedMaterialTableModel(mixedMaterial);
         fieldName.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
-                setControlStates();
+                if (! programmaticChange) {
+                    setControlStates();
+                }
             }
 
             @Override
             public void removeUpdate(DocumentEvent e) {
-                setControlStates();
+                if (! programmaticChange) {
+                    setControlStates();
+                }
             }
 
             @Override
             public void changedUpdate(DocumentEvent e) {
-                setControlStates();
-            }
-        });
-        tableModel.addTableModelListener(new TableModelListener() {
-            @Override
-            public void tableChanged(TableModelEvent e) {
-                if ((! checkBoxColour.isSelected()) && isExtendedBlockIds()) {
-                    checkBoxColour.setSelected(true);
+                if (! programmaticChange) {
+                    setControlStates();
                 }
-                setControlStates();
-                if (fieldName.getText().equals(previousCalculatedName)) {
-                    String calculatedName = createName();
-                    fieldName.setText(createName());
-                    previousCalculatedName = calculatedName;
-                }
-                schedulePreviewUpdate();
             }
         });
         tableMaterialRows.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent e) {
-                setControlStates();
+                if (! programmaticChange) {
+                    setControlStates();
+                }
             }
         });
-        switch (mixedMaterial.getMode()) {
+        init(material);
+
+        rootPane.setDefaultButton(buttonOK);
+        
+        setLocationRelativeTo(parent);
+    }
+    
+    @Override
+    protected void ok() {
+        if (tableMaterialRows.isEditing()) {
+            tableMaterialRows.getCellEditor().stopCellEditing();
+        }
+        saveSettings();
+        super.ok();
+    }
+
+    private void saveSettings() {
+        Row[] rows = tableModel.getRows();
+        if (rows.length == 1) {
+            material.edit(
+                    fieldName.getText(),
+                    rows,
+                    biome,
+                    MixedMaterial.Mode.SIMPLE,
+                    1.0f,
+                    checkBoxColour.isSelected() ? selectedColour : null,
+                    null,
+                    0.0,
+                    0.0,
+                    false);
+        } else if (radioButtonNoise.isSelected()) {
+            material.edit(
+                    fieldName.getText(),
+                    rows,
+                    biome,
+                    MixedMaterial.Mode.NOISE,
+                    1.0f,
+                    checkBoxColour.isSelected() ? selectedColour : null,
+                    null,
+                    0.0,
+                    0.0,
+                    false);
+        } else if (radioButtonBlobs.isSelected()) {
+            material.edit(
+                    fieldName.getText(),
+                    rows,
+                    biome,
+                    MixedMaterial.Mode.BLOBS,
+                    ((Integer) spinnerScale.getValue()) / 100.0f,
+                    checkBoxColour.isSelected() ? selectedColour : null,
+                    null,
+                    0.0,
+                    0.0,
+                    false);
+        } else {
+            NoiseSettings variation = noiseSettingsEditorLayeredVariation.getNoiseSettings();
+            material.edit(
+                    fieldName.getText(),
+                    rows,
+                    biome,
+                    MixedMaterial.Mode.BLOBS,
+                    ((Integer) spinnerScale.getValue()) / 100.0f,
+                    checkBoxColour.isSelected() ? selectedColour : null,
+                    (variation.getRange() != 0) ? variation : null,
+                    Math.tan((-(Integer) spinnerLayeredXAngle.getValue()) / DEGREES_TO_RADIANS),
+                    Math.tan((-(Integer) spinnerLayeredYAngle.getValue()) / DEGREES_TO_RADIANS),
+                    checkBoxLayeredRepeat.isSelected());
+        }
+    }
+
+    private MixedMaterial getNewMaterial() {
+        Row[] rows = tableModel.getRows().clone();
+        if (rows.length == 1) {
+            return new MixedMaterial(
+                    fieldName.getText(),
+                    rows[0],
+                    biome,
+                    checkBoxColour.isSelected() ? selectedColour : null);
+        } else if (radioButtonNoise.isSelected()) {
+            return new MixedMaterial(
+                    fieldName.getText(),
+                    rows,
+                    biome,
+                    checkBoxColour.isSelected() ? selectedColour : null);
+        } else if (radioButtonBlobs.isSelected()) {
+            return new MixedMaterial(
+                    fieldName.getText(),
+                    rows,
+                    biome,
+                    checkBoxColour.isSelected() ? selectedColour : null,
+                    ((Integer) spinnerScale.getValue()) / 100.0f);
+        } else {
+            NoiseSettings variation = noiseSettingsEditorLayeredVariation.getNoiseSettings().clone();
+            return new MixedMaterial(
+                    fieldName.getText(),
+                    rows,
+                    biome,
+                    checkBoxColour.isSelected() ? selectedColour : null,
+                    (variation.getRange() != 0) ? variation : null,
+                    Math.tan((-(Integer) spinnerLayeredXAngle.getValue()) / DEGREES_TO_RADIANS),
+                    Math.tan((-(Integer) spinnerLayeredYAngle.getValue()) / DEGREES_TO_RADIANS),
+                    checkBoxLayeredRepeat.isSelected());
+        }
+    }
+
+    private void init(MixedMaterial mixedMaterial) {
+        programmaticChange = true;
+        try {
+            biome = mixedMaterial.getBiome();
+            fieldName.setText(mixedMaterial.getName());
+            tableModel = new MixedMaterialTableModel(mixedMaterial);
+            tableModel.addTableModelListener(new TableModelListener() {
+                @Override public void tableChanged(TableModelEvent e) {
+                    if ((!checkBoxColour.isSelected()) && isExtendedBlockIds()) {
+                        checkBoxColour.setSelected(true);
+                    }
+                    setControlStates();
+                    if (fieldName.getText().equals(previousCalculatedName)) {
+                        String calculatedName = createName();
+                        fieldName.setText(createName());
+                        previousCalculatedName = calculatedName;
+                    }
+                    schedulePreviewUpdate();
+                }
+            });
+            switch (mixedMaterial.getMode()) {
             case SIMPLE:
             case NOISE:
                 radioButtonNoise.setSelected(true);
@@ -112,62 +218,18 @@ public class CustomMaterialDialog extends WorldPainterDialog {
                 spinnerLayeredXAngle.setValue((int) (Math.atan(mixedMaterial.getLayerXSlope()) * DEGREES_TO_RADIANS + 0.5));
                 spinnerLayeredYAngle.setValue((int) (Math.atan(mixedMaterial.getLayerYSlope()) * DEGREES_TO_RADIANS + 0.5));
                 break;
-        }
-        tableMaterialRows.setModel(tableModel);
-        previousCalculatedName = createName();
-        selectedColour = (mixedMaterial.getColour() != null) ? mixedMaterial.getColour() : Color.ORANGE.getRGB();
-        checkBoxColour.setSelected(mixedMaterial.getColour() != null);
-        
-        setControlStates();
-        updatePreview();
-        configureTable();
+            }
+            tableMaterialRows.setModel(tableModel);
+            previousCalculatedName = createName();
+            selectedColour = (mixedMaterial.getColour() != null) ? mixedMaterial.getColour() : Color.ORANGE.getRGB();
+            checkBoxColour.setSelected(mixedMaterial.getColour() != null);
 
-        rootPane.setDefaultButton(buttonOK);
-        
-        setLocationRelativeTo(parent);
-    }
-    
-    public MixedMaterial getMaterial() {
-        Row[] rows = tableModel.getRows();
-        if (rows.length == 1) {
-            return new MixedMaterial(
-                fieldName.getText(),
-                rows[0],
-                biome,
-                checkBoxColour.isSelected() ? selectedColour : null);
-        } else if (radioButtonNoise.isSelected()) {
-            return new MixedMaterial(
-                fieldName.getText(),
-                rows,
-                biome,
-                checkBoxColour.isSelected() ? selectedColour : null);
-        } else if (radioButtonBlobs.isSelected()) {
-            return new MixedMaterial(
-                fieldName.getText(),
-                rows,
-                biome,
-                checkBoxColour.isSelected() ? selectedColour : null,
-                ((Integer) spinnerScale.getValue()) / 100.0f);
-        } else {
-            NoiseSettings variation = noiseSettingsEditorLayeredVariation.getNoiseSettings();
-            return new MixedMaterial(
-                fieldName.getText(),
-                rows,
-                biome,
-                checkBoxColour.isSelected() ? selectedColour : null,
-                (variation.getRange() != 0) ? variation : null,
-                Math.tan((-(Integer) spinnerLayeredXAngle.getValue()) / DEGREES_TO_RADIANS),
-                Math.tan((-(Integer) spinnerLayeredYAngle.getValue()) / DEGREES_TO_RADIANS),
-                checkBoxLayeredRepeat.isSelected());
+            setControlStates();
+            updatePreview();
+            configureTable();
+        } finally {
+            programmaticChange = false;
         }
-    }
-    
-    @Override
-    protected void ok() {
-        if (tableMaterialRows.isEditing()) {
-            tableMaterialRows.getCellEditor().stopCellEditing();
-        }
-        super.ok();
     }
     
     private void addMaterial() {
@@ -296,7 +358,7 @@ public class CustomMaterialDialog extends WorldPainterDialog {
         }
         int width = labelPreview.getWidth(), height = labelPreview.getHeight();
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-        MixedMaterial mixedMaterial = getMaterial();
+        MixedMaterial mixedMaterial = getNewMaterial();
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 image.setRGB(x, y, colourScheme.getColour(mixedMaterial.getMaterial(0L, x, 0, height - y - 1)));
@@ -304,7 +366,18 @@ public class CustomMaterialDialog extends WorldPainterDialog {
         }
         labelPreview.setIcon(new ImageIcon(image));
     }
-    
+
+    private void saveMaterial() {
+        MixedMaterialHelper.save(this, getNewMaterial());
+    }
+
+    private void loadMaterial() {
+        MixedMaterial material = MixedMaterialHelper.load(this);
+        if (material != null) {
+            init(material);
+        }
+    }
+
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -344,6 +417,8 @@ public class CustomMaterialDialog extends WorldPainterDialog {
         spinnerLayeredYAngle = new javax.swing.JSpinner();
         jPanel1 = new javax.swing.JPanel();
         labelPreview = new javax.swing.JLabel();
+        buttonLoad = new javax.swing.JButton();
+        buttonSave = new javax.swing.JButton();
 
         jLabel8.setText("jLabel8");
 
@@ -504,7 +579,7 @@ public class CustomMaterialDialog extends WorldPainterDialog {
         spinnerLayeredYAngle.setModel(new javax.swing.SpinnerNumberModel(0, -89, 89, 1));
         spinnerLayeredYAngle.setEnabled(false);
 
-        jPanel1.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
+        jPanel1.setBorder(javax.swing.BorderFactory.createBevelBorder(1));
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -516,6 +591,24 @@ public class CustomMaterialDialog extends WorldPainterDialog {
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(labelPreview, javax.swing.GroupLayout.DEFAULT_SIZE, 127, Short.MAX_VALUE)
         );
+
+        buttonLoad.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/folder_page_white.png"))); // NOI18N
+        buttonLoad.setToolTipText("Load this custom material from a file");
+        buttonLoad.setMargin(new java.awt.Insets(2, 2, 2, 2));
+        buttonLoad.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonLoadActionPerformed(evt);
+            }
+        });
+
+        buttonSave.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/disk.png"))); // NOI18N
+        buttonSave.setToolTipText("Save this custom material to a file");
+        buttonSave.setMargin(new java.awt.Insets(2, 2, 2, 2));
+        buttonSave.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonSaveActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -531,31 +624,11 @@ public class CustomMaterialDialog extends WorldPainterDialog {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buttonAddMaterial))
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jLabel1)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(radioButtonLayered)
-                            .addComponent(radioButtonBlobs))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel6)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(noiseSettingsEditorLayeredVariation, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel7)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(spinnerLayeredXAngle, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(18, 18, 18)
-                                .addComponent(jLabel9)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(spinnerLayeredYAngle, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel3)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(spinnerScale, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(checkBoxLayeredRepeat)))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(buttonLoad)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(buttonSave)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(buttonOK)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buttonCancel))
@@ -576,7 +649,34 @@ public class CustomMaterialDialog extends WorldPainterDialog {
                                     .addComponent(fieldName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                             .addComponent(radioButtonNoise))
                         .addGap(18, 18, 18)
-                        .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel1)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(radioButtonLayered)
+                                    .addComponent(radioButtonBlobs))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jLabel6)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(noiseSettingsEditorLayeredVariation, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jLabel7)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(spinnerLayeredXAngle, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(18, 18, 18)
+                                        .addComponent(jLabel9)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(spinnerLayeredYAngle, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jLabel3)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(spinnerScale, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addComponent(checkBoxLayeredRepeat))))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -628,7 +728,9 @@ public class CustomMaterialDialog extends WorldPainterDialog {
                 .addGap(25, 25, 25)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(buttonCancel)
-                    .addComponent(buttonOK))
+                    .addComponent(buttonOK)
+                    .addComponent(buttonLoad)
+                    .addComponent(buttonSave))
                 .addContainerGap())
         );
 
@@ -706,12 +808,22 @@ public class CustomMaterialDialog extends WorldPainterDialog {
         schedulePreviewUpdate();
     }//GEN-LAST:event_formComponentResized
 
+    private void buttonSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonSaveActionPerformed
+        saveMaterial();
+    }//GEN-LAST:event_buttonSaveActionPerformed
+
+    private void buttonLoadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonLoadActionPerformed
+        loadMaterial();
+    }//GEN-LAST:event_buttonLoadActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonAddMaterial;
     private javax.swing.JButton buttonCancel;
     private javax.swing.ButtonGroup buttonGroup1;
+    private javax.swing.JButton buttonLoad;
     private javax.swing.JButton buttonOK;
     private javax.swing.JButton buttonRemoveMaterial;
+    private javax.swing.JButton buttonSave;
     private javax.swing.JButton buttonSelectColour;
     private javax.swing.JCheckBox checkBoxColour;
     private javax.swing.JCheckBox checkBoxLayeredRepeat;
@@ -739,13 +851,15 @@ public class CustomMaterialDialog extends WorldPainterDialog {
     private javax.swing.JTable tableMaterialRows;
     // End of variables declaration//GEN-END:variables
 
-    private final MixedMaterialTableModel tableModel;
     private final boolean extendedBlockIds;
     private final ColourScheme colourScheme;
+    private MixedMaterial material;
+    private MixedMaterialTableModel tableModel;
     private int biome;
     private String previousCalculatedName;
     private int selectedColour = Color.ORANGE.getRGB();
     private Timer previewUpdateTimer;
+    private boolean programmaticChange;
     
     private static final double DEGREES_TO_RADIANS = 180 / Math.PI;
     private static final long serialVersionUID = 1L;

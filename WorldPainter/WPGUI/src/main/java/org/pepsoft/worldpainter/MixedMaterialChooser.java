@@ -6,37 +6,48 @@
 
 package org.pepsoft.worldpainter;
 
-import java.awt.Color;
-import java.awt.Cursor;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import javax.swing.JLabel;
-import javax.swing.SwingUtilities;
-import static org.pepsoft.minecraft.Constants.*;
+import javax.swing.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.pepsoft.minecraft.Constants.BLK_DIRT;
 
 /**
  *
- * @author SchmitzP
+ * @author Pepijn Schmitz
  */
-public class MixedMaterialChooser extends JLabel implements MouseListener {
+public class MixedMaterialChooser extends javax.swing.JPanel {
+    /**
+     * Creates new form MixedMaterialChooser
+     */
     public MixedMaterialChooser() {
-        setText("<html><u>click to select</u></html>");
-        setForeground(Color.BLUE);
-        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        addMouseListener(this);
+        this(false);
+    }
+
+    /**
+     * Creates new form MixedMaterialChooser
+     */
+    public MixedMaterialChooser(boolean allowNull) {
+        this.allowNull = allowNull;
+
+        initComponents();
+
+        initComboBox(null);
+        setControlStates();
     }
 
     public MixedMaterial getMaterial() {
-        return selectedMaterial;
+        return (MixedMaterial) jComboBox1.getSelectedItem();
     }
 
     public void setMaterial(MixedMaterial material) {
-        selectedMaterial = material;
-        if (material != null) {
-            setText("<html><u>" + material.getName() + "</u></html>");
-        } else {
-            setText("<html><u>click to select</u></html>");
+        if (((DefaultComboBoxModel) jComboBox1.getModel()).getIndexOf(material) == -1) {
+            // Make sure the list actually contains the material
+            initComboBox(material);
         }
+        jComboBox1.setSelectedItem(material);
+        setControlStates();
         // Don't specify previous material, otherwise the event will not be
         // fired if only the name or colour changed
         firePropertyChange("material", null, material);
@@ -56,53 +67,142 @@ public class MixedMaterialChooser extends JLabel implements MouseListener {
 
     public void setColourScheme(ColourScheme colourScheme) {
         this.colourScheme = colourScheme;
+        cellRenderer.setColourScheme(colourScheme);
+        repaint();
     }
+
+    // JComponent
     
-    //JComponent
-    
+    @Override
+    public int getBaseline(int width, int height) {
+        return jComboBox1.getBaseline(width, height);
+    }
+
     @Override
     public void setEnabled(boolean enabled) {
-        super.setEnabled(enabled); //To change body of generated methods, choose Tools | Templates.
-        if (enabled) {
-            setForeground(Color.BLUE);
-            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        } else {
-            setForeground(Color.GRAY);
-            setCursor(null);
-        }
+        super.setEnabled(enabled);
+        setControlStates();
     }
 
-    // MouseListener
-    
-    @Override
-    public void mouseClicked(MouseEvent e) {
-        if (isEnabled()) {
-            editMaterial();
+    private void initComboBox(MixedMaterial unlistedMaterial) {
+        MixedMaterial[] materials = MixedMaterialManager.getInstance().getMaterials();
+        List<MixedMaterial> list = new ArrayList<MixedMaterial>(materials.length + 2);
+        if (allowNull) {
+            list.add(null);
         }
+        if (unlistedMaterial != null) {
+            list.add(unlistedMaterial);
+        }
+        list.addAll(Arrays.asList(materials));
+        jComboBox1.setModel(new DefaultComboBoxModel(list.toArray(new MixedMaterial[list.size()])));
     }
-
-    @Override public void mousePressed(MouseEvent e) {}
-    @Override public void mouseReleased(MouseEvent e) {}
-    @Override public void mouseEntered(MouseEvent e) {}
-    @Override public void mouseExited(MouseEvent e) {}
     
-    private void editMaterial() {
-        MixedMaterial material = selectedMaterial;
-        if (material == null) {
-            material = MixedMaterial.create(BLK_DIRT);
-        }
+    private void addMaterial() {
+        MixedMaterial material = MixedMaterial.create(BLK_DIRT);
         CustomMaterialDialog dialog = new CustomMaterialDialog(SwingUtilities.getWindowAncestor(this), material, extendedBlockIds, colourScheme);
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
-            selectedMaterial = dialog.getMaterial();
-            setText("<html><u>" + selectedMaterial.getName() + "</u></html>");
-            // Don't specify previous material, otherwise the event will not be
-            // fired if only the name or colour changed
-            firePropertyChange("material", null, selectedMaterial);
+            material = MixedMaterialManager.getInstance().register(material);
+            initComboBox(null);
+            jComboBox1.setSelectedItem(material);
+            setControlStates();
         }
     }
-    
-    private MixedMaterial selectedMaterial;
-    private boolean extendedBlockIds;
+
+    private void editMaterial() {
+        CustomMaterialDialog dialog = new CustomMaterialDialog(SwingUtilities.getWindowAncestor(this), (MixedMaterial) jComboBox1.getSelectedItem(), extendedBlockIds, colourScheme);
+        dialog.setVisible(true);
+        if (! dialog.isCancelled()) {
+            jComboBox1.repaint();
+        }
+    }
+
+    private void setControlStates() {
+        jComboBox1.setEnabled(isEnabled());
+        buttonAdd.setEnabled(isEnabled());
+        buttonEdit.setEnabled(isEnabled() && (jComboBox1.getSelectedItem() != null));
+    }
+
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        jComboBox1 = new javax.swing.JComboBox();
+        buttonEdit = new javax.swing.JButton();
+        buttonAdd = new javax.swing.JButton();
+
+        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        jComboBox1.setRenderer(cellRenderer);
+        jComboBox1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jComboBox1ActionPerformed(evt);
+            }
+        });
+
+        buttonEdit.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/brick_edit.png"))); // NOI18N
+        buttonEdit.setToolTipText("Edit the selected custom material");
+        buttonEdit.setEnabled(false);
+        buttonEdit.setMargin(new java.awt.Insets(2, 2, 2, 2));
+        buttonEdit.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonEditActionPerformed(evt);
+            }
+        });
+
+        buttonAdd.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/brick_add.png"))); // NOI18N
+        buttonAdd.setToolTipText("Create a new custom material");
+        buttonAdd.setMargin(new java.awt.Insets(2, 2, 2, 2));
+        buttonAdd.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonAddActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+        this.setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(buttonAdd)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(buttonEdit)
+                .addGap(0, 0, Short.MAX_VALUE))
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(buttonEdit)
+            .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addComponent(buttonAdd)
+        );
+    }// </editor-fold>//GEN-END:initComponents
+
+    private void buttonAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonAddActionPerformed
+        addMaterial();
+    }//GEN-LAST:event_buttonAddActionPerformed
+
+    private void buttonEditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonEditActionPerformed
+        editMaterial();
+    }//GEN-LAST:event_buttonEditActionPerformed
+
+    private void jComboBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox1ActionPerformed
+        setControlStates();
+        firePropertyChange("material", null, jComboBox1.getSelectedItem());
+    }//GEN-LAST:event_jComboBox1ActionPerformed
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton buttonAdd;
+    private javax.swing.JButton buttonEdit;
+    private javax.swing.JComboBox jComboBox1;
+    // End of variables declaration//GEN-END:variables
+
+    private final MixedMaterialListCellRenderer cellRenderer = new MixedMaterialListCellRenderer();
+    private boolean extendedBlockIds, allowNull;
     private ColourScheme colourScheme;
 }

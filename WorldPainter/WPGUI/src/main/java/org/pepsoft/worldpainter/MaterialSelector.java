@@ -4,15 +4,16 @@
  */
 package org.pepsoft.worldpainter;
 
-import java.awt.Color;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JSpinner;
+import org.pepsoft.minecraft.Material;
+import org.pepsoft.worldpainter.MixedMaterial.Row;
+
+import javax.swing.*;
 import javax.swing.JSpinner.NumberEditor;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import static org.pepsoft.minecraft.Constants.*;
-import org.pepsoft.minecraft.Material;
-import org.pepsoft.worldpainter.MixedMaterial.Row;
+import java.awt.*;
+
+import static org.pepsoft.minecraft.Block.BLOCK_TYPE_NAMES;
 
 /**
  *

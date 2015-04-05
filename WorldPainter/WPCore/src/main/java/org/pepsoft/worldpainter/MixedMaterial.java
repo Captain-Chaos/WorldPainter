@@ -1,24 +1,22 @@
 package org.pepsoft.worldpainter;
 
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Random;
-
 import org.pepsoft.minecraft.Material;
+import org.pepsoft.util.IconUtils;
 import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.heightMaps.NoiseHeightMap;
 
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectStreamException;
+import java.io.Serializable;
+import java.util.*;
+
 /**
  * @author SchmitzP
  */
-public class MixedMaterial implements Serializable {
+public class MixedMaterial implements Serializable, Comparable<MixedMaterial> {
     /**
      * Create a new "mixed material" which contains only one material.
      * 
@@ -86,7 +84,7 @@ public class MixedMaterial implements Serializable {
         this(name, rows, biome, Mode.LAYERED, 1.0f, colour, variation, layerXSlope, layerYSlope, repeat);
     }
     
-    private MixedMaterial(final String name, final Row[] rows, final int biome, final Mode mode, final float scale, final Integer colour, final NoiseSettings variation, final double layerXSlope, final double layerYSlope, final boolean repeat) {
+    MixedMaterial(final String name, final Row[] rows, final int biome, final Mode mode, final float scale, final Integer colour, final NoiseSettings variation, final double layerXSlope, final double layerYSlope, final boolean repeat) {
         if ((mode != Mode.LAYERED) && (mode != Mode.SIMPLE)) {
             int total = 0;
             for (Row row: rows) {
@@ -107,6 +105,10 @@ public class MixedMaterial implements Serializable {
         this.layerYSlope = layerYSlope;
         this.repeat = repeat;
         init();
+    }
+
+    public UUID getId() {
+        return id;
     }
 
     public String getName() {
@@ -146,29 +148,33 @@ public class MixedMaterial implements Serializable {
     }
 
     public BufferedImage getIcon(ColourScheme colourScheme) {
-        final BufferedImage icon = new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB);
-        // Draw the border
-        for (int i = 0; i < 15; i++) {
-            icon.setRGB(     i,      0, 0);
-            icon.setRGB(    15,      i, 0);
-            icon.setRGB(15 - i,     15, 0);
-            icon.setRGB(     0, 15 - i, 0);
-        }
-        // Draw the terrain
-        if (colour != null) {
-            for (int x = 1; x < 15; x++) {
-                for (int y = 1; y < 15; y++) {
-                    icon.setRGB(x, y, colour);
+        if (colourScheme != null) {
+            final BufferedImage icon = new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB);
+            // Draw the border
+            for (int i = 0; i < 15; i++) {
+                icon.setRGB(i, 0, 0);
+                icon.setRGB(15, i, 0);
+                icon.setRGB(15 - i, 15, 0);
+                icon.setRGB(0, 15 - i, 0);
+            }
+            // Draw the terrain
+            if (colour != null) {
+                for (int x = 1; x < 15; x++) {
+                    for (int y = 1; y < 15; y++) {
+                        icon.setRGB(x, y, colour);
+                    }
+                }
+            } else {
+                for (int x = 1; x < 15; x++) {
+                    for (int y = 1; y < 15; y++) {
+                        icon.setRGB(x, y, colourScheme.getColour(getMaterial(0, x, 0, y)));
+                    }
                 }
             }
+            return icon;
         } else {
-            for (int x = 1; x < 15; x++) {
-                for (int y = 1; y < 15; y++) {
-                    icon.setRGB(x, y, colourScheme.getColour(getMaterial(0, x, 0, y)));
-                }
-            }
+            return UNKNOWN_ICON;
         }
-        return icon;
     }
     
     public Material getMaterial(long seed, int x, int y, float z) {
@@ -277,7 +283,41 @@ public class MixedMaterial implements Serializable {
     public Row[] getRows() {
         return Arrays.copyOf(rows, rows.length);
     }
+
+    void edit(final String name, final Row[] rows, final int biome, final Mode mode, final float scale, final Integer colour, final NoiseSettings variation, final double layerXSlope, final double layerYSlope, final boolean repeat) {
+        if ((mode != Mode.LAYERED) && (mode != Mode.SIMPLE)) {
+            int total = 0;
+            for (Row row: rows) {
+                total += row.occurrence;
+            }
+            if (total != 1000) {
+                throw new IllegalArgumentException("Total occurrence is not 1000");
+            }
+        }
+        this.name = name;
+        this.rows = rows;
+        this.biome = biome;
+        this.mode = mode;
+        this.scale = scale;
+        this.colour = colour;
+        this.variation = variation;
+        this.layerXSlope = layerXSlope;
+        this.layerYSlope = layerYSlope;
+        this.repeat = repeat;
+        init();
+    }
+
+    // Comparable
     
+    @Override
+    public int compareTo(MixedMaterial o) {
+        if (name != null) {
+            return (o.name != null) ? name.compareTo(o.name) : 1;
+        } else {
+            return (o.name != null) ? -1 : 0;
+        }
+    }
+
     // java.lang.Object
     
     @Override
@@ -360,6 +400,10 @@ public class MixedMaterial implements Serializable {
         init();
     }
     
+    private Object readResolve() throws ObjectStreamException {
+        return MixedMaterialManager.getInstance().register(this);
+    }
+    
     private void init() {
         switch (mode) {
             case SIMPLE:
@@ -425,17 +469,18 @@ public class MixedMaterial implements Serializable {
         }
     }
 
-    private final String name;
-    private final int biome;
-    private final Row[] rows;
+    private final UUID id = UUID.randomUUID();
+    private String name;
+    private int biome;
+    private Row[] rows;
     @Deprecated
     private final boolean noise = false;
-    private final float scale;
-    private final Integer colour;
+    private float scale;
+    private Integer colour;
     private Mode mode = Mode.BLOBS;
-    private final NoiseSettings variation;
-    private final boolean repeat;
-    private final double layerXSlope, layerYSlope;
+    private NoiseSettings variation;
+    private boolean repeat;
+    private double layerXSlope, layerYSlope;
     private transient Row[] sortedRows;
     private transient PerlinNoise[] noiseGenerators;
     private transient Material[] materials;
@@ -494,7 +539,8 @@ public class MixedMaterial implements Serializable {
     }
     
     public enum Mode {SIMPLE, BLOBS, NOISE, LAYERED}
-    
+
+    private static final BufferedImage UNKNOWN_ICON = IconUtils.loadImage("org/pepsoft/worldpainter/icons/unknown_pattern.png");
     private static final long NOISE_SEED_OFFSET = 55904327L;
     private static final long serialVersionUID = 1L;
 }
