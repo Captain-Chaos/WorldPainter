@@ -5,29 +5,27 @@
 
 package org.pepsoft.worldpainter;
 
-import java.util.TreeMap;
-import java.awt.Point;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
-import java.io.File;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.logging.Logger;
 import org.pepsoft.minecraft.Direction;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.MemoryUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
 import org.pepsoft.util.undo.UndoManager;
-import org.pepsoft.worldpainter.layers.Layer;
-import static org.pepsoft.worldpainter.Constants.*;
 import org.pepsoft.worldpainter.layers.Biome;
+import org.pepsoft.worldpainter.layers.Layer;
+
+import java.awt.*;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.io.File;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
+import java.util.*;
+import java.util.logging.Logger;
+
+import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 
 /**
  *
@@ -194,7 +192,16 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
             }
         }
     }
-    
+
+    public Dimension removeDimension(int dim) {
+        if (dimensions.containsKey(dim)) {
+            dirty = true;
+            return dimensions.remove(dim);
+        } else {
+            throw new IllegalStateException("Dimension " + dim + " does not exist");
+        }
+    }
+
     public MixedMaterial getMixedMaterial(int index) {
         return mixedMaterials[index];
     }
@@ -570,6 +577,6 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
 
     private static final Logger logger = Logger.getLogger(World2.class.getName());
     private static final long serialVersionUID = 2011062401L;
-    
+
     enum Warning {AUTO_BIOMES_ENABLED, AUTO_BIOMES_DISABLED}
 }
