@@ -1,3 +1,24 @@
+-- Version 1.11.0, released ...
+
+ * It has become easier to re-use Custom Materials:
+   + Instead of having to configure each custom material separately, every place where a custom material is used now shows a list of existing custom materials, with a button to Add a new material and a button to Edit the selected material
+   + When you Edit a custom material, it applies to every place where that material is used!
+   + In addition, the custom material edit screen now has buttons to Save the material to a file or to Load the material from a file. This allows for exchanging materials between worlds, etc.
+   + The list of available custom materials also includes the Custom Terrain Types, and you can select from existing Custom Materials for Custom Terrain Types
+ * Explicit support was added for the Minecraft 1.8 block types:
+   + There is a new terrain type called "Stone Mix", which consists of a mix of Stone, Granite, Diorite and Andesite, in approximately the same proportions as in Minecraft-generated maps
+   + The default underground material for new worlds is now Stone Mix instead of Stone
+   + For solid stone of the new types, the terrain types Granite, Diorite and Andesite have been added
+   + In addition a terrain type for Red Sandstone has been added
+   + Custom Object Layers can correctly rotate and mirror the new blocks
+ * It is now possible to remove previously added Nether and End dimensions from WorldPainter worlds, using the actions in the Edit menu
+ * Improved the Custom Plants layer configuration screen so that the layout is better and things don't jump around when enabling or disabling plants
+ * The scripting engine now checks that you don't forget to use go(), hopefully helping beginners to avoid making this mistake
+ * Bug fix: the Merge process no longer leaves carrots and potatoes to exist under water
+ * Bug fix: the Merge process no longer leaves top halves of double-high plants, cactuses or sugar canes in the map if the bottom half got removed for some reason (flooding, for instance)
+ * Bug fix: fix the Custom Plants layer type so that specifying the maturity of plants (the "growth") works correctly for the lowest and highest values
+ * Bug fix: when merging with a map which is substantially higher than the world being merged, don't omit the above ground portion from the world being merged
+
 -- Version 1.10.6, released 7-3-2015
 
  * Added wpscript command line tool, which is added to the PATH so that it is always available on the command line, to make it easier to run WorldPainter scripts without having to write your own script launcher first
