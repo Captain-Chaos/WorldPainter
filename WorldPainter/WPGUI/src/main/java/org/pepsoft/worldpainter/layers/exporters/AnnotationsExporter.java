@@ -7,8 +7,6 @@
 
 package org.pepsoft.worldpainter.layers.exporters;
 
-import java.awt.Rectangle;
-import java.util.List;
 import org.pepsoft.minecraft.Constants;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.worldpainter.Dimension;
@@ -17,6 +15,11 @@ import org.pepsoft.worldpainter.exporting.Fixup;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import org.pepsoft.worldpainter.exporting.SecondPassLayerExporter;
 import org.pepsoft.worldpainter.layers.Annotations;
+
+import java.awt.*;
+import java.util.List;
+
+import static org.pepsoft.minecraft.Block.BLOCKS;
 
 /**
  *
@@ -43,7 +46,7 @@ public class AnnotationsExporter extends AbstractLayerExporter<Annotations> impl
                 if (value > 0) {
                     final int height = dimension.getIntHeightAt(x, y);
                     final int existingBlockType = minecraftWorld.getBlockTypeAt(x, y, height + 1);
-                    if ((height < maxHeight) && (Constants.VERY_INSUBSTANTIAL_BLOCKS.get(existingBlockType) || existingBlockType == Constants.BLK_ICE)) {
+                    if ((height < maxHeight) && (BLOCKS[existingBlockType].veryInsubstantial || existingBlockType == Constants.BLK_ICE)) {
                         minecraftWorld.setMaterialAt(x, y, height + 1, Material.get(Constants.BLK_WOOL, value - ((value < 8) ? 1 : 0)));
                     }
                 }

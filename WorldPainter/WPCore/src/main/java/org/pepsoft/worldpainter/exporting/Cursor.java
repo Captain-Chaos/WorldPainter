@@ -4,10 +4,13 @@
  */
 package org.pepsoft.worldpainter.exporting;
 
-import java.awt.Point;
-import static org.pepsoft.minecraft.Constants.*;
 import org.pepsoft.minecraft.Direction;
 import org.pepsoft.minecraft.Material;
+
+import java.awt.*;
+
+import static org.pepsoft.minecraft.Block.BLOCKS;
+import static org.pepsoft.minecraft.Constants.BLK_AIR;
 
 /**
  *
@@ -76,12 +79,12 @@ public final class Cursor implements Cloneable {
     
     public boolean isFreeOrInsubstantial() {
         int blockType = minecraftWorld.getBlockTypeAt(x, y, height);
-        return (blockType == BLK_AIR) || INSUBSTANTIAL_BLOCKS.get(blockType);
+        return (blockType == BLK_AIR) || BLOCKS[blockType].insubstantial;
     }
     
     public boolean setBlockIfFree(Material material) {
         int existingBlock = minecraftWorld.getBlockTypeAt(x, y, height);
-        if ((existingBlock == BLK_AIR) || INSUBSTANTIAL_BLOCKS.get(existingBlock)) {
+        if ((existingBlock == BLK_AIR) || BLOCKS[existingBlock].insubstantial) {
             minecraftWorld.setMaterialAt(x, y, height, material);
             return true;
         } else {
@@ -95,7 +98,7 @@ public final class Cursor implements Cloneable {
     
     public boolean setBlockWithDirectionIfFree(Material material) {
         int existingBlock = minecraftWorld.getBlockTypeAt(x, y, height);
-        if ((existingBlock == BLK_AIR) || INSUBSTANTIAL_BLOCKS.get(existingBlock)) {
+        if ((existingBlock == BLK_AIR) || BLOCKS[existingBlock].insubstantial) {
             minecraftWorld.setMaterialAt(x, y, height, material.setDirection(direction));
             return true;
         } else {

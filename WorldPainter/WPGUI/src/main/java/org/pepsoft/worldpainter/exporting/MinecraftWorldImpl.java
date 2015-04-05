@@ -5,43 +5,32 @@
 
 package org.pepsoft.worldpainter.exporting;
 
-import java.awt.Point;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.vecmath.Point3i;
-
 import org.jnbt.CompoundTag;
 import org.jnbt.NBTInputStream;
 import org.jnbt.NBTOutputStream;
 import org.jnbt.Tag;
-import org.pepsoft.minecraft.Chunk;
-import org.pepsoft.minecraft.ChunkImpl;
-import org.pepsoft.minecraft.ChunkImpl2;
-import org.pepsoft.minecraft.Constants;
-import org.pepsoft.minecraft.Entity;
-import org.pepsoft.minecraft.Material;
-import org.pepsoft.minecraft.RegionFile;
-import org.pepsoft.minecraft.TileEntity;
+import org.pepsoft.minecraft.*;
 import org.pepsoft.util.Box;
 import org.pepsoft.util.jobqueue.HashList;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.layers.ReadOnly;
 
+import javax.vecmath.Point3i;
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static org.pepsoft.minecraft.Block.BLOCK_TYPE_NAMES;
 import static org.pepsoft.minecraft.Constants.BLK_AIR;
 import static org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_1;
-import static org.pepsoft.worldpainter.Constants.DIM_END;
-import static org.pepsoft.worldpainter.Constants.DIM_NETHER;
-import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
-import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
+import static org.pepsoft.worldpainter.Constants.*;
+
+import org.pepsoft.worldpainter.Dimension;
 
 /**
  *
@@ -533,7 +522,7 @@ public class MinecraftWorldImpl implements MinecraftWorld {
                     // tile entity. Remove the data
                     i.remove();
                     if (logger.isLoggable(Level.FINE)) {
-                        logger.fine("Removing tile entity " + tileEntity.getId() + " @ " + tileEntity.getX() + "," + tileEntity.getZ() + "," + tileEntity.getY() + " because the block at that location is a " + Constants.BLOCK_TYPE_NAMES[existingBlockId]);
+                        logger.fine("Removing tile entity " + tileEntity.getId() + " @ " + tileEntity.getX() + "," + tileEntity.getZ() + "," + tileEntity.getY() + " because the block at that location is a " + BLOCK_TYPE_NAMES[existingBlockId]);
                     }
                 }
             }

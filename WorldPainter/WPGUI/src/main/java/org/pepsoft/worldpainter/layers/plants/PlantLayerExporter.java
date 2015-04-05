@@ -6,13 +6,8 @@
 
 package org.pepsoft.worldpainter.layers.plants;
 
-import java.awt.Rectangle;
-import java.util.List;
-import java.util.Random;
-import javax.vecmath.Point3i;
 import org.pepsoft.minecraft.Constants;
 import org.pepsoft.minecraft.Material;
-import static org.pepsoft.worldpainter.Constants.*;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.exporting.Fixup;
@@ -21,6 +16,15 @@ import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import org.pepsoft.worldpainter.exporting.SecondPassLayerExporter;
 import org.pepsoft.worldpainter.layers.bo2.Bo2ObjectProvider;
 import org.pepsoft.worldpainter.layers.exporters.WPObjectExporter;
+
+import javax.vecmath.Point3i;
+import java.awt.*;
+import java.util.List;
+import java.util.Random;
+
+import static org.pepsoft.minecraft.Block.BLOCKS;
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 
 /**
  *
@@ -123,7 +127,7 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
             existingBlockType = world.getBlockTypeAt(x, y, z);
         } while ((z < maxHeight) && ((existingBlockType == Constants.BLK_STATIONARY_WATER) || (existingBlockType == Constants.BLK_WATER)));
         if ((z < maxHeight)
-                && Constants.VERY_INSUBSTANTIAL_BLOCKS.get(existingBlockType)
+                && BLOCKS[existingBlockType].veryInsubstantial
                 && (! ((existingBlockType == Constants.BLK_LAVA) || (existingBlockType == Constants.BLK_STATIONARY_LAVA)))) {
             renderObject(world, dimension, plant, x, y, z, true);
         }
@@ -136,5 +140,5 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
         }
     };
 
-    private static final Material TILLED_DIRT = Material.get(Constants.BLK_TILLED_DIRT, 7);
+    private static final Material TILLED_DIRT = Material.get(Constants.BLK_TILLED_DIRT, 4);
 }

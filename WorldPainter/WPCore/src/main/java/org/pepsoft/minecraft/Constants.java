@@ -5,14 +5,7 @@
 
 package org.pepsoft.minecraft;
 
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import static org.pepsoft.util.CollectionUtils.*;
+import java.util.*;
 
 /**
  *
@@ -246,9 +239,9 @@ public final class Constants {
     public static final int BLK_TRAPPED_CHEST                 = 146;
     public static final int BLK_WEIGHTED_PRESSURE_PLATE_LIGHT = 147;
     public static final int BLK_WEIGHTED_PRESSURE_PLATE_HEAVY = 148;
-    public static final int BLK_REDSTONE_COMPARATOR           = 149;
-
-    public static final int BLK_DAYLIGHT_SENSOR = 151;
+    public static final int BLK_REDSTONE_COMPARATOR_UNPOWERED = 149;
+    public static final int BLK_REDSTONE_COMPARATOR_POWERED   = 150;
+    public static final int BLK_DAYLIGHT_SENSOR               = 151;
     
     public static final int BLK_QUARTZ_ORE = 153;
     public static final int BLK_HOPPER     = 154;
@@ -266,13 +259,34 @@ public final class Constants {
     public static final int BLK_BARRIER              = 166;
     public static final int BLK_IRON_TRAPDOOR        = 167;
 
-    public static final int BLK_CARPET        = 171;
-    public static final int BLK_HARDENED_CLAY = 172;
-    public static final int BLK_COAL_BLOCK    = 173;
-    public static final int BLK_PACKED_ICE    = 174;
-    public static final int BLK_LARGE_FLOWERS = 175;
+    public static final int BLK_CARPET                   = 171;
+    public static final int BLK_HARDENED_CLAY            = 172;
+    public static final int BLK_COAL_BLOCK               = 173;
+    public static final int BLK_PACKED_ICE               = 174;
+    public static final int BLK_LARGE_FLOWERS            = 175;
+    public static final int BLK_STANDING_BANNER          = 176;
+    public static final int BLK_WALL_BANNER              = 177;
+    public static final int BLK_DAYLIGHT_SENSOR_INVERTED = 178;
+    public static final int BLK_RED_SANDSTONE            = 179;
+    public static final int BLK_RED_SANDSTONE_STAIRS     = 180;
+    
+    public static final int BLK_PINE_WOOD_FENCE_GATE     = 183;
+    public static final int BLK_BIRCH_WOOD_FENCE_GATE    = 184;
+    public static final int BLK_JUNGLE_WOOD_FENCE_GATE   = 185;
+    public static final int BLK_DARK_OAK_WOOD_FENCE_GATE = 186;
+    public static final int BLK_ACACIA_WOOD_FENCE_GATE   = 187;
+    public static final int BLK_PINE_WOOD_FENCE          = 188;
+    public static final int BLK_BIRCH_WOOD_FENCE         = 189;
+    public static final int BLK_JUNGLE_WOOD_FENCE        = 190;
+    public static final int BLK_DARK_OAK_WOOD_FENCE      = 191;
+    public static final int BLK_ACACIA_WOOD_FENCE        = 192;
+    public static final int BLK_PINE_WOOD_DOOR           = 193;
+    public static final int BLK_BIRCH_WOOD_DOOR          = 194;
+    public static final int BLK_JUNGLE_WOOD_DOOR         = 195;
+    public static final int BLK_ACACIA_WOOD_DOOR         = 196;
+    public static final int BLK_DARK_OAK_WOOD_DOOR       = 197;
 
-    public static final int HIGHEST_KNOWN_BLOCK_ID = BLK_LARGE_FLOWERS;
+    public static final int HIGHEST_KNOWN_BLOCK_ID = BLK_DARK_OAK_WOOD_DOOR;
 
     public static final int DATA_OAK      = 0;
     public static final int DATA_PINE     = 1;
@@ -338,6 +352,14 @@ public final class Constants {
     public static final int DATA_RED        = 14;
     public static final int DATA_BLACK      = 15;
 
+    public static final int DATA_STONE_STONE             = 0;
+    public static final int DATA_STONE_GRANITE           = 1;
+    public static final int DATA_STONE_GRANITE_POLISHED  = 2;
+    public static final int DATA_STONE_DIORITE           = 3;
+    public static final int DATA_STONE_DIORITE_POLISHED  = 4;
+    public static final int DATA_STONE_ANDESITE          = 5;
+    public static final int DATA_STONE_ANDESITE_POLISHED = 6;
+
     public static final int ITM_FLINT_AND_STEEL = 259;
     
     public static final int ITM_COAL            = 263;
@@ -384,7 +406,8 @@ public final class Constants {
     public static final String ID_RECORDPLAYER = "RecordPlayer";
     public static final String ID_SKULL        = "Skull";
     public static final String ID_TRAP         = "Trap";
-    
+    public static final String ID_BANNER       = "Banner";
+
     public static final int GAME_TYPE_SURVIVAL  = 0;
     public static final int GAME_TYPE_CREATIVE  = 1;
     public static final int GAME_TYPE_ADVENTURE = 2;
@@ -434,32 +457,6 @@ public final class Constants {
     public static final String[] LARGE_PAINTINGS = {MOTIVE_MATCH, MOTIVE_BUST, MOTIVE_STAGE, MOTIVE_VOID, MOTIVE_SKULL_AND_ROSES};
     
     /**
-     * Insubstantial blocks (blocks that nobody would mind replacing or removing)
-     */
-    public static final BitSet INSUBSTANTIAL_BLOCKS = bitSetOf(
-        BLK_SNOW, BLK_ROSE, BLK_DANDELION, BLK_RED_MUSHROOM, BLK_BROWN_MUSHROOM,
-        BLK_CACTUS, BLK_DEAD_SHRUBS, BLK_TALL_GRASS, BLK_FIRE, BLK_PUMPKIN,
-        BLK_SAPLING, BLK_SUGAR_CANE, BLK_MELON, BLK_PUMPKIN_STEM,
-        BLK_MELON_STEM, BLK_LILY_PAD, BLK_NETHER_WART, BLK_VINES,
-        BLK_COCOA_PLANT, BLK_WHEAT, BLK_LARGE_FLOWERS);
-    
-    /**
-     * Even more insubstantial blocks (includes INSUBSTANTIAL_BLOCKS and adds
-     * air, leaves, water and lava.
-     */
-    public static final BitSet VERY_INSUBSTANTIAL_BLOCKS = (BitSet) INSUBSTANTIAL_BLOCKS.clone();
-    
-    static {
-        VERY_INSUBSTANTIAL_BLOCKS.set(BLK_AIR);
-        VERY_INSUBSTANTIAL_BLOCKS.set(BLK_LEAVES);
-        VERY_INSUBSTANTIAL_BLOCKS.set(BLK_LEAVES2);
-        VERY_INSUBSTANTIAL_BLOCKS.set(BLK_WATER);
-        VERY_INSUBSTANTIAL_BLOCKS.set(BLK_STATIONARY_WATER);
-        VERY_INSUBSTANTIAL_BLOCKS.set(BLK_LAVA);
-        VERY_INSUBSTANTIAL_BLOCKS.set(BLK_STATIONARY_LAVA);
-    }
-    
-    /**
      * A map from tile entity ID's to the corresponding block ID's.
      */
     public static final Map<String, Set<Integer>> TILE_ENTITY_MAP = new HashMap<String, Set<Integer>>();
@@ -469,9 +466,9 @@ public final class Constants {
         TILE_ENTITY_MAP.put(ID_BEACON, Collections.singleton(BLK_BEACON));
         TILE_ENTITY_MAP.put(ID_CAULDRON, Collections.singleton(BLK_BREWING_STAND));
         TILE_ENTITY_MAP.put(ID_CHEST, Collections.unmodifiableSet(new HashSet<Integer>(Arrays.asList(BLK_CHEST, BLK_TRAPPED_CHEST))));
-        TILE_ENTITY_MAP.put(ID_COMPARATOR, Collections.singleton(BLK_REDSTONE_COMPARATOR));
+        TILE_ENTITY_MAP.put(ID_COMPARATOR, Collections.unmodifiableSet(new HashSet<Integer>(Arrays.asList(BLK_REDSTONE_COMPARATOR_UNPOWERED, BLK_REDSTONE_COMPARATOR_POWERED))));
         TILE_ENTITY_MAP.put(ID_CONTROL, Collections.singleton(BLK_COMMAND_BLOCK));
-        TILE_ENTITY_MAP.put(ID_DLDETECTOR, Collections.singleton(BLK_DAYLIGHT_SENSOR));
+        TILE_ENTITY_MAP.put(ID_DLDETECTOR, Collections.unmodifiableSet(new HashSet<Integer>(Arrays.asList(BLK_DAYLIGHT_SENSOR, BLK_DAYLIGHT_SENSOR_INVERTED))));
         TILE_ENTITY_MAP.put(ID_DROPPER, Collections.singleton(BLK_DROPPER));
         TILE_ENTITY_MAP.put(ID_ENCHANTTABLE, Collections.singleton(BLK_ENCHANTMENT_TABLE));
         TILE_ENTITY_MAP.put(ID_ENDERCHEST, Collections.singleton(BLK_ENDER_CHEST));
@@ -485,376 +482,26 @@ public final class Constants {
         TILE_ENTITY_MAP.put(ID_SIGN, Collections.unmodifiableSet(new HashSet<Integer>(Arrays.asList(BLK_SIGN, BLK_WALL_SIGN))));
         TILE_ENTITY_MAP.put(ID_SKULL, Collections.singleton(BLK_HEAD));
         TILE_ENTITY_MAP.put(ID_TRAP, Collections.singleton(BLK_DISPENSER));
-    }
-    
-    /**
-     * Tile entities (blocks that have metadata which should be preserved)
-     */
-    public static final BitSet TILE_ENTITIES = new BitSet();
-    
-    static {
-        for (Set<Integer> blockIds: TILE_ENTITY_MAP.values()) {
-            for (int blockId: blockIds) {
-                TILE_ENTITIES.set(blockId);
+        TILE_ENTITY_MAP.put(ID_BANNER, Collections.unmodifiableSet(new HashSet<Integer>(Arrays.asList(BLK_STANDING_BANNER, BLK_WALL_BANNER))));
+
+        // Make sure the tile entity flag in the block database is consistent
+        // with the tile entity map:
+        Set<Integer> allTileEntityIds = new HashSet<Integer>();
+        for (Set<Integer> blockIdSet: TILE_ENTITY_MAP.values()) {
+            allTileEntityIds.addAll(blockIdSet);
+            for (int blockId: blockIdSet) {
+                if (! Block.BLOCKS[blockId].tileEntity) {
+                    throw new AssertionError("Block " + blockId + " not marked as tile entity!");
+                }
+            }
+        }
+        for (Block block: Block.BLOCKS) {
+            if (block.tileEntity && (! allTileEntityIds.contains(block.id))) {
+                throw new AssertionError("Block " + block.id + " marked as tile entity but not present in tile entity map!");
             }
         }
     }
     
-    public static final String[] BLOCK_TYPE_NAMES = {
-        // 0
-        "Air",
-        "Stone",
-        "Grass",
-        "Dirt",
-        "Cobblestone",
-        "Wooden Plank",
-        "Sapling",
-        "Bedrock",
-        "Water",
-        "Stationary Water",
-
-        // 10
-        "Lava",
-        "Stationary Lava",
-        "Sand",
-        "Gravel",
-        "Gold Ore",
-        "Iron Ore",
-        "Coal Ore",
-        "Wood",
-        "Leaves",
-        "Sponge",
-        
-        // 20
-        "Glass",
-        "Lapis Lazuli Ore",
-        "Lapis Lazuli Block",
-        "Dispenser",
-        "Sandstone",
-        "Note Block",
-        "Bed",
-        "Powered Rail",
-        "Detector Rail",
-        "Sticky Piston",
-        
-        // 30
-        "Cobweb",
-        "Tall Grass",
-        "Dead Bush",
-        "Piston",
-        "Piston Extension",
-        "Wool",
-        null,
-        "Dandelion",
-        "Flower",
-        "Brown Mushroom",
-        
-        // 40
-        "Red Mushroom",
-        "Gold Block",
-        "Iron Block",
-        "Double Slabs",
-        "Slab",
-        "Brick Block",
-        "TNT",
-        "Bookshelf",
-        "Mossy Cobblestone",
-        "Obsidian",
-        
-        // 50
-        "Torch",
-        "Fire",
-        "Monster Spawner",
-        "Wooden Stairs",
-        "Chest",
-        "Redstone Wire",
-        "Diamond Ore",
-        "Diamond Block",
-        "Crafting Table",
-        "Wheat",
-
-        // 60
-        "Tilled Dirt",
-        "Furnace",
-        "Burning Furnace",
-        "Sign Post",
-        "Wooden Door",
-        "Ladder",
-        "Rails",
-        "Cobblestone Stairs",
-        "Wall Sign",
-        "Lever",
-
-        // 70
-        "Stone Pressure Plate",
-        "Iron Door",
-        "Wooden Pressure Plate",
-        "Redstone Ore",
-        "Glowing Redstone Ore",
-        "Redstone Torch (off)",
-        "Redstone Torch (on)",
-        "Stone Button",
-        "Snow",
-        "Ice",
-
-        // 80
-        "Snow Block",
-        "Cactus",
-        "Clay Block",
-        "Sugar Cane",
-        "Jukebox",
-        "Fence",
-        "Pumpkin",
-        "Netherrack",
-        "Soul Sand",
-        "Glowstone Block",
-
-        // 90
-        "Portal",
-        "Jack-O-Lantern",
-        "Cake",
-        "Redstone Repeater (off)",
-        "Redstone Repeater (on)",
-        "Stained Glass",
-        "Trapdoor",
-        "Hidden Silverfish",
-        "Stone Bricks",
-        "Huge Brown Mushroom",
-
-        // 100
-        "Huge Red Mushroom",
-        "Iron Bars",
-        "Glass Pane",
-        "Melon",
-        "Pumpkin Stem",
-        "Melon Stem",
-        "Vines",
-        "Fence Gate",
-        "Brick Stairs",
-        "Stone Brick Stairs",
-
-        // 110
-        "Mycelium",
-        "Lily Pad",
-        "Nether Brick",
-        "Nether Brick Fence",
-        "Nether Brick Stairs",
-        "Nether Wart",
-        "Enchantment Table",
-        "Brewing Stand",
-        "Cauldron",
-        "End Portal",
-        
-        // 120
-        "End Portal Frame",
-        "End Stone",
-        "Dragon Egg",
-        "Redstone Lamp (off)",
-        "Redstone Lamp (on)",
-        "Wooden Double Slab",
-        "Wooden Slab",
-        "Cocoa Plant",
-        "Sandstone Stairs",
-        "Emerald Ore",
-
-        // 130
-        "Ender Chest",
-        "Tripwire Hook",
-        "Tripwire",
-        "Emerald Block",
-        "Pine Wood Stairs",
-        "Birch Wood Stairs",
-        "Jungle Wood Stairs",
-        "Command Block",
-        "Beacon",
-        "Cobblestone Wall",
-        
-        // 140
-        "Flower Pot",
-        "Carrots",
-        "Potatoes",
-        "Wooden Button",
-        "Head",
-        "Anvil",
-        "Trapped Chest",
-        "Weighted Pressure Plate (light)",
-        "Weighted Pressure Plate (heavy)",
-        "Redstone Comparator",
-
-        // 150
-        null,
-        "Daylight Sensor",
-        "Redstone Block",
-        "Nether Quartz Ore",
-        "Hopper",
-        "Quartz Block",
-        "Quartz Stairs",
-        "Activator Rail",
-        "Dropper",
-        "Stained Clay",
-        
-        // 160
-        "Stained Glass Pane",
-        "Leaves 2",
-        "Wood 2",
-        "Acacia Wood Stairs",
-        "Dark Oak Wood Stairs",
-        "Slime Block",
-        "Barrier",
-        "Iron Trapdoor",
-        null,
-        null,
-
-        // 170
-        "Hay Bale",
-        "Carpet",
-        "Hardened Clay",
-        "Coal Block",
-        "Packed Ice",
-        "Large Flower"
-    };
-
     public static final int DEFAULT_MAX_HEIGHT_1 = 128;
     public static final int DEFAULT_MAX_HEIGHT_2 = 256;
-    
-    public static final int[] BLOCK_TRANSPARENCY = new int[256];
-    public static final int[] LIGHT_SOURCES = new int[256];
-
-    static {
-        Arrays.fill(BLOCK_TRANSPARENCY, 15);
-        BLOCK_TRANSPARENCY[BLK_AIR] = 0;
-        BLOCK_TRANSPARENCY[BLK_GLASS] = 0;
-        BLOCK_TRANSPARENCY[BLK_SNOW] = 0;
-        BLOCK_TRANSPARENCY[BLK_DANDELION] = 0;
-        BLOCK_TRANSPARENCY[BLK_ROSE] = 0;
-        BLOCK_TRANSPARENCY[BLK_RED_MUSHROOM] = 0;
-        BLOCK_TRANSPARENCY[BLK_BROWN_MUSHROOM] = 0;
-        BLOCK_TRANSPARENCY[BLK_TORCH] = 0;
-        BLOCK_TRANSPARENCY[BLK_FIRE] = 0;
-        BLOCK_TRANSPARENCY[BLK_CACTUS] = 0;
-        BLOCK_TRANSPARENCY[BLK_SUGAR_CANE] = 0;
-        BLOCK_TRANSPARENCY[BLK_TALL_GRASS] = 0;
-        BLOCK_TRANSPARENCY[BLK_DEAD_SHRUBS] = 0;
-        BLOCK_TRANSPARENCY[BLK_SAPLING] = 0;
-        BLOCK_TRANSPARENCY[BLK_BED] = 0;
-        BLOCK_TRANSPARENCY[BLK_POWERED_RAILS] = 0;
-        BLOCK_TRANSPARENCY[BLK_DETECTOR_RAILS] = 0;
-        BLOCK_TRANSPARENCY[BLK_COBWEB] = 0;
-        BLOCK_TRANSPARENCY[BLK_PISTON] = 0;
-        BLOCK_TRANSPARENCY[BLK_PISTON_EXTENSION] = 0;
-        BLOCK_TRANSPARENCY[BLK_REDSTONE_WIRE] = 0;
-        BLOCK_TRANSPARENCY[BLK_WHEAT] = 0;
-        BLOCK_TRANSPARENCY[BLK_SIGN] = 0;
-        BLOCK_TRANSPARENCY[BLK_WOODEN_DOOR] = 0;
-        BLOCK_TRANSPARENCY[BLK_LADDER] = 0;
-        BLOCK_TRANSPARENCY[BLK_RAILS] = 0;
-        BLOCK_TRANSPARENCY[BLK_WALL_SIGN] = 0;
-        BLOCK_TRANSPARENCY[BLK_LEVER] = 0;
-        BLOCK_TRANSPARENCY[BLK_STONE_PRESSURE_PLATE] = 0;
-        BLOCK_TRANSPARENCY[BLK_IRON_DOOR] = 0;
-        BLOCK_TRANSPARENCY[BLK_WOODEN_PRESSURE_PLATE] = 0;
-        BLOCK_TRANSPARENCY[BLK_REDSTONE_TORCH_OFF] = 0;
-        BLOCK_TRANSPARENCY[BLK_REDSTONE_TORCH_ON] = 0;
-        BLOCK_TRANSPARENCY[BLK_STONE_BUTTON] = 0;
-        BLOCK_TRANSPARENCY[BLK_FENCE] = 0;
-        BLOCK_TRANSPARENCY[BLK_PUMPKIN] = 0;
-        BLOCK_TRANSPARENCY[BLK_CAKE] = 0;
-        BLOCK_TRANSPARENCY[BLK_REDSTONE_REPEATER_OFF] = 0;
-        BLOCK_TRANSPARENCY[BLK_REDSTONE_REPEATER_ON] = 0;
-        BLOCK_TRANSPARENCY[BLK_TRAPDOOR] = 0;
-        BLOCK_TRANSPARENCY[BLK_CHEST] = 0;
-        BLOCK_TRANSPARENCY[BLK_IRON_BARS] = 0;
-        BLOCK_TRANSPARENCY[BLK_GLASS_PANE] = 0;
-        BLOCK_TRANSPARENCY[BLK_PUMPKIN_STEM] = 0;
-        BLOCK_TRANSPARENCY[BLK_MELON_STEM] = 0;
-        BLOCK_TRANSPARENCY[BLK_VINES] = 0;
-        BLOCK_TRANSPARENCY[BLK_FENCE_GATE] = 0;
-        BLOCK_TRANSPARENCY[BLK_LILY_PAD] = 0;
-        BLOCK_TRANSPARENCY[BLK_NETHER_BRICK_FENCE] = 0;
-        BLOCK_TRANSPARENCY[BLK_NETHER_WART] = 0;
-        BLOCK_TRANSPARENCY[BLK_ENCHANTMENT_TABLE] = 0;
-        BLOCK_TRANSPARENCY[BLK_BREWING_STAND] = 0;
-        BLOCK_TRANSPARENCY[BLK_CAULDRON] = 0; // TODO: really?
-        BLOCK_TRANSPARENCY[BLK_PORTAL] = 0;
-        BLOCK_TRANSPARENCY[BLK_END_PORTAL] = 0;
-        BLOCK_TRANSPARENCY[BLK_DRAGON_EGG] = 0;
-        BLOCK_TRANSPARENCY[BLK_COCOA_PLANT] = 0;
-        BLOCK_TRANSPARENCY[BLK_ENDER_CHEST] = 0;
-        BLOCK_TRANSPARENCY[BLK_TRIPWIRE_HOOK] = 0;
-        BLOCK_TRANSPARENCY[BLK_TRIPWIRE] = 0;
-        BLOCK_TRANSPARENCY[BLK_COBBLESTONE_WALL] = 0;
-        BLOCK_TRANSPARENCY[BLK_FLOWER_POT] = 0;
-        BLOCK_TRANSPARENCY[BLK_CARROTS] = 0;
-        BLOCK_TRANSPARENCY[BLK_POTATOES] = 0;
-        BLOCK_TRANSPARENCY[BLK_WOODEN_BUTTON] = 0;
-        BLOCK_TRANSPARENCY[BLK_HEAD] = 0;
-        BLOCK_TRANSPARENCY[BLK_LAVA] = 0;
-        BLOCK_TRANSPARENCY[BLK_STATIONARY_LAVA] = 0;
-        BLOCK_TRANSPARENCY[BLK_ANVIL] = 0;
-        BLOCK_TRANSPARENCY[BLK_TRAPPED_CHEST] = 0;
-        BLOCK_TRANSPARENCY[BLK_WEIGHTED_PRESSURE_PLATE_LIGHT] = 0;
-        BLOCK_TRANSPARENCY[BLK_WEIGHTED_PRESSURE_PLATE_HEAVY] = 0;
-        BLOCK_TRANSPARENCY[BLK_REDSTONE_COMPARATOR] = 0;
-        BLOCK_TRANSPARENCY[BLK_DAYLIGHT_SENSOR] = 0;
-        BLOCK_TRANSPARENCY[BLK_HOPPER] = 0;
-        BLOCK_TRANSPARENCY[BLK_ACTIVATOR_RAIL] = 0;
-        BLOCK_TRANSPARENCY[BLK_DROPPER] = 0;
-        BLOCK_TRANSPARENCY[BLK_STAINED_GLASS_PANE] = 0;
-        BLOCK_TRANSPARENCY[BLK_SLIME_BLOCK] = 0; // TODO: really fully transparent?
-        BLOCK_TRANSPARENCY[BLK_BARRIER] = 0;
-        BLOCK_TRANSPARENCY[BLK_IRON_TRAPDOOR] = 0;
-        BLOCK_TRANSPARENCY[BLK_CARPET] = 0;
-        BLOCK_TRANSPARENCY[BLK_LARGE_FLOWERS] = 0;
-
-        BLOCK_TRANSPARENCY[BLK_LEAVES] = 1;
-        BLOCK_TRANSPARENCY[BLK_LEAVES2] = 1;
-        BLOCK_TRANSPARENCY[BLK_ICE] = 3;
-        BLOCK_TRANSPARENCY[BLK_WATER] = 3;
-        BLOCK_TRANSPARENCY[BLK_STATIONARY_WATER] = 3;
-
-        LIGHT_SOURCES[BLK_FIRE] = 15;
-        LIGHT_SOURCES[BLK_JACK_O_LANTERN] = 15;
-        LIGHT_SOURCES[BLK_LAVA] = 15;
-        LIGHT_SOURCES[BLK_STATIONARY_LAVA] = 15;
-        LIGHT_SOURCES[BLK_GLOWSTONE] = 15;
-        LIGHT_SOURCES[BLK_BEACON] = 15;
-        LIGHT_SOURCES[BLK_END_PORTAL] = 15;
-        LIGHT_SOURCES[BLK_REDSTONE_LANTERN_ON] = 15;
-        LIGHT_SOURCES[BLK_TORCH] = 14;
-        LIGHT_SOURCES[BLK_BURNING_FURNACE] = 13;
-        LIGHT_SOURCES[BLK_PORTAL] = 11;
-        LIGHT_SOURCES[BLK_GLOWING_REDSTONE_ORE] = 9;
-        LIGHT_SOURCES[BLK_REDSTONE_REPEATER_ON] = 9;
-        LIGHT_SOURCES[BLK_REDSTONE_TORCH_ON] = 7;
-        LIGHT_SOURCES[BLK_ENDER_CHEST] = 7;
-        LIGHT_SOURCES[BLK_BROWN_MUSHROOM] = 1;
-        LIGHT_SOURCES[BLK_BREWING_STAND] = 1;
-        LIGHT_SOURCES[BLK_DRAGON_EGG] = 1;
-        LIGHT_SOURCES[BLK_END_PORTAL_FRAME] = 1;
-    }
-
-    /**
-     * Resource/ore blocks.
-     */
-    public static final BitSet RESOURCES = bitSetOf(
-        BLK_COAL, BLK_IRON_ORE, BLK_GOLD_ORE, BLK_REDSTONE_ORE,
-        BLK_LAPIS_LAZULI_ORE, BLK_DIAMOND_ORE, BLK_EMERALD_ORE, BLK_QUARTZ_ORE);
-    
-    /**
-     * Blocks that make up naturally occurring trees, saplings and large
-     * mushrooms.
-     */
-    public static final BitSet TREE_RELATED = bitSetOf(
-        BLK_WOOD, BLK_WOOD2, BLK_LEAVES, BLK_LEAVES2, BLK_SAPLING, BLK_VINES,
-        BLK_COCOA_PLANT, BLK_HUGE_BROWN_MUSHROOM, BLK_HUGE_RED_MUSHROOM);
-    
-    /**
-     * All vegetation which isn't tree-related.
-     */
-    public static final BitSet VEGETATION = bitSetOf(
-        BLK_TALL_GRASS, BLK_ROSE, BLK_DANDELION, BLK_DEAD_SHRUBS,
-        BLK_NETHER_WART, BLK_LARGE_FLOWERS, BLK_RED_MUSHROOM,
-        BLK_BROWN_MUSHROOM, BLK_LILY_PAD, BLK_PUMPKIN_STEM, BLK_PUMPKIN,
-        BLK_MELON_STEM, BLK_MELON, BLK_CARROTS, BLK_POTATOES, BLK_WHEAT,
-        BLK_CACTUS, BLK_SUGAR_CANE);
 }

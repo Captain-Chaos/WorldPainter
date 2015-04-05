@@ -5,13 +5,7 @@
 
 package org.pepsoft.worldpainter.layers.exporters;
 
-import java.awt.Rectangle;
-import java.util.BitSet;
-import java.util.List;
-import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
+import org.pepsoft.util.CollectionUtils;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.exporting.AbstractLayerExporter;
 import org.pepsoft.worldpainter.exporting.Fixup;
@@ -19,8 +13,14 @@ import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import org.pepsoft.worldpainter.exporting.SecondPassLayerExporter;
 import org.pepsoft.worldpainter.layers.Frost;
 
+import java.awt.*;
+import java.util.BitSet;
+import java.util.List;
+import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import static org.pepsoft.minecraft.Constants.*;
-import org.pepsoft.util.CollectionUtils;
 
 /**
  *
@@ -144,7 +144,7 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
         BLK_COBBLESTONE_WALL, BLK_FLOWER_POT, BLK_CARROTS, BLK_POTATOES,
         BLK_WOODEN_BUTTON, BLK_HEAD, BLK_ANVIL, BLK_TRAPPED_CHEST,
         BLK_WEIGHTED_PRESSURE_PLATE_HEAVY, BLK_WEIGHTED_PRESSURE_PLATE_LIGHT,
-        BLK_REDSTONE_COMPARATOR, BLK_DAYLIGHT_SENSOR, BLK_ACTIVATOR_RAIL,
+            BLK_REDSTONE_COMPARATOR_UNPOWERED, BLK_DAYLIGHT_SENSOR, BLK_ACTIVATOR_RAIL,
         BLK_STAINED_GLASS_PANE, BLK_ACACIA_WOOD_STAIRS,
         BLK_DARK_OAK_WOOD_STAIRS, BLK_CARPET, BLK_LARGE_FLOWERS, BLK_PACKED_ICE);
     private static final Logger logger = Logger.getLogger(FrostExporter.class.getName());

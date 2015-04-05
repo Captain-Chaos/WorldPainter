@@ -4,28 +4,22 @@
  */
 package org.pepsoft.worldpainter.threedeeview;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.GraphicsEnvironment;
-import java.awt.RenderingHints;
-import java.awt.Transparency;
+import org.pepsoft.minecraft.Material;
+import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
+import org.pepsoft.worldpainter.layers.*;
+
+import java.awt.*;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+
 import static org.pepsoft.minecraft.Constants.*;
-import org.pepsoft.minecraft.Material;
-import org.pepsoft.worldpainter.BiomeScheme;
-import org.pepsoft.worldpainter.ColourScheme;
-import static org.pepsoft.worldpainter.Constants.*;
-import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.Terrain;
-import org.pepsoft.worldpainter.Tile;
-import org.pepsoft.worldpainter.TileRenderer;
-import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
-import org.pepsoft.worldpainter.layers.*;
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 
 /**
  *
@@ -132,7 +126,7 @@ public class Tile3DRenderer {
                         Material material = nextMaterial;
                         if (z < maxZ) {
                             nextMaterial = terrain.getMaterial(seed, blockX, blockY, z + 1, terrainHeight);
-                            if (! VERY_INSUBSTANTIAL_BLOCKS.get(nextMaterial.getBlockType())) {
+                            if (! nextMaterial.getBlock().veryInsubstantial) {
                                 // Block above is solid
                                 if ((material == Material.GRASS) || (material == Material.MYCELIUM) || (material == Material.TILLED_DIRT)) {
                                     material = Material.DIRT;

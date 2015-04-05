@@ -4,28 +4,28 @@
  */
 package org.pepsoft.worldpainter.layers.bo2;
 
-import java.awt.Rectangle;
+import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.exporting.Fixup;
+import org.pepsoft.worldpainter.exporting.IncidentalLayerExporter;
+import org.pepsoft.worldpainter.exporting.MinecraftWorld;
+import org.pepsoft.worldpainter.exporting.SecondPassLayerExporter;
+import org.pepsoft.worldpainter.layers.Bo2Layer;
+import org.pepsoft.worldpainter.layers.FloodWithLava;
+import org.pepsoft.worldpainter.layers.exporters.WPObjectExporter;
+import org.pepsoft.worldpainter.objects.MirroredObject;
+import org.pepsoft.worldpainter.objects.RotatedObject;
+import org.pepsoft.worldpainter.objects.WPObject;
+
+import javax.vecmath.Point3i;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.vecmath.Point3i;
-
-import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.exporting.Fixup;
-import org.pepsoft.worldpainter.exporting.MinecraftWorld;
-import org.pepsoft.worldpainter.exporting.SecondPassLayerExporter;
-import org.pepsoft.worldpainter.layers.Bo2Layer;
-import org.pepsoft.worldpainter.layers.exporters.WPObjectExporter;
-import org.pepsoft.worldpainter.objects.MirroredObject;
-import org.pepsoft.worldpainter.objects.RotatedObject;
-import org.pepsoft.worldpainter.objects.WPObject;
-
+import static org.pepsoft.minecraft.Block.BLOCKS;
 import static org.pepsoft.minecraft.Constants.*;
-import org.pepsoft.worldpainter.exporting.IncidentalLayerExporter;
-import org.pepsoft.worldpainter.layers.FloodWithLava;
 import static org.pepsoft.worldpainter.objects.WPObject.*;
 
 /**
@@ -124,7 +124,7 @@ objectLoop:         for (int y = chunkY; y < chunkY + 16; y++) {
             final boolean spawnOnLand = object.getAttribute(ATTRIBUTE_SPAWN_ON_LAND, false);
             int existingBlockType = minecraftWorld.getBlockTypeAt(location.x, location.y, location.z);
             int blockBelow = minecraftWorld.getBlockTypeAt(location.x, location.y, location.z - 1);
-            if ((! VERY_INSUBSTANTIAL_BLOCKS.get(blockBelow))
+            if ((! BLOCKS[blockBelow].veryInsubstantial)
                     && ((spawnUnderLava && ((existingBlockType == BLK_LAVA) || (existingBlockType == BLK_STATIONARY_LAVA)))
                         || (spawnUnderWater && ((existingBlockType == BLK_WATER) || (existingBlockType == BLK_STATIONARY_WATER)))
                         || (spawnOnLand && ((existingBlockType != BLK_LAVA) && (existingBlockType != BLK_STATIONARY_LAVA) && (existingBlockType != BLK_WATER) && (existingBlockType != BLK_STATIONARY_WATER))))) {
@@ -189,12 +189,12 @@ objectLoop:         for (int y = chunkY; y < chunkY + 16; y++) {
             }
         } else if (! flooded) {
             int blockTypeUnderCoords = (z > 0) ? minecraftWorld.getBlockTypeAt(x, y, z - 1) : BLK_AIR;
-            if (object.getAttribute(ATTRIBUTE_SPAWN_ON_LAND, true) && (! VERY_INSUBSTANTIAL_BLOCKS.get(blockTypeUnderCoords))) {
+            if (object.getAttribute(ATTRIBUTE_SPAWN_ON_LAND, true) && (! BLOCKS[blockTypeUnderCoords].veryInsubstantial)) {
                 if (logger.isLoggable(Level.FINER)) {
                     logger.finer("Object " + object.getName() + " @ " + x + "," + y + "," + z + " potentially placeable on land");
                 }
                 return Placement.ON_LAND;
-            } else if ((! object.getAttribute(ATTRIBUTE_NEEDS_FOUNDATION, true)) && VERY_INSUBSTANTIAL_BLOCKS.get(blockTypeUnderCoords)) {
+            } else if ((! object.getAttribute(ATTRIBUTE_NEEDS_FOUNDATION, true)) && BLOCKS[blockTypeUnderCoords].veryInsubstantial) {
                 if (logger.isLoggable(Level.FINER)) {
                     logger.finer("Object " + object.getName() + " @ " + x + "," + y + "," + z + " potentially placeable in the air");
                 }

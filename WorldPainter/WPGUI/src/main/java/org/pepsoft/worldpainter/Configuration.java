@@ -5,27 +5,6 @@
 
 package org.pepsoft.worldpainter;
 
-import java.awt.Rectangle;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.SortedMap;
-import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.SystemUtils;
@@ -33,20 +12,27 @@ import org.pepsoft.worldpainter.Dimension.Border;
 import org.pepsoft.worldpainter.TileRenderer.LightOrigin;
 import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.Frost;
+import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.Resources;
 import org.pepsoft.worldpainter.layers.exporters.FrostExporter.FrostSettings;
 import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter.ResourcesExporterSettings;
-import org.pepsoft.worldpainter.util.MinecraftJarProvider;
-import org.pepsoft.worldpainter.vo.EventVO;
-
-import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
-import static org.pepsoft.minecraft.Material.DIRT;
-import static org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager.*;
-import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.themes.Filter;
 import org.pepsoft.worldpainter.themes.HeightFilter;
 import org.pepsoft.worldpainter.themes.SimpleTheme;
 import org.pepsoft.worldpainter.themes.Theme;
+import org.pepsoft.worldpainter.util.MinecraftJarProvider;
+import org.pepsoft.worldpainter.vo.EventVO;
+
+import java.awt.*;
+import java.io.*;
+import java.util.*;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
+import static org.pepsoft.minecraft.Material.DIRT;
+import static org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager.BIOME_ALGORITHM_1_9;
 
 /**
  *
@@ -722,6 +708,11 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
             defaultMapFeatures = true;
             defaultGameType = org.pepsoft.minecraft.Constants.GAME_TYPE_SURVIVAL;
         }
+        if (version < 10) {
+            if (defaultTerrainAndLayerSettings.getSubsurfaceMaterial() == Terrain.STONE) {
+                defaultTerrainAndLayerSettings.setSubsurfaceMaterial(Terrain.STONE_MIX);
+            }
+        }
         version = CURRENT_VERSION;
         
         // Bug fix: make sure terrain ranges map conforms to surface material setting
@@ -858,7 +849,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private static final Logger logger = Logger.getLogger(Configuration.class.getName());
     private static final long serialVersionUID = 2011041801L;
     private static final int CIRCULAR_WORLD = -1;
-    private static final int CURRENT_VERSION = 9;
+    private static final int CURRENT_VERSION = 10;
     
     public enum DonationStatus {DONATED, NO_THANK_YOU}
     

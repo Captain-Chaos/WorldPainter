@@ -5,24 +5,20 @@
 package org.pepsoft.worldpainter.layers.groundcover;
 
 
-import java.awt.Rectangle;
-import javax.vecmath.Point3i;
+import org.pepsoft.minecraft.Block;
 import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.Tile;
-import org.pepsoft.worldpainter.exporting.AbstractLayerExporter;
-import org.pepsoft.worldpainter.exporting.FirstPassLayerExporter;
-
-import static org.pepsoft.minecraft.Constants.BLK_AIR;
-import static org.pepsoft.minecraft.Constants.INSUBSTANTIAL_BLOCKS;
-import static org.pepsoft.minecraft.Constants.VERY_INSUBSTANTIAL_BLOCKS;
 import org.pepsoft.worldpainter.MixedMaterial;
 import org.pepsoft.worldpainter.NoiseSettings;
-import org.pepsoft.worldpainter.exporting.Fixup;
-import org.pepsoft.worldpainter.exporting.IncidentalLayerExporter;
-import org.pepsoft.worldpainter.exporting.MinecraftWorld;
+import org.pepsoft.worldpainter.Tile;
+import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.heightMaps.NoiseHeightMap;
+
+import javax.vecmath.Point3i;
+import java.awt.*;
+
+import static org.pepsoft.minecraft.Constants.BLK_AIR;
 
 /**
  * Algorithm:
@@ -79,7 +75,7 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                     final int terrainheight = tile.getIntHeight(localX, localY);
                     final int blockBelow = chunk.getBlockType(x, terrainheight, z);
                     if ((blockBelow != BLK_AIR)
-                            && (! INSUBSTANTIAL_BLOCKS.get(blockBelow))) {
+                            && (! Block.BLOCKS[blockBelow].insubstantial)) {
                         int effectiveThickness = Math.abs(thickness);
                         final int worldY = (chunk.getzPos() << 4) + z;
                         if (taperedEdge) {
@@ -112,9 +108,9 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                                 final int existingBlockType = chunk.getBlockType(x, y, z);
                                 final Material material = mixedMaterial.getMaterial(seed, worldX, worldY, y);
                                 if ((material != Material.AIR)
-                                        && ((! VERY_INSUBSTANTIAL_BLOCKS.get(material.getBlockType()))
+                                        && ((! material.getBlock().veryInsubstantial)
                                             || (existingBlockType == BLK_AIR)
-                                            || INSUBSTANTIAL_BLOCKS.get(existingBlockType))) {
+                                            || Block.BLOCKS[existingBlockType].insubstantial)) {
                                     if (smooth && (dy == (effectiveThickness - 1))) {
                                         // Top layer, smooth enabled
                                         int layerHeight = (int) ((dimension.getHeightAt(worldX, worldY) + 0.5f - dimension.getIntHeightAt(worldX, worldY)) / 0.125f);
@@ -151,7 +147,7 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
         if (intensity > 0) {
             final int blockBelow = minecraftWorld.getBlockTypeAt(location.x, location.y, location.z - 1);
             if ((blockBelow != BLK_AIR)
-                    && (! INSUBSTANTIAL_BLOCKS.get(blockBelow))) {
+                    && (! Block.BLOCKS[blockBelow].insubstantial)) {
                 final int thickness = layer.getThickness();
                 final MixedMaterial mixedMaterial = layer.getMaterial();
                 final long seed = dimension.getSeed();
@@ -170,9 +166,9 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                         final int existingBlockType = minecraftWorld.getBlockTypeAt(location.x, location.y, z);
                         final Material material = mixedMaterial.getMaterial(seed, location.x, location.y, z);
                         if ((material != Material.AIR)
-                                && ((! VERY_INSUBSTANTIAL_BLOCKS.get(material.getBlockType()))
+                                && ((! material.getBlock().veryInsubstantial)
                                     || (existingBlockType == BLK_AIR)
-                                    || INSUBSTANTIAL_BLOCKS.get(existingBlockType))) {
+                                    || Block.BLOCKS[existingBlockType].insubstantial)) {
                             minecraftWorld.setMaterialAt(location.x, location.y, z, material);
                         }
                     }

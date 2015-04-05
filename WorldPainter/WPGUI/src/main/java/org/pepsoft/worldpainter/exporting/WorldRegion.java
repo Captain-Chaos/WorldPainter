@@ -4,30 +4,23 @@
  */
 package org.pepsoft.worldpainter.exporting;
 
-import java.awt.Point;
-import java.io.DataInputStream;
-import java.util.HashMap;
-import java.util.Map;
 import org.jnbt.CompoundTag;
 import org.jnbt.NBTInputStream;
+import org.jnbt.NBTOutputStream;
+import org.pepsoft.minecraft.*;
+
+import javax.vecmath.Point3i;
+import java.awt.*;
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.vecmath.Point3i;
-import org.jnbt.NBTOutputStream;
-import org.pepsoft.minecraft.Chunk;
-import org.pepsoft.minecraft.ChunkImpl;
-import org.pepsoft.minecraft.ChunkImpl2;
-import org.pepsoft.minecraft.Constants;
-import org.pepsoft.minecraft.Entity;
-import org.pepsoft.minecraft.Material;
-import org.pepsoft.minecraft.RegionFile;
-import static org.pepsoft.minecraft.Constants.*;
-import org.pepsoft.minecraft.TileEntity;
+
+import static org.pepsoft.minecraft.Block.BLOCK_TYPE_NAMES;
+import static org.pepsoft.minecraft.Constants.BLK_AIR;
+import static org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_2;
 
 /**
  *
@@ -314,7 +307,7 @@ public class WorldRegion implements MinecraftWorld {
                                         // tile entity. Remove the data
                                         i.remove();
                                         if (logger.isLoggable(Level.FINE)) {
-                                            logger.fine("Removing tile entity " + tileEntity.getId() + " @ " + tileEntity.getX() + "," + tileEntity.getZ() + "," + tileEntity.getY() + " because the block at that location is a " + Constants.BLOCK_TYPE_NAMES[existingBlockId]);
+                                            logger.fine("Removing tile entity " + tileEntity.getId() + " @ " + tileEntity.getX() + "," + tileEntity.getZ() + "," + tileEntity.getY() + " because the block at that location is a " + BLOCK_TYPE_NAMES[existingBlockId]);
                                         }
                                     }
                                 }

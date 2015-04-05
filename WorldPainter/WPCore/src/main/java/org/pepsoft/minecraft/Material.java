@@ -4,10 +4,12 @@
  */
 package org.pepsoft.minecraft;
 
-import java.awt.Graphics2D;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
+
+import static org.pepsoft.minecraft.Block.BLOCK_TYPE_NAMES;
 import static org.pepsoft.minecraft.Constants.*;
 
 /**
@@ -20,7 +22,11 @@ public final class Material implements Serializable, Comparable<Material> {
         this.blockType = blockType;
         this.data = data;
     }
-    
+
+    public Block getBlock() {
+        return Block.BLOCKS[blockType];
+    }
+
     public int getBlockType() {
         return blockType;
     }
@@ -50,6 +56,7 @@ public final class Material implements Serializable, Comparable<Material> {
             case BLK_QUARTZ_STAIRS:
             case BLK_ACACIA_WOOD_STAIRS:
             case BLK_DARK_OAK_WOOD_STAIRS:
+            case BLK_RED_SANDSTONE_STAIRS:
                 switch (data & 0x03) {
                     case 0:
                         return Direction.EAST;
@@ -134,6 +141,11 @@ public final class Material implements Serializable, Comparable<Material> {
                 break;
             case BLK_WOODEN_DOOR:
             case BLK_IRON_DOOR:
+            case BLK_PINE_WOOD_DOOR:
+            case BLK_BIRCH_WOOD_DOOR:
+            case BLK_JUNGLE_WOOD_DOOR:
+            case BLK_ACACIA_WOOD_DOOR:
+            case BLK_DARK_OAK_WOOD_DOOR:
                 switch (data & 0x0B) {
                     case 0:
                         return Direction.WEST;
@@ -159,6 +171,7 @@ public final class Material implements Serializable, Comparable<Material> {
                 }
                 break;
             case BLK_SIGN:
+            case BLK_STANDING_BANNER:
                 switch (data & 0x0C) {
                     case 0:
                         return Direction.SOUTH;
@@ -175,6 +188,7 @@ public final class Material implements Serializable, Comparable<Material> {
             case BLK_FURNACE:
             case BLK_DISPENSER:
             case BLK_CHEST:
+            case BLK_WALL_BANNER:
                 switch (data) {
                     case 2:
                         return Direction.NORTH;
@@ -190,6 +204,11 @@ public final class Material implements Serializable, Comparable<Material> {
             case BLK_JACK_O_LANTERN:
             case BLK_BED:
             case BLK_FENCE_GATE:
+            case BLK_PINE_WOOD_FENCE_GATE:
+            case BLK_BIRCH_WOOD_FENCE_GATE:
+            case BLK_JUNGLE_WOOD_FENCE_GATE:
+            case BLK_DARK_OAK_WOOD_FENCE_GATE:
+            case BLK_ACACIA_WOOD_FENCE_GATE:
             case BLK_TRIPWIRE_HOOK:
                 switch (data & 0x03) {
                     case 0:
@@ -204,7 +223,7 @@ public final class Material implements Serializable, Comparable<Material> {
                 break;
             case BLK_REDSTONE_REPEATER_OFF:
             case BLK_REDSTONE_REPEATER_ON:
-            case BLK_REDSTONE_COMPARATOR:
+            case BLK_REDSTONE_COMPARATOR_UNPOWERED:
                 switch (data & 0x03) {
                     case 0:
                         return Direction.NORTH;
@@ -292,6 +311,7 @@ public final class Material implements Serializable, Comparable<Material> {
             case BLK_QUARTZ_STAIRS:
             case BLK_ACACIA_WOOD_STAIRS:
             case BLK_DARK_OAK_WOOD_STAIRS:
+            case BLK_RED_SANDSTONE_STAIRS:
                 switch (direction) {
                     case EAST:
                         return get(blockType, data & 0x0C);
@@ -384,6 +404,11 @@ public final class Material implements Serializable, Comparable<Material> {
                 break;
             case BLK_WOODEN_DOOR:
             case BLK_IRON_DOOR:
+            case BLK_PINE_WOOD_DOOR:
+            case BLK_BIRCH_WOOD_DOOR:
+            case BLK_JUNGLE_WOOD_DOOR:
+            case BLK_ACACIA_WOOD_DOOR:
+            case BLK_DARK_OAK_WOOD_DOOR:
                 if ((data & 0x8) != 0) {
                     return this;
                 } else {
@@ -413,6 +438,7 @@ public final class Material implements Serializable, Comparable<Material> {
                 }
                 break;
             case BLK_SIGN:
+            case BLK_STANDING_BANNER:
                 switch (direction) {
                     case SOUTH:
                         return get(blockType, data & 0x03);
@@ -429,6 +455,7 @@ public final class Material implements Serializable, Comparable<Material> {
             case BLK_FURNACE:
             case BLK_DISPENSER:
             case BLK_CHEST:
+            case BLK_WALL_BANNER:
                 switch (direction) {
                     case NORTH:
                         return get(blockType, 2);
@@ -444,6 +471,11 @@ public final class Material implements Serializable, Comparable<Material> {
             case BLK_JACK_O_LANTERN:
             case BLK_BED:
             case BLK_FENCE_GATE:
+            case BLK_PINE_WOOD_FENCE_GATE:
+            case BLK_BIRCH_WOOD_FENCE_GATE:
+            case BLK_JUNGLE_WOOD_FENCE_GATE:
+            case BLK_DARK_OAK_WOOD_FENCE_GATE:
+            case BLK_ACACIA_WOOD_FENCE_GATE:
             case BLK_TRIPWIRE_HOOK:
                 switch (direction) {
                     case SOUTH:
@@ -458,7 +490,7 @@ public final class Material implements Serializable, Comparable<Material> {
                 break;
             case BLK_REDSTONE_REPEATER_OFF:
             case BLK_REDSTONE_REPEATER_ON:
-            case BLK_REDSTONE_COMPARATOR:
+            case BLK_REDSTONE_COMPARATOR_UNPOWERED:
                 switch (direction) {
                     case NORTH:
                         return get(blockType, data & 0x0C);
@@ -806,6 +838,14 @@ public final class Material implements Serializable, Comparable<Material> {
         return MATERIALS[(blockType << 4) | data];
     }
 
+    public static Material get(Block blockType) {
+        return get(blockType, 0);
+    }
+
+    public static Material get(Block blockType, int data) {
+        return MATERIALS[(blockType.id << 4) | data];
+    }
+
     @Override
     public String toString() {
         if ((blockType < BLOCK_TYPE_NAMES.length) && (BLOCK_TYPE_NAMES[blockType] != null)) {
@@ -852,6 +892,9 @@ public final class Material implements Serializable, Comparable<Material> {
     public static final Material GRASS                 = get(BLK_GRASS);
     public static final Material DIRT                  = get(BLK_DIRT);
     public static final Material STONE                 = get(BLK_STONE);
+    public static final Material GRANITE               = get(BLK_STONE, DATA_STONE_GRANITE);
+    public static final Material DIORITE               = get(BLK_STONE, DATA_STONE_DIORITE);
+    public static final Material ANDESITE              = get(BLK_STONE, DATA_STONE_ANDESITE);
     public static final Material COBBLESTONE           = get(BLK_COBBLESTONE);
     public static final Material SNOW                  = get(BLK_SNOW);
     public static final Material DEAD_SHRUBS           = get(BLK_DEAD_SHRUBS);

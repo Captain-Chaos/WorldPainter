@@ -4,16 +4,17 @@
  */
 package org.pepsoft.worldpainter.tools;
 
+import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.InstanceKeeper.InstantiationListener;
+import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPOutputStream;
-import org.pepsoft.worldpainter.*;
-import org.pepsoft.worldpainter.InstanceKeeper.InstantiationListener;
-import org.pepsoft.worldpainter.layers.Layer;
-import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 
 /**
  *
@@ -173,8 +174,8 @@ public class RecoverWorld {
             if (dimension.getSubsurfaceMaterial() != null) {
                 newDimension.setSubsurfaceMaterial(dimension.getSubsurfaceMaterial());
             } else {
-                System.err.println("Sub surface material lost for dimension " + dimension.getName() + "; resetting to STONE");
-                newDimension.setSubsurfaceMaterial(Terrain.STONE);
+                System.err.println("Sub surface material lost for dimension " + dimension.getName() + "; resetting to STONE_MIX");
+                newDimension.setSubsurfaceMaterial(Terrain.STONE_MIX);
             }
             newWorld.addDimension(newDimension);
             for (Tile tile: tileList) {

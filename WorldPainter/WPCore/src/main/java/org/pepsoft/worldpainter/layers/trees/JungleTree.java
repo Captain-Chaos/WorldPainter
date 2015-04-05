@@ -4,16 +4,19 @@
  */
 package org.pepsoft.worldpainter.layers.trees;
 
-import java.util.Random;
-import static org.pepsoft.minecraft.Constants.*;
 import org.pepsoft.minecraft.Direction;
-import static org.pepsoft.minecraft.Direction.*;
 import org.pepsoft.minecraft.Material;
-import static org.pepsoft.minecraft.Material.*;
 import org.pepsoft.util.MathUtils;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.exporting.Cursor;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
+
+import java.util.Random;
+
+import static org.pepsoft.minecraft.Block.BLOCKS;
+import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Direction.*;
+import static org.pepsoft.minecraft.Material.*;
 
 /**
  *
@@ -82,7 +85,7 @@ public class JungleTree extends TreeType {
             int worldX = x + dx, worldY = y + dy;
             int depth = 0;
             for (int z = height + h; z > 0; z--) {
-                if (! VERY_INSUBSTANTIAL_BLOCKS.get(world.getBlockTypeAt(worldX, worldY, z))) {
+                if (! BLOCKS[world.getBlockTypeAt(worldX, worldY, z)].veryInsubstantial) {
                     depth++;
                 }
                 world.setMaterialAt(worldX, worldY, z, (z < (height + h)) ? trunkMaterial : capMaterial);
@@ -184,7 +187,7 @@ public class JungleTree extends TreeType {
             int dx = (int) (Math.sin(angle) * i + 0.5f);
             int dy = (int) (Math.cos(angle) * i + 0.5f);
             int dz = (int) (i * slope);
-            if (! VERY_INSUBSTANTIAL_BLOCKS.get(world.getBlockTypeAt(x + dx, y + dy, height + size + dz + 1))) {
+            if (! BLOCKS[world.getBlockTypeAt(x + dx, y + dy, height + size + dz + 1)].veryInsubstantial) {
                 continue;
             }
             world.setMaterialAt(x + dx, y + dy, height + size + dz, (i < (l - 1)) ? branchMaterial : capMaterial);

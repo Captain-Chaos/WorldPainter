@@ -4,7 +4,23 @@
  */
 package org.pepsoft.worldpainter.layers.exporters;
 
-import java.awt.Rectangle;
+import org.pepsoft.minecraft.Block;
+import org.pepsoft.minecraft.Entity;
+import org.pepsoft.minecraft.Material;
+import org.pepsoft.minecraft.TileEntity;
+import org.pepsoft.util.Box;
+import org.pepsoft.util.MathUtils;
+import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.exporting.AbstractLayerExporter;
+import org.pepsoft.worldpainter.exporting.Fixup;
+import org.pepsoft.worldpainter.exporting.LightingCalculator;
+import org.pepsoft.worldpainter.exporting.MinecraftWorld;
+import org.pepsoft.worldpainter.layers.Frost;
+import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.objects.WPObject;
+
+import javax.vecmath.Point3i;
+import java.awt.*;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -12,23 +28,8 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.vecmath.Point3i;
-
-import org.pepsoft.minecraft.Entity;
-import org.pepsoft.minecraft.TileEntity;
-import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.exporting.AbstractLayerExporter;
-import org.pepsoft.worldpainter.exporting.MinecraftWorld;
-import org.pepsoft.worldpainter.layers.Layer;
-import org.pepsoft.worldpainter.objects.WPObject;
-
+import static org.pepsoft.minecraft.Block.*;
 import static org.pepsoft.minecraft.Constants.*;
-import org.pepsoft.minecraft.Material;
-import org.pepsoft.util.Box;
-import org.pepsoft.util.MathUtils;
-import org.pepsoft.worldpainter.exporting.Fixup;
-import org.pepsoft.worldpainter.exporting.LightingCalculator;
-import org.pepsoft.worldpainter.layers.Frost;
 import static org.pepsoft.worldpainter.objects.WPObject.*;
 
 /**
@@ -115,20 +116,20 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                                         break;
                                     case COLLISION_MODE_SOLID:
                                         // Only replace if object block is solid
-                                        if (! VERY_INSUBSTANTIAL_BLOCKS.get(objectMaterial.getBlockType())) {
+                                        if (! objectMaterial.getBlock().veryInsubstantial) {
                                             placeBlock(world, xx, yy, zz, finalMaterial, leafDecayMode);
                                         }
                                         break;
                                     case COLLISION_MODE_NONE:
                                         // Only replace less solid blocks
-                                        if (VERY_INSUBSTANTIAL_BLOCKS.get(existingBlockType)) {
+                                        if (BLOCKS[existingBlockType].veryInsubstantial) {
                                             placeBlock(world, xx, yy, zz, finalMaterial, leafDecayMode);
                                         }
                                         break;
                                 }
                             } else {
                                 // Above ground only replace less solid blocks
-                                if (VERY_INSUBSTANTIAL_BLOCKS.get(existingBlockType)) {
+                                if (BLOCKS[existingBlockType].veryInsubstantial) {
                                     placeBlock(world, xx, yy, zz, finalMaterial, leafDecayMode);
                                 }
                             }
@@ -249,12 +250,12 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                     final int minZ = Math.max(terrainHeight - (z + offset.z) + 1, 0);
                     for (int dz = minZ; dz < dimensions.z; dz++) {
                         if (object.getMask(dx, dy, dz)) {
-                            final int objectBlock = object.getMaterial(dx, dy, dz).getBlockType();
-                            if (! VERY_INSUBSTANTIAL_BLOCKS.get(objectBlock)) {
+                            final Block objectBlock = object.getMaterial(dx, dy, dz).getBlock();
+                            if (! objectBlock.veryInsubstantial) {
                                 final int worldZ = z + dz + offset.z;
                                 if ((collisionMode == COLLISION_MODE_ALL)
                                         ? (! AIR_AND_FLUIDS.contains(world.getBlockTypeAt(worldX, worldY, worldZ)))
-                                        : (! VERY_INSUBSTANTIAL_BLOCKS.get(world.getBlockTypeAt(worldX, worldY, worldZ)))) {
+                                        : (! BLOCKS[world.getBlockTypeAt(worldX, worldY, worldZ)].veryInsubstantial)) {
                                     // The block is above ground, it is present in the
                                     // custom object, is substantial, and there is already a
                                     // substantial block at the same location in the world;
@@ -264,7 +265,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                                     }
                                     return false;
                                 }
-                                if ((! allowConnectingBlocks) && wouldConnect(world, worldX, worldY, worldZ, objectBlock)) {
+                                if ((! allowConnectingBlocks) && wouldConnect(world, worldX, worldY, worldZ, objectBlock.id)) {
                                     if (logger.isLoggable(Level.FINER)) {
                                         logger.finer("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " because it would cause a connecting block");
                                     }
@@ -285,7 +286,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                     for (int dz = 0; dz < dimensions.z; dz++) {
                         if (object.getMask(dx, dy, dz)) {
                             final int worldZ = z + dz + offset.z;
-                            if ((worldZ <= terrainHeight) && (! VERY_INSUBSTANTIAL_BLOCKS.get(object.getMaterial(dx, dy, dz).getBlockType()))) {
+                            if ((worldZ <= terrainHeight) && (! object.getMaterial(dx, dy, dz).getBlock().veryInsubstantial)) {
                                 // A solid block in the object collides with
                                 // the floor
                                 if (logger.isLoggable(Level.FINER)) {
@@ -293,11 +294,11 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                                 }
                                 return false;
                             } else if ((worldZ > terrainHeight) && (collisionMode != COLLISION_MODE_NONE)) {
-                                final int objectBlock = object.getMaterial(dx, dy, dz).getBlockType();
-                                if (! VERY_INSUBSTANTIAL_BLOCKS.get(objectBlock)) {
+                                final Block objectBlock = object.getMaterial(dx, dy, dz).getBlock();
+                                if (! objectBlock.veryInsubstantial) {
                                     if ((collisionMode == COLLISION_MODE_ALL)
                                             ? (! AIR_AND_FLUIDS.contains(world.getBlockTypeAt(worldX, worldY, worldZ)))
-                                            : (! VERY_INSUBSTANTIAL_BLOCKS.get(world.getBlockTypeAt(worldX, worldY, worldZ)))) {
+                                            : (! BLOCKS[world.getBlockTypeAt(worldX, worldY, worldZ)].veryInsubstantial)) {
                                         // The block is present in the custom object, is
                                         // substantial, and there is already a
                                         // substantial block at the same location in the
@@ -307,7 +308,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                                         }
                                         return false;
                                     }
-                                    if ((! allowConnectingBlocks) && wouldConnect(world, worldX, worldY, worldZ, objectBlock)) {
+                                    if ((! allowConnectingBlocks) && wouldConnect(world, worldX, worldY, worldZ, objectBlock.id)) {
                                         if (logger.isLoggable(Level.FINER)) {
                                             logger.finer("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " because it would cause a connecting block");
                                         }
@@ -365,10 +366,24 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
     private static boolean wouldConnect(int blockTypeOne, int blockTypeTwo) {
         return ((blockTypeOne == BLK_FENCE) && ((blockTypeTwo == BLK_FENCE) || isSolid(blockTypeTwo)))
             || ((blockTypeOne == BLK_NETHER_BRICK_FENCE) && ((blockTypeTwo == BLK_NETHER_BRICK_FENCE) || isSolid(blockTypeTwo)))
+            || ((blockTypeOne == BLK_PINE_WOOD_FENCE) && ((blockTypeTwo == BLK_PINE_WOOD_FENCE) || isSolid(blockTypeTwo)))
+            || ((blockTypeOne == BLK_BIRCH_WOOD_FENCE) && ((blockTypeTwo == BLK_BIRCH_WOOD_FENCE) || isSolid(blockTypeTwo)))
+            || ((blockTypeOne == BLK_JUNGLE_WOOD_FENCE) && ((blockTypeTwo == BLK_JUNGLE_WOOD_FENCE) || isSolid(blockTypeTwo)))
+            || ((blockTypeOne == BLK_DARK_OAK_WOOD_FENCE) && ((blockTypeTwo == BLK_DARK_OAK_WOOD_FENCE) || isSolid(blockTypeTwo)))
+            || ((blockTypeOne == BLK_ACACIA_WOOD_FENCE) && ((blockTypeTwo == BLK_ACACIA_WOOD_FENCE) || isSolid(blockTypeTwo)))
             || ((blockTypeOne == BLK_COBBLESTONE_WALL) && ((blockTypeTwo == BLK_COBBLESTONE_WALL) || isSolid(blockTypeTwo)))
             || ((blockTypeOne == BLK_IRON_BARS) && ((blockTypeTwo == BLK_IRON_BARS) || isSolid(blockTypeTwo)))
             || ((blockTypeOne == BLK_GLASS_PANE) && ((blockTypeTwo == BLK_GLASS_PANE) || isSolid(blockTypeTwo)))
-            || (isSolid(blockTypeOne) && ((blockTypeTwo == BLK_FENCE) || (blockTypeTwo == BLK_NETHER_BRICK_FENCE) ||  (blockTypeTwo == BLK_COBBLESTONE_WALL) || (blockTypeTwo == BLK_IRON_BARS) || (blockTypeTwo == BLK_GLASS_PANE)));
+            || (isSolid(blockTypeOne) && ((blockTypeTwo == BLK_FENCE)
+                || (blockTypeTwo == BLK_NETHER_BRICK_FENCE)
+                || (blockTypeTwo == BLK_PINE_WOOD_FENCE)
+                || (blockTypeTwo == BLK_BIRCH_WOOD_FENCE)
+                || (blockTypeTwo == BLK_JUNGLE_WOOD_FENCE)
+                || (blockTypeTwo == BLK_DARK_OAK_WOOD_FENCE)
+                || (blockTypeTwo == BLK_ACACIA_WOOD_FENCE)
+                || (blockTypeTwo == BLK_COBBLESTONE_WALL)
+                || (blockTypeTwo == BLK_IRON_BARS)
+                || (blockTypeTwo == BLK_GLASS_PANE)));
     }
     
     private static boolean isSolid(int blockType) {

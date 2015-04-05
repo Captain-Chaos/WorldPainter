@@ -5,24 +5,23 @@
  */
 package org.pepsoft.worldpainter.layers.tunnel;
 
-import java.awt.Rectangle;
-import java.awt.image.BufferedImage;
-import java.util.List;
-import java.util.Map;
-import javax.vecmath.Point3i;
 import org.pepsoft.minecraft.Constants;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.MixedMaterial;
-import org.pepsoft.worldpainter.exporting.AbstractLayerExporter;
-import org.pepsoft.worldpainter.exporting.Fixup;
-import org.pepsoft.worldpainter.exporting.IncidentalLayerExporter;
-import org.pepsoft.worldpainter.exporting.MinecraftWorld;
-import org.pepsoft.worldpainter.exporting.SecondPassLayerExporter;
+import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.heightMaps.NoiseHeightMap;
 import org.pepsoft.worldpainter.layers.Layer;
+
+import javax.vecmath.Point3i;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.util.List;
+import java.util.Map;
+
+import static org.pepsoft.minecraft.Block.BLOCKS;
 
 /**
  *
@@ -350,7 +349,7 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
             if (removeWater || (! flooded) || (z <= terrainHeight) || (z > waterLevel)) {
                 final int existingBlock = world.getBlockTypeAt(x, y, z);
                 if ((existingBlock != Constants.BLK_AIR)
-                        && (! Constants.INSUBSTANTIAL_BLOCKS.get(existingBlock))) {
+                        && (! BLOCKS[existingBlock].insubstantial)) {
                     // The coordinates are within bounds and the existing block is solid
                     world.setMaterialAt(x, y, z, material.getMaterial(MATERIAL_SEED, x, y, z));
                 }

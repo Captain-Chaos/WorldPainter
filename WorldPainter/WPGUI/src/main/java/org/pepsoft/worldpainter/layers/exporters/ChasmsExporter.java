@@ -5,19 +5,22 @@
 
 package org.pepsoft.worldpainter.layers.exporters;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.util.Random;
 import org.pepsoft.minecraft.Chunk;
-import org.pepsoft.minecraft.Constants;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.exporting.AbstractLayerExporter;
 import org.pepsoft.worldpainter.exporting.FirstPassLayerExporter;
-import static org.pepsoft.minecraft.Constants.*;
-import static org.pepsoft.worldpainter.Constants.*;
 import org.pepsoft.worldpainter.layers.Chasms;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.util.Random;
+
+import static org.pepsoft.minecraft.Block.BLOCKS;
+import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.worldpainter.Constants.MEDIUM_BLOBS;
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 
 /**
  *
@@ -193,7 +196,7 @@ public class ChasmsExporter extends AbstractLayerExporter<Chasms> implements Fir
                                 } else if (blockAbove == BLK_GRAVEL) {
                                     // Support gravel with stone
                                     chunk.setBlockType(x, y + 1, z, BLK_STONE);
-                                } else if (Constants.INSUBSTANTIAL_BLOCKS.get(blockAbove)) {
+                                } else if (BLOCKS[blockAbove].insubstantial) {
                                     // Don't leave floating plants, etc.
                                     chunk.setBlockType(x, y + 1, z, BLK_AIR);
                                     chunk.setDataValue(x, y + 1, z, 0);
@@ -213,7 +216,7 @@ public class ChasmsExporter extends AbstractLayerExporter<Chasms> implements Fir
                             }
                         } else if (previousBlockInCavern
                                 && (y >= waterLevel)
-                                && (! VERY_INSUBSTANTIAL_BLOCKS.get(existingBlockType))) {
+                                && (! BLOCKS[existingBlockType].veryInsubstantial)) {
 //                            Material material = subsurfaceMaterial.getMaterial(seed, worldX, worldY, 1);
 //                            if (material == Material.AIR) {
                                 int rnd = new Random(seed + (worldX * 65537) + (worldY * 4099)).nextInt(MUSHROOM_CHANCE);

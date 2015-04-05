@@ -5,10 +5,14 @@
 
 package org.pepsoft.worldpainter.exporting;
 
-import java.util.Arrays;
 import org.pepsoft.minecraft.Chunk;
-import static org.pepsoft.minecraft.Constants.*;
 import org.pepsoft.util.Box;
+
+import java.util.Arrays;
+
+import static org.pepsoft.minecraft.Block.BLOCK_TRANSPARENCY;
+import static org.pepsoft.minecraft.Block.LIGHT_SOURCES;
+import static org.pepsoft.minecraft.Constants.HIGHEST_KNOWN_BLOCK_ID;
 
 /**
  * A lighting calculator for MinecraftWorlds.

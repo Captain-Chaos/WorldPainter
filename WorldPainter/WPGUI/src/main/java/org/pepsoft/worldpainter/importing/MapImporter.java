@@ -4,49 +4,29 @@
  */
 package org.pepsoft.worldpainter.importing;
 
-import java.awt.Point;
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.BitSet;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
-
 import org.jnbt.CompoundTag;
 import org.jnbt.NBTInputStream;
 import org.jnbt.Tag;
-import org.pepsoft.minecraft.Chunk;
-import org.pepsoft.minecraft.ChunkImpl;
-import org.pepsoft.minecraft.ChunkImpl2;
-import org.pepsoft.minecraft.Level;
-import org.pepsoft.minecraft.RegionFile;
+import org.pepsoft.minecraft.*;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
-import org.pepsoft.worldpainter.Configuration;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.Generator;
-import org.pepsoft.worldpainter.Terrain;
-import org.pepsoft.worldpainter.Tile;
-import org.pepsoft.worldpainter.TileFactory;
-import org.pepsoft.worldpainter.World2;
-import org.pepsoft.worldpainter.layers.Biome;
-import org.pepsoft.worldpainter.layers.FloodWithLava;
-import org.pepsoft.worldpainter.layers.Frost;
-import org.pepsoft.worldpainter.layers.Populate;
-import org.pepsoft.worldpainter.layers.ReadOnly;
-import org.pepsoft.worldpainter.layers.Resources;
+import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.exporters.FrostExporter.FrostSettings;
 import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter.ResourcesExporterSettings;
 import org.pepsoft.worldpainter.vo.EventVO;
 
+import java.awt.*;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
+
 import static org.pepsoft.minecraft.Constants.*;
-import org.pepsoft.minecraft.Material;
 import static org.pepsoft.worldpainter.Constants.*;
 
 /**
@@ -455,7 +435,8 @@ public class MapImporter {
         TERRAIN_MAPPING.put(BLK_MYCELIUM, Terrain.MYCELIUM);
         TERRAIN_MAPPING.put(BLK_END_STONE, Terrain.END_STONE);
         TERRAIN_MAPPING.put(BLK_HARDENED_CLAY, Terrain.HARDENED_CLAY);
-        
+        TERRAIN_MAPPING.put(BLK_RED_SANDSTONE, Terrain.RED_SANDSTONE);
+
         SPECIAL_TERRAIN_MAPPING.put(Material.RED_SAND, Terrain.RED_SAND);
         SPECIAL_TERRAIN_MAPPING.put(Material.PERMADIRT, Terrain.PERMADIRT);
         SPECIAL_TERRAIN_MAPPING.put(Material.PODZOL, Terrain.PODZOL);
@@ -475,56 +456,43 @@ public class MapImporter {
         SPECIAL_TERRAIN_MAPPING.put(Material.GREEN_CLAY, Terrain.GREEN_STAINED_CLAY);
         SPECIAL_TERRAIN_MAPPING.put(Material.RED_CLAY, Terrain.RED_STAINED_CLAY);
         SPECIAL_TERRAIN_MAPPING.put(Material.BLACK_CLAY, Terrain.BLACK_STAINED_CLAY);
-        
-        for (int blockType: TERRAIN_MAPPING.keySet()) {
-            NATURAL_BLOCKS.set(blockType);
+        SPECIAL_TERRAIN_MAPPING.put(Material.GRANITE, Terrain.GRANITE);
+        SPECIAL_TERRAIN_MAPPING.put(Material.DIORITE, Terrain.DIORITE);
+        SPECIAL_TERRAIN_MAPPING.put(Material.ANDESITE, Terrain.ANDESITE);
+
+        // Make sure the tile entity flag in the block database is consistent
+        // with the tile entity map:
+        Set<Integer> allTerrainBlockIds = new HashSet<Integer>();
+        allTerrainBlockIds.addAll(TERRAIN_MAPPING.keySet());
+        for (int blockId: TERRAIN_MAPPING.keySet()) {
+            if (! Block.BLOCKS[blockId].terrain) {
+                throw new AssertionError("Block " + blockId + " not marked as terrain block!");
+            }
         }
         for (Material material: SPECIAL_TERRAIN_MAPPING.keySet()) {
-            NATURAL_BLOCKS.set(material.getBlockType());
+            allTerrainBlockIds.add(material.getBlockType());
+            if (! material.getBlock().terrain) {
+                throw new AssertionError("Block " + material.getBlockType() + " not marked as terrain block!");
+            }
         }
-        NATURAL_BLOCKS.clear(BLK_TILLED_DIRT);
-        NATURAL_BLOCKS.set(BLK_AIR);
-        NATURAL_BLOCKS.set(BLK_WOOD);
-        NATURAL_BLOCKS.set(BLK_WOOD2);
-        NATURAL_BLOCKS.set(BLK_LEAVES);
-        NATURAL_BLOCKS.set(BLK_LEAVES2);
-        NATURAL_BLOCKS.set(BLK_DANDELION);
-        NATURAL_BLOCKS.set(BLK_ROSE);
-        NATURAL_BLOCKS.set(BLK_BROWN_MUSHROOM);
-        NATURAL_BLOCKS.set(BLK_RED_MUSHROOM);
-        NATURAL_BLOCKS.set(BLK_FIRE);
-        NATURAL_BLOCKS.set(BLK_SNOW);
-        NATURAL_BLOCKS.set(BLK_ICE);
-        NATURAL_BLOCKS.set(BLK_CACTUS);
-        NATURAL_BLOCKS.set(BLK_SUGAR_CANE);
-        NATURAL_BLOCKS.set(BLK_PUMPKIN);
-        NATURAL_BLOCKS.set(BLK_WATER);
-        NATURAL_BLOCKS.set(BLK_STATIONARY_WATER);
-        NATURAL_BLOCKS.set(BLK_LAVA);
-        NATURAL_BLOCKS.set(BLK_STATIONARY_LAVA);
-        NATURAL_BLOCKS.set(BLK_TALL_GRASS);
-        NATURAL_BLOCKS.set(BLK_DEAD_SHRUBS);
-        NATURAL_BLOCKS.set(BLK_VINES);
-        NATURAL_BLOCKS.set(BLK_HUGE_BROWN_MUSHROOM);
-        NATURAL_BLOCKS.set(BLK_HUGE_RED_MUSHROOM);
-        NATURAL_BLOCKS.set(BLK_LILY_PAD);
-        NATURAL_BLOCKS.set(BLK_GLOWSTONE);
-        NATURAL_BLOCKS.set(BLK_COCOA_PLANT);
-        NATURAL_BLOCKS.set(BLK_EMERALD_ORE);
-        NATURAL_BLOCKS.set(BLK_PACKED_ICE);
-        NATURAL_BLOCKS.set(BLK_LARGE_FLOWERS);
-        NATURAL_BLOCKS.set(BLK_NETHER_WART);
+        for (Block block: Block.BLOCKS) {
+            if (block.terrain && (! allTerrainBlockIds.contains(block.id))) {
+                throw new AssertionError("Block " + block.id + " marked as terrain but not present in terrain type map!");
+            }
+        }
         
-        // Dungeons:
+        // Gather natural blocks:
+        for (Block block: Block.BLOCKS) {
+            if (block.natural) {
+                NATURAL_BLOCKS.set(block.id);
+            }
+        }
+
+        // Consider dungeons as natural for historical reasons:
         NATURAL_BLOCKS.set(BLK_MONSTER_SPAWNER);
         NATURAL_BLOCKS.set(BLK_CHEST);
         NATURAL_BLOCKS.set(BLK_COBBLESTONE);
         NATURAL_BLOCKS.set(BLK_MOSSY_COBBLESTONE);
-        
-        // Don't add blocks occurring in abandoned mines and strongholds, as we
-        // want to protect those too, and it would make it too hard to detect
-        // actually man-made areas. The downside is that the read-only layer
-        // reveals where they are when importing a map.
     }
     
     public enum ReadOnlyOption {NONE, MAN_MADE, MAN_MADE_ABOVE_GROUND, ALL}

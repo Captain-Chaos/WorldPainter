@@ -5,29 +5,26 @@
 
 package org.pepsoft.worldpainter.layers.exporters;
 
-import java.awt.Rectangle;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectStreamException;
-import java.util.List;
-import java.util.Random;
-import javax.vecmath.Point3i;
-
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.exporting.AbstractLayerExporter;
-import org.pepsoft.worldpainter.exporting.Fixup;
-import org.pepsoft.worldpainter.exporting.MinecraftWorld;
-import org.pepsoft.worldpainter.exporting.SecondPassLayerExporter;
+import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.layers.DeciduousForest;
 import org.pepsoft.worldpainter.layers.GardenCategory;
 import org.pepsoft.worldpainter.layers.PineForest;
 import org.pepsoft.worldpainter.layers.TreeLayer;
 import org.pepsoft.worldpainter.layers.trees.TreeType;
 
+import javax.vecmath.Point3i;
+import java.awt.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectStreamException;
+import java.util.List;
+import java.util.Random;
+
+import static org.pepsoft.minecraft.Block.BLOCKS;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.SMALL_BLOBS;
-import org.pepsoft.worldpainter.exporting.IncidentalLayerExporter;
 
 /**
  *
@@ -75,7 +72,7 @@ public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T>
                                     || (blockTypeUnderTree == BLK_STATIONARY_WATER)
                                     || (blockTypeAtTree == BLK_LAVA)
                                     || (blockTypeAtTree == BLK_STATIONARY_LAVA)
-                                    || (! VERY_INSUBSTANTIAL_BLOCKS.get(blockTypeAtTree))) {
+                                    || (! BLOCKS[blockTypeAtTree].veryInsubstantial)) {
                                 continue;
                             }
                             // Don't build trees directly next to each other, or

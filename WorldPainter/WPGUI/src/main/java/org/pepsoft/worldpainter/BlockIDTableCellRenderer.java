@@ -4,10 +4,11 @@
  */
 package org.pepsoft.worldpainter;
 
-import java.awt.Component;
-import javax.swing.JTable;
+import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
-import static org.pepsoft.minecraft.Constants.*;
+import java.awt.*;
+
+import static org.pepsoft.minecraft.Block.BLOCK_TYPE_NAMES;
 
 /**
  *

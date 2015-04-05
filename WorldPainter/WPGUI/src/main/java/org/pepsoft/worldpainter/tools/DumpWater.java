@@ -4,12 +4,15 @@
  */
 package org.pepsoft.worldpainter.tools;
 
-import java.io.File;
-import java.io.IOException;
-import org.pepsoft.minecraft.Constants;
 import org.pepsoft.minecraft.Level;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import org.pepsoft.worldpainter.exporting.MinecraftWorldImpl;
+
+import java.io.File;
+import java.io.IOException;
+
+import static org.pepsoft.minecraft.Block.BLOCK_TYPE_NAMES;
+import static org.pepsoft.minecraft.Constants.BLK_AIR;
 
 /**
  *
@@ -28,7 +31,7 @@ public class DumpWater {
                 int blockX = x + dx, blockZ = z;
                 int blockType = world.getBlockTypeAt(blockX, blockZ, y + dy);
                 System.out.print('[');
-                System.out.print(blockType != Constants.BLK_AIR ? Constants.BLOCK_TYPE_NAMES[blockType].substring(0, 3).toUpperCase() : "   ");
+                System.out.print(blockType != BLK_AIR ? BLOCK_TYPE_NAMES[blockType].substring(0, 3).toUpperCase() : "   ");
                 System.out.print(';');
                 int data = world.getDataAt(blockX, blockZ, y + dy);
                 if (data > 0) {

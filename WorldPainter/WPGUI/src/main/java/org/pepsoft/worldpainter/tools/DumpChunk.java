@@ -4,16 +4,15 @@
  */
 package org.pepsoft.worldpainter.tools;
 
-import java.io.File;
-import java.io.IOException;
 import org.jnbt.CompoundTag;
 import org.jnbt.NBTInputStream;
-import org.pepsoft.minecraft.Chunk;
-import org.pepsoft.minecraft.ChunkImpl;
-import org.pepsoft.minecraft.ChunkImpl2;
-import static org.pepsoft.minecraft.Constants.*;
-import org.pepsoft.minecraft.Level;
-import org.pepsoft.minecraft.RegionFileCache;
+import org.pepsoft.minecraft.*;
+
+import java.io.File;
+import java.io.IOException;
+
+import static org.pepsoft.minecraft.Block.BLOCK_TYPE_NAMES;
+import static org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_1;
 
 /**
  *

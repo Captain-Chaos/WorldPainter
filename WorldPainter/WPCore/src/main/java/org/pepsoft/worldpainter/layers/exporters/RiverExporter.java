@@ -5,9 +5,6 @@
  */
 package org.pepsoft.worldpainter.layers.exporters;
 
-import java.awt.Rectangle;
-import java.util.List;
-import static org.pepsoft.minecraft.Material.*;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.MixedMaterial;
@@ -17,12 +14,18 @@ import org.pepsoft.worldpainter.exporting.AbstractLayerExporter;
 import org.pepsoft.worldpainter.exporting.Fixup;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import org.pepsoft.worldpainter.exporting.SecondPassLayerExporter;
-import org.pepsoft.worldpainter.layers.River;
-import static org.pepsoft.minecraft.Constants.*;
-import static org.pepsoft.worldpainter.Constants.*;
 import org.pepsoft.worldpainter.layers.FloodWithLava;
+import org.pepsoft.worldpainter.layers.River;
 import org.pepsoft.worldpainter.util.GeometryUtil;
 import org.pepsoft.worldpainter.util.GeometryUtil.GeometryVisitor;
+
+import java.awt.*;
+import java.util.List;
+
+import static org.pepsoft.minecraft.Block.BLOCKS;
+import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Material.*;
+import static org.pepsoft.worldpainter.Constants.TINY_BLOBS;
 
 /**
  *
@@ -78,7 +81,7 @@ public class RiverExporter extends AbstractLayerExporter<River> implements Secon
                             if (dz <= -depth) {
                                 // River bed
                                 int existingBlockType = minecraftWorld.getBlockTypeAt(x, y, z);
-                                if (! VERY_INSUBSTANTIAL_BLOCKS.get(existingBlockType)) {
+                                if (! BLOCKS[existingBlockType].veryInsubstantial) {
                                     minecraftWorld.setMaterialAt(x, y, z, riverBedMaterial.getMaterial(seed, x, y, z));
                                 }
                             } else if (dz > -shoreHeight) {
@@ -146,7 +149,7 @@ public class RiverExporter extends AbstractLayerExporter<River> implements Secon
                                                 && (existingBlockType != BLK_WATER)
                                                 && (existingBlockType != BLK_STATIONARY_WATER)
                                                 && (existingBlockType != BLK_ICE)
-                                                && VERY_INSUBSTANTIAL_BLOCKS.get(existingBlockType)) {
+                                                && BLOCKS[existingBlockType].veryInsubstantial) {
                                             minecraftWorld.setMaterialAt(x, y, z, STATIONARY_WATER);
                                             z--;
                                             existingBlockType = minecraftWorld.getBlockTypeAt(x, y, z);
@@ -173,7 +176,7 @@ public class RiverExporter extends AbstractLayerExporter<River> implements Secon
                                                 && (existingBlockType != BLK_WATER)
                                                 && (existingBlockType != BLK_STATIONARY_WATER)
                                                 && (existingBlockType != BLK_ICE)
-                                                && VERY_INSUBSTANTIAL_BLOCKS.get(existingBlockType)) {
+                                                && BLOCKS[existingBlockType].veryInsubstantial) {
                                             minecraftWorld.setMaterialAt(x, y, z, STATIONARY_WATER);
                                             z--;
                                             existingBlockType = minecraftWorld.getBlockTypeAt(x, y, z);

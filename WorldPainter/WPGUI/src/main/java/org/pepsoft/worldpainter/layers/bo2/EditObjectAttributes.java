@@ -4,9 +4,13 @@
  */
 package org.pepsoft.worldpainter.layers.bo2;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Window;
+import org.pepsoft.worldpainter.ColourScheme;
+import org.pepsoft.worldpainter.objects.WPObject;
+
+import javax.swing.*;
+import javax.swing.JSpinner.NumberEditor;
+import javax.vecmath.Point3i;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
@@ -15,18 +19,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.InputMap;
-import javax.swing.JComponent;
-import javax.swing.JOptionPane;
-import javax.swing.JSpinner.NumberEditor;
-import javax.swing.KeyStroke;
-import javax.vecmath.Point3i;
-import static org.pepsoft.minecraft.Constants.BLOCK_TYPE_NAMES;
-import org.pepsoft.worldpainter.ColourScheme;
-import org.pepsoft.worldpainter.objects.WPObject;
+
+import static org.pepsoft.minecraft.Block.BLOCK_TYPE_NAMES;
 import static org.pepsoft.worldpainter.objects.WPObject.*;
 
 /**

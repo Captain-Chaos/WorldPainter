@@ -5,20 +5,19 @@
 
 package org.pepsoft.worldpainter;
 
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
+import org.pepsoft.minecraft.Material;
+import org.pepsoft.util.IconUtils;
+import org.pepsoft.util.PerlinNoise;
+import org.pepsoft.util.RandomField;
+
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
-import org.pepsoft.minecraft.Material;
-import org.pepsoft.util.IconUtils;
-import org.pepsoft.util.PerlinNoise;
-
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
-import org.pepsoft.util.RandomField;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.biomeschemes.AbstractMinecraft1_7BiomeScheme.*;
 
@@ -1078,6 +1077,42 @@ public enum Terrain {
         }
 
         private static final int CACTUS_CHANCE = 2000;
+    },
+    RED_SANDSTONE("Red Sandstone", BLK_RED_SANDSTONE, BLK_RED_SANDSTONE, "red sandstone", BIOME_MESA),
+    GRANITE("Granite", Material.GRANITE, Material.GRANITE, "granite", BIOME_PLAINS),
+    DIORITE("Diorite", Material.DIORITE, Material.DIORITE, "diorite", BIOME_PLAINS),
+    ANDESITE("Andesite", Material.ANDESITE, Material.ANDESITE, "andesite", BIOME_PLAINS),
+    STONE_MIX("Stone Mix", "stone with patches of granite, diorite and andesite", BIOME_PLAINS) {
+        @Override
+        public Material getMaterial(long seed, int x, int y, int z, int height) {
+            final int dz = z - height;
+            if (dz > 0) {
+                return AIR;
+            } else {
+                if (graniteNoise.getSeed() != (seed + GRANITE_SEED_OFFSET)) {
+                    graniteNoise.setSeed(seed + GRANITE_SEED_OFFSET);
+                    dioriteNoise.setSeed(seed + ANDESITE_SEED_OFFSET);
+                    andesiteNoise.setSeed(seed + DIORITE_SEED_OFFSET);
+                }
+                if (graniteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > GRANITE_CHANCE) {
+                    return Material.GRANITE;
+                } else if(dioriteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > DIORITE_CHANCE) {
+                    return Material.DIORITE;
+                } else if(andesiteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > ANDESITE_CHANCE) {
+                    return Material.ANDESITE;
+                } else {
+                    return Material.STONE;
+                }
+            }
+        }
+
+        private final PerlinNoise graniteNoise  = new PerlinNoise(0);
+        private final PerlinNoise dioriteNoise  = new PerlinNoise(0);
+        private final PerlinNoise andesiteNoise = new PerlinNoise(0);
+
+        private static final int GRANITE_SEED_OFFSET  = 145827825;
+        private static final int DIORITE_SEED_OFFSET  =  87772192;
+        private static final int ANDESITE_SEED_OFFSET =  59606124;
     };
 
     private Terrain(String name, String description, int defaultBiome) {
@@ -1255,7 +1290,11 @@ public enum Terrain {
     static final float BEACH_SAND_CHANCE   = PerlinNoise.getLevelForPromillage(400) * 1.5f;
     static final float BEACH_GRAVEL_CHANCE = PerlinNoise.getLevelForPromillage(200) * 1.5f;
     static final float BEACH_CLAY_CHANCE =   PerlinNoise.getLevelForPromillage(40);
-    
+
+    static final float GRANITE_CHANCE  = PerlinNoise.getLevelForPromillage(45);
+    static final float DIORITE_CHANCE  = PerlinNoise.getLevelForPromillage(45);
+    static final float ANDESITE_CHANCE = PerlinNoise.getLevelForPromillage(45);
+
     /**
      * This information is now public, so don't change it! Only add new values
      * at the end!
@@ -1338,6 +1377,11 @@ public enum Terrain {
         Terrain.CUSTOM_22,
         Terrain.CUSTOM_23,
 
-        Terrain.CUSTOM_24
+        Terrain.CUSTOM_24,
+        Terrain.RED_SANDSTONE,
+        Terrain.GRANITE,
+        Terrain.DIORITE,
+        Terrain.ANDESITE,
+        Terrain.STONE_MIX
     };
 }
