@@ -1,4 +1,22 @@
 /*
+ * WorldPainter, a graphical and interactive map generator for Minecraft.
+ * Copyright © 2011-2015  pepsoft.org, The Netherlands
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
@@ -6,21 +24,23 @@
 
 package org.pepsoft.worldpainter.tools.scripts;
 
+import org.pepsoft.worldpainter.App;
+import org.pepsoft.worldpainter.Configuration;
+import org.pepsoft.worldpainter.World2;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.zip.GZIPOutputStream;
-import org.pepsoft.worldpainter.App;
-import org.pepsoft.worldpainter.Configuration;
-import org.pepsoft.worldpainter.World2;
 
 /**
  *
  * @author SchmitzP
  */
 public class SaveWorldOp extends AbstractOperation<Void> {
-    public SaveWorldOp(World2 world) throws ScriptException {
+    public SaveWorldOp(ScriptingContext context, World2 world) throws ScriptException {
+        super(context);
         if (world == null) {
             throw new ScriptException("world may not be null");
         }
@@ -34,8 +54,11 @@ public class SaveWorldOp extends AbstractOperation<Void> {
     
     @Override
     public Void go() throws ScriptException {
+        goCalled();
+
+        // TODO: add .world if it is not there
         File file = new File(fileName);
-        File dir = file.getParentFile();
+        File dir = file.getAbsoluteFile().getParentFile();
         if (! dir.isDirectory()) {
             throw new ScriptException("Destination directory " + dir + " does not exist or is not a directory");
         }

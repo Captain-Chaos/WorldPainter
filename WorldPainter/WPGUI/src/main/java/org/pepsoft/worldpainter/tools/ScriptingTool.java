@@ -6,8 +6,13 @@
 
 package org.pepsoft.worldpainter.tools;
 
+import org.pepsoft.util.PluginManager;
+import org.pepsoft.worldpainter.Configuration;
 import org.pepsoft.worldpainter.Version;
+import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.pepsoft.worldpainter.tools.scripts.ScriptingContext;
+
+import javax.script.*;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -16,14 +21,6 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.script.Bindings;
-import javax.script.ScriptContext;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
-import org.pepsoft.util.PluginManager;
-import org.pepsoft.worldpainter.Configuration;
-import org.pepsoft.worldpainter.plugins.WPPluginManager;
 
 /**
  *
@@ -129,6 +126,9 @@ public class ScriptingTool {
         // Execute script
         try {
             scriptEngine.eval(new FileReader(scriptFile));
+
+            // Check that go() was invoked on the last operation:
+            context.checkGoCalled(null);
         } catch (RuntimeException e) {
             logger.log(Level.SEVERE, e.getClass().getSimpleName() + " occurred while executing " + scriptFileName, e);
             System.exit(2);

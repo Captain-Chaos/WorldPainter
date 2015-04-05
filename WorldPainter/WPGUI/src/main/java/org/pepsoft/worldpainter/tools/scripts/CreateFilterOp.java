@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2014 pepijn
+ * WorldPainter, a graphical and interactive map generator for Minecraft.
+ * Copyright © 2011-2015  pepsoft.org, The Netherlands
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +28,10 @@ import org.pepsoft.worldpainter.panels.FilterImpl;
  * @author pepijn
  */
 public class CreateFilterOp extends AbstractOperation<FilterImpl> {
+    public CreateFilterOp(ScriptingContext context) {
+        super(context);
+    }
+
     public CreateFilterOp aboveLevel(int aboveLevel) {
         this.aboveLevel = aboveLevel;
         return this;
@@ -179,6 +184,8 @@ public class CreateFilterOp extends AbstractOperation<FilterImpl> {
     
     @Override
     public FilterImpl go() throws ScriptException {
+        goCalled();
+
         return new FilterImpl(null, aboveLevel, belowLevel, feather, onlyOn, exceptOn, degrees, slopeIsAbove);
     }
     

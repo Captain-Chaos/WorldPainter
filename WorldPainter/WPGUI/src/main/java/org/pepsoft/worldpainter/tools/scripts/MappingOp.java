@@ -1,4 +1,22 @@
 /*
+ * WorldPainter, a graphical and interactive map generator for Minecraft.
+ * Copyright © 2011-2015  pepsoft.org, The Netherlands
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
@@ -6,11 +24,6 @@
 
 package org.pepsoft.worldpainter.tools.scripts;
 
-import java.awt.Rectangle;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import static org.pepsoft.worldpainter.Constants.*;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.HeightMap;
 import org.pepsoft.worldpainter.Terrain;
@@ -21,12 +34,20 @@ import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.panels.FilterImpl;
 
+import java.awt.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.pepsoft.worldpainter.Constants.*;
+
 /**
  *
  * @author SchmitzP
  */
 public class MappingOp extends AbstractOperation<Void> {
-    public MappingOp(HeightMap heightMap) throws ScriptException {
+    public MappingOp(ScriptingContext context, HeightMap heightMap) throws ScriptException {
+        super(context);
         if (heightMap == null) {
             throw new ScriptException("heightMap may not be null");
         }
@@ -34,7 +55,8 @@ public class MappingOp extends AbstractOperation<Void> {
         Arrays.fill(mapping, -1);
     }
     
-    public MappingOp(Layer layer) throws ScriptException {
+    public MappingOp(ScriptingContext context, Layer layer) throws ScriptException {
+        super(context);
         if (layer == null) {
             throw new ScriptException("layer may not be null");
         }
@@ -56,7 +78,8 @@ public class MappingOp extends AbstractOperation<Void> {
         Arrays.fill(mapping, -1);
     }
 
-    public MappingOp(int terrainIndex) throws ScriptException {
+    public MappingOp(ScriptingContext context, int terrainIndex) throws ScriptException {
+        super(context);
         if ((terrainIndex < 0) || (terrainIndex >= Terrain.VALUES.length)) {
             throw new ScriptException("Invalid terrain index specified");
         }
@@ -234,6 +257,8 @@ public class MappingOp extends AbstractOperation<Void> {
     
     @Override
     public Void go() throws ScriptException {
+        goCalled();
+
         // Check preconditions
         if ((heightMap == null) && (layer == null) && (terrainIndex == -1)) {
             throw new ScriptException("No data source (heightMap, layer or terrain) specified");

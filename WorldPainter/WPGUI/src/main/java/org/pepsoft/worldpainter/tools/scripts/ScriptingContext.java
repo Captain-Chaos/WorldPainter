@@ -1,4 +1,22 @@
 /*
+ * WorldPainter, a graphical and interactive map generator for Minecraft.
+ * Copyright © 2011-2015  pepsoft.org, The Netherlands
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
@@ -6,12 +24,12 @@
 
 package org.pepsoft.worldpainter.tools.scripts;
 
-import java.io.IOException;
 import org.pepsoft.worldpainter.HeightMap;
 import org.pepsoft.worldpainter.MixedMaterial;
-import static org.pepsoft.worldpainter.Version.*;
 import org.pepsoft.worldpainter.World2;
 import org.pepsoft.worldpainter.layers.Layer;
+
+import static org.pepsoft.worldpainter.Version.VERSION;
 
 /**
  *
@@ -32,11 +50,12 @@ public class ScriptingContext {
      * 
      * @param filename
      * @return
-     * @throws IOException
+     * @throws java.io.IOException
      * @throws ClassNotFoundException 
      */
     public GetWorldOp getWorld() {
-        return new GetWorldOp();
+        checkGoCalled("getWorld");
+        return new GetWorldOp(this);
     }
     
     /**
@@ -46,7 +65,8 @@ public class ScriptingContext {
      * @return
      */
     public GetLayerOp getLayer() {
-        return new GetLayerOp();
+        checkGoCalled("getLayer");
+        return new GetLayerOp(this);
     }
 
     /**
@@ -54,11 +74,12 @@ public class ScriptingContext {
      * 
      * @param filename
      * @return
-     * @throws IOException
+     * @throws java.io.IOException
      * @throws ClassNotFoundException 
      */
     public GetTerrainOp getTerrain() {
-        return new GetTerrainOp();
+        checkGoCalled("getTerrain");
+        return new GetTerrainOp(this);
     }
     
     /**
@@ -68,7 +89,8 @@ public class ScriptingContext {
      * @return 
      */
     public ImportHeightMapOp createWorld() {
-        return new ImportHeightMapOp();
+        checkGoCalled("createWorld");
+        return new ImportHeightMapOp(this);
     }
     
     /**
@@ -77,15 +99,17 @@ public class ScriptingContext {
      * backups directory.
      * 
      * @param world The world to export.
-     * @throws IOException 
+     * @throws java.io.IOException
      */
     public ExportWorldOp exportWorld(World2 world) throws ScriptException {
-        return new ExportWorldOp(world);
+        checkGoCalled("exportWorld");
+        return new ExportWorldOp(this, world);
     }
     
     // TODO
     public MergeWorldOp mergeWorld() {
-        return new MergeWorldOp();
+        checkGoCalled("mergeWorld");
+        return new MergeWorldOp(this);
     }
     
     /**
@@ -93,14 +117,16 @@ public class ScriptingContext {
      * 
      * @param world The world to save.
      * @return
-     * @throws ScriptException 
+     * @throws org.pepsoft.worldpainter.tools.scripts.ScriptException
      */
     public SaveWorldOp saveWorld(World2 world) throws ScriptException {
-        return new SaveWorldOp(world);
+        checkGoCalled("saveWorld");
+        return new SaveWorldOp(this, world);
     }
     
     public GetHeightMapOp getHeightMap() {
-        return new GetHeightMapOp();
+        checkGoCalled("getHeightMap");
+        return new GetHeightMapOp(this);
     }
     
     /**
@@ -111,7 +137,8 @@ public class ScriptingContext {
      * @return 
      */
     public MappingOp applyHeightMap(HeightMap heightMap) throws ScriptException {
-        return new MappingOp(heightMap);
+        checkGoCalled("applyHeightMap");
+        return new MappingOp(this, heightMap);
     }
     
     /**
@@ -122,7 +149,8 @@ public class ScriptingContext {
      * @return 
      */
     public MappingOp applyLayer(Layer layer) throws ScriptException {
-        return new MappingOp(layer);
+        checkGoCalled("applyLayer");
+        return new MappingOp(this, layer);
     }
     
     /**
@@ -133,7 +161,8 @@ public class ScriptingContext {
      * @return 
      */
     public MappingOp applyTerrain(int terrainIndex) throws ScriptException {
-        return new MappingOp(terrainIndex);
+        checkGoCalled("applyTerrain");
+        return new MappingOp(this, terrainIndex);
     }
     
     /**
@@ -144,10 +173,27 @@ public class ScriptingContext {
      * @return 
      */
     public InstallCustomTerrainOp installCustomTerrain(MixedMaterial terrain) throws ScriptException {
-        return new InstallCustomTerrainOp(terrain);
+        checkGoCalled("installCustomTerrain");
+        return new InstallCustomTerrainOp(this, terrain);
     }
     
     public CreateFilterOp createFilter() {
-        return new CreateFilterOp();
+        checkGoCalled("createFilter");
+        return new CreateFilterOp(this);
     }
+
+    public void checkGoCalled(String commandName) {
+        if (! goCalled) {
+            throw new IllegalStateException("You forgot to invoke go() on the " + lastCommandName + "() operation");
+        }
+        goCalled = false;
+        lastCommandName = commandName;
+    }
+
+    void goCalled() {
+        goCalled = true;
+    }
+
+    private boolean goCalled = true;
+    private String lastCommandName;
 }
