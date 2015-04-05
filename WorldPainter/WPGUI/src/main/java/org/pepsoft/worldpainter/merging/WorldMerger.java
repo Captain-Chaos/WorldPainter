@@ -4,71 +4,35 @@
  */
 package org.pepsoft.worldpainter.merging;
 
-import java.awt.Point;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
+import org.jnbt.CompoundTag;
+import org.jnbt.NBTInputStream;
+import org.jnbt.NBTOutputStream;
+import org.jnbt.Tag;
+import org.pepsoft.minecraft.*;
+import org.pepsoft.util.FileUtils;
+import org.pepsoft.util.ParallelProgressManager;
+import org.pepsoft.util.ProgressReceiver;
+import org.pepsoft.util.SubProgressReceiver;
+import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.exporting.*;
+import org.pepsoft.worldpainter.layers.*;
+import org.pepsoft.worldpainter.util.FileInUseException;
+import org.pepsoft.worldpainter.vo.EventVO;
+
+import java.awt.*;
+import java.io.*;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
-import org.jnbt.CompoundTag;
-import org.jnbt.NBTInputStream;
-import org.jnbt.NBTOutputStream;
-import org.jnbt.Tag;
-import org.pepsoft.minecraft.Chunk;
-import org.pepsoft.minecraft.ChunkFactory;
-import org.pepsoft.minecraft.ChunkImpl;
-import org.pepsoft.minecraft.ChunkImpl2;
-import org.pepsoft.minecraft.Entity;
-import org.pepsoft.minecraft.Level;
-import org.pepsoft.minecraft.Material;
-import org.pepsoft.minecraft.RegionFile;
-import org.pepsoft.minecraft.TileEntity;
-import org.pepsoft.util.FileUtils;
-import org.pepsoft.util.ParallelProgressManager;
-import org.pepsoft.util.ProgressReceiver;
-import org.pepsoft.util.SubProgressReceiver;
-import org.pepsoft.worldpainter.Configuration;
-import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.Generator;
-import org.pepsoft.worldpainter.Tile;
-import org.pepsoft.worldpainter.World2;
-import org.pepsoft.worldpainter.exporting.Fixup;
-import org.pepsoft.worldpainter.exporting.LayerExporter;
-import org.pepsoft.worldpainter.exporting.MinecraftWorld;
-import org.pepsoft.worldpainter.exporting.SecondPassLayerExporter;
-import org.pepsoft.worldpainter.exporting.WorldExporter;
-import org.pepsoft.worldpainter.exporting.WorldPainterChunkFactory;
-import org.pepsoft.worldpainter.exporting.WorldRegion;
-import org.pepsoft.worldpainter.importing.MapImporter;
-import org.pepsoft.worldpainter.layers.Biome;
-import org.pepsoft.worldpainter.layers.Layer;
-import org.pepsoft.worldpainter.layers.ReadOnly;
-import org.pepsoft.worldpainter.util.FileInUseException;
-import org.pepsoft.worldpainter.vo.EventVO;
-
+import static org.pepsoft.minecraft.Block.BLOCKS;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
-import org.pepsoft.worldpainter.layers.CombinedLayer;
-import org.pepsoft.worldpainter.layers.Frost;
 
 /**
  *
@@ -750,13 +714,13 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                 }
             }
 
-            // Post processing. Fix covered grass blocks, things like that
-            long t3 = System.currentTimeMillis();
-            postProcess(minecraftWorld, regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.4f, 0.1f) : null);
-            
             // Merge chunks
+            long t3 = System.currentTimeMillis();
+            warnings = thirdPass(minecraftWorld, oldRegionDir, dimension, regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.4f, 0.25f) : null);
+
+            // Post processing. Fix covered grass blocks, things like that
             long t4 = System.currentTimeMillis();
-            warnings = thirdPass(minecraftWorld, oldRegionDir, dimension, regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.5f, 0.25f) : null);
+            postProcess(minecraftWorld, regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.65f, 0.1f) : null);
 
             // Third pass. Calculate lighting
             long t5 = System.currentTimeMillis();
@@ -1045,40 +1009,40 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
             for (int y = 0; y < 16; y++) {
                 boolean aboveGround = true;
                 for (int z = maxZ; z >= 0; z--) {
-                    int existingBlockType = existingChunk.getBlockType(x, z, y);
+                    final Block existingBlock = BLOCKS[existingChunk.getBlockType(x, z, y)];
                     if (aboveGround) {
-                        if ((clearTrees && TREE_RELATED.get(existingBlockType))
-                                || (clearVegetation && VEGETATION.get(existingBlockType))
-                                || (clearManMadeAboveGround && (! NATURAL_BLOCKS.get(existingBlockType)))) {
+                        if ((clearTrees && existingBlock.treeRelated)
+                                || (clearVegetation && existingBlock.vegetation)
+                                || (clearManMadeAboveGround && (! existingBlock.natural))) {
                             setToAir(existingChunk, x, y, z);
-                        } else if (TERRAIN_BLOCKS.get(existingBlockType)) {
+                        } else if (existingBlock.terrain) {
                             aboveGround = false;
                         }
                     } else {
                         // Separate if-statements so that if both are enabled,
                         // man made blocks are correctly removed and then filled
                         // in
-                        if (clearManMadeBelowGround && (! NATURAL_BLOCKS.get(existingBlockType))) {
-                            existingBlockType = findMostPrevalentSolidSurroundingMaterial(existingChunk, x, y, z);
-                            if (existingBlockType == BLK_AIR) {
+                        if (clearManMadeBelowGround && (! existingBlock.natural)) {
+                            final int newBlockType = findMostPrevalentSolidSurroundingMaterial(existingChunk, x, y, z);
+                            if (newBlockType == BLK_AIR) {
                                 setToAir(existingChunk, x, y, z);
                             } else {
-                                existingChunk.setMaterial(x, z, y, Material.get(existingBlockType));
+                                existingChunk.setMaterial(x, z, y, Material.get(newBlockType));
                                 existingChunk.setSkyLightLevel(x, z, y, 0);
                                 existingChunk.setBlockLightLevel(x, z, y, 0);
                             }
                         }
-                        if (fillCaves && VERY_INSUBSTANTIAL_BLOCKS.get(existingBlockType)) {
-                            int blockType = findMostPrevalentSolidSurroundingMaterial(existingChunk, x, y, z);
-                            if (blockType == BLK_AIR) {
+                        if (fillCaves && existingBlock.veryInsubstantial) {
+                            final int newBlockType = findMostPrevalentSolidSurroundingMaterial(existingChunk, x, y, z);
+                            if (newBlockType == BLK_AIR) {
                                 existingChunk.setMaterial(x, z, y, Material.STONE);
                             } else {
-                                existingChunk.setMaterial(x, z, y, Material.get(blockType));
+                                existingChunk.setMaterial(x, z, y, Material.get(newBlockType));
                             }
                             existingChunk.setSkyLightLevel(x, z, y, 0);
                             existingChunk.setBlockLightLevel(x, z, y, 0);
-                        } else if (clearResources && RESOURCES.get(existingBlockType)) {
-                            if (existingBlockType == BLK_QUARTZ_ORE) {
+                        } else if (clearResources && existingBlock.resource) {
+                            if (existingBlock.id == BLK_QUARTZ_ORE) {
                                 existingChunk.setMaterial(x, z, y, Material.NETHERRACK);
                             } else {
                                 existingChunk.setMaterial(x, z, y, Material.STONE);
@@ -1254,7 +1218,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                     int oldHeight = 0;
                     for (int y = maxY; y >= 0; y--) {
                         int oldBlockType = existingChunk.getBlockType(x, y, z);
-                        if (TERRAIN_BLOCKS.get(oldBlockType)) {
+                        if (BLOCKS[oldBlockType].terrain) {
                             // Terrain found
                             oldHeight = y;
                             break;
@@ -1287,10 +1251,10 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                         // etc.
                         int mergeStartHeight = newHeight + 1;
                         final int existingBlockType = existingChunk.getBlockType(x, newHeight, z);
-                        if ((existingBlockType == BLK_AIR) || INSUBSTANTIAL_BLOCKS.get(existingBlockType)) {
+                        if ((existingBlockType == BLK_AIR) || BLOCKS[existingBlockType].insubstantial) {
                             int existingBlockAboveType = (newHeight < maxY) ? existingChunk.getBlockType(x, newHeight + 1, z) : BLK_AIR;
                             int newBlockAboveType = (((newHeight - dy) >= -1) && ((newHeight - dy) < maxY)) ? newChunk.getBlockType(x, newHeight + 1 - dy, z) : BLK_AIR;
-                            if (((newBlockAboveType == BLK_AIR) || INSUBSTANTIAL_BLOCKS.get(newBlockAboveType)) && ((existingBlockAboveType == BLK_AIR) || INSUBSTANTIAL_BLOCKS.get(existingBlockAboveType))) {
+                            if (((newBlockAboveType == BLK_AIR) || BLOCKS[newBlockAboveType].insubstantial) && ((existingBlockAboveType == BLK_AIR) || BLOCKS[existingBlockAboveType].insubstantial)) {
                                 newChunk.setBlockType(x, newHeight, z, BLK_AIR);
                                 newChunk.setDataValue(x, newHeight, z, 0);
                                 newChunk.setSkyLightLevel(x, newHeight, z, 0);
@@ -1311,13 +1275,6 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                         for (int y = mergeStartHeight; y <= (maxY + dy); y++) {
                             mergeSurfaceBlock(existingChunk, newChunk, x, y, z, dy, frost);
                         }
-                        // Fill the rest with air
-                        for (int y = maxY + dy + 1; y <= maxY; y++) {
-                            newChunk.setBlockType(x, y, z, BLK_AIR);
-                            newChunk.setDataValue(x, y, z, 0);
-                            newChunk.setSkyLightLevel(x, y, z, 15);
-                            newChunk.setBlockLightLevel(x, y, z, 0);
-                        }
                         newChunk.setHeight(x, z, Math.min(existingChunk.getHeight(x, z) + dy, maxY));
                     } else {
                         // Terrain height has not changed. Copy everything from the
@@ -1328,6 +1285,11 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                         for (int y = newHeight + 1; y <= maxY; y++) {
                             mergeSurfaceBlock(existingChunk, newChunk, x, y, z, 0, frost);
                         }
+                    }
+                    // Tilled earth is imported as dirt, so make sure to leave
+                    // it intact
+                    if ((newChunk.getBlockType(x, newHeight, z) == BLK_DIRT) && (existingChunk.getBlockType(x, oldHeight, z) == BLK_TILLED_DIRT)) {
+                        newChunk.setMaterial(x, newHeight, z, existingChunk.getMaterial(x, oldHeight, z));
                     }
                     final int blockX = chunkX + x, blockZ = chunkZ + z;
                     for (Entity entity: existingChunk.getEntities()) {
@@ -1367,7 +1329,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         newChunk.setDataValue(x, y, z, existingChunk.getDataValue(x, y, z));
         newChunk.setSkyLightLevel(x, y, z, existingChunk.getSkyLightLevel(x, y, z));
         newChunk.setBlockLightLevel(x, y, z, existingChunk.getBlockLightLevel(x, y, z));
-        if (TILE_ENTITIES.get(existingBlockType)) {
+        if (BLOCKS[existingBlockType].tileEntity) {
             copyEntityTileData(existingChunk, newChunk, x, y, z, 0);
         }
     }
@@ -1390,15 +1352,21 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
             mergedDataValue = newChunk.getDataValue(x, y, z);
             mergedBlockLightLevel = newChunk.getBlockLightLevel(x, y, z);
             mergedSkylightLevel = newChunk.getSkyLightLevel(x, y, z);
-        } else if (((INSUBSTANTIAL_BLOCKS.get(existingBlockType) // the existing block is insubstantial and the new block is not
+        } else if (((BLOCKS[existingBlockType].insubstantial // the existing block is insubstantial and the new block is not
                         && (newBlockType != BLK_AIR)
-                        && (! INSUBSTANTIAL_BLOCKS.get(newBlockType)))
+                        && (! BLOCKS[newBlockType].insubstantial))
                     && (! (frost // the existing block is not snow or the Frost layer has not been applied to the current column or the new block is solid
                         && (existingBlockType == BLK_SNOW)
                         && ((newBlockType == BLK_AIR)
-                            || INSUBSTANTIAL_BLOCKS.get(newBlockType)))))
-                || ((! frost) // the Frost layer has not been applied and the existing block is snow
-                    && (existingBlockType == BLK_SNOW))) {
+                            || BLOCKS[newBlockType].insubstantial))))
+
+                // the Frost layer has not been applied and the existing block is snow
+                || ((! frost)
+                    && (existingBlockType == BLK_SNOW))
+
+                // the existing block is insubstantial and the new block is a fluid which would burn it or wash it away
+                || (((newBlockType == BLK_WATER) || (newBlockType == BLK_STATIONARY_WATER) || (newBlockType == BLK_LAVA) || (newBlockType == BLK_STATIONARY_LAVA))
+                    && BLOCKS[existingBlockType].insubstantial)) {
             mergedBlockType       = newBlockType;
             mergedDataValue       = newChunk.getDataValue(x, y, z);
             mergedSkylightLevel   = newChunk.getSkyLightLevel(x, y, z);
@@ -1413,7 +1381,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
             }
             mergedSkylightLevel   = existingChunk.getSkyLightLevel(  x, y - dy, z);
             mergedBlockLightLevel = existingChunk.getBlockLightLevel(x, y - dy, z);
-            if (TILE_ENTITIES.get(existingBlockType)) {
+            if (BLOCKS[existingBlockType].tileEntity) {
                 copyEntityTileData(existingChunk, newChunk, x, y, z, dy);
             }
         }
@@ -1447,28 +1415,14 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
     private static final Logger logger = Logger.getLogger(WorldMerger.class.getName());
     private static final Object TIMING_FILE_LOCK = new Object();
     private static final String EOL = System.getProperty("line.separator");
-    private static final BitSet TERRAIN_BLOCKS = new BitSet();
-    private static final BitSet NATURAL_BLOCKS = (BitSet) MapImporter.NATURAL_BLOCKS;
     private static final BitSet SOLID_BLOCKS = new BitSet();
     
     static {
-        for (int blockType: MapImporter.TERRAIN_MAPPING.keySet()) {
-            TERRAIN_BLOCKS.set(blockType);
-        }
-        for (Material material: MapImporter.SPECIAL_TERRAIN_MAPPING.keySet()) {
-            TERRAIN_BLOCKS.set(material.getBlockType());
-        }
-        
-        NATURAL_BLOCKS.clear(BLK_MONSTER_SPAWNER);
-        NATURAL_BLOCKS.clear(BLK_CHEST);
-        NATURAL_BLOCKS.clear(BLK_COBBLESTONE);
-        NATURAL_BLOCKS.clear(BLK_MOSSY_COBBLESTONE);
-        
-        SOLID_BLOCKS.or(NATURAL_BLOCKS);
-        SOLID_BLOCKS.andNot(RESOURCES);
-        for (int i = 0; i < BLOCK_TRANSPARENCY.length; i++) {
-            if (BLOCK_TRANSPARENCY[i] < 15) {
-                SOLID_BLOCKS.clear(i);
+        for (Block block: BLOCKS) {
+            if (block.natural
+                    && (! block.resource)
+                    && block.opaque) {
+                SOLID_BLOCKS.set(block.id);
             }
         }
     }
