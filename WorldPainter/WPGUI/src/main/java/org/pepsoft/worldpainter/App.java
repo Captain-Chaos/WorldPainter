@@ -264,46 +264,78 @@ public final class App extends JFrame implements RadiusControl,
         return world;
     }
 
+    /**
+     * This setter <em>must</em> be called in two steps when loading a new
+     * world: first setting the value to <code>null</code>, and then to the new
+     * World, except when re-loading the same World. Otherwise it will throw
+     * an {@link IllegalStateException}.
+     *
+     * <p>This is for historical reasons: it was introduced to make sure that
+     * the custom materials, which are registered when loaded, are not then
+     * immediately cleared when invoking this method.
+     *
+     * @param world The world to set, or <code>null</code>.
+     */
     public void setWorld(World2 world) {
-        this.world = world;
+        if ((this.world != null) && ((world != null) && (this.world != world))) {
+            throw new IllegalStateException(world + " != " + this.world);
+        }
         if (world != null) {
-            loadCustomMaterials();
-            
-            extendedBlockIdsMenuItem.setSelected(world.isExtendedBlockIds());
-
-            // Load the layout *before* setting the dimension, because otherwise
-            // the subsequent changes (due to the loading of custom layers for
-            // instance) may cause layout/display bugs
-            Configuration config = Configuration.getInstance();
-            if ((config.getJideLayoutData() != null) && config.getJideLayoutData().containsKey(world.getName())) {
-                dockingManager.loadLayoutFrom(new ByteArrayInputStream(config.getJideLayoutData().get(world.getName())));
-            }
-            
-            setDimension(world.getDimension(DIM_NORMAL));
-            
-            if (config.isDefaultViewDistanceEnabled() != view.isDrawViewDistance()) {
-                ACTION_VIEW_DISTANCE.actionPerformed(null);
-            }
-            if (config.isDefaultWalkingDistanceEnabled() != view.isDrawWalkingDistance()) {
-                ACTION_WALKING_DISTANCE.actionPerformed(null);
-            }
-            view.setLightOrigin(config.getDefaultLightOrigin());
-            
-            brushOptions.setMaxHeight(world.getMaxHeight());
-
-            if (config.isEasyMode()) {
-                boolean imported = world.getImportedFrom() != null;
-                ACTION_EXPORT_WORLD.setEnabled(! imported);
-                ACTION_MERGE_WORLD.setEnabled(imported);
+            if (world == this.world) {
+                // Reloading the same world; no need to do anything other than
+                // to reload the dimension
+                if (dimension != null) {
+                    setDimension(world.getDimension(dimension.getDim()));
+                }
             } else {
-                ACTION_EXPORT_WORLD.setEnabled(true);
-                ACTION_MERGE_WORLD.setEnabled(true);
+                this.world = world;
+
+                loadCustomTerrains();
+
+                extendedBlockIdsMenuItem.setSelected(world.isExtendedBlockIds());
+
+                // Load the layout *before* setting the dimension, because otherwise
+                // the subsequent changes (due to the loading of custom layers for
+                // instance) may cause layout/display bugs
+                Configuration config = Configuration.getInstance();
+                if ((config.getJideLayoutData() != null) && config.getJideLayoutData().containsKey(world.getName())) {
+                    dockingManager.loadLayoutFrom(new ByteArrayInputStream(config.getJideLayoutData().get(world.getName())));
+                }
+
+                setDimension(world.getDimension(DIM_NORMAL));
+
+                if (config.isDefaultViewDistanceEnabled() != view.isDrawViewDistance()) {
+                    ACTION_VIEW_DISTANCE.actionPerformed(null);
+                }
+                if (config.isDefaultWalkingDistanceEnabled() != view.isDrawWalkingDistance()) {
+                    ACTION_WALKING_DISTANCE.actionPerformed(null);
+                }
+                view.setLightOrigin(config.getDefaultLightOrigin());
+
+                brushOptions.setMaxHeight(world.getMaxHeight());
+
+                if (config.isEasyMode()) {
+                    boolean imported = world.getImportedFrom() != null;
+                    ACTION_EXPORT_WORLD.setEnabled(!imported);
+                    ACTION_MERGE_WORLD.setEnabled(imported);
+                } else {
+                    ACTION_EXPORT_WORLD.setEnabled(true);
+                    ACTION_MERGE_WORLD.setEnabled(true);
+                }
             }
         } else {
+            this.world = null;
+
             setDimension(null);
 
             ACTION_EXPORT_WORLD.setEnabled(false);
             ACTION_MERGE_WORLD.setEnabled(false);
+
+            // Unload all custom terrain types
+            clearCustomTerrains();
+
+            // Unload all custom materials
+            MixedMaterialManager.getInstance().clear();
         }
     }
 
@@ -379,7 +411,7 @@ public final class App extends JFrame implements RadiusControl,
 
             // Legacy: if this is an older world with an overlay enabled, ask
             // the user if we should fix the coordinates (ask because they might
-            // have fixed the problem manuall in 1.9.0 or 1.9.1, in which we
+            // have fixed the problem manually in 1.9.0 or 1.9.1, in which we
             // neglected to do it automatically)
             if (dimension.isFixOverlayCoords()) {
                 Toolkit.getDefaultToolkit().beep();
@@ -4165,7 +4197,7 @@ public final class App extends JFrame implements RadiusControl,
                     showPopup();
                 }
             }
-            
+
             private void showPopup() {
                 showCustomTerrainButtonPopup(customMaterialIndex);
             }
@@ -4190,19 +4222,13 @@ public final class App extends JFrame implements RadiusControl,
         MixedMaterialHelper.save(this, Terrain.getCustomMaterial(customMaterialIndex));
     }
 
-    private void loadCustomMaterials() {
+    private void loadCustomTerrains() {
         for (int i = 0; i < Terrain.CUSTOM_TERRAIN_COUNT; i++) {
             MixedMaterial material = world.getMixedMaterial(i);
             Terrain.setCustomMaterial(i, material);
             if (material != null) {
                 customMaterialButtons[i].setIcon(new ImageIcon(material.getIcon(selectedColourScheme)));
                 customMaterialButtons[i].setToolTipText(MessageFormat.format(strings.getString("customMaterial.0.right.click.to.change"), material));
-            } else {
-                customMaterialButtons[i].setIcon(ICON_UNKNOWN_PATTERN);
-                customMaterialButtons[i].setToolTipText(strings.getString("not.set.click.to.set"));
-                if (customMaterialButtons[i].isSelected()) {
-                    toolButtonGroup.clearSelection();
-                }
             }
         }
     }
@@ -4212,7 +4238,20 @@ public final class App extends JFrame implements RadiusControl,
             world.setMixedMaterial(i, Terrain.getCustomMaterial(i));
         }
     }
-    
+
+    private void clearCustomTerrains() {
+        for (int i = 0; i < Terrain.CUSTOM_TERRAIN_COUNT; i++) {
+            if (Terrain.getCustomMaterial(i) != null) {
+                Terrain.setCustomMaterial(i, null);
+                customMaterialButtons[i].setIcon(ICON_UNKNOWN_PATTERN);
+                customMaterialButtons[i].setToolTipText(strings.getString("not.set.click.to.set"));
+                if (customMaterialButtons[i].isSelected()) {
+                    toolButtonGroup.clearSelection();
+                }
+            }
+        }
+    }
+
     private void saveCustomBiomes() {
         if (dimension != null) {
             dimension.setCustomBiomes(customBiomeManager.getCustomBiomes());
