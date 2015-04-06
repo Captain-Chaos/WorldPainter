@@ -276,7 +276,7 @@ public class BiomesViewerFrame extends JFrame {
                 if (! (biomeScheme instanceof Minecraft1_1BiomeScheme)) {
                     level.setGenerator(((biomeScheme instanceof Minecraft1_3LargeBiomeScheme) || (biomeScheme instanceof Minecraft1_7LargeBiomeScheme) || (biomeScheme instanceof Minecraft1_8LargeBiomeScheme)) ? Generator.LARGE_BIOMES : Generator.DEFAULT);
                 }
-                level.setGameType(Constants.GAME_TYPE_SURVIVAL);
+                level.setGameType(World2.GAME_TYPE_SURVIVAL);
                 level.setMapFeatures(true);
                 level.setName(name);
                 level.setSeed(((Number) seedSpinner.getValue()).longValue());

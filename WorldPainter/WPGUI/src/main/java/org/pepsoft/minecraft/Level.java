@@ -195,6 +195,10 @@ public final class Level extends AbstractNBTItem {
         return getInt(TAG_GAME_TYPE);
     }
     
+    public boolean isHardcore() {
+        return getBoolean(TAG_HARDCORE);
+    }
+    
     public String getGeneratorName() {
         return getString(TAG_GENERATOR_NAME);
     }
@@ -255,6 +259,10 @@ public final class Level extends AbstractNBTItem {
     
     public void setGameType(int gameType) {
         setInt(TAG_GAME_TYPE, gameType);
+    }
+    
+    public void setHardcore(boolean hardcore) {
+        setBoolean(TAG_HARDCORE, hardcore);
     }
     
     public void setGenerator(Generator generator) {

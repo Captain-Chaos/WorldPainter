@@ -706,7 +706,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
             defaultCreateGoodiesChest = true;
             defaultGenerator = Generator.DEFAULT;
             defaultMapFeatures = true;
-            defaultGameType = org.pepsoft.minecraft.Constants.GAME_TYPE_SURVIVAL;
+            defaultGameType = World2.GAME_TYPE_SURVIVAL;
         }
         if (version < 10) {
             if (defaultTerrainAndLayerSettings.getSubsurfaceMaterial() == Terrain.STONE) {
@@ -839,7 +839,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private Theme heightMapDefaultTheme;
     private boolean defaultCreateGoodiesChest = true, defaultMapFeatures = true, defaultAllowCheats;
     private Generator defaultGenerator = Generator.DEFAULT;
-    private int defaultGameType = org.pepsoft.minecraft.Constants.GAME_TYPE_SURVIVAL;
+    private int defaultGameType = World2.GAME_TYPE_SURVIVAL;
     private String defaultGeneratorOptions;
     private byte[] defaultJideLayoutData;
     private Map<String, byte[]> jideLayoutData;

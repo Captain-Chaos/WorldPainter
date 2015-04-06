@@ -34,7 +34,7 @@ public class TestTool {
         world.setVersion(SUPPORTED_VERSION_2);
         world.setName("TestWorld");
         world.setSpawnPoint(new Point(64, 64));
-        world.setGameType(GAME_TYPE_CREATIVE);
+        world.setGameType(World2.GAME_TYPE_CREATIVE);
         Dimension dimension = world.getDimension(0);
         dimension.addTile(tileFactory.createTile(0, 0));
         Garden garden = dimension.getGarden();

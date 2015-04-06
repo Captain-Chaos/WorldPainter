@@ -80,6 +80,7 @@ public final class Constants {
     public static final String TAG_TILE_Z            = "TileZ";
     public static final String TAG_ALLOW_COMMANDS    = "allowCommands";
     public static final String TAG_GENERATOR_OPTIONS = "generatorOptions";
+    public static final String TAG_HARDCORE          = "hardcore";
     
     /**
      * Possibly unofficial, SpoutCraft-specific

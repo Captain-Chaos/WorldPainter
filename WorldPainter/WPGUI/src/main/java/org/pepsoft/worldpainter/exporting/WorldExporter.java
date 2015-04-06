@@ -99,7 +99,15 @@ public class WorldExporter {
         level.setSpawnY(Math.max(dim0.getIntHeightAt(spawnPoint), dim0.getWaterLevelAt(spawnPoint)));
         level.setSpawnZ(spawnPoint.y);
         level.setMapFeatures(world.isMapFeatures());
-        level.setGameType(world.getGameType());
+        if (world.getGameType() <= GAME_TYPE_ADVENTURE) {
+            level.setGameType(world.getGameType());
+            level.setHardcore(false);
+        } else if (world.getGameType() == World2.GAME_TYPE_HARDCORE) {
+            level.setGameType(GAME_TYPE_SURVIVAL);
+            level.setHardcore(true);
+        } else {
+            throw new InternalError("Don't know how to encode game type " + world.getGameType());
+        }
         level.setAllowCommands(world.isAllowCheats());
         level.setGenerator(world.getGenerator());
         if ((world.getVersion() == SUPPORTED_VERSION_2) && (world.getGenerator() == Generator.FLAT) && (world.getGeneratorOptions() != null)) {

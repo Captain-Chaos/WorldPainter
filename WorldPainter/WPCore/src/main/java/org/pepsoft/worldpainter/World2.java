@@ -527,7 +527,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     private File importedFrom;
     private final SortedMap<Integer, Dimension> dimensions = new TreeMap<Integer, Dimension>();
     private boolean mapFeatures = true;
-    private int gameType = org.pepsoft.minecraft.Constants.GAME_TYPE_SURVIVAL;
+    private int gameType = GAME_TYPE_SURVIVAL;
     @Deprecated
     private Material[] customMaterials;
     @Deprecated
@@ -572,6 +572,13 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     // New 1.7 values:
     public static final long DEFAULT_OCEAN_SEED = 27594263L; // A seed with a large ocean around the origin, and not many mushroom islands nearby. Should be used with Large Biomes
     public static final long DEFAULT_LAND_SEED = 227290L; // A seed with a huge continent around the origin. Should be used with Large Biomes
+    
+    // These do NOT correspond to actual Minecraft game types, since hardcore
+    // is encoded as survival
+    public static final int GAME_TYPE_SURVIVAL  = 0;
+    public static final int GAME_TYPE_CREATIVE  = 1;
+    public static final int GAME_TYPE_ADVENTURE = 2;
+    public static final int GAME_TYPE_HARDCORE  = 3;
     
     private static final int CURRENT_WP_VERSION = 1;
 

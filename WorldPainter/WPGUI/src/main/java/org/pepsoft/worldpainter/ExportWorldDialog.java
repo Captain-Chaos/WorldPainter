@@ -111,20 +111,20 @@ public class ExportWorldDialog extends javax.swing.JDialog {
                 generator = 0;
             }
             comboBoxGameType.setModel(new DefaultComboBoxModel(new String[] {"Survival", "Creative"}));
-            if (gameType > GAME_TYPE_CREATIVE) {
-                gameType = GAME_TYPE_SURVIVAL;
+            if (gameType > World2.GAME_TYPE_CREATIVE) {
+                gameType = World2.GAME_TYPE_SURVIVAL;
             }
             comboBoxMinecraftVersion.setSelectedIndex(1);
             comboBoxMinecraftVersion.setEnabled(false);
-            comboBoxMinecraftVersion.setToolTipText("Only worlds with a height of 256 blocks can be exported in Minecraft 1.3 format");
+            comboBoxMinecraftVersion.setToolTipText("Only worlds with a height of 256 blocks can be exported in Anvil format");
         } else if (world.getVersion() == SUPPORTED_VERSION_1) {
             comboBoxGenerator.setModel(new DefaultComboBoxModel(new String[] {"Default", "Superflat"}));
             if (generator > 1) {
                 generator = 0;
             }
             comboBoxGameType.setModel(new DefaultComboBoxModel(new String[] {"Survival", "Creative"}));
-            if (gameType > GAME_TYPE_CREATIVE) {
-                gameType = GAME_TYPE_SURVIVAL;
+            if (gameType > World2.GAME_TYPE_CREATIVE) {
+                gameType = World2.GAME_TYPE_SURVIVAL;
             }
             comboBoxMinecraftVersion.setSelectedIndex(1);
         } else {
@@ -481,7 +481,7 @@ public class ExportWorldDialog extends javax.swing.JDialog {
 
         jLabel5.setText("Mode:");
 
-        comboBoxGameType.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Survival", "Creative", "Adventure" }));
+        comboBoxGameType.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Survival", "Creative", "Adventure", "Hardcore" }));
         comboBoxGameType.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 comboBoxGameTypeActionPerformed(evt);
@@ -624,8 +624,8 @@ public class ExportWorldDialog extends javax.swing.JDialog {
         switch (comboBoxMinecraftVersion.getSelectedIndex()) {
             case 0:
                 comboBoxGenerator.setModel(new DefaultComboBoxModel(new String[] {"Default", "Superflat", "Large Biomes"}));
-                comboBoxGameType.setModel(new DefaultComboBoxModel(new String[] {"Survival", "Creative", "Adventure"}));
-                checkBoxAllowCheats.setSelected(comboBoxGameType.getSelectedIndex() == GAME_TYPE_CREATIVE);
+                comboBoxGameType.setModel(new DefaultComboBoxModel(new String[] {"Survival", "Creative", "Adventure", "Hardcore"}));
+                checkBoxAllowCheats.setSelected(comboBoxGameType.getSelectedIndex() == World2.GAME_TYPE_CREATIVE);
                 break;
             case 1:
                 comboBoxGenerator.setModel(new DefaultComboBoxModel(new String[] {"Default", "Superflat"}));
@@ -633,8 +633,8 @@ public class ExportWorldDialog extends javax.swing.JDialog {
                     generator = 0;
                 }
                 comboBoxGameType.setModel(new DefaultComboBoxModel(new String[] {"Survival", "Creative"}));
-                if (gameType > GAME_TYPE_CREATIVE) {
-                    gameType = GAME_TYPE_SURVIVAL;
+                if (gameType > World2.GAME_TYPE_CREATIVE) {
+                    gameType = World2.GAME_TYPE_SURVIVAL;
                 }
                 checkBoxAllowCheats.setSelected(false);
                 break;
@@ -645,7 +645,7 @@ public class ExportWorldDialog extends javax.swing.JDialog {
     }//GEN-LAST:event_comboBoxMinecraftVersionActionPerformed
 
     private void comboBoxGameTypeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxGameTypeActionPerformed
-        if ((comboBoxMinecraftVersion.getSelectedIndex() == 0) && (comboBoxGameType.getSelectedIndex() > GAME_TYPE_SURVIVAL)) {
+        if ((comboBoxMinecraftVersion.getSelectedIndex() == 0) && (comboBoxGameType.getSelectedIndex() == World2.GAME_TYPE_CREATIVE)) {
             checkBoxAllowCheats.setSelected(true);
         }
     }//GEN-LAST:event_comboBoxGameTypeActionPerformed
