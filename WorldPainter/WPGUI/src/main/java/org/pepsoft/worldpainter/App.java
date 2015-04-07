@@ -1130,7 +1130,16 @@ public final class App extends JFrame implements RadiusControl,
         MixedMaterial[] customMaterials = MixedMaterialManager.getInstance().getMaterials();
         if (customMaterials.length > 0) {
             JMenu existingMaterialsMenu = new JMenu("Select existing material");
+            Set<MixedMaterial> customTerrainMaterials = new HashSet<MixedMaterial>();
+            for (int i = 0; i < Terrain.CUSTOM_TERRAIN_COUNT; i++) {
+                if (Terrain.getCustomTerrain(i).isConfigured()) {
+                    customTerrainMaterials.add(Terrain.getCustomMaterial(i));
+                }
+            }
             for (final MixedMaterial customMaterial: customMaterials) {
+                if (customTerrainMaterials.contains(customMaterial)) {
+                    continue;
+                }
                 JMenuItem menuItem = new JMenuItem(customMaterial.getName());
                 menuItem.setIcon(new ImageIcon(customMaterial.getIcon(selectedColourScheme)));
                 menuItem.addActionListener(new ActionListener() {
@@ -1144,7 +1153,9 @@ public final class App extends JFrame implements RadiusControl,
                 });
                 existingMaterialsMenu.add(menuItem);
             }
-            popupMenu.add(existingMaterialsMenu);
+            if (existingMaterialsMenu.getMenuComponentCount() > 0) {
+                popupMenu.add(existingMaterialsMenu);
+            }
         }
 
         JMenuItem menuItem = new JMenuItem(((material != null) ? "Edit custom material" : strings.getString("select.custom.material")) + "...");
