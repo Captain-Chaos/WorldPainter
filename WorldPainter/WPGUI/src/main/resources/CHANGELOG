@@ -5,13 +5,14 @@
    + When you Edit a custom material, it applies to every place where that material is used!
    + In addition, the custom material edit screen now has buttons to Save the material to a file or to Load the material from a file. This allows for exchanging materials between worlds, etc.
    + The list of available custom materials also includes the Custom Terrain Types, and you can select from existing Custom Materials for Custom Terrain Types
- * Explicit support was added for the Minecraft 1.8:
+ * Explicit support was added for the new blocks in Minecraft 1.8:
    + There is a new terrain type called "Stone Mix", which consists of a mix of Stone, Granite, Diorite and Andesite, in approximately the same proportions as in Minecraft-generated maps
    + The default underground material for new worlds is now Stone Mix instead of Stone
    + For solid stone of the new types, the terrain types Granite, Diorite and Andesite have been added
    + In addition a terrain type for Red Sandstone has been added
    + Custom Object Layers can correctly rotate and mirror the new blocks
    + The new Hardcore game type can now be selected on the Export screen
+ * The "fill with layer" operation of the Global Operations tool now leaves the existing layer alone; the layer is added wherever the filter allows it, but the layer is not removed where it already exists. To get the old behaviour, manually remove the layer first with the "remove a layer" operation
  * It is now possible to remove previously added Nether and End dimensions from WorldPainter worlds, using the actions in the Edit menu
  * Improved the Custom Plants layer configuration screen so that the layout is better and things don't jump around when enabling or disabling plants
  * The scripting engine now checks that you don't forget to use go(), hopefully helping beginners to avoid making this mistake

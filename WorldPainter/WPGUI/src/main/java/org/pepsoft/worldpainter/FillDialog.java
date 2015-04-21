@@ -217,7 +217,7 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
     private void fillWithLayer(ProgressReceiver progressReceiver) throws UnsupportedOperationException, OperationCancelled {
         Layer layer = (Layer) comboBoxSetLayer.getSelectedItem();
         if (layer.getDataSize() == Layer.DataSize.NIBBLE) {
-            int baseLayerValue = Math.round((((Integer) sliderLayerValue.getValue()) + 2) / 6.667f);
+            int baseLayerValue = Math.round((sliderLayerValue.getValue() + 2) / 6.667f);
             int totalTiles = dimension.getTileCount(), tileCount = 0;
             for (Tile tile: dimension.getTiles()) {
                 final int worldTileX = tile.getX() << TILE_SIZE_BITS;
@@ -232,7 +232,7 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
                             } else {
                                 layerValue = (int) (filter.modifyStrength(worldTileX | x, worldTileY | y, 1.0f) * baseLayerValue);
                             }
-                            if (tile.getLayerValue(layer, x, y) != layerValue) {
+                            if (tile.getLayerValue(layer, x, y) < layerValue) {
                                 tile.setLayerValue(layer, x, y, layerValue);
                             }
                         }
