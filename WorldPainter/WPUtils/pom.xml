@@ -16,5 +16,17 @@
             <version>12.0</version>
             <scope>provided</scope> <!-- Not really, but these annotations aren't needed at runtime. -->
         </dependency>
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna-platform</artifactId>
+            <version>4.0.0</version>
+            <classifier>win32</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.apple</groupId>
+            <artifactId>AppleJavaExtensions</artifactId>
+            <version>1.6</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 </project>

@@ -33,16 +33,16 @@ public final class SystemUtils {
     
     static {
         String os_name = System.getProperty("os.name").toLowerCase();
-        if (os_name.startsWith("windows")) {
+        if (os_name.contains("windows")) {
             OPERATING_SYSTEM = OS.WINDOWS;
-        } else if (os_name.startsWith("mac")) {
+        } else if (os_name.contains("os x")) {
             OPERATING_SYSTEM = OS.MAC;
-        } else if (os_name.startsWith("linux")) {
+        } else if (os_name.contains("linux")) {
             OPERATING_SYSTEM = OS.LINUX;
         } else {
             OPERATING_SYSTEM = OS.OTHER;
         }
     }
     
-    public static enum OS {WINDOWS, MAC, LINUX, OTHER}
+    public enum OS {WINDOWS, MAC, LINUX, OTHER}
 }
