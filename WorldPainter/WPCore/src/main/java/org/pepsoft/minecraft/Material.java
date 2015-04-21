@@ -688,7 +688,7 @@ public final class Material implements Serializable, Comparable<Material> {
                         return this;
                 }
             }
-        } else if (blockType == BLK_SIGN) {
+        } else if ((blockType == BLK_SIGN) || (blockType == BLK_STANDING_BANNER)) {
             if ((axis == Direction.EAST) || (axis == Direction.WEST)) {
             // TODO: this is wrong. Probably a leftover from the coordinate shift. It should be:
 //            if ((axis == Direction.NORTH) || (axis == Direction.SOUTH)) {
@@ -786,7 +786,37 @@ public final class Material implements Serializable, Comparable<Material> {
             }
         }
     }
-    
+
+    /**
+     * Gets a vertically mirrored version of the material.
+     *
+     * @return A vertically mirrored version of the material.
+     */
+    public Material invert() {
+        switch (blockType) {
+            case BLK_BRICK_STAIRS:
+            case BLK_COBBLESTONE_STAIRS:
+            case BLK_NETHER_BRICK_STAIRS:
+            case BLK_STONE_BRICK_STAIRS:
+            case BLK_WOODEN_STAIRS:
+            case BLK_SANDSTONE_STAIRS:
+            case BLK_PINE_WOOD_STAIRS:
+            case BLK_BIRCH_WOOD_STAIRS:
+            case BLK_JUNGLE_WOOD_STAIRS:
+            case BLK_QUARTZ_STAIRS:
+            case BLK_ACACIA_WOOD_STAIRS:
+            case BLK_DARK_OAK_WOOD_STAIRS:
+            case BLK_RED_SANDSTONE_STAIRS:
+                return get(blockType, data ^ 0x4);
+            case BLK_SLAB:
+            case BLK_RED_SANDSTONE_SLAB:
+            case BLK_WOODEN_SLAB:
+                return get(blockType, data ^ 0x8);
+            default:
+                return this;
+        }
+    }
+
     /**
      * Indicates whether the material has an associated image which can be
      * retrieved with the {@link #getImage(BufferedImage)} or painted with the
