@@ -1384,4 +1384,66 @@ public enum Terrain {
         Terrain.ANDESITE,
         Terrain.STONE_MIX
     };
+
+    /**
+     * This list is meant to present to the user. It has a more logical order
+     * and lacks the custom and deprecated terrain types. This list may be
+     * changed in any way.
+     */
+    public static final Terrain[] PICK_LIST = {
+        Terrain.GRASS,
+        Terrain.BARE_GRASS,
+        Terrain.DIRT,
+        Terrain.PERMADIRT,
+        Terrain.PODZOL,
+        Terrain.SAND,
+        Terrain.RED_SAND,
+        Terrain.DESERT,
+        Terrain.RED_DESERT,
+        Terrain.MESA,
+
+        Terrain.HARDENED_CLAY,
+        Terrain.SANDSTONE,
+        Terrain.RED_SANDSTONE,
+        Terrain.STONE_MIX,
+        Terrain.STONE,
+        Terrain.GRANITE,
+        Terrain.DIORITE,
+        Terrain.ANDESITE,
+        Terrain.ROCK,
+        Terrain.COBBLESTONE,
+
+        Terrain.MOSSY_COBBLESTONE,
+        Terrain.OBSIDIAN,
+        Terrain.BEDROCK,
+        Terrain.GRAVEL,
+        Terrain.CLAY,
+        Terrain.BEACHES,
+        Terrain.WATER,
+        Terrain.LAVA,
+        Terrain.DEEP_SNOW,
+        Terrain.NETHERRACK,
+
+        Terrain.SOUL_SAND,
+        Terrain.NETHERLIKE,
+        Terrain.MYCELIUM,
+        Terrain.END_STONE,
+        Terrain.WHITE_STAINED_CLAY,
+        Terrain.ORANGE_STAINED_CLAY,
+        Terrain.MAGENTA_STAINED_CLAY,
+        Terrain.LIGHT_BLUE_STAINED_CLAY,
+        Terrain.YELLOW_STAINED_CLAY,
+        Terrain.LIME_STAINED_CLAY,
+
+        Terrain.PINK_STAINED_CLAY,
+        Terrain.GREY_STAINED_CLAY,
+        Terrain.LIGHT_GREY_STAINED_CLAY,
+        Terrain.CYAN_STAINED_CLAY,
+        Terrain.PURPLE_STAINED_CLAY,
+        Terrain.BLUE_STAINED_CLAY,
+        Terrain.BROWN_STAINED_CLAY,
+        Terrain.GREEN_STAINED_CLAY,
+        Terrain.RED_STAINED_CLAY,
+        Terrain.BLACK_STAINED_CLAY
+    };
 }

@@ -35,8 +35,7 @@ public class PreferencesDialog extends javax.swing.JDialog {
         
         initComponents();
         
-        Object[] materials = new Object[] {GRASS, BARE_GRASS, DIRT, CLAY, SAND, DESERT, SANDSTONE, STONE, ROCK, COBBLESTONE, OBSIDIAN, BEDROCK, DEEP_SNOW, NETHERRACK, SOUL_SAND, NETHERLIKE, END_STONE};
-        comboBoxSurfaceMaterial.setModel(new DefaultComboBoxModel(materials));
+        comboBoxSurfaceMaterial.setModel(new DefaultComboBoxModel(Terrain.PICK_LIST));
         comboBoxSurfaceMaterial.setRenderer(new TerrainListCellRenderer(colourScheme));
         if (! JAVA_7) {
             comboBoxLookAndFeel.setModel(new DefaultComboBoxModel(new Object[] {"System", "Metal", "Nimbus", "Dark Metal"}));
