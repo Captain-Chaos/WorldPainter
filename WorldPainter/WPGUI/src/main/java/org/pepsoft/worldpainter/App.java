@@ -68,10 +68,7 @@ import java.awt.image.BufferedImageOp;
 import java.awt.image.WritableRaster;
 import java.beans.PropertyChangeListener;
 import java.io.*;
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.MessageFormat;
@@ -389,25 +386,12 @@ public final class App extends JFrame implements RadiusControl,
         this.dimension = dimension;
         if (dimension != null) {
             setTitle("WorldPainter - " + world.getName() + " - " + dimension.getName()); // NOI18N
-            switch (dimension.getDim()) {
-                case DIM_NORMAL:
-                    viewSurfaceMenuItem.setSelected(true);
-                    viewNetherMenuItem.setSelected(false);
-                    viewEndMenuItem.setSelected(false);
-                    break;
-                case DIM_NETHER:
-                    viewSurfaceMenuItem.setSelected(false);
-                    viewNetherMenuItem.setSelected(true);
-                    viewEndMenuItem.setSelected(false);
-                    break;
-                case DIM_END:
-                    viewSurfaceMenuItem.setSelected(false);
-                    viewNetherMenuItem.setSelected(false);
-                    viewEndMenuItem.setSelected(true);
-                    break;
-                default:
-                    throw new UnsupportedOperationException();
-            }
+            viewSurfaceMenuItem.setSelected(dimension.getDim() == DIM_NORMAL);
+            viewSurfaceCeilingMenuItem.setSelected(dimension.getDim() == DIM_NORMAL_CEILING);
+            viewNetherMenuItem.setSelected(dimension.getDim() == DIM_NETHER);
+            viewNetherCeilingMenuItem.setSelected(dimension.getDim() == DIM_NETHER_CEILING);
+            viewEndMenuItem.setSelected(dimension.getDim() == DIM_END);
+            viewEndCeilingMenuItem.setSelected(dimension.getDim() == DIM_END_CEILING);
 
             // Legacy: if this is an older world with an overlay enabled, ask
             // the user if we should fix the coordinates (ask because they might
@@ -1251,7 +1235,7 @@ public final class App extends JFrame implements RadiusControl,
                     return true;
                 }
                 String name = pathname.getName();
-                for (String extension: extensions) {
+                for (String extension : extensions) {
                     if (name.toLowerCase().endsWith(extension)) {
                         return true;
                     }
@@ -3089,7 +3073,25 @@ public final class App extends JFrame implements RadiusControl,
         menuItem = new JMenuItem(ACTION_EDIT_TILES);
         menuItem.setMnemonic('t');
         menu.add(menuItem);
-        
+
+        addSurfaceCeilingMenuItem = new JMenuItem("Add Ceiling to Surface...");
+        addSurfaceCeilingMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                addSurfaceCeiling();
+            }
+        });
+        menu.add(addSurfaceCeilingMenuItem);
+
+        removeSurfaceCeilingMenuItem = new JMenuItem("Remove Ceiling from Surface...");
+        removeSurfaceCeilingMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                removeSurfaceCeiling();
+            }
+        });
+        menu.add(removeSurfaceCeilingMenuItem);
+
         addNetherMenuItem = new JMenuItem(strings.getString("add.nether") + "...");
         addNetherMenuItem.addActionListener(new ActionListener() {
             @Override
@@ -3109,6 +3111,24 @@ public final class App extends JFrame implements RadiusControl,
         });
         menu.add(removeNetherMenuItem);
 
+        addNetherCeilingMenuItem = new JMenuItem("Add Ceiling to Nether...");
+        addNetherCeilingMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                addNetherCeiling();
+            }
+        });
+        menu.add(addNetherCeilingMenuItem);
+
+        removeNetherCeilingMenuItem = new JMenuItem("Remove Ceiling from Nether...");
+        removeNetherCeilingMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                removeNetherCeiling();
+            }
+        });
+        menu.add(removeNetherCeilingMenuItem);
+
         addEndMenuItem = new JMenuItem(strings.getString("add.end") + "...");
         addEndMenuItem.addActionListener(new ActionListener() {
             @Override
@@ -3127,6 +3147,24 @@ public final class App extends JFrame implements RadiusControl,
             }
         });
         menu.add(removeEndMenuItem);
+
+        addEndCeilingMenuItem = new JMenuItem("Add Ceiling to End...");
+        addEndCeilingMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                addEndCeiling();
+            }
+        });
+        menu.add(addEndCeilingMenuItem);
+
+        removeEndCeilingMenuItem = new JMenuItem("Remove Ceiling from End...");
+        removeEndCeilingMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                removeEndCeiling();
+            }
+        });
+        menu.add(removeEndCeilingMenuItem);
 
         menu.addSeparator();
 
@@ -3218,6 +3256,16 @@ public final class App extends JFrame implements RadiusControl,
         viewSurfaceMenuItem.setEnabled(false);
         menu.add(viewSurfaceMenuItem);
 
+        viewSurfaceCeilingMenuItem = new JCheckBoxMenuItem("View Surface Ceiling", false);
+        viewSurfaceCeilingMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                viewDimension(DIM_NORMAL_CEILING);
+            }
+        });
+        viewSurfaceCeilingMenuItem.setEnabled(false);
+        menu.add(viewSurfaceCeilingMenuItem);
+
         viewNetherMenuItem = new JCheckBoxMenuItem(strings.getString("view.nether"), false);
         viewNetherMenuItem.addActionListener(new ActionListener() {
             @Override
@@ -3229,7 +3277,17 @@ public final class App extends JFrame implements RadiusControl,
         viewNetherMenuItem.setAccelerator(KeyStroke.getKeyStroke(VK_H, PLATFORM_COMMAND_MASK));
         viewNetherMenuItem.setEnabled(false);
         menu.add(viewNetherMenuItem);
-        
+
+        viewNetherCeilingMenuItem = new JCheckBoxMenuItem("View Nether Ceiling", false);
+        viewNetherCeilingMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                viewDimension(DIM_NETHER_CEILING);
+            }
+        });
+        viewNetherCeilingMenuItem.setEnabled(false);
+        menu.add(viewNetherCeilingMenuItem);
+
         viewEndMenuItem = new JCheckBoxMenuItem(strings.getString("view.end"), false);
         viewEndMenuItem.addActionListener(new ActionListener() {
             @Override
@@ -3241,7 +3299,17 @@ public final class App extends JFrame implements RadiusControl,
         viewEndMenuItem.setAccelerator(KeyStroke.getKeyStroke(VK_D, PLATFORM_COMMAND_MASK));
         viewEndMenuItem.setEnabled(false);
         menu.add(viewEndMenuItem);
-        
+
+        viewEndCeilingMenuItem = new JCheckBoxMenuItem("View End Ceiling", false);
+        viewEndCeilingMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                viewDimension(DIM_END_CEILING);
+            }
+        });
+        viewEndCeilingMenuItem.setEnabled(false);
+        menu.add(viewEndCeilingMenuItem);
+
         menu.addSeparator();
         
         JMenu colourSchemeMenu = new JMenu(strings.getString("change.colour.scheme"));
@@ -3510,6 +3578,123 @@ public final class App extends JFrame implements RadiusControl,
         return menuBar;
     }
 
+    private void addSurfaceCeiling() {
+        final NewWorldDialog dialog = new NewWorldDialog(this, world.getName(), dimension.getSeed() + 1, DIM_NORMAL_CEILING, world.getMaxHeight(), world.getDimension(DIM_NORMAL).getTileCoords());
+        dialog.setVisible(true);
+        if (! dialog.isCancelled()) {
+            if (! dialog.checkMemoryRequirements(this)) {
+                return;
+            }
+            Dimension surfaceCeiling = ProgressDialog.executeTask(this, new ProgressTask<Dimension>() {
+                @Override
+                public String getName() {
+                    return "Creating Surface Ceiling";
+                }
+
+                @Override
+                public Dimension execute(ProgressReceiver progressReceiver) throws OperationCancelled {
+                    return dialog.getSelectedDimension(progressReceiver);
+                }
+            });
+            if (surfaceCeiling == null) {
+                // Cancelled by user
+                return;
+            }
+            world.addDimension(surfaceCeiling);
+            setDimension(surfaceCeiling);
+            setDimensionControlStates();
+        }
+    }
+
+    private void removeSurfaceCeiling() {
+        if (JOptionPane.showConfirmDialog(this, "Are you sure you want to completely remove the Surface ceiling?\nThis action cannot be undone!", "Confirm Surface Ceiling Deletion", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+            if ((dimension != null) && (dimension.getDim() == DIM_NORMAL_CEILING)) {
+                viewDimension(DIM_NORMAL);
+            }
+            world.removeDimension(DIM_NORMAL_CEILING);
+            setDimensionControlStates();
+            JOptionPane.showMessageDialog(this, "The Surface ceiling was successfully deleted", "Success", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    private void addNetherCeiling() {
+        final NewWorldDialog dialog = new NewWorldDialog(this, world.getName(), dimension.getSeed() + 1, DIM_NETHER_CEILING, world.getMaxHeight(), world.getDimension(DIM_NETHER).getTileCoords());
+        dialog.setVisible(true);
+        if (! dialog.isCancelled()) {
+            if (! dialog.checkMemoryRequirements(this)) {
+                return;
+            }
+            Dimension netherCeiling = ProgressDialog.executeTask(this, new ProgressTask<Dimension>() {
+                @Override
+                public String getName() {
+                    return "Creating Nether Ceiling";
+                }
+
+                @Override
+                public Dimension execute(ProgressReceiver progressReceiver) throws OperationCancelled {
+                    return dialog.getSelectedDimension(progressReceiver);
+                }
+            });
+            if (netherCeiling == null) {
+                // Cancelled by user
+                return;
+            }
+            world.addDimension(netherCeiling);
+            setDimension(netherCeiling);
+            setDimensionControlStates();
+        }
+    }
+
+    private void removeNetherCeiling() {
+        if (JOptionPane.showConfirmDialog(this, "Are you sure you want to completely remove the Nether ceiling?\nThis action cannot be undone!", "Confirm Nether Ceiling Deletion", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+            if ((dimension != null) && (dimension.getDim() == DIM_NETHER_CEILING)) {
+                viewDimension(DIM_NETHER);
+            }
+            world.removeDimension(DIM_NETHER_CEILING);
+            setDimensionControlStates();
+            JOptionPane.showMessageDialog(this, "The Nether ceiling was successfully deleted", "Success", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    private void addEndCeiling() {
+        final NewWorldDialog dialog = new NewWorldDialog(this, world.getName(), dimension.getSeed() + 1, DIM_END_CEILING, world.getMaxHeight(), world.getDimension(DIM_END).getTileCoords());
+        dialog.setVisible(true);
+        if (! dialog.isCancelled()) {
+            if (! dialog.checkMemoryRequirements(this)) {
+                return;
+            }
+            Dimension endCeiling = ProgressDialog.executeTask(this, new ProgressTask<Dimension>() {
+                @Override
+                public String getName() {
+                    return "Creating End Ceiling";
+                }
+
+                @Override
+                public Dimension execute(ProgressReceiver progressReceiver) throws OperationCancelled {
+                    return dialog.getSelectedDimension(progressReceiver);
+                }
+            });
+            if (endCeiling == null) {
+                // Cancelled by user
+                return;
+            }
+            world.addDimension(endCeiling);
+            setDimension(endCeiling);
+            setDimensionControlStates();
+        }
+    }
+
+    private void removeEndCeiling() {
+        if (JOptionPane.showConfirmDialog(this, "Are you sure you want to completely remove the End ceiling?\nThis action cannot be undone!", "Confirm End Ceiling Deletion", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+            if ((dimension != null) && (dimension.getDim() == DIM_END_CEILING)) {
+                viewDimension(DIM_END);
+            }
+            world.removeDimension(DIM_END_CEILING);
+            setDimensionControlStates();
+            JOptionPane.showMessageDialog(this, "The End ceiling was successfully deleted", "Success", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
 //    private void importMapIntoWorld() {
 //        JFileChooser fileChooser = new JFileChooser(Configuration.getInstance().getExportDirectory());
 //        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -3693,7 +3878,7 @@ public final class App extends JFrame implements RadiusControl,
             Dimension end = ProgressDialog.executeTask(this, new ProgressTask<Dimension>() {
                 @Override
                 public String getName() {
-                    return "Creating Nether";
+                    return "Creating End";
                 }
 
                 @Override
@@ -3712,7 +3897,7 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void removeEnd() {
-        if (JOptionPane.showConfirmDialog(this, "Are you sure you want to completely remove the End dimension?\nThis action cannot be undone!", "Confirm Nether Deletion", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+        if (JOptionPane.showConfirmDialog(this, "Are you sure you want to completely remove the End dimension?\nThis action cannot be undone!", "Confirm End Deletion", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
             if ((dimension != null) && (dimension.getDim() == DIM_END)) {
                 viewDimension(DIM_NORMAL);
             }
@@ -4166,29 +4351,38 @@ public final class App extends JFrame implements RadiusControl,
         boolean imported = (world != null) && (world.getImportedFrom() != null);
         boolean nether = (world != null) && (world.getDimension(DIM_NETHER) != null);
         boolean end = (world != null) && (world.getDimension(DIM_END) != null);
+        boolean surfaceCeiling = (world != null) && (world.getDimension(DIM_NORMAL_CEILING) != null);
+        boolean netherCeiling = (world != null) && (world.getDimension(DIM_NETHER_CEILING) != null);
+        boolean endCeiling = (world != null) && (world.getDimension(DIM_END_CEILING) != null);
         addNetherMenuItem.setEnabled((! imported) && (! nether));
-        removeNetherMenuItem.setEnabled((! imported) && nether);
+        removeNetherMenuItem.setEnabled(nether);
         addEndMenuItem.setEnabled((! imported) && (! end));
-        removeEndMenuItem.setEnabled((! imported) && end);
-        viewSurfaceMenuItem.setEnabled(nether || end);
+        removeEndMenuItem.setEnabled(end);
+        viewSurfaceMenuItem.setEnabled(nether || end || surfaceCeiling);
+        viewSurfaceCeilingMenuItem.setEnabled(surfaceCeiling);
         viewNetherMenuItem.setEnabled(nether);
+        viewNetherCeilingMenuItem.setEnabled(netherCeiling);
         viewEndMenuItem.setEnabled(end);
+        viewEndCeilingMenuItem.setEnabled(endCeiling);
+        addSurfaceCeilingMenuItem.setEnabled((! imported) && (! surfaceCeiling));
+        removeSurfaceCeilingMenuItem.setEnabled(surfaceCeiling);
+        addNetherCeilingMenuItem.setEnabled(nether && (! netherCeiling));
+        removeNetherCeilingMenuItem.setEnabled(netherCeiling);
+        addEndCeilingMenuItem.setEnabled(end && (! endCeiling));
+        removeEndCeilingMenuItem.setEnabled(endCeiling);
         if (dimension != null) {
             switch (dimension.getDim()) {
                 case DIM_NORMAL:
                     setSpawnPointToggleButton.setEnabled(true);
                     ACTION_MOVE_TO_SPAWN.setEnabled(true);
                     break;
-                case DIM_NETHER:
-                case DIM_END:
+                default:
                     if (activeOperation instanceof SetSpawnPoint) {
                         toolButtonGroup.clearSelection();
                     }
                     setSpawnPointToggleButton.setEnabled(false);
                     ACTION_MOVE_TO_SPAWN.setEnabled(false);
                     break;
-                default:
-                    throw new UnsupportedOperationException();
             }
         }
     }
@@ -4270,78 +4464,29 @@ public final class App extends JFrame implements RadiusControl,
     }
     
     private void installMacCustomisations() {
-        try {
-            Class<?> applicationClass = Class.forName("com.apple.eawt.Application");
-            Method getApplicationMethod = applicationClass.getMethod("getApplication");
-            Object application = getApplicationMethod.invoke(null);
-            try {
-                Class<?> quitHandlerClass = Class.forName("com.apple.eawt.QuitHandler");
-                Class<?> quitResponseClass = Class.forName("com.apple.eawt.QuitResponse");
-                final Method cancelQuitMethod = quitResponseClass.getMethod("cancelQuit");
-                Object quitHandlerProxy = Proxy.newProxyInstance(ClassLoader.getSystemClassLoader(), new Class<?>[] {quitHandlerClass}, new InvocationHandler() {
-                    @Override
-                    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                        // QuitHandler has only one method, so no need to check
-                        // the method or arguments
-                        exit();
-                        // If we get here the user cancelled closing the program
-                        cancelQuitMethod.invoke(args[1]);
-                        return null;
-                    }
-                });
-                Method setQuitHandlerMethod = applicationClass.getMethod("setQuitHandler", quitHandlerClass);
-                setQuitHandlerMethod.invoke(application, quitHandlerProxy);
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-                // No quit handler support. Oh well...
+        MacUtils.installQuitHandler(new MacUtils.QuitHandler() {
+            @Override
+            public boolean quitRequested() {
+                exit();
+                // If we get here the user cancelled closing the program
+                return false;
             }
-            try {
-                Class<?> aboutHandlerClass = Class.forName("com.apple.eawt.AboutHandler");
-                Object aboutHandlerProxy = Proxy.newProxyInstance(ClassLoader.getSystemClassLoader(), new Class<?>[] {aboutHandlerClass}, new InvocationHandler() {
-                    @Override
-                    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                        AboutDialog dialog = new AboutDialog(App.this, world, view, undoManager);
-                        dialog.setVisible(true);
-                        return null;
-                    }
-                });
-                Method setAboutHandlerMethod = applicationClass.getMethod("setAboutHandler", aboutHandlerClass);
-                setAboutHandlerMethod.invoke(application, aboutHandlerProxy);
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-                // No about handler support. Oh well...
+        });
+        MacUtils.installAboutHandler(new MacUtils.AboutHandler() {
+            @Override
+            public void aboutRequested() {
+                AboutDialog dialog = new AboutDialog(App.this, world, view, undoManager);
+                dialog.setVisible(true);
             }
-            try {
-                Class<?> openFilesHandlerClass = Class.forName("com.apple.eawt.OpenFilesHandler");
-                Class<?> openFilesEventClass = Class.forName("com.apple.eawt.AppEvent$OpenFilesEvent");
-                final Method getFilesMethod = openFilesEventClass.getMethod("getFiles");
-                Object openFilesHandlerProxy = Proxy.newProxyInstance(ClassLoader.getSystemClassLoader(), new Class<?>[] {openFilesHandlerClass}, new InvocationHandler() {
-                    @Override
-                    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                        @SuppressWarnings("unchecked") // Guaranteed by Apple/Java
-                        List<File> files = (List<File>) getFilesMethod.invoke(args[0]);
-                        if (files.size() > 0) {
-                            open(files.get(0), true);
-                        }
-                        return null;
-                    }
-                });
-                Method setOpenFilesHandlerMethod = applicationClass.getMethod("setOpenFileHandler", openFilesHandlerClass);
-                setOpenFilesHandlerMethod.invoke(application, openFilesHandlerProxy);
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-                // No open files handler support. Oh well...
+        });
+        MacUtils.installOpenFilesHandler(new MacUtils.OpenFilesHandler() {
+            @Override
+            public void filesOpened(List<File> files) {
+                if (files.size() > 0) {
+                    open(files.get(0), true);
+                }
             }
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            // This means we're not on a Mac, so just ignore it
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        } catch (InvocationTargetException e) {
-            throw new RuntimeException(e);
-        }
+        });
     }
     
     private void showGlobalOperations() {
@@ -5449,8 +5594,8 @@ public final class App extends JFrame implements RadiusControl,
     private GlassPane glassPane;
     private JCheckBox readOnlyCheckBox, biomesCheckBox, annotationsCheckBox, readOnlySoloCheckBox, biomesSoloCheckBox, annotationsSoloCheckBox;
     private JToggleButton readOnlyToggleButton, biomesToggleButton, annotationsToggleButton, setSpawnPointToggleButton;
-    private JMenuItem addNetherMenuItem, removeNetherMenuItem, addEndMenuItem, removeEndMenuItem;
-    private JCheckBoxMenuItem viewSurfaceMenuItem, viewNetherMenuItem, viewEndMenuItem, extendedBlockIdsMenuItem;
+    private JMenuItem addNetherMenuItem, removeNetherMenuItem, addEndMenuItem, removeEndMenuItem, addSurfaceCeilingMenuItem, removeSurfaceCeilingMenuItem, addNetherCeilingMenuItem, removeNetherCeilingMenuItem, addEndCeilingMenuItem, removeEndCeilingMenuItem;
+    private JCheckBoxMenuItem viewSurfaceMenuItem, viewNetherMenuItem, viewEndMenuItem, extendedBlockIdsMenuItem, viewSurfaceCeilingMenuItem, viewNetherCeilingMenuItem, viewEndCeilingMenuItem;
     private final JToggleButton[] customMaterialButtons = new JToggleButton[Terrain.CUSTOM_TERRAIN_COUNT];
     private final ColourScheme[] colourSchemes;
     private ColourScheme selectedColourScheme;

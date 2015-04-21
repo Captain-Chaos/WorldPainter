@@ -38,7 +38,6 @@ public class UndergroundPocketsLayer extends CustomLayer {
         this.minLevel = minLevel;
         this.maxLevel = maxLevel;
         this.scale = scale;
-        exporter = new UndergroundPocketsLayerExporter(this);
     }
 
     @Override
@@ -97,13 +96,12 @@ public class UndergroundPocketsLayer extends CustomLayer {
 
     @Override
     public LayerExporter<? extends Layer> getExporter() {
-        return exporter;
+        return new UndergroundPocketsLayerExporter(this);
     }
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-        exporter = new UndergroundPocketsLayerExporter(this);
-        
+
         // Legacy
         if (material != null) {
             mixedMaterial = MixedMaterial.create(material);
@@ -115,7 +113,6 @@ public class UndergroundPocketsLayer extends CustomLayer {
     private int scale, frequency, maxLevel, minLevel;
     private MixedMaterial mixedMaterial;
     private Terrain terrain;
-    private transient UndergroundPocketsLayerExporter exporter;
-    
+
     private static final long serialVersionUID = 1L;
 }

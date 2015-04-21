@@ -121,7 +121,22 @@ public class MappingOp extends AbstractOperation<Void> {
         this.dimIndex = DIM_END;
         return this;
     }
-    
+
+    public MappingOp applyToSurfaceCeiling() {
+        this.dimIndex = DIM_NORMAL_CEILING;
+        return this;
+    }
+
+    public MappingOp applyToNetherCeiling() {
+        this.dimIndex = DIM_NETHER_CEILING;
+        return this;
+    }
+
+    public MappingOp applyToEndCeiling() {
+        this.dimIndex = DIM_END_CEILING;
+        return this;
+    }
+
     public MappingOp fromLevel(int level) throws ScriptException {
         if (! colourMapping.isEmpty()) {
             throw new ScriptException("Cannot mix grey scale and colour mapping");

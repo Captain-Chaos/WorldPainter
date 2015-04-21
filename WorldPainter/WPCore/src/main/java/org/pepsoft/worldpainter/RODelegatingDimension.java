@@ -600,6 +600,11 @@ public class RODelegatingDimension extends Dimension {
     }
 
     @Override
+    public Set<Point> getTileCoords() {
+        return dimension.getTileCoords();
+    }
+
+    @Override
     public int getWidth() {
         return dimension.getWidth();
     }

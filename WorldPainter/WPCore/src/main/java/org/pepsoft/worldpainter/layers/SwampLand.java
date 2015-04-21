@@ -19,12 +19,11 @@ import org.pepsoft.worldpainter.layers.trees.TreeType;
 public class SwampLand extends TreeLayer<SwampLand> {
     private SwampLand() {
         super("Swamp", "swamp land", 42, 'w');
-        exporter = new SwampLandExporter(this);
     }
 
     @Override
     public SwampLandExporter getExporter() {
-        return exporter;
+        return new SwampLandExporter(this);
     }
     
     @Override
@@ -54,10 +53,7 @@ public class SwampLand extends TreeLayer<SwampLand> {
     
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-        exporter = new SwampLandExporter(this);
     }
-    
-    private transient SwampLandExporter exporter;
     
     public static final SwampLand INSTANCE = new SwampLand();
     

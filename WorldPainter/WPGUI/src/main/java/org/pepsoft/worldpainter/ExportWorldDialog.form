@@ -52,7 +52,7 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="buttonCancel" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <Component id="jTabbedPane1" alignment="0" max="32767" attributes="0"/>
+                  <Component id="jTabbedPane1" alignment="0" pref="703" max="32767" attributes="0"/>
                   <Group type="102" attributes="0">
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="jLabel2" alignment="0" min="-2" max="-2" attributes="0"/>
@@ -185,6 +185,15 @@
             </Constraint>
           </Constraints>
         </Component>
+        <Component class="org.pepsoft.worldpainter.DimensionPropertiesEditor" name="surfaceCeilingPropertiesEditor">
+          <Constraints>
+            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
+              <JTabbedPaneConstraints tabName="Surface Ceiling">
+                <Property name="tabTitle" type="java.lang.String" value="Surface Ceiling"/>
+              </JTabbedPaneConstraints>
+            </Constraint>
+          </Constraints>
+        </Component>
         <Component class="org.pepsoft.worldpainter.DimensionPropertiesEditor" name="netherPropertiesEditor">
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
@@ -194,11 +203,29 @@
             </Constraint>
           </Constraints>
         </Component>
+        <Component class="org.pepsoft.worldpainter.DimensionPropertiesEditor" name="netherCeilingPropertiesEditor">
+          <Constraints>
+            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
+              <JTabbedPaneConstraints tabName="Nether Ceiling">
+                <Property name="tabTitle" type="java.lang.String" value="Nether Ceiling"/>
+              </JTabbedPaneConstraints>
+            </Constraint>
+          </Constraints>
+        </Component>
         <Component class="org.pepsoft.worldpainter.DimensionPropertiesEditor" name="endPropertiesEditor">
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
               <JTabbedPaneConstraints tabName="End">
                 <Property name="tabTitle" type="java.lang.String" value="End"/>
+              </JTabbedPaneConstraints>
+            </Constraint>
+          </Constraints>
+        </Component>
+        <Component class="org.pepsoft.worldpainter.DimensionPropertiesEditor" name="endCeilingPropertiesEditor">
+          <Constraints>
+            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
+              <JTabbedPaneConstraints tabName="End Ceiling">
+                <Property name="tabTitle" type="java.lang.String" value="End Ceiling"/>
               </JTabbedPaneConstraints>
             </Constraint>
           </Constraints>

@@ -270,7 +270,8 @@ public final class Constants {
     public static final int BLK_DAYLIGHT_SENSOR_INVERTED = 178;
     public static final int BLK_RED_SANDSTONE            = 179;
     public static final int BLK_RED_SANDSTONE_STAIRS     = 180;
-    
+
+    public static final int BLK_RED_SANDSTONE_SLAB       = 182;
     public static final int BLK_PINE_WOOD_FENCE_GATE     = 183;
     public static final int BLK_BIRCH_WOOD_FENCE_GATE    = 184;
     public static final int BLK_JUNGLE_WOOD_FENCE_GATE   = 185;

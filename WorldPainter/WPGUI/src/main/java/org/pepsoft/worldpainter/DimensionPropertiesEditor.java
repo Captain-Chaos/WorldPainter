@@ -479,7 +479,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         List<Terrain> materialList = new ArrayList<Terrain>(Arrays.asList(Terrain.VALUES));
         for (Iterator<Terrain> i = materialList.iterator(); i.hasNext(); ) {
             Terrain terrain = i.next();
-            if ((terrain.isCustom() && (! terrain.isConfigured())) || (terrain == Terrain.GRASS) || (terrain == Terrain.DESERT)) {
+            if ((terrain.isCustom() && (! terrain.isConfigured())) || (terrain == Terrain.GRASS) || (terrain == Terrain.DESERT) || (terrain == Terrain.RED_DESERT)) {
                 i.remove();
             }
         }

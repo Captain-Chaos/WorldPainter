@@ -38,11 +38,14 @@ public final class Constants {
     public static final float TINY_BLOBS     =    4.099f;
     
     public static final int UNKNOWN_MATERIAL_COLOUR = 0xFF00FF;
-    
-    public static final int DIM_NORMAL = 0;
-    public static final int DIM_NETHER = 1;
-    public static final int DIM_END  = 2;
-    
+
+    public static final int DIM_END_CEILING    = -3;
+    public static final int DIM_NETHER_CEILING = -2;
+    public static final int DIM_NORMAL_CEILING = -1;
+    public static final int DIM_NORMAL         =  0;
+    public static final int DIM_NETHER         =  1;
+    public static final int DIM_END            =  2;
+
     public static final AttributeKeyVO<Integer> ATTRIBUTE_KEY_MAX_HEIGHT = new AttributeKeyVO<Integer>("maxHeight");
     public static final AttributeKeyVO<Integer> ATTRIBUTE_KEY_VERSION = new AttributeKeyVO<Integer>("version");
     public static final AttributeKeyVO<Boolean> ATTRIBUTE_KEY_MAP_FEATURES = new AttributeKeyVO<Boolean>("mapFeatures");

@@ -22,7 +22,6 @@ public class GroundCoverLayer extends CustomLayer {
     public GroundCoverLayer(String name, MixedMaterial material, int colour) {
         super(name, "a 1 block layer of " + name + " on top of the terrain", DataSize.BIT, 30, colour);
         mixedMaterial = material;
-        exporter = new GroundCoverLayerExporter(this);
     }
 
     @Override
@@ -85,7 +84,7 @@ public class GroundCoverLayer extends CustomLayer {
 
     @Override
     public LayerExporter<GroundCoverLayer> getExporter() {
-        return exporter;
+        return new GroundCoverLayerExporter(this);
     }
 
     // Comparable
@@ -104,7 +103,6 @@ public class GroundCoverLayer extends CustomLayer {
     
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-        exporter = new GroundCoverLayerExporter(this);
 
         // Legacy support
         if (colour != 0) {
@@ -138,7 +136,6 @@ public class GroundCoverLayer extends CustomLayer {
     private EdgeShape edgeShape = EdgeShape.SHEER;
     private NoiseSettings noiseSettings;
     private boolean smooth;
-    private transient GroundCoverLayerExporter exporter;
 
     private static final long serialVersionUID = 1L;
     

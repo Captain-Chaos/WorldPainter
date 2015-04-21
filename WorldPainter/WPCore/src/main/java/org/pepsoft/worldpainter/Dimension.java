@@ -78,6 +78,12 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
 
     public String getName() {
         switch (dim) {
+            case -3:
+                return "End Ceiling";
+            case -2:
+                return "Nether Ceiling";
+            case -1:
+                return "Surface Ceiling";
             case 0:
                 return "Surface";
             case 1:
@@ -292,6 +298,10 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     
     public Collection<? extends Tile> getTiles() {
         return Collections.unmodifiableCollection(tiles.values());
+    }
+
+    public Set<Point> getTileCoords() {
+        return Collections.unmodifiableSet(tiles.keySet());
     }
 
     public synchronized void addTile(Tile tile) {

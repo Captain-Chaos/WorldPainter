@@ -45,6 +45,10 @@ public class ExportTileSelectionDialog extends javax.swing.JDialog implements Wi
         
         List<Integer> dimensions = new ArrayList<Integer>();
         for (Dimension dimension: world.getDimensions()) {
+            if (dimension.getDim() < 0) {
+                // Ceiling dimensions shouldn't be separately selectable
+                continue;
+            }
             dimensions.add(dimension.getDim());
         }
         jComboBox1.setModel(new DefaultComboBoxModel(dimensions.toArray()));

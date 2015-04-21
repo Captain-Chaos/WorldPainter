@@ -5,6 +5,7 @@
 
 package org.pepsoft.worldpainter.exporting;
 
+import org.jetbrains.annotations.NotNull;
 import org.pepsoft.minecraft.*;
 import org.pepsoft.util.*;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
@@ -118,6 +119,11 @@ public class WorldExporter {
         if (selectedDimension == -1) {
             boolean first = true;
             for (Dimension dimension: world.getDimensions()) {
+                if (dimension.getDim() < 0) {
+                    // This dimension will be exported as part of another
+                    // dimension, so skip it
+                    continue;
+                }
                 if (first) {
                     first = false;
                 } else {
@@ -169,7 +175,7 @@ public class WorldExporter {
         return stats;
     }
     
-    protected ExportResults firstPass(MinecraftWorld minecraftWorld, Dimension dimension, Point regionCoords, Map<Point, Tile> tiles, boolean tileSelection, Map<Layer, LayerExporter<Layer>> exporters, ChunkFactory chunkFactory, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled, IOException {
+    protected ExportResults firstPass(MinecraftWorld minecraftWorld, Dimension dimension, Point regionCoords, Map<Point, Tile> tiles, boolean tileSelection, Map<Layer, LayerExporter<Layer>> exporters, ChunkFactory chunkFactory, boolean ceiling, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled, IOException {
         int lowestChunkX = (regionCoords.x << 5) - 1;
         int highestChunkX = (regionCoords.x << 5) + 32;
         int lowestChunkY = (regionCoords.y << 5) - 1;
@@ -182,7 +188,7 @@ public class WorldExporter {
         int chunkNo = 0;
         for (int chunkX = lowestChunkX; chunkX <= highestChunkX; chunkX++) {
             for (int chunkY = lowestChunkY; chunkY <= highestChunkY; chunkY++) {
-                ChunkFactory.ChunkCreationResult chunkCreationResult = getChunk(dimension, chunkFactory, tiles, chunkX, chunkY, tileSelection, exporters);
+                ChunkFactory.ChunkCreationResult chunkCreationResult = createChunk(dimension, chunkFactory, tiles, chunkX, chunkY, tileSelection, exporters);
                 if (chunkCreationResult != null) {
                     if ((chunkX >= lowestRegionChunkX) && (chunkX <= highestRegionChunkX) && (chunkY >= lowestRegionChunkY) && (chunkY <= highestRegionChunkY)) {
                         exportResults.chunksGenerated = true;
@@ -190,7 +196,17 @@ public class WorldExporter {
                         exportResults.stats.surfaceArea += chunkCreationResult.stats.surfaceArea;
                         exportResults.stats.waterArea += chunkCreationResult.stats.waterArea;
                     }
-                    minecraftWorld.addChunk(chunkCreationResult.chunk);
+                    if (ceiling) {
+                        Chunk invertedChunk = new InvertedChunk(chunkCreationResult.chunk);
+                        Chunk existingChunk = minecraftWorld.getChunkForEditing(chunkX, chunkY);
+                        if (existingChunk == null) {
+                            existingChunk = (world.getVersion() == SUPPORTED_VERSION_1) ? new ChunkImpl(chunkX, chunkY, world.getMaxHeight()) : new ChunkImpl2(chunkX, chunkY, world.getMaxHeight());
+                            minecraftWorld.addChunk(existingChunk);
+                        }
+                        mergeChunks(invertedChunk, existingChunk);
+                    } else {
+                        minecraftWorld.addChunk(chunkCreationResult.chunk);
+                    }
                 }
                 chunkNo++;
                 if (progressReceiver != null) {
@@ -199,6 +215,37 @@ public class WorldExporter {
             }
         }
         return exportResults;
+    }
+
+    /**
+     * Merge the non-air blocks from the source chunk into the destination chunk.
+     *
+     * @param source The source chunk.
+     * @param destination The destination chunk.
+     */
+    private void mergeChunks(Chunk source, Chunk destination) {
+        final int maxHeight = source.getMaxHeight();
+        if (maxHeight != destination.getMaxHeight()) {
+            throw new IllegalArgumentException("Different maxHeights");
+        }
+        for (int y = 0; y < maxHeight; y++) {
+            for (int x = 0; x < 16; x++) {
+                for (int z = 0; z < 16; z++) {
+                    int destinationBlock = destination.getBlockType(x, y, z);
+                    if (! BLOCKS[destinationBlock].solid) {
+                        // Insubstantial blocks in the destination are only
+                        // replaced by solid ones; air is replaced by anything
+                        // that's not air
+                        int sourceBlock = source.getBlockType(x, y, z);
+                        if ((destinationBlock == BLK_AIR) ? (sourceBlock != BLK_AIR) : BLOCKS[sourceBlock].solid) {
+                            destination.setMaterial(x, y, z, source.getMaterial(x, y, z));
+                            destination.setBlockLightLevel(x, y, z, source.getBlockLightLevel(x, y, z));
+                            destination.setSkyLightLevel(x, y, z, source.getSkyLightLevel(x, y, z));
+                        }
+                    }
+                }
+            }
+        }
     }
     
     protected List<Fixup> secondPass(List<Layer> secondaryPassLayers, Set<Layer> mandatoryLayers, Dimension dimension, MinecraftWorld minecraftWorld, Map<Layer, LayerExporter<Layer>> exporters, Collection<Tile> tiles, Point regionCoords, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
@@ -455,12 +502,12 @@ public class WorldExporter {
         }
     }
     
-    protected final ExportResults exportRegion(MinecraftWorld minecraftWorld, Dimension dimension, Point regionCoords, boolean tileSelection, Map<Layer, LayerExporter<Layer>> exporters, ChunkFactory chunkFactory, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled, IOException {
+    protected final ExportResults exportRegion(MinecraftWorld minecraftWorld, Dimension dimension, Dimension ceiling, Point regionCoords, boolean tileSelection, Map<Layer, LayerExporter<Layer>> exporters, Map<Layer, LayerExporter<Layer>> ceilingExporters, ChunkFactory chunkFactory, ChunkFactory ceilingChunkFactory, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled, IOException {
         int lowestTileX = (regionCoords.x << 2) - 1;
         int highestTileX = lowestTileX + 5;
         int lowestTileY = (regionCoords.y << 2) - 1;
         int highestTileY = lowestTileY + 5;
-        Map<Point, Tile> tiles = new HashMap<Point, Tile>();
+        Map<Point, Tile> tiles = new HashMap<Point, Tile>(), ceilingTiles = new HashMap<Point, Tile>();
         for (int tileX = lowestTileX; tileX <= highestTileX; tileX++) {
             for (int tileY = lowestTileY; tileY <= highestTileY; tileY++) {
                 Point tileCoords = new Point(tileX, tileY);
@@ -468,19 +515,25 @@ public class WorldExporter {
                 if ((tile != null) && ((! tileSelection) || dimension.getWorld().getTilesToExport().contains(tileCoords))) {
                     tiles.put(tileCoords, tile);
                 }
+                if (ceiling != null) {
+                    tile = ceiling.getTile(tileCoords);
+                    if ((tile != null) && ((! tileSelection) || dimension.getWorld().getTilesToExport().contains(tileCoords))) {
+                        ceilingTiles.put(tileCoords, tile);
+                    }
+                }
             }
         }
-        
-        Set<Layer> allLayers = new HashSet<Layer>();
+
+        Set<Layer> allLayers = new HashSet<Layer>(), allCeilingLayers = new HashSet<Layer>();
         for (Tile tile: tiles.values()) {
             allLayers.addAll(tile.getLayers());
         }
-        
+
         // Add layers that have been configured to be applied everywhere
-        Set<Layer> minimumLayers = dimension.getMinimumLayers();
+        Set<Layer> minimumLayers = dimension.getMinimumLayers(), ceilingMinimumLayers = (ceiling != null) ? ceiling.getMinimumLayers() : null;
         allLayers.addAll(minimumLayers);
-        
-        List<Layer> secondaryPassLayers = new ArrayList<Layer>();
+
+        List<Layer> secondaryPassLayers = new ArrayList<Layer>(), ceilingSecondaryPassLayers = new ArrayList<Layer>();
         for (Layer layer: allLayers) {
             LayerExporter exporter = layer.getExporter();
             if (exporter instanceof SecondPassLayerExporter) {
@@ -489,18 +542,49 @@ public class WorldExporter {
         }
         Collections.sort(secondaryPassLayers);
 
+        // Set up export of ceiling
+        if (ceiling != null) {
+            for (Tile tile: ceilingTiles.values()) {
+                allCeilingLayers.addAll(tile.getLayers());
+            }
+
+            allCeilingLayers.addAll(ceilingMinimumLayers);
+
+            for (Layer layer: allCeilingLayers) {
+                LayerExporter exporter = layer.getExporter();
+                if (exporter instanceof SecondPassLayerExporter) {
+                    ceilingSecondaryPassLayers.add(layer);
+                }
+            }
+            Collections.sort(ceilingSecondaryPassLayers);
+        }
+
         long t1 = System.currentTimeMillis();
         // First pass. Create terrain and apply layers which don't need access
         // to neighbouring chunks
-        ExportResults exportResults = firstPass(minecraftWorld, dimension, regionCoords, tiles, tileSelection, exporters, chunkFactory, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.0f, 0.45f) : null);
+        ExportResults exportResults = firstPass(minecraftWorld, dimension, regionCoords, tiles, tileSelection, exporters, chunkFactory, false, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.0f, ((ceiling != null) ? 0.225f : 0.45f)) : null);
 
-        if (exportResults.chunksGenerated) {
+        ExportResults ceilingExportResults = null;
+        if (ceiling != null) {
+            // First pass for the ceiling. Create terrain and apply layers which
+            // don't need access to neighbouring chunks
+            ceilingExportResults = firstPass(minecraftWorld, ceiling, regionCoords, ceilingTiles, tileSelection, ceilingExporters, ceilingChunkFactory, true, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.225f, 0.225f) : null);
+        }
+
+        if (exportResults.chunksGenerated || ((ceiling != null) && ceilingExportResults.chunksGenerated)) {
             // Second pass. Apply layers which need information from or apply
             // changes to neighbouring chunks
             long t2 = System.currentTimeMillis();
-            List<Fixup> myFixups = secondPass(secondaryPassLayers, minimumLayers, dimension, minecraftWorld, exporters, tiles.values(), regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.45f, 0.1f) : null);
+            List<Fixup> myFixups = secondPass(secondaryPassLayers, minimumLayers, dimension, minecraftWorld, exporters, tiles.values(), regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.45f, (ceiling != null) ? 0.05f : 0.1f) : null);
             if ((myFixups != null) && (! myFixups.isEmpty())) {
                 exportResults.fixups = myFixups;
+            }
+
+            if (ceiling != null) {
+                // Second pass for ceiling. Apply layers which need information
+                // from or apply changes to neighbouring chunks. Fixups are not
+                // supported for the ceiling for now. TODO: implement
+                secondPass(ceilingSecondaryPassLayers, ceilingMinimumLayers, ceiling, new InvertedWorld(minecraftWorld), ceilingExporters, ceilingTiles.values(), regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.4f, 0.05f) : null);
             }
 
             // Post processing. Fix covered grass blocks, things like that
@@ -541,7 +625,7 @@ public class WorldExporter {
         }
     }
     
-    private ChunkFactory.ChunkCreationResult getChunk(Dimension dimension, ChunkFactory chunkFactory, Map<Point, Tile> tiles, int chunkX, int chunkY, boolean tileSelection, Map<Layer, LayerExporter<Layer>> exporters) {
+    private ChunkFactory.ChunkCreationResult createChunk(Dimension dimension, ChunkFactory chunkFactory, Map<Point, Tile> tiles, int chunkX, int chunkY, boolean tileSelection, Map<Layer, LayerExporter<Layer>> exporters) {
         final int tileX = chunkX >> 3;
         final int tileY = chunkY >> 3;
         final Point tileCoords = new Point(tileX, tileY);
@@ -616,17 +700,21 @@ public class WorldExporter {
         }
         
         long start = System.currentTimeMillis();
-        
+
         final File dimensionDir;
+        final Dimension ceiling;
         switch (dimension.getDim()) {
-            case org.pepsoft.worldpainter.Constants.DIM_NORMAL:
+            case DIM_NORMAL:
                 dimensionDir = worldDir;
+                ceiling = dimension.getWorld().getDimension(DIM_NORMAL_CEILING);
                 break;
-            case org.pepsoft.worldpainter.Constants.DIM_NETHER:
+            case DIM_NETHER:
                 dimensionDir = new File(worldDir, "DIM-1");
+                ceiling = dimension.getWorld().getDimension(DIM_NETHER_CEILING);
                 break;
-            case org.pepsoft.worldpainter.Constants.DIM_END:
+            case DIM_END:
                 dimensionDir = new File(worldDir, "DIM1");
+                ceiling = dimension.getWorld().getDimension(DIM_END_CEILING);
                 break;
             default:
                 throw new IllegalArgumentException("Dimension " + dimension.getDim() + " not supported");
@@ -639,44 +727,15 @@ public class WorldExporter {
         }
 
         final ChunkFactory.Stats collectedStats = new ChunkFactory.Stats();
-        boolean wasDirty = dimension.isDirty();
+        boolean wasDirty = dimension.isDirty(), ceilingWasDirty = (ceiling != null) && ceiling.isDirty();
         dimension.rememberChanges();
+        if (ceiling != null) {
+            ceiling.rememberChanges();
+        }
         try {
-        
-            // Gather all layers used on the map
-            final Map<Layer, LayerExporter<Layer>> exporters = new HashMap<Layer, LayerExporter<Layer>>();
-            Set<Layer> allLayers = dimension.getAllLayers(false);
-            allLayers.addAll(dimension.getMinimumLayers());
-            // If there are combined layers, apply them and gather any newly
-            // added layers, recursively
-            boolean done;
-            do {
-                done = true;
-                for (Layer layer: new HashSet<Layer>(allLayers)) {
-                    if (layer instanceof CombinedLayer) {
-                        // Apply the combined layer
-                        Set<Layer> addedLayers = ((CombinedLayer) layer).apply(dimension);
-                        // Remove the combined layer from the list
-                        allLayers.remove(layer);
-                        // Add any layers it might have added
-                        allLayers.addAll(addedLayers);
-                        // Signal that we have to go around at least once more,
-                        // in case any of the newly added layers are themselves
-                        // combined layers
-                        done = false;
-                    }
-                }
-            } while (! done);
 
-            // Load all layer settings into the exporters
-            for (Layer layer: allLayers) {
-                @SuppressWarnings("unchecked")
-                LayerExporter<Layer> exporter = (LayerExporter<Layer>) layer.getExporter();
-                if (exporter != null) {
-                    exporter.setSettings(dimension.getLayerSettings(layer));
-                    exporters.put(layer, exporter);
-                }
-            }
+            final Map<Layer, LayerExporter<Layer>> exporters = setupDimensionForExport(dimension);
+            final Map<Layer, LayerExporter<Layer>> ceilingExporters = (ceiling != null) ? setupDimensionForExport(ceiling) : null;
 
             // Determine regions to export
             int lowestRegionX = Integer.MAX_VALUE, highestRegionX = Integer.MIN_VALUE, lowestRegionZ = Integer.MAX_VALUE, highestRegionZ = Integer.MIN_VALUE;
@@ -727,6 +786,25 @@ public class WorldExporter {
                         }
                     }
                 }
+                if (ceiling != null) {
+                    for (Tile tile: ceiling.getTiles()) {
+                        int regionX = tile.getX() >> 2;
+                        int regionZ = tile.getY() >> 2;
+                        regions.add(new Point(regionX, regionZ));
+                        if (regionX < lowestRegionX) {
+                            lowestRegionX = regionX;
+                        }
+                        if (regionX > highestRegionX) {
+                            highestRegionX = regionX;
+                        }
+                        if (regionZ < lowestRegionZ) {
+                            lowestRegionZ = regionZ;
+                        }
+                        if (regionZ > highestRegionZ) {
+                            highestRegionZ = regionZ;
+                        }
+                    }
+                }
             }
 
             // Sort the regions to export the first two rows together, and then
@@ -755,6 +833,7 @@ public class WorldExporter {
             }
             
             final WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(dimension, exporters, world.getVersion(), world.getMaxHeight());
+            final WorldPainterChunkFactory ceilingChunkFactory = (ceiling != null) ? new WorldPainterChunkFactory(ceiling, ceilingExporters, world.getVersion(), world.getMaxHeight()) : null;
 
             Runtime runtime = Runtime.getRuntime();
             runtime.gc();
@@ -794,7 +873,7 @@ public class WorldExporter {
                                 WorldRegion minecraftWorld = new WorldRegion(regionCoords.x, regionCoords.y, dimension.getMaxHeight(), version);
                                 ExportResults exportResults = null;
                                 try {
-                                    exportResults = exportRegion(minecraftWorld, dimension, regionCoords, tileSelection, exporters, chunkFactory, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.0f, 0.9f) : null);
+                                    exportResults = exportRegion(minecraftWorld, dimension, ceiling, regionCoords, tileSelection, exporters, ceilingExporters, chunkFactory, ceilingChunkFactory, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.0f, 0.9f) : null);
                                     if (logger.isLoggable(java.util.logging.Level.FINE)) {
                                         logger.fine("Generated region " + regionCoords.x + "," + regionCoords.y);
                                     }
@@ -893,9 +972,61 @@ public class WorldExporter {
             
             // If the dimension wasn't dirty make sure it still isn't
             dimension.setDirty(wasDirty);
+
+            if (ceiling != null) {
+                // Undo any changes we made (such as applying any combined layers)
+                if (ceiling.undoChanges()) {
+                    // TODO: some kind of cleverer undo mechanism (undo history
+                    // cloning?) so we don't mess up the user's redo history
+                    ceiling.clearRedo();
+                    ceiling.armSavePoint();
+                }
+
+                // If the dimension wasn't dirty make sure it still isn't
+                ceiling.setDirty(ceilingWasDirty);
+            }
         }
 
         return collectedStats;
+    }
+
+    @NotNull
+    private Map<Layer, LayerExporter<Layer>> setupDimensionForExport(Dimension dimension) {
+        // Gather all layers used on the map
+        final Map<Layer, LayerExporter<Layer>> exporters = new HashMap<Layer, LayerExporter<Layer>>();
+        Set<Layer> allLayers = dimension.getAllLayers(false);
+        allLayers.addAll(dimension.getMinimumLayers());
+        // If there are combined layers, apply them and gather any newly
+        // added layers, recursively
+        boolean done;
+        do {
+            done = true;
+            for (Layer layer: new HashSet<Layer>(allLayers)) {
+                if (layer instanceof CombinedLayer) {
+                    // Apply the combined layer
+                    Set<Layer> addedLayers = ((CombinedLayer) layer).apply(dimension);
+                    // Remove the combined layer from the list
+                    allLayers.remove(layer);
+                    // Add any layers it might have added
+                    allLayers.addAll(addedLayers);
+                    // Signal that we have to go around at least once more,
+                    // in case any of the newly added layers are themselves
+                    // combined layers
+                    done = false;
+                }
+            }
+        } while (! done);
+
+        // Load all layer settings into the exporters
+        for (Layer layer: allLayers) {
+            @SuppressWarnings("unchecked")
+            LayerExporter<Layer> exporter = (LayerExporter<Layer>) layer.getExporter();
+            if (exporter != null) {
+                exporter.setSettings(dimension.getLayerSettings(layer));
+                exporters.put(layer, exporter);
+            }
+        }
+        return exporters;
     }
 
     protected boolean isReadyForFixups(Set<Point> regionsToExport, Set<Point> exportedRegions, Point coords) {
@@ -998,5 +1129,9 @@ public class WorldExporter {
          * have been generated
          */
         public List<Fixup> fixups;
+    }
+
+    static class DimensionExportContext {
+
     }
 }

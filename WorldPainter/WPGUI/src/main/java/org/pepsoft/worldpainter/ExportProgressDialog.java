@@ -91,7 +91,7 @@ public class ExportProgressDialog extends javax.swing.JDialog implements Listene
             dumpStats(sb, stats);
         } else {
             for (Map.Entry<Integer, ChunkFactory.Stats> entry: result.entrySet()) {
-                int dim= entry.getKey();
+                int dim = entry.getKey();
                 ChunkFactory.Stats stats = entry.getValue();
                 switch (dim) {
                     case Constants.DIM_NORMAL:

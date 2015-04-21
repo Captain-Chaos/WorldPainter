@@ -20,7 +20,6 @@ public class Bo2Layer extends CustomLayer {
     public Bo2Layer(Bo2ObjectProvider objectProvider, int colour) {
         super(objectProvider.getName(), "Custom " + objectProvider.getName() + " objects in bo2 format", DataSize.NIBBLE, 50, colour);
         this.objectProvider = objectProvider;
-        exporter = new Bo2LayerExporter(this);
     }
 
     public Bo2ObjectProvider getObjectProvider() {
@@ -33,7 +32,7 @@ public class Bo2Layer extends CustomLayer {
         setDescription("Custom " + objectProvider.getName() + " objects in bo2 format");
         
         // Legacy
-        files = Collections.emptyList();;
+        files = Collections.emptyList();
     }
 
     public List<File> getFiles() {
@@ -42,13 +41,12 @@ public class Bo2Layer extends CustomLayer {
 
     @Override
     public Bo2LayerExporter getExporter() {
-        return exporter;
+        return new Bo2LayerExporter(this);
     }
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-        exporter = new Bo2LayerExporter(this);
-        
+
         // Legacy support
         if (colour != 0) {
             setColour(colour);
@@ -61,7 +59,6 @@ public class Bo2Layer extends CustomLayer {
     private int colour;
     @Deprecated
     private List<File> files = Collections.emptyList();
-    private transient Bo2LayerExporter exporter;
-    
+
     private static final long serialVersionUID = 1L;
 }

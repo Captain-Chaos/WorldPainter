@@ -28,7 +28,7 @@ public abstract class TreeLayer<T extends TreeLayer> extends Layer {
 
     @Override
     public LayerExporter<TreeLayer<T>> getExporter() {
-        return exporter;
+        return new TreesExporter<TreeLayer<T>>(this);
     }
     
     public int getDefaultMaxWaterDepth() {
@@ -55,10 +55,7 @@ public abstract class TreeLayer<T extends TreeLayer> extends Layer {
     
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-        exporter = new TreesExporter<TreeLayer<T>>(this);
     }
-    
-    private transient LayerExporter<TreeLayer<T>> exporter = new TreesExporter<TreeLayer<T>>(this);
     
     private static final int MUSHROOM_INCIDENCE = 25;
     private static final float MUSHROOM_CHANCE = PerlinNoise.getLevelForPromillage(10);

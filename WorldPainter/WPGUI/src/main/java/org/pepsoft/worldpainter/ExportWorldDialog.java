@@ -93,14 +93,35 @@ public class ExportWorldDialog extends javax.swing.JDialog {
             netherPropertiesEditor.setExportMode();
             netherPropertiesEditor.setDimension(world.getDimension(DIM_NETHER));
         } else {
-            jTabbedPane1.setEnabledAt(1, false);
+            jTabbedPane1.setEnabledAt(2, false);
         }
         if (world.getDimension(DIM_END) != null) {
             endPropertiesEditor.setColourScheme(colourScheme);
             endPropertiesEditor.setExportMode();
             endPropertiesEditor.setDimension(world.getDimension(DIM_END));
         } else {
-            jTabbedPane1.setEnabledAt(2, false);
+            jTabbedPane1.setEnabledAt(4, false);
+        }
+        if (world.getDimension(DIM_NORMAL_CEILING) != null) {
+            surfaceCeilingPropertiesEditor.setColourScheme(colourScheme);
+            surfaceCeilingPropertiesEditor.setExportMode();
+            surfaceCeilingPropertiesEditor.setDimension(world.getDimension(DIM_NORMAL_CEILING));
+        } else {
+            jTabbedPane1.setEnabledAt(1, false);
+        }
+        if (world.getDimension(DIM_NETHER_CEILING) != null) {
+            netherCeilingPropertiesEditor.setColourScheme(colourScheme);
+            netherCeilingPropertiesEditor.setExportMode();
+            netherCeilingPropertiesEditor.setDimension(world.getDimension(DIM_NETHER_CEILING));
+        } else {
+            jTabbedPane1.setEnabledAt(3, false);
+        }
+        if (world.getDimension(DIM_END_CEILING) != null) {
+            endCeilingPropertiesEditor.setColourScheme(colourScheme);
+            endCeilingPropertiesEditor.setExportMode();
+            endCeilingPropertiesEditor.setDimension(world.getDimension(DIM_END_CEILING));
+        } else {
+            jTabbedPane1.setEnabledAt(5, false);
         }
         checkBoxGoodies.setSelected(world.isCreateGoodiesChest());
         int generator = world.getGenerator().ordinal();
@@ -249,13 +270,31 @@ public class ExportWorldDialog extends javax.swing.JDialog {
         
         if (world.getDimension(DIM_NETHER) != null) {
             if (! netherPropertiesEditor.saveSettings()) {
-                jTabbedPane1.setSelectedIndex(1);
+                jTabbedPane1.setSelectedIndex(2);
                 return;
             }
         }
         if (world.getDimension(DIM_END) != null) {
             if (! endPropertiesEditor.saveSettings()) {
-                jTabbedPane1.setSelectedIndex(2);
+                jTabbedPane1.setSelectedIndex(4);
+                return;
+            }
+        }
+        if (world.getDimension(DIM_NORMAL_CEILING) != null) {
+            if (! surfaceCeilingPropertiesEditor.saveSettings()) {
+                jTabbedPane1.setSelectedIndex(1);
+                return;
+            }
+        }
+        if (world.getDimension(DIM_NETHER_CEILING) != null) {
+            if (! netherCeilingPropertiesEditor.saveSettings()) {
+                jTabbedPane1.setSelectedIndex(3);
+                return;
+            }
+        }
+        if (world.getDimension(DIM_END_CEILING) != null) {
+            if (! endCeilingPropertiesEditor.saveSettings()) {
+                jTabbedPane1.setSelectedIndex(5);
                 return;
             }
         }
@@ -376,8 +415,11 @@ public class ExportWorldDialog extends javax.swing.JDialog {
         buttonExport = new javax.swing.JButton();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         surfacePropertiesEditor = new org.pepsoft.worldpainter.DimensionPropertiesEditor();
+        surfaceCeilingPropertiesEditor = new org.pepsoft.worldpainter.DimensionPropertiesEditor();
         netherPropertiesEditor = new org.pepsoft.worldpainter.DimensionPropertiesEditor();
+        netherCeilingPropertiesEditor = new org.pepsoft.worldpainter.DimensionPropertiesEditor();
         endPropertiesEditor = new org.pepsoft.worldpainter.DimensionPropertiesEditor();
+        endCeilingPropertiesEditor = new org.pepsoft.worldpainter.DimensionPropertiesEditor();
         checkBoxGoodies = new javax.swing.JCheckBox();
         comboBoxMinecraftVersion = new javax.swing.JComboBox();
         jLabel1 = new javax.swing.JLabel();
@@ -426,8 +468,11 @@ public class ExportWorldDialog extends javax.swing.JDialog {
 
         jTabbedPane1.setTabPlacement(javax.swing.JTabbedPane.RIGHT);
         jTabbedPane1.addTab("Surface", surfacePropertiesEditor);
+        jTabbedPane1.addTab("Surface Ceiling", surfaceCeilingPropertiesEditor);
         jTabbedPane1.addTab("Nether", netherPropertiesEditor);
+        jTabbedPane1.addTab("Nether Ceiling", netherCeilingPropertiesEditor);
         jTabbedPane1.addTab("End", endPropertiesEditor);
+        jTabbedPane1.addTab("End Ceiling", endCeilingPropertiesEditor);
 
         checkBoxGoodies.setSelected(true);
         checkBoxGoodies.setText("Include chest of goodies");
@@ -526,7 +571,7 @@ public class ExportWorldDialog extends javax.swing.JDialog {
                         .addComponent(buttonExport)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buttonCancel))
-                    .addComponent(jTabbedPane1)
+                    .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 703, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel2)
@@ -673,6 +718,7 @@ public class ExportWorldDialog extends javax.swing.JDialog {
     private javax.swing.JComboBox comboBoxGameType;
     private javax.swing.JComboBox comboBoxGenerator;
     private javax.swing.JComboBox comboBoxMinecraftVersion;
+    private org.pepsoft.worldpainter.DimensionPropertiesEditor endCeilingPropertiesEditor;
     private org.pepsoft.worldpainter.DimensionPropertiesEditor endPropertiesEditor;
     private javax.swing.JTextField fieldDirectory;
     private javax.swing.JTextField fieldName;
@@ -683,9 +729,11 @@ public class ExportWorldDialog extends javax.swing.JDialog {
     private javax.swing.JLabel jLabel5;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JLabel labelSelectTiles;
+    private org.pepsoft.worldpainter.DimensionPropertiesEditor netherCeilingPropertiesEditor;
     private org.pepsoft.worldpainter.DimensionPropertiesEditor netherPropertiesEditor;
     private javax.swing.JRadioButton radioButtonExportEverything;
     private javax.swing.JRadioButton radioButtonExportSelection;
+    private org.pepsoft.worldpainter.DimensionPropertiesEditor surfaceCeilingPropertiesEditor;
     private org.pepsoft.worldpainter.DimensionPropertiesEditor surfacePropertiesEditor;
     // End of variables declaration//GEN-END:variables
 

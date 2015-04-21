@@ -15,6 +15,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Window;
 import org.pepsoft.worldpainter.layers.Caverns;
+import org.pepsoft.worldpainter.layers.Resources;
 import org.pepsoft.worldpainter.layers.exporters.CavernsExporter.CavernsSettings;
 import javax.swing.KeyStroke;
 import java.awt.event.ActionEvent;
@@ -36,6 +37,7 @@ import javax.swing.JSpinner.DefaultEditor;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
+import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter;
 import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
 import static org.pepsoft.worldpainter.Terrain.*;
 import static org.pepsoft.worldpainter.Constants.*;
@@ -67,8 +69,7 @@ public class NewWorldDialog extends javax.swing.JDialog {
         
         initComponents();
 
-        Object[] materials = new Object[] {GRASS, BARE_GRASS, DIRT, CLAY, SAND, DESERT, SANDSTONE, STONE, ROCK, COBBLESTONE, OBSIDIAN, BEDROCK, DEEP_SNOW, NETHERRACK, SOUL_SAND, NETHERLIKE, END_STONE};
-        comboBoxSurfaceMaterial.setModel(new DefaultComboBoxModel(materials));
+        comboBoxSurfaceMaterial.setModel(new DefaultComboBoxModel(Terrain.PICK_LIST));
         comboBoxSurfaceMaterial.setRenderer(new TerrainListCellRenderer(app.getColourScheme()));
 
         comboBoxMaxHeight.setSelectedItem(Integer.toString(defaultMaxHeight));
@@ -96,7 +97,15 @@ public class NewWorldDialog extends javax.swing.JDialog {
         ((DefaultEditor) spinnerWidth.getEditor()).getTextField().setColumns(4);
         ((DefaultEditor) spinnerLength.getEditor()).getTextField().setColumns(4);
 
-        if (dim == DIM_NETHER) {
+        if (dim == DIM_NORMAL_CEILING) {
+            setTitle("Add Surface Ceiling");
+            fieldName.setEnabled(false);
+            comboBoxSurfaceMaterial.setSelectedItem(STONE_MIX);
+            spinnerTerrainLevel.setValue(58);
+            spinnerWaterLevel.setValue(0);
+            checkBoxBeaches.setSelected(false);
+            comboBoxMaxHeight.setEnabled(false);
+        } else if (dim == DIM_NETHER) {
             setTitle("Add Nether");
             fieldName.setEnabled(false);
             comboBoxSurfaceMaterial.setSelectedItem(NETHERLIKE);
@@ -106,11 +115,27 @@ public class NewWorldDialog extends javax.swing.JDialog {
             checkBoxLava.setSelected(true);
             checkBoxBeaches.setSelected(false);
             comboBoxMaxHeight.setEnabled(false);
+        } else if (dim == DIM_NETHER_CEILING) {
+            setTitle("Add Nether Ceiling");
+            fieldName.setEnabled(false);
+            comboBoxSurfaceMaterial.setSelectedItem(NETHERLIKE);
+            spinnerTerrainLevel.setValue(58);
+            spinnerWaterLevel.setValue(0);
+            checkBoxBeaches.setSelected(false);
+            comboBoxMaxHeight.setEnabled(false);
         } else if (dim == DIM_END) {
             setTitle("Add End");
             fieldName.setEnabled(false);
             comboBoxSurfaceMaterial.setSelectedItem(END_STONE);
             spinnerTerrainLevel.setValue(32);
+            spinnerWaterLevel.setValue(0);
+            checkBoxBeaches.setSelected(false);
+            comboBoxMaxHeight.setEnabled(false);
+        } else if (dim == DIM_END_CEILING) {
+            setTitle("Add End Ceiling");
+            fieldName.setEnabled(false);
+            comboBoxSurfaceMaterial.setSelectedItem(END_STONE);
+            spinnerTerrainLevel.setValue(58);
             spinnerWaterLevel.setValue(0);
             checkBoxBeaches.setSelected(false);
             comboBoxMaxHeight.setEnabled(false);
@@ -457,8 +482,22 @@ public class NewWorldDialog extends javax.swing.JDialog {
                 // The operation was cancelled by the user
                 return null;
             }
-            
-            if (dim == DIM_NETHER) {
+
+            if (dim == DIM_NORMAL_CEILING) {
+                ResourcesExporter.ResourcesExporterSettings resourcesSettings = new ResourcesExporter.ResourcesExporterSettings(maxHeight);
+                // Invert min and max levels:
+                int maxZ = maxHeight - 1;
+                for (int blockType: resourcesSettings.getBlockTypes()) {
+                    int low = resourcesSettings.getMinLevel(blockType);
+                    int high = resourcesSettings.getMaxLevel(blockType);
+                    resourcesSettings.setMinLevel(blockType, maxZ - high);
+                    resourcesSettings.setMaxLevel(blockType, maxZ - low);
+                }
+                // Remove lava and water:
+                resourcesSettings.setChance(BLK_WATER, 0);
+                resourcesSettings.setChance(BLK_LAVA, 0);
+                dimension.setLayerSettings(Resources.INSTANCE, resourcesSettings);
+            } else if (dim == DIM_NETHER) {
                 dimension.setSubsurfaceMaterial(NETHERLIKE);
 
                 CavernsSettings cavernsSettings = new CavernsSettings();
@@ -467,7 +506,9 @@ public class NewWorldDialog extends javax.swing.JDialog {
                 cavernsSettings.setFloodWithLava(true);
                 cavernsSettings.setWaterLevel(16);
                 dimension.setLayerSettings(Caverns.INSTANCE, cavernsSettings);
-            } else if (dim == DIM_END) {
+            } else if (dim == DIM_NETHER_CEILING) {
+                dimension.setSubsurfaceMaterial(NETHERLIKE);
+            } else if ((dim == DIM_END) || (dim == DIM_END_CEILING)) {
                 dimension.setSubsurfaceMaterial(END_STONE);
             }
 

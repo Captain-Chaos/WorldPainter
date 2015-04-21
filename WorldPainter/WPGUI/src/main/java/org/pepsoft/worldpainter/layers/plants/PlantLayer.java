@@ -96,13 +96,12 @@ public class PlantLayer extends CustomLayer {
     
     @Override
     public LayerExporter<? extends Layer> getExporter() {
-        return exporter;
+        return new PlantLayerExporter(this);
     }
     
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-        exporter = new PlantLayerExporter(this);
-        
+
         // Legacy
         if (settings.length < Plant.ALL_PLANTS.length) {
             // (A) new plant(s) has been added
@@ -121,7 +120,6 @@ public class PlantLayer extends CustomLayer {
     
     private PlantSettings[] settings = new PlantSettings[Plant.ALL_PLANTS.length];
     private boolean generateTilledDirt = true;
-    private transient PlantLayerExporter exporter = new PlantLayerExporter(this);
-    
+
     private static final long serialVersionUID = -2758775044863488107L;
 }

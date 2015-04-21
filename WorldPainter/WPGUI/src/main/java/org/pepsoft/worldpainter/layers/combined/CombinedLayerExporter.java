@@ -209,6 +209,11 @@ public class CombinedLayerExporter extends AbstractLayerExporter<CombinedLayer> 
         }
 
         @Override
+        public Set<Point> getTileCoords() {
+            return dimension.getTileCoords();
+        }
+
+        @Override
         public int getLayerValueAt(Layer layer, int x, int y) {
             if (layer.equals(to)){
                 return super.getLayerValueAt(from, x, y);

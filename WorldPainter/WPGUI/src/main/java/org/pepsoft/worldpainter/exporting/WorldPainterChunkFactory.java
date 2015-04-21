@@ -90,6 +90,12 @@ public class WorldPainterChunkFactory implements ChunkFactory {
             case DIM_END:
                 defaultBiome = AbstractMinecraft1_2BiomeScheme.BIOME_SKY;
                 break;
+            case DIM_NORMAL_CEILING:
+            case DIM_NETHER_CEILING:
+            case DIM_END_CEILING:
+                // Biome is ignored for ceilings
+                defaultBiome = 0;
+                break;
             default:
                 throw new InternalError();
         }
@@ -108,9 +114,9 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                             biome = defaultBiome;
                         }
                     }
-                    ((ChunkImpl2) result.chunk).setBiome(x, z, biome);
+                    result.chunk.setBiome(x, z, biome);
                 } else if (result.chunk instanceof ChunkImpl2) {
-                    ((ChunkImpl2) result.chunk).setBiome(x, z, defaultBiome);
+                    result.chunk.setBiome(x, z, defaultBiome);
                 }
 
                 final float height = tile.getHeight(xInTile, yInTile);
@@ -154,7 +160,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                                 result.chunk.setBlockType(x, y, z, BLK_STATIONARY_WATER);
                             }
                         } else if (! underWater) {
-                            if ((y > 0) && ((y - intHeight) <= 3) && ((terrain == Terrain.GRASS) || (terrain == Terrain.DESERT) || (terrain == Terrain.BEACHES))
+                            if ((y > 0) && ((y - intHeight) <= 3) && ((terrain == Terrain.GRASS) || (terrain == Terrain.DESERT) || (terrain == Terrain.RED_DESERT) || (terrain == Terrain.BEACHES))
                                     && ((sugarCaneNoise.getPerlinNoise(worldX / TINY_BLOBS, worldY / TINY_BLOBS, z / TINY_BLOBS) * sugarCaneNoise.getPerlinNoise(worldX / SMALL_BLOBS, worldY / SMALL_BLOBS, z / SMALL_BLOBS)) > SUGAR_CANE_CHANCE)
                                     && (isAdjacentWater(tile, intHeight, xInTile - 1, yInTile)
                                         || isAdjacentWater(tile, intHeight, xInTile + 1, yInTile)

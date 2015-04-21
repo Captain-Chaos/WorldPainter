@@ -68,9 +68,25 @@ public abstract class Layer implements Serializable, Comparable<Layer> {
     protected void setDescription(String description) {
         this.description = description;
     }
-    
+
+    /**
+     * Create a new exporter for this layer.
+     *
+     * @return A new exporter for this layer.
+     */
     public LayerExporter<? extends Layer> getExporter() {
-        return exporter;
+        if (exporterClass == null) {
+            // Layer has no default exporter
+            return null;
+        } else {
+            try {
+                return exporterClass.newInstance();
+            } catch (InstantiationException e) {
+                throw new RuntimeException("Instantiation exception while instantiating exporter for layer " + name, e);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException("Access denied while instantiating exporter for layer " + name, e);
+            }
+        }
     }
     
     public LayerRenderer getRenderer() {
@@ -150,17 +166,15 @@ public abstract class Layer implements Serializable, Comparable<Layer> {
                 myRenderer = null;
             }
             renderer = myRenderer;
-            LayerExporter<? extends Layer> myExporter;
+            Class<LayerExporter<? extends Layer>> myExporterClass;
             try {
-                myExporter = (LayerExporter<? extends Layer>) pluginClassLoader.loadClass(clazz.getPackage().getName() + ".exporters." + clazz.getSimpleName() + "Exporter").newInstance();
+                myExporterClass = (Class<LayerExporter<? extends Layer>>) pluginClassLoader.loadClass(clazz.getPackage().getName() + ".exporters." + clazz.getSimpleName() + "Exporter");
             } catch (ClassNotFoundException e) {
-                myExporter = null;
+                myExporterClass = null;
             }
-            exporter = myExporter;
-        } catch (InstantiationException e) {
-            throw new RuntimeException("Exception thrown while instantiating renderer", e);
+            exporterClass = myExporterClass;
         } catch (IllegalAccessException e) {
-            throw new RuntimeException("Access denied while instantiating renderer", e);
+            throw new RuntimeException("Access denied while creating renderer for layer " + name, e);
         }
         icon = IconUtils.loadImage(clazz.getClassLoader(), "org/pepsoft/worldpainter/icons/" + getClass().getSimpleName().toLowerCase() + ".png");
     }
@@ -181,7 +195,7 @@ public abstract class Layer implements Serializable, Comparable<Layer> {
     public final int priority;
     private String id;
     private transient LayerRenderer renderer;
-    private transient LayerExporter<? extends Layer> exporter;
+    private transient Class<LayerExporter<? extends Layer>> exporterClass;
     private transient BufferedImage icon;
     private transient char mnemonic;
 
