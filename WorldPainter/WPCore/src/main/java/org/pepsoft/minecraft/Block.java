@@ -44,21 +44,16 @@ public final class Block implements Serializable {
     }
 
     @Override public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-
-        Block block = (Block) o;
-
-        if (id != block.id)
-            return false;
-
-        return true;
+        return (o instanceof Block) && (((Block) o).id == id);
     }
 
     @Override public int hashCode() {
         return id;
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 
     /**
@@ -449,7 +444,6 @@ public final class Block implements Serializable {
                 new Block(254, 15,                              null, false, false, false, false, false, false, false,  0, false),
                 new Block(255, 15,                              null, false, false, false, false, false, false, false,  0, false),
 //                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
-
         }, 0, BLOCKS, 0, 256);
 
         for (int i = 256; i < 4096; i++) {
