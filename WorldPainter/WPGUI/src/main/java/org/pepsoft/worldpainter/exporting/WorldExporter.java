@@ -186,9 +186,10 @@ public class WorldExporter {
         int highestRegionChunkY = highestChunkY - 1;
         ExportResults exportResults = new ExportResults();
         int chunkNo = 0;
+        int ceilingDelta = dimension.getMaxHeight() - dimension.getCeilingHeight();
         for (int chunkX = lowestChunkX; chunkX <= highestChunkX; chunkX++) {
             for (int chunkY = lowestChunkY; chunkY <= highestChunkY; chunkY++) {
-                ChunkFactory.ChunkCreationResult chunkCreationResult = createChunk(dimension, chunkFactory, tiles, chunkX, chunkY, tileSelection, exporters);
+                ChunkFactory.ChunkCreationResult chunkCreationResult = createChunk(dimension, chunkFactory, tiles, chunkX, chunkY, tileSelection, exporters, ceiling);
                 if (chunkCreationResult != null) {
                     if ((chunkX >= lowestRegionChunkX) && (chunkX <= highestRegionChunkX) && (chunkY >= lowestRegionChunkY) && (chunkY <= highestRegionChunkY)) {
                         exportResults.chunksGenerated = true;
@@ -197,7 +198,7 @@ public class WorldExporter {
                         exportResults.stats.waterArea += chunkCreationResult.stats.waterArea;
                     }
                     if (ceiling) {
-                        Chunk invertedChunk = new InvertedChunk(chunkCreationResult.chunk);
+                        Chunk invertedChunk = new InvertedChunk(chunkCreationResult.chunk, ceilingDelta);
                         Chunk existingChunk = minecraftWorld.getChunkForEditing(chunkX, chunkY);
                         if (existingChunk == null) {
                             existingChunk = (world.getVersion() == SUPPORTED_VERSION_1) ? new ChunkImpl(chunkX, chunkY, world.getMaxHeight()) : new ChunkImpl2(chunkX, chunkY, world.getMaxHeight());
@@ -584,7 +585,7 @@ public class WorldExporter {
                 // Second pass for ceiling. Apply layers which need information
                 // from or apply changes to neighbouring chunks. Fixups are not
                 // supported for the ceiling for now. TODO: implement
-                secondPass(ceilingSecondaryPassLayers, ceilingMinimumLayers, ceiling, new InvertedWorld(minecraftWorld), ceilingExporters, ceilingTiles.values(), regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.4f, 0.05f) : null);
+                secondPass(ceilingSecondaryPassLayers, ceilingMinimumLayers, ceiling, new InvertedWorld(minecraftWorld, ceiling.getMaxHeight() - ceiling.getCeilingHeight()), ceilingExporters, ceilingTiles.values(), regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.4f, 0.05f) : null);
             }
 
             // Post processing. Fix covered grass blocks, things like that
@@ -625,7 +626,7 @@ public class WorldExporter {
         }
     }
     
-    private ChunkFactory.ChunkCreationResult createChunk(Dimension dimension, ChunkFactory chunkFactory, Map<Point, Tile> tiles, int chunkX, int chunkY, boolean tileSelection, Map<Layer, LayerExporter<Layer>> exporters) {
+    private ChunkFactory.ChunkCreationResult createChunk(Dimension dimension, ChunkFactory chunkFactory, Map<Point, Tile> tiles, int chunkX, int chunkY, boolean tileSelection, Map<Layer, LayerExporter<Layer>> exporters, boolean ceiling) {
         final int tileX = chunkX >> 3;
         final int tileY = chunkY >> 3;
         final Point tileCoords = new Point(tileX, tileY);
@@ -644,8 +645,9 @@ public class WorldExporter {
                 } else {
                     return null;
                 }
-            } else {
-                // Might be a border or bedrock wall chunk
+            } else if (! ceiling) {
+                // Might be a border or bedrock wall chunk (but not if this is a
+                // ceiling dimension
                 if (border && isBorderChunk(dimension, chunkX, chunkY)) {
                     return BorderChunkFactory.create(chunkX, chunkY, dimension, exporters);
                 } else if (dimension.isBedrockWall()
@@ -660,6 +662,10 @@ public class WorldExporter {
                     // Outside known space
                     return null;
                 }
+            } else {
+                // Not a world tile, and we're a ceiling dimension so we don't
+                // export borders and bedrock walls
+                return null;
             }
         }
     }

@@ -1131,6 +1131,19 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         return layers;
     }
 
+    public int getCeilingHeight() {
+        return ceilingHeight;
+    }
+
+    public void setCeilingHeight(int ceilingHeight) {
+        if (ceilingHeight != this.ceilingHeight) {
+            int oldCeilingHeight = this.ceilingHeight;
+            this.ceilingHeight = ceilingHeight;
+            dirty = true;
+            propertyChangeSupport.firePropertyChange("ceilingHeight", oldCeilingHeight, ceilingHeight);
+        }
+    }
+
     public void applyTheme(Point coords) {
         applyTheme(coords.x, coords.y);
     }
@@ -1571,6 +1584,9 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                 fixOverlayCoords = true;
             }
         }
+        if (wpVersion < 3) {
+            ceilingHeight = maxHeight;
+        }
         wpVersion = CURRENT_WP_VERSION;
 
         // Make sure that any custom layers which somehow ended up in the world
@@ -1615,6 +1631,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     private List<CustomLayer> customLayers = new ArrayList<CustomLayer>();
     private int wpVersion = CURRENT_WP_VERSION;
     private boolean fixOverlayCoords;
+    private int ceilingHeight = maxHeight;
     private transient List<Listener> listeners = new ArrayList<Listener>();
     private transient boolean eventsInhibited;
     private transient Set<Tile> dirtyTiles = new HashSet<Tile>();
@@ -1640,7 +1657,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     
     private static final long TOP_LAYER_DEPTH_SEED_OFFSET = 180728193;
     private static final float ROOT_EIGHT = (float) Math.sqrt(8.0);
-    private static final int CURRENT_WP_VERSION = 2;
+    private static final int CURRENT_WP_VERSION = 3;
     private static final Logger logger = Logger.getLogger(Dimension.class.getName());
     private static final long serialVersionUID = 2011062401L;
 

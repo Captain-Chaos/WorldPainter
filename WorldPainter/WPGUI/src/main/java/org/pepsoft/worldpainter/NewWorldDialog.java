@@ -215,7 +215,7 @@ public class NewWorldDialog extends javax.swing.JDialog {
      * configured size. If not, ask the user whether they want to continue at
      * their own risk.
      * 
-     * @param parent The parent to use for the dialog, if necessecary.
+     * @param parent The parent to use for the dialog, if necessary.
      * @return <code>true</code> if there is enough memory, or the user
      *     indicated they want to continue at their own risk.
      */

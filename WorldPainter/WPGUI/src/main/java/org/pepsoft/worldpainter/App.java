@@ -438,10 +438,10 @@ public final class App extends JFrame implements RadiusControl,
             // Add the custom object layers from the world
             boolean missingTerrainWarningGiven = false;
             for (CustomLayer customLayer: dimension.getCustomLayers()) {
-                if (((CustomLayer) customLayer).isHide()) {
-                    layersWithNoButton.add((CustomLayer) customLayer);
+                if (customLayer.isHide()) {
+                    layersWithNoButton.add(customLayer);
                 } else {
-                    registerCustomLayer((CustomLayer) customLayer, false);
+                    registerCustomLayer(customLayer, false);
                 }
                 if (customLayer instanceof CombinedLayer) {
                     if (((CombinedLayer) customLayer).isMissingTerrainWarning()) {
@@ -2704,7 +2704,7 @@ public final class App extends JFrame implements RadiusControl,
 
                 JMenu paletteMenu = new JMenu("Move to palette");
 
-                for (final Palette palette: paletteManager.getPalettes()) {
+                for (final Palette palette : paletteManager.getPalettes()) {
                     menuItem = new JMenuItem(palette.getName());
                     menuItem.addActionListener(new ActionListener() {
                         @Override
@@ -2731,7 +2731,7 @@ public final class App extends JFrame implements RadiusControl,
 
                 List<Action> actions = layer.getActions();
                 if (actions != null) {
-                    for (Action action: actions) {
+                    for (Action action : actions) {
                         popup.add(new JMenuItem(action));
                     }
                 }
@@ -2767,7 +2767,7 @@ public final class App extends JFrame implements RadiusControl,
                     throw new RuntimeException("Don't know how to edit " + layer.getName());
                 }
                 dialog.setVisible(true);
-                if (! dialog.isCancelled()) {
+                if (!dialog.isCancelled()) {
                     button.setText(layer.getName());
                     button.setToolTipText(layer.getName() + ": " + layer.getDescription());
                     int newColour = layer.getColour();
@@ -2781,7 +2781,7 @@ public final class App extends JFrame implements RadiusControl,
                     if (layer instanceof CombinedLayer) {
                         updateHiddenLayers();
                     }
-                    if ((layer instanceof TunnelLayer) && (! viewRefreshed)) {
+                    if ((layer instanceof TunnelLayer) && (!viewRefreshed)) {
                         view.refreshTilesForLayer(layer, false);
                         viewRefreshed = true;
                     }
@@ -3608,11 +3608,15 @@ public final class App extends JFrame implements RadiusControl,
 
     private void removeSurfaceCeiling() {
         if (JOptionPane.showConfirmDialog(this, "Are you sure you want to completely remove the Surface ceiling?\nThis action cannot be undone!", "Confirm Surface Ceiling Deletion", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+            world.removeDimension(DIM_NORMAL_CEILING);
             if ((dimension != null) && (dimension.getDim() == DIM_NORMAL_CEILING)) {
                 viewDimension(DIM_NORMAL);
+            } else {
+                setDimensionControlStates();
+                if (dimension.getDim() == DIM_NORMAL) {
+                    view.refreshTiles();
+                }
             }
-            world.removeDimension(DIM_NORMAL_CEILING);
-            setDimensionControlStates();
             JOptionPane.showMessageDialog(this, "The Surface ceiling was successfully deleted", "Success", JOptionPane.INFORMATION_MESSAGE);
         }
     }
@@ -3647,11 +3651,15 @@ public final class App extends JFrame implements RadiusControl,
 
     private void removeNetherCeiling() {
         if (JOptionPane.showConfirmDialog(this, "Are you sure you want to completely remove the Nether ceiling?\nThis action cannot be undone!", "Confirm Nether Ceiling Deletion", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+            world.removeDimension(DIM_NETHER_CEILING);
             if ((dimension != null) && (dimension.getDim() == DIM_NETHER_CEILING)) {
                 viewDimension(DIM_NETHER);
+            } else {
+                setDimensionControlStates();
+                if (dimension.getDim() == DIM_NETHER) {
+                    view.refreshTiles();
+                }
             }
-            world.removeDimension(DIM_NETHER_CEILING);
-            setDimensionControlStates();
             JOptionPane.showMessageDialog(this, "The Nether ceiling was successfully deleted", "Success", JOptionPane.INFORMATION_MESSAGE);
         }
     }
@@ -3686,11 +3694,15 @@ public final class App extends JFrame implements RadiusControl,
 
     private void removeEndCeiling() {
         if (JOptionPane.showConfirmDialog(this, "Are you sure you want to completely remove the End ceiling?\nThis action cannot be undone!", "Confirm End Ceiling Deletion", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+            world.removeDimension(DIM_END_CEILING);
             if ((dimension != null) && (dimension.getDim() == DIM_END_CEILING)) {
                 viewDimension(DIM_END);
+            } else {
+                setDimensionControlStates();
+                if (dimension.getDim() == DIM_END) {
+                    view.refreshTiles();
+                }
             }
-            world.removeDimension(DIM_END_CEILING);
-            setDimensionControlStates();
             JOptionPane.showMessageDialog(this, "The End ceiling was successfully deleted", "Success", JOptionPane.INFORMATION_MESSAGE);
         }
     }
@@ -3859,11 +3871,15 @@ public final class App extends JFrame implements RadiusControl,
 
     private void removeNether() {
         if (JOptionPane.showConfirmDialog(this, "Are you sure you want to completely remove the Nether dimension?\nThis action cannot be undone!", "Confirm Nether Deletion", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-            if ((dimension != null) && (dimension.getDim() == DIM_NETHER)) {
-                viewDimension(DIM_NORMAL);
-            }
             world.removeDimension(DIM_NETHER);
-            setDimensionControlStates();
+            if (world.getDimension(DIM_NETHER_CEILING) != null) {
+                world.removeDimension(DIM_NETHER_CEILING);
+            }
+            if ((dimension != null) && ((dimension.getDim() == DIM_NETHER) || (dimension.getDim() == DIM_NETHER_CEILING))) {
+                viewDimension(DIM_NORMAL);
+            } else {
+                setDimensionControlStates();
+            }
             JOptionPane.showMessageDialog(this, "The Nether dimension was successfully deleted", "Success", JOptionPane.INFORMATION_MESSAGE);
         }
     }
@@ -3898,11 +3914,15 @@ public final class App extends JFrame implements RadiusControl,
 
     private void removeEnd() {
         if (JOptionPane.showConfirmDialog(this, "Are you sure you want to completely remove the End dimension?\nThis action cannot be undone!", "Confirm End Deletion", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-            if ((dimension != null) && (dimension.getDim() == DIM_END)) {
-                viewDimension(DIM_NORMAL);
-            }
             world.removeDimension(DIM_END);
-            setDimensionControlStates();
+            if (world.getDimension(DIM_END_CEILING) != null) {
+                world.removeDimension(DIM_END_CEILING);
+            }
+            if ((dimension != null) && ((dimension.getDim() == DIM_END) || (dimension.getDim() == DIM_END_CEILING))) {
+                viewDimension(DIM_NORMAL);
+            } else {
+                setDimensionControlStates();
+            }
             JOptionPane.showMessageDialog(this, "The End dimension was successfully deleted", "Success", JOptionPane.INFORMATION_MESSAGE);
         }
     }
@@ -4250,6 +4270,9 @@ public final class App extends JFrame implements RadiusControl,
 
     private void disableImportedWorldOperation() {
         if (! alwaysEnableReadOnly) {
+            if ((activeOperation instanceof LayerPaint) && ((LayerPaint) activeOperation).getLayer().equals(Biome.INSTANCE)) {
+                deselectTool();
+            }
             readOnlyCheckBox.setEnabled(false);
             readOnlyToggleButton.setEnabled(false);
             readOnlySoloCheckBox.setEnabled(false);
@@ -4375,13 +4398,19 @@ public final class App extends JFrame implements RadiusControl,
                 case DIM_NORMAL:
                     setSpawnPointToggleButton.setEnabled(true);
                     ACTION_MOVE_TO_SPAWN.setEnabled(true);
+                    biomesToggleButton.setEnabled(true);
+                    biomesCheckBox.setEnabled(true);
+                    biomesSoloCheckBox.setEnabled(true);
                     break;
                 default:
-                    if (activeOperation instanceof SetSpawnPoint) {
-                        toolButtonGroup.clearSelection();
+                    if ((activeOperation instanceof SetSpawnPoint) || (activeOperation instanceof BiomePaint)) {
+                        deselectTool();
                     }
                     setSpawnPointToggleButton.setEnabled(false);
                     ACTION_MOVE_TO_SPAWN.setEnabled(false);
+                    biomesToggleButton.setEnabled(false);
+                    biomesCheckBox.setEnabled(false);
+                    biomesSoloCheckBox.setEnabled(false);
                     break;
             }
         }
@@ -5316,6 +5345,7 @@ public final class App extends JFrame implements RadiusControl,
             Dimension.Border previousBorder = dimension.getBorder();
             int previousBorderSize = dimension.getBorderSize();
             long previousMinecraftSeed = dimension.getMinecraftSeed();
+            int previousCeilingHeight = dimension.getCeilingHeight();
             DimensionPropertiesDialog dialog = new DimensionPropertiesDialog(App.this, dimension, selectedColourScheme);
             dialog.setVisible(true);
             if ((dimension.isCoverSteepTerrain() != previousCoverSteepTerrain)
@@ -5327,7 +5357,8 @@ public final class App extends JFrame implements RadiusControl,
             }
             if ((dimension.getBorder() != previousBorder)
                     || ((dimension.getBorder() != null) && (dimension.getBorderSize() != previousBorderSize))
-                    || (dimension.getMinecraftSeed() != previousMinecraftSeed)) {
+                    || (dimension.getMinecraftSeed() != previousMinecraftSeed)
+                    || (dimension.getCeilingHeight() != previousCeilingHeight)) {
                 view.refreshTiles();
             }
         }

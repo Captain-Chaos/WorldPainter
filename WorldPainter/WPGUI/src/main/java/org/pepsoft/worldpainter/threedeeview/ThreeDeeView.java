@@ -58,6 +58,7 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
         } else {
             waterLevel = maxHeight / 2;
         }
+        upsideDown = dimension.getDim() < 0; // Ceiling dimension
         switch (rotation) {
             case 0:
                 zSortedTiles = new TreeSet<Tile>(new Comparator<Tile>() {
@@ -165,7 +166,7 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
     }
 
     public BufferedImage getImage(ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
-        Tile3DRenderer renderer = new Tile3DRenderer(dimension, colourScheme, biomeScheme, customBiomeManager, rotation);
+        Tile3DRenderer renderer = new Tile3DRenderer(dimension, colourScheme, biomeScheme, customBiomeManager, rotation, upsideDown);
 
         // Paint the complete image
         java.awt.Dimension preferredSize = unzoom(getPreferredSize());
@@ -538,30 +539,39 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
     }
 
     private Rectangle getTileBounds(int x, int y) {
+        Rectangle bounds;
         switch (rotation) {
             case 0:
-                return new Rectangle(xOffset + (x - y) * TILE_SIZE,
+                bounds = new Rectangle(xOffset + (x - y) * TILE_SIZE,
                         yOffset + (x + y) * TILE_SIZE / 2,
                         2 * TILE_SIZE,
                         TILE_SIZE + maxHeight - 1);
+                break;
             case 1:
-                return new Rectangle(xOffset + ((maxY - y) - x) * TILE_SIZE,
+                bounds = new Rectangle(xOffset + ((maxY - y) - x) * TILE_SIZE,
                         yOffset + ((maxY - y) + x) * TILE_SIZE / 2,
                         2 * TILE_SIZE,
                         TILE_SIZE + maxHeight - 1);
+                break;
             case 2:
-                return new Rectangle(xOffset + ((maxX - x) - (maxY - y)) * TILE_SIZE,
+                bounds = new Rectangle(xOffset + ((maxX - x) - (maxY - y)) * TILE_SIZE,
                         yOffset + ((maxX - x) + (maxY - y)) * TILE_SIZE / 2,
                         2 * TILE_SIZE,
                         TILE_SIZE + maxHeight - 1);
+                break;
             case 3:
-                return new Rectangle(xOffset + (y - (maxX - x)) * TILE_SIZE,
+                bounds = new Rectangle(xOffset + (y - (maxX - x)) * TILE_SIZE,
                         yOffset + (y + (maxX - x)) * TILE_SIZE / 2,
                         2 * TILE_SIZE,
                         TILE_SIZE + maxHeight - 1);
+                break;
             default:
                 throw new IllegalArgumentException();
         }
+        if (upsideDown) {
+            bounds.setBounds(bounds.x, (getHeight() - bounds.y - bounds.height), bounds.width, bounds.height);
+        }
+        return bounds;
     }
     
     /**
@@ -648,6 +658,7 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
     private final int rotation;
     private final SortedSet<Tile> zSortedTiles;
     private final CustomBiomeManager customBiomeManager;
+    private final boolean upsideDown;
     private Timer timer;
     private long lastTileChange;
     private RefreshMode refreshMode = RefreshMode.DELAYED;

@@ -27,6 +27,7 @@ import org.pepsoft.minecraft.TileEntity;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import org.pepsoft.minecraft.Constants;
 
 /**
  * A chunk wrapper which inverts the wrapped chunk vertically. Does not support
@@ -35,40 +36,58 @@ import java.util.List;
  * Created by pepijn on 21-04-15.
  */
 public class InvertedChunk implements Chunk {
-    public InvertedChunk(Chunk chunk) {
+    public InvertedChunk(Chunk chunk, int delta) {
         this.chunk = chunk;
         maxHeight = chunk.getMaxHeight();
-        maxY = maxHeight - 1;
+        maxY = maxHeight - delta - 1;
     }
 
     @Override
     public int getBlockLightLevel(int x, int y, int z) {
-        return chunk.getBlockLightLevel(x, maxY - y, z);
+        if (y > maxY) {
+            return 0;
+        } else {
+            return chunk.getBlockLightLevel(x, maxY - y, z);
+        }
     }
 
     @Override
     public void setBlockLightLevel(int x, int y, int z, int blockLightLevel) {
-        chunk.setBlockLightLevel(x, maxY - y, z, blockLightLevel);
+        if (y <= maxY) {
+            chunk.setBlockLightLevel(x, maxY - y, z, blockLightLevel);
+        }
     }
 
     @Override
     public int getBlockType(int x, int y, int z) {
-        return chunk.getBlockType(x, maxY - y, z);
+        if (y > maxY) {
+            return Constants.BLK_AIR;
+        } else {
+            return chunk.getBlockType(x, maxY - y, z);
+        }
     }
 
     @Override
     public void setBlockType(int x, int y, int z, int blockType) {
-        chunk.setBlockType(x, maxY - y, z, blockType);
+        if (y <= maxY) {
+            chunk.setBlockType(x, maxY - y, z, blockType);
+        }
     }
 
     @Override
     public int getDataValue(int x, int y, int z) {
-        return chunk.getDataValue(x, maxY - y, z);
+        if (y > maxY) {
+            return 0;
+        } else {
+            return chunk.getDataValue(x, maxY - y, z);
+        }
     }
 
     @Override
     public void setDataValue(int x, int y, int z, int dataValue) {
-        chunk.setDataValue(x, maxY - y, z, dataValue);
+        if (y <= maxY) {
+            chunk.setDataValue(x, maxY - y, z, dataValue);
+        }
     }
 
     @Override
@@ -83,12 +102,18 @@ public class InvertedChunk implements Chunk {
 
     @Override
     public int getSkyLightLevel(int x, int y, int z) {
-        return chunk.getSkyLightLevel(x, maxY - y, z);
+        if (y > maxY) {
+            return 15;
+        } else {
+            return chunk.getSkyLightLevel(x, maxY - y, z);
+        }
     }
 
     @Override
     public void setSkyLightLevel(int x, int y, int z, int skyLightLevel) {
-        chunk.setSkyLightLevel(x, maxY - y, z, skyLightLevel);
+        if (y <= maxY) {
+            chunk.setSkyLightLevel(x, maxY - y, z, skyLightLevel);
+        }
     }
 
     @Override
@@ -118,12 +143,18 @@ public class InvertedChunk implements Chunk {
 
     @Override
     public Material getMaterial(int x, int y, int z) {
-        return chunk.getMaterial(x, maxY - y, z);
+        if (y > maxY) {
+            return Material.AIR;
+        } else {
+            return chunk.getMaterial(x, maxY - y, z).invert();
+        }
     }
 
     @Override
     public void setMaterial(int x, int y, int z, Material material) {
-        chunk.setMaterial(x, maxY - y, z, material);
+        if (y <= maxY) {
+            chunk.setMaterial(x, maxY - y, z, material.invert());
+        }
     }
 
     @Override
@@ -151,8 +182,11 @@ public class InvertedChunk implements Chunk {
             List<TileEntity> tileEntities = new ArrayList<TileEntity>(chunkTileEntities.size());
             for (TileEntity chunkTileEntity: chunkTileEntities) {
                 TileEntity tileEntity = (TileEntity) chunkTileEntity.clone();
-                tileEntity.setY(maxY - tileEntity.getY());
-                tileEntities.add(tileEntity);
+                int adjustedY = maxY - tileEntity.getY();
+                if ((adjustedY >= 0) && (adjustedY < maxHeight)) {
+                    tileEntity.setY(adjustedY);
+                    tileEntities.add(tileEntity);
+                }
             }
             return tileEntities;
         } else {

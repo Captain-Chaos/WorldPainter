@@ -5,32 +5,22 @@
 
 package org.pepsoft.worldpainter;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBuffer;
-import java.awt.image.WritableRaster;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.logging.Logger;
 import org.pepsoft.util.ColourUtils;
+import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.layers.FloodWithLava;
 import org.pepsoft.worldpainter.layers.Frost;
 import org.pepsoft.worldpainter.layers.Layer;
-import org.pepsoft.worldpainter.layers.renderers.BitLayerRenderer;
-import org.pepsoft.worldpainter.layers.renderers.ByteLayerRenderer;
-import org.pepsoft.worldpainter.layers.renderers.ColourSchemeRenderer;
-import org.pepsoft.worldpainter.layers.renderers.BiomeRenderer;
-import org.pepsoft.worldpainter.layers.renderers.LayerRenderer;
-import org.pepsoft.worldpainter.layers.renderers.NibbleLayerRenderer;
-import static org.pepsoft.worldpainter.Constants.*;
+import org.pepsoft.worldpainter.layers.renderers.*;
+
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBuffer;
+import java.awt.image.WritableRaster;
+import java.util.*;
+import java.util.logging.Logger;
+
 import static org.pepsoft.minecraft.Constants.*;
-import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
-import org.pepsoft.worldpainter.layers.renderers.DimensionAwareRenderer;
+import static org.pepsoft.worldpainter.Constants.*;
 
 /**
  * This class is <strong>not</strong> thread-safe!
@@ -45,6 +35,32 @@ public final class TileRenderer {
     public TileRenderer(TileProvider tileProvider, ColourScheme colourScheme, BiomeScheme biomeScheme, CustomBiomeManager customBiomeManager, boolean dry) {
         biomeRenderer = new BiomeRenderer(biomeScheme, customBiomeManager);
         setTileProvider(tileProvider);
+        if ((tileProvider instanceof Dimension) && (((Dimension) tileProvider).getWorld() != null)) {
+            Dimension oppositeDimension = null;
+            switch (((Dimension) tileProvider).getDim()) {
+                case DIM_NORMAL:
+                    oppositeDimension = ((Dimension) tileProvider).getWorld().getDimension(DIM_NORMAL_CEILING);
+                    break;
+                case DIM_NORMAL_CEILING:
+                    oppositeDimension = ((Dimension) tileProvider).getWorld().getDimension(DIM_NORMAL);
+                    break;
+                case DIM_NETHER:
+                    oppositeDimension = ((Dimension) tileProvider).getWorld().getDimension(DIM_NETHER_CEILING);
+                    break;
+                case DIM_NETHER_CEILING:
+                    oppositeDimension = ((Dimension) tileProvider).getWorld().getDimension(DIM_NETHER);
+                    break;
+                case DIM_END:
+                    oppositeDimension = ((Dimension) tileProvider).getWorld().getDimension(DIM_END_CEILING);
+                    break;
+                case DIM_END_CEILING:
+                    oppositeDimension = ((Dimension) tileProvider).getWorld().getDimension(DIM_END);
+                    break;
+            }
+            if (oppositeDimension != null) {
+                setOppositeTileProvider(oppositeDimension);
+            }
+        }
         setColourScheme(colourScheme);
         this.dry = dry;
     }
@@ -58,6 +74,26 @@ public final class TileRenderer {
         if (tileProvider instanceof Dimension) {
             seed = ((Dimension) tileProvider).getSeed();
             bottomless = ((Dimension) tileProvider).isBottomless();
+            if (oppositeTileProvider instanceof Dimension) {
+                oppositesDelta = Math.abs(((Dimension) tileProvider).getCeilingHeight() - ((Dimension) oppositeTileProvider).getCeilingHeight());
+            } else {
+                noOpposites = true;
+            }
+        } else {
+            noOpposites = true;
+        }
+    }
+
+    public TileProvider getOppositeTileProvider() {
+        return oppositeTileProvider;
+    }
+
+    public void setOppositeTileProvider(TileProvider oppositeTileProvider) {
+        this.oppositeTileProvider = oppositeTileProvider;
+        if ((oppositeTileProvider instanceof Dimension) && (tileProvider instanceof Dimension)) {
+            oppositesDelta = Math.abs(((Dimension) tileProvider).getCeilingHeight() - ((Dimension) oppositeTileProvider).getCeilingHeight());
+        } else {
+            noOpposites = true;
         }
     }
 
@@ -109,8 +145,29 @@ public final class TileRenderer {
         for (int x = 0; x < TILE_SIZE; x++) {
             for (int y = 0; y < TILE_SIZE; y++) {
                 final float height = tile.getHeight(x, y);
-                floatHeightCache[x + y * TILE_SIZE] = height;
-                intHeightCache[x + y * TILE_SIZE] = (int) (height + 0.5f);
+                floatHeightCache[x | (y << TILE_SIZE_BITS)] = height;
+                intHeightCache[x | (y << TILE_SIZE_BITS)] = (int) (height + 0.5f);
+            }
+        }
+
+        // Determine which coordinates, if any, have heights which would
+        // intersect with the opposite tile, if any
+        if (oppositeTileProvider != null) {
+            if (! noOpposites) {
+                Arrays.fill(oppositesOverlap, false);
+            }
+            noOpposites = true;
+            final int maxHeight = tile.getMaxHeight();
+            Tile oppositeTile = oppositeTileProvider.getTile(tile.getX(), tile.getY());
+            if (oppositeTile != null) {
+                for (int x = 0; x < TILE_SIZE; x++) {
+                    for (int y = 0; y < TILE_SIZE; y++) {
+                        if ((oppositeTile.getIntHeight(x, y) + intHeightCache[x | (y << TILE_SIZE_BITS)] + oppositesDelta) >= maxHeight) {
+                            oppositesOverlap[x | (y << TILE_SIZE_BITS)] = true;
+                            noOpposites = false;
+                        }
+                    }
+                }
             }
         }
     }
@@ -187,12 +244,14 @@ public final class TileRenderer {
         if (zoom == 0) {
             for (int x = 0; x < TILE_SIZE; x++) {
                 for (int y = 0; y < TILE_SIZE; y++) {
-                    if (_void && tile.getBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, x, y)) {
-                        renderBuffer[x + y * TILE_SIZE] = 0xff000000 | getPixelColour(tileX, tileY, x, y, voidLayers, voidRenderers, false);
+                    if ((! noOpposites) && oppositesOverlap[x | (y << TILE_SIZE_BITS)]) {
+                        renderBuffer[x | (y << TILE_SIZE_BITS)] = CEILING_PATTERN[x & 0x7][y & 0x7] ? 0xffffffff : 0xff000000;
+                    } else if (_void && tile.getBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, x, y)) {
+                        renderBuffer[x | (y << TILE_SIZE_BITS)] = 0xff000000 | getPixelColour(tileX, tileY, x, y, voidLayers, voidRenderers, false);
                     } else {
                         int colour = getPixelColour(tileX, tileY, x, y, layers, renderers, contourLines);
                         colour = ColourUtils.multiply(colour, getBrightenAmount());
-                        renderBuffer[x + y * TILE_SIZE] = 0xff000000 | colour;
+                        renderBuffer[x | (y << TILE_SIZE_BITS)] = 0xff000000 | colour;
                     }
                 }
             }
@@ -200,7 +259,9 @@ public final class TileRenderer {
             final int zoomSquared = scale * scale;
             for (int x = 0; x < TILE_SIZE; x += scale) {
                 for (int y = 0; y < TILE_SIZE; y += scale) {
-                    if (_void && tile.getBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, x, y)) {
+                    if ((! noOpposites) && oppositesOverlap[x | (y << TILE_SIZE_BITS)]) {
+                        renderBuffer[x / scale + y * TILE_SIZE / zoomSquared] = 0xff000000;
+                    } else if (_void && tile.getBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, x, y)) {
                         renderBuffer[x / scale + y * TILE_SIZE / zoomSquared] = 0xff000000 | getPixelColour(tileX, tileY, x, y, voidLayers, voidRenderers, false);
                     } else {
                         int colour = getPixelColour(tileX, tileY, x, y, layers, renderers, contourLines);
@@ -221,6 +282,12 @@ public final class TileRenderer {
         } else {
             image.setRGB(dx, dy, TILE_SIZE / scale, TILE_SIZE / scale, renderBuffer, 0, TILE_SIZE);
         }
+    }
+
+    public static TileRenderer forWorld(World2 world, int dim, ColourScheme colourScheme, BiomeScheme biomeScheme, CustomBiomeManager customBiomeManager) {
+        Dimension dimension = world.getDimension(dim);
+        TileRenderer tileRenderer = new TileRenderer(dimension, colourScheme, biomeScheme, customBiomeManager);
+        return tileRenderer;
     }
 
     /**
@@ -381,16 +448,26 @@ public final class TileRenderer {
     private final boolean dry;
     private final int[][] heights = new int[3][3], deltas = new int[3][3];
     private final Set<Layer> missingRendererReportedFor = new HashSet<Layer>(); // TODO remove when no longer necessary!
-    private TileProvider tileProvider;
+    private final boolean[] oppositesOverlap = new boolean[TILE_SIZE * TILE_SIZE];
+    private TileProvider tileProvider, oppositeTileProvider;
     private long seed;
     private Tile tile;
     private ColourScheme colourScheme;
     private int zoom = 0;
-    private boolean contourLines = true, bottomless;
-    private int contourSeparation = 10, waterColour, lavaColour, bedrockColour;
+    private boolean contourLines = true, bottomless, noOpposites;
+    private int contourSeparation = 10, waterColour, lavaColour, bedrockColour, oppositesDelta;
     private LightOrigin lightOrigin = LightOrigin.NORTHWEST;
     
     private static final int BLACK = 0x000000, RED = 0xFF0000;
+    private static final boolean[][] CEILING_PATTERN = {
+            { true, false, false, false,  true, false, false, false},
+            {false, false, false, false, false, false, false, false},
+            {false, false,  true, false, false, false, false, false},
+            {false, false, false, false, false, false, false, false},
+            { true, false, false, false,  true, false, false, false},
+            {false, false, false, false, false, false, false, false},
+            {false, false, false, false, false, false,  true, false},
+            {false, false, false, false, false, false, false, false}};
     private static final Logger logger = Logger.getLogger(TileRenderer.class.getName());
 
     public enum LightOrigin {

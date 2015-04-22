@@ -11,6 +11,7 @@ import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.*;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
@@ -27,11 +28,12 @@ import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
  */
 // TODO: adapt for new dynamic maximum level height
 public class Tile3DRenderer {
-    public Tile3DRenderer(Dimension dimension, ColourScheme colourScheme, BiomeScheme biomeScheme, CustomBiomeManager customBiomeManager, int rotation) {
+    public Tile3DRenderer(Dimension dimension, ColourScheme colourScheme, BiomeScheme biomeScheme, CustomBiomeManager customBiomeManager, int rotation, boolean upsideDown) {
         this.dimension = dimension;
         maxHeight = dimension.getMaxHeight();
         this.colourScheme = colourScheme;
         this.rotation = rotation;
+        this.upsideDown = upsideDown;
         tileRenderer = new TileRenderer(dimension, colourScheme, biomeScheme, customBiomeManager, true);
         tileRenderer.addHiddenLayers(DEFAULT_HIDDEN_LAYERS);
         tileRenderer.setContourLines(false);
@@ -54,6 +56,10 @@ public class Tile3DRenderer {
         try {
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
+            if (upsideDown) {
+                g2.scale(1.0, -1.0);
+                g2.translate(0.0, -imgHeight);
+            }
             for (int x = 0; x < TILE_SIZE; x++) {
                 for (int y = 0; y < TILE_SIZE; y++) {
                     // Coordinates of the block in the world
@@ -174,6 +180,7 @@ public class Tile3DRenderer {
     private final ColourScheme colourScheme;
     private final TileRenderer tileRenderer;
     private final int maxHeight, rotation;
+    private final boolean upsideDown;
     
     private final BufferedImage tileImgBuffer = new BufferedImage(TILE_SIZE, TILE_SIZE, BufferedImage.TYPE_INT_RGB);
 

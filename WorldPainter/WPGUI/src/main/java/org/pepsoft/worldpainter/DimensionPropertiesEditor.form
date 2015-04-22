@@ -103,11 +103,15 @@
                           </Group>
                           <Group type="102" alignment="0" attributes="0">
                               <Component id="checkBoxBottomless" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
                               <Component id="jLabel67" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace type="separate" max="-2" attributes="0"/>
+                              <Component id="jLabel78" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="spinnerCeilingHeight" min="-2" max="-2" attributes="0"/>
                           </Group>
                       </Group>
-                      <EmptySpace pref="119" max="32767" attributes="0"/>
+                      <EmptySpace pref="110" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -128,11 +132,13 @@
                           <Component id="comboBoxSubsurfaceMaterial" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="jLabel67" alignment="0" min="-2" pref="24" max="-2" attributes="0"/>
-                          <Component id="checkBoxBottomless" min="-2" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="3" attributes="0">
+                          <Component id="checkBoxBottomless" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="jLabel67" alignment="3" min="-2" pref="24" max="-2" attributes="0"/>
+                          <Component id="jLabel78" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="spinnerCeilingHeight" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
-                      <EmptySpace type="separate" max="-2" attributes="0"/>
+                      <EmptySpace min="-2" pref="19" max="-2" attributes="0"/>
                       <Component id="jLabel4" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="radioButtonNoBorder" min="-2" max="-2" attributes="0"/>
@@ -160,7 +166,7 @@
                           <Component id="jLabel7" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="spinnerMinecraftSeed" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
-                      <EmptySpace pref="27" max="32767" attributes="0"/>
+                      <EmptySpace pref="26" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -338,6 +344,7 @@
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                   <Image iconType="3" name="/org/pepsoft/worldpainter/icons/information.png"/>
                 </Property>
+                <Property name="text" type="java.lang.String" value=" "/>
                 <Property name="toolTipText" type="java.lang.String" value="&lt;html&gt;Generate a bottomless map:&#xa;&lt;ul&gt;&lt;li&gt;No bedrock at the bottom of the map&#xa;&lt;li&gt;Caverns and chasms are open to the void&lt;/html&gt;"/>
               </Properties>
             </Component>
@@ -345,6 +352,18 @@
               <Properties>
                 <Property name="text" type="java.lang.String" value="keep steep terrain covered"/>
                 <Property name="toolTipText" type="java.lang.String" value="&lt;html&gt;Enable this to extend the top layer&lt;br&gt;&#xa;downwards on steep terrain such as cliffs &lt;br&gt;&#xa;so that the underground material is never exposed.&lt;/html&gt;"/>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JLabel" name="jLabel78">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Ceiling height:"/>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JSpinner" name="spinnerCeilingHeight">
+              <Properties>
+                <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
+                  <SpinnerModel initial="256" maximum="256" minimum="1" numberType="java.lang.Integer" stepSize="1" type="number"/>
+                </Property>
               </Properties>
             </Component>
           </SubComponents>
@@ -364,7 +383,7 @@
                   <Group type="102" alignment="0" attributes="0">
                       <EmptySpace min="-2" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="themeEditor" alignment="0" pref="688" max="32767" attributes="1"/>
+                          <Component id="themeEditor" alignment="0" pref="587" max="32767" attributes="1"/>
                           <Group type="103" alignment="0" groupAlignment="1" max="-2" attributes="0">
                               <Component id="jLabel46" alignment="0" min="-2" max="-2" attributes="0"/>
                               <Component id="jLabel45" alignment="0" max="32767" attributes="1"/>
@@ -478,7 +497,7 @@
                               </Group>
                           </Group>
                       </Group>
-                      <EmptySpace pref="116" max="32767" attributes="0"/>
+                      <EmptySpace pref="109" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -1690,7 +1709,7 @@
                           </Group>
                           <Component id="checkBoxExportAnnotations" alignment="0" min="-2" max="-2" attributes="0"/>
                       </Group>
-                      <EmptySpace pref="213" max="32767" attributes="0"/>
+                      <EmptySpace pref="112" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>

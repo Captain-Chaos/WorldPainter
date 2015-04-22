@@ -19,6 +19,7 @@
 package org.pepsoft.worldpainter.exporting;
 
 import org.pepsoft.minecraft.Chunk;
+import org.pepsoft.minecraft.Constants;
 import org.pepsoft.minecraft.Entity;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.minecraft.TileEntity;
@@ -30,40 +31,59 @@ import org.pepsoft.minecraft.TileEntity;
  * Created by pepijn on 21-04-15.
  */
 public class InvertedWorld implements MinecraftWorld {
-    public InvertedWorld(MinecraftWorld world) {
+    public InvertedWorld(MinecraftWorld world, int delta) {
         this.world = world;
+        this.delta = delta;
         maxHeight = world.getMaxHeight();
-        maxZ = maxHeight - 1;
+        maxZ = maxHeight - delta - 1;
     }
 
     @Override
     public int getBlockTypeAt(int x, int y, int height) {
-        return world.getBlockTypeAt(x, y, maxZ - height);
+        if (height > maxZ) {
+            return Constants.BLK_AIR;
+        } else {
+            return world.getBlockTypeAt(x, y, maxZ - height);
+        }
     }
 
     @Override
     public int getDataAt(int x, int y, int height) {
-        return world.getDataAt(x, y, maxZ - height);
+        if (height > maxZ) {
+            return 0;
+        } else {
+            return world.getDataAt(x, y, maxZ - height);
+        }
     }
 
     @Override
     public Material getMaterialAt(int x, int y, int height) {
-        return world.getMaterialAt(x, y, maxZ - height);
+        if (height > maxZ) {
+            return Material.AIR;
+        } else {
+            return world.getMaterialAt(x, y, maxZ - height).invert();
+        }
     }
 
     @Override
     public void setBlockTypeAt(int x, int y, int height, int blockType) {
-        world.setBlockTypeAt(x, y, maxZ - height, blockType);
+        if (height <= maxZ) {
+            world.setBlockTypeAt(x, y, maxZ - height, blockType);
+        }
     }
 
     @Override
     public void setDataAt(int x, int y, int height, int data) {
-        world.setDataAt(x, y, maxZ - height, data);
+        if (height <= maxZ) {
+            world.setDataAt(x, y, maxZ - height, data);
+        }
     }
 
     @Override
     public void setMaterialAt(int x, int y, int height, Material material) {
-        world.setMaterialAt(x, y, maxZ - height, material);
+        if (height <= maxZ) {
+            world.setMaterialAt(x, y, maxZ - height, material.invert());
+        }
     }
 
     @Override
@@ -91,29 +111,43 @@ public class InvertedWorld implements MinecraftWorld {
 
     @Override
     public void addTileEntity(int x, int y, int height, TileEntity tileEntity) {
-        TileEntity worldEntity = (TileEntity) tileEntity.clone();
-        worldEntity.setY(maxZ - worldEntity.getY());
-        world.addTileEntity(x, y, maxZ - height, worldEntity);
+        if (height <= maxZ) {
+            TileEntity worldEntity = (TileEntity) tileEntity.clone();
+            worldEntity.setY(maxZ - worldEntity.getY());
+            world.addTileEntity(x, y, maxZ - height, worldEntity);
+        }
     }
 
     @Override
     public int getBlockLightLevel(int x, int y, int height) {
-        return world.getBlockLightLevel(x, y, maxZ - height);
+        if (height > maxZ) {
+            return 0;
+        } else {
+            return world.getBlockLightLevel(x, y, maxZ - height);
+        }
     }
 
     @Override
     public void setBlockLightLevel(int x, int y, int height, int blockLightLevel) {
-        world.setBlockLightLevel(x, y, maxZ - height, blockLightLevel);
+        if (height <= maxZ) {
+            world.setBlockLightLevel(x, y, maxZ - height, blockLightLevel);
+        }
     }
 
     @Override
     public int getSkyLightLevel(int x, int y, int height) {
-        return world.getSkyLightLevel(x, y, maxZ - height);
+        if (height > maxZ) {
+            return 15;
+        } else {
+            return world.getSkyLightLevel(x, y, maxZ - height);
+        }
     }
 
     @Override
     public void setSkyLightLevel(int x, int y, int height, int skyLightLevel) {
-        world.setSkyLightLevel(x, y, maxZ - height, skyLightLevel);
+        if (height <= maxZ) {
+            world.setSkyLightLevel(x, y, maxZ - height, skyLightLevel);
+        }
     }
 
     @Override
@@ -124,15 +158,15 @@ public class InvertedWorld implements MinecraftWorld {
     @Override
     public Chunk getChunk(int x, int z) {
         Chunk chunk = world.getChunk(x, z);
-        return (chunk != null) ? new InvertedChunk(chunk) : null;
+        return (chunk != null) ? new InvertedChunk(chunk, delta) : null;
     }
 
     @Override
     public Chunk getChunkForEditing(int x, int z) {
         Chunk chunk = world.getChunkForEditing(x, z);
-        return (chunk != null) ? new InvertedChunk(chunk) : null;
+        return (chunk != null) ? new InvertedChunk(chunk, delta) : null;
     }
 
     private final MinecraftWorld world;
-    private final int maxHeight, maxZ;
+    private final int maxHeight, maxZ, delta;
 }

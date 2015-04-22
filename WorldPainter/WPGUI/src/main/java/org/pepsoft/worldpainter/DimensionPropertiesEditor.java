@@ -165,7 +165,6 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     @Override
     public void setEnabled(boolean enabled) {
         super.setEnabled(enabled);
-        checkBoxBedrockWall.setEnabled(enabled);
         comboBoxSubsurfaceMaterial.setEnabled(enabled);
         checkBoxCavernsEverywhere.setEnabled(enabled);
         checkBoxChasmsEverywhere.setEnabled(enabled);
@@ -180,10 +179,6 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         jCheckBox8.setEnabled(enabled);
         checkBoxSmoothSnow.setEnabled(enabled);
         jTabbedPane1.setEnabled(enabled);
-        radioButtonLavaBorder.setEnabled(enabled);
-        radioButtonNoBorder.setEnabled(enabled);
-        radioButtonVoidBorder.setEnabled(enabled);
-        radioButtonWaterBorder.setEnabled(enabled);
         spinnerQuartzChance.setEnabled(enabled);
         spinnerGoldChance.setEnabled(enabled);
         spinnerGoldMaxLevel.setEnabled(enabled);
@@ -267,6 +262,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         }
         dimension.setBottomless(checkBoxBottomless.isSelected());
         dimension.setCoverSteepTerrain(checkBoxCoverSteepTerrain.isSelected());
+        dimension.setCeilingHeight((Integer) spinnerCeilingHeight.getValue());
 
         // caverns
         CavernsSettings cavernsSettings = (CavernsSettings) dimension.getLayerSettings(Caverns.INSTANCE);
@@ -475,6 +471,8 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         spinnerMinecraftSeed.setValue(dimension.getMinecraftSeed());
         checkBoxBottomless.setSelected(dimension.isBottomless());
         checkBoxCoverSteepTerrain.setSelected(dimension.isCoverSteepTerrain());
+        ((SpinnerNumberModel) spinnerCeilingHeight.getModel()).setMaximum(maxHeight + 1);
+        spinnerCeilingHeight.setValue(dimension.getCeilingHeight());
 
         List<Terrain> materialList = new ArrayList<Terrain>(Arrays.asList(Terrain.VALUES));
         for (Iterator<Terrain> i = materialList.iterator(); i.hasNext(); ) {
@@ -703,8 +701,14 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private void setControlStates() {
         boolean enabled = isEnabled();
         boolean dim0 = (dimension != null) && (dimension.getDim() == Constants.DIM_NORMAL);
-        spinnerBorderLevel.setEnabled(enabled && (radioButtonLavaBorder.isSelected() || radioButtonWaterBorder.isSelected()));
-        spinnerBorderSize.setEnabled(enabled && (! radioButtonNoBorder.isSelected()));
+        boolean ceiling = (dimension != null) && (dimension.getDim() < 0);
+        radioButtonLavaBorder.setEnabled(enabled  && (! ceiling));
+        radioButtonNoBorder.setEnabled(enabled  && (! ceiling));
+        radioButtonVoidBorder.setEnabled(enabled  && (! ceiling));
+        radioButtonWaterBorder.setEnabled(enabled  && (! ceiling));
+        checkBoxBedrockWall.setEnabled(enabled  && (! ceiling));
+        spinnerBorderLevel.setEnabled(enabled && (! ceiling) && (radioButtonLavaBorder.isSelected() || radioButtonWaterBorder.isSelected()));
+        spinnerBorderSize.setEnabled(enabled && (! ceiling) && (! radioButtonNoBorder.isSelected()));
         sliderCavernsEverywhereLevel.setEnabled(enabled && checkBoxCavernsEverywhere.isSelected());
         sliderChasmsEverywhereLevel.setEnabled(enabled && checkBoxChasmsEverywhere.isSelected());
         spinnerCavernsFloodLevel.setEnabled(enabled && checkBoxFloodCaverns.isSelected());
@@ -717,6 +721,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         spinnerMinecraftSeed.setEnabled((! defaultSettingsMode) && enabled && dim0);
         checkBoxPopulate.setEnabled(enabled && dim0);
         checkBoxCavernsRemoveWater.setEnabled(enabled && (checkBoxCavernsBreakSurface.isSelected() || checkBoxChasmsBreakSurface.isSelected()));
+        spinnerCeilingHeight.setEnabled(enabled && ceiling);
     }
 
     private void addListeners(final JSpinner minSpinner, final JSpinner maxSpinner) {
@@ -778,6 +783,8 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         checkBoxBottomless = new javax.swing.JCheckBox();
         jLabel67 = new javax.swing.JLabel();
         checkBoxCoverSteepTerrain = new javax.swing.JCheckBox();
+        jLabel78 = new javax.swing.JLabel();
+        spinnerCeilingHeight = new javax.swing.JSpinner();
         jPanel5 = new javax.swing.JPanel();
         themeEditor = new org.pepsoft.worldpainter.themes.SimpleThemeEditor();
         jLabel45 = new javax.swing.JLabel();
@@ -1011,10 +1018,15 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         checkBoxBottomless.setToolTipText("<html>Generate a bottomless map:\n<ul><li>No bedrock at the bottom of the map\n<li>Caverns and chasms are open to the void</html>");
 
         jLabel67.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/information.png"))); // NOI18N
+        jLabel67.setText(" ");
         jLabel67.setToolTipText("<html>Generate a bottomless map:\n<ul><li>No bedrock at the bottom of the map\n<li>Caverns and chasms are open to the void</html>");
 
         checkBoxCoverSteepTerrain.setText("keep steep terrain covered");
         checkBoxCoverSteepTerrain.setToolTipText("<html>Enable this to extend the top layer<br>\ndownwards on steep terrain such as cliffs <br>\nso that the underground material is never exposed.</html>");
+
+        jLabel78.setText("Ceiling height:");
+
+        spinnerCeilingHeight.setModel(new javax.swing.SpinnerNumberModel(256, 1, 256, 1));
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -1064,9 +1076,13 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                         .addComponent(checkBoxCoverSteepTerrain))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(checkBoxBottomless)
-                        .addGap(0, 0, 0)
-                        .addComponent(jLabel67)))
-                .addContainerGap(119, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel67)
+                        .addGap(18, 18, 18)
+                        .addComponent(jLabel78)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(spinnerCeilingHeight, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(110, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1083,10 +1099,12 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                     .addComponent(jLabel6)
                     .addComponent(comboBoxSubsurfaceMaterial, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(checkBoxBottomless)
                     .addComponent(jLabel67, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(checkBoxBottomless))
-                .addGap(18, 18, 18)
+                    .addComponent(jLabel78)
+                    .addComponent(spinnerCeilingHeight, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(19, 19, 19)
                 .addComponent(jLabel4)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(radioButtonNoBorder)
@@ -1111,7 +1129,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel7)
                     .addComponent(spinnerMinecraftSeed, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(27, Short.MAX_VALUE))
+                .addContainerGap(26, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("General", jPanel1);
@@ -1127,7 +1145,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             .addGroup(jPanel5Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(themeEditor, javax.swing.GroupLayout.DEFAULT_SIZE, 688, Short.MAX_VALUE)
+                    .addComponent(themeEditor, javax.swing.GroupLayout.DEFAULT_SIZE, 587, Short.MAX_VALUE)
                     .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                         .addComponent(jLabel46, javax.swing.GroupLayout.Alignment.LEADING)
                         .addComponent(jLabel45, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
@@ -1271,7 +1289,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                                 .addComponent(jLabel73)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(spinnerChasmsMinLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))))
-                .addContainerGap(116, Short.MAX_VALUE))
+                .addContainerGap(109, Short.MAX_VALUE))
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1973,7 +1991,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel48))
                     .addComponent(checkBoxExportAnnotations))
-                .addContainerGap(213, Short.MAX_VALUE))
+                .addContainerGap(112, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -2245,6 +2263,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel75;
     private javax.swing.JLabel jLabel76;
     private javax.swing.JLabel jLabel77;
+    private javax.swing.JLabel jLabel78;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
@@ -2272,6 +2291,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private javax.swing.JSpinner spinnerCavernsFloodLevel;
     private javax.swing.JSpinner spinnerCavernsMaxLevel;
     private javax.swing.JSpinner spinnerCavernsMinLevel;
+    private javax.swing.JSpinner spinnerCeilingHeight;
     private javax.swing.JSpinner spinnerChasmsMaxLevel;
     private javax.swing.JSpinner spinnerChasmsMinLevel;
     private javax.swing.JSpinner spinnerCoalChance;
