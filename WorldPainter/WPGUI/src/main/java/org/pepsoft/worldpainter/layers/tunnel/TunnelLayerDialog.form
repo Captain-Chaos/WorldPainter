@@ -742,21 +742,33 @@
               <Properties>
                 <Property name="text" type="java.lang.String" value="Create New"/>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonNewFloorLayerActionPerformed"/>
+              </Events>
             </Component>
             <Component class="javax.swing.JButton" name="buttonAddFloorLayer">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Add Existing"/>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonAddFloorLayerActionPerformed"/>
+              </Events>
             </Component>
             <Component class="javax.swing.JButton" name="buttonEditFloorLayer">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Edit"/>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonEditFloorLayerActionPerformed"/>
+              </Events>
             </Component>
             <Component class="javax.swing.JButton" name="buttonRemoveFloorLayer">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Remove"/>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonRemoveFloorLayerActionPerformed"/>
+              </Events>
             </Component>
           </SubComponents>
         </Container>

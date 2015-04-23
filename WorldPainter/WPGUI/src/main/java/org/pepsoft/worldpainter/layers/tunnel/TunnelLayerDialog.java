@@ -74,7 +74,7 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
 
     @Override
     protected void ok() {
-        saveSettingsTo(layer);
+        saveSettingsTo(layer, true);
         super.ok();
     }
     
@@ -92,7 +92,7 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
 
     private void generatePreview() {
         TunnelLayer layer = new TunnelLayer("tmp", 0);
-        saveSettingsTo(layer);
+        saveSettingsTo(layer, false);
         TunnelLayerExporter exporter = new TunnelLayerExporter(layer);
         Insets insets = labelPreview.getInsets();
         int width = labelPreview.getWidth() - insets.left - insets.right;
@@ -154,12 +154,12 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
         setControlStates();
     }
 
-    private void saveSettingsTo(TunnelLayer layer) {
+    private void saveSettingsTo(TunnelLayer layer, boolean registerMaterials) {
         layer.setFloorLevel((Integer) spinnerFloorLevel.getValue());
         layer.setFloorMin((Integer) spinnerFloorMin.getValue());
         layer.setFloorMax((Integer) spinnerFloorMax.getValue());
         MixedMaterial floorMaterial = mixedMaterialSelectorFloor.getMaterial();
-        if (floorMaterial != null) {
+        if ((floorMaterial != null) && registerMaterials) {
             // Make sure the material is registered, in case it's new
             floorMaterial = MixedMaterialManager.getInstance().register(floorMaterial);
         }
@@ -181,7 +181,7 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
         layer.setRoofMin((Integer) spinnerRoofMin.getValue());
         layer.setRoofMax((Integer) spinnerRoofMax.getValue());
         MixedMaterial roofMaterial = mixedMaterialSelectorRoof.getMaterial();
-        if (roofMaterial != null) {
+        if ((roofMaterial != null) && registerMaterials) {
             // Make sure the material is registered, in case it's new
             roofMaterial = MixedMaterialManager.getInstance().register(roofMaterial);
         }
@@ -202,7 +202,7 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
         layer.setFloorWallDepth((Integer) spinnerWallFloorDepth.getValue());
         layer.setRoofWallDepth((Integer) spinnerWallRoofDepth.getValue());
         MixedMaterial wallMaterial = mixedMaterialSelectorWall.getMaterial();
-        if (wallMaterial != null) {
+        if ((wallMaterial != null) && registerMaterials) {
             // Make sure the material is registered, in case it's new
             wallMaterial = MixedMaterialManager.getInstance().register(wallMaterial);
         }
@@ -221,6 +221,22 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
         spinnerRoofMax.setEnabled(! radioButtonRoofFixedLevel.isSelected());
         spinnerFloodLevel.setEnabled(checkBoxFlood.isSelected());
         checkBoxFloodWithLava.setEnabled(checkBoxFlood.isSelected());
+    }
+
+    private void removeFloorLayer() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    private void editFloorLayer() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    private void addFloorLayer() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    private void newFloorLayer() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
     /**
@@ -697,12 +713,32 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
         jScrollPane1.setViewportView(tableFloorLayers);
 
         buttonNewFloorLayer.setText("Create New");
+        buttonNewFloorLayer.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonNewFloorLayerActionPerformed(evt);
+            }
+        });
 
         buttonAddFloorLayer.setText("Add Existing");
+        buttonAddFloorLayer.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonAddFloorLayerActionPerformed(evt);
+            }
+        });
 
         buttonEditFloorLayer.setText("Edit");
+        buttonEditFloorLayer.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonEditFloorLayerActionPerformed(evt);
+            }
+        });
 
         buttonRemoveFloorLayer.setText("Remove");
+        buttonRemoveFloorLayer.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonRemoveFloorLayerActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -899,6 +935,22 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
         updatePreview();
         setControlStates();
     }//GEN-LAST:event_radioButtonFloorFixedLevelActionPerformed
+
+    private void buttonNewFloorLayerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonNewFloorLayerActionPerformed
+        newFloorLayer();
+    }//GEN-LAST:event_buttonNewFloorLayerActionPerformed
+
+    private void buttonAddFloorLayerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonAddFloorLayerActionPerformed
+        addFloorLayer();
+    }//GEN-LAST:event_buttonAddFloorLayerActionPerformed
+
+    private void buttonEditFloorLayerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonEditFloorLayerActionPerformed
+        editFloorLayer();
+    }//GEN-LAST:event_buttonEditFloorLayerActionPerformed
+
+    private void buttonRemoveFloorLayerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonRemoveFloorLayerActionPerformed
+        removeFloorLayer();
+    }//GEN-LAST:event_buttonRemoveFloorLayerActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonAddFloorLayer;
