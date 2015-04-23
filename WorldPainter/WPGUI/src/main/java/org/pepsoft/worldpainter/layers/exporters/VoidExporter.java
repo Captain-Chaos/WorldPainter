@@ -70,29 +70,32 @@ public class VoidExporter extends AbstractLayerExporter<org.pepsoft.worldpainter
         }
         // Check for water surrounding the column; pre-render the falling water
         // column to avoid long pauses in Minecraft when the chunks are loaded
-        for (int z = maxHeight - 1; z >= 0; z--) {
-            if ((minecraftWorld.getBlockTypeAt(x - 1, y, z) == BLK_STATIONARY_WATER)
-                    || (minecraftWorld.getBlockTypeAt(x, y - 1, z) == BLK_STATIONARY_WATER)
-                    || (minecraftWorld.getBlockTypeAt(x + 1, y, z) == BLK_STATIONARY_WATER)
-                    || (minecraftWorld.getBlockTypeAt(x, y + 1, z) == BLK_STATIONARY_WATER)) {
-                minecraftWorld.setBlockTypeAt(x, y, z, BLK_STATIONARY_WATER);
-                minecraftWorld.setDataAt(x, y, z, 1);
-                for (z--; z >= 0; z--) {
+        // (but not for ceiling dimensions)
+        if (dimension.getDim() >= 0) {
+            for (int z = maxHeight - 1; z >= 0; z--) {
+                if ((minecraftWorld.getBlockTypeAt(x - 1, y, z) == BLK_STATIONARY_WATER)
+                        || (minecraftWorld.getBlockTypeAt(x, y - 1, z) == BLK_STATIONARY_WATER)
+                        || (minecraftWorld.getBlockTypeAt(x + 1, y, z) == BLK_STATIONARY_WATER)
+                        || (minecraftWorld.getBlockTypeAt(x, y + 1, z) == BLK_STATIONARY_WATER)) {
                     minecraftWorld.setBlockTypeAt(x, y, z, BLK_STATIONARY_WATER);
-                    minecraftWorld.setDataAt(x, y, z, 9);
-                }
-                break;
-            } else if ((minecraftWorld.getBlockTypeAt(x - 1, y, z) == BLK_STATIONARY_LAVA)
-                    || (minecraftWorld.getBlockTypeAt(x, y - 1, z) == BLK_STATIONARY_LAVA)
-                    || (minecraftWorld.getBlockTypeAt(x + 1, y, z) == BLK_STATIONARY_LAVA)
-                    || (minecraftWorld.getBlockTypeAt(x, y + 1, z) == BLK_STATIONARY_LAVA)) {
-                minecraftWorld.setBlockTypeAt(x, y, z, BLK_STATIONARY_LAVA);
-                minecraftWorld.setDataAt(x, y, z, 2);
-                for (z--; z >= 0; z--) {
+                    minecraftWorld.setDataAt(x, y, z, 1);
+                    for (z--; z >= 0; z--) {
+                        minecraftWorld.setBlockTypeAt(x, y, z, BLK_STATIONARY_WATER);
+                        minecraftWorld.setDataAt(x, y, z, 9);
+                    }
+                    break;
+                } else if ((minecraftWorld.getBlockTypeAt(x - 1, y, z) == BLK_STATIONARY_LAVA)
+                        || (minecraftWorld.getBlockTypeAt(x, y - 1, z) == BLK_STATIONARY_LAVA)
+                        || (minecraftWorld.getBlockTypeAt(x + 1, y, z) == BLK_STATIONARY_LAVA)
+                        || (minecraftWorld.getBlockTypeAt(x, y + 1, z) == BLK_STATIONARY_LAVA)) {
                     minecraftWorld.setBlockTypeAt(x, y, z, BLK_STATIONARY_LAVA);
-                    minecraftWorld.setDataAt(x, y, z, 10);
+                    minecraftWorld.setDataAt(x, y, z, 2);
+                    for (z--; z >= 0; z--) {
+                        minecraftWorld.setBlockTypeAt(x, y, z, BLK_STATIONARY_LAVA);
+                        minecraftWorld.setDataAt(x, y, z, 10);
+                    }
+                    break;
                 }
-                break;
             }
         }
     }
