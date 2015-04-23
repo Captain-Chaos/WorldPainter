@@ -320,10 +320,15 @@ public final class App extends JFrame implements RadiusControl,
                     ACTION_MERGE_WORLD.setEnabled(true);
                 }
             }
-        } else {
+        } else if (this.world != null) {
+            for (Dimension dimension: this.world.getDimensions()) {
+                dimension.unregister();
+            }
             this.world = null;
 
             setDimension(null);
+
+            undoManagers.clear();
 
             ACTION_EXPORT_WORLD.setEnabled(false);
             ACTION_MERGE_WORLD.setEnabled(false);
@@ -341,14 +346,46 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     public void setDimension(final Dimension dimension) {
+        Configuration config = Configuration.getInstance();
         if (this.dimension != null) {
             Point viewPosition = view.getViewCentreInWorldCoords();
             if (viewPosition != null) {
                 this.dimension.setLastViewPosition(viewPosition);
+                // Keep the view position of the opposite dimension, if any,
+                // in sync
+                if (world != null) {
+                    Dimension oppositeDimension = null;
+                    switch (this.dimension.getDim()) {
+                        case DIM_NORMAL:
+                            oppositeDimension = world.getDimension(DIM_NORMAL_CEILING);
+                            break;
+                        case DIM_NORMAL_CEILING:
+                            oppositeDimension = world.getDimension(DIM_NORMAL);
+                            break;
+                        case DIM_NETHER:
+                            oppositeDimension = world.getDimension(DIM_NETHER_CEILING);
+                            break;
+                        case DIM_NETHER_CEILING:
+                            oppositeDimension = world.getDimension(DIM_NETHER);
+                            break;
+                        case DIM_END:
+                            oppositeDimension = world.getDimension(DIM_END_CEILING);
+                            break;
+                        case DIM_END_CEILING:
+                            oppositeDimension = world.getDimension(DIM_END);
+                            break;
+                    }
+                    if (oppositeDimension != null) {
+                        oppositeDimension.setLastViewPosition(viewPosition);
+                    }
+                }
             }
-            
-            this.dimension.unregister();
-            undoManager = null;
+
+            if ("true".equals(System.getProperty("org.pepsoft.worldpainter.disableUndo")) || (! config.isUndoEnabled())) {
+                dimension.unregister();
+            }
+            currentUndoManager.unregisterActions();
+            currentUndoManager = null;
 
             // Remove the existing custom object layers and save the list of
             // custom layers to the dimension to preserve layers which aren't
@@ -416,18 +453,23 @@ public final class App extends JFrame implements RadiusControl,
             view.moveTo(dimension.getLastViewPosition());
             
             setDimensionControlStates();
-            Configuration config = Configuration.getInstance();
             if ((! "true".equals(System.getProperty("org.pepsoft.worldpainter.disableUndo"))) && config.isUndoEnabled()) {
-                undoManager = new UndoManager(ACTION_UNDO, ACTION_REDO, Math.max(config.getUndoLevels() + 1, 2));
-                undoManager.setStopAtClasses(PropertyChangeListener.class, Tile.Listener.class, Biome.class, BetterAction.class);
-                dimension.register(undoManager);
+                currentUndoManager = undoManagers.get(dimension.getDim());
+                if (currentUndoManager == null) {
+                    currentUndoManager = new UndoManager(ACTION_UNDO, ACTION_REDO, Math.max(config.getUndoLevels() + 1, 2));
+                    undoManagers.put(dimension.getDim(), currentUndoManager);
+                    currentUndoManager.setStopAtClasses(PropertyChangeListener.class, Tile.Listener.class, Biome.class, BetterAction.class);
+                    dimension.register(currentUndoManager);
+                } else {
+                    currentUndoManager.registerActions(ACTION_UNDO, ACTION_REDO);
+                }
                 dimension.armSavePoint();
             } else {
                 // Still install an undo manager, because some operations depend
                 // on one level of undo being available
-                undoManager = new UndoManager(2);
-                undoManager.setStopAtClasses(PropertyChangeListener.class, Tile.Listener.class, Biome.class, BetterAction.class);
-                dimension.register(undoManager);
+                currentUndoManager = new UndoManager(2);
+                currentUndoManager.setStopAtClasses(PropertyChangeListener.class, Tile.Listener.class, Biome.class, BetterAction.class);
+                dimension.register(currentUndoManager);
                 ACTION_UNDO.setEnabled(false);
                 ACTION_REDO.setEnabled(false);
             }
@@ -1594,8 +1636,8 @@ public final class App extends JFrame implements RadiusControl,
             config.logEvent(event);
         }
 
-        if (undoManager != null) {
-            undoManager.armSavePoint();
+        if (currentUndoManager != null) {
+            currentUndoManager.armSavePoint();
         }
         world.setDirty(false);
         lastSelectedFile = file;
@@ -3310,6 +3352,8 @@ public final class App extends JFrame implements RadiusControl,
         viewEndCeilingMenuItem.setEnabled(false);
         menu.add(viewEndCeilingMenuItem);
 
+        menu.add(ACTION_SWITCH_TO_FROM_CEILING);
+
         menu.addSeparator();
         
         JMenu colourSchemeMenu = new JMenu(strings.getString("change.colour.scheme"));
@@ -3566,7 +3610,7 @@ public final class App extends JFrame implements RadiusControl,
         menuItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                AboutDialog dialog = new AboutDialog(App.this, world, view, undoManager);
+                AboutDialog dialog = new AboutDialog(App.this, world, view, currentUndoManager);
                 dialog.setVisible(true);
             }
         });
@@ -4504,7 +4548,7 @@ public final class App extends JFrame implements RadiusControl,
         MacUtils.installAboutHandler(new MacUtils.AboutHandler() {
             @Override
             public void aboutRequested() {
-                AboutDialog dialog = new AboutDialog(App.this, world, view, undoManager);
+                AboutDialog dialog = new AboutDialog(App.this, world, view, currentUndoManager);
                 dialog.setVisible(true);
             }
         });
@@ -5204,7 +5248,7 @@ public final class App extends JFrame implements RadiusControl,
         
         @Override
         public void performAction(ActionEvent e) {
-            view.setDrawContours(! view.isDrawContours());
+            view.setDrawContours(!view.isDrawContours());
             dimension.setContoursEnabled(view.isDrawContours());
             setSelected(view.isDrawContours());
         }
@@ -5249,8 +5293,8 @@ public final class App extends JFrame implements RadiusControl,
         
         @Override
         public void performAction(ActionEvent e) {
-            if ((undoManager != null) && undoManager.undo()) {
-                undoManager.armSavePoint();
+            if ((currentUndoManager != null) && currentUndoManager.undo()) {
+                currentUndoManager.armSavePoint();
             } else {
                 Toolkit.getDefaultToolkit().beep();
             }
@@ -5267,8 +5311,8 @@ public final class App extends JFrame implements RadiusControl,
         
         @Override
         public void performAction(ActionEvent e) {
-            if ((undoManager != null) && undoManager.redo()) {
-                undoManager.armSavePoint();
+            if ((currentUndoManager != null) && currentUndoManager.redo()) {
+                currentUndoManager.armSavePoint();
             } else {
                 Toolkit.getDefaultToolkit().beep();
             }
@@ -5374,7 +5418,7 @@ public final class App extends JFrame implements RadiusControl,
         
         @Override
         public void performAction(ActionEvent e) {
-            view.setDrawViewDistance(! view.isDrawViewDistance());
+            view.setDrawViewDistance(!view.isDrawViewDistance());
             setSelected(view.isDrawViewDistance());
         }
 
@@ -5389,7 +5433,7 @@ public final class App extends JFrame implements RadiusControl,
         
         @Override
         public void performAction(ActionEvent e) {
-            view.setDrawWalkingDistance(! view.isDrawWalkingDistance());
+            view.setDrawWalkingDistance(!view.isDrawWalkingDistance());
             setSelected(view.isDrawWalkingDistance());
         }
 
@@ -5606,6 +5650,46 @@ public final class App extends JFrame implements RadiusControl,
         }
     };
 
+    private final BetterAction ACTION_SWITCH_TO_FROM_CEILING = new BetterAction("switchCeiling", "Switch to/from Ceiling") {
+        {
+            setAcceleratorKey(KeyStroke.getKeyStroke(VK_C, PLATFORM_COMMAND_MASK));
+        }
+
+        @Override
+        public void performAction(ActionEvent e) {
+            if ((dimension != null) && (world != null)) {
+                Dimension oppositeDimension = null;
+                switch (dimension.getDim()) {
+                    case DIM_NORMAL:
+                        oppositeDimension = world.getDimension(DIM_NORMAL_CEILING);
+                        break;
+                    case DIM_NORMAL_CEILING:
+                        oppositeDimension = world.getDimension(DIM_NORMAL);
+                        break;
+                    case DIM_NETHER:
+                        oppositeDimension = world.getDimension(DIM_NETHER_CEILING);
+                        break;
+                    case DIM_NETHER_CEILING:
+                        oppositeDimension = world.getDimension(DIM_NETHER);
+                        break;
+                    case DIM_END:
+                        oppositeDimension = world.getDimension(DIM_END_CEILING);
+                        break;
+                    case DIM_END_CEILING:
+                        oppositeDimension = world.getDimension(DIM_END);
+                        break;
+                }
+                if (oppositeDimension != null) {
+                    setDimension(oppositeDimension);
+                    return;
+                }
+            }
+            Toolkit.getDefaultToolkit().beep();
+        }
+
+        private static final long serialVersionUID = 1L;
+    };
+
     private World2 world;
     private Dimension dimension;
     private WorldPainter view;
@@ -5617,7 +5701,8 @@ public final class App extends JFrame implements RadiusControl,
     private Brush brush = SymmetricBrush.PLATEAU_CIRCLE, toolBrush = SymmetricBrush.COSINE_CIRCLE;
     private final Map<Brush, JToggleButton> brushButtons = new HashMap<Brush, JToggleButton>();
     private boolean programmaticChange;
-    private UndoManager undoManager;
+    private UndoManager currentUndoManager;
+    private final Map<Integer, UndoManager> undoManagers = new HashMap<Integer, UndoManager>();
     private JSlider levelSlider, brushRotationSlider;
     private float level = 0.51f, toolLevel = 0.51f;
     private Set<Layer> hiddenLayers = new HashSet<Layer>();

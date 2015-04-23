@@ -48,13 +48,22 @@ public class UndoManager {
     }
 
     public UndoManager(Action undoAction, Action redoAction, int maxFrames) {
-        this.undoAction = undoAction;
-        this.redoAction = redoAction;
         this.maxFrames = maxFrames;
         history.add(new WeakHashMap<BufferKey<?>, Object>());
+        registerActions(undoAction, redoAction);
+    }
+
+    public void registerActions(Action undoAction, Action redoAction) {
+        this.undoAction = undoAction;
+        this.redoAction = redoAction;
         updateActions();
     }
-    
+
+    public void unregisterActions() {
+        undoAction = null;
+        redoAction = null;
+    }
+
     public int getMaxFrames() {
         return maxFrames;
     }
@@ -557,7 +566,7 @@ public class UndoManager {
         }
     }
  
-    private final Action undoAction, redoAction;
+    private Action undoAction, redoAction;
     private final int maxFrames;
     private final LinkedList<Map<BufferKey<?>, Object>> history = new LinkedList<Map<BufferKey<?>, Object>>();
     private int currentFrame;
