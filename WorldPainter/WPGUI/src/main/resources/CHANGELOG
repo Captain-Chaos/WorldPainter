@@ -2,17 +2,20 @@
 
  * Maps can now have ceilings! The ceilings are separate dimensions which you can customise as desired and which will be rendered upside down over the surface, allowing you to create covered/dark/cavernous maps with full control over the floor (and the ceiling)
    + Add a ceiling with the Edit -> Add Ceiling to Surface..., Add Ceiling to Nether... and Add Ceiling to End... options
-   + Once added, the corresponding "Remove ..." options become active in the Edit menu, allowing you to remove them again. Removing the Nether or End will also remove its ceiling, if any
-   + Wherever the ceiling intersects the surface will be drawn in black with a white dotted cross hatch pattern to make it clear where the two dimensions meet and the map will be solid. Wherever the two intersect the solid blocks from the surface dimension will take precedence
-   + You can use any kind of layer, above or below the surface, on the ceiling that you want. They will be rendered upside down
-   + Minecraft performs very badly if a map is the full 256 blocks high everywhere. To mitigate this you can lower the ceiling for a lower total map height (but less space, obviously). To do so, activate the ceiling dimension from the View menu, open the Dimension Properties (Ctrl+P, toolbar button or Edit menu) and adjust the "Ceiling height" setting downwards. 128 is a good choice, which will perform much better. You will probably also want to use a lower surface height for both surface and ceiling dimensions, to leave more room
+   + Once added, the corresponding "Remove ..." menu items become active, allowing you to remove them again. Removing the Nether or End will also remove its ceiling, if any; you can't have a ceiling without a surface
+   + You can quickly switch to and from the ceiling of the current dimension by pressing Ctrl+C or ⌘+C
+   + Wherever the ceiling intersects the surface a black crosshatch pattern will be drawn to make it clear where the two dimensions meet and the map will be solid. Wherever the two intersect the solid blocks from the surface dimension will take precedence
+   + You can use any kind of layer, above or below the surface, on the ceiling that you want. They will be rendered upside down. Of course many Minecraft blocks such as plants, snow, etc. require a block beneath them; those will not be exported (Minecraft would remove them anyway). Unsupported sand will have the lowest block changed to sandstone so that it doesn't fall down
+   + You can lower the entire ceiling for a lower total map height (but less space, obviously). To do so, switch to the ceiling dimension from the View menu, open the Dimension Properties (Ctrl+P, toolbar button or Edit menu) and adjust the "Ceiling height" setting downwards
    + Minecraft will spawn you on top of the world instead of inside it (even though WorldPainter sets the spawn point inside). You'll want to use creative mode so you can dig down to the surface through the bedrock that caps the map, or enable the "bottomless world" option for the ceiling dimension so that there is no bedrock
+   + You can use this to create an upside down map: fill the surface completely with Void, add a ceiling and paint your terrain, layers, etc. on there. Remember that it will be dark though!
  * It has become easier to re-use Custom Materials:
    + Instead of having to configure each custom material separately, every place where a custom material is used now shows a list of existing custom materials, with a button to Add a new material and a button to Edit the selected material
    + When you Edit a custom material, it applies to every place where that material is used!
    + In addition, the custom material edit screen now has buttons to Save the material to a file or to Load the material from a file. This allows for exchanging materials between worlds, etc.
    + The list of available custom materials also includes the Custom Terrain Types, and you can select from existing Custom Materials for Custom Terrain Types
- * Explicit support was added for the new blocks in Minecraft 1.8:
+ * Explicit support was added for some new features of Minecraft 1.8:
+   + WorldPainter now tells Minecraft that the map is already lighted, causing it to be loaded much quicker
    + There is a new terrain type called "Stone Mix", which consists of a mix of Stone, Granite, Diorite and Andesite, in approximately the same proportions as in Minecraft-generated maps
    + The default underground material for new worlds is now Stone Mix instead of Stone
    + For solid stone of the new types, the terrain types Granite, Diorite and Andesite have been added
@@ -22,6 +25,7 @@
  * The "fill with layer" operation of the Global Operations tool now leaves the existing layer alone; the layer is added wherever the filter allows it, but the layer is not removed where it already exists. To get the old behaviour, manually remove the layer first with the "remove a layer" operation
  * It is now possible to remove previously added Nether and End dimensions from WorldPainter worlds, using the actions in the Edit menu
  * Improved the Custom Plants layer configuration screen so that the layout is better and things don't jump around when enabling or disabling plants
+ * The difficulty can now be set on the Export screen. For the Hardcore game type is is locked to Hard
  * The scripting engine now checks that you don't forget to use go(), hopefully helping beginners to avoid making this mistake
  * Bug fix: the Merge process no longer leaves carrots and potatoes to exist under water
  * Bug fix: the Merge process no longer leaves top halves of double-high plants, cactuses or sugar canes in the map if the bottom half got removed for some reason (flooding, for instance)
