@@ -220,6 +220,16 @@ public class InvertedChunk implements Chunk {
     }
 
     @Override
+    public boolean isLightPopulated() {
+        return chunk.isLightPopulated();
+    }
+
+    @Override
+    public void setLightPopulated(boolean lightPopulated) {
+        chunk.setLightPopulated(lightPopulated);
+    }
+
+    @Override
     public Tag toNBT() {
         throw new UnsupportedOperationException();
     }

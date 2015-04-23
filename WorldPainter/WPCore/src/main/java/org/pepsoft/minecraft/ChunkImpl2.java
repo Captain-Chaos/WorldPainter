@@ -32,6 +32,7 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk {
         entities = new ArrayList<Entity>();
         tileEntities = new ArrayList<TileEntity>();
         readOnly = false;
+        lightPopulated = true;
     }
 
     public ChunkImpl2(CompoundTag tag, int maxHeight) {
@@ -79,6 +80,7 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk {
         xPos = getInt(TAG_X_POS);
         zPos = getInt(TAG_Z_POS);
         terrainPopulated = getBoolean(TAG_TERRAIN_POPULATED);
+        lightPopulated = getBoolean(TAG_LIGHT_POPULATED);
     }
     
     public Section[] getSections() {
@@ -124,6 +126,7 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk {
         setInt(TAG_X_POS, xPos);
         setInt(TAG_Z_POS, zPos);
         setBoolean(TAG_TERRAIN_POPULATED, terrainPopulated);
+        setBoolean(TAG_LIGHT_POPULATED, lightPopulated);
 
         return new CompoundTag("", Collections.singletonMap("", super.toNBT()));
     }
@@ -385,6 +388,16 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk {
     }
 
     @Override
+    public boolean isLightPopulated() {
+        return lightPopulated;
+    }
+
+    @Override
+    public void setLightPopulated(boolean lightPopulated) {
+        this.lightPopulated = lightPopulated;
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (obj == null) {
             return false;
@@ -456,7 +469,7 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk {
     final int[] heightMap;
     final int xPos, zPos;
     byte[] biomes;
-    boolean terrainPopulated;
+    boolean terrainPopulated, lightPopulated;
     final List<Entity> entities;
     final List<TileEntity> tileEntities;
     final int maxHeight;

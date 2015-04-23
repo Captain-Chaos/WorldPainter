@@ -231,6 +231,16 @@ public final class ChunkImpl extends AbstractNBTItem implements Chunk {
     }
 
     @Override
+    public boolean isLightPopulated() {
+        return false;
+    }
+
+    @Override
+    public void setLightPopulated(boolean lightPopulated) {
+        // Do nothing
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (obj == null) {
             return false;

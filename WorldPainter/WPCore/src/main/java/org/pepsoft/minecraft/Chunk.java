@@ -37,7 +37,7 @@ public interface Chunk extends NBTItem {
 
     int getzPos();
 
-    public Point getCoords();
+    Point getCoords();
 
     boolean isTerrainPopulated();
 
@@ -60,4 +60,8 @@ public interface Chunk extends NBTItem {
     void setBiome(int x, int z, int biome);
 
     boolean isReadOnly();
+
+    boolean isLightPopulated();
+
+    void setLightPopulated(boolean lightPopulated);
 }

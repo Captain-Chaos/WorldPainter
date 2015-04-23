@@ -10,7 +10,6 @@ import org.jnbt.NBTInputStream;
 import org.jnbt.NBTOutputStream;
 import org.jnbt.Tag;
 import org.pepsoft.minecraft.*;
-import org.pepsoft.util.Box;
 import org.pepsoft.util.jobqueue.HashList;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.layers.ReadOnly;
@@ -398,6 +397,11 @@ public class MinecraftWorldImpl implements MinecraftWorld {
         cachedForEditing = false;
     }
 
+    /**
+     * Saves all dirty chunks and closes all files. Ensures that all changes are
+     * saved and no system resources are being used, but the objects can still
+     * be used; any subsequent operations will open files as needed again.
+     */
     public synchronized void flush() {
         saveDirtyChunks();
         try {
@@ -418,53 +422,6 @@ public class MinecraftWorldImpl implements MinecraftWorld {
 //        System.out.println("Cache hits: " + cacheHits / elapsed + " per second");
     }
 
-    public void markPrimaryLightDirty(Point chunkCoords) {
-        if ((! primaryLightDirtyChunks.contains(chunkCoords)) && chunkExists(chunkCoords)) {
-            primaryLightDirtyChunks.add(chunkCoords);
-            secondaryLightDirtyChunks.remove(chunkCoords);
-        }
-    }
-
-    void markPrimaryLightDirtyNoCheck(Point chunkCoords) {
-        primaryLightDirtyChunks.add(chunkCoords);
-    }
-
-    public void markPrimaryLightDirty(int blockX, int blockY) {
-        markPrimaryLightDirty(new Point(blockX >> 4, blockY >> 4));
-    }
-
-    public void markSecondaryLightDirty(Point chunkCoords) {
-        if ((! primaryLightDirtyChunks.contains(chunkCoords)) && chunkExists(chunkCoords)) {
-            secondaryLightDirtyChunks.add(chunkCoords);
-        }
-    }
-
-    public void markPrimaryLightClean(Point chunkCoords) {
-        primaryLightDirtyChunks.remove(chunkCoords);
-    }
-
-    public void markAllLightClean(Point chunkCoords) {
-        primaryLightDirtyChunks.remove(chunkCoords);
-        secondaryLightDirtyChunks.remove(chunkCoords);
-    }
-
-    public boolean isPrimaryLightDirty(Point chunkCoords) {
-        return primaryLightDirtyChunks.contains(chunkCoords);
-    }
-
-    public boolean isAnyLightDirty(Point chunkCoords) {
-        return secondaryLightDirtyChunks.contains(chunkCoords) || primaryLightDirtyChunks.contains(chunkCoords);
-    }
-    
-    public Box getLightingVolume(Point chunkCoords) {
-        return lightingVolumes.get(chunkCoords);
-    }
-
-    public void setLightingVolume(Point chunkCoords, Box lightingVolume) {
-//        System.out.println(chunkCoords + " -> " + lightingVolume);
-        lightingVolumes.put(chunkCoords, lightingVolume);
-    }
-    
     @Override
     public void addEntity(int x, int y, int height, Entity entity) {
         addEntity(x + 0.5, y + 0.5, height + 1.5, entity);
@@ -649,9 +606,6 @@ public class MinecraftWorldImpl implements MinecraftWorld {
     private Chunk cachedChunk;
     private int cachedX = Integer.MIN_VALUE, cachedZ = Integer.MIN_VALUE;
     private boolean cachedForEditing;
-    private final Set<Point> primaryLightDirtyChunks = new HashSet<Point>();
-    private final Set<Point> secondaryLightDirtyChunks = new HashSet<Point>();
-    private final Map<Point, Box> lightingVolumes = new HashMap<Point, Box>();
     private int lowestX, highestX, lowestZ, highestZ;
     private final boolean readOnly, honourReadOnlyChunks;
     private final Dimension dimension;
@@ -687,5 +641,7 @@ public class MinecraftWorldImpl implements MinecraftWorld {
         @Override public int getBiome(int x, int z) {return 0;}
         @Override public void setBiome(int x, int z, int biome) {}
         @Override public boolean isReadOnly() {return false;}
+        @Override public boolean isLightPopulated() {return false;}
+        @Override public void setLightPopulated(boolean lightPopulated) {}
     };
 }

@@ -204,5 +204,7 @@ public class ChunkCache {
         @Override public int getBiome(int x, int z) {return 0;}
         @Override public void setBiome(int x, int z, int biome) {}
         @Override public boolean isReadOnly() {return false;}
+        @Override public boolean isLightPopulated() {return false;}
+        @Override public void setLightPopulated(boolean lightPopulated) {}
     };
 }
