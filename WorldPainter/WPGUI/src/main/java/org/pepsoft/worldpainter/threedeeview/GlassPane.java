@@ -25,19 +25,19 @@ public class GlassPane extends javax.swing.JPanel {
         initComponents();
     }
     
-    public void setRotation(Direction rotation) {
+    public void setRotation(Direction rotation, boolean upsideDown) {
         switch (rotation) {
             case SOUTH:
-                jLabel1.setIcon(NORTH_ARROW_BOTTOM_RIGHT);
+                jLabel1.setIcon(upsideDown ? NORTH_ARROW_TOP_RIGHT : NORTH_ARROW_BOTTOM_RIGHT);
                 break;
             case WEST:
-                jLabel1.setIcon(NORTH_ARROW_BOTTOM_LEFT);
+                jLabel1.setIcon(upsideDown ? NORTH_ARROW_TOP_LEFT : NORTH_ARROW_BOTTOM_LEFT);
                 break;
             case NORTH:
-                jLabel1.setIcon(NORTH_ARROW_TOP_LEFT);
+                jLabel1.setIcon(upsideDown ? NORTH_ARROW_BOTTOM_LEFT : NORTH_ARROW_TOP_LEFT);
                 break;
             case EAST:
-                jLabel1.setIcon(NORTH_ARROW_TOP_RIGHT);
+                jLabel1.setIcon(upsideDown ? NORTH_ARROW_BOTTOM_RIGHT : NORTH_ARROW_TOP_RIGHT);
                 break;
         }
     }

@@ -177,6 +177,7 @@ public class ThreeDeeFrame extends JFrame implements WindowListener {
             threeDeeView = new ThreeDeeView(dimension, colourScheme, autoBiomeScheme, customBiomeManager, rotation, zoom);
             scrollPane.setViewportView(threeDeeView);
             MOVE_TO_SPAWN_ACTION.setEnabled(dimension.getDim() == DIM_NORMAL);
+            glassPane.setRotation(DIRECTIONS[rotation], dimension.getDim() < 0);
         }
     }
 
@@ -221,7 +222,7 @@ public class ThreeDeeFrame extends JFrame implements WindowListener {
             scrollPane.setViewportView(threeDeeView);
 //            scrollPane.getViewport().setViewPosition(new Point((threeDeeView.getWidth() - scrollPane.getWidth()) / 2, (threeDeeView.getHeight() - scrollPane.getHeight()) / 2));
             threeDeeView.moveToTile(centreMostTile.x, centreMostTile.y);
-            glassPane.setRotation(DIRECTIONS[rotation]);
+            glassPane.setRotation(DIRECTIONS[rotation], dimension.getDim() < 0);
         }
         
         private static final long serialVersionUID = 1L;
@@ -243,7 +244,7 @@ public class ThreeDeeFrame extends JFrame implements WindowListener {
             scrollPane.setViewportView(threeDeeView);
 //            scrollPane.getViewport().setViewPosition(new Point((threeDeeView.getWidth() - scrollPane.getWidth()) / 2, (threeDeeView.getHeight() - scrollPane.getHeight()) / 2));
             threeDeeView.moveToTile(centreMostTile.x, centreMostTile.y);
-            glassPane.setRotation(DIRECTIONS[rotation]);
+            glassPane.setRotation(DIRECTIONS[rotation], dimension.getDim() < 0);
         }
         
         private static final long serialVersionUID = 1L;

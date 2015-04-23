@@ -23,7 +23,7 @@ public class Background3DTileRenderer extends Thread {
         super("Background 3D renderer");
         this.jobQueue = jobQueue;
         this.threeDeeRenderManager = threeDeeRenderManager;
-        renderer = new Tile3DRenderer(dimension, colourScheme, biomeScheme, customBiomeManager, rotation, dimension.getDim() < 0);
+        renderer = new Tile3DRenderer(dimension, colourScheme, biomeScheme, customBiomeManager, rotation);
         setDaemon(true);
     }
 
