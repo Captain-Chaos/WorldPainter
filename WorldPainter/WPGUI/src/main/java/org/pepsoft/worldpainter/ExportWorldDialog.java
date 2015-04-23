@@ -159,6 +159,7 @@ public class ExportWorldDialog extends javax.swing.JDialog {
             radioButtonExportSelection.setSelected(true);
         }
         checkBoxMapFeatures.setSelected(world.isMapFeatures());
+        comboBoxDifficulty.setSelectedIndex(world.getDifficulty());
         
         DocumentListener documentListener = new DocumentListener() {
             @Override
@@ -316,6 +317,7 @@ public class ExportWorldDialog extends javax.swing.JDialog {
             world.setTilesToExport(selectedTiles);
         }
         world.setMapFeatures(checkBoxMapFeatures.isSelected());
+        world.setDifficulty(comboBoxDifficulty.getSelectedIndex());
         
         fieldDirectory.setEnabled(false);
         fieldName.setEnabled(false);
@@ -335,6 +337,7 @@ public class ExportWorldDialog extends javax.swing.JDialog {
         labelSelectTiles.setForeground(null);
         labelSelectTiles.setCursor(null);
         checkBoxMapFeatures.setEnabled(false);
+        comboBoxDifficulty.setEnabled(false);
 
         Configuration config = Configuration.getInstance();
         if (config != null) {
@@ -373,6 +376,7 @@ public class ExportWorldDialog extends javax.swing.JDialog {
         }
         checkBoxAllowCheats.setEnabled(comboBoxMinecraftVersion.getSelectedIndex() == 0);
         buttonGeneratorOptions.setEnabled(comboBoxGenerator.getSelectedIndex() == 1);
+        comboBoxDifficulty.setEnabled(comboBoxGameType.getSelectedIndex() != World2.GAME_TYPE_HARDCORE);
     }
 
     private void selectDir() {
@@ -433,6 +437,8 @@ public class ExportWorldDialog extends javax.swing.JDialog {
         comboBoxGameType = new javax.swing.JComboBox();
         buttonGeneratorOptions = new javax.swing.JButton();
         checkBoxMapFeatures = new javax.swing.JCheckBox();
+        jLabel6 = new javax.swing.JLabel();
+        comboBoxDifficulty = new javax.swing.JComboBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Exporting");
@@ -545,6 +551,10 @@ public class ExportWorldDialog extends javax.swing.JDialog {
         checkBoxMapFeatures.setText("Structures");
         checkBoxMapFeatures.setToolTipText("<html>Whether Minecraft should generate NPC villages,<br>\nabandoned mines , strongholds, jungle temples and<br>\ndesert temples (only applies to areas with Populate)</html>");
 
+        jLabel6.setText("Difficulty:");
+
+        comboBoxDifficulty.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Peaceful", "Easy", "Normal", "Hard" }));
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -564,6 +574,10 @@ public class ExportWorldDialog extends javax.swing.JDialog {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(checkBoxAllowCheats)
                         .addGap(18, 18, 18)
+                        .addComponent(jLabel6)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(comboBoxDifficulty, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
                         .addComponent(jLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(comboBoxMinecraftVersion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -571,7 +585,7 @@ public class ExportWorldDialog extends javax.swing.JDialog {
                         .addComponent(buttonExport)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buttonCancel))
-                    .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 703, Short.MAX_VALUE)
+                    .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel2)
@@ -628,7 +642,9 @@ public class ExportWorldDialog extends javax.swing.JDialog {
                     .addComponent(jLabel1)
                     .addComponent(checkBoxAllowCheats)
                     .addComponent(jLabel5)
-                    .addComponent(comboBoxGameType, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(comboBoxGameType, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel6)
+                    .addComponent(comboBoxDifficulty, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
 
@@ -693,6 +709,10 @@ public class ExportWorldDialog extends javax.swing.JDialog {
         if ((comboBoxMinecraftVersion.getSelectedIndex() == 0) && (comboBoxGameType.getSelectedIndex() == World2.GAME_TYPE_CREATIVE)) {
             checkBoxAllowCheats.setSelected(true);
         }
+        if (comboBoxGameType.getSelectedIndex() == World2.GAME_TYPE_HARDCORE) {
+            comboBoxDifficulty.setSelectedIndex(DIFFICULTY_HARD);
+        }
+        setControlStates();
     }//GEN-LAST:event_comboBoxGameTypeActionPerformed
 
     private void buttonGeneratorOptionsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonGeneratorOptionsActionPerformed
@@ -715,6 +735,7 @@ public class ExportWorldDialog extends javax.swing.JDialog {
     private javax.swing.JCheckBox checkBoxAllowCheats;
     private javax.swing.JCheckBox checkBoxGoodies;
     private javax.swing.JCheckBox checkBoxMapFeatures;
+    private javax.swing.JComboBox comboBoxDifficulty;
     private javax.swing.JComboBox comboBoxGameType;
     private javax.swing.JComboBox comboBoxGenerator;
     private javax.swing.JComboBox comboBoxMinecraftVersion;
@@ -727,6 +748,7 @@ public class ExportWorldDialog extends javax.swing.JDialog {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JLabel labelSelectTiles;
     private org.pepsoft.worldpainter.DimensionPropertiesEditor netherCeilingPropertiesEditor;

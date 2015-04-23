@@ -354,6 +354,19 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         }
     }
 
+    public int getDifficulty() {
+        return difficulty;
+    }
+
+    public void setDifficulty(int difficulty) {
+        if (difficulty != this.difficulty) {
+            int oldDifficulty = this.difficulty;
+            this.difficulty = difficulty;
+            dirty = true;
+            propertyChangeSupport.firePropertyChange("difficulty", oldDifficulty, difficulty);
+        }
+    }
+
     /**
      * Rotates the world. Note that no events are fired during the rotation. The
      * caller should make sure to completely requery the world. If an undo
@@ -501,6 +514,13 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
                 }
             }
         }
+        if (wpVersion < 2) {
+            if (gameType == GAME_TYPE_HARDCORE) {
+                difficulty = org.pepsoft.minecraft.Constants.DIFFICULTY_HARD;
+            } else {
+                difficulty = org.pepsoft.minecraft.Constants.DIFFICULTY_NORMAL;
+            }
+        }
         wpVersion = CURRENT_WP_VERSION;
         
         // Bug fix: fix the maxHeight of the dimensions, which somehow is not
@@ -556,6 +576,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     private MixedMaterial[] mixedMaterials = new MixedMaterial[Terrain.CUSTOM_TERRAIN_COUNT];
     private boolean extendedBlockIds;
     private int wpVersion = CURRENT_WP_VERSION;
+    private int difficulty = org.pepsoft.minecraft.Constants.DIFFICULTY_NORMAL;
     private transient Set<Warning> warnings;
 
     @Deprecated
@@ -566,10 +587,6 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     public static final int BIOME_ALGORITHM_AUTO_BIOMES         =  7; 
     
     public static final int DEFAULT_MAX_HEIGHT = org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
-    // Old 1.6 values:
-//    public static final long DEFAULT_OCEAN_SEED = 202961L; // A seed with a huge ocean around the origin, and not many mushroom islands nearby
-//    public static final long DEFAULT_LAND_SEED = 141107L; // A seed with a huge continent around the origin
-    // New 1.7 values:
     public static final long DEFAULT_OCEAN_SEED = 27594263L; // A seed with a large ocean around the origin, and not many mushroom islands nearby. Should be used with Large Biomes
     public static final long DEFAULT_LAND_SEED = 227290L; // A seed with a huge continent around the origin. Should be used with Large Biomes
     
@@ -580,7 +597,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     public static final int GAME_TYPE_ADVENTURE = 2;
     public static final int GAME_TYPE_HARDCORE  = 3;
     
-    private static final int CURRENT_WP_VERSION = 1;
+    private static final int CURRENT_WP_VERSION = 2;
 
     private static final Logger logger = Logger.getLogger(World2.class.getName());
     private static final long serialVersionUID = 2011062401L;

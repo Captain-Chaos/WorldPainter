@@ -73,10 +73,15 @@ public class MapImporter {
         world.setSpawnPoint(new Point(level.getSpawnX(), level.getSpawnZ()));
         world.setImportedFrom(levelDatFile);
         world.setMapFeatures(level.isMapFeatures());
-        world.setGameType(level.getGameType());
+        if (level.isHardcore()) {
+            world.setGameType(World2.GAME_TYPE_HARDCORE);
+        } else {
+            world.setGameType(level.getGameType());
+        }
         world.setGenerator(level.getGenerator());
         world.setGeneratorOptions(level.getGeneratorOptions());
         world.setVersion(version);
+        world.setDifficulty(level.getDifficulty());
         long minecraftSeed = level.getSeed();
         tileFactory.setSeed(minecraftSeed);
         Dimension dimension = new Dimension(minecraftSeed, tileFactory, DIM_NORMAL, maxHeight);

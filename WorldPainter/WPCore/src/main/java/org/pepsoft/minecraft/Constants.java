@@ -81,6 +81,9 @@ public final class Constants {
     public static final String TAG_ALLOW_COMMANDS    = "allowCommands";
     public static final String TAG_GENERATOR_OPTIONS = "generatorOptions";
     public static final String TAG_HARDCORE          = "hardcore";
+    public static final String TAG_DIFFICULTY        = "Difficulty";
+    public static final String TAG_DIFFICULTY_LOCKED = "DifficultyLocked";
+    public static final String TAG_LIGHT_POPULATED   = "LightPopulated";
     
     /**
      * Possibly unofficial, SpoutCraft-specific
@@ -506,4 +509,9 @@ public final class Constants {
     
     public static final int DEFAULT_MAX_HEIGHT_1 = 128;
     public static final int DEFAULT_MAX_HEIGHT_2 = 256;
+    
+    public static final int DIFFICULTY_PEACEFUL = 0;
+    public static final int DIFFICULTY_EASY     = 1;
+    public static final int DIFFICULTY_NORMAL   = 2;
+    public static final int DIFFICULTY_HARD     = 3;
 }

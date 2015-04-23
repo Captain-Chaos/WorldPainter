@@ -103,9 +103,12 @@ public class WorldExporter {
         if (world.getGameType() <= GAME_TYPE_ADVENTURE) {
             level.setGameType(world.getGameType());
             level.setHardcore(false);
+            level.setDifficulty(world.getDifficulty());
         } else if (world.getGameType() == World2.GAME_TYPE_HARDCORE) {
             level.setGameType(GAME_TYPE_SURVIVAL);
             level.setHardcore(true);
+            level.setDifficulty(DIFFICULTY_HARD);
+            level.setDifficultyLocked(true);
         } else {
             throw new InternalError("Don't know how to encode game type " + world.getGameType());
         }
@@ -326,8 +329,8 @@ public class WorldExporter {
                 int blockTypeBelow = minecraftWorld.getBlockTypeAt(x, y, 0);
                 int blockTypeAbove = minecraftWorld.getBlockTypeAt(x, y, 1);
                 if (supportSand && (blockTypeBelow == BLK_SAND)) {
-                    minecraftWorld.setMaterialAt(x, y, 0, Material.SANDSTONE);
-                    blockTypeBelow = BLK_SANDSTONE;
+                    minecraftWorld.setMaterialAt(x, y, 0, (minecraftWorld.getDataAt(x, y, 0) == 1) ? Material.RED_SANDSTONE : Material.SANDSTONE);
+                    blockTypeBelow = minecraftWorld.getBlockTypeAt(x, y, 0);
                 }
                 for (int z = 1; z <= maxZ; z++) {
                     int blockType = blockTypeAbove;
@@ -344,8 +347,8 @@ public class WorldExporter {
                         case BLK_SAND:
                             if (supportSand && BLOCKS[blockTypeBelow].veryInsubstantial) {
                                 // All unsupported sand should be supported by sandstone
-                                minecraftWorld.setMaterialAt(x, y, z, Material.SANDSTONE);
-                                blockType = BLK_SANDSTONE;
+                                minecraftWorld.setMaterialAt(x, y, z, (minecraftWorld.getDataAt(x, y, z - 1) == 1) ? Material.RED_SANDSTONE : Material.SANDSTONE);
+                                blockType = minecraftWorld.getBlockTypeAt(x, y, z);
                             }
                             break;
                         case BLK_DEAD_SHRUBS:

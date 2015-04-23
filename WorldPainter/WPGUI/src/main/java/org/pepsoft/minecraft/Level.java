@@ -83,6 +83,7 @@ public final class Level extends AbstractNBTItem {
         
         // Write level.dat file
         File levelDatFile = new File(worldDir, "level.dat");
+        // Make it show at the top of the single player map list:
         setLong(TAG_LAST_PLAYED, System.currentTimeMillis());
         NBTOutputStream out = new NBTOutputStream(new GZIPOutputStream(new FileOutputStream(levelDatFile)));
         try {
@@ -229,6 +230,14 @@ public final class Level extends AbstractNBTItem {
         return maxHeight;
     }
     
+    public int getDifficulty() {
+        return getInt(TAG_DIFFICULTY);
+    }
+    
+    public boolean isDifficultyLocked() {
+        return getBoolean(TAG_DIFFICULTY_LOCKED);
+    }
+    
     public void setName(String name) {
         setString(TAG_LEVEL_NAME, name);
     }
@@ -301,6 +310,14 @@ public final class Level extends AbstractNBTItem {
     
     public void setAllowCommands(boolean allowCommands) {
         setBoolean(TAG_ALLOW_COMMANDS, allowCommands);
+    }
+    
+    public void setDifficulty(int difficulty) {
+        setInt(TAG_DIFFICULTY, difficulty);
+    }
+    
+    public void setDifficultyLocked(boolean difficultyLocked) {
+        setBoolean(TAG_DIFFICULTY_LOCKED, difficultyLocked);
     }
     
     @Override
