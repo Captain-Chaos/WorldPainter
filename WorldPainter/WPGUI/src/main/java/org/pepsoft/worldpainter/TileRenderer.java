@@ -244,8 +244,8 @@ public final class TileRenderer {
         if (zoom == 0) {
             for (int x = 0; x < TILE_SIZE; x++) {
                 for (int y = 0; y < TILE_SIZE; y++) {
-                    if ((! noOpposites) && oppositesOverlap[x | (y << TILE_SIZE_BITS)]) {
-                        renderBuffer[x | (y << TILE_SIZE_BITS)] = CEILING_PATTERN[x & 0x7][y & 0x7] ? 0xffffffff : 0xff000000;
+                    if ((! noOpposites) && oppositesOverlap[x | (y << TILE_SIZE_BITS)] && CEILING_PATTERN[x & 0x7][y & 0x7]) {
+                        renderBuffer[x | (y << TILE_SIZE_BITS)] = 0xff000000;
                     } else if (_void && tile.getBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, x, y)) {
                         renderBuffer[x | (y << TILE_SIZE_BITS)] = 0xff000000 | getPixelColour(tileX, tileY, x, y, voidLayers, voidRenderers, false);
                     } else {
@@ -460,14 +460,14 @@ public final class TileRenderer {
     
     private static final int BLACK = 0x000000, RED = 0xFF0000;
     private static final boolean[][] CEILING_PATTERN = {
-            { true, false, false, false,  true, false, false, false},
-            {false, false, false, false, false, false, false, false},
-            {false, false,  true, false, false, false, false, false},
-            {false, false, false, false, false, false, false, false},
-            { true, false, false, false,  true, false, false, false},
-            {false, false, false, false, false, false, false, false},
-            {false, false, false, false, false, false,  true, false},
-            {false, false, false, false, false, false, false, false}};
+            { true,  true, false, false,  true,  true, false, false},
+            {false,  true,  true,  true,  true, false, false, false},
+            {false, false,  true,  true, false, false, false, false},
+            {false,  true,  true,  true,  true, false, false, false},
+            { true,  true, false, false,  true,  true, false, false},
+            { true, false, false, false, false,  true,  true,  true},
+            {false, false, false, false, false, false,  true,  true},
+            { true, false, false, false, false,  true,  true,  true}};
     private static final Logger logger = Logger.getLogger(TileRenderer.class.getName());
 
     public enum LightOrigin {
