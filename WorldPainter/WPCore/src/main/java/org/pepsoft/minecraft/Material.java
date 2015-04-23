@@ -1000,6 +1000,7 @@ public final class Material implements Serializable, Comparable<Material> {
     public static final Material GREEN_CLAY            = get(BLK_STAINED_CLAY, DATA_GREEN);
     public static final Material RED_CLAY              = get(BLK_STAINED_CLAY, DATA_RED);
     public static final Material BLACK_CLAY            = get(BLK_STAINED_CLAY, DATA_BLACK);
+    public static final Material RED_SANDSTONE         = get(BLK_RED_SANDSTONE);
 
     public static final Material TALL_GRASS = get(BLK_TALL_GRASS, DATA_TALL_GRASS);
     public static final Material FERN       = get(BLK_TALL_GRASS, DATA_FERN);
