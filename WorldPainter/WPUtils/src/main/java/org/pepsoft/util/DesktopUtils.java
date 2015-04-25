@@ -5,9 +5,7 @@
 
 package org.pepsoft.util;
 
-import com.sun.jna.platform.win32.Shell32Util;
-import com.sun.jna.platform.win32.ShlObj;
-
+import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.io.File;
@@ -47,6 +45,10 @@ public final class DesktopUtils {
             } catch (IOException e) {
                 if (SystemUtils.isLinux()) {
                     return ProcessUtils.runAndWait("xdg-open", file.getAbsolutePath()) == 0;
+                } else if (SystemUtils.isMac()) {
+                    return ProcessUtils.runAndWait("open", file.getAbsolutePath()) == 0;
+                } else if (SystemUtils.isWindows()) {
+                    return ProcessUtils.runAndWait("start", file.getAbsolutePath()) == 0;
                 } else {
                     throw e;
                 }
@@ -71,7 +73,7 @@ public final class DesktopUtils {
         }
         if (SystemUtils.isWindows()) {
             // Should cover Windows
-            return new File(Shell32Util.getFolderPath(ShlObj.CSIDL_PERSONAL));
+            return FileSystemView.getFileSystemView().getDefaultDirectory();
         }
         File homeDir = new File(System.getProperty("user.home"));
         File potentialDocsDir = new File(homeDir, "Documents");
