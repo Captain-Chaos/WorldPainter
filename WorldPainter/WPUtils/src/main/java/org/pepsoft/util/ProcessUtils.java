@@ -17,10 +17,10 @@ public class ProcessUtils {
     public static void runInBackground(String... args) {
         try {
             Process process = Runtime.getRuntime().exec(args);
-            StreamCopier stdoutEater = new StreamCopier(args[0] + " stdout", process.getInputStream(), System.out);
-            StreamCopier stderrEater = new StreamCopier(args[0] + " stderr", process.getErrorStream(), System.err);
-            stdoutEater.start();
-            stderrEater.start();
+            StreamCopier stdoutCopier = new StreamCopier(args[0] + " stdout", process.getInputStream(), System.out);
+            StreamCopier stderrCopier = new StreamCopier(args[0] + " stderr", process.getErrorStream(), System.err);
+            stdoutCopier.start();
+            stderrCopier.start();
         } catch (IOException e) {
             throw new RuntimeException("I/O error while trying to execute " + Arrays.asList(args), e);
         }
@@ -29,10 +29,10 @@ public class ProcessUtils {
     public static int runAndWait(String... args) {
         try {
             Process process = Runtime.getRuntime().exec(args);
-            StreamCopier stdoutEater = new StreamCopier(args[0] + " stdout", process.getInputStream(), System.out);
-            StreamCopier stderrEater = new StreamCopier(args[0] + " stderr", process.getErrorStream(), System.err);
-            stdoutEater.start();
-            stderrEater.start();
+            StreamCopier stdoutCopier = new StreamCopier(args[0] + " stdout", process.getInputStream(), System.out);
+            StreamCopier stderrCopier = new StreamCopier(args[0] + " stderr", process.getErrorStream(), System.err);
+            stdoutCopier.start();
+            stderrCopier.start();
             return process.waitFor();
         } catch (IOException e) {
             throw new RuntimeException("I/O error while trying to execute " + Arrays.asList(args), e);
