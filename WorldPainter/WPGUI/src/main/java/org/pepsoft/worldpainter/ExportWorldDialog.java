@@ -374,7 +374,7 @@ public class ExportWorldDialog extends javax.swing.JDialog {
             labelSelectTiles.setForeground(null);
             labelSelectTiles.setCursor(null);
         }
-        checkBoxAllowCheats.setEnabled(comboBoxMinecraftVersion.getSelectedIndex() == 0);
+        checkBoxAllowCheats.setEnabled((comboBoxMinecraftVersion.getSelectedIndex() == 0) && (comboBoxGameType.getSelectedIndex() != World2.GAME_TYPE_HARDCORE));
         buttonGeneratorOptions.setEnabled(comboBoxGenerator.getSelectedIndex() == 1);
         comboBoxDifficulty.setEnabled(comboBoxGameType.getSelectedIndex() != World2.GAME_TYPE_HARDCORE);
     }
@@ -708,8 +708,9 @@ public class ExportWorldDialog extends javax.swing.JDialog {
     private void comboBoxGameTypeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxGameTypeActionPerformed
         if ((comboBoxMinecraftVersion.getSelectedIndex() == 0) && (comboBoxGameType.getSelectedIndex() == World2.GAME_TYPE_CREATIVE)) {
             checkBoxAllowCheats.setSelected(true);
-        }
-        if (comboBoxGameType.getSelectedIndex() == World2.GAME_TYPE_HARDCORE) {
+            comboBoxDifficulty.setSelectedIndex(DIFFICULTY_PEACEFUL);
+        } else if (comboBoxGameType.getSelectedIndex() == World2.GAME_TYPE_HARDCORE) {
+            checkBoxAllowCheats.setSelected(false);
             comboBoxDifficulty.setSelectedIndex(DIFFICULTY_HARD);
         }
         setControlStates();

@@ -104,15 +104,16 @@ public class WorldExporter {
             level.setGameType(world.getGameType());
             level.setHardcore(false);
             level.setDifficulty(world.getDifficulty());
+            level.setAllowCommands(world.isAllowCheats());
         } else if (world.getGameType() == World2.GAME_TYPE_HARDCORE) {
             level.setGameType(GAME_TYPE_SURVIVAL);
             level.setHardcore(true);
             level.setDifficulty(DIFFICULTY_HARD);
             level.setDifficultyLocked(true);
+            level.setAllowCommands(false);
         } else {
             throw new InternalError("Don't know how to encode game type " + world.getGameType());
         }
-        level.setAllowCommands(world.isAllowCheats());
         level.setGenerator(world.getGenerator());
         if ((world.getVersion() == SUPPORTED_VERSION_2) && (world.getGenerator() == Generator.FLAT) && (world.getGeneratorOptions() != null)) {
             level.setGeneratorOptions(world.getGeneratorOptions());
