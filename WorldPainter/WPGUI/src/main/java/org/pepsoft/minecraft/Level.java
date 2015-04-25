@@ -231,7 +231,7 @@ public final class Level extends AbstractNBTItem {
     }
     
     public int getDifficulty() {
-        return getInt(TAG_DIFFICULTY);
+        return getByte(TAG_DIFFICULTY);
     }
     
     public boolean isDifficultyLocked() {
@@ -313,7 +313,7 @@ public final class Level extends AbstractNBTItem {
     }
     
     public void setDifficulty(int difficulty) {
-        setInt(TAG_DIFFICULTY, difficulty);
+        setByte(TAG_DIFFICULTY, (byte) difficulty);
     }
     
     public void setDifficultyLocked(boolean difficultyLocked) {
