@@ -1,4 +1,4 @@
--- Version 1.11.0, released ...
+-- Version 1.11.0, released 25-4-2015
 
  * Maps can now have ceilings! The ceilings are separate dimensions which you can customise as desired and which will be rendered upside down over the surface, allowing you to create covered/dark/cavernous maps with full control over the floor (and the ceiling)
    + Add a ceiling with the Edit -> Add Ceiling to Surface..., Add Ceiling to Nether... and Add Ceiling to End... options
