@@ -6,6 +6,8 @@ package org.pepsoft.worldpainter.operations;
 
 import java.awt.Point;
 import javax.swing.JOptionPane;
+
+import org.pepsoft.worldpainter.Constants;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.World2;
 import org.pepsoft.worldpainter.WorldPainter;
@@ -23,7 +25,7 @@ public class SetSpawnPoint extends MouseOrTabletOperation {
     protected void tick(int centreX, int centreY, boolean inverse, boolean first, float dynamicLevel) {
         if (first) {
             Dimension dimension = getDimension();
-            if (dimension.getDim() != 0) {
+            if ((dimension.getDim() != Constants.DIM_NORMAL) && (dimension.getDim() != Constants.DIM_NORMAL_CEILING)) {
                 throw new IllegalArgumentException("Cannot set spawn point on dimensions other than 0");
             }
             World2 world = dimension.getWorld();

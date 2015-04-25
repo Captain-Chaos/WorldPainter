@@ -5,18 +5,19 @@
 
 package org.pepsoft.worldpainter;
 
-import java.awt.AlphaComposite;
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Composite;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.HeadlessException;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.Stroke;
+import org.pepsoft.util.MemoryUtils;
+import org.pepsoft.util.ProgressReceiver;
+import org.pepsoft.worldpainter.TileRenderer.LightOrigin;
+import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
+import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
+import org.pepsoft.worldpainter.layers.Biome;
+import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.operations.BrushShape;
+import org.pepsoft.worldpainter.tools.BiomesTileProvider;
+
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
@@ -31,21 +32,8 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.imageio.ImageIO;
-import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
-
-import org.pepsoft.util.MemoryUtils;
-import org.pepsoft.util.ProgressReceiver;
-import org.pepsoft.worldpainter.TileRenderer.LightOrigin;
-import org.pepsoft.worldpainter.layers.Biome;
-import org.pepsoft.worldpainter.layers.Layer;
-import org.pepsoft.worldpainter.operations.BrushShape;
-
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
-import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
-import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
-import org.pepsoft.worldpainter.tools.BiomesTileProvider;
+import static org.pepsoft.worldpainter.Constants.DIM_NORMAL_CEILING;
 
 /**
  *
@@ -75,19 +63,19 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     @Override
     public final void setDimension(Dimension dimension) {
         Dimension oldDimension = this.dimension;
-        if ((oldDimension != null) && (oldDimension.getDim() == DIM_NORMAL)) {
+        if ((oldDimension != null) && ((oldDimension.getDim() == DIM_NORMAL) || (oldDimension.getDim() == DIM_NORMAL_CEILING))) {
             oldDimension.getWorld().removePropertyChangeListener("spawnPoint", this);
         }
         this.dimension = dimension;
         if (dimension != null) {
             drawContours = dimension.isContoursEnabled();
             contourSeparation = dimension.getContourSeparation();
-            if (dimension.getDim() == DIM_NORMAL) {
+            if ((dimension.getDim() == DIM_NORMAL) || (dimension.getDim() == DIM_NORMAL_CEILING)) {
                 dimension.getWorld().addPropertyChangeListener("spawnPoint", this);
             }
 
             setGridSize(dimension.getGridSize());
-            setDrawGrid(dimension.isGridEnabled());
+            setPaintGrid(dimension.isGridEnabled());
             
             // Scale is now managed by WorldPainter & ConfigureViewDialog
 //            setOverlayScale(dimension.getOverlayScale());
@@ -96,7 +84,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             setOverlayOffsetY(dimension.getOverlayOffsetY());
             setOverlay(null);
             setDrawOverlay(dimension.isOverlayEnabled());
-            setMarkerCoords((dimension.getDim() == DIM_NORMAL) ? dimension.getWorld().getSpawnPoint() : null);
+            setMarkerCoords(((dimension.getDim() == DIM_NORMAL) || (dimension.getDim() == DIM_NORMAL_CEILING)) ? dimension.getWorld().getSpawnPoint() : null);
         } else {
             setOverlay(null);
             setMarkerCoords(null);
@@ -207,33 +195,6 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
                 int diameter = largestRadius * 2 + 1;
                 repaintWorld(mouseX - largestRadius, mouseY - largestRadius, diameter, diameter);
             }
-        }
-    }
-
-    public boolean isDrawGrid() {
-        return drawGrid;
-    }
-
-    public void setDrawGrid(boolean drawGrid) {
-        if (drawGrid != this.drawGrid) {
-            this.drawGrid = drawGrid;
-            repaint();
-            firePropertyChange("drawGrid", ! drawGrid, drawGrid);
-        }
-    }
-
-    public int getGridSize() {
-        return gridSize;
-    }
-
-    public void setGridSize(int gridSize) {
-        if (gridSize != this.gridSize) {
-            int oldGridSize = this.gridSize;
-            this.gridSize = gridSize;
-            if (drawGrid) {
-                repaint();
-            }
-            firePropertyChange("gridSize", oldGridSize, gridSize);
         }
     }
 
@@ -669,18 +630,11 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             final Graphics2D g2 = (Graphics2D) g;
             final Color savedColour = g2.getColor();
             final Object savedAAValue = g2.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
-            final Object savedInterpolationValue = g2.getRenderingHint(RenderingHints.KEY_INTERPOLATION);
+//            final Object savedInterpolationValue = g2.getRenderingHint(RenderingHints.KEY_INTERPOLATION);
             final Stroke savedStroke = g2.getStroke();
             final AffineTransform savedTransform = g2.getTransform();
             try {
                 final float scale = transformGraphics(g2);
-                final Rectangle clipBounds = g2.getClipBounds();
-                if (logger.isLoggable(Level.FINER)) {
-                    logger.finer("Clip: " + clipBounds.width + "x" + clipBounds.height);
-                }
-                if (drawGrid) {
-                    drawGrid(g2, clipBounds, scale);
-                }
                 if (drawOverlay && (overlay != null)) {
                     drawOverlay(g2);
                 }
@@ -731,9 +685,9 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             } finally {
                 g2.setColor(savedColour);
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, savedAAValue);
-                if (savedInterpolationValue != null) {
-                    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, savedInterpolationValue);
-                }
+//                if (savedInterpolationValue != null) {
+//                    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, savedInterpolationValue);
+//                }
                 g2.setStroke(savedStroke);
                 g2.setTransform(savedTransform);
             }
@@ -744,7 +698,10 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
      * Repaint an area in world coordinates, plus a few pixels extra to
      * compensate for sloppiness in painting the brush.
      * 
-     * @param area The area to repaint, in world coordinates.
+     * @param x The x coordinate of the area to repaint, in world coordinates.
+     * @param y The y coordinate of the area to repaint, in world coordinates.
+     * @param width The width of the area to repaint, in world coordinates.
+     * @param height The height of the area to repaint, in world coordinates.
      */
     private void repaintWorld(int x, int y, int width, int height) {
 //        System.out.print("Repainting " + x + "," + y + "->" + width + "," + height + " => ");
@@ -753,31 +710,11 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         repaint(area.x - 2, area.y - 2, area.width + 4, area.height + 4);
     }
 
-    private void drawGrid(Graphics2D g2, Rectangle clipBounds, float scale) {
-        if (dimension == null) {
-            return;
-        }
-//        final int xOffset = MathUtils.mod(getViewX(), gridSize), yOffset = MathUtils.mod(getViewY(), gridSize);
-        final int x1 = ((clipBounds.x / gridSize) - 1) * gridSize;
-        final int x2 = ((clipBounds.x + clipBounds.width) / gridSize + 1) * gridSize;
-        final int y1 = ((clipBounds.y / gridSize) - 1) * gridSize;
-        final int y2 = ((clipBounds.y + clipBounds.height) / gridSize + 1) * gridSize;
-        g2.setColor(Color.BLACK);
-        final float strokeWidth = 1 / scale;
-        g2.setStroke(new BasicStroke(strokeWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, new float[] {2 * strokeWidth, 2 * strokeWidth}, 0.0f));
-        for (int x = x1; x <= x2; x+= gridSize) {
-            g2.drawLine(x, y1, x, y2);
-        }
-        for (int y = y1; y <= y2; y+= gridSize) {
-            g2.drawLine(x1, y, x2, y);
-        }
-    }
-
     private void drawOverlay(Graphics2D g2) {
         if (overlayTransparency == 1.0f) {
             // Fully transparent
             return;
-        } else  if (overlayTransparency > 0.0f) {
+        } else if (overlayTransparency > 0.0f) {
             // Transparent
             Composite savedComposite = g2.getComposite();
             try {
@@ -842,8 +779,8 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     private final HashSet<Layer> hiddenLayers = new HashSet<Layer>();
     private final CustomBiomeManager customBiomeManager;
     private Dimension dimension;
-    private int mouseX, mouseY, radius, effectiveRadius, overlayOffsetX, overlayOffsetY, gridSize, contourSeparation, brushRotation;
-    private boolean drawRadius, drawGrid, drawOverlay, drawContours, drawViewDistance, drawWalkingDistance;
+    private int mouseX, mouseY, radius, effectiveRadius, overlayOffsetX, overlayOffsetY, contourSeparation, brushRotation;
+    private boolean drawRadius, drawOverlay, drawContours, drawViewDistance, drawWalkingDistance;
     private BrushShape brushShape;
 //    private float overlayScale = 1.0f;
     private float overlayTransparency = 0.5f;

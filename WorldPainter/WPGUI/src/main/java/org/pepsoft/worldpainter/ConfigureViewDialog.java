@@ -58,7 +58,7 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
         this.view = view;
         this.enableOverlay = enableOverlay;
         initComponents();
-        checkBoxGrid.setSelected(view.isDrawGrid());
+        checkBoxGrid.setSelected(view.isPaintGrid());
         spinnerGridSize.setValue(view.getGridSize());
         checkBoxImageOverlay.setSelected(view.isDrawOverlay());
         if (dimension.getOverlay() != null) {
@@ -532,7 +532,7 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
     private void checkBoxGridActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxGridActionPerformed
         setControlStates();
         boolean gridEnabled = checkBoxGrid.isSelected();
-        view.setDrawGrid(gridEnabled);
+        view.setPaintGrid(gridEnabled);
         dimension.setGridEnabled(gridEnabled);
     }//GEN-LAST:event_checkBoxGridActionPerformed
 

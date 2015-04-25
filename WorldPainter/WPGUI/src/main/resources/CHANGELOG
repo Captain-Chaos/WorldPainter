@@ -22,6 +22,10 @@
    + In addition a terrain type for Red Sandstone has been added
    + Custom Object Layers can correctly rotate and mirror the new blocks
    + The new Hardcore game type can now be selected on the Export screen
+ * The view grid has been made a bit more useful:
+   + When the grid is enabled (grid icon in toolbar, or View -> Configure View...), WorldPainter now shows coordinate labels along the top and left view edges so it's easier to see at a glance where you are
+   + Region borders have a dashes instead of dotted line so it's easier to see where they are. This aids in creating or exporting maps one region at a time. *Note* that this is only enabled if the grid size is a power to two so that there is actually a grid line at each region border
+   + The tile selection windows (on the Export screen, the Merge screen and the Add/Remove Tiles screen) now have the grid enabled so it's easier to know exactly which tiles you are selecting
  * The "fill with layer" operation of the Global Operations tool now leaves the existing layer alone; the layer is added wherever the filter allows it, but the layer is not removed where it already exists. To get the old behaviour, manually remove the layer first with the "remove a layer" operation
  * It is now possible to remove previously added Nether and End dimensions from WorldPainter worlds, using the actions in the Edit menu
  * Improved the Custom Plants layer configuration screen so that the layout is better and things don't jump around when enabling or disabling plants

@@ -4,38 +4,19 @@
  */
 package org.pepsoft.util.swing;
 
-import java.awt.Color;
-import java.awt.Cursor;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
-import java.awt.event.HierarchyEvent;
-import java.awt.event.HierarchyListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.PriorityBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JComponent;
-import javax.swing.SwingUtilities;
 
 /**
  * A generic visual component which can display one or more layers of large or
@@ -320,6 +301,28 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         repaint();
     }
 
+    public boolean isPaintGrid() {
+        return paintGrid;
+    }
+
+    public void setPaintGrid(boolean paintGrid) {
+        if (paintGrid != this.paintGrid) {
+            this.paintGrid = paintGrid;
+            repaint();
+        }
+    }
+
+    public int getGridSize() {
+        return gridSize;
+    }
+
+    public void setGridSize(int gridSize) {
+        if (gridSize != this.gridSize) {
+            this.gridSize = gridSize;
+            repaint();
+        }
+    }
+
     /**
      * Centre the view on a particular location in world coordinates.
      * 
@@ -521,7 +524,114 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         }
         return scale;
     }
-    
+
+    protected final void paintMarkerIfApplicable(Graphics g2) {
+        if (paintMarker) {
+            Color savedColour = g2.getColor();
+            try {
+                g2.setColor(Color.RED);
+                Point markerCoords = worldToView(markerX, markerY);
+                g2.drawLine(markerCoords.x - 5, markerCoords.y, markerCoords.x + 5, markerCoords.y);
+                g2.drawLine(markerCoords.x, markerCoords.y - 5, markerCoords.x, markerCoords.y + 5);
+            } finally {
+                g2.setColor(savedColour);
+            }
+        }
+    }
+
+    private void paintGridIfApplicable(Graphics2D g2) {
+        if (! paintGrid) {
+            return;
+        }
+        final Color savedColour = g2.getColor();
+        final Stroke savedStroke = g2.getStroke();
+        final Font savedFont = g2.getFont();
+        final Object savedTextAAHint = g2.getRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING);
+        try {
+            final Rectangle clipInWorld = viewToWorld(g2.getClipBounds());
+            final int x1 = ((clipInWorld.x / gridSize) - 1) * gridSize;
+            final int x2 = ((clipInWorld.x + clipInWorld.width) / gridSize + 1) * gridSize;
+            final int y1 = ((clipInWorld.y / gridSize) - 1) * gridSize;
+            final int y2 = ((clipInWorld.y + clipInWorld.height) / gridSize + 1) * gridSize;
+            g2.setColor(Color.BLACK);
+            final Rectangle2D fontBounds = BOLD_FONT.getStringBounds("-00000", g2.getFontRenderContext());
+            final int fontHeight = (int) (fontBounds.getHeight() + 0.5), fontWidth = (int) (fontBounds.getWidth() + 0.5);
+            final int leftClear = fontWidth + 4, topClear = fontHeight + 6;
+            final Stroke normalStroke = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, new float[]{2f, 2f}, 0.0f);
+            final Stroke regionBorderStroke = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, new float[]{6f, 2f}, 0.0f);
+            final boolean drawRegionBorders = (gridSize <= 512) && (gridSize & (gridSize - 1)) == 0; // Power of two
+            final int width = getWidth(), height = getHeight();
+            int xLabelSkip = gridSize, yLabelSkip = gridSize;
+            final float scale = (float) Math.pow(2.0, getZoom());
+            while ((xLabelSkip * scale) < fontWidth) {
+                xLabelSkip += gridSize;
+            }
+            while ((yLabelSkip * scale) < fontHeight) {
+                yLabelSkip += gridSize;
+            }
+            g2.setStroke(normalStroke);
+            g2.setFont(NORMAL_FONT);
+            boolean normalFontInstalled = true;
+            g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_GASP);
+            boolean normalStrokeInstalled = true;
+            for (int x = x1; x <= x2; x += gridSize) {
+                if ((x == 0) || (drawRegionBorders && ((x % 512) == 0))) {
+                    g2.setStroke(regionBorderStroke);
+                    normalStrokeInstalled = false;
+                } else if (!normalStrokeInstalled) {
+                    g2.setStroke(normalStroke);
+                    normalStrokeInstalled = true;
+                }
+                Point lineStartInView = worldToView(x, 0);
+                if ((x % xLabelSkip) == 0) {
+                    if (lineStartInView.x + 2 >= leftClear) {
+                        g2.drawLine(lineStartInView.x, 0, lineStartInView.x, height);
+                    }
+                    if (drawRegionBorders && ((x % 512) == 0)) {
+                        g2.setFont(BOLD_FONT);
+                        normalFontInstalled = false;
+                    } else if (!normalFontInstalled) {
+                        g2.setFont(NORMAL_FONT);
+                        normalFontInstalled = true;
+                    }
+                    g2.drawString(Integer.toString(x), lineStartInView.x + 2, fontHeight + 2);
+                } else if (lineStartInView.x + 2 >= leftClear) {
+                    g2.drawLine(lineStartInView.x, topClear, lineStartInView.x, height);
+                }
+            }
+            for (int y = y1; y <= y2; y += gridSize) {
+                if ((y == 0) || (drawRegionBorders && ((y % 512) == 0))) {
+                    g2.setStroke(regionBorderStroke);
+                    normalStrokeInstalled = false;
+                } else if (!normalStrokeInstalled) {
+                    g2.setStroke(normalStroke);
+                    normalStrokeInstalled = true;
+                }
+                Point lineStartInView = worldToView(0, y);
+                if ((y % yLabelSkip) == 0) {
+                    if (lineStartInView.y + 2 >= topClear) {
+                        g2.drawLine(0, lineStartInView.y, width, lineStartInView.y);
+                    }
+                    if (drawRegionBorders && ((y % 512) == 0)) {
+                        g2.setFont(BOLD_FONT);
+                        normalFontInstalled = false;
+                    } else if (!normalFontInstalled) {
+                        g2.setFont(NORMAL_FONT);
+                        normalFontInstalled = true;
+                    }
+                    g2.drawString(Integer.toString(y), 2, lineStartInView.y - 2);
+                } else if (lineStartInView.y + 2 >= topClear) {
+                    g2.drawLine(leftClear, lineStartInView.y, width, lineStartInView.y);
+                }
+            }
+        } finally {
+            g2.setColor(savedColour);
+            g2.setStroke(savedStroke);
+            g2.setFont(savedFont);
+            g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, savedTextAAHint);
+        }
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
         g.setColor(getBackground());
@@ -556,13 +666,10 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                 }
             }
         }
-        
-        if (paintMarker) {
-            g.setColor(Color.RED);
-            Point markerCoords = worldToView(markerX, markerY);
-            g.drawLine(markerCoords.x - 5, markerCoords.y,     markerCoords.x + 5, markerCoords.y);
-            g.drawLine(markerCoords.x,     markerCoords.y - 5, markerCoords.x,     markerCoords.y + 5);
-        }
+
+        paintGridIfApplicable((Graphics2D) g);
+
+        paintMarkerIfApplicable(g);
         
         if (paintCentre) {
             int middleX = getWidth() / 2;
@@ -763,9 +870,9 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
      * meaning that 0 represents no zoom, -1 means half size (so zooming out),
      * 1 means double size (so zooming in), etc.
      */
-    private int zoom = 0;
+    private int zoom = 0, gridSize = 128;
     private ExecutorService tileRenderers;
-    private boolean dragging, paintMarker;
+    private boolean dragging, paintMarker, paintGrid;
     private BlockingQueue<Runnable> queue;
     private ViewListener viewListener;
  
@@ -775,6 +882,8 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
 
     private static final Reference<BufferedImage> RENDERING = new SoftReference<BufferedImage>(null);
     private static final BufferedImage NO_TILE = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
+    private static final Font NORMAL_FONT = new Font("SansSerif", Font.PLAIN, 10);
+    private static final Font BOLD_FONT = new Font("SansSerif", Font.BOLD, 10);
     private static final long serialVersionUID = 1L;
     private static final Logger logger = Logger.getLogger(TiledImageViewer.class.getName());
     

@@ -25,11 +25,12 @@ import org.pepsoft.util.swing.TiledImageViewer;
  */
 public class WPTileSelectionViewer extends TiledImageViewer {
     public WPTileSelectionViewer() {
-        // Do nothing
+        setPaintGrid(true);
     }
 
     public WPTileSelectionViewer(boolean leftClickDrags, int threads, boolean paintCentre) {
         super(leftClickDrags, threads, paintCentre);
+        setPaintGrid(true);
     }
     
     @Override
@@ -75,11 +76,13 @@ public class WPTileSelectionViewer extends TiledImageViewer {
         g2.setColor(Color.WHITE);
         g2.drawString(str, 15 + SCALE_BAR.getWidth(), getHeight() - 10);
 
+        int middleX = getWidth() / 2;
+        int middleY = getHeight() / 2;
         g2.setColor(Color.BLACK);
         str = getViewX() + ", " + getViewY();
-        g2.drawString(str, 11, 21);
+        g2.drawString(str, middleX + 3, middleY - 1);
         g2.setColor(Color.WHITE);
-        g2.drawString(str, 10, 20);
+        g2.drawString(str, middleX + 2, middleY - 2);
     }
 
     public Point getHighlightedTileLocation() {

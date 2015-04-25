@@ -240,7 +240,7 @@ public class TileSelector extends javax.swing.JPanel {
             WPTileProvider tileProvider = new WPTileProvider(dimension, colourScheme, biomeScheme, customBiomeManager, hiddenLayers, contourLines, contourSeparation, lightOrigin, false, null);
 //            tileProvider.setZoom(zoom);
             viewer.setTileProvider(tileProvider);
-            viewer.setMarkerCoords((dimension.getDim() == DIM_NORMAL) ? dimension.getWorld().getSpawnPoint() : null);
+            viewer.setMarkerCoords(((dimension.getDim() == DIM_NORMAL) || (dimension.getDim() == DIM_NORMAL_CEILING)) ? dimension.getWorld().getSpawnPoint() : null);
             buttonSpawn.setEnabled(true);
 //            moveToCentre();
         } else {
@@ -253,7 +253,7 @@ public class TileSelector extends javax.swing.JPanel {
     }
     
     public void refresh() {
-        if ((dimension != null) && (dimension.getDim() == DIM_NORMAL)) {
+        if ((dimension != null) && ((dimension.getDim() == DIM_NORMAL) || (dimension.getDim() == DIM_NORMAL_CEILING))) {
             viewer.setMarkerCoords(dimension.getWorld().getSpawnPoint());
         }
         viewer.refresh();

@@ -497,7 +497,7 @@ public final class App extends JFrame implements RadiusControl,
             }
             
             // Set action states
-            ACTION_GRID.setSelected(view.isDrawGrid());
+            ACTION_GRID.setSelected(view.isPaintGrid());
             ACTION_CONTOURS.setSelected(view.isDrawContours());
             ACTION_OVERLAY.setSelected(view.isDrawOverlay());
             
@@ -3389,7 +3389,7 @@ public final class App extends JFrame implements RadiusControl,
             public void actionPerformed(ActionEvent e) {
                 ConfigureViewDialog dialog = new ConfigureViewDialog(App.this, dimension, view);
                 dialog.setVisible(true);
-                ACTION_GRID.setSelected(view.isDrawGrid());
+                ACTION_GRID.setSelected(view.isPaintGrid());
                 ACTION_CONTOURS.setSelected(view.isDrawContours());
                 ACTION_OVERLAY.setSelected(view.isDrawOverlay());
             }
@@ -4446,6 +4446,16 @@ public final class App extends JFrame implements RadiusControl,
                     biomesCheckBox.setEnabled(true);
                     biomesSoloCheckBox.setEnabled(true);
                     break;
+                case DIM_NORMAL_CEILING:
+                    if (activeOperation instanceof BiomePaint) {
+                        deselectTool();
+                    }
+                    setSpawnPointToggleButton.setEnabled(true);
+                    ACTION_MOVE_TO_SPAWN.setEnabled(true);
+                    biomesToggleButton.setEnabled(false);
+                    biomesCheckBox.setEnabled(false);
+                    biomesSoloCheckBox.setEnabled(false);
+                    break;
                 default:
                     if ((activeOperation instanceof SetSpawnPoint) || (activeOperation instanceof BiomePaint)) {
                         deselectTool();
@@ -5232,9 +5242,9 @@ public final class App extends JFrame implements RadiusControl,
         
         @Override
         public void performAction(ActionEvent e) {
-            view.setDrawGrid(! view.isDrawGrid());
-            dimension.setGridEnabled(view.isDrawGrid());
-            setSelected(view.isDrawGrid());
+            view.setPaintGrid(!view.isPaintGrid());
+            dimension.setGridEnabled(view.isPaintGrid());
+            setSelected(view.isPaintGrid());
         }
 
         private static final long serialVersionUID = 1L;
@@ -5278,7 +5288,7 @@ public final class App extends JFrame implements RadiusControl,
                 ConfigureViewDialog dialog = new ConfigureViewDialog(App.this, dimension, view, true);
                 dialog.setVisible(true);
                 setSelected(view.isDrawOverlay());
-                ACTION_GRID.setSelected(view.isDrawGrid());
+                ACTION_GRID.setSelected(view.isPaintGrid());
                 ACTION_CONTOURS.setSelected(view.isDrawContours());
             }
         }
