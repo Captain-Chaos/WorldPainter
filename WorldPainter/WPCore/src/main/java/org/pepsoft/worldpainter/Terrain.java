@@ -1091,8 +1091,8 @@ public enum Terrain {
             } else {
                 if (graniteNoise.getSeed() != (seed + GRANITE_SEED_OFFSET)) {
                     graniteNoise.setSeed(seed + GRANITE_SEED_OFFSET);
-                    dioriteNoise.setSeed(seed + ANDESITE_SEED_OFFSET);
-                    andesiteNoise.setSeed(seed + DIORITE_SEED_OFFSET);
+                    dioriteNoise.setSeed(seed + DIORITE_SEED_OFFSET);
+                    andesiteNoise.setSeed(seed + ANDESITE_SEED_OFFSET);
                 }
                 if (graniteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > GRANITE_CHANCE) {
                     return Material.GRANITE;
@@ -1111,27 +1111,27 @@ public enum Terrain {
         private final PerlinNoise andesiteNoise = new PerlinNoise(0);
 
         private static final int GRANITE_SEED_OFFSET  = 145827825;
-        private static final int DIORITE_SEED_OFFSET  =  87772192;
-        private static final int ANDESITE_SEED_OFFSET =  59606124;
+        private static final int DIORITE_SEED_OFFSET  =  59606124;
+        private static final int ANDESITE_SEED_OFFSET =  87772192;
     };
 
-    private Terrain(String name, String description, int defaultBiome) {
+    Terrain(String name, String description, int defaultBiome) {
         this(name, Material.STONE, Material.STONE, AIR, description, defaultBiome);
     }
 
-    private Terrain(String name, int topMaterial, int topLayerMaterial, String description, int defaultBiome) {
+    Terrain(String name, int topMaterial, int topLayerMaterial, String description, int defaultBiome) {
         this(name, Material.get(topMaterial), Material.get(topLayerMaterial), AIR, description, defaultBiome);
     }
 
-    private Terrain(String name, int topMaterial, int topLayerMaterial, int topping, String description, int defaultBiome) {
+    Terrain(String name, int topMaterial, int topLayerMaterial, int topping, String description, int defaultBiome) {
         this(name, Material.get(topMaterial), Material.get(topLayerMaterial), Material.get(topping), description, defaultBiome);
     }
     
-    private Terrain(String name, Material topMaterial, Material topLayerMaterial, String description, int defaultBiome) {
+    Terrain(String name, Material topMaterial, Material topLayerMaterial, String description, int defaultBiome) {
         this(name, topMaterial, topLayerMaterial, AIR, description, defaultBiome);
     }
     
-    private Terrain(String name, Material topMaterial, Material topLayerMaterial, Material topping, String description, int defaultBiome) {
+    Terrain(String name, Material topMaterial, Material topLayerMaterial, Material topping, String description, int defaultBiome) {
         this.name = name;
         this.topMaterial = topMaterial;
         this.topLayerMaterial = topLayerMaterial;
