@@ -1,3 +1,10 @@
+-- Version 1.11.1, released 26-4-2015
+
+ * You can now choose Lava for the "except on" or "only on" option in the brush filter settings
+ * The Merge process now leaves the "inhabited time" of each chunk intact so that regional difficulty is not affected
+ * Slightly better Mac integration, still a work in progress
+ * Bug fix: you can once again create new layered custom materials without getting an error message
+
 -- Version 1.11.0, released 25-4-2015
 
  * Maps can now have ceilings! The ceilings are separate dimensions which you can customise as desired and which will be rendered upside down over the surface, allowing you to create covered/dark/cavernous maps with full control over the floor (and the ceiling)
