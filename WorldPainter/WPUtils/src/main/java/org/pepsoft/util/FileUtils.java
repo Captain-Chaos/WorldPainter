@@ -16,7 +16,6 @@ import java.util.logging.Logger;
 import org.jetbrains.annotations.NonNls;
 
 import javax.swing.*;
-import javax.swing.filechooser.*;
 import javax.swing.filechooser.FileFilter;
 
 /**
