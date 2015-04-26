@@ -79,6 +79,12 @@ public final class FilterImpl implements Filter {
             onlyOnTerrain = null;
             onlyOnLayer = null;
             onlyOnBiome = -1;
+        } else if (BrushOptions.LAVA.equals(onlyOn)) {
+            this.onlyOn = true;
+            onlyOnObjectType = ObjectType.LAVA;
+            onlyOnTerrain = null;
+            onlyOnLayer = null;
+            onlyOnBiome = -1;
         } else if (BrushOptions.LAND.equals(onlyOn)) {
             this.onlyOn = true;
             onlyOnObjectType = ObjectType.LAND;
@@ -130,6 +136,12 @@ public final class FilterImpl implements Filter {
         } else if (BrushOptions.WATER.equals(exceptOn)) {
             this.exceptOn = true;
             exceptOnObjectType = ObjectType.WATER;
+            exceptOnTerrain = null;
+            exceptOnLayer = null;
+            exceptOnBiome = -1;
+        } else if (BrushOptions.LAVA.equals(exceptOn)) {
+            this.exceptOn = true;
+            exceptOnObjectType = ObjectType.LAVA;
             exceptOnTerrain = null;
             exceptOnLayer = null;
             exceptOnBiome = -1;
@@ -216,6 +228,11 @@ public final class FilterImpl implements Filter {
                             return 0.0f;
                         }
                         break;
+                    case LAVA:
+                        if ((dimension.getWaterLevelAt(x, y) > dimension.getIntHeightAt(x, y)) && dimension.getBitLayerValueAt(FloodWithLava.INSTANCE, x, y)) {
+                            return 0.0f;
+                        }
+                        break;
                     case LAND:
                         if (dimension.getWaterLevelAt(x, y) <= dimension.getIntHeightAt(x, y)) {
                             return 0.0f;
@@ -252,6 +269,11 @@ public final class FilterImpl implements Filter {
                         break;
                     case WATER:
                         if ((dimension.getWaterLevelAt(x, y) <= dimension.getIntHeightAt(x, y)) || dimension.getBitLayerValueAt(FloodWithLava.INSTANCE, x, y)) {
+                            return 0.0f;
+                        }
+                        break;
+                    case LAVA:
+                        if ((dimension.getWaterLevelAt(x, y) <= dimension.getIntHeightAt(x, y)) || (! dimension.getBitLayerValueAt(FloodWithLava.INSTANCE, x, y))) {
                             return 0.0f;
                         }
                         break;
@@ -320,6 +342,6 @@ public final class FilterImpl implements Filter {
     }
 
     public enum ObjectType {
-        TERRAIN, BIT_LAYER, INT_LAYER, BIOME, WATER, LAND, AUTO_BIOME
+        TERRAIN, BIT_LAYER, INT_LAYER, BIOME, WATER, LAND, LAVA, AUTO_BIOME
     }
 }

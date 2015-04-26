@@ -232,6 +232,15 @@ public class BrushOptions extends javax.swing.JPanel {
         JPopupMenu popupMenu = new JPopupMenu();
         popupMenu.add(waterItem);
 
+        JMenuItem lavaItem = new JMenuItem("Lava");
+        lavaItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                listener.objectSelected(LAVA, "Lava", null);
+            }
+        });
+        popupMenu.add(lavaItem);
+
         JMenuItem landItem = new JMenuItem("Land");
         landItem.addActionListener(new ActionListener() {
             @Override
@@ -740,6 +749,7 @@ public class BrushOptions extends javax.swing.JPanel {
     
     public static final String LAND = "Land";
     public static final String WATER = "Water";
+    public static final String LAVA = "Lava";
     public static final String AUTO_BIOMES = "Automatic Biomes";
     
     private static final long serialVersionUID = 1L;
