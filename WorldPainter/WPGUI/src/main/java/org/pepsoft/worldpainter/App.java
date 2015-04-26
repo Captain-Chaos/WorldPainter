@@ -120,7 +120,11 @@ public final class App extends JFrame implements RadiusControl,
         
         brushOptions = new BrushOptions();
         brushOptions.setListener(this);
-        
+
+        if (SystemUtils.isMac()) {
+            installMacCustomisations();
+        }
+
         initComponents();
         
         hiddenLayers.add(Biome.INSTANCE);
@@ -208,10 +212,6 @@ public final class App extends JFrame implements RadiusControl,
         };
         addWindowListener(windowAdapter);
 
-        if (SystemUtils.isMac()) {
-            installMacCustomisations();
-        }
-        
         ActionMap actionMap = rootPane.getActionMap();
         actionMap.put("rotateLightLeft", ACTION_ROTATE_LIGHT_LEFT);
         actionMap.put("rotateLightRight", ACTION_ROTATE_LIGHT_RIGHT);
@@ -1392,33 +1392,31 @@ public final class App extends JFrame implements RadiusControl,
         } else {
             dir = DesktopUtils.getDocumentsFolder();
         }
-        JFileChooser fileChooser = new JFileChooser(dir);
-        fileChooser.setFileFilter(new FileFilter() {
-            @Override
-            public boolean accept(File f) {
-                return f.isDirectory()
-                    || f.getName().toLowerCase().endsWith(".world");
-            }
+        File selectedFile = FileUtils.openFile(this, "Select a WorldPainter world", dir,
+                new FileFilter() {
+                    @Override
+                    public boolean accept(File f) {
+                        return f.isDirectory()
+                                || f.getName().toLowerCase().endsWith(".world");
+                    }
 
-            @Override
-            public String getDescription() {
-                return strings.getString("worldpainter.files.world");
-            }
-        });
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        if (fileChooser.showOpenDialog(App.this) == JFileChooser.APPROVE_OPTION) {
-            File file = fileChooser.getSelectedFile();
-            if (! file.isFile()) {
+                    @Override
+                    public String getDescription() {
+                        return strings.getString("worldpainter.files.world");
+                    }
+                });
+        if (selectedFile != null) {
+            if (! selectedFile.isFile()) {
                 JOptionPane.showMessageDialog(this, "The specified path does not exist or is not a file", "File Does Not Exist", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            if (! file.canRead()) {
+            if (! selectedFile.canRead()) {
                 JOptionPane.showMessageDialog(this, "WorldPainter is not authorised to read the selected file", "Access Denied", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            open(file);
+            open(selectedFile);
             if (config != null) {
-                config.setWorldDirectory(file.getParentFile());
+                config.setWorldDirectory(selectedFile.getParentFile());
             }
         }
     }
@@ -3047,7 +3045,7 @@ public final class App extends JFrame implements RadiusControl,
         menuItem.setMnemonic('m');
         menu.add(menuItem);
 
-        if (! SystemUtils.isMac()) {
+        if (! hideExit) {
             menu.addSeparator();
 
             menuItem = new JMenuItem(ACTION_EXIT);
@@ -3208,8 +3206,6 @@ public final class App extends JFrame implements RadiusControl,
         });
         menu.add(removeEndCeilingMenuItem);
 
-        menu.addSeparator();
-
 //        final JMenuItem easyModeItem = new JCheckBoxMenuItem("Advanced mode");
 //        if (! config.isEasyMode()) {
 //            easyModeItem.setSelected(true);
@@ -3253,7 +3249,9 @@ public final class App extends JFrame implements RadiusControl,
 //        });
 //        menu.add(easyModeItem);
 
-        if (! config.isEasyMode()) {
+        if ((! config.isEasyMode()) && (! hidePreferences)) {
+            menu.addSeparator();
+
             menuItem = new JMenuItem(strings.getString("preferences") + "...");
             menuItem.addActionListener(new ActionListener() {
                 @Override
@@ -3602,19 +3600,21 @@ public final class App extends JFrame implements RadiusControl,
         menu = new JMenu(strings.getString("help"));
 //        menu.setMnemonic('h');
         menu.add(menuItem);
-        
-        menu.addSeparator();
-        
-        menuItem = new JMenuItem(strings.getString("about"));
-        menuItem.setMnemonic('a');
-        menuItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                AboutDialog dialog = new AboutDialog(App.this, world, view, currentUndoManager);
-                dialog.setVisible(true);
-            }
-        });
-        menu.add(menuItem);
+
+        if (! hideAbout) {
+            menu.addSeparator();
+
+            menuItem = new JMenuItem(strings.getString("about"));
+            menuItem.setMnemonic('a');
+            menuItem.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    AboutDialog dialog = new AboutDialog(App.this, world, view, currentUndoManager);
+                    dialog.setVisible(true);
+                }
+            });
+            menu.add(menuItem);
+        }
         menuBar.add(menu);
         
         addStatisticsTo(menuBar, "menu", config);
@@ -4547,7 +4547,7 @@ public final class App extends JFrame implements RadiusControl,
     }
     
     private void installMacCustomisations() {
-        MacUtils.installQuitHandler(new MacUtils.QuitHandler() {
+        hideExit = MacUtils.installQuitHandler(new MacUtils.QuitHandler() {
             @Override
             public boolean quitRequested() {
                 exit();
@@ -4555,7 +4555,7 @@ public final class App extends JFrame implements RadiusControl,
                 return false;
             }
         });
-        MacUtils.installAboutHandler(new MacUtils.AboutHandler() {
+        hideAbout = MacUtils.installAboutHandler(new MacUtils.AboutHandler() {
             @Override
             public void aboutRequested() {
                 AboutDialog dialog = new AboutDialog(App.this, world, view, currentUndoManager);
@@ -4567,6 +4567,16 @@ public final class App extends JFrame implements RadiusControl,
             public void filesOpened(List<File> files) {
                 if (files.size() > 0) {
                     open(files.get(0), true);
+                }
+            }
+        });
+        hidePreferences = MacUtils.installPreferencesHandler(new MacUtils.PreferencesHandler() {
+            @Override
+            public void preferencesRequested() {
+                PreferencesDialog dialog = new PreferencesDialog(App.this, selectedColourScheme);
+                dialog.setVisible(true);
+                if (! dialog.isCancelled()) {
+                    setMaxRadius(Configuration.getInstance().getMaximumBrushSize());
                 }
             }
         });
@@ -5747,6 +5757,7 @@ public final class App extends JFrame implements RadiusControl,
     private Layer soloLayer;
     private final PaletteManager paletteManager = new PaletteManager(this);
     private DockingManager dockingManager;
+    private boolean hideAbout, hidePreferences, hideExit;
 
     public static final Image ICON = IconUtils.loadImage("org/pepsoft/worldpainter/icons/shovel-icon.png");
     

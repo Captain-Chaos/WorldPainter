@@ -20,6 +20,7 @@ package org.pepsoft.util;
 
 import com.apple.eawt.AppEvent;
 import com.apple.eawt.Application;
+import com.apple.eawt.PreferencesHandler;
 import com.apple.eawt.QuitResponse;
 
 import java.io.File;
@@ -118,6 +119,22 @@ public final class MacUtils {
         return true;
     }
 
+    public static boolean installPreferencesHandler(final PreferencesHandler preferencesHandler) {
+        Application application = Application.getApplication();
+        application.setPreferencesHandler(new com.apple.eawt.PreferencesHandler() {
+            @Override
+            public void handlePreferences(AppEvent.PreferencesEvent preferencesEvent) {
+                AwtUtils.doLaterOnEventThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        preferencesHandler.preferencesRequested();
+                    }
+                });
+            }
+        });
+        return true;
+    }
+
     public interface QuitHandler {
         /**
          * Invoked when the user has requested to quit the application.
@@ -142,5 +159,9 @@ public final class MacUtils {
          * @param files The list of files requested to be opened.
          */
         void filesOpened(List<File> files);
+    }
+
+    public interface PreferencesHandler {
+        void preferencesRequested();
     }
 }

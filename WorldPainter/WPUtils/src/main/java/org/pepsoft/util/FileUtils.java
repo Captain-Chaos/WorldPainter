@@ -4,6 +4,7 @@
  */
 package org.pepsoft.util;
 
+import java.awt.*;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
@@ -13,6 +14,10 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NonNls;
+
+import javax.swing.*;
+import javax.swing.filechooser.*;
+import javax.swing.filechooser.FileFilter;
 
 /**
  *
@@ -109,8 +114,8 @@ public class FileUtils {
     /**
      * Copy a file to another directory.
      * 
-     * @param dir The file to copy.
-     * @param destParent The parent directory to copy the file to.
+     * @param file The file to copy.
+     * @param destDir The parent directory to copy the file to.
      * @throws IOException If there is an I/O error while performing the copy.
      */
     public static void copyFile(File file, File destDir) throws IOException {
@@ -124,8 +129,8 @@ public class FileUtils {
     /**
      * Copy a file to another directory with optional progress reporting.
      * 
-     * @param dir The file to copy.
-     * @param destParent The parent directory to copy the file to.
+     * @param file The file to copy.
+     * @param destDir The parent directory to copy the file to.
      * @param progressReceiver The progress receiver to report copying progress
      *     to. May be <code>null</code>.
      * @throws IOException If there is an I/O error while performing the copy.
@@ -218,6 +223,33 @@ public class FileUtils {
         }
 
         return sb.toString();
+    }
+
+    public static File openFile(Frame parent, String title, File dir, final FileFilter fileFilter) {
+        if (SystemUtils.isMac()) {
+            // On Macs the AWT file dialog looks much closer to native than the
+            // Swing one, so use it
+            FileDialog fileDialog = new FileDialog(parent, title, FileDialog.LOAD);
+            fileDialog.setDirectory(dir.getPath());
+            fileDialog.setFilenameFilter(new FilenameFilter() {
+                @Override
+                public boolean accept(File file, String s) {
+                    return fileFilter.accept(new File(file, s));
+                }
+            });
+            fileDialog.setVisible(true);
+            String selectedFileStr = fileDialog.getFile();
+            return (selectedFileStr != null) ? new File(selectedFileStr) : null;
+        } else {
+            JFileChooser fileChooser = new JFileChooser(dir);
+            fileChooser.setFileFilter(fileFilter);
+            fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            if (fileChooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION) {
+                return fileChooser.getSelectedFile();
+            } else {
+                return null;
+            }
+        }
     }
 
     public static void main(String[] args) throws IOException {
