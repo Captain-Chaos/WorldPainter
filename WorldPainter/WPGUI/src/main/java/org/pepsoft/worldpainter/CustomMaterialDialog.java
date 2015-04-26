@@ -135,7 +135,7 @@ public class CustomMaterialDialog extends WorldPainterDialog {
                     fieldName.getText(),
                     rows,
                     biome,
-                    MixedMaterial.Mode.BLOBS,
+                    MixedMaterial.Mode.LAYERED,
                     ((Integer) spinnerScale.getValue()) / 100.0f,
                     checkBoxColour.isSelected() ? selectedColour : null,
                     (variation.getRange() != 0) ? variation : null,
