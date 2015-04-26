@@ -64,4 +64,8 @@ public interface Chunk extends NBTItem {
     boolean isLightPopulated();
 
     void setLightPopulated(boolean lightPopulated);
+
+    long getInhabitedTime();
+
+    void setInhabitedTime(long inhabitedTime);
 }

@@ -1320,6 +1320,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                 newChunkEntities.add(entity);
             }
         }
+        newChunk.setInhabitedTime(existingChunk.getInhabitedTime());
         return newChunk;
     }
 
