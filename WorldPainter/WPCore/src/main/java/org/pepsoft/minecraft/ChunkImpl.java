@@ -241,6 +241,16 @@ public final class ChunkImpl extends AbstractNBTItem implements Chunk {
     }
 
     @Override
+    public long getInhabitedTime() {
+        return 0;
+    }
+
+    @Override
+    public void setInhabitedTime(long inhabitedTime) {
+        // Do nothing
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (obj == null) {
             return false;

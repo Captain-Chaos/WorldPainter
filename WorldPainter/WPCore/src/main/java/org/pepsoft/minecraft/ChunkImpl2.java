@@ -81,6 +81,7 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk {
         zPos = getInt(TAG_Z_POS);
         terrainPopulated = getBoolean(TAG_TERRAIN_POPULATED);
         lightPopulated = getBoolean(TAG_LIGHT_POPULATED);
+        inhabitedTime = getLong(TAG_INHABITED_TIME);
     }
     
     public Section[] getSections() {
@@ -127,6 +128,9 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk {
         setInt(TAG_Z_POS, zPos);
         setBoolean(TAG_TERRAIN_POPULATED, terrainPopulated);
         setBoolean(TAG_LIGHT_POPULATED, lightPopulated);
+        if (inhabitedTime != 0) {
+            setLong(TAG_INHABITED_TIME, inhabitedTime);
+        }
 
         return new CompoundTag("", Collections.singletonMap("", super.toNBT()));
     }
@@ -398,6 +402,16 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk {
     }
 
     @Override
+    public long getInhabitedTime() {
+        return inhabitedTime;
+    }
+
+    @Override
+    public void setInhabitedTime(long inhabitedTime) {
+        this.inhabitedTime = inhabitedTime;
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (obj == null) {
             return false;
@@ -473,6 +487,7 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk {
     final List<Entity> entities;
     final List<TileEntity> tileEntities;
     final int maxHeight;
+    long inhabitedTime;
 
     private static final long serialVersionUID = 1L;
     

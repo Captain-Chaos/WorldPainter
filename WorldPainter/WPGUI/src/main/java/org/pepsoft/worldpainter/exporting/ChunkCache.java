@@ -206,5 +206,7 @@ public class ChunkCache {
         @Override public boolean isReadOnly() {return false;}
         @Override public boolean isLightPopulated() {return false;}
         @Override public void setLightPopulated(boolean lightPopulated) {}
+        @Override public long getInhabitedTime() {return 0;}
+        @Override public void setInhabitedTime(long inhabitedTime) {}
     };
 }

@@ -84,6 +84,7 @@ public final class Constants {
     public static final String TAG_DIFFICULTY        = "Difficulty";
     public static final String TAG_DIFFICULTY_LOCKED = "DifficultyLocked";
     public static final String TAG_LIGHT_POPULATED   = "LightPopulated";
+    public static final String TAG_INHABITED_TIME    = "InhabitedTime";
     
     /**
      * Possibly unofficial, SpoutCraft-specific

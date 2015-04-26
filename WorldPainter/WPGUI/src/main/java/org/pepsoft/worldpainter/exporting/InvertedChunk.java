@@ -230,6 +230,16 @@ public class InvertedChunk implements Chunk {
     }
 
     @Override
+    public long getInhabitedTime() {
+        return chunk.getInhabitedTime();
+    }
+
+    @Override
+    public void setInhabitedTime(long inhabitedTime) {
+        chunk.setInhabitedTime(inhabitedTime);
+    }
+
+    @Override
     public Tag toNBT() {
         throw new UnsupportedOperationException();
     }
