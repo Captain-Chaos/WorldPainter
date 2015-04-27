@@ -403,7 +403,7 @@ public final class Constants {
     public static final String ID_DROPPER      = "Dropper";
     public static final String ID_ENCHANTTABLE = "EnchantTable";
     public static final String ID_ENDERCHEST   = "EnderChest";
-    public static final String ID_FLOWERPOT    = "Flowerpot";
+    public static final String ID_FLOWERPOT    = "FlowerPot";
     public static final String ID_FURNACE      = "Furnace";
     public static final String ID_HOPPER       = "Hopper";
     public static final String ID_MOBSPAWNER   = "MobSpawner";
