@@ -4,6 +4,11 @@
  */
 package org.pepsoft.worldpainter.biomeschemes;
 
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+import org.pepsoft.worldpainter.ColourScheme;
+
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileReader;
@@ -11,22 +16,17 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.imageio.ImageIO;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+
 import static org.pepsoft.minecraft.Constants.*;
-import org.pepsoft.worldpainter.ColourScheme;
 
 /**
  *
  * @author pepijn
  */
-public abstract class AbstractMinecraft1_7BiomeScheme extends AbstractBiomeScheme {
+public abstract class AbstractMinecraft1_7BiomeScheme extends AbstractBiomeScheme implements Minecraft1_7Biomes {
     @Override
     public final String[] getBiomeNames() {
         return BIOME_NAMES;
@@ -212,263 +212,7 @@ public abstract class AbstractMinecraft1_7BiomeScheme extends AbstractBiomeSchem
         // Create the class loader and return it
         return new URLClassLoader(classpath.toArray(new URL[classpath.size()]));
     }
-    
-    public static final int BIOME_OCEAN = 0;
-    public static final int BIOME_PLAINS = 1;
-    public static final int BIOME_DESERT = 2;
-    public static final int BIOME_EXTREME_HILLS = 3;
-    public static final int BIOME_FOREST = 4;
-    public static final int BIOME_TAIGA = 5;
-    public static final int BIOME_SWAMPLAND = 6;
-    public static final int BIOME_RIVER = 7;
-    public static final int BIOME_HELL = 8;
-    public static final int BIOME_SKY = 9;
-    public static final int BIOME_FROZEN_OCEAN = 10;
-    public static final int BIOME_FROZEN_RIVER = 11;
-    public static final int BIOME_ICE_PLAINS = 12;
-    public static final int BIOME_ICE_MOUNTAINS = 13;
-    public static final int BIOME_MUSHROOM_ISLAND = 14;
-    public static final int BIOME_MUSHROOM_ISLAND_SHORE = 15;
-    public static final int BIOME_BEACH = 16;
-    public static final int BIOME_DESERT_HILLS = 17;
-    public static final int BIOME_FOREST_HILLS = 18;
-    public static final int BIOME_TAIGA_HILLS = 19;
-    public static final int BIOME_EXTREME_HILLS_EDGE = 20;
-    public static final int BIOME_JUNGLE = 21;
-    public static final int BIOME_JUNGLE_HILLS = 22;
-    public static final int BIOME_JUNGLE_EDGE = 23;
-    public static final int BIOME_DEEP_OCEAN = 24;
-    public static final int BIOME_STONE_BEACH = 25;
-    public static final int BIOME_COLD_BEACH = 26;
-    public static final int BIOME_BIRCH_FOREST = 27;
-    public static final int BIOME_BIRCH_FOREST_HILLS = 28;
-    public static final int BIOME_ROOFED_FOREST = 29;
-    public static final int BIOME_COLD_TAIGA = 30;
-    public static final int BIOME_COLD_TAIGA_HILLS = 31;
-    public static final int BIOME_MEGA_TAIGA = 32;
-    public static final int BIOME_MEGA_TAIGA_HILLS = 33;
-    public static final int BIOME_EXTREME_HILLS_PLUS = 34;
-    public static final int BIOME_SAVANNA = 35;
-    public static final int BIOME_SAVANNA_PLATEAU = 36;
-    public static final int BIOME_MESA = 37;
-    public static final int BIOME_MESA_PLATEAU_F = 38;
-    public static final int BIOME_MESA_PLATEAU = 39;
-    public static final int BIOME_SUNFLOWER_PLAINS = 129;
-    public static final int BIOME_DESERT_M = 130;
-    public static final int BIOME_EXTREME_HILLS_M = 131;
-    public static final int BIOME_FLOWER_FOREST = 132;
-    public static final int BIOME_TAIGA_M = 133;
-    public static final int BIOME_SWAMPLAND_M = 134;
-    public static final int BIOME_ICE_PLAINS_SPIKES = 140;
-    public static final int BIOME_ICE_MOUNTAINS_SPIKES = 141;
-    public static final int BIOME_JUNGLE_M = 149;
-    public static final int BIOME_JUNGLE_EDGE_M = 151;
-    public static final int BIOME_BIRCH_FOREST_M = 155;
-    public static final int BIOME_BIRCH_FOREST_HILLS_M = 156;
-    public static final int BIOME_ROOFED_FOREST_M = 157;
-    public static final int BIOME_COLD_TAIGA_M = 158;
-    public static final int BIOME_MEGA_SPRUCE_TAIGA = 160;
-    public static final int BIOME_MEGA_SPRUCE_TAIGA_HILLS = 161;
-    public static final int BIOME_EXTREME_HILLS_PLUS_M = 162;
-    public static final int BIOME_SAVANNA_M = 163;
-    public static final int BIOME_SAVANNA_PLATEAU_M = 164;
-    public static final int BIOME_MESA_BRYCE = 165;
-    public static final int BIOME_MESA_PLATEAU_F_M = 166;
-    public static final int BIOME_MESA_PLATEAU_M = 167;
 
-    public static final int HIGHEST_BIOME_ID = BIOME_MESA_PLATEAU_M;
-    
-    public static final String[] BIOME_NAMES = {
-        "Ocean",
-        "Plains",
-        "Desert",
-        "Extreme Hills",
-        "Forest",
-        "Taiga",
-        "Swampland",
-        "River",
-        "Nether",
-        "End",
-        
-        "Frozen Ocean",
-        "Frozen River",
-        "Ice Plains",
-        "Ice Mountains",
-        "Mushroom Island",
-        "Mushroom Island Shore",
-        "Beach",
-        "Desert Hills",
-        "Forest Hills",
-        "Taiga Hills",
-        
-        "Extreme Hills Edge",
-        "Jungle",
-        "Jungle Hills",
-        "Jungle Edge",
-        "Deep Ocean",
-        "Stone Beach",
-        "Cold Beach",
-        "Birch Forest",
-        "Birch Forest Hills",
-        "Roofed Forest",
-
-        "Cold Taiga",
-        "Cold Taiga Hills",
-        "Mega Taiga",
-        "Mega Taiga Hills",
-        "Extreme Hills+",
-        "Savanna",
-        "Savanna Plateau",
-        "Mesa",
-        "Mesa Plateau F",
-        "Mesa Plateau",
-
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        "Sunflower Plains",
-
-        "Desert M",
-        "Extreme Hills M",
-        "Flower Forest",
-        "Taiga M",
-        "Swampland M",
-        null,
-        null,
-        null,
-        null,
-        null,
-
-        "Ice Plains Spikes",
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        "Jungle M",
-
-        null,
-        "Jungle Edge M",
-        null,
-        null,
-        null,
-        "Birch Forest M",
-        "Birch Forest Hills M",
-        "Roofed Forest M",
-        "Cold Taiga M",
-        null,
-
-        "Mega Spruce Taiga",
-        "Mega Spruce Taiga Hills",
-        "Extreme Hills+ M",
-        "Savanna M",
-        "Savanna Plateau M",
-        "Mesa (Bryce)",
-        "Mesa Plateau F M",
-        "Mesa Plateau M"
-    };
-    public static final Set<Integer> DRY_BIOMES = new HashSet<Integer>(Arrays.asList(BIOME_DESERT, BIOME_DESERT_HILLS, BIOME_DESERT_M, BIOME_HELL, BIOME_SAVANNA, BIOME_SAVANNA_M, BIOME_MESA, BIOME_MESA_BRYCE, BIOME_SAVANNA_PLATEAU, BIOME_SAVANNA_PLATEAU_M, BIOME_MESA_PLATEAU, BIOME_MESA_PLATEAU_F, BIOME_MESA_PLATEAU_F_M, BIOME_MESA_PLATEAU_M));
-    public static final Set<Integer> COLD_BIOMES = new HashSet<Integer>(Arrays.asList(BIOME_FROZEN_OCEAN, BIOME_FROZEN_RIVER, BIOME_ICE_MOUNTAINS, BIOME_ICE_PLAINS, BIOME_TAIGA_HILLS, BIOME_ICE_PLAINS_SPIKES, BIOME_COLD_BEACH, BIOME_COLD_TAIGA, BIOME_COLD_TAIGA_M));
-    public static final Set<Integer> FORESTED_BIOMES = new HashSet<Integer>(Arrays.asList(BIOME_FOREST, BIOME_SWAMPLAND, BIOME_TAIGA, BIOME_FOREST_HILLS, BIOME_TAIGA_HILLS, BIOME_JUNGLE, BIOME_JUNGLE_HILLS, BIOME_JUNGLE_EDGE, BIOME_JUNGLE_EDGE_M, BIOME_JUNGLE_M, BIOME_BIRCH_FOREST, BIOME_BIRCH_FOREST_HILLS, BIOME_BIRCH_FOREST_HILLS_M, BIOME_BIRCH_FOREST_M, BIOME_TAIGA_M, BIOME_COLD_TAIGA, BIOME_COLD_TAIGA_HILLS, BIOME_COLD_TAIGA_M, BIOME_MEGA_SPRUCE_TAIGA, BIOME_MEGA_SPRUCE_TAIGA_HILLS, BIOME_MEGA_TAIGA, BIOME_MEGA_TAIGA_HILLS, BIOME_ROOFED_FOREST, BIOME_ROOFED_FOREST_M, BIOME_SAVANNA, BIOME_SAVANNA_M, BIOME_SAVANNA_PLATEAU, BIOME_SAVANNA_PLATEAU_M));
-    public static final Set<Integer> SWAMPY_BIOMES = new HashSet<Integer>(Arrays.asList(BIOME_SWAMPLAND, BIOME_SWAMPLAND_M));
-    
     private static final boolean[][][] BIOME_PATTERNS = new boolean[168][][];
 
     static {

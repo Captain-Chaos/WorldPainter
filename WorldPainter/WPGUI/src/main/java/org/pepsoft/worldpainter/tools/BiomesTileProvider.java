@@ -4,17 +4,18 @@
  */
 package org.pepsoft.worldpainter.tools;
 
-import org.pepsoft.worldpainter.ColourScheme;
-import java.awt.GraphicsEnvironment;
-import java.awt.Rectangle;
-import java.awt.image.BufferedImage;
-import java.util.Arrays;
 import org.pepsoft.util.ColourUtils;
 import org.pepsoft.util.swing.TileListener;
 import org.pepsoft.util.swing.TileProvider;
 import org.pepsoft.worldpainter.BiomeScheme;
-import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.biomeschemes.AbstractMinecraft1_7BiomeScheme.*;
+import org.pepsoft.worldpainter.ColourScheme;
+
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.util.Arrays;
+
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.*;
 
 /**
  *

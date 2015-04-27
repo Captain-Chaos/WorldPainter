@@ -22,7 +22,7 @@ import org.pepsoft.worldpainter.layers.Populate;
 import static org.pepsoft.minecraft.Constants.*;
 import org.pepsoft.minecraft.Material;
 import static org.pepsoft.worldpainter.Constants.*;
-import org.pepsoft.worldpainter.biomeschemes.AbstractMinecraft1_2BiomeScheme;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.*;
 import org.pepsoft.worldpainter.layers.Frost;
 
 /**
@@ -82,13 +82,13 @@ public class WorldPainterChunkFactory implements ChunkFactory {
         final int defaultBiome;
         switch (dimension.getDim()) {
             case DIM_NORMAL:
-                defaultBiome = AbstractMinecraft1_2BiomeScheme.BIOME_PLAINS;
+                defaultBiome = BIOME_PLAINS;
                 break;
             case DIM_NETHER:
-                defaultBiome = AbstractMinecraft1_2BiomeScheme.BIOME_HELL;
+                defaultBiome = BIOME_HELL;
                 break;
             case DIM_END:
-                defaultBiome = AbstractMinecraft1_2BiomeScheme.BIOME_SKY;
+                defaultBiome = BIOME_SKY;
                 break;
             case DIM_NORMAL_CEILING:
             case DIM_NETHER_CEILING:

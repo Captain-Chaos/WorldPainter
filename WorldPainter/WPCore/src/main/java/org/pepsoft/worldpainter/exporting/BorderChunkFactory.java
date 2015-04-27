@@ -18,7 +18,7 @@ import static org.pepsoft.worldpainter.Terrain.*;
 import org.pepsoft.worldpainter.Tile;
 import static org.pepsoft.minecraft.Constants.*;
 import org.pepsoft.worldpainter.Terrain;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_2BiomeScheme.*;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.*;
 import org.pepsoft.worldpainter.layers.Layer;
 
 /**

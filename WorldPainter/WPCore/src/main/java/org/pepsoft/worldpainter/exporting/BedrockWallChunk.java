@@ -5,7 +5,7 @@
 
 package org.pepsoft.worldpainter.exporting;
 
-import org.pepsoft.worldpainter.biomeschemes.Minecraft1_2BiomeScheme;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
 import org.pepsoft.minecraft.ChunkFactory;
 import org.pepsoft.minecraft.ChunkImpl;
 import org.pepsoft.minecraft.ChunkImpl2;
@@ -27,7 +27,7 @@ public class BedrockWallChunk {
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
                 if (version == SUPPORTED_VERSION_2) {
-                    result.chunk.setBiome(x, z, Minecraft1_2BiomeScheme.BIOME_PLAINS);
+                    result.chunk.setBiome(x, z, BIOME_PLAINS);
                 }
                 for (int y = 0; y <= maxY; y++) {
                     result.chunk.setBlockType(x, y, z, BLK_BEDROCK);

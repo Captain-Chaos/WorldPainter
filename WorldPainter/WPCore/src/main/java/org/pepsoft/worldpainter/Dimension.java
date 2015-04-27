@@ -37,7 +37,7 @@ import java.util.logging.Logger;
 
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.biomeschemes.AbstractMinecraft1_7BiomeScheme.*;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.*;
 
 /**
  *

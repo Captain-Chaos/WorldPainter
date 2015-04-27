@@ -47,7 +47,7 @@ public class CustomBiomeManager {
                         continue outer;
                     }
                 }
-                if (autoBiomeScheme.isBiomePresent(i)) {
+                if (isBiomePresent(i)) {
                     continue;
                 }
                 return i;
@@ -59,8 +59,8 @@ public class CustomBiomeManager {
     }
 
     public boolean addCustomBiome(Window parent, CustomBiome customBiome) {
-        if (autoBiomeScheme.isBiomePresent(customBiome.getId())) {
-            JOptionPane.showMessageDialog(parent, "The specified ID (" + customBiome.getId() + ") is already a regular biome (named " + autoBiomeScheme.getBiomeName(customBiome.getId()) + ")", "ID Already In Use", JOptionPane.ERROR_MESSAGE);
+        if (isBiomePresent(customBiome.getId())) {
+            JOptionPane.showMessageDialog(parent, "The specified ID (" + customBiome.getId() + ") is already a regular biome (named " + Minecraft1_7Biomes.BIOME_NAMES[customBiome.getId()] + ")", "ID Already In Use", JOptionPane.ERROR_MESSAGE);
             return false;
         }
         if (customBiomes == null) {
@@ -94,8 +94,11 @@ public class CustomBiomeManager {
     public void removeListener(CustomBiomeListener listener) {
         listeners.remove(listener);
     }
-    
-    private final AutoBiomeScheme autoBiomeScheme = new AutoBiomeScheme(null);
+
+    private static boolean isBiomePresent(int biome) {
+        return (biome <= Minecraft1_7Biomes.HIGHEST_BIOME_ID) && (Minecraft1_7Biomes.BIOME_NAMES[biome] != null);
+    }
+
     private List<CustomBiome> customBiomes;
     private List<CustomBiomeListener> listeners = new ArrayList<CustomBiomeListener>();
     

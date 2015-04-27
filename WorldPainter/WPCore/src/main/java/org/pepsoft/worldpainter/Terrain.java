@@ -19,7 +19,7 @@ import java.util.Random;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.biomeschemes.AbstractMinecraft1_7BiomeScheme.*;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.*;
 
 /**
  *

@@ -9,7 +9,7 @@ import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.MixedMaterial;
 import org.pepsoft.worldpainter.MixedMaterial.Row;
-import org.pepsoft.worldpainter.biomeschemes.AbstractMinecraft1_2BiomeScheme;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_RIVER;
 import org.pepsoft.worldpainter.exporting.AbstractLayerExporter;
 import org.pepsoft.worldpainter.exporting.Fixup;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
@@ -253,7 +253,7 @@ public class RiverExporter extends AbstractLayerExporter<River> implements Secon
                     new Row(GRAVEL, 200, 1.0f),
                     new Row(CLAY, 50, 1.0f),
                     new Row(STONE, 100, 1.0f)},
-                AbstractMinecraft1_2BiomeScheme.BIOME_RIVER,
+                BIOME_RIVER,
                 0x0000ff,
                 3.0f);
         }
