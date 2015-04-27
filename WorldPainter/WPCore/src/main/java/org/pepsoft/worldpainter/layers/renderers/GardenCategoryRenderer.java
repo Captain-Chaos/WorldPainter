@@ -5,6 +5,8 @@
 package org.pepsoft.worldpainter.layers.renderers;
 
 import static org.pepsoft.minecraft.Constants.*;
+
+import org.pepsoft.minecraft.Material;
 import org.pepsoft.worldpainter.ColourScheme;
 import static org.pepsoft.worldpainter.layers.GardenCategory.*;
 
@@ -26,6 +28,7 @@ public class GardenCategoryRenderer implements NibbleLayerRenderer, ColourScheme
         bricksColour = colourScheme.getColour(BLK_BRICKS);
         woodColour = colourScheme.getColour(BLK_WOODEN_PLANK);
         waterColour = colourScheme.getColour(BLK_WATER);
+        objectColour = colourScheme.getColour(Material.WOOL_MAGENTA);
     }
     
     @Override
@@ -47,11 +50,13 @@ public class GardenCategoryRenderer implements NibbleLayerRenderer, ColourScheme
                 return woodColour;
             case CATEGORY_WATER:
                 return waterColour;
+            case CATEGORY_OBJECT:
+                return objectColour;
             default:
                 throw new IllegalArgumentException(Integer.toString(value));
         }
     }
     
     private ColourScheme colourScheme;
-    private int cobblestoneColour, grassColour, dirtColour, bricksColour, torchColour, woodColour, waterColour;
+    private int cobblestoneColour, grassColour, dirtColour, bricksColour, torchColour, woodColour, waterColour, objectColour;
 }

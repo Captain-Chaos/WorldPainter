@@ -47,6 +47,11 @@ public class GardenCategory extends Layer {
      * Tree
      */
     public static final int CATEGORY_TREE = 6;
+
+    /**
+     * A manually placed custom object
+     */
+    public static final int CATEGORY_OBJECT = 7;
     
     public static final GardenCategory INSTANCE = new GardenCategory();
 

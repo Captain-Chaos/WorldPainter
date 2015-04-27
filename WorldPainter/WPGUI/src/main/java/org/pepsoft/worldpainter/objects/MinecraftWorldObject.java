@@ -240,6 +240,11 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
     }
 
     @Override
+    public Point3i getOffset() {
+        return new Point3i(0, 0, 0);
+    }
+
+    @Override
     @SuppressWarnings("CloneDoesntCallSuperClone")
     public MinecraftWorldObject clone() {
         return new MinecraftWorldObject(name, volume.clone(), maxHeight, data.clone(), lowestBlocks.clone());

@@ -25,7 +25,7 @@ import static org.pepsoft.worldpainter.layers.plants.Plant.Category.*;
  *
  * @author pepijn
  */
-public class Plant implements WPObject {
+public final class Plant implements WPObject {
     public Plant(String name, Material material, int height, int maxGrowth, Category category, String iconName) {
         this.name = name;
         if (category == CROPS) {
@@ -203,6 +203,11 @@ public class Plant implements WPObject {
     @Override
     public void setAttribute(String key, Serializable value) {
         throw new UnsupportedOperationException("Plant is unmodifiable");
+    }
+
+    @Override
+    public Point3i getOffset() {
+        return new Point3i(0, 0, 0);
     }
 
     @Override

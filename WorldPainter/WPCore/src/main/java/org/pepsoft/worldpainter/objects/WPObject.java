@@ -37,7 +37,21 @@ public interface WPObject extends Serializable, Cloneable {
      * @return The dimensions of the object.
      */
     Point3i getDimensions();
-    
+
+    /**
+     * Get the offset to apply to this object when placing it. In other words
+     * these are the reverse of the coordinates of the "anchor" block of this
+     * object.
+     *
+     * <p>This is a convenience method which must return the same as invoking
+     * <code>getAttribute(ATTRIBUTE_OFFSET)</code>. See
+     * {@link #getAttribute(String, Serializable)} and
+     * {@link #ATTRIBUTE_OFFSET}.
+     *
+     * @return The offset to apply to this object when placing it.
+     */
+    Point3i getOffset();
+
     /**
      * Get the material to place at the specified relative coordinates. Should
      * only be invoked for coordinates for which {@link #getMask(int, int, int)}

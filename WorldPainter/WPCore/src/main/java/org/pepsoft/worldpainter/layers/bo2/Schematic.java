@@ -226,6 +226,11 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
     }
 
     @Override
+    public Point3i getOffset() {
+        return getAttribute(ATTRIBUTE_OFFSET, new Point3i(0, 0, 0));
+    }
+
+    @Override
     public Schematic clone() {
         Schematic clone = (Schematic) super.clone();
         clone.dimensions = (Point3i) dimensions.clone();

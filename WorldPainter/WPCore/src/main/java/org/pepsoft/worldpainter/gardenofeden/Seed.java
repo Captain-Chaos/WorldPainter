@@ -25,7 +25,10 @@ public abstract class Seed implements Serializable, org.pepsoft.util.undo.Clonea
         this.garden = garden;
         this.parent = parent;
         this.location = location;
-        if (germinationTime < 0) {
+        if (germinationTime == 0) {
+            this.germinationTime = 0;
+            sprouted = true;
+        } else if (germinationTime < 0) {
             this.germinationTime = Math.max(1, -germinationTime);
         } else {
             this.germinationTime = Math.max(1, (int) (germinationTime * (staticRandom.nextDouble() + 0.6)));

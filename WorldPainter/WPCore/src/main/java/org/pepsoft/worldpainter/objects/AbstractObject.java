@@ -4,6 +4,7 @@
  */
 package org.pepsoft.worldpainter.objects;
 
+import javax.vecmath.Point3i;
 import java.io.Serializable;
 import java.util.Map;
 
@@ -31,6 +32,11 @@ public abstract class AbstractObject implements WPObject {
             throw new RuntimeException(e);
         }
     }
-    
+
+    @Override
+    public final Point3i getOffset() {
+        return getAttribute(ATTRIBUTE_OFFSET, new Point3i(0, 0, 0));
+    }
+
     private static final long serialVersionUID = -5872104411389620683L;
 }

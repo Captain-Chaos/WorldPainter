@@ -57,7 +57,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
      * @param y The Y coordinate at which to export the object.
      * @param z The Z coordinate at which to export the object.
      */
-    protected static void renderObject(MinecraftWorld world, Dimension dimension, WPObject object, int x, int y, int z) {
+    public static void renderObject(MinecraftWorld world, Dimension dimension, WPObject object, int x, int y, int z) {
         renderObject(world, dimension, object, x, y, z, false);
     }
 
@@ -77,7 +77,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
      *     rules are followed and some or all blocks may not be placed,
      *     depending on what is already there.
      */
-    protected static void renderObject(MinecraftWorld world, Dimension dimension, WPObject object, int x, int y, int z, boolean obliterate) {
+    public static void renderObject(MinecraftWorld world, Dimension dimension, WPObject object, int x, int y, int z, boolean obliterate) {
         final Point3i dim = object.getDimensions();
         final Point3i offset = object.getAttribute(ATTRIBUTE_OFFSET, new Point3i());
         final int undergroundMode = object.getAttribute(ATTRIBUTE_UNDERGROUND_MODE, COLLISION_MODE_ALL);
@@ -198,7 +198,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
     /**
      * Check whether the coordinates of the extents of the object make sense.
      */
-    protected static boolean isSane(WPObject object, int x, int y, int z, int maxHeight) {
+    public static boolean isSane(WPObject object, int x, int y, int z, int maxHeight) {
         final Point3i dimensions = object.getDimensions();
         final Point3i offset = object.getAttribute(ATTRIBUTE_OFFSET, new Point3i());
         if ((((long) x + offset.x) < Integer.MIN_VALUE) || (((long) x + offset.x) > Integer.MAX_VALUE)) {
@@ -227,8 +227,8 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
         }
         return true;
     }
-    
-    protected static boolean isRoom(final MinecraftWorld world, final Dimension dimension, final WPObject object, final int x, final int y, final int z, final Placement placement) {
+
+    public static boolean isRoom(final MinecraftWorld world, final Dimension dimension, final WPObject object, final int x, final int y, final int z, final Placement placement) {
         final Point3i dimensions = object.getDimensions();
         final Point3i offset = object.getAttribute(ATTRIBUTE_OFFSET, new Point3i());
         final int collisionMode = object.getAttribute(ATTRIBUTE_COLLISION_MODE, COLLISION_MODE_SOLID);
