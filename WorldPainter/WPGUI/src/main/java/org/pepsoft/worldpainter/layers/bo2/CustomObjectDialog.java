@@ -228,7 +228,8 @@ public class CustomObjectDialog extends CustomLayerDialog<Bo2Layer> implements D
                 return "Custom Object Files (*.bo2, *.schematic)";
             }
         });
-        Previewer previewer = new Previewer(colourScheme);
+        WPObjectPreviewer previewer = new WPObjectPreviewer();
+        previewer.setColourScheme(colourScheme);
         fileChooser.addPropertyChangeListener(JFileChooser.SELECTED_FILE_CHANGED_PROPERTY, previewer);
         fileChooser.setAccessory(previewer);
         if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {

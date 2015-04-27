@@ -12,7 +12,6 @@ import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ImageIcon;
@@ -29,15 +28,22 @@ import org.pepsoft.worldpainter.objects.WPObjectRenderer;
  *
  * @author pepijn
  */
-class Previewer extends JPanel implements PropertyChangeListener {
-    public Previewer(ColourScheme colourScheme) {
-        this.colourScheme = colourScheme;
+public class WPObjectPreviewer extends JPanel implements PropertyChangeListener {
+    public WPObjectPreviewer() {
         label = new JLabel();
         label.setHorizontalAlignment(SwingConstants.CENTER);
         setLayout(new BorderLayout());
         add(label);
         setPreferredSize(new Dimension(200, -1));
         setBorder(new BevelBorder(BevelBorder.LOWERED));
+    }
+
+    public ColourScheme getColourScheme() {
+        return colourScheme;
+    }
+
+    public void setColourScheme(ColourScheme colourScheme) {
+        this.colourScheme = colourScheme;
     }
 
     public void setObject(WPObject object) {
@@ -99,8 +105,8 @@ class Previewer extends JPanel implements PropertyChangeListener {
     }
     
     private final JLabel label;
-    private final ColourScheme colourScheme;
+    private ColourScheme colourScheme;
 
-    private static final Logger logger = Logger.getLogger(Previewer.class.getName());
+    private static final Logger logger = Logger.getLogger(WPObjectPreviewer.class.getName());
     private static final long serialVersionUID = 1L;
 }

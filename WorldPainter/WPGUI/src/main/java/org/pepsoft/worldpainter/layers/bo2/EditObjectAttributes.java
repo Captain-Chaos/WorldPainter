@@ -96,7 +96,8 @@ public class EditObjectAttributes extends javax.swing.JDialog {
                 // Magenta wool by default
                 comboBoxReplaceBlockId.setSelectedIndex(35);
             }
-            Previewer previewer = new Previewer(colourScheme);
+            WPObjectPreviewer previewer = new WPObjectPreviewer();
+            previewer.setColourScheme(colourScheme);
             previewer.setObject(object);
             jPanel1.add(previewer, BorderLayout.CENTER);
         } else {
