@@ -4,27 +4,22 @@
  */
 package org.pepsoft.worldpainter.layers;
 
-import java.awt.event.ActionEvent;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import org.pepsoft.worldpainter.App;
-import static org.pepsoft.worldpainter.Constants.*;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.MixedMaterial;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.exporting.LayerExporter;
-import static org.pepsoft.worldpainter.layers.Layer.DataSize.*;
 import org.pepsoft.worldpainter.layers.combined.CombinedLayerExporter;
+
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.*;
+
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
+import static org.pepsoft.worldpainter.layers.Layer.DataSize.*;
 
 /**
  *
@@ -138,8 +133,8 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
         actions.add(new AbstractAction("Apply") {
             @Override
             public void actionPerformed(ActionEvent e) {
-                Dimension dimension = App.getInstance().getDimension();
-                if (dimension.getAllLayers(false).contains(CombinedLayer.this)) {
+                Dimension dimension = (Dimension) getValue(KEY_DIMENSION);
+                if ((dimension != null) && dimension.getAllLayers(false).contains(CombinedLayer.this)) {
                     dimension.armSavePoint();
                     apply(dimension);
                 }

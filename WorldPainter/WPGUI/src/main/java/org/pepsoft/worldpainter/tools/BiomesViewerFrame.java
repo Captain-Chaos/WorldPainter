@@ -134,27 +134,27 @@ public class BiomesViewerFrame extends JFrame {
                 switch (selectedIndex) {
                     case 0:
                         if (! (BiomesViewerFrame.this.biomeScheme instanceof Minecraft1_7BiomeScheme)) {
-                            biomeScheme = BiomeSchemeManager.getBiomeScheme(BiomeSchemeManager.BIOME_ALGORITHM_1_7_DEFAULT, BiomesViewerFrame.this);
+                            biomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_DEFAULT, BiomesViewerFrame.this);
                         }
                         break;
                     case 1:
                         if (! (BiomesViewerFrame.this.biomeScheme instanceof Minecraft1_7LargeBiomeScheme)) {
-                            biomeScheme = BiomeSchemeManager.getBiomeScheme(BiomeSchemeManager.BIOME_ALGORITHM_1_7_LARGE, BiomesViewerFrame.this);
+                            biomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_LARGE, BiomesViewerFrame.this);
                         }
                         break;
                     case 2:
                         if (! (BiomesViewerFrame.this.biomeScheme instanceof Minecraft1_2BiomeScheme)) {
-                            biomeScheme = BiomeSchemeManager.getBiomeScheme(BiomeSchemeManager.BIOME_ALGORITHM_1_2_AND_1_3_DEFAULT, BiomesViewerFrame.this);
+                            biomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_2_AND_1_3_DEFAULT, BiomesViewerFrame.this);
                         }
                         break;
                     case 3:
                         if (! (BiomesViewerFrame.this.biomeScheme instanceof Minecraft1_3LargeBiomeScheme)) {
-                            biomeScheme = BiomeSchemeManager.getBiomeScheme(BiomeSchemeManager.BIOME_ALGORITHM_1_3_LARGE, BiomesViewerFrame.this);
+                            biomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_3_LARGE, BiomesViewerFrame.this);
                         }
                         break;
                     case 4:
                         if (! (BiomesViewerFrame.this.biomeScheme instanceof Minecraft1_1BiomeScheme)) {
-                            biomeScheme = BiomeSchemeManager.getBiomeScheme(BiomeSchemeManager.BIOME_ALGORITHM_1_1, BiomesViewerFrame.this);
+                            biomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_1, BiomesViewerFrame.this);
                         }
                         break;
                 }

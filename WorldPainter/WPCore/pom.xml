@@ -22,6 +22,13 @@
         </dependency>
 
         <dependency>
+            <groupId>com.intellij</groupId>
+            <artifactId>annotations</artifactId>
+            <version>12.0</version>
+            <scope>provided</scope> <!-- Not really, but these annotations aren't needed at runtime. -->
+        </dependency>
+
+        <dependency>
             <!-- Not in Maven central; here it comes from the
                  worldpainter-private repo. -->
             <groupId>net.sourceforge</groupId>
@@ -52,4 +59,32 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>org.pepsoft.worldpainter.properties</include>
+                </includes>
+                <filtering>true</filtering>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <excludes>
+                    <exclude>org.pepsoft.worldpainter.properties</exclude>
+                </excludes>
+                <filtering>false</filtering>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.18.1</version>
+                <configuration>
+                    <forkMode>always</forkMode>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

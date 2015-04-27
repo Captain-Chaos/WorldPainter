@@ -111,12 +111,12 @@ public class BrushOptions extends javax.swing.JPanel {
                         buttonReplace.setIcon(new ImageIcon(terrain.getIcon(colourScheme)));
                         break;
                     case WATER:
-                        onlyOn = WATER;
+                        onlyOn = FilterImpl.WATER;
                         buttonReplace.setText("Water");
                         buttonReplace.setIcon(null);
                         break;
                     case LAND:
-                        onlyOn = LAND;
+                        onlyOn = FilterImpl.LAND;
                         buttonReplace.setText("Land");
                         buttonReplace.setIcon(null);
                         break;
@@ -146,12 +146,12 @@ public class BrushOptions extends javax.swing.JPanel {
                         buttonExceptOn.setIcon(new ImageIcon(terrain.getIcon(colourScheme)));
                         break;
                     case WATER:
-                        exceptOn = WATER;
+                        exceptOn = FilterImpl.WATER;
                         buttonExceptOn.setText("Water");
                         buttonExceptOn.setIcon(null);
                         break;
                     case LAND:
-                        exceptOn = LAND;
+                        exceptOn = FilterImpl.LAND;
                         buttonExceptOn.setText("Land");
                         buttonExceptOn.setIcon(null);
                         break;
@@ -226,7 +226,7 @@ public class BrushOptions extends javax.swing.JPanel {
         waterItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                listener.objectSelected(WATER, "Water", null);
+                listener.objectSelected(FilterImpl.WATER, "Water", null);
             }
         });
         JPopupMenu popupMenu = new JPopupMenu();
@@ -236,7 +236,7 @@ public class BrushOptions extends javax.swing.JPanel {
         lavaItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                listener.objectSelected(LAVA, "Lava", null);
+                listener.objectSelected(FilterImpl.LAVA, "Lava", null);
             }
         });
         popupMenu.add(lavaItem);
@@ -245,7 +245,7 @@ public class BrushOptions extends javax.swing.JPanel {
         landItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                listener.objectSelected(LAND, "Land", null);
+                listener.objectSelected(FilterImpl.LAND, "Land", null);
             }
         });
         popupMenu.add(landItem);
@@ -378,7 +378,7 @@ public class BrushOptions extends javax.swing.JPanel {
         autoBiomesMenuItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                listener.objectSelected(AUTO_BIOMES, "All Auto Biomes", null);
+                listener.objectSelected(FilterImpl.AUTO_BIOMES, "All Auto Biomes", null);
             }
         });
         autoBiomeSubMenu.add(autoBiomesMenuItem);
@@ -746,11 +746,6 @@ public class BrushOptions extends javax.swing.JPanel {
     private BiomeScheme autoBiomeScheme;
     private Listener listener;
     private boolean initialised;
-    
-    public static final String LAND = "Land";
-    public static final String WATER = "Water";
-    public static final String LAVA = "Lava";
-    public static final String AUTO_BIOMES = "Automatic Biomes";
     
     private static final long serialVersionUID = 1L;
     

@@ -94,6 +94,9 @@ public abstract class CustomLayer extends Layer {
      * Get any actions (in addition to the standard add, edit and remove
      * actions) for this custom layer. They will be added to the popup menu of
      * the layer button.
+     *
+     * <p>The {@link #KEY_DIMENSION} value of the action will be set to the
+     * current dimension, if any, before the action is invoked.
      * 
      * @return Any custom actions for this layer, or <code>null</code> if there
      * aren't any.
@@ -137,6 +140,8 @@ public abstract class CustomLayer extends Layer {
     private String palette = "Custom Layers";
     private transient BufferedImage icon;
     private transient LayerRenderer renderer;
+
+    public static final String KEY_DIMENSION = "org.pepsoft.worldpainter.dimension";
     
     private static final int CURRENT_VERSION = 2;
     private static final Random ID_GENERATOR = new Random();

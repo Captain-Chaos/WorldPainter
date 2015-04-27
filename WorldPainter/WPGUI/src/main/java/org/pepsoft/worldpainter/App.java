@@ -46,6 +46,7 @@ import org.pepsoft.worldpainter.panels.BrushOptions.Listener;
 import org.pepsoft.worldpainter.threedeeview.ThreeDeeFrame;
 import org.pepsoft.worldpainter.tools.BiomesViewerFrame;
 import org.pepsoft.worldpainter.tools.RespawnPlayerDialog;
+import org.pepsoft.worldpainter.util.BackupUtil;
 import org.pepsoft.worldpainter.util.BetterAction;
 import org.pepsoft.worldpainter.util.LayoutUtils;
 import org.pepsoft.worldpainter.vo.AttributeKeyVO;
@@ -1573,9 +1574,9 @@ public final class App extends JFrame implements RadiusControl,
                     if ((config.getWorldFileBackups() > 0) && normalisedFile.isFile()) {
                         progressReceiver.setMessage(strings.getString("creating.backup.s"));
                         for (int i = config.getWorldFileBackups(); i > 0; i--) {
-                            File nextBackupFile = (i > 1) ? getBackupFile(normalisedFile, i - 1) : normalisedFile;
+                            File nextBackupFile = (i > 1) ? BackupUtil.getBackupFile(normalisedFile, i - 1) : normalisedFile;
                             if (nextBackupFile.isFile()) {
-                                File backupFile = getBackupFile(normalisedFile, i);
+                                File backupFile = BackupUtil.getBackupFile(normalisedFile, i);
                                 if (backupFile.isFile()) {
                                     if (! backupFile.delete()) {
                                         throw new RuntimeException("Could not delete old backup file " + backupFile);
@@ -2772,6 +2773,7 @@ public final class App extends JFrame implements RadiusControl,
                 List<Action> actions = layer.getActions();
                 if (actions != null) {
                     for (Action action : actions) {
+                        action.putValue(CustomLayer.KEY_DIMENSION, dimension);
                         popup.add(new JMenuItem(action));
                     }
                 }
@@ -3507,37 +3509,37 @@ public final class App extends JFrame implements RadiusControl,
                         boolean askedFor17 = false;
                         if ((dimension != null) && (dimension.getDim() == DIM_NORMAL) && (dimension.getMaxHeight() == DEFAULT_MAX_HEIGHT_2)) {
                             if (world.getGenerator() == Generator.LARGE_BIOMES) {
-                                viewerScheme = BiomeSchemeManager.getBiomeScheme(BiomeSchemeManager.BIOME_ALGORITHM_1_7_LARGE, null, false);
+                                viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_LARGE, null, false);
                                 if (viewerScheme == null) {
                                     askedFor17 = true;
-                                    viewerScheme = BiomeSchemeManager.getBiomeScheme(BiomeSchemeManager.BIOME_ALGORITHM_1_7_LARGE, App.this, true);
+                                    viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_LARGE, App.this, true);
                                 }
                             } else {
-                                viewerScheme = BiomeSchemeManager.getBiomeScheme(BiomeSchemeManager.BIOME_ALGORITHM_1_7_DEFAULT, null, false);
+                                viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_DEFAULT, null, false);
                                 if (viewerScheme == null) {
                                     askedFor17 = true;
-                                    viewerScheme = BiomeSchemeManager.getBiomeScheme(BiomeSchemeManager.BIOME_ALGORITHM_1_7_DEFAULT, App.this, true);
+                                    viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_DEFAULT, App.this, true);
                                 }
                             }
                         }
                         if (viewerScheme == null) {
-                            viewerScheme = BiomeSchemeManager.getBiomeScheme(BiomeSchemeManager.BIOME_ALGORITHM_1_7_DEFAULT, null, false);
+                            viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_DEFAULT, null, false);
                         }
                         if (viewerScheme == null) {
-                            viewerScheme = BiomeSchemeManager.getBiomeScheme(BiomeSchemeManager.BIOME_ALGORITHM_1_2_AND_1_3_DEFAULT, null, false);
+                            viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_2_AND_1_3_DEFAULT, null, false);
                         }
                         if (viewerScheme == null) {
-                            viewerScheme = BiomeSchemeManager.getBiomeScheme(BiomeSchemeManager.BIOME_ALGORITHM_1_1, null, false);
+                            viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_1, null, false);
                         }
                         if ((viewerScheme == null) && (! askedFor17)) {
                             askedFor17 = true;
-                            viewerScheme = BiomeSchemeManager.getBiomeScheme(BiomeSchemeManager.BIOME_ALGORITHM_1_7_DEFAULT, App.this, true);
+                            viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_DEFAULT, App.this, true);
                         }
                         if (viewerScheme == null) {
-                            viewerScheme = BiomeSchemeManager.getBiomeScheme(BiomeSchemeManager.BIOME_ALGORITHM_1_2_AND_1_3_DEFAULT, App.this, true);
+                            viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_2_AND_1_3_DEFAULT, App.this, true);
                         }
                         if (viewerScheme == null) {
-                            viewerScheme = BiomeSchemeManager.getBiomeScheme(BiomeSchemeManager.BIOME_ALGORITHM_1_1, App.this, true);
+                            viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_1, App.this, true);
                         }
                         if (viewerScheme == null) {
                             JOptionPane.showMessageDialog(App.this, strings.getString("you.must.supply.an.original.minecraft.jar"), strings.getString("no.minecraft.jar.supplied"), JOptionPane.ERROR_MESSAGE);
@@ -4932,17 +4934,6 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
 
-    public static File getBackupFile(File file, int backup) {
-        String filename = file.getName();
-        int p = filename.lastIndexOf('.');
-        if (p != -1) {
-            filename = filename.substring(0, p) + "." + backup + filename.substring(p);
-        } else {
-            filename = filename + "." + backup;
-        }
-        return new File(file.getParentFile(), filename);
-    }
-    
     static DockableFrame createDockableFrame(Component component, String title, int side, int index) {
         String id = Character.toLowerCase(title.charAt(0)) + title.substring(1);
         return createDockableFrame(component, id, title, side, index);
@@ -5751,7 +5742,7 @@ public final class App extends JFrame implements RadiusControl,
 //    private JScrollPane scrollPane = new JScrollPane();
     private Filter filter, toolFilter;
     private final BrushOptions brushOptions;
-    private final CustomBiomeManager customBiomeManager = new CustomBiomeManager(this);
+    private final CustomBiomeManager customBiomeManager = new CustomBiomeManager();
     private final Set<CustomLayer> layersWithNoButton = new HashSet<CustomLayer>();
     private final Map<Layer, JCheckBox> layerSoloCheckBoxes = new HashMap<Layer, JCheckBox>();
     private Layer soloLayer;

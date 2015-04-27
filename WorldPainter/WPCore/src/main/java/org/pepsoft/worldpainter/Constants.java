@@ -90,4 +90,15 @@ public final class Constants {
      * Java version is 1.8 or higher.
      */
     public static final boolean JAVA_8 = JAVA_VERSION.compareTo(new Version(1, 8)) >= 0;
+
+    public static final int BIOME_ALGORITHM_1_7_3               =  0;
+    public static final int BIOME_ALGORITHM_1_9                 =  1;
+    public static final int BIOME_ALGORITHM_1_8_1               =  2;
+    public static final int BIOME_ALGORITHM_1_0_0               =  3;
+    public static final int BIOME_ALGORITHM_1_1                 =  4;
+    public static final int BIOME_ALGORITHM_1_2_AND_1_3_DEFAULT =  5;
+    public static final int BIOME_ALGORITHM_AUTO_BIOMES         =  7;
+    public static final int BIOME_ALGORITHM_1_3_LARGE           =  8;
+    public static final int BIOME_ALGORITHM_1_7_DEFAULT         =  9;
+    public static final int BIOME_ALGORITHM_1_7_LARGE           = 10;
 }

@@ -32,7 +32,6 @@ import java.util.logging.Logger;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
 import static org.pepsoft.minecraft.Material.DIRT;
-import static org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager.BIOME_ALGORITHM_1_9;
 
 /**
  *
@@ -606,7 +605,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         if (minecraftJars == null) {
             minecraftJars = new HashMap<Integer, File>();
             if (minecraft1_9_p3Jar != null) {
-                minecraftJars.put(BIOME_ALGORITHM_1_9, minecraft1_9_p3Jar);
+                minecraftJars.put(Constants.BIOME_ALGORITHM_1_9, minecraft1_9_p3Jar);
                 minecraft1_9_p3Jar = null;
             }
         }

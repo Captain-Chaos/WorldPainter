@@ -33,7 +33,7 @@ abstract class AbstractScriptTest {
         URL scriptURL = ClassLoader.getSystemResource(name);
         File scriptFile = new File(scriptURL.getPath());
         File scriptDir = scriptFile.getParentFile();
-        System.setProperty("user.dir", scriptDir.getAbsolutePath());
+//        System.setProperty("user.dir", scriptDir.getAbsolutePath());
         String[] mainArgs = new String[args.length + 1];
         mainArgs[0] = scriptFile.getAbsolutePath();
         for (int i = 0; i < args.length; i++) {

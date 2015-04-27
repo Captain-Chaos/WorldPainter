@@ -24,7 +24,7 @@ public class LargeOceanFinder {
             config = new Configuration();
         }
         Configuration.setInstance(config);
-        final BiomeScheme biomeScheme = BiomeSchemeManager.getBiomeScheme(BiomeSchemeManager.BIOME_ALGORITHM_1_7_LARGE, null);
+        final BiomeScheme biomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_LARGE, null);
         if (biomeScheme == null) {
             System.err.println("Can't continue without a Minecraft 1.7 minecraft.jar");
             System.exit(1);

@@ -8,9 +8,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.util.logging.Level;
 import java.util.zip.GZIPInputStream;
 import org.pepsoft.minecraft.Constants;
 import org.pepsoft.util.FileUtils;
+import org.pepsoft.util.PluginManager;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.worldpainter.Configuration;
@@ -18,6 +23,7 @@ import org.pepsoft.worldpainter.MixedMaterial;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.World2;
 import org.pepsoft.worldpainter.exporting.WorldExporter;
+import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.pepsoft.worldpainter.util.MinecraftUtil;
 
 /**
@@ -25,7 +31,7 @@ import org.pepsoft.worldpainter.util.MinecraftUtil;
  * @author pepijn
  */
 public class Export {
-    public static void main(String args[]) throws IOException, ClassNotFoundException, OperationCancelled {
+    public static void main(String args[]) throws IOException, ClassNotFoundException, OperationCancelled, CertificateException {
 //        Logger rootLogger = Logger.getLogger("");
 //        rootLogger.setLevel(Level.OFF);
         
@@ -37,7 +43,18 @@ public class Export {
         }
         Configuration.setInstance(config);
         System.out.println("Installation ID: " + config.getUuid());
-        
+
+        // Load trusted WorldPainter root certificate
+        CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+        X509Certificate trustedCert = (X509Certificate) certificateFactory.generateCertificate(ClassLoader.getSystemResourceAsStream("wproot.pem"));
+
+        // Load the plugins
+        File pluginsDir = new File(Configuration.getConfigDir(), "plugins");
+        if (pluginsDir.isDirectory()) {
+            PluginManager.loadPlugins(pluginsDir, trustedCert.getPublicKey());
+        }
+        WPPluginManager.initialise(config.getUuid());
+
         File worldFile = new File(args[0]);
         System.out.println("Loading " + worldFile);
         World2 world;

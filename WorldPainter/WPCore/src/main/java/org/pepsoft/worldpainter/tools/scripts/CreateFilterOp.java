@@ -20,7 +20,6 @@ package org.pepsoft.worldpainter.tools.scripts;
 
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.layers.Layer;
-import org.pepsoft.worldpainter.panels.BrushOptions;
 import org.pepsoft.worldpainter.panels.FilterImpl;
 
 /**
@@ -83,7 +82,7 @@ public class CreateFilterOp extends AbstractOperation<FilterImpl> {
         if (onlyOn != null) {
             throw new ScriptException("Only one \"only on\" or condition may be specified");
         }
-        onlyOn = BrushOptions.AUTO_BIOMES;
+        onlyOn = FilterImpl.AUTO_BIOMES;
         return this;
     }
     
@@ -91,7 +90,7 @@ public class CreateFilterOp extends AbstractOperation<FilterImpl> {
         if (onlyOn != null) {
             throw new ScriptException("Only one \"only on\" or condition may be specified");
         }
-        onlyOn = BrushOptions.WATER;
+        onlyOn = FilterImpl.WATER;
         return this;
     }
     
@@ -99,7 +98,7 @@ public class CreateFilterOp extends AbstractOperation<FilterImpl> {
         if (onlyOn != null) {
             throw new ScriptException("Only one \"only on\" or condition may be specified");
         }
-        onlyOn = BrushOptions.LAND;
+        onlyOn = FilterImpl.LAND;
         return this;
     }
     
@@ -139,7 +138,7 @@ public class CreateFilterOp extends AbstractOperation<FilterImpl> {
         if (exceptOn != null) {
             throw new ScriptException("Only one or \"except on\" condition may be specified");
         }
-        exceptOn = BrushOptions.AUTO_BIOMES;
+        exceptOn = FilterImpl.AUTO_BIOMES;
         return this;
     }
     
@@ -147,7 +146,7 @@ public class CreateFilterOp extends AbstractOperation<FilterImpl> {
         if (exceptOn != null) {
             throw new ScriptException("Only one or \"except on\" condition may be specified");
         }
-        exceptOn = BrushOptions.WATER;
+        exceptOn = FilterImpl.WATER;
         return this;
     }
     
@@ -155,7 +154,7 @@ public class CreateFilterOp extends AbstractOperation<FilterImpl> {
         if (exceptOn != null) {
             throw new ScriptException("Only one or \"except on\" condition may be specified");
         }
-        exceptOn = BrushOptions.LAND;
+        exceptOn = FilterImpl.LAND;
         return this;
     }
     

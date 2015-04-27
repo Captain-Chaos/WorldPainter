@@ -6,14 +6,26 @@
 
 package org.pepsoft.worldpainter.layers.plants;
 
+import org.pepsoft.util.Version;
+import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
 import org.pepsoft.worldpainter.layers.CustomLayerDialog;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.SortedMap;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static org.pepsoft.worldpainter.util.I18nHelper.m;
 
@@ -96,8 +108,9 @@ public class PlantDialog extends CustomLayerDialog<PlantLayer> {
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.anchor = GridBagConstraints.BASELINE_LEADING;
         constraints.insets = new Insets(1, 0, 1, 4);
-        if (plant.getIcon() != null) {
-            plantLabels[index] = new JLabel(plant.getName(), new ImageIcon(plant.getIcon()), JLabel.TRAILING);
+        BufferedImage icon = findIcon(plant.getIconName());
+        if (icon != null) {
+            plantLabels[index] = new JLabel(plant.getName(), new ImageIcon(icon), JLabel.TRAILING);
         } else {
             plantLabels[index] = new JLabel(plant.getName());
         }
@@ -148,7 +161,51 @@ public class PlantDialog extends CustomLayerDialog<PlantLayer> {
             panel.add(new JLabel(), constraints);
         }
     }
-    
+
+    private static BufferedImage findIcon(String name) {
+        if (resourcesJar == RESOURCES_NOT_AVAILABLE) {
+            return null;
+        }
+        try {
+            if (resourcesJar == null) {
+                SortedMap<Version, File> jars = BiomeSchemeManager.getAllMinecraftJars();
+                if (! jars.isEmpty()) {
+                    resourcesJar = jars.get(jars.lastKey());
+                } else {
+                    logger.warning("Could not find Minecraft jar for loading plant icons");
+                    resourcesJar = RESOURCES_NOT_AVAILABLE;
+                    return null;
+                }
+            }
+            JarFile jarFile = new JarFile(resourcesJar);
+            try {
+                JarEntry entry = jarFile.getJarEntry("assets/minecraft/textures/" + name);
+                if (entry != null) {
+                    if (logger.isLoggable(Level.FINE)) {
+                        logger.fine("Loading plant icon " + name + " from " + resourcesJar);
+                    }
+                    InputStream in = jarFile.getInputStream(entry);
+                    try {
+                        return ImageIO.read(in);
+                    } finally {
+                        in.close();
+                    }
+                } else {
+                    if (logger.isLoggable(Level.FINE)) {
+                        logger.fine("Could not find plant icon " + name + " in Minecraft jar " + resourcesJar);
+                    }
+                    return null;
+                }
+            } finally {
+                jarFile.close();
+            }
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "I/O error while trying to load plant icon " + name + "; continuing without icon", e);
+            resourcesJar = RESOURCES_NOT_AVAILABLE;
+            return null;
+        }
+    }
+
     private void updatePercentages() {
         totalOccurrence = 0;
         for (JSpinner spinner: spinners) {
@@ -487,4 +544,8 @@ public class PlantDialog extends CustomLayerDialog<PlantLayer> {
             updatePercentages();
         }
     };
+
+    private static File resourcesJar;
+    private static final File RESOURCES_NOT_AVAILABLE = new File("~~~RESOURCES_NOT_AVAILABLE~~~");
+    private static final Logger logger = Logger.getLogger(PlantDialog.class.getName());
 }

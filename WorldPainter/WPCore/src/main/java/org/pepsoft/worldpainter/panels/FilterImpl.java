@@ -73,25 +73,25 @@ public final class FilterImpl implements Filter {
                 onlyOnLayer = null;
                 onlyOnBiome = (Integer) onlyOn;
             }
-        } else if (BrushOptions.WATER.equals(onlyOn)) {
+        } else if (WATER.equals(onlyOn)) {
             this.onlyOn = true;
             onlyOnObjectType = ObjectType.WATER;
             onlyOnTerrain = null;
             onlyOnLayer = null;
             onlyOnBiome = -1;
-        } else if (BrushOptions.LAVA.equals(onlyOn)) {
+        } else if (LAVA.equals(onlyOn)) {
             this.onlyOn = true;
             onlyOnObjectType = ObjectType.LAVA;
             onlyOnTerrain = null;
             onlyOnLayer = null;
             onlyOnBiome = -1;
-        } else if (BrushOptions.LAND.equals(onlyOn)) {
+        } else if (LAND.equals(onlyOn)) {
             this.onlyOn = true;
             onlyOnObjectType = ObjectType.LAND;
             onlyOnTerrain = null;
             onlyOnLayer = null;
             onlyOnBiome = -1;
-        } else if (BrushOptions.AUTO_BIOMES.equals(onlyOn)) {
+        } else if (AUTO_BIOMES.equals(onlyOn)) {
             this.onlyOn = true;
             onlyOnObjectType = ObjectType.BIOME;
             onlyOnTerrain = null;
@@ -133,25 +133,25 @@ public final class FilterImpl implements Filter {
                 exceptOnLayer = null;
                 exceptOnBiome = (Integer) exceptOn;
             }
-        } else if (BrushOptions.WATER.equals(exceptOn)) {
+        } else if (WATER.equals(exceptOn)) {
             this.exceptOn = true;
             exceptOnObjectType = ObjectType.WATER;
             exceptOnTerrain = null;
             exceptOnLayer = null;
             exceptOnBiome = -1;
-        } else if (BrushOptions.LAVA.equals(exceptOn)) {
+        } else if (LAVA.equals(exceptOn)) {
             this.exceptOn = true;
             exceptOnObjectType = ObjectType.LAVA;
             exceptOnTerrain = null;
             exceptOnLayer = null;
             exceptOnBiome = -1;
-        } else if (BrushOptions.LAND.equals(exceptOn)) {
+        } else if (LAND.equals(exceptOn)) {
             this.exceptOn = true;
             exceptOnObjectType = ObjectType.LAND;
             exceptOnTerrain = null;
             exceptOnLayer = null;
             exceptOnBiome = -1;
-        } else if (BrushOptions.AUTO_BIOMES.equals(exceptOn)) {
+        } else if (AUTO_BIOMES.equals(exceptOn)) {
             this.exceptOn = true;
             exceptOnObjectType = ObjectType.BIOME;
             exceptOnTerrain = null;
@@ -336,6 +336,11 @@ public final class FilterImpl implements Filter {
     final boolean slopeIsAbove;
     final int degrees;
     Dimension dimension;
+
+    public static final String LAND = "Land";
+    public static final String WATER = "Water";
+    public static final String LAVA = "Lava";
+    public static final String AUTO_BIOMES = "Automatic Biomes";
 
     public enum LevelType {
         BETWEEN, OUTSIDE, ABOVE, BELOW

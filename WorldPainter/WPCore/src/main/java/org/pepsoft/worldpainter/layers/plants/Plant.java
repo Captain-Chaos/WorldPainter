@@ -9,25 +9,13 @@ package org.pepsoft.worldpainter.layers.plants;
 import org.pepsoft.minecraft.Entity;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.minecraft.TileEntity;
-import org.pepsoft.util.Version;
-import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import org.pepsoft.worldpainter.objects.WPObject;
 
-import javax.imageio.ImageIO;
 import javax.vecmath.Point3i;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-import java.util.SortedMap;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static org.pepsoft.minecraft.Block.BLOCKS;
 import static org.pepsoft.minecraft.Constants.*;
@@ -56,8 +44,8 @@ public class Plant implements WPObject {
         }
         this.category = category;
         this.maxData = maxGrowth;
+        this.iconName = iconName;
         dimensions = new Point3i(1, 1, height);
-        icon = (iconName != null) ? findIcon(iconName) : null;
         growth = maxGrowth;
     }
     
@@ -65,7 +53,7 @@ public class Plant implements WPObject {
         name = plant.name;
         category = plant.category;
         maxData = plant.maxData;
-        icon = plant.icon;
+        iconName = plant.iconName;
         this.growth = growth;
         switch (category) {
             case CACTUS:
@@ -88,10 +76,6 @@ public class Plant implements WPObject {
             default:
                 throw new InternalError();
         }
-    }
-    
-    public BufferedImage getIcon() {
-        return icon;
     }
     
     public Category getCategory() {
@@ -247,63 +231,18 @@ public class Plant implements WPObject {
         }
     }
     
-    private static BufferedImage findIcon(String name) {
-        if (resourcesJar == RESOURCES_NOT_AVAILABLE) {
-            return null;
-        }
-        try {
-            if (resourcesJar == null) {
-                SortedMap<Version, File> jars = BiomeSchemeManager.getAllMinecraftJars();
-                if (! jars.isEmpty()) {
-                    resourcesJar = jars.get(jars.lastKey());
-                } else {
-                    logger.warning("Could not find Minecraft jar for loading plant icons");
-                    resourcesJar = RESOURCES_NOT_AVAILABLE;
-                    return null;
-                }
-            }
-            JarFile jarFile = new JarFile(resourcesJar);
-            try {
-                JarEntry entry = jarFile.getJarEntry("assets/minecraft/textures/" + name);
-                if (entry != null) {
-                    if (logger.isLoggable(Level.FINE)) {
-                        logger.fine("Loading plant icon " + name + " from " + resourcesJar);
-                    }
-                    InputStream in = jarFile.getInputStream(entry);
-                    try {
-                        return ImageIO.read(in);
-                    } finally {
-                        in.close();
-                    }
-                } else {
-                    if (logger.isLoggable(Level.FINE)) {
-                        logger.fine("Could not find plant icon " + name + " in Minecraft jar " + resourcesJar);
-                    }
-                    return null;
-                }
-            } finally {
-                jarFile.close();
-            }
-        } catch (IOException e) {
-            logger.log(Level.SEVERE, "I/O error while trying to load plant icon " + name + "; continuing without icon", e);
-            resourcesJar = RESOURCES_NOT_AVAILABLE;
-            return null;
-        }
+    String getIconName() {
+        return iconName;
     }
 
-    private final String name;
+    private final String name, iconName;
     private final Point3i dimensions;
     private final Material material;
-    private final BufferedImage icon;
     private final Category category;
     private final int maxData, growth;
     
-    private static File resourcesJar;
-    
     private static final Material UPPER_DOUBLE_HIGH_PLANT = Material.get(BLK_LARGE_FLOWERS, 8);
-    private static final Logger logger = Logger.getLogger(Plant.class.getName());
-    private static final File RESOURCES_NOT_AVAILABLE = new File("~~~RESOURCES_NOT_AVAILABLE~~~");
-    
+
     public static final Plant TALL_GRASS        = new Plant("Tall Grass",        Material.get(BLK_TALL_GRASS, 1),    1, 0, PLANTS_AND_FLOWERS, "blocks/tallgrass.png");
     public static final Plant FERN              = new Plant("Fern",              Material.get(BLK_TALL_GRASS, 2),    1, 0, PLANTS_AND_FLOWERS, "blocks/fern.png");
     public static final Plant DEAD_SHRUB        = new Plant("Dead Shrub",        Material.DEAD_SHRUBS,               1, 0, PLANTS_AND_FLOWERS, "blocks/deadbush.png");

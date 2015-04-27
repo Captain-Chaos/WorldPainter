@@ -71,7 +71,7 @@ public class Test {
                 };
                 final ColourScheme colourScheme = new DynMapColourScheme("default", true);
                 final BiomeScheme biomeScheme = new AutoBiomeScheme(dimension);
-                final CustomBiomeManager customBiomeManager = new CustomBiomeManager(frame);
+                final CustomBiomeManager customBiomeManager = new CustomBiomeManager();
                 TileRendererFactory tileRendererFactory = new TileRendererFactory() {
                     @Override
                     public TileRenderer createTileRenderer() {

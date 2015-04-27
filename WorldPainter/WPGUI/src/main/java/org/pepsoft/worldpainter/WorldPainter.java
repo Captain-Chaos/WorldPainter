@@ -32,8 +32,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
-import static org.pepsoft.worldpainter.Constants.DIM_NORMAL_CEILING;
+import static org.pepsoft.worldpainter.Constants.*;
 
 /**
  *
@@ -417,16 +416,16 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
                 if (world != null) {
                     try {
                         if (world.getVersion() == org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_1) {
-                            mcBiomeScheme = BiomeSchemeManager.getBiomeScheme(BiomeSchemeManager.BIOME_ALGORITHM_1_1, this, false);
+                            mcBiomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_1, this, false);
                         } else if (world.getGenerator() == Generator.DEFAULT) {
-                            mcBiomeScheme = BiomeSchemeManager.getBiomeScheme(BiomeSchemeManager.BIOME_ALGORITHM_1_7_DEFAULT, this, false);
+                            mcBiomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_DEFAULT, this, false);
                             if (mcBiomeScheme == null) {
-                                mcBiomeScheme = BiomeSchemeManager.getBiomeScheme(BiomeSchemeManager.BIOME_ALGORITHM_1_2_AND_1_3_DEFAULT, this, false);
+                                mcBiomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_2_AND_1_3_DEFAULT, this, false);
                             }
                         } else if (world.getGenerator() == Generator.LARGE_BIOMES) {
-                            mcBiomeScheme = BiomeSchemeManager.getBiomeScheme(BiomeSchemeManager.BIOME_ALGORITHM_1_7_LARGE, this, false);
+                            mcBiomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_LARGE, this, false);
                             if (mcBiomeScheme == null) {
-                                mcBiomeScheme = BiomeSchemeManager.getBiomeScheme(BiomeSchemeManager.BIOME_ALGORITHM_1_3_LARGE, this, false);
+                                mcBiomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_3_LARGE, this, false);
                             }
                         }
                         if (mcBiomeScheme != null) {

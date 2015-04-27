@@ -4,10 +4,7 @@
  */
 package org.pepsoft.worldpainter.operations;
 
-import java.awt.Component;
-import java.awt.GridLayout;
-import java.awt.Insets;
-import java.awt.Window;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
@@ -18,28 +15,18 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
-import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JToggleButton;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
+
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.MapDragControl;
 import org.pepsoft.worldpainter.RadiusControl;
 import org.pepsoft.worldpainter.WorldPainterView;
-import org.pepsoft.worldpainter.biomeschemes.AutoBiomeScheme;
-import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
+import org.pepsoft.worldpainter.biomeschemes.*;
 import org.pepsoft.worldpainter.layers.Biome;
 import static org.pepsoft.worldpainter.biomeschemes.AutoBiomeScheme.*;
-import org.pepsoft.worldpainter.biomeschemes.BiomeHelper;
-import org.pepsoft.worldpainter.biomeschemes.CustomBiome;
-import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
+
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager.CustomBiomeListener;
 import static org.pepsoft.worldpainter.operations.BiomePaint.BiomeOption.*;
 
@@ -173,7 +160,18 @@ public class BiomePaint extends LayerPaint implements CustomBiomeListener {
         addCustomBiomeButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                customBiomeManager.addCustomBiome();
+                final Window parent = SwingUtilities.getWindowAncestor(optionsPanel);
+                final int id = customBiomeManager.getNextId();
+                if (id == -1) {
+                    JOptionPane.showMessageDialog(parent, "Maximum number of custom biomes reached", "Maximum Reached", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                CustomBiome customBiome = new CustomBiome("Custom", id, Color.ORANGE.getRGB());
+                CustomBiomeDialog dialog = new CustomBiomeDialog(parent, customBiome, true);
+                dialog.setVisible(true);
+                if (! dialog.isCancelled()) {
+                    customBiomeManager.addCustomBiome(parent, customBiome);
+                }
             }
         });
         grid.add(addCustomBiomeButton);
@@ -332,7 +330,7 @@ public class BiomePaint extends LayerPaint implements CustomBiomeListener {
         }
         return iconImage;
     }
-    
+
     /**
      * Find the available biome options given a particular base biome and a set
      * of already selected options.

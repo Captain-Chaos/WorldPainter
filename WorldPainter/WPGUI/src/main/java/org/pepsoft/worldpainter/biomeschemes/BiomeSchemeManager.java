@@ -25,6 +25,8 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static org.pepsoft.worldpainter.Constants.*;
+
 /**
  *
  * @author pepijn
@@ -409,17 +411,6 @@ public class BiomeSchemeManager {
     private static final Object initialisationLock = new Object();
     private static File minecraftDir;
     private static boolean initialised, initialising;
-
-    public static final int BIOME_ALGORITHM_1_7_3               =  0;
-    public static final int BIOME_ALGORITHM_1_9                 =  1;
-    public static final int BIOME_ALGORITHM_1_8_1               =  2;
-    public static final int BIOME_ALGORITHM_1_0_0               =  3;
-    public static final int BIOME_ALGORITHM_1_1                 =  4;
-    public static final int BIOME_ALGORITHM_1_2_AND_1_3_DEFAULT =  5;
-    public static final int BIOME_ALGORITHM_AUTO_BIOMES         =  7;
-    public static final int BIOME_ALGORITHM_1_3_LARGE           =  8;
-    public static final int BIOME_ALGORITHM_1_7_DEFAULT         =  9;
-    public static final int BIOME_ALGORITHM_1_7_LARGE           = 10;
 
     public static final String[] BIOME_ALGORITHM_NAMES = {"Beta 1.7.3", "Beta 1.9", "Beta 1.8.1", "1.0.0", "1.1", "1.2-1.6 Default", "Custom", "Auto", "1.3-1.6 Large", "1.7 Default", "1.7 Large"};
 

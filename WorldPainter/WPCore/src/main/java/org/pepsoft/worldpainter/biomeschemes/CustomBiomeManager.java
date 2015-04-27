@@ -4,11 +4,10 @@
  */
 package org.pepsoft.worldpainter.biomeschemes;
 
-import java.awt.Color;
-import java.awt.Window;
+import javax.swing.*;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.JOptionPane;
 
 /**
  * Coordinates loading, saving and editing of custom biomes.
@@ -16,10 +15,6 @@ import javax.swing.JOptionPane;
  * @author pepijn
  */
 public class CustomBiomeManager {
-    public CustomBiomeManager(Window parent) {
-        this.parent = parent;
-    }
-
     public List<CustomBiome> getCustomBiomes() {
         return customBiomes;
     }
@@ -42,12 +37,12 @@ public class CustomBiomeManager {
             }
         }
     }
-    
-    public void addCustomBiome() {
-        int id = -1;
+
+    public int getNextId() {
         if (customBiomes != null) {
-outer:      for (int i = 40; i < 256; i++) {
-                for (CustomBiome customBiome: customBiomes) {
+            outer:
+            for (int i = 40; i < 256; i++) {
+                for (CustomBiome customBiome : customBiomes) {
                     if (customBiome.getId() == i) {
                         continue outer;
                     }
@@ -55,38 +50,33 @@ outer:      for (int i = 40; i < 256; i++) {
                 if (autoBiomeScheme.isBiomePresent(i)) {
                     continue;
                 }
-                id = i;
-                break;
+                return i;
             }
-            if (id == -1) {
-                JOptionPane.showMessageDialog(parent, "Maximum number of custom biomes reached", "Maximum Reached", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
+            return - 1;
         } else {
-            id = 40;
+            return 40;
         }
-        CustomBiome customBiome = new CustomBiome("Custom", id, Color.ORANGE.getRGB());
-        CustomBiomeDialog dialog = new CustomBiomeDialog(parent, customBiome, true);
-        dialog.setVisible(true);
-        if (! dialog.isCancelled()) {
-            if (autoBiomeScheme.isBiomePresent(customBiome.getId())) {
-                JOptionPane.showMessageDialog(parent, "The specified ID (" + customBiome.getId() + ") is already a regular biome (named " + autoBiomeScheme.getBiomeName(customBiome.getId()) + ")", "ID Already In Use", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            if (customBiomes == null) {
-                customBiomes = new ArrayList<CustomBiome>();
-            }
-            for (CustomBiome existingCustomBiome: customBiomes) {
-                if (existingCustomBiome.getId() == customBiome.getId()) {
-                    JOptionPane.showMessageDialog(parent, "You already configured a custom biome with that ID (named " + existingCustomBiome.getName() + ")", "ID Already In Use", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-            }
-            customBiomes.add(customBiome);
-            for (CustomBiomeListener listener: listeners) {
-                listener.customBiomeAdded(customBiome);
+    }
+
+    public boolean addCustomBiome(Window parent, CustomBiome customBiome) {
+        if (autoBiomeScheme.isBiomePresent(customBiome.getId())) {
+            JOptionPane.showMessageDialog(parent, "The specified ID (" + customBiome.getId() + ") is already a regular biome (named " + autoBiomeScheme.getBiomeName(customBiome.getId()) + ")", "ID Already In Use", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+        if (customBiomes == null) {
+            customBiomes = new ArrayList<CustomBiome>();
+        }
+        for (CustomBiome existingCustomBiome: customBiomes) {
+            if (existingCustomBiome.getId() == customBiome.getId()) {
+                JOptionPane.showMessageDialog(parent, "You already configured a custom biome with that ID (named " + existingCustomBiome.getName() + ")", "ID Already In Use", JOptionPane.ERROR_MESSAGE);
+                return false;
             }
         }
+        customBiomes.add(customBiome);
+        for (CustomBiomeListener listener: listeners) {
+            listener.customBiomeAdded(customBiome);
+        }
+        return true;
     }
     
     public void editCustomBiome(CustomBiome customBiome) {
@@ -105,7 +95,6 @@ outer:      for (int i = 40; i < 256; i++) {
         listeners.remove(listener);
     }
     
-    private final Window parent;
     private final AutoBiomeScheme autoBiomeScheme = new AutoBiomeScheme(null);
     private List<CustomBiome> customBiomes;
     private List<CustomBiomeListener> listeners = new ArrayList<CustomBiomeListener>();
