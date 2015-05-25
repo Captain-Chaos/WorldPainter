@@ -152,7 +152,13 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                         } else if (y < intHeight) {
                             result.chunk.setMaterial(x, y, z, terrain.getMaterial(seed, worldX, worldY, y, intHeight));
                         } else if (y == intHeight) {
-                            result.chunk.setMaterial(x, y, z, terrain.getMaterial(seed, worldX, worldY, height, intHeight));
+                            final Material material = terrain.getMaterial(seed, worldX, worldY, height, intHeight);
+                            final int blockType = material.getBlockType();
+                            if (((blockType == BLK_WOODEN_SLAB) || (blockType == BLK_SLAB) || (blockType == BLK_RED_SANDSTONE_SLAB)) && (! underWater) && (height > intHeight)) {
+                                result.chunk.setMaterial(x, y, z, Material.get(blockType - 1, material.getData()));
+                            } else {
+                                result.chunk.setMaterial(x, y, z, material);
+                            }
                         } else if (y <= waterLevel) {
                             if (floodWithLava) {
                                 result.chunk.setBlockType(x, y, z, BLK_STATIONARY_LAVA);

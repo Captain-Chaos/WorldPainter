@@ -1,3 +1,9 @@
+-- Version ..., released ...
+
+ * If you use half slabs as a custom terrain type, WorldPainter will combine it with double slabs of the same type to make smoother terrain
+   + This is great for creating, for instance, cobblestone or stone slab roads which you can walk without having to jump
+   + The requirements are the same as for Smooth Snow: the world must either be hand crafted, or created from a high resolution (16-bit) height map. Worlds created from 8-bit height maps won't have the extra precision needed, although you can create it by using the Smooth tool along the path of the area where you want to apply this feature
+
 -- Version 1.11.1, released 26-4-2015
 
  * You can now choose Lava for the "except on" or "only on" option in the brush filter settings
