@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.pepsoft.worldpainter.operations;
+package org.pepsoft.worldpainter.brushes;
 
 import org.pepsoft.util.PerlinNoise;
 import static org.pepsoft.worldpainter.Constants.*;
@@ -40,7 +40,12 @@ public abstract class AbstractBrush implements Brush, Cloneable {
     public float getNoisyFullStrength(long seed, int centerX, int centerY, int x, int y) {
         return getNoisyStrength(seed, x, y, getFullStrength(centerX, centerY, x, y));
     }
-    
+
+    @Override
+    public int getEffectiveRadius() {
+        return getRadius();
+    }
+
     @Override
     public AbstractBrush clone() {
         try {

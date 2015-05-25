@@ -1,4 +1,22 @@
 /*
+ * WorldPainter, a graphical and interactive map generator for Minecraft.
+ * Copyright � 2011-2015  pepsoft.org, The Netherlands
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/*
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
@@ -14,8 +32,10 @@ import jpen.PKindEvent;
 import org.pepsoft.worldpainter.MapDragControl;
 import org.pepsoft.worldpainter.RadiusControl;
 import org.pepsoft.worldpainter.WorldPainterView;
+import org.pepsoft.worldpainter.brushes.Brush;
 
 /**
+ * An operation which uses a brush to affect an area of the dimension.
  *
  * @author pepijn
  */
@@ -46,7 +66,7 @@ public abstract class RadiusOperation extends MouseOrTabletOperation {
     }
 
     public final int getEffectiveRadius() {
-        return (brush instanceof RotatedBrush) ? ((RotatedBrush) brush).getEffectiveRadius() : radius;
+        return (brush != null) ? brush.getEffectiveRadius() : radius;
     }
 
     public final void setRadius(int radius) {
@@ -135,11 +155,6 @@ public abstract class RadiusOperation extends MouseOrTabletOperation {
     public void setFilter(Filter filter) {
         this.filter = filter;
         filterEnabled = (filter != null);
-    }
-
-    @Override
-    protected void activate() {
-        super.activate();
     }
 
     @Override

@@ -28,6 +28,8 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -114,6 +116,42 @@ public class Main {
         }
         logger.info("Starting WorldPainter " + Version.VERSION);
 
+        // Set the acceleration mode. For some reason we don't fully understand,
+        // loading the Configuration from disk initialises Java2D, so we have to
+        // do this *before* then.
+        AccelerationType accelerationType;
+        String accelTypeName = Preferences.userNodeForPackage(Main.class).get("accelerationType", null);
+        if (accelTypeName != null) {
+            accelerationType = AccelerationType.valueOf(accelTypeName);
+        } else {
+            accelerationType = AccelerationType.DEFAULT;
+            // TODO: Experiment with which ones work well and use them by default!
+        }
+        switch (accelerationType) {
+            case UNACCELERATED:
+                // Try to disable all accelerated pipelines we know of:
+                System.setProperty("sun.java2d.d3d", "false");
+                System.setProperty("sun.java2d.opengl", "false");
+                System.setProperty("sun.java2d.xrender", "false");
+                System.setProperty("apple.awt.graphics.UseQuartz", "false");
+                break;
+            case DIRECT3D:
+                // Direct3D should already be the default on Windows, but
+                // enable a few things which are off by default:
+                System.setProperty("sun.java2d.translaccel", "true");
+                System.setProperty("sun.java2d.ddscale", "true");
+                break;
+            case OPENGL:
+                System.setProperty("sun.java2d.opengl", "True");
+                break;
+            case XRENDER:
+                System.setProperty("sun.java2d.xrender", "True");
+                break;
+            case QUARTZ:
+                System.setProperty("apple.awt.graphics.UseQuartz", "true");
+                break;
+        }
+
         // Load or initialise configuration
         Configuration config = null;
         try {
@@ -137,6 +175,10 @@ public class Main {
         }
         Configuration.setInstance(config);
         logger.info("Installation ID: " + config.getUuid());
+
+        // Store the acceleration type in the config object so the Preferences
+        // dialog can edit it
+        config.setAccelerationType(accelerationType);
 
         // Start background scan for Minecraft jars
         BiomeSchemeManager.initialiseInBackground();
@@ -218,8 +260,16 @@ public class Main {
                     }
                     config.logEvent(sessionEvent);
                     config.save();
+
+                    // Store the acceleration type separately, because we need
+                    // it before we can load the config:
+                    Preferences prefs = Preferences.userNodeForPackage(Main.class);
+                    prefs.put("accelerationType", config.getAccelerationType().name());
+                    prefs.flush();
                 } catch (IOException e) {
                     logger.log(Level.SEVERE, "I/O error saving configuration", e);
+                } catch (BackingStoreException e) {
+                    logger.log(Level.SEVERE, "Backing store exception saving acceleration type", e);
                 }
                 logger.info("Shutting down WorldPainter");
                 ((WPLogManager) LogManager.getLogManager()).realReset();

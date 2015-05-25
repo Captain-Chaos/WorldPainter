@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.pepsoft.worldpainter.operations;
+package org.pepsoft.worldpainter.brushes;
 
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;

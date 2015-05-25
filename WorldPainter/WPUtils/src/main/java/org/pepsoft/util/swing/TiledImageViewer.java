@@ -9,6 +9,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.awt.image.ImageObserver;
+import java.awt.image.VolatileImage;
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.util.*;
@@ -85,14 +87,14 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         synchronized (TILE_CACHE_LOCK) {
             TileProvider tileProvider = tileProviders.remove(index);
             tileProvider.removeTileListener(this);
-            Map<Point, Reference<BufferedImage>> dirtyTileCache = dirtyTileCaches.remove(tileProvider);
-            Map<Point, Reference<BufferedImage>> tileCache = tileCaches.remove(tileProvider);
+            Map<Point, Reference<? extends Image>> dirtyTileCache = dirtyTileCaches.remove(tileProvider);
+            Map<Point, Reference<? extends Image>> tileCache = tileCaches.remove(tileProvider);
             // Add all live tile images from the tile cache to the dirty tile
             // cache, for use as dirty tile for the new tile provider
-            for (Map.Entry<Point, Reference<BufferedImage>> entry: tileCache.entrySet()) {
-                Reference<BufferedImage> tileImageRef = entry.getValue();
+            for (Map.Entry<Point, Reference<? extends Image>> entry: tileCache.entrySet()) {
+                Reference<? extends Image> tileImageRef = entry.getValue();
                 if (tileImageRef != RENDERING) {
-                    BufferedImage tileImage = tileImageRef.get();
+                    Image tileImage = tileImageRef.get();
                     if (tileImage != null) {
                         dirtyTileCache.put(entry.getKey(), tileImageRef);
                     }
@@ -110,7 +112,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
             }
             newTileProvider.addTileListener(this);
             tileProviders.add(index, newTileProvider);
-            tileCaches.put(newTileProvider, new HashMap<Point, Reference<BufferedImage>>());
+            tileCaches.put(newTileProvider, new HashMap<Point, Reference<? extends Image>>());
             dirtyTileCaches.put(newTileProvider, dirtyTileCache);
         }
         fireViewChangedEvent();
@@ -163,8 +165,8 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                 tileProvider.setZoom((zoom <= 0) ? zoom : 0);
             }
             tileProvider.addTileListener(this);
-            tileCaches.put(tileProvider, new HashMap<Point, Reference<BufferedImage>>());
-            dirtyTileCaches.put(tileProvider, new HashMap<Point, Reference<BufferedImage>>());
+            tileCaches.put(tileProvider, new HashMap<Point, Reference<? extends Image>>());
+            dirtyTileCaches.put(tileProvider, new HashMap<Point, Reference<? extends Image>>());
             if (tileRenderers == null) {
                 if (logger.isLoggable(Level.FINE)) {
                     logger.fine("Starting " + threads + " tile rendering threads");
@@ -269,8 +271,8 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                         // zooming out:
                         tileProvider.setZoom((zoom <= 0) ? zoom : 0);
                     }
-                    dirtyTileCaches.put(tileProvider, new HashMap<Point, Reference<BufferedImage>>());
-                    tileCaches.put(tileProvider, new HashMap<Point, Reference<BufferedImage>>());
+                    dirtyTileCaches.put(tileProvider, new HashMap<Point, Reference<? extends Image>>());
+                    tileCaches.put(tileProvider, new HashMap<Point, Reference<? extends Image>>());
                 }
             }
             // Adjust view location, since it is in unzoomed coordinates
@@ -385,8 +387,8 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         queue.clear();
         synchronized (TILE_CACHE_LOCK) {
             for (TileProvider tileProvider: tileProviders) {
-                dirtyTileCaches.put(tileProvider, new HashMap<Point, Reference<BufferedImage>>());
-                tileCaches.put(tileProvider, new HashMap<Point, Reference<BufferedImage>>());
+                dirtyTileCaches.put(tileProvider, new HashMap<Point, Reference<? extends Image>>());
+                tileCaches.put(tileProvider, new HashMap<Point, Reference<? extends Image>>());
             }
         }
         repaint();
@@ -394,23 +396,23 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
     
     public void refresh(TileProvider tileProvider, int x, int y) {
         synchronized (TILE_CACHE_LOCK) {
-            Point coords = new Point(x, y);
-            Map<Point, Reference<BufferedImage>> tileCache = tileCaches.get(tileProvider);
-            Reference<BufferedImage> tileRef = tileCache.get(coords);
+            final Point coords = new Point(x, y);
+            final Map<Point, Reference<? extends Image>> tileCache = tileCaches.get(tileProvider);
+            final Reference<? extends Image> tileRef = tileCache.get(coords);
             if (tileRef != RENDERING) {
                 tileCache.remove(coords);
-                BufferedImage tile = (tileRef != null) ? tileRef.get() : null;
+                final Image tile = (tileRef != null) ? tileRef.get() : null;
                 if (tile != null) {
                     // The old tile is still available; move it to the dirty
                     // tile cache so we have something to paint while the tile
                     // is being rendered
                     dirtyTileCaches.get(tileProvider).put(coords, tileRef);
                 }
-                int effectiveZoom = (tileProvider.isZoomSupported() && (zoom < 0)) ? 0 : zoom;
+                final int effectiveZoom = (tileProvider.isZoomSupported() && (zoom < 0)) ? 0 : zoom;
                 if (isTileVisible(x, y, effectiveZoom)) {
                     // The tile is visible; immediately schedule it to be
-                    //rendered
-                    scheduleTile(tileCache, coords, tileProvider, dirtyTileCaches.get(tileProvider), effectiveZoom);
+                    // rendered
+                    scheduleTile(tileCache, coords, tileProvider, dirtyTileCaches.get(tileProvider), effectiveZoom, tile);
                 }
             }
         }
@@ -634,57 +636,82 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
 
     @Override
     protected void paintComponent(Graphics g) {
-        g.setColor(getBackground());
-        Rectangle clipBounds = g.getClipBounds();
+        final Graphics2D g2 = (Graphics2D) g;
+        g2.setColor(getBackground());
+        Rectangle clipBounds = g2.getClipBounds();
         if (tileProviders.isEmpty()) {
-            g.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
+            g2.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
             return;
         }
         
+        GraphicsConfiguration gc = getGraphicsConfiguration();
+        if (firstPaint) {
+//            System.out.println("Graphics2D instance: " + g2);
+//            System.out.println("GraphicsConfiguration instance: " + gc);
+            firstPaint = false;
+        }
         for (TileProvider tileProvider: tileProviders) {
-            int effectiveZoom = (tileProvider.isZoomSupported() && (zoom < 0)) ? 0 : zoom;
-            Point topLeftTileCoords = viewToWorld(clipBounds.getLocation(), effectiveZoom);
-            int leftTile = topLeftTileCoords.x >> TILE_SIZE_BITS;
-            int topTile = topLeftTileCoords.y >> TILE_SIZE_BITS;
-            Point bottomRightTileCoords = viewToWorld(new Point(clipBounds.x + clipBounds.width, clipBounds.y + clipBounds.height), effectiveZoom);
-            int rightTile = bottomRightTileCoords.x >> TILE_SIZE_BITS;
-            int bottomTile = bottomRightTileCoords.y >> TILE_SIZE_BITS;
+            final int effectiveZoom = (tileProvider.isZoomSupported() && (zoom < 0)) ? 0 : zoom;
+            final Point topLeftTileCoords = viewToWorld(clipBounds.getLocation(), effectiveZoom);
+            final int leftTile = topLeftTileCoords.x >> TILE_SIZE_BITS;
+            final int topTile = topLeftTileCoords.y >> TILE_SIZE_BITS;
+            final Point bottomRightTileCoords = viewToWorld(new Point(clipBounds.x + clipBounds.width - 1, clipBounds.y + clipBounds.height - 1), effectiveZoom);
+            final int rightTile = bottomRightTileCoords.x >> TILE_SIZE_BITS;
+            final int bottomTile = bottomRightTileCoords.y >> TILE_SIZE_BITS;
+//            System.out.println("Painting tiles " + leftTile + "," + topTile + " -> " + rightTile + "," + bottomTile + " for tile provider " + tileProvider);
 
-            int middleTileX = (leftTile + rightTile) / 2;
-            int middleTileY = (topTile + bottomTile) / 2;
-            int radius = Math.max(
+            final int middleTileX = (leftTile + rightTile) / 2;
+            final int middleTileY = (topTile + bottomTile) / 2;
+            final int radius = Math.max(
                 Math.max(middleTileX - leftTile, rightTile - middleTileX),
                 Math.max(middleTileY - topTile, bottomTile - middleTileY));
 
-            paintTile(g, clipBounds, tileProvider, middleTileX, middleTileY, effectiveZoom);
+            // Paint the tiles in a spiralish fashion, so that missing tiles are generated in that order
+            paintTile(g2, gc, tileProvider, middleTileX, middleTileY, effectiveZoom);
             for (int r = 1; r <= radius; r++) {
-                for (int i = 0; i <= (r * 2); i++) {
-                    paintTile(g, clipBounds, tileProvider, middleTileX + i - r, middleTileY - r, effectiveZoom);
-                    paintTile(g, clipBounds, tileProvider, middleTileX + r, middleTileY + i - r, effectiveZoom);
-                    paintTile(g, clipBounds, tileProvider, middleTileX + r - i, middleTileY + r, effectiveZoom);
-                    paintTile(g, clipBounds, tileProvider, middleTileX - r, middleTileY - i + r, effectiveZoom);
+                for (int i = 0; i < (r * 2); i++) {
+                    int tileX = middleTileX + i - r, tileY = middleTileY - r;
+                    if ((tileX >= leftTile) && (tileX <= rightTile) && (tileY >= topTile) && (tileY <= bottomTile)) {
+                        paintTile(g2, gc, tileProvider, tileX, tileY, effectiveZoom);
+                    }
+                    tileX = middleTileX + r;
+                    tileY = middleTileY + i - r;
+                    if ((tileX >= leftTile) && (tileX <= rightTile) && (tileY >= topTile) && (tileY <= bottomTile)) {
+                        paintTile(g2, gc, tileProvider, tileX, tileY, effectiveZoom);
+                    }
+                    tileX = middleTileX + r - i;
+                    tileY = middleTileY + r;
+                    if ((tileX >= leftTile) && (tileX <= rightTile) && (tileY >= topTile) && (tileY <= bottomTile)) {
+                        paintTile(g2, gc, tileProvider, tileX, tileY, effectiveZoom);
+                    }
+                    tileX = middleTileX - r;
+                    tileY = middleTileY - i + r;
+                    if ((tileX >= leftTile) && (tileX <= rightTile) && (tileY >= topTile) && (tileY <= bottomTile)) {
+                        paintTile(g2, gc, tileProvider, tileX, tileY, effectiveZoom);
+                    }
                 }
             }
         }
+//        System.out.println();
 
-        paintGridIfApplicable((Graphics2D) g);
+        paintGridIfApplicable(g2);
 
-        paintMarkerIfApplicable(g);
+        paintMarkerIfApplicable(g2);
         
         if (paintCentre) {
-            int middleX = getWidth() / 2;
-            int middleY = getHeight() / 2;
-            g.setColor(Color.BLACK);
-            g.drawLine(middleX - 4, middleY + 1, middleX + 6, middleY + 1);
-            g.drawLine(middleX + 1, middleY - 4, middleX + 1, middleY + 6);
-            g.setColor(Color.WHITE);
-            g.drawLine(middleX - 5, middleY, middleX + 5, middleY);
-            g.drawLine(middleX, middleY - 5, middleX, middleY + 5);
+            final int middleX = getWidth() / 2;
+            final int middleY = getHeight() / 2;
+            g2.setColor(Color.BLACK);
+            g2.drawLine(middleX - 4, middleY + 1, middleX + 6, middleY + 1);
+            g2.drawLine(middleX + 1, middleY - 4, middleX + 1, middleY + 6);
+            g2.setColor(Color.WHITE);
+            g2.drawLine(middleX - 5, middleY, middleX + 5, middleY);
+            g2.drawLine(middleX, middleY - 5, middleX, middleY + 5);
         }
         
         // Unschedule tiles which were scheduled to be rendered but are no
         // longer visible
-        Rectangle viewBounds = new Rectangle(0, 0, getWidth(), getHeight());
+        final Rectangle viewBounds = new Rectangle(0, 0, getWidth(), getHeight());
         synchronized (TILE_CACHE_LOCK) {
             for (Iterator<Runnable> i = queue.iterator(); i.hasNext(); ) {
                 TileRenderJob job = (TileRenderJob) i.next();
@@ -696,52 +723,138 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         }
     }
 
-    private void paintTile(Graphics g, Rectangle clipBounds, TileProvider tileProvider, int x, int y, int effectiveZoom) {
+    private void paintTile(Graphics2D g2, GraphicsConfiguration gc, TileProvider tileProvider, int x, int y, int effectiveZoom) {
         Rectangle tileBounds = getTileBounds(x, y, effectiveZoom);
-        if (! clipBounds.intersects(tileBounds)) {
-            return;
-        }
-        BufferedImage tile = getTile(tileProvider, x, y, effectiveZoom);
+        Image tile = getTile(tileProvider, x, y, effectiveZoom, gc);
         if (tile != null) {
+            if ((tile instanceof VolatileImage) && (((VolatileImage) tile).validate(gc) != VolatileImage.IMAGE_OK)) {
+                logger.severe("Image not OK right before painting!");
+            }
+//            ImageCapabilities capabilities = tile.getCapabilities(gc);
+//            System.out.print(capabilities.isAccelerated() ? 'a' : '-');
+//            System.out.print(capabilities.isTrueVolatile() ? 't' : '-');
             if (zoom > 0) {
-                g.drawImage(tile, tileBounds.x, tileBounds.y, tileBounds.width, tileBounds.height, this);
+                g2.drawImage(tile, tileBounds.x, tileBounds.y, tileBounds.width, tileBounds.height, this);
             } else {
-                g.drawImage(tile, tileBounds.x, tileBounds.y, this);
+                g2.drawImage(tile, tileBounds.x, tileBounds.y, this);
             }
         } else {
-            g.fillRect(tileBounds.x, tileBounds.y, tileBounds.width, tileBounds.height);
+            g2.fillRect(tileBounds.x, tileBounds.y, tileBounds.width, tileBounds.height);
         }
     }
     
-    private BufferedImage getTile(TileProvider tileProvider, int x, int y, int effectiveZoom) {
+    private Image getTile(TileProvider tileProvider, int x, int y, int effectiveZoom, GraphicsConfiguration gc) {
         synchronized (TILE_CACHE_LOCK) {
-            Point coords = new Point(x, y);
-            Map<Point, Reference<BufferedImage>> tileCache = tileCaches.get(tileProvider),
+            final Point coords = new Point(x, y);
+            final Map<Point, Reference<? extends Image>> tileCache = tileCaches.get(tileProvider),
                     dirtyTileCache = dirtyTileCaches.get(tileProvider);
-            Reference<BufferedImage> ref = tileCache.get(coords);
+            final Reference<? extends Image> ref = tileCache.get(coords);
             if (ref == RENDERING) {
                 // The tile is already queued for rendering. Return a dirty tile if
                 // we have one.
-                Reference<BufferedImage> dirtyRef = dirtyTileCache.get(coords);
-                BufferedImage dirtyTile = (dirtyRef != null) ? dirtyRef.get() : null;
-                return (dirtyTile != NO_TILE) ? dirtyTile : null;
-            }
-            BufferedImage tile = (ref != null) ? ref.get() : null;
-            if (tile == null) {
-                Reference<BufferedImage> dirtyRef = dirtyTileCache.get(coords);
-                if (dirtyRef != null) {
-                    tile = dirtyRef.get();
+//                System.out.print('r');
+                return getDirtyTile(coords, dirtyTileCache, gc);
+            } else if (ref != null) {
+                final Image tile = ref.get();
+                if (tile == null) {
+                    // The image was garbage collected; remove the reference from
+                    // the cache and schedule it to be rendered again
+                    tileCache.remove(coords);
+                    scheduleTile(tileCache, coords, tileProvider, dirtyTileCache, effectiveZoom, null);
+//                    System.out.print('g');
+                    return getDirtyTile(coords, dirtyTileCache, gc);
+                } else if (tile == NO_TILE) {
+                    // There is no tile here according to the tile provider
+//                    System.out.print(' ');
+                    return null;
+                } else if (tile instanceof VolatileImage) {
+                    switch (((VolatileImage) tile).validate(gc)) {
+                        case VolatileImage.IMAGE_OK:
+//                            System.out.print('.');
+                            return tile;
+                        case VolatileImage.IMAGE_RESTORED:
+                            // The image was restored and the contents "may"
+                            // have been affected. schedule it to be rendered
+                            // again
+                            // TODO: should we be returning it anyway?
+                            scheduleTile(tileCache, coords, tileProvider, dirtyTileCache, effectiveZoom, tile);
+//                            System.out.print('R');
+                            return tile;
+                        case VolatileImage.IMAGE_INCOMPATIBLE:
+                            // Weirdly, the image is no longer compatible with
+                            // the graphics configuration. Schedule it to be
+                            // rendered again. Not much point in checking the
+                            // dirty tile cache; those tiles probably aren't
+                            // compatible any more also. TODO: can this even
+                            // happen?
+                            tileCache.remove(coords);
+                            scheduleTile(tileCache, coords, tileProvider, dirtyTileCache, effectiveZoom, null);
+//                            System.out.print('i');
+                            return null;
+                        default:
+                            throw new InternalError("Unknown validation result");
+                    }
+                } else {
+                    return tile;
                 }
-                scheduleTile(tileCache, coords, tileProvider, dirtyTileCache, effectiveZoom);
+            } else {
+                // Tile not present in cache
+                scheduleTile(tileCache, coords, tileProvider, dirtyTileCache, effectiveZoom, null);
+//                System.out.print('x');
+                return getDirtyTile(coords, dirtyTileCache, gc);
             }
-            return (tile != NO_TILE) ? tile : null;
         }
     }
 
-    private void scheduleTile(final Map<Point, Reference<BufferedImage>> tileCache, final Point coords, final TileProvider tileProvider, final Map<Point, Reference<BufferedImage>> dirtyTileCache, final int effectiveZoom) {
+    private Image getDirtyTile(Point coords, Map<Point, Reference<? extends Image>> dirtyTileCache, GraphicsConfiguration gc) {
+        final Reference<? extends Image> dirtyRef = dirtyTileCache.get(coords);
+        if (dirtyRef != null) {
+            final Image dirtyTile = dirtyRef.get();
+            if (dirtyTile == null) {
+                // The image was garbage collected; remove the reference
+                // from the cache
+                dirtyTileCache.remove(coords);
+                return null;
+            } else if (dirtyTile == NO_TILE) {
+                // There was no tile here according to the tile provider
+                return null;
+            } else if (dirtyTile instanceof VolatileImage) {
+                switch (((VolatileImage) dirtyTile).validate(gc)) {
+                    case VolatileImage.IMAGE_OK:
+                        return dirtyTile;
+                    case VolatileImage.IMAGE_RESTORED:
+                        // The image was restored and the contents "may" have
+                        // been affected. Oh well, it was a dirty tile anyway
+                        // TODO: should we be returning it anyway?
+                        return dirtyTile;
+                    case VolatileImage.IMAGE_INCOMPATIBLE:
+                        // Weirdly, the image is no longer compatible with the
+                        // graphics configuration. Oh well, it was a dirty tile
+                        // anyway. TODO: can this even happen?
+                        dirtyTileCache.remove(coords);
+                        return null;
+                    default:
+                        throw new InternalError("Unknown validation result");
+                }
+            } else {
+                return dirtyTile;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    private void scheduleTile(final Map<Point, Reference<? extends Image>> tileCache, final Point coords, final TileProvider tileProvider, final Map<Point, Reference<? extends Image>> dirtyTileCache, final int effectiveZoom, final Image image) {
         synchronized (TILE_CACHE_LOCK) {
-            tileCache.put(coords, RENDERING);
-            tileRenderers.execute(new TileRenderJob(tileCache, dirtyTileCache, coords, tileProvider, effectiveZoom));
+            if (tileProvider.isTilePresent(coords.x, coords.y)) {
+                tileCache.put(coords, RENDERING);
+                tileRenderers.execute(new TileRenderJob(tileCache, dirtyTileCache, coords, tileProvider, effectiveZoom, image));
+            } else {
+                tileCache.put(coords, new SoftReference<VolatileImage>(NO_TILE));
+                if (dirtyTileCache.containsKey(coords)) {
+                    dirtyTileCache.remove(coords);
+                }
+            }
         }
     }
 
@@ -862,8 +975,8 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
     private final int threads;
     private final Object TILE_CACHE_LOCK = new Object();
     private final List<TileProvider> tileProviders = new ArrayList<TileProvider>();
-    private final Map<TileProvider, Map<Point, Reference<BufferedImage>>> tileCaches = new HashMap<TileProvider, Map<Point, Reference<BufferedImage>>>(),
-            dirtyTileCaches = new HashMap<TileProvider, Map<Point, Reference<BufferedImage>>>();
+    private final Map<TileProvider, Map<Point, Reference<? extends Image>>> tileCaches = new HashMap<TileProvider, Map<Point, Reference<? extends Image>>>(),
+            dirtyTileCaches = new HashMap<TileProvider, Map<Point, Reference<? extends Image>>>();
     protected int viewX, viewY, previousX, previousY, markerX, markerY, xOffset, yOffset;
     /**
      * The zoom level in the form of an exponent of 2. I.e. the scale is 2^n,
@@ -875,25 +988,38 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
     private boolean dragging, paintMarker, paintGrid;
     private BlockingQueue<Runnable> queue;
     private ViewListener viewListener;
+    private boolean firstPaint = true;
  
     public static final int TILE_SIZE = 128, TILE_SIZE_BITS = 7, TILE_SIZE_MASK = 0x7f;
     
     static final AtomicLong jobSeq = new AtomicLong(Long.MIN_VALUE);
 
-    private static final Reference<BufferedImage> RENDERING = new SoftReference<BufferedImage>(null);
-    private static final BufferedImage NO_TILE = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
+    private static final Reference<VolatileImage> RENDERING = new SoftReference<VolatileImage>(null);
+    private static final VolatileImage NO_TILE = new VolatileImage() {
+        @Override public BufferedImage getSnapshot() {return null;}
+        @Override public int getWidth() {return 0;}
+        @Override public int getHeight() {return 0;}
+        @Override public Graphics2D createGraphics() {return null;}
+        @Override public int validate(GraphicsConfiguration gc) {return 0;}
+        @Override public boolean contentsLost() {return false;}
+        @Override public ImageCapabilities getCapabilities() {return null;}
+        @Override public int getWidth(ImageObserver observer) {return 0;}
+        @Override public int getHeight(ImageObserver observer) {return 0;}
+        @Override public Object getProperty(String name, ImageObserver observer) {return null;}
+    };
     private static final Font NORMAL_FONT = new Font("SansSerif", Font.PLAIN, 10);
     private static final Font BOLD_FONT = new Font("SansSerif", Font.BOLD, 10);
     private static final long serialVersionUID = 1L;
     private static final Logger logger = Logger.getLogger(TiledImageViewer.class.getName());
     
     class TileRenderJob implements Runnable, Comparable<TileRenderJob> {
-        TileRenderJob(Map<Point, Reference<BufferedImage>> tileCache, Map<Point, Reference<BufferedImage>> dirtyTileCache, Point coords, TileProvider tileProvider, int effectiveZoom) {
+        TileRenderJob(Map<Point, Reference<? extends Image>> tileCache, Map<Point, Reference<? extends Image>> dirtyTileCache, Point coords, TileProvider tileProvider, int effectiveZoom, Image image) {
             this.tileCache = tileCache;
             this.dirtyTileCache = dirtyTileCache;
             this.coords = coords;
             this.tileProvider = tileProvider;
             this.effectiveZoom = effectiveZoom;
+            this.image = image;
             seq = jobSeq.getAndIncrement();
             priority = tileProvider.getTilePriority(coords.x, coords.y);
         }
@@ -903,12 +1029,36 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
             if (logger.isLoggable(Level.FINER)) {
                 logger.finer("Rendering tile " + coords);
             }
-            BufferedImage tile = tileProvider.getTile(coords.x, coords.y);
-            if (tile == null) {
-                tile = NO_TILE;
+            final int tileSize = tileProvider.getTileSize();
+            VolatileImage tile;
+            GraphicsConfiguration gc = getGraphicsConfiguration();
+            if (image instanceof VolatileImage) {
+                // This image was previously created by us, here, so really it
+                // should still be compatible
+                tile = (VolatileImage) image;
+            } else {
+                tile = gc.createCompatibleVolatileImage(tileSize, tileSize);
+                switch (tile.validate(gc)) {
+                    case VolatileImage.IMAGE_OK:
+                        // As expected
+                        break;
+                    case VolatileImage.IMAGE_RESTORED:
+                        // Weird, but shouldn't be a problem as we're about to paint it
+                        if (logger.isLoggable(Level.FINE)) {
+                            logger.fine("Volatile image validation result IMAGE_RESTORED right after creation!");
+                        }
+                        break;
+                    case VolatileImage.IMAGE_INCOMPATIBLE:
+                        logger.severe("Volatile image validation result IMAGE_INCOMPATIBLE right after creation!");
+                        break;
+                }
+            }
+            tileProvider.paintTile(tile, coords.x, coords.y);
+            if (tile.validate(gc) != VolatileImage.IMAGE_OK) {
+                logger.severe("Image not OK right after rendering!");
             }
             synchronized (TILE_CACHE_LOCK) {
-                tileCache.put(coords, new SoftReference<BufferedImage>(tile));
+                tileCache.put(coords, new SoftReference<Image>(tile));
                 if (dirtyTileCache.containsKey(coords)) {
                     dirtyTileCache.remove(coords);
                 }
@@ -926,10 +1076,11 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         }
         
         private final long seq;
-        private final Map<Point, Reference<BufferedImage>> tileCache, dirtyTileCache;
+        private final Map<Point, Reference<? extends Image>> tileCache, dirtyTileCache;
         private final Point coords;
         private final TileProvider tileProvider;
         private final int effectiveZoom, priority;
+        private final Image image;
     }
     
     public interface ViewListener {

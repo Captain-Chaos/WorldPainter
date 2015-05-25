@@ -4,8 +4,7 @@
  */
 package org.pepsoft.util.swing;
 
-import java.awt.Rectangle;
-import java.awt.image.BufferedImage;
+import java.awt.*;
 
 /**
  *
@@ -21,14 +20,25 @@ public interface TileProvider {
     int getTileSize();
     
     /**
-     * Get the tile at the specified coordinates. The X coordinate increases to
-     * the right and the Y coordinate increases towards the bottom.
-     * 
-     * @param x The X coordinate (in tiles) of the tile to get.
-     * @param y The Y coordinate (in tiles) of the tile to get.
-     * @return The specified tile.
+     * Determines, if possible, if there is a tile present at a specified
+     * location.
+     *
+     * @param x The X coordinate (in tiles) to check for the presence of a tile.
+     * @param y The Y coordinate (in tiles) to check for the presence of a tile.
+     * @return <code>true</code> if there is a tile there.
      */
-    BufferedImage getTile(int x, int y);
+    boolean isTilePresent(int x, int y);
+
+    /**
+     * Paint the tile at the specified coordinates. The X coordinate increases
+     * to the right and the Y coordinate increases towards the bottom. An image
+     * of the correct size will be provided on which to paint the tile.
+     *
+     * @param image The image on which to paint the tile
+     * @param x The X coordinate (in tiles) of the tile to paint.
+     * @param y The Y coordinate (in tiles) of the tile to paint.
+     */
+    void paintTile(Image image, int x, int y);
     
     /**
      * Get the priority with which a specific tile should be rendered. A tile

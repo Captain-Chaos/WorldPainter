@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.pepsoft.worldpainter.operations;
+package org.pepsoft.worldpainter.brushes;
 
 /**
  *
@@ -112,6 +112,15 @@ public interface Brush {
      * @param radius The new radius of the brush in pixels.
      */
     void setRadius(int radius);
+
+    /**
+     * Get the "radius" of the bounding box of the brush. Usually this will be
+     * the same as {@link #getRadius()}, but it could be larger for, for
+     * instance, a rotated square brush.
+     *
+     * @return The radius of the bounding box of the brush.
+     */
+    int getEffectiveRadius();
 
     /**
      * Get the current level of the brush.

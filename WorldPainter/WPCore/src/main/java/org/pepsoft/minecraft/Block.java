@@ -3,6 +3,8 @@ package org.pepsoft.minecraft;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 
+import static org.pepsoft.minecraft.Constants.*;
+
 /**
  * A database of Minecraft block information. Accessed by using the block ID as
  * index in the {@link #BLOCKS} array. Implements the Enumeration pattern,
@@ -40,6 +42,21 @@ public final class Block implements Serializable {
                 || (blockLight < 0) || (blockLight > 15)
                 || (treeRelated && vegetation)) {
             throw new IllegalArgumentException();
+        }
+
+        // Determine the category
+        if (id == BLK_AIR) {
+            category = CATEGORY_AIR;
+        } else if ((id == BLK_WATER) || (id == BLK_STATIONARY_WATER) || (id == BLK_LAVA) || (id == BLK_STATIONARY_LAVA)) {
+            category = CATEGORY_FLUID;
+        } else if (veryInsubstantial) {
+            category = CATEGORY_INSUBSTANTIAL;
+        } else if (! natural) {
+            category = CATEGORY_MAN_MADE;
+        } else if (resource) {
+            category = CATEGORY_RESOURCE;
+        } else {
+            category = CATEGORY_NATURAL_SOLID;
         }
     }
 
@@ -152,6 +169,11 @@ public final class Block implements Serializable {
      * included.
      */
     public final transient boolean natural;
+
+    /**
+     * Type of block encoded in a single category
+     */
+    public final transient int category;
 
     private Object readResolve() throws ObjectStreamException {
         return BLOCKS[id];
@@ -451,17 +473,24 @@ public final class Block implements Serializable {
         }
     }
 
-    public static final String[] BLOCK_TYPE_NAMES = new String[Constants.HIGHEST_KNOWN_BLOCK_ID + 1];
+    public static final String[] BLOCK_TYPE_NAMES = new String[HIGHEST_KNOWN_BLOCK_ID + 1];
     public static final int[] BLOCK_TRANSPARENCY = new int[256];
     public static final int[] LIGHT_SOURCES = new int[256];
 
     static {
         for (int i = 0; i < 256; i++) {
-            if (i <= Constants.HIGHEST_KNOWN_BLOCK_ID) {
+            if (i <= HIGHEST_KNOWN_BLOCK_ID) {
                 BLOCK_TYPE_NAMES[i] = BLOCKS[i].name;
             }
             BLOCK_TRANSPARENCY[i] = BLOCKS[i].transparency;
             LIGHT_SOURCES[i] = BLOCKS[i].blockLight;
         }
     }
+
+    public static final int CATEGORY_AIR           = 0;
+    public static final int CATEGORY_FLUID         = 1;
+    public static final int CATEGORY_INSUBSTANTIAL = 2;
+    public static final int CATEGORY_MAN_MADE      = 3;
+    public static final int CATEGORY_RESOURCE      = 4;
+    public static final int CATEGORY_NATURAL_SOLID = 5;
 }

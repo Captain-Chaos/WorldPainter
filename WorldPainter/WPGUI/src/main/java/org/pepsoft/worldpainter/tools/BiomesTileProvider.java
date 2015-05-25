@@ -34,11 +34,11 @@ public class BiomesTileProvider implements TileProvider {
         biomePatterns = new boolean[biomeCount][][];
         for (int i = 0; i < biomeCount; i++) {
             if (biomeScheme.isBiomePresent(i)) {
-                biomeColours[i] = fade ? ColourUtils.mix(0xffffff, biomeScheme.getColour(i, colourScheme)) : biomeScheme.getColour(i, colourScheme);
+                biomeColours[i] = 0xff000000 | (fade ? ColourUtils.mix(0xffffff, biomeScheme.getColour(i, colourScheme)) : biomeScheme.getColour(i, colourScheme));
                 biomePatterns[i] = biomeScheme.getPattern(i);
             }
         }
-        patternColour = fade ? 0x808080 : 0x000000;
+        patternColour = fade ? 0xff808080 : 0xff000000;
     }
     
     @Override
@@ -68,14 +68,14 @@ public class BiomesTileProvider implements TileProvider {
     }
 
     @Override
-    public BufferedImage getTile(int tileX, int tileY) {
+    public boolean isTilePresent(int x, int y) {
+        return true;
+    }
+
+    @Override
+    public void paintTile(Image image, int tileX, int tileY) {
         try {
-            BufferedImage tile;
-            if (createOptimalImage) {
-                tile = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(TILE_SIZE, TILE_SIZE);
-            } else {
-                tile = new BufferedImage(TILE_SIZE, TILE_SIZE, BufferedImage.TYPE_INT_RGB);
-            }
+            BufferedImage tile = renderBufferRef.get();
             final int scale = 1 << -zoom;
             int[] buffer = bufferRef.get();
             if (buffer == null) {
@@ -121,10 +121,14 @@ public class BiomesTileProvider implements TileProvider {
                     }
                 }
             }
-            return tile;
+            Graphics2D g2 = (Graphics2D) image.getGraphics();
+            try {
+                g2.drawImage(tile, 0, 0, null);
+            } finally {
+                g2.dispose();
+            }
         } catch (Throwable t) {
             t.printStackTrace();
-            return null;
         }
     }
 
@@ -157,8 +161,12 @@ public class BiomesTileProvider implements TileProvider {
     private final int patternColour;
     private final boolean[][][] biomePatterns;
 
-    private static final boolean createOptimalImage = ! "false".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.createOptimalImage"));
-
+    private static final ThreadLocal<BufferedImage> renderBufferRef = new ThreadLocal<BufferedImage>() {
+        @Override
+        protected BufferedImage initialValue() {
+            return new BufferedImage(TILE_SIZE, TILE_SIZE, BufferedImage.TYPE_INT_ARGB);
+        }
+    };
     private static final int[] BIOME_PRIORITIES = new int[256];
     static {
         // Every biome should have medium priority except the exceptions below

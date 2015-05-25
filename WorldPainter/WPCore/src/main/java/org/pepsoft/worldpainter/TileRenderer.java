@@ -13,10 +13,11 @@ import org.pepsoft.worldpainter.layers.Frost;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.renderers.*;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBuffer;
-import java.awt.image.WritableRaster;
+import java.awt.image.DataBufferInt;
 import java.util.*;
+import java.util.List;
 import java.util.logging.Logger;
 
 import static org.pepsoft.minecraft.Constants.*;
@@ -28,11 +29,11 @@ import static org.pepsoft.worldpainter.Constants.*;
  * @author pepijn
  */
 public final class TileRenderer {
-    public TileRenderer(TileProvider tileProvider, ColourScheme colourScheme, BiomeScheme biomeScheme, CustomBiomeManager customBiomeManager) {
-        this(tileProvider, colourScheme, biomeScheme, customBiomeManager, false);
+    public TileRenderer(TileProvider tileProvider, ColourScheme colourScheme, BiomeScheme biomeScheme, CustomBiomeManager customBiomeManager, int zoom) {
+        this(tileProvider, colourScheme, biomeScheme, customBiomeManager, zoom, false);
     }
 
-    public TileRenderer(TileProvider tileProvider, ColourScheme colourScheme, BiomeScheme biomeScheme, CustomBiomeManager customBiomeManager, boolean dry) {
+    public TileRenderer(TileProvider tileProvider, ColourScheme colourScheme, BiomeScheme biomeScheme, CustomBiomeManager customBiomeManager, int zoom, boolean dry) {
         biomeRenderer = new BiomeRenderer(biomeScheme, customBiomeManager);
         setTileProvider(tileProvider);
         if ((tileProvider instanceof Dimension) && (((Dimension) tileProvider).getWorld() != null)) {
@@ -62,7 +63,10 @@ public final class TileRenderer {
             }
         }
         setColourScheme(colourScheme);
+        this.zoom = zoom;
         this.dry = dry;
+        bufferedImage = new BufferedImage(TILE_SIZE, TILE_SIZE, BufferedImage.TYPE_INT_ARGB);
+        renderBuffer = ((DataBufferInt) bufferedImage.getRaster().getDataBuffer()).getData();
     }
 
     public final TileProvider getTileProvider() {
@@ -176,15 +180,6 @@ public final class TileRenderer {
         return zoom;
     }
 
-    public void setZoom(int zoom) {
-        if (zoom != this.zoom) {
-            if (zoom > 0) {
-                throw new UnsupportedOperationException("Zooming in not supported");
-            }
-            this.zoom = zoom;
-        }
-    }
-
     public boolean isContourLines() {
         return contourLines;
     }
@@ -201,7 +196,7 @@ public final class TileRenderer {
         this.contourSeparation = contourSeparation;
     }
 
-    public void renderTile(BufferedImage image, int dx, int dy) {
+    public void renderTile(Image image, int dx, int dy) {
         // TODO this deadlocks background painting. Find out why:
 //        synchronized (tile) {
         final List<Layer> layerList = new ArrayList<Layer>(tile.getLayers());
@@ -255,39 +250,42 @@ public final class TileRenderer {
                     }
                 }
             }
+
+            Graphics2D g2 = (Graphics2D) image.getGraphics();
+            try {
+                g2.drawImage(bufferedImage, dx, dy, null);
+            } finally {
+                g2.dispose();
+            }
         } else {
-            final int zoomSquared = scale * scale;
+            final int tileSize = TILE_SIZE / scale;
             for (int x = 0; x < TILE_SIZE; x += scale) {
                 for (int y = 0; y < TILE_SIZE; y += scale) {
                     if ((! noOpposites) && oppositesOverlap[x | (y << TILE_SIZE_BITS)]) {
-                        renderBuffer[x / scale + y * TILE_SIZE / zoomSquared] = 0xff000000;
+                        renderBuffer[x / scale + y * tileSize] = 0xff000000;
                     } else if (_void && tile.getBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, x, y)) {
-                        renderBuffer[x / scale + y * TILE_SIZE / zoomSquared] = 0xff000000 | getPixelColour(tileX, tileY, x, y, voidLayers, voidRenderers, false);
+                        renderBuffer[x / scale + y * tileSize] = 0xff000000 | getPixelColour(tileX, tileY, x, y, voidLayers, voidRenderers, false);
                     } else {
                         int colour = getPixelColour(tileX, tileY, x, y, layers, renderers, contourLines);
                         colour = ColourUtils.multiply(colour, getBrightenAmount());
-                        renderBuffer[x / scale + y * TILE_SIZE / zoomSquared] = 0xff000000 | colour;
+                        renderBuffer[x / scale + y * tileSize] = 0xff000000 | colour;
                     }
                 }
             }
+
+            Graphics2D g2 = (Graphics2D) image.getGraphics();
+            try {
+                g2.drawImage(bufferedImage, dx, dy, dx + tileSize, dy + tileSize, 0, 0, tileSize, tileSize, null);
+            } finally {
+                g2.dispose();
+            }
         }
 //        }
-        
-        final WritableRaster raster = image.getRaster();
-        int transferType = raster.getTransferType();
-        if (transferType == DataBuffer.TYPE_INT) {
-            // TODO: this is a bit dodgy. The pixel format might be different,
-            // etc. In practice it seems to work so far
-            raster.setDataElements(dx, dy, TILE_SIZE / scale, TILE_SIZE / scale, renderBuffer);
-        } else {
-            image.setRGB(dx, dy, TILE_SIZE / scale, TILE_SIZE / scale, renderBuffer, 0, TILE_SIZE);
-        }
     }
 
-    public static TileRenderer forWorld(World2 world, int dim, ColourScheme colourScheme, BiomeScheme biomeScheme, CustomBiomeManager customBiomeManager) {
+    public static TileRenderer forWorld(World2 world, int dim, ColourScheme colourScheme, BiomeScheme biomeScheme, CustomBiomeManager customBiomeManager, int zoom) {
         Dimension dimension = world.getDimension(dim);
-        TileRenderer tileRenderer = new TileRenderer(dimension, colourScheme, biomeScheme, customBiomeManager);
-        return tileRenderer;
+        return new TileRenderer(dimension, colourScheme, biomeScheme, customBiomeManager, zoom);
     }
 
     /**
@@ -374,7 +372,7 @@ public final class TileRenderer {
                                 continue;
                             }
                         }
-                        colour = renderer.getPixelColour(worldX, worldY, colour, bitLayerValue);
+                        colour = renderer.getPixelColour(worldX, worldY, colour, true);
                     }
                     break;
                 case NIBBLE:
@@ -444,16 +442,17 @@ public final class TileRenderer {
     private final Set<Layer> hiddenLayers = new HashSet<Layer>(Arrays.asList(FloodWithLava.INSTANCE));
     private final int[] intHeightCache = new int[TILE_SIZE * TILE_SIZE];
     private final float[] floatHeightCache = new float[TILE_SIZE * TILE_SIZE];
-    private final int[] renderBuffer = new int[TILE_SIZE * TILE_SIZE];
+    private final BufferedImage bufferedImage;
+    private final int[] renderBuffer;
     private final boolean dry;
     private final int[][] heights = new int[3][3], deltas = new int[3][3];
     private final Set<Layer> missingRendererReportedFor = new HashSet<Layer>(); // TODO remove when no longer necessary!
     private final boolean[] oppositesOverlap = new boolean[TILE_SIZE * TILE_SIZE];
+    private final int zoom;
     private TileProvider tileProvider, oppositeTileProvider;
     private long seed;
     private Tile tile;
     private ColourScheme colourScheme;
-    private int zoom = 0;
     private boolean contourLines = true, bottomless, noOpposites;
     private int contourSeparation = 10, waterColour, lavaColour, bedrockColour, oppositesDelta;
     private LightOrigin lightOrigin = LightOrigin.NORTHWEST;

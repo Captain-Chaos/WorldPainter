@@ -265,7 +265,13 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
     }
     
     public static Schematic load(String name, File file) throws IOException {
-        InputStream in = new BufferedInputStream(new FileInputStream(file));
+        Schematic object = load(name, new FileInputStream(file));
+        object.setAttribute(WPObject.ATTRIBUTE_FILE, file);
+        return object;
+    }
+
+    public static Schematic load(String name, InputStream stream) throws IOException {
+        InputStream in = new BufferedInputStream(stream);
         try {
             byte[] magicNumber = new byte[2];
             in.mark(2);
@@ -276,9 +282,7 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
             }
             NBTInputStream nbtIn = new NBTInputStream(in);
             CompoundTag tag = (CompoundTag) nbtIn.readTag();
-            Map<String, Serializable> attributes = new HashMap<String, Serializable>();
-            attributes.put(WPObject.ATTRIBUTE_FILE, file);
-            return new Schematic(name, tag, attributes);
+            return new Schematic(name, tag, null);
         } finally {
             in.close();
         }

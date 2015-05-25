@@ -4,25 +4,21 @@
  */
 package org.pepsoft.worldpainter;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.GraphicsEnvironment;
-import java.awt.Point;
-import java.awt.Rectangle;
+import org.jetbrains.annotations.NotNull;
+import org.pepsoft.util.swing.TileListener;
+import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
+import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
+
+import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.pepsoft.util.swing.TileListener;
-import org.pepsoft.worldpainter.layers.Layer;
-import static org.pepsoft.worldpainter.Constants.*;
-import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
-import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
+
+import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 
 /**
  *
@@ -41,6 +37,7 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
         this.customBiomeManager = customBiomeManager;
         this.surroundingTileProvider = surroundingTileProvider;
         this.showBorder = showBorder;
+        tileRendererRef = createNewTileRendererRef();
     }
 
     public WPTileProvider(TileProvider tileProvider, ColourScheme colourScheme, BiomeScheme biomeScheme, CustomBiomeManager customBiomeManager, Collection<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin, boolean showBorder, org.pepsoft.util.swing.TileProvider surroundingTileProvider) {
@@ -55,16 +52,17 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
         this.customBiomeManager = customBiomeManager;
         this.surroundingTileProvider = surroundingTileProvider;
         this.showBorder = showBorder;
+        tileRendererRef = createNewTileRendererRef();
     }
     
     public void addHiddenLayer(Layer layer) {
         hiddenLayers.add(layer);
-        tileRendererRef = new ThreadLocal<TileRenderer>();
+        tileRendererRef = createNewTileRendererRef();
     }
     
     public void removeHiddenLayer(Layer layer) {
         hiddenLayers.remove(layer);
-        tileRendererRef = new ThreadLocal<TileRenderer>();
+        tileRendererRef = createNewTileRendererRef();
     }
     
     @Override
@@ -73,14 +71,37 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
     }
 
     @Override
-    public BufferedImage getTile(int x, int y) {
+    public boolean isTilePresent(int x, int y) {
+        if (zoom == 0) {
+            return getUnzoomedTileType(x, y) != TileType.SURROUNDS
+                    || ((surroundingTileProvider != null) && surroundingTileProvider.isTilePresent(x, y));
+        } else {
+            final int scale = 1 << -zoom;
+            for (int dx = 0; dx < scale; dx++) {
+                for (int dy = 0; dy < scale; dy++) {
+                    switch (getUnzoomedTileType(x * scale + dx, y * scale + dy)) {
+                        case WORLD:
+                        case BORDER:
+                            return true;
+                        case SURROUNDS:
+                            if ((surroundingTileProvider != null) && surroundingTileProvider.isTilePresent(x, y)) {
+                                return true;
+                            }
+                            break;
+                    }
+                }
+            }
+            return false;
+        }
+    }
+
+    @Override
+    public void paintTile(final Image tileImage, final int x, final int y) {
         try {
             if (zoom == 0) {
-                return getUnzoomedTile(x, y);
+                paintUnzoomedTile(tileImage, x, y);
             } else {
-                BufferedImage tileImage = createOptimalImage();
-                boolean tilesPresent = false;
-                Graphics2D g2 = tileImage.createGraphics();
+                Graphics2D g2 = (Graphics2D) tileImage.getGraphics();
                 try {
                     BufferedImage surroundingTileImage = null;
                     final Color waterColour = new Color(colourScheme.getColour(org.pepsoft.minecraft.Constants.BLK_WATER));
@@ -93,13 +114,8 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
                             switch (getUnzoomedTileType(x * scale + dx, y * scale + dy)) {
                                 case WORLD:
                                     TileRenderer tileRenderer = tileRendererRef.get();
-                                    if (tileRenderer == null) {
-                                        tileRenderer = createRenderer();
-                                        tileRendererRef.set(tileRenderer);
-                                    }
                                     tileRenderer.setTile(tileProvider.getTile(x * scale + dx, y * scale + dy));
                                     tileRenderer.renderTile(tileImage, dx * subSize, dy * subSize);
-                                    tilesPresent = true;
                                     break;
                                 case BORDER:
                                     Color colour;
@@ -134,18 +150,17 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
                                     if (tileProvider.isTilePresent(x * scale + dx - 1, y * scale + dy)) {
                                         g2.drawLine(dx       * subSize    , dy       * subSize    , dx       * subSize    , (dy + 1) * subSize - 1);
                                     }
-                                    tilesPresent = true;
                                     break;
                                 case SURROUNDS:
                                     if (surroundingTileProvider != null) {
                                         if (surroundingTileImage == null) {
-                                            surroundingTileImage = surroundingTileProvider.getTile(x, y);
+                                            surroundingTileImage = new BufferedImage(TILE_SIZE, TILE_SIZE, BufferedImage.TYPE_INT_ARGB);
+                                            surroundingTileProvider.paintTile(surroundingTileImage, x, y);
                                         }
                                         g2.drawImage(surroundingTileImage,
                                                 dx * subSize, dy * subSize, (dx + 1) * subSize, (dy + 1) * subSize,
                                                 dx * subSize, dy * subSize, (dx + 1) * subSize, (dy + 1) * subSize,
                                                 null);
-                                        tilesPresent = true;
                                     } else {
                                         g2.setColor(voidColour);
                                         g2.fillRect(dx * subSize, dy * subSize, subSize, subSize);
@@ -157,16 +172,12 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
                 } finally {
                     g2.dispose();
                 }
-                return tilesPresent ? tileImage : null;
             }
         } catch (Throwable e) {
             // Log at debug level because this tends to happen when zooming in
             // and out, probably due to some state getting out of sync. It
             // doesn't so far appear to have any visible consequences.
-            if (logger.isLoggable(Level.FINE)) {
-                logger.log(Level.FINE, "Exception while generating image for tile at " + x + ", " + y, e);
-            }
-            return null;
+            logger.log(Level.SEVERE, "Exception while generating image for tile at " + x + ", " + y, e);
         }
     }
 
@@ -244,7 +255,7 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
                 throw new UnsupportedOperationException("Zooming in not supported");
             }
             this.zoom = zoom;
-            tileRendererRef = new ThreadLocal<TileRenderer>();
+            tileRendererRef = createNewTileRendererRef();
             if (surroundingTileProvider != null) {
                 surroundingTileProvider.setZoom(zoom);
             }
@@ -301,10 +312,6 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
     public void seedsChanged(Tile tile) {
         fireTileChanged(tile);
     }
-    
-    private BufferedImage createOptimalImage() {
-        return GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(TILE_SIZE, TILE_SIZE);
-    }
 
     private TileType getUnzoomedTileType(int x, int y) {
         if (tileProvider.isTilePresent(x, y)) {
@@ -316,19 +323,14 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
         }
     }
     
-    private BufferedImage getUnzoomedTile(int x, int y) {
+    private void paintUnzoomedTile(final Image tileImage, final int x, final int y) {
         switch (getUnzoomedTileType(x, y)) {
             case WORLD:
                 Tile tile = tileProvider.getTile(x, y);
                 TileRenderer tileRenderer = tileRendererRef.get();
-                if (tileRenderer == null) {
-                    tileRenderer = createRenderer();
-                    tileRendererRef.set(tileRenderer);
-                }
                 tileRenderer.setTile(tile);
-                BufferedImage tileImage = createOptimalImage();
                 tileRenderer.renderTile(tileImage, 0, 0);
-                return tileImage;
+                break;
             case BORDER:
                 int colour;
                 switch (((Dimension) tileProvider).getBorder()) {
@@ -344,8 +346,7 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
                     default:
                         throw new InternalError();
                 }
-                tileImage = createOptimalImage();
-                Graphics2D g2 = tileImage.createGraphics();
+                Graphics2D g2 = (Graphics2D) tileImage.getGraphics();
                 try {
                     g2.setColor(new Color(colour));
                     g2.fillRect(0, 0, TILE_SIZE, TILE_SIZE);
@@ -368,13 +369,12 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
                 } finally {
                     g2.dispose();
                 }
-                return tileImage;
+                break;
             case SURROUNDS:
                 if (surroundingTileProvider != null) {
-                    return surroundingTileProvider.getTile(x, y);
-                } else {
-                    return null;
+                    surroundingTileProvider.paintTile(tileImage, x, y);
                 }
+                break;
             default:
                 throw new InternalError();
         }
@@ -436,19 +436,24 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
             return new Point(tileX << zoom, tileY << zoom);
         }
     }
-    
-    private TileRenderer createRenderer() {
-        TileRenderer tileRenderer = new TileRenderer(tileProvider, colourScheme, biomeScheme, customBiomeManager);
-        if (hiddenLayers != null) {
-            tileRenderer.addHiddenLayers(hiddenLayers);
-        }
-        tileRenderer.setZoom(zoom);
-        tileRenderer.setContourLines(contourLines);
-        tileRenderer.setContourSeparation(contourSeparation);
-        tileRenderer.setLightOrigin(lightOrigin);
-        return tileRenderer;
+
+    @NotNull
+    private ThreadLocal<TileRenderer> createNewTileRendererRef() {
+        return new ThreadLocal<TileRenderer>() {
+            @Override
+            protected TileRenderer initialValue() {
+                TileRenderer tileRenderer = new TileRenderer(tileProvider, colourScheme, biomeScheme, customBiomeManager, zoom);
+                if (hiddenLayers != null) {
+                    tileRenderer.addHiddenLayers(hiddenLayers);
+                }
+                tileRenderer.setContourLines(contourLines);
+                tileRenderer.setContourSeparation(contourSeparation);
+                tileRenderer.setLightOrigin(lightOrigin);
+                return tileRenderer;
+            }
+        };
     }
- 
+
     private final TileProvider tileProvider;
     private final ColourScheme colourScheme;
     private final BiomeScheme biomeScheme;
@@ -460,8 +465,8 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
     private final CustomBiomeManager customBiomeManager;
     private final org.pepsoft.util.swing.TileProvider surroundingTileProvider;
     private int zoom = 0;
-    private volatile ThreadLocal<TileRenderer> tileRendererRef = new ThreadLocal<TileRenderer>();
-    
+    private volatile ThreadLocal<TileRenderer> tileRendererRef;
+
     private static final Logger logger = Logger.getLogger(WPTileProvider.class.getName());
     
     private enum TileType {WORLD, BORDER, SURROUNDS}

@@ -5,10 +5,12 @@
 
 package org.pepsoft.worldpainter;
 
-import java.awt.image.BufferedImage;
-import java.util.Set;
 import org.pepsoft.worldpainter.layers.Layer;
-import static org.pepsoft.worldpainter.Constants.*;
+
+import java.awt.*;
+import java.util.Set;
+
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 
 /**
  *
@@ -36,7 +38,7 @@ public class DimensionRenderer {
         tileRenderer.setHiddenLayers(hiddenLayers);
     }
 
-    public void renderTile(BufferedImage image, int x, int y) {
+    public void renderTile(Image image, int x, int y) {
         Tile tile = dimension.getTile(x, y);
         if (tile != null) {
             tileRenderer.setTile(tile);

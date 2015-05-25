@@ -11,7 +11,6 @@ import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.*;
 
 import java.awt.*;
-import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
@@ -33,7 +32,7 @@ public class Tile3DRenderer {
         maxHeight = dimension.getMaxHeight();
         this.colourScheme = colourScheme;
         this.rotation = rotation;
-        tileRenderer = new TileRenderer(dimension, colourScheme, biomeScheme, customBiomeManager, true);
+        tileRenderer = new TileRenderer(dimension, colourScheme, biomeScheme, customBiomeManager, 0, true);
         tileRenderer.addHiddenLayers(DEFAULT_HIDDEN_LAYERS);
         tileRenderer.setContourLines(false);
     }

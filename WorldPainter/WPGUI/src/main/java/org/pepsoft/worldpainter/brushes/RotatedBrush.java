@@ -3,17 +3,16 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.pepsoft.worldpainter.operations;
+package org.pepsoft.worldpainter.brushes;
 
-import java.awt.Point;
+import sun.awt.image.ByteComponentRaster;
+
+import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
-import java.awt.image.AffineTransformOp;
-import java.awt.image.DataBuffer;
-import java.awt.image.DataBufferByte;
-import java.awt.image.Raster;
-import java.awt.image.SinglePixelPackedSampleModel;
-import sun.awt.image.ByteComponentRaster;
+import java.awt.image.*;
+
+import static org.pepsoft.util.MathUtils.mod;
 
 /**
  * A brush which can rotate another brush an arbitrary angle around its center.
@@ -61,6 +60,7 @@ public final class RotatedBrush extends AbstractBrush {
         }
     }
 
+    @Override
     public int getEffectiveRadius() {
         return effectiveRadius;
     }
@@ -155,18 +155,11 @@ public final class RotatedBrush extends AbstractBrush {
      * @return The specified brush, rotated as specified.
      */
     public static Brush rotate(Brush brush, int degrees) {
-        while (degrees < 0) {
-            degrees += 360;
-        }
-        degrees = degrees % 360;
+        degrees = mod(degrees, 360);
         if (degrees == 0) {
             return brush;
         } else if (brush instanceof RotatedBrush) {
-            int adjustedDegrees = ((RotatedBrush) brush).degrees + degrees;
-            while (adjustedDegrees < 0) {
-                adjustedDegrees += 360;
-            }
-            adjustedDegrees = adjustedDegrees % 360;
+            int adjustedDegrees = mod(((RotatedBrush) brush).degrees + degrees, 360);
             if (adjustedDegrees == 0) {
                 return ((RotatedBrush) brush).brush;
             } else {

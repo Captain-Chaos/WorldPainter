@@ -5,27 +5,20 @@
  */
 package org.pepsoft.worldpainter.viewer.tiled;
 
-import java.awt.BorderLayout;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.util.zip.GZIPInputStream;
-import javax.swing.JFrame;
-import javax.swing.SwingUtilities;
-import org.pepsoft.worldpainter.BiomeScheme;
-import org.pepsoft.worldpainter.ColourScheme;
-import org.pepsoft.worldpainter.Constants;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.TileRenderer;
-import org.pepsoft.worldpainter.TileRendererFactory;
-import org.pepsoft.worldpainter.World2;
 import org.pepsoft.worldpainter.biomeschemes.AutoBiomeScheme;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.colourschemes.DynMapColourScheme;
 import org.pepsoft.worldpainter.viewer.Layer;
 import org.pepsoft.worldpainter.viewer.LayerViewer;
+
+import javax.swing.*;
+import java.awt.*;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.util.zip.GZIPInputStream;
 
 /**
  *
@@ -75,7 +68,7 @@ public class Test {
                 TileRendererFactory tileRendererFactory = new TileRendererFactory() {
                     @Override
                     public TileRenderer createTileRenderer() {
-                        return new TileRenderer(dimension, colourScheme, biomeScheme, customBiomeManager);
+                        return new TileRenderer(dimension, colourScheme, biomeScheme, customBiomeManager, 0);
                     }
                 };
                 TiledLayerView layerView = new TiledLayerView(layer, dimension, tileRendererFactory);

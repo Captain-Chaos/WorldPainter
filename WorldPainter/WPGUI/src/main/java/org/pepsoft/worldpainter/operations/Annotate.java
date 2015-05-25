@@ -6,29 +6,20 @@
 
 package org.pepsoft.worldpainter.operations;
 
-import java.awt.Component;
-import java.awt.Font;
-import java.awt.GridLayout;
-import java.awt.Insets;
-import java.awt.Point;
+import org.pepsoft.minecraft.Constants;
+import org.pepsoft.util.IconUtils;
+import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.layers.Annotations;
+import org.pepsoft.worldpainter.painting.DimensionPainter;
+import org.pepsoft.worldpainter.painting.PaintFactory;
+
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
-import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JPanel;
-import javax.swing.JToggleButton;
-import javax.swing.SwingUtilities;
-import org.pepsoft.minecraft.Constants;
-import org.pepsoft.util.IconUtils;
-import org.pepsoft.worldpainter.ColourScheme;
-import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.MapDragControl;
-import org.pepsoft.worldpainter.RadiusControl;
-import org.pepsoft.worldpainter.WorldPainterView;
-import org.pepsoft.worldpainter.layers.Annotations;
+
 import static org.pepsoft.worldpainter.layers.exporters.AnnotationsExporter.AnnotationsSettings;
 
 /**
@@ -38,8 +29,6 @@ import static org.pepsoft.worldpainter.layers.exporters.AnnotationsExporter.Anno
 public class Annotate extends LayerPaint {
     public Annotate(WorldPainterView view, RadiusControl radiusControl, MapDragControl mapDragControl, ColourScheme colourScheme) {
         super(view, radiusControl, mapDragControl, Annotations.INSTANCE);
-        painter.setLayer(Annotations.INSTANCE);
-        painter.setNumValue(currentColour);
         optionsPanel = createOptionsPanel(colourScheme);
     }
     
@@ -51,7 +40,6 @@ public class Annotate extends LayerPaint {
     protected void activate() {
         super.activate();
         painter.setDimension(getDimension());
-        painter.setBrush(getBrush());
     }
 
     @Override
@@ -62,7 +50,7 @@ public class Annotate extends LayerPaint {
     @Override
     protected void brushChanged() {
         super.brushChanged();
-        painter.setBrush(getBrush());
+        painter.setPaint(PaintFactory.createDiscreteLayerPaint(getFilter(), getBrush(), Annotations.INSTANCE, currentColour));
     }
     
     private JPanel createOptionsPanel(ColourScheme colourScheme) {
@@ -147,7 +135,7 @@ public class Annotate extends LayerPaint {
             Dimension dimension = getDimension();
             dimension.setEventsInhibited(true);
             try {
-                painter.setNumValue(undo ? 0 : currentColour);
+                painter.setUndo(undo);
                 if (first) {
                     // Either a single click, or the start of a drag
                     lockedX = centreX;
@@ -300,7 +288,7 @@ public class Annotate extends LayerPaint {
                     dimension.setLayerSettings(Annotations.INSTANCE, settings);
                     painter.setFont(font);
                     painter.setTextAngle(dialog.getSelectedAngle());
-                    painter.setNumValue(undo ? 0 : currentColour);
+                    painter.setPaint(PaintFactory.createDiscreteLayerPaint(getFilter(), getBrush(), Annotations.INSTANCE, currentColour));
                     savedText = dialog.getText();
                     dimension.setEventsInhibited(true);
                     try {

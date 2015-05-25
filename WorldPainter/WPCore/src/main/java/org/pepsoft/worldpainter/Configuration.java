@@ -556,6 +556,22 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         this.lookAndFeel = lookAndFeel;
     }
 
+    public AccelerationType getAccelerationType() {
+        return accelerationType;
+    }
+
+    public void setAccelerationType(AccelerationType accelerationType) {
+        this.accelerationType = accelerationType;
+    }
+
+    public OverlayType getOverlayType() {
+        return overlayType;
+    }
+
+    public void setOverlayType(OverlayType overlayType) {
+        this.overlayType = overlayType;
+    }
+
     @Override
     public synchronized void logEvent(EventVO event) {
         if (eventLog != null) {
@@ -712,6 +728,24 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
                 defaultTerrainAndLayerSettings.setSubsurfaceMaterial(Terrain.STONE_MIX);
             }
         }
+        if (version < 11) {
+            switch (SystemUtils.getOS()) {
+                case WINDOWS:
+                    accelerationType = AccelerationType.DIRECT3D;
+                    break;
+                case MAC:
+                    accelerationType = AccelerationType.DEFAULT;
+                    break;
+                case LINUX:
+                    accelerationType = AccelerationType.XRENDER;
+                    break;
+                default:
+                    accelerationType = AccelerationType.DEFAULT;
+                    break;
+            }
+            // Previous default; principle of least surprise:
+            overlayType = OverlayType.SCALE_ON_LOAD;
+        }
         version = CURRENT_VERSION;
         
         // Bug fix: make sure terrain ranges map conforms to surface material setting
@@ -843,14 +877,19 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private byte[] defaultJideLayoutData;
     private Map<String, byte[]> jideLayoutData;
     private LookAndFeel lookAndFeel;
+    private OverlayType overlayType = OverlayType.OPTIMISE_ON_LOAD;
+
+    private transient AccelerationType accelerationType;
 
     private static Configuration instance;
     private static final Logger logger = Logger.getLogger(Configuration.class.getName());
     private static final long serialVersionUID = 2011041801L;
     private static final int CIRCULAR_WORLD = -1;
-    private static final int CURRENT_VERSION = 10;
+    private static final int CURRENT_VERSION = 11;
     
     public enum DonationStatus {DONATED, NO_THANK_YOU}
     
     public enum LookAndFeel {SYSTEM, METAL, NIMBUS, DARK_METAL, DARK_NIMBUS}
+
+    public enum OverlayType {SCALE_ON_LOAD, OPTIMISE_ON_LOAD, SCALE_ON_PAINT}
 }

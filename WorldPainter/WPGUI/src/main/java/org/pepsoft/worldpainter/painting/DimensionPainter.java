@@ -4,15 +4,14 @@
  * and open the template in the editor.
  */
 
-package org.pepsoft.worldpainter.operations;
+package org.pepsoft.worldpainter.painting;
 
-import java.awt.Font;
-import java.awt.Graphics2D;
+import org.pepsoft.worldpainter.Dimension;
+
+import java.awt.*;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.layers.Layer;
 
 /**
  *
@@ -20,30 +19,18 @@ import org.pepsoft.worldpainter.layers.Layer;
  */
 public final class DimensionPainter {
     public void drawPoint(int x, int y) {
-        if (effectiveRadius == 0) {
-            if (layerIsBinary) {
-                dimension.setBitLayerValueAt(layer, x, y, binValue);
-            } else {
-                dimension.setLayerValueAt(layer, x, y, numValue);
-            }
+        if (undo) {
+            paint.remove(dimension, x, y, 1.0f);
         } else {
-            if (layerIsBinary) {
-                for (int dx = -effectiveRadius; dx <= effectiveRadius; dx++) {
-                    for (int dy = -effectiveRadius; dy <= effectiveRadius; dy++) {
-                        if (brush.getFullStrength(dx, dy) >= 0.5f) {
-                            dimension.setBitLayerValueAt(layer, x + dx, y + dy, binValue);
-                        }
-                    }
-                }
-            } else {
-                for (int dx = -effectiveRadius; dx <= effectiveRadius; dx++) {
-                    for (int dy = -effectiveRadius; dy <= effectiveRadius; dy++) {
-                        if (brush.getFullStrength(dx, dy) >= 0.5f) {
-                            dimension.setLayerValueAt(layer, x + dx, y + dy, numValue);
-                        }
-                    }
-                }
-            }
+            paint.apply(dimension, x, y, 1.0f);
+        }
+    }
+
+    public void drawPoint(int x, int y, float dynamicLevel) {
+        if (undo) {
+            paint.remove(dimension, x, y, dynamicLevel);
+        } else {
+            paint.apply(dimension, x, y, dynamicLevel);
         }
     }
     
@@ -86,29 +73,74 @@ public final class DimensionPainter {
             }
         }
     }
-    
-    public void drawText(int x, int y, String text) {
-        String[] lines = text.split("\\n");
-        for (String line: lines) {
-            int lineHeight = drawLine(x, y, line);
-            switch (textAngle) {
-                case 0:
-                    y += lineHeight;
-                    break;
-                case 1:
-                    x += lineHeight;
-                    break;
-                case 2:
-                    y -= lineHeight;
-                    break;
-                case 3:
-                    x -= lineHeight;
-                    break;
+
+    public void drawLine(int x1, int y1, int x2, int y2, float dynamicLevel) {
+        final int dx = Math.abs(x2 - x1);
+        final int dy = Math.abs(y2 - y1);
+        if (dx < dy) {
+            // Mostly vertical; go from top to bottom
+            // Normalise the endpoints
+            if (y2 < y1) {
+                int tmp = y1;
+                y1 = y2;
+                y2 = tmp;
+                tmp = x1;
+                x1 = x2;
+                x2 = tmp;
+            }
+            float x = x1 - 0.5f;
+            final float fDx = (float) (x2 - x1) / dy;
+            for (int y = y1; y <= y2; y++) {
+                drawPoint((int) (x + 0.5f), y, dynamicLevel);
+                x += fDx;
+            }
+        } else {
+            // Mostly horizontal; go from left to right
+            // Normalise the endpoints
+            if (x2 < x1) {
+                int tmp = y1;
+                y1 = y2;
+                y2 = tmp;
+                tmp = x1;
+                x1 = x2;
+                x2 = tmp;
+            }
+            float y = y1 - 0.5f;
+            final float fDy = (float) (y2 - y1) / dx;
+            for (int x = x1; x <= x2; x++) {
+                drawPoint(x, (int) (y + 0.5f), dynamicLevel);
+                y += fDy;
             }
         }
     }
     
-    public int drawLine(int x, int y, String text) {
+    public void drawText(int x, int y, String text) {
+        dimension.setEventsInhibited(true);
+        try {
+            String[] lines = text.split("\\n");
+            for (String line: lines) {
+                int lineHeight = drawTextLine(x, y, line);
+                switch (textAngle) {
+                    case 0:
+                        y += lineHeight;
+                        break;
+                    case 1:
+                        x += lineHeight;
+                        break;
+                    case 2:
+                        y -= lineHeight;
+                        break;
+                    case 3:
+                        x -= lineHeight;
+                        break;
+                }
+            }
+        } finally {
+            dimension.setEventsInhibited(false);
+        }
+    }
+
+    private int drawTextLine(int x, int y, String text) {
         BufferedImage image = new BufferedImage(1000, 100, BufferedImage.TYPE_BYTE_BINARY);
         Rectangle2D bounds;
         Graphics2D g2 = image.createGraphics();
@@ -129,22 +161,22 @@ public final class DimensionPainter {
         } finally {
             g2.dispose();
         }
-        if (layerIsBinary) {
+        if (undo) {
             for (int xx = 0; xx < textWidth; xx++) {
                 for (int yy = 0; yy < textHeight; yy++) {
                     if ((image.getRGB(xx, yy) & 1) != 0) {
                         switch (textAngle) {
                             case 0:
-                                dimension.setBitLayerValueAt(layer, x + xx, y + yy, binValue);
+                                paint.removePixel(dimension, x + xx, y + yy);
                                 break;
                             case 1:
-                                dimension.setBitLayerValueAt(layer, x + yy, y - xx, binValue);
+                                paint.removePixel(dimension, x + yy, y - xx);
                                 break;
                             case 2:
-                                dimension.setBitLayerValueAt(layer, x - xx, y - yy, binValue);
+                                paint.removePixel(dimension, x - xx, y - yy);
                                 break;
                             case 3:
-                                dimension.setBitLayerValueAt(layer, x - yy, y + xx, binValue);
+                                paint.removePixel(dimension, x - yy, y + xx);
                                 break;
                         }
                     }
@@ -156,16 +188,16 @@ public final class DimensionPainter {
                     if ((image.getRGB(xx, yy) & 1) != 0) {
                         switch (textAngle) {
                             case 0:
-                                dimension.setLayerValueAt(layer, x + xx, y + yy, numValue);
+                                paint.applyPixel(dimension, x + xx, y + yy);
                                 break;
                             case 1:
-                                dimension.setLayerValueAt(layer, x + yy, y - xx, numValue);
+                                paint.applyPixel(dimension, x + yy, y - xx);
                                 break;
                             case 2:
-                                dimension.setLayerValueAt(layer, x - xx, y - yy, numValue);
+                                paint.applyPixel(dimension, x - xx, y - yy);
                                 break;
                             case 3:
-                                dimension.setLayerValueAt(layer, x - yy, y + xx, numValue);
+                                paint.applyPixel(dimension, x - yy, y + xx);
                                 break;
                         }
                     }
@@ -183,40 +215,6 @@ public final class DimensionPainter {
         this.dimension = dimension;
     }
 
-    public Layer getLayer() {
-        return layer;
-    }
-
-    public void setLayer(Layer layer) {
-        this.layer = layer;
-        layerIsBinary = layer.getDataSize() == Layer.DataSize.BIT || layer.getDataSize() == Layer.DataSize.BIT_PER_CHUNK;
-    }
-
-    public int getNumValue() {
-        return numValue;
-    }
-
-    public void setNumValue(int numValue) {
-        this.numValue = numValue;
-    }
-
-    public boolean isBinValue() {
-        return binValue;
-    }
-
-    public void setBinValue(boolean binValue) {
-        this.binValue = binValue;
-    }
-
-    public Brush getBrush() {
-        return brush;
-    }
-
-    public void setBrush(Brush brush) {
-        this.brush = brush;
-        effectiveRadius = (brush instanceof RotatedBrush) ? ((RotatedBrush) brush).getEffectiveRadius() : brush.getRadius();
-    }
-
     public Font getFont() {
         return font;
     }
@@ -232,11 +230,22 @@ public final class DimensionPainter {
     public void setTextAngle(int textAngle) {
         this.textAngle = textAngle;
     }
-    
+
+    public Paint getPaint() {
+        return paint;
+    }
+
+    public void setPaint(Paint paint) {
+        this.paint = paint;
+    }
+
+    public void setUndo(boolean undo) {
+        this.undo = undo;
+    }
+
+    private Paint paint;
     private Dimension dimension;
-    private Layer layer;
-    private int numValue, textAngle, effectiveRadius;
-    private boolean binValue, layerIsBinary;
-    private Brush brush;
+    private int textAngle;
+    private boolean undo;
     private Font font;
 }

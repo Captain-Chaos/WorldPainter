@@ -128,9 +128,9 @@ public final class Constants {
     public static final int BLK_TALL_GRASS            =  31;
     public static final int BLK_DEAD_SHRUBS           =  32;
     public static final int BLK_PISTON                =  33;
-    public static final int BLK_PISTON_EXTENSION      =  34;
+    public static final int BLK_PISTON_HEAD           =  34;
     public static final int BLK_WOOL                  =  35;
-
+    public static final int BLK_PISTON_EXTENSION      =  36;
     public static final int BLK_DANDELION             =  37;
     public static final int BLK_ROSE                  =  38;
     public static final int BLK_BROWN_MUSHROOM        =  39;
@@ -219,7 +219,7 @@ public final class Constants {
     public static final int BLK_DRAGON_EGG            = 122;
     public static final int BLK_REDSTONE_LANTERN_OFF  = 123;
     public static final int BLK_REDSTONE_LANTERN_ON   = 124;
-    public static final int BLK_WOODEN_DOUBLE_SLAB    = 125;
+    public static final int BLK_DOUBLE_WOODEN_SLAB    = 125;
     public static final int BLK_WOODEN_SLAB           = 126;
     public static final int BLK_COCOA_PLANT           = 127;
     public static final int BLK_SANDSTONE_STAIRS      = 128;
@@ -264,33 +264,33 @@ public final class Constants {
     public static final int BLK_BARRIER              = 166;
     public static final int BLK_IRON_TRAPDOOR        = 167;
 
-    public static final int BLK_CARPET                   = 171;
-    public static final int BLK_HARDENED_CLAY            = 172;
-    public static final int BLK_COAL_BLOCK               = 173;
-    public static final int BLK_PACKED_ICE               = 174;
-    public static final int BLK_LARGE_FLOWERS            = 175;
-    public static final int BLK_STANDING_BANNER          = 176;
-    public static final int BLK_WALL_BANNER              = 177;
-    public static final int BLK_DAYLIGHT_SENSOR_INVERTED = 178;
-    public static final int BLK_RED_SANDSTONE            = 179;
-    public static final int BLK_RED_SANDSTONE_STAIRS     = 180;
-
-    public static final int BLK_RED_SANDSTONE_SLAB       = 182;
-    public static final int BLK_PINE_WOOD_FENCE_GATE     = 183;
-    public static final int BLK_BIRCH_WOOD_FENCE_GATE    = 184;
-    public static final int BLK_JUNGLE_WOOD_FENCE_GATE   = 185;
-    public static final int BLK_DARK_OAK_WOOD_FENCE_GATE = 186;
-    public static final int BLK_ACACIA_WOOD_FENCE_GATE   = 187;
-    public static final int BLK_PINE_WOOD_FENCE          = 188;
-    public static final int BLK_BIRCH_WOOD_FENCE         = 189;
-    public static final int BLK_JUNGLE_WOOD_FENCE        = 190;
-    public static final int BLK_DARK_OAK_WOOD_FENCE      = 191;
-    public static final int BLK_ACACIA_WOOD_FENCE        = 192;
-    public static final int BLK_PINE_WOOD_DOOR           = 193;
-    public static final int BLK_BIRCH_WOOD_DOOR          = 194;
-    public static final int BLK_JUNGLE_WOOD_DOOR         = 195;
-    public static final int BLK_ACACIA_WOOD_DOOR         = 196;
-    public static final int BLK_DARK_OAK_WOOD_DOOR       = 197;
+    public static final int BLK_CARPET                    = 171;
+    public static final int BLK_HARDENED_CLAY             = 172;
+    public static final int BLK_COAL_BLOCK                = 173;
+    public static final int BLK_PACKED_ICE                = 174;
+    public static final int BLK_LARGE_FLOWERS             = 175;
+    public static final int BLK_STANDING_BANNER           = 176;
+    public static final int BLK_WALL_BANNER               = 177;
+    public static final int BLK_DAYLIGHT_SENSOR_INVERTED  = 178;
+    public static final int BLK_RED_SANDSTONE             = 179;
+    public static final int BLK_RED_SANDSTONE_STAIRS      = 180;
+    public static final int BLK_DOUBLE_RED_SANDSTONE_SLAB = 181;
+    public static final int BLK_RED_SANDSTONE_SLAB        = 182;
+    public static final int BLK_PINE_WOOD_FENCE_GATE      = 183;
+    public static final int BLK_BIRCH_WOOD_FENCE_GATE     = 184;
+    public static final int BLK_JUNGLE_WOOD_FENCE_GATE    = 185;
+    public static final int BLK_DARK_OAK_WOOD_FENCE_GATE  = 186;
+    public static final int BLK_ACACIA_WOOD_FENCE_GATE    = 187;
+    public static final int BLK_PINE_WOOD_FENCE           = 188;
+    public static final int BLK_BIRCH_WOOD_FENCE          = 189;
+    public static final int BLK_JUNGLE_WOOD_FENCE         = 190;
+    public static final int BLK_DARK_OAK_WOOD_FENCE       = 191;
+    public static final int BLK_ACACIA_WOOD_FENCE         = 192;
+    public static final int BLK_PINE_WOOD_DOOR            = 193;
+    public static final int BLK_BIRCH_WOOD_DOOR           = 194;
+    public static final int BLK_JUNGLE_WOOD_DOOR          = 195;
+    public static final int BLK_ACACIA_WOOD_DOOR          = 196;
+    public static final int BLK_DARK_OAK_WOOD_DOOR        = 197;
 
     public static final int HIGHEST_KNOWN_BLOCK_ID = BLK_DARK_OAK_WOOD_DOOR;
 
@@ -483,7 +483,7 @@ public final class Constants {
         TILE_ENTITY_MAP.put(ID_HOPPER, Collections.singleton(BLK_HOPPER));
         TILE_ENTITY_MAP.put(ID_MOBSPAWNER, Collections.singleton(BLK_MONSTER_SPAWNER));
         TILE_ENTITY_MAP.put(ID_MUSIC, Collections.singleton(BLK_NOTE_BLOCK));
-        TILE_ENTITY_MAP.put(ID_PISTON, Collections.singleton(BLK_PISTON_EXTENSION));
+        TILE_ENTITY_MAP.put(ID_PISTON, Collections.singleton(BLK_PISTON_HEAD));
         TILE_ENTITY_MAP.put(ID_RECORDPLAYER, Collections.singleton(BLK_JUKEBOX));
         TILE_ENTITY_MAP.put(ID_SIGN, Collections.unmodifiableSet(new HashSet<Integer>(Arrays.asList(BLK_SIGN, BLK_WALL_SIGN))));
         TILE_ENTITY_MAP.put(ID_SKULL, Collections.singleton(BLK_HEAD));

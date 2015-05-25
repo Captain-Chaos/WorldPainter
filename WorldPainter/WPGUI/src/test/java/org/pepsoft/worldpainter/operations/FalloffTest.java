@@ -7,6 +7,9 @@ package org.pepsoft.worldpainter.operations;
 
 import java.util.Random;
 import org.junit.Test;
+import org.pepsoft.worldpainter.brushes.BrushShape;
+import org.pepsoft.worldpainter.brushes.SymmetricBrush;
+
 import static org.junit.Assert.*;
 
 /**

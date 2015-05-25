@@ -17,11 +17,12 @@ import org.pepsoft.util.swing.ProgressDialog;
 import org.pepsoft.util.swing.ProgressTask;
 import org.pepsoft.util.swing.TiledImageViewerContainer;
 import org.pepsoft.util.undo.UndoManager;
-import org.pepsoft.worldpainter.biomeschemes.AutoBiomeScheme;
-import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
-import org.pepsoft.worldpainter.biomeschemes.CustomBiome;
-import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
+import org.pepsoft.worldpainter.biomeschemes.*;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager.CustomBiomeListener;
+import org.pepsoft.worldpainter.brushes.BitmapBrush;
+import org.pepsoft.worldpainter.brushes.Brush;
+import org.pepsoft.worldpainter.brushes.RotatedBrush;
+import org.pepsoft.worldpainter.brushes.SymmetricBrush;
 import org.pepsoft.worldpainter.colourschemes.DynMapColourScheme;
 import org.pepsoft.worldpainter.gardenofeden.GardenOfEdenOperation;
 import org.pepsoft.worldpainter.importing.MapImportDialog;
@@ -41,6 +42,8 @@ import org.pepsoft.worldpainter.layers.tunnel.TunnelLayer;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayerDialog;
 import org.pepsoft.worldpainter.objects.AbstractObject;
 import org.pepsoft.worldpainter.operations.*;
+import org.pepsoft.worldpainter.painting.Paint;
+import org.pepsoft.worldpainter.painting.PaintFactory;
 import org.pepsoft.worldpainter.panels.BrushOptions;
 import org.pepsoft.worldpainter.panels.BrushOptions.Listener;
 import org.pepsoft.worldpainter.threedeeview.ThreeDeeFrame;
@@ -770,6 +773,10 @@ public final class App extends JFrame implements RadiusControl,
                     logger.log(java.util.logging.Level.SEVERE, "ClassNotFoundException while loading " + file, e);
                     reportMissingPlugins();
                     return null;
+                } catch (IllegalArgumentException e) {
+                    logger.log(java.util.logging.Level.SEVERE, "IllegalArgumentException while loading " + file, e);
+                    reportWorldPainterTooOld();
+                    return null;
                 }
             }
             
@@ -794,6 +801,21 @@ public final class App extends JFrame implements RadiusControl,
                         @Override
                         public void run() {
                             JOptionPane.showMessageDialog(App.this, strings.getString("you.don.t.have.the.right.plugins.installed"), strings.getString("missing.plugin.s"), JOptionPane.ERROR_MESSAGE);
+                        }
+                    });
+                } catch (InterruptedException e) {
+                    throw new RuntimeException("Thread interrupted while reporting damaged file " + file, e);
+                } catch (InvocationTargetException e) {
+                    throw new RuntimeException("Invocation target exception while reporting damaged file " + file, e);
+                }
+            }
+
+            private void reportWorldPainterTooOld() {
+                try {
+                    SwingUtilities.invokeAndWait(new Runnable() {
+                        @Override
+                        public void run() {
+                            JOptionPane.showMessageDialog(App.this, "This world was created with a newer version of WorldPainter.\nPlease upgrade WorldPainter to the latest version to load it.", "WorldPainter Too Old", JOptionPane.ERROR_MESSAGE);
                         }
                     });
                 } catch (InterruptedException e) {
@@ -1141,6 +1163,7 @@ public final class App extends JFrame implements RadiusControl,
         if (activeOperation instanceof RadiusOperation) {
             ((RadiusOperation) activeOperation).setFilter(filter);
         }
+        paintUpdater.updatePaint();
     }
 
     public CustomBiomeManager getCustomBiomeManager() {
@@ -2058,20 +2081,22 @@ public final class App extends JFrame implements RadiusControl,
     private JPanel createToolPanel() {
         JPanel toolPanel = new JPanel();
         toolPanel.setLayout(new GridLayout(0, 4));
-        toolPanel.add(createButtonForOperation(new RaiseRotatedPyramid(view), "pyramid"));
-        toolPanel.add(createButtonForOperation(new RaisePyramid(view), "pyramid"));
+        toolPanel.add(createButtonForOperation(new Paintbrush(view, this, mapDragControl), "paintbrush"));
+        toolPanel.add(createButtonForOperation(new Pencil(view, this, mapDragControl), "pencil"));
         toolPanel.add(createButtonForOperation(new Flood(view, false), "flood", 'f'));
         toolPanel.add(createButtonForOperation(new Flood(view, true), "flood_with_lava", 'l'));
+
         toolPanel.add(createButtonForOperation(new Height(view, this, mapDragControl), "height", 'h'));
         toolPanel.add(createButtonForOperation(new Flatten(view, this, mapDragControl), "flatten", 'a'));
         toolPanel.add(createButtonForOperation(new Smooth(view, this, mapDragControl), "smooth", 's'));
         toolPanel.add(createButtonForOperation(new RaiseMountain(view, this, mapDragControl), "mountain", 'm'));
+
 //        toolPanel.add(createButtonForOperation(new Erode(view, this, mapDragControl), "erode", 'm'));
         toolPanel.add(createButtonForOperation(new SetSpawnPoint(view), "spawn"));
         toolPanel.add(createButtonForOperation(new Sponge(view, this, mapDragControl), "sponge"));
         JButton button = new JButton(loadIcon("globals"));
-        ((JButton) button).setMargin(new Insets(2, 2, 2, 2));
-        ((JButton) button).addActionListener(new ActionListener() {
+        button.setMargin(new Insets(2, 2, 2, 2));
+        button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 showGlobalOperations();
@@ -2079,6 +2104,11 @@ public final class App extends JFrame implements RadiusControl,
         });
         button.setToolTipText(strings.getString("global.operations.fill.or.clear.the.world.with.a.terrain.biome.or.layer"));
         toolPanel.add(button);
+        toolPanel.add(createButtonForOperation(new Text(view, this, mapDragControl), "text"));
+
+        toolPanel.add(createButtonForOperation(new RaiseRotatedPyramid(view), "pyramid"));
+        toolPanel.add(createButtonForOperation(new RaisePyramid(view), "pyramid"));
+
         for (Operation operation: operations) {
             operation.setView(view);
             toolPanel.add(createButtonForOperation(operation, operation.getName().replaceAll("\\s", "").toLowerCase()));
@@ -2544,15 +2574,18 @@ public final class App extends JFrame implements RadiusControl,
                 int value = levelSlider.getValue();
                 levelLabel.setText("Intensity: " + ((value < 52) ? (value - 1) : value) + " %");
                 if ((! programmaticChange) && (! levelSlider.getValueIsAdjusting())) {
+                    float newLevel = value / 100.0f;
                     if ((activeOperation instanceof TerrainPaint) || (activeOperation instanceof LayerPaint)) {
-                        level = value / 100.0f;
+                        level = newLevel;
                         ((MouseOrTabletOperation) activeOperation).setLevel(level);
                     } else {
-                        toolLevel = value / 100.0f;
+                        toolLevel = newLevel;
                         if (activeOperation instanceof MouseOrTabletOperation) {
                             ((MouseOrTabletOperation) activeOperation).setLevel(toolLevel);
                         }
                     }
+                    brush.setLevel(newLevel);
+                    paintUpdater.updatePaint();
                 }
             }
         });
@@ -2575,6 +2608,7 @@ public final class App extends JFrame implements RadiusControl,
                         toolBrushRotation = value;
                     }
                     updateBrushRotation();
+                    paintUpdater.updatePaint();
                 }
             }
         });
@@ -3358,6 +3392,7 @@ public final class App extends JFrame implements RadiusControl,
         
         JMenu colourSchemeMenu = new JMenu(strings.getString("change.colour.scheme"));
         String[] colourSchemeNames = {strings.getString("default"), "Flames", "Ovocean", "Sk89q", "DokuDark", "DokuHigh", "DokuLight", "Misa", "Sphax"};
+        Set<String> deprecatedColourSchemes = new HashSet<String>(Arrays.asList("Flames", "Ovocean", "Sk89q"));
         final int schemeCount = colourSchemeNames.length;
         final JCheckBoxMenuItem[] schemeMenuItems = new JCheckBoxMenuItem[schemeCount];
         for (int i = 0; i < colourSchemeNames.length; i++) {
@@ -3379,7 +3414,16 @@ public final class App extends JFrame implements RadiusControl,
                     config.setColourschemeIndex(index);
                 }
             });
-            colourSchemeMenu.add(schemeMenuItems[index]);
+            if (! deprecatedColourSchemes.contains(colourSchemeNames[i])) {
+                colourSchemeMenu.add(schemeMenuItems[index]);
+            }
+        }
+        colourSchemeMenu.addSeparator();
+        colourSchemeMenu.add(new JLabel("Deprecated:"));
+        for (int i = 0; i < colourSchemeNames.length; i++) {
+            if (deprecatedColourSchemes.contains(colourSchemeNames[i])) {
+                colourSchemeMenu.add(schemeMenuItems[i]);
+            }
         }
         menu.add(colourSchemeMenu);
 
@@ -4134,6 +4178,9 @@ public final class App extends JFrame implements RadiusControl,
                             } finally {
                                 programmaticChange = false;
                             }
+                            if (operation instanceof PaintOperation) {
+                                ((PaintOperation) operation).setPaint(paint);
+                            }
                         }
                     }
                     activeOperation = operation;
@@ -4199,6 +4246,93 @@ public final class App extends JFrame implements RadiusControl,
             return Arrays.asList((Component) checkBox, soloCheckBox, button);
         } else {
             return Collections.singletonList((Component) button);
+        }
+    }
+
+    private JToggleButton createPaintButton(final Layer layer) {
+        JToggleButton button = new JToggleButton();
+        paintButtonGroup.add(button);
+        button.setIcon(new ImageIcon(layer.getIcon()));
+        button.setText(layer.getName());
+        button.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                paintUpdater = new PaintUpdater() {
+                    @Override
+                    public void updatePaint() {
+                        paint = PaintFactory.createLayerPaint(filter, brush, layer);
+                        paintChanged();
+                    }
+                };
+                paintUpdater.updatePaint();
+            }
+        });
+        return button;
+    }
+
+    private JToggleButton createPaintButton(final Terrain terrain) {
+        JToggleButton button = new JToggleButton();
+        paintButtonGroup.add(button);
+        button.setIcon(new ImageIcon(terrain.getIcon(selectedColourScheme)));
+        button.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                paintUpdater = new PaintUpdater() {
+                    @Override
+                    public void updatePaint() {
+                        paint = PaintFactory.createTerrainPaint(filter, brush, terrain);
+                        paintChanged();
+                    }
+                };
+                paintUpdater.updatePaint();
+            }
+        });
+        return button;
+    }
+
+    private JToggleButton createBiomePaintButton(final int biomeId) {
+        JToggleButton button = new JToggleButton();
+        paintButtonGroup.add(button);
+        BiomeHelper biomeHelper = new BiomeHelper(autoBiomeScheme, selectedColourScheme, customBiomeManager);
+        button.setIcon(biomeHelper.getBiomeIcon(biomeId));
+        button.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                paintUpdater = new PaintUpdater() {
+                    @Override
+                    public void updatePaint() {
+                        paint = PaintFactory.createDiscreteLayerPaint(filter, brush, Biome.INSTANCE, biomeId);
+                        paintChanged();
+                    }
+                };
+                paintUpdater.updatePaint();
+            }
+        });
+        return button;
+    }
+
+    private JToggleButton createAnnotationPaintButton(final int colourIndex) {
+        JToggleButton button = new JToggleButton();
+        paintButtonGroup.add(button);
+        button.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                paintUpdater = new PaintUpdater() {
+                    @Override
+                    public void updatePaint() {
+                        paint = PaintFactory.createDiscreteLayerPaint(filter, brush, Annotations.INSTANCE, colourIndex);
+                        paintChanged();
+                    }
+                };
+                paintUpdater.updatePaint();
+            }
+        });
+        return button;
+    }
+
+    private void paintChanged() {
+        if (activeOperation instanceof PaintOperation) {
+            ((PaintOperation) activeOperation).setPaint(paint);
         }
     }
 
@@ -5708,7 +5842,7 @@ public final class App extends JFrame implements RadiusControl,
     private File lastSelectedFile;
     private JLabel heightLabel, locationLabel, waterLabel, materialLabel, radiusLabel, zoomLabel, biomeLabel, levelLabel, brushRotationLabel;
     private int radius = 50;
-    private final ButtonGroup toolButtonGroup = new ButtonGroup(), brushButtonGroup = new ButtonGroup();
+    private final ButtonGroup toolButtonGroup = new ButtonGroup(), brushButtonGroup = new ButtonGroup(), paintButtonGroup = new ButtonGroup();
     private Brush brush = SymmetricBrush.PLATEAU_CIRCLE, toolBrush = SymmetricBrush.COSINE_CIRCLE;
     private final Map<Brush, JToggleButton> brushButtons = new HashMap<Brush, JToggleButton>();
     private boolean programmaticChange;
@@ -5749,6 +5883,13 @@ public final class App extends JFrame implements RadiusControl,
     private final PaletteManager paletteManager = new PaletteManager(this);
     private DockingManager dockingManager;
     private boolean hideAbout, hidePreferences, hideExit;
+    private Paint paint;
+    private PaintUpdater paintUpdater = new PaintUpdater() {
+        @Override
+        public void updatePaint() {
+            // Do nothing
+        }
+    };
 
     public static final Image ICON = IconUtils.loadImage("org/pepsoft/worldpainter/icons/shovel-icon.png");
     
@@ -5964,6 +6105,10 @@ public final class App extends JFrame implements RadiusControl,
          */
         private static final int KEY_REPEAT_GUARD_TIME = 10;
     }
-    
+
+    interface PaintUpdater {
+        void updatePaint();
+    }
+
     public enum Mode {WORLDPAINTER, MINECRAFTMAPEDITOR}
 }

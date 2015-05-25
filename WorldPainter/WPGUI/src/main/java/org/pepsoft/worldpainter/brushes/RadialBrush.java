@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.pepsoft.worldpainter.operations;
+package org.pepsoft.worldpainter.brushes;
 
 import org.pepsoft.util.MathUtils;
 

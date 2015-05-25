@@ -110,13 +110,13 @@ public class WorldRegion implements MinecraftWorld {
     @Override
     public Material getMaterialAt(int x, int y, int height) {
         if (height >= maxHeight) {
-            return null;
+            return Material.AIR;
         }
         Chunk chunk = getChunk(x >> 4, y >> 4);
         if (chunk != null) {
             return chunk.getMaterial(x & 0xf, height, y & 0xf);
         } else {
-            return null;
+            return Material.AIR;
         }
     }
 

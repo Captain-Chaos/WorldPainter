@@ -4,9 +4,19 @@
  */
 package org.pepsoft.worldpainter.tools;
 
-import java.awt.BorderLayout;
-import java.awt.Point;
-import java.awt.Rectangle;
+import org.jnbt.CompoundTag;
+import org.jnbt.NBTInputStream;
+import org.pepsoft.minecraft.*;
+import org.pepsoft.util.swing.TileListener;
+import org.pepsoft.util.swing.TileProvider;
+import org.pepsoft.util.swing.TiledImageViewer;
+import org.pepsoft.worldpainter.ColourScheme;
+import org.pepsoft.worldpainter.colourschemes.DynMapColourScheme;
+import org.pepsoft.worldpainter.util.MinecraftUtil;
+
+import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
+import java.awt.*;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.image.BufferedImage;
@@ -17,24 +27,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.filechooser.FileFilter;
-import org.jnbt.CompoundTag;
-import org.jnbt.NBTInputStream;
-import org.pepsoft.minecraft.Chunk;
-import org.pepsoft.minecraft.ChunkImpl;
-import org.pepsoft.minecraft.ChunkImpl2;
-import org.pepsoft.minecraft.Constants;
-import org.pepsoft.minecraft.Level;
-import org.pepsoft.minecraft.RegionFile;
-import org.pepsoft.minecraft.RegionFileCache;
-import org.pepsoft.util.swing.TileListener;
-import org.pepsoft.util.swing.TileProvider;
-import org.pepsoft.util.swing.TiledImageViewer;
-import org.pepsoft.worldpainter.ColourScheme;
-import org.pepsoft.worldpainter.colourschemes.DynMapColourScheme;
-import org.pepsoft.worldpainter.util.MinecraftUtil;
 
 /**
  *
@@ -74,9 +66,14 @@ public class MapViewer {
                 }
 
                 @Override
-                public BufferedImage getTile(int x, int y) {
-    //                System.out.println("Generating tile " + x + ", " + y);
-                    final BufferedImage image = new BufferedImage(TILE_SIZE, TILE_SIZE, BufferedImage.TYPE_INT_RGB);
+                public boolean isTilePresent(int x, int y) {
+                    return true;
+                }
+
+                @Override
+                public void paintTile(Image tileImage, int x, int y) {
+    //                System.out.println("Painting tile " + x + ", " + y);
+                    final BufferedImage image = renderBufferRef.get();
                     final int chunkX1 = x * 8 * zoom, chunkY1 = y * 8 * zoom;
                     final int chunkX2 = chunkX1 + 8 * zoom - 1, chunkY2 = chunkY1 + 8 * zoom - 1;
     //                System.out.println("Chunk coords: " + chunkX1 + ", " + chunkY1 + " -> " + chunkX2 + ", " + chunkY2);
@@ -126,7 +123,12 @@ public class MapViewer {
                             }
                         }
                     }
-                    return image;
+                    Graphics2D g2 = (Graphics2D) tileImage.getGraphics();
+                    try {
+                        g2.drawImage(image, 0, 0, null);
+                    } finally {
+                        g2.dispose();
+                    }
                 }
 
                 @Override
@@ -205,7 +207,6 @@ public class MapViewer {
                 private final List<TileListener> listeners = new ArrayList<TileListener>();
                 private final Map<Point, RegionFile> regionFileCache = new HashMap<Point, RegionFile>();
 
-                private static final int TILE_SIZE = 128;
                 private static final int DEFAULT_VOID_COLOUR = 0x00FFFF;
             };
 
@@ -230,4 +231,11 @@ public class MapViewer {
     }
 
     private static final RegionFile NULL = new RegionFile();
+    private static final int TILE_SIZE = 128;
+    private static final ThreadLocal<BufferedImage> renderBufferRef = new ThreadLocal<BufferedImage>() {
+        @Override
+        protected BufferedImage initialValue() {
+            return new BufferedImage(TILE_SIZE, TILE_SIZE, BufferedImage.TYPE_INT_RGB);
+        }
+    };
 }

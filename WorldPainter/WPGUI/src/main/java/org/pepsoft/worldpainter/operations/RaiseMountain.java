@@ -9,6 +9,7 @@ import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.MapDragControl;
 import org.pepsoft.worldpainter.RadiusControl;
 import org.pepsoft.worldpainter.WorldPainter;
+import org.pepsoft.worldpainter.brushes.Brush;
 
 /**
  *

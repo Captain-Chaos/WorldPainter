@@ -12,7 +12,7 @@ import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.layers.Layer;
-import org.pepsoft.worldpainter.operations.BrushShape;
+import org.pepsoft.worldpainter.brushes.BrushShape;
 import org.pepsoft.worldpainter.tools.BiomesTileProvider;
 
 import javax.imageio.ImageIO;
@@ -76,8 +76,11 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             setGridSize(dimension.getGridSize());
             setPaintGrid(dimension.isGridEnabled());
             
-            // Scale is now managed by WorldPainter & ConfigureViewDialog
-//            setOverlayScale(dimension.getOverlayScale());
+            if (Configuration.getInstance().getOverlayType() != Configuration.OverlayType.SCALE_ON_LOAD) {
+                setOverlayScale(dimension.getOverlayScale());
+            } else {
+                setOverlayScale(1.0f);
+            }
             setOverlayTransparency(dimension.getOverlayTransparency());
             setOverlayOffsetX(dimension.getOverlayOffsetX());
             setOverlayOffsetY(dimension.getOverlayOffsetY());
@@ -240,22 +243,22 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         }
     }
 
-//    public float getOverlayScale() {
-//        return overlayScale;
-//    }
-//
-//    public void setOverlayScale(float overlayScale) {
-//        if (overlayScale != this.overlayScale) {
-//            float oldOverlayScale = this.overlayScale;
-//            this.overlayScale = overlayScale;
-//            if (overlay != null) {
-//                if (overlayTransparency < 1.0f) {
-//                    repaint();
-//                }
-//            }
-//            firePropertyChange("overlayScale", oldOverlayScale, overlayScale);
-//        }
-//    }
+    public float getOverlayScale() {
+        return overlayScale;
+    }
+
+    public void setOverlayScale(float overlayScale) {
+        if (overlayScale != this.overlayScale) {
+            float oldOverlayScale = this.overlayScale;
+            this.overlayScale = overlayScale;
+            if (overlay != null) {
+                if (overlayTransparency < 1.0f) {
+                    repaint();
+                }
+            }
+            firePropertyChange("overlayScale", oldOverlayScale, overlayScale);
+        }
+    }
 
     public float getOverlayTransparency() {
         return overlayTransparency;
@@ -314,11 +317,18 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
                     this.drawOverlay = false;
                     return;
                 }
-                myOverlay = ConfigureViewDialog.scaleImage(myOverlay, getGraphicsConfiguration(), (int) (dimension.getOverlayScale() * 100));
+                switch (Configuration.getInstance().getOverlayType()) {
+                    case OPTIMISE_ON_LOAD:
+                        myOverlay = ConfigureViewDialog.scaleImage(myOverlay, getGraphicsConfiguration(), 100);
+                        break;
+                    case SCALE_ON_LOAD:
+                        myOverlay = ConfigureViewDialog.scaleImage(myOverlay, getGraphicsConfiguration(), (int) (dimension.getOverlayScale() * 100));
+                        break;
+                }
                 if (myOverlay != null) {
                     setOverlay(myOverlay);
                 } else {
-                    // The scaling failed
+                    // The scaling or optimisation failed
                     this.drawOverlay = false;
                 }
             } else {
@@ -484,7 +494,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         if (dimension == null) {
             return null;
         }
-        TileRenderer tileRenderer = new TileRenderer(dimension, colourScheme, biomeScheme, customBiomeManager);
+        TileRenderer tileRenderer = new TileRenderer(dimension, colourScheme, biomeScheme, customBiomeManager, 0);
         tileRenderer.setContourLines(drawContours);
         tileRenderer.setContourSeparation(contourSeparation);
         tileRenderer.setHiddenLayers(hiddenLayers);
@@ -718,43 +728,43 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             Composite savedComposite = g2.getComposite();
             try {
                 g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f - overlayTransparency));
-//                if (overlayScale == 1.0f) {
+                if (overlayScale == 1.0f) {
                     // 1:1 scale
                     g2.drawImage(overlay, overlayOffsetX, overlayOffsetY, null);
-//                } else {
-//                    int width = Math.round(overlay.getWidth() * overlayScale);
-//                    int height = Math.round(overlay.getHeight() * overlayScale);
-//                    Object savedInterpolation = g2.getRenderingHint(RenderingHints.KEY_INTERPOLATION);
-//                    try {
-//                        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-//                        g2.drawImage(overlay, overlayOffsetX, overlayOffsetY, width, height, null);
-//                    } finally {
-//                        if (savedInterpolation != null) {
-//                            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, savedInterpolation);
-//                        }
-//                    }
-//                }
+                } else {
+                    int width = Math.round(overlay.getWidth() * overlayScale);
+                    int height = Math.round(overlay.getHeight() * overlayScale);
+                    Object savedInterpolation = g2.getRenderingHint(RenderingHints.KEY_INTERPOLATION);
+                    try {
+                        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+                        g2.drawImage(overlay, overlayOffsetX, overlayOffsetY, width, height, null);
+                    } finally {
+                        if (savedInterpolation != null) {
+                            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, savedInterpolation);
+                        }
+                    }
+                }
             } finally {
                 g2.setComposite(savedComposite);
             }
         } else {
             // Fully opaque
-//            if (overlayScale == 1.0f) {
+            if (overlayScale == 1.0f) {
                 // 1:1 scale
                 g2.drawImage(overlay, overlayOffsetX, overlayOffsetY, null);
-//            } else {
-//                int width = Math.round(overlay.getWidth() * overlayScale);
-//                int height = Math.round(overlay.getHeight() * overlayScale);
-//                Object savedInterpolation = g2.getRenderingHint(RenderingHints.KEY_INTERPOLATION);
-//                try {
-//                    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-//                    g2.drawImage(overlay, overlayOffsetX, overlayOffsetY, width, height, null);
-//                } finally {
-//                    if (savedInterpolation != null) {
-//                        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, savedInterpolation);
-//                    }
-//                }
-//            }
+            } else {
+                int width = Math.round(overlay.getWidth() * overlayScale);
+                int height = Math.round(overlay.getHeight() * overlayScale);
+                Object savedInterpolation = g2.getRenderingHint(RenderingHints.KEY_INTERPOLATION);
+                try {
+                    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+                    g2.drawImage(overlay, overlayOffsetX, overlayOffsetY, width, height, null);
+                } finally {
+                    if (savedInterpolation != null) {
+                        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, savedInterpolation);
+                    }
+                }
+            }
         }
     }
 
@@ -781,7 +791,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     private int mouseX, mouseY, radius, effectiveRadius, overlayOffsetX, overlayOffsetY, contourSeparation, brushRotation;
     private boolean drawRadius, drawOverlay, drawContours, drawViewDistance, drawWalkingDistance;
     private BrushShape brushShape;
-//    private float overlayScale = 1.0f;
+    private float overlayScale = 1.0f;
     private float overlayTransparency = 0.5f;
     private ColourScheme colourScheme;
     private BiomeScheme biomeScheme;

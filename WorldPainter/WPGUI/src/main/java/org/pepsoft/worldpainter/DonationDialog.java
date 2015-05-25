@@ -50,11 +50,14 @@ public final class DonationDialog extends javax.swing.JDialog {
             InputStream in = buttonURL.openStream();
             try {
                 BufferedImage buttonImage = ImageIO.read(in);
-                jButton1.setIcon(new ImageIcon(buttonImage));
-                jButton1.setText(null);
-                jButton1.setBorder(new EmptyBorder(0, 0, 0, 0));
-                jButton1.setContentAreaFilled(false);
-                pack();
+                // buttonImage is null if the image format is not supported:
+                if (buttonImage != null) {
+                    jButton1.setIcon(new ImageIcon(buttonImage));
+                    jButton1.setText(null);
+                    jButton1.setBorder(new EmptyBorder(0, 0, 0, 0));
+                    jButton1.setContentAreaFilled(false);
+                    pack();
+                }
             } finally {
                 in.close();
             }

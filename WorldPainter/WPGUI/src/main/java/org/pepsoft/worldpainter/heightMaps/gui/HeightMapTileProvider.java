@@ -6,7 +6,7 @@
 
 package org.pepsoft.worldpainter.heightMaps.gui;
 
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import org.pepsoft.util.MathUtils;
@@ -38,8 +38,13 @@ public class HeightMapTileProvider implements TileProvider {
     }
 
     @Override
-    public BufferedImage getTile(int x, int y) {
-        final BufferedImage image = new BufferedImage(128, 128, BufferedImage.TYPE_BYTE_GRAY);
+    public boolean isTilePresent(int x, int y) {
+        return true;
+    }
+
+    @Override
+    public void paintTile(Image tileImage, int x, int y) {
+        final BufferedImage image = renderBufferRef.get();
         final WritableRaster raster = image.getRaster();
         final int xOffset = x << 7, yOffset = y << 7;
         for (int dx = 0; dx < 128; dx++) {
@@ -47,7 +52,12 @@ public class HeightMapTileProvider implements TileProvider {
                 raster.setSample(dx, dy, 0, MathUtils.clamp(0, (int) (heightMap.getHeight(xOffset + dx, yOffset + dy) + 0.5f), 255));
             }
         }
-        return image;
+        Graphics2D g2 = (Graphics2D) tileImage.getGraphics();
+        try {
+            g2.drawImage(image, 0, 0, null);
+        } finally {
+            g2.dispose();
+        }
     }
 
     @Override
@@ -88,4 +98,10 @@ public class HeightMapTileProvider implements TileProvider {
     }
     
     private final HeightMap heightMap;
+    private final ThreadLocal<BufferedImage> renderBufferRef = new ThreadLocal<BufferedImage>() {
+        @Override
+        protected BufferedImage initialValue() {
+            return new BufferedImage(128, 128, BufferedImage.TYPE_BYTE_GRAY);
+        }
+    };
 }

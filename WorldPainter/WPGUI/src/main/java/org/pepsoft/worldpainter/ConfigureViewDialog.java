@@ -157,7 +157,14 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
                 JOptionPane.showMessageDialog(this, "An error occurred while loading the overlay image.\nThere may not be enough available memory, or the image may be too large.", "Error Loading Image", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            image = scaleImage(image, getGraphicsConfiguration(), (Integer) spinnerScale.getValue());
+            switch (Configuration.getInstance().getOverlayType()) {
+                case OPTIMISE_ON_LOAD:
+                    image = scaleImage(image, getGraphicsConfiguration(), 100);
+                    break;
+                case SCALE_ON_LOAD:
+                    image = scaleImage(image, getGraphicsConfiguration(), (Integer) spinnerScale.getValue());
+                    break;
+            }
             if (image != null) {
                 // The scaling succeeded
                 dimension.setOverlay(file);
@@ -195,11 +202,11 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
             }
         } catch (RuntimeException e) {
             logger.log(Level.SEVERE, e.getClass().getSimpleName() + " while scaling image of size " + image.getWidth() + "x" + image.getHeight() + " and type " + image.getType() + " to " + scale + "%", e);
-            JOptionPane.showMessageDialog(null, "An error occurred while scaling the overlay image.\nThere may not be enough available memory, or the image may be too large.", "Error Scaling Image", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "An error occurred while " + ((scale == 100) ? "optimising" : "scaling") + " the overlay image.\nThere may not be enough available memory, or the image may be too large.", "Error " + ((scale == 100) ? "Optimising" : "Scaling") + " Image", JOptionPane.ERROR_MESSAGE);
             return null;
         } catch (Error e) {
             logger.log(Level.SEVERE, e.getClass().getSimpleName() + " while scaling image of size " + image.getWidth() + "x" + image.getHeight() + " and type " + image.getType() + " to " + scale + "%", e);
-            JOptionPane.showMessageDialog(null, "An error occurred while scaling the overlay image.\nThere may not be enough available memory, or the image may be too large.", "Error Scaling Image", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "An error occurred while " + ((scale == 100) ? "optimising" : "scaling") + " the overlay image.\nThere may not be enough available memory, or the image may be too large.", "Error " + ((scale == 100) ? "Optimising" : "Scaling") + " Image", JOptionPane.ERROR_MESSAGE);
             return null;
         }
     }
@@ -543,7 +550,11 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
     private void spinnerScaleStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerScaleStateChanged
         float scale = ((Number) spinnerScale.getValue()).intValue() / 100.0f;
         dimension.setOverlayScale(scale);
-        scheduleImageUpdate();
+        if (Configuration.getInstance().getOverlayType() == Configuration.OverlayType.SCALE_ON_LOAD) {
+            scheduleImageUpdate();
+        } else {
+            view.setOverlayScale(scale);
+        }
     }//GEN-LAST:event_spinnerScaleStateChanged
 
     private void spinnerTransparencyStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerTransparencyStateChanged

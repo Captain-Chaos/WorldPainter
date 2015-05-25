@@ -249,7 +249,7 @@ public final class Material implements Serializable, Comparable<Material> {
                 }
                 break;
             case BLK_PISTON:
-            case BLK_PISTON_EXTENSION:
+            case BLK_PISTON_HEAD:
                 switch (data & 0x07) {
                     case 2:
                         return Direction.NORTH;
@@ -516,7 +516,7 @@ public final class Material implements Serializable, Comparable<Material> {
                 }
                 break;
             case BLK_PISTON:
-            case BLK_PISTON_EXTENSION:
+            case BLK_PISTON_HEAD:
                 switch (direction) {
                     case NORTH:
                         return get(blockType, (data & 0x08) | 2);
@@ -1074,7 +1074,7 @@ public final class Material implements Serializable, Comparable<Material> {
         BLK_SPONGE, BLK_GLASS, BLK_DIAMOND_ORE, BLK_REDSTONE_ORE, 0, BLK_LEAVES, BLK_STONE_BRICKS, BLK_DEAD_SHRUBS, 0, 0, 0, 0, BLK_CRAFTING_TABLE, 0, 0, 0,
         BLK_WOOL, BLK_MONSTER_SPAWNER, BLK_SNOW_BLOCK, BLK_ICE, BLK_SNOW, 0, BLK_CACTUS, 0, 0, BLK_SUGAR_CANE, BLK_NOTE_BLOCK, BLK_JUKEBOX, BLK_LILY_PAD, BLK_MYCELIUM, 0, 0,
         BLK_TORCH, BLK_WOODEN_DOOR, BLK_IRON_DOOR, BLK_LADDER, BLK_TRAPDOOR, BLK_IRON_BARS, 0, 0, 0, 0, 0, 0, 0, 0, 0, BLK_WHEAT,
-        BLK_LEVER, 0, 0, BLK_REDSTONE_TORCH_ON, 0, 0, 0, BLK_NETHERRACK, BLK_SOUL_SAND, BLK_GLOWSTONE, 0, BLK_PISTON_EXTENSION, BLK_PISTON, 0, 0, BLK_PUMPKIN_STEM,
+        BLK_LEVER, 0, 0, BLK_REDSTONE_TORCH_ON, 0, 0, 0, BLK_NETHERRACK, BLK_SOUL_SAND, BLK_GLOWSTONE, 0, BLK_PISTON_HEAD, BLK_PISTON, 0, 0, BLK_PUMPKIN_STEM,
         0, 0, 0, BLK_REDSTONE_TORCH_OFF, 0, 0, 0, BLK_PUMPKIN, BLK_JACK_O_LANTERN, BLK_CAKE, 0, 0, 0, BLK_HUGE_RED_MUSHROOM, BLK_HUGE_BROWN_MUSHROOM, 0,
         BLK_RAILS, 0, 0, 0, 0, 0, 0, 0, BLK_MELON, 0, 0, 0, 0, 0, 0, BLK_VINES,
         BLK_LAPIS_LAZULI_BLOCK, 0, 0, 0, 0, BLK_BED, 0, 0, 0, 0, BLK_CAULDRON, 0, 0, BLK_BREWING_STAND, 0, BLK_END_PORTAL_FRAME,

@@ -4,13 +4,7 @@
  */
 package org.pepsoft.worldpainter.layers.bo2;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.io.Serializable;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.HashMap;
@@ -186,9 +180,15 @@ public final class Bo2Object extends AbstractObject implements Bo2ObjectProvider
             version = 2;
         }
     }
-    
+
     public static Bo2Object load(String objectName, File file) throws IOException {
-        BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), Charset.forName("US-ASCII")));
+        Bo2Object object = load(objectName, new FileInputStream(file));
+        object.setAttribute(WPObject.ATTRIBUTE_FILE, file);
+        return object;
+    }
+
+    public static Bo2Object load(String objectName, InputStream stream) throws IOException {
+        BufferedReader in = new BufferedReader(new InputStreamReader(stream, Charset.forName("US-ASCII")));
         try {
             Map<String, String> properties = new HashMap<String, String>();
             Map<Point3i, Bo2BlockSpec> blocks = new HashMap<Point3i, Bo2BlockSpec>();
@@ -262,9 +262,10 @@ public final class Bo2Object extends AbstractObject implements Bo2ObjectProvider
                     }
                 }
             }
-            Map<String, Serializable> attributes = new HashMap<String, Serializable>();
-            attributes.put(WPObject.ATTRIBUTE_FILE, file);
-            return new Bo2Object(objectName, properties, blocks, new Point3i(-lowestX, -lowestY, -lowestZ), new Point3i(highestX - lowestX + 1, highestY - lowestY + 1, highestZ - lowestZ + 1), attributes);
+            if (blocks.isEmpty()) {
+                throw new IOException("No blocks found in the file; is this a bo2 object?");
+            }
+            return new Bo2Object(objectName, properties, blocks, new Point3i(-lowestX, -lowestY, -lowestZ), new Point3i(highestX - lowestX + 1, highestY - lowestY + 1, highestZ - lowestZ + 1), null);
         } finally {
             in.close();
         }
