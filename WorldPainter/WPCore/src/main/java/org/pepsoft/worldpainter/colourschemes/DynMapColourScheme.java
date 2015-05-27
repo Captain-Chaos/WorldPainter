@@ -16,15 +16,35 @@ import org.pepsoft.worldpainter.ColourScheme;
 /**
  * An implementation of {@link ColourScheme} which can read
  * <a href="http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-mods/1286593-dynmap-dynamic-web-based-maps-for-minecraft">Dynmap</a>
- * "classic" colour scheme files.
+ * "classic" colour scheme files, such as those included with Dynmap.
  *
  * @author pepijn
  */
 public final class DynMapColourScheme implements ColourScheme {
+    /**
+     * Create a new Dynmap colour scheme, reading the Dynamp "classic" colour scheme-formatted colour map from an input
+     * stream.
+     *
+     * @param in The input stream from which to read the colours.
+     * @param bright Whether to use the brightest colours. When <code>false</code> the two block side colours are
+     *               averaged and used instead. The brightest colours usually most approximate the colours as
+     *               experienced in Minecraft, so when in doubt, use <code>true</code>.
+     */
     public DynMapColourScheme(InputStream in, boolean bright) { 
         loadColours(in, bright);
     }
 
+    /**
+     * Create a new Dynmap colour scheme, reading the Dynamp "classic" colour scheme-formatted colour map from a file
+     * on the classpath. The file should be named <code><em>name</em>.txt</code> and be in the
+     * <code>org.pepsoft.worldpainter.colourschemes</code> package.
+     *
+     * @param name The name of the Dynmap "classic" colour map file to read from the classpath, without
+     *             <code>.txt</code> extension.
+     * @param bright Whether to use the brightest colours. When <code>false</code> the two block side colours are
+     *               averaged and used instead. The brightest colours usually most approximate the colours as
+     *               experienced in Minecraft, so when in doubt, use <code>true</code>.
+     */
     public DynMapColourScheme(@NonNls String name, boolean bright) {
         loadColours(DynMapColourScheme.class.getResourceAsStream(name + ".txt"), bright);
     }

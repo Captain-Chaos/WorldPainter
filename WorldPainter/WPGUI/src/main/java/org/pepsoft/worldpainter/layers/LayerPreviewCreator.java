@@ -126,7 +126,7 @@ public class LayerPreviewCreator {
     public static void main(String[] args) throws IOException {
         Layer layer = PineForest.INSTANCE;
         LayerPreviewCreator previewer = new LayerPreviewCreator(layer);
-        ColourScheme colourScheme = new DynMapColourScheme("default", false);
+        ColourScheme colourScheme = new DynMapColourScheme("default", true);
         for (int i = 0; i < 3; i++) {
             long start = System.currentTimeMillis();
             BufferedImage preview = previewer.createPreview(colourScheme, 1);
