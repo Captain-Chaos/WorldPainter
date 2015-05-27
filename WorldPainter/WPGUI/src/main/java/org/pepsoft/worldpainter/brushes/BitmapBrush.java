@@ -33,12 +33,12 @@ public final class BitmapBrush extends AbstractBrush {
 
     @Override
     public float getStrength(int dx, int dy) {
-        return buffer.getElem(0, dx + radius + (dy + radius) * diameter) / 256f;
+        return buffer.getElem(0, dx + radius + (dy + radius) * diameter) / 255f;
     }
 
     @Override
     public float getFullStrength(int dx, int dy) {
-        return fullStrengthBuffer.getElem(0, dx + radius + (dy + radius) * diameter) / 256f;
+        return fullStrengthBuffer.getElem(0, dx + radius + (dy + radius) * diameter) / 255f;
     }
     
     @Override
