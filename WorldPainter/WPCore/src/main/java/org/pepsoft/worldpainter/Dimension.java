@@ -265,26 +265,11 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
      */
     @Override
     public synchronized Tile getTile(final int x, final int y) {
-        final TileCache myTileCache = tileCache.get();
-        if ((x != myTileCache.x) || (y != myTileCache.y)) {
-            final Tile tile = tiles.get(new Point(x, y));
-            myTileCache.tile = tile;
-            myTileCache.x = x;
-            myTileCache.y = y;
-        }
-        return myTileCache.tile;
+        return tiles.get(new Point(x, y));
     }
 
     public synchronized Tile getTile(final Point coords) {
-        final int x = coords.x, y = coords.y;
-        final TileCache myTileCache = tileCache.get();
-        if ((x != myTileCache.x) || (y != myTileCache.y)) {
-            final Tile tile = tiles.get(coords);
-            myTileCache.tile = tile;
-            myTileCache.x = x;
-            myTileCache.y = y;
-        }
-        return myTileCache.tile;
+        return tiles.get(coords);
     }
 
     @Override
