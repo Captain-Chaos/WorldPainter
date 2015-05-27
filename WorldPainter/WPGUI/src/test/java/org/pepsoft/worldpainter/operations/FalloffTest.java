@@ -21,14 +21,13 @@ public class FalloffTest {
     public void testNoisyStrength() {
         final float strengthRef[] = new float[1];
         strengthRef[0] = 0.0f;
-        SymmetricBrush fallOff = new SymmetricBrush("Test Falloff", true) {
+        SymmetricBrush fallOff = new SymmetricBrush("Test Falloff", BrushShape.CIRCLE, true) {
             @Override
             public float calcStrength(int dx, int dy) {
                 return strengthRef[0];
             }
         };
         fallOff.setRadius(1);
-        fallOff.setBrushShape(BrushShape.CIRCLE);
         assertEquals(0.0, fallOff.getNoisyStrength(0, 0, 0, 0, 0), 0.0);
 
         Random random = new Random(0);

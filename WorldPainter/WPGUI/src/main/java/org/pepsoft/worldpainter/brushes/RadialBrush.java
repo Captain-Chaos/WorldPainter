@@ -14,8 +14,8 @@ import org.pepsoft.util.MathUtils;
  * @author pepijn
  */
 public abstract class RadialBrush extends SymmetricBrush {
-    public RadialBrush(String name, boolean rotationallySymmetric) {
-        super(name, rotationallySymmetric);
+    public RadialBrush(String name, BrushShape brushShape, boolean rotationallySymmetric) {
+        super(name, brushShape, rotationallySymmetric);
     }
     
     @Override
@@ -23,7 +23,7 @@ public abstract class RadialBrush extends SymmetricBrush {
         int radius = getRadius();
         float distance = MathUtils.getDistance(dx, dy);
         float dr = distance / radius;
-        switch (getBrushShape()) {
+        switch (brushShape) {
             case CIRCLE:
                 if (distance <= radius) {
                     return calcStrength(dr);
