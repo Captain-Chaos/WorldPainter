@@ -22,10 +22,7 @@ import org.pepsoft.worldpainter.vo.AttributeKeyVO;
 import org.pepsoft.worldpainter.vo.EventVO;
 
 import java.awt.*;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -118,6 +115,8 @@ public class WorldExporter {
         if ((world.getVersion() == SUPPORTED_VERSION_2) && (world.getGenerator() == Generator.FLAT) && (world.getGeneratorOptions() != null)) {
             level.setGeneratorOptions(world.getGeneratorOptions());
         }
+        // Save the level.dat file. This will also create a session.lock file, hopefully kicking out any Minecraft
+        // instances which may have the map open:
         level.save(worldDir);
         Map<Integer, ChunkFactory.Stats> stats = new HashMap<Integer, ChunkFactory.Stats>();
         if (selectedDimension == -1) {
@@ -139,6 +138,16 @@ public class WorldExporter {
             stats.put(selectedDimension, exportDimension(worldDir, world.getDimension(selectedDimension), world.getVersion(), progressReceiver));
         }
         
+        // Update the session.lock file, hopefully kicking out any Minecraft instances which may have tried to open the
+        // map in the mean time:
+        File sessionLockFile = new File(worldDir, "session.lock");
+        DataOutputStream sessionOut = new DataOutputStream(new FileOutputStream(sessionLockFile));
+        try {
+            sessionOut.writeLong(System.currentTimeMillis());
+        } finally {
+            sessionOut.close();
+        }
+
         // Log an event
         Configuration config = Configuration.getInstance();
         if (config != null) {

@@ -214,7 +214,11 @@ public class WorldMerger extends WorldExporter {
         level.setSpawnX(spawnPoint.x);
         level.setSpawnY(Math.max(dimension.getIntHeightAt(spawnPoint), dimension.getWaterLevelAt(spawnPoint)));
         level.setSpawnZ(spawnPoint.y);
-        
+
+        // Save the level.dat file. This will also create a session.lock file, hopefully kicking out any Minecraft
+        // instances which may have the map open:
+        level.save(worldDir);
+
         // Copy everything that we are not going to generate (this includes the
         // Nether and End dimensions)
         File[] files = backupDir.listFiles();
@@ -234,10 +238,18 @@ public class WorldMerger extends WorldExporter {
                 }
             }
         }
-        
-        level.save(worldDir);
-        
+
         mergeDimension(worldDir, backupDir, dimension, version, progressReceiver);
+
+        // Update the session.lock file, hopefully kicking out any Minecraft instances which may have tried to open the
+        // map in the mean time:
+        File sessionLockFile = new File(worldDir, "session.lock");
+        DataOutputStream sessionOut = new DataOutputStream(new FileOutputStream(sessionLockFile));
+        try {
+            sessionOut.writeLong(System.currentTimeMillis());
+        } finally {
+            sessionOut.close();
+        }
 
         // Log an event
         Configuration config = Configuration.getInstance();
@@ -1017,7 +1029,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
             for (int y = 0; y < 16; y++) {
                 boolean aboveGround = true;
                 for (int z = maxZ; z >= 0; z--) {
-                    final Block existingBlock = BLOCKS[existingChunk.getBlockType(x, z, y)];
+                    Block existingBlock = BLOCKS[existingChunk.getBlockType(x, z, y)];
                     if (aboveGround) {
                         if ((clearTrees && existingBlock.treeRelated)
                                 || (clearVegetation && existingBlock.vegetation)
@@ -1031,21 +1043,22 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                         // man made blocks are correctly removed and then filled
                         // in
                         if (clearManMadeBelowGround && (! existingBlock.natural)) {
-                            final int newBlockType = findMostPrevalentSolidSurroundingMaterial(existingChunk, x, y, z);
-                            if (newBlockType == BLK_AIR) {
+                            final Material newMaterial = findMostPrevalentSolidSurroundingMaterial(existingChunk, x, y, z);
+                            if (newMaterial == Material.AIR) {
                                 setToAir(existingChunk, x, y, z);
                             } else {
-                                existingChunk.setMaterial(x, z, y, Material.get(newBlockType));
+                                existingChunk.setMaterial(x, z, y, newMaterial);
                                 existingChunk.setSkyLightLevel(x, z, y, 0);
                                 existingChunk.setBlockLightLevel(x, z, y, 0);
                             }
+                            existingBlock = BLOCKS[existingChunk.getBlockType(x, z, y)];
                         }
                         if (fillCaves && existingBlock.veryInsubstantial) {
-                            final int newBlockType = findMostPrevalentSolidSurroundingMaterial(existingChunk, x, y, z);
-                            if (newBlockType == BLK_AIR) {
+                            final Material newMaterial = findMostPrevalentSolidSurroundingMaterial(existingChunk, x, y, z);
+                            if (newMaterial == Material.AIR) {
                                 existingChunk.setMaterial(x, z, y, Material.STONE);
                             } else {
-                                existingChunk.setMaterial(x, z, y, Material.get(newBlockType));
+                                existingChunk.setMaterial(x, z, y, newMaterial);
                             }
                             existingChunk.setSkyLightLevel(x, z, y, 0);
                             existingChunk.setBlockLightLevel(x, z, y, 0);
@@ -1085,15 +1098,10 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
      * Finds the most prevalent natural, non-ore, solid block type surrounding
      * a particular block (inside the same chunk).
      */
-    private int findMostPrevalentSolidSurroundingMaterial(Chunk existingChunk, int x, int y, int z) {
-        int[] histogram = histogramRef.get();
-        if (histogram == null) {
-            histogram = new int[256];
-            histogramRef.set(histogram);
-        } else {
-            Arrays.fill(histogram, 0);
-        }
-        int highestBlockType = -1;
+    private Material findMostPrevalentSolidSurroundingMaterial(Chunk existingChunk, int x, int y, int z) {
+        byte[] histogram = histogramRef.get();
+        Arrays.fill(histogram, (byte) 0);
+        int highestMaterialIndex = -1;
         for (int dx = -1; dx <= 1; dx++) {
             for (int dy = -1; dy <= 1; dy++) {
                 for (int dz = -1; dz <= 1; dz++) {
@@ -1104,20 +1112,22 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                     if ((xx < 0) || (xx > 15) || (yy < 0) || (yy > 15) || (zz < 0) || (zz >= existingChunk.getMaxHeight())) {
                         continue;
                     }
-                    int blockType = existingChunk.getBlockType(xx, zz, yy);
+                    Material material = existingChunk.getMaterial(xx, zz, yy);
+                    int blockType = material.getBlockType();
                     if (SOLID_BLOCKS.get(blockType)) {
-                        histogram[blockType]++;
-                        if (histogram[blockType] > highestBlockType) {
-                            highestBlockType = blockType;
+                        int index = (blockType << 4) | material.getData();
+                        histogram[index]++;
+                        if (histogram[index] > highestMaterialIndex) {
+                            highestMaterialIndex = blockType;
                         }
                     }
                 }
             }
         }
-        if (highestBlockType > -1) {
-            return highestBlockType;
+        if (highestMaterialIndex > -1) {
+            return Material.get(highestMaterialIndex >> 4, highestMaterialIndex & 0xf);
         } else {
-            return BLK_AIR;
+            return Material.AIR;
         }
     }
     
@@ -1423,7 +1433,12 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
     }
     
     private final File levelDatFile;
-    private final ThreadLocal<int[]> histogramRef = new ThreadLocal<int[]>();
+    private final ThreadLocal<byte[]> histogramRef = new ThreadLocal<byte[]>() {
+        @Override
+        protected byte[] initialValue() {
+            return new byte[65536];
+        }
+    };
     private boolean replaceChunks, mergeOverworld, mergeUnderworld, clearTrees,
         clearResources, fillCaves, clearVegetation,
         clearManMadeAboveGround, clearManMadeBelowGround;
