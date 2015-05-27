@@ -29,7 +29,7 @@ import java.util.concurrent.Callable;
  */
 public class AwtUtils {
     /**
-     * Execute a task on the even dispatch thread and return the result. The
+     * Execute a task on the event dispatch thread and return the result. The
      * task <em>may</em> be executed on a different thread, so it must be
      * thread-safe.
      *
