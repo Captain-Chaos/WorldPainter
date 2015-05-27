@@ -334,18 +334,14 @@ public class MapImporter {
                                             if (height == -1.0f) {
                                                 dimension.setBitLayerValueAt(org.pepsoft.worldpainter.layers.Void.INSTANCE, blockX, blockY, true);
                                             }
-                                            if (importBiomes && ((ChunkImpl2) chunk).isBiomesAvailable()) {
-                                                final int biome = ((ChunkImpl2) chunk).getBiome(xx, zz);
-                                                if (biome != 255) {
-                                                    // Around the edges of the map
-                                                    // Minecraft sets the biome to 255,
-                                                    // presumable as a marker that it
-                                                    // has yet to be calculated,
-                                                    // although there seems to be no
-                                                    // reason why it couldn't be
-                                                    // calculated already
-                                                    // TODO: is this a replacement for
-                                                    // the populate flag?
+                                            if (importBiomes && chunk.isBiomesAvailable()) {
+                                                final int biome = chunk.getBiome(xx, zz);
+                                                // If the biome is set (around the edges of the map Minecraft sets it to
+                                                // 255, presumably as a marker that it has yet to be calculated), copy
+                                                // it to the dimension. However, if it matches what the automatic biome
+                                                // would be, don't copy it, so that WorldPainter will automatically
+                                                // adjust the biome when the user makes changes
+                                                if ((biome != 255) && (biome != dimension.getAutoBiome(blockX, blockY))) {
                                                     dimension.setLayerValueAt(Biome.INSTANCE, blockX, blockY, biome);
                                                 }
                                             }
