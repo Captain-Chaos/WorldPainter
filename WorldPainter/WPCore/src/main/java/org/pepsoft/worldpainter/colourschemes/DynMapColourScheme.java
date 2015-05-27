@@ -14,6 +14,9 @@ import org.pepsoft.minecraft.Material;
 import org.pepsoft.worldpainter.ColourScheme;
 
 /**
+ * An implementation of {@link ColourScheme} which can read
+ * <a href="http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-mods/1286593-dynmap-dynamic-web-based-maps-for-minecraft">Dynmap</a>
+ * "classic" colour scheme files.
  *
  * @author pepijn
  */

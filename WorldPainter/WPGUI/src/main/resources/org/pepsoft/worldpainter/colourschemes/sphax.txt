@@ -1,3 +1,5 @@
+# Copied from Dynmap at https://github.com/webbukkit/DynmapCore
+# With thanks to Mike Primm
 1 118 115 107 255 94 92 85 255 59 57 53 255 47 46 42 255
 1:1 142 96 76 255 113 76 60 255 71 48 38 255 56 38 30 255
 1:2 152 104 82 255 121 83 65 255 76 52 41 255 60 41 32 255

@@ -1,3 +1,6 @@
+# Default Minecraft colours
+# Copied from Dynmap at https://github.com/webbukkit/DynmapCore
+# With thanks to Mike Primm
 1 125 125 125 255 100 100 100 255 62 62 62 255 50 50 50 255
 1:1 153 113 98 255 122 90 78 255 76 56 49 255 61 45 39 255
 1:2 159 114 98 255 127 91 78 255 79 57 49 255 63 45 39 255
