@@ -292,23 +292,24 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener {
         ensureReadable(LAYER_DATA);
         List<Layer> activeLayers = new ArrayList<Layer>(bitLayerData.size() + layerData.size());
         for (Map.Entry<Layer, BitSet> entry: bitLayerData.entrySet()) {
-            Layer layer = entry.getKey();
-            DataSize dataSize = layer.getDataSize();
+            final Layer layer = entry.getKey();
+            final DataSize dataSize = layer.getDataSize();
             if (((dataSize == DataSize.BIT) && getBitPerBlockLayerValue(entry.getValue(), x, y))
                 || ((dataSize == DataSize.BIT_PER_CHUNK) && getBitPerChunkLayerValue(entry.getValue(), x, y))) {
                 activeLayers.add(layer);
             }
         }
         for (Map.Entry<Layer, byte[]> entry: layerData.entrySet()) {
-            Layer layer = entry.getKey();
-            DataSize dataSize = layer.getDataSize();
+            final Layer layer = entry.getKey();
+            final DataSize dataSize = layer.getDataSize();
+            final int defaultValue = layer.getDefaultValue();
             if (dataSize == DataSize.NIBBLE) {
-                int byteOffset = x + y * TILE_SIZE;
-                byte _byte = entry.getValue()[byteOffset / 2];
-                if ((byteOffset % 2 == 0) ? ((_byte & 0x0F) != 0) : (((_byte & 0xF0) >> 4) != 0)) {
+                final int byteOffset = x + y * TILE_SIZE;
+                final byte _byte = entry.getValue()[byteOffset / 2];
+                if ((byteOffset % 2 == 0) ? ((_byte & 0x0F) != defaultValue) : (((_byte & 0xF0) >> 4) != defaultValue)) {
                     activeLayers.add(layer);
                 }
-            } else if ((entry.getValue()[x + y * TILE_SIZE] & 0xFF) != 0) {
+            } else if ((entry.getValue()[x + y * TILE_SIZE] & 0xFF) != defaultValue) {
                 activeLayers.add(layer);
             }
         }
@@ -1278,10 +1279,48 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener {
         init();
     }
     
-    private void writeObject(ObjectOutputStream out) throws IOException {
+    private synchronized void writeObject(ObjectOutputStream out) throws IOException {
         // Make sure all buffers are current, otherwise we may save out of date
         // data to disk
         ensureAllReadable();
+
+        // Take the opportunity to save memory and disk space by throwing away "empty" layer buffers. Since this is
+        // functionally a null operation there is no need to notify listeners, make the buffer writable or otherwise
+        // notify the undo manager
+        for (Iterator<Map.Entry<Layer, BitSet>> i = bitLayerData.entrySet().iterator(); i.hasNext(); ) {
+            final Map.Entry<Layer, BitSet> entry = i.next();
+            if (entry.getValue().isEmpty()) {
+                i.remove();
+                cachedLayers = null;
+            }
+        }
+layerLoop: for (Iterator<Map.Entry<Layer, byte[]>> i = layerData.entrySet().iterator(); i.hasNext(); ) {
+            Map.Entry<Layer, byte[]> entry = i.next();
+            final Layer layer = entry.getKey();
+            final byte[] buffer = entry.getValue();
+            if (layer.getDataSize() == NIBBLE) {
+                final byte defaultByte = (byte) (layer.getDefaultValue() << 4 | layer.getDefaultValue());
+                for (byte bufferByte: buffer) {
+                    if (bufferByte != defaultByte) {
+                        continue layerLoop;
+                    }
+                }
+                // If we reach here all bytes were default bytes
+                i.remove();
+                cachedLayers = null;
+            } else if (layer.getDataSize() == BYTE) {
+                final byte defaultByte = (byte) layer.getDefaultValue();
+                for (byte bufferByte: buffer) {
+                    if (bufferByte != defaultByte) {
+                        continue layerLoop;
+                    }
+                }
+                // If we reach here all bytes were default bytes
+                i.remove();
+                cachedLayers = null;
+            }
+        }
+
         out.defaultWriteObject();
     }
 
@@ -1382,7 +1421,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener {
         final TileBuffer buffer;
     }
 
-    public static enum TileBuffer {
+    public enum TileBuffer {
         HEIGHTMAP, TERRAIN, WATERLEVEL, LAYER_DATA, BIT_LAYER_DATA, TALL_HEIGHTMAP, TALL_WATERLEVEL, SEEDS;
     }
 }
