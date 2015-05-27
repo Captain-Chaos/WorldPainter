@@ -4,6 +4,9 @@
  */
 package org.pepsoft.util.swing;
 
+import java.awt.*;
+import java.util.Set;
+
 /**
  * A listener for changes in the contents of tiles.
  * 
@@ -20,4 +23,14 @@ public interface TileListener {
      * @param y The Y coordinate (in tiles) of the changed tile.
      */
     void tileChanged(TileProvider source, int x, int y);
+
+    /**
+     * Invoked when the contents of one or more tiles have changed and the
+     * tile(s) should be retrieved again.
+     *
+     * @param source The tile provider from which the changed tile(s) should be
+     *     retrieved.
+     * @param tiles The set of coordinates of the changed tile(s).
+     */
+    void tilesChanged(TileProvider source, Set<Point> tiles);
 }

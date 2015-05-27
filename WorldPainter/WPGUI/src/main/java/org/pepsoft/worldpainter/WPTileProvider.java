@@ -267,13 +267,13 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
     @Override
     public void tileAdded(Dimension dimension, Tile tile) {
         tile.addListener(this);
-        fireTileChanged(tile, true);
+        fireTileChangedIncludeBorder(tile);
     }
 
     @Override
     public void tileRemoved(Dimension dimension, Tile tile) {
         tile.removeListener(this);
-        fireTileChanged(tile, true);
+        fireTileChangedIncludeBorder(tile);
     }
 
     // Tile.Listener
@@ -381,11 +381,14 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
     }
     
     private void fireTileChanged(Tile tile) {
-        fireTileChanged(tile, false);
+        Point coords = getTileCoordinates(tile);
+        for (TileListener listener: listeners) {
+            listener.tileChanged(this, coords.x, coords.y);
+        }
     }
     
-    private void fireTileChanged(Tile tile, boolean includeBorder) {
-        if (includeBorder && showBorder && (tileProvider instanceof Dimension) && (((Dimension) tileProvider).getDim() == DIM_NORMAL) && (((Dimension) tileProvider).getBorder() != null)) {
+    private void fireTileChangedIncludeBorder(Tile tile) {
+        if (showBorder && (tileProvider instanceof Dimension) && (((Dimension) tileProvider).getDim() == DIM_NORMAL) && (((Dimension) tileProvider).getBorder() != null)) {
             final Set<Point> coordSet = new HashSet<Point>();
             final int tileX = tile.getX(), tileY = tile.getY(), borderSize = ((Dimension) tileProvider).getBorderSize();
             for (int dx = -borderSize; dx <= borderSize; dx++) {
@@ -393,10 +396,8 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
                     coordSet.add(getTileCoordinates(tileX + dx, tileY + dy));
                 }
             }
-            for (Point coords: coordSet) {
-                for (TileListener listener: listeners) {
-                    listener.tileChanged(this, coords.x, coords.y);
-                }
+            for (TileListener listener: listeners) {
+                listener.tilesChanged(this, coordSet);
             }
         } else {
             Point coords = getTileCoordinates(tile);

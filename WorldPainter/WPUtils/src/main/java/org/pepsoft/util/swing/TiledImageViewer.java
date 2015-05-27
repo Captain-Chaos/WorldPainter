@@ -418,6 +418,31 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         }
     }
     
+    public void refresh(TileProvider tileProvider, Set<Point> tiles) {
+        synchronized (TILE_CACHE_LOCK) {
+            final Map<Point, Reference<? extends Image>> tileCache = tileCaches.get(tileProvider);
+            for (Point coords: tiles) {
+                final Reference<? extends Image> tileRef = tileCache.get(coords);
+                if (tileRef != RENDERING) {
+                    tileCache.remove(coords);
+                    final Image tile = (tileRef != null) ? tileRef.get() : null;
+                    if (tile != null) {
+                        // The old tile is still available; move it to the dirty
+                        // tile cache so we have something to paint while the tile
+                        // is being rendered
+                        dirtyTileCaches.get(tileProvider).put(coords, tileRef);
+                    }
+                    final int effectiveZoom = (tileProvider.isZoomSupported() && (zoom < 0)) ? 0 : zoom;
+                    if (isTileVisible(coords.x, coords.y, effectiveZoom)) {
+                        // The tile is visible; immediately schedule it to be
+                        // rendered
+                        scheduleTile(tileCache, coords, tileProvider, dirtyTileCaches.get(tileProvider), effectiveZoom, tile);
+                    }
+                }
+            }
+        }
+    }
+
     public void reset() {
         viewX = 0;
         viewY = 0;
@@ -882,16 +907,29 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
 
     @Override
     public void tileChanged(final TileProvider source, final int x, final int y) {
-        Runnable task = new Runnable() {
-            @Override
-            public void run() {
-                refresh(source, x, y);
-            }
-        };
         if (SwingUtilities.isEventDispatchThread()) {
-            task.run();
+            refresh(source, x, y);
         } else {
-            SwingUtilities.invokeLater(task);
+            SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        refresh(source, x, y);
+                    }
+                });
+        }
+    }
+
+    @Override
+    public void tilesChanged(final TileProvider source, final Set<Point> tiles) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            refresh(source, tiles);
+        } else {
+            SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        refresh(source, tiles);
+                    }
+                });
         }
     }
 
