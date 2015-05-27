@@ -57,14 +57,14 @@ public final class XDG {
      * should be stored. Set to the contents of the XDG_DATA_HOME environment
      * variable, or "{@link #HOME}/.local/share" if that variable is not present.
      */
-    public static final String XDG_DATA_HOME = System.getenv("XDG_DATA_HOME") != null ? System.getenv("XDG_DATA_HOME") : HOME + "/.local/share";
+    public static final String XDG_DATA_HOME = System.getenv("XDG_DATA_HOME") != null ? System.getenv("XDG_DATA_HOME") : HOME + File.separatorChar + ".local" + File.separatorChar + "share";
 
     /**
      * Defines the base directory relative to which user specific configuration
      * files should be stored. Set to the contents of the XDG_CONFIG_HOME
      * environment variable, or "{@link #HOME}/.config" if that variable is not present.
      */
-    public static final String XDG_CONFIG_HOME = System.getenv("XDG_CONFIG_HOME") != null ? System.getenv("XDG_CONFIG_HOME") : HOME + "/.config";
+    public static final String XDG_CONFIG_HOME = System.getenv("XDG_CONFIG_HOME") != null ? System.getenv("XDG_CONFIG_HOME") : HOME + File.separatorChar + ".config";
 
     /**
      * Defines the preference-ordered set of base directories to search for data
@@ -72,7 +72,7 @@ public final class XDG {
      * the contents of the XDG_DATA_DIRS environment variable, or
      * "/usr/local/share:/usr/share" if that variable is not present.
      */
-    public static final String XDG_DATA_DIRS = System.getenv("XDG_DATA_DIRS") != null ? System.getenv("XDG_DATA_DIRS") : "/usr/local/share:/usr/share";
+    public static final String XDG_DATA_DIRS = System.getenv("XDG_DATA_DIRS") != null ? System.getenv("XDG_DATA_DIRS") : File.separatorChar + "usr" + File.separatorChar + "local" + File.separatorChar + "share" + File.pathSeparatorChar + File.separatorChar + "usr" + File.separatorChar + "share";
 
     /**
      * Defines the preference-ordered set of base directories to search for
@@ -80,14 +80,14 @@ public final class XDG {
      * directory. Set to the contents of the XDG_CONFIG_DIRS environment
      * variable, or "/etc/xdg" if that variable is not present.
      */
-    public static final String XDG_CONFIG_DIRS = System.getenv("XDG_CONFIG_DIRS") != null ? System.getenv("XDG_CONFIG_DIRS") : "/etc/xdg";
+    public static final String XDG_CONFIG_DIRS = System.getenv("XDG_CONFIG_DIRS") != null ? System.getenv("XDG_CONFIG_DIRS") : File.separatorChar + "etc" + File.separatorChar + "xdg";
 
     /**
      * Defines the base directory relative to which user specific non-essential
      * data files should be stored. Set to the contents of the XDG_CACHE_HOME
      * environment variable, or "{@link #HOME}/.cache" if that variable is not present.
      */
-    public static final String XDG_CACHE_HOME = System.getenv("XDG_CACHE_HOME") != null ? System.getenv("XDG_CACHE_HOME") : HOME + "/.cache";
+    public static final String XDG_CACHE_HOME = System.getenv("XDG_CACHE_HOME") != null ? System.getenv("XDG_CACHE_HOME") : HOME + File.separatorChar + ".cache";
 
     /**
      * Defines the base directory relative to which user-specific non-essential
@@ -181,7 +181,7 @@ public final class XDG {
 
     static {
         Properties userDirs = new Properties();
-        String[] configDirs = XDG_CONFIG_DIRS.split(":");
+        String[] configDirs = XDG_CONFIG_DIRS.split(File.pathSeparator);
         for (String configDir: configDirs) {
             File userDirFile = new File(configDir, "user-dirs.default");
             if (userDirFile.isFile()) {
