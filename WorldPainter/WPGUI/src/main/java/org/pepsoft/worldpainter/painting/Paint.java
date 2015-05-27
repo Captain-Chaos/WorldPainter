@@ -20,6 +20,8 @@ package org.pepsoft.worldpainter.painting;
 
 import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.brushes.Brush;
+import org.pepsoft.worldpainter.operations.Filter;
 
 import java.awt.image.BufferedImage;
 
@@ -29,6 +31,14 @@ import java.awt.image.BufferedImage;
  * Created by pepijn on 15-05-15.
  */
 public interface Paint {
+    Brush getBrush();
+
+    void setBrush(Brush brush);
+
+    Filter getFilter();
+
+    void setFilter(Filter filter);
+
     void apply(Dimension dimension, int x, int y, float dynamicLevel);
 
     void remove(Dimension dimension, int x, int y, float dynamicLevel);

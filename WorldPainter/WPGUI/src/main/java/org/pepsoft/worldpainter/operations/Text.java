@@ -6,7 +6,8 @@ import org.pepsoft.worldpainter.RadiusControl;
 import org.pepsoft.worldpainter.WorldPainterView;
 import org.pepsoft.worldpainter.layers.Annotations;
 import org.pepsoft.worldpainter.layers.exporters.AnnotationsExporter;
-import org.pepsoft.worldpainter.painting.DimensionPainter;
+import org.pepsoft.worldpainter.painting.*;
+import org.pepsoft.worldpainter.painting.Paint;
 
 import javax.swing.*;
 import java.awt.*;
@@ -54,8 +55,7 @@ public class Text extends PaintOperation {
     }
 
     @Override
-    protected void paintChanged() {
-        super.paintChanged();
+    protected void paintChanged(Paint newPaint) {
         painter.setPaint(getPaint());
     }
 

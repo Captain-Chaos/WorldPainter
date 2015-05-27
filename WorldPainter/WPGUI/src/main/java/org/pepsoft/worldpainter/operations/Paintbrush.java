@@ -4,6 +4,7 @@ import org.pepsoft.worldpainter.MapDragControl;
 import org.pepsoft.worldpainter.RadiusControl;
 import org.pepsoft.worldpainter.WorldPainterView;
 import org.pepsoft.worldpainter.painting.DimensionPainter;
+import org.pepsoft.worldpainter.painting.Paint;
 
 /**
  * Created by pepijn on 14-5-15.
@@ -26,9 +27,8 @@ public class Paintbrush extends PaintOperation {
     }
 
     @Override
-    protected void paintChanged() {
-        super.paintChanged();
-        painter.setPaint(getPaint());
+    protected void paintChanged(Paint newPaint) {
+        painter.setPaint(newPaint);
     }
 
     private final DimensionPainter painter = new DimensionPainter();

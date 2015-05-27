@@ -21,6 +21,7 @@ package org.pepsoft.worldpainter.operations;
 import org.pepsoft.worldpainter.MapDragControl;
 import org.pepsoft.worldpainter.RadiusControl;
 import org.pepsoft.worldpainter.WorldPainterView;
+import org.pepsoft.worldpainter.brushes.Brush;
 import org.pepsoft.worldpainter.painting.Paint;
 
 /**
@@ -43,10 +44,20 @@ public abstract class PaintOperation extends RadiusOperation {
 
     public void setPaint(Paint paint) {
         this.paint = paint;
-        paintChanged();
+        if (getBrush() != null) {
+            paint.setBrush(getBrush());
+        }
+        paintChanged(paint);
     }
 
-    protected void paintChanged() {
+    @Override
+    protected void brushChanged(Brush newBrush) {
+        if (paint != null) {
+            paint.setBrush(newBrush);
+        }
+    }
+
+    protected void paintChanged(Paint newPaint) {
         // Do nothing
     }
 

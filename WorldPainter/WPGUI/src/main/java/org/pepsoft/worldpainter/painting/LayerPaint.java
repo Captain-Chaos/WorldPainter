@@ -20,8 +20,6 @@ package org.pepsoft.worldpainter.painting;
 
 import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.layers.Layer;
-import org.pepsoft.worldpainter.brushes.Brush;
-import org.pepsoft.worldpainter.operations.Filter;
 
 import java.awt.image.BufferedImage;
 
@@ -31,9 +29,12 @@ import java.awt.image.BufferedImage;
  * Created by pepijn on 15-05-15.
  */
 public abstract class LayerPaint extends AbstractPaint {
-    protected LayerPaint(Layer layer, Filter filter, Brush brush) {
-        super(brush, filter);
+    protected LayerPaint(Layer layer) {
         this.layer = layer;
+    }
+
+    public Layer getLayer() {
+        return layer;
     }
 
     @Override

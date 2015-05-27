@@ -6,11 +6,11 @@
 
 package org.pepsoft.worldpainter.biomeschemes;
 
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import org.pepsoft.worldpainter.BiomeScheme;
 import org.pepsoft.worldpainter.ColourScheme;
-import org.pepsoft.worldpainter.operations.BiomePaint;
+import org.pepsoft.worldpainter.layers.BiomesPanel;
+
+import javax.swing.*;
 
 /**
  * A helper class for determining biome names and icons
@@ -52,7 +52,7 @@ public class BiomeHelper {
             } else if (customBiomeManager.getCustomBiomes() != null) {
                 for (CustomBiome customBiome: customBiomeManager.getCustomBiomes()) {
                     if (customBiome.getId() == biomeID) {
-                        icons[biomeID] = new ImageIcon(BiomePaint.createIcon(customBiome.getColour()));
+                        icons[biomeID] = new ImageIcon(BiomesPanel.createIcon(customBiome.getColour()));
                         break;
                     }
                 }

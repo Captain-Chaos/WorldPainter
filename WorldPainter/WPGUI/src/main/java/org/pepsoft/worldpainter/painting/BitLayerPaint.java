@@ -21,8 +21,6 @@ package org.pepsoft.worldpainter.painting;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.layers.Layer;
-import org.pepsoft.worldpainter.brushes.Brush;
-import org.pepsoft.worldpainter.operations.Filter;
 
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_MASK;
@@ -33,8 +31,8 @@ import static org.pepsoft.worldpainter.Constants.TILE_SIZE_MASK;
  * Created by pepijn on 15-05-15.
  */
 public class BitLayerPaint extends LayerPaint {
-    public BitLayerPaint(Filter filter, Brush brush, Layer layer) {
-        super(layer, filter, brush);
+    public BitLayerPaint(Layer layer) {
+        super(layer);
         if ((layer.getDataSize() != Layer.DataSize.BIT) && (layer.getDataSize() != Layer.DataSize.BIT_PER_CHUNK)) {
             throw new IllegalArgumentException("Layer " + layer + " not bit-sized");
         }

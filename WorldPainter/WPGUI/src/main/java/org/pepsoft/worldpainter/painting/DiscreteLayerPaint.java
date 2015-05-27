@@ -21,8 +21,6 @@ package org.pepsoft.worldpainter.painting;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.layers.Layer;
-import org.pepsoft.worldpainter.brushes.Brush;
-import org.pepsoft.worldpainter.operations.Filter;
 
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_MASK;
@@ -31,8 +29,8 @@ import static org.pepsoft.worldpainter.Constants.TILE_SIZE_MASK;
  * Created by pepijn on 20-05-15.
  */
 public class DiscreteLayerPaint extends LayerPaint {
-    public DiscreteLayerPaint(Layer layer, Filter filter, Brush brush, int value) {
-        super(layer, filter, brush);
+    public DiscreteLayerPaint(Layer layer, int value) {
+        super(layer);
         if ((layer.getDataSize() != Layer.DataSize.NIBBLE) && (layer.getDataSize() != Layer.DataSize.BYTE)) {
             throw new IllegalArgumentException("Layer " + layer + " not a continuous layer");
         }

@@ -19,8 +19,8 @@
 package org.pepsoft.worldpainter.painting;
 
 import org.pepsoft.worldpainter.Terrain;
-import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.brushes.Brush;
+import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.operations.Filter;
 
 /**
@@ -31,30 +31,30 @@ public final class PaintFactory {
         // Prevent instantiation
     }
 
-    public static Paint createLayerPaint(Filter filter, Brush brush, Layer layer) {
+    public static Paint createLayerPaint(Layer layer) {
         switch (layer.getDataSize()) {
             case BIT:
             case BIT_PER_CHUNK:
-                return new BitLayerPaint(filter, brush, layer);
+                return new BitLayerPaint(layer);
             case NIBBLE:
-                return new NibbleLayerPaint(filter, brush, layer);
+                return new NibbleLayerPaint(layer);
             default:
                 throw new UnsupportedOperationException("Data size " + layer.getDataSize() + " not supported");
         }
     }
 
-    public static Paint createDiscreteLayerPaint(Filter filter, Brush brush, Layer layer, int value) {
+    public static Paint createDiscreteLayerPaint(Layer layer, int value) {
         switch (layer.getDataSize()) {
             case NIBBLE:
             case BYTE:
-                return new DiscreteLayerPaint(layer, filter, brush, value);
+                return new DiscreteLayerPaint(layer, value);
             default:
                 throw new UnsupportedOperationException("Data size " + layer.getDataSize() + " not supported");
         }
     }
 
-    public static Paint createTerrainPaint(Filter filter, Brush brush, Terrain terrain) {
-        return new TerrainPaint(brush, filter, terrain);
+    public static Paint createTerrainPaint(Terrain terrain) {
+        return new TerrainPaint(terrain);
     }
 
     public static void updatePaint(Paint paint, Brush brush) {

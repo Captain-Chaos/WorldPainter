@@ -22,7 +22,8 @@ import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.MapDragControl;
 import org.pepsoft.worldpainter.RadiusControl;
 import org.pepsoft.worldpainter.WorldPainterView;
-import org.pepsoft.worldpainter.painting.DimensionPainter;
+import org.pepsoft.worldpainter.painting.*;
+import org.pepsoft.worldpainter.painting.Paint;
 
 import java.awt.*;
 
@@ -101,8 +102,7 @@ public class Pencil extends PaintOperation {
     }
 
     @Override
-    protected void paintChanged() {
-        super.paintChanged();
+    protected void paintChanged(Paint newPaint) {
         painter.setPaint(getPaint());
     }
 

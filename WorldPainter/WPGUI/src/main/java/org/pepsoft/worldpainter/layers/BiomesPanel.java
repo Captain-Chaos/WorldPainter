@@ -1,54 +1,36 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-package org.pepsoft.worldpainter.operations;
+package org.pepsoft.worldpainter.layers;
 
+import org.pepsoft.util.IconUtils;
+import org.pepsoft.worldpainter.ColourScheme;
+import org.pepsoft.worldpainter.biomeschemes.*;
+
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumSet;
+import java.util.*;
 import java.util.List;
-import java.util.Random;
-import java.util.Set;
-import javax.swing.*;
 
-import org.pepsoft.util.IconUtils;
-import org.pepsoft.worldpainter.ColourScheme;
-import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.MapDragControl;
-import org.pepsoft.worldpainter.RadiusControl;
-import org.pepsoft.worldpainter.WorldPainterView;
-import org.pepsoft.worldpainter.biomeschemes.*;
-import org.pepsoft.worldpainter.layers.Biome;
-import static org.pepsoft.worldpainter.biomeschemes.AutoBiomeScheme.*;
-
-import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager.CustomBiomeListener;
-import static org.pepsoft.worldpainter.operations.BiomePaint.BiomeOption.*;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.*;
+import static org.pepsoft.worldpainter.layers.BiomesPanel.BiomeOption.*;
 
 /**
- *
- * @author pepijn
+ * Created by pepijn on 27-05-15.
  */
-public class BiomePaint extends LayerPaint implements CustomBiomeListener {
-    public BiomePaint(WorldPainterView view, RadiusControl radiusControl, MapDragControl mapDragControl, ColourScheme colourScheme, CustomBiomeManager customBiomeManager) {
-        super(view, radiusControl, mapDragControl, Biome.INSTANCE);
-        biomeHelper = new BiomeHelper(BIOME_SCHEME, colourScheme, customBiomeManager);
-        optionsPanel = createOptionsPanel(colourScheme);
+public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiomeListener {
+    public BiomesPanel(ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Listener listener) {
         this.customBiomeManager = customBiomeManager;
+        this.listener = listener;
+        biomeHelper = new BiomeHelper(BIOME_SCHEME, colourScheme, customBiomeManager);
+
+        initComponents(colourScheme);
+
         customBiomeManager.addListener(this);
-    }
-    
-    public Component getOptionsPanel() {
-        return optionsPanel;
     }
 
     // CustomBiomeListener
-    
+
     @Override
     public void customBiomeAdded(CustomBiome customBiome) {
         addButton(customBiome);
@@ -74,6 +56,7 @@ public class BiomePaint extends LayerPaint implements CustomBiomeListener {
                 if (button.isSelected()) {
                     button.setSelected(false);
                     selectedBiome = BIOME_PLAINS;
+                    notifyListener();
                 }
                 grid.remove(component);
                 forceRepaint();
@@ -82,38 +65,14 @@ public class BiomePaint extends LayerPaint implements CustomBiomeListener {
         }
     }
 
-    @Override
-    protected void tick(int centreX, int centreY, boolean inverse, boolean first, float dynamicLevel) {
-        Dimension dimension = getDimension();
-        dimension.setEventsInhibited(true);
-        try {
-            int radius = getEffectiveRadius();
-            for (int x = centreX - radius; x <= centreX + radius; x++) {
-                for (int y = centreY - radius; y <= centreY + radius; y++) {
-                    float strength = dynamicLevel * getStrength(centreX, centreY, x, y);
-                    if ((strength > 0.95f) || (random.nextFloat() < strength)) {
-                        if (inverse) {
-                            dimension.setLayerValueAt(Biome.INSTANCE, x, y, 255);
-                        } else {
-                            dimension.setLayerValueAt(Biome.INSTANCE, x, y, selectedBiome);
-                        }
-                    }
-                }
-            }
-        } finally {
-            dimension.setEventsInhibited(false);
-        }
-    }
-
-    private JPanel createOptionsPanel(ColourScheme colourScheme) {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
+    private void initComponents(ColourScheme colourScheme) {
+        setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
 
         label1.setHorizontalTextPosition(JLabel.LEADING);
         label1.setAlignmentX(0.0f);
-        panel.add(label1);
+        add(label1);
         label2.setAlignmentX(0.0f);
-        panel.add(label2);
+        add(label2);
 
         for (int i = 0; i < BIOME_ORDER.length; i++) {
             final int biome = BIOME_ORDER[i];
@@ -153,14 +112,14 @@ public class BiomePaint extends LayerPaint implements CustomBiomeListener {
                 grid.add(new JLabel());
             }
         }
-        
+
         JButton addCustomBiomeButton = new JButton(IconUtils.loadIcon("org/pepsoft/worldpainter/icons/plus.png"));
         addCustomBiomeButton.setMargin(new Insets(2, 2, 2, 2));
         addCustomBiomeButton.setToolTipText("Add a custom biome");
         addCustomBiomeButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                final Window parent = SwingUtilities.getWindowAncestor(optionsPanel);
+                final Window parent = SwingUtilities.getWindowAncestor(BiomesPanel.this);
                 final int id = customBiomeManager.getNextId();
                 if (id == -1) {
                     JOptionPane.showMessageDialog(parent, "Maximum number of custom biomes reached", "Maximum Reached", JOptionPane.ERROR_MESSAGE);
@@ -176,14 +135,14 @@ public class BiomePaint extends LayerPaint implements CustomBiomeListener {
         });
         grid.add(addCustomBiomeButton);
         grid.setAlignmentX(0.0f);
-        panel.add(grid);
-        
+        add(grid);
+
         checkBoxHillsShore.setEnabled(false);
         checkBoxEdgePlateau.setEnabled(false);
         checkBoxM.setEnabled(false);
         checkBoxF.setEnabled(false);
         checkBoxVariant.setEnabled(false);
-        
+
         ActionListener optionActionListener = new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -195,30 +154,27 @@ public class BiomePaint extends LayerPaint implements CustomBiomeListener {
         checkBoxM.addActionListener(optionActionListener);
         checkBoxF.addActionListener(optionActionListener);
         checkBoxVariant.addActionListener(optionActionListener);
-        
-        panel.add(checkBoxHillsShore);
+
+        add(checkBoxHillsShore);
         checkBoxEdgePlateau.setAlignmentX(0.0f);
-        panel.add(checkBoxEdgePlateau);
+        add(checkBoxEdgePlateau);
         JPanel lowerRowPanel = new JPanel();
         lowerRowPanel.setLayout(new BoxLayout(lowerRowPanel, BoxLayout.LINE_AXIS));
         lowerRowPanel.add(checkBoxM);
         lowerRowPanel.add(checkBoxF);
         lowerRowPanel.add(checkBoxVariant);
         lowerRowPanel.setAlignmentX(0.0f);
-        panel.add(lowerRowPanel);
-        
-        updateOptions();
-        
-        return panel;
+        add(lowerRowPanel);
     }
-    
+
     private void selectBaseBiome(int biome) {
         selectedBaseBiome = biome;
         selectedBiome = biome;
+        notifyListener();
         resetOptions();
         updateLabels();
     }
-    
+
     private void resetOptions() {
         checkBoxHillsShore.setSelected(false);
         checkBoxEdgePlateau.setSelected(false);
@@ -232,10 +188,11 @@ public class BiomePaint extends LayerPaint implements CustomBiomeListener {
         checkBoxF.setEnabled(availableOptions.contains(F));
         checkBoxVariant.setEnabled(availableOptions.contains(VARIANT));
     }
-    
+
     private void updateOptions() {
         Set<BiomeOption> selectedOptions = getSelectedOptions();
         selectedBiome = findBiome(selectedBaseBiome, selectedOptions);
+        notifyListener();
         Set<BiomeOption> availableOptions = findAvailableOptions(selectedBaseBiome, selectedOptions);
         checkBoxHillsShore.setEnabled(availableOptions.contains(HILLS_SHORE));
         checkBoxEdgePlateau.setEnabled(availableOptions.contains(EDGE_PLATEAU));
@@ -244,7 +201,7 @@ public class BiomePaint extends LayerPaint implements CustomBiomeListener {
         checkBoxVariant.setEnabled(availableOptions.contains(VARIANT));
         updateLabels();
     }
-    
+
     private Set<BiomeOption> getSelectedOptions() {
         Set<BiomeOption> selectedOptions = EnumSet.noneOf(BiomeOption.class);
         if (checkBoxHillsShore.isSelected()) {
@@ -264,11 +221,11 @@ public class BiomePaint extends LayerPaint implements CustomBiomeListener {
         }
         return selectedOptions;
     }
-    
+
     /**
      * Find the actual biome ID for a specific base biome and a set of selected
      * options.
-     * 
+     *
      * @param baseId The base ID of the biome.
      * @param options The selected options.
      * @return The actual biome ID for the specified base biome and options.
@@ -283,13 +240,13 @@ public class BiomePaint extends LayerPaint implements CustomBiomeListener {
         }
         throw new IllegalArgumentException("There is no biome with base ID " + baseId + " and options " + options);
     }
-    
+
     private void updateLabels() {
         label1.setText("Selected biome: " + selectedBiome);
         label1.setIcon(biomeHelper.getBiomeIcon(selectedBiome));
         label2.setText(biomeHelper.getBiomeName(selectedBiome));
     }
-    
+
     private void addButton(CustomBiome customBiome) {
         final int biome = customBiome.getId();
         final JToggleButton button = new JToggleButton(new ImageIcon(createIcon(customBiome.getColour())));
@@ -308,15 +265,15 @@ public class BiomePaint extends LayerPaint implements CustomBiomeListener {
         grid.add(button, grid.getComponentCount() - 1);
         forceRepaint();
     }
-    
+
     private void forceRepaint() {
         // Not sure why this is necessary. Swing bug?
-        Window parent = SwingUtilities.getWindowAncestor(optionsPanel);
+        Window parent = SwingUtilities.getWindowAncestor(this);
         if (parent != null) {
             parent.validate();
         }
     }
-    
+
     public static BufferedImage createIcon(int colour) {
         BufferedImage iconImage = new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB);
         for (int x = 0; x < 16; x++) {
@@ -334,7 +291,7 @@ public class BiomePaint extends LayerPaint implements CustomBiomeListener {
     /**
      * Find the available biome options given a particular base biome and a set
      * of already selected options.
-     * 
+     *
      * @param baseId The ID of the base biome.
      * @param options The already selected options. May be <code>null</code> or
      *     empty.
@@ -349,7 +306,7 @@ public class BiomePaint extends LayerPaint implements CustomBiomeListener {
                     availableOptions.addAll(descriptor.getOptions());
                 }
             }
-            
+
             // Special cases
             if (baseId == BIOME_MESA) {
                 if ((options == null) || options.isEmpty()) {
@@ -363,16 +320,16 @@ public class BiomePaint extends LayerPaint implements CustomBiomeListener {
                     availableOptions.remove(EDGE_PLATEAU);
                 }
             }
-            
+
             return availableOptions;
         } else {
             return Collections.EMPTY_SET;
         }
     }
-    
+
     /**
      * Find the IDs of all variants of the specified base biome.
-     * 
+     *
      * @param baseId The ID of the base biome.
      * @return The IDs of all variants of the specified base biome (including
      *     the base biome itself).
@@ -387,7 +344,11 @@ public class BiomePaint extends LayerPaint implements CustomBiomeListener {
         return variants;
     }
 
-    private final JPanel optionsPanel, grid = new JPanel(new GridLayout(0, 4));
+    private void notifyListener() {
+        listener.biomeSelected(selectedBiome);
+    }
+
+    private final JPanel grid = new JPanel(new GridLayout(0, 4));
     private final ButtonGroup buttonGroup = new ButtonGroup();
     private final JCheckBox checkBoxHillsShore = new JCheckBox("hills/shore");
     private final JCheckBox checkBoxEdgePlateau = new JCheckBox("edge/plateau");
@@ -396,11 +357,11 @@ public class BiomePaint extends LayerPaint implements CustomBiomeListener {
     private final JCheckBox checkBoxVariant = new JCheckBox("variant");
     private final JLabel label1 = new JLabel("Selected biome: 1"), label2 = new JLabel("Plains");
 
-    private final Random random = new Random();
     private final CustomBiomeManager customBiomeManager;
     private final BiomeHelper biomeHelper;
+    private final Listener listener;
     private int selectedBiome = BIOME_PLAINS, selectedBaseBiome = BIOME_PLAINS;
-    
+
     private static final AutoBiomeScheme BIOME_SCHEME = new AutoBiomeScheme(null);
     private static final int[] BIOME_ORDER = {
         BIOME_PLAINS, BIOME_FOREST, BIOME_SWAMPLAND, BIOME_JUNGLE,
@@ -411,8 +372,8 @@ public class BiomePaint extends LayerPaint implements CustomBiomeListener {
         BIOME_FROZEN_OCEAN, BIOME_FROZEN_RIVER, BIOME_COLD_BEACH, BIOME_ICE_PLAINS,
         BIOME_ICE_MOUNTAINS, BIOME_COLD_TAIGA, BIOME_HELL, BIOME_SKY
     };
-    private static final String KEY_BIOME = BiomePaint.class.getName() + ".biome";
-    
+    private static final String KEY_BIOME = BiomesPanel.class.getName() + ".biome";
+
     private static final BiomeDescriptor[] DESCRIPTORS = {
         new BiomeDescriptor("Ocean", 0, 0),
         new BiomeDescriptor("Plains", 1, 1),
@@ -476,9 +437,9 @@ public class BiomePaint extends LayerPaint implements CustomBiomeListener {
         new BiomeDescriptor("Mesa Plateau F M", 166, 37, EDGE_PLATEAU, F, M),
         new BiomeDescriptor("Mesa Plateau M", 167, 37, EDGE_PLATEAU, M),
     };
-    
+
     public enum BiomeOption {HILLS_SHORE, EDGE_PLATEAU, M, F, VARIANT}
-    
+
     public static class BiomeDescriptor {
         public BiomeDescriptor(String name, int id, int baseId, BiomeOption... options) {
             this.name = name;
@@ -502,9 +463,13 @@ public class BiomePaint extends LayerPaint implements CustomBiomeListener {
         public Set<BiomeOption> getOptions() {
             return options;
         }
-        
+
         private final String name;
         private final int id, baseId;
         private final Set<BiomeOption> options;
+    }
+
+    public interface Listener {
+        void biomeSelected(int biomeId);
     }
 }

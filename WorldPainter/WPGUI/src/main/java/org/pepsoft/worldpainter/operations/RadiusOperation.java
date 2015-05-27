@@ -62,7 +62,7 @@ public abstract class RadiusOperation extends MouseOrTabletOperation {
             brush.setRadius(radius);
             brush.setLevel(getLevel());
         }
-        brushChanged();
+        brushChanged(brush);
     }
 
     public final int getEffectiveRadius() {
@@ -76,7 +76,7 @@ public abstract class RadiusOperation extends MouseOrTabletOperation {
         this.radius = radius;
         if (brush != null) {
             brush.setRadius(radius);
-            brushChanged();
+            brushChanged(brush);
         }
     }
 
@@ -163,7 +163,7 @@ public abstract class RadiusOperation extends MouseOrTabletOperation {
         super.deactivate();
     }
     
-    protected void brushChanged() {
+    protected void brushChanged(Brush newBrush) {
         // Do nothing
     }
 

@@ -21,10 +21,9 @@ package org.pepsoft.worldpainter.painting;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.layers.Layer;
-import org.pepsoft.worldpainter.brushes.Brush;
-import org.pepsoft.worldpainter.operations.Filter;
 
-import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE_MASK;
 
 /**
  * Paint which paints a nibble sized layer using a brush, with undo and dynamic level supports.
@@ -32,8 +31,8 @@ import static org.pepsoft.worldpainter.Constants.*;
  * Created by pepijn on 15-05-15.
  */
 public class NibbleLayerPaint extends LayerPaint {
-    public NibbleLayerPaint(Filter filter, Brush brush, Layer layer) {
-        super(layer, filter, brush);
+    public NibbleLayerPaint(Layer layer) {
+        super(layer);
         if (layer.getDataSize() != Layer.DataSize.NIBBLE) {
             throw new IllegalArgumentException("Layer " + layer + " not nibble-sized");
         }

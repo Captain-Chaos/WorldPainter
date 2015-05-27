@@ -22,8 +22,6 @@ import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.Tile;
-import org.pepsoft.worldpainter.brushes.Brush;
-import org.pepsoft.worldpainter.operations.Filter;
 
 import java.awt.image.BufferedImage;
 
@@ -34,8 +32,7 @@ import static org.pepsoft.worldpainter.Constants.TILE_SIZE_MASK;
  * Created by pepijn on 20-05-15.
  */
 public class TerrainPaint extends AbstractPaint {
-    public TerrainPaint(Brush brush, Filter filter, Terrain terrain) {
-        super(brush, filter);
+    public TerrainPaint(Terrain terrain) {
         this.terrain = terrain;
     }
 

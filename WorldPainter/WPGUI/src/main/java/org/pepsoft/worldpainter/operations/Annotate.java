@@ -10,6 +10,7 @@ import org.pepsoft.minecraft.Constants;
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.brushes.Brush;
 import org.pepsoft.worldpainter.layers.Annotations;
 import org.pepsoft.worldpainter.painting.DimensionPainter;
 import org.pepsoft.worldpainter.painting.PaintFactory;
@@ -48,9 +49,9 @@ public class Annotate extends LayerPaint {
     }
 
     @Override
-    protected void brushChanged() {
-        super.brushChanged();
-        painter.setPaint(PaintFactory.createDiscreteLayerPaint(getFilter(), getBrush(), Annotations.INSTANCE, currentColour));
+    protected void brushChanged(Brush newBrush) {
+        super.brushChanged(newBrush);
+        painter.setPaint(PaintFactory.createDiscreteLayerPaint(Annotations.INSTANCE, currentColour));
     }
     
     private JPanel createOptionsPanel(ColourScheme colourScheme) {
@@ -288,7 +289,7 @@ public class Annotate extends LayerPaint {
                     dimension.setLayerSettings(Annotations.INSTANCE, settings);
                     painter.setFont(font);
                     painter.setTextAngle(dialog.getSelectedAngle());
-                    painter.setPaint(PaintFactory.createDiscreteLayerPaint(getFilter(), getBrush(), Annotations.INSTANCE, currentColour));
+                    painter.setPaint(PaintFactory.createDiscreteLayerPaint(Annotations.INSTANCE, currentColour));
                     savedText = dialog.getText();
                     dimension.setEventsInhibited(true);
                     try {

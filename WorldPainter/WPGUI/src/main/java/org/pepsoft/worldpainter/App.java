@@ -17,7 +17,10 @@ import org.pepsoft.util.swing.ProgressDialog;
 import org.pepsoft.util.swing.ProgressTask;
 import org.pepsoft.util.swing.TiledImageViewerContainer;
 import org.pepsoft.util.undo.UndoManager;
-import org.pepsoft.worldpainter.biomeschemes.*;
+import org.pepsoft.worldpainter.biomeschemes.AutoBiomeScheme;
+import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
+import org.pepsoft.worldpainter.biomeschemes.CustomBiome;
+import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager.CustomBiomeListener;
 import org.pepsoft.worldpainter.brushes.BitmapBrush;
 import org.pepsoft.worldpainter.brushes.Brush;
@@ -42,6 +45,7 @@ import org.pepsoft.worldpainter.layers.tunnel.TunnelLayer;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayerDialog;
 import org.pepsoft.worldpainter.objects.AbstractObject;
 import org.pepsoft.worldpainter.operations.*;
+import org.pepsoft.worldpainter.painting.DiscreteLayerPaint;
 import org.pepsoft.worldpainter.painting.Paint;
 import org.pepsoft.worldpainter.painting.PaintFactory;
 import org.pepsoft.worldpainter.panels.BrushOptions;
@@ -115,6 +119,7 @@ public final class App extends JFrame implements RadiusControl,
             new DynMapColourScheme("misa", true),
             new DynMapColourScheme("sphax", true)
         };
+        defaultColourScheme = colourSchemes[0];
         Configuration config = Configuration.getInstance();
         selectedColourScheme = colourSchemes[config.getColourschemeIndex()];
         operations = OperationManager.getInstance().getOperations();
@@ -575,7 +580,6 @@ public final class App extends JFrame implements RadiusControl,
             heightLabel.setText(MessageFormat.format(strings.getString("height.0.of.1"), height, dimension.getMaxHeight() - 1));
         }
         if ((activeOperation instanceof LayerPaint)
-                && (! (activeOperation instanceof BiomePaint))
                 && (! (activeOperation instanceof Annotate))) {
             Layer layer = ((LayerPaint) activeOperation).getLayer();
             switch (layer.getDataSize()) {
@@ -1163,7 +1167,6 @@ public final class App extends JFrame implements RadiusControl,
         if (activeOperation instanceof RadiusOperation) {
             ((RadiusOperation) activeOperation).setFilter(filter);
         }
-        paintUpdater.updatePaint();
     }
 
     public CustomBiomeManager getCustomBiomeManager() {
@@ -1846,11 +1849,16 @@ public final class App extends JFrame implements RadiusControl,
 
         dockingManager.addFrame(createDockableFrame(createLayerPanel(), "Layers", DOCK_SIDE_WEST, 3));
 
-        dockingManager.addFrame(createDockableFrame(createTerrainPanel(), "Terrain", DOCK_SIDE_WEST, 4));
-        dockingManager.addFrame(createDockableFrame(createExtraTerrainPanel(), "stainedClays", "Stained Clays", DOCK_SIDE_WEST, 4));
+        dockingManager.addFrame(createDockableFrame(createTerrainPanel(), "Terrain", DOCK_SIDE_WEST, 3));
+        dockingManager.addFrame(createDockableFrame(createExtraTerrainPanel(), "stainedClays", "Stained Clays", DOCK_SIDE_WEST, 3));
 
-        dockingManager.addFrame(createDockableFrame(createCustomTerrainPanel(), "customTerrain", "Custom Terrain", DOCK_SIDE_WEST, 4));
-        
+        dockingManager.addFrame(createDockableFrame(createCustomTerrainPanel(), "customTerrain", "Custom Terrain", DOCK_SIDE_WEST, 3));
+
+        biomesPanel = createDockableFrame(createBiomesPanel(), "Biomes", DOCK_SIDE_WEST, 3);
+        dockingManager.addFrame(biomesPanel);
+
+        dockingManager.addFrame(createDockableFrame(createAnnotationsPanel(), "Annotations", DOCK_SIDE_WEST, 3));
+
         dockingManager.addFrame(createDockableFrame(createBrushPanel(), "Brushes", DOCK_SIDE_EAST, 1));
         
         if (customBrushes.containsKey(CUSTOM_BRUSHES_DEFAULT_TITLE)) {
@@ -1865,14 +1873,6 @@ public final class App extends JFrame implements RadiusControl,
         
         dockingManager.addFrame(createDockableFrame(createBrushSettingsPanel(), "brushSettings", "Brush Settings", DOCK_SIDE_EAST, 2));
 
-        biomesToolBar = createDockableFrame(biomePaintOp.getOptionsPanel(), "Biomes", DOCK_SIDE_WEST, 4);
-        biomesToolBar.setInitMode(DockContext.STATE_HIDDEN);
-        dockingManager.addFrame(biomesToolBar);
-        
-        annotationsToolBar = createDockableFrame(annotateOp.getOptionsPanel(), "Annotations", DOCK_SIDE_WEST, 4);
-        annotationsToolBar.setInitMode(DockContext.STATE_HIDDEN);
-        dockingManager.addFrame(annotationsToolBar);
-        
         Configuration config = Configuration.getInstance();
         if (config.getDefaultJideLayoutData() != null) {
             dockingManager.loadLayoutFrom(new ByteArrayInputStream(config.getDefaultJideLayoutData()));
@@ -2142,17 +2142,47 @@ public final class App extends JFrame implements RadiusControl,
         constraints.anchor = GridBagConstraints.FIRST_LINE_START;
         constraints.weightx = 0.0;
         for (Layer layer: layers) {
-            LayoutUtils.addRowOfComponents(layerPanel, constraints, createButtonForOperation(new LayerPaint(view, this, mapDragControl, layer), (layer.getIcon() != null) ? new ImageIcon(layer.getIcon()) : null, layer.getMnemonic(), true));
+            LayoutUtils.addRowOfComponents(layerPanel, constraints, createLayerButton(layer, layer.getMnemonic(), true));
         }
         if (! config.isEasyMode()) {
-            LayoutUtils.addRowOfComponents(layerPanel, constraints, createButtonForOperation(new LayerPaint(view, this, mapDragControl, Populate.INSTANCE), "populate", 'p', true));
+            LayoutUtils.addRowOfComponents(layerPanel, constraints, createLayerButton(Populate.INSTANCE, 'p', true));
         }
-        LayoutUtils.addRowOfComponents(layerPanel, constraints, createButtonForOperation(new LayerPaint(view, this, mapDragControl, ReadOnly.INSTANCE), "readonly", 'o', true));
+        LayoutUtils.addRowOfComponents(layerPanel, constraints, createLayerButton(ReadOnly.INSTANCE, 'o', true));
         disableImportedWorldOperation();
 
+        final JPopupMenu customLayerMenu = createCustomLayerMenu(null);
 
-        // Biomes
-        
+        final JButton addLayerButton = new JButton(loadIcon("plus"));
+        addLayerButton.setToolTipText(strings.getString("add.a.custom.layer"));
+        addLayerButton.setMargin(new Insets(2, 2, 2, 2));
+        addLayerButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                customLayerMenu.show(layerPanel, addLayerButton.getX() + addLayerButton.getWidth(), addLayerButton.getY());
+            }
+        });
+        JPanel spacer = new JPanel();
+        constraints.gridwidth = 1;
+        constraints.weightx = 0.0;
+        layerPanel.add(spacer, constraints);
+        spacer = new JPanel();
+        layerPanel.add(spacer, constraints);
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
+        constraints.weightx = 1.0;
+        layerPanel.add(addLayerButton, constraints);
+
+        return layerPanel;
+    }
+
+    private JPanel createBiomesPanel() {
+        final JPanel layerPanel = new JPanel();
+        layerPanel.setLayout(new GridBagLayout());
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.insets = new Insets(1, 1, 1, 1);
+
+        Configuration config = Configuration.getInstance();
+        constraints.anchor = GridBagConstraints.FIRST_LINE_START;
+        constraints.weightx = 0.0;
         biomesCheckBox = new JCheckBox();
         biomesCheckBox.setToolTipText(strings.getString("whether.or.not.to.display.this.layer"));
         biomesCheckBox.addActionListener(new ActionListener() {
@@ -2192,22 +2222,36 @@ public final class App extends JFrame implements RadiusControl,
         });
         layerSoloCheckBoxes.put(Biome.INSTANCE, biomesSoloCheckBox);
         if (! config.isEasyMode()) {
+            constraints.gridwidth = GridBagConstraints.REMAINDER;
             layerPanel.add(biomesSoloCheckBox, constraints);
         }
 
-        // Always use default colours for biomes:
-        biomePaintOp = new BiomePaint(view, instance, mapDragControl, colourSchemes[0], customBiomeManager);
-        biomesToggleButton = (JToggleButton) createButtonForOperation(biomePaintOp, "biome", 'b', false).get(0);
-        biomesToggleButton.setText(strings.getString("biomes"));
-        if (! config.isEasyMode()) {
-            constraints.gridwidth = GridBagConstraints.REMAINDER;
-            constraints.weightx = 1.0;
-            layerPanel.add(biomesToggleButton, constraints);
-        }
+        layerPanel.add(new BiomesPanel(defaultColourScheme, customBiomeManager, new BiomesPanel.Listener() {
+            @Override
+            public void biomeSelected(final int biomeId) {
+                paintUpdater = new PaintUpdater() {
+                    @Override
+                    public void updatePaint() {
+                        paint = PaintFactory.createDiscreteLayerPaint(Biome.INSTANCE, biomeId);
+                        paintChanged();
+                    }
+                };
+                paintUpdater.updatePaint();
+            }
+        }), constraints);
 
-        
-        // Annotations
-        
+        return layerPanel;
+    }
+
+    private JPanel createAnnotationsPanel() {
+        final JPanel layerPanel = new JPanel();
+        layerPanel.setLayout(new GridBagLayout());
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.insets = new Insets(1, 1, 1, 1);
+
+        Configuration config = Configuration.getInstance();
+        constraints.anchor = GridBagConstraints.FIRST_LINE_START;
+        constraints.weightx = 0.0;
         annotationsCheckBox = new JCheckBox();
         annotationsCheckBox.setSelected(true);
         annotationsCheckBox.setToolTipText(strings.getString("whether.or.not.to.display.this.layer"));
@@ -2251,8 +2295,8 @@ public final class App extends JFrame implements RadiusControl,
             layerPanel.add(annotationsSoloCheckBox, constraints);
         }
 
-        annotateOp = new Annotate(view, instance, mapDragControl, selectedColourScheme);
-        annotationsToggleButton = (JToggleButton) createButtonForOperation(annotateOp, "annotations");
+        Annotate annotateOp = new Annotate(view, instance, mapDragControl, selectedColourScheme);
+        JToggleButton annotationsToggleButton = (JToggleButton) createButtonForOperation(annotateOp, "annotations");
         annotationsToggleButton.setText("Annotations");
         if (! config.isEasyMode()) {
             constraints.gridwidth = GridBagConstraints.REMAINDER;
@@ -2260,28 +2304,6 @@ public final class App extends JFrame implements RadiusControl,
             layerPanel.add(annotationsToggleButton, constraints);
         }
 
-        
-        final JPopupMenu customLayerMenu = createCustomLayerMenu(null);
-        
-        final JButton addLayerButton = new JButton(loadIcon("plus"));
-        addLayerButton.setToolTipText(strings.getString("add.a.custom.layer"));
-        addLayerButton.setMargin(new Insets(2, 2, 2, 2));
-        addLayerButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                customLayerMenu.show(layerPanel, addLayerButton.getX() + addLayerButton.getWidth(), addLayerButton.getY());
-            }
-        });
-        JPanel spacer = new JPanel();
-        constraints.gridwidth = 1;
-        constraints.weightx = 0.0;
-        layerPanel.add(spacer, constraints);
-        spacer = new JPanel();
-        layerPanel.add(spacer, constraints);
-        constraints.gridwidth = GridBagConstraints.REMAINDER;
-        constraints.weightx = 1.0;
-        layerPanel.add(addLayerButton, constraints);
-        
         return layerPanel;
     }
     
@@ -2585,7 +2607,6 @@ public final class App extends JFrame implements RadiusControl,
                         }
                     }
                     brush.setLevel(newLevel);
-                    paintUpdater.updatePaint();
                 }
             }
         });
@@ -2608,7 +2629,6 @@ public final class App extends JFrame implements RadiusControl,
                         toolBrushRotation = value;
                     }
                     updateBrushRotation();
-                    paintUpdater.updatePaint();
                 }
             }
         });
@@ -4121,9 +4141,7 @@ public final class App extends JFrame implements RadiusControl,
                             }
                         }
                     }
-                    if (operation instanceof BiomePaint) {
-                        dockingManager.hideFrame("biomes");
-                    } else if (operation instanceof Annotate) {
+                    if (operation instanceof Annotate) {
                         dockingManager.hideFrame("annotations");
                     }
                     operation.setActive(false);
@@ -4151,9 +4169,7 @@ public final class App extends JFrame implements RadiusControl,
                             }
                             brushOptions.setFilter(toolFilter);
                         }
-                        if (operation instanceof BiomePaint) {
-                            dockingManager.showFrame("biomes");
-                        } else if (operation instanceof Annotate) {
+                        if (operation instanceof Annotate) {
                             dockingManager.showFrame("annotations");
                         }
                         if (operation instanceof RadiusOperation) {
@@ -4249,85 +4265,85 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
 
-    private JToggleButton createPaintButton(final Layer layer) {
-        JToggleButton button = new JToggleButton();
-        paintButtonGroup.add(button);
+    private List<Component> createLayerButton(final Layer layer, char mnemonic, boolean checkboxEnabled) {
+        boolean readOnlyOperation = layer.equals(ReadOnly.INSTANCE);
+        final JToggleButton button = new JToggleButton();
+        if (readOnlyOperation) {
+            readOnlyToggleButton = button;
+        }
+        button.setMargin(new Insets(2, 2, 2, 2));
         button.setIcon(new ImageIcon(layer.getIcon()));
+        button.setToolTipText(layer.getName() + ": " + layer.getDescription());
+        if (mnemonic != 0) {
+            button.setMnemonic(mnemonic);
+        }
+        button.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent event) {
+                if (event.getStateChange() == ItemEvent.SELECTED) {
+                    paintUpdater = new PaintUpdater() {
+                        @Override
+                        public void updatePaint() {
+                            paint = PaintFactory.createLayerPaint(layer);
+                            paintChanged();
+                        }
+                    };
+                    paintUpdater.updatePaint();
+                }
+            }
+        });
+        paintButtonGroup.add(button);
+        final JCheckBox checkBox = new JCheckBox();
+        if (readOnlyOperation) {
+            readOnlyCheckBox = checkBox;
+        }
+        checkBox.setToolTipText(strings.getString("whether.or.not.to.display.this.layer"));
+        checkBox.setSelected(true);
+        if (checkboxEnabled) {
+            checkBox.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if (checkBox.isSelected()) {
+                        hiddenLayers.remove(layer);
+                    } else {
+                        hiddenLayers.add(layer);
+                    }
+                    updateLayerVisibility();
+                }
+            });
+        } else {
+            checkBox.setEnabled(false);
+        }
+
+        final JCheckBox soloCheckBox = new JCheckBox();
+        if (readOnlyOperation) {
+            readOnlySoloCheckBox = soloCheckBox;
+        }
+        layerSoloCheckBoxes.put(layer, soloCheckBox);
+        soloCheckBox.setToolTipText("<html>Check to show <em>only</em> this layer (the other layers are still exported)</html>");
+        if (checkboxEnabled) {
+            soloCheckBox.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if (soloCheckBox.isSelected()) {
+                        for (JCheckBox otherSoloCheckBox: layerSoloCheckBoxes.values()) {
+                            if (otherSoloCheckBox != soloCheckBox) {
+                                otherSoloCheckBox.setSelected(false);
+                            }
+                        }
+                        soloLayer = layer;
+                    } else {
+                        soloLayer = null;
+                    }
+                    updateLayerVisibility();
+                }
+            });
+        } else {
+            soloCheckBox.setEnabled(false);
+        }
+
         button.setText(layer.getName());
-        button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                paintUpdater = new PaintUpdater() {
-                    @Override
-                    public void updatePaint() {
-                        paint = PaintFactory.createLayerPaint(filter, brush, layer);
-                        paintChanged();
-                    }
-                };
-                paintUpdater.updatePaint();
-            }
-        });
-        return button;
-    }
-
-    private JToggleButton createPaintButton(final Terrain terrain) {
-        JToggleButton button = new JToggleButton();
-        paintButtonGroup.add(button);
-        button.setIcon(new ImageIcon(terrain.getIcon(selectedColourScheme)));
-        button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                paintUpdater = new PaintUpdater() {
-                    @Override
-                    public void updatePaint() {
-                        paint = PaintFactory.createTerrainPaint(filter, brush, terrain);
-                        paintChanged();
-                    }
-                };
-                paintUpdater.updatePaint();
-            }
-        });
-        return button;
-    }
-
-    private JToggleButton createBiomePaintButton(final int biomeId) {
-        JToggleButton button = new JToggleButton();
-        paintButtonGroup.add(button);
-        BiomeHelper biomeHelper = new BiomeHelper(autoBiomeScheme, selectedColourScheme, customBiomeManager);
-        button.setIcon(biomeHelper.getBiomeIcon(biomeId));
-        button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                paintUpdater = new PaintUpdater() {
-                    @Override
-                    public void updatePaint() {
-                        paint = PaintFactory.createDiscreteLayerPaint(filter, brush, Biome.INSTANCE, biomeId);
-                        paintChanged();
-                    }
-                };
-                paintUpdater.updatePaint();
-            }
-        });
-        return button;
-    }
-
-    private JToggleButton createAnnotationPaintButton(final int colourIndex) {
-        JToggleButton button = new JToggleButton();
-        paintButtonGroup.add(button);
-        button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                paintUpdater = new PaintUpdater() {
-                    @Override
-                    public void updatePaint() {
-                        paint = PaintFactory.createDiscreteLayerPaint(filter, brush, Annotations.INSTANCE, colourIndex);
-                        paintChanged();
-                    }
-                };
-                paintUpdater.updatePaint();
-            }
-        });
-        return button;
+        return Arrays.asList((Component) checkBox, soloCheckBox, button);
     }
 
     private void paintChanged() {
@@ -4392,7 +4408,7 @@ public final class App extends JFrame implements RadiusControl,
             public void itemStateChanged(ItemEvent e) {
                 if ((! programmaticChange) && (e.getStateChange() == ItemEvent.SELECTED)) {
                     int effectiveRotation;
-                    if ((activeOperation instanceof TerrainPaint) || (activeOperation instanceof LayerPaint)) {
+                    if ((activeOperation instanceof TerrainPaint) || (activeOperation instanceof LayerPaint) || (activeOperation instanceof PaintOperation)) {
                         App.this.brush = brush;
                         effectiveRotation = brushRotation;
                     } else {
@@ -4578,27 +4594,29 @@ public final class App extends JFrame implements RadiusControl,
                 case DIM_NORMAL:
                     setSpawnPointToggleButton.setEnabled(true);
                     ACTION_MOVE_TO_SPAWN.setEnabled(true);
-                    biomesToggleButton.setEnabled(true);
+                    biomesPanel.setEnabled(true);
                     biomesCheckBox.setEnabled(true);
                     biomesSoloCheckBox.setEnabled(true);
                     break;
                 case DIM_NORMAL_CEILING:
-                    if (activeOperation instanceof BiomePaint) {
-                        deselectTool();
+                    if ((paint instanceof DiscreteLayerPaint) && ((DiscreteLayerPaint) paint).getLayer().equals(Biome.INSTANCE)) {
+                        // TODO: select another paint & panel
                     }
                     setSpawnPointToggleButton.setEnabled(true);
                     ACTION_MOVE_TO_SPAWN.setEnabled(true);
-                    biomesToggleButton.setEnabled(false);
+                    biomesPanel.setEnabled(false);
                     biomesCheckBox.setEnabled(false);
                     biomesSoloCheckBox.setEnabled(false);
                     break;
                 default:
-                    if ((activeOperation instanceof SetSpawnPoint) || (activeOperation instanceof BiomePaint)) {
+                    if (activeOperation instanceof SetSpawnPoint) {
                         deselectTool();
+                    } else if ((paint instanceof DiscreteLayerPaint) && ((DiscreteLayerPaint) paint).getLayer().equals(Biome.INSTANCE)) {
+                        // TODO: select another paint & panel
                     }
                     setSpawnPointToggleButton.setEnabled(false);
                     ACTION_MOVE_TO_SPAWN.setEnabled(false);
-                    biomesToggleButton.setEnabled(false);
+                    biomesPanel.setEnabled(false);
                     biomesCheckBox.setEnabled(false);
                     biomesSoloCheckBox.setEnabled(false);
                     break;
@@ -5854,11 +5872,12 @@ public final class App extends JFrame implements RadiusControl,
     private int zoom = 0, maxRadius = DEFAULT_MAX_RADIUS, brushRotation = 0, toolBrushRotation = 0, previousBrushRotation = 0;
     private GlassPane glassPane;
     private JCheckBox readOnlyCheckBox, biomesCheckBox, annotationsCheckBox, readOnlySoloCheckBox, biomesSoloCheckBox, annotationsSoloCheckBox;
-    private JToggleButton readOnlyToggleButton, biomesToggleButton, annotationsToggleButton, setSpawnPointToggleButton;
+    private JToggleButton readOnlyToggleButton, setSpawnPointToggleButton;
     private JMenuItem addNetherMenuItem, removeNetherMenuItem, addEndMenuItem, removeEndMenuItem, addSurfaceCeilingMenuItem, removeSurfaceCeilingMenuItem, addNetherCeilingMenuItem, removeNetherCeilingMenuItem, addEndCeilingMenuItem, removeEndCeilingMenuItem;
     private JCheckBoxMenuItem viewSurfaceMenuItem, viewNetherMenuItem, viewEndMenuItem, extendedBlockIdsMenuItem, viewSurfaceCeilingMenuItem, viewNetherCeilingMenuItem, viewEndCeilingMenuItem;
     private final JToggleButton[] customMaterialButtons = new JToggleButton[Terrain.CUSTOM_TERRAIN_COUNT];
     private final ColourScheme[] colourSchemes;
+    private final ColourScheme defaultColourScheme;
     private ColourScheme selectedColourScheme;
     private final String[] biomeNames = new String[256];
     private SortedMap<String, List<Brush>> customBrushes;
@@ -5867,9 +5886,7 @@ public final class App extends JFrame implements RadiusControl,
     private ThreeDeeFrame threeDeeFrame;
     private BiomesViewerFrame biomesViewerFrame;
     private MapDragControl mapDragControl;
-    private BiomePaint biomePaintOp;
-    private Annotate annotateOp;
-    private DockableFrame biomesToolBar, annotationsToolBar;
+    private DockableFrame biomesPanel;
     private final boolean devMode = "true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.devMode")); // NOI18N
     private final boolean alwaysEnableReadOnly = "true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.alwaysEnableReadOnly")); // NOI18N
     private final BiomeScheme autoBiomeScheme = new AutoBiomeScheme(null);

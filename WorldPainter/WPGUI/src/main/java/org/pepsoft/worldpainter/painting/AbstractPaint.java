@@ -27,8 +27,23 @@ import org.pepsoft.worldpainter.operations.Filter;
  * Created by pepijn on 20-05-15.
  */
 public abstract class AbstractPaint implements Paint {
-    protected AbstractPaint(Brush brush, Filter filter) {
+    @Override
+    public Brush getBrush() {
+        return brush;
+    }
+
+    @Override
+    public void setBrush(Brush brush) {
         this.brush = brush;
+    }
+
+    @Override
+    public Filter getFilter() {
+        return filter;
+    }
+
+    @Override
+    public void setFilter(Filter filter) {
         this.filter = filter;
     }
 
@@ -44,6 +59,6 @@ public abstract class AbstractPaint implements Paint {
             : brush.getFullStrength(centerX, centerY, x, y);
     }
 
-    protected final Brush brush;
-    protected final Filter filter;
+    protected Filter filter;
+    protected Brush brush;
 }
