@@ -34,7 +34,7 @@ import java.awt.*;
  */
 public class Pencil extends PaintOperation {
     public Pencil(WorldPainterView view, RadiusControl radiusControl, MapDragControl mapDragControl) {
-        super("Pencil", "Draw dots and straight or freehand lines with any terrain or layer", view, radiusControl, mapDragControl, "operation.pencil");
+        super("Pencil", "Draw dots and straight or freehand lines with any terrain or layer", view, radiusControl, mapDragControl, 100, "operation.pencil");
     }
 
     @Override
