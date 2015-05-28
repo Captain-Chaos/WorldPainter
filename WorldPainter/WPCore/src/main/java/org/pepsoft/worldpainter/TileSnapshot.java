@@ -78,7 +78,12 @@ public final class TileSnapshot extends Tile {
     }
 
     @Override
-    public void setEventsInhibited(boolean eventsInhibited) {
+    public synchronized void inhibitEvents() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public synchronized void releaseEvents() {
         throw new UnsupportedOperationException();
     }
 

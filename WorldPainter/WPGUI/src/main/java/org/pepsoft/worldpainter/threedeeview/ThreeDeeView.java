@@ -271,16 +271,20 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
     // Dimension.Listener
     
     @Override
-    public void tileAdded(Dimension dimension, Tile tile) {
+    public void tilesAdded(Dimension dimension, Set<Tile> tiles) {
 //        threeDeeRenderManager.renderTile(tile);
-        zSortedTiles.add(tile);
-        tile.addListener(this);
+        zSortedTiles.addAll(tiles);
+        for (Tile tile: tiles) {
+            tile.addListener(this);
+        }
     }
 
     @Override
-    public void tileRemoved(Dimension dimension, Tile tile) {
-        tile.removeListener(this);
-        zSortedTiles.remove(tile);
+    public void tilesRemoved(Dimension dimension, Set<Tile> tiles) {
+        for (Tile tile: tiles) {
+            tile.removeListener(this);
+        }
+        zSortedTiles.removeAll(tiles);
 //        renderedTiles.remove(new Point(tile.getX(), tile.getY()));
         // TODO: the tile will be re-added if it was on the render queue, but
         // since this can currently never happen anyway we will deal with that

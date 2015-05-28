@@ -14,6 +14,18 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
 /**
+ * A utility class for painting basic shapes to dimension using and kind of {@link Paint}.
+ *
+ * <p><strong>Note:</strong> does <em>not</em> do any event inhibitation management. The client should do that by
+ * surrounding use of this class with invocations of {@link Dimension#setEventsInhibited(boolean)}:
+ *
+ * <pre>   dimension.setEventsInhibited(true);
+ * try {
+ *     painter.setDimension(dimension);
+ *     // One or more calls to painting methods...
+ * } finally {
+ *     dimension.setEventsInhibited(false); // Will fire all necessary events
+ * }</pre>
  *
  * @author SchmitzP
  */
@@ -115,28 +127,23 @@ public final class DimensionPainter {
     }
     
     public void drawText(int x, int y, String text) {
-        dimension.setEventsInhibited(true);
-        try {
-            String[] lines = text.split("\\n");
-            for (String line: lines) {
-                int lineHeight = drawTextLine(x, y, line);
-                switch (textAngle) {
-                    case 0:
-                        y += lineHeight;
-                        break;
-                    case 1:
-                        x += lineHeight;
-                        break;
-                    case 2:
-                        y -= lineHeight;
-                        break;
-                    case 3:
-                        x -= lineHeight;
-                        break;
-                }
+        String[] lines = text.split("\\n");
+        for (String line: lines) {
+            int lineHeight = drawTextLine(x, y, line);
+            switch (textAngle) {
+                case 0:
+                    y += lineHeight;
+                    break;
+                case 1:
+                    x += lineHeight;
+                    break;
+                case 2:
+                    y -= lineHeight;
+                    break;
+                case 3:
+                    x -= lineHeight;
+                    break;
             }
-        } finally {
-            dimension.setEventsInhibited(false);
         }
     }
 

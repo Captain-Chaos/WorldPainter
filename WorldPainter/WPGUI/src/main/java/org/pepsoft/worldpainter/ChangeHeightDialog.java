@@ -122,34 +122,42 @@ public class ChangeHeightDialog extends javax.swing.JDialog {
                     for (Dimension dim: world.getDimensions()) {
                         dim.clearUndo();
                         for (Tile tile: dim.getTiles()) {
-                            tile.setEventsInhibited(true);
-                            tile.setMaxHeight(newMaxHeight, transform);
-                            tileNo++;
-                            progressReceiver.setProgress((float) tileNo / finalTileCount);
+                            tile.inhibitEvents();
                         }
-                        dim.setMaxHeight(newMaxHeight);
-                        TileFactory tileFactory = dim.getTileFactory();
-                        if (tileFactory instanceof HeightMapTileFactory) {
-                            HeightMapTileFactory heightMapTileFactory = (HeightMapTileFactory) tileFactory;
-                            heightMapTileFactory.setMaxHeight(newMaxHeight, transform);
-                            float baseHeight = heightMapTileFactory.getBaseHeight();
-                            float transposeAmount = transform.transformHeight(baseHeight) - baseHeight;
-                            heightMapTileFactory.setHeightMap(HeightMapUtils.transposeHeightMap(heightMapTileFactory.getHeightMap(), transposeAmount));
-                        }
-                        ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) dim.getLayerSettings(Resources.INSTANCE);
-                        if (resourcesSettings != null) {
-                            for (int blockType: resourcesSettings.getBlockTypes()) {
-                                int maxLevel = resourcesSettings.getMaxLevel(blockType);
-                                if (maxLevel == (oldMaxHeight - 1)) {
-                                    maxLevel = newMaxHeight - 1;
-                                } else if (maxLevel > 1) {
-                                    maxLevel = clamp(transform.transformHeight(maxLevel), newMaxHeight - 1);
+                        try {
+                            for (Tile tile: dim.getTiles()) {
+                                tile.setMaxHeight(newMaxHeight, transform);
+                                tileNo++;
+                                progressReceiver.setProgress((float) tileNo / finalTileCount);
+                            }
+                            dim.setMaxHeight(newMaxHeight);
+                            TileFactory tileFactory = dim.getTileFactory();
+                            if (tileFactory instanceof HeightMapTileFactory) {
+                                HeightMapTileFactory heightMapTileFactory = (HeightMapTileFactory) tileFactory;
+                                heightMapTileFactory.setMaxHeight(newMaxHeight, transform);
+                                float baseHeight = heightMapTileFactory.getBaseHeight();
+                                float transposeAmount = transform.transformHeight(baseHeight) - baseHeight;
+                                heightMapTileFactory.setHeightMap(HeightMapUtils.transposeHeightMap(heightMapTileFactory.getHeightMap(), transposeAmount));
+                            }
+                            ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) dim.getLayerSettings(Resources.INSTANCE);
+                            if (resourcesSettings != null) {
+                                for (int blockType: resourcesSettings.getBlockTypes()) {
+                                    int maxLevel = resourcesSettings.getMaxLevel(blockType);
+                                    if (maxLevel == (oldMaxHeight - 1)) {
+                                        maxLevel = newMaxHeight - 1;
+                                    } else if (maxLevel > 1) {
+                                        maxLevel = clamp(transform.transformHeight(maxLevel), newMaxHeight - 1);
+                                    }
+                                    resourcesSettings.setMaxLevel(blockType, maxLevel);
+                                    resourcesSettings.setMaxLevel(blockType, clamp(transform.transformHeight(resourcesSettings.getMaxLevel(blockType)), newMaxHeight - 1));
                                 }
-                                resourcesSettings.setMaxLevel(blockType, maxLevel);
-                                resourcesSettings.setMaxLevel(blockType, clamp(transform.transformHeight(resourcesSettings.getMaxLevel(blockType)), newMaxHeight - 1));
+                            }
+                            dim.armSavePoint();
+                        } finally {
+                            for (Tile tile: dim.getTiles()) {
+                                tile.releaseEvents();
                             }
                         }
-                        dim.armSavePoint();
                     }
                     world.setMaxHeight(newMaxHeight);
                     return world;
@@ -157,9 +165,6 @@ public class ChangeHeightDialog extends javax.swing.JDialog {
             }, false);
         } finally {
             for (Dimension dim: world.getDimensions()) {
-                for (Tile tile: dim.getTiles()) {
-                    tile.setEventsInhibited(false);
-                }
                 dim.setEventsInhibited(false);
             }
         }

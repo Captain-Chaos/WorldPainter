@@ -190,7 +190,7 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
         for (Tile tile: dimension.getTiles()) {
             final int worldTileX = tile.getX() << TILE_SIZE_BITS;
             final int worldTileY = tile.getY() << TILE_SIZE_BITS;
-            tile.setEventsInhibited(true);
+            tile.inhibitEvents();
             try {
                 for (int x = 0; x < TILE_SIZE; x++) {
                     for (int y = 0; y < TILE_SIZE; y++) {
@@ -207,7 +207,7 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
                     }
                 }
             } finally {
-                tile.setEventsInhibited(false);
+                tile.releaseEvents();
             }
             tileCount++;
             progressReceiver.setProgress((float) tileCount / totalTiles);
@@ -222,7 +222,7 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
             for (Tile tile: dimension.getTiles()) {
                 final int worldTileX = tile.getX() << TILE_SIZE_BITS;
                 final int worldTileY = tile.getY() << TILE_SIZE_BITS;
-                tile.setEventsInhibited(true);
+                tile.inhibitEvents();
                 try {
                     for (int x = 0; x < TILE_SIZE; x++) {
                         for (int y = 0; y < TILE_SIZE; y++) {
@@ -238,7 +238,7 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
                         }
                     }
                 } finally {
-                    tile.setEventsInhibited(false);
+                    tile.releaseEvents();
                 }
                 tileCount++;
                 progressReceiver.setProgress((float) tileCount / totalTiles);
@@ -248,7 +248,7 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
             for (Tile tile: dimension.getTiles()) {
                 final int worldTileX = tile.getX() << TILE_SIZE_BITS;
                 final int worldTileY = tile.getY() << TILE_SIZE_BITS;
-                tile.setEventsInhibited(true);
+                tile.inhibitEvents();
                 try {
                     for (int x = 0; x < TILE_SIZE; x++) {
                         for (int y = 0; y < TILE_SIZE; y++) {
@@ -265,7 +265,7 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
                         }
                     }
                 } finally {
-                    tile.setEventsInhibited(false);
+                    tile.releaseEvents();
                 }
                 tileCount++;
                 progressReceiver.setProgress((float) tileCount / totalTiles);
@@ -275,7 +275,7 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
             for (Tile tile: dimension.getTiles()) {
                 final int worldTileX = tile.getX() << TILE_SIZE_BITS;
                 final int worldTileY = tile.getY() << TILE_SIZE_BITS;
-                tile.setEventsInhibited(true);
+                tile.inhibitEvents();
                 try {
                     for (int x = 0; x < TILE_SIZE; x += 16) {
                         for (int y = 0; y < TILE_SIZE; y += 16) {
@@ -292,7 +292,7 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
                         }
                     }
                 } finally {
-                    tile.setEventsInhibited(false);
+                    tile.releaseEvents();
                 }
                 tileCount++;
                 progressReceiver.setProgress((float) tileCount / totalTiles);
@@ -312,7 +312,7 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
                 for (Tile tile: dimension.getTiles()) {
                     final int worldTileX = tile.getX() << TILE_SIZE_BITS;
                     final int worldTileY = tile.getY() << TILE_SIZE_BITS;
-                    tile.setEventsInhibited(true);
+                    tile.inhibitEvents();
                     try {
                         for (int x = 0; x < TILE_SIZE; x++) {
                             for (int y = 0; y < TILE_SIZE; y++) {
@@ -329,7 +329,7 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
                             }
                         }
                     } finally {
-                        tile.setEventsInhibited(false);
+                        tile.releaseEvents();
                     }
                     tileCount++;
                     progressReceiver.setProgress((float) tileCount / totalTiles);
@@ -339,7 +339,7 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
                 for (Tile tile: dimension.getTiles()) {
                     final int worldTileX = tile.getX() << TILE_SIZE_BITS;
                     final int worldTileY = tile.getY() << TILE_SIZE_BITS;
-                    tile.setEventsInhibited(true);
+                    tile.inhibitEvents();
                     try {
                         for (int x = 0; x < TILE_SIZE; x++) {
                             for (int y = 0; y < TILE_SIZE; y++) {
@@ -356,7 +356,7 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
                             }
                         }
                     } finally {
-                        tile.setEventsInhibited(false);
+                        tile.releaseEvents();
                     }
                     tileCount++;
                     progressReceiver.setProgress((float) tileCount / totalTiles);
@@ -366,7 +366,7 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
                 for (Tile tile: dimension.getTiles()) {
                     final int worldTileX = tile.getX() << TILE_SIZE_BITS;
                     final int worldTileY = tile.getY() << TILE_SIZE_BITS;
-                    tile.setEventsInhibited(true);
+                    tile.inhibitEvents();
                     try {
                         for (int x = 0; x < TILE_SIZE; x += 16) {
                             for (int y = 0; y < TILE_SIZE; y += 16) {
@@ -383,7 +383,7 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
                             }
                         }
                     } finally {
-                        tile.setEventsInhibited(false);
+                        tile.releaseEvents();
                     }
                     tileCount++;
                     progressReceiver.setProgress((float) tileCount / totalTiles);
@@ -401,7 +401,7 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
             for (Tile tile: dimension.getTiles()) {
                 final int worldTileX = tile.getX() << TILE_SIZE_BITS;
                 final int worldTileY = tile.getY() << TILE_SIZE_BITS;
-                tile.setEventsInhibited(true);
+                tile.inhibitEvents();
                 try {
                     for (int x = 0; x < TILE_SIZE; x++) {
                         for (int y = 0; y < TILE_SIZE; y++) {
@@ -418,7 +418,7 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
                         }
                     }
                 } finally {
-                    tile.setEventsInhibited(false);
+                    tile.releaseEvents();
                 }
                 tileCount++;
                 progressReceiver.setProgress((float) tileCount / totalTiles);
@@ -428,7 +428,7 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
             for (Tile tile: dimension.getTiles()) {
                 final int worldTileX = tile.getX() << TILE_SIZE_BITS;
                 final int worldTileY = tile.getY() << TILE_SIZE_BITS;
-                tile.setEventsInhibited(true);
+                tile.inhibitEvents();
                 try {
                     for (int x = 0; x < TILE_SIZE; x++) {
                         for (int y = 0; y < TILE_SIZE; y++) {
@@ -445,7 +445,7 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
                         }
                     }
                 } finally {
-                    tile.setEventsInhibited(false);
+                    tile.releaseEvents();
                 }
                 tileCount++;
                 progressReceiver.setProgress((float) tileCount / totalTiles);
@@ -455,7 +455,7 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
             for (Tile tile: dimension.getTiles()) {
                 final int worldTileX = tile.getX() << TILE_SIZE_BITS;
                 final int worldTileY = tile.getY() << TILE_SIZE_BITS;
-                tile.setEventsInhibited(true);
+                tile.inhibitEvents();
                 try {
                     for (int x = 0; x < TILE_SIZE; x += 16) {
                         for (int y = 0; y < TILE_SIZE; y += 16) {
@@ -472,7 +472,7 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
                         }
                     }
                 } finally {
-                    tile.setEventsInhibited(false);
+                    tile.releaseEvents();
                 }
                 tileCount++;
                 progressReceiver.setProgress((float) tileCount / totalTiles);
@@ -488,7 +488,7 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
         for (Tile tile: dimension.getTiles()) {
             final int worldTileX = tile.getX() << TILE_SIZE_BITS;
             final int worldTileY = tile.getY() << TILE_SIZE_BITS;
-            tile.setEventsInhibited(true);
+            tile.inhibitEvents();
             try {
                 for (int x = 0; x < TILE_SIZE; x++) {
                     for (int y = 0; y < TILE_SIZE; y++) {
@@ -505,7 +505,7 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
                     }
                 }
             } finally {
-                tile.setEventsInhibited(false);
+                tile.releaseEvents();
             }
             tileCount++;
             progressReceiver.setProgress((float) tileCount / totalTiles);
@@ -520,7 +520,7 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
             for (Tile tile: dimension.getTiles()) {
                 final int worldTileX = tile.getX() << TILE_SIZE_BITS;
                 final int worldTileY = tile.getY() << TILE_SIZE_BITS;
-                tile.setEventsInhibited(true);
+                tile.inhibitEvents();
                 try {
                     for (int x = 0; x < TILE_SIZE; x++) {
                         for (int y = 0; y < TILE_SIZE; y++) {
@@ -531,7 +531,7 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
                         }
                     }
                 } finally {
-                    tile.setEventsInhibited(false);
+                    tile.releaseEvents();
                 }
                 tileCount++;
                 progressReceiver.setProgress((float) tileCount / totalTiles);
@@ -544,7 +544,7 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
         for (Tile tile: dimension.getTiles()) {
             final int worldTileX = tile.getX() << TILE_SIZE_BITS;
             final int worldTileY = tile.getY() << TILE_SIZE_BITS;
-            tile.setEventsInhibited(true);
+            tile.inhibitEvents();
             try {
                 if (filter == null) {
                     for (int x = 0; x < TILE_SIZE; x++) {
@@ -565,7 +565,7 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
                     }
                 }
             } finally {
-                tile.setEventsInhibited(false);
+                tile.releaseEvents();
             }
             tileCount++;
             progressReceiver.setProgress((float) tileCount / totalTiles);
@@ -581,7 +581,7 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
             for (Tile tile: dimension.getTiles()) {
                 final int worldTileX = tile.getX() << TILE_SIZE_BITS;
                 final int worldTileY = tile.getY() << TILE_SIZE_BITS;
-                tile.setEventsInhibited(true);
+                tile.inhibitEvents();
                 try {
                     if (floodWithLava) {
                         for (int x = 0; x < TILE_SIZE; x++) {
@@ -622,7 +622,7 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
                         }
                     }
                 } finally {
-                    tile.setEventsInhibited(false);
+                    tile.releaseEvents();
                 }
                 tileCount++;
                 progressReceiver.setProgress((float) tileCount / totalTiles);

@@ -107,7 +107,7 @@ public class HeightMapTileFactory extends AbstractTileFactory {
     public final Tile createTile(int tileX, int tileY) {
         final int maxY = getMaxHeight() - 1, myWaterHeight = getWaterHeight();
         final Tile tile = new Tile(tileX, tileY, maxHeight);
-        tile.setEventsInhibited(true);
+        tile.inhibitEvents();
         final int worldTileX = tileX * TILE_SIZE, worldTileY = tileY * TILE_SIZE;
         try {
             for (int x = 0; x < TILE_SIZE; x++) {
@@ -124,7 +124,7 @@ public class HeightMapTileFactory extends AbstractTileFactory {
             }
             return tile;
         } finally {
-            tile.setEventsInhibited(false);
+            tile.releaseEvents();
         }
     }
 

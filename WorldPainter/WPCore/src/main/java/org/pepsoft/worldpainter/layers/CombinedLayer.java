@@ -43,7 +43,7 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
         if (!tile.hasLayer(this)) {
             return Collections.emptySet();
         }
-        tile.setEventsInhibited(true);
+        tile.inhibitEvents();
         try {
             for (Layer layer : layers) {
                 boolean layerAdded = false;
@@ -77,7 +77,7 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
             }
             tile.clearLayerData(this);
         } finally {
-            tile.setEventsInhibited(false);
+            tile.releaseEvents();
         }
         return addedLayers;
     }

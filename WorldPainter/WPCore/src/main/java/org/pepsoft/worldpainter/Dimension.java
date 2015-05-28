@@ -272,6 +272,45 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         return tiles.get(coords);
     }
 
+    /**
+     * Get the tile for a particular set of world or absolute block coordinates with the intention of modifying it. This
+     * is intended to be used in combination with {@link #setEventsInhibited(boolean)}. Whenever
+     * <code>eventsInhibited</code> is <code>true</code>, the dimension will automatically inhibit events on the tile,
+     * mark it as dirty and fire an event for it when <code>eventsInhibited</code> is set to <code>false</code>.
+     *
+     * @param x The world X coordinate for which to get the tile.
+     * @param y The world Y coordinate for which to get the tile.
+     * @return The tile on which the specified coordinates lie, or
+     *     <code>null</code> if there is no tile for those coordinates
+     */
+    public synchronized Tile getTileForEditing(final int x, final int y) {
+        Tile tile = tiles.get(new Point(x, y));
+        if ((tile != null) && eventsInhibited && (! tile.isEventsInhibited())) {
+            tile.inhibitEvents();
+            dirtyTiles.add(tile);
+        }
+        return tile;
+    }
+
+    /**
+     * Get the tile for a particular set of world or absolute block coordinates with the intention of modifying it. This
+     * is intended to be used in combination with {@link #setEventsInhibited(boolean)}. Whenever
+     * <code>eventsInhibited</code> is <code>true</code>, the dimension will automatically inhibit events on the tile,
+     * mark it as dirty and fire an event for it when <code>eventsInhibited</code> is set to <code>false</code>.
+     *
+     * @param coords The world coordinates for which to get the tile.
+     * @return The tile on which the specified coordinates lie, or
+     *     <code>null</code> if there is no tile for those coordinates
+     */
+    public synchronized Tile getTileForEditing(final Point coords) {
+        Tile tile = tiles.get(coords);
+        if ((tile != null) && eventsInhibited && (! tile.isEventsInhibited())) {
+            tile.inhibitEvents();
+            dirtyTiles.add(tile);
+        }
+        return tile;
+    }
+
     @Override
     public Rectangle getExtent() {
         return new Rectangle(lowestX, lowestY, (highestX - lowestX) + 1, (highestY - lowestY) + 1);
@@ -437,12 +476,8 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public void setHeightAt(int x, int y, float height) {
-        Tile tile = getTile(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
+        Tile tile = getTileForEditing(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
         if (tile != null) {
-            if (eventsInhibited && (! dirtyTiles.contains(tile))) {
-                tile.setEventsInhibited(true);
-                dirtyTiles.add(tile);
-            }
             tile.setHeight(x & TILE_SIZE_MASK, y & TILE_SIZE_MASK, height);
         }
     }
@@ -465,12 +500,8 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public void setRawHeightAt(int x, int y, int rawHeight) {
-        Tile tile = getTile(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
+        Tile tile = getTileForEditing(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
         if (tile != null) {
-            if (eventsInhibited && (! dirtyTiles.contains(tile))) {
-                tile.setEventsInhibited(true);
-                dirtyTiles.add(tile);
-            }
             tile.setRawHeight(x & TILE_SIZE_MASK, y & TILE_SIZE_MASK, rawHeight);
         }
     }
@@ -508,12 +539,8 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public void setTerrainAt(int x, int y, Terrain terrain) {
-        Tile tile = getTile(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
+        Tile tile = getTileForEditing(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
         if (tile != null) {
-            if (eventsInhibited && (! dirtyTiles.contains(tile))) {
-                tile.setEventsInhibited(true);
-                dirtyTiles.add(tile);
-            }
             tile.setTerrain(x & TILE_SIZE_MASK, y & TILE_SIZE_MASK, terrain);
         }
     }
@@ -523,12 +550,8 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public void applyTheme(int x, int y) {
-        Tile tile = getTile(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
+        Tile tile = getTileForEditing(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
         if (tile != null) {
-            if (eventsInhibited && (! dirtyTiles.contains(tile))) {
-                tile.setEventsInhibited(true);
-                dirtyTiles.add(tile);
-            }
             tileFactory.applyTheme(tile, x & TILE_SIZE_MASK, y & TILE_SIZE_MASK);
         }
     }
@@ -547,12 +570,8 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public void setWaterLevelAt(int x, int y, int waterLevel) {
-        Tile tile = getTile(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
+        Tile tile = getTileForEditing(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
         if (tile != null) {
-            if (eventsInhibited && (! dirtyTiles.contains(tile))) {
-                tile.setEventsInhibited(true);
-                dirtyTiles.add(tile);
-            }
             tile.setWaterLevel(x & TILE_SIZE_MASK, y & TILE_SIZE_MASK, waterLevel);
         }
     }
@@ -571,12 +590,8 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public void setLayerValueAt(Layer layer, int x, int y, int value) {
-        Tile tile = getTile(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
+        Tile tile = getTileForEditing(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
         if (tile != null) {
-            if (eventsInhibited && (! dirtyTiles.contains(tile))) {
-                tile.setEventsInhibited(true);
-                dirtyTiles.add(tile);
-            }
             tile.setLayerValue(layer, x & TILE_SIZE_MASK, y & TILE_SIZE_MASK, value);
         }
     }
@@ -755,41 +770,39 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public void setBitLayerValueAt(Layer layer, int x, int y, boolean value) {
-        Tile tile = getTile(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
+        Tile tile = getTileForEditing(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
         if (tile != null) {
-            if (eventsInhibited && (! dirtyTiles.contains(tile))) {
-                tile.setEventsInhibited(true);
-                dirtyTiles.add(tile);
-            }
             tile.setBitLayerValue(layer, x & TILE_SIZE_MASK, y & TILE_SIZE_MASK, value);
         }
     }
     
     public void clearLayerData(Layer layer) {
         for (Tile tile: tiles.values()) {
-            if (eventsInhibited && (! dirtyTiles.contains(tile))) {
-                tile.setEventsInhibited(true);
-                dirtyTiles.add(tile);
+            if (tile.hasLayer(layer)) {
+                if (eventsInhibited && (! tile.isEventsInhibited())) {
+                    tile.inhibitEvents();
+                    dirtyTiles.add(tile);
+                }
+                tile.clearLayerData(layer);
             }
-            tile.clearLayerData(layer);
         }
     }
 
     public void setEventsInhibited(boolean eventsInhibited) {
-        this.eventsInhibited = eventsInhibited;
-        if (eventsInhibited == false) {
-            for (Tile addedTile: addedTiles) {
-                fireTileAdded(addedTile);
+        if (eventsInhibited != this.eventsInhibited) {
+            this.eventsInhibited = eventsInhibited;
+            if (eventsInhibited == false) {
+                fireTilesAdded(addedTiles);
+                addedTiles.clear();
+                fireTilesRemoved(removedTiles);
+                removedTiles.clear();
+                for (Tile dirtyTile: dirtyTiles) {
+                    dirtyTile.releaseEvents();
+                }
+                dirtyTiles.clear();
             }
-            addedTiles.clear();
-            for (Tile removedTile: removedTiles) {
-                fireTileRemoved(removedTile);
-            }
-            removedTiles.clear();
-            for (Tile dirtyTile: dirtyTiles) {
-                dirtyTile.setEventsInhibited(false);
-            }
-            dirtyTiles.clear();
+        } else {
+            throw new IllegalStateException("eventsInhibited already " + eventsInhibited);
         }
     }
 
@@ -1421,8 +1434,9 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         if (eventsInhibited) {
             addedTiles.add(tile);
         } else {
+            Set<Tile> tiles = Collections.singleton(tile);
             for (Listener listener: listeners) {
-                listener.tileAdded(this, tile);
+                listener.tilesAdded(this, tiles);
             }
         }
     }
@@ -1431,12 +1445,33 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         if (eventsInhibited) {
             removedTiles.add(tile);
         } else {
+            Set<Tile> tiles = Collections.singleton(tile);
             for (Listener listener: listeners) {
-                listener.tileRemoved(this, tile);
+                listener.tilesRemoved(this, tiles);
             }
         }
     }
     
+    private void fireTilesAdded(Set<Tile> tiles) {
+        if (eventsInhibited) {
+            addedTiles.addAll(tiles);
+        } else {
+            for (Listener listener: listeners) {
+                listener.tilesAdded(this, tiles);
+            }
+        }
+    }
+
+    private void fireTilesRemoved(Set<Tile> tiles) {
+        if (eventsInhibited) {
+            removedTiles.addAll(tiles);
+        } else {
+            for (Listener listener: listeners) {
+                listener.tilesRemoved(this, tiles);
+            }
+        }
+    }
+
     private java.awt.Dimension getImageSize(File image) throws IOException {
         String filename = image.getName();
         int p = filename.lastIndexOf('.');
@@ -1647,8 +1682,8 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     private static final long serialVersionUID = 2011062401L;
 
     public interface Listener {
-        void tileAdded(Dimension dimension, Tile tile);
-        void tileRemoved(Dimension dimension, Tile tile);
+        void tilesAdded(Dimension dimension, Set<Tile> tiles);
+        void tilesRemoved(Dimension dimension, Set<Tile> tiles);
     }
 
     public enum Border {VOID, WATER, LAVA}
@@ -1730,7 +1765,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             if ((location.x < lowestX * TILE_SIZE) || (location.x > (highestX + 1) * TILE_SIZE - 1) || (location.y < lowestY * TILE_SIZE) || (location.y > (highestY + 1) * TILE_SIZE - 1)) {
                 return;
             }
-            Tile tile = getTile(location.x >> TILE_SIZE_BITS, location.y >> TILE_SIZE_BITS);
+            Tile tile = getTileForEditing(location.x >> TILE_SIZE_BITS, location.y >> TILE_SIZE_BITS);
             if (tile != null) {
                 tile.plantSeed(seed);
                 activeTiles.add(new Point(location.x >> TILE_SIZE_BITS, location.y >> TILE_SIZE_BITS));
@@ -1743,7 +1778,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             if ((location.x < lowestX * TILE_SIZE) || (location.x > (highestX + 1) * TILE_SIZE - 1) || (location.y < lowestY * TILE_SIZE) || (location.y > (highestY + 1) * TILE_SIZE - 1)) {
                 return;
             }
-            Tile tile = getTile(location.x >> 7, location.y >> 7);
+            Tile tile = getTileForEditing(location.x >> 7, location.y >> 7);
             if (tile != null) {
                 tile.removeSeed(seed);
             }

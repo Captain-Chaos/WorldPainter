@@ -265,15 +265,19 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
     // Dimension.Listener
 
     @Override
-    public void tileAdded(Dimension dimension, Tile tile) {
-        tile.addListener(this);
-        fireTileChangedIncludeBorder(tile);
+    public void tilesAdded(Dimension dimension, Set<Tile> tiles) {
+        for (Tile tile: tiles) {
+            tile.addListener(this);
+        }
+        fireTilesChangedIncludeBorder(tiles);
     }
 
     @Override
-    public void tileRemoved(Dimension dimension, Tile tile) {
-        tile.removeListener(this);
-        fireTileChangedIncludeBorder(tile);
+    public void tilesRemoved(Dimension dimension, Set<Tile> tiles) {
+        for (Tile tile: tiles) {
+            tile.removeListener(this);
+        }
+        fireTilesChangedIncludeBorder(tiles);
     }
 
     // Tile.Listener
@@ -387,22 +391,27 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
         }
     }
     
-    private void fireTileChangedIncludeBorder(Tile tile) {
+    private void fireTilesChangedIncludeBorder(Set<Tile> tiles) {
         if (showBorder && (tileProvider instanceof Dimension) && (((Dimension) tileProvider).getDim() == DIM_NORMAL) && (((Dimension) tileProvider).getBorder() != null)) {
             final Set<Point> coordSet = new HashSet<Point>();
-            final int tileX = tile.getX(), tileY = tile.getY(), borderSize = ((Dimension) tileProvider).getBorderSize();
-            for (int dx = -borderSize; dx <= borderSize; dx++) {
-                for (int dy = -borderSize; dy <= borderSize; dy++) {
-                    coordSet.add(getTileCoordinates(tileX + dx, tileY + dy));
+            for (Tile tile: tiles) {
+                final int tileX = tile.getX(), tileY = tile.getY(), borderSize = ((Dimension) tileProvider).getBorderSize();
+                for (int dx = -borderSize; dx <= borderSize; dx++) {
+                    for (int dy = -borderSize; dy <= borderSize; dy++) {
+                        coordSet.add(getTileCoordinates(tileX + dx, tileY + dy));
+                    }
                 }
             }
             for (TileListener listener: listeners) {
                 listener.tilesChanged(this, coordSet);
             }
         } else {
-            Point coords = getTileCoordinates(tile);
+            Set<Point> coords = new HashSet<Point>();
+            for (Tile tile: tiles) {
+                coords.add(getTileCoordinates(tile));
+            }
             for (TileListener listener: listeners) {
-                listener.tileChanged(this, coords.x, coords.y);
+                listener.tilesChanged(this, coords);
             }
         }
     }

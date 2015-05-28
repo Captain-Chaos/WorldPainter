@@ -28,7 +28,9 @@ import static org.pepsoft.worldpainter.Constants.TILE_SIZE_MASK;
 /**
  * Paint which paints a bit sized layer using a brush, with undo and dynamic level support.
  *
- * Created by pepijn on 15-05-15.
+ * <p><strong>Note:</strong> does <em>not</em> do any event inhibitation management.
+ *
+ * <p>Created by pepijn on 15-05-15.
  */
 public class BitLayerPaint extends LayerPaint {
     public BitLayerPaint(Layer layer) {
@@ -36,6 +38,14 @@ public class BitLayerPaint extends LayerPaint {
         if ((layer.getDataSize() != Layer.DataSize.BIT) && (layer.getDataSize() != Layer.DataSize.BIT_PER_CHUNK)) {
             throw new IllegalArgumentException("Layer " + layer + " not bit-sized");
         }
+    }
+
+    public boolean isDither() {
+        return dither;
+    }
+
+    public void setDither(boolean dither) {
+        this.dither = dither;
     }
 
     @Override
@@ -51,14 +61,13 @@ public class BitLayerPaint extends LayerPaint {
         final int tileX1 = x1 >> TILE_SIZE_BITS, tileY1 = y1 >> TILE_SIZE_BITS, tileX2 = x2 >> TILE_SIZE_BITS, tileY2 = y2 >> TILE_SIZE_BITS;
         if ((tileX1 == tileX2) && (tileY1 == tileY2)) {
             // The bounding box of the brush is entirely on one tile; optimize by painting directly to the tile
-            final Tile tile = dimension.getTile(tileX1, tileY1);
+            final Tile tile = dimension.getTileForEditing(tileX1, tileY1);
             if (tile == null) {
                 return;
             }
-            tile.setEventsInhibited(true);
-            try {
-                final int x1InTile = x1 & TILE_SIZE_MASK, y1InTile = y1 & TILE_SIZE_MASK, x2InTile = x2 & TILE_SIZE_MASK, y2InTile = y2 & TILE_SIZE_MASK;
-                final int centreXInTile = centreX & TILE_SIZE_MASK, centreYInTile = centreY & TILE_SIZE_MASK;
+            final int x1InTile = x1 & TILE_SIZE_MASK, y1InTile = y1 & TILE_SIZE_MASK, x2InTile = x2 & TILE_SIZE_MASK, y2InTile = y2 & TILE_SIZE_MASK;
+            final int centreXInTile = centreX & TILE_SIZE_MASK, centreYInTile = centreY & TILE_SIZE_MASK;
+            if (dither) {
                 for (int y = y1InTile; y <= y2InTile; y++) {
                     for (int x = x1InTile; x <= x2InTile; x++) {
                         final float strength = dynamicLevel * getStrength(centreXInTile, centreYInTile, x, y);
@@ -67,13 +76,19 @@ public class BitLayerPaint extends LayerPaint {
                         }
                     }
                 }
-            } finally {
-                tile.setEventsInhibited(false);
+            } else {
+                for (int y = y1InTile; y <= y2InTile; y++) {
+                    for (int x = x1InTile; x <= x2InTile; x++) {
+                        final float strength = dynamicLevel * getFullStrength(centreXInTile, centreYInTile, x, y);
+                        if (strength > 0.75f) {
+                            tile.setBitLayerValue(layer, x, y, true);
+                        }
+                    }
+                }
             }
         } else {
             // The bounding box of the brush straddles more than one tile; paint to the dimension
-            dimension.setEventsInhibited(true);
-            try {
+            if (dither) {
                 for (int y = y1; y <= y2; y++) {
                     for (int x = x1; x <= x2; x++) {
                         final float strength = dynamicLevel * getStrength(centreX, centreY, x, y);
@@ -82,8 +97,15 @@ public class BitLayerPaint extends LayerPaint {
                         }
                     }
                 }
-            } finally {
-                dimension.setEventsInhibited(false);
+            } else {
+                for (int y = y1; y <= y2; y++) {
+                    for (int x = x1; x <= x2; x++) {
+                        final float strength = dynamicLevel * getFullStrength(centreX, centreY, x, y);
+                        if (strength > 0.75f) {
+                            dimension.setBitLayerValueAt(layer, x, y, true);
+                        }
+                    }
+                }
             }
         }
     }
@@ -91,9 +113,9 @@ public class BitLayerPaint extends LayerPaint {
     @Override
     public void remove(Dimension dimension, int centreX, int centreY, float dynamicLevel) {
         if (brush.getRadius() == 0) {
-            // Special case: if the radius is 0, assume that the user wants to remove complete pixels instead of trying
+            // Special case: if the radius is 0, assume that the user wants to paint complete pixels instead of trying
             // to apply the brush
-            removePixel(dimension, centreX, centreY);
+            applyPixel(dimension, centreX, centreY);
             return;
         }
         final int effectiveRadius = brush.getEffectiveRadius();
@@ -101,14 +123,13 @@ public class BitLayerPaint extends LayerPaint {
         final int tileX1 = x1 >> TILE_SIZE_BITS, tileY1 = y1 >> TILE_SIZE_BITS, tileX2 = x2 >> TILE_SIZE_BITS, tileY2 = y2 >> TILE_SIZE_BITS;
         if ((tileX1 == tileX2) && (tileY1 == tileY2)) {
             // The bounding box of the brush is entirely on one tile; optimize by painting directly to the tile
-            final Tile tile = dimension.getTile(tileX1, tileY1);
+            final Tile tile = dimension.getTileForEditing(tileX1, tileY1);
             if (tile == null) {
                 return;
             }
-            tile.setEventsInhibited(true);
-            try {
-                final int x1InTile = x1 & TILE_SIZE_MASK, y1InTile = y1 & TILE_SIZE_MASK, x2InTile = x2 & TILE_SIZE_MASK, y2InTile = y2 & TILE_SIZE_MASK;
-                final int centreXInTile = centreX & TILE_SIZE_MASK, centreYInTile = centreY & TILE_SIZE_MASK;
+            final int x1InTile = x1 & TILE_SIZE_MASK, y1InTile = y1 & TILE_SIZE_MASK, x2InTile = x2 & TILE_SIZE_MASK, y2InTile = y2 & TILE_SIZE_MASK;
+            final int centreXInTile = centreX & TILE_SIZE_MASK, centreYInTile = centreY & TILE_SIZE_MASK;
+            if (dither) {
                 for (int y = y1InTile; y <= y2InTile; y++) {
                     for (int x = x1InTile; x <= x2InTile; x++) {
                         final float strength = dynamicLevel * getFullStrength(centreXInTile, centreYInTile, x, y);
@@ -117,13 +138,19 @@ public class BitLayerPaint extends LayerPaint {
                         }
                     }
                 }
-            } finally {
-                tile.setEventsInhibited(false);
+            } else {
+                for (int y = y1InTile; y <= y2InTile; y++) {
+                    for (int x = x1InTile; x <= x2InTile; x++) {
+                        final float strength = dynamicLevel * getFullStrength(centreXInTile, centreYInTile, x, y);
+                        if (strength > 0.75f) {
+                            tile.setBitLayerValue(layer, x, y, false);
+                        }
+                    }
+                }
             }
         } else {
             // The bounding box of the brush straddles more than one tile; paint to the dimension
-            dimension.setEventsInhibited(true);
-            try {
+            if (dither) {
                 for (int y = y1; y <= y2; y++) {
                     for (int x = x1; x <= x2; x++) {
                         final float strength = dynamicLevel * getFullStrength(centreX, centreY, x, y);
@@ -132,8 +159,15 @@ public class BitLayerPaint extends LayerPaint {
                         }
                     }
                 }
-            } finally {
-                dimension.setEventsInhibited(false);
+            } else {
+                for (int y = y1; y <= y2; y++) {
+                    for (int x = x1; x <= x2; x++) {
+                        final float strength = dynamicLevel * getFullStrength(centreX, centreY, x, y);
+                        if (strength > 0.75f) {
+                            dimension.setBitLayerValueAt(layer, x, y, false);
+                        }
+                    }
+                }
             }
         }
     }
@@ -147,4 +181,6 @@ public class BitLayerPaint extends LayerPaint {
     public void removePixel(Dimension dimension, int x, int y) {
         dimension.setBitLayerValueAt(layer, x, y, false);
     }
+
+    private boolean dither;
 }

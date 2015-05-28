@@ -29,7 +29,9 @@ import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_MASK;
 
 /**
- * Created by pepijn on 20-05-15.
+ * <strong>Note:</strong> does <em>not</em> do any event inhibitation management.
+ *
+ * <p>Created by pepijn on 20-05-15.
  */
 public class TerrainPaint extends AbstractPaint {
     public TerrainPaint(Terrain terrain) {
@@ -49,39 +51,29 @@ public class TerrainPaint extends AbstractPaint {
         final int tileX1 = x1 >> TILE_SIZE_BITS, tileY1 = y1 >> TILE_SIZE_BITS, tileX2 = x2 >> TILE_SIZE_BITS, tileY2 = y2 >> TILE_SIZE_BITS;
         if ((tileX1 == tileX2) && (tileY1 == tileY2)) {
             // The bounding box of the brush is entirely on one tile; optimize by painting directly to the tile
-            final Tile tile = dimension.getTile(tileX1, tileY1);
+            final Tile tile = dimension.getTileForEditing(tileX1, tileY1);
             if (tile == null) {
                 return;
             }
-            tile.setEventsInhibited(true);
-            try {
-                final int x1InTile = x1 & TILE_SIZE_MASK, y1InTile = y1 & TILE_SIZE_MASK, x2InTile = x2 & TILE_SIZE_MASK, y2InTile = y2 & TILE_SIZE_MASK;
-                final int centreXInTile = centreX & TILE_SIZE_MASK, centreYInTile = centreY & TILE_SIZE_MASK;
-                for (int y = y1InTile; y <= y2InTile; y++) {
-                    for (int x = x1InTile; x <= x2InTile; x++) {
-                        final float strength = dynamicLevel * getStrength(centreXInTile, centreYInTile, x, y);
-                        if ((strength > 0.95f) || (Math.random() < strength)) {
-                            tile.setTerrain(x, y, terrain);
-                        }
+            final int x1InTile = x1 & TILE_SIZE_MASK, y1InTile = y1 & TILE_SIZE_MASK, x2InTile = x2 & TILE_SIZE_MASK, y2InTile = y2 & TILE_SIZE_MASK;
+            final int centreXInTile = centreX & TILE_SIZE_MASK, centreYInTile = centreY & TILE_SIZE_MASK;
+            for (int y = y1InTile; y <= y2InTile; y++) {
+                for (int x = x1InTile; x <= x2InTile; x++) {
+                    final float strength = dynamicLevel * getStrength(centreXInTile, centreYInTile, x, y);
+                    if ((strength > 0.95f) || (Math.random() < strength)) {
+                        tile.setTerrain(x, y, terrain);
                     }
                 }
-            } finally {
-                tile.setEventsInhibited(false);
             }
         } else {
             // The bounding box of the brush straddles more than one tile; paint to the dimension
-            dimension.setEventsInhibited(true);
-            try {
-                for (int y = y1; y <= y2; y++) {
-                    for (int x = x1; x <= x2; x++) {
-                        final float strength = dynamicLevel * getStrength(centreX, centreY, x, y);
-                        if ((strength > 0.95f) || (Math.random() < strength)) {
-                            dimension.setTerrainAt(x, y, terrain);
-                        }
+            for (int y = y1; y <= y2; y++) {
+                for (int x = x1; x <= x2; x++) {
+                    final float strength = dynamicLevel * getStrength(centreX, centreY, x, y);
+                    if ((strength > 0.95f) || (Math.random() < strength)) {
+                        dimension.setTerrainAt(x, y, terrain);
                     }
                 }
-            } finally {
-                dimension.setEventsInhibited(false);
             }
         }
     }
@@ -97,18 +89,13 @@ public class TerrainPaint extends AbstractPaint {
         final int effectiveRadius = brush.getEffectiveRadius();
         final int x1 = centreX - effectiveRadius, y1 = centreY - effectiveRadius, x2 = centreX + effectiveRadius, y2 = centreY + effectiveRadius;
         // Can't optimise by painting directly to tile, because Tile doesn't have the applyTheme() method
-        dimension.setEventsInhibited(true);
-        try {
-            for (int y = y1; y <= y2; y++) {
-                for (int x = x1; x <= x2; x++) {
-                    final float strength = dynamicLevel * getFullStrength(centreX, centreY, x, y);
-                    if ((strength > 0.95f) || (Math.random() < strength)) {
-                        dimension.applyTheme(x, y);
-                    }
+        for (int y = y1; y <= y2; y++) {
+            for (int x = x1; x <= x2; x++) {
+                final float strength = dynamicLevel * getFullStrength(centreX, centreY, x, y);
+                if ((strength > 0.95f) || (Math.random() < strength)) {
+                    dimension.applyTheme(x, y);
                 }
             }
-        } finally {
-            dimension.setEventsInhibited(false);
         }
     }
 

@@ -26,7 +26,9 @@ import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_MASK;
 
 /**
- * Created by pepijn on 20-05-15.
+ * <strong>Note:</strong> does <em>not</em> do any event inhibitation management.
+ *
+ * <p>Created by pepijn on 20-05-15.
  */
 public class DiscreteLayerPaint extends LayerPaint {
     public DiscreteLayerPaint(Layer layer, int value) {
@@ -36,6 +38,14 @@ public class DiscreteLayerPaint extends LayerPaint {
         }
         this.value = value;
         defaultValue = layer.getDefaultValue();
+    }
+
+    public boolean isDither() {
+        return dither;
+    }
+
+    public void setDither(boolean dither) {
+        this.dither = dither;
     }
 
     @Override
@@ -51,39 +61,51 @@ public class DiscreteLayerPaint extends LayerPaint {
         final int tileX1 = x1 >> TILE_SIZE_BITS, tileY1 = y1 >> TILE_SIZE_BITS, tileX2 = x2 >> TILE_SIZE_BITS, tileY2 = y2 >> TILE_SIZE_BITS;
         if ((tileX1 == tileX2) && (tileY1 == tileY2)) {
             // The bounding box of the brush is entirely on one tile; optimize by painting directly to the tile
-            final Tile tile = dimension.getTile(tileX1, tileY1);
+            final Tile tile = dimension.getTileForEditing(tileX1, tileY1);
             if (tile == null) {
                 return;
             }
-            tile.setEventsInhibited(true);
-            try {
-                final int x1InTile = x1 & TILE_SIZE_MASK, y1InTile = y1 & TILE_SIZE_MASK, x2InTile = x2 & TILE_SIZE_MASK, y2InTile = y2 & TILE_SIZE_MASK;
-                final int centreXInTile = centreX & TILE_SIZE_MASK, centreYInTile = centreY & TILE_SIZE_MASK;
+            final int x1InTile = x1 & TILE_SIZE_MASK, y1InTile = y1 & TILE_SIZE_MASK, x2InTile = x2 & TILE_SIZE_MASK, y2InTile = y2 & TILE_SIZE_MASK;
+            final int centreXInTile = centreX & TILE_SIZE_MASK, centreYInTile = centreY & TILE_SIZE_MASK;
+            if (dither) {
                 for (int y = y1InTile; y <= y2InTile; y++) {
                     for (int x = x1InTile; x <= x2InTile; x++) {
                         final float strength = dynamicLevel * getStrength(centreXInTile, centreYInTile, x, y);
-                        if (strength > 0.5f) {
+                        if ((strength > 0.95f) || (Math.random() < strength)) {
                             tile.setLayerValue(layer, x, y, value);
                         }
                     }
                 }
-            } finally {
-                tile.setEventsInhibited(false);
+            } else {
+                for (int y = y1InTile; y <= y2InTile; y++) {
+                    for (int x = x1InTile; x <= x2InTile; x++) {
+                        final float strength = dynamicLevel * getFullStrength(centreXInTile, centreYInTile, x, y);
+                        if (strength > 0.75f) {
+                            tile.setLayerValue(layer, x, y, value);
+                        }
+                    }
+                }
             }
         } else {
             // The bounding box of the brush straddles more than one tile; paint to the dimension
-            dimension.setEventsInhibited(true);
-            try {
+            if (dither) {
                 for (int y = y1; y <= y2; y++) {
                     for (int x = x1; x <= x2; x++) {
                         final float strength = dynamicLevel * getStrength(centreX, centreY, x, y);
-                        if (strength > 0.5f) {
+                        if ((strength > 0.95f) || (Math.random() < strength)) {
                             dimension.setLayerValueAt(layer, x, y, value);
                         }
                     }
                 }
-            } finally {
-                dimension.setEventsInhibited(false);
+            } else {
+                for (int y = y1; y <= y2; y++) {
+                    for (int x = x1; x <= x2; x++) {
+                        final float strength = dynamicLevel * getFullStrength(centreX, centreY, x, y);
+                        if (strength > 0.75f) {
+                            dimension.setLayerValueAt(layer, x, y, value);
+                        }
+                    }
+                }
             }
         }
     }
@@ -91,9 +113,9 @@ public class DiscreteLayerPaint extends LayerPaint {
     @Override
     public void remove(Dimension dimension, int centreX, int centreY, float dynamicLevel) {
         if (brush.getRadius() == 0) {
-            // Special case: if the radius is 0, assume that the user wants to remove complete pixels instead of trying
+            // Special case: if the radius is 0, assume that the user wants to paint complete pixels instead of trying
             // to apply the brush
-            removePixel(dimension, centreX, centreY);
+            applyPixel(dimension, centreX, centreY);
             return;
         }
         final int effectiveRadius = brush.getEffectiveRadius();
@@ -101,42 +123,54 @@ public class DiscreteLayerPaint extends LayerPaint {
         final int tileX1 = x1 >> TILE_SIZE_BITS, tileY1 = y1 >> TILE_SIZE_BITS, tileX2 = x2 >> TILE_SIZE_BITS, tileY2 = y2 >> TILE_SIZE_BITS;
         if ((tileX1 == tileX2) && (tileY1 == tileY2)) {
             // The bounding box of the brush is entirely on one tile; optimize by painting directly to the tile
-            final Tile tile = dimension.getTile(tileX1, tileY1);
+            final Tile tile = dimension.getTileForEditing(tileX1, tileY1);
             if (tile == null) {
                 return;
             }
-            tile.setEventsInhibited(true);
-            try {
-                final int x1InTile = x1 & TILE_SIZE_MASK, y1InTile = y1 & TILE_SIZE_MASK, x2InTile = x2 & TILE_SIZE_MASK, y2InTile = y2 & TILE_SIZE_MASK;
-                final int centreXInTile = centreX & TILE_SIZE_MASK, centreYInTile = centreY & TILE_SIZE_MASK;
+            final int x1InTile = x1 & TILE_SIZE_MASK, y1InTile = y1 & TILE_SIZE_MASK, x2InTile = x2 & TILE_SIZE_MASK, y2InTile = y2 & TILE_SIZE_MASK;
+            final int centreXInTile = centreX & TILE_SIZE_MASK, centreYInTile = centreY & TILE_SIZE_MASK;
+            if (dither) {
                 for (int y = y1InTile; y <= y2InTile; y++) {
                     for (int x = x1InTile; x <= x2InTile; x++) {
                         final float strength = dynamicLevel * getFullStrength(centreXInTile, centreYInTile, x, y);
-                        if (strength > 0.5f) {
-                            tile.setLayerValue(layer, x, y, defaultValue);
+                        if ((strength > 0.95f) || (Math.random() < strength)) {
+                            tile.setLayerValue(layer, x, y, value);
                         }
                     }
                 }
-            } finally {
-                tile.setEventsInhibited(false);
+            } else {
+                for (int y = y1InTile; y <= y2InTile; y++) {
+                    for (int x = x1InTile; x <= x2InTile; x++) {
+                        final float strength = dynamicLevel * getFullStrength(centreXInTile, centreYInTile, x, y);
+                        if (strength > 0.75f) {
+                            tile.setLayerValue(layer, x, y, value);
+                        }
+                    }
+                }
             }
         } else {
             // The bounding box of the brush straddles more than one tile; paint to the dimension
-            dimension.setEventsInhibited(true);
-            try {
+            if (dither) {
                 for (int y = y1; y <= y2; y++) {
                     for (int x = x1; x <= x2; x++) {
                         final float strength = dynamicLevel * getFullStrength(centreX, centreY, x, y);
-                        if (strength > 0.5f) {
-                            dimension.setLayerValueAt(layer, x, y, defaultValue);
+                        if ((strength > 0.95f) || (Math.random() < strength)) {
+                            dimension.setLayerValueAt(layer, x, y, value);
                         }
                     }
                 }
-            } finally {
-                dimension.setEventsInhibited(false);
+            } else {
+                for (int y = y1; y <= y2; y++) {
+                    for (int x = x1; x <= x2; x++) {
+                        final float strength = dynamicLevel * getFullStrength(centreX, centreY, x, y);
+                        if (strength > 0.75f) {
+                            dimension.setLayerValueAt(layer, x, y, value);
+                        }
+                    }
+                }
             }
         }
-    }
+   }
 
     @Override
     public void applyPixel(Dimension dimension, int x, int y) {
@@ -149,4 +183,5 @@ public class DiscreteLayerPaint extends LayerPaint {
     }
 
     private final int value, defaultValue;
+    private boolean dither;
 }

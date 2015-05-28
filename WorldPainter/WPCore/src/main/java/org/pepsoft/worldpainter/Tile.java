@@ -755,55 +755,82 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener {
     }
 
     public synchronized boolean isEventsInhibited() {
-        return eventsInhibited;
+        return eventInhibitionCounter != 0;
     }
 
-    public synchronized void setEventsInhibited(boolean eventsInhibited) {
-        this.eventsInhibited = eventsInhibited;
-        if (! eventsInhibited) {
-            if (heightMapDirty) {
-                heightMapChanged();
-                heightMapDirty = false;
-            }
-            if (terrainDirty) {
-                terrainChanged();
-                terrainDirty = false;
-            }
-            if (waterLevelDirty) {
-                waterLevelChanged();
-                waterLevelDirty = false;
-            }
-            if (bitLayersDirty) {
-                allBitLayerDataChanged();
-                bitLayersDirty = false;
-                for (Iterator<Layer> i = dirtyLayers.iterator(); i.hasNext(); ) {
-                    DataSize dataSize = i.next().getDataSize();
-                    if ((dataSize == DataSize.BIT) || (dataSize == DataSize.BIT_PER_CHUNK)) {
-                        i.remove();
+    /**
+     * Stop firing events when the tile is modified, until {@link #releaseEvents()} is invoked. Make sure that
+     * <code>releaseEvents()</code> is always invoked, even if an exception is thrown, by using a try-finally statement:
+     *
+     * <p><code>tile.inhibitEvents();<br>
+     * try {<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;// modify the tile<br>
+     * } finally {<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;tile.releaseEvents();<br>
+     * }</code>
+     *
+     * <p><strong>Note</strong> that calls to these methods may be nested, and if so, events will only be released after
+     * the final invocation of <code>releaseEvents()</code>.
+     */
+    public synchronized void inhibitEvents() {
+        eventInhibitionCounter++;
+    }
+
+    /**
+     * Release an inhibition on firing events. Will fire all appropriate events at this time, if the tile was modified
+     * since the first invocation of {@link #inhibitEvents()}, but only if this is the last invocation of
+     * <code>releaseEvents()</code> in a nested set.
+     */
+    public synchronized void releaseEvents() {
+        if (eventInhibitionCounter > 0) {
+            eventInhibitionCounter--;
+            if (eventInhibitionCounter == 0) {
+                if (heightMapDirty) {
+                    heightMapChanged();
+                    heightMapDirty = false;
+                }
+                if (terrainDirty) {
+                    terrainChanged();
+                    terrainDirty = false;
+                }
+                if (waterLevelDirty) {
+                    waterLevelChanged();
+                    waterLevelDirty = false;
+                }
+                if (bitLayersDirty) {
+                    allBitLayerDataChanged();
+                    bitLayersDirty = false;
+                    for (Iterator<Layer> i = dirtyLayers.iterator(); i.hasNext(); ) {
+                        DataSize dataSize = i.next().getDataSize();
+                        if ((dataSize == DataSize.BIT) || (dataSize == DataSize.BIT_PER_CHUNK)) {
+                            i.remove();
+                        }
                     }
                 }
-            }
-            if (nonBitLayersDirty) {
-                allNonBitLayerDataChanged();
-                nonBitLayersDirty = false;
-                for (Iterator<Layer> i = dirtyLayers.iterator(); i.hasNext(); ) {
-                    DataSize dataSize = i.next().getDataSize();
-                    if ((dataSize != DataSize.BIT) && (dataSize != DataSize.BIT_PER_CHUNK)) {
-                        i.remove();
+                if (nonBitLayersDirty) {
+                    allNonBitLayerDataChanged();
+                    nonBitLayersDirty = false;
+                    for (Iterator<Layer> i = dirtyLayers.iterator(); i.hasNext(); ) {
+                        DataSize dataSize = i.next().getDataSize();
+                        if ((dataSize != DataSize.BIT) && (dataSize != DataSize.BIT_PER_CHUNK)) {
+                            i.remove();
+                        }
                     }
                 }
-            }
-            if (! dirtyLayers.isEmpty()) {
-                Set<Layer> changedLayers = Collections.unmodifiableSet(dirtyLayers);
-                for (Listener listener: listeners) {
-                    listener.layerDataChanged(this, changedLayers);
+                if (! dirtyLayers.isEmpty()) {
+                    Set<Layer> changedLayers = Collections.unmodifiableSet(dirtyLayers);
+                    for (Listener listener: listeners) {
+                        listener.layerDataChanged(this, changedLayers);
+                    }
+                    dirtyLayers.clear();
                 }
-                dirtyLayers.clear();
+                if (seedsDirty) {
+                    seedsChanged();
+                    seedsDirty = false;
+                }
             }
-            if (seedsDirty) {
-                seedsChanged();
-                seedsDirty = false;
-            }
+        } else {
+            throw new IllegalStateException("Events not inhibited");
         }
     }
 
@@ -1184,7 +1211,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener {
     }
 
     private void heightMapChanged() {
-        if (eventsInhibited) {
+        if (eventInhibitionCounter != 0) {
             heightMapDirty = true;
         } else {
             for (Listener listener: listeners) {
@@ -1194,7 +1221,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener {
     }
 
     private void terrainChanged() {
-        if (eventsInhibited) {
+        if (eventInhibitionCounter != 0) {
             terrainDirty = true;
         } else {
             for (Listener listener: listeners) {
@@ -1204,7 +1231,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener {
     }
 
     private void waterLevelChanged() {
-        if (eventsInhibited) {
+        if (eventInhibitionCounter != 0) {
             waterLevelDirty = true;
         } else {
             for (Listener listener: listeners) {
@@ -1214,7 +1241,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener {
     }
 
     private void layerDataChanged(Layer layer) {
-        if (eventsInhibited) {
+        if (eventInhibitionCounter != 0) {
             dirtyLayers.add(layer);
         } else {
             Set<Layer> changedLayers = Collections.singleton(layer);
@@ -1225,7 +1252,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener {
     }
 
     private void allBitLayerDataChanged() {
-        if (eventsInhibited) {
+        if (eventInhibitionCounter != 0) {
             bitLayersDirty = true;
         } else {
             for (Listener listener: listeners) {
@@ -1235,7 +1262,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener {
     }
 
     private void allNonBitLayerDataChanged() {
-        if (eventsInhibited) {
+        if (eventInhibitionCounter != 0) {
             nonBitLayersDirty = true;
         } else {
             for (Listener listener: listeners) {
@@ -1245,7 +1272,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener {
     }
     
     private void seedsChanged() {
-        if (eventsInhibited) {
+        if (eventInhibitionCounter != 0) {
             seedsDirty = true;
         } else {
             for (Listener listener: listeners) {
@@ -1359,13 +1386,13 @@ layerLoop: for (Iterator<Map.Entry<Layer, byte[]>> i = layerData.entrySet().iter
     protected Map<Layer, BitSet> bitLayerData = new HashMap<Layer, BitSet>();
     private HashSet<Seed> seeds = new HashSet<Seed>();
     private transient List<Listener> listeners;
-    private transient boolean eventsInhibited, heightMapDirty, terrainDirty, waterLevelDirty, seedsDirty, bitLayersDirty, nonBitLayersDirty;
+    private transient boolean heightMapDirty, terrainDirty, waterLevelDirty, seedsDirty, bitLayersDirty, nonBitLayersDirty;
     private transient Set<TileBuffer> readableBuffers;
     private transient Set<TileBuffer> writeableBuffers;
     private transient UndoManager undoManager;
     private transient List<Layer> cachedLayers;
     private transient Set<Layer> dirtyLayers;
-    private transient int maxY;
+    private transient int maxY, eventInhibitionCounter;
 
     private transient BufferKey<short[]>            HEIGHTMAP_BUFFER_KEY;
     private transient BufferKey<int[]>              TALL_HEIGHTMAP_BUFFER_KEY;
