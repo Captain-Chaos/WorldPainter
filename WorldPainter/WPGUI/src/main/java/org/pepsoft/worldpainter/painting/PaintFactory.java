@@ -18,10 +18,14 @@
 
 package org.pepsoft.worldpainter.painting;
 
+import org.pepsoft.worldpainter.ColourScheme;
+import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.brushes.Brush;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.operations.Filter;
+
+import java.awt.image.BufferedImage;
 
 /**
  * Created by pepijn on 15-05-15.
@@ -57,11 +61,15 @@ public final class PaintFactory {
         return new TerrainPaint(terrain);
     }
 
-    public static void updatePaint(Paint paint, Brush brush) {
-
-    }
-
-    public static void updatePaint(Paint paint, Filter filter) {
-
-    }
+    public static final Paint NULL_PAINT = new Paint() {
+        @Override public Brush getBrush() {return null;}
+        @Override public void setBrush(Brush brush) {}
+        @Override public Filter getFilter() {return null;}
+        @Override public void setFilter(Filter filter) {}
+        @Override public void apply(Dimension dimension, int x, int y, float dynamicLevel) {}
+        @Override public void remove(Dimension dimension, int x, int y, float dynamicLevel) {}
+        @Override public void applyPixel(Dimension dimension, int x, int y) {}
+        @Override public void removePixel(Dimension dimension, int x, int y) {}
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return null;}
+    };
 }

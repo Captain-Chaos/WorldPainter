@@ -5900,7 +5900,7 @@ public final class App extends JFrame implements RadiusControl,
     private final PaletteManager paletteManager = new PaletteManager(this);
     private DockingManager dockingManager;
     private boolean hideAbout, hidePreferences, hideExit;
-    private Paint paint;
+    private Paint paint = PaintFactory.NULL_PAINT;
     private PaintUpdater paintUpdater = new PaintUpdater() {
         @Override
         public void updatePaint() {
