@@ -22,6 +22,7 @@ import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.brushes.Brush;
+import org.pepsoft.worldpainter.layers.CombinedLayer;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.operations.Filter;
 
@@ -36,14 +37,18 @@ public final class PaintFactory {
     }
 
     public static Paint createLayerPaint(Layer layer) {
-        switch (layer.getDataSize()) {
-            case BIT:
-            case BIT_PER_CHUNK:
-                return new BitLayerPaint(layer);
-            case NIBBLE:
-                return new NibbleLayerPaint(layer);
-            default:
-                throw new UnsupportedOperationException("Data size " + layer.getDataSize() + " not supported");
+        if (layer instanceof CombinedLayer) {
+            return new CombinedLayerPaint((CombinedLayer) layer);
+        } else {
+            switch (layer.getDataSize()) {
+                case BIT:
+                case BIT_PER_CHUNK:
+                    return new BitLayerPaint(layer);
+                case NIBBLE:
+                    return new NibbleLayerPaint(layer);
+                default:
+                    throw new UnsupportedOperationException("Data size " + layer.getDataSize() + " not supported");
+            }
         }
     }
 

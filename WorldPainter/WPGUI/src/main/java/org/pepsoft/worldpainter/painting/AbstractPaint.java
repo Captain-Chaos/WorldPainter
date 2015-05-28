@@ -28,22 +28,22 @@ import org.pepsoft.worldpainter.operations.Filter;
  */
 public abstract class AbstractPaint implements Paint {
     @Override
-    public Brush getBrush() {
+    public final Brush getBrush() {
         return brush;
     }
 
     @Override
-    public void setBrush(Brush brush) {
+    public final void setBrush(Brush brush) {
         this.brush = brush;
     }
 
     @Override
-    public Filter getFilter() {
+    public final Filter getFilter() {
         return filter;
     }
 
     @Override
-    public void setFilter(Filter filter) {
+    public final void setFilter(Filter filter) {
         this.filter = filter;
     }
 

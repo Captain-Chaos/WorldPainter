@@ -7,11 +7,15 @@
 package org.pepsoft.worldpainter.painting;
 
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.Terrain;
+import org.pepsoft.worldpainter.layers.Layer;
 
 import java.awt.*;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 
 /**
  * A utility class for painting basic shapes to dimension using and kind of {@link Paint}.
@@ -214,6 +218,81 @@ public final class DimensionPainter {
         return (int) bounds.getHeight();
     }
 
+    public void fill(int x, int y, Window parent) {
+        GeneralQueueLinearFloodFiller.FillMethod fillMethod;
+        if (paint instanceof LayerPaint) {
+            final Layer layer = ((LayerPaint) paint).getLayer();
+            switch (layer.getDataSize()) {
+                case BIT:
+                case BIT_PER_CHUNK:
+                    if (undo) {
+                        fillMethod = new UndoDimensionPaintFillMethod("Removing " + layer.getName(), dimension, paint) {
+                            @Override
+                            public boolean isFilled(int x, int y) {
+                                return ! dimension.getBitLayerValueAt(layer, x, y);
+                            }
+                        };
+                    } else {
+                        fillMethod = new DimensionPaintFillMethod("Applying " + layer.getName(), dimension, paint) {
+                            @Override
+                            public boolean isFilled(int x, int y) {
+                                return dimension.getBitLayerValueAt(layer, x, y);
+                            }
+                        };
+                    }
+                    break;
+                case NIBBLE:
+                case BYTE:
+                    if (undo) {
+                        fillMethod = new UndoDimensionPaintFillMethod("Removing " + layer.getName(), dimension, paint) {
+                            @Override
+                            public boolean isFilled(int x, int y) {
+                                return dimension.getLayerValueAt(layer, x, y) == defaultValue;
+                            }
+
+                            final int defaultValue = layer.getDefaultValue();
+                        };
+                    } else {
+                        fillMethod = new DimensionPaintFillMethod("Applying " + layer.getName(), dimension, paint) {
+                            @Override
+                            public boolean isFilled(int x, int y) {
+                                return dimension.getLayerValueAt(layer, x, y) != defaultValue;
+                            }
+
+                            final int defaultValue = layer.getDefaultValue();
+                        };
+                    }
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Don't know how to paint with layer with data size " + layer.getDataSize());
+            }
+        } else if (paint instanceof TerrainPaint) {
+            if (undo) {
+                fillMethod = new UndoDimensionPaintFillMethod("Removing " + ((TerrainPaint) paint).getTerrain(), dimension, paint) {
+                    @Override
+                    public boolean isFilled(int x, int y) {
+                        return dimension.getTerrainAt(x, y) != terrain;
+                    }
+
+                    final Terrain terrain = ((TerrainPaint) paint).getTerrain();
+                };
+            } else {
+                fillMethod = new DimensionPaintFillMethod("Applying " + ((TerrainPaint) paint).getTerrain(), dimension, paint) {
+                    @Override
+                    public boolean isFilled(int x, int y) {
+                        return dimension.getTerrainAt(x, y) == terrain;
+                    }
+
+                    final Terrain terrain = ((TerrainPaint) paint).getTerrain();
+                };
+            }
+        } else {
+            throw new UnsupportedOperationException("Don't know how to fill with paint " + paint);
+        }
+        GeneralQueueLinearFloodFiller filler = new GeneralQueueLinearFloodFiller(fillMethod);
+        filler.floodFill(x, y, parent);
+    }
+
     public Dimension getDimension() {
         return dimension;
     }
@@ -255,4 +334,50 @@ public final class DimensionPainter {
     private int textAngle;
     private boolean undo;
     private Font font;
+
+    static abstract class AbstractDimensionPaintFillMethod implements GeneralQueueLinearFloodFiller.FillMethod {
+        protected AbstractDimensionPaintFillMethod(String description, Dimension dimension, Paint paint) {
+            this.description = description;
+            this.dimension = dimension;
+            this.paint = paint;
+            bounds = new Rectangle(dimension.getWidth() << TILE_SIZE_BITS, dimension.getHeight() << TILE_SIZE_BITS, dimension.getLowestX() << TILE_SIZE_BITS, dimension.getLowestY() << TILE_SIZE_BITS);
+        }
+
+        @Override
+        public final Rectangle getBounds() {
+            return bounds;
+        }
+
+        @Override
+        public final String getDescription() {
+            return description;
+        }
+
+        private final String description;
+        private final Rectangle bounds;
+        protected final Dimension dimension;
+        protected final Paint paint;
+    }
+
+    static abstract class DimensionPaintFillMethod extends AbstractDimensionPaintFillMethod {
+        DimensionPaintFillMethod(String description, Dimension dimension, Paint paint) {
+            super(description, dimension, paint);
+        }
+
+        @Override
+        public final void fill(int x, int y) {
+            paint.applyPixel(dimension, x, y);
+        }
+    }
+
+    static abstract class UndoDimensionPaintFillMethod extends AbstractDimensionPaintFillMethod {
+        UndoDimensionPaintFillMethod(String description, Dimension dimension, Paint paint) {
+            super(description, dimension, paint);
+        }
+
+        @Override
+        public final void fill(int x, int y) {
+            paint.removePixel(dimension, x, y);
+        }
+    }
 }

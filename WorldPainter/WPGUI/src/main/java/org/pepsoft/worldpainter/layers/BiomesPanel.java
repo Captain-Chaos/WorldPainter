@@ -19,9 +19,10 @@ import static org.pepsoft.worldpainter.layers.BiomesPanel.BiomeOption.*;
  * Created by pepijn on 27-05-15.
  */
 public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiomeListener {
-    public BiomesPanel(ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Listener listener) {
+    public BiomesPanel(ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Listener listener, ButtonGroup buttonGroup) {
         this.customBiomeManager = customBiomeManager;
         this.listener = listener;
+        this.buttonGroup = buttonGroup;
         biomeHelper = new BiomeHelper(BIOME_SCHEME, colourScheme, customBiomeManager);
 
         initComponents(colourScheme);
@@ -349,7 +350,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
     }
 
     private final JPanel grid = new JPanel(new GridLayout(0, 4));
-    private final ButtonGroup buttonGroup = new ButtonGroup();
+    private final ButtonGroup buttonGroup;
     private final JCheckBox checkBoxHillsShore = new JCheckBox("hills/shore");
     private final JCheckBox checkBoxEdgePlateau = new JCheckBox("edge/plateau");
     private final JCheckBox checkBoxM = new JCheckBox("M");

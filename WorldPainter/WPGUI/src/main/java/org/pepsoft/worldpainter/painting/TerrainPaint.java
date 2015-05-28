@@ -33,9 +33,21 @@ import static org.pepsoft.worldpainter.Constants.TILE_SIZE_MASK;
  *
  * <p>Created by pepijn on 20-05-15.
  */
-public class TerrainPaint extends AbstractPaint {
+public final class TerrainPaint extends AbstractPaint {
     public TerrainPaint(Terrain terrain) {
         this.terrain = terrain;
+    }
+
+    public boolean isDither() {
+        return dither;
+    }
+
+    public void setDither(boolean dither) {
+        this.dither = dither;
+    }
+
+    public Terrain getTerrain() {
+        return terrain;
     }
 
     @Override
@@ -57,21 +69,43 @@ public class TerrainPaint extends AbstractPaint {
             }
             final int x1InTile = x1 & TILE_SIZE_MASK, y1InTile = y1 & TILE_SIZE_MASK, x2InTile = x2 & TILE_SIZE_MASK, y2InTile = y2 & TILE_SIZE_MASK;
             final int centreXInTile = centreX & TILE_SIZE_MASK, centreYInTile = centreY & TILE_SIZE_MASK;
-            for (int y = y1InTile; y <= y2InTile; y++) {
-                for (int x = x1InTile; x <= x2InTile; x++) {
-                    final float strength = dynamicLevel * getStrength(centreXInTile, centreYInTile, x, y);
-                    if ((strength > 0.95f) || (Math.random() < strength)) {
-                        tile.setTerrain(x, y, terrain);
+            if (dither) {
+                for (int y = y1InTile; y <= y2InTile; y++) {
+                    for (int x = x1InTile; x <= x2InTile; x++) {
+                        final float strength = dynamicLevel * getStrength(centreXInTile, centreYInTile, x, y);
+                        if ((strength > 0.95f) || (Math.random() < strength)) {
+                            tile.setTerrain(x, y, terrain);
+                        }
+                    }
+                }
+            } else {
+                for (int y = y1InTile; y <= y2InTile; y++) {
+                    for (int x = x1InTile; x <= x2InTile; x++) {
+                        final float strength = dynamicLevel * getFullStrength(centreXInTile, centreYInTile, x, y);
+                        if (strength > 0.75f) {
+                            tile.setTerrain(x, y, terrain);
+                        }
                     }
                 }
             }
         } else {
             // The bounding box of the brush straddles more than one tile; paint to the dimension
-            for (int y = y1; y <= y2; y++) {
-                for (int x = x1; x <= x2; x++) {
-                    final float strength = dynamicLevel * getStrength(centreX, centreY, x, y);
-                    if ((strength > 0.95f) || (Math.random() < strength)) {
-                        dimension.setTerrainAt(x, y, terrain);
+            if (dither) {
+                for (int y = y1; y <= y2; y++) {
+                    for (int x = x1; x <= x2; x++) {
+                        final float strength = dynamicLevel * getStrength(centreX, centreY, x, y);
+                        if ((strength > 0.95f) || (Math.random() < strength)) {
+                            dimension.setTerrainAt(x, y, terrain);
+                        }
+                    }
+                }
+            } else {
+                for (int y = y1; y <= y2; y++) {
+                    for (int x = x1; x <= x2; x++) {
+                        final float strength = dynamicLevel * getFullStrength(centreX, centreY, x, y);
+                        if (strength > 0.75f) {
+                            dimension.setTerrainAt(x, y, terrain);
+                        }
                     }
                 }
             }
@@ -89,11 +123,22 @@ public class TerrainPaint extends AbstractPaint {
         final int effectiveRadius = brush.getEffectiveRadius();
         final int x1 = centreX - effectiveRadius, y1 = centreY - effectiveRadius, x2 = centreX + effectiveRadius, y2 = centreY + effectiveRadius;
         // Can't optimise by painting directly to tile, because Tile doesn't have the applyTheme() method
-        for (int y = y1; y <= y2; y++) {
-            for (int x = x1; x <= x2; x++) {
-                final float strength = dynamicLevel * getFullStrength(centreX, centreY, x, y);
-                if ((strength > 0.95f) || (Math.random() < strength)) {
-                    dimension.applyTheme(x, y);
+        if (dither) {
+            for (int y = y1; y <= y2; y++) {
+                for (int x = x1; x <= x2; x++) {
+                    final float strength = dynamicLevel * getFullStrength(centreX, centreY, x, y);
+                    if ((strength > 0.95f) || (Math.random() < strength)) {
+                        dimension.applyTheme(x, y);
+                    }
+                }
+            }
+        } else {
+            for (int y = y1; y <= y2; y++) {
+                for (int x = x1; x <= x2; x++) {
+                    final float strength = dynamicLevel * getFullStrength(centreX, centreY, x, y);
+                    if (strength > 0.75f) {
+                        dimension.applyTheme(x, y);
+                    }
                 }
             }
         }
@@ -115,4 +160,5 @@ public class TerrainPaint extends AbstractPaint {
     }
 
     private final Terrain terrain;
+    private boolean dither;
 }

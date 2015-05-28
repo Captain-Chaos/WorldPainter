@@ -32,7 +32,7 @@ import static org.pepsoft.worldpainter.Constants.TILE_SIZE_MASK;
  *
  * <p>Created by pepijn on 15-05-15.
  */
-public class BitLayerPaint extends LayerPaint {
+public final class BitLayerPaint extends LayerPaint {
     public BitLayerPaint(Layer layer) {
         super(layer);
         if ((layer.getDataSize() != Layer.DataSize.BIT) && (layer.getDataSize() != Layer.DataSize.BIT_PER_CHUNK)) {
@@ -113,9 +113,9 @@ public class BitLayerPaint extends LayerPaint {
     @Override
     public void remove(Dimension dimension, int centreX, int centreY, float dynamicLevel) {
         if (brush.getRadius() == 0) {
-            // Special case: if the radius is 0, assume that the user wants to paint complete pixels instead of trying
+            // Special case: if the radius is 0, assume that the user wants to remove complete pixels instead of trying
             // to apply the brush
-            applyPixel(dimension, centreX, centreY);
+            removePixel(dimension, centreX, centreY);
             return;
         }
         final int effectiveRadius = brush.getEffectiveRadius();

@@ -32,7 +32,7 @@ import java.awt.*;
  *
  * Created by pepijn on 15-05-15.
  */
-public class Pencil extends PaintOperation {
+public class Pencil extends AbstractPaintOperation {
     public Pencil(WorldPainterView view, RadiusControl radiusControl, MapDragControl mapDragControl) {
         super("Pencil", "Draw dots and straight or freehand lines with any terrain or layer", view, radiusControl, mapDragControl, 100, "operation.pencil");
     }

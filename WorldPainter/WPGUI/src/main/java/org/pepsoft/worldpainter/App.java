@@ -46,6 +46,7 @@ import org.pepsoft.worldpainter.layers.tunnel.TunnelLayerDialog;
 import org.pepsoft.worldpainter.objects.AbstractObject;
 import org.pepsoft.worldpainter.operations.*;
 import org.pepsoft.worldpainter.painting.DiscreteLayerPaint;
+import org.pepsoft.worldpainter.painting.LayerPaint;
 import org.pepsoft.worldpainter.painting.Paint;
 import org.pepsoft.worldpainter.painting.PaintFactory;
 import org.pepsoft.worldpainter.panels.BrushOptions;
@@ -579,9 +580,8 @@ public final class App extends JFrame implements RadiusControl,
         } else {
             heightLabel.setText(MessageFormat.format(strings.getString("height.0.of.1"), height, dimension.getMaxHeight() - 1));
         }
-        if ((activeOperation instanceof LayerPaint)
-                && (! (activeOperation instanceof Annotate))) {
-            Layer layer = ((LayerPaint) activeOperation).getLayer();
+        if ((activeOperation instanceof PaintOperation) && (paint instanceof LayerPaint)) {
+            Layer layer = ((LayerPaint) paint).getLayer();
             switch (layer.getDataSize()) {
                 case BIT:
                 case BIT_PER_CHUNK:
@@ -1113,6 +1113,12 @@ public final class App extends JFrame implements RadiusControl,
         toolButtonGroup.clearSelection();
     }
 
+    public void deselectPaint() {
+        paintButtonGroup.clearSelection();
+        paint = PaintFactory.NULL_PAINT;
+        paintChanged();
+    }
+
     /**
      * Gets all currently loaded layers, including custom layers and including
      * hidden ones (from the panel or the view), regardless of whether they are
@@ -1159,7 +1165,7 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     public void setFilter(Filter filter) {
-        if ((activeOperation instanceof TerrainPaint) || (activeOperation instanceof LayerPaint)) {
+        if (activeOperation instanceof PaintOperation) {
             this.filter = filter;
         } else {
             toolFilter = filter;
@@ -1850,7 +1856,6 @@ public final class App extends JFrame implements RadiusControl,
         dockingManager.addFrame(createDockableFrame(createLayerPanel(), "Layers", DOCK_SIDE_WEST, 3));
 
         dockingManager.addFrame(createDockableFrame(createTerrainPanel(), "Terrain", DOCK_SIDE_WEST, 3));
-        dockingManager.addFrame(createDockableFrame(createExtraTerrainPanel(), "stainedClays", "Stained Clays", DOCK_SIDE_WEST, 3));
 
         dockingManager.addFrame(createDockableFrame(createCustomTerrainPanel(), "customTerrain", "Custom Terrain", DOCK_SIDE_WEST, 3));
 
@@ -2104,10 +2109,11 @@ public final class App extends JFrame implements RadiusControl,
         });
         button.setToolTipText(strings.getString("global.operations.fill.or.clear.the.world.with.a.terrain.biome.or.layer"));
         toolPanel.add(button);
-        toolPanel.add(createButtonForOperation(new Text(view, this, mapDragControl), "text"));
+        toolPanel.add(createButtonForOperation(new Text(view), "text"));
 
         toolPanel.add(createButtonForOperation(new RaiseRotatedPyramid(view), "pyramid"));
         toolPanel.add(createButtonForOperation(new RaisePyramid(view), "pyramid"));
+        toolPanel.add(createButtonForOperation(new Fill(view), "fill"));
 
         for (Operation operation: operations) {
             operation.setView(view);
@@ -2175,16 +2181,16 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private JPanel createBiomesPanel() {
-        final JPanel layerPanel = new JPanel();
-        layerPanel.setLayout(new GridBagLayout());
+        final JPanel biomesPanel = new JPanel();
+        biomesPanel.setLayout(new GridBagLayout());
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.insets = new Insets(1, 1, 1, 1);
 
         Configuration config = Configuration.getInstance();
         constraints.anchor = GridBagConstraints.FIRST_LINE_START;
         constraints.weightx = 0.0;
-        biomesCheckBox = new JCheckBox();
-        biomesCheckBox.setToolTipText(strings.getString("whether.or.not.to.display.this.layer"));
+        biomesCheckBox = new JCheckBox("Show:");
+        biomesCheckBox.setToolTipText("Uncheck to hide biomes from view (it will still be exported)");
         biomesCheckBox.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -2199,11 +2205,11 @@ public final class App extends JFrame implements RadiusControl,
         if (! config.isEasyMode()) {
             constraints.gridwidth = 1;
             constraints.weightx = 0.0;
-            layerPanel.add(biomesCheckBox, constraints);
+            biomesPanel.add(biomesCheckBox, constraints);
         }
         
-        biomesSoloCheckBox = new JCheckBox();
-        biomesSoloCheckBox.setToolTipText("<html>Check to show <em>only</em> this layer (the other layers are still exported)</html>");
+        biomesSoloCheckBox = new JCheckBox("Solo:");
+        biomesSoloCheckBox.setToolTipText("<html>Check to show <em>only</em> the biomes (the other layers are still exported)</html>");
         biomesSoloCheckBox.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -2223,10 +2229,10 @@ public final class App extends JFrame implements RadiusControl,
         layerSoloCheckBoxes.put(Biome.INSTANCE, biomesSoloCheckBox);
         if (! config.isEasyMode()) {
             constraints.gridwidth = GridBagConstraints.REMAINDER;
-            layerPanel.add(biomesSoloCheckBox, constraints);
+            biomesPanel.add(biomesSoloCheckBox, constraints);
         }
 
-        layerPanel.add(new BiomesPanel(defaultColourScheme, customBiomeManager, new BiomesPanel.Listener() {
+        biomesPanel.add(new BiomesPanel(defaultColourScheme, customBiomeManager, new BiomesPanel.Listener() {
             @Override
             public void biomeSelected(final int biomeId) {
                 paintUpdater = new PaintUpdater() {
@@ -2238,9 +2244,9 @@ public final class App extends JFrame implements RadiusControl,
                 };
                 paintUpdater.updatePaint();
             }
-        }), constraints);
+        }, paintButtonGroup), constraints);
 
-        return layerPanel;
+        return biomesPanel;
     }
 
     private JPanel createAnnotationsPanel() {
@@ -2252,9 +2258,9 @@ public final class App extends JFrame implements RadiusControl,
         Configuration config = Configuration.getInstance();
         constraints.anchor = GridBagConstraints.FIRST_LINE_START;
         constraints.weightx = 0.0;
-        annotationsCheckBox = new JCheckBox();
+        annotationsCheckBox = new JCheckBox("Show:");
         annotationsCheckBox.setSelected(true);
-        annotationsCheckBox.setToolTipText(strings.getString("whether.or.not.to.display.this.layer"));
+        annotationsCheckBox.setToolTipText("Uncheck to hide annotations from view");
         annotationsCheckBox.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -2272,8 +2278,8 @@ public final class App extends JFrame implements RadiusControl,
             layerPanel.add(annotationsCheckBox, constraints);
         }
         
-        annotationsSoloCheckBox = new JCheckBox();
-        annotationsSoloCheckBox.setToolTipText("<html>Check to show <em>only</em> this layer (the other layers are still exported)</html>");
+        annotationsSoloCheckBox = new JCheckBox("Solo:");
+        annotationsSoloCheckBox.setToolTipText("<html>Check to show <em>only</em> the annotations (the other layers are still exported)</html>");
         annotationsSoloCheckBox.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -2292,17 +2298,35 @@ public final class App extends JFrame implements RadiusControl,
         });
         layerSoloCheckBoxes.put(Annotations.INSTANCE, annotationsSoloCheckBox);
         if (! config.isEasyMode()) {
+            constraints.gridwidth = GridBagConstraints.REMAINDER;
             layerPanel.add(annotationsSoloCheckBox, constraints);
         }
 
-        Annotate annotateOp = new Annotate(view, instance, mapDragControl, selectedColourScheme);
-        JToggleButton annotationsToggleButton = (JToggleButton) createButtonForOperation(annotateOp, "annotations");
-        annotationsToggleButton.setText("Annotations");
-        if (! config.isEasyMode()) {
-            constraints.gridwidth = GridBagConstraints.REMAINDER;
-            constraints.weightx = 1.0;
-            layerPanel.add(annotationsToggleButton, constraints);
+        JPanel colourGrid = new JPanel(new GridLayout(0, 4));
+        for (int i = 1; i < 16; i++) {
+            final int selectedColour = i;
+            JToggleButton button = new JToggleButton(createColourIcon(defaultColourScheme.getColour(BLK_WOOL, i - ((i < 8) ? 1 : 0))));
+            button.setMargin(new Insets(2, 2, 2, 2));
+            if (i == 1) {
+                button.setSelected(true);
+            }
+            paintButtonGroup.add(button);
+            button.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    paintUpdater = new PaintUpdater() {
+                        @Override
+                        public void updatePaint() {
+                            paint = PaintFactory.createDiscreteLayerPaint(Annotations.INSTANCE, selectedColour);
+                            paintChanged();
+                        }
+                    };
+                    paintUpdater.updatePaint();
+                }
+            });
+            colourGrid.add(button);
         }
+        layerPanel.add(colourGrid, constraints);
 
         return layerPanel;
     }
@@ -2437,75 +2461,69 @@ public final class App extends JFrame implements RadiusControl,
     private JPanel createTerrainPanel() {
         JPanel terrainPanel = new JPanel();
         terrainPanel.setLayout(new GridLayout(0, 4));
-        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.GRASS)));
-        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.PERMADIRT)));
-        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.SAND)));
-        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.DESERT)));
+        terrainPanel.add(createTerrainButton(Terrain.GRASS));
+        terrainPanel.add(createTerrainButton(Terrain.PERMADIRT));
+        terrainPanel.add(createTerrainButton(Terrain.SAND));
+        terrainPanel.add(createTerrainButton(Terrain.DESERT));
         
-        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.BARE_GRASS)));
-        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.STONE)));
-        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.ROCK)));
-        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.SANDSTONE)));
+        terrainPanel.add(createTerrainButton(Terrain.BARE_GRASS));
+        terrainPanel.add(createTerrainButton(Terrain.STONE));
+        terrainPanel.add(createTerrainButton(Terrain.ROCK));
+        terrainPanel.add(createTerrainButton(Terrain.SANDSTONE));
 
-        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.STONE_MIX)));
-        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.GRANITE)));
-        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.DIORITE)));
-        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.ANDESITE)));
+        terrainPanel.add(createTerrainButton(Terrain.STONE_MIX));
+        terrainPanel.add(createTerrainButton(Terrain.GRANITE));
+        terrainPanel.add(createTerrainButton(Terrain.DIORITE));
+        terrainPanel.add(createTerrainButton(Terrain.ANDESITE));
 
-        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.PODZOL)));
-        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.COBBLESTONE)));
-        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.MOSSY_COBBLESTONE)));
-        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.GRAVEL)));
+        terrainPanel.add(createTerrainButton(Terrain.PODZOL));
+        terrainPanel.add(createTerrainButton(Terrain.COBBLESTONE));
+        terrainPanel.add(createTerrainButton(Terrain.MOSSY_COBBLESTONE));
+        terrainPanel.add(createTerrainButton(Terrain.GRAVEL));
         
-        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.OBSIDIAN)));
-        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.WATER)));
-        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.LAVA)));
-        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.DEEP_SNOW)));
+        terrainPanel.add(createTerrainButton(Terrain.OBSIDIAN));
+        terrainPanel.add(createTerrainButton(Terrain.WATER));
+        terrainPanel.add(createTerrainButton(Terrain.LAVA));
+        terrainPanel.add(createTerrainButton(Terrain.DEEP_SNOW));
         
-        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.NETHERRACK)));
-        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.SOUL_SAND)));
-        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.NETHERLIKE)));
-        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.MYCELIUM)));
+        terrainPanel.add(createTerrainButton(Terrain.NETHERRACK));
+        terrainPanel.add(createTerrainButton(Terrain.SOUL_SAND));
+        terrainPanel.add(createTerrainButton(Terrain.NETHERLIKE));
+        terrainPanel.add(createTerrainButton(Terrain.MYCELIUM));
 
-        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.END_STONE)));
-        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.BEDROCK)));
-        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.CLAY)));
-        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.BEACHES)));
+        terrainPanel.add(createTerrainButton(Terrain.END_STONE));
+        terrainPanel.add(createTerrainButton(Terrain.BEDROCK));
+        terrainPanel.add(createTerrainButton(Terrain.CLAY));
+        terrainPanel.add(createTerrainButton(Terrain.BEACHES));
         
-        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.RED_SAND)));
-        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.HARDENED_CLAY)));
-        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.RED_DESERT)));
-        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.MESA)));
+        terrainPanel.add(createTerrainButton(Terrain.RED_SAND));
+        terrainPanel.add(createTerrainButton(Terrain.RED_SANDSTONE));
+        terrainPanel.add(createTerrainButton(Terrain.RED_DESERT));
+        terrainPanel.add(createTerrainButton(Terrain.MESA));
 
-        terrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.RED_SANDSTONE)));
+        terrainPanel.add(createTerrainButton(Terrain.WHITE_STAINED_CLAY));
+        terrainPanel.add(createTerrainButton(Terrain.ORANGE_STAINED_CLAY));
+        terrainPanel.add(createTerrainButton(Terrain.MAGENTA_STAINED_CLAY));
+        terrainPanel.add(createTerrainButton(Terrain.LIGHT_BLUE_STAINED_CLAY));
+
+        terrainPanel.add(createTerrainButton(Terrain.YELLOW_STAINED_CLAY));
+        terrainPanel.add(createTerrainButton(Terrain.LIME_STAINED_CLAY));
+        terrainPanel.add(createTerrainButton(Terrain.PINK_STAINED_CLAY));
+        terrainPanel.add(createTerrainButton(Terrain.GREY_STAINED_CLAY));
+
+        terrainPanel.add(createTerrainButton(Terrain.LIGHT_GREY_STAINED_CLAY));
+        terrainPanel.add(createTerrainButton(Terrain.CYAN_STAINED_CLAY));
+        terrainPanel.add(createTerrainButton(Terrain.PURPLE_STAINED_CLAY));
+        terrainPanel.add(createTerrainButton(Terrain.BLUE_STAINED_CLAY));
+
+        terrainPanel.add(createTerrainButton(Terrain.BROWN_STAINED_CLAY));
+        terrainPanel.add(createTerrainButton(Terrain.GREEN_STAINED_CLAY));
+        terrainPanel.add(createTerrainButton(Terrain.RED_STAINED_CLAY));
+        terrainPanel.add(createTerrainButton(Terrain.BLACK_STAINED_CLAY));
+
+        terrainPanel.add(createTerrainButton(Terrain.HARDENED_CLAY));
 
         return terrainPanel;
-    }
-    
-    private JPanel createExtraTerrainPanel() {
-        JPanel extraTerrainPanel = new JPanel();
-        extraTerrainPanel.setLayout(new GridLayout(0, 4));
-        extraTerrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.WHITE_STAINED_CLAY)));
-        extraTerrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.ORANGE_STAINED_CLAY)));
-        extraTerrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.MAGENTA_STAINED_CLAY)));
-        extraTerrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.LIGHT_BLUE_STAINED_CLAY)));
-        
-        extraTerrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.YELLOW_STAINED_CLAY)));
-        extraTerrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.LIME_STAINED_CLAY)));
-        extraTerrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.PINK_STAINED_CLAY)));
-        extraTerrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.GREY_STAINED_CLAY)));
-        
-        extraTerrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.LIGHT_GREY_STAINED_CLAY)));
-        extraTerrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.CYAN_STAINED_CLAY)));
-        extraTerrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.PURPLE_STAINED_CLAY)));
-        extraTerrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.BLUE_STAINED_CLAY)));
-        
-        extraTerrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.BROWN_STAINED_CLAY)));
-        extraTerrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.GREEN_STAINED_CLAY)));
-        extraTerrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.RED_STAINED_CLAY)));
-        extraTerrainPanel.add(createButtonForOperation(new TerrainPaint(view, this, mapDragControl, Terrain.BLACK_STAINED_CLAY)));
-
-        return extraTerrainPanel;
     }
     
     private JPanel createCustomTerrainPanel() {
@@ -2513,7 +2531,7 @@ public final class App extends JFrame implements RadiusControl,
         customTerrainPanel.setLayout(new GridLayout(0, 4));
     
         for (int i = 0; i < Terrain.CUSTOM_TERRAIN_COUNT; i++) {
-            customMaterialButtons[i] = (JToggleButton) createButtonForOperation(new CustomTerrainPaint(view, this, mapDragControl, i));
+            customMaterialButtons[i] = createTerrainButton(Terrain.getCustomTerrain(i));
             customMaterialButtons[i].setIcon(ICON_UNKNOWN_PATTERN);
             customMaterialButtons[i].setToolTipText(strings.getString("not.set.click.to.set"));
             addMaterialSelectionTo(customMaterialButtons[i], i);
@@ -2597,7 +2615,7 @@ public final class App extends JFrame implements RadiusControl,
                 levelLabel.setText("Intensity: " + ((value < 52) ? (value - 1) : value) + " %");
                 if ((! programmaticChange) && (! levelSlider.getValueIsAdjusting())) {
                     float newLevel = value / 100.0f;
-                    if ((activeOperation instanceof TerrainPaint) || (activeOperation instanceof LayerPaint)) {
+                    if (activeOperation instanceof PaintOperation) {
                         level = newLevel;
                         ((MouseOrTabletOperation) activeOperation).setLevel(level);
                     } else {
@@ -2623,7 +2641,7 @@ public final class App extends JFrame implements RadiusControl,
                 int value = brushRotationSlider.getValue();
                 brushRotationLabel.setText("Rotation: " + ((value < 0) ? (((value - 7) / 15) * 15) : (((value + 7) / 15) * 15)) + "°");
                 if ((! programmaticChange) && (! brushRotationSlider.getValueIsAdjusting())) {
-                    if ((activeOperation instanceof TerrainPaint) || (activeOperation instanceof LayerPaint)) {
+                    if (activeOperation instanceof PaintOperation) {
                         brushRotation = value;
                     } else {
                         toolBrushRotation = value;
@@ -2671,7 +2689,7 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void updateBrushRotation() {
-        int desiredBrushRotation = ((activeOperation instanceof TerrainPaint) || (activeOperation instanceof LayerPaint)) ? brushRotation : toolBrushRotation;
+        int desiredBrushRotation = (activeOperation instanceof PaintOperation) ? brushRotation : toolBrushRotation;
         if (desiredBrushRotation != previousBrushRotation) {
             long start = System.currentTimeMillis();
             if (desiredBrushRotation == 0) {
@@ -2740,13 +2758,7 @@ public final class App extends JFrame implements RadiusControl,
     
     @Override
     public List<Component> createCustomLayerButton(final CustomLayer layer) {
-        Operation operation;
-        if (layer instanceof CombinedLayer) {
-            operation = new CombinedLayerPaint(view, App.this, mapDragControl, (CombinedLayer) layer);
-        } else {
-            operation = new LayerPaint(view, App.this, mapDragControl, layer);
-        }
-        final List<Component> buttonComponents = createButtonForOperation(operation, new ImageIcon(layer.getIcon()), '\0', true);
+        final List<Component> buttonComponents = createLayerButton(layer, '\0', true);
         final JToggleButton button = (JToggleButton) buttonComponents.get(2);
         button.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
@@ -2886,8 +2898,8 @@ public final class App extends JFrame implements RadiusControl,
 
             private void remove() {
                 if (JOptionPane.showConfirmDialog(App.this, MessageFormat.format(strings.getString("are.you.sure.you.want.to.remove.the.0.layer"), layer.getName()), MessageFormat.format(strings.getString("confirm.0.removal"), layer.getName()), JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-                    if ((activeOperation instanceof LayerPaint) && (((LayerPaint) activeOperation).getLayer() == layer)) {
-                        toolButtonGroup.clearSelection();
+                    if ((activeOperation instanceof PaintOperation) && (paint instanceof LayerPaint) && (((LayerPaint) paint).getLayer() == layer)) {
+                        deselectPaint();
                     }
                     dimension.setEventsInhibited(true);
                     try {
@@ -2957,8 +2969,8 @@ public final class App extends JFrame implements RadiusControl,
         // Hide newly hidden layers
         for (CustomLayer layer: paletteManager.getLayers()) {
             if (layer.isHide()) {
-                if ((activeOperation instanceof LayerPaint) && (((LayerPaint) activeOperation).getLayer().equals(layer))) {
-                    deselectTool();
+                if ((activeOperation instanceof PaintOperation) && (paint instanceof LayerPaint) && (((LayerPaint) paint).getLayer().equals(layer))) {
+                    deselectPaint();
                 }
                 unregisterCustomLayer(layer);
                 hiddenLayers.remove(layer);
@@ -4076,44 +4088,19 @@ public final class App extends JFrame implements RadiusControl,
         zoomLabel.setText(MessageFormat.format(strings.getString("zoom.0"), 100));
     }
 
-    private AbstractButton createButtonForOperation(Operation operation) {
-        return createButtonForOperation(operation, null, (char) 0);
-    }
-
-    private AbstractButton createButtonForOperation(Operation operation, @NonNls String iconName) {
+    private JToggleButton createButtonForOperation(Operation operation, @NonNls String iconName) {
         return createButtonForOperation(operation, iconName, (char) 0);
     }
 
-    private AbstractButton createButtonForOperation(Operation operation, @NonNls String iconName, char mnemonic) {
-        return (AbstractButton) createButtonForOperation(operation, iconName, mnemonic, false).get(0);
-    }
-
-    private List<Component> createButtonForOperation(final Operation operation, @NonNls String iconName, char mnemonic, boolean layerCheckbox) {
-        return createButtonForOperation(operation, iconName, mnemonic, layerCheckbox, true);
-    }
-    
-    private List<Component> createButtonForOperation(final Operation operation, Icon icon, char mnemonic, boolean layerCheckbox) {
-        return createButtonForOperation(operation, icon, mnemonic, layerCheckbox, true);
-    }
-    
-    private List<Component> createButtonForOperation(final Operation operation, String iconName, char mnemonic, boolean layerCheckbox, boolean checkboxEnabled) {
+    private JToggleButton createButtonForOperation(final Operation operation, @NonNls String iconName, char mnemonic) {
         Icon icon;
         if (iconName != null) {
             icon = loadIcon(operation, iconName);
-        } else if (operation instanceof TerrainOperation) {
-            icon = new ImageIcon(((TerrainOperation) operation).getTerrain().getIcon(selectedColourScheme));
         } else {
             icon = null;
         }
-        return createButtonForOperation(operation, icon, mnemonic, layerCheckbox, checkboxEnabled);
-    }
-    
-    private List<Component> createButtonForOperation(final Operation operation, Icon icon, char mnemonic, boolean layerCheckbox, boolean checkboxEnabled) {
-        boolean readOnlyOperation = (operation instanceof LayerPaint) && (((LayerPaint) operation).getLayer().equals(ReadOnly.INSTANCE));
-        final JToggleButton button = new JToggleButton();
-        if (readOnlyOperation) {
-            readOnlyToggleButton = button;
-        } else if (operation instanceof SetSpawnPoint) {
+        JToggleButton button = new JToggleButton();
+        if (operation instanceof SetSpawnPoint) {
             setSpawnPointToggleButton = button;
         }
         button.setMargin(new Insets(2, 2, 2, 2));
@@ -4134,70 +4121,54 @@ public final class App extends JFrame implements RadiusControl,
                 if (event.getStateChange() == ItemEvent.DESELECTED) {
                     if (operation instanceof RadiusOperation) {
                         view.setDrawRadius(false);
-                        if (operation instanceof LayerPaint) {
-                            Layer layer = ((LayerPaint) operation).getLayer();
-                            if (hiddenLayers.contains(layer)) {
-                                view.addHiddenLayer(layer);
-                            }
-                        }
-                    }
-                    if (operation instanceof Annotate) {
-                        dockingManager.hideFrame("annotations");
                     }
                     operation.setActive(false);
                     activeOperation = null;
                 } else {
-                    if (operation instanceof MouseOrTabletOperation) {
-                        if ((operation instanceof TerrainPaint) || (operation instanceof LayerPaint)) {
-                            ((MouseOrTabletOperation) operation).setLevel(level);
-                            programmaticChange = true;
-                            try {
-                                levelSlider.setValue((int) (level * 100));
-                                brushRotationSlider.setValue(brushRotation);
-                            } finally {
-                                programmaticChange = false;
-                            }
-                            brushOptions.setFilter(filter);
-                        } else {
-                            ((MouseOrTabletOperation) operation).setLevel(toolLevel);
-                            programmaticChange = true;
-                            try {
-                                levelSlider.setValue((int) (toolLevel * 100));
-                                brushRotationSlider.setValue(toolBrushRotation);
-                            } finally {
-                                programmaticChange = false;
-                            }
-                            brushOptions.setFilter(toolFilter);
-                        }
-                        if (operation instanceof Annotate) {
-                            dockingManager.showFrame("annotations");
-                        }
-                        if (operation instanceof RadiusOperation) {
-                            view.setDrawRadius(true);
-                            view.setRadius(radius);
-                            ((RadiusOperation) operation).setRadius(radius);
-                            programmaticChange = true;
-                            try {
-                                if ((operation instanceof TerrainPaint) || (operation instanceof LayerPaint)) {
+                    if (operation instanceof PaintOperation) {
+                        programmaticChange = true;
+                        try {
+                            if (operation instanceof MouseOrTabletOperation) {
+                                ((MouseOrTabletOperation) operation).setLevel(level);
+                                if (operation instanceof RadiusOperation) {
                                     ((RadiusOperation) operation).setBrush(brushRotation == 0 ? brush : RotatedBrush.rotate(brush, brushRotation));
                                     ((RadiusOperation) operation).setFilter(filter);
                                     selectBrushButton(brush);
                                     view.setBrushShape(brush.getBrushShape());
                                     view.setBrushRotation(brushRotation);
-                                } else {
+                                }
+                            }
+                            levelSlider.setValue((int) (level * 100));
+                            brushRotationSlider.setValue(brushRotation);
+                        } finally {
+                            programmaticChange = false;
+                        }
+                        brushOptions.setFilter(filter);
+                        ((PaintOperation) operation).setPaint(paint);
+                    } else {
+                        programmaticChange = true;
+                        try {
+                            if (operation instanceof MouseOrTabletOperation) {
+                                ((MouseOrTabletOperation) operation).setLevel(toolLevel);
+                                if (operation instanceof RadiusOperation) {
                                     ((RadiusOperation) operation).setBrush(toolBrushRotation == 0 ? toolBrush : RotatedBrush.rotate(toolBrush, toolBrushRotation));
                                     ((RadiusOperation) operation).setFilter(toolFilter);
                                     selectBrushButton(toolBrush);
                                     view.setBrushShape(toolBrush.getBrushShape());
                                     view.setBrushRotation(toolBrushRotation);
                                 }
-                            } finally {
-                                programmaticChange = false;
                             }
-                            if (operation instanceof PaintOperation) {
-                                ((PaintOperation) operation).setPaint(paint);
-                            }
+                            levelSlider.setValue((int) (toolLevel * 100));
+                            brushRotationSlider.setValue(toolBrushRotation);
+                        } finally {
+                            programmaticChange = false;
                         }
+                        brushOptions.setFilter(toolFilter);
+                    }
+                    if (operation instanceof RadiusOperation) {
+                        view.setDrawRadius(true);
+                        view.setRadius(radius);
+                        ((RadiusOperation) operation).setRadius(radius);
                     }
                     activeOperation = operation;
                     updateLayerVisibility();
@@ -4207,62 +4178,7 @@ public final class App extends JFrame implements RadiusControl,
             }
         });
         toolButtonGroup.add(button);
-        if (layerCheckbox) {
-            final JCheckBox checkBox = new JCheckBox();
-            if (readOnlyOperation) {
-                readOnlyCheckBox = checkBox;
-            }
-            checkBox.setToolTipText(strings.getString("whether.or.not.to.display.this.layer"));
-            final Layer layer = ((LayerPaint) operation).getLayer();
-            checkBox.setSelected(true);
-            if (checkboxEnabled) {
-                checkBox.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        if (checkBox.isSelected()) {
-                            hiddenLayers.remove(layer);
-                        } else {
-                            hiddenLayers.add(layer);
-                        }
-                        updateLayerVisibility();
-                    }
-                });
-            } else {
-                checkBox.setEnabled(false);
-            }
-            
-            final JCheckBox soloCheckBox = new JCheckBox();
-            if (readOnlyOperation) {
-                readOnlySoloCheckBox = soloCheckBox;
-            }
-            layerSoloCheckBoxes.put(layer, soloCheckBox);
-            soloCheckBox.setToolTipText("<html>Check to show <em>only</em> this layer (the other layers are still exported)</html>");
-            if (checkboxEnabled) {
-                soloCheckBox.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        if (soloCheckBox.isSelected()) {
-                            for (JCheckBox otherSoloCheckBox: layerSoloCheckBoxes.values()) {
-                                if (otherSoloCheckBox != soloCheckBox) {
-                                    otherSoloCheckBox.setSelected(false);
-                                }
-                            }
-                            soloLayer = layer;
-                        } else {
-                            soloLayer = null;
-                        }
-                        updateLayerVisibility();
-                    }
-                });
-            } else {
-                soloCheckBox.setEnabled(false);
-            }
-            
-            button.setText(operation.getName());
-            return Arrays.asList((Component) checkBox, soloCheckBox, button);
-        } else {
-            return Collections.singletonList((Component) button);
-        }
+        return button;
     }
 
     private List<Component> createLayerButton(final Layer layer, char mnemonic, boolean checkboxEnabled) {
@@ -4346,9 +4262,34 @@ public final class App extends JFrame implements RadiusControl,
         return Arrays.asList((Component) checkBox, soloCheckBox, button);
     }
 
+    private JToggleButton createTerrainButton(final Terrain terrain) {
+        final JToggleButton button = new JToggleButton();
+        button.setMargin(new Insets(2, 2, 2, 2));
+        button.setIcon(new ImageIcon(terrain.getIcon(defaultColourScheme)));
+        button.setToolTipText(terrain.getName() + ": " + terrain.getDescription());
+        button.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent event) {
+                if (event.getStateChange() == ItemEvent.SELECTED) {
+                    paintUpdater = new PaintUpdater() {
+                        @Override
+                        public void updatePaint() {
+                            paint = PaintFactory.createTerrainPaint(terrain);
+                            paintChanged();
+                        }
+                    };
+                    paintUpdater.updatePaint();
+                }
+            }
+        });
+        paintButtonGroup.add(button);
+        return button;
+    }
+
     private void paintChanged() {
         if (activeOperation instanceof PaintOperation) {
             ((PaintOperation) activeOperation).setPaint(paint);
+            updateLayerVisibility();
         }
     }
 
@@ -4374,8 +4315,8 @@ public final class App extends JFrame implements RadiusControl,
             targetHiddenLayers.addAll(hiddenLayers);
         }
         // The currently active layer, if any, should always be visible
-        if (activeOperation instanceof LayerPaint) {
-            targetHiddenLayers.remove(((LayerPaint) activeOperation).getLayer());
+        if ((activeOperation instanceof PaintOperation) && (paint instanceof LayerPaint)) {
+            targetHiddenLayers.remove(((LayerPaint) paint).getLayer());
         }
         
         // Hide the selected layers
@@ -4408,7 +4349,7 @@ public final class App extends JFrame implements RadiusControl,
             public void itemStateChanged(ItemEvent e) {
                 if ((! programmaticChange) && (e.getStateChange() == ItemEvent.SELECTED)) {
                     int effectiveRotation;
-                    if ((activeOperation instanceof TerrainPaint) || (activeOperation instanceof LayerPaint) || (activeOperation instanceof PaintOperation)) {
+                    if (activeOperation instanceof PaintOperation) {
                         App.this.brush = brush;
                         effectiveRotation = brushRotation;
                     } else {
@@ -4466,8 +4407,8 @@ public final class App extends JFrame implements RadiusControl,
 
     private void disableImportedWorldOperation() {
         if (! alwaysEnableReadOnly) {
-            if ((activeOperation instanceof LayerPaint) && ((LayerPaint) activeOperation).getLayer().equals(Biome.INSTANCE)) {
-                deselectTool();
+            if ((activeOperation instanceof PaintOperation) && (paint instanceof LayerPaint) && ((LayerPaint) paint).getLayer().equals(Biome.INSTANCE)) {
+                deselectPaint();
             }
             readOnlyCheckBox.setEnabled(false);
             readOnlyToggleButton.setEnabled(false);
@@ -5086,6 +5027,16 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
 
+    private Icon createColourIcon(int colour) {
+        BufferedImage image = new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB);
+        for (int x = 0; x < 16; x++) {
+            for (int y = 0; y < 16; y++) {
+                image.setRGB(x, y, colour);
+            }
+        }
+        return new ImageIcon(image);
+    }
+
     static DockableFrame createDockableFrame(Component component, String title, int side, int index) {
         String id = Character.toLowerCase(title.charAt(0)) + title.substring(1);
         return createDockableFrame(component, id, title, side, index);
@@ -5124,14 +5075,14 @@ public final class App extends JFrame implements RadiusControl,
                     } else {
                         // Tall (or square) icon
                         s = 16f / icon.getIconHeight();
-            }
+                    }
                     BufferedImageOp op = new AffineTransformOp(AffineTransform.getScaleInstance(s, s), AffineTransformOp.TYPE_BICUBIC);
                     BufferedImage iconImage = op.filter((BufferedImage) ((ImageIcon) icon).getImage(), null);
                     icon = new ImageIcon(iconImage);
-            }
+                }
                 dockableFrame.setFrameIcon(icon);
             }
-            }
+        }
 
         // Use preferred size of component as much as possible
         final java.awt.Dimension preferredSize = component.getPreferredSize();
@@ -5691,7 +5642,7 @@ public final class App extends JFrame implements RadiusControl,
                 rotation += 360;
             }
             brushRotationSlider.setValue(rotation);
-            if ((activeOperation instanceof TerrainPaint) || (activeOperation instanceof LayerPaint)) {
+            if (activeOperation instanceof PaintOperation) {
                 brushRotation = rotation;
             } else {
                 toolBrushRotation = rotation;
@@ -5708,7 +5659,7 @@ public final class App extends JFrame implements RadiusControl,
                 rotation -= 360;
             }
             brushRotationSlider.setValue(rotation);
-            if ((activeOperation instanceof TerrainPaint) || (activeOperation instanceof LayerPaint)) {
+            if (activeOperation instanceof PaintOperation) {
                 brushRotation = rotation;
             } else {
                 toolBrushRotation = rotation;
@@ -5722,7 +5673,7 @@ public final class App extends JFrame implements RadiusControl,
         protected void performAction(ActionEvent e) {
             if (brushRotationSlider.getValue() != 0) {
                 brushRotationSlider.setValue(0);
-                if ((activeOperation instanceof TerrainPaint) || (activeOperation instanceof LayerPaint)) {
+                if (activeOperation instanceof PaintOperation) {
                     brushRotation = 0;
                 } else {
                     toolBrushRotation = 0;
@@ -5740,7 +5691,7 @@ public final class App extends JFrame implements RadiusControl,
                 rotation -= 360;
             }
             brushRotationSlider.setValue(rotation);
-            if ((activeOperation instanceof TerrainPaint) || (activeOperation instanceof LayerPaint)) {
+            if (activeOperation instanceof PaintOperation) {
                 brushRotation = rotation;
             } else {
                 toolBrushRotation = rotation;
@@ -5757,7 +5708,7 @@ public final class App extends JFrame implements RadiusControl,
                 rotation -= 360;
             }
             brushRotationSlider.setValue(rotation);
-            if ((activeOperation instanceof TerrainPaint) || (activeOperation instanceof LayerPaint)) {
+            if (activeOperation instanceof PaintOperation) {
                 brushRotation = rotation;
             } else {
                 toolBrushRotation = rotation;
@@ -5774,7 +5725,7 @@ public final class App extends JFrame implements RadiusControl,
                 rotation -= 360;
             }
             brushRotationSlider.setValue(rotation);
-            if ((activeOperation instanceof TerrainPaint) || (activeOperation instanceof LayerPaint)) {
+            if (activeOperation instanceof PaintOperation) {
                 brushRotation = rotation;
             } else {
                 toolBrushRotation = rotation;

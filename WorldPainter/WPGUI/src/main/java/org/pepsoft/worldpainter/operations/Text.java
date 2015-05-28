@@ -1,12 +1,10 @@
 package org.pepsoft.worldpainter.operations;
 
 import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.MapDragControl;
-import org.pepsoft.worldpainter.RadiusControl;
 import org.pepsoft.worldpainter.WorldPainterView;
 import org.pepsoft.worldpainter.layers.Annotations;
 import org.pepsoft.worldpainter.layers.exporters.AnnotationsExporter;
-import org.pepsoft.worldpainter.painting.*;
+import org.pepsoft.worldpainter.painting.DimensionPainter;
 import org.pepsoft.worldpainter.painting.Paint;
 
 import javax.swing.*;
@@ -15,9 +13,19 @@ import java.awt.*;
 /**
  * Created by pepijn on 14-5-15.
  */
-public class Text extends PaintOperation {
-    public Text(WorldPainterView view, RadiusControl radiusControl, MapDragControl mapDragControl) {
-        super("Text", "Draw text using any layer or terrain at different sizes, fonts and angles", view, radiusControl, mapDragControl, "operation.text");
+public class Text extends MouseOrTabletOperation implements PaintOperation {
+    public Text(WorldPainterView view) {
+        super("Text", "Draw text using any layer or terrain at different sizes, fonts and angles", view, "operation.text");
+    }
+
+    @Override
+    public Paint getPaint() {
+        return painter.getPaint();
+    }
+
+    @Override
+    public void setPaint(Paint paint) {
+        painter.setPaint(paint);
     }
 
     @Override
@@ -51,12 +59,6 @@ public class Text extends PaintOperation {
     protected void activate() {
         super.activate();
         painter.setDimension(getDimension());
-//        getView().setDrawRadius(false);
-    }
-
-    @Override
-    protected void paintChanged(Paint newPaint) {
-        painter.setPaint(getPaint());
     }
 
     private final DimensionPainter painter = new DimensionPainter();

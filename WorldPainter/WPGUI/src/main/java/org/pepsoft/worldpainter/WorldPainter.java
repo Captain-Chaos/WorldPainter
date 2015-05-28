@@ -474,11 +474,15 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             return;
         }
         int count = 0;
+        Set<Point> coords = new HashSet<Point>();
         for (Tile tile: dimension.getTiles()) {
-            if (tile.getLayers().contains(layer)) {
-                refresh(tileProvider, tile.getX(), tile.getY());
+            if (tile.hasLayer(layer)) {
+                coords.add(new Point(tile.getX(), tile.getY()));
                 count++;
             }
+        }
+        if (count > 0) {
+            refresh(tileProvider, coords);
         }
         if (logger.isLoggable(Level.FINE)) {
             logger.fine("Refreshing " + count + " tiles for layer " + layer.getName());

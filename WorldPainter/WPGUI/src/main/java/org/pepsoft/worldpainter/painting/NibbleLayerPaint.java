@@ -32,7 +32,7 @@ import static org.pepsoft.worldpainter.Constants.TILE_SIZE_MASK;
  *
  * <p>Created by pepijn on 15-05-15.
  */
-public class NibbleLayerPaint extends LayerPaint {
+public final class NibbleLayerPaint extends LayerPaint {
     public NibbleLayerPaint(Layer layer) {
         super(layer);
         if (layer.getDataSize() != Layer.DataSize.NIBBLE) {

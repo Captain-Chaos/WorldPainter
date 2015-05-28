@@ -56,12 +56,16 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
     }
     
     public void addHiddenLayer(Layer layer) {
-        hiddenLayers.add(layer);
+        synchronized (hiddenLayers) {
+            hiddenLayers.add(layer);
+        }
         tileRendererRef = createNewTileRendererRef();
     }
     
     public void removeHiddenLayer(Layer layer) {
-        hiddenLayers.remove(layer);
+        synchronized (hiddenLayers) {
+            hiddenLayers.remove(layer);
+        }
         tileRendererRef = createNewTileRendererRef();
     }
     
@@ -453,8 +457,10 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
             @Override
             protected TileRenderer initialValue() {
                 TileRenderer tileRenderer = new TileRenderer(tileProvider, colourScheme, biomeScheme, customBiomeManager, zoom);
-                if (hiddenLayers != null) {
-                    tileRenderer.addHiddenLayers(hiddenLayers);
+                synchronized (hiddenLayers) {
+                    if (hiddenLayers != null) {
+                        tileRenderer.addHiddenLayers(hiddenLayers);
+                    }
                 }
                 tileRenderer.setContourLines(contourLines);
                 tileRenderer.setContourSeparation(contourSeparation);

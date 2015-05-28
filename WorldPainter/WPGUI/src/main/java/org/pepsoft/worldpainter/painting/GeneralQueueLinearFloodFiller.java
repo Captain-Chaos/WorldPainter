@@ -1,55 +1,40 @@
-package org.pepsoft.worldpainter;
+package org.pepsoft.worldpainter.painting;
 
 //Original algorithm by J. Dunlap http://www.codeproject.com/KB/GDI-plus/queuelinearfloodfill.aspx
 //Java port by Owen Kaluza
 // Adapted for WorldPainter by Pepijn Schmitz on 28-3-2011
-import java.awt.Window;
-import java.util.BitSet;
-import java.util.Queue;
-import java.util.LinkedList;
+
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.swing.ProgressDialog;
 import org.pepsoft.util.swing.ProgressTask;
-import org.pepsoft.worldpainter.layers.FloodWithLava;
-import static org.pepsoft.worldpainter.Constants.*;
 
-public class QueueLinearFloodFiller {
+import java.awt.*;
+import java.util.BitSet;
+import java.util.LinkedList;
+import java.util.Queue;
+
+public class GeneralQueueLinearFloodFiller {
     // Dimension to flood
 
-    private final Dimension dimension;
-    // Level to flood to
-    private final int waterLevel;
-    // Whether to flood with lava instead of water
-    private final boolean floodWithLava;
-    // Whether to remove a layer of material instead of adding it
-    private final boolean undo;
     //cached image properties
     private final int width, height, offsetX, offsetY;
     //internal, initialized per fill
-    protected BitSet blocksChecked;
+    private BitSet blocksChecked;
     //Queue of floodfill ranges
-    protected Queue<FloodFillRange> ranges;
+    private Queue<FloodFillRange> ranges;
+    /**
+     * The actual logic for determining what should be filled, and what it should be filled with.
+     */
+    private final FillMethod fillMethod;
 
-    public QueueLinearFloodFiller(Dimension dimension, int waterLevel, boolean floodWithLava, boolean undo) {
-        this.dimension = dimension;
-        this.waterLevel = waterLevel;
-        this.floodWithLava = floodWithLava;
-        this.undo = undo;
-        width = dimension.getWidth() * TILE_SIZE;
-        height = dimension.getHeight() * TILE_SIZE;
-        offsetX = dimension.getLowestX() * TILE_SIZE;
-        offsetY = dimension.getLowestY() * TILE_SIZE;
-    }
-
-    public Dimension getDimension() {
-        return dimension;
-    }
-
-    protected void prepare() {
-        //Called before starting flood-fill
-        blocksChecked = new BitSet(width * height);
-        ranges = new LinkedList<FloodFillRange>();
+    public GeneralQueueLinearFloodFiller(FillMethod fillMethod) {
+        this.fillMethod = fillMethod;
+        Rectangle fillBounds = fillMethod.getBounds();
+        width = fillBounds.width;
+        height = fillBounds.height;
+        offsetX = fillBounds.x;
+        offsetY = fillBounds.y;
     }
 
     // Fills the specified point on the bitmap with the currently selected fill color.
@@ -80,15 +65,15 @@ public class QueueLinearFloodFiller {
                 // We're taking more than two seconds. Do the rest in the
                 // background and show a progress dialog so the user can cancel
                 // the operation
-                if (ProgressDialog.executeTask(parent, new ProgressTask<Dimension>() {
+                if (ProgressDialog.executeTask(parent, new ProgressTask<FillMethod>() {
                     @Override
                     public String getName() {
-                        return undo ? "Draining" : "Flooding";
+                        return fillMethod.getDescription();
                     }
 
                     @Override
-                    public Dimension execute(ProgressReceiver progressReceiver) throws OperationCancelled {
-                        synchronized (dimension) {
+                    public FillMethod execute(ProgressReceiver progressReceiver) throws OperationCancelled {
+                        synchronized (fillMethod) {
                             //***Call floodfill routine while floodfill ranges still exist on the queue
                             FloodFillRange range;
                             while (ranges.size() > 0) {
@@ -97,7 +82,7 @@ public class QueueLinearFloodFiller {
                                 processRange(range);
                                 progressReceiver.checkForCancellation();
                             }
-                            return dimension;
+                            return fillMethod;
                         }
                     }
                 }) == null) {
@@ -109,6 +94,12 @@ public class QueueLinearFloodFiller {
         }
 
         return true;
+    }
+
+    private void prepare() {
+        //Called before starting flood-fill
+        blocksChecked = new BitSet(width * height);
+        ranges = new LinkedList<FloodFillRange>();
     }
 
     private void processRange(FloodFillRange range) {
@@ -140,20 +131,13 @@ public class QueueLinearFloodFiller {
     // to be processed in the main loop.
     //
     // int x, int y: The starting coords
-    protected void linearFill(int x, int y) {
+    private void linearFill(int x, int y) {
         //***Find Left Edge of Color Area
         int lFillLoc = x; //the location to check/fill on the left
         int pxIdx = (width * y) + x;
         int origPxIdx = pxIdx;
         while (true) {
-            if (undo) {
-                //**remove a layer of material
-                dimension.setWaterLevelAt(offsetX + x + pxIdx - origPxIdx, offsetY + y, waterLevel - 1);
-            } else {
-                //**flood
-                dimension.setWaterLevelAt(offsetX + x + pxIdx - origPxIdx, offsetY + y, waterLevel);
-                dimension.setBitLayerValueAt(FloodWithLava.INSTANCE, offsetX + x + pxIdx - origPxIdx, offsetY + y, floodWithLava);
-            }
+            fillMethod.fill(offsetX + x + pxIdx - origPxIdx, offsetY + y);
             //**indicate that this block has already been checked and filled
             blocksChecked.set(pxIdx);
             //**de-increment
@@ -171,14 +155,7 @@ public class QueueLinearFloodFiller {
         pxIdx = (width * y) + x;
         origPxIdx = pxIdx;
         while (true) {
-            if (undo) {
-                //**remove a layer of material
-                dimension.setWaterLevelAt(offsetX + x + pxIdx - origPxIdx, offsetY + y, waterLevel - 1);
-            } else {
-                //**flood
-                dimension.setWaterLevelAt(offsetX + x + pxIdx - origPxIdx, offsetY + y, waterLevel);
-                dimension.setBitLayerValueAt(FloodWithLava.INSTANCE, offsetX + x + pxIdx - origPxIdx, offsetY + y, floodWithLava);
-            }
+            fillMethod.fill(offsetX + x + pxIdx - origPxIdx, offsetY + y);
             //**indicate that this block has already been checked and filled
             blocksChecked.set(pxIdx);
             //**increment
@@ -197,28 +174,12 @@ public class QueueLinearFloodFiller {
     }
 
     //Sees if a block should be flooded (or unflooded)
-    protected boolean checkBlock(int px) {
-        int y = px / width;
-        int x = px % width;
-        if (dimension.getBitLayerValueAt(org.pepsoft.worldpainter.layers.Void.INSTANCE, offsetX + x, offsetY + y)) {
-            return false;
-        } else {
-            int height = dimension.getIntHeightAt(offsetX + x, offsetY + y);
-            if (undo) {
-                return (height != -1)
-                    && (dimension.getWaterLevelAt(offsetX + x, offsetY + y) >= waterLevel)
-                    && (height < waterLevel);
-            } else {
-                return (height != -1)
-                    && (waterLevel > height)
-                    && ((waterLevel > dimension.getWaterLevelAt(offsetX + x, offsetY + y))
-                        || (floodWithLava != dimension.getBitLayerValueAt(FloodWithLava.INSTANCE, offsetX + x, offsetY + y)));
-            }
-        }
+    private boolean checkBlock(int px) {
+        return ! fillMethod.isFilled(offsetX + px % width, offsetY + px / width);
     }
 
     // Represents a linear range to be filled and branched from.
-    protected class FloodFillRange {
+    static class FloodFillRange {
 
         public int startX;
         public int endX;
@@ -229,5 +190,40 @@ public class QueueLinearFloodFiller {
             this.endX = endX;
             this.Y = y;
         }
+    }
+
+    public interface FillMethod {
+        /**
+         * Get a short human readable description of the operation. May be shown to the user if the operation takes a
+         * long time.
+         *
+         * @return A short human readable description of the operation.
+         */
+        String getDescription();
+
+        /**
+         * Indicates the area to which the fill operation should be constrained.
+         *
+         * @return Tthe area to which the fill operation should be constrained.
+         */
+        Rectangle getBounds();
+
+        /**
+         * Indicates whether the specified coordinates in the specified dimension are already "filled", whatever that
+         * means.
+         *
+         * @param x The X coordinate to check.
+         * @param y The Y coordinate to check.
+         * @return <code>true</code> if the specified coordindates are already "filled".
+         */
+        boolean isFilled(int x, int y);
+
+        /**
+         * "Fills" the specified coordinates, whatever that means.
+         *
+         * @param x The X coordinate to "fill".
+         * @param y The Y coordinate to "fill".
+         */
+        void fill(int x, int y);
     }
 }

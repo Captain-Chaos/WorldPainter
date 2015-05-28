@@ -33,12 +33,12 @@ public abstract class LayerPaint extends AbstractPaint {
         this.layer = layer;
     }
 
-    public Layer getLayer() {
+    public final Layer getLayer() {
         return layer;
     }
 
     @Override
-    public BufferedImage getIcon(ColourScheme colourScheme) {
+    public final BufferedImage getIcon(ColourScheme colourScheme) {
         return layer.getIcon();
     }
 

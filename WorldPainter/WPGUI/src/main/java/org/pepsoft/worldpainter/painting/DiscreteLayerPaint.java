@@ -30,7 +30,7 @@ import static org.pepsoft.worldpainter.Constants.TILE_SIZE_MASK;
  *
  * <p>Created by pepijn on 20-05-15.
  */
-public class DiscreteLayerPaint extends LayerPaint {
+public final class DiscreteLayerPaint extends LayerPaint {
     public DiscreteLayerPaint(Layer layer, int value) {
         super(layer);
         if ((layer.getDataSize() != Layer.DataSize.NIBBLE) && (layer.getDataSize() != Layer.DataSize.BYTE)) {
@@ -113,9 +113,9 @@ public class DiscreteLayerPaint extends LayerPaint {
     @Override
     public void remove(Dimension dimension, int centreX, int centreY, float dynamicLevel) {
         if (brush.getRadius() == 0) {
-            // Special case: if the radius is 0, assume that the user wants to paint complete pixels instead of trying
+            // Special case: if the radius is 0, assume that the user wants to remove complete pixels instead of trying
             // to apply the brush
-            applyPixel(dimension, centreX, centreY);
+            removePixel(dimension, centreX, centreY);
             return;
         }
         final int effectiveRadius = brush.getEffectiveRadius();
@@ -134,7 +134,7 @@ public class DiscreteLayerPaint extends LayerPaint {
                     for (int x = x1InTile; x <= x2InTile; x++) {
                         final float strength = dynamicLevel * getFullStrength(centreXInTile, centreYInTile, x, y);
                         if ((strength > 0.95f) || (Math.random() < strength)) {
-                            tile.setLayerValue(layer, x, y, value);
+                            tile.setLayerValue(layer, x, y, defaultValue);
                         }
                     }
                 }
@@ -143,7 +143,7 @@ public class DiscreteLayerPaint extends LayerPaint {
                     for (int x = x1InTile; x <= x2InTile; x++) {
                         final float strength = dynamicLevel * getFullStrength(centreXInTile, centreYInTile, x, y);
                         if (strength > 0.75f) {
-                            tile.setLayerValue(layer, x, y, value);
+                            tile.setLayerValue(layer, x, y, defaultValue);
                         }
                     }
                 }
@@ -155,7 +155,7 @@ public class DiscreteLayerPaint extends LayerPaint {
                     for (int x = x1; x <= x2; x++) {
                         final float strength = dynamicLevel * getFullStrength(centreX, centreY, x, y);
                         if ((strength > 0.95f) || (Math.random() < strength)) {
-                            dimension.setLayerValueAt(layer, x, y, value);
+                            dimension.setLayerValueAt(layer, x, y, defaultValue);
                         }
                     }
                 }
@@ -164,7 +164,7 @@ public class DiscreteLayerPaint extends LayerPaint {
                     for (int x = x1; x <= x2; x++) {
                         final float strength = dynamicLevel * getFullStrength(centreX, centreY, x, y);
                         if (strength > 0.75f) {
-                            dimension.setLayerValueAt(layer, x, y, value);
+                            dimension.setLayerValueAt(layer, x, y, defaultValue);
                         }
                     }
                 }
