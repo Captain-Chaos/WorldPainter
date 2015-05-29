@@ -110,14 +110,14 @@ public class GeneralQueueLinearFloodFiller {
         int downY = range.Y + 1;
         for (int i = range.startX; i <= range.endX; i++) {
             //*Start Fill Upwards
-            //if we're not above the top of the bitmap and the block above this one is within the color tolerance
-            if (range.Y > 0 && (!blocksChecked.get(upPxIdx)) && checkBlock(upPxIdx)) {
+            //if we're not above the top of the bitmap and the block above this one is not filled
+            if (range.Y > 0 && (!blocksChecked.get(upPxIdx)) && !fillMethod.isBoundary(offsetX + i, offsetY + upY)) {
                 linearFill(i, upY);
             }
 
             //*Start Fill Downwards
-            //if we're not below the bottom of the bitmap and the block below this one is within the color tolerance
-            if (range.Y < (height - 1) && (!blocksChecked.get(downPxIdx)) && checkBlock(downPxIdx)) {
+            //if we're not below the bottom of the bitmap and the block below this one is not filled
+            if (range.Y < (height - 1) && (!blocksChecked.get(downPxIdx)) && !fillMethod.isBoundary(offsetX + i, offsetY + downY)) {
                 linearFill(i, downY);
             }
             downPxIdx++;
@@ -135,16 +135,15 @@ public class GeneralQueueLinearFloodFiller {
         //***Find Left Edge of Color Area
         int lFillLoc = x; //the location to check/fill on the left
         int pxIdx = (width * y) + x;
-        int origPxIdx = pxIdx;
         while (true) {
-            fillMethod.fill(offsetX + x + pxIdx - origPxIdx, offsetY + y);
+            fillMethod.fill(offsetX + lFillLoc, offsetY + y);
             //**indicate that this block has already been checked and filled
             blocksChecked.set(pxIdx);
             //**de-increment
             lFillLoc--;     //de-increment counter
             pxIdx--;        //de-increment block index
             //**exit loop if we're at edge of bitmap or color area
-            if (lFillLoc < 0 || blocksChecked.get(pxIdx) || !checkBlock(pxIdx)) {
+            if (lFillLoc < 0 || blocksChecked.get(pxIdx) || fillMethod.isBoundary(offsetX + lFillLoc, offsetY + y)) {
                 break;
             }
         }
@@ -153,16 +152,15 @@ public class GeneralQueueLinearFloodFiller {
         //***Find Right Edge of Color Area
         int rFillLoc = x; //the location to check/fill on the left
         pxIdx = (width * y) + x;
-        origPxIdx = pxIdx;
         while (true) {
-            fillMethod.fill(offsetX + x + pxIdx - origPxIdx, offsetY + y);
+            fillMethod.fill(offsetX + rFillLoc, offsetY + y);
             //**indicate that this block has already been checked and filled
             blocksChecked.set(pxIdx);
             //**increment
             rFillLoc++;     //increment counter
             pxIdx++;        //increment block index
             //**exit loop if we're at edge of bitmap or color area
-            if (rFillLoc >= width || blocksChecked.get(pxIdx) || !checkBlock(pxIdx)) {
+            if (rFillLoc >= width || blocksChecked.get(pxIdx) || fillMethod.isBoundary(offsetX + rFillLoc, offsetY + y)) {
                 break;
             }
         }
@@ -171,11 +169,6 @@ public class GeneralQueueLinearFloodFiller {
         //add range to queue
         FloodFillRange r = new FloodFillRange(lFillLoc, rFillLoc, y);
         ranges.offer(r);
-    }
-
-    //Sees if a block should be flooded (or unflooded)
-    private boolean checkBlock(int px) {
-        return ! fillMethod.isFilled(offsetX + px % width, offsetY + px / width);
     }
 
     // Represents a linear range to be filled and branched from.
@@ -204,19 +197,20 @@ public class GeneralQueueLinearFloodFiller {
         /**
          * Indicates the area to which the fill operation should be constrained.
          *
-         * @return Tthe area to which the fill operation should be constrained.
+         * @return The area to which the fill operation should be constrained.
          */
         Rectangle getBounds();
 
         /**
-         * Indicates whether the specified coordinates in the specified dimension are already "filled", whatever that
-         * means.
+         * Indicates whether the specified coordinates are a boundary beyond which the fill operation should not
+         * proceed, for example because it is already "filled", whatever that means.
          *
          * @param x The X coordinate to check.
          * @param y The Y coordinate to check.
-         * @return <code>true</code> if the specified coordindates are already "filled".
+         * @return <code>true</code> if the specified coordinates are a boundary beyond which the fill operation should
+         * not proceed.
          */
-        boolean isFilled(int x, int y);
+        boolean isBoundary(int x, int y);
 
         /**
          * "Fills" the specified coordinates, whatever that means.

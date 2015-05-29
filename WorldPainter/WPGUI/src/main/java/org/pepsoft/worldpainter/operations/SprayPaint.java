@@ -9,9 +9,9 @@ import org.pepsoft.worldpainter.painting.Paint;
 /**
  * Created by pepijn on 14-5-15.
  */
-public class Paintbrush extends AbstractPaintOperation {
-    public Paintbrush(WorldPainterView view, RadiusControl radiusControl, MapDragControl mapDragControl) {
-        super("Paintbrush", "Paint freehand dots and lines with any terrain, layer or biome", view, radiusControl, mapDragControl, 100, "operation.paintbrush");
+public class SprayPaint extends AbstractPaintOperation {
+    public SprayPaint(WorldPainterView view, RadiusControl radiusControl, MapDragControl mapDragControl) {
+        super("Spray Paint", "Spray paint any terrain, layer or biome onto the world", view, radiusControl, mapDragControl, 100, "operation.sprayPaint");
     }
 
     @Override
@@ -28,6 +28,7 @@ public class Paintbrush extends AbstractPaintOperation {
 
     @Override
     protected void paintChanged(Paint newPaint) {
+        newPaint.setDither(true);
         painter.setPaint(newPaint);
     }
 

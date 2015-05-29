@@ -39,6 +39,10 @@ public interface Paint {
 
     void setFilter(Filter filter);
 
+    boolean isDither();
+
+    void setDither(boolean dither);
+
     void apply(Dimension dimension, int x, int y, float dynamicLevel);
 
     void remove(Dimension dimension, int x, int y, float dynamicLevel);

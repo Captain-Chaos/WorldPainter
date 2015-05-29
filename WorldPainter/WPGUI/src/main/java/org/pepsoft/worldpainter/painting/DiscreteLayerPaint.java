@@ -40,12 +40,8 @@ public final class DiscreteLayerPaint extends LayerPaint {
         defaultValue = layer.getDefaultValue();
     }
 
-    public boolean isDither() {
-        return dither;
-    }
-
-    public void setDither(boolean dither) {
-        this.dither = dither;
+    public int getValue() {
+        return value;
     }
 
     @Override
@@ -183,5 +179,4 @@ public final class DiscreteLayerPaint extends LayerPaint {
     }
 
     private final int value, defaultValue;
-    private boolean dither;
 }

@@ -63,6 +63,7 @@ import org.pepsoft.worldpainter.vo.UsageVO;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.Box;
 import javax.swing.Timer;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.ChangeEvent;
@@ -2086,10 +2087,16 @@ public final class App extends JFrame implements RadiusControl,
     private JPanel createToolPanel() {
         JPanel toolPanel = new JPanel();
         toolPanel.setLayout(new GridLayout(0, 4));
-        toolPanel.add(createButtonForOperation(new Paintbrush(view, this, mapDragControl), "paintbrush"));
-        toolPanel.add(createButtonForOperation(new Pencil(view, this, mapDragControl), "pencil"));
+        // TODO: use function keys as accelerators?
+        toolPanel.add(createButtonForOperation(new SprayPaint(view, this, mapDragControl), "spraypaint", 'r'));
+        toolPanel.add(createButtonForOperation(new Pencil(view, this, mapDragControl), "pencil", 'p'));
+        toolPanel.add(createButtonForOperation(new Fill(view), "fill", 'l'));
+        toolPanel.add(createButtonForOperation(new Text(view), "text", 'x'));
+
         toolPanel.add(createButtonForOperation(new Flood(view, false), "flood", 'f'));
-        toolPanel.add(createButtonForOperation(new Flood(view, true), "flood_with_lava", 'l'));
+        toolPanel.add(createButtonForOperation(new Flood(view, true), "flood_with_lava"));
+        toolPanel.add(createButtonForOperation(new Sponge(view, this, mapDragControl), "sponge"));
+        toolPanel.add(Box.createGlue());
 
         toolPanel.add(createButtonForOperation(new Height(view, this, mapDragControl), "height", 'h'));
         toolPanel.add(createButtonForOperation(new Flatten(view, this, mapDragControl), "flatten", 'a'));
@@ -2098,7 +2105,6 @@ public final class App extends JFrame implements RadiusControl,
 
 //        toolPanel.add(createButtonForOperation(new Erode(view, this, mapDragControl), "erode", 'm'));
         toolPanel.add(createButtonForOperation(new SetSpawnPoint(view), "spawn"));
-        toolPanel.add(createButtonForOperation(new Sponge(view, this, mapDragControl), "sponge"));
         JButton button = new JButton(loadIcon("globals"));
         button.setMargin(new Insets(2, 2, 2, 2));
         button.addActionListener(new ActionListener() {
@@ -2109,11 +2115,8 @@ public final class App extends JFrame implements RadiusControl,
         });
         button.setToolTipText(strings.getString("global.operations.fill.or.clear.the.world.with.a.terrain.biome.or.layer"));
         toolPanel.add(button);
-        toolPanel.add(createButtonForOperation(new Text(view), "text"));
-
         toolPanel.add(createButtonForOperation(new RaiseRotatedPyramid(view), "pyramid"));
         toolPanel.add(createButtonForOperation(new RaisePyramid(view), "pyramid"));
-        toolPanel.add(createButtonForOperation(new Fill(view), "fill"));
 
         for (Operation operation: operations) {
             operation.setView(view);
@@ -4190,9 +4193,10 @@ public final class App extends JFrame implements RadiusControl,
         button.setMargin(new Insets(2, 2, 2, 2));
         button.setIcon(new ImageIcon(layer.getIcon()));
         button.setToolTipText(layer.getName() + ": " + layer.getDescription());
-        if (mnemonic != 0) {
-            button.setMnemonic(mnemonic);
-        }
+        // TODO: make this work again, but with Ctrl + Alt or something
+//        if (mnemonic != 0) {
+//            button.setMnemonic(mnemonic);
+//        }
         button.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent event) {

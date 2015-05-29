@@ -18,22 +18,28 @@ import java.awt.image.BufferedImage;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 
 /**
- * A utility class for painting basic shapes to dimension using and kind of {@link Paint}.
+ * A utility class for painting basic shapes to dimension using any kind of {@link Paint}.
  *
- * <p><strong>Note:</strong> does <em>not</em> do any event inhibitation management. The client should do that by
+ * <p><strong>Note:</strong> does <em>not</em> do any event inhibition management. The client should do that by
  * surrounding use of this class with invocations of {@link Dimension#setEventsInhibited(boolean)}:
  *
- * <pre>   dimension.setEventsInhibited(true);
- * try {
- *     painter.setDimension(dimension);
- *     // One or more calls to painting methods...
- * } finally {
- *     dimension.setEventsInhibited(false); // Will fire all necessary events
- * }</pre>
+ * <pre>dimension.setEventsInhibited(true);
+ *try {
+ *    painter.setDimension(dimension);
+ *    // One or more calls to painting methods...
+ *} finally {
+ *    dimension.setEventsInhibited(false); // Will fire all necessary events
+ *}</pre>
  *
  * @author SchmitzP
  */
 public final class DimensionPainter {
+    /**
+     * Paint a single impression of the current brush using the current paint.
+     *
+     * @param x The x coordinate at which to paint the impression.
+     * @param y The y coordinate at which to paint the impression.
+     */
     public void drawPoint(int x, int y) {
         if (undo) {
             paint.remove(dimension, x, y, 1.0f);
@@ -42,6 +48,14 @@ public final class DimensionPainter {
         }
     }
 
+    /**
+     * Paint a single impression of the current brush, attenuated by a dynamic level, using the current paint.
+     *
+     * @param x The x coordinate at which to paint the impression.
+     * @param y The y coordinate at which to paint the impression.
+     * @param dynamicLevel The dynamic level between <code>0.0f</code> and <code>1.0f</code> (inclusive) with which to
+     *                     multiply the brush.
+     */
     public void drawPoint(int x, int y, float dynamicLevel) {
         if (undo) {
             paint.remove(dimension, x, y, dynamicLevel);
@@ -50,6 +64,15 @@ public final class DimensionPainter {
         }
     }
     
+    /**
+     * Draw a straight line between two points using the current brush and paint, by applying the brush at each point
+     * along the line.
+     *
+     * @param x1 The x coordinate at which to start the line.
+     * @param y1 The y coordinate at which to start the line.
+     * @param x2 The x coordinate at which to end the line.
+     * @param y2 The y coordinate at which to end the line.
+     */
     public void drawLine(int x1, int y1, int x2, int y2) {
         final int dx = Math.abs(x2 - x1);
         final int dy = Math.abs(y2 - y1);
@@ -90,6 +113,17 @@ public final class DimensionPainter {
         }
     }
 
+    /**
+     * Draw a straight line between two points using the current brush, attenuated by a dynamic level, and paint, by
+     * applying the brush at each point along the line.
+     *
+     * @param x1 The x coordinate at which to start the line.
+     * @param y1 The y coordinate at which to start the line.
+     * @param x2 The x coordinate at which to end the line.
+     * @param y2 The y coordinate at which to end the line.
+     * @param dynamicLevel The dynamic level between <code>0.0f</code> and <code>1.0f</code> (inclusive) with which to
+     *                     multiply the brush.
+     */
     public void drawLine(int x1, int y1, int x2, int y2, float dynamicLevel) {
         final int dx = Math.abs(x2 - x1);
         final int dy = Math.abs(y2 - y1);
@@ -129,7 +163,16 @@ public final class DimensionPainter {
             }
         }
     }
-    
+
+    /**
+     * Draw one or more lines of text using the current paint, font and rotation. The current brush is ignored. The text
+     * may be rotated at 90 degree angles using {@link #setTextAngle(int)}.
+     *
+     * @param x The x coordinate of the start/top corner of the block of text.
+     * @param y The y coordinate of the start/top corner of the block of text.
+     * @param text The text to paint. May have multiple lines separated by line feed ('\n') characters.
+     */
+    @SuppressWarnings("SuspiciousNameCombination")
     public void drawText(int x, int y, String text) {
         String[] lines = text.split("\\n");
         for (String line: lines) {
@@ -149,6 +192,227 @@ public final class DimensionPainter {
                     break;
             }
         }
+    }
+
+    /**
+     * Flood fill an area of the dimension with the current paint. The area to be flooded is the area where the type of
+     * paint has the same value as where the fill is started. If the value is already the same as the configured paint,
+     * nothing happens. If the operation takes more than two seconds a modal dialog is shown to the user with an
+     * indeterminate progress bar.
+     *
+     * @param x The X coordinate to start the flood fill.
+     * @param y The Y coordinate to start the flood fill.
+     * @param parent The window to use as parent for the modal dialog shown if the operation takes more than two
+     *               seconds.
+     */
+    public void fill(final int x, final int y, Window parent) {
+        AbstractDimensionPaintFillMethod fillMethod;
+        if (paint instanceof LayerPaint) {
+            final Layer layer = ((LayerPaint) paint).getLayer();
+            switch (layer.getDataSize()) {
+                case BIT:
+                case BIT_PER_CHUNK:
+                    if (undo) {
+                        fillMethod = new UndoDimensionPaintFillMethod("Removing " + layer, dimension, paint) {
+                            @Override
+                            public boolean isBoundary(int x, int y) {
+                                return ! dimension.getBitLayerValueAt(layer, x, y);
+                            }
+                        };
+                    } else {
+                        fillMethod = new DimensionPaintFillMethod("Applying " + layer, dimension, paint) {
+                            @Override
+                            public boolean isBoundary(int x, int y) {
+                                return dimension.getBitLayerValueAt(layer, x, y);
+                            }
+                        };
+                    }
+                    break;
+                case NIBBLE:
+                case BYTE:
+                    if (paint instanceof DiscreteLayerPaint) {
+                        final int fillValue = dimension.getLayerValueAt(layer, x, y);
+                        if (undo) {
+                            fillMethod = new UndoDimensionPaintFillMethod("Removing " + layer, dimension, paint) {
+                                @Override
+                                public boolean isBoundary(int x, int y) {
+                                    return dimension.getLayerValueAt(layer, x, y) != fillValue;
+                                }
+
+                                @Override
+                                boolean isFilled(int x, int y) {
+                                    return dimension.getLayerValueAt(layer, x, y) == layer.getDefaultValue();
+                                }
+                            };
+                        } else {
+                            fillMethod = new DimensionPaintFillMethod("Applying " + layer, dimension, paint) {
+                                @Override
+                                public boolean isBoundary(int x, int y) {
+                                    return dimension.getLayerValueAt(layer, x, y) != fillValue;
+                                }
+
+                                @Override
+                                boolean isFilled(int x, int y) {
+                                    return dimension.getLayerValueAt(layer, x, y) == ((DiscreteLayerPaint) paint).getValue();
+                                }
+                            };
+                        }
+                    } else {
+                        if (undo) {
+                            fillMethod = new UndoDimensionPaintFillMethod("Removing " + layer, dimension, paint) {
+                                @Override
+                                public boolean isBoundary(int x, int y) {
+                                    return dimension.getLayerValueAt(layer, x, y) == 0;
+                                }
+                            };
+                        } else {
+                            fillMethod = new DimensionPaintFillMethod("Applying " + layer, dimension, paint) {
+                                @Override
+                                public boolean isBoundary(int x, int y) {
+                                    return dimension.getLayerValueAt(layer, x, y) >= targetValue;
+                                }
+
+                                final int targetValue = (int) ((layer.getDataSize() == Layer.DataSize.NIBBLE) ? (paint.getBrush().getLevel() * 14 + 1) : (paint.getBrush().getLevel() * 254 + 1));
+                            };
+                        }
+                    }
+                    break;
+                default:
+                    throw new IllegalArgumentException("Don't know how to fill with layer with data size " + layer.getDataSize());
+            }
+        } else if (paint instanceof TerrainPaint) {
+            final Terrain terrainToFill = dimension.getTerrainAt(x, y);
+            if (undo) {
+                fillMethod = new UndoDimensionPaintFillMethod("Removing " + terrainToFill, dimension, paint) {
+                    @Override
+                    public boolean isBoundary(int x, int y) {
+                        return dimension.getTerrainAt(x, y) != terrainToFill;
+                    }
+
+                    @Override
+                    boolean isFilled(int x, int y) {
+                        return dimension.getTerrainAt(x, y) == ((TerrainPaint) paint).getTerrain();
+                    }
+                };
+            } else {
+                fillMethod = new DimensionPaintFillMethod("Applying " + ((TerrainPaint) paint).getTerrain(), dimension, paint) {
+                    @Override
+                    public boolean isBoundary(int x, int y) {
+                        return dimension.getTerrainAt(x, y) != terrainToFill;
+                    }
+
+                    @Override
+                    boolean isFilled(int x, int y) {
+                        return dimension.getTerrainAt(x, y) == ((TerrainPaint) paint).getTerrain();
+                    }
+                };
+            }
+        } else {
+            throw new IllegalArgumentException("Don't know how to fill with paint " + paint);
+        }
+        if (! fillMethod.isFilled(x, y)) {
+            GeneralQueueLinearFloodFiller filler = new GeneralQueueLinearFloodFiller(fillMethod);
+            filler.floodFill(x, y, parent);
+        }
+    }
+
+    /**
+     * Get the dimension to which paint operations are applied.
+     *
+     * @return The dimension to which paint operations are applied.
+     */
+    public Dimension getDimension() {
+        return dimension;
+    }
+
+    /**
+     * Set the dimension to which paint operations are applied.
+     *
+     * @param dimension The dimension to which paint operations are applied.
+     */
+    public void setDimension(Dimension dimension) {
+        this.dimension = dimension;
+    }
+
+    /**
+     * Get the font with which text is painted.
+     *
+     * @return The font with which text is painted.
+     */
+    public Font getFont() {
+        return font;
+    }
+
+    /**
+     * Set the font with which text is painted.
+     *
+     * @param font The font with which text is painted.
+     */
+    public void setFont(Font font) {
+        this.font = font;
+    }
+
+    /**
+     * Get the angle at which text is painted.
+     *
+     * @return The angle at which text is painted in terms of one of the constants {@link #ANGLE_0_DEGREES},
+     * {@link #ANGLE_90_DEGREES}, {@link #ANGLE_180_DEGREES} or {@link #ANGLE_270_DEGREES}.
+     */
+    public int getTextAngle() {
+        return textAngle;
+    }
+
+    /**
+     * Set the angle at which text is painted.
+     *
+     * @param textAngle The angle at which text is painted in terms of one of the constants {@link #ANGLE_0_DEGREES},
+     * {@link #ANGLE_90_DEGREES}, {@link #ANGLE_180_DEGREES} or {@link #ANGLE_270_DEGREES}.
+     */
+    public void setTextAngle(int textAngle) {
+        if ((textAngle < ANGLE_0_DEGREES) || (textAngle > ANGLE_270_DEGREES)) {
+            throw new IllegalArgumentException();
+        }
+        this.textAngle = textAngle;
+    }
+
+    /**
+     * Get the paint which the operations apply to the dimension.
+     *
+     * @return The paint which the operations apply to the dimension.
+     */
+    public Paint getPaint() {
+        return paint;
+    }
+
+    /**
+     * Set the paint which the operations apply to the dimension.
+     *
+     * @param paint The paint which the operations apply to the dimension.
+     */
+    public void setPaint(Paint paint) {
+        this.paint = paint;
+    }
+
+    /**
+     * Configure whether the paint is <em>applied</em> or <em>removed</em> by the operations. What constitutes
+     * "application" or "removal" is defined by the paint.
+     *
+     * @param undo Whether the paint is <em>applied</em> (when <code>false</code>) or <em>removed</em> (when
+     *             <code>true</code>) by the operations.
+     */
+    public void setUndo(boolean undo) {
+        this.undo = undo;
+    }
+
+    /**
+     * Determine whether the paint is <em>applied</em> or <em>removed</em> by the operations. What constitutes
+     * "application" or "removal" is defined by the paint.
+     *
+     * @return Whether the paint is <em>applied</em> (when <code>false</code>) or <em>removed</em> (when
+     * <code>true</code>) by the operations.
+     */
+    public boolean isUndo() {
+        return undo;
     }
 
     private int drawTextLine(int x, int y, String text) {
@@ -177,16 +441,16 @@ public final class DimensionPainter {
                 for (int yy = 0; yy < textHeight; yy++) {
                     if ((image.getRGB(xx, yy) & 1) != 0) {
                         switch (textAngle) {
-                            case 0:
+                            case ANGLE_0_DEGREES:
                                 paint.removePixel(dimension, x + xx, y + yy);
                                 break;
-                            case 1:
+                            case ANGLE_90_DEGREES:
                                 paint.removePixel(dimension, x + yy, y - xx);
                                 break;
-                            case 2:
+                            case ANGLE_180_DEGREES:
                                 paint.removePixel(dimension, x - xx, y - yy);
                                 break;
-                            case 3:
+                            case ANGLE_270_DEGREES:
                                 paint.removePixel(dimension, x - yy, y + xx);
                                 break;
                         }
@@ -198,16 +462,16 @@ public final class DimensionPainter {
                 for (int yy = 0; yy < textHeight; yy++) {
                     if ((image.getRGB(xx, yy) & 1) != 0) {
                         switch (textAngle) {
-                            case 0:
+                            case ANGLE_0_DEGREES:
                                 paint.applyPixel(dimension, x + xx, y + yy);
                                 break;
-                            case 1:
+                            case ANGLE_90_DEGREES:
                                 paint.applyPixel(dimension, x + yy, y - xx);
                                 break;
-                            case 2:
+                            case ANGLE_180_DEGREES:
                                 paint.applyPixel(dimension, x - xx, y - yy);
                                 break;
-                            case 3:
+                            case ANGLE_270_DEGREES:
                                 paint.applyPixel(dimension, x - yy, y + xx);
                                 break;
                         }
@@ -218,129 +482,23 @@ public final class DimensionPainter {
         return (int) bounds.getHeight();
     }
 
-    public void fill(int x, int y, Window parent) {
-        GeneralQueueLinearFloodFiller.FillMethod fillMethod;
-        if (paint instanceof LayerPaint) {
-            final Layer layer = ((LayerPaint) paint).getLayer();
-            switch (layer.getDataSize()) {
-                case BIT:
-                case BIT_PER_CHUNK:
-                    if (undo) {
-                        fillMethod = new UndoDimensionPaintFillMethod("Removing " + layer.getName(), dimension, paint) {
-                            @Override
-                            public boolean isFilled(int x, int y) {
-                                return ! dimension.getBitLayerValueAt(layer, x, y);
-                            }
-                        };
-                    } else {
-                        fillMethod = new DimensionPaintFillMethod("Applying " + layer.getName(), dimension, paint) {
-                            @Override
-                            public boolean isFilled(int x, int y) {
-                                return dimension.getBitLayerValueAt(layer, x, y);
-                            }
-                        };
-                    }
-                    break;
-                case NIBBLE:
-                case BYTE:
-                    if (undo) {
-                        fillMethod = new UndoDimensionPaintFillMethod("Removing " + layer.getName(), dimension, paint) {
-                            @Override
-                            public boolean isFilled(int x, int y) {
-                                return dimension.getLayerValueAt(layer, x, y) == defaultValue;
-                            }
-
-                            final int defaultValue = layer.getDefaultValue();
-                        };
-                    } else {
-                        fillMethod = new DimensionPaintFillMethod("Applying " + layer.getName(), dimension, paint) {
-                            @Override
-                            public boolean isFilled(int x, int y) {
-                                return dimension.getLayerValueAt(layer, x, y) != defaultValue;
-                            }
-
-                            final int defaultValue = layer.getDefaultValue();
-                        };
-                    }
-                    break;
-                default:
-                    throw new UnsupportedOperationException("Don't know how to paint with layer with data size " + layer.getDataSize());
-            }
-        } else if (paint instanceof TerrainPaint) {
-            if (undo) {
-                fillMethod = new UndoDimensionPaintFillMethod("Removing " + ((TerrainPaint) paint).getTerrain(), dimension, paint) {
-                    @Override
-                    public boolean isFilled(int x, int y) {
-                        return dimension.getTerrainAt(x, y) != terrain;
-                    }
-
-                    final Terrain terrain = ((TerrainPaint) paint).getTerrain();
-                };
-            } else {
-                fillMethod = new DimensionPaintFillMethod("Applying " + ((TerrainPaint) paint).getTerrain(), dimension, paint) {
-                    @Override
-                    public boolean isFilled(int x, int y) {
-                        return dimension.getTerrainAt(x, y) == terrain;
-                    }
-
-                    final Terrain terrain = ((TerrainPaint) paint).getTerrain();
-                };
-            }
-        } else {
-            throw new UnsupportedOperationException("Don't know how to fill with paint " + paint);
-        }
-        GeneralQueueLinearFloodFiller filler = new GeneralQueueLinearFloodFiller(fillMethod);
-        filler.floodFill(x, y, parent);
-    }
-
-    public Dimension getDimension() {
-        return dimension;
-    }
-
-    public void setDimension(Dimension dimension) {
-        this.dimension = dimension;
-    }
-
-    public Font getFont() {
-        return font;
-    }
-
-    public void setFont(Font font) {
-        this.font = font;
-    }
-
-    public int getTextAngle() {
-        return textAngle;
-    }
-
-    public void setTextAngle(int textAngle) {
-        this.textAngle = textAngle;
-    }
-
-    public Paint getPaint() {
-        return paint;
-    }
-
-    public void setPaint(Paint paint) {
-        this.paint = paint;
-    }
-
-    public void setUndo(boolean undo) {
-        this.undo = undo;
-    }
-
     private Paint paint;
     private Dimension dimension;
     private int textAngle;
     private boolean undo;
     private Font font;
 
+    public static final int ANGLE_0_DEGREES   = 0;
+    public static final int ANGLE_90_DEGREES  = 1;
+    public static final int ANGLE_180_DEGREES = 2;
+    public static final int ANGLE_270_DEGREES = 3;
+
     static abstract class AbstractDimensionPaintFillMethod implements GeneralQueueLinearFloodFiller.FillMethod {
         protected AbstractDimensionPaintFillMethod(String description, Dimension dimension, Paint paint) {
             this.description = description;
             this.dimension = dimension;
             this.paint = paint;
-            bounds = new Rectangle(dimension.getWidth() << TILE_SIZE_BITS, dimension.getHeight() << TILE_SIZE_BITS, dimension.getLowestX() << TILE_SIZE_BITS, dimension.getLowestY() << TILE_SIZE_BITS);
+            bounds = new Rectangle(dimension.getLowestX() << TILE_SIZE_BITS, dimension.getLowestY() << TILE_SIZE_BITS, dimension.getWidth() << TILE_SIZE_BITS, dimension.getHeight() << TILE_SIZE_BITS);
         }
 
         @Override
@@ -351,6 +509,10 @@ public final class DimensionPainter {
         @Override
         public final String getDescription() {
             return description;
+        }
+
+        boolean isFilled(int x, int y) {
+            return isBoundary(x, y);
         }
 
         private final String description;

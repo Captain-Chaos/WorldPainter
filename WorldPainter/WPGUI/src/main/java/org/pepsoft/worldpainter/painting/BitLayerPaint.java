@@ -40,14 +40,6 @@ public final class BitLayerPaint extends LayerPaint {
         }
     }
 
-    public boolean isDither() {
-        return dither;
-    }
-
-    public void setDither(boolean dither) {
-        this.dither = dither;
-    }
-
     @Override
     public void apply(Dimension dimension, int centreX, int centreY, float dynamicLevel) {
         if (brush.getRadius() == 0) {
@@ -181,6 +173,4 @@ public final class BitLayerPaint extends LayerPaint {
     public void removePixel(Dimension dimension, int x, int y) {
         dimension.setBitLayerValueAt(layer, x, y, false);
     }
-
-    private boolean dither;
 }

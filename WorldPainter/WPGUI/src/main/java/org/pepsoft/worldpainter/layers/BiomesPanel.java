@@ -96,9 +96,6 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
                 }
                 tooltip.append(')');
                 button.setToolTipText(tooltip.toString());
-                if (biome == selectedBaseBiome) {
-                    button.setSelected(true);
-                }
                 buttonGroup.add(button);
                 button.addActionListener(new ActionListener() {
                     @Override

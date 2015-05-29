@@ -17,14 +17,6 @@ public final class CombinedLayerPaint extends LayerPaint {
         super(layer);
     }
 
-    public boolean isDither() {
-        return dither;
-    }
-
-    public void setDither(boolean dither) {
-        this.dither = dither;
-    }
-
     @Override
     public void apply(Dimension dimension, int centreX, int centreY, float dynamicLevel) {
         if (brush.getRadius() == 0) {
@@ -272,6 +264,4 @@ public final class CombinedLayerPaint extends LayerPaint {
             }
         }
     }
-
-    private boolean dither;
 }

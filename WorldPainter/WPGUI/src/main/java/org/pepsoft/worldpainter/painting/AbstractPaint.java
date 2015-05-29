@@ -47,6 +47,16 @@ public abstract class AbstractPaint implements Paint {
         this.filter = filter;
     }
 
+    @Override
+    public boolean isDither() {
+        return dither;
+    }
+
+    @Override
+    public void setDither(boolean dither) {
+        this.dither = dither;
+    }
+
     protected final float getStrength(int centerX, int centerY, int x, int y) {
         return (filter != null)
             ? filter.modifyStrength(x, y, brush.getStrength(centerX, centerY, x, y))
@@ -61,4 +71,5 @@ public abstract class AbstractPaint implements Paint {
 
     protected Filter filter;
     protected Brush brush;
+    protected boolean dither;
 }

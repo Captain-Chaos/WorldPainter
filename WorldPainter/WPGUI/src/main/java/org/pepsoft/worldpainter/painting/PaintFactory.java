@@ -71,6 +71,8 @@ public final class PaintFactory {
         @Override public void setBrush(Brush brush) {}
         @Override public Filter getFilter() {return null;}
         @Override public void setFilter(Filter filter) {}
+        @Override public boolean isDither() {return false;}
+        @Override public void setDither(boolean dither) {}
         @Override public void apply(Dimension dimension, int x, int y, float dynamicLevel) {}
         @Override public void remove(Dimension dimension, int x, int y, float dynamicLevel) {}
         @Override public void applyPixel(Dimension dimension, int x, int y) {}

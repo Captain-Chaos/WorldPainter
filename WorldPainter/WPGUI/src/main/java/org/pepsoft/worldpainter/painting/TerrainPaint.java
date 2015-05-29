@@ -38,14 +38,6 @@ public final class TerrainPaint extends AbstractPaint {
         this.terrain = terrain;
     }
 
-    public boolean isDither() {
-        return dither;
-    }
-
-    public void setDither(boolean dither) {
-        this.dither = dither;
-    }
-
     public Terrain getTerrain() {
         return terrain;
     }
@@ -160,5 +152,4 @@ public final class TerrainPaint extends AbstractPaint {
     }
 
     private final Terrain terrain;
-    private boolean dither;
 }

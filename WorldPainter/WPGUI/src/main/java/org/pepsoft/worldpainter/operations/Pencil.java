@@ -103,6 +103,7 @@ public class Pencil extends AbstractPaintOperation {
 
     @Override
     protected void paintChanged(Paint newPaint) {
+        newPaint.setDither(false);
         painter.setPaint(getPaint());
     }
 
