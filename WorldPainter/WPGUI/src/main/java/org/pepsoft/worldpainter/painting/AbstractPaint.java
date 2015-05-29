@@ -45,6 +45,7 @@ public abstract class AbstractPaint implements Paint {
     @Override
     public final void setFilter(Filter filter) {
         this.filter = filter;
+        filterEnabled = (filter != null);
     }
 
     @Override
@@ -58,18 +59,18 @@ public abstract class AbstractPaint implements Paint {
     }
 
     protected final float getStrength(int centerX, int centerY, int x, int y) {
-        return (filter != null)
+        return filterEnabled
             ? filter.modifyStrength(x, y, brush.getStrength(centerX, centerY, x, y))
             : brush.getStrength(centerX, centerY, x, y);
     }
 
     protected final float getFullStrength(int centerX, int centerY, int x, int y) {
-        return (filter != null)
+        return filterEnabled
             ? filter.modifyStrength(x, y, brush.getFullStrength(centerX, centerY, x, y))
             : brush.getFullStrength(centerX, centerY, x, y);
     }
 
     protected Filter filter;
     protected Brush brush;
-    protected boolean dither;
+    protected boolean dither, filterEnabled;
 }

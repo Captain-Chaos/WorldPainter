@@ -43,6 +43,9 @@ public abstract class AbstractPaintOperation extends RadiusOperation implements 
         if (getBrush() != null) {
             paint.setBrush(getBrush());
         }
+        if (getFilter() != null) {
+            paint.setFilter(getFilter());
+        }
         paintChanged(paint);
     }
 
@@ -50,6 +53,14 @@ public abstract class AbstractPaintOperation extends RadiusOperation implements 
     protected void brushChanged(Brush newBrush) {
         if (paint != null) {
             paint.setBrush(newBrush);
+        }
+    }
+
+    @Override
+    public void setFilter(Filter filter) {
+        super.setFilter(filter);
+        if (paint != null) {
+            paint.setFilter(filter);
         }
     }
 
