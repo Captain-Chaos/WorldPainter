@@ -2193,6 +2193,7 @@ public final class App extends JFrame implements RadiusControl,
         constraints.anchor = GridBagConstraints.FIRST_LINE_START;
         constraints.weightx = 0.0;
         biomesCheckBox = new JCheckBox("Show:");
+        biomesCheckBox.setHorizontalTextPosition(SwingConstants.LEADING);
         biomesCheckBox.setToolTipText("Uncheck to hide biomes from view (it will still be exported)");
         biomesCheckBox.addActionListener(new ActionListener() {
             @Override
@@ -2212,6 +2213,7 @@ public final class App extends JFrame implements RadiusControl,
         }
         
         biomesSoloCheckBox = new JCheckBox("Solo:");
+        biomesSoloCheckBox.setHorizontalTextPosition(SwingConstants.LEADING);
         biomesSoloCheckBox.setToolTipText("<html>Check to show <em>only</em> the biomes (the other layers are still exported)</html>");
         biomesSoloCheckBox.addActionListener(new ActionListener() {
             @Override
@@ -2262,6 +2264,7 @@ public final class App extends JFrame implements RadiusControl,
         constraints.anchor = GridBagConstraints.FIRST_LINE_START;
         constraints.weightx = 0.0;
         annotationsCheckBox = new JCheckBox("Show:");
+        annotationsCheckBox.setHorizontalTextPosition(SwingConstants.LEADING);
         annotationsCheckBox.setSelected(true);
         annotationsCheckBox.setToolTipText("Uncheck to hide annotations from view");
         annotationsCheckBox.addActionListener(new ActionListener() {
@@ -2282,6 +2285,7 @@ public final class App extends JFrame implements RadiusControl,
         }
         
         annotationsSoloCheckBox = new JCheckBox("Solo:");
+        annotationsSoloCheckBox.setHorizontalTextPosition(SwingConstants.LEADING);
         annotationsSoloCheckBox.setToolTipText("<html>Check to show <em>only</em> the annotations (the other layers are still exported)</html>");
         annotationsSoloCheckBox.addActionListener(new ActionListener() {
             @Override
