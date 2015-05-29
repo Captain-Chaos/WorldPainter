@@ -1,5 +1,6 @@
 package org.pepsoft.worldpainter.operations;
 
+import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.MapDragControl;
 import org.pepsoft.worldpainter.RadiusControl;
 import org.pepsoft.worldpainter.WorldPainterView;
@@ -17,7 +18,13 @@ public class SprayPaint extends AbstractPaintOperation {
     @Override
     protected void tick(int centreX, int centreY, boolean inverse, boolean first, float dynamicLevel) {
         painter.setUndo(inverse);
-        painter.drawPoint(centreX, centreY, dynamicLevel);
+        Dimension dimension = getDimension();
+        dimension.setEventsInhibited(true);
+        try {
+            painter.drawPoint(centreX, centreY, dynamicLevel);
+        } finally {
+            dimension.setEventsInhibited(false);
+        }
     }
 
     @Override
