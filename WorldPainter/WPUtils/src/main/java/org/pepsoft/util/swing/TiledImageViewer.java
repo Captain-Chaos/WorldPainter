@@ -670,11 +670,11 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         }
         
         GraphicsConfiguration gc = getGraphicsConfiguration();
-        if (firstPaint) {
+//        if (firstPaint) {
 //            System.out.println("Graphics2D instance: " + g2);
 //            System.out.println("GraphicsConfiguration instance: " + gc);
-            firstPaint = false;
-        }
+//            firstPaint = false;
+//        }
         for (TileProvider tileProvider: tileProviders) {
             final int effectiveZoom = (tileProvider.isZoomSupported() && (zoom < 0)) ? 0 : zoom;
             final Point topLeftTileCoords = viewToWorld(clipBounds.getLocation(), effectiveZoom);
@@ -1026,7 +1026,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
     private boolean dragging, paintMarker, paintGrid;
     private BlockingQueue<Runnable> queue;
     private ViewListener viewListener;
-    private boolean firstPaint = true;
+//    private boolean firstPaint = true;
  
     public static final int TILE_SIZE = 128, TILE_SIZE_BITS = 7, TILE_SIZE_MASK = 0x7f;
     
