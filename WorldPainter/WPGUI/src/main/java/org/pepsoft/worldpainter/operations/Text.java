@@ -51,7 +51,6 @@ public class Text extends MouseOrTabletOperation implements PaintOperation {
             } finally {
                 dimension.setEventsInhibited(false);
             }
-            dimension.armSavePoint();
         }
     }
 
