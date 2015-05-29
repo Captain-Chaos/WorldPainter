@@ -40,7 +40,7 @@ public final class DimensionPainter {
      * @param x The x coordinate at which to paint the impression.
      * @param y The y coordinate at which to paint the impression.
      */
-    public void drawPoint(int x, int y) {
+    public void drawPoint(Dimension dimension, int x, int y) {
         if (undo) {
             paint.remove(dimension, x, y, 1.0f);
         } else {
@@ -56,7 +56,7 @@ public final class DimensionPainter {
      * @param dynamicLevel The dynamic level between <code>0.0f</code> and <code>1.0f</code> (inclusive) with which to
      *                     multiply the brush.
      */
-    public void drawPoint(int x, int y, float dynamicLevel) {
+    public void drawPoint(Dimension dimension, int x, int y, float dynamicLevel) {
         if (undo) {
             paint.remove(dimension, x, y, dynamicLevel);
         } else {
@@ -73,7 +73,7 @@ public final class DimensionPainter {
      * @param x2 The x coordinate at which to end the line.
      * @param y2 The y coordinate at which to end the line.
      */
-    public void drawLine(int x1, int y1, int x2, int y2) {
+    public void drawLine(Dimension dimension, int x1, int y1, int x2, int y2) {
         final int dx = Math.abs(x2 - x1);
         final int dy = Math.abs(y2 - y1);
         if (dx < dy) {
@@ -90,7 +90,7 @@ public final class DimensionPainter {
             float x = x1 - 0.5f;
             final float fDx = (float) (x2 - x1) / dy;
             for (int y = y1; y <= y2; y++) {
-                drawPoint((int) (x + 0.5f), y);
+                drawPoint(dimension, (int) (x + 0.5f), y);
                 x += fDx;
             }
         } else {
@@ -107,7 +107,7 @@ public final class DimensionPainter {
             float y = y1 - 0.5f;
             final float fDy = (float) (y2 - y1) / dx;
             for (int x = x1; x <= x2; x++) {
-                drawPoint(x, (int) (y + 0.5f));
+                drawPoint(dimension, x, (int) (y + 0.5f));
                 y += fDy;
             }
         }
@@ -124,7 +124,7 @@ public final class DimensionPainter {
      * @param dynamicLevel The dynamic level between <code>0.0f</code> and <code>1.0f</code> (inclusive) with which to
      *                     multiply the brush.
      */
-    public void drawLine(int x1, int y1, int x2, int y2, float dynamicLevel) {
+    public void drawLine(Dimension dimension, int x1, int y1, int x2, int y2, float dynamicLevel) {
         final int dx = Math.abs(x2 - x1);
         final int dy = Math.abs(y2 - y1);
         if (dx < dy) {
@@ -141,7 +141,7 @@ public final class DimensionPainter {
             float x = x1 - 0.5f;
             final float fDx = (float) (x2 - x1) / dy;
             for (int y = y1; y <= y2; y++) {
-                drawPoint((int) (x + 0.5f), y, dynamicLevel);
+                drawPoint(dimension, (int) (x + 0.5f), y, dynamicLevel);
                 x += fDx;
             }
         } else {
@@ -158,7 +158,7 @@ public final class DimensionPainter {
             float y = y1 - 0.5f;
             final float fDy = (float) (y2 - y1) / dx;
             for (int x = x1; x <= x2; x++) {
-                drawPoint(x, (int) (y + 0.5f), dynamicLevel);
+                drawPoint(dimension, x, (int) (y + 0.5f), dynamicLevel);
                 y += fDy;
             }
         }
@@ -173,10 +173,10 @@ public final class DimensionPainter {
      * @param text The text to paint. May have multiple lines separated by line feed ('\n') characters.
      */
     @SuppressWarnings("SuspiciousNameCombination")
-    public void drawText(int x, int y, String text) {
+    public void drawText(Dimension dimension, int x, int y, String text) {
         String[] lines = text.split("\\n");
         for (String line: lines) {
-            int lineHeight = drawTextLine(x, y, line);
+            int lineHeight = drawTextLine(dimension, x, y, line);
             switch (textAngle) {
                 case 0:
                     y += lineHeight;
@@ -205,7 +205,7 @@ public final class DimensionPainter {
      * @param parent The window to use as parent for the modal dialog shown if the operation takes more than two
      *               seconds.
      */
-    public void fill(final int x, final int y, Window parent) {
+    public void fill(Dimension dimension, final int x, final int y, Window parent) {
         AbstractDimensionPaintFillMethod fillMethod;
         if (paint instanceof LayerPaint) {
             final Layer layer = ((LayerPaint) paint).getLayer();
@@ -317,24 +317,6 @@ public final class DimensionPainter {
     }
 
     /**
-     * Get the dimension to which paint operations are applied.
-     *
-     * @return The dimension to which paint operations are applied.
-     */
-    public Dimension getDimension() {
-        return dimension;
-    }
-
-    /**
-     * Set the dimension to which paint operations are applied.
-     *
-     * @param dimension The dimension to which paint operations are applied.
-     */
-    public void setDimension(Dimension dimension) {
-        this.dimension = dimension;
-    }
-
-    /**
      * Get the font with which text is painted.
      *
      * @return The font with which text is painted.
@@ -415,7 +397,7 @@ public final class DimensionPainter {
         return undo;
     }
 
-    private int drawTextLine(int x, int y, String text) {
+    private int drawTextLine(Dimension dimension, int x, int y, String text) {
         BufferedImage image = new BufferedImage(1000, 100, BufferedImage.TYPE_BYTE_BINARY);
         Rectangle2D bounds;
         Graphics2D g2 = image.createGraphics();
@@ -483,7 +465,6 @@ public final class DimensionPainter {
     }
 
     private Paint paint;
-    private Dimension dimension;
     private int textAngle;
     private boolean undo;
     private Font font;

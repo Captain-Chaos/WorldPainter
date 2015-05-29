@@ -21,7 +21,7 @@ public class Fill extends MouseOrTabletOperation implements PaintOperation {
         Dimension dimension = getDimension();
         dimension.setEventsInhibited(true);
         try {
-            painter.fill(centreX, centreY, SwingUtilities.getWindowAncestor(getView()));
+            painter.fill(dimension, centreX, centreY, SwingUtilities.getWindowAncestor(getView()));
         } finally {
             dimension.setEventsInhibited(false);
         }
@@ -35,12 +35,6 @@ public class Fill extends MouseOrTabletOperation implements PaintOperation {
     @Override
     public void setPaint(Paint paint) {
         painter.setPaint(paint);
-    }
-
-    @Override
-    protected void activate() {
-        super.activate();
-        painter.setDimension(getDimension());
     }
 
     private final DimensionPainter painter = new DimensionPainter();

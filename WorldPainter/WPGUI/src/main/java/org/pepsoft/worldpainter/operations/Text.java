@@ -47,17 +47,11 @@ public class Text extends MouseOrTabletOperation implements PaintOperation {
             savedText = dialog.getText();
             dimension.setEventsInhibited(true);
             try {
-                painter.drawText(centreX, centreY, savedText);
+                painter.drawText(dimension, centreX, centreY, savedText);
             } finally {
                 dimension.setEventsInhibited(false);
             }
         }
-    }
-
-    @Override
-    protected void activate() {
-        super.activate();
-        painter.setDimension(getDimension());
     }
 
     private final DimensionPainter painter = new DimensionPainter();

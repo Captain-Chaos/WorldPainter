@@ -21,16 +21,10 @@ public class SprayPaint extends AbstractPaintOperation {
         Dimension dimension = getDimension();
         dimension.setEventsInhibited(true);
         try {
-            painter.drawPoint(centreX, centreY, dynamicLevel);
+            painter.drawPoint(dimension, centreX, centreY, dynamicLevel);
         } finally {
             dimension.setEventsInhibited(false);
         }
-    }
-
-    @Override
-    protected void activate() {
-        super.activate();
-        painter.setDimension(getDimension());
     }
 
     @Override

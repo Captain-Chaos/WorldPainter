@@ -58,12 +58,12 @@ public class Pencil extends AbstractPaintOperation {
                             centreX = snappedCoords[0];
                             centreY = snappedCoords[1];
                         }
-                        painter.drawLine(previousX, previousY, centreX, centreY);
+                        painter.drawLine(dimension, previousX, previousY, centreX, centreY);
                     }
                     inhibitDrag = true;
                 } else {
                     // Shift was not pressed: just draw a single dot
-                    painter.drawPoint(centreX, centreY);
+                    painter.drawPoint(dimension, centreX, centreY);
                     inhibitDrag = false;
                 }
                 previousX = centreX;
@@ -82,9 +82,9 @@ public class Pencil extends AbstractPaintOperation {
                 }
                 if ((centreX != previousX) || (centreY != previousY)) {
                     if ((Math.abs(centreX - previousX) <= 1) && (Math.abs(centreY - previousY) <= 1)) {
-                        painter.drawPoint(centreX, centreY);
+                        painter.drawPoint(dimension, centreX, centreY);
                     } else {
-                        painter.drawLine(previousX, previousY, centreX, centreY);
+                        painter.drawLine(dimension, previousX, previousY, centreX, centreY);
                     }
                     previousX = centreX;
                     previousY = centreY;
@@ -93,12 +93,6 @@ public class Pencil extends AbstractPaintOperation {
         } finally {
             dimension.setEventsInhibited(false);
         }
-    }
-
-    @Override
-    protected void activate() {
-        super.activate();
-        painter.setDimension(getDimension());
     }
 
     @Override
