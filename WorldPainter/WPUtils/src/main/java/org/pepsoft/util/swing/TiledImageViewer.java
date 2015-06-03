@@ -4,6 +4,8 @@
  */
 package org.pepsoft.util.swing;
 
+import org.pepsoft.util.AwtUtils;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -19,6 +21,8 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
 
 /**
  * A generic visual component which can display one or more layers of large or
@@ -398,9 +402,9 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         synchronized (TILE_CACHE_LOCK) {
             final Point coords = new Point(x, y);
             final Map<Point, Reference<? extends Image>> tileCache = tileCaches.get(tileProvider);
-            final Reference<? extends Image> tileRef = tileCache.get(coords);
+            final Reference<? extends Image> tileRef = tileCache.remove(coords);
+            final int effectiveZoom = (tileProvider.isZoomSupported() && (zoom < 0)) ? 0 : zoom;
             if (tileRef != RENDERING) {
-                tileCache.remove(coords);
                 final Image tile = (tileRef != null) ? tileRef.get() : null;
                 if (tile != null) {
                     // The old tile is still available; move it to the dirty
@@ -408,12 +412,14 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                     // is being rendered
                     dirtyTileCaches.get(tileProvider).put(coords, tileRef);
                 }
-                final int effectiveZoom = (tileProvider.isZoomSupported() && (zoom < 0)) ? 0 : zoom;
                 if (isTileVisible(x, y, effectiveZoom)) {
                     // The tile is visible; immediately schedule it to be
                     // rendered
-                    scheduleTile(tileCache, coords, tileProvider, dirtyTileCaches.get(tileProvider), effectiveZoom, tile);
+                    scheduleTile(tileCache, coords, tileProvider, dirtyTileCaches.get(tileProvider), effectiveZoom, (tile != NO_TILE) ? tile : null);
                 }
+            } else if (isTileVisible(x, y, effectiveZoom)) {
+                // The tile is already rendering, but apparently it has changed so schedule it anyway (if visible)
+                scheduleTile(tileCache, coords, tileProvider, dirtyTileCaches.get(tileProvider), effectiveZoom, null);
             }
         }
     }
@@ -421,23 +427,26 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
     public void refresh(TileProvider tileProvider, Set<Point> tiles) {
         synchronized (TILE_CACHE_LOCK) {
             final Map<Point, Reference<? extends Image>> tileCache = tileCaches.get(tileProvider);
+            final Map<Point, Reference<? extends Image>> dirtyTileCache = dirtyTileCaches.get(tileProvider);
+            final int effectiveZoom = (tileProvider.isZoomSupported() && (zoom < 0)) ? 0 : zoom;
             for (Point coords: tiles) {
-                final Reference<? extends Image> tileRef = tileCache.get(coords);
+                final Reference<? extends Image> tileRef = tileCache.remove(coords);
                 if (tileRef != RENDERING) {
-                    tileCache.remove(coords);
                     final Image tile = (tileRef != null) ? tileRef.get() : null;
                     if (tile != null) {
                         // The old tile is still available; move it to the dirty
                         // tile cache so we have something to paint while the tile
                         // is being rendered
-                        dirtyTileCaches.get(tileProvider).put(coords, tileRef);
+                        dirtyTileCache.put(coords, tileRef);
                     }
-                    final int effectiveZoom = (tileProvider.isZoomSupported() && (zoom < 0)) ? 0 : zoom;
                     if (isTileVisible(coords.x, coords.y, effectiveZoom)) {
                         // The tile is visible; immediately schedule it to be
                         // rendered
-                        scheduleTile(tileCache, coords, tileProvider, dirtyTileCaches.get(tileProvider), effectiveZoom, tile);
+                        scheduleTile(tileCache, coords, tileProvider, dirtyTileCache, effectiveZoom, (tile != NO_TILE) ? tile : null);
                     }
+                } else if (isTileVisible(coords.x, coords.y, effectiveZoom)) {
+                    // The tile is already rendering, but apparently it has changed so schedule it anyway (if visible)
+                    scheduleTile(tileCache, coords, tileProvider, dirtyTileCache, effectiveZoom, null);
                 }
             }
         }
@@ -879,6 +888,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                 if (dirtyTileCache.containsKey(coords)) {
                     dirtyTileCache.remove(coords);
                 }
+                repaint(getTileBounds(coords.x, coords.y, effectiveZoom));
             }
         }
     }

@@ -5,6 +5,10 @@
  */
 package org.pepsoft.util;
 
+import org.pepsoft.util.undo.*;
+import org.pepsoft.util.undo.Cloneable;
+
+import java.awt.*;
 import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferDouble;
@@ -12,6 +16,8 @@ import java.awt.image.DataBufferFloat;
 import java.awt.image.DataBufferInt;
 import java.awt.image.DataBufferShort;
 import java.awt.image.DataBufferUShort;
+import java.util.*;
+import java.util.List;
 
 /**
  *
@@ -21,7 +27,94 @@ public final class ObjectUtils {
     private ObjectUtils() {
         // Prevent instantiation
     }
-    
+
+    /**
+     * Make a deep copy of an object. Only a restricted set of types is
+     * supported. <strike>Will automatically throw away redo and/or undo information if
+     * there is not enough memory, until there is no more information to throw
+     * away, in which case it will throw an <code>OutOfMemoryError</code>.</strike>
+     *
+     * @param <T> The type of the object.
+     * @param object The object to copy.
+     * @return A deep copy of the object.
+     * @throws OutOfMemoryError If there is not enough memory to copy the
+     *     object, <strike>after throwing away all redo and undo information.</strike>
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T copyObject(T object) {
+        // Point isn't actually immutable, but it is used as such by WorldPainter, at least in all data structures
+        // managed by an undo manager
+        if ((object == null) || (object instanceof Number) || (object instanceof String) || (object instanceof Enum)
+                || (object instanceof Point)) {
+            // Object is null or immutable; making a copy not necessary
+            return object;
+        } else {
+            if (object instanceof BitSet) {
+                return (T) ((BitSet) object).clone();
+            } else if (object instanceof EnumSet) {
+                return (T) ((EnumSet) object).clone();
+            } else if (object instanceof byte[]) {
+                return (T) ((byte[]) object).clone();
+            } else if (object instanceof short[]) {
+                return (T) ((short[]) object).clone();
+            } else if (object instanceof int[]) {
+                return (T) ((int[]) object).clone();
+            } else if (object instanceof long[]) {
+                return (T) ((long[]) object).clone();
+            } else if (object instanceof float[]) {
+                return (T) ((float[]) object).clone();
+            } else if (object instanceof double[]) {
+                return (T) ((double[]) object).clone();
+            } else if (object instanceof String[]) {
+                return (T) ((String[]) object).clone();
+            } else if (object instanceof Map) {
+                final Map<Object, Object> copy;
+                if (object instanceof SortedMap) {
+                    copy = new TreeMap<Object, Object>();
+                } else {
+                    copy = new HashMap<Object, Object>(((Map) object).size());
+                }
+                boolean first = true, deeplyCopyKeys = false;
+                for (Map.Entry entry: ((Map<?, ?>) object).entrySet()) {
+                    if (first) {
+                        deeplyCopyKeys = entry.getKey() instanceof DeeplyCopyable;
+                        first = false;
+                    }
+                    copy.put(deeplyCopyKeys ? copyObject(entry.getKey()) : entry.getKey(), copyObject(entry.getValue()));
+                }
+                return (T) copy;
+            } else if (object instanceof List) {
+                final List<Object> copy;
+                if (object instanceof RandomAccess) {
+                    copy = new ArrayList<Object>(((List) object).size());
+                } else {
+                    copy = new LinkedList<Object>();
+                }
+                for (Object entry: (List) object) {
+                    copy.add(copyObject(entry));
+                }
+                return (T) copy;
+            } else if (object instanceof Set) {
+                final Set<Object> copy;
+                if (object instanceof SortedSet) {
+                    copy = new TreeSet<Object>();
+                } else {
+                    copy = new HashSet<Object>(((Set) object).size());
+                }
+                for (Object entry: (Set) object) {
+                    copy.add(copyObject(entry));
+                }
+                return (T) copy;
+            } else if (object instanceof DeeplyCopyable) {
+                return ((DeeplyCopyable<T>) object).deepCopy();
+            } else if (object instanceof Cloneable) {
+                return ((Cloneable<T>) object).clone();
+            } else {
+                throw new UnsupportedOperationException("Don't know how to copy a " + object.getClass());
+            }
+        }
+    }
+
     public static DataBuffer clone(DataBuffer dataBuffer) {
         if (dataBuffer instanceof DataBufferByte) {
             return clone((DataBufferByte) dataBuffer);

@@ -10,11 +10,15 @@
  */
 package org.pepsoft.worldpainter;
 
-import org.pepsoft.util.ProgressReceiver;
-
-import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.InputMap;
+import javax.swing.JComponent;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+import org.pepsoft.util.ProgressReceiver;
 
 import static org.pepsoft.worldpainter.Constants.*;
 
@@ -22,9 +26,9 @@ import static org.pepsoft.worldpainter.Constants.*;
  *
  * @author pepijn
  */
-public class RotateWorldDialog extends javax.swing.JDialog implements ProgressReceiver {
+public class ShiftWorldDialog extends javax.swing.JDialog implements ProgressReceiver {
     /** Creates new form RotateWorldDialog */
-    public RotateWorldDialog(java.awt.Frame parent, World2 world, int dim) {
+    public ShiftWorldDialog(java.awt.Frame parent, World2 world, int dim) {
         super(parent, true);
         this.world = world;
         this.dim = dim;
@@ -54,7 +58,7 @@ public class RotateWorldDialog extends javax.swing.JDialog implements ProgressRe
         } else {
             oppositeDim = -1;
         }
-        
+
         initComponents();
 
         ActionMap actionMap = rootPane.getActionMap();
@@ -70,7 +74,7 @@ public class RotateWorldDialog extends javax.swing.JDialog implements ProgressRe
         InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "cancel");
         
-        getRootPane().setDefaultButton(buttonRotate);
+        getRootPane().setDefaultButton(buttonShift);
         
         setLocationRelativeTo(parent);
     }
@@ -100,7 +104,7 @@ public class RotateWorldDialog extends javax.swing.JDialog implements ProgressRe
         doOnEventThread(new Runnable() {
             @Override
             public void run() {
-                ErrorDialog errorDialog = new ErrorDialog(RotateWorldDialog.this);
+                ErrorDialog errorDialog = new ErrorDialog(ShiftWorldDialog.this);
                 errorDialog.setException(exception);
                 errorDialog.setVisible(true);
                 dispose();
@@ -144,22 +148,15 @@ public class RotateWorldDialog extends javax.swing.JDialog implements ProgressRe
         });
     }
 
-    private void rotate() {
-        buttonRotate.setEnabled(false);
+    private void shift() {
+        buttonShift.setEnabled(false);
         buttonCancel.setEnabled(false);
-        final CoordinateTransform transform;
-        if (jRadioButton1.isSelected()) {
-            transform = CoordinateTransform.ROTATE_CLOCKWISE_90_DEGREES;
-        } else if (jRadioButton2.isSelected()) {
-            transform = CoordinateTransform.ROTATE_180_DEGREES;
-        } else {
-            transform = CoordinateTransform.ROTATE_CLOCKWISE_270_DEGREES;
-        }
-        new Thread("World Rotator") {
+        final CoordinateTransform transform = new Translation((Integer) jSpinner1.getValue(), (Integer) jSpinner2.getValue());
+        new Thread("World Shifter") {
             @Override
             public void run() {
                 try {
-                    world.transform(transform, RotateWorldDialog.this);
+                    world.transform(dim, transform, ShiftWorldDialog.this);
                     done();
                 } catch (Throwable t) {
                     exceptionThrown(t);
@@ -176,6 +173,10 @@ public class RotateWorldDialog extends javax.swing.JDialog implements ProgressRe
         }
     }
     
+    private void setControlStates() {
+        buttonShift.setEnabled((((Integer) jSpinner1.getValue()) != 0) || (((Integer) jSpinner2.getValue()) != 0));
+    }
+    
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -189,17 +190,20 @@ public class RotateWorldDialog extends javax.swing.JDialog implements ProgressRe
         jLabel1 = new javax.swing.JLabel();
         jProgressBar1 = new javax.swing.JProgressBar();
         buttonCancel = new javax.swing.JButton();
-        buttonRotate = new javax.swing.JButton();
+        buttonShift = new javax.swing.JButton();
         labelProgressMessage = new javax.swing.JLabel();
-        jRadioButton1 = new javax.swing.JRadioButton();
-        jRadioButton2 = new javax.swing.JRadioButton();
-        jRadioButton3 = new javax.swing.JRadioButton();
         jLabel2 = new javax.swing.JLabel();
+        jSpinner1 = new javax.swing.JSpinner();
+        jLabel3 = new javax.swing.JLabel();
+        jSpinner2 = new javax.swing.JSpinner();
+        jLabel4 = new javax.swing.JLabel();
+        jLabel5 = new javax.swing.JLabel();
+        jLabel6 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("Rotate World");
+        setTitle("Shift World");
 
-        jLabel1.setText("Choose a rotation angle and press the Rotate button to rotate the world:");
+        jLabel1.setText("Choose a shift amount and press the Shift button to shift the world horizontally (by whole tiles):");
 
         buttonCancel.setText("Cancel");
         buttonCancel.addActionListener(new java.awt.event.ActionListener() {
@@ -208,26 +212,39 @@ public class RotateWorldDialog extends javax.swing.JDialog implements ProgressRe
             }
         });
 
-        buttonRotate.setText("Rotate");
-        buttonRotate.addActionListener(new java.awt.event.ActionListener() {
+        buttonShift.setText("Shift");
+        buttonShift.setEnabled(false);
+        buttonShift.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonRotateActionPerformed(evt);
+                buttonShiftActionPerformed(evt);
             }
         });
 
         labelProgressMessage.setText(" ");
 
-        buttonGroup1.add(jRadioButton1);
-        jRadioButton1.setSelected(true);
-        jRadioButton1.setText("90 degrees clockwise");
+        jLabel2.setText("X axis:");
 
-        buttonGroup1.add(jRadioButton2);
-        jRadioButton2.setText("180 degrees");
+        jSpinner1.setModel(new javax.swing.SpinnerNumberModel(0, -2147483648, 2147483647, 128));
+        jSpinner1.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                jSpinner1StateChanged(evt);
+            }
+        });
 
-        buttonGroup1.add(jRadioButton3);
-        jRadioButton3.setText("90 degrees anticlockwise");
+        jLabel3.setText("Z axis:");
 
-        jLabel2.setText("<html><em>This operation cannot be undone!</em>   </html>");
+        jSpinner2.setModel(new javax.swing.SpinnerNumberModel(0, -2147483648, 2147483647, 128));
+        jSpinner2.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                jSpinner2StateChanged(evt);
+            }
+        });
+
+        jLabel4.setText("(negative values shift west; positive values shift east)");
+
+        jLabel5.setText("(negative values shift north; positive values shift south)");
+
+        jLabel6.setText("<html><em>This operation cannot be undone!</em>   </html>");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -236,19 +253,31 @@ public class RotateWorldDialog extends javax.swing.JDialog implements ProgressRe
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jProgressBar1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 353, Short.MAX_VALUE)
+                    .addComponent(jProgressBar1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(buttonRotate)
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(buttonShift)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buttonCancel))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel1)
                             .addComponent(labelProgressMessage)
-                            .addComponent(jRadioButton1)
-                            .addComponent(jRadioButton2)
-                            .addComponent(jRadioButton3)
-                            .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel2)
+                                    .addComponent(jLabel3))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jSpinner2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jLabel5))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jLabel4))))
+                            .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -258,13 +287,17 @@ public class RotateWorldDialog extends javax.swing.JDialog implements ProgressRe
                 .addContainerGap()
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(jRadioButton1)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel2)
+                    .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel4))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jRadioButton2)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jRadioButton3)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel3)
+                    .addComponent(jSpinner2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel5))
                 .addGap(18, 18, 18)
                 .addComponent(labelProgressMessage)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -272,7 +305,7 @@ public class RotateWorldDialog extends javax.swing.JDialog implements ProgressRe
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(buttonCancel)
-                    .addComponent(buttonRotate))
+                    .addComponent(buttonShift))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -283,20 +316,39 @@ public class RotateWorldDialog extends javax.swing.JDialog implements ProgressRe
         dispose();
     }//GEN-LAST:event_buttonCancelActionPerformed
 
-    private void buttonRotateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonRotateActionPerformed
-        rotate();
-    }//GEN-LAST:event_buttonRotateActionPerformed
+    private void buttonShiftActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonShiftActionPerformed
+        shift();
+    }//GEN-LAST:event_buttonShiftActionPerformed
+
+    private void jSpinner1StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSpinner1StateChanged
+        int value = (Integer) jSpinner1.getValue();
+        if ((value % 128 ) != 0) {
+            jSpinner1.setValue(Math.round(value / 128f) * 128);
+        }
+        setControlStates();
+    }//GEN-LAST:event_jSpinner1StateChanged
+
+    private void jSpinner2StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSpinner2StateChanged
+        int value = (Integer) jSpinner2.getValue();
+        if ((value % 128 ) != 0) {
+            jSpinner2.setValue(Math.round(value / 128f) * 128);
+        }
+        setControlStates();
+    }//GEN-LAST:event_jSpinner2StateChanged
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonCancel;
     private javax.swing.ButtonGroup buttonGroup1;
-    private javax.swing.JButton buttonRotate;
+    private javax.swing.JButton buttonShift;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
     private javax.swing.JProgressBar jProgressBar1;
-    private javax.swing.JRadioButton jRadioButton1;
-    private javax.swing.JRadioButton jRadioButton2;
-    private javax.swing.JRadioButton jRadioButton3;
+    private javax.swing.JSpinner jSpinner1;
+    private javax.swing.JSpinner jSpinner2;
     private javax.swing.JLabel labelProgressMessage;
     // End of variables declaration//GEN-END:variables
 

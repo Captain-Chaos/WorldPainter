@@ -16,8 +16,6 @@ import java.util.Set;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.undo.UndoManager;
-import org.pepsoft.worldpainter.Dimension.Border;
-import org.pepsoft.worldpainter.Dimension.Listener;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiome;
 import org.pepsoft.worldpainter.gardenofeden.Garden;
 import org.pepsoft.worldpainter.layers.Layer;
@@ -429,8 +427,8 @@ public class RODelegatingDimension extends Dimension {
     }
 
     @Override
-    public void rotate(CoordinateTransform rotation, ProgressReceiver progressReceiver) throws OperationCancelled {
-        super.rotate(rotation, progressReceiver);
+    public void transform(CoordinateTransform transform, ProgressReceiver progressReceiver) throws OperationCancelled {
+        super.transform(transform, progressReceiver);
     }
 
     @Override

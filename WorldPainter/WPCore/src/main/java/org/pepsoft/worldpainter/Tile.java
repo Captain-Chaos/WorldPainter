@@ -31,11 +31,14 @@ import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.undo.BufferKey;
 import org.pepsoft.util.undo.UndoListener;
 import org.pepsoft.util.undo.UndoManager;
+
+import static org.pepsoft.util.ObjectUtils.copyObject;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import org.pepsoft.worldpainter.gardenofeden.Seed;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.Layer.DataSize;
 
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_MASK;
 import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.layers.FloodWithLava;
@@ -47,7 +50,7 @@ import static org.pepsoft.worldpainter.Tile.TileBuffer.*;
  *
  * @author pepijn
  */
-public class Tile extends InstanceKeeper implements Serializable, UndoListener {
+public class Tile extends InstanceKeeper implements Serializable, UndoListener, Cloneable {
     public Tile(int x, int y, int maxHeight) {
         this(x, y, maxHeight, true);
     }
@@ -58,19 +61,22 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener {
         this.maxHeight = maxHeight;
         if (maxHeight > 256) {
             tall = true;
-            if (init) {
-                tallHeightMap = new int[TILE_SIZE * TILE_SIZE];
-                tallWaterLevel = new short[TILE_SIZE * TILE_SIZE];
-            }
-        } else if (init) {
-            heightMap = new short[TILE_SIZE * TILE_SIZE];
-            waterLevel = new byte[TILE_SIZE * TILE_SIZE];
         }
         if (init) {
+            terrain = new byte[TILE_SIZE * TILE_SIZE];
+            if (maxHeight > 256) {
+                tallHeightMap = new int[TILE_SIZE * TILE_SIZE];
+                tallWaterLevel = new short[TILE_SIZE * TILE_SIZE];
+            } else {
+                heightMap = new short[TILE_SIZE * TILE_SIZE];
+                waterLevel = new byte[TILE_SIZE * TILE_SIZE];
+            }
+            layerData = new HashMap<Layer, byte[]>();
+            bitLayerData = new HashMap<Layer, BitSet>();
             init();
         }
     }
-    
+
     public int getX() {
         return x;
     }
@@ -730,18 +736,40 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener {
     }
 
     public synchronized HashSet<Seed> getSeeds() {
-        ensureReadable(SEEDS);
-        return seeds;
+        if (seeds != null) {
+            ensureReadable(SEEDS);
+            return seeds;
+        } else {
+            return null;
+        }
     }
 
     public synchronized void plantSeed(Seed seed) {
-        ensureWriteable(SEEDS);
+        if (seeds == null) {
+            seeds = new HashSet<Seed>();
+            if (undoManager != null) {
+                undoManager.addBuffer(SEEDS_BUFFER_KEY, seeds, this);
+                readableBuffers.add(SEEDS);
+                writeableBuffers.add(SEEDS);
+            }
+        } else {
+            ensureWriteable(SEEDS);
+        }
         seeds.add(seed);
         seedsChanged();
     }
 
     public synchronized void removeSeed(Seed seed) {
-        ensureWriteable(SEEDS);
+        if (seeds == null) {
+            seeds = new HashSet<Seed>();
+            if (undoManager != null) {
+                undoManager.addBuffer(SEEDS_BUFFER_KEY, seeds, this);
+                readableBuffers.add(SEEDS);
+                writeableBuffers.add(SEEDS);
+            }
+        } else {
+            ensureWriteable(SEEDS);
+        }
         seeds.remove(seed);
         seedsChanged();
     }
@@ -848,60 +876,81 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener {
         }
     }
 
-    public synchronized Tile rotate(CoordinateTransform rotation) {
-        Point rotatedCoords = rotation.transform(x, y);
-        Tile rotatedTile = new Tile(rotatedCoords.x, rotatedCoords.y, maxHeight);
-        for (int x = 0; x < TILE_SIZE; x++) {
-            for (int y = 0; y < TILE_SIZE; y++) {
-                rotatedCoords.x = x;
-                rotatedCoords.y = y;
-                rotation.transformInPlace(rotatedCoords);
-                rotatedCoords.x &= TILE_SIZE_MASK;
-                rotatedCoords.y &= TILE_SIZE_MASK;
-                rotatedTile.setTerrain(rotatedCoords.x, rotatedCoords.y, getTerrain(x, y));
-                rotatedTile.setRawHeight(rotatedCoords.x, rotatedCoords.y, getRawHeight(x, y));
-                rotatedTile.setWaterLevel(rotatedCoords.x, rotatedCoords.y, getWaterLevel(x, y));
+    /**
+     * Create a new tile based on this one but horizontally transformed according to some transformation.
+     *
+     * @param transform The transform to apply.
+     * @return A new tile with the same contents, except transformed according to the specified transform (including the
+     * X and Y coordinates).
+     */
+    public synchronized Tile transform(CoordinateTransform transform) {
+        Point transformedCoords = transform.transform(x << TILE_SIZE_BITS, y << TILE_SIZE_BITS);
+        Tile transformedTile;
+        boolean transformContents = ((transformedCoords.x & TILE_SIZE_MASK) != 0) || ((transformedCoords.y & TILE_SIZE_MASK) != 0);
+        if (transformContents) {
+            transformedTile = new Tile(transformedCoords.x >> TILE_SIZE_BITS, transformedCoords.y >> TILE_SIZE_BITS, maxHeight);
+            for (int x = 0; x < TILE_SIZE; x++) {
+                for (int y = 0; y < TILE_SIZE; y++) {
+                    transformedCoords.x = x;
+                    transformedCoords.y = y;
+                    transform.transformInPlace(transformedCoords);
+                    transformedCoords.x &= TILE_SIZE_MASK;
+                    transformedCoords.y &= TILE_SIZE_MASK;
+                    transformedTile.setTerrain(transformedCoords.x, transformedCoords.y, getTerrain(x, y));
+                    transformedTile.setRawHeight(transformedCoords.x, transformedCoords.y, getRawHeight(x, y));
+                    transformedTile.setWaterLevel(transformedCoords.x, transformedCoords.y, getWaterLevel(x, y));
+                }
             }
-        }
-        for (Layer layer: getLayers()) {
-            if ((layer.getDataSize() == Layer.DataSize.BIT) || (layer.getDataSize() == Layer.DataSize.BIT_PER_CHUNK)) {
-                for (int x = 0; x < TILE_SIZE; x++) {
-                    for (int y = 0; y < TILE_SIZE; y++) {
-                        if (getBitLayerValue(layer, x, y)) {
-                            rotatedCoords.x = x;
-                            rotatedCoords.y = y;
-                            rotation.transformInPlace(rotatedCoords);
-                            rotatedCoords.x &= TILE_SIZE_MASK;
-                            rotatedCoords.y &= TILE_SIZE_MASK;
-                            rotatedTile.setBitLayerValue(layer, rotatedCoords.x, rotatedCoords.y, true);
+            for (Layer layer: getLayers()) {
+                if ((layer.getDataSize() == Layer.DataSize.BIT) || (layer.getDataSize() == Layer.DataSize.BIT_PER_CHUNK)) {
+                    for (int x = 0; x < TILE_SIZE; x++) {
+                        for (int y = 0; y < TILE_SIZE; y++) {
+                            if (getBitLayerValue(layer, x, y)) {
+                                transformedCoords.x = x;
+                                transformedCoords.y = y;
+                                transform.transformInPlace(transformedCoords);
+                                transformedCoords.x &= TILE_SIZE_MASK;
+                                transformedCoords.y &= TILE_SIZE_MASK;
+                                transformedTile.setBitLayerValue(layer, transformedCoords.x, transformedCoords.y, true);
+                            }
+                        }
+                    }
+                } else if (layer.getDataSize() != Layer.DataSize.NONE) {
+                    for (int x = 0; x < TILE_SIZE; x++) {
+                        for (int y = 0; y < TILE_SIZE; y++) {
+                            int value = getLayerValue(layer, x, y);
+                            if (value > 0) {
+                                transformedCoords.x = x;
+                                transformedCoords.y = y;
+                                transform.transformInPlace(transformedCoords);
+                                transformedCoords.x &= TILE_SIZE_MASK;
+                                transformedCoords.y &= TILE_SIZE_MASK;
+                                transformedTile.setLayerValue(layer, transformedCoords.x, transformedCoords.y, value);
+                            }
                         }
                     }
                 }
-            } else if (layer.getDataSize() != Layer.DataSize.NONE) {
-                for (int x = 0; x < TILE_SIZE; x++) {
-                    for (int y = 0; y < TILE_SIZE; y++) {
-                        int value = getLayerValue(layer, x, y);
-                        if (value > 0) {
-                            rotatedCoords.x = x;
-                            rotatedCoords.y = y;
-                            rotation.transformInPlace(rotatedCoords);
-                            rotatedCoords.x &= TILE_SIZE_MASK;
-                            rotatedCoords.y &= TILE_SIZE_MASK;
-                            rotatedTile.setLayerValue(layer, rotatedCoords.x, rotatedCoords.y, value);
-                        }
-                    }
-                }
-            }
-        }
-        if (seeds != null) {
-            rotatedTile.seeds.addAll(seeds);
-            for (Seed seed: rotatedTile.seeds) {
-                seed.rotate(rotation);
             }
         } else {
-            rotatedTile.seeds = null;
+            // The transformation does not affect intra-tile coordinates, so just copy the buffers without transforming them
+            transformedTile = new Tile(transformedCoords.x >> TILE_SIZE_BITS, transformedCoords.y >> TILE_SIZE_BITS, maxHeight, false);
+            transformedTile.heightMap = copyObject(heightMap);
+            transformedTile.tallHeightMap = copyObject(tallHeightMap);
+            transformedTile.terrain = terrain.clone();
+            transformedTile.waterLevel = copyObject(waterLevel);
+            transformedTile.tallWaterLevel = copyObject(tallWaterLevel);
+            transformedTile.layerData = copyObject(layerData);
+            transformedTile.bitLayerData = copyObject(bitLayerData);
+            transformedTile.init();
         }
-        return rotatedTile;
+        if (seeds != null) {
+            transformedTile.seeds = new HashSet<Seed>();
+            transformedTile.seeds.addAll(seeds);
+            for (Seed seed: transformedTile.seeds) {
+                seed.transform(transform);
+            }
+        }
+        return transformedTile;
     }
     
     public boolean repair(int maxHeight, PrintStream out) {
@@ -1102,21 +1151,21 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener {
         if (tall) {
             undoManager.addBuffer(TALL_HEIGHTMAP_BUFFER_KEY,  tallHeightMap,  this);
             undoManager.addBuffer(TALL_WATERLEVEL_BUFFER_KEY, tallWaterLevel, this);
+            readableBuffers = EnumSet.of(TALL_HEIGHTMAP, TALL_WATERLEVEL, TERRAIN, LAYER_DATA, BIT_LAYER_DATA);
+            writeableBuffers = EnumSet.of(TALL_HEIGHTMAP, TALL_WATERLEVEL, TERRAIN, LAYER_DATA, BIT_LAYER_DATA);
         } else {
             undoManager.addBuffer(HEIGHTMAP_BUFFER_KEY,  heightMap,  this);
             undoManager.addBuffer(WATERLEVEL_BUFFER_KEY, waterLevel, this);
+            readableBuffers = EnumSet.of(HEIGHTMAP, WATERLEVEL, TERRAIN, LAYER_DATA, BIT_LAYER_DATA);
+            writeableBuffers = EnumSet.of(HEIGHTMAP, WATERLEVEL, TERRAIN, LAYER_DATA, BIT_LAYER_DATA);
         }
         undoManager.addBuffer(TERRAIN_BUFFER_KEY,        terrain,      this);
         undoManager.addBuffer(LAYER_DATA_BUFFER_KEY,     layerData,    this);
         undoManager.addBuffer(BIT_LAYER_DATA_BUFFER_KEY, bitLayerData, this);
-        undoManager.addBuffer(SEEDS_BUFFER_KEY,          seeds,        this);
-
-        if (tall) {
-            readableBuffers = EnumSet.of(TALL_HEIGHTMAP, TALL_WATERLEVEL, TERRAIN, LAYER_DATA, BIT_LAYER_DATA, SEEDS);
-            writeableBuffers = EnumSet.of(TALL_HEIGHTMAP, TALL_WATERLEVEL, TERRAIN, LAYER_DATA, BIT_LAYER_DATA, SEEDS);
-        } else {
-            readableBuffers = EnumSet.of(HEIGHTMAP, WATERLEVEL, TERRAIN, LAYER_DATA, BIT_LAYER_DATA, SEEDS);
-            writeableBuffers = EnumSet.of(HEIGHTMAP, WATERLEVEL, TERRAIN, LAYER_DATA, BIT_LAYER_DATA, SEEDS);
+        if (seeds != null) {
+            undoManager.addBuffer(SEEDS_BUFFER_KEY, seeds, this);
+            readableBuffers.add(SEEDS);
+            writeableBuffers.add(SEEDS);
         }
     }
 
@@ -1140,8 +1189,10 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener {
         undoManager.removeBuffer(LAYER_DATA_BUFFER_KEY);
         ensureReadable(BIT_LAYER_DATA);
         undoManager.removeBuffer(BIT_LAYER_DATA_BUFFER_KEY);
-        ensureReadable(SEEDS);
-        undoManager.removeBuffer(SEEDS_BUFFER_KEY);
+        if (seeds != null) {
+            ensureReadable(SEEDS);
+            undoManager.removeBuffer(SEEDS_BUFFER_KEY);
+        }
         readableBuffers = writeableBuffers = null;
     }
 
@@ -1369,8 +1420,8 @@ layerLoop: for (Iterator<Map.Entry<Layer, byte[]>> i = layerData.entrySet().iter
             maxHeight = 128;
             tall = false;
         }
-        if (seeds == null) {
-            seeds = new HashSet<Seed>();
+        if ((seeds != null) && seeds.isEmpty()) {
+            seeds = null;
         }
     }
     
@@ -1379,12 +1430,12 @@ layerLoop: for (Iterator<Map.Entry<Layer, byte[]>> i = layerData.entrySet().iter
     private boolean tall;
     protected short[] heightMap;
     protected int[] tallHeightMap;
-    protected byte[] terrain = new byte[TILE_SIZE * TILE_SIZE];
+    protected byte[] terrain;
     protected byte[] waterLevel;
     protected short[] tallWaterLevel;
-    protected Map<Layer, byte[]> layerData = new HashMap<Layer, byte[]>();
-    protected Map<Layer, BitSet> bitLayerData = new HashMap<Layer, BitSet>();
-    private HashSet<Seed> seeds = new HashSet<Seed>();
+    protected Map<Layer, byte[]> layerData;
+    protected Map<Layer, BitSet> bitLayerData;
+    private HashSet<Seed> seeds;
     private transient List<Listener> listeners;
     private transient boolean heightMapDirty, terrainDirty, waterLevelDirty, seedsDirty, bitLayersDirty, nonBitLayersDirty;
     private transient Set<TileBuffer> readableBuffers;
@@ -1449,6 +1500,6 @@ layerLoop: for (Iterator<Map.Entry<Layer, byte[]>> i = layerData.entrySet().iter
     }
 
     public enum TileBuffer {
-        HEIGHTMAP, TERRAIN, WATERLEVEL, LAYER_DATA, BIT_LAYER_DATA, TALL_HEIGHTMAP, TALL_WATERLEVEL, SEEDS;
+        HEIGHTMAP, TERRAIN, WATERLEVEL, LAYER_DATA, BIT_LAYER_DATA, TALL_HEIGHTMAP, TALL_WATERLEVEL, SEEDS
     }
 }

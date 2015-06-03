@@ -392,9 +392,7 @@ public final class App extends JFrame implements RadiusControl,
                 }
             }
 
-            if ("true".equals(System.getProperty("org.pepsoft.worldpainter.disableUndo")) || (! config.isUndoEnabled())) {
-                dimension.unregister();
-            }
+            this.dimension.unregister();
             currentUndoManager.unregisterActions();
             currentUndoManager = null;
 
@@ -914,7 +912,7 @@ public final class App extends JFrame implements RadiusControl,
 
                     @Override
                     public java.lang.Void execute(ProgressReceiver progressReceiver) throws OperationCancelled {
-                        newWorld.rotate(CoordinateTransform.ROTATE_CLOCKWISE_270_DEGREES, progressReceiver);
+                        newWorld.transform(CoordinateTransform.ROTATE_CLOCKWISE_270_DEGREES, progressReceiver);
                         return null;
                     }
                 }, false);
@@ -3169,6 +3167,10 @@ public final class App extends JFrame implements RadiusControl,
             menuItem.setMnemonic('o');
             menu.add(menuItem);
 
+            menuItem = new JMenuItem(ACTION_SHIFT_WORLD);
+            menuItem.setMnemonic('s');
+            menu.add(menuItem);
+
             menu.addSeparator();
         }
 
@@ -3919,6 +3921,7 @@ public final class App extends JFrame implements RadiusControl,
         if (! Configuration.getInstance().isEasyMode()) {
             toolBar.add(ACTION_CHANGE_HEIGHT);
             toolBar.add(ACTION_ROTATE_WORLD);
+            toolBar.add(ACTION_SHIFT_WORLD);
         }
         toolBar.add(ACTION_EDIT_TILES);
         toolBar.addSeparator();
@@ -5487,16 +5490,33 @@ public final class App extends JFrame implements RadiusControl,
             RotateWorldDialog dialog = new RotateWorldDialog(App.this, world);
             dialog.setVisible(true);
             if (! dialog.isCancelled()) {
-                setWorld(dialog.getWorld());
-                if (threeDeeFrame != null) {
-                    threeDeeFrame.setDimension(dimension);
-                }
+                currentUndoManager.armSavePoint();
             }
         }
 
         private static final long serialVersionUID = 1L;
     };
     
+    private final BetterAction ACTION_SHIFT_WORLD = new BetterAction("shift", "Shift...", ICON_SHIFT_WORLD) {
+        {
+            setShortDescription("Shift the entire map horizontally by whole 128-block tiles");
+        }
+
+        @Override
+        public void performAction(ActionEvent e) {
+            if ((world.getImportedFrom() != null) && (JOptionPane.showConfirmDialog(App.this, "This world was imported from an existing map!\nIf you shift it you will no longer be able to merge it properly.\nAre you sure you want to shift the world?", strings.getString("imported"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION)) {
+                return;
+            }
+            ShiftWorldDialog dialog = new ShiftWorldDialog(App.this, world);
+            dialog.setVisible(true);
+            if (! dialog.isCancelled()) {
+                currentUndoManager.armSavePoint();
+            }
+        }
+
+        private static final long serialVersionUID = 1L;
+    };
+
     private final BetterAction ACTION_DIMENSION_PROPERTIES = new BetterAction("dimensionProperties", strings.getString("dimension.properties") + "...", ICON_DIMENSION_PROPERTIES) {
         {
             setAcceleratorKey(KeyStroke.getKeyStroke(VK_P, PLATFORM_COMMAND_MASK));
@@ -5910,6 +5930,7 @@ public final class App extends JFrame implements RadiusControl,
     private static final Icon ICON_MOVE_TO_SPAWN        = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/spawn_red.png");
     private static final Icon ICON_MOVE_TO_ORIGIN       = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/arrow_in.png");
     private static final Icon ICON_UNKNOWN_PATTERN      = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/unknown_pattern.png");
+    private static final Icon ICON_SHIFT_WORLD          = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/arrow_cross.png");
     
     private static final int PLATFORM_COMMAND_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 

@@ -368,16 +368,15 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
 //        biomesCalculated = false;
     }
     
-    public void removeTile(Point tileCoords) {
-        removeTile(tileCoords.x, tileCoords.y);
+    public void removeTile(int tileX, int tileY) {
+        removeTile(new Point(tileX, tileY));
     }
     
     public void removeTile(Tile tile) {
         removeTile(tile.getX(), tile.getY());
     }
     
-    public void removeTile(int tileX, int tileY) {
-        final Point coords = new Point(tileX, tileY);
+    public synchronized void removeTile(Point coords) {
         if (! tiles.containsKey(coords)) {
             throw new IllegalStateException("Tile not set");
         }
@@ -1326,14 +1325,30 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     public void removePropertyChangeListener(String propertyName, PropertyChangeListener listener) {
         propertyChangeSupport.removePropertyChangeListener(propertyName, listener);
     }
-    
-    public void rotate(CoordinateTransform rotation, ProgressReceiver progressReceiver) throws OperationCancelled {
+
+    /**
+     * Transform the tiles of this dimension horizontally, for instance
+     * translating and/or rotating them. If an undo manager is installed this
+     * operation will destroy all undo info.
+     *
+     * @param transform The transform to apply to the tiles and their contents.
+     * @param progressReceiver An optional progress receiver to which progress
+     *                         of the operation will be reported.
+     * @throws OperationCancelled If the progress receiver threw an
+     * <code>OperationCancelled</code> exception indicating that the user wished
+     * to cancel the operation.
+     */
+    public void transform(CoordinateTransform transform, ProgressReceiver progressReceiver) throws OperationCancelled {
         if (progressReceiver != null) {
-            progressReceiver.setMessage("rotating " + getName() + "...");
+            progressReceiver.setMessage("transforming " + getName() + "...");
         }
-        unregister();
         eventsInhibited = true;
         try {
+            addedTiles.clear();
+            removedTiles.clear();
+            dirtyTiles.clear();
+            dirty = true;
+
             Rectangle overlayCoords = null;
             if ((overlay != null) && overlay.canRead()) {
                 try {
@@ -1356,15 +1371,32 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                 overlayScale = 1.0f;
             }
             
-            Map<Point, Tile> oldTiles = tiles;
-            tiles = new HashMap<Point, Tile>();
+            // Remove all tiles
+            Set<Tile> removedTiles;
+            synchronized (this) {
+                Map<Point, Tile> oldTiles = tiles;
+                tiles = new HashMap<Point, Tile>();
+                removedTiles = new HashSet<Tile>(oldTiles.values());
+                for (Tile removedTile: removedTiles) {
+                    removedTile.removeListener(this);
+                    removedTile.unregister();
+                }
+            }
+            clearUndo();
+            for (Listener listener: listeners) {
+                listener.tilesRemoved(this, removedTiles);
+            }
+
+            // Add them all back, in their transformed locations
             lowestX = Integer.MAX_VALUE;
             highestX = Integer.MIN_VALUE;
             lowestY = Integer.MAX_VALUE;
             highestY = Integer.MIN_VALUE;
-            int tileCount = oldTiles.size(), tileNo = 0;
-            for (Tile tile: oldTiles.values()) {
-                addTile(tile.rotate(rotation));
+            int tileCount = removedTiles.size(), tileNo = 0;
+            for (Iterator<Tile> i = removedTiles.iterator(); i.hasNext(); ) {
+                Tile tile = i.next();
+                addTile(tile.transform(transform));
+                i.remove(); // Remove each tile as we're done with it so it can be garbage collected
                 tileNo++;
                 if (progressReceiver != null) {
                     progressReceiver.setProgress((float) tileNo / tileCount);
@@ -1372,7 +1404,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             }
             
             if (overlayCoords != null) {
-                overlayCoords = rotation.transform(overlayCoords);
+                overlayCoords = transform.transform(overlayCoords);
                 overlayOffsetX = overlayCoords.x - (lowestX << TILE_SIZE_BITS);
                 overlayOffsetY = overlayCoords.y - (lowestY << TILE_SIZE_BITS);
                 SwingUtilities.invokeLater(new Runnable() {
@@ -1387,9 +1419,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             }
         } finally {
             eventsInhibited = false;
-            addedTiles.clear();
-            removedTiles.clear();
-            dirtyTiles.clear();
+            fireTilesAdded(addedTiles);
         }
     }
     
@@ -1479,8 +1509,9 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             return null;
         }
         String suffix = filename.substring(p + 1).toLowerCase();
-        for (Iterator<ImageReader> i = ImageIO.getImageReadersBySuffix(suffix); i.hasNext();) {
-            ImageReader reader = i.next();
+        Iterator<ImageReader> readers = ImageIO.getImageReadersBySuffix(suffix);
+        if (readers.hasNext()) {
+            ImageReader reader = readers.next();
             try {
                 ImageInputStream in = new FileImageInputStream(image);
                 try {
@@ -1494,8 +1525,9 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             } finally {
                 reader.dispose();
             }
+        } else {
+            return null;
         }
-        return null;
     }
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {

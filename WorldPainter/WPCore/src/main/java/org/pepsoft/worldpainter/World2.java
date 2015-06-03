@@ -305,7 +305,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
             Direction oldUpIs = this.upIs;
             this.upIs = upIs;
             dirty = true;
-            propertyChangeSupport.firePropertyChange("upId", oldUpIs, upIs);
+            propertyChangeSupport.firePropertyChange("upIs", oldUpIs, upIs);
         }
     }
 
@@ -368,26 +368,51 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     }
 
     /**
-     * Rotates the world. Note that no events are fired during the rotation. The
-     * caller should make sure to completely requery the world. If an undo
-     * manager is installed it will be deregistered and all undo information
-     * deleted.
+     * Transforms all dimensions of this world horizontally. If an undo manager
+     * is installed this operation will destroy all undo info.
      * 
-     * @param rotation The coordinate transform describing the desired rotation.
+     * @param transform The coordinate transform to apply.
      * @param progressReceiver A progress receiver which will be informed of
      *     rotation progress.
      */
-    public void rotate(CoordinateTransform rotation, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
+    public void transform(CoordinateTransform transform, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
         int dimCount = dimensions.size(), dim = 0;
         for (Dimension dimension: dimensions.values()) {
-            dimension.rotate(rotation, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) dim / dimCount, 1.0f / dimCount) : null);
+            dimension.transform(transform, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) dim / dimCount, 1.0f / dimCount) : null);
             dim++;
         }
-        rotation.transformInPlace(spawnPoint);
-        upIs = rotation.inverseTransform(upIs);
+        Point oldSpawnPoint = spawnPoint;
+        spawnPoint = transform.transform(spawnPoint);
+        propertyChangeSupport.firePropertyChange("spawnPoint", oldSpawnPoint, spawnPoint);
+        Direction oldUpIs = upIs;
+        upIs = transform.inverseTransform(upIs);
+        propertyChangeSupport.firePropertyChange("upIs", oldUpIs, upIs);
         dirty = true;
     }
     
+    /**
+     * Transforms one dimension horizontally. If it's the surface dimension also
+     * transforms any surface-related metadata stored in the world. If an undo
+     * manager is installed this operation will destroy all undo info.
+     *
+     * @param dim The index of the dimension to transform.
+     * @param transform The coordinate transform to apply.
+     * @param progressReceiver A progress receiver which will be informed of
+     *     rotation progress.
+     */
+    public void transform(int dim, CoordinateTransform transform, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
+        dimensions.get(dim).transform(transform, progressReceiver);
+        if (dim == DIM_NORMAL) {
+            Point oldSpawnPoint = spawnPoint;
+            spawnPoint = transform.transform(spawnPoint);
+            propertyChangeSupport.firePropertyChange("spawnPoint", oldSpawnPoint, spawnPoint);
+            Direction oldUpIs = upIs;
+            upIs = transform.inverseTransform(upIs);
+            propertyChangeSupport.firePropertyChange("upIs", oldUpIs, upIs);
+        }
+        dirty = true;
+    }
+
     public void clearLayerData(Layer layer) {
         for (Dimension dimension: dimensions.values()) {
             dimension.clearLayerData(layer);

@@ -144,7 +144,7 @@ public class RODelegatingTile extends Tile {
     }
 
     @Override
-    public Tile rotate(CoordinateTransform rotation) {
+    public Tile transform(CoordinateTransform transform) {
         throw new UnsupportedOperationException();
     }
 

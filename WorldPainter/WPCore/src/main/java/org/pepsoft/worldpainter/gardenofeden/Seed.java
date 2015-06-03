@@ -92,7 +92,7 @@ public abstract class Seed implements Serializable, org.pepsoft.util.undo.Clonea
         // Do nothing
     }
     
-    public void rotate(CoordinateTransform rotation) {
+    public void transform(CoordinateTransform rotation) {
         rotation.transformInPlace(location);
     }
 
