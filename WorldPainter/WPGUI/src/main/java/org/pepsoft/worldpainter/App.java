@@ -5487,7 +5487,7 @@ public final class App extends JFrame implements RadiusControl,
             if ((world.getImportedFrom() != null) && (JOptionPane.showConfirmDialog(App.this, strings.getString("this.world.was.imported.from.an.existing.map"), strings.getString("imported"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION)) {
                 return;
             }
-            RotateWorldDialog dialog = new RotateWorldDialog(App.this, world);
+            RotateWorldDialog dialog = new RotateWorldDialog(App.this, world, dimension.getDim());
             dialog.setVisible(true);
             if (! dialog.isCancelled()) {
                 currentUndoManager.armSavePoint();
@@ -5507,7 +5507,7 @@ public final class App extends JFrame implements RadiusControl,
             if ((world.getImportedFrom() != null) && (JOptionPane.showConfirmDialog(App.this, "This world was imported from an existing map!\nIf you shift it you will no longer be able to merge it properly.\nAre you sure you want to shift the world?", strings.getString("imported"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION)) {
                 return;
             }
-            ShiftWorldDialog dialog = new ShiftWorldDialog(App.this, world);
+            ShiftWorldDialog dialog = new ShiftWorldDialog(App.this, world, dimension.getDim());
             dialog.setVisible(true);
             if (! dialog.isCancelled()) {
                 currentUndoManager.armSavePoint();

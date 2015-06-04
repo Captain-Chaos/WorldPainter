@@ -15,6 +15,7 @@ import org.pepsoft.util.ProgressReceiver;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import org.pepsoft.util.SubProgressReceiver;
 
 import static org.pepsoft.worldpainter.Constants.*;
 
@@ -56,6 +57,7 @@ public class RotateWorldDialog extends javax.swing.JDialog implements ProgressRe
         }
         
         initComponents();
+        jCheckBox1.setEnabled(oppositeDim != -1);
 
         ActionMap actionMap = rootPane.getActionMap();
         actionMap.put("cancel", new AbstractAction("cancel") {
@@ -77,10 +79,6 @@ public class RotateWorldDialog extends javax.swing.JDialog implements ProgressRe
 
     public boolean isCancelled() {
         return cancelled;
-    }
-
-    public World2 getWorld() {
-        return world;
     }
 
     // ProgressReceiver
@@ -159,7 +157,12 @@ public class RotateWorldDialog extends javax.swing.JDialog implements ProgressRe
             @Override
             public void run() {
                 try {
-                    world.transform(transform, RotateWorldDialog.this);
+                    if ((oppositeDim == -1) || (! jCheckBox1.isSelected())) {
+                        world.transform(dim, transform, RotateWorldDialog.this);
+                    } else {
+                        world.transform(dim, transform, new SubProgressReceiver(RotateWorldDialog.this, 0.0f, 0.5f));
+                        world.transform(oppositeDim, transform, new SubProgressReceiver(RotateWorldDialog.this, 0.5f, 0.5f));
+                    }
                     done();
                 } catch (Throwable t) {
                     exceptionThrown(t);
@@ -195,9 +198,11 @@ public class RotateWorldDialog extends javax.swing.JDialog implements ProgressRe
         jRadioButton2 = new javax.swing.JRadioButton();
         jRadioButton3 = new javax.swing.JRadioButton();
         jLabel2 = new javax.swing.JLabel();
+        jCheckBox1 = new javax.swing.JCheckBox();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle("Rotate World");
+        setResizable(false);
 
         jLabel1.setText("Choose a rotation angle and press the Rotate button to rotate the world:");
 
@@ -229,6 +234,9 @@ public class RotateWorldDialog extends javax.swing.JDialog implements ProgressRe
 
         jLabel2.setText("<html><em>This operation cannot be undone!</em>   </html>");
 
+        jCheckBox1.setSelected(true);
+        jCheckBox1.setText("also rotate corresponding ceiling or surface");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -243,6 +251,7 @@ public class RotateWorldDialog extends javax.swing.JDialog implements ProgressRe
                         .addComponent(buttonCancel))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jCheckBox1)
                             .addComponent(jLabel1)
                             .addComponent(labelProgressMessage)
                             .addComponent(jRadioButton1)
@@ -265,6 +274,8 @@ public class RotateWorldDialog extends javax.swing.JDialog implements ProgressRe
                 .addComponent(jRadioButton2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jRadioButton3)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jCheckBox1)
                 .addGap(18, 18, 18)
                 .addComponent(labelProgressMessage)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -291,6 +302,7 @@ public class RotateWorldDialog extends javax.swing.JDialog implements ProgressRe
     private javax.swing.JButton buttonCancel;
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JButton buttonRotate;
+    private javax.swing.JCheckBox jCheckBox1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JProgressBar jProgressBar1;

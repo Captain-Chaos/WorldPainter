@@ -19,6 +19,7 @@ import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import org.pepsoft.util.ProgressReceiver;
+import org.pepsoft.util.SubProgressReceiver;
 
 import static org.pepsoft.worldpainter.Constants.*;
 
@@ -60,6 +61,7 @@ public class ShiftWorldDialog extends javax.swing.JDialog implements ProgressRec
         }
 
         initComponents();
+        jCheckBox1.setEnabled(oppositeDim != -1);
 
         ActionMap actionMap = rootPane.getActionMap();
         actionMap.put("cancel", new AbstractAction("cancel") {
@@ -81,10 +83,6 @@ public class ShiftWorldDialog extends javax.swing.JDialog implements ProgressRec
 
     public boolean isCancelled() {
         return cancelled;
-    }
-
-    public World2 getWorld() {
-        return world;
     }
 
     // ProgressReceiver
@@ -156,7 +154,12 @@ public class ShiftWorldDialog extends javax.swing.JDialog implements ProgressRec
             @Override
             public void run() {
                 try {
-                    world.transform(dim, transform, ShiftWorldDialog.this);
+                    if ((oppositeDim == -1) || (! jCheckBox1.isSelected())) {
+                        world.transform(dim, transform, ShiftWorldDialog.this);
+                    } else {
+                        world.transform(dim, transform, new SubProgressReceiver(ShiftWorldDialog.this, 0.0f, 0.5f));
+                        world.transform(oppositeDim, transform, new SubProgressReceiver(ShiftWorldDialog.this, 0.5f, 0.5f));
+                    }
                     done();
                 } catch (Throwable t) {
                     exceptionThrown(t);
@@ -199,9 +202,11 @@ public class ShiftWorldDialog extends javax.swing.JDialog implements ProgressRec
         jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
+        jCheckBox1 = new javax.swing.JCheckBox();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle("Shift World");
+        setResizable(false);
 
         jLabel1.setText("Choose a shift amount and press the Shift button to shift the world horizontally (by whole tiles):");
 
@@ -246,6 +251,9 @@ public class ShiftWorldDialog extends javax.swing.JDialog implements ProgressRec
 
         jLabel6.setText("<html><em>This operation cannot be undone!</em>   </html>");
 
+        jCheckBox1.setSelected(true);
+        jCheckBox1.setText("also shift corresponding ceiling or surface");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -277,7 +285,8 @@ public class ShiftWorldDialog extends javax.swing.JDialog implements ProgressRec
                                         .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(jLabel4))))
-                            .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jCheckBox1))
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -298,6 +307,8 @@ public class ShiftWorldDialog extends javax.swing.JDialog implements ProgressRec
                     .addComponent(jLabel3)
                     .addComponent(jSpinner2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel5))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jCheckBox1)
                 .addGap(18, 18, 18)
                 .addComponent(labelProgressMessage)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -340,6 +351,7 @@ public class ShiftWorldDialog extends javax.swing.JDialog implements ProgressRec
     private javax.swing.JButton buttonCancel;
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JButton buttonShift;
+    private javax.swing.JCheckBox jCheckBox1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
