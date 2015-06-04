@@ -1,21 +1,29 @@
 -- Version 2.0.0, released ...
 
  * The way of painting layers, terrain and biomes has been changed. You now have a set of powerful new general painting tools, which can paint with any terrain, layer or biome you select
-   + This means that instead of just selecting a layer or terrain in order to paint it, you must now select the "paint" (a layer, a terrain, a biome or an annotation colour) *and* a painting tool from the tool box. For the old behaviour, select the Spray Paint tool (the top left button in the tool box, or Alt+r)
+   + This means that instead of just selecting a layer or terrain in order to paint it, you must now select the "paint" (a layer, a terrain, a biome or an annotation colour) from one of the palettes *and* a painting tool from the top row of the tool box. For the old behaviour, select the Spray Paint tool (the top left button in the tool box, or Alt+r)
    + The new painting tools are powerful and flexible. They are:
      - The Spray Paint tool. This tool works exactly like the old way of painting layers, terrain and biomes. It applies the selected "paint" to the world in the shape of the current brush continuously as long as you hold down the mouse button
+       o On/off layers (like Frost) and discrete layers (like Biomes and Annotations) are dithered
      - The Pencil. This is a line drawing tool which paints continuous lines of the selected "paint" by applying the current brush along a line
        o Paint freehand lines by clicking and dragging the mouse
        o Paint dots by clicking and releasing the mouse
        o Draw straight lines from the previously painted dot or line-end, by holding Shift while clicking the mouse
        o Constrain the lines to 45 degree angles by holding Ctrl while clicking. This works for freehand line drawing (Ctrl + drag) as well as for straight lines (Ctrl + Shift + click)
+       o On/off layers (like Frost) and discrete layers (like Biomes and Annotations) are NOT dithered; they are applied where the brush intensity is 75% or higher
      - The Fill tool. This tool will fill whole areas of the world with the selected "paint"
        o For layers the area that is filled is bounded by the area where the selected layer already exists at the same or higher intensity. The area is filled to the currently selected intensity. In other words you first paint the edges of the area you want to fill using the other tools, leaving no gaps, and then fill in the area
        o For terrain types the area that is filled is the contiguous area with the same terrain type as where you clicked. In other words the terrain type you click on is replaced with the selected terrain type
-       o Biomes and annotations work the same as terrain types; a contiguous area with the same biomes or annotation colour as you clicked on is replaced
+       o Biomes and annotations work the same as terrain types; the contiguous area with the same biome or annotation colour where you clicked is replaced
      - The Text tool. This allows you to draw text on the world with any font, size and orientation. It's primarily an annotation tool which makes the most sense to use with the colours on the Annotations panel, but it works with any selected layer, terrain or biome as well, if you wish
-       o Note that it allows you to rotate the text in 90 degree steps. The text is rotated such that the start/top of the text (in other words the top left of the unrotated text) is placed where you click
+       o The text can be rotates in 90 degree steps
    + All these tools (including Fill and Text) support performing the inverse operation by right-clicking instead of left-clicking. Layers are removed, biomes are reset to automatic and terrain is reset according to the Default Terrain settings of the Dimension Properties
+ * The map can now be shifted horizontally!
+   + The map can only be shifted by whole tiles (in other words in steps of 128 blocks)
+   + The new operation can be found next to the Rotate operation in the toolbar and looks like a cross with four arrows. It is also in the Edit menu, underneath the existing Rotate item
+   + It affects the currently showing dimension, and by default also the corresponding ceiling or surface dimension, although that can be turned off
+   + The Rotate operation used to affect all dimensions, but that has been changed to be consistent with the new Shift operation
+   + Rotate and Shift operations destroy all undo and redo information and therefore they cannot be undone!
  * If you use half slabs as a custom terrain type, WorldPainter will automatically combine it with double slabs of the same type to make smoother terrain
    + This is great for creating, for instance, smooth cobblestone or stone slab roads (easily made with the new Pencil tool) which you can walk without having to jump
    + The requirements are the same as for Smooth Snow: the world must either be hand crafted, or created from a high resolution (16-bit) height map. Worlds created from 8-bit height maps won't have the extra precision needed, although you can create it by using the Smooth tool along the path of the area where you want to apply this feature

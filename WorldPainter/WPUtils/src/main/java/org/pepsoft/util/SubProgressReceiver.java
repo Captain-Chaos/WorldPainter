@@ -38,7 +38,7 @@ public class SubProgressReceiver implements ProgressReceiver {
 
     @Override
     public void done() {
-        progressReceiver.done();
+        // Do nothing
     }
 
     @Override

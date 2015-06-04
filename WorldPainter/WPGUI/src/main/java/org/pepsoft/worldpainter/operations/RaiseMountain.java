@@ -58,6 +58,9 @@ public class RaiseMountain extends RadiusOperation {
         if (brush == null) {
             return;
         }
+
+        // Some calculations to support brushes where the centre point is not
+        // the brightest point and/or where the brightest point is less than 1.0
         float strength = brush.getFullStrength(0, 0);
         if (strength == 1.0f) {
             peakDX = 0;

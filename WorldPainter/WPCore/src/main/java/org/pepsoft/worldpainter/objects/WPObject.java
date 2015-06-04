@@ -142,16 +142,16 @@ public interface WPObject extends Serializable, Cloneable {
     WPObject clone();
     
     // Standard attribute keys
-    static final String ATTRIBUTE_FILE             = "WPObject.file";            // Type String
-    static final String ATTRIBUTE_OFFSET           = "WPObject.offset";          // Type Point3i
-    static final String ATTRIBUTE_RANDOM_ROTATION  = "WPObject.randomRotation";  // Type Boolean
-    static final String ATTRIBUTE_NEEDS_FOUNDATION = "WPObject.needsFoundation"; // Type Boolean; default: true
-    static final String ATTRIBUTE_SPAWN_IN_WATER   = "WPObject.spawnInWater";    // Type Boolean; default: false
-    static final String ATTRIBUTE_SPAWN_IN_LAVA    = "WPObject.spawnInLava";     // Type Boolean; default: false
-    static final String ATTRIBUTE_SPAWN_ON_LAND    = "WPObject.spawnOnLand";     // Type Boolean; default: true
-    static final String ATTRIBUTE_SPAWN_ON_WATER   = "WPObject.spawnOnWater";    // Type Boolean; default: false
-    static final String ATTRIBUTE_SPAWN_ON_LAVA    = "WPObject.spawnOnLava";     // Type Boolean; default: false
-    static final String ATTRIBUTE_FREQUENCY        = "WPObject.frequency";       // Type Integer
+    String ATTRIBUTE_FILE             = "WPObject.file";            // Type String
+    String ATTRIBUTE_OFFSET           = "WPObject.offset";          // Type Point3i
+    String ATTRIBUTE_RANDOM_ROTATION  = "WPObject.randomRotation";  // Type Boolean
+    String ATTRIBUTE_NEEDS_FOUNDATION = "WPObject.needsFoundation"; // Type Boolean; default: true
+    String ATTRIBUTE_SPAWN_IN_WATER   = "WPObject.spawnInWater";    // Type Boolean; default: false
+    String ATTRIBUTE_SPAWN_IN_LAVA    = "WPObject.spawnInLava";     // Type Boolean; default: false
+    String ATTRIBUTE_SPAWN_ON_LAND    = "WPObject.spawnOnLand";     // Type Boolean; default: true
+    String ATTRIBUTE_SPAWN_ON_WATER   = "WPObject.spawnOnWater";    // Type Boolean; default: false
+    String ATTRIBUTE_SPAWN_ON_LAVA    = "WPObject.spawnOnLava";     // Type Boolean; default: false
+    String ATTRIBUTE_FREQUENCY        = "WPObject.frequency";       // Type Integer
     /**
      * Collision mode. Possible values:
      * 
@@ -160,7 +160,7 @@ public interface WPObject extends Serializable, Cloneable {
      * <tr><td><strong>{@link #COLLISION_MODE_SOLID}</strong></td><td>Will collide with (and therefore not render) any above ground <em>solid</em> block (i.e. not air, grass, water, flowers, leaves, etc.). Default value</td></tr>
      * <tr><td>{@link #COLLISION_MODE_NONE}</td><td>Will not collide with <em>any</em> above ground block (and therefore intersect any other object already there!)</td></tr></table>
      */
-    static final String ATTRIBUTE_COLLISION_MODE   = "WPObject.collisionMode";   // Type Integer; see COLLISION_MODE_* constants
+    String ATTRIBUTE_COLLISION_MODE   = "WPObject.collisionMode";   // Type Integer; see COLLISION_MODE_* constants
     /**
      * Underground rendering mode. Possible values:
      * 
@@ -169,7 +169,7 @@ public interface WPObject extends Serializable, Cloneable {
      * <tr><td>{@link #COLLISION_MODE_SOLID}</td><td>Every <em>solid</em> (i.e. not air, grass, water, flowers, leaves, etc.) underground block belonging to the object will be rendered regardless of what is already there. Non-solid blocks will be rendered only if the existing block is air</td></tr>
      * <tr><td>{@link #COLLISION_MODE_NONE}</td><td>Underground blocks belonging to the object will only be rendered if the existing block is air</td></tr></table>
      */
-    static final String ATTRIBUTE_UNDERGROUND_MODE = "WPObject.undergroundMode"; // Type Integer; see COLLISION_MODE_* constants
+    String ATTRIBUTE_UNDERGROUND_MODE = "WPObject.undergroundMode"; // Type Integer; see COLLISION_MODE_* constants
     /**
      * Whether to change leaf blocks so that they do or do not decay. Possible values:
      * 
@@ -178,7 +178,7 @@ public interface WPObject extends Serializable, Cloneable {
      * <tr><td>{@link #LEAF_DECAY_ON}</td><td>All leaf blocks are set to decay regardless of their setting in the custom object</td></tr>
      * <tr><td>{@link #LEAF_DECAY_OFF}</td><td>All leaf blocks are set to <em>not</em> decay regardless of their setting in the custom object</td></tr></table>
      */
-    static final String ATTRIBUTE_LEAF_DECAY_MODE  = "WPObject.leafDecay";       // Type Integer; see LEAF_DECAY_* constants
+    String ATTRIBUTE_LEAF_DECAY_MODE  = "WPObject.leafDecay";       // Type Integer; see LEAF_DECAY_* constants
     /**
      * When set, describes a block ID (index 0) and data (index 1) combination
      * which will be replaced with air blocks when this object is rendered.
@@ -186,13 +186,13 @@ public interface WPObject extends Serializable, Cloneable {
      * which is otherwise not possible since there is no way to tell whether an
      * air block from a schematic is supposed to be placed or not.
      */
-    static final String ATTRIBUTE_REPLACE_WITH_AIR = "WPObject.replaceWithAir";  // Type int[]; default: null
+    String ATTRIBUTE_REPLACE_WITH_AIR = "WPObject.replaceWithAir";  // Type int[]; default: null
     
-    static final int COLLISION_MODE_ALL   = 1;
-    static final int COLLISION_MODE_SOLID = 2;
-    static final int COLLISION_MODE_NONE  = 3;
+    int COLLISION_MODE_ALL   = 1;
+    int COLLISION_MODE_SOLID = 2;
+    int COLLISION_MODE_NONE  = 3;
     
-    static final int LEAF_DECAY_NO_CHANGE = 1;
-    static final int LEAF_DECAY_ON        = 2;
-    static final int LEAF_DECAY_OFF       = 3;
+    int LEAF_DECAY_NO_CHANGE = 1;
+    int LEAF_DECAY_ON        = 2;
+    int LEAF_DECAY_OFF       = 3;
 }

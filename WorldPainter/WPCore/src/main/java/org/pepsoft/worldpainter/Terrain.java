@@ -271,7 +271,7 @@ public enum Terrain {
 
         private static final int CACTUS_CHANCE = 1000;
     },
-    NETHERLIKE("Netherlike",                              "netherrack with pockets of lava, soul sand and glowstone", BIOME_HELL) {
+    NETHERLIKE("Netherlike",                              "netherrack with pockets of lava, soul sand and glowstone and patches of fire on top", BIOME_HELL) {
         @Override
         public Material getMaterial(long seed, int x, int y, int z, int height) {
             final int dz = z - height;
