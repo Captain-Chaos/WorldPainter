@@ -30,7 +30,7 @@ public class Entity extends AbstractNBTItem {
         setVel(new double[] {0, 0, 0});
     }
 
-    public Entity(CompoundTag tag) {
+    protected Entity(CompoundTag tag) {
         super(tag);
     }
 
@@ -74,17 +74,16 @@ public class Entity extends AbstractNBTItem {
         setDoubleList(TAG_MOTION, vel);
     }
 
-    public static Entity fromNBT(Tag entityTag) {
-        CompoundTag tag = (CompoundTag) entityTag;
-        String id = ((StringTag) tag.getTag(TAG_ID)).getValue();
+    public static Entity fromNBT(CompoundTag entityTag) {
+        String id = ((StringTag) entityTag.getTag(TAG_ID)).getValue();
         if (id.equals(ID_PLAYER)) {
-            return new Player(tag);
+            return new Player(entityTag);
         } else if (id.equals(ID_VILLAGER)) {
-            return new Villager(tag);
+            return new Villager(entityTag);
         } else if (id.equals(ID_PAINTING)) {
-            return new Painting(tag);
+            return new Painting(entityTag);
         } else {
-            return new Entity(tag);
+            return new Entity(entityTag);
         }
     }
 

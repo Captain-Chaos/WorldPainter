@@ -50,14 +50,14 @@ public final class ChunkImpl extends AbstractNBTItem implements Chunk {
         skyLight = getByteArray(TAG_SKY_LIGHT);
         blockLight = getByteArray(TAG_BLOCK_LIGHT);
         heightMap = getByteArray(TAG_HEIGHT_MAP);
-        List<Tag> entityTags = getList(TAG_ENTITIES);
+        List<CompoundTag> entityTags = getList(TAG_ENTITIES);
         entities = new ArrayList<Entity>(entityTags.size());
-        for (Tag entityTag: entityTags) {
+        for (CompoundTag entityTag: entityTags) {
             entities.add(Entity.fromNBT(entityTag));
         }
-        List<Tag> tileEntityTags = getList(TAG_TILE_ENTITIES);
+        List<CompoundTag> tileEntityTags = getList(TAG_TILE_ENTITIES);
         tileEntities = new ArrayList<TileEntity>(tileEntityTags.size());
-        for (Tag tileEntityTag: tileEntityTags) {
+        for (CompoundTag tileEntityTag: tileEntityTags) {
             tileEntities.add(TileEntity.fromNBT(tileEntityTag));
         }
         // TODO: last update is ignored, is that correct?

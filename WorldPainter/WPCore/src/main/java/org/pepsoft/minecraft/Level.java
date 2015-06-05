@@ -119,13 +119,6 @@ public final class Level extends AbstractNBTItem {
                 writer.close();
             }
         }
-
-        // Write chunks for all dimensions to region files
-//        int totalDimensions = dimensions.size(), dim = 0;
-//        for (Dimension dimension: dimensions.values()) {
-//            dimension.save(worldDir, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) dim / totalDimensions, 1f / totalDimensions) : null, getVersion());
-//            dim++;
-//        }
     }
     
     public Dimension getDimension(int dim) {
@@ -144,18 +137,6 @@ public final class Level extends AbstractNBTItem {
         return dimensions.remove(dim);
     }
     
-//    public Collection<Chunk> getChunks(int dim) {
-//        return getDimension(dim).getChunks();
-//    }
-//
-//    public Chunk getChunk(int dim, int x, int z) {
-//        return getDimension(dim).getChunk(x, z);
-//    }
-//
-//    public void addChunk(int dim, Chunk chunk) {
-//        getDimension(dim).addChunk(chunk);
-//    }
-
     public String getName() {
         return getString(TAG_LEVEL_NAME);
     }
@@ -322,17 +303,6 @@ public final class Level extends AbstractNBTItem {
     
     @Override
     public Tag toNBT() {
-//        Map<String, Tag> levelData = new HashMap<String, Tag>();
-//        levelData.put(TAG_TIME, new LongTag(TAG_TIME, time));
-//        levelData.put(TAG_LAST_PLAYED, new LongTag(TAG_LAST_PLAYED, System.currentTimeMillis()));
-////        levelData.put(TAG_PLAYER, new CompoundTag(TAG_PLAYER, player.getData()));
-//        levelData.put(TAG_SPAWN_X, new IntTag(TAG_SPAWN_X, spawnX));
-//        levelData.put(TAG_SPAWN_Y, new IntTag(TAG_SPAWN_Y, spawnY));
-//        levelData.put(TAG_SPAWN_Z, new IntTag(TAG_SPAWN_Z, spawnZ));
-//        levelData.put(TAG_SIZE_ON_DISK, new LongTag(TAG_SIZE_ON_DISK, 0));
-//        levelData.put(TAG_RANDOM_SEED, new LongTag(TAG_RANDOM_SEED, seed));
-//        levelData.put(TAG_VERSION, new IntTag(TAG_VERSION, SUPPORTED_VERSION));
-//        levelData.put(TAG_LEVEL_NAME, new StringTag(TAG_LEVEL_NAME, name));
         return new CompoundTag("", Collections.singletonMap("", super.toNBT()));
     }
     

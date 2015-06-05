@@ -22,6 +22,7 @@ import org.jnbt.StringTag;
 import org.jnbt.Tag;
 
 /**
+ * A data structure based on an NBT tag or hierarchy of tags.
  *
  * @author pepijn
  */
@@ -100,9 +101,9 @@ public abstract class AbstractNBTItem implements NBTItem, Serializable, Cloneabl
         tag.setTag(name, new ByteTag(name, value ? (byte) 1 : (byte) 0));
     }
 
-    protected final <T extends Tag> List<Tag> getList(String name) {
+    protected final <T extends Tag> List<T> getList(String name) {
         ListTag listTag = (ListTag) tag.getTag(name);
-        return (listTag != null) ? listTag.getValue() : null;
+        return (listTag != null) ? (List<T>) listTag.getValue() : null;
     }
 
     protected final <T extends Tag> void setList(String name, Class<T> type, List<Tag> list) {
@@ -110,11 +111,11 @@ public abstract class AbstractNBTItem implements NBTItem, Serializable, Cloneabl
     }
     
     protected final double[] getDoubleList(String name) {
-        List<Tag> list = getList(name);
+        List<DoubleTag> list = getList(name);
         if (list != null) {
             double[] array = new double[list.size()];
             for (int i = 0; i < array.length; i++) {
-                array[i] = ((DoubleTag) list.get(i)).getValue();
+                array[i] = list.get(i).getValue();
             }
             return array;
         } else {
@@ -131,11 +132,11 @@ public abstract class AbstractNBTItem implements NBTItem, Serializable, Cloneabl
     }
 
     protected final float[] getFloatList(String name) {
-        List<Tag> list = getList(name);
+        List<FloatTag> list = getList(name);
         if (list != null) {
             float[] array = new float[list.size()];
             for (int i = 0; i < array.length; i++) {
-                array[i] = ((FloatTag) list.get(i)).getValue();
+                array[i] = list.get(i).getValue();
             }
             return array;
         } else {

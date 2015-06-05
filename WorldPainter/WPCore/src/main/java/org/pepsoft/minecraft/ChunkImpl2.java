@@ -45,9 +45,9 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk {
         this.readOnly = readOnly;
         
         sections = new Section[maxHeight >> 4];
-        List<Tag> sectionTags = getList(TAG_SECTIONS);
-        for (Tag sectionTag: sectionTags) {
-            Section section = new Section((CompoundTag) sectionTag);
+        List<CompoundTag> sectionTags = getList(TAG_SECTIONS);
+        for (CompoundTag sectionTag: sectionTags) {
+            Section section = new Section(sectionTag);
             sections[section.level] = section;
         }
 //        for (Section section: sections) {
@@ -66,14 +66,14 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk {
 //        }
         biomes = getByteArray(TAG_BIOMES);
         heightMap = getIntArray(TAG_HEIGHT_MAP);
-        List<Tag> entityTags = getList(TAG_ENTITIES);
+        List<CompoundTag> entityTags = getList(TAG_ENTITIES);
         entities = new ArrayList<Entity>(entityTags.size());
-        for (Tag entityTag: entityTags) {
+        for (CompoundTag entityTag: entityTags) {
             entities.add(Entity.fromNBT(entityTag));
         }
-        List<Tag> tileEntityTags = getList(TAG_TILE_ENTITIES);
+        List<CompoundTag> tileEntityTags = getList(TAG_TILE_ENTITIES);
         tileEntities = new ArrayList<TileEntity>(tileEntityTags.size());
-        for (Tag tileEntityTag: tileEntityTags) {
+        for (CompoundTag tileEntityTag: tileEntityTags) {
             tileEntities.add(TileEntity.fromNBT(tileEntityTag));
         }
         // TODO: last update is ignored, is that correct?

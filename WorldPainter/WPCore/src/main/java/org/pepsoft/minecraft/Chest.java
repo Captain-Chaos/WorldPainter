@@ -26,11 +26,11 @@ public class Chest extends TileEntity implements ItemContainer {
 
     @Override
     public List<InventoryItem> getItems() {
-        List<Tag> list = getList(TAG_ITEMS);
+        List<CompoundTag> list = getList(TAG_ITEMS);
         if (list != null) {
             List<InventoryItem> items = new ArrayList<InventoryItem>(list.size());
-            for (Tag tag: list) {
-                items.add(new InventoryItem((CompoundTag) tag));
+            for (CompoundTag tag: list) {
+                items.add(new InventoryItem(tag));
             }
             return items;
         } else {

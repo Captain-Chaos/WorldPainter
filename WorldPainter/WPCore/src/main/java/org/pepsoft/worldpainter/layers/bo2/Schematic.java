@@ -43,21 +43,21 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
         blocks = getByteArray("Blocks");
         addBlocks = getByteArray("AddBlocks");
         data = getByteArray("Data");
-        List<Tag> entityTags = getList("Entities");
+        List<CompoundTag> entityTags = getList("Entities");
         if (entityTags.isEmpty()) {
             entities = null;
         } else {
             entities = new ArrayList<Entity>(entityTags.size());
-            for (Tag entityTag: entityTags) {
-                entities.add(new Entity((CompoundTag) entityTag));
+            for (CompoundTag entityTag: entityTags) {
+                entities.add(Entity.fromNBT(entityTag));
             }
         }
-        List<Tag> tileEntityTags = getList("TileEntities");
+        List<CompoundTag> tileEntityTags = getList("TileEntities");
         if (tileEntityTags.isEmpty()) {
             tileEntities = null;
         } else {
             tileEntities = new ArrayList<TileEntity>(tileEntityTags.size());
-            for (Tag tileEntityTag: tileEntityTags) {
+            for (CompoundTag tileEntityTag: tileEntityTags) {
                 tileEntities.add(TileEntity.fromNBT(tileEntityTag));
             }
         }
