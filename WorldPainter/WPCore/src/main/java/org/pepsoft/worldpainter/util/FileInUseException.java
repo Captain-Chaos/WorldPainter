@@ -7,6 +7,8 @@ package org.pepsoft.worldpainter.util;
 import java.io.IOException;
 
 /**
+ * This exception may be thrown instead of an {@link IOException} in circumstances where the likely cause is that the
+ * file, or a file in the directory, is opened by another process.
  *
  * @author pepijn
  */
