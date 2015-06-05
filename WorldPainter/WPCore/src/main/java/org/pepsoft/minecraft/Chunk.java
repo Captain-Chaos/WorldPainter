@@ -68,4 +68,6 @@ public interface Chunk extends NBTItem {
     long getInhabitedTime();
 
     void setInhabitedTime(long inhabitedTime);
+
+    int getHighestNonAirBlock(int x, int z);
 }

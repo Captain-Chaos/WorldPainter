@@ -75,4 +75,6 @@ public interface MinecraftWorld extends ChunkProvider {
     void setSkyLightLevel(int x, int y, int height, int skyLightLevel);
 
     void addChunk(Chunk chunk);
+
+    int getHighestNonAirBlock(int x, int y);
 }

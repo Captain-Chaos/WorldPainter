@@ -269,7 +269,17 @@ public class MinecraftWorldImpl implements MinecraftWorld {
             highestZ = chunkZ;
         }
     }
-    
+
+    @Override
+    public int getHighestNonAirBlock(int x, int y) {
+        Chunk chunk = getChunk(x >> 4, y >> 4);
+        if (chunk != null) {
+            return chunk.getHighestNonAirBlock(x & 0xf, y & 0xf);
+        } else {
+            return -1;
+        }
+    }
+
     public synchronized void replaceChunk(Chunk chunk) {
         if (readOnly) {
             throw new IllegalStateException("Read only");
@@ -645,5 +655,6 @@ public class MinecraftWorldImpl implements MinecraftWorld {
         @Override public void setLightPopulated(boolean lightPopulated) {}
         @Override public long getInhabitedTime() {return 0;}
         @Override public void setInhabitedTime(long inhabitedTime) {}
+        @Override public int getHighestNonAirBlock(int x, int z) {return 0;}
     };
 }

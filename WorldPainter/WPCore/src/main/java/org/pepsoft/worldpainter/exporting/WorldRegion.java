@@ -281,7 +281,17 @@ public class WorldRegion implements MinecraftWorld {
             chunks[localX + 1][localZ + 1] = chunk;
         }
     }
-    
+
+    @Override
+    public int getHighestNonAirBlock(int x, int y) {
+        Chunk chunk = getChunk(x >> 4, y >> 4);
+        if (chunk != null) {
+            return chunk.getHighestNonAirBlock(x & 0xf, y & 0xf);
+        } else {
+            return -1;
+        }
+    }
+
     public void save(File dimensionDir) throws IOException {
         File file = new File(dimensionDir, "region/r." + regionX + "." + regionZ + ((version == SUPPORTED_VERSION_2) ? ".mca" : ".mcr"));
 //        synchronized (DISK_ACCESS_MONITOR) {

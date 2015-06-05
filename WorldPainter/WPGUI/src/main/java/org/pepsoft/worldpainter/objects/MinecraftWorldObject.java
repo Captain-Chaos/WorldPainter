@@ -173,6 +173,20 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
     }
 
     @Override
+    public int getHighestNonAirBlock(int x, int y) {
+        if (volume.containsXY(x, y)) {
+            for (int z = volume.getHeight() - 1; z >= 0; z--) {
+                if (data[x - dx][y - dy][z] != AIR) {
+                    return z + dz;
+                }
+            }
+            return -1;
+        } else {
+            return -1;
+        }
+    }
+
+    @Override
     public Chunk getChunk(int x, int z) {
         throw new UnsupportedOperationException("Not supported");
     }

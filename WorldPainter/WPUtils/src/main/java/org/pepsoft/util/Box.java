@@ -136,6 +136,10 @@ public final class Box implements Cloneable {
         return (x >= x1) && (x < x2) && (y >= y1) && (y < y2) && (z >= z1) && (z < z2);
     }
 
+    public boolean containsXY(int x, int y) {
+        return (x >= x1) && (x < x2) && (y >= y1) && (y < y2);
+    }
+
     @Override
     public String toString() {
         return "[" + x1 + "," + y1 + "," + z1 + " -> " + x2 + "," + y2 + "," + z2 + "]";

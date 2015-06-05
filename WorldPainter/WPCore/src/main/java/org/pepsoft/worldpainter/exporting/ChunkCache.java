@@ -208,5 +208,6 @@ public class ChunkCache {
         @Override public void setLightPopulated(boolean lightPopulated) {}
         @Override public long getInhabitedTime() {return 0;}
         @Override public void setInhabitedTime(long inhabitedTime) {}
+        @Override public int getHighestNonAirBlock(int x, int z) {return 0;}
     };
 }
