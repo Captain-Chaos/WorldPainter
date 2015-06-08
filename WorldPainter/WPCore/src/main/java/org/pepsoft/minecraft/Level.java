@@ -13,10 +13,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import org.jnbt.CompoundTag;
@@ -45,6 +42,7 @@ public final class Level extends AbstractNBTItem {
             setInt(TAG_MAP_HEIGHT, mapHeight);
         }
         this.maxHeight = mapHeight;
+        extraTags = null;
         setInt(TAG_VERSION, version);
         addDimension(0);
     }
@@ -62,6 +60,18 @@ public final class Level extends AbstractNBTItem {
             setInt(TAG_MAP_HEIGHT, mapHeight);
         }
         this.maxHeight = mapHeight;
+        if (tag.getValue().size() == 1) {
+            // No extra tags
+            extraTags = null;
+        } else {
+            // The root tag contains extra tags, most likely from mods. Preserve them (but filter out the data tag)
+            extraTags = new HashSet<Tag>();
+            for (Tag extraTag: tag.getValue().values()) {
+                if (! extraTag.getName().equals(TAG_DATA)) {
+                    extraTags.add(extraTag);
+                }
+            }
+        }
         addDimension(0);
     }
     
@@ -303,7 +313,14 @@ public final class Level extends AbstractNBTItem {
     
     @Override
     public Tag toNBT() {
-        return new CompoundTag("", Collections.singletonMap("", super.toNBT()));
+        Map<String, Tag> values = new HashMap<String, Tag>();
+        values.put(TAG_DATA, super.toNBT());
+        if (extraTags != null) {
+            for (Tag extraTag: extraTags) {
+                values.put(extraTag.getName(), extraTag);
+            }
+        }
+        return new CompoundTag("", values);
     }
     
     public static Level load(File levelDatFile) throws IOException {
@@ -348,6 +365,7 @@ public final class Level extends AbstractNBTItem {
 
     private final int maxHeight;
     private final Map<Integer, Dimension> dimensions = new HashMap<Integer, Dimension>();
+    private final Set<Tag> extraTags;
     
     private static final long serialVersionUID = 1L;
 }

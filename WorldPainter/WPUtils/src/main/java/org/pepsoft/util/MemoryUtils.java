@@ -16,6 +16,13 @@ import java.util.Set;
  * @author pepijn
  */
 public class MemoryUtils {
+    /**
+     * Get the memory used by a particular object instance in bytes. To prevent runaway
+     *
+     * @param object The object of which to determine the memory used.
+     * @param stopAt Types of references which should not be followed.
+     * @return The number of bytes of RAM used by the object.
+     */
     public static int getSize(Object object, Set<Class<?>> stopAt) {
         if (object == null) {
             return 0;
@@ -27,8 +34,10 @@ public class MemoryUtils {
 
     private static int getSize(Object object, IdentityHashMap<Object, Void> processedObjects, Set<Class<?>> stopAt/*, String trail*/) {
         if (processedObjects.containsKey(object)) {
+            // This object has already been counted
             return 0;
         } else {
+            // Record that this object has been counted
             processedObjects.put(object, null);
             Class<?> type = object.getClass();
             if ((stopAt != null) && (! stopAt.isEmpty())) {
@@ -84,7 +93,7 @@ public class MemoryUtils {
                             objectSize += PRIMITIVE_TYPE_SIZES.get(fieldType);
                         } else {
                             objectSize += 4; // Reference
-                            field.setAccessible(true);
+                            field.setAccessible(true); // Will fail if a security manager is installed!
                             try {
                                 Object value = field.get(object);
                                 if (value != null) {

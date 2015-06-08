@@ -83,7 +83,11 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk {
         lightPopulated = getBoolean(TAG_LIGHT_POPULATED);
         inhabitedTime = getLong(TAG_INHABITED_TIME);
     }
-    
+
+    public boolean isSectionPresent(int y) {
+        return sections[y] != null;
+    }
+
     public Section[] getSections() {
         return sections;
     }

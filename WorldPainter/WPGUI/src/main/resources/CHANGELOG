@@ -27,6 +27,7 @@
  * If you use half slabs as a custom terrain type, WorldPainter will automatically combine it with double slabs of the same type to make smoother terrain
    + This is great for creating, for instance, smooth cobblestone or stone slab roads (easily made with the new Pencil tool) which you can walk without having to jump
    + The requirements are the same as for Smooth Snow: the world must either be hand crafted, or created from a high resolution (16-bit) height map. Worlds created from 8-bit height maps won't have the extra precision needed, although you can create it by using the Smooth tool along the path of the area where you want to apply this feature
+ * The merge process now preserves non-standard content from the existing level.dat file, such as for instance block ID mappings stored there by mods.
 
 -- Version 1.11.1, released 26-4-2015
 
