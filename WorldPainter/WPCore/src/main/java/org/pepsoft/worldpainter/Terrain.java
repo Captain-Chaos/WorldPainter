@@ -57,7 +57,7 @@ public enum Terrain {
                     if ((dandelionNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, 1 / SMALL_BLOBS) > FLOWER_CHANCE)
                             || (roseNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, 1 / SMALL_BLOBS) > FLOWER_CHANCE)) {
                         Material flower = FLOWER_TYPES[flowerTypeField.getValue(x, y)];
-                        if (flower.getBlockType() == BLK_LARGE_FLOWERS) {
+                        if (flower.blockType == BLK_LARGE_FLOWERS) {
                             return LARGE_FLOWER_TOP;
                         } else {
                             return AIR;

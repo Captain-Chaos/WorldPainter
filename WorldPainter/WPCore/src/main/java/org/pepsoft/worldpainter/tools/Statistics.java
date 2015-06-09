@@ -94,19 +94,15 @@ public class Statistics {
         
         System.out.println("\tGranite\tDiorite\tAndesite");
         for (int y = 0; y < maxHeight >> 4; y++) {
-            int stoneLikeTotal = blockTypeTotals[y][index(Material.STONE)]
-                               + blockTypeTotals[y][index(Material.GRANITE)]
-                               + blockTypeTotals[y][index(Material.DIORITE)]
-                               + blockTypeTotals[y][index(Material.ANDESITE)];
+            int stoneLikeTotal = blockTypeTotals[y][Material.STONE.index]
+                               + blockTypeTotals[y][Material.GRANITE.index]
+                               + blockTypeTotals[y][Material.DIORITE.index]
+                               + blockTypeTotals[y][Material.ANDESITE.index];
 //            System.out.println("Total stonelike blocks: " + stoneLikeTotal);
             System.out.print(y + "\t");
-            System.out.printf("%6.2f‰\t", ((float) blockTypeTotals[y][index(Material.GRANITE)] / stoneLikeTotal * 1000));
-            System.out.printf("%6.2f‰\t", ((float) blockTypeTotals[y][index(Material.DIORITE)] / stoneLikeTotal * 1000));
-            System.out.printf("%6.2f‰%n", ((float) blockTypeTotals[y][index(Material.ANDESITE)] / stoneLikeTotal * 1000));
+            System.out.printf("%6.2f‰\t", ((float) blockTypeTotals[y][Material.GRANITE.index] / stoneLikeTotal * 1000));
+            System.out.printf("%6.2f‰\t", ((float) blockTypeTotals[y][Material.DIORITE.index] / stoneLikeTotal * 1000));
+            System.out.printf("%6.2f‰%n", ((float) blockTypeTotals[y][Material.ANDESITE.index] / stoneLikeTotal * 1000));
         }
-    }
-
-    private static int index(Material material) {
-        return (material.getBlockType() << 4) | material.getData();
     }
 }

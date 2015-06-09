@@ -1113,9 +1113,9 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                         continue;
                     }
                     Material material = existingChunk.getMaterial(xx, zz, yy);
-                    int blockType = material.getBlockType();
+                    int blockType = material.blockType;
                     if (SOLID_BLOCKS.get(blockType)) {
-                        int index = (blockType << 4) | material.getData();
+                        int index = (blockType << 4) | material.data;
                         histogram[index]++;
                         if (histogram[index] > highestMaterialIndex) {
                             highestMaterialIndex = blockType;

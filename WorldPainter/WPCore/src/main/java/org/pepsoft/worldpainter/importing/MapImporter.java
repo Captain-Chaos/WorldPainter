@@ -471,9 +471,9 @@ public class MapImporter {
             }
         }
         for (Material material: SPECIAL_TERRAIN_MAPPING.keySet()) {
-            allTerrainBlockIds.add(material.getBlockType());
-            if (! material.getBlock().terrain) {
-                throw new AssertionError("Block " + material.getBlockType() + " not marked as terrain block!");
+            allTerrainBlockIds.add(material.blockType);
+            if (! material.block.terrain) {
+                throw new AssertionError("Block " + material.blockType + " not marked as terrain block!");
             }
         }
         for (Block block: Block.BLOCKS) {

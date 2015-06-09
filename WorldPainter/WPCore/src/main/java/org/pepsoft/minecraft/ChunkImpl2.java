@@ -375,7 +375,7 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk {
             section = new Section((byte) level);
             sections[level] = section;
         }
-        int blockType = material.getBlockType();
+        int blockType = material.blockType;
         section.blocks[blockOffset(x, y, z)] = (byte) blockType;
         if (blockType > 255) {
             if (section.add == null) {
@@ -387,7 +387,7 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk {
             // high portion
             setDataByte(section.add, x, y, z, 0);
         }
-        setDataByte(section.data, x, y, z, material.getData());
+        setDataByte(section.data, x, y, z, material.data);
     }
 
     @Override

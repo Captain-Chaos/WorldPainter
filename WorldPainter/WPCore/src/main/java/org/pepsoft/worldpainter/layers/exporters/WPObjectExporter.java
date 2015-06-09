@@ -102,12 +102,12 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                             continue;
                         } else if (obliterate) {
                             final Material objectMaterial = object.getMaterial(dx, dy, dz);
-                            final Material finalMaterial = (replaceBlocks && (objectMaterial.getBlockType() == replaceBlockIds[0]) && (objectMaterial.getData() == replaceBlockIds[1])) ? Material.AIR : objectMaterial;
+                            final Material finalMaterial = (replaceBlocks && (objectMaterial.blockType == replaceBlockIds[0]) && (objectMaterial.data == replaceBlockIds[1])) ? Material.AIR : objectMaterial;
                             placeBlock(world, xx, yy, zz, finalMaterial, leafDecayMode);
                         } else {
                             final int existingBlockType = world.getBlockTypeAt(xx, yy, zz);
                             final Material objectMaterial = object.getMaterial(dx, dy, dz);
-                            final Material finalMaterial = (replaceBlocks && (objectMaterial.getBlockType() == replaceBlockIds[0]) && (objectMaterial.getData() == replaceBlockIds[1])) ? Material.AIR : objectMaterial;
+                            final Material finalMaterial = (replaceBlocks && (objectMaterial.blockType == replaceBlockIds[0]) && (objectMaterial.data == replaceBlockIds[1])) ? Material.AIR : objectMaterial;
                             if (zz <= terrainHeight) {
                                 switch (undergroundMode) {
                                     case COLLISION_MODE_ALL:
@@ -116,7 +116,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                                         break;
                                     case COLLISION_MODE_SOLID:
                                         // Only replace if object block is solid
-                                        if (! objectMaterial.getBlock().veryInsubstantial) {
+                                        if (! objectMaterial.block.veryInsubstantial) {
                                             placeBlock(world, xx, yy, zz, finalMaterial, leafDecayMode);
                                         }
                                         break;
@@ -250,7 +250,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                     final int minZ = Math.max(terrainHeight - (z + offset.z) + 1, 0);
                     for (int dz = minZ; dz < dimensions.z; dz++) {
                         if (object.getMask(dx, dy, dz)) {
-                            final Block objectBlock = object.getMaterial(dx, dy, dz).getBlock();
+                            final Block objectBlock = object.getMaterial(dx, dy, dz).block;
                             if (! objectBlock.veryInsubstantial) {
                                 final int worldZ = z + dz + offset.z;
                                 if ((collisionMode == COLLISION_MODE_ALL)
@@ -286,7 +286,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                     for (int dz = 0; dz < dimensions.z; dz++) {
                         if (object.getMask(dx, dy, dz)) {
                             final int worldZ = z + dz + offset.z;
-                            if ((worldZ <= terrainHeight) && (! object.getMaterial(dx, dy, dz).getBlock().veryInsubstantial)) {
+                            if ((worldZ <= terrainHeight) && (! object.getMaterial(dx, dy, dz).block.veryInsubstantial)) {
                                 // A solid block in the object collides with
                                 // the floor
                                 if (logger.isLoggable(Level.FINER)) {
@@ -294,7 +294,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                                 }
                                 return false;
                             } else if ((worldZ > terrainHeight) && (collisionMode != COLLISION_MODE_NONE)) {
-                                final Block objectBlock = object.getMaterial(dx, dy, dz).getBlock();
+                                final Block objectBlock = object.getMaterial(dx, dy, dz).block;
                                 if (! objectBlock.veryInsubstantial) {
                                     if ((collisionMode == COLLISION_MODE_ALL)
                                             ? (! AIR_AND_FLUIDS.contains(world.getBlockTypeAt(worldX, worldY, worldZ)))
@@ -399,12 +399,12 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
     }
 
     private static void placeBlock(MinecraftWorld world, int x, int y, int z, Material material, int leafDecayMode) {
-        final int blockType = material.getBlockType();
+        final int blockType = material.blockType;
         if (((blockType == BLK_LEAVES) || (blockType == BLK_LEAVES2)) && (leafDecayMode != LEAF_DECAY_NO_CHANGE)) {
             if (leafDecayMode == LEAF_DECAY_ON) {
-                world.setMaterialAt(x, y, z, Material.get(blockType, material.getData() & 0xb)); // Reset bit 2
+                world.setMaterialAt(x, y, z, Material.get(blockType, material.data & 0xb)); // Reset bit 2
             } else {
-                world.setMaterialAt(x, y, z, Material.get(blockType, material.getData() | 0x4)); // Set bit 2
+                world.setMaterialAt(x, y, z, Material.get(blockType, material.data | 0x4)); // Set bit 2
             }
         } else {
             world.setMaterialAt(x, y, z, material);

@@ -61,8 +61,8 @@ public final class DynMapColourScheme implements ColourScheme {
 
     @Override
     public int getColour(Material material) {
-        final int blockType = material.getBlockType();
-        return (blockType < 256) ? COLOURS[blockType + material.getData() * 256] : UNKNOWN_BLOCK_TYPE_COLOUR;
+        final int blockType = material.blockType;
+        return (blockType < 256) ? COLOURS[blockType + material.data * 256] : UNKNOWN_BLOCK_TYPE_COLOUR;
     }
     
     private void loadColours(InputStream in, boolean bright) {

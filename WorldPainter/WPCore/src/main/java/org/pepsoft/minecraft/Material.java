@@ -21,20 +21,10 @@ public final class Material implements Serializable, Comparable<Material> {
     private Material(int blockType, int data) {
         this.blockType = blockType;
         this.data = data;
+        index = (blockType << 4) | data;
+        block = Block.BLOCKS[blockType];
     }
 
-    public Block getBlock() {
-        return Block.BLOCKS[blockType];
-    }
-
-    public int getBlockType() {
-        return blockType;
-    }
-    
-    public int getData() {
-        return data;
-    }
-    
     /**
      * Get the cardinal direction this block is pointing, if applicable.
      * 
@@ -876,6 +866,19 @@ public final class Material implements Serializable, Comparable<Material> {
         return MATERIALS[(blockType.id << 4) | data];
     }
 
+    /**
+     * Get the material corresponding to a combined index consisting of the
+     * block ID shifted left four bits and or-ed with the data value. In other
+     * words the index is a 16-bit unsigned integer, with bit 0-3 indicating
+     * the data value and bit 4-15 indicating the block ID.
+     *
+     * @param index The combined index of the material to get.
+     * @return The indicated material.
+     */
+    public static Material getByCombinedIndex(int index) {
+        return MATERIALS[index];
+    }
+
     @Override
     public String toString() {
         if ((blockType < BLOCK_TYPE_NAMES.length) && (BLOCK_TYPE_NAMES[blockType] != null)) {
@@ -906,7 +909,8 @@ public final class Material implements Serializable, Comparable<Material> {
         return get(blockType, data);
     }
     
-    private final int blockType, data;
+    public final int blockType, data, index;
+    public final Block block;
     
     private static final Material[] MATERIALS = new Material[65536];
     

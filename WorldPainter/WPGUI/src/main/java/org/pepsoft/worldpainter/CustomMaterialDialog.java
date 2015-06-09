@@ -286,13 +286,13 @@ public class CustomMaterialDialog extends WorldPainterDialog {
             if (sb.length() > 0) {
                 sb.append('/');
             }
-            int blockId = row.material.getBlockType();
+            int blockId = row.material.blockType;
             if ((blockId < BLOCK_TYPE_NAMES.length) && (BLOCK_TYPE_NAMES[blockId] != null)) {
                 sb.append(BLOCK_TYPE_NAMES[blockId]);
             } else {
                 sb.append(blockId);
             }
-            int data = row.material.getData();
+            int data = row.material.data;
             if (data != 0) {
                 sb.append(" (");
                 sb.append(data);
@@ -304,7 +304,7 @@ public class CustomMaterialDialog extends WorldPainterDialog {
     
     private boolean isExtendedBlockIds() {
         for (Row row: tableModel.getRows()) {
-            if (row.material.getBlockType() > HIGHEST_KNOWN_BLOCK_ID) {
+            if (row.material.blockType > HIGHEST_KNOWN_BLOCK_ID) {
                 return true;
             }
         }

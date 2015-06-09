@@ -30,14 +30,14 @@ public final class Plant implements WPObject {
         this.name = name;
         if (category == CROPS) {
             // Adjust the material for the specified maximum growth factor:
-            if ((material.getBlockType() == BLK_CARROTS) || (material.getBlockType() == BLK_POTATOES)) {
+            if ((material.blockType == BLK_CARROTS) || (material.blockType == BLK_POTATOES)) {
                 if (maxGrowth == 3) {
-                    this.material = Material.get(material.getBlockType(), 7);
+                    this.material = Material.get(material.blockType, 7);
                 } else {
-                    this.material = Material.get(material.getBlockType(), maxGrowth * 2);
+                    this.material = Material.get(material.blockType, maxGrowth * 2);
                 }
             } else {
-                this.material = Material.get(material.getBlockType(), maxGrowth);
+                this.material = Material.get(material.blockType, maxGrowth);
             }
         } else {
             this.material = material;
@@ -62,14 +62,14 @@ public final class Plant implements WPObject {
                 dimensions = new Point3i(1, 1, Math.min(growth + 1, plant.dimensions.z));
                 break;
             case CROPS:
-                if ((plant.material.getBlockType() == BLK_CARROTS) || (plant.material.getBlockType() == BLK_POTATOES)) {
+                if ((plant.material.blockType == BLK_CARROTS) || (plant.material.blockType == BLK_POTATOES)) {
                     if (growth == 3) {
-                        material = Material.get(plant.material.getBlockType(), 7);
+                        material = Material.get(plant.material.blockType, 7);
                     } else {
-                        material = Material.get(plant.material.getBlockType(), growth * 2);
+                        material = Material.get(plant.material.blockType, growth * 2);
                     }
                 } else {
-                    material = Material.get(plant.material.getBlockType(), growth);
+                    material = Material.get(plant.material.blockType, growth);
                 }
                 dimensions = plant.dimensions;
                 break;

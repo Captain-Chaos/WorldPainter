@@ -30,7 +30,7 @@ public class MixedMaterialTest {
                 for (int z = 0; z < 256; z++) {
                     Material material = mixedMaterial.getMaterial(0, x, y, z);
                     Assert.assertTrue(material == DIRT || material == GRAVEL || material == STONE || material == SOUL_SAND);
-                    buckets[material.getBlockType()]++;
+                    buckets[material.blockType]++;
                 }
             }
             System.out.println(x);

@@ -155,9 +155,9 @@ public class MixedMaterialTableModel implements TableModel {
         Row row = rows[rowIndex];
         switch (columnIndex) {
             case COLUMN_BLOCK_ID:
-                return row.material.getBlockType();
+                return row.material.blockType;
             case COLUMN_DATA_VALUE:
-                return row.material.getData();
+                return row.material.data;
             case COLUMN_OCCURRENCE:
                 return row.occurrence;
             case COLUMN_SCALE:
@@ -176,10 +176,10 @@ public class MixedMaterialTableModel implements TableModel {
         Row row = rows[rowIndex];
         switch (columnIndex) {
             case COLUMN_BLOCK_ID:
-                row = new Row(Material.get((Integer) aValue, row.material.getData()), row.occurrence, row.scale);
+                row = new Row(Material.get((Integer) aValue, row.material.data), row.occurrence, row.scale);
                 break;
             case COLUMN_DATA_VALUE:
-                row = new Row(Material.get(row.material.getBlockType(), (Integer) aValue), row.occurrence, row.scale);
+                row = new Row(Material.get(row.material.blockType, (Integer) aValue), row.occurrence, row.scale);
                 break;
             case COLUMN_OCCURRENCE:
                 oldOccurrence = row.occurrence;

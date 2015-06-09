@@ -143,7 +143,7 @@ public class OffsetViewer extends JComponent {
     }
 
     private void paintBlock(Graphics2D g2, int baseLine, int middle, int x, int y, int depth, Material material) {
-        if (material.getBlockType() == Constants.BLK_AIR) {
+        if (material.blockType == Constants.BLK_AIR) {
             return;
         }
         if (texturePack != null) {

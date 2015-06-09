@@ -429,9 +429,9 @@ outer:  for (Enumeration<WPObject> e = (Enumeration<WPObject>) listModel.element
                         for (int y = 0; y < dim.y; y++) {
                             for (int z = 0; z < dim.z; z++) {
                                 if ((object.getMask(x, y, z))
-                                        && ((object.getMaterial(x, y, z).getBlockType() == Constants.BLK_LEAVES)
-                                            || (object.getMaterial(x, y, z).getBlockType() == Constants.BLK_LEAVES2))) {
-                                    if ((object.getMaterial(x, y, z).getData() & 0x4) == 0x4) {
+                                        && ((object.getMaterial(x, y, z).blockType == Constants.BLK_LEAVES)
+                                            || (object.getMaterial(x, y, z).blockType == Constants.BLK_LEAVES2))) {
+                                    if ((object.getMaterial(x, y, z).data & 0x4) == 0x4) {
                                         // Non decaying leaf block
                                         nonDecayingLeavesFound = true;
                                         if (decayingLeavesFound) {

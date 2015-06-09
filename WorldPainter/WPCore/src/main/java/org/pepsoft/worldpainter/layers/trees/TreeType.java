@@ -36,8 +36,8 @@ public abstract class TreeType implements Serializable {
     }
     
     protected final Material getCapMaterial() {
-        if ((trunkMaterial.getBlockType() == BLK_WOOD) || (trunkMaterial.getBlockType() == BLK_WOOD2)) {
-            return Material.get(trunkMaterial.getBlockType(), (trunkMaterial.getData() & 0x3) | 0xC);
+        if ((trunkMaterial.blockType == BLK_WOOD) || (trunkMaterial.blockType == BLK_WOOD2)) {
+            return Material.get(trunkMaterial.blockType, (trunkMaterial.data & 0x3) | 0xC);
         } else {
             return trunkMaterial;
         }
@@ -88,7 +88,7 @@ public abstract class TreeType implements Serializable {
     
     private boolean isTreeBlock(Material material) {
         if (material != null) {
-            final int blockType = material.getBlockType();
+            final int blockType = material.blockType;
             return blockType == BLK_WOOD
                     || blockType == BLK_WOOD2
                     || blockType == BLK_LEAVES
@@ -100,10 +100,10 @@ public abstract class TreeType implements Serializable {
     
     private boolean addVine(MinecraftWorld world, int x, int y, int z, Direction direction) {
         Material existingBlock = world.getMaterialAt(x, y, z);
-        if ((existingBlock == null) || ((existingBlock != AIR) && (existingBlock.getBlockType() != BLK_VINES))) {
+        if ((existingBlock == null) || ((existingBlock != AIR) && (existingBlock.blockType != BLK_VINES))) {
             return false;
         }
-        int data = existingBlock.getData();
+        int data = existingBlock.data;
         switch (direction) {
             case NORTH:
                 data |= 0x4;

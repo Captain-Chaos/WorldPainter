@@ -221,8 +221,8 @@ public final class ChunkImpl extends AbstractNBTItem implements Chunk {
 
     @Override
     public void setMaterial(int x, int y, int z, Material material) {
-        setBlockType(x, y, z, material.getBlockType());
-        setDataValue(x, y, z, material.getData());
+        setBlockType(x, y, z, material.blockType);
+        setDataValue(x, y, z, material.data);
     }
 
     @Override

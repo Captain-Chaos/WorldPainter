@@ -153,9 +153,9 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                             result.chunk.setMaterial(x, y, z, terrain.getMaterial(seed, worldX, worldY, y, intHeight));
                         } else if (y == intHeight) {
                             final Material material = terrain.getMaterial(seed, worldX, worldY, height, intHeight);
-                            final int blockType = material.getBlockType();
+                            final int blockType = material.blockType;
                             if (((blockType == BLK_WOODEN_SLAB) || (blockType == BLK_SLAB) || (blockType == BLK_RED_SANDSTONE_SLAB)) && (! underWater) && (height > intHeight)) {
-                                result.chunk.setMaterial(x, y, z, Material.get(blockType - 1, material.getData()));
+                                result.chunk.setMaterial(x, y, z, Material.get(blockType - 1, material.data));
                             } else {
                                 result.chunk.setMaterial(x, y, z, material);
                             }

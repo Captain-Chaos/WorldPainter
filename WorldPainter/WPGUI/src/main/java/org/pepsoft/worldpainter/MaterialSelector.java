@@ -40,8 +40,8 @@ public class MaterialSelector extends javax.swing.JPanel implements ChangeListen
     }
 
     public final void setMixedMaterialRow(Row mixedMaterialRow) {
-        comboBoxBlockId.setSelectedIndex(mixedMaterialRow.material.getBlockType());
-        spinnerDataValue.setValue(mixedMaterialRow.material.getData());
+        comboBoxBlockId.setSelectedIndex(mixedMaterialRow.material.blockType);
+        spinnerDataValue.setValue(mixedMaterialRow.material.data);
         spinnerOccurrence.setValue(mixedMaterialRow.occurrence);
         spinnerScale.setValue((int) (mixedMaterialRow.scale * 100.0f + 0.5f));
     }

@@ -46,7 +46,7 @@ public class WPObjectRenderer {
                             final Material material = object.getMaterial(x, dim.y - y - 1, z);
                             if (material != Material.AIR) {
                                 final Point coords = getImageCoordinates(x, y, z);
-                                final int blockType = material.getBlockType();
+                                final int blockType = material.blockType;
                                 final int alpha = ((blockType == Constants.BLK_LEAVES) || (blockType == Constants.BLK_LEAVES2)) ? 192 : 255;
                                 paintBlock(g2,  coords.x, coords.y, material, alpha);
                             }
