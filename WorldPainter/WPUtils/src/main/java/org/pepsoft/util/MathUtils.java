@@ -68,6 +68,24 @@ public final class MathUtils {
     }
 
     /**
+     * Calculates x modulo y. This is different than the Java remainder operator
+     * (%) in that it always returns a positive value.
+     *
+     * @param x The operand.
+     * @param y The modulus.
+     * @return x modulo y
+     */
+    public static double mod(double x, double y) {
+        if (x < 0) {
+            return x + Math.ceil(-x / y) * y;
+        } else if (x >= y) {
+            return x - Math.floor(x / y) * y;
+        } else {
+            return x;
+        }
+    }
+
+    /**
      * Calculates the distance between two points in two dimensional space. Uses
      * a lookup table for distances below 300 for speed.
      *
