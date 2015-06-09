@@ -251,15 +251,37 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
             return new Point(viewX >> zoom, viewY >> zoom);
         }
     }
-    
+
+    /**
+     * Get the current zoom level in powers of two.
+     *
+     * @return The current zoom level as a power of two. The scale is
+     *             2<sup>zoom</sup>.
+     */
     public int getZoom() {
         return zoom;
     }
 
+    /**
+     * Set the zoom level in powers of two. 0 means "native size"; positive
+     * numbers zoom in (result in a larger scale); negative numbers zoom out
+     * (result in a smaller scale).
+     *
+     * @param zoom The new zoom level as a power of two. The scale will be
+     *             2<sup>zoom</sup>.
+     */
     public void setZoom(int zoom) {
         setZoom(zoom, xOffset, yOffset);
     }
     
+    /**
+     * Set the zoom level in powers of two. 0 means "native size"; positive
+     * numbers zoom in (result in a larger scale); negative numbers zoom out
+     * (result in a smaller scale).
+     *
+     * @param zoom The new zoom level as a power of two. The scale will be
+     *             2<sup>zoom</sup>.
+     */
     public void setZoom(int zoom, int locusX, int locusY) {
         // TODO: implement zoom locus support
         if (zoom != this.zoom) {
@@ -386,12 +408,40 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
             repaint();
         }
     }
-    
+
+    /**
+     * Immediately throws away and refreshes all tiles of all tile providers.
+     */
     public void refresh() {
+        refresh(false);
+    }
+
+    /**
+     * Refreshes all tiles of all tile providers.
+     *
+     * @param keepDirtyTiles Whether to keep displaying the old tiles while the
+     *                       new ones are being rendered.
+     */
+    public void refresh(boolean keepDirtyTiles) {
         queue.clear();
         synchronized (TILE_CACHE_LOCK) {
             for (TileProvider tileProvider: tileProviders) {
-                dirtyTileCaches.put(tileProvider, new HashMap<Point, Reference<? extends Image>>());
+                if (keepDirtyTiles) {
+                    Map<Point, Reference<? extends Image>> dirtyTileCache = tileCaches.get(tileProvider);
+                    // Remove all dirty tiles which don't exist any more
+                    // according to the tile provider, otherwise they won't be
+                    // repainted
+                    for (Iterator<Map.Entry<Point, Reference<? extends Image>>> i = dirtyTileCache.entrySet().iterator(); i.hasNext(); ) {
+                        Map.Entry<Point, Reference<? extends Image>> entry = i.next();
+                        Point coords = entry.getKey();
+                        if (! tileProvider.isTilePresent(coords.x, coords.y)) {
+                            i.remove();
+                        }
+                    }
+                    dirtyTileCaches.put(tileProvider, dirtyTileCache);
+                } else {
+                    dirtyTileCaches.put(tileProvider, new HashMap<Point, Reference<? extends Image>>());
+                }
                 tileCaches.put(tileProvider, new HashMap<Point, Reference<? extends Image>>());
             }
         }
@@ -761,9 +811,9 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         Rectangle tileBounds = getTileBounds(x, y, effectiveZoom);
         Image tile = getTile(tileProvider, x, y, effectiveZoom, gc);
         if (tile != null) {
-            if ((tile instanceof VolatileImage) && (((VolatileImage) tile).validate(gc) != VolatileImage.IMAGE_OK)) {
-                logger.severe("Image not OK right before painting!");
-            }
+//            if ((tile instanceof VolatileImage) && (((VolatileImage) tile).validate(gc) != VolatileImage.IMAGE_OK)) {
+//                logger.severe("Image not OK right before painting!");
+//            }
 //            ImageCapabilities capabilities = tile.getCapabilities(gc);
 //            System.out.print(capabilities.isAccelerated() ? 'a' : '-');
 //            System.out.print(capabilities.isTrueVolatile() ? 't' : '-');
@@ -1086,25 +1136,26 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                 tile = (VolatileImage) image;
             } else {
                 tile = gc.createCompatibleVolatileImage(tileSize, tileSize);
-                switch (tile.validate(gc)) {
-                    case VolatileImage.IMAGE_OK:
-                        // As expected
-                        break;
-                    case VolatileImage.IMAGE_RESTORED:
-                        // Weird, but shouldn't be a problem as we're about to paint it
-                        if (logger.isLoggable(Level.FINE)) {
-                            logger.fine("Volatile image validation result IMAGE_RESTORED right after creation!");
-                        }
-                        break;
-                    case VolatileImage.IMAGE_INCOMPATIBLE:
-                        logger.severe("Volatile image validation result IMAGE_INCOMPATIBLE right after creation!");
-                        break;
-                }
+                tile.validate(gc);
+//                switch (tile.validate(gc)) {
+//                    case VolatileImage.IMAGE_OK:
+//                        // As expected
+//                        break;
+//                    case VolatileImage.IMAGE_RESTORED:
+//                        // Weird, but shouldn't be a problem as we're about to paint it
+//                        if (logger.isLoggable(Level.FINE)) {
+//                            logger.fine("Volatile image validation result IMAGE_RESTORED right after creation!");
+//                        }
+//                        break;
+//                    case VolatileImage.IMAGE_INCOMPATIBLE:
+//                        logger.severe("Volatile image validation result IMAGE_INCOMPATIBLE right after creation!");
+//                        break;
+//                }
             }
             tileProvider.paintTile(tile, coords.x, coords.y);
-            if (tile.validate(gc) != VolatileImage.IMAGE_OK) {
-                logger.severe("Image not OK right after rendering!");
-            }
+//            if (tile.validate(gc) != VolatileImage.IMAGE_OK) {
+//                logger.severe("Image not OK right after rendering!");
+//            }
             synchronized (TILE_CACHE_LOCK) {
                 tileCache.put(coords, new SoftReference<Image>(tile));
                 if (dirtyTileCache.containsKey(coords)) {
