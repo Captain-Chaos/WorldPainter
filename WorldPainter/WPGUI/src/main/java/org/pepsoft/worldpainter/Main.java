@@ -214,7 +214,7 @@ public class Main {
 
         // Load the private context, if any, which provides services which we only want the official distribution of
         // WorldPainter to perform, such as check for updates and submit usage data
-        for (PrivateContext aPrivateContextLoader : ServiceLoader.load(PrivateContext.class)) {
+        for (PrivateContext aPrivateContextLoader: ServiceLoader.load(PrivateContext.class)) {
             if (privateContext == null) {
                 privateContext = aPrivateContextLoader;
             } else {
