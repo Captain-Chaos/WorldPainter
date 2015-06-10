@@ -423,7 +423,7 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk {
                 final int base = blockOffset(x, 0, z);
                 for (int i = blockOffset(x, 15, z); i >= base; i -= 256) {
                     if (blocks[i] != 0) {
-                        return (i - base) >> 8;
+                        return (yy << 4) | ((i - base) >> 8);
                     }
                 }
             }
