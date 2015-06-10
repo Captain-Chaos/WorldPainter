@@ -28,38 +28,78 @@ import static org.pepsoft.minecraft.Material.AIR;
  * for instance for generating previews. As such it does not support entities,
  * tile entities, lighting information, etc., just basic block info. Trying to
  * use the unsupported features will fail silently, except for the chunk related
- * operations, which will throw an {@link UnsupportedOperationException}.
+ * operations, which will throw an {@link UnsupportedOperationException}. The
+ * exception is adding chunks, which works by copying the block data over.
  * 
  * <p>For the <code>MinecraftWorld</code> interface the supported coordinates
  * are those specified by the <code>volume</code> parameter. For the
  * <code>WPObject</code> interface, the coordinates are translated so that the
  * lower north west corner is at 0,0,0. In other words, the
  * <code>WPObject</code> has no offset and all the coordinates are positive.
+ *
+ * <p>An offset may in fact be specified but it has no effect on the coordinates
+ * used by this object; it is purely meant to communicate to a consumer of the
+ * <code>WPObject</code> that the object should be shifted when paced.
  * 
  * @author SchmitzP
  */
 public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
+    /**
+     * Create a new <code>MinecraftWorldObject</code> which is initialised with
+     * all air and has no offset.
+     *
+     * @param name The name of the world/object.
+     * @param volume The volume of blocks in world coordinates which the object should encompass. Blocks outside this
+     *               volume are returned as air for read operations and silently ignored for write operations.
+     * @param maxHeight The height to return from {@link MinecraftWorld#getMaxHeight()}. Must be a power of two and may
+     *                  be higher than the volume; that just means the blocks between the top of the volume and
+     *                  maxHeight won't be stored.
+     */
     public MinecraftWorldObject(String name, Box volume, int maxHeight) {
-        this(name, volume, maxHeight, null);
+        this(name, volume, maxHeight, null, new Point3i(0, 0, 0));
     }
-    
-    public MinecraftWorldObject(String name, Box volume, int maxHeight, Material[] lowestBlocks) {
+
+    /**
+     * Create a new <code>MinecraftWorldObject</code>.
+     *
+     * @param name The name of the world/object.
+     * @param volume The volume of blocks in world coordinates which the object should encompass. Blocks outside this
+     *               volume are returned as air for read operations and silently ignored for write operations.
+     * @param maxHeight The height to return from {@link MinecraftWorld#getMaxHeight()}. Must be a power of two and may
+     *                  be higher than the volume; that just means the blocks between the top of the volume and
+     *                  maxHeight won't be stored.
+     * @param lowestBlocks An optional column of materials with which the bottom of the volume should be filled. All
+     *                     other blocks will be initialised as air. May be <code>null</code>, in which case all blocks
+     *                     will be initialised as air.
+     * @param offset The offset to return from {@link WPObject#getOffset()}.
+     */
+    public MinecraftWorldObject(String name, Box volume, int maxHeight, Material[] lowestBlocks, Point3i offset) {
         this.name = name;
         this.volume = volume;
         this.maxHeight = maxHeight;
-        this.lowestBlocks = new short[lowestBlocks.length];
-        for (int i = 0; i < lowestBlocks.length; i++) {
-            this.lowestBlocks[i] = (short) ((lowestBlocks[i].blockType << 4) | lowestBlocks[i].data);
-        }
+        this.offset = offset;
         dx = volume.getX1();
         dy = volume.getY1();
         dz = volume.getZ1();
         dimensions = new Point3i(volume.getWidth(), volume.getLength(), volume.getHeight());
         data = new short[volume.getWidth()][volume.getLength()][volume.getHeight()];
+        if (lowestBlocks != null) {
+            this.lowestBlocks = new short[lowestBlocks.length];
+            for (int i = 0; i < lowestBlocks.length; i++) {
+                this.lowestBlocks[i] = (short) ((lowestBlocks[i].blockType << 4) | lowestBlocks[i].data);
+            }
+            for (short[][] slice: data) {
+                for (short[] row: slice) {
+                    System.arraycopy(this.lowestBlocks, 0, row, 0, this.lowestBlocks.length);
+                }
+            }
+        } else {
+            this.lowestBlocks = null;
+        }
     }
 
     // Copy constructor for clone()
-    private MinecraftWorldObject(String name, Box volume, int maxHeight, short[][][] data, short[] lowestBlocks) {
+    private MinecraftWorldObject(String name, Box volume, int maxHeight, short[][][] data, short[] lowestBlocks, Point3i offset) {
         this.name = name;
         this.volume = volume;
         this.maxHeight = maxHeight;
@@ -69,6 +109,7 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
         dy = volume.getY1();
         dz = volume.getZ1();
         dimensions = new Point3i(volume.getWidth(), volume.getLength(), volume.getHeight());
+        this.offset = offset;
     }
     
     public void reset() {
@@ -172,9 +213,24 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
         // Do nothing
     }
 
+    /**
+     * Copies the block IDs and data values from the specified chunk to this
+     * object, insofar as it intersects the object bounds.
+     *
+     * @param chunk The chunk to copy.
+     */
     @Override
     public void addChunk(Chunk chunk) {
-        throw new UnsupportedOperationException("Not supported");
+        for (int x = 0; x < 16; x++) {
+            for (int z = 0; z < 16; z++) {
+                int blockX = (chunk.getxPos() << 4) | x, blockY = (chunk.getzPos() << 4) | z;
+                if (volume.containsXY(blockX, blockY)) {
+                    for (int y = Math.min(chunk.getHighestNonAirBlock(x, z), dz + volume.getHeight() - 1); y >= dz; y--) {
+                        data[blockX - dx][blockY - dy][y - dz] = (short) chunk.getMaterial(x, y, z).index;
+                    }
+                }
+            }
+        }
     }
 
     @Override
@@ -245,7 +301,12 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
 
     @Override
     public <T extends Serializable> T getAttribute(String key, T _default) {
-        return _default;
+        if (key.equals(ATTRIBUTE_OFFSET)) {
+            //noinspection unchecked // Responsibility of caller
+            return (T) offset;
+        } else {
+            return _default;
+        }
     }
 
     @Override
@@ -260,19 +321,19 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
 
     @Override
     public Point3i getOffset() {
-        return new Point3i(0, 0, 0);
+        return getAttribute(ATTRIBUTE_OFFSET, null);
     }
 
     @Override
     @SuppressWarnings("CloneDoesntCallSuperClone")
     public MinecraftWorldObject clone() {
-        return new MinecraftWorldObject(name, volume.clone(), maxHeight, data.clone(), lowestBlocks.clone());
+        return new MinecraftWorldObject(name, volume.clone(), maxHeight, data.clone(), lowestBlocks.clone(), (Point3i) offset.clone());
     }
     
     private final String name;
     private final Box volume;
     private final int dx, dy, dz, maxHeight;
-    private final Point3i dimensions;
+    private final Point3i dimensions, offset;
     private final short[][][] data;
     private final short[] lowestBlocks;
 }

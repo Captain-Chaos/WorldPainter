@@ -74,13 +74,14 @@ public abstract class Layer implements Serializable, Comparable<Layer> {
      *
      * @return A new exporter for this layer.
      */
-    public LayerExporter<? extends Layer> getExporter() {
+    public <L extends Layer> LayerExporter<L> getExporter() {
         if (exporterClass == null) {
             // Layer has no default exporter
             return null;
         } else {
             try {
-                return exporterClass.newInstance();
+                //noinspection unchecked Responsibility of implementor
+                return (LayerExporter<L>) exporterClass.newInstance();
             } catch (InstantiationException e) {
                 throw new RuntimeException("Instantiation exception while instantiating exporter for layer " + name, e);
             } catch (IllegalAccessException e) {
