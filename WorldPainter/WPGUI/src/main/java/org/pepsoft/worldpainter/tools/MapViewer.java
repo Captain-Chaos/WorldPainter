@@ -71,7 +71,7 @@ public class MapViewer {
                 }
 
                 @Override
-                public void paintTile(Image tileImage, int x, int y) {
+                public void paintTile(Image tileImage, int x, int y, int dx, int dy) {
     //                System.out.println("Painting tile " + x + ", " + y);
                     final BufferedImage image = renderBufferRef.get();
                     final int chunkX1 = x * 8 * zoom, chunkY1 = y * 8 * zoom;
@@ -125,7 +125,7 @@ public class MapViewer {
                     }
                     Graphics2D g2 = (Graphics2D) tileImage.getGraphics();
                     try {
-                        g2.drawImage(image, 0, 0, null);
+                        g2.drawImage(image, dx, dy, null);
                     } finally {
                         g2.dispose();
                     }

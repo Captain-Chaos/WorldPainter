@@ -43,7 +43,7 @@ public class HeightMapTileProvider implements TileProvider {
     }
 
     @Override
-    public void paintTile(Image tileImage, int x, int y) {
+    public void paintTile(Image tileImage, int x, int y, int imageX, int imageY) {
         final BufferedImage image = renderBufferRef.get();
         final WritableRaster raster = image.getRaster();
         final int xOffset = x << 7, yOffset = y << 7;
@@ -54,7 +54,7 @@ public class HeightMapTileProvider implements TileProvider {
         }
         Graphics2D g2 = (Graphics2D) tileImage.getGraphics();
         try {
-            g2.drawImage(image, 0, 0, null);
+            g2.drawImage(image, imageX, imageY, null);
         } finally {
             g2.dispose();
         }

@@ -100,10 +100,10 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
     }
 
     @Override
-    public void paintTile(final Image tileImage, final int x, final int y) {
+    public void paintTile(final Image tileImage, final int x, final int y, final int imageX, final int imageY) {
         try {
             if (zoom == 0) {
-                paintUnzoomedTile(tileImage, x, y);
+                paintUnzoomedTile(tileImage, x, y, imageX, imageY);
             } else {
                 Graphics2D g2 = (Graphics2D) tileImage.getGraphics();
                 try {
@@ -137,37 +137,37 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
                                             throw new InternalError();
                                     }
                                     g2.setColor(colour);
-                                    g2.fillRect(dx * subSize, dy * subSize, subSize, subSize);
+                                    g2.fillRect(imageX + dx * subSize, imageY + dy * subSize, subSize, subSize);
 
                                     // Draw border lines
                                     g2.setColor(Color.BLACK);
                                     g2.setStroke(new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0.0f, new float[] {4.0f, 4.0f}, 0.0f));
                                     if (tileProvider.isTilePresent(x * scale + dx, y * scale + dy - 1)) {
-                                        g2.drawLine(dx       * subSize    , dy       * subSize    , (dx + 1) * subSize - 1, dy       * subSize);
+                                        g2.drawLine(imageX + dx       * subSize    , imageY + dy       * subSize    , imageX + (dx + 1) * subSize - 1, imageY + dy       * subSize);
                                     }
                                     if (tileProvider.isTilePresent(x * scale + dx + 1, y * scale + dy)) {
-                                        g2.drawLine((dx + 1) * subSize - 1, dy       * subSize    , (dx + 1) * subSize - 1, (dy + 1) * subSize - 1);
+                                        g2.drawLine(imageX + (dx + 1) * subSize - 1, imageY + dy       * subSize    , imageX + (dx + 1) * subSize - 1, imageY + (dy + 1) * subSize - 1);
                                     }
                                     if (tileProvider.isTilePresent(x * scale + dx, y * scale + dy + 1)) {
-                                        g2.drawLine(dx       * subSize    , (dy + 1) * subSize - 1, (dx + 1) * subSize - 1, (dy + 1) * subSize - 1);
+                                        g2.drawLine(imageX + dx       * subSize    , imageY + (dy + 1) * subSize - 1, imageX + (dx + 1) * subSize - 1, imageY + (dy + 1) * subSize - 1);
                                     }
                                     if (tileProvider.isTilePresent(x * scale + dx - 1, y * scale + dy)) {
-                                        g2.drawLine(dx       * subSize    , dy       * subSize    , dx       * subSize    , (dy + 1) * subSize - 1);
+                                        g2.drawLine(imageX + dx       * subSize    , imageY + dy       * subSize    , imageX + dx       * subSize    , imageY + (dy + 1) * subSize - 1);
                                     }
                                     break;
                                 case SURROUNDS:
                                     if (surroundingTileProvider != null) {
                                         if (surroundingTileImage == null) {
                                             surroundingTileImage = new BufferedImage(TILE_SIZE, TILE_SIZE, BufferedImage.TYPE_INT_ARGB);
-                                            surroundingTileProvider.paintTile(surroundingTileImage, x, y);
+                                            surroundingTileProvider.paintTile(surroundingTileImage, x, y, 0, 0);
                                         }
                                         g2.drawImage(surroundingTileImage,
-                                                dx * subSize, dy * subSize, (dx + 1) * subSize, (dy + 1) * subSize,
-                                                dx * subSize, dy * subSize, (dx + 1) * subSize, (dy + 1) * subSize,
+                                                imageX + dx * subSize, imageY + dy * subSize, imageX + (dx + 1) * subSize, imageY + (dy + 1) * subSize,
+                                                imageX + dx * subSize, imageY + dy * subSize, imageX + (dx + 1) * subSize, imageY + (dy + 1) * subSize,
                                                 null);
                                     } else {
                                         g2.setColor(voidColour);
-                                        g2.fillRect(dx * subSize, dy * subSize, subSize, subSize);
+                                        g2.fillRect(imageX + dx * subSize, imageY + dy * subSize, subSize, subSize);
                                     }
                                     break;
                             }
@@ -331,13 +331,13 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
         }
     }
     
-    private void paintUnzoomedTile(final Image tileImage, final int x, final int y) {
+    private void paintUnzoomedTile(final Image tileImage, final int x, final int y, final int dx, final int dy) {
         switch (getUnzoomedTileType(x, y)) {
             case WORLD:
                 Tile tile = tileProvider.getTile(x, y);
                 TileRenderer tileRenderer = tileRendererRef.get();
                 tileRenderer.setTile(tile);
-                tileRenderer.renderTile(tileImage, 0, 0);
+                tileRenderer.renderTile(tileImage, dx, dy);
                 break;
             case BORDER:
                 int colour;
@@ -357,22 +357,22 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
                 Graphics2D g2 = (Graphics2D) tileImage.getGraphics();
                 try {
                     g2.setColor(new Color(colour));
-                    g2.fillRect(0, 0, TILE_SIZE, TILE_SIZE);
+                    g2.fillRect(dx, dy, TILE_SIZE, TILE_SIZE);
                     
                     // Draw border lines
                     g2.setColor(Color.BLACK);
                     g2.setStroke(new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0.0f, new float[] {4.0f, 4.0f}, 0.0f));
                     if (tileProvider.isTilePresent(x, y - 1)) {
-                        g2.drawLine(1, 1, TILE_SIZE - 1, 1);
+                        g2.drawLine(dx + 1, dy + 1, dx + TILE_SIZE - 1, dy + 1);
                     }
                     if (tileProvider.isTilePresent(x + 1, y)) {
-                        g2.drawLine(TILE_SIZE - 1, 1, TILE_SIZE - 1, TILE_SIZE - 1);
+                        g2.drawLine(dx + TILE_SIZE - 1, dy + 1, dx + TILE_SIZE - 1, dy + TILE_SIZE - 1);
                     }
                     if (tileProvider.isTilePresent(x, y + 1)) {
-                        g2.drawLine(1, TILE_SIZE - 1, TILE_SIZE - 1, TILE_SIZE - 1);
+                        g2.drawLine(dx + 1, dy + TILE_SIZE - 1, dx + TILE_SIZE - 1, dy + TILE_SIZE - 1);
                     }
                     if (tileProvider.isTilePresent(x - 1, y)) {
-                        g2.drawLine(1, 1, 1, TILE_SIZE - 1);
+                        g2.drawLine(dx + 1, dy + 1, dx + 1, dy + TILE_SIZE - 1);
                     }
                 } finally {
                     g2.dispose();
@@ -380,7 +380,7 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
                 break;
             case SURROUNDS:
                 if (surroundingTileProvider != null) {
-                    surroundingTileProvider.paintTile(tileImage, x, y);
+                    surroundingTileProvider.paintTile(tileImage, x, y, dx, dy);
                 }
                 break;
             default:

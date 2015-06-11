@@ -1152,7 +1152,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
 //                        break;
 //                }
             }
-            tileProvider.paintTile(tile, coords.x, coords.y);
+            tileProvider.paintTile(tile, coords.x, coords.y, 0, 0);
 //            if (tile.validate(gc) != VolatileImage.IMAGE_OK) {
 //                logger.severe("Image not OK right after rendering!");
 //            }

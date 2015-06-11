@@ -73,7 +73,7 @@ public class BiomesTileProvider implements TileProvider {
     }
 
     @Override
-    public void paintTile(Image image, int tileX, int tileY) {
+    public void paintTile(Image image, int tileX, int tileY, int imageX, int imageY) {
         try {
             BufferedImage tile = renderBufferRef.get();
             final int scale = 1 << -zoom;
@@ -123,7 +123,7 @@ public class BiomesTileProvider implements TileProvider {
             }
             Graphics2D g2 = (Graphics2D) image.getGraphics();
             try {
-                g2.drawImage(tile, 0, 0, null);
+                g2.drawImage(tile, imageX, imageY, null);
             } finally {
                 g2.dispose();
             }
