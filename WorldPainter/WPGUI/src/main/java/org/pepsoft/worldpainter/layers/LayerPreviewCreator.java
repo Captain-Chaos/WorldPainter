@@ -10,18 +10,20 @@ import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.minecraft.Constants;
 import org.pepsoft.util.Box;
 import org.pepsoft.util.MathUtils;
-import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.dynmap.DynMapPreviewer;
 import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.objects.MinecraftWorldObject;
 import org.pepsoft.worldpainter.objects.WPObject;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.vecmath.Point3i;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Random;
@@ -181,30 +183,35 @@ public class LayerPreviewCreator {
     }
 
     public static void main(String[] args) throws IOException {
-//        Layer layer = Jungle.INSTANCE;
-        Layer layer = Resources.INSTANCE;
+        Layer layer = Jungle.INSTANCE;
+//        Layer layer = Resources.INSTANCE;
         LayerPreviewCreator renderer = new LayerPreviewCreator();
         renderer.setLayer(layer);
-        renderer.setSubterranean(true);
-        renderer.setPattern(HALF);
+//        renderer.setSubterranean(true);
+//        renderer.setPattern(HALF);
         long start = System.currentTimeMillis();
         MinecraftWorldObject preview = renderer.renderPreview();
-        System.out.println("Creating preview took " + (System.currentTimeMillis() - start) + " ms");
+        System.out.println("Total: " + (System.currentTimeMillis() - start) + " ms");
 
-        JFrame frame = new JFrame("LayerPreviewCreator Test");
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+//        JFrame frame = new JFrame("LayerPreviewCreator Test");
+//        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         DynMapPreviewer previewer = new DynMapPreviewer();
         previewer.setZoom(-2);
         previewer.setInclination(30.0);
         previewer.setAzimuth(60.0);
         previewer.setObject(preview);
-        frame.getContentPane().add(previewer, BorderLayout.CENTER);
+//        frame.getContentPane().add(previewer, BorderLayout.CENTER);
+//
+//        frame.setSize(800, 600);
+//        frame.setLocationRelativeTo(null); // Center on screen
+//        frame.setVisible(true);
 
-        frame.setSize(800, 600);
-        frame.setLocationRelativeTo(null); // Center on screen
-        frame.setVisible(true);
 
-        BufferedImage image = new BufferedImage(512, 512, BufferedImage.TYPE_INT_ARGB);
+        start = System.currentTimeMillis();
+        BufferedImage image = previewer.createImage();
+        System.out.println("Creating image took " + (System.currentTimeMillis() - start) + " ms");
+
+        ImageIO.write(image, "png", new File("preview.png"));
     }
     
     private Layer layer;
