@@ -122,7 +122,11 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
             }
         }
     }
-    
+
+    public Box getVolume() {
+        return volume.clone();
+    }
+
     // MinecraftWorld
     
     @Override

@@ -22,6 +22,8 @@ import org.pepsoft.worldpainter.layers.SwampLand;
 import org.pepsoft.worldpainter.layers.groundcover.GroundCoverLayer;
 import org.pepsoft.worldpainter.themes.Theme;
 
+import java.util.Random;
+
 /**
  *
  * @author SchmitzP
@@ -32,9 +34,10 @@ public class FancyTheme implements Theme, Cloneable {
         setWaterHeight(waterHeight);
         setHeightMap(heightMap);
         setDesertMaxHeight(waterHeight + 20);
-        setTemperatureMap(new SumHeightMap(new NoiseHeightMap(60f, 10.0, 2), new ConstantHeightMap(-20f)));
-        setHumidityMap(new NoiseHeightMap(100f, 10.0, 2));
-        setForestMap(new NoiseHeightMap(1f, 1.0, 3));
+        Random random = new Random(heightMap.getSeed());
+        setTemperatureMap(new SumHeightMap(new NoiseHeightMap(60f, 10.0, 2, random.nextLong()), new ConstantHeightMap(-20f)));
+        setHumidityMap(new NoiseHeightMap(100f, 10.0, 2, random.nextLong()));
+        setForestMap(new NoiseHeightMap(1f, 1.0, 3, random.nextLong()));
         setBaseTerrain(baseTerrain);
         snowLayer.setThickness(3);
         snowLayer.setEdgeWidth(3);

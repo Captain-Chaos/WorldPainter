@@ -70,7 +70,7 @@ public final class NoiseHeightMap implements HeightMap {
 
     @Override
     public void setSeed(long seed) {
-        if ((perlinNoise.getSeed() + seedOffset) != seed) {
+        if ((perlinNoise.getSeed() - seedOffset) != seed) {
             perlinNoise.setSeed(seed + seedOffset);
         }
     }

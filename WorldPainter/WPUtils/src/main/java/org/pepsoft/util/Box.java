@@ -131,7 +131,51 @@ public final class Box implements Cloneable {
             z2 = box.z2;
         }
     }
-    
+
+    /**
+     * Sets this box to the intersection of it and the specified box; in other
+     * words to the volume encompassed by both boxes.
+     *
+     * <p>If the boxes don't intersect, the x2, y2 and z2 coordinates of this
+     * box will be made equal to the x1, y1 and z1 coordinates so that it
+     * becomes empty.
+     *
+     * @param box The box to intersect this box with.
+     */
+    public void intersect(Box box) {
+        normalise();
+        box.normalise();
+        if ((box.x1 >= x2) || (box.x2 <= x1) || (box.y1 >= y2) || (box.y2 <= y1) || (box.z1 >= z2) || (box.z2 <= z1)) {
+            // The boxes don't intersect
+            x2 = x1;
+            y2 = y1;
+            z2 = z1;
+        } else {
+            if (box.x1 > x1) {
+                x1 = box.x1;
+            }
+            if (box.x2 > x2) {
+                x2 = box.x2;
+            }
+            if (box.y1 > y1) {
+                y1 = box.y1;
+            }
+            if (box.y2 > y2) {
+                y2 = box.y2;
+            }
+            if (box.z1 > z1) {
+                z1 = box.z1;
+            }
+            if (box.z2 > z2) {
+                z2 = box.z2;
+            }
+        }
+    }
+
+    public boolean isEmpty() {
+        return (x1 == x2) && (y1 == y2) && (z1 == z2);
+    }
+
     public boolean contains(int x, int y, int z) {
         return (x >= x1) && (x < x2) && (y >= y1) && (y < y2) && (z >= z1) && (z < z2);
     }

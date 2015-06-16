@@ -14,6 +14,8 @@ import org.pepsoft.worldpainter.heightMaps.SumHeightMap;
 import org.pepsoft.worldpainter.themes.impl.fancy.FancyTheme;
 import org.pepsoft.worldpainter.themes.SimpleTheme;
 
+import java.util.Random;
+
 /**
  *
  * @author pepijn
@@ -24,7 +26,7 @@ public final class TileFactoryFactory {
     }
     
     public static HeightMapTileFactory createNoiseTileFactory(long seed, Terrain terrain, int maxHeight, int baseHeight, int waterLevel, boolean floodWithLava, boolean beaches, float range, double scale) {
-        return new HeightMapTileFactory(seed, new SumHeightMap(new ConstantHeightMap(baseHeight), new NoiseHeightMap(range, scale, 1)), maxHeight, floodWithLava, SimpleTheme.createDefault(terrain, maxHeight, waterLevel, true, beaches));
+        return new HeightMapTileFactory(seed, new SumHeightMap(new ConstantHeightMap(baseHeight), new NoiseHeightMap(range, scale, 1, 0)), maxHeight, floodWithLava, SimpleTheme.createDefault(terrain, maxHeight, waterLevel, true, beaches));
     }
     
     public static HeightMapTileFactory createFlatTileFactory(long seed, Terrain terrain, int maxHeight, int height, int waterLevel, boolean floodWithLava, boolean beaches) {
@@ -37,10 +39,11 @@ public final class TileFactoryFactory {
         HeightMap continent;
 //        continent = new NinePatchHeightMap(200, 100, 50, 58f);
         continent = new NinePatchHeightMap("Continent", 0, 500, 50, baseHeight - (waterLevel - 22));
+        Random random = new Random(seed);
         HeightMap hills = new ProductHeightMap(
                 "Hills",
-                new NoiseHeightMap(1.0f, 10f, 1),
-                new NoiseHeightMap(range, scale, 2));
+                new NoiseHeightMap(1.0f, 10f, 1, random.nextLong()),
+                new NoiseHeightMap(range, scale, 2, random.nextLong()));
 //                new SumHeightMap(
 //                    new NoiseHeightMap(range, scale, 2),
 //                    new ConstantHeightMap(-5f)));
@@ -52,11 +55,11 @@ public final class TileFactoryFactory {
         HeightMap mountainsLimit = new NinePatchHeightMap(0, 500, 200, 1f);
         HeightMap mountainsHeight = new ProductHeightMap(
             new ProductHeightMap(
-                new NoiseHeightMap(1.0f, 10f, 1),
+                new NoiseHeightMap(1.0f, 10f, 1, random.nextLong()),
                 mountainsLimit),
-            new NoiseHeightMap(256f, 5f, 5));
-        HeightMap mountainsAngleMap = new NoiseHeightMap((float) (Math.PI * 2), 2.5, 1);
-        HeightMap mountainsDistanceMap = new NoiseHeightMap(25f, 2.5, 1);
+            new NoiseHeightMap(256f, 5f, 5, random.nextLong()));
+        HeightMap mountainsAngleMap = new NoiseHeightMap((float) (Math.PI * 2), 2.5, 1, random.nextLong());
+        HeightMap mountainsDistanceMap = new NoiseHeightMap(25f, 2.5, 1, random.nextLong());
         HeightMap mountains = new DisplacementHeightMap("Mountains", mountainsHeight, mountainsAngleMap, mountainsDistanceMap);
         HeightMap heightMap = new MaximisingHeightMap(continent, mountains);
         return new HeightMapTileFactory(seed, heightMap, 256, false, new FancyTheme(maxHeight, 62, heightMap, terrain));

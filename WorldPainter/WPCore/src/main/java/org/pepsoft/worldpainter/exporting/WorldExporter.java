@@ -33,7 +33,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
-import static org.pepsoft.minecraft.Block.*;
+import static org.pepsoft.minecraft.Block.BLOCKS;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
 
@@ -329,154 +329,6 @@ public class WorldExporter {
         return fixups;
     }
 
-    protected void postProcess(MinecraftWorld minecraftWorld, Point regionCoords, SubProgressReceiver progressReceiver) throws OperationCancelled {
-        final int x1 = regionCoords.x << 9;
-        final int y1 = regionCoords.y << 9;
-        final int x2 = x1 + 511, y2 = y1 + 511;
-        final int maxZ = minecraftWorld.getMaxHeight() - 1;
-        for (int x = x1; x <= x2; x ++) {
-            for (int y = y1; y <= y2; y++) {
-                int blockTypeBelow = minecraftWorld.getBlockTypeAt(x, y, 0);
-                int blockTypeAbove = minecraftWorld.getBlockTypeAt(x, y, 1);
-                if (supportSand && (blockTypeBelow == BLK_SAND)) {
-                    minecraftWorld.setMaterialAt(x, y, 0, (minecraftWorld.getDataAt(x, y, 0) == 1) ? Material.RED_SANDSTONE : Material.SANDSTONE);
-                    blockTypeBelow = minecraftWorld.getBlockTypeAt(x, y, 0);
-                }
-                for (int z = 1; z <= maxZ; z++) {
-                    int blockType = blockTypeAbove;
-                    blockTypeAbove = (z < maxZ) ? minecraftWorld.getBlockTypeAt(x, y, z + 1) : BLK_AIR;
-                    if (((blockTypeBelow == BLK_GRASS) || (blockTypeBelow == BLK_MYCELIUM) || (blockTypeBelow == BLK_TILLED_DIRT)) && ((blockType == BLK_WATER) || (blockType == BLK_STATIONARY_WATER) || (blockType == BLK_ICE) || ((blockType <= HIGHEST_KNOWN_BLOCK_ID) && (BLOCK_TRANSPARENCY[blockType] == 15)))) {
-                        // Covered grass, mycelium or tilled earth block, should
-                        // be dirt. Note that unknown blocks are treated as
-                        // transparent for this check so that grass underneath
-                        // custom plants doesn't turn to dirt, for instance
-                        minecraftWorld.setMaterialAt(x, y, z - 1, Material.DIRT);
-                        blockTypeBelow = BLK_DIRT;
-                    }
-                    switch (blockType) {
-                        case BLK_SAND:
-                            if (supportSand && BLOCKS[blockTypeBelow].veryInsubstantial) {
-                                // All unsupported sand should be supported by sandstone
-                                minecraftWorld.setMaterialAt(x, y, z, (minecraftWorld.getDataAt(x, y, z - 1) == 1) ? Material.RED_SANDSTONE : Material.SANDSTONE);
-                                blockType = minecraftWorld.getBlockTypeAt(x, y, z);
-                            }
-                            break;
-                        case BLK_DEAD_SHRUBS:
-                            if ((blockTypeBelow != BLK_SAND) && (blockTypeBelow != BLK_DIRT) && (blockTypeBelow != BLK_STAINED_CLAY) && (blockTypeBelow != BLK_HARDENED_CLAY)) {
-                                // Dead shrubs can only exist on Sand
-                                minecraftWorld.setMaterialAt(x, y, z, Material.AIR);
-                                blockType = BLK_AIR;
-                            }
-                            break;
-                        case BLK_TALL_GRASS:
-                        case BLK_ROSE:
-                        case BLK_DANDELION:
-                            if ((blockTypeBelow != BLK_GRASS) && (blockTypeBelow != BLK_DIRT)) {
-                                // Tall grass and flowers can only exist on Grass or Dirt blocks
-                                minecraftWorld.setMaterialAt(x, y, z, Material.AIR);
-                                blockType = BLK_AIR;
-                            }
-                            break;
-                        case BLK_RED_MUSHROOM:
-                        case BLK_BROWN_MUSHROOM:
-                            if ((blockTypeBelow != BLK_GRASS) && (blockTypeBelow != BLK_DIRT) && (blockTypeBelow != BLK_MYCELIUM) && (blockTypeBelow != BLK_STONE)) {
-                                // Mushrooms can only exist on Grass, Dirt, Mycelium or Stone (in caves) blocks
-                                minecraftWorld.setMaterialAt(x, y, z, Material.AIR);
-                                blockType = BLK_AIR;
-                            }
-                            break;
-                        case BLK_SNOW:
-                            if ((blockTypeBelow == BLK_ICE) || (blockTypeBelow == BLK_SNOW) || (blockTypeBelow == BLK_AIR) || (blockTypeBelow == BLK_PACKED_ICE)) {
-                                // Snow can't be on ice, or another snow block, or air
-                                // (well it could be, but it makes no sense, would
-                                // disappear when touched, and it makes this algorithm
-                                // remove stacks of snow blocks correctly)
-                                minecraftWorld.setMaterialAt(x, y, z, Material.AIR);
-                                blockType = BLK_AIR;
-                            }
-                            break;
-                        case BLK_WHEAT:
-                            if (blockTypeBelow != BLK_TILLED_DIRT) {
-                                // Wheat can only exist on Tilled Dirt blocks
-                                minecraftWorld.setMaterialAt(x, y, z, Material.AIR);
-                                blockType = BLK_AIR;
-                            }
-                            break;
-                        case BLK_LARGE_FLOWERS:
-                            int data = minecraftWorld.getDataAt(x, y, z);
-                            if ((data & 0x8) == 0x8) {
-                                // Bit 4 set; top half of double high plant; check
-                                // there's a lower half beneath
-                                // If the block below is another double high plant
-                                // block we don't need to check whether it is of the
-                                // correct type because the combo was already
-                                // checked when the lower half was encountered
-                                // in the previous iteration
-                                if (blockTypeBelow != BLK_LARGE_FLOWERS) {
-                                    // There's a non-double high plant block below;
-                                    // replace this block with air
-                                    if (logger.isLoggable(java.util.logging.Level.FINER)) {
-                                        logger.finer("Block @ " + x + "," + z + "," + y + " is upper large flower block; block below is " + BLOCK_TYPE_NAMES[blockTypeBelow] + "; removing block");
-                                    }
-                                    minecraftWorld.setMaterialAt(x, y, z, Material.AIR);
-                                    blockType = BLK_AIR;
-                                }
-                            } else {
-                                // Otherwise: lower half of double high plant; check
-                                // there's a top half above and grass or dirt below
-                                if (blockTypeAbove == BLK_LARGE_FLOWERS) {
-                                    if ((minecraftWorld.getDataAt(x, y, z + 1) & 0x8) == 0) {
-                                        // There's another lower half above. Replace
-                                        // this block with air
-                                        if (logger.isLoggable(java.util.logging.Level.FINER)) {
-                                            logger.finer("Block @ " + x + "," + z + "," + y + " is lower large flower block; block above is another lower large flower block; removing block");
-                                        }
-                                        minecraftWorld.setMaterialAt(x, y, z, Material.AIR);
-                                        blockType = BLK_AIR;
-                                    } else if ((blockTypeBelow != BLK_GRASS) && (blockTypeBelow != BLK_DIRT)) {
-                                        // Double high plants can (presumably; TODO:
-                                        // check) only exist on grass or dirt
-                                        if (logger.isLoggable(java.util.logging.Level.FINER)) {
-                                            logger.finer("Block @ " + x + "," + z + "," + y + " is lower large flower block; block above is " + BLOCK_TYPE_NAMES[blockTypeBelow] + "; removing block");
-                                        }
-                                        minecraftWorld.setMaterialAt(x, y, z, Material.AIR);
-                                        blockType = BLK_AIR;
-                                    }
-                                } else {
-                                    // There's a non-double high plant block above;
-                                    // replace this block with air
-                                    if (logger.isLoggable(java.util.logging.Level.FINER)) {
-                                        logger.finer("Block @ " + x + "," + z + "," + y + " is lower large flower block; block above is " + BLOCK_TYPE_NAMES[blockTypeBelow] + "; removing block");
-                                    }
-                                    minecraftWorld.setMaterialAt(x, y, z, Material.AIR);
-                                    blockType = BLK_AIR;
-                                }
-                            }
-                            break;
-                        case BLK_CACTUS:
-                            if ((blockTypeBelow != BLK_SAND) && (blockTypeBelow != BLK_CACTUS)) {
-                                // Cactus blocks can only be on top of sand or other cactus blocks
-                                minecraftWorld.setMaterialAt(x, y, z, Material.AIR);
-                                blockType = BLK_AIR;
-                            }
-                            break;
-                        case BLK_SUGAR_CANE:
-                            if ((blockTypeBelow != BLK_GRASS) && (blockTypeBelow != BLK_DIRT) && (blockTypeBelow != BLK_SAND) && (blockTypeBelow != BLK_SUGAR_CANE)) {
-                                // Sugar cane blocks can only be on top of grass, dirt, sand or other sugar cane blocks
-                                minecraftWorld.setMaterialAt(x, y, z, Material.AIR);
-                                blockType = BLK_AIR;
-                            }
-                            break;
-                    }
-                    blockTypeBelow = blockType;
-                }
-            }
-            if (progressReceiver != null) {
-                progressReceiver.setProgress((x - x1 + 1) / 512f);
-            }
-        }
-    }
-    
     protected void lightingPass(MinecraftWorld minecraftWorld, Point regionCoords, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
         LightingCalculator lightingVolume = new LightingCalculator(minecraftWorld);
         
@@ -603,7 +455,7 @@ public class WorldExporter {
 
             // Post processing. Fix covered grass blocks, things like that
             long t3 = System.currentTimeMillis();
-            postProcess(minecraftWorld, regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.55f, 0.1f) : null);
+            PostProcessor.postProcess(minecraftWorld, new Rectangle(regionCoords.x << 9, regionCoords.y << 9, 512, 512), (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.55f, 0.1f) : null);
 
             // Third pass. Calculate lighting
             long t4 = System.currentTimeMillis();
@@ -1128,7 +980,6 @@ public class WorldExporter {
     protected final Semaphore performingFixups = new Semaphore(1);
 
     private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMddHHmmss");
-    private static final boolean supportSand = ! "false".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.supportSand"));
     private static final Logger logger = Logger.getLogger(WorldExporter.class.getName());
     private static final Object TIMING_FILE_LOCK = new Object();
     
@@ -1148,9 +999,5 @@ public class WorldExporter {
          * have been generated
          */
         public List<Fixup> fixups;
-    }
-
-    static class DimensionExportContext {
-
     }
 }

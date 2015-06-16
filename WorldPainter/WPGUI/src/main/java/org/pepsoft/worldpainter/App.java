@@ -30,7 +30,6 @@ import org.pepsoft.worldpainter.colourschemes.DynMapColourScheme;
 import org.pepsoft.worldpainter.gardenofeden.GardenOfEdenOperation;
 import org.pepsoft.worldpainter.importing.MapImportDialog;
 import org.pepsoft.worldpainter.layers.*;
-import org.pepsoft.worldpainter.layers.bo2.CustomObjectDialog;
 import org.pepsoft.worldpainter.layers.combined.CombinedLayerDialog;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter.ResourcesExporterSettings;
@@ -2342,10 +2341,10 @@ public final class App extends JFrame implements RadiusControl,
         menuItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                CustomObjectDialog dialog = new CustomObjectDialog(App.this, view.getColourScheme());
+                EditLayerDialog<Bo2Layer> dialog = new EditLayerDialog(App.this, Bo2Layer.class, dimension, view.getColourScheme());
                 dialog.setVisible(true);
                 if (! dialog.isCancelled()) {
-                    Bo2Layer layer = dialog.getSelectedLayer();
+                    Bo2Layer layer = dialog.getLayer();
                     if (paletteName != null) {
                         layer.setPalette(paletteName);
                     }
@@ -2854,9 +2853,9 @@ public final class App extends JFrame implements RadiusControl,
 
             private void edit() {
                 int previousColour = layer.getColour();
-                CustomLayerDialog<? extends CustomLayer> dialog;
+                WorldPainterDialog dialog;
                 if (layer instanceof Bo2Layer) {
-                    dialog = new CustomObjectDialog(App.this, selectedColourScheme, (Bo2Layer) layer);
+                    dialog = new EditLayerDialog<Bo2Layer>(App.this, (Bo2Layer) layer, dimension, selectedColourScheme);
                 } else if (layer instanceof GroundCoverLayer) {
                     dialog = new GroundCoverDialog(App.this, (GroundCoverLayer) layer, selectedColourScheme, world.isExtendedBlockIds());
                 } else if (layer instanceof UndergroundPocketsLayer) {

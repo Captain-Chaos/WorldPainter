@@ -56,7 +56,12 @@ public interface ProgressReceiver {
      */
     void reset() throws OperationCancelled;
 
-    public static class OperationCancelled extends Exception {
+    /**
+     * Indicates that the operation should be aborted, for instance because the
+     * user has requested that it be cancelled, or because an error has
+     * occurred. The message may indicate the reason of the cancellation.
+     */
+    class OperationCancelled extends Exception {
         public OperationCancelled(String message) {
             super(message);
         }

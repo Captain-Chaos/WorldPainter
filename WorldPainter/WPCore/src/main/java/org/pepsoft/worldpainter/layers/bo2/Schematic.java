@@ -20,7 +20,6 @@ import java.util.zip.GZIPInputStream;
 import javax.vecmath.Point3i;
 import org.jnbt.CompoundTag;
 import org.jnbt.NBTInputStream;
-import org.jnbt.Tag;
 import org.pepsoft.minecraft.AbstractNBTItem;
 import static org.pepsoft.minecraft.Constants.*;
 import org.pepsoft.minecraft.Entity;
