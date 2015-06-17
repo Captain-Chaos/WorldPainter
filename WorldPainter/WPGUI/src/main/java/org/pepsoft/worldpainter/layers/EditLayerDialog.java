@@ -19,15 +19,15 @@ import javax.swing.Timer;
 import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.WorldPainterDialog;
-import org.pepsoft.worldpainter.colourschemes.ColourSchemeConsumer;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.objects.MinecraftWorldObject;
 
 /**
  *
  * @author Pepijn Schmitz
+ * @param <L> The type of layer which the dialog should edit.
  */
-public class EditLayerDialog<L extends Layer> extends WorldPainterDialog implements LayerEditor.LayerEditorListener, ActionListener {
+public class EditLayerDialog<L extends Layer> extends WorldPainterDialog implements LayerEditor.LayerEditorContext, ActionListener {
     /**
      * Creates new form EditLayerDialog for creating a new instance of a
      * specific layer type.
@@ -37,8 +37,8 @@ public class EditLayerDialog<L extends Layer> extends WorldPainterDialog impleme
      * @param dimension The dimension to use for creating previews.
      * @param colourScheme The colour scheme to use for creating previews.
      */
-    public EditLayerDialog(Window parent, Class<L> layerType, Dimension dimension, ColourScheme colourScheme) {
-        this(parent, LayerEditorManager.getInstance().createEditor(layerType).createLayer(), dimension, colourScheme);
+    public EditLayerDialog(Window parent, Class<L> layerType, Dimension dimension, ColourScheme colourScheme, boolean extendedBlockIds) {
+        this(parent, null, LayerEditorManager.getInstance().createEditor(layerType), dimension, colourScheme, extendedBlockIds);
     }
     
     /**
@@ -49,23 +49,31 @@ public class EditLayerDialog<L extends Layer> extends WorldPainterDialog impleme
      * @param dimension The dimension to use for creating previews.
      * @param colourScheme The colour scheme to use for creating previews.
      */
-    public EditLayerDialog(Window parent, L layer, Dimension dimension, ColourScheme colourScheme) {
+    public EditLayerDialog(Window parent, L layer, Dimension dimension, ColourScheme colourScheme, boolean extendedBlockIds) {
+        this(parent, layer, LayerEditorManager.getInstance().createEditor((Class<L>) layer.getClass()), dimension, colourScheme, extendedBlockIds);
+    }
+
+    private EditLayerDialog(Window parent, L layer, LayerEditor<L> editor, Dimension dimension, ColourScheme colourScheme, boolean extendedBlockIds) {
         super(parent);
-        setIconImage(layer.getIcon());
+        if (editor == null) {
+            throw new IllegalArgumentException("No editor available for layer type" + ((layer != null) ? layer.getClass() : ""));
+        }
+        this.editor = editor;
+        if (layer == null) {
+            layer = editor.createLayer();
+        }
         previewCreator = LayerPreviewCreator.createPreviewerForLayer(layer, dimension);
+        this.colourScheme = colourScheme;
+        this.extendedBlockIds = extendedBlockIds;
 
         initComponents();
+        if (! (layer instanceof CustomLayer)) {
+            setIconImage(layer.getIcon());
+        }
         
         previewTimer.setRepeats(false);
         
-        editor = LayerEditorManager.getInstance().createEditor((Class<L>) layer.getClass());
-        if (editor == null) {
-            throw new IllegalArgumentException("No editor available for layer of type " + layer.getClass());
-        }
-        if (editor instanceof ColourSchemeConsumer) {
-            ((ColourSchemeConsumer) editor).setColourScheme(colourScheme);
-        }
-        editor.addListener(this);
+        editor.setContext(this);
         editor.setLayer(layer);
         JComponent editorComponent = editor.getComponent();
         editorPanel.add(editorComponent, BorderLayout.CENTER);
@@ -97,7 +105,7 @@ public class EditLayerDialog<L extends Layer> extends WorldPainterDialog impleme
         return editor.getLayer();
     }
     
-    // LayerEditorListener
+    // LayerEditorContext
     
     @Override
     public void settingsChanged() {
@@ -108,6 +116,16 @@ public class EditLayerDialog<L extends Layer> extends WorldPainterDialog impleme
         } else {
             cancelPreviewUpdate();
         }
+    }
+
+    @Override
+    public ColourScheme getColourScheme() {
+        return colourScheme;
+    }
+
+    @Override
+    public boolean isExtendedBlockIds() {
+        return extendedBlockIds;
     }
 
     // ActionListener
@@ -313,6 +331,8 @@ renderLoop:                 do {
     private final LayerEditor<L> editor;
     private final Timer previewTimer = new Timer(1000, this);
     private final LayerPreviewCreator previewCreator;
+    private final ColourScheme colourScheme;
+    private final boolean extendedBlockIds;
     private PreviewRenderState previewRenderState = PreviewRenderState.IDLE;
     
     /**

@@ -23,7 +23,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
 import javax.swing.JColorChooser;
-import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
@@ -37,9 +36,8 @@ import org.pepsoft.minecraft.Constants;
 import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.Configuration;
-import org.pepsoft.worldpainter.colourschemes.ColourSchemeConsumer;
+import org.pepsoft.worldpainter.layers.AbstractLayerEditor;
 import org.pepsoft.worldpainter.layers.Bo2Layer;
-import org.pepsoft.worldpainter.layers.LayerEditor;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.objects.WPObject;
 import static org.pepsoft.worldpainter.objects.WPObject.*;
@@ -48,7 +46,7 @@ import static org.pepsoft.worldpainter.objects.WPObject.*;
  *
  * @author Pepijn Schmitz
  */
-public class Bo2LayerEditor extends javax.swing.JPanel implements LayerEditor<Bo2Layer>, ColourSchemeConsumer, ListSelectionListener, DocumentListener {
+public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements ListSelectionListener, DocumentListener {
     /**
      * Creates new form Bo2LayerEditor
      */
@@ -67,22 +65,12 @@ public class Bo2LayerEditor extends javax.swing.JPanel implements LayerEditor<Bo
     
     @Override
     public Bo2Layer createLayer() {
-        return new Bo2Layer(new Bo2ObjectTube("Custom Objects", Collections.EMPTY_LIST), Color.ORANGE.getRGB());
-    }
-
-    @Override
-    public Bo2Layer getLayer() {
-        return layer;
-    }
-
-    @Override
-    public JComponent getComponent() {
-        return this;
+        return new Bo2Layer(new Bo2ObjectTube("My Custom Objects", Collections.EMPTY_LIST), Color.ORANGE.getRGB());
     }
 
     @Override
     public void setLayer(Bo2Layer layer) {
-        this.layer = layer;
+        super.setLayer(layer);
         reset();
     }
 
@@ -176,6 +164,9 @@ public class Bo2LayerEditor extends javax.swing.JPanel implements LayerEditor<Bo
 
     @Override
     public ExporterSettings<Bo2Layer> getSettings() {
+        if (! isCommitAvailable()) {
+            throw new IllegalStateException("Settings invalid or incomplete");
+        }
         final Bo2Layer previewLayer = saveSettings(null);
         return new ExporterSettings<Bo2Layer>() {
             @Override
@@ -196,29 +187,18 @@ public class Bo2LayerEditor extends javax.swing.JPanel implements LayerEditor<Bo
     }
 
     @Override
-    public void addListener(LayerEditorListener listener) {
-        listeners.add(listener);
-    }
-
-    @Override
-    public void removeListener(LayerEditorListener listener) {
-        listeners.remove(listener);
-    }
-
-    @Override
     public boolean isCommitAvailable() {
         boolean filesSelected = listModel.getSize() > 0;
         boolean nameSpecified = fieldName.getText().trim().length() > 0;
         return filesSelected && nameSpecified;
     }
 
-    // ColourSchemeConsumer
-    
     @Override
-    public void setColourScheme(ColourScheme colourScheme) {
-        this.colourScheme = colourScheme;
+    public void setContext(LayerEditorContext context) {
+        super.setContext(context);
+        colourScheme = context.getColourScheme();
     }
-
+        
     // ListSelectionListener
     
     @Override
@@ -273,9 +253,7 @@ public class Bo2LayerEditor extends javax.swing.JPanel implements LayerEditor<Bo
     
     private void settingsChanged() {
         setControlStates();
-        for (LayerEditorListener listener: listeners) {
-            listener.settingsChanged();
-        }
+        context.settingsChanged();
     }
     
     private void setControlStates() {
@@ -941,10 +919,8 @@ outer:  for (Enumeration<WPObject> e = (Enumeration<WPObject>) listModel.element
     // End of variables declaration//GEN-END:variables
 
     private final DefaultListModel listModel;
-    private final List<LayerEditorListener> listeners = new ArrayList<LayerEditorListener>();
     private ColourScheme colourScheme;
     private int selectedColour = Color.ORANGE.getRGB();
-    private Bo2Layer layer;
     
     private static final Logger logger = Logger.getLogger(Bo2LayerEditor.class.getName());
     private static final long serialVersionUID = 1L;

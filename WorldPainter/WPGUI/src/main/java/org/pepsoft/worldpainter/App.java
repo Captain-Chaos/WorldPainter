@@ -33,7 +33,6 @@ import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.combined.CombinedLayerDialog;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter.ResourcesExporterSettings;
-import org.pepsoft.worldpainter.layers.groundcover.GroundCoverDialog;
 import org.pepsoft.worldpainter.layers.groundcover.GroundCoverLayer;
 import org.pepsoft.worldpainter.layers.plants.PlantDialog;
 import org.pepsoft.worldpainter.layers.plants.PlantLayer;
@@ -2341,7 +2340,7 @@ public final class App extends JFrame implements RadiusControl,
         menuItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                EditLayerDialog<Bo2Layer> dialog = new EditLayerDialog(App.this, Bo2Layer.class, dimension, view.getColourScheme());
+                EditLayerDialog<Bo2Layer> dialog = new EditLayerDialog(App.this, Bo2Layer.class, dimension, selectedColourScheme, world.isExtendedBlockIds());
                 dialog.setVisible(true);
                 if (! dialog.isCancelled()) {
                     Bo2Layer layer = dialog.getLayer();
@@ -2358,10 +2357,10 @@ public final class App extends JFrame implements RadiusControl,
         menuItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                GroundCoverDialog dialog = new GroundCoverDialog(App.this, MixedMaterial.create(BLK_ROSE), selectedColourScheme, world.isExtendedBlockIds());
+                EditLayerDialog<GroundCoverLayer> dialog = new EditLayerDialog(App.this, GroundCoverLayer.class, dimension, selectedColourScheme, world.isExtendedBlockIds());
                 dialog.setVisible(true);
                 if (! dialog.isCancelled()) {
-                    GroundCoverLayer layer = dialog.getSelectedLayer();
+                    GroundCoverLayer layer = dialog.getLayer();
                     if (paletteName != null) {
                         layer.setPalette(paletteName);
                     }
@@ -2855,9 +2854,9 @@ public final class App extends JFrame implements RadiusControl,
                 int previousColour = layer.getColour();
                 WorldPainterDialog dialog;
                 if (layer instanceof Bo2Layer) {
-                    dialog = new EditLayerDialog<Bo2Layer>(App.this, (Bo2Layer) layer, dimension, selectedColourScheme);
+                    dialog = new EditLayerDialog<Bo2Layer>(App.this, (Bo2Layer) layer, dimension, selectedColourScheme, world.isExtendedBlockIds());
                 } else if (layer instanceof GroundCoverLayer) {
-                    dialog = new GroundCoverDialog(App.this, (GroundCoverLayer) layer, selectedColourScheme, world.isExtendedBlockIds());
+                    dialog = new EditLayerDialog(App.this, (GroundCoverLayer) layer, dimension, selectedColourScheme, world.isExtendedBlockIds());
                 } else if (layer instanceof UndergroundPocketsLayer) {
                     dialog = new UndergroundPocketsDialog(App.this, (UndergroundPocketsLayer) layer, selectedColourScheme, dimension.getMaxHeight(), world.isExtendedBlockIds());
                 } else if (layer instanceof CombinedLayer) {

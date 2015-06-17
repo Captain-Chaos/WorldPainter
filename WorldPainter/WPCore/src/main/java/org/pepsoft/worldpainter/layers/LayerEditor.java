@@ -7,6 +7,7 @@
 package org.pepsoft.worldpainter.layers;
 
 import javax.swing.JComponent;
+import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 
 /**
@@ -85,27 +86,37 @@ public interface LayerEditor<L extends Layer> {
     boolean isCommitAvailable();
     
     /**
-     * Register a listener for <code>LayerEditor</code> events.
+     * Set the context from which the layer editor must obtains its context
+     * information and to which it must report events.
      *
-     * @param listener The listener to add.
+     * @param context The context to set.
      */
-    void addListener(LayerEditorListener listener);
-    
-    /**
-     * Unregister a listener for <code>LayerEditor</code> events.
-     *
-     * @param listener The listener to unregister.
-     */
-    void removeListener(LayerEditorListener listener);
+    void setContext(LayerEditorContext context);
 
     /**
-     * A listener to <code>LayerEditor</code> events.
+     * A context from which the layer editor may obtain context information and
+     * to which it may report events.
      */
-    public interface LayerEditorListener {
+    public interface LayerEditorContext {
         /**
-         * Invoked whenever the settings on the layer editor component have
-         * changed, for instance because a new layer has been loaded, the user
-         * has made a change, or the settings have been reset.
+         * Get the current colour scheme.
+         * 
+         * @return The current colour scheme.
+         */
+        ColourScheme getColourScheme();
+
+        /**
+         * Indicates whether to support extended (12-bit) block IDs.
+         * 
+         * @return <code>true</code> if extended block IDs must be supported.
+         */
+        boolean isExtendedBlockIds();
+        
+        /**
+         * The layer editor must invoke this whenever the settings on the layer
+         * editor component have changed, for instance because a new layer has
+         * been loaded, the user has made a change, or the settings have been
+         * reset.
          */
         void settingsChanged();
     }
