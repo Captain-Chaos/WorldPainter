@@ -30,11 +30,9 @@ import org.pepsoft.worldpainter.colourschemes.DynMapColourScheme;
 import org.pepsoft.worldpainter.gardenofeden.GardenOfEdenOperation;
 import org.pepsoft.worldpainter.importing.MapImportDialog;
 import org.pepsoft.worldpainter.layers.*;
-import org.pepsoft.worldpainter.layers.combined.CombinedLayerDialog;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter.ResourcesExporterSettings;
 import org.pepsoft.worldpainter.layers.groundcover.GroundCoverLayer;
-import org.pepsoft.worldpainter.layers.plants.PlantDialog;
 import org.pepsoft.worldpainter.layers.plants.PlantLayer;
 import org.pepsoft.worldpainter.layers.pockets.UndergroundPocketsDialog;
 import org.pepsoft.worldpainter.layers.pockets.UndergroundPocketsLayer;
@@ -2340,7 +2338,7 @@ public final class App extends JFrame implements RadiusControl,
         menuItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                EditLayerDialog<Bo2Layer> dialog = new EditLayerDialog(App.this, Bo2Layer.class, dimension, selectedColourScheme, world.isExtendedBlockIds());
+                EditLayerDialog<Bo2Layer> dialog = new EditLayerDialog(App.this, Bo2Layer.class);
                 dialog.setVisible(true);
                 if (! dialog.isCancelled()) {
                     Bo2Layer layer = dialog.getLayer();
@@ -2357,7 +2355,7 @@ public final class App extends JFrame implements RadiusControl,
         menuItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                EditLayerDialog<GroundCoverLayer> dialog = new EditLayerDialog(App.this, GroundCoverLayer.class, dimension, selectedColourScheme, world.isExtendedBlockIds());
+                EditLayerDialog<GroundCoverLayer> dialog = new EditLayerDialog(App.this, GroundCoverLayer.class);
                 dialog.setVisible(true);
                 if (! dialog.isCancelled()) {
                     GroundCoverLayer layer = dialog.getLayer();
@@ -2418,10 +2416,10 @@ public final class App extends JFrame implements RadiusControl,
         menuItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                final PlantLayer layer = new PlantLayer("Plants", "A custom collection of plants", Color.GREEN.getRGB());
-                PlantDialog dialog = new PlantDialog(App.this, layer);
+                EditLayerDialog<PlantLayer> dialog = new EditLayerDialog<PlantLayer>(App.this, PlantLayer.class);
                 dialog.setVisible(true);
                 if (! dialog.isCancelled()) {
+                    PlantLayer layer = dialog.getLayer();
                     if (paletteName != null) {
                         layer.setPalette(paletteName);
                     }
@@ -2435,11 +2433,11 @@ public final class App extends JFrame implements RadiusControl,
         menuItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                CombinedLayer layer = new CombinedLayer("Combined", "A combined layer", Color.ORANGE.getRGB());
-                CombinedLayerDialog dialog = new CombinedLayerDialog(App.this, autoBiomeScheme, selectedColourScheme, customBiomeManager, layer, new ArrayList<Layer>(getAllLayers()));
+                EditLayerDialog<CombinedLayer> dialog = new EditLayerDialog<CombinedLayer>(App.this, CombinedLayer.class);
                 dialog.setVisible(true);
                 if (! dialog.isCancelled()) {
                     // TODO: get saved layer
+                    CombinedLayer layer = dialog.getLayer();
                     if (paletteName != null) {
                         layer.setPalette(paletteName);
                     }
@@ -2853,14 +2851,10 @@ public final class App extends JFrame implements RadiusControl,
             private void edit() {
                 int previousColour = layer.getColour();
                 WorldPainterDialog dialog;
-                if (layer instanceof Bo2Layer) {
-                    dialog = new EditLayerDialog<Bo2Layer>(App.this, (Bo2Layer) layer, dimension, selectedColourScheme, world.isExtendedBlockIds());
-                } else if (layer instanceof GroundCoverLayer) {
-                    dialog = new EditLayerDialog(App.this, (GroundCoverLayer) layer, dimension, selectedColourScheme, world.isExtendedBlockIds());
+                if ((layer instanceof Bo2Layer) || (layer instanceof GroundCoverLayer) || (layer instanceof CombinedLayer) || (layer instanceof PlantLayer)) {
+                    dialog = new EditLayerDialog<Layer>(App.this, layer);
                 } else if (layer instanceof UndergroundPocketsLayer) {
                     dialog = new UndergroundPocketsDialog(App.this, (UndergroundPocketsLayer) layer, selectedColourScheme, dimension.getMaxHeight(), world.isExtendedBlockIds());
-                } else if (layer instanceof CombinedLayer) {
-                    dialog = new CombinedLayerDialog(App.this, autoBiomeScheme, selectedColourScheme, customBiomeManager, (CombinedLayer) layer, new ArrayList<Layer>(getAllLayers()));
                 } else if (layer instanceof TunnelLayer) {
                     final int baseHeight, waterLevel;
                     final TileFactory tileFactory = dimension.getTileFactory();
@@ -2872,8 +2866,6 @@ public final class App extends JFrame implements RadiusControl,
                         waterLevel = 62;
                     }
                     dialog = new TunnelLayerDialog(App.this, (TunnelLayer) layer, world.isExtendedBlockIds(), selectedColourScheme, dimension.getMaxHeight(), baseHeight, waterLevel);
-                } else if (layer instanceof PlantLayer) {
-                    dialog = new PlantDialog(App.this, (PlantLayer) layer);
                 } else {
                     throw new RuntimeException("Don't know how to edit " + layer.getName());
                 }

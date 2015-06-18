@@ -6,8 +6,10 @@
 
 package org.pepsoft.worldpainter.layers;
 
+import java.util.List;
 import javax.swing.JComponent;
 import org.pepsoft.worldpainter.ColourScheme;
+import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 
 /**
@@ -111,6 +113,20 @@ public interface LayerEditor<L extends Layer> {
          * @return <code>true</code> if extended block IDs must be supported.
          */
         boolean isExtendedBlockIds();
+        
+        /**
+         * Get the current custom biome manager.
+         * 
+         * @return The current custom biome manager.
+         */
+        CustomBiomeManager getCustomBiomeManager();
+        
+        /**
+         * Get a list with all currently available layers.
+         * 
+         * @return A list with all currently available layers.
+         */
+        List<Layer> getAllLayers();
         
         /**
          * The layer editor must invoke this whenever the settings on the layer

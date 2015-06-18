@@ -29,7 +29,9 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -53,8 +55,6 @@ public class LayerPreviewCreator {
                 : TileFactoryFactory.createNoiseTileFactory(seed, Terrain.BARE_GRASS, previewHeight, 8, 14, false, true, 20f, 0.5);
         Dimension dimension = new Dimension(seed, tileFactory, DIM_NORMAL, previewHeight);
         dimension.setSubsurfaceMaterial(Terrain.STONE);
-        Tile tile = tileFactory.createTile(0, 0);
-        dimension.addTile(tile);
         MinecraftWorldObject minecraftWorldObject = new MinecraftWorldObject(layer.getName() + " Preview", new Box(-8, 136, -8, 136, 0, previewHeight), previewHeight, null, new Point3i(-64, -64, 0));
         long now = System.currentTimeMillis();
         if (logger.isLoggable(Level.FINE)) {
@@ -63,13 +63,14 @@ public class LayerPreviewCreator {
 
         // Phase two: apply layer to dimension
         timestamp = now;
+        Tile tile = tileFactory.createTile(0, 0);
         switch (layer.getDataSize()) {
             case BIT:
                 Random random = new Random(seed);
                 for (int x = 0; x < 128; x++) {
                     for (int y = 0; y < 128; y++) {
                         if (random.nextFloat() < pattern.getStrength(x, y)) {
-                            dimension.setBitLayerValueAt(layer, x, y, true);
+                            tile.setBitLayerValue(layer, x, y, true);
                         }
                     }
                 }
@@ -79,7 +80,7 @@ public class LayerPreviewCreator {
                 for (int x = 0; x < 128; x += 16) {
                     for (int y = 0; y < 128; y += 16) {
                         if (random.nextFloat() < pattern.getStrength(x, y)) {
-                            dimension.setBitLayerValueAt(layer, x, y, true);
+                            tile.setBitLayerValue(layer, x, y, true);
                         }
                     }
                 }
@@ -87,23 +88,63 @@ public class LayerPreviewCreator {
             case BYTE:
                 for (int x = 0; x < 128; x++) {
                     for (int y = 0; y < 128; y++) {
-                        dimension.setLayerValueAt(layer, x, y, Math.min((int) (pattern.getStrength(x, y) * 256), 255));
+                        tile.setLayerValue(layer, x, y, Math.min((int) (pattern.getStrength(x, y) * 256), 255));
                     }
                 }
                 break;
             case NIBBLE:
-                for (int x = 0; x < 128; x++) {
-                    for (int y = 0; y < 128; y++) {
-                        dimension.setLayerValueAt(layer, x, y, Math.min((int) (pattern.getStrength(x, y) * 16), 15));
+                // If it's a CombinedLayer, also apply the terrain and biome, if
+                // any
+                if (layer instanceof CombinedLayer) {
+                    final Terrain terrain = ((CombinedLayer) layer).getTerrain();
+                    final int biome = ((CombinedLayer) layer).getBiome();
+                    final boolean terrainConfigured = terrain != null;
+                    final boolean biomeConfigured = biome != -1;
+                    for (int x = 0; x < 128; x++) {
+                        for (int y = 0; y < 128; y++) {
+                            float strength = pattern.getStrength(x, y);
+                            tile.setLayerValue(layer, x, y, Math.min((int) (strength * 16), 15));
+                            // Double the strength so that 50% intensity results
+                            // in full coverage for terrain and biome, which is
+                            // inaccurate but probably more closely resembles
+                            // practical usage
+                            strength = Math.min(strength * 2, 1.0f);
+                            if (terrainConfigured && ((strength > 0.95f) || (Math.random() < strength))) {
+                                tile.setTerrain(x, y, terrain);
+                            }
+                            if (biomeConfigured && ((strength > 0.95f) || (Math.random() < strength))) {
+                                tile.setLayerValue(Biome.INSTANCE, x, y, biome);
+                            }
+                        }
+                    }
+                } else {
+                    for (int x = 0; x < 128; x++) {
+                        for (int y = 0; y < 128; y++) {
+                            tile.setLayerValue(layer, x, y, Math.min((int) (pattern.getStrength(x, y) * 16), 15));
+                        }
                     }
                 }
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported data size " + layer.getDataSize() + " encountered");
         }
+        // If the layer is a combined layers, apply it recursively
+        if (layer instanceof CombinedLayer) {
+            Set<Layer> addedLayers = ((CombinedLayer) layer).apply(tile);
+            while (! addedLayers.isEmpty()) {
+                Set<Layer> newlyAddedLayers = new HashSet<Layer>();
+                for (Layer layer: addedLayers) {
+                    if (layer instanceof CombinedLayer) {
+                        newlyAddedLayers.addAll(((CombinedLayer) layer).apply(tile));
+                    }
+                }
+                addedLayers = newlyAddedLayers;
+            }
+        }
+        dimension.addTile(tile);
         now = System.currentTimeMillis();
         if (logger.isLoggable(Level.FINE)) {
-            logger.fine("Painting layer values took " + (now - timestamp) + " ms");
+            logger.fine("Applying layer(s) took " + (now - timestamp) + " ms");
         }
 
         LayerExporter<Layer> exporter = layer.getExporter();

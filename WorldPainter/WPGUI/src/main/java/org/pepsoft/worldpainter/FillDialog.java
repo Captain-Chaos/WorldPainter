@@ -51,7 +51,7 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
         initComponents();
         
         comboBoxBiome.setModel(new DefaultComboBoxModel(biomes));
-        comboBoxBiome.setRenderer(new BiomeListCellRenderer(new AutoBiomeScheme(null), colourScheme, customBiomeManager));
+        comboBoxBiome.setRenderer(new BiomeListCellRenderer(colourScheme, customBiomeManager));
         
         comboBoxSetLayer.setModel(new DefaultComboBoxModel(layers));
         comboBoxSetLayer.setRenderer(new LayerListCellRenderer());

@@ -15,13 +15,13 @@ import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
  * @author pepijn
  */
 public class BiomeListCellRenderer extends DefaultListCellRenderer {
-    public BiomeListCellRenderer(BiomeScheme biomeScheme, ColourScheme colourScheme, CustomBiomeManager customBiomeManager) {
-        this(biomeScheme, colourScheme, customBiomeManager, " ");
+    public BiomeListCellRenderer(ColourScheme colourScheme, CustomBiomeManager customBiomeManager) {
+        this(colourScheme, customBiomeManager, " ");
     }
     
-    public BiomeListCellRenderer(BiomeScheme biomeScheme, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, String nullLabel) {
+    public BiomeListCellRenderer(ColourScheme colourScheme, CustomBiomeManager customBiomeManager, String nullLabel) {
         this.nullLabel = nullLabel;
-        biomeHelper = new BiomeHelper(biomeScheme, colourScheme, customBiomeManager);
+        biomeHelper = new BiomeHelper(null, colourScheme, customBiomeManager);
     }
     
     @Override

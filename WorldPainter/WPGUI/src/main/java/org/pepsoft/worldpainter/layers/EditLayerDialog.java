@@ -7,18 +7,20 @@
 package org.pepsoft.worldpainter.layers;
 
 import java.awt.BorderLayout;
-import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import org.pepsoft.worldpainter.App;
 import org.pepsoft.worldpainter.ColourScheme;
-import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.WorldPainterDialog;
+import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.objects.MinecraftWorldObject;
 
@@ -32,29 +34,25 @@ public class EditLayerDialog<L extends Layer> extends WorldPainterDialog impleme
      * Creates new form EditLayerDialog for creating a new instance of a
      * specific layer type.
      * 
-     * @param parent The parent window for the modal dialog.
+     * @param app The <code>App</code> instance from which to get context information.
      * @param layerType The type of layer of which to create a new instance.
-     * @param dimension The dimension to use for creating previews.
-     * @param colourScheme The colour scheme to use for creating previews.
      */
-    public EditLayerDialog(Window parent, Class<L> layerType, Dimension dimension, ColourScheme colourScheme, boolean extendedBlockIds) {
-        this(parent, null, LayerEditorManager.getInstance().createEditor(layerType), dimension, colourScheme, extendedBlockIds);
+    public EditLayerDialog(App app, Class<L> layerType) {
+        this(app, null, LayerEditorManager.getInstance().createEditor(layerType));
     }
     
     /**
      * Creates new form EditLayerDialog for editing an existing layer.
      * 
-     * @param parent The parent window for the modal dialog.
+     * @param app The <code>App</code> instance from which to get context information.
      * @param layer The layer to edit..
-     * @param dimension The dimension to use for creating previews.
-     * @param colourScheme The colour scheme to use for creating previews.
      */
-    public EditLayerDialog(Window parent, L layer, Dimension dimension, ColourScheme colourScheme, boolean extendedBlockIds) {
-        this(parent, layer, LayerEditorManager.getInstance().createEditor((Class<L>) layer.getClass()), dimension, colourScheme, extendedBlockIds);
+    public EditLayerDialog(App app, L layer) {
+        this(app, layer, LayerEditorManager.getInstance().createEditor((Class<L>) layer.getClass()));
     }
 
-    private EditLayerDialog(Window parent, L layer, LayerEditor<L> editor, Dimension dimension, ColourScheme colourScheme, boolean extendedBlockIds) {
-        super(parent);
+    private EditLayerDialog(App app, L layer, LayerEditor<L> editor) {
+        super(app);
         if (editor == null) {
             throw new IllegalArgumentException("No editor available for layer type" + ((layer != null) ? layer.getClass() : ""));
         }
@@ -62,9 +60,8 @@ public class EditLayerDialog<L extends Layer> extends WorldPainterDialog impleme
         if (layer == null) {
             layer = editor.createLayer();
         }
-        previewCreator = LayerPreviewCreator.createPreviewerForLayer(layer, dimension);
-        this.colourScheme = colourScheme;
-        this.extendedBlockIds = extendedBlockIds;
+        previewCreator = LayerPreviewCreator.createPreviewerForLayer(layer, app.getDimension());
+        this.app = app;
 
         initComponents();
         if (! (layer instanceof CustomLayer)) {
@@ -98,7 +95,7 @@ public class EditLayerDialog<L extends Layer> extends WorldPainterDialog impleme
         });
 
         pack();
-        setLocationRelativeTo(parent);
+        setLocationRelativeTo(app);
     }
 
     public L getLayer() {
@@ -120,12 +117,22 @@ public class EditLayerDialog<L extends Layer> extends WorldPainterDialog impleme
 
     @Override
     public ColourScheme getColourScheme() {
-        return colourScheme;
+        return app.getColourScheme();
     }
 
     @Override
     public boolean isExtendedBlockIds() {
-        return extendedBlockIds;
+        return app.getWorld().isExtendedBlockIds();
+    }
+
+    @Override
+    public CustomBiomeManager getCustomBiomeManager() {
+        return app.getCustomBiomeManager();
+    }
+
+    @Override
+    public List<Layer> getAllLayers() {
+        return new ArrayList<Layer>(app.getAllLayers());
     }
 
     // ActionListener
@@ -331,8 +338,7 @@ renderLoop:                 do {
     private final LayerEditor<L> editor;
     private final Timer previewTimer = new Timer(1000, this);
     private final LayerPreviewCreator previewCreator;
-    private final ColourScheme colourScheme;
-    private final boolean extendedBlockIds;
+    private final App app;
     private PreviewRenderState previewRenderState = PreviewRenderState.IDLE;
     
     /**

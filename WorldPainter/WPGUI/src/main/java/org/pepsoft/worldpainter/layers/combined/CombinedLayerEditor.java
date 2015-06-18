@@ -1,10 +1,12 @@
 /*
- * To change this template, choose Tools | Templates
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+
 package org.pepsoft.worldpainter.layers.combined;
 
-import java.awt.Window;
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.DefaultCellEditor;
@@ -12,48 +14,85 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableColumn;
 import org.pepsoft.worldpainter.BiomeListCellRenderer;
-import org.pepsoft.worldpainter.BiomeScheme;
 import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.LayerListCellRenderer;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiome;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
+import org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes;
+import org.pepsoft.worldpainter.layers.AbstractLayerEditor;
 import org.pepsoft.worldpainter.layers.CombinedLayer;
-import org.pepsoft.worldpainter.layers.CustomLayerDialog;
 import org.pepsoft.worldpainter.layers.Layer;
-import static org.pepsoft.worldpainter.layers.combined.CombinedLayerTableModel.*;
+import static org.pepsoft.worldpainter.layers.combined.CombinedLayerTableModel.COLUMN_FACTOR;
+import static org.pepsoft.worldpainter.layers.combined.CombinedLayerTableModel.COLUMN_LAYER;
+import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.themes.JSpinnerTableCellEditor;
 import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
 
 /**
  *
- * @author pepijn
+ * @author Pepijn Schmitz
  */
-public class CombinedLayerDialog extends CustomLayerDialog<CombinedLayer> {
+public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> {
     /**
-     * Creates new form CombinedLayerDialog
+     * Creates new form CombinedLayerEditor
      */
-    public CombinedLayerDialog(Window parent, BiomeScheme biomeScheme, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, CombinedLayer layer, List<Layer> allLayers) {
-        super(parent);
-        this.layer = layer;
-        this.biomeScheme = biomeScheme;
-        this.colourScheme = colourScheme;
-        this.allLayers = allLayers;
-        this.customBiomeManager = customBiomeManager;
-        
+    public CombinedLayerEditor() {
         initComponents();
-        
+
+        fieldName.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                settingsChanged();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                settingsChanged();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                settingsChanged();
+            }
+        });
+    }
+
+    // LayerEditor
+    
+    @Override
+    public CombinedLayer createLayer() {
+        return new CombinedLayer("My Combined Layer", "A combined layer", Color.ORANGE.getRGB());
+    }
+
+    @Override
+    public void setLayer(CombinedLayer layer) {
+        super.setLayer(layer);
+        reset();
+    }
+
+    @Override
+    public void commit() {
+        if (! isCommitAvailable()) {
+            throw new IllegalStateException("Settings invalid or incomplete");
+        }
+        saveSettings(layer);
+    }
+
+    @Override
+    public void reset() {
         tableModel = new CombinedLayerTableModel(layer.getLayers(), layer.getFactors());
         tableModel.addTableModelListener(new TableModelListener() {
             @Override
             public void tableChanged(TableModelEvent e) {
-                setControlStates();
+                settingsChanged();
             }
         });
         configureTable();
@@ -61,30 +100,51 @@ public class CombinedLayerDialog extends CustomLayerDialog<CombinedLayer> {
         comboBoxTerrain.setSelectedItem(layer.getTerrain());
 
         fieldName.setText(layer.getName());
-        fieldName.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                setControlStates();
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                setControlStates();
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-                setControlStates();
-            }
-        });
 
         colourEditor1.setColour(layer.getColour());
         
+        comboBoxBiome.setSelectedItem(layer.getBiome());
+        
+        settingsChanged();
+    }
+
+    @Override
+    public ExporterSettings<CombinedLayer> getSettings() {
+        if (! isCommitAvailable()) {
+            throw new IllegalStateException("Settings invalid or incomplete");
+        }
+        final CombinedLayer previewLayer = saveSettings(null);
+        return new ExporterSettings<CombinedLayer>() {
+            @Override
+            public boolean isApplyEverywhere() {
+                return false;
+            }
+
+            @Override
+            public CombinedLayer getLayer() {
+                return previewLayer;
+            }
+
+            @Override
+            public ExporterSettings<CombinedLayer> clone() {
+                throw new UnsupportedOperationException("Not supported");
+            }
+        };
+    }
+
+    @Override
+    public void setContext(LayerEditorContext context) {
+        super.setContext(context);
+        
+        CustomBiomeManager customBiomeManager = context.getCustomBiomeManager();
+        ColourScheme colourScheme = context.getColourScheme();
+        comboBoxTerrain.setRenderer(new TerrainListCellRenderer(colourScheme, "none"));
+        comboBoxBiome.setRenderer(new BiomeListCellRenderer(colourScheme, customBiomeManager, "none"));
+        
         List<Integer> allBiomes = new ArrayList<Integer>();
         allBiomes.add(-1);
-        int biomeCount = biomeScheme.getBiomeCount();
-        for (int i = 0; i < biomeCount; i++) {
-            if (biomeScheme.isBiomePresent(i)) {
+        for (int i = 0; i < Minecraft1_7Biomes.BIOME_NAMES.length; i++) {
+            if (Minecraft1_7Biomes.BIOME_NAMES[i] != null) {
                 allBiomes.add(i);
             }
         }
@@ -95,40 +155,50 @@ public class CombinedLayerDialog extends CustomLayerDialog<CombinedLayer> {
             }
         }
         comboBoxBiome.setModel(new DefaultComboBoxModel(allBiomes.toArray()));
-        comboBoxBiome.setSelectedItem(layer.getBiome());
         
-        rootPane.setDefaultButton(buttonOK);
-        pack();
-        setLocationRelativeTo(parent);
-        
-        setControlStates();
+        allLayers = context.getAllLayers();
     }
 
     @Override
-    public CombinedLayer getSelectedLayer() {
-        return layer;
+    public boolean isCommitAvailable() {
+        boolean terrainSelected = comboBoxTerrain.getSelectedItem() != null;
+        boolean biomeSelected = (comboBoxBiome.getSelectedItem() != null) && ((Integer) comboBoxBiome.getSelectedItem() != -1);
+        int layersSelected = tableModel.getRowCount();
+        boolean nameEntered = ! fieldName.getText().trim().isEmpty();
+        return nameEntered
+            && ((terrainSelected && biomeSelected)
+                || ((terrainSelected || biomeSelected) && (layersSelected > 0))
+                || (layersSelected > 1));
     }
 
     private void addLayer() {
         List<Layer> availableLayers = new ArrayList<Layer>(allLayers.size());
-        for (Layer layer: allLayers) {
-            if ((! layer.equals(this.layer)) && (! tableModel.contains(layer))) {
-                availableLayers.add(layer);
+        for (Layer availableLayer: allLayers) {
+            if ((! availableLayer.equals(layer)) && (! tableModel.contains(availableLayer))) {
+                availableLayers.add(availableLayer);
             }
         }
-        AddLayerDialog dialog = new AddLayerDialog(this, availableLayers);
+        AddLayerDialog dialog = new AddLayerDialog(SwingUtilities.getWindowAncestor(this), availableLayers);
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
-            tableModel.addRow(new Row(dialog.getSelectedLayer(), dialog.getSelectedFactor(), dialog.isHiddenSelected()));
+            tableModel.addRow(new CombinedLayerTableModel.Row(dialog.getSelectedLayer(), dialog.getSelectedFactor(), dialog.isHiddenSelected()));
         }
     }
     
-    private void saveSettings() {
+    private void settingsChanged() {
+        context.settingsChanged();
+    }
+    
+    private CombinedLayer saveSettings(CombinedLayer layer) {
+        if (layer == null) {
+            layer = createLayer();
+        }
         layer.setName(fieldName.getText().trim());
         layer.setBiome((Integer) comboBoxBiome.getSelectedItem());
         layer.setTerrain((Terrain) comboBoxTerrain.getSelectedItem());
         tableModel.saveSettings(layer);
         layer.setColour(colourEditor1.getColour());
+        return layer;
     }
 
     private void configureTable() {
@@ -140,17 +210,6 @@ public class CombinedLayerDialog extends CustomLayerDialog<CombinedLayer> {
         layerColumn.setCellRenderer(new LayerTableCellRenderer());
         SpinnerModel factorSpinnerModel = new SpinnerNumberModel(100, 1, 1500, 1);
         tableLayers.getColumnModel().getColumn(COLUMN_FACTOR).setCellEditor(new JSpinnerTableCellEditor(factorSpinnerModel));
-    }
-
-    private void setControlStates() {
-        boolean terrainSelected = comboBoxTerrain.getSelectedItem() != null;
-        boolean biomeSelected = (comboBoxBiome.getSelectedItem() != null) && ((Integer) comboBoxBiome.getSelectedItem() != -1);
-        int layersSelected = tableModel.getRowCount();
-        boolean nameEntered = ! fieldName.getText().trim().isEmpty();
-        buttonOK.setEnabled(nameEntered
-            && ((terrainSelected && biomeSelected)
-                || ((terrainSelected || biomeSelected) && (layersSelected > 0))
-                || (layersSelected > 1)));
     }
 
     /**
@@ -175,18 +234,12 @@ public class CombinedLayerDialog extends CustomLayerDialog<CombinedLayer> {
         fieldName = new javax.swing.JTextField();
         jLabel6 = new javax.swing.JLabel();
         colourEditor1 = new org.pepsoft.worldpainter.ColourEditor();
-        buttonCancel = new javax.swing.JButton();
-        buttonOK = new javax.swing.JButton();
-
-        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("Configure Combined Layer");
 
         jLabel1.setText("Configure your combined layer on this screen.");
 
         jLabel2.setText("Terrain:");
 
         comboBoxTerrain.setModel(new DefaultComboBoxModel(Terrain.getConfiguredValues()));
-        comboBoxTerrain.setRenderer(new TerrainListCellRenderer(colourScheme, "none"));
         comboBoxTerrain.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 comboBoxTerrainActionPerformed(evt);
@@ -195,7 +248,6 @@ public class CombinedLayerDialog extends CustomLayerDialog<CombinedLayer> {
 
         jLabel3.setText("Biome:");
 
-        comboBoxBiome.setRenderer(new BiomeListCellRenderer(biomeScheme, colourScheme, customBiomeManager, "none"));
         comboBoxBiome.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 comboBoxBiomeActionPerformed(evt);
@@ -219,63 +271,36 @@ public class CombinedLayerDialog extends CustomLayerDialog<CombinedLayer> {
 
         jLabel6.setText("Colour:");
 
-        buttonCancel.setText("Cancel");
-        buttonCancel.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonCancelActionPerformed(evt);
-            }
-        });
-
-        buttonOK.setText("OK");
-        buttonOK.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonOKActionPerformed(evt);
-            }
-        });
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+        this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+            .addComponent(jLabel1)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel1)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel2)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(comboBoxTerrain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel3)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(comboBoxBiome, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(jLabel4)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel5)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(fieldName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel6)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(colourEditor1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addComponent(buttonOK)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(buttonCancel))
-                            .addComponent(buttonAddLayer, javax.swing.GroupLayout.Alignment.TRAILING))))
-                .addContainerGap())
+                .addComponent(jLabel2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(comboBoxTerrain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jLabel3)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(comboBoxBiome, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addComponent(jLabel4)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jLabel5)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(fieldName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jLabel6)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(colourEditor1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(buttonAddLayer))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
                 .addComponent(jLabel1)
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -288,7 +313,7 @@ public class CombinedLayerDialog extends CustomLayerDialog<CombinedLayer> {
                 .addGap(18, 18, 18)
                 .addComponent(jLabel4)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 126, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 26, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(buttonAddLayer)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -298,45 +323,25 @@ public class CombinedLayerDialog extends CustomLayerDialog<CombinedLayer> {
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel6)
-                    .addComponent(colourEditor1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(buttonCancel)
-                    .addComponent(buttonOK))
-                .addContainerGap())
+                    .addComponent(colourEditor1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
         );
-
-        pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void comboBoxTerrainActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxTerrainActionPerformed
+        settingsChanged();
+    }//GEN-LAST:event_comboBoxTerrainActionPerformed
+
+    private void comboBoxBiomeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxBiomeActionPerformed
+        settingsChanged();
+    }//GEN-LAST:event_comboBoxBiomeActionPerformed
 
     private void buttonAddLayerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonAddLayerActionPerformed
         addLayer();
     }//GEN-LAST:event_buttonAddLayerActionPerformed
 
-    private void buttonCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCancelActionPerformed
-        cancel();
-    }//GEN-LAST:event_buttonCancelActionPerformed
-
-    private void buttonOKActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonOKActionPerformed
-        if (tableLayers.isEditing()) {
-            tableLayers.getCellEditor().stopCellEditing();
-        }
-        saveSettings();
-        ok();
-    }//GEN-LAST:event_buttonOKActionPerformed
-
-    private void comboBoxTerrainActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxTerrainActionPerformed
-        setControlStates();
-    }//GEN-LAST:event_comboBoxTerrainActionPerformed
-
-    private void comboBoxBiomeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxBiomeActionPerformed
-        setControlStates();
-    }//GEN-LAST:event_comboBoxBiomeActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonAddLayer;
-    private javax.swing.JButton buttonCancel;
-    private javax.swing.JButton buttonOK;
     private org.pepsoft.worldpainter.ColourEditor colourEditor1;
     private javax.swing.JComboBox comboBoxBiome;
     private javax.swing.JComboBox comboBoxTerrain;
@@ -351,12 +356,8 @@ public class CombinedLayerDialog extends CustomLayerDialog<CombinedLayer> {
     private javax.swing.JTable tableLayers;
     // End of variables declaration//GEN-END:variables
 
-    private final CombinedLayer layer;
-    private final ColourScheme colourScheme;
-    private final BiomeScheme biomeScheme;
-    private final CombinedLayerTableModel tableModel;
-    private final List<Layer> allLayers;
-    private final CustomBiomeManager customBiomeManager;
+    private CombinedLayerTableModel tableModel;
+    private List<Layer> allLayers;
 
     private static final long serialVersionUID = 1L;
 }
