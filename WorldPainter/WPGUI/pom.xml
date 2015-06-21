@@ -17,14 +17,8 @@
         </dependency>
         <dependency>
             <groupId>org.pepsoft.worldpainter</groupId>
-            <artifactId>DynMapPreviewer</artifactId>
-            <version>2.0.0-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.eclipse.jetty</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
+            <artifactId>WPDynmapPreviewer</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
