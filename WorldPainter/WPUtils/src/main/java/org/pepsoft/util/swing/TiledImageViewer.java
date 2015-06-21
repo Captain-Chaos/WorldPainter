@@ -47,6 +47,9 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
     
     @SuppressWarnings("LeakingThisInConstructor")
     public TiledImageViewer(boolean leftClickDrags, int threads, boolean paintCentre) {
+        if (threads < 1) {
+            throw new IllegalArgumentException("threads < 1");
+        }
         this.leftClickDrags = leftClickDrags;
         this.threads = threads;
         this.paintCentre = paintCentre;
