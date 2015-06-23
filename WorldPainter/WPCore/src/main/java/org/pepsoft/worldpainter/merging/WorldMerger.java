@@ -957,7 +957,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                             DataInputStream chunkData = regionFile.getChunkDataInputStream(chunkXInRegion, chunkYInRegion);
                             if (chunkData == null) {
                                 // This should never happen, since we checked with
-                                // containsChunk(), but in practice it does. Perhaps
+                                // isChunkPresent(), but in practice it does. Perhaps
                                 // corrupted data?
                                 reportBuilder.append("Missing chunk data in existing map for chunk " + chunkXInRegion + ", " + chunkYInRegion + " in " + regionFile + "; skipping chunk" + EOL);
                                 logger.warning("Missing chunk data in existing map for chunk " + chunkXInRegion + ", " + chunkYInRegion + " in " + regionFile + "; skipping chunk");
@@ -1178,7 +1178,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                             InputStream chunkData = regionFile.getChunkDataInputStream(chunkXInRegion, chunkYInRegion);
                             if (chunkData == null) {
                                 // This should never happen, since we checked
-                                // with containsChunk(), but in practice it
+                                // with isChunkPresent(), but in practice it
                                 // does. Perhaps corrupted data?
                                 reportBuilder.append("Missing chunk data for chunk " + chunkXInRegion + ", " + chunkYInRegion + " in " + regionFile + "; skipping chunk" + EOL);
                                 logger.warning("Missing chunk data for chunk " + chunkXInRegion + ", " + chunkYInRegion + " in " + regionFile + "; skipping chunk");

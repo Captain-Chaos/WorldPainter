@@ -237,7 +237,25 @@ public class MinecraftWorldImpl implements MinecraftWorld {
             chunk.setSkyLightLevel(x & 0xf, height, y & 0xf, skyLightLevel);
         }
     }
-    
+
+    @Override
+    public boolean isChunkPresent(int x, int z) {
+        if ((x == cachedX) && (z == cachedZ)) {
+            return true;
+        }
+        Chunk chunk = cache.get(new Point(x, z));
+        if (chunk == null) {
+            try {
+                RegionFile regionFile = getRegionFile(new Point(x >> 5, z >> 5));
+                return (regionFile != null) && regionFile.containsChunk(x & 31, z & 31);
+            } catch (IOException e) {
+                throw new RuntimeException("I/O error while trying to determine existence of chunk " + x + "," + z, e);
+            }
+        } else {
+            return chunk != NON_EXISTANT_CHUNK;
+        }
+    }
+
     @Override
     public synchronized void addChunk(Chunk chunk) {
         if (readOnly) {
@@ -656,5 +674,6 @@ public class MinecraftWorldImpl implements MinecraftWorld {
         @Override public long getInhabitedTime() {return 0;}
         @Override public void setInhabitedTime(long inhabitedTime) {}
         @Override public int getHighestNonAirBlock(int x, int z) {return 0;}
+        @Override public int getHighestNonAirBlock() {return 0;}
     };
 }

@@ -237,8 +237,9 @@ public class WorldRegion implements MinecraftWorld {
             chunk.setSkyLightLevel(x & 0xf, height, y & 0xf, skyLightLevel);
         }
     }
-    
-    public boolean containsChunk(int x, int z) {
+
+    @Override
+    public boolean isChunkPresent(int x, int z) {
         x -= regionX << 5;
         z -= regionZ << 5;
         if ((x < -1) || (x >= (CHUNKS_PER_SIDE + 1)) || (z < -1) || (z >= (CHUNKS_PER_SIDE + 1))) {

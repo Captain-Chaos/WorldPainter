@@ -151,6 +151,11 @@ public class InvertedWorld implements MinecraftWorld {
     }
 
     @Override
+    public boolean isChunkPresent(int x, int y) {
+        return world.isChunkPresent(x, y);
+    }
+
+    @Override
     public void addChunk(Chunk chunk) {
         throw new UnsupportedOperationException();
     }

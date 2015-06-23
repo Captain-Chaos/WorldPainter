@@ -74,7 +74,27 @@ public interface MinecraftWorld extends ChunkProvider {
      */
     void setSkyLightLevel(int x, int y, int height, int skyLightLevel);
 
+    /**
+     * Determine whether the world contains any data in a particular chunk (a
+     * 16 by 16 block area).
+     *
+     * @param x The X coordinate in chunk coordinates.
+     * @param y The Y coordinate in chunk coordinates.
+     * @return <code>true</code> if data is present for the specified chunk.
+     */
+    boolean isChunkPresent(int x, int y);
+
     void addChunk(Chunk chunk);
 
+    /**
+     * Get the Z coordinate of the highest non-air (block ID zero, any data
+     * value) block in a specific column.
+     *
+     * @param x The X coordinate of the column.
+     * @param y The Y coordinate of the column.
+     * @return The Z coordinate of the highest non-air (block ID zero, any data
+     *     value) block in the specified column or <code>-1</code> if the column
+     *     is empty or no data is present for the specified coordinates.
+     */
     int getHighestNonAirBlock(int x, int y);
 }

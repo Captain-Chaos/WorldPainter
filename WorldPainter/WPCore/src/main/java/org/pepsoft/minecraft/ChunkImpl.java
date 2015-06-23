@@ -262,6 +262,18 @@ public final class ChunkImpl extends AbstractNBTItem implements Chunk {
     }
 
     @Override
+    public int getHighestNonAirBlock() {
+        for (int y = maxHeight - 1; y >= 0; y--) {
+            for (int i = 0; i < blocks.length; i += maxHeight) {
+                if (blocks[i | y] != 0) {
+                    return y;
+                }
+            }
+        }
+        return -1;
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (obj == null) {
             return false;

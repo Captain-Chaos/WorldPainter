@@ -250,6 +250,20 @@ public class InvertedChunk implements Chunk {
     }
 
     @Override
+    public int getHighestNonAirBlock() {
+        for (int y = 0; y <= maxY; y++) {
+            for (int x = 0; x < 16; x++) {
+                for (int z = 0; z < 16; z++) {
+                    if (chunk.getBlockType(x, y, z) != Constants.BLK_AIR) {
+                        return maxY - y;
+                    }
+                }
+            }
+        }
+        return -1;
+    }
+
+    @Override
     public Tag toNBT() {
         throw new UnsupportedOperationException();
     }

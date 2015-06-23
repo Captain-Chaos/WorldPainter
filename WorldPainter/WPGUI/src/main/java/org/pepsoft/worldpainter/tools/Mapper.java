@@ -326,7 +326,7 @@ public class Mapper {
                             for (int chunkY = 0; chunkY < 32; chunkY++) {
                                 int worldChunkX = (regionX << 5) | chunkX;
                                 int worldChunkY = (regionY << 5) | chunkY;
-                                if (world.containsChunk(worldChunkX, worldChunkY)) {
+                                if (world.isChunkPresent(worldChunkX, worldChunkY)) {
                                     for (int x = 0; x < 16; x++) {
                                         for (int y = 0; y < 16; y++) {
                                             int worldX = (worldChunkX << 4) | x;

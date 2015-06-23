@@ -69,5 +69,24 @@ public interface Chunk extends NBTItem {
 
     void setInhabitedTime(long inhabitedTime);
 
+    /**
+     * Get the Y coordinate of the highest non-air (block ID zero, any data
+     * value) block in a specific column.
+     *
+     * @param x The X coordinate of the column relative to the chunk.
+     * @param z The Z coordinate of the column relative to the chunk.
+     * @return The Y coordinate of the highest non-air (block ID zero, any data
+     *     value) block in the specified column or <code>-1</code> if the column
+     *     is empty.
+     */
     int getHighestNonAirBlock(int x, int z);
+
+    /**
+     * Get the Y coordinate of the highest non-air (block ID zero, any data
+     * value) block in the chunk.
+     *
+     * @return The Y coordinate of the highest non-air (block ID zero, any data
+     *     value) block in the chunk or <code>-1</code> if the chunk is empty.
+     */
+    int getHighestNonAirBlock();
 }

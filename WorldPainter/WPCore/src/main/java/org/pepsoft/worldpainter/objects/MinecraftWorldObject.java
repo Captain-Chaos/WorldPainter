@@ -217,6 +217,11 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
         // Do nothing
     }
 
+    @Override
+    public boolean isChunkPresent(int x, int y) {
+        return volume.containsXY(x << 4, y << 4);
+    }
+
     /**
      * Copies the block IDs and data values from the specified chunk to this
      * object, insofar as it intersects the object bounds.

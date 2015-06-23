@@ -225,7 +225,7 @@ public class MapImporter {
                                     final InputStream chunkData = regionFile.getChunkDataInputStream(x, z);
                                     if (chunkData == null) {
                                         // This should never happen, since we checked
-                                        // with containsChunk(), but in practice it
+                                        // with isChunkPresent(), but in practice it
                                         // does. Perhaps corrupted data?
                                         reportBuilder.append("Missing chunk data for chunk " + x + ", " + z + " in " + file + "; skipping chunk" + EOL);
                                         logger.warning("Missing chunk data for chunk " + x + ", " + z + " in " + file + "; skipping chunk");
