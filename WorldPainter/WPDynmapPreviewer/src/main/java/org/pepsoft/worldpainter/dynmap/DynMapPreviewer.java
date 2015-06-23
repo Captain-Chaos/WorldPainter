@@ -109,7 +109,7 @@ public class DynMapPreviewer extends TiledImageViewer {
                     }
                     if (zoom != initialZoom) {
                         zoom = initialZoom;
-                        setZoom(zoom);
+                        setZoom(zoom); // Will also refresh the view
                     } else {
                         refresh(true);
                     }
