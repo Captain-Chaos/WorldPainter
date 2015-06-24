@@ -205,7 +205,7 @@ class DynMapRenderer {
     /* ARGB band masks */
     private static final int [] BAND_MASKS = {0xFF0000, 0xFF00, 0xff, 0xff000000};
 
-    private class OurPerspectiveState implements HDPerspectiveState {
+    class OurPerspectiveState implements HDPerspectiveState {
         int blocktypeid = 0;
         int blockdata = 0;
         int blockrenderdata = -1;
@@ -284,7 +284,7 @@ class DynMapRenderer {
             scalemodels = HDBlockModels.getModelsForScale(basemodscale << scaled);
         }
 
-        private void updateSemitransparentLight(LightLevels ll) {
+        void updateSemitransparentLight(LightLevels ll) {
             int emitted = 0, sky = 0;
             for (BlockStep s: SEMI_STEPS) {
                 mapiter.stepPosition(s);
@@ -300,7 +300,7 @@ class DynMapRenderer {
         /**
          * Update sky and emitted light
          */
-        private void updateLightLevel(int blktypeid, LightLevels ll) {
+        void updateLightLevel(int blktypeid, LightLevels ll) {
             /* Look up transparency for current block */
             TexturePack.BlockTransparency bt = TexturePack.HDTextureMap.getTransparency(blktypeid);
             switch(bt) {
@@ -406,7 +406,7 @@ class DynMapRenderer {
         /**
          * Initialize raytrace state variables
          */
-        private void raytrace_init() {
+        void raytrace_init() {
             /* Compute total delta on each axis */
             dx = Math.abs(direction.x);
             dy = Math.abs(direction.y);
@@ -504,7 +504,7 @@ class DynMapRenderer {
             skiptoair = isnether;
         }
 
-        private boolean handleSubModel(short[] model, HDShaderState shaderstate, boolean[] shaderdone) {
+        boolean handleSubModel(short[] model, HDShaderState shaderstate, boolean[] shaderdone) {
             boolean firststep = true;
 
             while(!raytraceSubblock(model, firststep)) {
@@ -521,7 +521,7 @@ class DynMapRenderer {
             return false;
         }
 
-        private boolean handlePatches(RenderPatch[] patches, HDShaderState shaderstate, boolean[] shaderdone) {
+        boolean handlePatches(RenderPatch[] patches, HDShaderState shaderstate, boolean[] shaderdone) {
             int hitcnt = 0;
             /* Loop through patches : compute intercept values for each */
             for (RenderPatch patch: patches) {
@@ -632,7 +632,7 @@ class DynMapRenderer {
         /**
          * Process visit of ray to block
          */
-        private boolean visit_block(HDShaderState shaderstate, boolean[] shaderdone) {
+        boolean visit_block(HDShaderState shaderstate, boolean[] shaderdone) {
             lastblocktypeid = blocktypeid;
             blocktypeid = mapiter.getBlockTypeID();
             if(skiptoair) {	/* If skipping until we see air */
@@ -680,7 +680,7 @@ class DynMapRenderer {
             return false;
         }
         /* Skip empty : return false if exited */
-        private boolean raytraceSkipEmpty(MapChunkCache cache) {
+        boolean raytraceSkipEmpty(MapChunkCache cache) {
             while(cache.isEmptySection(sx, sy, sz)) {
                 /* If Y step is next best */
                 if((st_next_y <= st_next_x) && (st_next_y <= st_next_z)) {
@@ -711,7 +711,7 @@ class DynMapRenderer {
         /**
          * Step block iterator: false if done
          */
-        private boolean raytraceStepIterator() {
+        boolean raytraceStepIterator() {
             /* If Y step is next best */
             if ((t_next_y <= t_next_x) && (t_next_y <= t_next_z)) {
                 y += y_inc;
@@ -745,7 +745,7 @@ class DynMapRenderer {
         /**
          * Trace ray, based on "Voxel Tranversal along a 3D line"
          */
-        private void raytrace(MapChunkCache cache, HDShaderState shaderstate, boolean[] shaderdone) {
+        void raytrace(MapChunkCache cache, HDShaderState shaderstate, boolean[] shaderdone) {
             /* Initialize raytrace state variables */
             raytrace_init();
 
@@ -770,7 +770,7 @@ class DynMapRenderer {
             }
         }
 
-        private void raytrace_section_init() {
+        void raytrace_section_init() {
             t = t - 0.000001;
             double xx = top.x + t * direction.x;
             double yy = top.y + t * direction.y;
@@ -814,7 +814,7 @@ class DynMapRenderer {
             }
         }
 
-        private boolean raytraceSubblock(short[] model, boolean firsttime) {
+        boolean raytraceSubblock(short[] model, boolean firsttime) {
             if(firsttime) {
                 mt = t + 0.00000001;
                 xx = top.x + mt * direction.x;
