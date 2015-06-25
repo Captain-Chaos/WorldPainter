@@ -1340,6 +1340,15 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         return newChunk;
     }
 
+    /**
+     * Merge one surface layer block.
+     * 
+     * @param existingChunk The chunk from the existing map.
+     * @param newChunk The newly generated chunk.
+     * @param x The X coordinate of the block to merge.
+     * @param y The Y coordinate of the block to merge.
+     * @param z The Z coordinate of the block to merge.
+     */
     private void mergeSurfaceBlock(final Chunk existingChunk, final Chunk newChunk, final int x, final int y, final int z) {
         final int existingBlockType = existingChunk.getBlockType(x, y, z);
         if (BLOCKS[existingBlockType].veryInsubstantial || (! BLOCKS[existingBlockType].natural)) {
@@ -1353,6 +1362,15 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         }
     }
 
+    /**
+     * Merge one underground block.
+     * 
+     * @param existingChunk The chunk from the existing map.
+     * @param newChunk The newly generated chunk.
+     * @param x The X coordinate of the block to merge.
+     * @param y The Y coordinate of the block to merge.
+     * @param z The Z coordinate of the block to merge.
+     */
     private void mergeUndergroundBlock(final Chunk existingChunk, final Chunk newChunk, final int x, final int y, final int z) {
         if (mergeUnderworld) {
             final int existingBlockType = existingChunk.getBlockType(x, y, z);
@@ -1377,7 +1395,23 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         }
     }
 
-    // Coordinates are in Minecraft coordinate system
+    /**
+     * Merge one above ground block. Supports a changed surface height by
+     * specifying a delta between the Y coordinate of the block to merge in the
+     * existing and new chunks.
+     * 
+     * <p>Coordinates are in Minecraft coordinate system.
+     * 
+     * @param existingChunk The chunk from the existing map.
+     * @param newChunk The newly generated chunk.
+     * @param x The X coordinate of the block to merge.
+     * @param y The Y coordinate of the block to merge, in the new chunk.
+     * @param z The Z coordinate of the block to merge.
+     * @param dy The difference between the Y coordinate in the new chunk and
+     *     the Y coordinate of the corresponding block in the existing chunk.
+     * @param frost Whether the {@link Frost} layer was applied at the specified
+     *     x,z coordinates in the new map.
+     */
     private void mergeAboveGroundBlock(final Chunk existingChunk, final Chunk newChunk, final int x, final int y, final int z, final int dy, final boolean frost) {
         final int existingBlockType = existingChunk.getBlockType(x, y - dy, z);
         final int newBlockType = newChunk.getBlockType(x, y, z);
