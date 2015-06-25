@@ -1435,6 +1435,14 @@ public final class App extends JFrame implements RadiusControl,
                 });
         if (selectedFile != null) {
             if (! selectedFile.isFile()) {
+                if (logger.isLoggable(Level.FINE)) {
+                    try {
+                        logger.fine("Path not a file according to File.isFile(): \"" + selectedFile + "\" (directory: " + selectedFile.isDirectory() + "; length: " + selectedFile.length() + "; absolutePath: \"" + selectedFile.getAbsolutePath() + "\"; canonicalPath: \"" + selectedFile.getCanonicalPath() + "\")");
+                    } catch (IOException e) {
+                        logger.fine("Path not a file according to File.isFile(): \"" + selectedFile + "\" (directory: " + selectedFile.isDirectory() + "; length: " + selectedFile.length() + "; absolutePath: \"" + selectedFile.getAbsolutePath() + "\")");
+                        logger.log(Level.WARNING, "I/O error while trying to report canonical path of file: \"" + selectedFile + "\"", e);
+                    }
+                }
                 JOptionPane.showMessageDialog(this, "The specified path does not exist or is not a file", "File Does Not Exist", JOptionPane.ERROR_MESSAGE);
                 return;
             }
@@ -5522,6 +5530,7 @@ public final class App extends JFrame implements RadiusControl,
             int previousBorderSize = dimension.getBorderSize();
             long previousMinecraftSeed = dimension.getMinecraftSeed();
             int previousCeilingHeight = dimension.getCeilingHeight();
+            boolean previousBedrockWall = dimension.isBedrockWall();
             DimensionPropertiesDialog dialog = new DimensionPropertiesDialog(App.this, dimension, selectedColourScheme);
             dialog.setVisible(true);
             if ((dimension.isCoverSteepTerrain() != previousCoverSteepTerrain)
@@ -5534,7 +5543,8 @@ public final class App extends JFrame implements RadiusControl,
             if ((dimension.getBorder() != previousBorder)
                     || ((dimension.getBorder() != null) && (dimension.getBorderSize() != previousBorderSize))
                     || (dimension.getMinecraftSeed() != previousMinecraftSeed)
-                    || (dimension.getCeilingHeight() != previousCeilingHeight)) {
+                    || (dimension.getCeilingHeight() != previousCeilingHeight)
+                    || (dimension.isBedrockWall() != previousBedrockWall)) {
                 view.refreshTiles();
             }
         }

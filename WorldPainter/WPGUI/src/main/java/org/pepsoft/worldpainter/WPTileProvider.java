@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 
@@ -55,17 +56,13 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
         tileRendererRef = createNewTileRendererRef();
     }
     
-    public void addHiddenLayer(Layer layer) {
-        synchronized (hiddenLayers) {
-            hiddenLayers.add(layer);
-        }
+    public synchronized void addHiddenLayer(Layer layer) {
+        hiddenLayers.add(layer);
         tileRendererRef = createNewTileRendererRef();
     }
     
-    public void removeHiddenLayer(Layer layer) {
-        synchronized (hiddenLayers) {
-            hiddenLayers.remove(layer);
-        }
+    public synchronized void removeHiddenLayer(Layer layer) {
+        hiddenLayers.remove(layer);
         tileRendererRef = createNewTileRendererRef();
     }
     
@@ -86,6 +83,7 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
                     switch (getUnzoomedTileType(x * scale + dx, y * scale + dy)) {
                         case WORLD:
                         case BORDER:
+                        case WALL:
                             return true;
                         case SURROUNDS:
                             if ((surroundingTileProvider != null) && surroundingTileProvider.isTilePresent(x, y)) {
@@ -108,14 +106,16 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
                 Graphics2D g2 = (Graphics2D) tileImage.getGraphics();
                 try {
                     BufferedImage surroundingTileImage = null;
-                    final Color waterColour = new Color(colourScheme.getColour(org.pepsoft.minecraft.Constants.BLK_WATER));
-                    final Color lavaColour = new Color(colourScheme.getColour(org.pepsoft.minecraft.Constants.BLK_LAVA));
+                    final Color waterColour = new Color(colourScheme.getColour(BLK_WATER));
+                    final Color lavaColour = new Color(colourScheme.getColour(BLK_LAVA));
                     final Color voidColour = new Color(VoidRenderer.getColour());
+                    final Color bedrockColour = new Color(colourScheme.getColour(BLK_BEDROCK));
                     final int scale = 1 << -zoom;
                     final int subSize = TILE_SIZE / scale;
                     for (int dx = 0; dx < scale; dx++) {
                         for (int dy = 0; dy < scale; dy++) {
-                            switch (getUnzoomedTileType(x * scale + dx, y * scale + dy)) {
+                            TileType tileType = getUnzoomedTileType(x * scale + dx, y * scale + dy);
+                            switch (tileType) {
                                 case WORLD:
                                     TileRenderer tileRenderer = tileRendererRef.get();
                                     tileRenderer.setTile(tileProvider.getTile(x * scale + dx, y * scale + dy));
@@ -156,6 +156,7 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
                                     }
                                     break;
                                 case SURROUNDS:
+                                case WALL:
                                     if (surroundingTileProvider != null) {
                                         if (surroundingTileImage == null) {
                                             surroundingTileImage = new BufferedImage(TILE_SIZE, TILE_SIZE, BufferedImage.TYPE_INT_ARGB);
@@ -168,6 +169,26 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
                                     } else {
                                         g2.setColor(voidColour);
                                         g2.fillRect(imageX + dx * subSize, imageY + dy * subSize, subSize, subSize);
+                                    }
+                                    if (tileType == TileType.WALL) {
+                                        g2.setColor(bedrockColour);
+                                        TileType neighbourType = getUnzoomedTileType(x * scale + dx, y * scale + dy - 1);
+                                        int wallWidth = Math.max(subSize / 8, 1);
+                                        if ((neighbourType == TileType.WORLD) || (neighbourType == TileType.BORDER)) {
+                                            g2.fillRect(imageX + dx * subSize, imageY + dy * subSize, subSize, wallWidth);
+                                        }
+                                        neighbourType = getUnzoomedTileType(x * scale + dx + 1, y * scale + dy);
+                                        if ((neighbourType == TileType.WORLD) || (neighbourType == TileType.BORDER)) {
+                                            g2.fillRect(imageX + (dx + 1) * subSize - wallWidth, imageY + dy * subSize, wallWidth, subSize);
+                                        }
+                                        neighbourType = getUnzoomedTileType(x * scale + dx, y * scale + dy + 1);
+                                        if ((neighbourType == TileType.WORLD) || (neighbourType == TileType.BORDER)) {
+                                            g2.fillRect(imageX + dx * subSize, imageY + (dy + 1) * subSize - wallWidth, subSize, wallWidth);
+                                        }
+                                        neighbourType = getUnzoomedTileType(x * scale + dx - 1, y * scale + dy);
+                                        if ((neighbourType == TileType.WORLD) || (neighbourType == TileType.BORDER)) {
+                                            g2.fillRect(imageX + dx * subSize, imageY + dy * subSize, wallWidth, subSize);
+                                        }
                                     }
                                     break;
                             }
@@ -324,15 +345,29 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
     private TileType getUnzoomedTileType(int x, int y) {
         if (tileProvider.isTilePresent(x, y)) {
             return TileType.WORLD;
-        } else if (showBorder && (tileProvider instanceof Dimension) && ((Dimension) tileProvider).isBorderTile(x, y)) {
-            return TileType.BORDER;
-        } else {
-            return TileType.SURROUNDS;
+        } else if (showBorder && (tileProvider instanceof Dimension)) {
+            Dimension dimension = (Dimension) tileProvider;
+            if (dimension.isBorderTile(x, y)) {
+                return TileType.BORDER;
+            } else if (dimension.isBedrockWall()
+                    && ((dimension.getBorder() != null)
+                        ? (dimension.isBorderTile(x - 1, y)
+                            || dimension.isBorderTile(x, y - 1)
+                            || dimension.isBorderTile(x + 1, y)
+                            || dimension.isBorderTile(x, y + 1))
+                        : (tileProvider.isTilePresent(x - 1, y)
+                            || tileProvider.isTilePresent(x, y - 1)
+                            || tileProvider.isTilePresent(x + 1, y)
+                            || tileProvider.isTilePresent(x, y + 1)))) {
+                return TileType.WALL;
+            }
         }
+        return TileType.SURROUNDS;
     }
     
     private void paintUnzoomedTile(final Image tileImage, final int x, final int y, final int dx, final int dy) {
-        switch (getUnzoomedTileType(x, y)) {
+        TileType tileType = getUnzoomedTileType(x, y);
+        switch (tileType) {
             case WORLD:
                 Tile tile = tileProvider.getTile(x, y);
                 TileRenderer tileRenderer = tileRendererRef.get();
@@ -343,10 +378,10 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
                 int colour;
                 switch (((Dimension) tileProvider).getBorder()) {
                     case WATER:
-                        colour = colourScheme.getColour(org.pepsoft.minecraft.Constants.BLK_WATER);
+                        colour = colourScheme.getColour(BLK_WATER);
                         break;
                     case LAVA:
-                        colour = colourScheme.getColour(org.pepsoft.minecraft.Constants.BLK_LAVA);
+                        colour = colourScheme.getColour(BLK_LAVA);
                         break;
                     case VOID:
                         colour = VoidRenderer.getColour();
@@ -373,6 +408,40 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
                     }
                     if (tileProvider.isTilePresent(x - 1, y)) {
                         g2.drawLine(dx + 1, dy + 1, dx + 1, dy + TILE_SIZE - 1);
+                    }
+                } finally {
+                    g2.dispose();
+                }
+                break;
+            case WALL:
+                if (surroundingTileProvider != null) {
+                    surroundingTileProvider.paintTile(tileImage, x, y, dx, dy);
+                }
+                g2 = (Graphics2D) tileImage.getGraphics();
+                try {
+                    if (surroundingTileProvider == null) {
+                        // A surrounding tile provider would have completely
+                        // filled the image, but since there isn't one we have
+                        // to make sure of that ourselves
+                        g2.setColor(new Color(VoidRenderer.getColour()));
+                        g2.fillRect(dx, dy, TILE_SIZE, TILE_SIZE);
+                    }
+                    g2.setColor(new Color(colourScheme.getColour(BLK_BEDROCK)));
+                    TileType neighbourType = getUnzoomedTileType(x, y - 1);
+                    if ((neighbourType == TileType.WORLD) || (neighbourType == TileType.BORDER)) {
+                        g2.fillRect(dx, dy, TILE_SIZE, 16);
+                    }
+                    neighbourType = getUnzoomedTileType(x + 1, y);
+                    if ((neighbourType == TileType.WORLD) || (neighbourType == TileType.BORDER)) {
+                        g2.fillRect(dx + TILE_SIZE - 16, dy, 16, TILE_SIZE);
+                    }
+                    neighbourType = getUnzoomedTileType(x, y + 1);
+                    if ((neighbourType == TileType.WORLD) || (neighbourType == TileType.BORDER)) {
+                        g2.fillRect(dx, dy + TILE_SIZE - 16, TILE_SIZE, 16);
+                    }
+                    neighbourType = getUnzoomedTileType(x - 1, y);
+                    if ((neighbourType == TileType.WORLD) || (neighbourType == TileType.BORDER)) {
+                        g2.fillRect(dx, dy, 16, TILE_SIZE);
                     }
                 } finally {
                     g2.dispose();
@@ -457,7 +526,7 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
             @Override
             protected TileRenderer initialValue() {
                 TileRenderer tileRenderer = new TileRenderer(tileProvider, colourScheme, biomeScheme, customBiomeManager, zoom);
-                synchronized (hiddenLayers) {
+                synchronized (WPTileProvider.this) {
                     if (hiddenLayers != null) {
                         tileRenderer.addHiddenLayers(hiddenLayers);
                     }
@@ -485,5 +554,22 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
 
     private static final Logger logger = Logger.getLogger(WPTileProvider.class.getName());
     
-    private enum TileType {WORLD, BORDER, SURROUNDS}
+    private enum TileType {
+        /**
+         * The tile is part of the WorldPainter world.
+         */
+        WORLD,
+        /**
+         * The tile is part of the WorldPainter border.
+         */
+        BORDER,
+        /**
+         * The tile contains no WorldPainter-generated chunks.
+         */
+        SURROUNDS,
+        /**
+         * The tile is outside the WorldPainter world and border but does
+         * contain part of a wall.
+         */
+        WALL}
 }
