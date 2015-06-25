@@ -97,7 +97,6 @@ public class EditObjectAttributes extends javax.swing.JDialog {
                 comboBoxReplaceBlockId.setSelectedIndex(35);
             }
             WPObjectPreviewer previewer = new WPObjectPreviewer();
-            previewer.setColourScheme(colourScheme);
             previewer.setObject(object);
             jPanel1.add(previewer, BorderLayout.CENTER);
         } else {

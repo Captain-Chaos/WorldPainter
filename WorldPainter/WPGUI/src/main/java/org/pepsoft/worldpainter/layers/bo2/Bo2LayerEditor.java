@@ -285,7 +285,6 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
             }
         });
         WPObjectPreviewer previewer = new WPObjectPreviewer();
-        previewer.setColourScheme(colourScheme);
         fileChooser.addPropertyChangeListener(JFileChooser.SELECTED_FILE_CHANGED_PROPERTY, previewer);
         fileChooser.setAccessory(previewer);
         if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {

@@ -146,16 +146,23 @@ public class DynMapPreviewer extends TiledImageViewer {
 
     public void setObject(WPObject object) {
         this.object = object;
-        WPObjectDynmapWorld dmWorld = new WPObjectDynmapWorld(object);
-        tileProvider = new DynMapTileProvider(dmWorld);
-        tileProvider.setAzimuth(azimuth);
-        tileProvider.setInclination(inclination);
-        tileProvider.setCaves(caves);
-        if (getTileProviderCount() == 0) {
-            // First time
-            addTileProvider(tileProvider);
+        if (object != null) {
+            WPObjectDynmapWorld dmWorld = new WPObjectDynmapWorld(object);
+            tileProvider = new DynMapTileProvider(dmWorld);
+            tileProvider.setAzimuth(azimuth);
+            tileProvider.setInclination(inclination);
+            tileProvider.setCaves(caves);
+            if (getTileProviderCount() == 0) {
+                // First time
+                addTileProvider(tileProvider);
+            } else {
+                replaceTileProvider(0, tileProvider);
+            }
         } else {
-            replaceTileProvider(0, tileProvider);
+            tileProvider = null;
+            if (getTileProviderCount() > 0) {
+                removeAllTileProviders();
+            }
         }
     }
 

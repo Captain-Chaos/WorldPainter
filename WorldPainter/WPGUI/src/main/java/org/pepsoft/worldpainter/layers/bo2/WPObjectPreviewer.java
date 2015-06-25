@@ -6,23 +6,16 @@ package org.pepsoft.worldpainter.layers.bo2;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingConstants;
 import javax.swing.border.BevelBorder;
-import org.pepsoft.worldpainter.ColourScheme;
+import org.pepsoft.worldpainter.dynmap.DynMapPreviewer;
 import org.pepsoft.worldpainter.objects.WPObject;
-import org.pepsoft.worldpainter.objects.WPObjectRenderer;
 
 /**
  *
@@ -30,33 +23,15 @@ import org.pepsoft.worldpainter.objects.WPObjectRenderer;
  */
 public class WPObjectPreviewer extends JPanel implements PropertyChangeListener {
     public WPObjectPreviewer() {
-        label = new JLabel();
-        label.setHorizontalAlignment(SwingConstants.CENTER);
+        previewer = new DynMapPreviewer();
         setLayout(new BorderLayout());
-        add(label);
+        add(previewer, BorderLayout.CENTER);
         setPreferredSize(new Dimension(200, -1));
         setBorder(new BevelBorder(BevelBorder.LOWERED));
     }
 
-    public ColourScheme getColourScheme() {
-        return colourScheme;
-    }
-
-    public void setColourScheme(ColourScheme colourScheme) {
-        this.colourScheme = colourScheme;
-    }
-
     public void setObject(WPObject object) {
-        if (object == null) {
-            label.setIcon(null);
-        } else {
-            WPObjectRenderer renderer = new WPObjectRenderer(object, colourScheme, 8);
-            BufferedImage image = renderer.render();
-            if ((image.getWidth() > 200) || (image.getHeight() > 200)) {
-                image = rescale(image);
-            }
-            label.setIcon(new ImageIcon(image));
-        }
+        previewer.setObject(object);
     }
     
     @Override
@@ -80,32 +55,8 @@ public class WPObjectPreviewer extends JPanel implements PropertyChangeListener 
             }
         }
     }
-
-    private BufferedImage rescale(BufferedImage image) {
-        float ratio = (float) image.getHeight() / image.getWidth();
-        int newWidth;
-        int newHeight;
-        if (image.getWidth() > image.getHeight()) {
-            newWidth = 200;
-            newHeight = (int) (200 * ratio);
-        } else {
-            newHeight = 200;
-            newWidth = (int) (200 / ratio);
-        }
-        BufferedImage scaledImage = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2 = scaledImage.createGraphics();
-        try {
-            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-            g2.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
-            g2.drawImage(image, 0, 0, newWidth, newHeight, this);
-        } finally {
-            g2.dispose();
-        }
-        return scaledImage;
-    }
     
-    private final JLabel label;
-    private ColourScheme colourScheme;
+    private final DynMapPreviewer previewer;
 
     private static final Logger logger = Logger.getLogger(WPObjectPreviewer.class.getName());
     private static final long serialVersionUID = 1L;
