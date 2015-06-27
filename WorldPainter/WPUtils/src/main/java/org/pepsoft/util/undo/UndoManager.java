@@ -438,7 +438,7 @@ public class UndoManager {
             }
             frame--;
         }
-        throw new IllegalStateException("No buffer exists for key " + key);
+        return null;
     }
 
     private void dumpBuffer() {

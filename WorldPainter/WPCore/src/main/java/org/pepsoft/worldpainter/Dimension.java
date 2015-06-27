@@ -1554,8 +1554,11 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
 
         for (Tile tile: tiles.values()) {
             tile.addListener(this);
-            for (Seed gardenSeed: tile.getSeeds()) {
-                gardenSeed.garden = garden;
+            Set<Seed> seeds = tile.getSeeds();
+            if (seeds != null) {
+                for (Seed gardenSeed: seeds) {
+                    gardenSeed.garden = garden;
+                }
             }
         }
         
