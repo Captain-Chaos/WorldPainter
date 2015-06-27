@@ -760,6 +760,10 @@ public final class App extends JFrame implements RadiusControl,
                     logger.log(java.util.logging.Level.SEVERE, "EOFException while loading " + file, e);
                     reportDamagedFile();
                     return null;
+                } catch (InvalidClassException e) {
+                    logger.log(java.util.logging.Level.SEVERE, "InvalidClassException while loading " + file, e);
+                    reportMissingPlugins();
+                    return null;
                 } catch (IOException e) {
                     if (e.getMessage().equals("Not in GZIP format")) {
                         logger.log(java.util.logging.Level.SEVERE, "IOException while loading " + file, e);
