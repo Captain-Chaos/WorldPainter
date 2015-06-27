@@ -12,4 +12,6 @@ public class Delete extends Layer {
     public Delete() {
         super(null, null, Layer.DataSize.BIT, 0);
     }
+
+    private static final long serialVersionUID = 1L;
 }

@@ -345,4 +345,6 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
     private final Point3i dimensions, offset;
     private final short[][][] data;
     private final short[] lowestBlocks;
+
+    private static final long serialVersionUID = -1418008984173274161L;
 }

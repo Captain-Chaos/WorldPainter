@@ -132,5 +132,7 @@ public class AnnotationsExporter extends AbstractLayerExporter<Annotations> impl
         private boolean export;
         private String defaultFont = "Lucida Sans";
         private int defaultSize = 18;
+
+        private static final long serialVersionUID = 6548511778597824398L;
     }
 }

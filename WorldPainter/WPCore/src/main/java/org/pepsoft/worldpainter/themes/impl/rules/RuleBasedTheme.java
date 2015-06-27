@@ -72,4 +72,6 @@ public class RuleBasedTheme implements Theme, Cloneable {
     private RuleSet ruleSet;
     private long seed;
     private int waterHeight = 62, maxHeight = Constants.DEFAULT_MAX_HEIGHT_2;
+
+    private static final long serialVersionUID = 4743522528008344523L;
 }

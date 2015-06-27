@@ -493,4 +493,6 @@ public final class Block implements Serializable {
     public static final int CATEGORY_MAN_MADE      = 3;
     public static final int CATEGORY_RESOURCE      = 4;
     public static final int CATEGORY_NATURAL_SOLID = 5;
+
+    private static final long serialVersionUID = 3037884633022467720L;
 }
