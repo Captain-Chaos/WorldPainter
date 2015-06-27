@@ -168,16 +168,12 @@ public class CavernsExporter extends AbstractLayerExporter<Caverns> implements F
                             breachedCeiling = true;
                             if ((! previousBlockInCavern) && (y < maxY)) {
                                 final int blockAbove = chunk.getBlockType(x, y + 1, z);
-                                if (blockAbove == BLK_SAND) {
-                                    // Support sand with sandstone
-                                    chunk.setBlockType(x, y + 1, z, BLK_SANDSTONE);
-                                } else if (blockAbove == BLK_GRAVEL) {
+                                // Note that the post processor will take care
+                                // of supporting sand with sandstone, if that is
+                                // not disabled
+                                if (blockAbove == BLK_GRAVEL) {
                                     // Support gravel with stone
                                     chunk.setBlockType(x, y + 1, z, BLK_STONE);
-                                } else if (BLOCKS[blockAbove].insubstantial) {
-                                    // Don't leave floating plants, etc.
-                                    chunk.setBlockType(x, y + 1, z, BLK_AIR);
-                                    chunk.setDataValue(x, y + 1, z, 0);
                                 }
                             }
 //                            System.out.println("Cavern at " + x + ", " + y + ", " + z);
