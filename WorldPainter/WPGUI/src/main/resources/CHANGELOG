@@ -1,3 +1,7 @@
+-- Version 1.11.2, released 28-6-2015
+
+ * Bug fix: make the File -> Open World screen work again on Macs
+
 -- Version 1.11.1, released 26-4-2015
 
  * You can now choose Lava for the "except on" or "only on" option in the brush filter settings

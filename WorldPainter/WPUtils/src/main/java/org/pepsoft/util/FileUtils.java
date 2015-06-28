@@ -238,7 +238,11 @@ public class FileUtils {
             });
             fileDialog.setVisible(true);
             String selectedFileStr = fileDialog.getFile();
-            return (selectedFileStr != null) ? new File(selectedFileStr) : null;
+            if (selectedFileStr != null) {
+                return new File(fileDialog.getDirectory(), selectedFileStr);
+            } else {
+                return null;
+            }
         } else {
             JFileChooser fileChooser = new JFileChooser(dir);
             fileChooser.setFileFilter(fileFilter);
