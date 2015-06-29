@@ -124,7 +124,8 @@ public class UndoManager {
     }
 
     /**
-     * Indicates whether the current history frame is dirty.
+     * Indicates whether the current history frame is dirty (meaning that
+     * buffers have been checked out for editing from it).
      * 
      * @return <code>true</code> if the current history frame is dirty.
      */
@@ -437,6 +438,9 @@ public class UndoManager {
                 return (T) historyFrame.get(key);
             }
             frame--;
+        }
+        if (logger.isLoggable(Level.FINER)) {
+            logger.finer("Buffer " + key + " not present in undo history");
         }
         return null;
     }
