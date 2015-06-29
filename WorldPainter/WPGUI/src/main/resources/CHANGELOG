@@ -30,6 +30,10 @@
  * The merge process now preserves non-standard content from the existing level.dat file, such as for instance block ID mappings stored there by mods.
  * Bug fix: don't change floating red sand to chiseled sandstone
 
+-- Version 1.11.2, released 28-6-2015
+
+ * Bug fix: make the File -> Open World screen work again on Macs
+
 -- Version 1.11.1, released 26-4-2015
 
  * You can now choose Lava for the "except on" or "only on" option in the brush filter settings
