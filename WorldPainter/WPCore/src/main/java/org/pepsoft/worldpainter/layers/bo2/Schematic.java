@@ -263,7 +263,9 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
     }
 
     public static Schematic load(String name, InputStream stream) throws IOException {
-        try (InputStream in = new BufferedInputStream(stream)) {
+        InputStream in = new BufferedInputStream(stream);
+        //noinspection TryFinallyCanBeTryWithResources // Not possible due to assignment of 'in' inside block
+        try {
             byte[] magicNumber = new byte[2];
             in.mark(2);
             in.read(magicNumber);
@@ -274,6 +276,8 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
             NBTInputStream nbtIn = new NBTInputStream(in);
             CompoundTag tag = (CompoundTag) nbtIn.readTag();
             return new Schematic(name, tag, null);
+        } finally {
+            in.close();
         }
     }
     
