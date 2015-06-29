@@ -47,7 +47,7 @@ public class ThreeDeeRenderManager {
     @SuppressWarnings("unchecked") // Guaranteed by Java
     public synchronized Set<RenderResult> getRenderedTiles() {
         Set<RenderResult> rc = results;
-        results = new HashSet<RenderResult>();
+        results = new HashSet<>();
         return rc;
     }
 
@@ -65,8 +65,8 @@ public class ThreeDeeRenderManager {
     
     public synchronized void stop() {
         if (renderThreads != null) {
-            for (int i = 0; i < renderThreads.length; i++) {
-                renderThreads[i].halt();
+            for (Background3DTileRenderer renderThread : renderThreads) {
+                renderThread.halt();
             }
         }
         renderThreads = null;
@@ -79,7 +79,7 @@ public class ThreeDeeRenderManager {
     }
     
     private void startThreads() {
-        jobQueue = new UniqueJobQueue<Tile3DRenderJob>();
+        jobQueue = new UniqueJobQueue<>();
         int noOfThreads = Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
         renderThreads = new Background3DTileRenderer[noOfThreads];
         for (int i = 0; i < noOfThreads; i++) {
@@ -93,7 +93,7 @@ public class ThreeDeeRenderManager {
     private final BiomeScheme biomeScheme;
     private final CustomBiomeManager customBiomeManager;
     private final int rotation;
-    private HashSet<RenderResult> results = new HashSet<RenderResult>();
+    private HashSet<RenderResult> results = new HashSet<>();
     private Background3DTileRenderer[] renderThreads;
     private UniqueJobQueue<Tile3DRenderJob> jobQueue;
 }

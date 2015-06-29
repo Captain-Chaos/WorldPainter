@@ -43,7 +43,7 @@ public class ExportTileSelectionDialog extends javax.swing.JDialog implements Wi
         this.world = world;
         initComponents();
         
-        List<Integer> dimensions = new ArrayList<Integer>();
+        List<Integer> dimensions = new ArrayList<>();
         for (Dimension dimension: world.getDimensions()) {
             if (dimension.getDim() < 0) {
                 // Ceiling dimensions shouldn't be separately selectable
@@ -160,28 +160,16 @@ public class ExportTileSelectionDialog extends javax.swing.JDialog implements Wi
 
         jLabel1.setText("Dimension to export:");
 
-        jComboBox1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jComboBox1ActionPerformed(evt);
-            }
-        });
+        jComboBox1.addActionListener(this::jComboBox1ActionPerformed);
 
         jLabel2.setText("WorldPainter works in tiles of 128 by 128 blocks. Select tiles to export:");
 
         buttonClose.setText("OK");
-        buttonClose.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonCloseActionPerformed(evt);
-            }
-        });
+        buttonClose.addActionListener(this::buttonCloseActionPerformed);
 
         buttonSetSpawn.setText("Set Spawn");
         buttonSetSpawn.setToolTipText("Move the spawn point to the indicated location");
-        buttonSetSpawn.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonSetSpawnActionPerformed(evt);
-            }
-        });
+        buttonSetSpawn.addActionListener(this::buttonSetSpawnActionPerformed);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);

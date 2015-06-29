@@ -263,22 +263,14 @@ public class AboutDialog extends javax.swing.JDialog implements WindowListener {
         jLabel1.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
 
         buttonClose.setText("Close");
-        buttonClose.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonCloseActionPerformed(evt);
-            }
-        });
+        buttonClose.addActionListener(this::buttonCloseActionPerformed);
 
         jScrollPane1.setBorder(null);
 
         jTextPane1.setEditable(false);
         jTextPane1.setContentType("text/html"); // NOI18N
         jTextPane1.setText("<html>\n  <head>\n  </head>\n  <body>\n    <p style=\"margin-top: 0\">\nEen paar regels<br>\nom te laten zien<br>\nhoe het er in het echt<br>\nuit zal zien.      \n    </p>\n  </body>\n</html>");
-        jTextPane1.addHyperlinkListener(new javax.swing.event.HyperlinkListener() {
-            public void hyperlinkUpdate(javax.swing.event.HyperlinkEvent evt) {
-                jTextPane1HyperlinkUpdate(evt);
-            }
-        });
+        jTextPane1.addHyperlinkListener(this::jTextPane1HyperlinkUpdate);
         jScrollPane1.setViewportView(jTextPane1);
 
         jTabbedPane1.addTab("Credits", jScrollPane1);

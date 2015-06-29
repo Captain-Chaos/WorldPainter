@@ -28,7 +28,7 @@ public abstract class TreeLayer<T extends TreeLayer> extends Layer {
 
     @Override
     public LayerExporter<TreeLayer<T>> getExporter() {
-        return new TreesExporter<TreeLayer<T>>(this);
+        return new TreesExporter<>(this);
     }
     
     public int getDefaultMaxWaterDepth() {

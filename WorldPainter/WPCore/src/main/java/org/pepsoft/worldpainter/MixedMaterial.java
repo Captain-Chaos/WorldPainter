@@ -430,12 +430,7 @@ public class MixedMaterial implements Serializable, Comparable<MixedMaterial> {
                     throw new IllegalArgumentException("Multiple rows required for BLOBS mode");
                 }
                 sortedRows = Arrays.copyOf(rows, rows.length);
-                Arrays.sort(sortedRows, new Comparator<Row>() {
-                    @Override
-                    public int compare(final Row r1, final Row r2) {
-                        return r1.occurrence - r2.occurrence;
-                    }
-                });
+                Arrays.sort(sortedRows, (r1, r2) -> r1.occurrence - r2.occurrence);
                 noiseGenerators = new PerlinNoise[rows.length - 1];
                 int cumulativePermillage = 0;
                 for (int i = 0; i < noiseGenerators.length; i++) {
@@ -451,7 +446,7 @@ public class MixedMaterial implements Serializable, Comparable<MixedMaterial> {
                 if ((! repeat) && ((layerXSlope != 0) || (layerYSlope != 0))) {
                     throw new IllegalArgumentException("Angle may not be non-zero if repeat is false");
                 }
-                List<Material> tmpMaterials = new ArrayList<Material>(org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2);
+                List<Material> tmpMaterials = new ArrayList<>(org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2);
                 for (int i = rows.length - 1; i >= 0; i--) {
                     for (int j = 0; j < rows[i].occurrence; j++) {
                         tmpMaterials.add(rows[i].material);

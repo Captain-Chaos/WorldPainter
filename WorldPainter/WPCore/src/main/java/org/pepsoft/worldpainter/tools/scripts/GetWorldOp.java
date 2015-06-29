@@ -52,11 +52,8 @@ public class GetWorldOp extends AbstractOperation<World2> {
 
         File file = sanityCheckFileName(fileName);
         try {
-            ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new FileInputStream(file)));
-            try {
+            try (ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new FileInputStream(file)))) {
                 return (World2) in.readObject();
-            } finally {
-                in.close();
             }
         } catch (IOException e) {
             throw new ScriptException("I/O error while loading world " + fileName, e);

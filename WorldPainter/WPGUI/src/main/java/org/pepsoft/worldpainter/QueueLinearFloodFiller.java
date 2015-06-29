@@ -49,7 +49,7 @@ public class QueueLinearFloodFiller {
     protected void prepare() {
         //Called before starting flood-fill
         blocksChecked = new BitSet(width * height);
-        ranges = new LinkedList<FloodFillRange>();
+        ranges = new LinkedList<>();
     }
 
     // Fills the specified point on the bitmap with the currently selected fill color.

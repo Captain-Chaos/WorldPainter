@@ -72,10 +72,10 @@ class TilePaintQueue {
     
     volatile boolean running;
     
-    private final LinkedList<TilePaintJob> jobQueue = new LinkedList<TilePaintJob>();
+    private final LinkedList<TilePaintJob> jobQueue = new LinkedList<>();
 //    private final TilePaintThread[] threads = new TilePaintThread[Math.max(Runtime.getRuntime().availableProcessors() - 1, 1)];
     private final TilePaintThread[] threads = new TilePaintThread[1];
-    private final Set<TilePaintJob> cancelledJobs = new HashSet<TilePaintJob>();
+    private final Set<TilePaintJob> cancelledJobs = new HashSet<>();
     private final Listener listener;
     
     interface Listener {

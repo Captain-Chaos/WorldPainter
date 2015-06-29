@@ -123,5 +123,5 @@ public class InfoPanel extends javax.swing.JPanel {
     // End of variables declaration//GEN-END:variables
 
     private WorldPainter view;
-    private Map<Layer, JLabel> layerLabels = new HashMap<Layer, JLabel>();
+    private Map<Layer, JLabel> layerLabels = new HashMap<>();
 }

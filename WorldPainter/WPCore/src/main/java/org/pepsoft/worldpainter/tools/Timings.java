@@ -27,11 +27,8 @@ public class Timings {
         Random random = new SecureRandom();
 //        final Configuration defaultConfig = new Configuration();
         final World2 world;
-        ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new FileInputStream(args[0])));
-        try {
+        try (ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new FileInputStream(args[0])))) {
             world = (World2) in.readObject();
-        } finally {
-            in.close();
         }
         long totalDuration = 0;
         for (int i = 0; i < 5; i++) {

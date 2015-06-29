@@ -64,8 +64,8 @@ public class MixedMaterialManager {
         return INSTANCE;
     }
     
-    private final Map<UUID, MixedMaterial> materialsById = new HashMap<UUID, MixedMaterial>();
-    private final SortedMap<MixedMaterial, UUID> idsByMaterial = new TreeMap<MixedMaterial, UUID>();
+    private final Map<UUID, MixedMaterial> materialsById = new HashMap<>();
+    private final SortedMap<MixedMaterial, UUID> idsByMaterial = new TreeMap<>();
     
     private static final MixedMaterialManager INSTANCE = new MixedMaterialManager();
 }

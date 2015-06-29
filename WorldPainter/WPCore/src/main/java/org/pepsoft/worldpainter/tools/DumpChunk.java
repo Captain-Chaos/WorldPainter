@@ -25,11 +25,8 @@ public class DumpChunk {
         int chunkY = Integer.parseInt(args[2]);
         Level level = Level.load(levelDatFile);
         CompoundTag tag;
-        NBTInputStream in = new NBTInputStream(RegionFileCache.getChunkDataInputStream(levelDatFile.getParentFile(), chunkX, chunkY, level.getVersion()));
-        try {
+        try (NBTInputStream in = new NBTInputStream(RegionFileCache.getChunkDataInputStream(levelDatFile.getParentFile(), chunkX, chunkY, level.getVersion()))) {
             tag = (CompoundTag) in.readTag();
-        } finally {
-            in.close();
         }
         Chunk chunk = (level.getVersion() == SUPPORTED_VERSION_1)
                 ? new ChunkImpl(tag, level.getMaxHeight())

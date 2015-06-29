@@ -301,7 +301,7 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
                 seedOffsets.put(BLK_EMERALD_ORE, random.nextLong());
             }
             if (minLevels == null) {
-                minLevels = new HashMap<Integer, Integer>();
+                minLevels = new HashMap<>();
                 for (int blockType: maxLevels.keySet()) {
                     minLevels.put(blockType, 0);
                 }
@@ -315,10 +315,10 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
         }
         
         private int minimumLevel = 8;
-        private final Map<Integer, Integer> maxLevels = new HashMap<Integer, Integer>();
-        private final Map<Integer, Integer> chances = new HashMap<Integer, Integer>();
-        private final Map<Integer, Long> seedOffsets = new HashMap<Integer, Long>();
-        private Map<Integer, Integer> minLevels = new HashMap<Integer, Integer>();
+        private final Map<Integer, Integer> maxLevels = new HashMap<>();
+        private final Map<Integer, Integer> chances = new HashMap<>();
+        private final Map<Integer, Long> seedOffsets = new HashMap<>();
+        private Map<Integer, Integer> minLevels = new HashMap<>();
 
         private static final long serialVersionUID = 1L;
         private static final Logger logger = Logger.getLogger(ResourcesExporter.class.getName());

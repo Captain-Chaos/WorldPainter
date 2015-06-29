@@ -179,44 +179,35 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
                 if (! oneShot) {
                     undo = eraser || (buttonType == PButton.Type.RIGHT);
                     if (timer == null) {
-                        timer = new Timer(delay, new ActionListener() {
-                            @Override
-                            public void actionPerformed(ActionEvent e) {
-                                Point worldCoords = view.viewToWorld((int) x, (int) y);
-                                tick(worldCoords.x, worldCoords.y, undo, first, (stylus || eraser) ? dynamicLevel : 1.0f);
-                                view.updateStatusBar(worldCoords.x, worldCoords.y);
-                                first = false;
-                            }
+                        timer = new Timer(delay, e -> {
+                            Point worldCoords = view.viewToWorld((int) x, (int) y);
+                            tick(worldCoords.x, worldCoords.y, undo, first, (stylus || eraser) ? dynamicLevel : 1.0f);
+                            view.updateStatusBar(worldCoords.x, worldCoords.y);
+                            first = false;
                         });
                         timer.setInitialDelay(0);
                         timer.start();
     //                    start = System.currentTimeMillis();
                     }
                 } else {
-                    SwingUtilities.invokeLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            Point worldCoords = view.viewToWorld((int) x, (int) y);
-                            tick(worldCoords.x, worldCoords.y, eraser || (buttonType == PButton.Type.RIGHT), true, 1.0f);
-                            view.updateStatusBar(worldCoords.x, worldCoords.y);
-                            getDimension().armSavePoint();
-                            logOperation(undo ? statisticsKeyUndo : statisticsKey);
-                        }
+                    SwingUtilities.invokeLater(() -> {
+                        Point worldCoords = view.viewToWorld((int) x, (int) y);
+                        tick(worldCoords.x, worldCoords.y, eraser || (buttonType == PButton.Type.RIGHT), true, 1.0f);
+                        view.updateStatusBar(worldCoords.x, worldCoords.y);
+                        getDimension().armSavePoint();
+                        logOperation(undo ? statisticsKeyUndo : statisticsKey);
                     });
                 }
             } else {
                 // Button released
                 if (! oneShot) {
-                    SwingUtilities.invokeLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (timer != null) {
-                                logOperation(undo ? statisticsKeyUndo : statisticsKey);
-                                timer.stop();
-                                timer = null;
-                            }
-                            getDimension().armSavePoint();
+                    SwingUtilities.invokeLater(() -> {
+                        if (timer != null) {
+                            logOperation(undo ? statisticsKeyUndo : statisticsKey);
+                            timer.stop();
+                            timer = null;
                         }
+                        getDimension().armSavePoint();
                     });
                 }
             }
@@ -240,14 +231,11 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
         first = true;
         if (! oneShot) {
             if (timer == null) {
-                timer = new Timer(delay, new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        Point worldCoords = view.viewToWorld((int) x, (int) y);
-                        tick(worldCoords.x, worldCoords.y, undo, first, 1.0f);
-                        view.updateStatusBar(worldCoords.x, worldCoords.y);
-                        first = false;
-                    }
+                timer = new Timer(delay, e -> {
+                    Point worldCoords = view.viewToWorld((int) x, (int) y);
+                    tick(worldCoords.x, worldCoords.y, undo, first, 1.0f);
+                    view.updateStatusBar(worldCoords.x, worldCoords.y);
+                    first = false;
                 });
                 timer.setInitialDelay(0);
                 timer.start();
@@ -377,6 +365,6 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
 //    private long start;
     private boolean undo;
     
-    private static final Map<String, Long> operationCounts = new HashMap<String, Long>();
+    private static final Map<String, Long> operationCounts = new HashMap<>();
     private static final Logger logger = Logger.getLogger(MouseOrTabletOperation.class.getName());
 }

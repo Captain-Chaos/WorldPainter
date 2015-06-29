@@ -123,7 +123,7 @@ public class UniqueJobQueue<T extends Job> {
         notifyAll();
     }
     
-    private final HashList<T> queue = new HashList<T>();
+    private final HashList<T> queue = new HashList<>();
     
     private static final Logger logger = Logger.getLogger(UniqueJobQueue.class.getName());
 }

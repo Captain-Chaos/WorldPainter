@@ -33,7 +33,7 @@ public class RotatedObject extends AbstractObject {
         this.object = object;
         this.steps = steps;
         Point3i origDim = object.getDimensions();
-        Map<String, Serializable> attributes = (object.getAttributes() != null) ? new HashMap<String, Serializable>(object.getAttributes()) : new HashMap<String, Serializable>();
+        Map<String, Serializable> attributes = (object.getAttributes() != null) ? new HashMap<>(object.getAttributes()) : new HashMap<>();
         Point3i offset = attributes.containsKey(WPObject.ATTRIBUTE_OFFSET) ? (Point3i) attributes.get(WPObject.ATTRIBUTE_OFFSET) : new Point3i();
         switch (steps) {
             case 0:
@@ -107,7 +107,7 @@ public class RotatedObject extends AbstractObject {
     public List<Entity> getEntities() {
         List<Entity> objectEntities = object.getEntities();
         if (objectEntities != null) {
-            List<Entity> entities = new ArrayList<Entity>(objectEntities.size());
+            List<Entity> entities = new ArrayList<>(objectEntities.size());
             for (Entity objectEntity: objectEntities) {
                 Entity entity = (Entity) objectEntity.clone();
                 if (steps != 0) {
@@ -146,7 +146,7 @@ public class RotatedObject extends AbstractObject {
         } else {
             List<TileEntity> objectTileEntities = object.getTileEntities();
             if (objectTileEntities != null) {
-                List<TileEntity> tileEntities = new ArrayList<TileEntity>(objectTileEntities.size());
+                List<TileEntity> tileEntities = new ArrayList<>(objectTileEntities.size());
                 for (TileEntity objectTileEntity: objectTileEntities) {
                     TileEntity tileEntity = (TileEntity) objectTileEntity.clone();
                     switch (steps) {

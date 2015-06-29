@@ -34,6 +34,7 @@ import java.util.*;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
@@ -776,15 +777,13 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
     
     public void clearLayerData(Layer layer) {
-        for (Tile tile: tiles.values()) {
-            if (tile.hasLayer(layer)) {
-                if (eventsInhibited && (! tile.isEventsInhibited())) {
-                    tile.inhibitEvents();
-                    dirtyTiles.add(tile);
-                }
-                tile.clearLayerData(layer);
+        tiles.values().stream().filter(tile -> tile.hasLayer(layer)).forEach(tile -> {
+            if (eventsInhibited && (!tile.isEventsInhibited())) {
+                tile.inhibitEvents();
+                dirtyTiles.add(tile);
             }
-        }
+            tile.clearLayerData(layer);
+        });
     }
 
     public void setEventsInhibited(boolean eventsInhibited) {
@@ -795,9 +794,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                 addedTiles.clear();
                 fireTilesRemoved(removedTiles);
                 removedTiles.clear();
-                for (Tile dirtyTile: dirtyTiles) {
-                    dirtyTile.releaseEvents();
-                }
+                dirtyTiles.forEach(org.pepsoft.worldpainter.Tile::releaseEvents);
                 dirtyTiles.clear();
             }
         } else {
@@ -1089,17 +1086,17 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
      * @return The set of all layers currently in use on the world.
      */
     public Set<Layer> getAllLayers(boolean applyCombinedLayers) {
-        Set<Layer> allLayers = new HashSet<Layer>();
+        Set<Layer> allLayers = new HashSet<>();
         for (Tile tile: tiles.values()) {
             allLayers.addAll(tile.getLayers());
         }
         
         if (applyCombinedLayers) {
-            Set<LayerContainer> containersProcessed = new HashSet<LayerContainer>();
+            Set<LayerContainer> containersProcessed = new HashSet<>();
             boolean containersFound;
             do {
                 containersFound = false;
-                for (Layer layer: new HashSet<Layer>(allLayers)) {
+                for (Layer layer: new HashSet<>(allLayers)) {
                     if ((layer instanceof LayerContainer) && (! containersProcessed.contains(layer))) {
                         allLayers.addAll(((LayerContainer) layer).getLayers());
                         containersProcessed.add((LayerContainer) layer);
@@ -1119,12 +1116,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
      *     everywhere.
      */
     public Set<Layer> getMinimumLayers() {
-        Set<Layer> layers = new HashSet<Layer> ();
-        for (ExporterSettings settings: layerSettings.values()) {
-            if (settings.isApplyEverywhere()) {
-                layers.add(settings.getLayer());
-            }
-        }
+        Set<Layer> layers = layerSettings.values().stream().filter(ExporterSettings::isApplyEverywhere).map(ExporterSettings::getLayer).collect(Collectors.toSet());
         return layers;
     }
 
@@ -1297,9 +1289,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     void ensureAllReadable() {
-        for (Tile tile: tiles.values()) {
-            tile.ensureAllReadable();
-        }
+        tiles.values().forEach(org.pepsoft.worldpainter.Tile::ensureAllReadable);
     }
     
     public void addDimensionListener(Listener listener) {
@@ -1375,8 +1365,8 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             Set<Tile> removedTiles;
             synchronized (this) {
                 Map<Point, Tile> oldTiles = tiles;
-                tiles = new HashMap<Point, Tile>();
-                removedTiles = new HashSet<Tile>(oldTiles.values());
+                tiles = new HashMap<>();
+                removedTiles = new HashSet<>(oldTiles.values());
                 for (Tile removedTile: removedTiles) {
                     removedTile.removeListener(this);
                     removedTile.unregister();
@@ -1407,15 +1397,10 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                 overlayCoords = transform.transform(overlayCoords);
                 overlayOffsetX = overlayCoords.x - (lowestX << TILE_SIZE_BITS);
                 overlayOffsetY = overlayCoords.y - (lowestY << TILE_SIZE_BITS);
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        JOptionPane.showMessageDialog(null, "The " + getName() + " dimension has an overlay image!\n"
-                            + "The coordinates have been adjusted for you,\n"
-                            + "but you need to rotate the actual image yourself\n"
-                            + "using a paint program.", "Adjust Overlay Image", JOptionPane.INFORMATION_MESSAGE);
-                    }
-                });
+                SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(null, "The " + getName() + " dimension has an overlay image!\n"
+                    + "The coordinates have been adjusted for you,\n"
+                    + "but you need to rotate the actual image yourself\n"
+                    + "using a paint program.", "Adjust Overlay Image", JOptionPane.INFORMATION_MESSAGE));
             }
         } finally {
             eventsInhibited = false;
@@ -1513,14 +1498,11 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         if (readers.hasNext()) {
             ImageReader reader = readers.next();
             try {
-                ImageInputStream in = new FileImageInputStream(image);
-                try {
+                try (ImageInputStream in = new FileImageInputStream(image)) {
                     reader.setInput(in);
                     int width = reader.getWidth(reader.getMinIndex());
                     int height = reader.getHeight(reader.getMinIndex());
                     return new java.awt.Dimension(width, height);
-                } finally {
-                    in.close();
                 }
             } finally {
                 reader.dispose();
@@ -1544,10 +1526,10 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
     
     private void init() {
-        listeners = new ArrayList<Listener>();
-        dirtyTiles = new HashSet<Tile>();
-        addedTiles = new HashSet<Tile>();
-        removedTiles = new HashSet<Tile>();
+        listeners = new ArrayList<>();
+        dirtyTiles = new HashSet<>();
+        addedTiles = new HashSet<>();
+        removedTiles = new HashSet<>();
         propertyChangeSupport = new PropertyChangeSupport(this);
         garden = new WPGarden();
         topLayerDepthNoise = new PerlinNoise(seed + TOP_LAYER_DEPTH_SEED_OFFSET);
@@ -1579,9 +1561,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             if (! biomesConverted) {
                 // Convert the nibble sized biomes data from a legacy map (by
                 // deleting it so that it will be recalculated
-                for (Tile tile: tiles.values()) {
-                    tile.convertBiomeData();
-                }
+                tiles.values().forEach(org.pepsoft.worldpainter.Tile::convertBiomeData);
                 biomesConverted = true;
             }
             if (maxHeight == 0) {
@@ -1626,12 +1606,8 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                 lastViewPosition = new Point();
             }
             if ((customLayers == null) || customLayers.isEmpty()) { // The customLayers.isEmpty() is to fix a bug which escaped in a beta
-                customLayers = new ArrayList<CustomLayer>();
-                for (Layer layer: getAllLayers(false)) {
-                    if (layer instanceof CustomLayer) {
-                        customLayers.add((CustomLayer) layer);
-                    }
-                }
+                customLayers = new ArrayList<>();
+                customLayers.addAll(getAllLayers(false).stream().filter(layer -> layer instanceof CustomLayer).map(layer -> (CustomLayer) layer).collect(Collectors.toList()));
             }
         }
         if (wpVersion < 2) {
@@ -1647,22 +1623,21 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         // Make sure that any custom layers which somehow ended up in the world
         // are on the custom layer list so they will be added to a palette in
         // the GUI. TODO: fix this properly
-        for (Layer layer: getAllLayers(false)) {
-            if ((layer instanceof CustomLayer) && (! customLayers.contains(layer))) {
-                if ((! (customLayers instanceof ArrayList)) && (! (customLayers instanceof LinkedList))) {
-                    // Make sure customLayers isn't some weird read-only list
-                    customLayers = new ArrayList<CustomLayer>(customLayers);
-                }
-                customLayers.add((CustomLayer) layer);
+        // Make sure customLayers isn't some weird read-only list
+        getAllLayers(false).stream().filter(layer -> (layer instanceof CustomLayer) && (!customLayers.contains(layer))).forEach(layer -> {
+            if ((!(customLayers instanceof ArrayList)) && (!(customLayers instanceof LinkedList))) {
+                // Make sure customLayers isn't some weird read-only list
+                customLayers = new ArrayList<>(customLayers);
             }
-        }
+            customLayers.add((CustomLayer) layer);
+        });
     
     }
     
     private World2 world;
     private final long seed;
     private final int dim;
-    private Map<Point, Tile> tiles = new HashMap<Point, Tile>();
+    private Map<Point, Tile> tiles = new HashMap<>();
     private final TileFactory tileFactory;
     private int lowestX = Integer.MAX_VALUE, highestX = Integer.MIN_VALUE, lowestY = Integer.MAX_VALUE, highestY = Integer.MIN_VALUE;
     private Terrain subsurfaceMaterial = Terrain.STONE_MIX;
@@ -1670,7 +1645,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     private Border border;
     private int borderLevel = 62, borderSize = 2;
     private boolean darkLevel, bedrockWall;
-    private Map<Layer, ExporterSettings> layerSettings = new HashMap<Layer, ExporterSettings>();
+    private Map<Layer, ExporterSettings> layerSettings = new HashMap<>();
     private long minecraftSeed = Long.MIN_VALUE;
     private File overlay;
     private float overlayScale = 1.0f, overlayTransparency = 0.5f;
@@ -1683,15 +1658,15 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     private Point lastViewPosition = new Point();
     private List<CustomBiome> customBiomes;
     private boolean coverSteepTerrain = true;
-    private List<CustomLayer> customLayers = new ArrayList<CustomLayer>();
+    private List<CustomLayer> customLayers = new ArrayList<>();
     private int wpVersion = CURRENT_WP_VERSION;
     private boolean fixOverlayCoords;
     private int ceilingHeight = maxHeight;
-    private transient List<Listener> listeners = new ArrayList<Listener>();
+    private transient List<Listener> listeners = new ArrayList<>();
     private transient boolean eventsInhibited;
-    private transient Set<Tile> dirtyTiles = new HashSet<Tile>();
-    private transient Set<Tile> addedTiles = new HashSet<Tile>();
-    private transient Set<Tile> removedTiles = new HashSet<Tile>();
+    private transient Set<Tile> dirtyTiles = new HashSet<>();
+    private transient Set<Tile> addedTiles = new HashSet<>();
+    private transient Set<Tile> removedTiles = new HashSet<>();
     private transient boolean dirty;
     private transient UndoManager undoManager;
     private transient PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
@@ -1745,7 +1720,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
 
         @Override
         public Set<Seed> getSeeds() {
-            Set<Seed> allSeeds = new HashSet<Seed>();
+            Set<Seed> allSeeds = new HashSet<>();
             for (Tile tile: tiles.values()) {
                 allSeeds.addAll(tile.getSeeds());
             }
@@ -1755,7 +1730,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         @SuppressWarnings("unchecked")
         @Override
         public <T extends Seed> List<T> findSeeds(Class<T> type, int x, int y, int radius) {
-            List<T> seedsFound = new ArrayList<T>();
+            List<T> seedsFound = new ArrayList<>();
             int topLeftTileX = (x - radius) >> 7;
             int topLeftTileY = (y - radius) >> 7;
             int bottomRightTileX = (x + radius) >> 7;
@@ -1765,14 +1740,12 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                 for (int tileY = topLeftTileY; tileY <= bottomRightTileY; tileY++) {
                     Tile tile = getTile(tileX, tileY);
                     if (tile != null) {
-                        for (Seed seed: tile.getSeeds()) {
-                            if (seed.getClass() == type) {
-                                int distance = (int) MathUtils.getDistance(seed.location.x - x, seed.location.y - y);
-                                if (distance <= radius) {
-                                    seedsFound.add((T) seed);
-                                }
+                        tile.getSeeds().stream().filter(seed -> seed.getClass() == type).forEach(seed -> {
+                            int distance = (int) MathUtils.getDistance(seed.location.x - x, seed.location.y - y);
+                            if (distance <= radius) {
+                                seedsFound.add((T) seed);
                             }
-                        }
+                        });
                     }
                 }
             }
@@ -1838,9 +1811,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             for (Point tileCoords: (HashSet<Point>) activeTiles.clone()) {
                 Tile tile = getTile(tileCoords.x, tileCoords.y);
                 if (tile != null) {
-                    for (Seed seed: (HashSet<Seed>) tile.getSeeds().clone()) {
-                        seed.tick();
-                    }
+                    ((HashSet<Seed>) tile.getSeeds().clone()).forEach(org.pepsoft.worldpainter.gardenofeden.Seed::tick);
                 }
             }
             // Don't cache active seeds, because they might have changed
@@ -1873,17 +1844,13 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             for (Point tileCoords: activeTiles) {
                 Tile tile = getTile(tileCoords.x, tileCoords.y);
                 if (tile != null) {
-                    for (Seed seed: tile.getSeeds()) {
-                        if (! seed.isFinished()) {
-                            seed.neutralise();
-                        }
-                    }
+                    tile.getSeeds().stream().filter(seed -> !seed.isFinished()).forEach(org.pepsoft.worldpainter.gardenofeden.Seed::neutralise);
                 }
             }
             activeTiles.clear();
         }
         
-        private final HashSet<Point> activeTiles = new HashSet<Point>();
+        private final HashSet<Point> activeTiles = new HashSet<>();
     }
     
     static class TileCache {

@@ -46,20 +46,20 @@ public final class Constants {
     public static final int DIM_NETHER         =  1;
     public static final int DIM_END            =  2;
 
-    public static final AttributeKeyVO<Integer> ATTRIBUTE_KEY_MAX_HEIGHT = new AttributeKeyVO<Integer>("maxHeight");
-    public static final AttributeKeyVO<Integer> ATTRIBUTE_KEY_VERSION = new AttributeKeyVO<Integer>("version");
-    public static final AttributeKeyVO<Boolean> ATTRIBUTE_KEY_MAP_FEATURES = new AttributeKeyVO<Boolean>("mapFeatures");
-    public static final AttributeKeyVO<Integer> ATTRIBUTE_KEY_GAME_TYPE = new AttributeKeyVO<Integer>("gameType");
-    public static final AttributeKeyVO<Boolean> ATTRIBUTE_KEY_ALLOW_CHEATS = new AttributeKeyVO<Boolean>("allowCheats");
-    public static final AttributeKeyVO<String> ATTRIBUTE_KEY_GENERATOR = new AttributeKeyVO<String>("generator");
-    public static final AttributeKeyVO<String> ATTRIBUTE_KEY_GENERATOR_OPTIONS = new AttributeKeyVO<String>("generatorOptions");
-    public static final AttributeKeyVO<Integer> ATTRIBUTE_KEY_TILES = new AttributeKeyVO<Integer>("tiles");
-    public static final AttributeKeyVO<Integer> ATTRIBUTE_KEY_NETHER_TILES = new AttributeKeyVO<Integer>("nether.tiles");
-    public static final AttributeKeyVO<Integer> ATTRIBUTE_KEY_END_TILES = new AttributeKeyVO<Integer>("end.tiles");
-    public static final AttributeKeyVO<Integer> ATTRIBUTE_KEY_EXPORTED_DIMENSION = new AttributeKeyVO<Integer>("exportedDimension");
-    public static final AttributeKeyVO<Integer> ATTRIBUTE_KEY_EXPORTED_DIMENSION_TILES = new AttributeKeyVO<Integer>("exportedDimension.tiles");
-    public static final AttributeKeyVO<Boolean> ATTRIBUTE_KEY_IMPORTED_WORLD = new AttributeKeyVO<Boolean>("importedWorld");
-    public static final AttributeKeyVO<String> ATTRIBUTE_KEY_PLUGINS = new AttributeKeyVO<String>("plugins");
+    public static final AttributeKeyVO<Integer> ATTRIBUTE_KEY_MAX_HEIGHT = new AttributeKeyVO<>("maxHeight");
+    public static final AttributeKeyVO<Integer> ATTRIBUTE_KEY_VERSION = new AttributeKeyVO<>("version");
+    public static final AttributeKeyVO<Boolean> ATTRIBUTE_KEY_MAP_FEATURES = new AttributeKeyVO<>("mapFeatures");
+    public static final AttributeKeyVO<Integer> ATTRIBUTE_KEY_GAME_TYPE = new AttributeKeyVO<>("gameType");
+    public static final AttributeKeyVO<Boolean> ATTRIBUTE_KEY_ALLOW_CHEATS = new AttributeKeyVO<>("allowCheats");
+    public static final AttributeKeyVO<String> ATTRIBUTE_KEY_GENERATOR = new AttributeKeyVO<>("generator");
+    public static final AttributeKeyVO<String> ATTRIBUTE_KEY_GENERATOR_OPTIONS = new AttributeKeyVO<>("generatorOptions");
+    public static final AttributeKeyVO<Integer> ATTRIBUTE_KEY_TILES = new AttributeKeyVO<>("tiles");
+    public static final AttributeKeyVO<Integer> ATTRIBUTE_KEY_NETHER_TILES = new AttributeKeyVO<>("nether.tiles");
+    public static final AttributeKeyVO<Integer> ATTRIBUTE_KEY_END_TILES = new AttributeKeyVO<>("end.tiles");
+    public static final AttributeKeyVO<Integer> ATTRIBUTE_KEY_EXPORTED_DIMENSION = new AttributeKeyVO<>("exportedDimension");
+    public static final AttributeKeyVO<Integer> ATTRIBUTE_KEY_EXPORTED_DIMENSION_TILES = new AttributeKeyVO<>("exportedDimension.tiles");
+    public static final AttributeKeyVO<Boolean> ATTRIBUTE_KEY_IMPORTED_WORLD = new AttributeKeyVO<>("importedWorld");
+    public static final AttributeKeyVO<String> ATTRIBUTE_KEY_PLUGINS = new AttributeKeyVO<>("plugins");
     
     public static final String EVENT_KEY_ACTION_NEW_WORLD         = "action.newWorld";
     public static final String EVENT_KEY_ACTION_EXPORT_WORLD      = "action.exportWorld";

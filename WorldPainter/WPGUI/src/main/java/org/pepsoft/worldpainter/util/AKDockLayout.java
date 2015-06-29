@@ -27,26 +27,32 @@ public class AKDockLayout extends BorderLayout {
 
                 String s = con.toString();
 
-                if (s.equals(NORTH)) {
+                switch (s) {
+                    case NORTH:
 
-                    north.add(c);
+                        north.add(c);
 
-                } else if (s.equals(SOUTH)) {
+                        break;
+                    case SOUTH:
 
-                    south.add(c);
+                        south.add(c);
 
-                } else if (s.equals(EAST)) {
+                        break;
+                    case EAST:
 
-                    east.add(c);
+                        east.add(c);
 
-                } else if (s.equals(WEST)) {
+                        break;
+                    case WEST:
 
-                    west.add(c);
+                        west.add(c);
 
-                } else if (s.equals(CENTER)) {
+                        break;
+                    case CENTER:
 
-                    center = c;
+                        center = c;
 
+                        break;
                 }
 
                 c.getParent().validate();
@@ -134,16 +140,15 @@ public class AKDockLayout extends BorderLayout {
 
         int w = 0, h = 0;
 
-        for (int i = 0; i < comps.size(); i++) {
+        for (Component comp : comps) {
 
-            Component c = (Component) (comps.get(i));
+            Component c = (Component) comp;
 
             Dimension d = c.getPreferredSize();
 
             w = Math.max(w, d.width);
 
             h = Math.max(h, d.height);
-
         }
 
         return new Dimension(w, h);
@@ -321,10 +326,10 @@ public class AKDockLayout extends BorderLayout {
 
     }
     
-    private List<Component> north = new ArrayList<Component>(1);
-    private List<Component> south = new ArrayList<Component>(1);
-    private List<Component> east = new ArrayList<Component>(1);
-    private List<Component> west = new ArrayList<Component>(1);
+    private List<Component> north = new ArrayList<>(1);
+    private List<Component> south = new ArrayList<>(1);
+    private List<Component> east = new ArrayList<>(1);
+    private List<Component> west = new ArrayList<>(1);
     private Component center = null;
     private int northHeight, southHeight, eastWidth, westWidth;
     

@@ -110,7 +110,7 @@ public class BiomeRenderer implements ByteLayerRenderer, ColourSchemeRenderer, C
     }
 
     private final int[] colours = new int[256];
-    private final Map<Integer, Integer> customColours = new HashMap<Integer, Integer>();
+    private final Map<Integer, Integer> customColours = new HashMap<>();
     private final BiomeScheme biomeScheme;
     private final boolean[][][] patterns;
     private ColourScheme colourScheme;

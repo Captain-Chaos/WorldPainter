@@ -18,7 +18,7 @@ public final class Minecraft1_2BiomeScheme extends Minecraft1_2JarBiomeScheme {
         super(minecraftJar, null, md5Sum, HASHES_TO_CLASSNAMES, "1.5.2 Default (or 1.2.3 - 1.5.1)");
     }
     
-    private static final Map<Checksum, String[]> HASHES_TO_CLASSNAMES = new HashMap<Checksum, String[]>();
+    private static final Map<Checksum, String[]> HASHES_TO_CLASSNAMES = new HashMap<>();
 
 //                                                                                                                                                                                                                                                                       Landscape class
 //                                                                                                                                                                                                                                                                              Buffer manager class

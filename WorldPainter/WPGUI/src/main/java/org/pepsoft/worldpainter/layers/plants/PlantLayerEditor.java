@@ -196,13 +196,10 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
             
             spinnerModel = new SpinnerNumberModel(plant.getMaxData() + 1, 1, plant.getMaxData() + 1, 1);
             growthFromSpinners[index] = new JSpinner(spinnerModel);
-            growthFromSpinners[index].addChangeListener(new ChangeListener() {
-                @Override
-                public void stateChanged(ChangeEvent e) {
-                    int newValue = (Integer) growthFromSpinners[index].getValue();
-                    if ((Integer) growthToSpinners[index].getValue() < newValue) {
-                        growthToSpinners[index].setValue(newValue);
-                    }
+            growthFromSpinners[index].addChangeListener(e -> {
+                int newValue = (Integer) growthFromSpinners[index].getValue();
+                if ((Integer) growthToSpinners[index].getValue() < newValue) {
+                    growthToSpinners[index].setValue(newValue);
                 }
             });
             panel.add(growthFromSpinners[index], constraints);
@@ -212,13 +209,10 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
             constraints.gridwidth = GridBagConstraints.REMAINDER;
             spinnerModel = new SpinnerNumberModel(plant.getMaxData() + 1, 1, plant.getMaxData() + 1, 1);
             growthToSpinners[index] = new JSpinner(spinnerModel);
-            growthToSpinners[index].addChangeListener(new ChangeListener() {
-                @Override
-                public void stateChanged(ChangeEvent e) {
-                    int newValue = (Integer) growthToSpinners[index].getValue();
-                    if ((Integer) growthFromSpinners[index].getValue() > newValue) {
-                        growthFromSpinners[index].setValue(newValue);
-                    }
+            growthToSpinners[index].addChangeListener(e -> {
+                int newValue = (Integer) growthToSpinners[index].getValue();
+                if ((Integer) growthFromSpinners[index].getValue() > newValue) {
+                    growthFromSpinners[index].setValue(newValue);
                 }
             });
             panel.add(growthToSpinners[index], constraints);
@@ -243,18 +237,14 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
                     return null;
                 }
             }
-            JarFile jarFile = new JarFile(resourcesJar);
-            try {
+            try (JarFile jarFile = new JarFile(resourcesJar)) {
                 JarEntry entry = jarFile.getJarEntry("assets/minecraft/textures/" + name);
                 if (entry != null) {
                     if (logger.isLoggable(Level.FINE)) {
                         logger.fine("Loading plant icon " + name + " from " + resourcesJar);
                     }
-                    InputStream in = jarFile.getInputStream(entry);
-                    try {
+                    try (InputStream in = jarFile.getInputStream(entry)) {
                         return ImageIO.read(in);
-                    } finally {
-                        in.close();
                     }
                 } else {
                     if (logger.isLoggable(Level.FINE)) {
@@ -262,8 +252,6 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
                     }
                     return null;
                 }
-            } finally {
-                jarFile.close();
             }
         } catch (IOException e) {
             logger.log(Level.SEVERE, "I/O error while trying to load plant icon " + name + "; continuing without icon", e);
@@ -392,11 +380,7 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
         jLabel2 = new javax.swing.JLabel();
 
         buttonColour.setText("...");
-        buttonColour.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonColourActionPerformed(evt);
-            }
-        });
+        buttonColour.addActionListener(this::buttonColourActionPerformed);
 
         jLabel3.setText("<html>Note that plants will only be placed<br>where Minecraft allows it!</html>");
 
@@ -416,11 +400,7 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
         );
 
         buttonClear.setText("Clear");
-        buttonClear.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonClearActionPerformed(evt);
-            }
-        });
+        buttonClear.addActionListener(this::buttonClearActionPerformed);
 
         jLabel1.setText("Name:");
 
@@ -522,12 +502,7 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
     private boolean cropsSelected;
     private Font normalFont, boldFont;
 
-    private final ChangeListener percentageListener = new ChangeListener() {
-        @Override
-        public void stateChanged(ChangeEvent e) {
-            updatePercentages();
-        }
-    };
+    private final ChangeListener percentageListener = e -> updatePercentages();
 
     private static File resourcesJar;
     private static final File RESOURCES_NOT_AVAILABLE = new File("~~~RESOURCES_NOT_AVAILABLE~~~");

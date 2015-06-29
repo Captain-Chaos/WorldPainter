@@ -119,7 +119,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
             }
             newTileProvider.addTileListener(this);
             tileProviders.add(index, newTileProvider);
-            tileCaches.put(newTileProvider, new HashMap<Point, Reference<? extends Image>>());
+            tileCaches.put(newTileProvider, new HashMap<>());
             dirtyTileCaches.put(newTileProvider, dirtyTileCache);
         }
         fireViewChangedEvent();
@@ -172,13 +172,13 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                 tileProvider.setZoom((zoom <= 0) ? zoom : 0);
             }
             tileProvider.addTileListener(this);
-            tileCaches.put(tileProvider, new HashMap<Point, Reference<? extends Image>>());
-            dirtyTileCaches.put(tileProvider, new HashMap<Point, Reference<? extends Image>>());
+            tileCaches.put(tileProvider, new HashMap<>());
+            dirtyTileCaches.put(tileProvider, new HashMap<>());
             if (tileRenderers == null) {
                 if (logger.isLoggable(Level.FINE)) {
                     logger.fine("Starting " + threads + " tile rendering threads");
                 }
-                queue = new PriorityBlockingQueue<Runnable>();
+                queue = new PriorityBlockingQueue<>();
                 tileRenderers = new ThreadPoolExecutor(threads, threads, 0, TimeUnit.MILLISECONDS, queue);
             }
         }
@@ -300,8 +300,8 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                         // zooming out:
                         tileProvider.setZoom((zoom <= 0) ? zoom : 0);
                     }
-                    dirtyTileCaches.put(tileProvider, new HashMap<Point, Reference<? extends Image>>());
-                    tileCaches.put(tileProvider, new HashMap<Point, Reference<? extends Image>>());
+                    dirtyTileCaches.put(tileProvider, new HashMap<>());
+                    tileCaches.put(tileProvider, new HashMap<>());
                 }
             }
             // Adjust view location, since it is in unzoomed coordinates
@@ -443,9 +443,9 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                     }
                     dirtyTileCaches.put(tileProvider, dirtyTileCache);
                 } else {
-                    dirtyTileCaches.put(tileProvider, new HashMap<Point, Reference<? extends Image>>());
+                    dirtyTileCaches.put(tileProvider, new HashMap<>());
                 }
-                tileCaches.put(tileProvider, new HashMap<Point, Reference<? extends Image>>());
+                tileCaches.put(tileProvider, new HashMap<>());
             }
         }
         repaint();
@@ -937,7 +937,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                 tileCache.put(coords, RENDERING);
                 tileRenderers.execute(new TileRenderJob(tileCache, dirtyTileCache, coords, tileProvider, effectiveZoom, image));
             } else {
-                tileCache.put(coords, new SoftReference<VolatileImage>(NO_TILE));
+                tileCache.put(coords, new SoftReference<>(NO_TILE));
                 if (dirtyTileCache.containsKey(coords)) {
                     dirtyTileCache.remove(coords);
                 }
@@ -973,12 +973,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         if (SwingUtilities.isEventDispatchThread()) {
             refresh(source, x, y);
         } else {
-            SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        refresh(source, x, y);
-                    }
-                });
+            SwingUtilities.invokeLater(() -> refresh(source, x, y));
         }
     }
 
@@ -987,12 +982,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         if (SwingUtilities.isEventDispatchThread()) {
             refresh(source, tiles);
         } else {
-            SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        refresh(source, tiles);
-                    }
-                });
+            SwingUtilities.invokeLater(() -> refresh(source, tiles));
         }
     }
 
@@ -1055,7 +1045,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                     if (logger.isLoggable(Level.FINE)) {
                         logger.fine("Starting " + threads + " tile rendering threads");
                     }
-                    queue = new PriorityBlockingQueue<Runnable>();
+                    queue = new PriorityBlockingQueue<>();
                     tileRenderers = new ThreadPoolExecutor(threads, threads, 0, TimeUnit.MILLISECONDS, queue);
                 }
             } else {
@@ -1075,9 +1065,9 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
     private final boolean leftClickDrags, paintCentre;
     private final int threads;
     private final Object TILE_CACHE_LOCK = new Object();
-    private final List<TileProvider> tileProviders = new ArrayList<TileProvider>();
-    private final Map<TileProvider, Map<Point, Reference<? extends Image>>> tileCaches = new HashMap<TileProvider, Map<Point, Reference<? extends Image>>>(),
-            dirtyTileCaches = new HashMap<TileProvider, Map<Point, Reference<? extends Image>>>();
+    private final List<TileProvider> tileProviders = new ArrayList<>();
+    private final Map<TileProvider, Map<Point, Reference<? extends Image>>> tileCaches = new HashMap<>(),
+            dirtyTileCaches = new HashMap<>();
     protected int viewX, viewY, previousX, previousY, markerX, markerY, xOffset, yOffset;
     /**
      * The zoom level in the form of an exponent of 2. I.e. the scale is 2^n,
@@ -1095,7 +1085,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
     
     static final AtomicLong jobSeq = new AtomicLong(Long.MIN_VALUE);
 
-    private static final Reference<VolatileImage> RENDERING = new SoftReference<VolatileImage>(null);
+    private static final Reference<VolatileImage> RENDERING = new SoftReference<>(null);
     private static final VolatileImage NO_TILE = new VolatileImage() {
         @Override public BufferedImage getSnapshot() {return null;}
         @Override public int getWidth() {return 0;}

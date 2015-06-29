@@ -31,7 +31,7 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
     }
 
     public Set<Layer> apply(Dimension dimension) {
-        Set<Layer> addedLayers = new HashSet<Layer>();
+        Set<Layer> addedLayers = new HashSet<>();
         for (Tile tile : dimension.getTiles()) {
             addedLayers.addAll(apply(tile));
         }
@@ -39,7 +39,7 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
     }
 
     public Set<Layer> apply(Tile tile) {
-        Set<Layer> addedLayers = new HashSet<Layer>();
+        Set<Layer> addedLayers = new HashSet<>();
         if (!tile.hasLayer(this)) {
             return Collections.emptySet();
         }
@@ -125,7 +125,7 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
 
     @Override
     public List<Action> getActions() {
-        List<Action> actions = new ArrayList<Action>();
+        List<Action> actions = new ArrayList<>();
         List<Action> superActions = super.getActions();
         if (superActions != null) {
             actions.addAll(superActions);

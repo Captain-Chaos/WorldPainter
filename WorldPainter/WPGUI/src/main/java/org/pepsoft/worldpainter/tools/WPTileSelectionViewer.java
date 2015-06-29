@@ -174,7 +174,7 @@ public class WPTileSelectionViewer extends TiledImageViewer {
     
     private Point highlightedTileLocation;
     private Point selectedRectangleCorner1, selectedRectangleCorner2;
-    private final Set<Point> selectedTiles = new HashSet<Point>();
+    private final Set<Point> selectedTiles = new HashSet<>();
     
     private static final BufferedImage SCALE_BAR;
     

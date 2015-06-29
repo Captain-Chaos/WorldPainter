@@ -71,8 +71,8 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
                 heightMap = new short[TILE_SIZE * TILE_SIZE];
                 waterLevel = new byte[TILE_SIZE * TILE_SIZE];
             }
-            layerData = new HashMap<Layer, byte[]>();
-            bitLayerData = new HashMap<Layer, BitSet>();
+            layerData = new HashMap<>();
+            bitLayerData = new HashMap<>();
             init();
         }
     }
@@ -273,7 +273,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
         if (cachedLayers == null) {
             ensureReadable(LAYER_DATA);
             ensureReadable(BIT_LAYER_DATA);
-            List<Layer> layers = new ArrayList<Layer>();
+            List<Layer> layers = new ArrayList<>();
             layers.addAll(layerData.keySet());
             layers.addAll(bitLayerData.keySet());
             Collections.sort(layers);
@@ -296,7 +296,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
     public List<Layer> getActiveLayers(int x, int y) {
         ensureReadable(BIT_LAYER_DATA);
         ensureReadable(LAYER_DATA);
-        List<Layer> activeLayers = new ArrayList<Layer>(bitLayerData.size() + layerData.size());
+        List<Layer> activeLayers = new ArrayList<>(bitLayerData.size() + layerData.size());
         for (Map.Entry<Layer, BitSet> entry: bitLayerData.entrySet()) {
             final Layer layer = entry.getKey();
             final DataSize dataSize = layer.getDataSize();
@@ -331,9 +331,9 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
      *     layer priority.
      */
     public List<Layer> getLayers(Set<Layer> additionalLayers) {
-        SortedSet<Layer> layers = new TreeSet<Layer>(additionalLayers);
+        SortedSet<Layer> layers = new TreeSet<>(additionalLayers);
         layers.addAll(getLayers());
-        return new ArrayList<Layer>(layers);
+        return new ArrayList<>(layers);
     }
     
     public synchronized boolean getBitLayerValue(Layer layer, int x, int y) {
@@ -427,7 +427,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
             }
             if (value != layer.getDefaultValue()) {
                 if (layers == null) {
-                    layers = new HashMap<Layer, Integer>();
+                    layers = new HashMap<>();
                 }
                 layers.put(layer, value);
             }
@@ -444,7 +444,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
             }
             if (value != layer.getDefaultValue()) {
                 if (layers == null) {
-                    layers = new HashMap<Layer, Integer>();
+                    layers = new HashMap<>();
                 }
                 layers.put(layer, value);
             }
@@ -746,7 +746,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
 
     public synchronized void plantSeed(Seed seed) {
         if (seeds == null) {
-            seeds = new HashSet<Seed>();
+            seeds = new HashSet<>();
             if (undoManager != null) {
                 undoManager.addBuffer(SEEDS_BUFFER_KEY, seeds, this);
                 readableBuffers.add(SEEDS);
@@ -761,7 +761,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
 
     public synchronized void removeSeed(Seed seed) {
         if (seeds == null) {
-            seeds = new HashSet<Seed>();
+            seeds = new HashSet<>();
             if (undoManager != null) {
                 undoManager.addBuffer(SEEDS_BUFFER_KEY, seeds, this);
                 readableBuffers.add(SEEDS);
@@ -944,7 +944,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
             transformedTile.init();
         }
         if (seeds != null) {
-            transformedTile.seeds = new HashSet<Seed>();
+            transformedTile.seeds = new HashSet<>();
             transformedTile.seeds.addAll(seeds);
             for (Seed seed: transformedTile.seeds) {
                 seed.transform(transform);
@@ -988,15 +988,15 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
         }
         if (layerData == null) {
             out.println("Non-bit valued layer data for tile " + x + "," + y + " lost");
-            layerData = new HashMap<Layer, byte[]>();
+            layerData = new HashMap<>();
         }
         if (bitLayerData == null) {
             out.println("Bit valued layer data for tile " + x + "," + y + " lost");
-            bitLayerData = new HashMap<Layer, BitSet>();
+            bitLayerData = new HashMap<>();
         }
         if (seeds == null) {
             out.println("Seed data for tile " + x + "," + y + " lost");
-            seeds = new HashSet<Seed>();
+            seeds = new HashSet<>();
         }
         init();
         return true;
@@ -1403,16 +1403,16 @@ layerLoop: for (Iterator<Map.Entry<Layer, byte[]>> i = layerData.entrySet().iter
     }
 
     private void init() {
-        listeners = new ArrayList<Listener>();
-        HEIGHTMAP_BUFFER_KEY = new TileUndoBufferKey<short[]>(this, HEIGHTMAP);
-        TALL_HEIGHTMAP_BUFFER_KEY = new TileUndoBufferKey<int[]>(this, TALL_HEIGHTMAP);
-        TERRAIN_BUFFER_KEY = new TileUndoBufferKey<byte[]>(this, TERRAIN);
-        WATERLEVEL_BUFFER_KEY = new TileUndoBufferKey<byte[]>(this, WATERLEVEL);
-        TALL_WATERLEVEL_BUFFER_KEY = new TileUndoBufferKey<short[]>(this, TALL_WATERLEVEL);
-        LAYER_DATA_BUFFER_KEY = new TileUndoBufferKey<Map<Layer, byte[]>>(this, LAYER_DATA);
-        BIT_LAYER_DATA_BUFFER_KEY = new TileUndoBufferKey<Map<Layer, BitSet>>(this, BIT_LAYER_DATA);
-        SEEDS_BUFFER_KEY = new TileUndoBufferKey<HashSet<Seed>>(this, SEEDS);
-        dirtyLayers = new HashSet<Layer>();
+        listeners = new ArrayList<>();
+        HEIGHTMAP_BUFFER_KEY = new TileUndoBufferKey<>(this, HEIGHTMAP);
+        TALL_HEIGHTMAP_BUFFER_KEY = new TileUndoBufferKey<>(this, TALL_HEIGHTMAP);
+        TERRAIN_BUFFER_KEY = new TileUndoBufferKey<>(this, TERRAIN);
+        WATERLEVEL_BUFFER_KEY = new TileUndoBufferKey<>(this, WATERLEVEL);
+        TALL_WATERLEVEL_BUFFER_KEY = new TileUndoBufferKey<>(this, TALL_WATERLEVEL);
+        LAYER_DATA_BUFFER_KEY = new TileUndoBufferKey<>(this, LAYER_DATA);
+        BIT_LAYER_DATA_BUFFER_KEY = new TileUndoBufferKey<>(this, BIT_LAYER_DATA);
+        SEEDS_BUFFER_KEY = new TileUndoBufferKey<>(this, SEEDS);
+        dirtyLayers = new HashSet<>();
         maxY = maxHeight - 1;
         
         // Legacy map support

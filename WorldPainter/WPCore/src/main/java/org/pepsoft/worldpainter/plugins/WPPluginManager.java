@@ -6,6 +6,7 @@ package org.pepsoft.worldpainter.plugins;
 
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -14,7 +15,7 @@ import java.util.logging.Logger;
 public class WPPluginManager {
     private WPPluginManager(UUID uuid, String logPrefix, ClassLoader classLoader) {
         allPlugins = org.pepsoft.util.PluginManager.findPlugins(Plugin.class, FILENAME, classLoader);
-        Set<String> namesEncountered = new HashSet<String>();
+        Set<String> namesEncountered = new HashSet<>();
         for (Iterator<Plugin> i = allPlugins.iterator(); i.hasNext(); ) {
             Plugin plugin = i.next();
             if ((plugin.getUUIDs() != null) && (uuid != null) && (! plugin.getUUIDs().contains(uuid))) {
@@ -38,12 +39,8 @@ public class WPPluginManager {
     
     @SuppressWarnings("unchecked") // Guaranteed by Java
     public <T extends Plugin> List<T> getPlugins(Class<T> type) {
-        List<T> plugins = new ArrayList<T>(allPlugins.size());
-        for (Plugin plugin: allPlugins) {
-            if (type.isAssignableFrom(plugin.getClass())) {
-                plugins.add((T) plugin);
-            }
-        }
+        List<T> plugins = new ArrayList<>(allPlugins.size());
+        plugins.addAll(allPlugins.stream().filter(plugin -> type.isAssignableFrom(plugin.getClass())).map(plugin -> (T) plugin).collect(Collectors.toList()));
         return plugins;
     }
     

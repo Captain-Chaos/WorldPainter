@@ -40,7 +40,7 @@ public abstract class AbstractPlugin implements Plugin {
     public final Set<UUID> getUUIDs() {
         String uuidsStr = properties.getProperty(PROPERTY_UUIDS);
         if (uuidsStr != null) {
-            Set<UUID> uuids = new HashSet<UUID>();
+            Set<UUID> uuids = new HashSet<>();
             String[] uuidsStrs = uuidsStr.split(",");
             for (String uuidStr: uuidsStrs) {
                 uuids.add(UUID.fromString(uuidStr.trim()));

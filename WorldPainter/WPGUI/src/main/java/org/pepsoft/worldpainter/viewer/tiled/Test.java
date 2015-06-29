@@ -27,59 +27,48 @@ import java.util.zip.GZIPInputStream;
 public class Test {
     public static void main(String[] args) throws IOException, ClassNotFoundException {
         final World2 world;
-        ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new FileInputStream(args[0])));
-        try {
+        try (ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new FileInputStream(args[0])))) {
             world = (World2) in.readObject();
-        } finally {
-            in.close();
         }
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                JFrame frame = new JFrame("TiledLayerView Test");
-                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                
-                LayerViewer layerViewer = new LayerViewer();
-                frame.getContentPane().add(layerViewer, BorderLayout.CENTER);
-                
-                final Dimension dimension = world.getDimension(Constants.DIM_NORMAL);
-                Layer layer = new Layer() {
-                    @Override
-                    public String getName() {
-                        return "Tiles";
-                    }
+        SwingUtilities.invokeLater(() -> {
+            JFrame frame = new JFrame("TiledLayerView Test");
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-                    @Override
-                    public String getDescription() {
-                        return "WorldPainter tiles from world";
-                    }
+            LayerViewer layerViewer = new LayerViewer();
+            frame.getContentPane().add(layerViewer, BorderLayout.CENTER);
 
-                    @Override
-                    public Rectangle getBounds() {
-                        return new Rectangle(dimension.getLowestX() << Constants.TILE_SIZE_BITS,
-                                dimension.getLowestY() << Constants.TILE_SIZE_BITS,
-                                dimension.getWidth() << Constants.TILE_SIZE_BITS,
-                                dimension.getHeight() << Constants.TILE_SIZE_BITS);
-                    }
-                };
-                final ColourScheme colourScheme = new DynMapColourScheme("default", true);
-                final BiomeScheme biomeScheme = new AutoBiomeScheme(dimension);
-                final CustomBiomeManager customBiomeManager = new CustomBiomeManager();
-                TileRendererFactory tileRendererFactory = new TileRendererFactory() {
-                    @Override
-                    public TileRenderer createTileRenderer() {
-                        return new TileRenderer(dimension, colourScheme, biomeScheme, customBiomeManager, 0);
-                    }
-                };
-                TiledLayerView layerView = new TiledLayerView(layer, dimension, tileRendererFactory);
-                layerViewer.addLayer(layerView, new Point(0, 0));
-                
-                frame.setSize(1024, 768);
-                frame.setLocationRelativeTo(null);
-                frame.setVisible(true);
-                
-                layerViewer.start();
-            }
+            final Dimension dimension = world.getDimension(Constants.DIM_NORMAL);
+            Layer layer = new Layer() {
+                @Override
+                public String getName() {
+                    return "Tiles";
+                }
+
+                @Override
+                public String getDescription() {
+                    return "WorldPainter tiles from world";
+                }
+
+                @Override
+                public Rectangle getBounds() {
+                    return new Rectangle(dimension.getLowestX() << Constants.TILE_SIZE_BITS,
+                            dimension.getLowestY() << Constants.TILE_SIZE_BITS,
+                            dimension.getWidth() << Constants.TILE_SIZE_BITS,
+                            dimension.getHeight() << Constants.TILE_SIZE_BITS);
+                }
+            };
+            final ColourScheme colourScheme = new DynMapColourScheme("default", true);
+            final BiomeScheme biomeScheme = new AutoBiomeScheme(dimension);
+            final CustomBiomeManager customBiomeManager = new CustomBiomeManager();
+            TileRendererFactory tileRendererFactory = () -> new TileRenderer(dimension, colourScheme, biomeScheme, customBiomeManager, 0);
+            TiledLayerView layerView = new TiledLayerView(layer, dimension, tileRendererFactory);
+            layerViewer.addLayer(layerView, new Point(0, 0));
+
+            frame.setSize(1024, 768);
+            frame.setLocationRelativeTo(null);
+            frame.setVisible(true);
+
+            layerViewer.start();
         });
     }
 }

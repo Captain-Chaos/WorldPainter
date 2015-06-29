@@ -21,11 +21,8 @@ public class IntegrityChecker {
     public static void main(String[] args) throws IOException, ClassNotFoundException {
         System.out.println("Loading " + args[0]);
         World2 world;
-        ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new FileInputStream(args[0])));
-        try {
+        try (ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new FileInputStream(args[0])))) {
             world = (World2) in.readObject();
-        } finally {
-            in.close();
         }
         for (Dimension dimension: world.getDimensions()) {
             float maxHeight = (dimension.getMaxHeight() - 1) + 0.5f;

@@ -25,7 +25,7 @@ public class InstanceKeeper {
         listeners.put(type, listener);
     }
     
-    private static Map<Class<?>, InstantiationListener<?>> listeners = new HashMap<Class<?>, InstantiationListener<?>>();
+    private static Map<Class<?>, InstantiationListener<?>> listeners = new HashMap<>();
     
     public static interface InstantiationListener<T> {
         void objectInstaniated(T object);

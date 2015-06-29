@@ -64,7 +64,7 @@ public class CustomBiomeManager {
             return false;
         }
         if (customBiomes == null) {
-            customBiomes = new ArrayList<CustomBiome>();
+            customBiomes = new ArrayList<>();
         }
         for (CustomBiome existingCustomBiome: customBiomes) {
             if (existingCustomBiome.getId() == customBiome.getId()) {
@@ -100,7 +100,7 @@ public class CustomBiomeManager {
     }
 
     private List<CustomBiome> customBiomes;
-    private List<CustomBiomeListener> listeners = new ArrayList<CustomBiomeListener>();
+    private List<CustomBiomeListener> listeners = new ArrayList<>();
     
     public interface CustomBiomeListener {
         void customBiomeAdded(CustomBiome customBiome);

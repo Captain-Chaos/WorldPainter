@@ -95,30 +95,24 @@ public class MapRootNode implements Node {
 
     public RegionFileNode[] getRegionNodes() {
         final Pattern regionFilenamePattern = (version == SUPPORTED_VERSION_1) ? regionFilenamePatternVersion1 : regionFilenamePatternVersion2;
-        File[] files = regionDir.listFiles(new FileFilter() {
-            public boolean accept(File pathname) {
-                return pathname.isFile() && regionFilenamePattern.matcher(pathname.getName()).matches();
-            }
-        });
+        File[] files = regionDir.listFiles(pathname -> pathname.isFile() && regionFilenamePattern.matcher(pathname.getName()).matches());
         RegionFileNode[] nodes = new RegionFileNode[files.length];
         for (int i = 0; i < files.length; i++) {
             nodes[i] = new RegionFileNode(files[i]);
         }
         // Sort by coordinates, x coordinate first
-        Arrays.sort(nodes, new Comparator<RegionFileNode>() {
-            public int compare(RegionFileNode r1, RegionFileNode r2) {
-                if (r1.getX() < r2.getX()) {
+        Arrays.sort(nodes, (r1, r2) -> {
+            if (r1.getX() < r2.getX()) {
+                return -1;
+            } else if (r1.getX() > r2.getX()) {
+                return 1;
+            } else {
+                if (r1.getZ() < r2.getZ()) {
                     return -1;
-                } else if (r1.getX() > r2.getX()) {
+                } else if (r1.getZ() > r2.getZ()) {
                     return 1;
                 } else {
-                    if (r1.getZ() < r2.getZ()) {
-                        return -1;
-                    } else if (r1.getZ() > r2.getZ()) {
-                        return 1;
-                    } else {
-                        return 0;
-                    }
+                    return 0;
                 }
             }
         });
@@ -126,11 +120,7 @@ public class MapRootNode implements Node {
     }
 
     public ExtraDimensionNode[] getDimensionNodes() {
-        File[] files = worldDir.listFiles(new FileFilter() {
-            public boolean accept(File pathname) {
-                return pathname.isDirectory() && dimensionDirPattern.matcher(pathname.getName()).matches();
-            }
-        });
+        File[] files = worldDir.listFiles(pathname -> pathname.isDirectory() && dimensionDirPattern.matcher(pathname.getName()).matches());
         ExtraDimensionNode[] nodes = new ExtraDimensionNode[files.length];
         for (int i = 0; i < files.length; i++) {
             nodes[i] = new ExtraDimensionNode(files[i], version);
@@ -150,7 +140,7 @@ public class MapRootNode implements Node {
     }
 
     private void loadChildren() {
-        List<Node> childrenList = new ArrayList<Node>();
+        List<Node> childrenList = new ArrayList<>();
         childrenList.add(getLevelDatNode());
         if (oldLevelDatFile != null) {
             childrenList.add(getOldLevelDatNode());

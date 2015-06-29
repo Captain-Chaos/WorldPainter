@@ -67,18 +67,15 @@ public class RiverNode extends PathNode {
         for (int r = 3; (! lowerPointFound[0]) && (r <= 9); r += 2) {
             radius = r;
             final float[] lowestHeight = {garden.getHeight(location.x, location.y)};
-            GeometryUtil.visitCircle(r, new GeometryVisitor() {
-                @Override
-                public boolean visit(int dx, int dy, float d) {
-                    float height = garden.getHeight(location.x + dx, location.y + dy);
-                    if (height < lowestHeight[0]) {
-                        lowestHeight[0] = height;
-                        lowestHeightCoords[0] = location.x + dx;
-                        lowestHeightCoords[1] = location.y + dy;
-                        lowerPointFound[0] = true;
-                    }
-                    return true;
+            GeometryUtil.visitCircle(r, (dx, dy, d) -> {
+                float height = garden.getHeight(location.x + dx, location.y + dy);
+                if (height < lowestHeight[0]) {
+                    lowestHeight[0] = height;
+                    lowestHeightCoords[0] = location.x + dx;
+                    lowestHeightCoords[1] = location.y + dy;
+                    lowerPointFound[0] = true;
                 }
+                return true;
             });
         }
         
@@ -135,46 +132,40 @@ public class RiverNode extends PathNode {
             final int d = (int) Math.round(Math.sqrt(crossSectionalArea));
             final int r = d / 2;
             final boolean eastWest = Math.abs(location.x - parent.location.x) > Math.abs(location.y - parent.location.y);
-            doAlongLine(parent.location.x, parent.location.y, location.x, location.y, new Task() {
-                @Override
-                public boolean perform(final int x, final int y) {
-                    if (d == 1) {
-                        if (eastWest) {
-                            int lowestSurroundingDryHeight = getLowestSurroundingDryHeight(dimensionSnapshot, x, y);
-                            dimension.setHeightAt(x, y, lowestSurroundingDryHeight - 1);
-                            dimension.setWaterLevelAt(x, y, Math.max(dimension.getWaterLevelAt(x, y), lowestSurroundingDryHeight));
-                            lowestSurroundingDryHeight = getLowestSurroundingDryHeight(dimensionSnapshot, x + 1, y);
-                            dimension.setHeightAt(x + 1, y, lowestSurroundingDryHeight - 1);
-                            dimension.setWaterLevelAt(x + 1, y, Math.max(dimension.getWaterLevelAt(x + 1, y), lowestSurroundingDryHeight));
-                        } else {
-                            int lowestSurroundingDryHeight = getLowestSurroundingDryHeight(dimensionSnapshot, x, y);
-                            dimension.setHeightAt(x, y, lowestSurroundingDryHeight - 1);
-                            dimension.setWaterLevelAt(x, y, Math.max(dimension.getWaterLevelAt(x, y), lowestSurroundingDryHeight));
-                            lowestSurroundingDryHeight = getLowestSurroundingDryHeight(dimensionSnapshot, x, y + 1);
-                            dimension.setHeightAt(x, y + 1, lowestSurroundingDryHeight - 1);
-                            dimension.setWaterLevelAt(x, y + 1, Math.max(dimension.getWaterLevelAt(x, y + 1), lowestSurroundingDryHeight));
-                        }
-                    } else if (d == 2) {
-                        for (int dx = 0; dx < 2; dx++) {
-                            for (int dy = 0; dy < 2; dy++) {
-                                int lowestSurroundingDryHeight = getLowestSurroundingDryHeight(dimensionSnapshot, x + dx, y + dy);
-                                dimension.setHeightAt(x + dx, y + dy, lowestSurroundingDryHeight - 1);
-                                dimension.setWaterLevelAt(x + dx, y + dy, Math.max(dimension.getWaterLevelAt(x + dx, y + dy), lowestSurroundingDryHeight));
-                            }
-                        }
+            doAlongLine(parent.location.x, parent.location.y, location.x, location.y, (x, y) -> {
+                if (d == 1) {
+                    if (eastWest) {
+                        int lowestSurroundingDryHeight = getLowestSurroundingDryHeight(dimensionSnapshot, x, y);
+                        dimension.setHeightAt(x, y, lowestSurroundingDryHeight - 1);
+                        dimension.setWaterLevelAt(x, y, Math.max(dimension.getWaterLevelAt(x, y), lowestSurroundingDryHeight));
+                        lowestSurroundingDryHeight = getLowestSurroundingDryHeight(dimensionSnapshot, x + 1, y);
+                        dimension.setHeightAt(x + 1, y, lowestSurroundingDryHeight - 1);
+                        dimension.setWaterLevelAt(x + 1, y, Math.max(dimension.getWaterLevelAt(x + 1, y), lowestSurroundingDryHeight));
                     } else {
-                        GeometryUtil.visitFilledCircle(r - 1, new GeometryVisitor() {
-                            @Override
-                            public boolean visit(int dx, int dy, float d) {
-                                int lowestSurroundingDryHeight = getLowestSurroundingDryHeight(dimensionSnapshot, x + dx, y + dy);
-                                dimension.setHeightAt(x + dx, y + dy, lowestSurroundingDryHeight - 1);
-                                dimension.setWaterLevelAt(x + dx, y + dy, Math.max(dimension.getWaterLevelAt(x + dx, y + dy), lowestSurroundingDryHeight));
-                                return true;
-                            }
-                        });
+                        int lowestSurroundingDryHeight = getLowestSurroundingDryHeight(dimensionSnapshot, x, y);
+                        dimension.setHeightAt(x, y, lowestSurroundingDryHeight - 1);
+                        dimension.setWaterLevelAt(x, y, Math.max(dimension.getWaterLevelAt(x, y), lowestSurroundingDryHeight));
+                        lowestSurroundingDryHeight = getLowestSurroundingDryHeight(dimensionSnapshot, x, y + 1);
+                        dimension.setHeightAt(x, y + 1, lowestSurroundingDryHeight - 1);
+                        dimension.setWaterLevelAt(x, y + 1, Math.max(dimension.getWaterLevelAt(x, y + 1), lowestSurroundingDryHeight));
                     }
-                    return true;
+                } else if (d == 2) {
+                    for (int dx = 0; dx < 2; dx++) {
+                        for (int dy = 0; dy < 2; dy++) {
+                            int lowestSurroundingDryHeight = getLowestSurroundingDryHeight(dimensionSnapshot, x + dx, y + dy);
+                            dimension.setHeightAt(x + dx, y + dy, lowestSurroundingDryHeight - 1);
+                            dimension.setWaterLevelAt(x + dx, y + dy, Math.max(dimension.getWaterLevelAt(x + dx, y + dy), lowestSurroundingDryHeight));
+                        }
+                    }
+                } else {
+                    GeometryUtil.visitFilledCircle(r - 1, (dx, dy, d1) -> {
+                        int lowestSurroundingDryHeight = getLowestSurroundingDryHeight(dimensionSnapshot, x + dx, y + dy);
+                        dimension.setHeightAt(x + dx, y + dy, lowestSurroundingDryHeight - 1);
+                        dimension.setWaterLevelAt(x + dx, y + dy, Math.max(dimension.getWaterLevelAt(x + dx, y + dy), lowestSurroundingDryHeight));
+                        return true;
+                    });
                 }
+                return true;
             });
         }
         if (child != null) {
@@ -192,7 +183,7 @@ public class RiverNode extends PathNode {
     }
 
     private void addCrossSectionalArea(RiverNode node, int crossSectionalArea) {
-        Set<RiverNode> processedNodes = new HashSet<RiverNode>();
+        Set<RiverNode> processedNodes = new HashSet<>();
         while (node != null) {
             if (processedNodes.contains(node)) {
                 logger.severe("Loop in river!");

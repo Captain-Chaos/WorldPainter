@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import org.jnbt.CompoundTag;
 import org.jnbt.Tag;
 import static org.pepsoft.minecraft.Constants.*;
@@ -21,7 +23,7 @@ import static org.pepsoft.minecraft.Constants.*;
  */
 public final class ChunkImpl extends AbstractNBTItem implements Chunk {
     public ChunkImpl(int xPos, int zPos, int maxHeight) {
-        super(new CompoundTag(TAG_LEVEL, new HashMap<String, Tag>()));
+        super(new CompoundTag(TAG_LEVEL, new HashMap<>()));
         this.xPos = xPos;
         this.zPos = zPos;
         this.maxHeight = maxHeight;
@@ -31,8 +33,8 @@ public final class ChunkImpl extends AbstractNBTItem implements Chunk {
         skyLight = new byte[128 * maxHeight];
         blockLight = new byte[128 * maxHeight];
         heightMap = new byte[256];
-        entities = new ArrayList<Entity>();
-        tileEntities = new ArrayList<TileEntity>();
+        entities = new ArrayList<>();
+        tileEntities = new ArrayList<>();
         readOnly = false;
     }
 
@@ -51,15 +53,11 @@ public final class ChunkImpl extends AbstractNBTItem implements Chunk {
         blockLight = getByteArray(TAG_BLOCK_LIGHT);
         heightMap = getByteArray(TAG_HEIGHT_MAP);
         List<CompoundTag> entityTags = getList(TAG_ENTITIES);
-        entities = new ArrayList<Entity>(entityTags.size());
-        for (CompoundTag entityTag: entityTags) {
-            entities.add(Entity.fromNBT(entityTag));
-        }
+        entities = new ArrayList<>(entityTags.size());
+        entities.addAll(entityTags.stream().map(Entity::fromNBT).collect(Collectors.toList()));
         List<CompoundTag> tileEntityTags = getList(TAG_TILE_ENTITIES);
-        tileEntities = new ArrayList<TileEntity>(tileEntityTags.size());
-        for (CompoundTag tileEntityTag: tileEntityTags) {
-            tileEntities.add(TileEntity.fromNBT(tileEntityTag));
-        }
+        tileEntities = new ArrayList<>(tileEntityTags.size());
+        tileEntities.addAll(tileEntityTags.stream().map(TileEntity::fromNBT).collect(Collectors.toList()));
         // TODO: last update is ignored, is that correct?
         xPos = getInt(TAG_X_POS);
         zPos = getInt(TAG_Z_POS);
@@ -73,15 +71,11 @@ public final class ChunkImpl extends AbstractNBTItem implements Chunk {
         setByteArray(TAG_SKY_LIGHT, skyLight);
         setByteArray(TAG_BLOCK_LIGHT, blockLight);
         setByteArray(TAG_HEIGHT_MAP, heightMap);
-        List<Tag> entityTags = new ArrayList<Tag>(entities.size());
-        for (Entity entity: entities) {
-            entityTags.add(entity.toNBT());
-        }
+        List<Tag> entityTags = new ArrayList<>(entities.size());
+        entityTags.addAll(entities.stream().map(Entity::toNBT).collect(Collectors.toList()));
         setList(TAG_ENTITIES, CompoundTag.class, entityTags);
-        List<Tag> tileEntityTags = new ArrayList<Tag>(entities.size());
-        for (TileEntity tileEntity: tileEntities) {
-            tileEntityTags.add(tileEntity.toNBT());
-        }
+        List<Tag> tileEntityTags = new ArrayList<>(entities.size());
+        tileEntityTags.addAll(tileEntities.stream().map(TileEntity::toNBT).collect(Collectors.toList()));
         setList(TAG_TILE_ENTITIES, CompoundTag.class, tileEntityTags);
         setLong(TAG_LAST_UPDATE, System.currentTimeMillis());
         setInt(TAG_X_POS, xPos);

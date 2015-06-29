@@ -22,7 +22,7 @@ public enum AccelerationType {
     }
 
     public static List<AccelerationType> getForThisOS() {
-        List<AccelerationType> types = new ArrayList<AccelerationType>(values().length);
+        List<AccelerationType> types = new ArrayList<>(values().length);
         for (AccelerationType type : values()) {
             if (type.oses.contains(SystemUtils.getOS())) {
                 types.add(type);

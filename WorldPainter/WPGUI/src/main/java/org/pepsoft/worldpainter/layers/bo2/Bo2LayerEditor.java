@@ -84,7 +84,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
     
     @Override
     public void reset() {
-        List<WPObject> objects = new ArrayList<WPObject>();
+        List<WPObject> objects = new ArrayList<>();
         fieldName.setText(layer.getName());
         selectedColour = layer.getColour();
         List<File> files = layer.getFiles();
@@ -100,12 +100,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                 int missingFiles = 0;
                 if ((files.size() == 1) && files.get(0).isDirectory()) {
                     logger.info("Existing custom object layer contains old style directory; migrating to new style");
-                    File[] filesInDir = files.get(0).listFiles(new FilenameFilter() {
-                        @Override
-                        public boolean accept(File dir, String name) {
-                            return name.toLowerCase().endsWith(".bo2") || name.toLowerCase().endsWith(".schematic");
-                        }
-                    });
+                    File[] filesInDir = files.get(0).listFiles((dir, name) -> name.toLowerCase().endsWith(".bo2") || name.toLowerCase().endsWith(".schematic"));
                     for (File file: filesInDir) {
                         try {
                             WPObject object;
@@ -225,7 +220,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
 
     private Bo2Layer saveSettings(Bo2Layer layer) {
         String name = fieldName.getText();
-        List<WPObject> objects = new ArrayList<WPObject>(listModel.getSize());
+        List<WPObject> objects = new ArrayList<>(listModel.getSize());
         for (int i = 0; i < listModel.getSize(); i++) {
             objects.add((WPObject) listModel.getElementAt(i));
         }
@@ -300,12 +295,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                             }
                             fieldName.setText(name);
                         }
-                        File[] files = selectedFile.listFiles(new FilenameFilter() {
-                            @Override
-                            public boolean accept(File dir, String name) {
-                                return name.toLowerCase().endsWith(".bo2") || name.toLowerCase().endsWith(".schematic");
-                            }
-                        });
+                        File[] files = selectedFile.listFiles((dir, name) -> name.toLowerCase().endsWith(".bo2") || name.toLowerCase().endsWith(".schematic"));
                         if (files.length == 0) {
                             JOptionPane.showMessageDialog(this, "Directory " + selectedFile.getName() + " does not contain any .bo2 or .schematic files.", "No Custom Object Files", JOptionPane.ERROR_MESSAGE);
                         } else {
@@ -378,8 +368,8 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                 indices[i] = i;
             }
         }
-        for (int i = 0; i < indices.length; i++) {
-            WPObject object = (WPObject) listModel.getElementAt(indices[i]);
+        for (int indice : indices) {
+            WPObject object = (WPObject) listModel.getElementAt(indice);
             File file = object.getAttribute(ATTRIBUTE_FILE, (File) null);
             if (file != null) {
                 if (file.isFile() && file.canRead()) {
@@ -393,12 +383,12 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                         if (existingAttributes != null) {
                             Map<String, Serializable> attributes = object.getAttributes();
                             if (attributes == null) {
-                                attributes = new HashMap<String, Serializable>();
+                                attributes = new HashMap<>();
                             }
                             attributes.putAll(existingAttributes);
                             object.setAttributes(attributes);
                         }
-                        listModel.setElementAt(object, indices[i]);
+                        listModel.setElementAt(object, indice);
                     } catch (IOException e) {
                         logger.log(Level.SEVERE, "I/O error while reloading " + file, e);
                         errors.append(file.getPath()).append('\n');
@@ -429,7 +419,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
     }
     
     private void editObjects() {
-        List<WPObject> selectedObjects = new ArrayList<WPObject>(listObjects.getSelectedIndices().length);
+        List<WPObject> selectedObjects = new ArrayList<>(listObjects.getSelectedIndices().length);
         int[] selectedIndices = listObjects.getSelectedIndices();
         for (int i = selectedIndices.length - 1; i >= 0; i--) {
             selectedObjects.add((WPObject) listModel.getElementAt(selectedIndices[i]));
@@ -618,22 +608,14 @@ outer:  for (Enumeration<WPObject> e = (Enumeration<WPObject>) listModel.element
         buttonReloadAll.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/arrow_rotate_clockwise.png"))); // NOI18N
         buttonReloadAll.setToolTipText("Reload all or selected objects from disk");
         buttonReloadAll.setEnabled(false);
-        buttonReloadAll.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonReloadAllActionPerformed(evt);
-            }
-        });
+        buttonReloadAll.addActionListener(this::buttonReloadAllActionPerformed);
 
         jSeparator2.setOrientation(javax.swing.SwingConstants.VERTICAL);
 
         buttonEdit.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/brick_edit.png"))); // NOI18N
         buttonEdit.setToolTipText("Edit selected object(s) options");
         buttonEdit.setEnabled(false);
-        buttonEdit.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonEditActionPerformed(evt);
-            }
-        });
+        buttonEdit.addActionListener(this::buttonEditActionPerformed);
 
         labelLeafDecayTitle.setText("Leaf decay settings for these objects:");
 
@@ -642,27 +624,15 @@ outer:  for (Enumeration<WPObject> e = (Enumeration<WPObject>) listModel.element
 
         buttonSetDecay.setText("Set all to decay");
         buttonSetDecay.setToolTipText("Set all objects to decaying leaves");
-        buttonSetDecay.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonSetDecayActionPerformed(evt);
-            }
-        });
+        buttonSetDecay.addActionListener(this::buttonSetDecayActionPerformed);
 
         buttonSetNoDecay.setText("<html>Set all to <b>not</b> decay</html>");
         buttonSetNoDecay.setToolTipText("Set all objects to non decaying leaves");
-        buttonSetNoDecay.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonSetNoDecayActionPerformed(evt);
-            }
-        });
+        buttonSetNoDecay.addActionListener(this::buttonSetNoDecayActionPerformed);
 
         buttonReset.setText("Reset");
         buttonReset.setToolTipText("Reset leaf decay to object defaults");
-        buttonReset.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonResetActionPerformed(evt);
-            }
-        });
+        buttonReset.addActionListener(this::buttonResetActionPerformed);
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -731,11 +701,7 @@ outer:  for (Enumeration<WPObject> e = (Enumeration<WPObject>) listModel.element
         jLabel5.setOpaque(true);
 
         buttonPickColour.setText("...");
-        buttonPickColour.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonPickColourActionPerformed(evt);
-            }
-        });
+        buttonPickColour.addActionListener(this::buttonPickColourActionPerformed);
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -772,20 +738,12 @@ outer:  for (Enumeration<WPObject> e = (Enumeration<WPObject>) listModel.element
 
         buttonAddFile.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/brick_add.png"))); // NOI18N
         buttonAddFile.setToolTipText("Add one or more objects");
-        buttonAddFile.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonAddFileActionPerformed(evt);
-            }
-        });
+        buttonAddFile.addActionListener(this::buttonAddFileActionPerformed);
 
         buttonRemoveFile.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/brick_delete.png"))); // NOI18N
         buttonRemoveFile.setToolTipText("Remove selected object(s)");
         buttonRemoveFile.setEnabled(false);
-        buttonRemoveFile.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonRemoveFileActionPerformed(evt);
-            }
-        });
+        buttonRemoveFile.addActionListener(this::buttonRemoveFileActionPerformed);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);

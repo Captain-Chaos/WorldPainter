@@ -1240,7 +1240,7 @@ public enum Terrain {
     }
     
     public static Terrain[] getConfiguredValues() {
-        ArrayList<Terrain> values = new ArrayList<Terrain>(VALUES.length);
+        ArrayList<Terrain> values = new ArrayList<>(VALUES.length);
         for (Terrain terrain: VALUES) {
             if ((! terrain.isCustom()) || terrain.isConfigured()) {
                 values.add(terrain);

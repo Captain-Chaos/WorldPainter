@@ -47,11 +47,8 @@ public class MixedMaterialHelper {
         if (fileChooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile();
             try {
-                ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new BufferedInputStream(new FileInputStream(selectedFile))));
-                try {
+                try (ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new BufferedInputStream(new FileInputStream(selectedFile))))) {
                     return (MixedMaterial) in.readObject();
-                } finally {
-                    in.close();
                 }
             } catch (IOException e) {
                 throw new RuntimeException("I/O error while reading " + selectedFile, e);
@@ -92,11 +89,8 @@ public class MixedMaterialHelper {
                 return;
             }
             try {
-                ObjectOutputStream out = new ObjectOutputStream(new GZIPOutputStream(new BufferedOutputStream(new FileOutputStream(selectedFile))));
-                try {
+                try (ObjectOutputStream out = new ObjectOutputStream(new GZIPOutputStream(new BufferedOutputStream(new FileOutputStream(selectedFile))))) {
                     out.writeObject(material);
-                } finally {
-                    out.close();
                 }
             } catch (IOException e) {
                 throw new RuntimeException("I/O error while trying to write " + selectedFile, e);

@@ -35,5 +35,5 @@ class TerrainCellRendererHelper {
     }
     
     private final ColourScheme colourScheme;
-    private final Map<BufferedImage, ImageIcon> iconCache = new HashMap<BufferedImage, ImageIcon>();
+    private final Map<BufferedImage, ImageIcon> iconCache = new HashMap<>();
 }

@@ -199,7 +199,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     public synchronized void setPingAllowed(Boolean pingAllowed) {
         this.pingAllowed = pingAllowed;
         if (Boolean.TRUE.equals(pingAllowed) && (eventLog == null)) {
-            eventLog = new LinkedList<EventVO>();
+            eventLog = new LinkedList<>();
         } else if (Boolean.FALSE.equals(pingAllowed)) {
             eventLog = null;
         }
@@ -580,12 +580,12 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     }
     
     public synchronized List<EventVO> getEventLog() {
-        return (eventLog != null) ? new ArrayList<EventVO>(eventLog) : null;
+        return (eventLog != null) ? new ArrayList<>(eventLog) : null;
     }
     
     public synchronized void clearStatistics() {
         if (eventLog != null) {
-            eventLog = new LinkedList<EventVO>();
+            eventLog = new LinkedList<>();
         }
     }
 
@@ -598,11 +598,8 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     }
     
     public synchronized void save(File configFile) throws IOException {
-        ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(configFile));
-        try {
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(configFile))) {
             out.writeObject(this);
-        } finally {
-            out.close();
         }
     }
     
@@ -619,7 +616,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
             customMaterials = new Material[] {Material.DIRT, Material.DIRT, Material.DIRT, Material.DIRT, Material.DIRT};
         }
         if (minecraftJars == null) {
-            minecraftJars = new HashMap<Integer, File>();
+            minecraftJars = new HashMap<>();
             if (minecraft1_9_p3Jar != null) {
                 minecraftJars.put(Constants.BIOME_ALGORITHM_1_9, minecraft1_9_p3Jar);
                 minecraft1_9_p3Jar = null;
@@ -678,12 +675,12 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         }
         if (version < 6) {
             if (! Boolean.FALSE.equals(pingAllowed)) {
-                eventLog = new LinkedList<EventVO>();
+                eventLog = new LinkedList<>();
             }
         }
         if (version < 7) {
-            customLayers = new ArrayList<CustomLayer>();
-            mixedMaterials = new ArrayList<MixedMaterial>();
+            customLayers = new ArrayList<>();
+            mixedMaterials = new ArrayList<>();
         }
         if (version < 8) {
             // Check whether the default terrain map still has the deprecated
@@ -698,12 +695,11 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
                 // luck; it's not worth migrating them as well
                 if (theme.getTerrainRanges() != null) {
                     SortedMap<Integer, Terrain> terrainRanges = theme.getTerrainRanges();
-                    Map<Filter, Layer> layerMap = new HashMap<Filter, Layer>();
+                    Map<Filter, Layer> layerMap = new HashMap<>();
                     boolean frostAdded = false;
-                    for (Iterator<Map.Entry<Integer, Terrain>> i = terrainRanges.entrySet().iterator(); i.hasNext(); ) {
-                        Map.Entry<Integer, Terrain> entry = i.next();
+                    for (Map.Entry<Integer, Terrain> entry : terrainRanges.entrySet()) {
                         if (entry.getValue() == Terrain.SNOW) {
-                            if (! frostAdded) {
+                            if (!frostAdded) {
                                 layerMap.put(new HeightFilter(defaultMaxHeight, entry.getKey(), defaultMaxHeight - 1, theme.isRandomise()), Frost.INSTANCE);
                                 frostAdded = true;
                             }
@@ -777,11 +773,8 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     }
 
     public static synchronized Configuration load(File configFile) throws IOException, ClassNotFoundException {
-        ObjectInputStream in = new ObjectInputStream(new FileInputStream(configFile));
-        try {
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(configFile))) {
             return (Configuration) in.readObject();
-        } finally {
-            in.close();
         }
     }
     
@@ -816,13 +809,10 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         File newConfigDir = getConfigDir();
         File oldConfigDir = new File(System.getProperty("user.home"), ".worldpainter");
         logger.info("Configuration found in old location (" + oldConfigDir + "); migrating it to new location (" + newConfigDir + ")");
-        File[] oldContents = oldConfigDir.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                // Skip log files, since the new log file is already open in the
-                // new location
-                return ! name.startsWith("logfile");
-            }
+        File[] oldContents = oldConfigDir.listFiles((dir, name) -> {
+            // Skip log files, since the new log file is already open in the
+            // new location
+            return ! name.startsWith("logfile");
         });
         for (File oldFile: oldContents) {
             if (oldFile.isDirectory()) {
@@ -850,7 +840,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     @Deprecated
     private Material[] customMaterials = {DIRT, DIRT, DIRT, DIRT, DIRT};
     private int colourschemeIndex, launchCount;
-    private Map<Integer, File> minecraftJars = new HashMap<Integer, File>();
+    private Map<Integer, File> minecraftJars = new HashMap<>();
     private DonationStatus donationStatus;
     private UUID uuid = UUID.randomUUID();
     // Default view and world settings
@@ -863,9 +853,9 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private double defaultScale = 1.0;
     private LightOrigin defaultLightOrigin = LightOrigin.NORTHWEST;
     private int maximumBrushSize = 300;
-    private List<EventVO> eventLog = new LinkedList<EventVO>();
-    private List<CustomLayer> customLayers = new ArrayList<CustomLayer>();
-    private List<MixedMaterial> mixedMaterials = new ArrayList<MixedMaterial>();
+    private List<EventVO> eventLog = new LinkedList<>();
+    private List<CustomLayer> customLayers = new ArrayList<>();
+    private List<MixedMaterial> mixedMaterials = new ArrayList<>();
 //    private boolean easyMode = true;
     private boolean defaultExtendedBlockIds;
     private File layerDirectory, terrainDirectory, heightMapsDirectory;

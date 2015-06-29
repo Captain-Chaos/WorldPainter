@@ -35,6 +35,7 @@ package org.jnbt;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * The
@@ -100,10 +101,8 @@ public final class ListTag extends Tag {
     @Override
     public ListTag clone() {
         ListTag clone = (ListTag) super.clone();
-        clone.value = new ArrayList<Tag>(value.size());
-        for (Tag tag: value) {
-            clone.value.add(tag.clone());
-        }
+        clone.value = new ArrayList<>(value.size());
+        clone.value.addAll(value.stream().map(Tag::clone).collect(Collectors.toList()));
         return clone;
     }
 

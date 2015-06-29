@@ -89,46 +89,30 @@ public class ShiftWorldDialog extends javax.swing.JDialog implements ProgressRec
     
     @Override
     public synchronized void setProgress(final float progress) throws OperationCancelled {
-        doOnEventThread(new Runnable() {
-            @Override
-            public void run() {
-                jProgressBar1.setValue((int) (progress * 100));
-            }
-        });
+        doOnEventThread(() -> jProgressBar1.setValue((int) (progress * 100)));
     }
 
     @Override
     public synchronized void exceptionThrown(final Throwable exception) {
-        doOnEventThread(new Runnable() {
-            @Override
-            public void run() {
-                ErrorDialog errorDialog = new ErrorDialog(ShiftWorldDialog.this);
-                errorDialog.setException(exception);
-                errorDialog.setVisible(true);
-                dispose();
-            }
+        doOnEventThread(() -> {
+            ErrorDialog errorDialog = new ErrorDialog(ShiftWorldDialog.this);
+            errorDialog.setException(exception);
+            errorDialog.setVisible(true);
+            dispose();
         });
     }
 
     @Override
     public synchronized void done() {
-        doOnEventThread(new Runnable() {
-            @Override
-            public void run() {
-                cancelled = false;
-                dispose();
-            }
+        doOnEventThread(() -> {
+            cancelled = false;
+            dispose();
         });
     }
 
     @Override
     public synchronized void setMessage(final String message) throws OperationCancelled {
-        doOnEventThread(new Runnable() {
-            @Override
-            public void run() {
-                labelProgressMessage.setText(message);
-            }
-        });
+        doOnEventThread(() -> labelProgressMessage.setText(message));
     }
 
     @Override
@@ -138,12 +122,7 @@ public class ShiftWorldDialog extends javax.swing.JDialog implements ProgressRec
 
     @Override
     public void reset() {
-        doOnEventThread(new Runnable() {
-            @Override
-            public void run() {
-                jProgressBar1.setValue(0);
-            }
-        });
+        doOnEventThread(() -> jProgressBar1.setValue(0));
     }
 
     private void shift() {
@@ -211,39 +190,23 @@ public class ShiftWorldDialog extends javax.swing.JDialog implements ProgressRec
         jLabel1.setText("Choose a shift amount and press the Shift button to shift the world horizontally (by whole tiles):");
 
         buttonCancel.setText("Cancel");
-        buttonCancel.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonCancelActionPerformed(evt);
-            }
-        });
+        buttonCancel.addActionListener(this::buttonCancelActionPerformed);
 
         buttonShift.setText("Shift");
         buttonShift.setEnabled(false);
-        buttonShift.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonShiftActionPerformed(evt);
-            }
-        });
+        buttonShift.addActionListener(this::buttonShiftActionPerformed);
 
         labelProgressMessage.setText(" ");
 
         jLabel2.setText("X axis:");
 
         jSpinner1.setModel(new javax.swing.SpinnerNumberModel(0, -2147483648, 2147483647, 128));
-        jSpinner1.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                jSpinner1StateChanged(evt);
-            }
-        });
+        jSpinner1.addChangeListener(this::jSpinner1StateChanged);
 
         jLabel3.setText("Z axis:");
 
         jSpinner2.setModel(new javax.swing.SpinnerNumberModel(0, -2147483648, 2147483647, 128));
-        jSpinner2.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                jSpinner2StateChanged(evt);
-            }
-        });
+        jSpinner2.addChangeListener(this::jSpinner2StateChanged);
 
         jLabel4.setText("(negative values shift west; positive values shift east)");
 

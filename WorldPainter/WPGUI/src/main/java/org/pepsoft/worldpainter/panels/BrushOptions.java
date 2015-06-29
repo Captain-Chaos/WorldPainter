@@ -198,56 +198,35 @@ public class BrushOptions extends javax.swing.JPanel {
     }
     
     private JPopupMenu createReplaceMenu() {
-        return createObjectSelectionMenu(new ObjectSelectionListener() {
-            @Override
-            public void objectSelected(Object object, String name, Icon icon) {
-                onlyOn = object;
-                buttonReplace.setText(name);
-                buttonReplace.setIcon(icon);
-                filterChanged();
-            }
+        return createObjectSelectionMenu((object, name, icon) -> {
+            onlyOn = object;
+            buttonReplace.setText(name);
+            buttonReplace.setIcon(icon);
+            filterChanged();
         });
     }
     
     private JPopupMenu createExceptOnMenu() {
-        return createObjectSelectionMenu(new ObjectSelectionListener() {
-            @Override
-            public void objectSelected(Object object, String name, Icon icon) {
-                exceptOn = object;
-                buttonExceptOn.setText(name);
-                buttonExceptOn.setIcon(icon);
-                filterChanged();
-            }
+        return createObjectSelectionMenu((object, name, icon) -> {
+            exceptOn = object;
+            buttonExceptOn.setText(name);
+            buttonExceptOn.setIcon(icon);
+            filterChanged();
         });
     }
     
     private JPopupMenu createObjectSelectionMenu(final ObjectSelectionListener listener) {
         JMenuItem waterItem = new JMenuItem("Water");
-        waterItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                listener.objectSelected(FilterImpl.WATER, "Water", null);
-            }
-        });
+        waterItem.addActionListener(e -> listener.objectSelected(FilterImpl.WATER, "Water", null));
         JPopupMenu popupMenu = new JPopupMenu();
         popupMenu.add(waterItem);
 
         JMenuItem lavaItem = new JMenuItem("Lava");
-        lavaItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                listener.objectSelected(FilterImpl.LAVA, "Lava", null);
-            }
-        });
+        lavaItem.addActionListener(e -> listener.objectSelected(FilterImpl.LAVA, "Lava", null));
         popupMenu.add(lavaItem);
 
         JMenuItem landItem = new JMenuItem("Land");
-        landItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                listener.objectSelected(FilterImpl.LAND, "Land", null);
-            }
-        });
+        landItem.addActionListener(e -> listener.objectSelected(FilterImpl.LAND, "Land", null));
         popupMenu.add(landItem);
         
         JMenu terrainMenu = new JMenu("Terrain");
@@ -260,12 +239,7 @@ public class BrushOptions extends javax.swing.JPanel {
             final String name = terrain.getName();
             final Icon icon = new ImageIcon(terrain.getIcon(colourScheme));
             JMenuItem menuItem = new JMenuItem(name, icon);
-            menuItem.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    listener.objectSelected(selectedTerrain, name, icon);
-                }
-            });
+            menuItem.addActionListener(e -> listener.objectSelected(selectedTerrain, name, icon));
             if (terrain.isCustom()) {
                 customTerrainMenu.add(menuItem);
             } else if (terrain.getName().endsWith(" Clay") && (terrain != Terrain.HARDENED_CLAY)) {
@@ -289,12 +263,7 @@ public class BrushOptions extends javax.swing.JPanel {
             final String name = layer.getName();
             final Icon icon = new ImageIcon(layer.getIcon());
             JMenuItem menuItem = new JMenuItem(name, icon);
-            menuItem.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    listener.objectSelected(selectedLayer, name, icon);
-                }
-            });
+            menuItem.addActionListener(e -> listener.objectSelected(selectedLayer, name, icon));
             layerMenu.add(menuItem);
         }
         Set<CustomLayer> customLayers = app.getCustomLayers();
@@ -310,12 +279,7 @@ public class BrushOptions extends javax.swing.JPanel {
                     final String name = layer.getName();
                     final Icon icon = new ImageIcon(layer.getIcon());
                     JMenuItem menuItem = new JMenuItem(name, icon);
-                    menuItem.addActionListener(new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                            listener.objectSelected(selectedLayer, name, icon);
-                        }
-                    });
+                    menuItem.addActionListener(e -> listener.objectSelected(selectedLayer, name, icon));
                     paletteMenu.add(menuItem);
                 }
                 layerMenu.add(paletteMenu);
@@ -326,12 +290,7 @@ public class BrushOptions extends javax.swing.JPanel {
                 final String name = layer.getName();
                 final Icon icon = new ImageIcon(layer.getIcon());
                 JMenuItem menuItem = new JMenuItem(name, icon);
-                menuItem.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        listener.objectSelected(selectedLayer, name, icon);
-                    }
-                });
+                menuItem.addActionListener(e -> listener.objectSelected(selectedLayer, name, icon));
                 layerMenu.add(menuItem);
             }
         }
@@ -348,12 +307,7 @@ public class BrushOptions extends javax.swing.JPanel {
                 final String name = biomeHelper.getBiomeName(selectedBiome) + " (" + selectedBiome + ")";
                 final Icon icon = biomeHelper.getBiomeIcon(selectedBiome);
                 final JMenuItem menuItem = new JMenuItem(name, icon);
-                menuItem.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        listener.objectSelected(selectedBiome, name, icon);
-                    }
-                });
+                menuItem.addActionListener(e -> listener.objectSelected(selectedBiome, name, icon));
                 customBiomeMenu.add(menuItem);
             }
             biomeMenu.add(customBiomeMenu);
@@ -364,35 +318,20 @@ public class BrushOptions extends javax.swing.JPanel {
                 final String name = biomeHelper.getBiomeName(i) + " (" + selectedBiome + ")";
                 final Icon icon = biomeHelper.getBiomeIcon(i);
                 final JMenuItem menuItem = new JMenuItem(name, icon);
-                menuItem.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        listener.objectSelected(selectedBiome, name, icon);
-                    }
-                });
+                menuItem.addActionListener(e -> listener.objectSelected(selectedBiome, name, icon));
                 biomeMenu.add(menuItem);
             }
         }
         JMenu autoBiomeSubMenu = new JMenu("Auto Biomes");
         JMenuItem autoBiomesMenuItem = new JMenuItem("All Auto Biomes");
-        autoBiomesMenuItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                listener.objectSelected(FilterImpl.AUTO_BIOMES, "All Auto Biomes", null);
-            }
-        });
+        autoBiomesMenuItem.addActionListener(e -> listener.objectSelected(FilterImpl.AUTO_BIOMES, "All Auto Biomes", null));
         autoBiomeSubMenu.add(autoBiomesMenuItem);
         for (int autoBiome: Dimension.POSSIBLE_AUTO_BIOMES) {
             final int selectedBiome = -autoBiome;
             final String name = biomeHelper.getBiomeName(autoBiome);
             final Icon icon = biomeHelper.getBiomeIcon(autoBiome);
             final JMenuItem menuItem = new JMenuItem(name, icon);
-            menuItem.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    listener.objectSelected(selectedBiome, name, icon);
-                }
-            });
+            menuItem.addActionListener(e -> listener.objectSelected(selectedBiome, name, icon));
             autoBiomeSubMenu.add(menuItem);
         }
         biomeMenu.add(autoBiomeSubMenu);
@@ -403,12 +342,7 @@ public class BrushOptions extends javax.swing.JPanel {
                 final String name = biomeHelper.getBiomeName(i) + " (" + selectedBiome + ")";
                 final Icon icon = biomeHelper.getBiomeIcon(i);
                 final JMenuItem menuItem = new JMenuItem(name, icon);
-                menuItem.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        listener.objectSelected(selectedBiome, name, icon);
-                    }
-                });
+                menuItem.addActionListener(e -> listener.objectSelected(selectedBiome, name, icon));
                 biomeSubMenu.add(menuItem);
             }
         }
@@ -490,105 +424,57 @@ public class BrushOptions extends javax.swing.JPanel {
 
         checkBoxAbove.setFont(checkBoxAbove.getFont().deriveFont(checkBoxAbove.getFont().getSize()-1f));
         checkBoxAbove.setText("at or above");
-        checkBoxAbove.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                checkBoxAboveActionPerformed(evt);
-            }
-        });
+        checkBoxAbove.addActionListener(this::checkBoxAboveActionPerformed);
 
         spinnerAbove.setFont(spinnerAbove.getFont().deriveFont(spinnerAbove.getFont().getSize()-1f));
         spinnerAbove.setModel(new javax.swing.SpinnerNumberModel(0, 0, 255, 1));
         spinnerAbove.setEnabled(false);
-        spinnerAbove.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerAboveStateChanged(evt);
-            }
-        });
+        spinnerAbove.addChangeListener(this::spinnerAboveStateChanged);
 
         checkBoxBelow.setFont(checkBoxBelow.getFont().deriveFont(checkBoxBelow.getFont().getSize()-1f));
         checkBoxBelow.setText("at or below");
-        checkBoxBelow.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                checkBoxBelowActionPerformed(evt);
-            }
-        });
+        checkBoxBelow.addActionListener(this::checkBoxBelowActionPerformed);
 
         spinnerBelow.setFont(spinnerBelow.getFont().deriveFont(spinnerBelow.getFont().getSize()-1f));
         spinnerBelow.setModel(new javax.swing.SpinnerNumberModel(255, 0, 255, 1));
         spinnerBelow.setEnabled(false);
-        spinnerBelow.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerBelowStateChanged(evt);
-            }
-        });
+        spinnerBelow.addChangeListener(this::spinnerBelowStateChanged);
 
         checkBoxReplace.setFont(checkBoxReplace.getFont().deriveFont(checkBoxReplace.getFont().getSize()-1f));
         checkBoxReplace.setText("only on");
-        checkBoxReplace.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                checkBoxReplaceActionPerformed(evt);
-            }
-        });
+        checkBoxReplace.addActionListener(this::checkBoxReplaceActionPerformed);
 
         buttonReplace.setFont(buttonReplace.getFont().deriveFont(buttonReplace.getFont().getSize()-1f));
         buttonReplace.setText("...");
         buttonReplace.setEnabled(false);
-        buttonReplace.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonReplaceActionPerformed(evt);
-            }
-        });
+        buttonReplace.addActionListener(this::buttonReplaceActionPerformed);
 
         checkBoxFeather.setFont(checkBoxFeather.getFont().deriveFont(checkBoxFeather.getFont().getSize()-1f));
         checkBoxFeather.setText("feather");
         checkBoxFeather.setEnabled(false);
-        checkBoxFeather.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                checkBoxFeatherActionPerformed(evt);
-            }
-        });
+        checkBoxFeather.addActionListener(this::checkBoxFeatherActionPerformed);
 
         checkBoxExceptOn.setFont(checkBoxExceptOn.getFont().deriveFont(checkBoxExceptOn.getFont().getSize()-1f));
         checkBoxExceptOn.setText("except on");
-        checkBoxExceptOn.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                checkBoxExceptOnActionPerformed(evt);
-            }
-        });
+        checkBoxExceptOn.addActionListener(this::checkBoxExceptOnActionPerformed);
 
         buttonExceptOn.setFont(buttonExceptOn.getFont().deriveFont(buttonExceptOn.getFont().getSize()-1f));
         buttonExceptOn.setText("...");
         buttonExceptOn.setEnabled(false);
-        buttonExceptOn.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonExceptOnActionPerformed(evt);
-            }
-        });
+        buttonExceptOn.addActionListener(this::buttonExceptOnActionPerformed);
 
         checkBoxAboveSlope.setFont(checkBoxAboveSlope.getFont().deriveFont(checkBoxAboveSlope.getFont().getSize()-1f));
         checkBoxAboveSlope.setText("above");
-        checkBoxAboveSlope.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                checkBoxAboveSlopeActionPerformed(evt);
-            }
-        });
+        checkBoxAboveSlope.addActionListener(this::checkBoxAboveSlopeActionPerformed);
 
         checkBoxBelowSlope.setFont(checkBoxBelowSlope.getFont().deriveFont(checkBoxBelowSlope.getFont().getSize()-1f));
         checkBoxBelowSlope.setText("below");
-        checkBoxBelowSlope.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                checkBoxBelowSlopeActionPerformed(evt);
-            }
-        });
+        checkBoxBelowSlope.addActionListener(this::checkBoxBelowSlopeActionPerformed);
 
         spinnerSlope.setFont(spinnerSlope.getFont().deriveFont(spinnerSlope.getFont().getSize()-1f));
         spinnerSlope.setModel(new javax.swing.SpinnerNumberModel(45, 0, 89, 1));
         spinnerSlope.setEnabled(false);
-        spinnerSlope.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerSlopeStateChanged(evt);
-            }
-        });
+        spinnerSlope.addChangeListener(this::spinnerSlopeStateChanged);
 
         jLabel1.setFont(jLabel1.getFont().deriveFont(jLabel1.getFont().getSize()-1f));
         jLabel1.setText("degrees");

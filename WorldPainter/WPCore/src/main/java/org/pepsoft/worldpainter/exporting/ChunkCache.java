@@ -132,11 +132,8 @@ public class ChunkCache {
 //        System.out.println("Saving chunk " + x + "," + z);
         RegionFile regionFile = RegionFileCache.getRegionFile(dir, x, z, version);
         openRegionFiles.add(regionFile);
-        NBTOutputStream out = new NBTOutputStream(regionFile.getChunkDataOutputStream(x & 0x1F, z & 0x1F));
-        try {
+        try (NBTOutputStream out = new NBTOutputStream(regionFile.getChunkDataOutputStream(x & 0x1F, z & 0x1F))) {
             out.writeTag(chunk.toNBT());
-        } finally {
-            out.close();
         }
     }
     
@@ -173,10 +170,10 @@ public class ChunkCache {
     private final File dir;
     private final int maxHeight, version;
     private final long minimumFreeMemory;
-    private final Map<Point, Chunk> cache = new HashMap<Point, Chunk>();
-    private final Set<Chunk> dirtyChunks = new HashSet<Chunk>();
+    private final Map<Point, Chunk> cache = new HashMap<>();
+    private final Set<Chunk> dirtyChunks = new HashSet<>();
 //    private final Deque<Chunk> mruChunks = new ArrayDeque<Chunk>();
-    private final Set<RegionFile> openRegionFiles = new HashSet<RegionFile>();
+    private final Set<RegionFile> openRegionFiles = new HashSet<>();
     
     private static final Chunk NON_EXISTANT_CHUNK = new Chunk() {
         @Override public int getBlockLightLevel(int x, int y, int z) {return 0;}

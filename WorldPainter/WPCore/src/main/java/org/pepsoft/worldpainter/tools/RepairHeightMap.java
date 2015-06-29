@@ -29,11 +29,8 @@ public class RepairHeightMap {
     public static final void main(String[] args) throws IOException, ClassNotFoundException{
         System.out.println("Scanning world " + args[0]);
         World2 world;
-        ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new FileInputStream(args[0])));
-        try {
+        try (ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new FileInputStream(args[0])))) {
             world = (World2) in.readObject();
-        } finally {
-            in.close();
         }
         
         boolean repairsPerformed = false;
@@ -43,11 +40,8 @@ public class RepairHeightMap {
         
         if (repairsPerformed) {
             System.out.println("Repairs performed. Writing world out to " + args[0] + ".repaired");
-            ObjectOutputStream out = new ObjectOutputStream(new GZIPOutputStream(new FileOutputStream(args[0] + ".repaired")));
-            try {
+            try (ObjectOutputStream out = new ObjectOutputStream(new GZIPOutputStream(new FileOutputStream(args[0] + ".repaired")))) {
                 out.writeObject(world);
-            } finally {
-                out.close();
             }
         } else {
             System.out.println("No repairs performed.");

@@ -39,8 +39,8 @@ import org.pepsoft.worldpainter.layers.Layer;
 public class CombinedLayerExporter extends AbstractLayerExporter<CombinedLayer> implements FirstPassLayerExporter<CombinedLayer>, SecondPassLayerExporter<CombinedLayer> {
     public CombinedLayerExporter(CombinedLayer combinedLayer) {
         super(combinedLayer);
-        List<FirstPassLayerExporter<?>> firstPassList = new ArrayList<FirstPassLayerExporter<?>>();
-        List<SecondPassLayerExporter<?>> secondPassList = new ArrayList<SecondPassLayerExporter<?>>();
+        List<FirstPassLayerExporter<?>> firstPassList = new ArrayList<>();
+        List<SecondPassLayerExporter<?>> secondPassList = new ArrayList<>();
         for (Layer layer: combinedLayer.getLayers()) {
             LayerExporter<?> exporter = layer.getExporter();
             if (exporter instanceof FirstPassLayerExporter) {
@@ -67,7 +67,7 @@ public class CombinedLayerExporter extends AbstractLayerExporter<CombinedLayer> 
 
     @Override
     public List<Fixup> render(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
-        final List<Fixup> fixups = new ArrayList<Fixup>();
+        final List<Fixup> fixups = new ArrayList<>();
         for (SecondPassLayerExporter<?> exporter: secondPassExporters) {
             final Layer exporterLayer = exporter.getLayer();
             float factor = layer.getFactors().get(exporterLayer);
@@ -92,7 +92,7 @@ public class CombinedLayerExporter extends AbstractLayerExporter<CombinedLayer> 
 
         @Override
         public List<Layer> getLayers() {
-            List<Layer> layers = new ArrayList<Layer>();
+            List<Layer> layers = new ArrayList<>();
             for (Layer layer: super.getLayers()) {
                 if (layer.equals(from)) {
                     layers.add(to);
@@ -114,7 +114,7 @@ public class CombinedLayerExporter extends AbstractLayerExporter<CombinedLayer> 
 
         @Override
         public List<Layer> getLayers(Set<Layer> additionalLayers) {
-            List<Layer> layers = new ArrayList<Layer>();
+            List<Layer> layers = new ArrayList<>();
             for (Layer layer: super.getLayers(additionalLayers)) {
                 if (layer.equals(from)) {
                     layers.add(to);
@@ -260,7 +260,7 @@ public class CombinedLayerExporter extends AbstractLayerExporter<CombinedLayer> 
 
         @Override
         public Set<Layer> getAllLayers(boolean applyCombinedLayers) {
-            Set<Layer> layers = new HashSet<Layer>();
+            Set<Layer> layers = new HashSet<>();
             for (Layer layer: super.getAllLayers(applyCombinedLayers)) {
                 if (layer.equals(from)) {
                     layers.add(to);
@@ -273,7 +273,7 @@ public class CombinedLayerExporter extends AbstractLayerExporter<CombinedLayer> 
 
         @Override
         public Set<Layer> getMinimumLayers() {
-            Set<Layer> layers = new HashSet<Layer>();
+            Set<Layer> layers = new HashSet<>();
             for (Layer layer: super.getMinimumLayers()) {
                 if (layer.equals(from)) {
                     layers.add(to);
@@ -287,7 +287,7 @@ public class CombinedLayerExporter extends AbstractLayerExporter<CombinedLayer> 
         private final CombinedLayer from;
         private final Layer to;
         private final float factor;
-        private final Map<Point, MappingTile> tileCache = new HashMap<Point, MappingTile>();
+        private final Map<Point, MappingTile> tileCache = new HashMap<>();
         
         private static final long serialVersionUID = 1L;
     }

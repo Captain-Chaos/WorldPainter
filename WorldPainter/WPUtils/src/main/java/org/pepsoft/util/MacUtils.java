@@ -49,20 +49,12 @@ public final class MacUtils {
      */
     public static boolean installQuitHandler(final QuitHandler quitHandler) {
         Application application = Application.getApplication();
-        application.setQuitHandler(new com.apple.eawt.QuitHandler() {
-            @Override
-            public void handleQuitRequestWith(AppEvent.QuitEvent quitEvent, QuitResponse quitResponse) {
-                boolean shouldQuit = AwtUtils.resultOfOnEventThread(new Callable<Boolean>() {
-                    @Override
-                    public Boolean call() throws Exception {
-                        return quitHandler.quitRequested();
-                    }
-                });
-                if (shouldQuit) {
-                    quitResponse.performQuit();
-                } else {
-                    quitResponse.cancelQuit();
-                }
+        application.setQuitHandler((quitEvent, quitResponse) -> {
+            boolean shouldQuit = AwtUtils.resultOfOnEventThread(quitHandler::quitRequested);
+            if (shouldQuit) {
+                quitResponse.performQuit();
+            } else {
+                quitResponse.cancelQuit();
             }
         });
         return true;
@@ -79,17 +71,7 @@ public final class MacUtils {
      */
     public static boolean installAboutHandler(final AboutHandler aboutHandler) {
         Application application = Application.getApplication();
-        application.setAboutHandler(new com.apple.eawt.AboutHandler() {
-            @Override
-            public void handleAbout(AppEvent.AboutEvent aboutEvent) {
-                AwtUtils.doLaterOnEventThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        aboutHandler.aboutRequested();
-                    }
-                });
-            }
-        });
+        application.setAboutHandler(aboutEvent -> AwtUtils.doLaterOnEventThread(aboutHandler::aboutRequested));
         return true;
     }
 
@@ -104,34 +86,16 @@ public final class MacUtils {
      */
     public static boolean installOpenFilesHandler(final OpenFilesHandler openFilesHandler) {
         Application application = Application.getApplication();
-        application.setOpenFileHandler(new com.apple.eawt.OpenFilesHandler() {
-            @Override
-            public void openFiles(AppEvent.OpenFilesEvent openFilesEvent) {
-                final List<File> files = openFilesEvent.getFiles();
-                AwtUtils.doLaterOnEventThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        openFilesHandler.filesOpened(files);
-                    }
-                });
-            }
+        application.setOpenFileHandler(openFilesEvent -> {
+            final List<File> files = openFilesEvent.getFiles();
+            AwtUtils.doLaterOnEventThread(() -> openFilesHandler.filesOpened(files));
         });
         return true;
     }
 
     public static boolean installPreferencesHandler(final PreferencesHandler preferencesHandler) {
         Application application = Application.getApplication();
-        application.setPreferencesHandler(new com.apple.eawt.PreferencesHandler() {
-            @Override
-            public void handlePreferences(AppEvent.PreferencesEvent preferencesEvent) {
-                AwtUtils.doLaterOnEventThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        preferencesHandler.preferencesRequested();
-                    }
-                });
-            }
-        });
+        application.setPreferencesHandler(preferencesEvent -> AwtUtils.doLaterOnEventThread(preferencesHandler::preferencesRequested));
         return true;
     }
 

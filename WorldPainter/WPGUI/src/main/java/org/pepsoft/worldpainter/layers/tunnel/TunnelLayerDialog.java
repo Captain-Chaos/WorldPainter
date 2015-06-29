@@ -315,25 +315,13 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
         setTitle("Configure Cave/Tunnel Layer");
 
         buttonCancel.setText("Cancel");
-        buttonCancel.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonCancelActionPerformed(evt);
-            }
-        });
+        buttonCancel.addActionListener(this::buttonCancelActionPerformed);
 
         buttonOK.setText("OK");
-        buttonOK.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonOKActionPerformed(evt);
-            }
-        });
+        buttonOK.addActionListener(this::buttonOKActionPerformed);
 
         buttonReset.setText("Reset");
-        buttonReset.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonResetActionPerformed(evt);
-            }
-        });
+        buttonReset.addActionListener(this::buttonResetActionPerformed);
 
         jLabel1.setText("Create underground tunnels and caves with the following properties:");
 
@@ -346,18 +334,10 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
 
         buttonGroup1.add(radioButtonFloorFixedLevel);
         radioButtonFloorFixedLevel.setText("fixed level");
-        radioButtonFloorFixedLevel.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonFloorFixedLevelActionPerformed(evt);
-            }
-        });
+        radioButtonFloorFixedLevel.addActionListener(this::radioButtonFloorFixedLevelActionPerformed);
 
         spinnerRoofLevel.setModel(new javax.swing.SpinnerNumberModel(0, 0, 255, 1));
-        spinnerRoofLevel.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerRoofLevelStateChanged(evt);
-            }
-        });
+        spinnerRoofLevel.addChangeListener(this::spinnerRoofLevelStateChanged);
 
         jLabel12.setText("Walls:");
 
@@ -366,39 +346,23 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
         jLabel9.setText("Variation:");
 
         spinnerFloorLevel.setModel(new javax.swing.SpinnerNumberModel(0, 0, 255, 1));
-        spinnerFloorLevel.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerFloorLevelStateChanged(evt);
-            }
-        });
+        spinnerFloorLevel.addChangeListener(this::spinnerFloorLevelStateChanged);
 
         jLabel20.setText("Options:");
 
         buttonGroup3.add(radioButtonRoofFixedDepth);
         radioButtonRoofFixedDepth.setText("fixed depth");
-        radioButtonRoofFixedDepth.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonRoofFixedDepthActionPerformed(evt);
-            }
-        });
+        radioButtonRoofFixedDepth.addActionListener(this::radioButtonRoofFixedDepthActionPerformed);
 
         spinnerFloorMin.setModel(new javax.swing.SpinnerNumberModel(0, 0, 255, 1));
         spinnerFloorMin.setEnabled(false);
-        spinnerFloorMin.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerFloorMinStateChanged(evt);
-            }
-        });
+        spinnerFloorMin.addChangeListener(this::spinnerFloorMinStateChanged);
 
         jLabel17.setText(", max:");
 
         spinnerRoofMin.setModel(new javax.swing.SpinnerNumberModel(0, 0, 255, 1));
         spinnerRoofMin.setEnabled(false);
-        spinnerRoofMin.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerRoofMinStateChanged(evt);
-            }
-        });
+        spinnerRoofMin.addChangeListener(this::spinnerRoofMinStateChanged);
 
         jLabel18.setText("Absolute min:");
 
@@ -406,38 +370,22 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
 
         spinnerFloodLevel.setModel(new javax.swing.SpinnerNumberModel(1, 1, 255, 1));
         spinnerFloodLevel.setEnabled(false);
-        spinnerFloodLevel.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerFloodLevelStateChanged(evt);
-            }
-        });
+        spinnerFloodLevel.addChangeListener(this::spinnerFloodLevelStateChanged);
 
         buttonGroup1.add(radioButtonFloorFixedDepth);
         radioButtonFloorFixedDepth.setText("fixed depth");
-        radioButtonFloorFixedDepth.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonFloorFixedDepthActionPerformed(evt);
-            }
-        });
+        radioButtonFloorFixedDepth.addActionListener(this::radioButtonFloorFixedDepthActionPerformed);
 
         jLabel14.setText("Material:");
 
         checkBoxFloodWithLava.setText("Flood with lava:");
         checkBoxFloodWithLava.setEnabled(false);
         checkBoxFloodWithLava.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
-        checkBoxFloodWithLava.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                checkBoxFloodWithLavaActionPerformed(evt);
-            }
-        });
+        checkBoxFloodWithLava.addActionListener(this::checkBoxFloodWithLavaActionPerformed);
 
         spinnerRoofMax.setModel(new javax.swing.SpinnerNumberModel(255, 0, 255, 1));
         spinnerRoofMax.setEnabled(false);
-        spinnerRoofMax.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerRoofMaxStateChanged(evt);
-            }
-        });
+        spinnerRoofMax.addChangeListener(this::spinnerRoofMaxStateChanged);
 
         jLabel13.setText("Bottom width:");
 
@@ -446,34 +394,18 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
         jLabel16.setText("Absolute min:");
 
         spinnerWallRoofDepth.setModel(new javax.swing.SpinnerNumberModel(0, 0, 255, 1));
-        spinnerWallRoofDepth.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerWallRoofDepthStateChanged(evt);
-            }
-        });
+        spinnerWallRoofDepth.addChangeListener(this::spinnerWallRoofDepthStateChanged);
 
         spinnerWallFloorDepth.setModel(new javax.swing.SpinnerNumberModel(0, 0, 255, 1));
-        spinnerWallFloorDepth.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerWallFloorDepthStateChanged(evt);
-            }
-        });
+        spinnerWallFloorDepth.addChangeListener(this::spinnerWallFloorDepthStateChanged);
 
         checkBoxRemoveWater.setText("Remove water or lava:");
         checkBoxRemoveWater.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
-        checkBoxRemoveWater.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                checkBoxRemoveWaterActionPerformed(evt);
-            }
-        });
+        checkBoxRemoveWater.addActionListener(this::checkBoxRemoveWaterActionPerformed);
 
         spinnerFloorMax.setModel(new javax.swing.SpinnerNumberModel(255, 0, 255, 1));
         spinnerFloorMax.setEnabled(false);
-        spinnerFloorMax.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerFloorMaxStateChanged(evt);
-            }
-        });
+        spinnerFloorMax.addChangeListener(this::spinnerFloorMaxStateChanged);
 
         jLabel19.setText(", max:");
 
@@ -483,38 +415,22 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
 
         buttonGroup1.add(radioButtonFloorInverse);
         radioButtonFloorInverse.setText("opposite of terrain");
-        radioButtonFloorInverse.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonFloorInverseActionPerformed(evt);
-            }
-        });
+        radioButtonFloorInverse.addActionListener(this::radioButtonFloorInverseActionPerformed);
 
         checkBoxFlood.setText("Flood the caves/tunnels:");
         checkBoxFlood.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
-        checkBoxFlood.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                checkBoxFloodActionPerformed(evt);
-            }
-        });
+        checkBoxFlood.addActionListener(this::checkBoxFloodActionPerformed);
 
         buttonGroup3.add(radioButtonRoofFixedLevel);
         radioButtonRoofFixedLevel.setSelected(true);
         radioButtonRoofFixedLevel.setText("fixed level");
-        radioButtonRoofFixedLevel.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonRoofFixedLevelActionPerformed(evt);
-            }
-        });
+        radioButtonRoofFixedLevel.addActionListener(this::radioButtonRoofFixedLevelActionPerformed);
 
         jLabel3.setText("Level:");
 
         buttonGroup3.add(radioButtonRoofInverse);
         radioButtonRoofInverse.setText("opposite of terrain");
-        radioButtonRoofInverse.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonRoofInverseActionPerformed(evt);
-            }
-        });
+        radioButtonRoofInverse.addActionListener(this::radioButtonRoofInverseActionPerformed);
 
         jLabel15.setText("Top width:");
 
@@ -713,32 +629,16 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
         jScrollPane1.setViewportView(tableFloorLayers);
 
         buttonNewFloorLayer.setText("Create New");
-        buttonNewFloorLayer.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonNewFloorLayerActionPerformed(evt);
-            }
-        });
+        buttonNewFloorLayer.addActionListener(this::buttonNewFloorLayerActionPerformed);
 
         buttonAddFloorLayer.setText("Add Existing");
-        buttonAddFloorLayer.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonAddFloorLayerActionPerformed(evt);
-            }
-        });
+        buttonAddFloorLayer.addActionListener(this::buttonAddFloorLayerActionPerformed);
 
         buttonEditFloorLayer.setText("Edit");
-        buttonEditFloorLayer.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonEditFloorLayerActionPerformed(evt);
-            }
-        });
+        buttonEditFloorLayer.addActionListener(this::buttonEditFloorLayerActionPerformed);
 
         buttonRemoveFloorLayer.setText("Remove");
-        buttonRemoveFloorLayer.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonRemoveFloorLayerActionPerformed(evt);
-            }
-        });
+        buttonRemoveFloorLayer.addActionListener(this::buttonRemoveFloorLayerActionPerformed);
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);

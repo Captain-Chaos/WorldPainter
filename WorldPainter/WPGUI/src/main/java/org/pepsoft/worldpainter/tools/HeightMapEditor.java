@@ -72,11 +72,7 @@ public class HeightMapEditor extends javax.swing.JFrame {
         jButton1.setFocusable(false);
         jButton1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jButton1.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
+        jButton1.addActionListener(this::jButton1ActionPerformed);
         jToolBar1.add(jButton1);
 
         getContentPane().add(jToolBar1, java.awt.BorderLayout.NORTH);
@@ -85,11 +81,7 @@ public class HeightMapEditor extends javax.swing.JFrame {
 
         jSplitPane2.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
 
-        jTree1.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
-            public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
-                jTree1ValueChanged(evt);
-            }
-        });
+        jTree1.addTreeSelectionListener(this::jTree1ValueChanged);
         jScrollPane1.setViewportView(jTree1);
 
         jSplitPane2.setLeftComponent(jScrollPane1);
@@ -119,12 +111,7 @@ public class HeightMapEditor extends javax.swing.JFrame {
      */
     public static void main(String args[]) {
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                new HeightMapEditor().setVisible(true);
-            }
-        });
+        java.awt.EventQueue.invokeLater(() -> new HeightMapEditor().setVisible(true));
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

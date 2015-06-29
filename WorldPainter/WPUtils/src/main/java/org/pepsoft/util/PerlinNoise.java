@@ -127,18 +127,15 @@ public final class PerlinNoise implements Serializable, Cloneable {
         // Initialise the array from a file, because it is too large to
         // initialise with a static initialiser. It generates a "code too large"
         // error.
-        BufferedReader in = new BufferedReader(new InputStreamReader(PerlinNoise.class.getResourceAsStream("noiselevels.txt")));
         try {
-            try {
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(PerlinNoise.class.getResourceAsStream("noiselevels.txt")))) {
                 int index = 0;
                 String line;
                 while ((line = in.readLine()) != null) {
-                    for (String token: line.split("[ ,]+")) {
+                    for (String token : line.split("[ ,]+")) {
                         LEVEL_FOR_PROMILLAGE[index++] = Float.parseFloat(token);
                     }
                 }
-            } finally {
-                in.close();
             }
         } catch (IOException e) {
             throw new RuntimeException("I/O error while trying to load noise levels from classpath", e);

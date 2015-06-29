@@ -39,12 +39,10 @@ public class DynMapPreviewer extends TiledImageViewer {
         zoom = myZoom;
         setFocusable(true);
 
-        addMouseWheelListener(new MouseWheelListener() {
-            public void mouseWheelMoved(MouseWheelEvent e) {
-                if (e.getScrollType() == MouseWheelEvent.WHEEL_UNIT_SCROLL) {
-                    int newZoom = getZoom() - e.getWheelRotation();
-                    setZoom(Math.max(newZoom, -4));
-                }
+        addMouseWheelListener(e -> {
+            if (e.getScrollType() == MouseWheelEvent.WHEEL_UNIT_SCROLL) {
+                int newZoom = getZoom() - e.getWheelRotation();
+                setZoom(Math.max(newZoom, -4));
             }
         });
 

@@ -31,14 +31,11 @@ public class FileUtils {
         try {
             MessageDigest md5Digest = MessageDigest.getInstance("MD5");
             byte[] buffer = new byte[BUFFER_SIZE];
-            FileInputStream in = new FileInputStream(file);
-            try {
+            try (FileInputStream in = new FileInputStream(file)) {
                 int read;
                 while ((read = in.read(buffer)) != -1) {
                     md5Digest.update(buffer, 0, read);
                 }
-            } finally {
-                in.close();
             }
             return new Checksum(md5Digest.digest());
         } catch (NoSuchAlgorithmException e) {
@@ -54,30 +51,24 @@ public class FileUtils {
             throw new UnsupportedOperationException("File too large (" + length + " bytes)");
         }
         StringBuilder sb = new StringBuilder((int) length);
-        InputStreamReader in = new InputStreamReader(new BufferedInputStream(new FileInputStream(file)), charset);
-        try {
+        try (InputStreamReader in = new InputStreamReader(new BufferedInputStream(new FileInputStream(file)), charset)) {
             char[] buffer = new char[BUFFER_SIZE];
             int read;
             while ((read = in.read(buffer)) != -1) {
                 sb.append(buffer, 0, read);
             }
-        } finally {
-            in.close();
         }
         return sb.toString();
     }
     
     public static String load(InputStream inputStream, Charset charset) throws IOException {
         StringBuilder sb = new StringBuilder();
-        InputStreamReader in = new InputStreamReader(new BufferedInputStream(inputStream), charset);
-        try {
+        try (InputStreamReader in = new InputStreamReader(new BufferedInputStream(inputStream), charset)) {
             char[] buffer = new char[BUFFER_SIZE];
             int read;
             while ((read = in.read(buffer)) != -1) {
                 sb.append(buffer, 0, read);
             }
-        } finally {
-            in.close();
         }
         return sb.toString();
     }
@@ -141,10 +132,8 @@ public class FileUtils {
         }
         long fileSize = file.length();
         long bytesCopied = 0;
-        FileInputStream in = new FileInputStream(file);
-        try {
-            FileOutputStream out = new FileOutputStream(destFile);
-            try {
+        try (FileInputStream in = new FileInputStream(file)) {
+            try (FileOutputStream out = new FileOutputStream(destFile)) {
                 int bytesRead;
                 byte[] buffer = new byte[BUFFER_SIZE];
                 while ((bytesRead = in.read(buffer)) != -1) {
@@ -154,11 +143,7 @@ public class FileUtils {
                         progressReceiver.setProgress((float) ((double) bytesCopied / fileSize));
                     }
                 }
-            } finally {
-                out.close();
             }
-        } finally {
-            in.close();
         }
         destFile.setLastModified(file.lastModified());
     }
@@ -230,12 +215,7 @@ public class FileUtils {
             // Swing one, so use it
             FileDialog fileDialog = new FileDialog(parent, title, FileDialog.LOAD);
             fileDialog.setDirectory(dir.getPath());
-            fileDialog.setFilenameFilter(new FilenameFilter() {
-                @Override
-                public boolean accept(File file, String s) {
-                    return fileFilter.accept(new File(file, s));
-                }
-            });
+            fileDialog.setFilenameFilter((file, s) -> fileFilter.accept(new File(file, s)));
             fileDialog.setVisible(true);
             String selectedFileStr = fileDialog.getFile();
             if (selectedFileStr != null) {
@@ -271,10 +251,10 @@ public class FileUtils {
     
     private static final int BUFFER_SIZE = 32768;
     private static final String ILLEGAL_CHARS = "<>:\"/\\|?*\t\r\n\b\f";
-    private static final Set<String> RESERVED_NAMES = new HashSet<String>(
-        Arrays.asList("CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3",
-        "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3",
-        "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"));
+    private static final Set<String> RESERVED_NAMES = new HashSet<>(
+            Arrays.asList("CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3",
+                    "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3",
+                    "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"));
     private static final char REPLACEMENT_CHAR = '_';
     private static final Logger logger = Logger.getLogger(FileUtils.class.getName());
 }

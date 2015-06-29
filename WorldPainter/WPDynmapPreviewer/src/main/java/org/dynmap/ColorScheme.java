@@ -11,7 +11,7 @@ import java.util.Scanner;
  * Copied from dynmap. Modified to support loading colour schemes from the classpath.
  */
 public class ColorScheme {
-    private static final HashMap<String, ColorScheme> cache = new HashMap<String, ColorScheme>();
+    private static final HashMap<String, ColorScheme> cache = new HashMap<>();
 
     public String name;
     /* Switch to arrays - faster than map */

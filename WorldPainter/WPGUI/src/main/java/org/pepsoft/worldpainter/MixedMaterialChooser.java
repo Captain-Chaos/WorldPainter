@@ -86,7 +86,7 @@ public class MixedMaterialChooser extends javax.swing.JPanel {
 
     private void initComboBox(MixedMaterial unlistedMaterial) {
         MixedMaterial[] materials = MixedMaterialManager.getInstance().getMaterials();
-        List<MixedMaterial> list = new ArrayList<MixedMaterial>(materials.length + 2);
+        List<MixedMaterial> list = new ArrayList<>(materials.length + 2);
         if (allowNull) {
             list.add(null);
         }
@@ -138,30 +138,18 @@ public class MixedMaterialChooser extends javax.swing.JPanel {
 
         jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
         jComboBox1.setRenderer(cellRenderer);
-        jComboBox1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jComboBox1ActionPerformed(evt);
-            }
-        });
+        jComboBox1.addActionListener(this::jComboBox1ActionPerformed);
 
         buttonEdit.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/brick_edit.png"))); // NOI18N
         buttonEdit.setToolTipText("Edit the selected custom material");
         buttonEdit.setEnabled(false);
         buttonEdit.setMargin(new java.awt.Insets(2, 2, 2, 2));
-        buttonEdit.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonEditActionPerformed(evt);
-            }
-        });
+        buttonEdit.addActionListener(this::buttonEditActionPerformed);
 
         buttonAdd.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/brick_add.png"))); // NOI18N
         buttonAdd.setToolTipText("Create a new custom material");
         buttonAdd.setMargin(new java.awt.Insets(2, 2, 2, 2));
-        buttonAdd.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonAddActionPerformed(evt);
-            }
-        });
+        buttonAdd.addActionListener(this::buttonAddActionPerformed);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);

@@ -18,7 +18,7 @@ import org.pepsoft.worldpainter.plugins.WPPluginManager;
  */
 public class OperationManager {
     private OperationManager() {
-        operations = new ArrayList<Operation>();
+        operations = new ArrayList<>();
         List<OperationProvider> operationProviders = WPPluginManager.getInstance().getPlugins(OperationProvider.class);
         for (OperationProvider operationProvider: operationProviders) {
             operations.addAll(operationProvider.getOperations());
@@ -41,7 +41,7 @@ public class OperationManager {
     }
     
     private final List<Operation> operations;
-    private final Map<String, Operation> operationsByName = new HashMap<String, Operation>();
+    private final Map<String, Operation> operationsByName = new HashMap<>();
     
     private static final OperationManager INSTANCE = new OperationManager();
 }

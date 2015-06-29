@@ -21,9 +21,7 @@ public final class Minecraft1_8LargeBiomeScheme extends Minecraft1_8JarBiomeSche
         try {
             Field field = worldGeneratorClass.getField("d");
             largeBiomesGenerator = field.get(null);
-        } catch (NoSuchFieldException e) {
-            throw new RuntimeException("Not a valid 1.8.3 or 1.8 to 1.8.1 minecraft.jar", e);
-        } catch (IllegalAccessException e) {
+        } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new RuntimeException("Not a valid 1.8.3 or 1.8 to 1.8.1 minecraft.jar", e);
         }
     }
@@ -44,7 +42,7 @@ public final class Minecraft1_8LargeBiomeScheme extends Minecraft1_8JarBiomeSche
     
     private static Object largeBiomesGenerator;
     
-    private static final Map<Checksum, String[]> HASHES_TO_CLASSNAMES = new HashMap<Checksum, String[]>();
+    private static final Map<Checksum, String[]> HASHES_TO_CLASSNAMES = new HashMap<>();
 
 //                                                                                                                                                                                                                                                                      Landscape class
 //                                                                                                                                                                                                                                                                             Buffer manager class

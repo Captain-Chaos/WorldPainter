@@ -166,7 +166,7 @@ public abstract class AbstractMinecraft1_7BiomeScheme extends AbstractBiomeSchem
      *     specified Minecraft jar.
      */
     protected final ClassLoader getClassLoader(File minecraftJar, File libDir) {
-        List<URL> classpath = new ArrayList<URL>(25);
+        List<URL> classpath = new ArrayList<>(25);
 
         try {
             // Construct a classpath, starting with the Minecraft jar itself
@@ -179,11 +179,10 @@ public abstract class AbstractMinecraft1_7BiomeScheme extends AbstractBiomeSchem
             String jsonFileName = minecraftJarName.substring(0, minecraftJarName.length() - 4) + ".json";
             File jsonFile = new File(minecraftJarDir, jsonFileName);
             JSONParser jsonParser = new JSONParser();
-            FileReader in = new FileReader(jsonFile);
-            try {
+            try (FileReader in = new FileReader(jsonFile)) {
                 Map<?, ?> rootNode = (Map<?, ?>) jsonParser.parse(in);
                 List<Map<?, ?>> librariesNode = (List<Map<?, ?>>) rootNode.get("libraries");
-                for (Map<?, ?> libraryNode: librariesNode) {
+                for (Map<?, ?> libraryNode : librariesNode) {
                     if (libraryNode.containsKey("rules")) {
                         // For now we just skip any library that has rules, on
                         // the assumption that it is a platform dependent
@@ -200,8 +199,6 @@ public abstract class AbstractMinecraft1_7BiomeScheme extends AbstractBiomeSchem
                     File libraryFile = new File(libraryDir, libraryName + '-' + libraryVersion + ".jar");
                     classpath.add(libraryFile.toURI().toURL());
                 }
-            } finally {
-                in.close();
             }
         } catch (IOException e) {
             throw new RuntimeException("I/O error while trying to load Minecraft jar descriptor json file", e);

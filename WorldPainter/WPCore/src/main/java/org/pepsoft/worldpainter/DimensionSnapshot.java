@@ -293,7 +293,7 @@ public final class DimensionSnapshot extends Dimension {
     private final Dimension dimension;
     private final Snapshot snapshot;
     private final int width, height, lowestX, highestX, lowestY, highestY;
-    private final Map<Point, TileSnapshot> tileSnapshots = new HashMap<Point, TileSnapshot>();
+    private final Map<Point, TileSnapshot> tileSnapshots = new HashMap<>();
     
     private static final long serialVersionUID = 2011101501L;
 }

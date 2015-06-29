@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import javax.vecmath.Point3i;
 import org.jnbt.CompoundTag;
@@ -46,19 +47,15 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
         if (entityTags.isEmpty()) {
             entities = null;
         } else {
-            entities = new ArrayList<Entity>(entityTags.size());
-            for (CompoundTag entityTag: entityTags) {
-                entities.add(Entity.fromNBT(entityTag));
-            }
+            entities = new ArrayList<>(entityTags.size());
+            entities.addAll(entityTags.stream().map(Entity::fromNBT).collect(Collectors.toList()));
         }
         List<CompoundTag> tileEntityTags = getList("TileEntities");
         if (tileEntityTags.isEmpty()) {
             tileEntities = null;
         } else {
-            tileEntities = new ArrayList<TileEntity>(tileEntityTags.size());
-            for (CompoundTag tileEntityTag: tileEntityTags) {
-                tileEntities.add(TileEntity.fromNBT(tileEntityTag));
-            }
+            tileEntities = new ArrayList<>(tileEntityTags.size());
+            tileEntities.addAll(tileEntityTags.stream().map(TileEntity::fromNBT).collect(Collectors.toList()));
         }
         width = getShort("Width");
         length = getShort("Length");
@@ -109,7 +106,7 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
         }
         if ((offset != null) && ((offset.x != 0) || (offset.y != 0) || (offset.z != 0))) {
             if (attributes == null) {
-                attributes = new HashMap<String, Serializable>();
+                attributes = new HashMap<>();
             }
             attributes.put(ATTRIBUTE_OFFSET, offset);
         }
@@ -208,7 +205,7 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
     public void setAttribute(String key, Serializable value) {
         if (value != null) {
             if (attributes == null) {
-                attributes = new HashMap<String, Serializable>();
+                attributes = new HashMap<>();
             }
             attributes.put(key, value);
         } else if (attributes != null) {
@@ -237,19 +234,15 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
             clone.origin = (Point3i) origin.clone();
         }
         if (entities != null) {
-            clone.entities = new ArrayList<Entity>(entities.size());
-            for (Entity entity: entities) {
-                clone.entities.add((Entity) entity.clone());
-            }
+            clone.entities = new ArrayList<>(entities.size());
+            clone.entities.addAll(entities.stream().map(entity -> (Entity) entity.clone()).collect(Collectors.toList()));
         }
         if (tileEntities != null) {
-            clone.tileEntities = new ArrayList<TileEntity>(tileEntities.size());
-            for (TileEntity tileEntity: tileEntities) {
-                clone.tileEntities.add((TileEntity) tileEntity.clone());
-            }
+            clone.tileEntities = new ArrayList<>(tileEntities.size());
+            clone.tileEntities.addAll(tileEntities.stream().map(tileEntity -> (TileEntity) tileEntity.clone()).collect(Collectors.toList()));
         }
         if (attributes != null) {
-            clone.attributes = new HashMap<String, Serializable>(attributes);
+            clone.attributes = new HashMap<>(attributes);
         }
         return clone;
     }
@@ -270,8 +263,7 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
     }
 
     public static Schematic load(String name, InputStream stream) throws IOException {
-        InputStream in = new BufferedInputStream(stream);
-        try {
+        try (InputStream in = new BufferedInputStream(stream)) {
             byte[] magicNumber = new byte[2];
             in.mark(2);
             in.read(magicNumber);
@@ -282,8 +274,6 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
             NBTInputStream nbtIn = new NBTInputStream(in);
             CompoundTag tag = (CompoundTag) nbtIn.readTag();
             return new Schematic(name, tag, null);
-        } finally {
-            in.close();
         }
     }
     
@@ -297,7 +287,7 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
         // Legacy
         if (origin != null) {
             if (attributes == null) {
-                attributes = new HashMap<String, Serializable>();
+                attributes = new HashMap<>();
             }
             attributes.put(WPObject.ATTRIBUTE_OFFSET, new Point3i(-origin.x, -origin.y, -origin.z));
             origin = null;

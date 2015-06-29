@@ -32,7 +32,7 @@ public class DataNode implements Node {
     }
     
     private void loadChildren() {
-        ArrayList<Node> myChildren = new ArrayList<Node>();
+        ArrayList<Node> myChildren = new ArrayList<>();
         File idcountsDatFile = new File(dataDir, "idcounts.dat");
         if (idcountsDatFile.isFile()) {
             NBTFileNode idCountsDatNode = new NBTFileNode(idcountsDatFile, false);

@@ -18,7 +18,7 @@ public final class Minecraft1_7BiomeScheme extends Minecraft1_7JarBiomeScheme {
         super(minecraftJar, libDir, md5Sum, HASHES_TO_CLASSNAMES, "1.7.9 or 1.7.2 Default");
     }
     
-    private static final Map<Checksum, String[]> HASHES_TO_CLASSNAMES = new HashMap<Checksum, String[]>();
+    private static final Map<Checksum, String[]> HASHES_TO_CLASSNAMES = new HashMap<>();
 
 //                                                                                                                                                                                                                                                                       Landscape class
 //                                                                                                                                                                                                                                                                              Buffer manager class

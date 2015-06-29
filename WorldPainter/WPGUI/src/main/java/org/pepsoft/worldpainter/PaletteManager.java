@@ -27,7 +27,7 @@ public class PaletteManager {
     }
 
     public List<CustomLayer> getLayers() {
-        List<CustomLayer> layers = new ArrayList<CustomLayer>();
+        List<CustomLayer> layers = new ArrayList<>();
         for (Palette palette: paletteList) {
             layers.addAll(palette.getLayers());
         }
@@ -35,7 +35,7 @@ public class PaletteManager {
     }
 
     public Map<String, Collection<CustomLayer>> getLayersByPalette() {
-        Map<String, Collection<CustomLayer>> layers = new HashMap<String, Collection<CustomLayer>>(paletteList.size());
+        Map<String, Collection<CustomLayer>> layers = new HashMap<>(paletteList.size());
         for (Palette palette: paletteList) {
             layers.put(palette.getName(), palette.getLayers());
         }
@@ -133,14 +133,14 @@ public class PaletteManager {
      * @return The removed palettes;
      */
     public List<Palette> clear() {
-        List<Palette> oldPaletteList = new ArrayList<Palette>(paletteList);
+        List<Palette> oldPaletteList = new ArrayList<>(paletteList);
         paletteList.clear();
         palettesByName.clear();
         return oldPaletteList;
     }
     
-    private final List<Palette> paletteList = new ArrayList<Palette>();
-    private final Map<String, Palette> palettesByName = new HashMap<String, Palette>();
+    private final List<Palette> paletteList = new ArrayList<>();
+    private final Map<String, Palette> palettesByName = new HashMap<>();
     private final ButtonProvider buttonProvider;
 
     public interface ButtonProvider {

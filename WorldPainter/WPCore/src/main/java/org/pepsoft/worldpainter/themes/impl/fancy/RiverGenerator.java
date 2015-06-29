@@ -32,20 +32,17 @@ public class RiverGenerator {
         dimension.armSavePoint();
         garden = dimension.getGarden();
         try {
-            for (Tile tile: dimension.getTiles()) {
-                generateRivers(tile);
-            }
+            dimension.getTiles().forEach(this::generateRivers);
             
             // Grow seeds until all activity has ceased
             while (! garden.tick());
             
             // Apply the river nodes to the landscape
-            for (Seed seed: dimension.getGarden().getSeeds()) {
-                if ((seed instanceof RiverNode) && (seed.getParent() == null)) {
-                    // A river source
-                    ((RiverNode) seed).apply(dimension, snapshot, new HashSet<RiverNode>());
-                }
-            }
+            // A river source
+            dimension.getGarden().getSeeds().stream().filter(seed -> (seed instanceof RiverNode) && (seed.getParent() == null)).forEach(seed -> {
+                // A river source
+                ((RiverNode) seed).apply(dimension, snapshot, new HashSet<>());
+            });
         } finally {
             garden = null;
             snapshot = null;

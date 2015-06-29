@@ -114,14 +114,11 @@ public class ThreeDeeFrame extends JFrame implements WindowListener {
         
         final JToggleButton alwaysOnTopButton = new JToggleButton(ICON_ALWAYS_ON_TOP);
         alwaysOnTopButton.setToolTipText("Set the 3D view window to be always on top");
-        alwaysOnTopButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (alwaysOnTopButton.isSelected()) {
-                    ThreeDeeFrame.this.setAlwaysOnTop(true);
-                } else {
-                    ThreeDeeFrame.this.setAlwaysOnTop(false);
-                }
+        alwaysOnTopButton.addActionListener(e -> {
+            if (alwaysOnTopButton.isSelected()) {
+                ThreeDeeFrame.this.setAlwaysOnTop(true);
+            } else {
+                ThreeDeeFrame.this.setAlwaysOnTop(false);
             }
         });
         
@@ -258,7 +255,7 @@ public class ThreeDeeFrame extends JFrame implements WindowListener {
         @Override
         public void performAction(ActionEvent e) {
             JFileChooser fileChooser = new JFileChooser();
-            final Set<String> extensions = new HashSet<String>(Arrays.asList(ImageIO.getReaderFileSuffixes()));
+            final Set<String> extensions = new HashSet<>(Arrays.asList(ImageIO.getReaderFileSuffixes()));
             StringBuilder sb = new StringBuilder("Supported image formats (");
             boolean first = true;
             for (String extension: extensions) {

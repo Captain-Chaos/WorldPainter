@@ -23,15 +23,11 @@ public class GardenExporter {
      * @param minecraftWorld 
      */
     public void firstPass(Dimension dimension, Tile tile, MinecraftWorld minecraftWorld, Set<Seed> processedSeeds) {
-        for (Seed seed: tile.getSeeds()) {
-            // Process the seed. If it has a parent, process it first, etc.,
-            // regardless of whether the ancestors are in this tile.
-            // If the seed is already processed then all its ancestors are also
-            // already processed.
-            if (! processedSeeds.contains(seed)) {
-                processSeedFirstPass(seed, processedSeeds, dimension, tile, minecraftWorld);
-            }
-        }
+        // Process the seed. If it has a parent, process it first, etc.,
+// regardless of whether the ancestors are in this tile.
+// If the seed is already processed then all its ancestors are also
+// already processed.
+        tile.getSeeds().stream().filter(seed -> !processedSeeds.contains(seed)).forEach(seed -> processSeedFirstPass(seed, processedSeeds, dimension, tile, minecraftWorld));
     }
 
     /**
@@ -43,15 +39,11 @@ public class GardenExporter {
      * @param minecraftWorld 
      */
     public void secondPass(Dimension dimension, Tile tile, MinecraftWorld minecraftWorld, Set<Seed> processedSeeds) {
-        for (Seed seed: tile.getSeeds()) {
-            // Process the seed. If it has a parent, process it first, etc.,
-            // regardless of whether the ancestors are in this tile.
-            // If the seed is already processed then all its ancestors are also
-            // already processed.
-            if (! processedSeeds.contains(seed)) {
-                processSeedSecondPass(seed, processedSeeds, dimension, tile, minecraftWorld);
-            }
-        }
+        // Process the seed. If it has a parent, process it first, etc.,
+// regardless of whether the ancestors are in this tile.
+// If the seed is already processed then all its ancestors are also
+// already processed.
+        tile.getSeeds().stream().filter(seed -> !processedSeeds.contains(seed)).forEach(seed -> processSeedSecondPass(seed, processedSeeds, dimension, tile, minecraftWorld));
     }
     
     private void processSeedFirstPass(Seed seed, Set<Seed> processedSeeds, Dimension dimension, Tile tile, MinecraftWorld world) {

@@ -448,29 +448,17 @@ public class ExportWorldDialog extends javax.swing.JDialog {
         fieldDirectory.setText("jTextField1");
 
         buttonSelectDirectory.setText("...");
-        buttonSelectDirectory.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonSelectDirectoryActionPerformed(evt);
-            }
-        });
+        buttonSelectDirectory.addActionListener(this::buttonSelectDirectoryActionPerformed);
 
         jLabel3.setText("Name:");
 
         fieldName.setText("jTextField2");
 
         buttonCancel.setText("Cancel");
-        buttonCancel.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonCancelActionPerformed(evt);
-            }
-        });
+        buttonCancel.addActionListener(this::buttonCancelActionPerformed);
 
         buttonExport.setText("Export");
-        buttonExport.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonExportActionPerformed(evt);
-            }
-        });
+        buttonExport.addActionListener(this::buttonExportActionPerformed);
 
         jTabbedPane1.setTabPlacement(javax.swing.JTabbedPane.RIGHT);
         jTabbedPane1.addTab("Surface", surfacePropertiesEditor);
@@ -485,30 +473,18 @@ public class ExportWorldDialog extends javax.swing.JDialog {
         checkBoxGoodies.setToolTipText("Include a chest with tools and resources near spawn for you as the level designer");
 
         comboBoxMinecraftVersion.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Minecraft 1.8 (and 1.2 - 1.7; \"Anvil\")", "Minecraft 1.1 (and earlier; \"MCRegion\")" }));
-        comboBoxMinecraftVersion.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                comboBoxMinecraftVersionActionPerformed(evt);
-            }
-        });
+        comboBoxMinecraftVersion.addActionListener(this::comboBoxMinecraftVersionActionPerformed);
 
         jLabel1.setText("Map format:");
 
         buttonGroup2.add(radioButtonExportEverything);
         radioButtonExportEverything.setSelected(true);
         radioButtonExportEverything.setText("export everything");
-        radioButtonExportEverything.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonExportEverythingActionPerformed(evt);
-            }
-        });
+        radioButtonExportEverything.addActionListener(this::radioButtonExportEverythingActionPerformed);
 
         buttonGroup2.add(radioButtonExportSelection);
         radioButtonExportSelection.setText("export selected tiles");
-        radioButtonExportSelection.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonExportSelectionActionPerformed(evt);
-            }
-        });
+        radioButtonExportSelection.addActionListener(this::radioButtonExportSelectionActionPerformed);
 
         labelSelectTiles.setText("<html><u>select tiles</u></html>");
         labelSelectTiles.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -524,28 +500,16 @@ public class ExportWorldDialog extends javax.swing.JDialog {
         jLabel4.setText("World type:");
 
         comboBoxGenerator.setToolTipText("<html>The world generator type to use for new land <em>outside</em> the WorldPainter-generated part</html>");
-        comboBoxGenerator.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                comboBoxGeneratorActionPerformed(evt);
-            }
-        });
+        comboBoxGenerator.addActionListener(this::comboBoxGeneratorActionPerformed);
 
         jLabel5.setText("Mode:");
 
         comboBoxGameType.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Survival", "Creative", "Adventure", "Hardcore" }));
-        comboBoxGameType.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                comboBoxGameTypeActionPerformed(evt);
-            }
-        });
+        comboBoxGameType.addActionListener(this::comboBoxGameTypeActionPerformed);
 
         buttonGeneratorOptions.setText("...");
         buttonGeneratorOptions.setToolTipText("Edit the Superflat mode preset");
-        buttonGeneratorOptions.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonGeneratorOptionsActionPerformed(evt);
-            }
-        });
+        buttonGeneratorOptions.addActionListener(this::buttonGeneratorOptionsActionPerformed);
 
         checkBoxMapFeatures.setSelected(true);
         checkBoxMapFeatures.setText("Structures");

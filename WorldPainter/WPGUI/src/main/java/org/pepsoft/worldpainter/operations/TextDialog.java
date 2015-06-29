@@ -30,7 +30,7 @@ public class TextDialog extends WorldPainterDialog {
         initComponents();
         
         String[] fontFamilyNames = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
-        List<String> usableFonts = new ArrayList<String>(fontFamilyNames.length);
+        List<String> usableFonts = new ArrayList<>(fontFamilyNames.length);
         for (String fontFamilyName: fontFamilyNames) {
             Font font = new Font(fontFamilyName, Font.PLAIN, renderSize);
             // This is intended to weed out symbol fonts and the like, not fonts
@@ -111,18 +111,10 @@ public class TextDialog extends WorldPainterDialog {
         jScrollPane1.setViewportView(jTextArea1);
 
         jButton1.setText("Cancel");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
+        jButton1.addActionListener(this::jButton1ActionPerformed);
 
         jButton2.setText("OK");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
-            }
-        });
+        jButton2.addActionListener(this::jButton2ActionPerformed);
 
         jLabel1.setText("Font:");
 

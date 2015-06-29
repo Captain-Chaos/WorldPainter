@@ -24,6 +24,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static org.pepsoft.worldpainter.Constants.*;
 
@@ -131,7 +132,7 @@ public class BiomeSchemeManager {
                             final Checksum hash = FileUtils.getMD5(minecraftJar);
                             final BiomeSchemeDescriptor descriptor = identify(hash, biomeAlgorithm);
                             if (descriptor != null) {
-                                biomeJars = new TreeMap<Version, BiomeJar>();
+                                biomeJars = new TreeMap<>();
                                 biomeJars.put(descriptor.minecraftVersion, new BiomeJar(minecraftJar, hash, descriptor));
                                 BIOME_JARS.put(biomeAlgorithm, biomeJars);
                                 final Configuration config = Configuration.getInstance();
@@ -175,7 +176,7 @@ public class BiomeSchemeManager {
             }
         }
 
-        SortedMap<Version, File> files = new TreeMap<Version, File>();
+        SortedMap<Version, File> files = new TreeMap<>();
         for (Map.Entry<Integer, SortedMap<Version, BiomeJar>> entry: BIOME_JARS.entrySet()) {
             for (BiomeJar jar: entry.getValue().values()) {
                 files.put(jar.descriptor.minecraftVersion, jar.file);
@@ -226,26 +227,18 @@ public class BiomeSchemeManager {
                 return;
             }
             initialising = true;
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        doInitialisation();
-                    } catch (Throwable t) {
-                        logger.log(Level.SEVERE, t.getClass().getSimpleName() + " while scanning for Minecraft jars", t);
-                    }
+            new Thread(() -> {
+                try {
+                    doInitialisation();
+                } catch (Throwable t) {
+                    logger.log(Level.SEVERE, t.getClass().getSimpleName() + " while scanning for Minecraft jars", t);
                 }
             }, "Biome Scheme Manager Initialiser").start();
         }
     }
 
     private static void scanDir(File dir) {
-        File[] files = dir.listFiles(new java.io.FileFilter() {
-            @Override
-            public boolean accept(File pathname) {
-                return pathname.isDirectory() || pathname.getName().toLowerCase().endsWith(".jar");
-            }
-        });
+        File[] files = dir.listFiles(pathname -> pathname.isDirectory() || pathname.getName().toLowerCase().endsWith(".jar"));
         // files can only be null if dir does not exist or is not a directory,
         // which really should not be possible, but we've had reports from the
         // wild that it does, so check for it
@@ -263,7 +256,7 @@ public class BiomeSchemeManager {
                             for (BiomeSchemeDescriptor descriptor: DESCRIPTORS.get(hash)) {
                                 SortedMap<Version, BiomeJar> jars = BIOME_JARS.get(descriptor.biomeScheme);
                                 if (jars == null) {
-                                    jars = new TreeMap<Version, BiomeJar>();
+                                    jars = new TreeMap<>();
                                     BIOME_JARS.put(descriptor.biomeScheme, jars);
                                 }
                                 jars.put(descriptor.minecraftVersion, new BiomeJar(file, hash, descriptor));
@@ -292,12 +285,8 @@ public class BiomeSchemeManager {
 
     private static BiomeSchemeDescriptor identify(Checksum checksum, int desiredBiomeScheme) {
         if (DESCRIPTORS.containsKey(checksum)) {
-            SortedMap<Version, BiomeSchemeDescriptor> matchingDescriptors = new TreeMap<Version, BiomeSchemeDescriptor>();
-            for (BiomeSchemeDescriptor descriptor: DESCRIPTORS.get(checksum)) {
-                if (descriptor.biomeScheme == desiredBiomeScheme) {
-                    matchingDescriptors.put(descriptor.minecraftVersion, descriptor);
-                }
-            }
+            SortedMap<Version, BiomeSchemeDescriptor> matchingDescriptors = new TreeMap<>();
+            DESCRIPTORS.get(checksum).stream().filter(descriptor -> descriptor.biomeScheme == desiredBiomeScheme).forEach(descriptor -> matchingDescriptors.put(descriptor.minecraftVersion, descriptor));
             return (! matchingDescriptors.isEmpty()) ? matchingDescriptors.get(matchingDescriptors.lastKey()) : null;
         } else {
             return null;
@@ -335,11 +324,9 @@ public class BiomeSchemeManager {
 
                 // Collect the names of the files we already looked at so we can skip
                 // them below
-                Set<File> processedFiles = new HashSet<File>();
+                Set<File> processedFiles = new HashSet<>();
                 for (Map.Entry<Integer, SortedMap<Version, BiomeJar>> entry: BIOME_JARS.entrySet()) {
-                    for (BiomeJar biomeJar: entry.getValue().values()) {
-                        processedFiles.add(biomeJar.file);
-                    }
+                    processedFiles.addAll(entry.getValue().values().stream().map(biomeJar -> biomeJar.file).collect(Collectors.toList()));
                 }
 
                 // Check the jars stored in the configuration (if we haven't
@@ -369,7 +356,7 @@ public class BiomeSchemeManager {
                             for (BiomeSchemeDescriptor descriptor: DESCRIPTORS.get(checksum)) {
                                 SortedMap<Version, BiomeJar> jars = BIOME_JARS.get(descriptor.biomeScheme);
                                 if (jars == null) {
-                                    jars = new TreeMap<Version, BiomeJar>();
+                                    jars = new TreeMap<>();
                                     BIOME_JARS.put(descriptor.biomeScheme, jars);
                                 }
                                 jars.put(descriptor.minecraftVersion, new BiomeJar(file, checksum, descriptor));
@@ -404,10 +391,10 @@ public class BiomeSchemeManager {
         }
     }
 
-    private static final Map<Checksum, Set<BiomeSchemeDescriptor>> DESCRIPTORS = new HashMap<Checksum, Set<BiomeSchemeDescriptor>>();
-    private static final Map<Integer, BiomeScheme> BIOME_SCHEMES = new HashMap<Integer, BiomeScheme>();
-    private static final Map<Integer, SortedMap<Version, BiomeJar>> BIOME_JARS = new HashMap<Integer, SortedMap<Version, BiomeJar>>();
-    private static final SortedMap<Version, File> ALL_JARS = new TreeMap<Version, File>();
+    private static final Map<Checksum, Set<BiomeSchemeDescriptor>> DESCRIPTORS = new HashMap<>();
+    private static final Map<Integer, BiomeScheme> BIOME_SCHEMES = new HashMap<>();
+    private static final Map<Integer, SortedMap<Version, BiomeJar>> BIOME_JARS = new HashMap<>();
+    private static final SortedMap<Version, File> ALL_JARS = new TreeMap<>();
     private static final Object initialisationLock = new Object();
     private static File minecraftDir;
     private static boolean initialised, initialising;
@@ -465,7 +452,7 @@ public class BiomeSchemeManager {
     private static void addDescriptor(Checksum checksum, BiomeSchemeDescriptor descriptor) {
         Set<BiomeSchemeDescriptor> descriptors = DESCRIPTORS.get(checksum);
         if (descriptors == null) {
-            descriptors = new HashSet<BiomeSchemeDescriptor>();
+            descriptors = new HashSet<>();
             DESCRIPTORS.put(checksum, descriptors);
         }
         descriptors.add(descriptor);

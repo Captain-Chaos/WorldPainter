@@ -67,12 +67,9 @@ public class CustomMaterialDialog extends WorldPainterDialog {
                 }
             }
         });
-        tableMaterialRows.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-                if (! programmaticChange) {
-                    setControlStates();
-                }
+        tableMaterialRows.getSelectionModel().addListSelectionListener(e -> {
+            if (! programmaticChange) {
+                setControlStates();
             }
         });
         init(material);
@@ -186,19 +183,17 @@ public class CustomMaterialDialog extends WorldPainterDialog {
             biome = mixedMaterial.getBiome();
             fieldName.setText(mixedMaterial.getName());
             tableModel = new MixedMaterialTableModel(mixedMaterial);
-            tableModel.addTableModelListener(new TableModelListener() {
-                @Override public void tableChanged(TableModelEvent e) {
-                    if ((!checkBoxColour.isSelected()) && isExtendedBlockIds()) {
-                        checkBoxColour.setSelected(true);
-                    }
-                    setControlStates();
-                    if (fieldName.getText().equals(previousCalculatedName)) {
-                        String calculatedName = createName();
-                        fieldName.setText(createName());
-                        previousCalculatedName = calculatedName;
-                    }
-                    schedulePreviewUpdate();
+            tableModel.addTableModelListener(e -> {
+                if ((!checkBoxColour.isSelected()) && isExtendedBlockIds()) {
+                    checkBoxColour.setSelected(true);
                 }
+                setControlStates();
+                if (fieldName.getText().equals(previousCalculatedName)) {
+                    String calculatedName = createName();
+                    fieldName.setText(createName());
+                    previousCalculatedName = calculatedName;
+                }
+                schedulePreviewUpdate();
             });
             switch (mixedMaterial.getMode()) {
             case SIMPLE:
@@ -275,12 +270,7 @@ public class CustomMaterialDialog extends WorldPainterDialog {
     private String createName() {
         Row[] rows = tableModel.getRows();
         rows = Arrays.copyOf(rows, rows.length);
-        Arrays.sort(rows, new Comparator<Row>() {
-            @Override
-            public int compare(Row r1, Row r2) {
-                return r2.occurrence - r1.occurrence;
-            }
-        });
+        Arrays.sort(rows, (r1, r2) -> r2.occurrence - r1.occurrence);
         StringBuilder sb = new StringBuilder();
         for (Row row: rows) {
             if (sb.length() > 0) {
@@ -340,12 +330,7 @@ public class CustomMaterialDialog extends WorldPainterDialog {
     
     private void schedulePreviewUpdate() {
         if (previewUpdateTimer == null) {
-            previewUpdateTimer = new Timer(250, new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    updatePreview();
-                }
-            });
+            previewUpdateTimer = new Timer(250, e -> updatePreview());
             previewUpdateTimer.setRepeats(false);
         }
         previewUpdateTimer.restart();
@@ -433,18 +418,10 @@ public class CustomMaterialDialog extends WorldPainterDialog {
         jLabel1.setText("Select the block ID and data value(s) for your custom material:");
 
         buttonCancel.setText("Cancel");
-        buttonCancel.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonCancelActionPerformed(evt);
-            }
-        });
+        buttonCancel.addActionListener(this::buttonCancelActionPerformed);
 
         buttonOK.setText("OK");
-        buttonOK.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonOKActionPerformed(evt);
-            }
-        });
+        buttonOK.addActionListener(this::buttonOKActionPerformed);
 
         jLabel4.setForeground(new java.awt.Color(0, 0, 255));
         jLabel4.setText("<html><u>Look up block ID's and data values</u></html>");
@@ -460,11 +437,7 @@ public class CustomMaterialDialog extends WorldPainterDialog {
         fieldName.setColumns(20);
 
         buttonAddMaterial.setText("Add Material");
-        buttonAddMaterial.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonAddMaterialActionPerformed(evt);
-            }
-        });
+        buttonAddMaterial.addActionListener(this::buttonAddMaterialActionPerformed);
 
         tableMaterialRows.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -481,38 +454,22 @@ public class CustomMaterialDialog extends WorldPainterDialog {
 
         buttonRemoveMaterial.setText("Remove Material");
         buttonRemoveMaterial.setEnabled(false);
-        buttonRemoveMaterial.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonRemoveMaterialActionPerformed(evt);
-            }
-        });
+        buttonRemoveMaterial.addActionListener(this::buttonRemoveMaterialActionPerformed);
 
         buttonGroup1.add(radioButtonNoise);
         radioButtonNoise.setSelected(true);
         radioButtonNoise.setText("Noise");
-        radioButtonNoise.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonNoiseActionPerformed(evt);
-            }
-        });
+        radioButtonNoise.addActionListener(this::radioButtonNoiseActionPerformed);
 
         buttonGroup1.add(radioButtonBlobs);
         radioButtonBlobs.setText("Blobs");
-        radioButtonBlobs.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonBlobsActionPerformed(evt);
-            }
-        });
+        radioButtonBlobs.addActionListener(this::radioButtonBlobsActionPerformed);
 
         jLabel3.setText("Scale:");
 
         spinnerScale.setModel(new javax.swing.SpinnerNumberModel(100, 1, 9999, 1));
         spinnerScale.setEnabled(false);
-        spinnerScale.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerScaleStateChanged(evt);
-            }
-        });
+        spinnerScale.addChangeListener(this::spinnerScaleStateChanged);
 
         jLabel5.setText("Colour:");
 
@@ -523,56 +480,32 @@ public class CustomMaterialDialog extends WorldPainterDialog {
 
         buttonSelectColour.setText("...");
         buttonSelectColour.setEnabled(false);
-        buttonSelectColour.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonSelectColourActionPerformed(evt);
-            }
-        });
+        buttonSelectColour.addActionListener(this::buttonSelectColourActionPerformed);
 
         checkBoxColour.setText(" ");
         checkBoxColour.setToolTipText("Select to override actual block colours");
-        checkBoxColour.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                checkBoxColourActionPerformed(evt);
-            }
-        });
+        checkBoxColour.addActionListener(this::checkBoxColourActionPerformed);
 
         buttonGroup1.add(radioButtonLayered);
         radioButtonLayered.setText("Layers");
-        radioButtonLayered.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonLayeredActionPerformed(evt);
-            }
-        });
+        radioButtonLayered.addActionListener(this::radioButtonLayeredActionPerformed);
 
         checkBoxLayeredRepeat.setSelected(true);
         checkBoxLayeredRepeat.setText("Repeat:");
         checkBoxLayeredRepeat.setEnabled(false);
         checkBoxLayeredRepeat.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
-        checkBoxLayeredRepeat.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                checkBoxLayeredRepeatActionPerformed(evt);
-            }
-        });
+        checkBoxLayeredRepeat.addActionListener(this::checkBoxLayeredRepeatActionPerformed);
 
         jLabel6.setText("Variation:");
 
         noiseSettingsEditorLayeredVariation.setEnabled(false);
-        noiseSettingsEditorLayeredVariation.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                noiseSettingsEditorLayeredVariationStateChanged(evt);
-            }
-        });
+        noiseSettingsEditorLayeredVariation.addChangeListener(this::noiseSettingsEditorLayeredVariationStateChanged);
 
         jLabel7.setText("X-axis angle:");
 
         spinnerLayeredXAngle.setModel(new javax.swing.SpinnerNumberModel(0, -89, 89, 1));
         spinnerLayeredXAngle.setEnabled(false);
-        spinnerLayeredXAngle.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerLayeredXAngleStateChanged(evt);
-            }
-        });
+        spinnerLayeredXAngle.addChangeListener(this::spinnerLayeredXAngleStateChanged);
 
         jLabel9.setText("Z-axis angle:");
 
@@ -595,20 +528,12 @@ public class CustomMaterialDialog extends WorldPainterDialog {
         buttonLoad.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/folder_page_white.png"))); // NOI18N
         buttonLoad.setToolTipText("Load this custom material from a file");
         buttonLoad.setMargin(new java.awt.Insets(2, 2, 2, 2));
-        buttonLoad.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonLoadActionPerformed(evt);
-            }
-        });
+        buttonLoad.addActionListener(this::buttonLoadActionPerformed);
 
         buttonSave.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/disk.png"))); // NOI18N
         buttonSave.setToolTipText("Save this custom material to a file");
         buttonSave.setMargin(new java.awt.Insets(2, 2, 2, 2));
-        buttonSave.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonSaveActionPerformed(evt);
-            }
-        });
+        buttonSave.addActionListener(this::buttonSaveActionPerformed);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);

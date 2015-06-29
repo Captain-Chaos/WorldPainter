@@ -61,12 +61,16 @@ public class MapTreeCellRenderer extends DefaultTreeCellRenderer {
             setText("data");
         } else if (value instanceof ExtraDimensionNode) {
             String dim = ((ExtraDimensionNode) value).getDimension();
-            if (dim.equals("DIM-1")) {
-                setText("Nether");
-            } else if (dim.equals("DIM1")) {
-                setText("Ender");
-            } else {
-                setText(dim);
+            switch (dim) {
+                case "DIM-1":
+                    setText("Nether");
+                    break;
+                case "DIM1":
+                    setText("Ender");
+                    break;
+                default:
+                    setText(dim);
+                    break;
             }
         }
         return this;

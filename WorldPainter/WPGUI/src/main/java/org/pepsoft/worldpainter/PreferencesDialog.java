@@ -424,11 +424,7 @@ public class PreferencesDialog extends javax.swing.JDialog {
 
         checkBoxPing.setSelected(true);
         checkBoxPing.setText("Send usage information to the developer");
-        checkBoxPing.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                checkBoxPingActionPerformed(evt);
-            }
-        });
+        checkBoxPing.addActionListener(this::checkBoxPingActionPerformed);
 
         jLabel3.setFont(jLabel3.getFont().deriveFont((jLabel3.getFont().getStyle() | java.awt.Font.ITALIC)));
         jLabel3.setText("Note that the information does not include personally identifiable ");
@@ -467,50 +463,30 @@ public class PreferencesDialog extends javax.swing.JDialog {
         jLabel10.setText("Dimensions:");
 
         spinnerWidth.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(640), Integer.valueOf(128), null, Integer.valueOf(128)));
-        spinnerWidth.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerWidthStateChanged(evt);
-            }
-        });
+        spinnerWidth.addChangeListener(this::spinnerWidthStateChanged);
 
         jLabel11.setText("x");
 
         spinnerHeight.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(640), Integer.valueOf(128), null, Integer.valueOf(128)));
-        spinnerHeight.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerHeightStateChanged(evt);
-            }
-        });
+        spinnerHeight.addChangeListener(this::spinnerHeightStateChanged);
 
         jLabel12.setLabelFor(comboBoxHeight);
         jLabel12.setText("Height:");
 
         comboBoxHeight.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "32", "64", "128", "256", "512", "1024", "2048" }));
         comboBoxHeight.setSelectedIndex(3);
-        comboBoxHeight.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                comboBoxHeightActionPerformed(evt);
-            }
-        });
+        comboBoxHeight.addActionListener(this::comboBoxHeightActionPerformed);
 
         jLabel13.setText("Topography:");
 
         buttonGroup1.add(radioButtonHilly);
         radioButtonHilly.setSelected(true);
         radioButtonHilly.setText("Hilly");
-        radioButtonHilly.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonHillyActionPerformed(evt);
-            }
-        });
+        radioButtonHilly.addActionListener(this::radioButtonHillyActionPerformed);
 
         buttonGroup1.add(radioButtonFlat);
         radioButtonFlat.setText("Flat");
-        radioButtonFlat.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonFlatActionPerformed(evt);
-            }
-        });
+        radioButtonFlat.addActionListener(this::radioButtonFlatActionPerformed);
 
         jLabel14.setLabelFor(spinnerGroundLevel);
         jLabel14.setText("Level:");
@@ -520,30 +496,18 @@ public class PreferencesDialog extends javax.swing.JDialog {
         jLabel15.setText("Water level:");
 
         spinnerWaterLevel.setModel(new javax.swing.SpinnerNumberModel(62, 0, 255, 1));
-        spinnerWaterLevel.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerWaterLevelStateChanged(evt);
-            }
-        });
+        spinnerWaterLevel.addChangeListener(this::spinnerWaterLevelStateChanged);
 
         checkBoxLava.setText("Lava instead of water");
 
         checkBoxBeaches.setSelected(true);
         checkBoxBeaches.setText("Beaches");
-        checkBoxBeaches.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                checkBoxBeachesActionPerformed(evt);
-            }
-        });
+        checkBoxBeaches.addActionListener(this::checkBoxBeachesActionPerformed);
 
         jLabel16.setText("Surface material:");
 
         comboBoxSurfaceMaterial.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-        comboBoxSurfaceMaterial.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                comboBoxSurfaceMaterialActionPerformed(evt);
-            }
-        });
+        comboBoxSurfaceMaterial.addActionListener(this::comboBoxSurfaceMaterialActionPerformed);
 
         labelTerrainAndLayerSettings.setForeground(java.awt.Color.blue);
         labelTerrainAndLayerSettings.setText("<html><u>Configure default border, terrain and layer settings</u></html>");
@@ -560,11 +524,7 @@ public class PreferencesDialog extends javax.swing.JDialog {
         jLabel18.setText("(Note that changes to these settings will only take effect for the next world you load or create.) ");
 
         buttonReset.setText("Reset...");
-        buttonReset.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonResetActionPerformed(evt);
-            }
-        });
+        buttonReset.addActionListener(this::buttonResetActionPerformed);
 
         jSeparator4.setOrientation(javax.swing.SwingConstants.VERTICAL);
 
@@ -596,11 +556,7 @@ public class PreferencesDialog extends javax.swing.JDialog {
         jLabel27.setText("Warning: large brush sizes could slow your computer to a crawl! ");
 
         checkBoxCircular.setText("Circular world");
-        checkBoxCircular.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                checkBoxCircularActionPerformed(evt);
-            }
-        });
+        checkBoxCircular.addActionListener(this::checkBoxCircularActionPerformed);
 
         checkBoxExtendedBlockIds.setText("Extended block ID's");
 
@@ -612,29 +568,17 @@ public class PreferencesDialog extends javax.swing.JDialog {
         jLabel28.setText("World type:");
 
         comboBoxWorldType.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Default", "Superflat", "Large Biomes" }));
-        comboBoxWorldType.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                comboBoxWorldTypeActionPerformed(evt);
-            }
-        });
+        comboBoxWorldType.addActionListener(this::comboBoxWorldTypeActionPerformed);
 
         buttonModePreset.setText("...");
-        buttonModePreset.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonModePresetActionPerformed(evt);
-            }
-        });
+        buttonModePreset.addActionListener(this::buttonModePresetActionPerformed);
 
         checkBoxStructures.setText("Structures");
 
         jLabel29.setText("Mode:");
 
         comboBoxMode.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Survival", "Creative", "Adventure" }));
-        comboBoxMode.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                comboBoxModeActionPerformed(evt);
-            }
-        });
+        comboBoxMode.addActionListener(this::comboBoxModeActionPerformed);
 
         checkBoxCheats.setText("Allow Cheats");
 
@@ -910,11 +854,7 @@ public class PreferencesDialog extends javax.swing.JDialog {
 
         checkBoxUndo.setSelected(true);
         checkBoxUndo.setText("Enable undo");
-        checkBoxUndo.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                checkBoxUndoActionPerformed(evt);
-            }
-        });
+        checkBoxUndo.addActionListener(this::checkBoxUndoActionPerformed);
 
         jLabel5.setLabelFor(spinnerUndoLevels);
         jLabel5.setText("Undo levels:");
@@ -1120,18 +1060,10 @@ public class PreferencesDialog extends javax.swing.JDialog {
         jTabbedPane1.addTab("Performance", jPanel2);
 
         buttonCancel.setText("Cancel");
-        buttonCancel.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonCancelActionPerformed(evt);
-            }
-        });
+        buttonCancel.addActionListener(this::buttonCancelActionPerformed);
 
         buttonOK.setText("OK");
-        buttonOK.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonOKActionPerformed(evt);
-            }
-        });
+        buttonOK.addActionListener(this::buttonOKActionPerformed);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);

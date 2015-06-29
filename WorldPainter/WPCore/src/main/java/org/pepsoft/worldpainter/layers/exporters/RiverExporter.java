@@ -120,43 +120,37 @@ public class RiverExporter extends AbstractLayerExporter<River> implements Secon
                         // First see if there is any river around with a
                         // water level that's higher
                         final boolean[] higherRiverAround = new boolean[1];
-                        GeometryUtil.visitFilledCircle(riverConnectionRadius, new GeometryVisitor() {
-                            @Override
-                            public boolean visit(int dx, int dy, float d) {
-                                final int x = finalX + dx, y = finalY + dy;
-                                if ((dimension.getBitLayerValueAt(River.INSTANCE, x, y))
-                                        && ((dimension.getIntHeightAt(x, y) - shoreHeight) > waterLevel)) {
-                                    higherRiverAround[0] = true;
-                                    return false;
-                                } else {
-                                    return true;
-                                }
+                        GeometryUtil.visitFilledCircle(riverConnectionRadius, (dx, dy, d) -> {
+                            final int x1 = finalX + dx, y1 = finalY + dy;
+                            if ((dimension.getBitLayerValueAt(River.INSTANCE, x1, y1))
+                                    && ((dimension.getIntHeightAt(x1, y1) - shoreHeight) > waterLevel)) {
+                                higherRiverAround[0] = true;
+                                return false;
+                            } else {
+                                return true;
                             }
                         });
                         if (higherRiverAround[0]) {
                             // There is a river near with a water level
                             // that's higher, so flood the surroundings to
                             // the height of the body of water
-                            GeometryUtil.visitFilledCircle(riverConnectionRadius, new GeometryVisitor() {
-                                @Override
-                                public boolean visit(int dx, int dy, float d) {
-                                    final int x = finalX + dx, y = finalY + dy;
-                                    if ((dimension.getBitLayerValueAt(River.INSTANCE, x, y))
-                                            && (dimension.getWaterLevelAt(x, y) < waterLevel)) {
-                                        int z = waterLevel;
-                                        int existingBlockType = minecraftWorld.getBlockTypeAt(x, y, z);
-                                        while ((z > 0)
-                                                && (existingBlockType != BLK_WATER)
-                                                && (existingBlockType != BLK_STATIONARY_WATER)
-                                                && (existingBlockType != BLK_ICE)
-                                                && BLOCKS[existingBlockType].veryInsubstantial) {
-                                            minecraftWorld.setMaterialAt(x, y, z, STATIONARY_WATER);
-                                            z--;
-                                            existingBlockType = minecraftWorld.getBlockTypeAt(x, y, z);
-                                        }
+                            GeometryUtil.visitFilledCircle(riverConnectionRadius, (dx, dy, d) -> {
+                                final int x1 = finalX + dx, y1 = finalY + dy;
+                                if ((dimension.getBitLayerValueAt(River.INSTANCE, x1, y1))
+                                        && (dimension.getWaterLevelAt(x1, y1) < waterLevel)) {
+                                    int z = waterLevel;
+                                    int existingBlockType = minecraftWorld.getBlockTypeAt(x1, y1, z);
+                                    while ((z > 0)
+                                            && (existingBlockType != BLK_WATER)
+                                            && (existingBlockType != BLK_STATIONARY_WATER)
+                                            && (existingBlockType != BLK_ICE)
+                                            && BLOCKS[existingBlockType].veryInsubstantial) {
+                                        minecraftWorld.setMaterialAt(x1, y1, z, STATIONARY_WATER);
+                                        z--;
+                                        existingBlockType = minecraftWorld.getBlockTypeAt(x1, y1, z);
                                     }
-                                    return true;
                                 }
+                                return true;
                             });
                         } else {
                             // There is no river near with a water level
@@ -164,26 +158,23 @@ public class RiverExporter extends AbstractLayerExporter<River> implements Secon
                             // sloping down just in case there's *lower*
                             // river water which we want to connect to a bit
                             // less abruptly than with a sheer wall of water
-                            GeometryUtil.visitFilledCircle(riverConnectionRadius, new GeometryVisitor() {
-                                @Override
-                                public boolean visit(int dx, int dy, float d) {
-                                    final int x = finalX + dx, y = finalY + dy;
-                                    if ((dimension.getBitLayerValueAt(River.INSTANCE, x, y))
-                                            && (dimension.getWaterLevelAt(x, y) < waterLevel)) {
-                                        int z = waterLevel - ((int) d);
-                                        int existingBlockType = minecraftWorld.getBlockTypeAt(x, y, z);
-                                        while ((z > 0)
-                                                && (existingBlockType != BLK_WATER)
-                                                && (existingBlockType != BLK_STATIONARY_WATER)
-                                                && (existingBlockType != BLK_ICE)
-                                                && BLOCKS[existingBlockType].veryInsubstantial) {
-                                            minecraftWorld.setMaterialAt(x, y, z, STATIONARY_WATER);
-                                            z--;
-                                            existingBlockType = minecraftWorld.getBlockTypeAt(x, y, z);
-                                        }
+                            GeometryUtil.visitFilledCircle(riverConnectionRadius, (dx, dy, d) -> {
+                                final int x1 = finalX + dx, y1 = finalY + dy;
+                                if ((dimension.getBitLayerValueAt(River.INSTANCE, x1, y1))
+                                        && (dimension.getWaterLevelAt(x1, y1) < waterLevel)) {
+                                    int z = waterLevel - ((int) d);
+                                    int existingBlockType = minecraftWorld.getBlockTypeAt(x1, y1, z);
+                                    while ((z > 0)
+                                            && (existingBlockType != BLK_WATER)
+                                            && (existingBlockType != BLK_STATIONARY_WATER)
+                                            && (existingBlockType != BLK_ICE)
+                                            && BLOCKS[existingBlockType].veryInsubstantial) {
+                                        minecraftWorld.setMaterialAt(x1, y1, z, STATIONARY_WATER);
+                                        z--;
+                                        existingBlockType = minecraftWorld.getBlockTypeAt(x1, y1, z);
                                     }
-                                    return true;
                                 }
+                                return true;
                             });
                         }
                     }

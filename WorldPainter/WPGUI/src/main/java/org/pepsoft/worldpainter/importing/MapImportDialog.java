@@ -164,11 +164,8 @@ public class MapImportDialog extends javax.swing.JDialog {
         final Pattern regionFilePattern = (version == SUPPORTED_VERSION_1)
             ? Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mcr")
             : Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mca");
-        final File[] regionFiles = regionDir.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return regionFilePattern.matcher(name).matches();
-            }
+        final File[] regionFiles = regionDir.listFiles((dir, name) -> {
+            return regionFilePattern.matcher(name).matches();
         });
         if ((regionFiles == null) || (regionFiles.length == 0)) {
             logger.severe("Region files missing while analysing map " + levelDatFile);
@@ -187,8 +184,8 @@ public class MapImportDialog extends javax.swing.JDialog {
                 MapStatistics stats = new MapStatistics();
                 
                 int chunkCount = 0;
-                List<Integer> xValues = new ArrayList<Integer>(), zValues = new ArrayList<Integer>();
-                List<Point> chunks = new ArrayList<Point>();
+                List<Integer> xValues = new ArrayList<>(), zValues = new ArrayList<>();
+                List<Point> chunks = new ArrayList<>();
                 int count = 0;
                 for (File file: regionFiles) {
                     String[] nameFrags = file.getName().split("\\.");
@@ -270,22 +267,20 @@ public class MapImportDialog extends javax.swing.JDialog {
                 }
                 
                 if (! stats.outlyingChunks.isEmpty()) {
-                    for (Point chunk: chunks) {
-                        if (! stats.outlyingChunks.contains(chunk)) {
-                            if (chunk.x < stats.lowestChunkXNoOutliers) {
-                                stats.lowestChunkXNoOutliers = chunk.x;
-                            }
-                            if (chunk.x > stats.highestChunkXNoOutliers) {
-                                stats.highestChunkXNoOutliers = chunk.x;
-                            }
-                            if (chunk.y < stats.lowestChunkZNoOutliers) {
-                                stats.lowestChunkZNoOutliers = chunk.y;
-                            }
-                            if (chunk.y > stats.highestChunkZNoOutliers) {
-                                stats.highestChunkZNoOutliers = chunk.y;
-                            }
+                    chunks.stream().filter(chunk -> !stats.outlyingChunks.contains(chunk)).forEach(chunk -> {
+                        if (chunk.x < stats.lowestChunkXNoOutliers) {
+                            stats.lowestChunkXNoOutliers = chunk.x;
                         }
-                    }
+                        if (chunk.x > stats.highestChunkXNoOutliers) {
+                            stats.highestChunkXNoOutliers = chunk.x;
+                        }
+                        if (chunk.y < stats.lowestChunkZNoOutliers) {
+                            stats.lowestChunkZNoOutliers = chunk.y;
+                        }
+                        if (chunk.y > stats.highestChunkZNoOutliers) {
+                            stats.highestChunkZNoOutliers = chunk.y;
+                        }
+                    });
                 } else {
                     stats.lowestChunkXNoOutliers = stats.lowestChunkX;
                     stats.highestChunkXNoOutliers = stats.highestChunkX;
@@ -414,22 +409,17 @@ public class MapImportDialog extends javax.swing.JDialog {
                     World2 world = importer.doImport(progressReceiver);
                     if (importer.getWarnings() != null) {
                         try {
-                            SwingUtilities.invokeAndWait(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Icon warningIcon = UIManager.getIcon("OptionPane.warningIcon");
-                                    Toolkit.getDefaultToolkit().beep();
-                                    int selectedOption = JOptionPane.showOptionDialog(MapImportDialog.this, strings.getString("the.import.process.generated.warnings"), strings.getString("import.warnings"), JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, warningIcon, new Object[] {strings.getString("review.warnings"), strings.getString("ok")}, null);
-                                    if (selectedOption == 0) {
-                                        ImportWarningsDialog warningsDialog = new ImportWarningsDialog(MapImportDialog.this, strings.getString("import.warnings"));
-                                        warningsDialog.setWarnings(importer.getWarnings());
-                                        warningsDialog.setVisible(true);
-                                    }
+                            SwingUtilities.invokeAndWait(() -> {
+                                Icon warningIcon = UIManager.getIcon("OptionPane.warningIcon");
+                                Toolkit.getDefaultToolkit().beep();
+                                int selectedOption = JOptionPane.showOptionDialog(MapImportDialog.this, strings.getString("the.import.process.generated.warnings"), strings.getString("import.warnings"), JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, warningIcon, new Object[] {strings.getString("review.warnings"), strings.getString("ok")}, null);
+                                if (selectedOption == 0) {
+                                    ImportWarningsDialog warningsDialog = new ImportWarningsDialog(MapImportDialog.this, strings.getString("import.warnings"));
+                                    warningsDialog.setWarnings(importer.getWarnings());
+                                    warningsDialog.setVisible(true);
                                 }
                             });
-                        } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
-                        } catch (InvocationTargetException e) {
+                        } catch (InterruptedException | InvocationTargetException e) {
                             throw new RuntimeException(e);
                         }
                     }
@@ -495,11 +485,7 @@ public class MapImportDialog extends javax.swing.JDialog {
         jLabel1.setText("Select the level.dat file of an existing Minecraft map:");
 
         buttonSelectFile.setText("...");
-        buttonSelectFile.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonSelectFileActionPerformed(evt);
-            }
-        });
+        buttonSelectFile.addActionListener(this::buttonSelectFileActionPerformed);
 
         jLabel2.setText("Statistics:");
 
@@ -531,19 +517,11 @@ public class MapImportDialog extends javax.swing.JDialog {
         labelAreaOutliers.setText("0");
 
         buttonCancel.setText("Cancel");
-        buttonCancel.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonCancelActionPerformed(evt);
-            }
-        });
+        buttonCancel.addActionListener(this::buttonCancelActionPerformed);
 
         buttonOK.setText("OK");
         buttonOK.setEnabled(false);
-        buttonOK.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonOKActionPerformed(evt);
-            }
-        });
+        buttonOK.addActionListener(this::buttonOKActionPerformed);
 
         checkBoxImportOutliers.setText("include outlying chunks in import");
 
@@ -729,7 +707,7 @@ public class MapImportDialog extends javax.swing.JDialog {
         int lowestChunkX = Integer.MAX_VALUE, lowestChunkZ = Integer.MAX_VALUE, highestChunkX = Integer.MIN_VALUE, highestChunkZ = Integer.MIN_VALUE;
         int lowestChunkXNoOutliers = Integer.MAX_VALUE, lowestChunkZNoOutliers = Integer.MAX_VALUE, highestChunkXNoOutliers = Integer.MIN_VALUE, highestChunkZNoOutliers = Integer.MIN_VALUE;
         int chunkCount;
-        final Set<Point> outlyingChunks = new HashSet<Point>();
+        final Set<Point> outlyingChunks = new HashSet<>();
         String errorMessage;
     }
 }

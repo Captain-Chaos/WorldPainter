@@ -41,16 +41,10 @@ public class BiomesViewerMain {
         
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (ClassNotFoundException e) {
-            // Oh well
-        } catch (IllegalAccessException e) {
-            // Oh well
-        } catch (InstantiationException e) {
-            // Oh well
-        } catch (UnsupportedLookAndFeelException e) {
+        } catch (ClassNotFoundException | UnsupportedLookAndFeelException | InstantiationException | IllegalAccessException e) {
             // Oh well
         }
-        
+
         Configuration config = Configuration.load();
         if (config == null) {
             config = new Configuration();

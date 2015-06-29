@@ -34,11 +34,8 @@ public class Statistics {
         File regionDir = new File(worldDir, "region");
         int version = level.getVersion();
         final Pattern regionFilePattern = (version == SUPPORTED_VERSION_1) ? Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mcr") : Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mca");
-        File[] regionFiles = regionDir.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return regionFilePattern.matcher(name).matches();
-            }
+        File[] regionFiles = regionDir.listFiles((dir, name) -> {
+            return regionFilePattern.matcher(name).matches();
         });
         int[][] blockTypeCounts = new int[maxHeight >> 4][4096];
         int[][] blockTypeTotals = new int[maxHeight >> 4][4096];
@@ -60,11 +57,8 @@ public class Statistics {
 //                            System.out.println("Chunk " + x + ", " + z);
 //                            System.out.print('.');
                             Tag tag;
-                            NBTInputStream in = new NBTInputStream(regionFile.getChunkDataInputStream(x, z));
-                            try {
+                            try (NBTInputStream in = new NBTInputStream(regionFile.getChunkDataInputStream(x, z))) {
                                 tag = in.readTag();
-                            } finally {
-                                in.close();
                             }
                             Chunk chunk = (version == SUPPORTED_VERSION_1)
                                 ? new ChunkImpl((CompoundTag) tag, maxHeight)

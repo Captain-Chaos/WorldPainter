@@ -124,9 +124,9 @@ public abstract class AbstractNBTItem implements NBTItem, Serializable, Cloneabl
     }
 
     protected final void setDoubleList(String name, double[] values) {
-        List<Tag> list = new ArrayList<Tag>(values.length);
-        for (int i = 0; i < values.length; i++) {
-            list.add(new DoubleTag(null, values[i]));
+        List<Tag> list = new ArrayList<>(values.length);
+        for (double value : values) {
+            list.add(new DoubleTag(null, value));
         }
         tag.setTag(name, new ListTag(name, DoubleTag.class, list));
     }
@@ -145,9 +145,9 @@ public abstract class AbstractNBTItem implements NBTItem, Serializable, Cloneabl
     }
 
     protected final void setFloatList(String name, float[] values) {
-        List<Tag> list = new ArrayList<Tag>(values.length);
-        for (int i = 0; i < values.length; i++) {
-            list.add(new FloatTag(null, values[i]));
+        List<Tag> list = new ArrayList<>(values.length);
+        for (float value : values) {
+            list.add(new FloatTag(null, value));
         }
         tag.setTag(name, new ListTag(name, FloatTag.class, list));
     }

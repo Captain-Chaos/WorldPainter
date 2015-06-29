@@ -15,10 +15,12 @@ public final class RandomOne {
         // Prevent instantiation
     }
     
+    @SafeVarargs
     public static <T> T of(T... objects) {
         return objects[RANDOM.nextInt(objects.length)];
     }
     
+    @SafeVarargs
     public static <T> T of(Random random, T... objects) {
         return objects[random.nextInt(objects.length)];
     }

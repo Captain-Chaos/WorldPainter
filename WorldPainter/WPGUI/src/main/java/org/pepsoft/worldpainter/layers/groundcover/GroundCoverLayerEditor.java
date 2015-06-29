@@ -236,11 +236,7 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
 
         buttonGroup1.add(radioButtonRoundedEdge);
         radioButtonRoundedEdge.setText("rounded");
-        radioButtonRoundedEdge.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonRoundedEdgeActionPerformed(evt);
-            }
-        });
+        radioButtonRoundedEdge.addActionListener(this::radioButtonRoundedEdgeActionPerformed);
 
         jLabel13.setText("Variation:");
 
@@ -267,11 +263,7 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
         jLabel7.setText("Thickness:");
 
         spinnerThickness.setModel(new javax.swing.SpinnerNumberModel(1, -255, 255, 1));
-        spinnerThickness.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerThicknessStateChanged(evt);
-            }
-        });
+        spinnerThickness.addChangeListener(this::spinnerThicknessStateChanged);
 
         jLabel9.setText("(negative values will dig down into the terrain)");
 
@@ -280,29 +272,17 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
         buttonGroup1.add(radioButtonSheerEdge);
         radioButtonSheerEdge.setSelected(true);
         radioButtonSheerEdge.setText("sheer");
-        radioButtonSheerEdge.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonSheerEdgeActionPerformed(evt);
-            }
-        });
+        radioButtonSheerEdge.addActionListener(this::radioButtonSheerEdgeActionPerformed);
 
         buttonGroup1.add(radioButtonLinearEdge);
         radioButtonLinearEdge.setText("linear");
-        radioButtonLinearEdge.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonLinearEdgeActionPerformed(evt);
-            }
-        });
+        radioButtonLinearEdge.addActionListener(this::radioButtonLinearEdgeActionPerformed);
 
         jLabel11.setText("shape:");
 
         buttonGroup1.add(radioButtonSmoothEdge);
         radioButtonSmoothEdge.setText("smooth");
-        radioButtonSmoothEdge.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonSmoothEdgeActionPerformed(evt);
-            }
-        });
+        radioButtonSmoothEdge.addActionListener(this::radioButtonSmoothEdgeActionPerformed);
 
         jLabel2.setText("Material:");
 
@@ -314,21 +294,13 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
         jLabel5.setOpaque(true);
 
         jButton1.setText("...");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
+        jButton1.addActionListener(this::jButton1ActionPerformed);
 
         jLabel12.setText("width:");
 
         spinnerEdgeWidth.setModel(new javax.swing.SpinnerNumberModel(1, 1, 255, 1));
         spinnerEdgeWidth.setEnabled(false);
-        spinnerEdgeWidth.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerEdgeWidthStateChanged(evt);
-            }
-        });
+        spinnerEdgeWidth.addChangeListener(this::spinnerEdgeWidthStateChanged);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);

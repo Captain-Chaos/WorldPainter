@@ -18,7 +18,7 @@ import org.pepsoft.worldpainter.plugins.WPPluginManager;
  */
 public final class LayerManager {
     private LayerManager() {
-        layers = new ArrayList<Layer>();
+        layers = new ArrayList<>();
         List<LayerProvider> layerProviders = WPPluginManager.getInstance().getPlugins(LayerProvider.class);
         for (LayerProvider layerProvider: layerProviders) {
             layers.addAll(layerProvider.getLayers());
@@ -41,7 +41,7 @@ public final class LayerManager {
     }
     
     private final List<Layer> layers;
-    private final Map<String, Layer> layersByName = new HashMap<String, Layer>();
+    private final Map<String, Layer> layersByName = new HashMap<>();
     
     private static final LayerManager INSTANCE = new LayerManager();
 }

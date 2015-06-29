@@ -161,7 +161,7 @@ public class InvertedChunk implements Chunk {
     public List<Entity> getEntities() {
         List<Entity> chunkEntities = chunk.getEntities();
         if (chunkEntities != null) {
-            List<Entity> entities = new ArrayList<Entity>(chunkEntities.size());
+            List<Entity> entities = new ArrayList<>(chunkEntities.size());
             for (Entity chunkEntity: chunkEntities) {
                 Entity entity = (Entity) chunkEntity.clone();
                 double[] pos = entity.getPos();
@@ -179,7 +179,7 @@ public class InvertedChunk implements Chunk {
     public List<TileEntity> getTileEntities() {
         List<TileEntity> chunkTileEntities = chunk.getTileEntities();
         if (chunkTileEntities != null) {
-            List<TileEntity> tileEntities = new ArrayList<TileEntity>(chunkTileEntities.size());
+            List<TileEntity> tileEntities = new ArrayList<>(chunkTileEntities.size());
             for (TileEntity chunkTileEntity: chunkTileEntities) {
                 TileEntity tileEntity = (TileEntity) chunkTileEntity.clone();
                 int adjustedY = maxY - tileEntity.getY();

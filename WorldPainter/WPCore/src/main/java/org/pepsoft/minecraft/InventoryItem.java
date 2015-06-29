@@ -16,7 +16,7 @@ import static org.pepsoft.minecraft.Constants.*;
  */
 public class InventoryItem extends AbstractNBTItem {
     public InventoryItem() {
-        super(new CompoundTag("", new HashMap<String, Tag>()));
+        super(new CompoundTag("", new HashMap<>()));
     }
 
     public InventoryItem(int type, int damage, int count, int slot) {

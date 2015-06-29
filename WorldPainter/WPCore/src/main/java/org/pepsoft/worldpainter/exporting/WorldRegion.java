@@ -43,7 +43,7 @@ public class WorldRegion implements MinecraftWorld {
         int highestX = lowestX + 33;
         int lowestZ = (regionZ << 5) - 1;
         int highestZ = lowestZ + 33;
-        Map<Point, RegionFile> regionFiles = new HashMap<Point, RegionFile>();
+        Map<Point, RegionFile> regionFiles = new HashMap<>();
 //        synchronized (DISK_ACCESS_MONITOR) {
             try {
                 for (int x = lowestX; x <= highestX; x++) {
@@ -61,11 +61,8 @@ public class WorldRegion implements MinecraftWorld {
                             DataInputStream chunkIn = regionFile.getChunkDataInputStream((x - (regionX << 5)) & 0x1f, (z - (regionZ << 5)) & 0x1f);
                             if (chunkIn != null) {
                                 CompoundTag tag;
-                                NBTInputStream in = new NBTInputStream(chunkIn);
-                                try {
+                                try (NBTInputStream in = new NBTInputStream(chunkIn)) {
                                     tag = (CompoundTag) in.readTag();
-                                } finally {
-                                    in.close();
                                 }
                                 Chunk chunk = (version == SUPPORTED_VERSION_2) ? new ChunkImpl2(tag, maxHeight) : new ChunkImpl(tag, maxHeight);
                                 chunks[x - (regionX << 5) + 1][z - (regionZ << 5) + 1] = chunk;
@@ -325,7 +322,7 @@ public class WorldRegion implements MinecraftWorld {
                             }
                             // Check that there aren't multiple tile entities (of the same type,
                             // otherwise they would have been removed above) in the same location
-                            Set<Point3i> occupiedCoords = new HashSet<Point3i>();
+                            Set<Point3i> occupiedCoords = new HashSet<>();
                             for (Iterator<TileEntity> i = chunk.getTileEntities().iterator(); i.hasNext(); ) {
                                 TileEntity tileEntity = i.next();
                                 Point3i coords = new Point3i(tileEntity.getX(), tileEntity.getZ(), tileEntity.getY());
@@ -338,12 +335,9 @@ public class WorldRegion implements MinecraftWorld {
                                     occupiedCoords.add(coords);
                                 }
                             }
-                            
-                            NBTOutputStream out = new NBTOutputStream(regionFile.getChunkDataOutputStream(x, z));
-                            try {
+
+                            try (NBTOutputStream out = new NBTOutputStream(regionFile.getChunkDataOutputStream(x, z))) {
                                 out.writeTag(chunk.toNBT());
-                            } finally {
-                                out.close();
                             }
                         }
                     }

@@ -121,9 +121,7 @@ public class ChangeHeightDialog extends javax.swing.JDialog {
                     int oldMaxHeight = world.getMaxHeight();
                     for (Dimension dim: world.getDimensions()) {
                         dim.clearUndo();
-                        for (Tile tile: dim.getTiles()) {
-                            tile.inhibitEvents();
-                        }
+                        dim.getTiles().forEach(org.pepsoft.worldpainter.Tile::inhibitEvents);
                         try {
                             for (Tile tile: dim.getTiles()) {
                                 tile.setMaxHeight(newMaxHeight, transform);
@@ -154,9 +152,7 @@ public class ChangeHeightDialog extends javax.swing.JDialog {
                             }
                             dim.armSavePoint();
                         } finally {
-                            for (Tile tile: dim.getTiles()) {
-                                tile.releaseEvents();
-                            }
+                            dim.getTiles().forEach(org.pepsoft.worldpainter.Tile::releaseEvents);
                         }
                     }
                     world.setMaxHeight(newMaxHeight);
@@ -216,64 +212,36 @@ public class ChangeHeightDialog extends javax.swing.JDialog {
         labelCurrentHeight.setText("jLabel3");
 
         comboBoxNewHeight.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "32", "64", "128", "256", "512", "1024", "2048" }));
-        comboBoxNewHeight.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                comboBoxNewHeightActionPerformed(evt);
-            }
-        });
+        comboBoxNewHeight.addActionListener(this::comboBoxNewHeightActionPerformed);
 
         buttonCancel.setText("Cancel");
-        buttonCancel.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonCancelActionPerformed(evt);
-            }
-        });
+        buttonCancel.addActionListener(this::buttonCancelActionPerformed);
 
         buttonOK.setText("OK");
         buttonOK.setEnabled(false);
-        buttonOK.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonOKActionPerformed(evt);
-            }
-        });
+        buttonOK.addActionListener(this::buttonOKActionPerformed);
 
         jLabel5.setText("Terrain and water levels:");
 
         spinnerTranslateAmount.setModel(new javax.swing.SpinnerNumberModel(0, -127, 127, 1));
         spinnerTranslateAmount.setEnabled(false);
-        spinnerTranslateAmount.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerTranslateAmountStateChanged(evt);
-            }
-        });
+        spinnerTranslateAmount.addChangeListener(this::spinnerTranslateAmountStateChanged);
 
         label.setText("blocks");
 
         spinnerScaleAmount.setModel(new javax.swing.SpinnerNumberModel(100, 1, 9999, 1));
         spinnerScaleAmount.setEnabled(false);
-        spinnerScaleAmount.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerScaleAmountStateChanged(evt);
-            }
-        });
+        spinnerScaleAmount.addChangeListener(this::spinnerScaleAmountStateChanged);
 
         jLabel7.setText("%");
 
         checkBoxScale.setText("Scale");
         checkBoxScale.setToolTipText("<html>Scale the levels by the specified percentage;<br>\nlevels that are (still) too low or high will be cut off.</html>");
-        checkBoxScale.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                checkBoxScaleStateChanged(evt);
-            }
-        });
+        checkBoxScale.addChangeListener(this::checkBoxScaleStateChanged);
 
         checkBoxTranslate.setText("Shift");
         checkBoxTranslate.setToolTipText("<html>Shift the levels up or down by the specified number of blocks;<br>\nnegative means down; levels which are (still) too low or high will be cut off.</html>");
-        checkBoxTranslate.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                checkBoxTranslateStateChanged(evt);
-            }
-        });
+        checkBoxTranslate.addChangeListener(this::checkBoxTranslateStateChanged);
 
         jLabel6.setText("<html><b>Note:</b> this operation cannot be undone!</html>");
 

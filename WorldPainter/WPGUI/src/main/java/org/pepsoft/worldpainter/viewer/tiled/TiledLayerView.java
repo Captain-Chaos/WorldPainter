@@ -51,7 +51,7 @@ public class TiledLayerView extends LayerView implements TilePaintQueue.Listener
 //            System.out.print(tileCacheWidth + "x" + tileCacheHeight + " -> ");
             synchronized (queue) {
                 // Gather up all tiles which are no longer visible and can be reused
-                List<Tile> discardedTiles = new ArrayList<Tile>(tileCacheWidth * tileCacheHeight);
+                List<Tile> discardedTiles = new ArrayList<>(tileCacheWidth * tileCacheHeight);
                 for (int x = 0; x < tileCacheWidth; x++) {
                     for (int y = 0; y < tileCacheHeight; y++) {
                         if (! visibleRegion.contains((tileOffsetX + x) << TILE_SIZE_BITS, (tileOffsetY + y) << TILE_SIZE_BITS, TILE_SIZE, TILE_SIZE)) {

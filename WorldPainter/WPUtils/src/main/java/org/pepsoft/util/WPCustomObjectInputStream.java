@@ -24,7 +24,7 @@ public class WPCustomObjectInputStream extends ObjectInputStream {
     public WPCustomObjectInputStream(InputStream in, ClassLoader classLoader, Class<?>... patchClasses) throws IOException {
         super(in);
         this.classLoader = classLoader;
-        this.patchClasses = new HashSet<Class<?>>(Arrays.asList(patchClasses));
+        this.patchClasses = new HashSet<>(Arrays.asList(patchClasses));
     }
 
     @Override

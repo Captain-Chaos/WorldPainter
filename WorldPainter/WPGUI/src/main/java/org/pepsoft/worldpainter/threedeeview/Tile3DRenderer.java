@@ -177,5 +177,5 @@ public class Tile3DRenderer {
 
     private final BufferedImage tileImgBuffer = new BufferedImage(TILE_SIZE, TILE_SIZE, BufferedImage.TYPE_INT_RGB);
 
-    static final Set<Layer> DEFAULT_HIDDEN_LAYERS = new HashSet<Layer>(Arrays.asList(Biome.INSTANCE, Caverns.INSTANCE, ReadOnly.INSTANCE, Resources.INSTANCE));
+    static final Set<Layer> DEFAULT_HIDDEN_LAYERS = new HashSet<>(Arrays.asList(Biome.INSTANCE, Caverns.INSTANCE, ReadOnly.INSTANCE, Resources.INSTANCE));
 }

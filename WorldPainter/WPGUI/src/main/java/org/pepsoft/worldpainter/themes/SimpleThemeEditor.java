@@ -154,34 +154,18 @@ public class SimpleThemeEditor extends javax.swing.JPanel implements ButtonPress
         jScrollPane1.setViewportView(jTable1);
 
         buttonAdd.setText("Add...");
-        buttonAdd.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonAddActionPerformed(evt);
-            }
-        });
+        buttonAdd.addActionListener(this::buttonAddActionPerformed);
 
         checkBoxBeaches.setText("beaches around water level:");
         checkBoxBeaches.setToolTipText("Whether to add beaches from two levels below the water level to two levels above.");
-        checkBoxBeaches.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                checkBoxBeachesActionPerformed(evt);
-            }
-        });
+        checkBoxBeaches.addActionListener(this::checkBoxBeachesActionPerformed);
 
         spinnerWaterLevel.setEnabled(false);
-        spinnerWaterLevel.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerWaterLevelStateChanged(evt);
-            }
-        });
+        spinnerWaterLevel.addChangeListener(this::spinnerWaterLevelStateChanged);
 
         checkBoxRandomise.setText("noisy edges");
         checkBoxRandomise.setToolTipText("Whether to randomise the edges of the terrain types (except beaches).");
-        checkBoxRandomise.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                checkBoxRandomiseActionPerformed(evt);
-            }
-        });
+        checkBoxRandomise.addActionListener(this::checkBoxRandomiseActionPerformed);
 
         jLabel1.setText("Terrain:");
 

@@ -9,6 +9,7 @@ package org.pepsoft.worldpainter.layers.combined;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.swing.DefaultCellEditor;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
@@ -89,12 +90,7 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> {
     @Override
     public void reset() {
         tableModel = new CombinedLayerTableModel(layer.getLayers(), layer.getFactors());
-        tableModel.addTableModelListener(new TableModelListener() {
-            @Override
-            public void tableChanged(TableModelEvent e) {
-                settingsChanged();
-            }
-        });
+        tableModel.addTableModelListener(e -> settingsChanged());
         configureTable();
 
         comboBoxTerrain.setSelectedItem(layer.getTerrain());
@@ -141,7 +137,7 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> {
         comboBoxTerrain.setRenderer(new TerrainListCellRenderer(colourScheme, "none"));
         comboBoxBiome.setRenderer(new BiomeListCellRenderer(colourScheme, customBiomeManager, "none"));
         
-        List<Integer> allBiomes = new ArrayList<Integer>();
+        List<Integer> allBiomes = new ArrayList<>();
         allBiomes.add(-1);
         for (int i = 0; i < Minecraft1_7Biomes.BIOME_NAMES.length; i++) {
             if (Minecraft1_7Biomes.BIOME_NAMES[i] != null) {
@@ -150,9 +146,7 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> {
         }
         List<CustomBiome> customBiomes = customBiomeManager.getCustomBiomes();
         if (customBiomes != null) {
-            for (CustomBiome customBiome: customBiomes) {
-                allBiomes.add(customBiome.getId());
-            }
+            allBiomes.addAll(customBiomes.stream().map(CustomBiome::getId).collect(Collectors.toList()));
         }
         comboBoxBiome.setModel(new DefaultComboBoxModel(allBiomes.toArray()));
         
@@ -172,12 +166,8 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> {
     }
 
     private void addLayer() {
-        List<Layer> availableLayers = new ArrayList<Layer>(allLayers.size());
-        for (Layer availableLayer: allLayers) {
-            if ((! availableLayer.equals(layer)) && (! tableModel.contains(availableLayer))) {
-                availableLayers.add(availableLayer);
-            }
-        }
+        List<Layer> availableLayers = new ArrayList<>(allLayers.size());
+        availableLayers.addAll(allLayers.stream().filter(availableLayer -> (!availableLayer.equals(layer)) && (!tableModel.contains(availableLayer))).collect(Collectors.toList()));
         AddLayerDialog dialog = new AddLayerDialog(SwingUtilities.getWindowAncestor(this), availableLayers);
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
@@ -240,30 +230,18 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> {
         jLabel2.setText("Terrain:");
 
         comboBoxTerrain.setModel(new DefaultComboBoxModel(Terrain.getConfiguredValues()));
-        comboBoxTerrain.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                comboBoxTerrainActionPerformed(evt);
-            }
-        });
+        comboBoxTerrain.addActionListener(this::comboBoxTerrainActionPerformed);
 
         jLabel3.setText("Biome:");
 
-        comboBoxBiome.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                comboBoxBiomeActionPerformed(evt);
-            }
-        });
+        comboBoxBiome.addActionListener(this::comboBoxBiomeActionPerformed);
 
         jLabel4.setText("Layers:");
 
         jScrollPane1.setViewportView(tableLayers);
 
         buttonAddLayer.setText("Add");
-        buttonAddLayer.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonAddLayerActionPerformed(evt);
-            }
-        });
+        buttonAddLayer.addActionListener(this::buttonAddLayerActionPerformed);
 
         jLabel5.setText("Name:");
 

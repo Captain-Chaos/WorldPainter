@@ -28,11 +28,8 @@ public class ResetLava {
         File worldFile = new File(args[0]);
         int waterLevel = Integer.parseInt(args[1]);
         World2 world;
-        ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new FileInputStream(worldFile)));
-        try {
+        try (ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new FileInputStream(worldFile)))) {
             world = (World2) in.readObject();
-        } finally {
-            in.close();
         }
         System.out.println("World loaded");
         Dimension dim0 = world.getDimension(0);
@@ -49,11 +46,8 @@ public class ResetLava {
         }
         System.out.println();
         System.out.println("Saving world " + args[0]);
-        ObjectOutputStream out = new ObjectOutputStream(new GZIPOutputStream(new FileOutputStream(worldFile)));
-        try {
+        try (ObjectOutputStream out = new ObjectOutputStream(new GZIPOutputStream(new FileOutputStream(worldFile)))) {
             out.writeObject(world);
-        } finally {
-            out.close();
         }
         System.out.println("World saved");
     }

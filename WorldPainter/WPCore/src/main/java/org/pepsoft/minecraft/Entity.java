@@ -17,7 +17,7 @@ import static org.pepsoft.minecraft.Constants.*;
  */
 public class Entity extends AbstractNBTItem {
     public Entity(String id) {
-        super(new CompoundTag("", new HashMap<String, Tag>()));
+        super(new CompoundTag("", new HashMap<>()));
         if (id == null) {
             throw new NullPointerException();
         }
@@ -76,14 +76,15 @@ public class Entity extends AbstractNBTItem {
 
     public static Entity fromNBT(CompoundTag entityTag) {
         String id = ((StringTag) entityTag.getTag(TAG_ID)).getValue();
-        if (id.equals(ID_PLAYER)) {
-            return new Player(entityTag);
-        } else if (id.equals(ID_VILLAGER)) {
-            return new Villager(entityTag);
-        } else if (id.equals(ID_PAINTING)) {
-            return new Painting(entityTag);
-        } else {
-            return new Entity(entityTag);
+        switch (id) {
+            case ID_PLAYER:
+                return new Player(entityTag);
+            case ID_VILLAGER:
+                return new Villager(entityTag);
+            case ID_PAINTING:
+                return new Painting(entityTag);
+            default:
+                return new Entity(entityTag);
         }
     }
 

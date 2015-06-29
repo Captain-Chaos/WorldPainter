@@ -143,7 +143,7 @@ public class SimpleTheme implements Theme, Cloneable {
             terrainRangesTable = new Terrain[maxHeight];
             if (terrainRanges != null) {
                 SortedMap<Integer, Terrain> oldTerrainRanges = this.terrainRanges;
-                terrainRanges = new TreeMap<Integer, Terrain>();
+                terrainRanges = new TreeMap<>();
                 for (Map.Entry<Integer, Terrain> oldEntry: oldTerrainRanges.entrySet()) {
                     terrainRanges.put(oldEntry.getKey() < 0
                         ? oldEntry.getKey()
@@ -180,11 +180,11 @@ public class SimpleTheme implements Theme, Cloneable {
         try {
             SimpleTheme clone = (SimpleTheme) super.clone();
             if (terrainRanges != null) {
-                clone.terrainRanges = new TreeMap<Integer, Terrain>(terrainRanges);
+                clone.terrainRanges = new TreeMap<>(terrainRanges);
             }
             clone.terrainRangesTable = terrainRangesTable.clone();
             if (layerMap != null) {
-                clone.setLayerMap(new HashMap<Filter, Layer>(layerMap));
+                clone.setLayerMap(new HashMap<>(layerMap));
             }
             clone.perlinNoise = (PerlinNoise) perlinNoise.clone();
             return clone;
@@ -217,10 +217,10 @@ public class SimpleTheme implements Theme, Cloneable {
 
     private void initCaches() {
         if (layerMap != null) {
-            List<Layer> layers = new ArrayList<Layer>(layerMap.size());
-            List<Layer> bitLayers = new ArrayList<Layer>(layerMap.size());
-            List<int[]> layerLevels = new ArrayList<int[]>(layerMap.size());
-            List<int[]> bitLayerLevels = new ArrayList<int[]>(layerMap.size());
+            List<Layer> layers = new ArrayList<>(layerMap.size());
+            List<Layer> bitLayers = new ArrayList<>(layerMap.size());
+            List<int[]> layerLevels = new ArrayList<>(layerMap.size());
+            List<int[]> bitLayerLevels = new ArrayList<>(layerMap.size());
             layerLevelCache = new int[layerMap.size()][maxHeight];
             for (Map.Entry<Filter, Layer> entry: layerMap.entrySet()) {
                 Layer layer = entry.getValue();
@@ -288,13 +288,13 @@ public class SimpleTheme implements Theme, Cloneable {
     }
     
     public static SimpleTheme createDefault(Terrain topTerrain, int maxHeight, int waterHeight, boolean randomise, boolean beaches) {
-        SortedMap<Integer, Terrain> terrainRanges = new TreeMap<Integer, Terrain>();
+        SortedMap<Integer, Terrain> terrainRanges = new TreeMap<>();
         float factor = maxHeight / 128f;
         terrainRanges.put(-1                              , topTerrain);
         terrainRanges.put((int) (32 * factor) + waterHeight, Terrain.PERMADIRT);
         terrainRanges.put((int) (48 * factor) + waterHeight, Terrain.ROCK);
         terrainRanges.put((int) (80 * factor) + waterHeight, Terrain.DEEP_SNOW);
-        Map<Filter, Layer> layerMap = new HashMap<Filter, Layer>();
+        Map<Filter, Layer> layerMap = new HashMap<>();
         layerMap.put(new HeightFilter(maxHeight, (int) (64 * factor) + waterHeight, maxHeight, true), Frost.INSTANCE);
         return new SimpleTheme(0, waterHeight, terrainRanges, layerMap, maxHeight, randomise, beaches);
     }

@@ -46,12 +46,10 @@ public class GlassPane extends javax.swing.JPanel {
     }
 
     public void setHiddenLayers(Set<Layer> hiddenLayers) {
-        for (Layer layer: hiddenLayers) {
-            if ((! layer.equals(Biome.INSTANCE)) && (layer.getIcon() != null) && (! this.hiddenLayers.containsKey(layer))) {
-                JLabel label = createLabel(layer);
-                this.hiddenLayers.put(layer, label);
-            }
-        }
+        hiddenLayers.stream().filter(layer -> (!layer.equals(Biome.INSTANCE)) && (layer.getIcon() != null) && (!this.hiddenLayers.containsKey(layer))).forEach(layer -> {
+            JLabel label = createLabel(layer);
+            this.hiddenLayers.put(layer, label);
+        });
         for (Iterator<Map.Entry<Layer, JLabel>> i = this.hiddenLayers.entrySet().iterator(); i.hasNext(); ) {
             if (! hiddenLayers.contains(i.next().getKey())) {
                 i.remove();
@@ -74,9 +72,7 @@ public class GlassPane extends javax.swing.JPanel {
         if (soloLayerLabel != null) {
             jPanel1.add(soloLayerLabel);
         } else {
-            for (JLabel label: hiddenLayers.values()) {
-                jPanel1.add(label);
-            }
+            hiddenLayers.values().forEach(jPanel1::add);
         }
         jPanel1.revalidate();
     }
@@ -186,7 +182,7 @@ public class GlassPane extends javax.swing.JPanel {
 
     private WorldPainter view;
 //    private final MiniMap miniMap = new MiniMap();
-    private final Map<Layer, JLabel> hiddenLayers = new HashMap<Layer, JLabel>();
+    private final Map<Layer, JLabel> hiddenLayers = new HashMap<>();
     private JLabel soloLayerLabel;
     
     private static final NumberFormat SCALE_FORMAT = new DecimalFormat("0.# blocks");

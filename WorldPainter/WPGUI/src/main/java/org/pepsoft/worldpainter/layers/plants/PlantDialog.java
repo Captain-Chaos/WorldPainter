@@ -130,13 +130,10 @@ public class PlantDialog extends CustomLayerDialog<PlantLayer> {
             
             spinnerModel = new SpinnerNumberModel(plant.getMaxData() + 1, 1, plant.getMaxData() + 1, 1);
             growthFromSpinners[index] = new JSpinner(spinnerModel);
-            growthFromSpinners[index].addChangeListener(new ChangeListener() {
-                @Override
-                public void stateChanged(ChangeEvent e) {
-                    int newValue = (Integer) growthFromSpinners[index].getValue();
-                    if ((Integer) growthToSpinners[index].getValue() < newValue) {
-                        growthToSpinners[index].setValue(newValue);
-                    }
+            growthFromSpinners[index].addChangeListener(e -> {
+                int newValue = (Integer) growthFromSpinners[index].getValue();
+                if ((Integer) growthToSpinners[index].getValue() < newValue) {
+                    growthToSpinners[index].setValue(newValue);
                 }
             });
             panel.add(growthFromSpinners[index], constraints);
@@ -146,13 +143,10 @@ public class PlantDialog extends CustomLayerDialog<PlantLayer> {
             constraints.gridwidth = GridBagConstraints.REMAINDER;
             spinnerModel = new SpinnerNumberModel(plant.getMaxData() + 1, 1, plant.getMaxData() + 1, 1);
             growthToSpinners[index] = new JSpinner(spinnerModel);
-            growthToSpinners[index].addChangeListener(new ChangeListener() {
-                @Override
-                public void stateChanged(ChangeEvent e) {
-                    int newValue = (Integer) growthToSpinners[index].getValue();
-                    if ((Integer) growthFromSpinners[index].getValue() > newValue) {
-                        growthFromSpinners[index].setValue(newValue);
-                    }
+            growthToSpinners[index].addChangeListener(e -> {
+                int newValue = (Integer) growthToSpinners[index].getValue();
+                if ((Integer) growthFromSpinners[index].getValue() > newValue) {
+                    growthFromSpinners[index].setValue(newValue);
                 }
             });
             panel.add(growthToSpinners[index], constraints);
@@ -177,18 +171,14 @@ public class PlantDialog extends CustomLayerDialog<PlantLayer> {
                     return null;
                 }
             }
-            JarFile jarFile = new JarFile(resourcesJar);
-            try {
+            try (JarFile jarFile = new JarFile(resourcesJar)) {
                 JarEntry entry = jarFile.getJarEntry("assets/minecraft/textures/" + name);
                 if (entry != null) {
                     if (logger.isLoggable(Level.FINE)) {
                         logger.fine("Loading plant icon " + name + " from " + resourcesJar);
                     }
-                    InputStream in = jarFile.getInputStream(entry);
-                    try {
+                    try (InputStream in = jarFile.getInputStream(entry)) {
                         return ImageIO.read(in);
-                    } finally {
-                        in.close();
                     }
                 } else {
                     if (logger.isLoggable(Level.FINE)) {
@@ -196,8 +186,6 @@ public class PlantDialog extends CustomLayerDialog<PlantLayer> {
                     }
                     return null;
                 }
-            } finally {
-                jarFile.close();
             }
         } catch (IOException e) {
             logger.log(Level.SEVERE, "I/O error while trying to load plant icon " + name + "; continuing without icon", e);
@@ -358,11 +346,7 @@ public class PlantDialog extends CustomLayerDialog<PlantLayer> {
         labelColour.setOpaque(true);
 
         buttonColour.setText("...");
-        buttonColour.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonColourActionPerformed(evt);
-            }
-        });
+        buttonColour.addActionListener(this::buttonColourActionPerformed);
 
         javax.swing.GroupLayout panelPlantControlsLayout = new javax.swing.GroupLayout(panelPlantControls);
         panelPlantControls.setLayout(panelPlantControlsLayout);
@@ -376,18 +360,10 @@ public class PlantDialog extends CustomLayerDialog<PlantLayer> {
         );
 
         buttonCancel.setText("Cancel");
-        buttonCancel.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonCancelActionPerformed(evt);
-            }
-        });
+        buttonCancel.addActionListener(this::buttonCancelActionPerformed);
 
         buttonOK.setText("OK");
-        buttonOK.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonOKActionPerformed(evt);
-            }
-        });
+        buttonOK.addActionListener(this::buttonOKActionPerformed);
 
         javax.swing.GroupLayout panelPlantControls2Layout = new javax.swing.GroupLayout(panelPlantControls2);
         panelPlantControls2.setLayout(panelPlantControls2Layout);
@@ -403,18 +379,10 @@ public class PlantDialog extends CustomLayerDialog<PlantLayer> {
         jLabel3.setText("<html>Note that plants will only be placed<br>where Minecraft allows it!</html>");
 
         buttonClear.setText("Clear");
-        buttonClear.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonClearActionPerformed(evt);
-            }
-        });
+        buttonClear.addActionListener(this::buttonClearActionPerformed);
 
         buttonReset.setText("Reset");
-        buttonReset.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonResetActionPerformed(evt);
-            }
-        });
+        buttonReset.addActionListener(this::buttonResetActionPerformed);
 
         checkBoxGenerateTilledDirt.setSelected(true);
         checkBoxGenerateTilledDirt.setText("turn grass and dirt beneath crops to tilled dirt");
@@ -538,12 +506,7 @@ public class PlantDialog extends CustomLayerDialog<PlantLayer> {
     private boolean cropsSelected;
     private Font normalFont, boldFont;
 
-    private final ChangeListener percentageListener = new ChangeListener() {
-        @Override
-        public void stateChanged(ChangeEvent e) {
-            updatePercentages();
-        }
-    };
+    private final ChangeListener percentageListener = e -> updatePercentages();
 
     private static File resourcesJar;
     private static final File RESOURCES_NOT_AVAILABLE = new File("~~~RESOURCES_NOT_AVAILABLE~~~");

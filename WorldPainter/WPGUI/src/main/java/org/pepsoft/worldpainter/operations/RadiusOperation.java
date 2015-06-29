@@ -104,12 +104,7 @@ public abstract class RadiusOperation extends MouseOrTabletOperation {
     public void penKindEvent(PKindEvent pke) {
         final PKind.Type type = pke.kind.getType();
         if ((type != PKind.Type.ERASER) && (type != PKind.Type.STYLUS)) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    mapDragControl.setMapDraggingInhibited(false);
-                }
-            });
+            SwingUtilities.invokeLater(() -> mapDragControl.setMapDraggingInhibited(false));
         }
         super.penKindEvent(pke);
     }
@@ -122,20 +117,17 @@ public abstract class RadiusOperation extends MouseOrTabletOperation {
                 && ((penKindType == PKind.Type.STYLUS) || (penKindType == PKind.Type.ERASER))
                 && ((buttonType == PButton.Type.CENTER) || (buttonType == PButton.Type.RIGHT))) {
             try {
-                SwingUtilities.invokeAndWait(new Runnable() {
-                    @Override
-                    public void run() {
-                        // Stylus button pressed
-                        if (buttonType == PButton.Type.CENTER) {
-                            radiusControl.decreaseRadius(1);
-                        } else {
-                            radiusControl.increaseRadius(1);
-                        }
-                        // It should not be too late to do this, since this
-                        // event is being dispatched synchronously:
-                        if (! mapDragControl.isMapDraggingInhibited()) {
-                            mapDragControl.setMapDraggingInhibited(true);
-                        }
+                SwingUtilities.invokeAndWait(() -> {
+                    // Stylus button pressed
+                    if (buttonType == PButton.Type.CENTER) {
+                        radiusControl.decreaseRadius(1);
+                    } else {
+                        radiusControl.increaseRadius(1);
+                    }
+                    // It should not be too late to do this, since this
+                    // event is being dispatched synchronously:
+                    if (! mapDragControl.isMapDraggingInhibited()) {
+                        mapDragControl.setMapDraggingInhibited(true);
                     }
                 });
             } catch (InterruptedException e) {

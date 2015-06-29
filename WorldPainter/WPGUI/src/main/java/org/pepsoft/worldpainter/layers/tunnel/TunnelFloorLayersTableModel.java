@@ -88,7 +88,7 @@ public class TunnelFloorLayersTableModel implements TableModel {
     
     private final List<Layer> layers;
     private final Map<Layer, TunnelLayer.LayerSettings> settings;
-    private final List<TableModelListener> listeners = new ArrayList<TableModelListener>();
+    private final List<TableModelListener> listeners = new ArrayList<>();
     
     public static final int COLUMN_NAME      = 0;
     public static final int COLUMN_INTENSITY = 1;

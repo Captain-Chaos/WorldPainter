@@ -42,12 +42,9 @@ public class ChunkNode implements Node {
 
     private void loadChildren() {
         try {
-            NBTInputStream in = new NBTInputStream(regionFile.getChunkDataInputStream(x, z));
-            try {
+            try (NBTInputStream in = new NBTInputStream(regionFile.getChunkDataInputStream(x, z))) {
                 Tag tag = in.readTag();
-                children = new Node[] {new TagNode(tag)};
-            } finally {
-                in.close();
+                children = new Node[]{new TagNode(tag)};
             }
         } catch (IOException e) {
             throw new RuntimeException("I/O error reading from region file", e);

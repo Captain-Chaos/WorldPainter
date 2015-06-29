@@ -118,43 +118,23 @@ public class OffsetEditor extends javax.swing.JDialog {
         jLabel2.setText("X axis (west to east):");
 
         spinnerX.setModel(new javax.swing.SpinnerNumberModel(0, -999, 999, 1));
-        spinnerX.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerXStateChanged(evt);
-            }
-        });
+        spinnerX.addChangeListener(this::spinnerXStateChanged);
 
         jLabel3.setText("Z axis (north to south):");
 
         spinnerY.setModel(new javax.swing.SpinnerNumberModel(0, -999, 999, 1));
-        spinnerY.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerYStateChanged(evt);
-            }
-        });
+        spinnerY.addChangeListener(this::spinnerYStateChanged);
 
         jLabel4.setText("Y axis (vertical):");
 
         spinnerZ.setModel(new javax.swing.SpinnerNumberModel(0, -999, 999, 1));
-        spinnerZ.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerZStateChanged(evt);
-            }
-        });
+        spinnerZ.addChangeListener(this::spinnerZStateChanged);
 
         buttonCancel.setText("Cancel");
-        buttonCancel.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonCancelActionPerformed(evt);
-            }
-        });
+        buttonCancel.addActionListener(this::buttonCancelActionPerformed);
 
         buttonOK.setText("OK");
-        buttonOK.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonOKActionPerformed(evt);
-            }
-        });
+        buttonOK.addActionListener(this::buttonOKActionPerformed);
 
         jPanel1.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
 

@@ -37,7 +37,7 @@ public class SkewedObject extends AbstractObject {
 //            originY -= dy;
 //        }
 //        origin = new Point3i(originX, originY, orig.z);
-        attributes = (object.getAttributes() != null) ? new HashMap<String, Serializable>(object.getAttributes()) : new HashMap<String, Serializable>();
+        attributes = (object.getAttributes() != null) ? new HashMap<>(object.getAttributes()) : new HashMap<>();
         // TODO: skew offset
     }
 

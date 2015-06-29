@@ -88,9 +88,7 @@ public class Palette {
         if (layerButtonComponents.containsKey(layer)) {
             layers.remove(layer);
             List<Component> buttonComponents = layerButtonComponents.remove(layer);
-            for (Component buttonComponent: buttonComponents) {
-                panel.remove(buttonComponent);
-            }
+            buttonComponents.forEach(panel::remove);
             return buttonComponents;
         } else {
             return null;
@@ -115,7 +113,7 @@ public class Palette {
     
     private final String name;
     private final JPanel panel;
-    private final List<CustomLayer> layers = new ArrayList<CustomLayer>();
-    private final Map<CustomLayer, List<Component>> layerButtonComponents = new HashMap<CustomLayer, List<Component>>();
+    private final List<CustomLayer> layers = new ArrayList<>();
+    private final Map<CustomLayer, List<Component>> layerButtonComponents = new HashMap<>();
     private final DockableFrame dockableFrame;
 }

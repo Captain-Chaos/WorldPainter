@@ -137,5 +137,5 @@ public class BorderChunkFactory {
         return result;
     }
 
-    private static final ThreadLocal<PerlinNoise> noiseGenerators = new ThreadLocal<PerlinNoise>();
+    private static final ThreadLocal<PerlinNoise> noiseGenerators = new ThreadLocal<>();
 }

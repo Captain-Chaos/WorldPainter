@@ -22,14 +22,14 @@ public class HashList<E> extends AbstractList<E> implements Set<E> {
         anchor = new Element(null);
         anchor.previous = anchor;
         anchor.next = anchor;
-        map = new HashMap<E, Element>();
+        map = new HashMap<>();
     }
     
     public HashList(int initialCapacity) {
         anchor = new Element(null);
         anchor.previous = anchor;
         anchor.next = anchor;
-        map = new HashMap<E, Element>(initialCapacity);
+        map = new HashMap<>(initialCapacity);
     }
     
     @Override

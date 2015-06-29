@@ -98,7 +98,7 @@ public class TileFactoryPreviewer {
                 }
             }
             
-            private final Map<Point, Tile> cache = new HashMap<Point, Tile>();
+            private final Map<Point, Tile> cache = new HashMap<>();
         };
         Terrain.setCustomMaterial(0, new MixedMaterial("Dirt/Gravel", new Row[] {new Row(Material.DIRT, 750, 1.0f), new Row(Material.GRAVEL, 250, 1.0f)}, Minecraft1_2BiomeScheme.BIOME_PLAINS, null, 1.0f));
         Terrain.setCustomMaterial(1, new MixedMaterial("Stone/Gravel", new Row[] {new Row(Material.STONE, 750, 1.0f), new Row(Material.GRAVEL, 250, 1.0f)}, Minecraft1_2BiomeScheme.BIOME_PLAINS, null, 1.0f));

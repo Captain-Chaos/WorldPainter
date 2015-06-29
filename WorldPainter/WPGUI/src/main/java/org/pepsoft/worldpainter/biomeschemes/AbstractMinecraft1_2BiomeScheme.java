@@ -165,10 +165,10 @@ public abstract class AbstractMinecraft1_2BiomeScheme extends AbstractBiomeSchem
         "Jungle",
         "Jungle Hills"
     };
-    public static final Set<Integer> DRY_BIOMES = new HashSet<Integer>(Arrays.asList(BIOME_DESERT, BIOME_DESERT_HILLS));
-    public static final Set<Integer> COLD_BIOMES = new HashSet<Integer>(Arrays.asList(BIOME_FROZEN_OCEAN, BIOME_FROZEN_RIVER, BIOME_ICE_MOUNTAINS, BIOME_ICE_PLAINS, BIOME_TAIGA, BIOME_TAIGA_HILLS));
-    public static final Set<Integer> FORESTED_BIOMES = new HashSet<Integer>(Arrays.asList(BIOME_FOREST, BIOME_SWAMPLAND, BIOME_TAIGA, BIOME_FOREST_HILLS, BIOME_TAIGA_HILLS, BIOME_JUNGLE, BIOME_JUNGLE_HILLS));
-    public static final Set<Integer> SWAMPY_BIOMES = new HashSet<Integer>(Arrays.asList(BIOME_SWAMPLAND));
+    public static final Set<Integer> DRY_BIOMES = new HashSet<>(Arrays.asList(BIOME_DESERT, BIOME_DESERT_HILLS));
+    public static final Set<Integer> COLD_BIOMES = new HashSet<>(Arrays.asList(BIOME_FROZEN_OCEAN, BIOME_FROZEN_RIVER, BIOME_ICE_MOUNTAINS, BIOME_ICE_PLAINS, BIOME_TAIGA, BIOME_TAIGA_HILLS));
+    public static final Set<Integer> FORESTED_BIOMES = new HashSet<>(Arrays.asList(BIOME_FOREST, BIOME_SWAMPLAND, BIOME_TAIGA, BIOME_FOREST_HILLS, BIOME_TAIGA_HILLS, BIOME_JUNGLE, BIOME_JUNGLE_HILLS));
+    public static final Set<Integer> SWAMPY_BIOMES = new HashSet<>(Arrays.asList(BIOME_SWAMPLAND));
     
     private static final boolean[][][] BIOME_PATTERNS = new boolean[23][][];
 

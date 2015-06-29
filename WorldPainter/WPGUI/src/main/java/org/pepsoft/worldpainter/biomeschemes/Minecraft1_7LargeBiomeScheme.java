@@ -21,9 +21,7 @@ public final class Minecraft1_7LargeBiomeScheme extends Minecraft1_7JarBiomeSche
         try {
             Field field = worldGeneratorClass.getField("d");
             largeBiomesGenerator = field.get(null);
-        } catch (NoSuchFieldException e) {
-            throw new RuntimeException("Not a valid 1.7.9 or 1.7.2 minecraft.jar", e);
-        } catch (IllegalAccessException e) {
+        } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new RuntimeException("Not a valid 1.7.9 or 1.7.2 minecraft.jar", e);
         }
     }
@@ -44,7 +42,7 @@ public final class Minecraft1_7LargeBiomeScheme extends Minecraft1_7JarBiomeSche
     
     private static Object largeBiomesGenerator;
     
-    private static final Map<Checksum, String[]> HASHES_TO_CLASSNAMES = new HashMap<Checksum, String[]>();
+    private static final Map<Checksum, String[]> HASHES_TO_CLASSNAMES = new HashMap<>();
 
 //                                                                                                                                                                                                                                                                       Landscape class
 //                                                                                                                                                                                                                                                                              Buffer manager class

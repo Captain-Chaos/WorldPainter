@@ -63,7 +63,7 @@ public class BiomesTileProvider implements TileProvider {
                 throw new UnsupportedOperationException("Zooming in not supported");
             }
             this.zoom = zoom;
-            bufferRef = new ThreadLocal<int[]>();
+            bufferRef = new ThreadLocal<>();
         }
     }
 
@@ -153,9 +153,9 @@ public class BiomesTileProvider implements TileProvider {
     }
     
     private final BiomeScheme biomeScheme;
-    private final ThreadLocal<int[][]> biomeCountsRef = new ThreadLocal<int[][]>();
+    private final ThreadLocal<int[][]> biomeCountsRef = new ThreadLocal<>();
     private int zoom;
-    private volatile ThreadLocal<int[]> bufferRef = new ThreadLocal<int[]>();
+    private volatile ThreadLocal<int[]> bufferRef = new ThreadLocal<>();
     
     private final int[] biomeColours;
     private final int patternColour;

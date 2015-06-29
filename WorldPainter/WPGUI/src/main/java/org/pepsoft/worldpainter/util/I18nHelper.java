@@ -41,5 +41,5 @@ public class I18nHelper {
     }
     
     private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("org.pepsoft.worldpainter.resources.strings");
-    private static final Map<Class<? extends Enum>, ResourceBundle> ENUM_BUNDLES = new HashMap<Class<? extends Enum>, ResourceBundle>();
+    private static final Map<Class<? extends Enum>, ResourceBundle> ENUM_BUNDLES = new HashMap<>();
 }

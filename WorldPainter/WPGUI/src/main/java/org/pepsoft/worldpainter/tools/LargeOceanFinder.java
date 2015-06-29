@@ -31,13 +31,11 @@ public class LargeOceanFinder {
         }
         long seed = 0;
         final int[] biomes = new int[TILE_SIZE * TILE_SIZE];
-        final SortedSet<World> largeOceanWorlds = new TreeSet<World>();
+        final SortedSet<World> largeOceanWorlds = new TreeSet<>();
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
-                for (World world: largeOceanWorlds) {
-                    System.out.println(world);
-                }
+                largeOceanWorlds.forEach(System.out::println);
             }
         });
         while (true) {
@@ -53,10 +51,10 @@ public class LargeOceanFinder {
 //                    System.out.println("Visiting " + x + ", " + z);
                     biomeScheme.getBiomes(x * TILE_SIZE, z * TILE_SIZE, TILE_SIZE, TILE_SIZE, biomes);
                     boolean mushroomTile = false;
-                    for (int i = 0; i < biomes.length; i++) {
-                        if ((biomes[i] == BIOME_MUSHROOM_ISLAND_SHORE) || (biomes[i] == BIOME_MUSHROOM_ISLAND)) {
+                    for (int biome : biomes) {
+                        if ((biome == BIOME_MUSHROOM_ISLAND_SHORE) || (biome == BIOME_MUSHROOM_ISLAND)) {
                             mushroomTile = true;
-                        } else if ((biomes[i] != BIOME_OCEAN) && (biomes[i] != BIOME_DEEP_OCEAN)) {
+                        } else if ((biome != BIOME_OCEAN) && (biome != BIOME_DEEP_OCEAN)) {
                             return false;
                         }
                     }

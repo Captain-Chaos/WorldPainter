@@ -16,6 +16,7 @@ import java.util.*;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
@@ -30,7 +31,7 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
         tileProvider = dimension;
         this.colourScheme = colourScheme;
         this.biomeScheme = biomeScheme;
-        this.hiddenLayers = (hiddenLayers != null) ? new HashSet<Layer>(hiddenLayers) : null;
+        this.hiddenLayers = (hiddenLayers != null) ? new HashSet<>(hiddenLayers) : null;
         this.contourLines = contourLines;
         this.contourSeparation = contourSeparation;
         this.lightOrigin = lightOrigin;
@@ -45,7 +46,7 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
         this.tileProvider = tileProvider;
         this.colourScheme = colourScheme;
         this.biomeScheme = biomeScheme;
-        this.hiddenLayers = (hiddenLayers != null) ? new HashSet<Layer>(hiddenLayers) : null;
+        this.hiddenLayers = (hiddenLayers != null) ? new HashSet<>(hiddenLayers) : null;
         this.contourLines = contourLines;
         this.contourSeparation = contourSeparation;
         this.lightOrigin = lightOrigin;
@@ -466,7 +467,7 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
     
     private void fireTilesChangedIncludeBorder(Set<Tile> tiles) {
         if (showBorder && (tileProvider instanceof Dimension) && (((Dimension) tileProvider).getDim() == DIM_NORMAL) && (((Dimension) tileProvider).getBorder() != null)) {
-            final Set<Point> coordSet = new HashSet<Point>();
+            final Set<Point> coordSet = new HashSet<>();
             for (Tile tile: tiles) {
                 final int tileX = tile.getX(), tileY = tile.getY(), borderSize = ((Dimension) tileProvider).getBorderSize();
                 for (int dx = -borderSize; dx <= borderSize; dx++) {
@@ -479,10 +480,7 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
                 listener.tilesChanged(this, coordSet);
             }
         } else {
-            Set<Point> coords = new HashSet<Point>();
-            for (Tile tile: tiles) {
-                coords.add(getTileCoordinates(tile));
-            }
+            Set<Point> coords = tiles.stream().map(this::getTileCoordinates).collect(Collectors.toSet());
             for (TileListener listener: listeners) {
                 listener.tilesChanged(this, coords);
             }
@@ -546,7 +544,7 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
     private final boolean contourLines, active, showBorder;
     private final int contourSeparation;
     private final TileRenderer.LightOrigin lightOrigin;
-    private final List<TileListener> listeners = new ArrayList<TileListener>();
+    private final List<TileListener> listeners = new ArrayList<>();
     private final CustomBiomeManager customBiomeManager;
     private final org.pepsoft.util.swing.TileProvider surroundingTileProvider;
     private int zoom = 0;

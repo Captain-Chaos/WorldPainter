@@ -70,9 +70,9 @@ public final class ObjectUtils {
             } else if (object instanceof Map) {
                 final Map<Object, Object> copy;
                 if (object instanceof SortedMap) {
-                    copy = new TreeMap<Object, Object>();
+                    copy = new TreeMap<>();
                 } else {
-                    copy = new HashMap<Object, Object>(((Map) object).size());
+                    copy = new HashMap<>(((Map) object).size());
                 }
                 boolean first = true, deeplyCopyKeys = false;
                 for (Map.Entry entry: ((Map<?, ?>) object).entrySet()) {
@@ -86,9 +86,9 @@ public final class ObjectUtils {
             } else if (object instanceof List) {
                 final List<Object> copy;
                 if (object instanceof RandomAccess) {
-                    copy = new ArrayList<Object>(((List) object).size());
+                    copy = new ArrayList<>(((List) object).size());
                 } else {
-                    copy = new LinkedList<Object>();
+                    copy = new LinkedList<>();
                 }
                 for (Object entry: (List) object) {
                     copy.add(copyObject(entry));
@@ -97,9 +97,9 @@ public final class ObjectUtils {
             } else if (object instanceof Set) {
                 final Set<Object> copy;
                 if (object instanceof SortedSet) {
-                    copy = new TreeSet<Object>();
+                    copy = new TreeSet<>();
                 } else {
-                    copy = new HashSet<Object>(((Set) object).size());
+                    copy = new HashSet<>(((Set) object).size());
                 }
                 for (Object entry: (Set) object) {
                     copy.add(copyObject(entry));

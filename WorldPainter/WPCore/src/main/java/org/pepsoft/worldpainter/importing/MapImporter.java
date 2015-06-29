@@ -190,16 +190,13 @@ public class MapImporter {
         final Pattern regionFilePattern = (version == SUPPORTED_VERSION_1)
             ? Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mcr")
             : Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mca");
-        final File[] regionFiles = regionDir.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return regionFilePattern.matcher(name).matches();
-            }
+        final File[] regionFiles = regionDir.listFiles((dir, name) -> {
+            return regionFilePattern.matcher(name).matches();
         });
         if ((regionFiles == null) || (regionFiles.length == 0)) {
             throw new RuntimeException("The " + dimension.getName() + " dimension of this map has no region files!");
         }
-        final Set<Point> newChunks = new HashSet<Point>();
+        final Set<Point> newChunks = new HashSet<>();
 //        final SortedSet<Material> manMadeBlockTypes = new TreeSet<Material>();
         final boolean importBiomes = (version == SUPPORTED_VERSION_2) && (dimension.getDim() == DIM_NORMAL);
         final int total = regionFiles.length * 1024;
@@ -231,11 +228,8 @@ public class MapImporter {
                                         logger.warning("Missing chunk data for chunk " + x + ", " + z + " in " + file + "; skipping chunk");
                                         continue;
                                     }
-                                    final NBTInputStream in = new NBTInputStream(chunkData);
-                                    try {
+                                    try (NBTInputStream in = new NBTInputStream(chunkData)) {
                                         tag = in.readTag();
-                                    } finally {
-                                        in.close();
                                     }
                                 } catch (IOException e) {
                                     reportBuilder.append("I/O error while reading chunk " + x + ", " + z + " from file " + file + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
@@ -403,8 +397,8 @@ public class MapImporter {
     private final ReadOnlyOption readOnlyOption;
     private String warnings;
     
-    public static final Map<Integer, Terrain> TERRAIN_MAPPING = new HashMap<Integer, Terrain>();
-    public static final Map<Material, Terrain> SPECIAL_TERRAIN_MAPPING = new HashMap<Material, Terrain>();
+    public static final Map<Integer, Terrain> TERRAIN_MAPPING = new HashMap<>();
+    public static final Map<Material, Terrain> SPECIAL_TERRAIN_MAPPING = new HashMap<>();
     public static final BitSet NATURAL_BLOCKS = new BitSet();
 
     private static final Logger logger = Logger.getLogger(MapImporter.class.getName());
@@ -463,7 +457,7 @@ public class MapImporter {
 
         // Make sure the tile entity flag in the block database is consistent
         // with the tile entity map:
-        Set<Integer> allTerrainBlockIds = new HashSet<Integer>();
+        Set<Integer> allTerrainBlockIds = new HashSet<>();
         allTerrainBlockIds.addAll(TERRAIN_MAPPING.keySet());
         for (int blockId: TERRAIN_MAPPING.keySet()) {
             if (! Block.BLOCKS[blockId].terrain) {

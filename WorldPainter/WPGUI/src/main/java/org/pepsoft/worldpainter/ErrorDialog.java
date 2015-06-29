@@ -149,7 +149,7 @@ public class ErrorDialog extends javax.swing.JDialog {
             sb.append("Bounds: " + dimension.getLowestX() + ", " + dimension.getLowestY() + " => " + dimension.getHighestX() + ", " + dimension.getHighestY() + eol);
             sb.append("Height: " + world.getMaxHeight() + eol);
             sb.append("Number of tiles: " + dimension.getTiles().size() + eol);
-            Set<Layer> layers = new HashSet<Layer>();
+            Set<Layer> layers = new HashSet<>();
             for (Tile tile: dimension.getTiles()) {
                 layers.addAll(tile.getLayers());
             }
@@ -269,18 +269,10 @@ public class ErrorDialog extends javax.swing.JDialog {
         setTitle("Unexpected Error");
 
         jButton1.setText("Email Details...");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
+        jButton1.addActionListener(this::jButton1ActionPerformed);
 
         jButton2.setText("Close");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
-            }
-        });
+        jButton2.addActionListener(this::jButton2ActionPerformed);
 
         jTextArea1.setEditable(false);
         jTextArea1.setFont(getFont());
@@ -290,11 +282,7 @@ public class ErrorDialog extends javax.swing.JDialog {
         jTextArea1.setOpaque(false);
 
         jButton3.setText("Copy details to clipboard");
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
-            }
-        });
+        jButton3.addActionListener(this::jButton3ActionPerformed);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);

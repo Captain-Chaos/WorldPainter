@@ -53,17 +53,14 @@ public class AwtUtils {
             final Object[] result = new Object[1];
             final Exception[] exception = new Exception[1];
             try {
-                SwingUtilities.invokeAndWait(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            synchronized (result) {
-                                result[0] = task.call();
-                            }
-                        } catch (Exception e) {
-                            synchronized (exception) {
-                                exception[0] = e;
-                            }
+                SwingUtilities.invokeAndWait(() -> {
+                    try {
+                        synchronized (result) {
+                            result[0] = task.call();
+                        }
+                    } catch (Exception e) {
+                        synchronized (exception) {
+                            exception[0] = e;
                         }
                     }
                 });

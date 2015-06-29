@@ -35,11 +35,8 @@ public class ThemeListCellRenderer extends DefaultListCellRenderer {
                 JarFile minecraftJar = new JarFile(file);
                 JarEntry entry = minecraftJar.getJarEntry("terrain.png");
                 if (entry != null) {
-                    InputStream in = minecraftJar.getInputStream(entry);
-                    try {
+                    try (InputStream in = minecraftJar.getInputStream(entry)) {
                         texturePack = ImageIO.read(in);
-                    } finally {
-                        in.close();
                     }
                 } else {
                     texturePack = null;
@@ -69,7 +66,7 @@ public class ThemeListCellRenderer extends DefaultListCellRenderer {
     }
     
     private final BufferedImage texturePack;
-    private final Map<Theme, Icon> iconCache = new HashMap<Theme, Icon>();
+    private final Map<Theme, Icon> iconCache = new HashMap<>();
     
     private static final Logger logger = Logger.getLogger(ThemeListCellRenderer.class.getName());
     private static final long serialVersionUID = 1L;

@@ -58,11 +58,8 @@ public class Export {
         File worldFile = new File(args[0]);
         System.out.println("Loading " + worldFile);
         World2 world;
-        ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new FileInputStream(worldFile)));
-        try {
+        try (ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new FileInputStream(worldFile)))) {
             world = (World2) in.readObject();
-        } finally {
-            in.close();
         }
 
         for (int i = 0; i < Terrain.CUSTOM_TERRAIN_COUNT; i++) {

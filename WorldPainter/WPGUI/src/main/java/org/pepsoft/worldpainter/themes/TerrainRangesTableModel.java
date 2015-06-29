@@ -33,7 +33,7 @@ public class TerrainRangesTableModel implements TableModel {
     }
 
     public void addRow(int level, Terrain terrain) {
-        SortedMap<Integer, Terrain> sortedMap = new TreeMap<Integer, Terrain>();
+        SortedMap<Integer, Terrain> sortedMap = new TreeMap<>();
         sortedMap.put(level, terrain);
         for (int i = 0; i < rows; i++) {
             sortedMap.put(levels[i], terrains[i]);
@@ -68,7 +68,7 @@ public class TerrainRangesTableModel implements TableModel {
     }
 
     public SortedMap<Integer, Terrain> getTerrainRanges() {
-        SortedMap<Integer, Terrain> terrainRanges = new TreeMap<Integer, Terrain>();
+        SortedMap<Integer, Terrain> terrainRanges = new TreeMap<>();
         for (int i = 0; i < rows; i++) {
             terrainRanges.put(levels[i] - 1, terrains[i]);
         }
@@ -189,7 +189,7 @@ public class TerrainRangesTableModel implements TableModel {
     private void sortIfNeeded() {
         for (int i = 1; i < rows; i++) {
             if (levels[i] < levels[i - 1]) {
-                SortedMap<Integer, Terrain> sortedMap = new TreeMap<Integer, Terrain>();
+                SortedMap<Integer, Terrain> sortedMap = new TreeMap<>();
                 for (int j = 0; j < rows; j++) {
                     sortedMap.put(levels[j], terrains[j]);
                 }
@@ -216,7 +216,7 @@ public class TerrainRangesTableModel implements TableModel {
     }
 
     private final JButton deleteButton = new JButton("Delete");
-    private final List<TableModelListener> listeners = new ArrayList<TableModelListener>();
+    private final List<TableModelListener> listeners = new ArrayList<>();
     private int[] levels;
     private Terrain[] terrains;
     private int rows;

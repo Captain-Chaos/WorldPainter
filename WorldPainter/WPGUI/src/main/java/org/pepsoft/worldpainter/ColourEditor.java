@@ -90,11 +90,7 @@ public class ColourEditor extends javax.swing.JPanel implements MouseListener {
 
         buttonSelectColour.setText("...");
         buttonSelectColour.setToolTipText("Click to select a colour");
-        buttonSelectColour.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonSelectColourActionPerformed(evt);
-            }
-        });
+        buttonSelectColour.addActionListener(this::buttonSelectColourActionPerformed);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);

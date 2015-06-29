@@ -29,18 +29,12 @@ public class DumpEntities {
                     for (int z = 0; z < 32; z++) {
                         if (regionFile.containsChunk(x, z)) {
                             CompoundTag tag;
-                            NBTInputStream in = new NBTInputStream(regionFile.getChunkDataInputStream(x, z));
-                            try {
+                            try (NBTInputStream in = new NBTInputStream(regionFile.getChunkDataInputStream(x, z))) {
                                 tag = (CompoundTag) in.readTag();
-                            } finally {
-                                in.close();
                             }
                             ChunkImpl2 chunk = new ChunkImpl2(tag, 256);
-                            for (Entity entity: chunk.getEntities()) {
-                                if ((entity instanceof Painting) /*&& (((Painting) entity).getTileX() == 40) && (((Painting) entity).getTileZ() == 31)*/) {
-                                    System.out.println(entity);
-                                }
-                            }
+                            /*&& (((Painting) entity).getTileX() == 40) && (((Painting) entity).getTileZ() == 31)*/
+                            chunk.getEntities().stream().filter(entity -> (entity instanceof Painting)).forEach(System.out::println);
                         }
                     }
                 }

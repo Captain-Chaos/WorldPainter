@@ -199,7 +199,7 @@ public final class TileRenderer {
     public void renderTile(Image image, int dx, int dy) {
         // TODO this deadlocks background painting. Find out why:
 //        synchronized (tile) {
-        final List<Layer> layerList = new ArrayList<Layer>(tile.getLayers());
+        final List<Layer> layerList = new ArrayList<>(tile.getLayers());
         if (! layerList.contains(Biome.INSTANCE)) {
             layerList.add(Biome.INSTANCE);
         }
@@ -439,14 +439,14 @@ public final class TileRenderer {
     }
 
     private final BiomeRenderer biomeRenderer;
-    private final Set<Layer> hiddenLayers = new HashSet<Layer>(Arrays.asList(FloodWithLava.INSTANCE));
+    private final Set<Layer> hiddenLayers = new HashSet<>(Arrays.asList(FloodWithLava.INSTANCE));
     private final int[] intHeightCache = new int[TILE_SIZE * TILE_SIZE];
     private final float[] floatHeightCache = new float[TILE_SIZE * TILE_SIZE];
     private final BufferedImage bufferedImage;
     private final int[] renderBuffer;
     private final boolean dry;
     private final int[][] heights = new int[3][3], deltas = new int[3][3];
-    private final Set<Layer> missingRendererReportedFor = new HashSet<Layer>(); // TODO remove when no longer necessary!
+    private final Set<Layer> missingRendererReportedFor = new HashSet<>(); // TODO remove when no longer necessary!
     private final boolean[] oppositesOverlap = new boolean[TILE_SIZE * TILE_SIZE];
     private final int zoom;
     private TileProvider tileProvider, oppositeTileProvider;

@@ -411,7 +411,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
         }
     }
     
-    private static final Set<Integer> AIR_AND_FLUIDS = new HashSet<Integer>(Arrays.asList(BLK_AIR, BLK_WATER, BLK_STATIONARY_WATER, BLK_LAVA, BLK_STATIONARY_LAVA));
+    private static final Set<Integer> AIR_AND_FLUIDS = new HashSet<>(Arrays.asList(BLK_AIR, BLK_WATER, BLK_STATIONARY_WATER, BLK_LAVA, BLK_STATIONARY_LAVA));
     private static final Logger logger = Logger.getLogger(WPObjectExporter.class.getName());
 
     public static class WPObjectFixup implements Fixup {

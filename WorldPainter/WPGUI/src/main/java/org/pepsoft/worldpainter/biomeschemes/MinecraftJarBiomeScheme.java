@@ -40,9 +40,7 @@ public abstract class MinecraftJarBiomeScheme extends AbstractMinecraft1_1BiomeS
             clearBuffersMethod = bufferManagerClass.getMethod("a");
         } catch (MalformedURLException e) {
             throw new RuntimeException("Malformed URL exception while loading minecraft.jar", e);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Not a valid " + version + " minecraft.jar", e);
-        } catch (NoSuchMethodException e) {
+        } catch (ClassNotFoundException | NoSuchMethodException e) {
             throw new RuntimeException("Not a valid " + version + " minecraft.jar", e);
         }
     }

@@ -99,11 +99,7 @@ public class NoiseSettingsEditor extends javax.swing.JPanel {
 
         spinnerRange.setModel(new javax.swing.SpinnerNumberModel(0, 0, 256, 1));
         spinnerRange.setToolTipText("The vertical height difference, 0 being perfectly smooth");
-        spinnerRange.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerRangeStateChanged(evt);
-            }
-        });
+        spinnerRange.addChangeListener(this::spinnerRangeStateChanged);
 
         jLabel2.setLabelFor(spinnerScale);
         jLabel2.setText(", scale:");
@@ -112,11 +108,7 @@ public class NoiseSettingsEditor extends javax.swing.JPanel {
         spinnerScale.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(100), Integer.valueOf(1), null, Integer.valueOf(1)));
         spinnerScale.setToolTipText("The horizontal scale, lower percentages creating thinner peaks and troughs");
         spinnerScale.setEnabled(false);
-        spinnerScale.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerScaleStateChanged(evt);
-            }
-        });
+        spinnerScale.addChangeListener(this::spinnerScaleStateChanged);
 
         jLabel3.setLabelFor(spinnerOctaves);
         jLabel3.setText("%, roughness:");
@@ -125,11 +117,7 @@ public class NoiseSettingsEditor extends javax.swing.JPanel {
         spinnerOctaves.setModel(new javax.swing.SpinnerNumberModel(0, 0, 3, 1));
         spinnerOctaves.setToolTipText("How random or chaotic the variations are, 0 being the smoothest");
         spinnerOctaves.setEnabled(false);
-        spinnerOctaves.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerOctavesStateChanged(evt);
-            }
-        });
+        spinnerOctaves.addChangeListener(this::spinnerOctavesStateChanged);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -183,7 +171,7 @@ public class NoiseSettingsEditor extends javax.swing.JPanel {
     // End of variables declaration//GEN-END:variables
 
     private long seed;
-    private final List<ChangeListener> listeners = new ArrayList<ChangeListener>();
+    private final List<ChangeListener> listeners = new ArrayList<>();
 
     private static final long serialVersionUID = 1L;
 }

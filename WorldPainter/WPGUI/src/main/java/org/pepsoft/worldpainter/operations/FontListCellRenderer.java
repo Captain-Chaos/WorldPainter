@@ -35,5 +35,5 @@ public class FontListCellRenderer extends DefaultListCellRenderer {
         return this;
     }
     
-    private final Map<String, Font> fontCache = new HashMap<String, Font>();
+    private final Map<String, Font> fontCache = new HashMap<>();
 }

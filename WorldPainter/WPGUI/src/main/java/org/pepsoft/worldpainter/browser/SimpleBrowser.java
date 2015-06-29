@@ -92,11 +92,7 @@ public class SimpleBrowser extends javax.swing.JDialog implements HyperlinkListe
 
         jEditorPane1.setEditable(false);
         jEditorPane1.setFont(new java.awt.Font("Dialog", 0, 15)); // NOI18N
-        jEditorPane1.addHyperlinkListener(new javax.swing.event.HyperlinkListener() {
-            public void hyperlinkUpdate(javax.swing.event.HyperlinkEvent evt) {
-                jEditorPane1HyperlinkUpdate(evt);
-            }
-        });
+        jEditorPane1.addHyperlinkListener(this::jEditorPane1HyperlinkUpdate);
         jScrollPane1.setViewportView(jEditorPane1);
 
         getContentPane().add(jScrollPane1, java.awt.BorderLayout.CENTER);
@@ -184,7 +180,7 @@ public class SimpleBrowser extends javax.swing.JDialog implements HyperlinkListe
     private javax.swing.JScrollPane jScrollPane1;
     // End of variables declaration//GEN-END:variables
 
-    private final List<String> history = new ArrayList<String>();
+    private final List<String> history = new ArrayList<>();
     private int historySize, historyPointer;
     private ActionListener actionListener;
     

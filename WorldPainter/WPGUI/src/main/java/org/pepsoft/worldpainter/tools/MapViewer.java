@@ -102,13 +102,10 @@ public class MapViewer {
                                 if (dataIn != null) {
     //                                System.out.println("    Chunk found");
                                     Chunk chunk;
-                                    NBTInputStream in = new NBTInputStream(dataIn);
-                                    try {
+                                    try (NBTInputStream in = new NBTInputStream(dataIn)) {
                                         chunk = (version == Constants.SUPPORTED_VERSION_2)
-                                            ? new ChunkImpl2((CompoundTag) in.readTag(), maxHeight)
-                                            : new ChunkImpl((CompoundTag) in.readTag(), maxHeight);
-                                    } finally {
-                                        in.close();
+                                                ? new ChunkImpl2((CompoundTag) in.readTag(), maxHeight)
+                                                : new ChunkImpl((CompoundTag) in.readTag(), maxHeight);
                                     }
                                     for (int blockX = 0; blockX < 16; blockX += zoom) {
                                         for (int blockY = 0; blockY < 16; blockY += zoom) {
@@ -204,8 +201,8 @@ public class MapViewer {
                 }
 
                 private int zoom = 1;
-                private final List<TileListener> listeners = new ArrayList<TileListener>();
-                private final Map<Point, RegionFile> regionFileCache = new HashMap<Point, RegionFile>();
+                private final List<TileListener> listeners = new ArrayList<>();
+                private final Map<Point, RegionFile> regionFileCache = new HashMap<>();
 
                 private static final int DEFAULT_VOID_COLOUR = 0x00FFFF;
             };
@@ -214,14 +211,11 @@ public class MapViewer {
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             final TiledImageViewer viewer = new TiledImageViewer(true, Math.max(Runtime.getRuntime().availableProcessors() - 1, 1), true);
             viewer.setTileProvider(tileProvider);
-            viewer.addMouseWheelListener(new MouseWheelListener() {
-                @Override
-                public void mouseWheelMoved(MouseWheelEvent e) {
-                    int zoom = viewer.getZoom();
-                    zoom = (int) Math.max(zoom * Math.pow(2, e.getWheelRotation()), 1);
-                    System.out.println("Setting zoom to " + zoom);
-                    viewer.setZoom(zoom);
-                }
+            viewer.addMouseWheelListener(e -> {
+                int zoom = viewer.getZoom();
+                zoom = (int) Math.max(zoom * Math.pow(2, e.getWheelRotation()), 1);
+                System.out.println("Setting zoom to " + zoom);
+                viewer.setZoom(zoom);
             });
             frame.getContentPane().add(viewer, BorderLayout.CENTER);
             frame.setSize(800, 600);

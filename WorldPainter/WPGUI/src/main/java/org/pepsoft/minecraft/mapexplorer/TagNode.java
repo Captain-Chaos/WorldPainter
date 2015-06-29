@@ -37,7 +37,7 @@ public class TagNode implements Node {
     }
 
     private void loadChildren() {
-        List<Tag> tagList = new ArrayList<Tag>();
+        List<Tag> tagList = new ArrayList<>();
         if (tag instanceof CompoundTag) {
             Map<String, Tag> tags = ((CompoundTag) tag).getValue();
             tagList.addAll(tags.values());

@@ -26,24 +26,16 @@ import org.pepsoft.worldpainter.colourschemes.DynMapColourScheme;
  */
 public class WorldMorph {
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                final WorldPainter view = new WorldPainter(createNewWorld().getDimension(0), new DynMapColourScheme("default", true), null, null);
-                JFrame frame = new JFrame("WorldMorph");
-                frame.getContentPane().add(view, BorderLayout.CENTER);
-                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                frame.pack();
-                frame.setLocationRelativeTo(null);
-                frame.setVisible(true);
-                Timer timer = new Timer(2000, new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        view.setDimension(createNewWorld().getDimension(0));
-                    }
-                });
-                timer.start();
-            }
+        SwingUtilities.invokeLater(() -> {
+            final WorldPainter view = new WorldPainter(createNewWorld().getDimension(0), new DynMapColourScheme("default", true), null, null);
+            JFrame frame = new JFrame("WorldMorph");
+            frame.getContentPane().add(view, BorderLayout.CENTER);
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.pack();
+            frame.setLocationRelativeTo(null);
+            frame.setVisible(true);
+            Timer timer = new Timer(2000, e -> view.setDimension(createNewWorld().getDimension(0)));
+            timer.start();
         });
     }
 

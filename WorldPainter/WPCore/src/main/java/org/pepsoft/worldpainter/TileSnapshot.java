@@ -21,11 +21,11 @@ public final class TileSnapshot extends Tile {
     public TileSnapshot(Tile tile, Snapshot snapshot) {
         super(tile.getX(), tile.getY(), tile.getMaxHeight());
         this.snapshot = snapshot;
-        HEIGHTMAP_BUFFER_KEY      = new TileUndoBufferKey<short[]>(tile, TileBuffer.HEIGHTMAP);
-        TERRAIN_BUFFER_KEY        = new TileUndoBufferKey<byte[]>(tile, TileBuffer.TERRAIN);
-        WATERLEVEL_BUFFER_KEY     = new TileUndoBufferKey<byte[]>(tile, TileBuffer.WATERLEVEL);
-        LAYER_DATA_BUFFER_KEY     = new TileUndoBufferKey<Map<Layer, byte[]>>(tile, TileBuffer.LAYER_DATA);
-        BIT_LAYER_DATA_BUFFER_KEY = new TileUndoBufferKey<Map<Layer, BitSet>>(tile, TileBuffer.BIT_LAYER_DATA);
+        HEIGHTMAP_BUFFER_KEY      = new TileUndoBufferKey<>(tile, TileBuffer.HEIGHTMAP);
+        TERRAIN_BUFFER_KEY        = new TileUndoBufferKey<>(tile, TileBuffer.TERRAIN);
+        WATERLEVEL_BUFFER_KEY     = new TileUndoBufferKey<>(tile, TileBuffer.WATERLEVEL);
+        LAYER_DATA_BUFFER_KEY     = new TileUndoBufferKey<>(tile, TileBuffer.LAYER_DATA);
+        BIT_LAYER_DATA_BUFFER_KEY = new TileUndoBufferKey<>(tile, TileBuffer.BIT_LAYER_DATA);
     }
 
     @Override

@@ -24,7 +24,7 @@ public class MapManager {
     }
 
     private void init() {
-        Map<String, Object> config = new HashMap<String, Object>();
+        Map<String, Object> config = new HashMap<>();
         config.put("name", "WorldPainter");
         ConfigurationNode configNode = new ConfigurationNode(config);
         ((WPHDMapManager) hdmapman).init(configNode);

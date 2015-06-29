@@ -61,50 +61,38 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
         upsideDown = dimension.getDim() < 0; // Ceiling dimension
         switch (rotation) {
             case 0:
-                zSortedTiles = new TreeSet<Tile>(new Comparator<Tile>() {
-                    @Override
-                    public int compare(Tile t1, Tile t2) {
-                        if (t1.getY() != t2.getY()) {
-                            return t1.getY() - t2.getY();
-                        } else {
-                            return t1.getX() - t2.getX();
-                        }
+                zSortedTiles = new TreeSet<>((t1, t2) -> {
+                    if (t1.getY() != t2.getY()) {
+                        return t1.getY() - t2.getY();
+                    } else {
+                        return t1.getX() - t2.getX();
                     }
                 });
                 break;
             case 1:
-                zSortedTiles = new TreeSet<Tile>(new Comparator<Tile>() {
-                    @Override
-                    public int compare(Tile t1, Tile t2) {
-                        if (t1.getX() != t2.getX()) {
-                            return t1.getX() - t2.getX();
-                        } else {
-                            return t2.getY() - t1.getY();
-                        }
+                zSortedTiles = new TreeSet<>((t1, t2) -> {
+                    if (t1.getX() != t2.getX()) {
+                        return t1.getX() - t2.getX();
+                    } else {
+                        return t2.getY() - t1.getY();
                     }
                 });
                 break;
             case 2:
-                zSortedTiles = new TreeSet<Tile>(new Comparator<Tile>() {
-                    @Override
-                    public int compare(Tile t1, Tile t2) {
-                        if (t1.getY() != t2.getY()) {
-                            return t2.getY() - t1.getY();
-                        } else {
-                            return t2.getX() - t1.getX();
-                        }
+                zSortedTiles = new TreeSet<>((t1, t2) -> {
+                    if (t1.getY() != t2.getY()) {
+                        return t2.getY() - t1.getY();
+                    } else {
+                        return t2.getX() - t1.getX();
                     }
                 });
                 break;
             case 3:
-                zSortedTiles = new TreeSet<Tile>(new Comparator<Tile>() {
-                    @Override
-                    public int compare(Tile t1, Tile t2) {
-                        if (t1.getX() != t2.getX()) {
-                            return t2.getX() - t1.getX();
-                        } else {
-                            return t1.getY() - t2.getY();
-                        }
+                zSortedTiles = new TreeSet<>((t1, t2) -> {
+                    if (t1.getX() != t2.getX()) {
+                        return t2.getX() - t1.getX();
+                    } else {
+                        return t1.getY() - t2.getY();
                     }
                 });
                 break;
@@ -362,9 +350,7 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
     public void actionPerformed(ActionEvent e) {
         // Send tiles to be rendered
         if ((!tilesWaitingToBeRendered.isEmpty()) && ((System.currentTimeMillis() - lastTileChange) > 250)) {
-            for (Tile tile : tilesWaitingToBeRendered) {
-                threeDeeRenderManager.renderTile(tile);
-            }
+            tilesWaitingToBeRendered.forEach(threeDeeRenderManager::renderTile);
             tilesWaitingToBeRendered.clear();
         }
 
@@ -514,33 +500,30 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
                 renderedTiles.remove(tile);
             }
         } else {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    Rectangle visibleArea = ((JViewport) getParent()).getViewRect();
-                    Rectangle tileBounds = zoom(getTileBounds(tile.getX(), tile.getY()));
-                    if (tileBounds.intersects(visibleArea)) {
-                        // The tile is (partially) visible, so it should be repainted
-                        // immediately
-                        switch (refreshMode) {
-                            case IMMEDIATE:
-                                threeDeeRenderManager.renderTile(tile);
-                                break;
-                            case DELAYED:
-                                tilesWaitingToBeRendered.add(tile);
-                                lastTileChange = System.currentTimeMillis();
-                                break;
-                            case MANUAL:
-                                // Do nothing
-                                break;
-                            default:
-                                throw new InternalError();
-                        }
-                    } else {
-                        // The tile is not visible, so repaint it when it becomes visible
-                        tilesWaitingToBeRendered.remove(tile);
-                        renderedTiles.remove(tile);
+            SwingUtilities.invokeLater(() -> {
+                Rectangle visibleArea = ((JViewport) getParent()).getViewRect();
+                Rectangle tileBounds = zoom(getTileBounds(tile.getX(), tile.getY()));
+                if (tileBounds.intersects(visibleArea)) {
+                    // The tile is (partially) visible, so it should be repainted
+                    // immediately
+                    switch (refreshMode) {
+                        case IMMEDIATE:
+                            threeDeeRenderManager.renderTile(tile);
+                            break;
+                        case DELAYED:
+                            tilesWaitingToBeRendered.add(tile);
+                            lastTileChange = System.currentTimeMillis();
+                            break;
+                        case MANUAL:
+                            // Do nothing
+                            break;
+                        default:
+                            throw new InternalError();
                     }
+                } else {
+                    // The tile is not visible, so repaint it when it becomes visible
+                    tilesWaitingToBeRendered.remove(tile);
+                    renderedTiles.remove(tile);
                 }
             });
         }
@@ -647,11 +630,11 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
     }
     
     private final Dimension dimension;
-    private final Map<Tile, BufferedImage> renderedTiles = new HashMap<Tile, BufferedImage>();
+    private final Map<Tile, BufferedImage> renderedTiles = new HashMap<>();
     private final ThreeDeeRenderManager threeDeeRenderManager;
     private final ColourScheme colourScheme;
     private final BiomeScheme biomeScheme;
-    private final List<Tile> tilesWaitingToBeRendered = new LinkedList<Tile>();
+    private final List<Tile> tilesWaitingToBeRendered = new LinkedList<>();
     private final int maxHeight;
     private final int xOffset, yOffset, maxX, maxY;
     private final int rotation;

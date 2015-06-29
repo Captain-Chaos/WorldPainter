@@ -168,12 +168,7 @@ public class UndergroundPocketsDialog extends CustomLayerDialog<UndergroundPocke
     
     private void schedulePreviewUpdate() {
         if (previewUpdateTimer == null) {
-            previewUpdateTimer = new Timer(250, new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    updatePreview();
-                }
-            });
+            previewUpdateTimer = new Timer(250, e -> updatePreview());
             previewUpdateTimer.setRepeats(false);
         }
         previewUpdateTimer.restart();
@@ -245,18 +240,10 @@ public class UndergroundPocketsDialog extends CustomLayerDialog<UndergroundPocke
         jLabel4.setText("Colour:");
 
         buttonCancel.setText("Cancel");
-        buttonCancel.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonCancelActionPerformed(evt);
-            }
-        });
+        buttonCancel.addActionListener(this::buttonCancelActionPerformed);
 
         buttonOK.setText("OK");
-        buttonOK.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonOKActionPerformed(evt);
-            }
-        });
+        buttonOK.addActionListener(this::buttonOKActionPerformed);
 
         jLabel6.setText("Name:");
 
@@ -268,20 +255,12 @@ public class UndergroundPocketsDialog extends CustomLayerDialog<UndergroundPocke
         jLabel5.setOpaque(true);
 
         buttonPickColour.setText("...");
-        buttonPickColour.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonPickColourActionPerformed(evt);
-            }
-        });
+        buttonPickColour.addActionListener(this::buttonPickColourActionPerformed);
 
         jLabel7.setText("Occurrence:");
 
         spinnerOccurrence.setModel(new javax.swing.SpinnerNumberModel(10, 1, 1000, 1));
-        spinnerOccurrence.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerOccurrenceStateChanged(evt);
-            }
-        });
+        spinnerOccurrence.addChangeListener(this::spinnerOccurrenceStateChanged);
 
         jLabel8.setText("Scale:");
 
@@ -290,55 +269,31 @@ public class UndergroundPocketsDialog extends CustomLayerDialog<UndergroundPocke
         jLabel10.setText("‰");
 
         spinnerScale.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(100), Integer.valueOf(1), null, Integer.valueOf(1)));
-        spinnerScale.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerScaleStateChanged(evt);
-            }
-        });
+        spinnerScale.addChangeListener(this::spinnerScaleStateChanged);
 
         spinnerMaxLevel.setModel(new javax.swing.SpinnerNumberModel(255, 0, 255, 1));
-        spinnerMaxLevel.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerMaxLevelStateChanged(evt);
-            }
-        });
+        spinnerMaxLevel.addChangeListener(this::spinnerMaxLevelStateChanged);
 
         jLabel11.setText("%");
 
         spinnerMinLevel.setModel(new javax.swing.SpinnerNumberModel(0, 0, 255, 1));
-        spinnerMinLevel.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerMinLevelStateChanged(evt);
-            }
-        });
+        spinnerMinLevel.addChangeListener(this::spinnerMinLevelStateChanged);
 
         jLabel12.setText("-");
 
         buttonGroup1.add(radioButtonCustomMaterial);
         radioButtonCustomMaterial.setSelected(true);
         radioButtonCustomMaterial.setText("custom material:");
-        radioButtonCustomMaterial.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonCustomMaterialActionPerformed(evt);
-            }
-        });
+        radioButtonCustomMaterial.addActionListener(this::radioButtonCustomMaterialActionPerformed);
 
         buttonGroup1.add(radioButtonTerrain);
         radioButtonTerrain.setText("terrain:");
-        radioButtonTerrain.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonTerrainActionPerformed(evt);
-            }
-        });
+        radioButtonTerrain.addActionListener(this::radioButtonTerrainActionPerformed);
 
         comboBoxTerrain.setModel(new DefaultComboBoxModel(Terrain.VALUES));
         comboBoxTerrain.setEnabled(false);
         comboBoxTerrain.setRenderer(new TerrainListCellRenderer(colourScheme));
-        comboBoxTerrain.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                comboBoxTerrainActionPerformed(evt);
-            }
-        });
+        comboBoxTerrain.addActionListener(this::comboBoxTerrainActionPerformed);
 
         jPanel1.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
 

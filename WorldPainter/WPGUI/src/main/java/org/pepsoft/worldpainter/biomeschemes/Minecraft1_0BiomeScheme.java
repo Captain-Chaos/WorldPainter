@@ -18,7 +18,7 @@ public final class Minecraft1_0BiomeScheme extends MinecraftJarBiomeScheme {
         super(minecraftJar, md5Sum, HASHES_TO_CLASSNAMES, "1.0.0");
     }
     
-    private static final Map<Checksum, String[]> HASHES_TO_CLASSNAMES = new HashMap<Checksum, String[]>();
+    private static final Map<Checksum, String[]> HASHES_TO_CLASSNAMES = new HashMap<>();
     
     static {
         HASHES_TO_CLASSNAMES.put(new Checksum(new byte[] {(byte) 56, (byte) 32, (byte) -46, (byte) 34, (byte) -71, (byte) 93, (byte) 11, (byte) -116, (byte) 82, (byte) 13, (byte) -107, (byte) -106, (byte) -89, (byte) 86, (byte) -90, (byte) -26}), new String[] {"jx", "bm"});

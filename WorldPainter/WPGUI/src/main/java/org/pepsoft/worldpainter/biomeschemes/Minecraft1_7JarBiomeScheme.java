@@ -37,9 +37,7 @@ public abstract class Minecraft1_7JarBiomeScheme extends AbstractMinecraft1_7Bio
             getBiomesMethod = landscapeClass.getMethod("a", int.class, int.class, int.class, int.class);
             Class<?> bufferManagerClass = classLoader.loadClass(bufferManagerClassName);
             clearBuffersMethod = bufferManagerClass.getMethod("a");
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Not a valid " + version + " minecraft.jar", e);
-        } catch (NoSuchMethodException e) {
+        } catch (ClassNotFoundException | NoSuchMethodException e) {
             throw new RuntimeException("Not a valid " + version + " minecraft.jar", e);
         }
     }

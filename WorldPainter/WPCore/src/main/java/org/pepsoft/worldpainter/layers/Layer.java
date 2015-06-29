@@ -158,12 +158,8 @@ public abstract class Layer implements Serializable, Comparable<Layer> {
             LayerRenderer myRenderer;
             try {
                 myRenderer = (LayerRenderer) pluginClassLoader.loadClass(clazz.getPackage().getName() + ".renderers." + clazz.getSimpleName() + "Renderer").newInstance();
-            } catch (ClassNotFoundException e) {
+            } catch (ClassNotFoundException | InstantiationException e) {
                 // This most likely means the class does not exist
-                myRenderer = null;
-            } catch (InstantiationException e) {
-                // This most likely means that the class has no default
-                // constructor
                 myRenderer = null;
             }
             renderer = myRenderer;

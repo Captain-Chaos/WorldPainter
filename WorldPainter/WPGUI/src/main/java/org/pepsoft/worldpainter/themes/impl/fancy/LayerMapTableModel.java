@@ -22,8 +22,8 @@ import org.pepsoft.worldpainter.themes.HeightFilter;
 public class LayerMapTableModel implements TableModel {
     public LayerMapTableModel(int maxHeight, Map<Filter, Layer> layerMap) {
         this.maxHeight = maxHeight;
-        filters = new ArrayList<HeightFilter>(layerMap.size());
-        layers = new ArrayList<Layer>(layerMap.size());
+        filters = new ArrayList<>(layerMap.size());
+        layers = new ArrayList<>(layerMap.size());
         for (Map.Entry<Filter, Layer> entry: layerMap.entrySet()) {
             filters.add((HeightFilter) entry.getKey());
             layers.add(entry.getValue());
@@ -111,7 +111,7 @@ public class LayerMapTableModel implements TableModel {
     private final int maxHeight;
     private final List<HeightFilter> filters;
     private final List<Layer> layers;
-    private final List<TableModelListener> listeners = new ArrayList<TableModelListener>();
+    private final List<TableModelListener> listeners = new ArrayList<>();
     
     private static final String[] COLUMN_NAMES = {"Layer",     "From",        "To",          "Feather"};
     private static final Class[] COLUMN_TYPES =  {Layer.class, Integer.class, Integer.class, Boolean.class};

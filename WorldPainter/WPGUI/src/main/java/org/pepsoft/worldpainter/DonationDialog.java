@@ -47,8 +47,7 @@ public final class DonationDialog extends javax.swing.JDialog {
         
         try {
             URL buttonURL = new URL("http://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif");
-            InputStream in = buttonURL.openStream();
-            try {
+            try (InputStream in = buttonURL.openStream()) {
                 BufferedImage buttonImage = ImageIO.read(in);
                 // buttonImage is null if the image format is not supported:
                 if (buttonImage != null) {
@@ -58,11 +57,7 @@ public final class DonationDialog extends javax.swing.JDialog {
                     jButton1.setContentAreaFilled(false);
                     pack();
                 }
-            } finally {
-                in.close();
             }
-        } catch (MalformedURLException e) {
-            // Do nothing
         } catch (IOException e) {
             // Do nothing
         }
@@ -167,35 +162,19 @@ public final class DonationDialog extends javax.swing.JDialog {
 
         jButton1.setMnemonic('d');
         jButton1.setText("Donate");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
+        jButton1.addActionListener(this::jButton1ActionPerformed);
 
         jButton2.setMnemonic('a');
         jButton2.setText("I have already donated");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
-            }
-        });
+        jButton2.addActionListener(this::jButton2ActionPerformed);
 
         jButton3.setMnemonic('l');
         jButton3.setText("Ask me later");
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
-            }
-        });
+        jButton3.addActionListener(this::jButton3ActionPerformed);
 
         jButton4.setMnemonic('n');
         jButton4.setText("No thank you");
-        jButton4.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton4ActionPerformed(evt);
-            }
-        });
+        jButton4.addActionListener(this::jButton4ActionPerformed);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);

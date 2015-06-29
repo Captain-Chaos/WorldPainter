@@ -52,11 +52,8 @@ public class GetTerrainOp extends AbstractOperation<MixedMaterial> {
 
         File file = sanityCheckFileName(fileName);
         try {
-            ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new FileInputStream(file)));
-            try {
+            try (ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new FileInputStream(file)))) {
                 return (MixedMaterial) in.readObject();
-            } finally {
-                in.close();
             }
         } catch (IOException e) {
             throw new ScriptException("I/O error while loading terrain " + fileName, e);

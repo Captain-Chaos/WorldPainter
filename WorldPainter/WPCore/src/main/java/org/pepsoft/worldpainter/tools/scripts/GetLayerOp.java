@@ -70,11 +70,8 @@ public class GetLayerOp extends AbstractOperation<Layer> {
         if (fileName != null) {
             File file = sanityCheckFileName(fileName);
             try {
-                ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new FileInputStream(file)));
-                try {
+                try (ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new FileInputStream(file)))) {
                     return (Layer) in.readObject();
-                } finally {
-                    in.close();
                 }
             } catch (IOException e) {
                 throw new ScriptException("I/O error while loading layer " + fileName, e);

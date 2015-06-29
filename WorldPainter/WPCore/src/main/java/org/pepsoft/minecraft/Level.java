@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import org.jnbt.CompoundTag;
@@ -31,7 +32,7 @@ import org.pepsoft.worldpainter.Generator;
  */
 public final class Level extends AbstractNBTItem {
     public Level(int mapHeight, int version) {
-        super(new CompoundTag(TAG_DATA, new HashMap<String, Tag>()));
+        super(new CompoundTag(TAG_DATA, new HashMap<>()));
         if ((version != SUPPORTED_VERSION_1) && (version != SUPPORTED_VERSION_2)) {
             throw new IllegalArgumentException("Not a supported version: 0x" + Integer.toHexString(version));
         }
@@ -65,12 +66,8 @@ public final class Level extends AbstractNBTItem {
             extraTags = null;
         } else {
             // The root tag contains extra tags, most likely from mods. Preserve them (but filter out the data tag)
-            extraTags = new HashSet<Tag>();
-            for (Tag extraTag: tag.getValue().values()) {
-                if (! extraTag.getName().equals(TAG_DATA)) {
-                    extraTags.add(extraTag);
-                }
-            }
+            extraTags = new HashSet<>();
+            extraTags.addAll(tag.getValue().values().stream().filter(extraTag -> !extraTag.getName().equals(TAG_DATA)).collect(Collectors.toList()));
         }
         addDimension(0);
     }
@@ -84,22 +81,16 @@ public final class Level extends AbstractNBTItem {
 
         // Write session.lock file
         File sessionLockFile = new File(worldDir, "session.lock");
-        DataOutputStream sessionOut = new DataOutputStream(new FileOutputStream(sessionLockFile));
-        try {
+        try (DataOutputStream sessionOut = new DataOutputStream(new FileOutputStream(sessionLockFile))) {
             sessionOut.writeLong(System.currentTimeMillis());
-        } finally {
-            sessionOut.close();
         }
         
         // Write level.dat file
         File levelDatFile = new File(worldDir, "level.dat");
         // Make it show at the top of the single player map list:
         setLong(TAG_LAST_PLAYED, System.currentTimeMillis());
-        NBTOutputStream out = new NBTOutputStream(new GZIPOutputStream(new FileOutputStream(levelDatFile)));
-        try {
+        try (NBTOutputStream out = new NBTOutputStream(new GZIPOutputStream(new FileOutputStream(levelDatFile)))) {
             out.writeTag(toNBT());
-        } finally {
-            out.close();
         }
         
         // If height is non-standard, write DynamicHeight mod and Height Mod
@@ -313,7 +304,7 @@ public final class Level extends AbstractNBTItem {
     
     @Override
     public Tag toNBT() {
-        Map<String, Tag> values = new HashMap<String, Tag>();
+        Map<String, Tag> values = new HashMap<>();
         values.put(TAG_DATA, super.toNBT());
         if (extraTags != null) {
             for (Tag extraTag: extraTags) {
@@ -325,11 +316,8 @@ public final class Level extends AbstractNBTItem {
     
     public static Level load(File levelDatFile) throws IOException {
         Tag tag;
-        NBTInputStream in = new NBTInputStream(new GZIPInputStream(new FileInputStream(levelDatFile)));
-        try {
+        try (NBTInputStream in = new NBTInputStream(new GZIPInputStream(new FileInputStream(levelDatFile)))) {
             tag = in.readTag();
-        } finally {
-            in.close();
         }
         
         int version = ((IntTag) ((CompoundTag) ((CompoundTag) tag).getTag(TAG_DATA)).getTag(TAG_VERSION)).getValue();
@@ -343,8 +331,7 @@ public final class Level extends AbstractNBTItem {
                     maxheightFile = new File(levelDatFile.getParentFile(), "Height.txt");
                 }
                 if (maxheightFile.isFile()) {
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(maxheightFile), "US-ASCII"));
-                    try {
+                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(maxheightFile), "US-ASCII"))) {
                         String line;
                         while ((line = reader.readLine()) != null) {
                             if (line.startsWith("height=")) {
@@ -353,8 +340,6 @@ public final class Level extends AbstractNBTItem {
                                 break;
                             }
                         }
-                    } finally {
-                        reader.close();
                     }
                 }
             }
@@ -364,7 +349,7 @@ public final class Level extends AbstractNBTItem {
     }
 
     private final int maxHeight;
-    private final Map<Integer, Dimension> dimensions = new HashMap<Integer, Dimension>();
+    private final Map<Integer, Dimension> dimensions = new HashMap<>();
     private final Set<Tag> extraTags;
     
     private static final long serialVersionUID = 1L;

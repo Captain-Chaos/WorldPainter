@@ -42,7 +42,7 @@ public class Bo2ObjectTube implements Bo2ObjectProvider {
     @Override
     public WPObject getObject() {
         if (weightedObjects == null) {
-            weightedObjects = new TreeMap<Integer, WPObject>();
+            weightedObjects = new TreeMap<>();
             totalObjectWeight = 0;
             for (WPObject object: objects) {
                 int frequency = object.getAttribute(ATTRIBUTE_FREQUENCY, 100);
@@ -69,12 +69,7 @@ public class Bo2ObjectTube implements Bo2ObjectProvider {
     }
     
     public static Bo2ObjectTube load(String name, File dir) throws IOException {
-        File[] files = dir.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return name.toLowerCase().endsWith(".bo2") || name.toLowerCase().endsWith(".schematic");
-            }
-        });
+        File[] files = dir.listFiles((dir1, name1) -> name1.toLowerCase().endsWith(".bo2") || name1.toLowerCase().endsWith(".schematic"));
         return load(name, Arrays.asList(files));
     }
     
@@ -82,7 +77,7 @@ public class Bo2ObjectTube implements Bo2ObjectProvider {
         if (files.isEmpty()) {
             throw new IllegalArgumentException("Cannot create an object tube with no objects");
         }
-        List<WPObject> objects = new ArrayList<WPObject>(files.size());
+        List<WPObject> objects = new ArrayList<>(files.size());
         for (File file: files) {
             String filename = file.getName().toLowerCase();
             if (filename.endsWith(".bo2")) {

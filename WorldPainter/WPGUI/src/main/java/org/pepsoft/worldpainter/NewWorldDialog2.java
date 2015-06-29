@@ -64,7 +64,7 @@ public class NewWorldDialog2 extends javax.swing.JDialog {
                 }
             }
             
-            private final Map<Point, Tile> cache = new HashMap<Point, Tile>();
+            private final Map<Point, Tile> cache = new HashMap<>();
         };
         Configuration config = Configuration.getInstance();
         tiledImageViewer1.setTileProvider(new WPTileProvider(tileProvider, app.getColourScheme(config.getColourschemeIndex()), autoBiomeScheme, app.getCustomBiomeManager(), Collections.singleton((Layer) Biome.INSTANCE), config.isDefaultContoursEnabled(), config.getDefaultContourSeparation(), config.getDefaultLightOrigin(), false, null));
@@ -106,7 +106,7 @@ public class NewWorldDialog2 extends javax.swing.JDialog {
             heightMap = new SumHeightMap(heightMap, hills);
         }
 //        Theme theme = new FancyTheme(org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2, waterLevel, heightMap, Terrain.GRASS);
-        SortedMap<Integer, Terrain> terrainRanges = new TreeMap<Integer, Terrain>();
+        SortedMap<Integer, Terrain> terrainRanges = new TreeMap<>();
         terrainRanges.put(-1, Terrain.BEACHES);
         terrainRanges.put(waterLevel - 4, Terrain.GRASS);
         Theme theme = new SimpleTheme(seed, waterLevel, terrainRanges, null, org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2, true, true);
@@ -177,47 +177,27 @@ public class NewWorldDialog2 extends javax.swing.JDialog {
 
         buttonGroup1.add(jRadioButton1);
         jRadioButton1.setText("All ocean");
-        jRadioButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButton1ActionPerformed(evt);
-            }
-        });
+        jRadioButton1.addActionListener(this::jRadioButton1ActionPerformed);
 
         buttonGroup1.add(jRadioButton2);
         jRadioButton2.setSelected(true);
         jRadioButton2.setText("Continent surrounded by ocean");
-        jRadioButton2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButton2ActionPerformed(evt);
-            }
-        });
+        jRadioButton2.addActionListener(this::jRadioButton2ActionPerformed);
 
         buttonGroup1.add(jRadioButton3);
         jRadioButton3.setText("All land");
-        jRadioButton3.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButton3ActionPerformed(evt);
-            }
-        });
+        jRadioButton3.addActionListener(this::jRadioButton3ActionPerformed);
 
         jLabel4.setText("Shape");
 
         buttonGroup2.add(jRadioButton4);
         jRadioButton4.setText("Round");
-        jRadioButton4.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButton4ActionPerformed(evt);
-            }
-        });
+        jRadioButton4.addActionListener(this::jRadioButton4ActionPerformed);
 
         buttonGroup2.add(jRadioButton6);
         jRadioButton6.setSelected(true);
         jRadioButton6.setText("Square");
-        jRadioButton6.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButton6ActionPerformed(evt);
-            }
-        });
+        jRadioButton6.addActionListener(this::jRadioButton6ActionPerformed);
 
         jLabel3.setLabelFor(spinnerOceanSize);
         jLabel3.setText("Ocean:");
@@ -227,101 +207,53 @@ public class NewWorldDialog2 extends javax.swing.JDialog {
         jLabel7.setLabelFor(spinnerContinentSize);
         jLabel7.setText("Continent:");
 
-        spinnerContinentSize.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerContinentSizeStateChanged(evt);
-            }
-        });
+        spinnerContinentSize.addChangeListener(this::spinnerContinentSizeStateChanged);
 
-        spinnerOceanSize.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerOceanSizeStateChanged(evt);
-            }
-        });
+        spinnerOceanSize.addChangeListener(this::spinnerOceanSizeStateChanged);
 
         jLabel10.setText("Outside the world");
 
         buttonGroup4.add(jRadioButton7);
         jRadioButton7.setText("Endless ocean");
-        jRadioButton7.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButton7ActionPerformed(evt);
-            }
-        });
+        jRadioButton7.addActionListener(this::jRadioButton7ActionPerformed);
 
         buttonGroup4.add(jRadioButton8);
         jRadioButton8.setText("Endless void");
-        jRadioButton8.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButton8ActionPerformed(evt);
-            }
-        });
+        jRadioButton8.addActionListener(this::jRadioButton8ActionPerformed);
 
         buttonGroup4.add(jRadioButton9);
         jRadioButton9.setSelected(true);
         jRadioButton9.setText("Minecraft land");
-        jRadioButton9.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButton9ActionPerformed(evt);
-            }
-        });
+        jRadioButton9.addActionListener(this::jRadioButton9ActionPerformed);
 
         jLabel11.setText("Minecraft seed");
 
         buttonGroup5.add(jRadioButton10);
         jRadioButton10.setSelected(true);
         jRadioButton10.setText("Ocean");
-        jRadioButton10.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButton10ActionPerformed(evt);
-            }
-        });
+        jRadioButton10.addActionListener(this::jRadioButton10ActionPerformed);
 
         buttonGroup5.add(jRadioButton11);
         jRadioButton11.setText("Land");
-        jRadioButton11.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButton11ActionPerformed(evt);
-            }
-        });
+        jRadioButton11.addActionListener(this::jRadioButton11ActionPerformed);
 
         buttonGroup5.add(jRadioButton12);
         jRadioButton12.setText("Custom:");
-        jRadioButton12.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButton12ActionPerformed(evt);
-            }
-        });
+        jRadioButton12.addActionListener(this::jRadioButton12ActionPerformed);
 
-        spinnerMinecraftSeed.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerMinecraftSeedStateChanged(evt);
-            }
-        });
+        spinnerMinecraftSeed.addChangeListener(this::spinnerMinecraftSeedStateChanged);
 
         jLabel13.setText("Extras");
 
         jCheckBox1.setSelected(true);
         jCheckBox1.setText("Hills");
-        jCheckBox1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBox1ActionPerformed(evt);
-            }
-        });
+        jCheckBox1.addActionListener(this::jCheckBox1ActionPerformed);
 
         jCheckBox2.setText("Mountains");
-        jCheckBox2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBox2ActionPerformed(evt);
-            }
-        });
+        jCheckBox2.addActionListener(this::jCheckBox2ActionPerformed);
 
         jCheckBox3.setText("Forests");
-        jCheckBox3.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBox3ActionPerformed(evt);
-            }
-        });
+        jCheckBox3.addActionListener(this::jCheckBox3ActionPerformed);
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -422,31 +354,19 @@ public class NewWorldDialog2 extends javax.swing.JDialog {
         jLabel5.setText("Ocean floor:");
 
         spinnerOceanFloorLevel.setModel(new javax.swing.SpinnerNumberModel(40, 0, 255, 1));
-        spinnerOceanFloorLevel.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerOceanFloorLevelStateChanged(evt);
-            }
-        });
+        spinnerOceanFloorLevel.addChangeListener(this::spinnerOceanFloorLevelStateChanged);
 
         jLabel8.setLabelFor(spinnerWaterLevel);
         jLabel8.setText("Water level:");
 
         spinnerWaterLevel.setModel(new javax.swing.SpinnerNumberModel(62, 0, 255, 1));
-        spinnerWaterLevel.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerWaterLevelStateChanged(evt);
-            }
-        });
+        spinnerWaterLevel.addChangeListener(this::spinnerWaterLevelStateChanged);
 
         jLabel9.setLabelFor(spinnerLandLevel);
         jLabel9.setText("Land level:");
 
         spinnerLandLevel.setModel(new javax.swing.SpinnerNumberModel(64, 0, 255, 1));
-        spinnerLandLevel.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerLandLevelStateChanged(evt);
-            }
-        });
+        spinnerLandLevel.addChangeListener(this::spinnerLandLevelStateChanged);
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);

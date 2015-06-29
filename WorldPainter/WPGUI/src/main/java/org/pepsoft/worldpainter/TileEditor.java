@@ -17,6 +17,7 @@ import java.awt.event.KeyEvent;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -105,7 +106,7 @@ public class TileEditor extends javax.swing.JDialog implements TileSelector.List
     
     private void addTiles() {
         Set<Point> selectedTiles = tileSelector1.getSelectedTiles();
-        Set<Point> tilesToAdd = new HashSet<Point>();
+        Set<Point> tilesToAdd = new HashSet<>();
         int newLowestTileX = dimension.getLowestX(), newHighestTileX = dimension.getHighestX();
         int newLowestTileY = dimension.getLowestY(), newHighestTileY = dimension.getHighestY();
         for (Point selectedTile: selectedTiles) {
@@ -173,12 +174,7 @@ public class TileEditor extends javax.swing.JDialog implements TileSelector.List
     
     private void removeTiles() {
         Set<Point> selectedTiles = tileSelector1.getSelectedTiles();
-        Set<Point> tilesToRemove = new HashSet<Point>();
-        for (Point selectedTile: selectedTiles) {
-            if (dimension.getTile(selectedTile) != null) {
-                tilesToRemove.add(selectedTile);
-            }
-        }
+        Set<Point> tilesToRemove = selectedTiles.stream().filter(selectedTile -> dimension.getTile(selectedTile) != null).collect(Collectors.toSet());
         if (tilesToRemove.size() == dimension.getTileCount()) {
             JOptionPane.showMessageDialog(this, "<html>You cannot remove <em>all</em> tiles from the dimension!</html>", "All Tiles Selected", JOptionPane.ERROR_MESSAGE);
             return;
@@ -187,9 +183,7 @@ public class TileEditor extends javax.swing.JDialog implements TileSelector.List
             dimension.setEventsInhibited(true);
             dimension.clearUndo();
             try {
-                for (Point tileCoords: tilesToRemove) {
-                    dimension.removeTile(tileCoords);
-                }
+                tilesToRemove.forEach(dimension::removeTile);
             } finally {
                 dimension.setEventsInhibited(false);
             }
@@ -219,27 +213,15 @@ public class TileEditor extends javax.swing.JDialog implements TileSelector.List
         setTitle("WorldPainter - Add or Remove Tiles");
 
         buttonClose.setText("Close");
-        buttonClose.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonCloseActionPerformed(evt);
-            }
-        });
+        buttonClose.addActionListener(this::buttonCloseActionPerformed);
 
         buttonAddTiles.setText("Add tiles");
         buttonAddTiles.setEnabled(false);
-        buttonAddTiles.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonAddTilesActionPerformed(evt);
-            }
-        });
+        buttonAddTiles.addActionListener(this::buttonAddTilesActionPerformed);
 
         buttonRemoveTiles.setText("Remove tiles");
         buttonRemoveTiles.setEnabled(false);
-        buttonRemoveTiles.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonRemoveTilesActionPerformed(evt);
-            }
-        });
+        buttonRemoveTiles.addActionListener(this::buttonRemoveTilesActionPerformed);
 
         tileSelector1.setAllowNonExistentTileSelection(true);
 

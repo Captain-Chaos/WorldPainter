@@ -421,10 +421,8 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     
     @SuppressWarnings("unchecked")
     public int measureSize() {
-        for (Dimension dimension: dimensions.values()) {
-            dimension.ensureAllReadable();
-        }
-        return MemoryUtils.getSize(this, new HashSet<Class<?>>(Arrays.asList(UndoManager.class, Dimension.Listener.class, PropertyChangeSupport.class, Layer.class, Terrain.class)));
+        dimensions.values().forEach(org.pepsoft.worldpainter.Dimension::ensureAllReadable);
+        return MemoryUtils.getSize(this, new HashSet<>(Arrays.asList(UndoManager.class, Dimension.Listener.class, PropertyChangeSupport.class, Layer.class, Terrain.class)));
     }
 
     /**
@@ -551,13 +549,11 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         // Bug fix: fix the maxHeight of the dimensions, which somehow is not
         // always correctly set (possibly only on imported worlds from
         // non-standard height maps due to a bug which should be fixed).
-        for (Dimension dimension: dimensions.values()) {
-            if (dimension.getMaxHeight() != maxheight) {
-                logger.warning("Fixing maxHeight of dimension " + dimension.getDim() + " (was " + dimension.getMaxHeight() + ", should be " + maxheight + ")");
-                dimension.setMaxHeight(maxheight);
-                dimension.setDirty(false);
-            }
-        }
+        dimensions.values().stream().filter(dimension -> dimension.getMaxHeight() != maxheight).forEach(dimension -> {
+            logger.warning("Fixing maxHeight of dimension " + dimension.getDim() + " (was " + dimension.getMaxHeight() + ", should be " + maxheight + ")");
+            dimension.setMaxHeight(maxheight);
+            dimension.setDirty(false);
+        });
         
         // The number of custom terrains increases now and again; correct old
         // worlds for it
@@ -570,7 +566,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     private boolean createGoodiesChest = true;
     private Point spawnPoint = new Point(0, 0);
     private File importedFrom;
-    private final SortedMap<Integer, Dimension> dimensions = new TreeMap<Integer, Dimension>();
+    private final SortedMap<Integer, Dimension> dimensions = new TreeMap<>();
     private boolean mapFeatures = true;
     private int gameType = GAME_TYPE_SURVIVAL;
     @Deprecated

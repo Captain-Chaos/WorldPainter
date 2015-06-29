@@ -35,7 +35,7 @@ public class UndoManager {
 
     public UndoManager(Action undoAction, Action redoAction, int maxFrames) {
         this.maxFrames = maxFrames;
-        history.add(new WeakHashMap<BufferKey<?>, Object>());
+        history.add(new WeakHashMap<>());
         registerActions(undoAction, redoAction);
     }
 
@@ -65,9 +65,7 @@ public class UndoManager {
     public void armSavePoint() {
         if ((! savePointArmed) /*&& ((currentFrame < (history.size() - 1)) || isDirty())*/) {
             savePointArmed = true;
-            for (UndoListener listener: listeners) {
-                listener.savePointArmed();
-            }
+            listeners.forEach(org.pepsoft.util.undo.UndoListener::savePointArmed);
             if (logger.isLoggable(Level.FINE)) {
                 logger.fine("Save point armed");
             }
@@ -81,7 +79,7 @@ public class UndoManager {
         clearRedo();
 
         // Add a new frame
-        history.add(new WeakHashMap<BufferKey<?>, Object>());
+        history.add(new WeakHashMap<>());
         
         // Update the current frame pointer
         currentFrame++;
@@ -94,9 +92,7 @@ public class UndoManager {
 
         savePointArmed = false;
 
-        for (UndoListener listener: listeners) {
-            listener.savePointCreated();
-        }
+        listeners.forEach(org.pepsoft.util.undo.UndoListener::savePointCreated);
         
         updateActions();
 
@@ -119,7 +115,7 @@ public class UndoManager {
      */
     public Snapshot getSnapshot() {
         Snapshot snapshot = new Snapshot(this, currentFrame);
-        snapshots.add(new WeakReference<Snapshot>(snapshot));
+        snapshots.add(new WeakReference<>(snapshot));
         return snapshot;
     }
 
@@ -144,9 +140,7 @@ public class UndoManager {
             currentFrame--;
             readOnlyBufferCache.clear();
             writeableBufferCache.clear();
-            for (UndoListener listener: listeners) {
-                listener.undoPerformed();
-            }
+            listeners.forEach(org.pepsoft.util.undo.UndoListener::undoPerformed);
             Map<BufferKey<?>, Object> previousHistoryFrame = history.get(currentFrame + 1);
             for (BufferKey<?> key: previousHistoryFrame.keySet()) {
                 UndoListener listener = keyListeners.get(key);
@@ -181,9 +175,7 @@ public class UndoManager {
             currentFrame++;
             readOnlyBufferCache.clear();
             writeableBufferCache.clear();
-            for (UndoListener listener: listeners) {
-                listener.redoPerformed();
-            }
+            listeners.forEach(org.pepsoft.util.undo.UndoListener::redoPerformed);
             Map<BufferKey<?>, Object> currentHistoryFrame = history.get(currentFrame);
             for (BufferKey<?> key: currentHistoryFrame.keySet()) {
                 UndoListener listener = keyListeners.get(key);
@@ -355,7 +347,7 @@ public class UndoManager {
     }
 
     public void setStopAtClasses(Class<?>... stopAt) {
-        this.stopAt = new HashSet<Class<?>>(Arrays.asList(stopAt));
+        this.stopAt = new HashSet<>(Arrays.asList(stopAt));
     }
     
     public int getDataSize() {
@@ -412,11 +404,7 @@ public class UndoManager {
         // Move all buffers from the previous oldest frame to the new
         // oldest frame, except the ones that already exist
         Map<BufferKey<?>, Object> nextOldestFrame = history.getFirst();
-        for (Map.Entry<BufferKey<?>, Object> entry: oldestFrame.entrySet()) {
-            if (! nextOldestFrame.containsKey(entry.getKey())) {
-                nextOldestFrame.put(entry.getKey(), entry.getValue());
-            }
-        }
+        oldestFrame.entrySet().stream().filter(entry -> !nextOldestFrame.containsKey(entry.getKey())).forEach(entry -> nextOldestFrame.put(entry.getKey(), entry.getValue()));
         
         if (currentFrame > 0) {
             currentFrame--;
@@ -468,14 +456,14 @@ public class UndoManager {
  
     private Action undoAction, redoAction;
     private final int maxFrames;
-    private final LinkedList<Map<BufferKey<?>, Object>> history = new LinkedList<Map<BufferKey<?>, Object>>();
+    private final LinkedList<Map<BufferKey<?>, Object>> history = new LinkedList<>();
     private int currentFrame;
-    private final Map<BufferKey<?>, Object> readOnlyBufferCache = new WeakHashMap<BufferKey<?>, Object>();
-    private final Map<BufferKey<?>, Object> writeableBufferCache = new WeakHashMap<BufferKey<?>, Object>();
-    private final List<UndoListener> listeners = new ArrayList<UndoListener>();
-    private final Map<BufferKey<?>, UndoListener> keyListeners = new WeakHashMap<BufferKey<?>, UndoListener>();
+    private final Map<BufferKey<?>, Object> readOnlyBufferCache = new WeakHashMap<>();
+    private final Map<BufferKey<?>, Object> writeableBufferCache = new WeakHashMap<>();
+    private final List<UndoListener> listeners = new ArrayList<>();
+    private final Map<BufferKey<?>, UndoListener> keyListeners = new WeakHashMap<>();
     private boolean savePointArmed;
-    private final Set<Reference<Snapshot>> snapshots = new HashSet<Reference<Snapshot>>();
+    private final Set<Reference<Snapshot>> snapshots = new HashSet<>();
     private Set<Class<?>> stopAt;
 
     private static final int DEFAULT_MAX_FRAMES = 25;

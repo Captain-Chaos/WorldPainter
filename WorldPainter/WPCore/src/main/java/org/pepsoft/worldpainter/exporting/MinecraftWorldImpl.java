@@ -58,9 +58,9 @@ public class MinecraftWorldImpl implements MinecraftWorld {
         }
         regionDir = new File(dimensionDir, "region");
         this.cacheSize = cacheSize;
-        cache = new HashMap<Point, Chunk>(cacheSize);
-        lruList = new HashList<Point>(cacheSize);
-        dirtyChunks = new HashSet<Point>(cacheSize);
+        cache = new HashMap<>(cacheSize);
+        lruList = new HashList<>(cacheSize);
+        dirtyChunks = new HashSet<>(cacheSize);
         this.dimension = null;
         honourReadOnlyChunks = false;
     }
@@ -122,9 +122,9 @@ public class MinecraftWorldImpl implements MinecraftWorld {
         }
         regionDir = new File(dimensionDir, "region");
         this.cacheSize = (cacheSize >= 0) ? cacheSize : ((highestX - lowestX + 1 + 2 * dimension.getBorderSize()) * 2 + 50);
-        cache = new HashMap<Point, Chunk>(cacheSize);
-        lruList = new HashList<Point>(cacheSize);
-        dirtyChunks = new HashSet<Point>(cacheSize);
+        cache = new HashMap<>(cacheSize);
+        lruList = new HashList<>(cacheSize);
+        dirtyChunks = new HashSet<>(cacheSize);
     }
 
     public int getHighestX() {
@@ -514,7 +514,7 @@ public class MinecraftWorldImpl implements MinecraftWorld {
         }
         // Check that there aren't multiple tile entities (of the same type,
         // otherwise they would have been removed above) in the same location
-        Set<Point3i> occupiedCoords = new HashSet<Point3i>();
+        Set<Point3i> occupiedCoords = new HashSet<>();
         for (Iterator<TileEntity> i = chunk.getTileEntities().iterator(); i.hasNext(); ) {
             TileEntity tileEntity = i.next();
             Point3i coords = new Point3i(tileEntity.getX(), tileEntity.getZ(), tileEntity.getY());
@@ -531,11 +531,8 @@ public class MinecraftWorldImpl implements MinecraftWorld {
         try {
             int x = chunk.getxPos(), z = chunk.getzPos();
             RegionFile regionFile = getRegionFile(new Point(x >> 5, z >> 5));
-            NBTOutputStream out = new NBTOutputStream(regionFile.getChunkDataOutputStream(x & 31, z & 31));
-            try {
+            try (NBTOutputStream out = new NBTOutputStream(regionFile.getChunkDataOutputStream(x & 31, z & 31))) {
                 out.writeTag(chunk.toNBT());
-            } finally {
-                out.close();
             }
         } catch (IOException e) {
             throw new RuntimeException("I/O error saving chunk", e);
@@ -568,14 +565,11 @@ public class MinecraftWorldImpl implements MinecraftWorld {
             InputStream chunkIn = regionFile.getChunkDataInputStream(x & 31, z & 31);
             if (chunkIn != null) {
 //                chunksLoaded++;
-                NBTInputStream in = new NBTInputStream(chunkIn);
-                try {
+                try (NBTInputStream in = new NBTInputStream(chunkIn)) {
                     CompoundTag tag = (CompoundTag) in.readTag();
 //                    timeSpentLoading += System.currentTimeMillis() - start;
                     boolean readOnly = honourReadOnlyChunks && dimension.getBitLayerValueAt(ReadOnly.INSTANCE, x << 4, z << 4);
                     return (version == SUPPORTED_VERSION_1) ? new ChunkImpl(tag, maxHeight, readOnly) : new ChunkImpl2(tag, maxHeight, readOnly);
-                } finally {
-                    in.close();
                 }
             } else {
 //                timeSpentLoading += System.currentTimeMillis() - start;
@@ -629,7 +623,7 @@ public class MinecraftWorldImpl implements MinecraftWorld {
     private final Map<Point, Chunk> cache;
     private final HashList<Point> lruList;
     private final Set<Point> dirtyChunks;
-    private final Map<Point, RegionFile> regionFiles = new HashMap<Point, RegionFile>();
+    private final Map<Point, RegionFile> regionFiles = new HashMap<>();
     private final int maxHeight, version, cacheSize;
     private Chunk cachedChunk;
     private int cachedX = Integer.MIN_VALUE, cachedZ = Integer.MIN_VALUE;

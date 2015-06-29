@@ -43,9 +43,7 @@ public abstract class Minecraft1_8JarBiomeScheme extends AbstractMinecraft1_7Bio
             Class<?> initClass = classLoader.loadClass(initClassName);
             Method initMethod = initClass.getMethod("c");
             initMethod.invoke(null);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Not a valid " + version + " minecraft.jar", e);
-        } catch (NoSuchMethodException e) {
+        } catch (ClassNotFoundException | NoSuchMethodException e) {
             throw new RuntimeException("Not a valid " + version + " minecraft.jar", e);
         } catch (IllegalAccessException e) {
             throw new RuntimeException("Access denied while trying to initialise Minecraft", e);

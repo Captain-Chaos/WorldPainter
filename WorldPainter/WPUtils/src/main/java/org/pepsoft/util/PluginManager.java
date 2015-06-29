@@ -39,11 +39,8 @@ public final class PluginManager {
         if (logger.isLoggable(Level.FINE)) {
             logger.fine(logPrefix + "Loading plugins");
         }
-        File[] pluginFiles = pluginDir.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return name.toLowerCase().endsWith(".jar");
-            }
+        File[] pluginFiles = pluginDir.listFiles((dir, name) -> {
+            return name.toLowerCase().endsWith(".jar");
         });
         if (pluginFiles != null) {
             for (File pluginFile: pluginFiles) {
@@ -66,7 +63,7 @@ public final class PluginManager {
     
     public static <T> List<T> findPlugins(Class<T> type, String filename, ClassLoader classLoader) {
         try {
-            List<T> plugins = new ArrayList<T>();
+            List<T> plugins = new ArrayList<>();
             findPlugins(filename, classLoader, plugins);
             for (JarFile pluginJar: pluginJars.keySet()) {
                 findPlugins(filename, pluginJar, plugins);
@@ -95,11 +92,8 @@ public final class PluginManager {
                 continue;
             }
             byte[] buffer = new byte[BUFFER_SIZE];
-            InputStream in = jarFile.getInputStream(jarEntry);
-            try {
-                while (in.read(buffer) != -1);
-            } finally {
-                in.close();
+            try (InputStream in = jarFile.getInputStream(jarEntry)) {
+                while (in.read(buffer) != -1) ;
             }
             Certificate[] certificates = jarEntry.getCertificates();
             boolean signed = false;
@@ -120,8 +114,7 @@ public final class PluginManager {
     
     private static <T> void findPlugins(String filename, JarFile jarFile, List<T> plugins) throws IOException {
         JarEntry jarEntry = jarFile.getJarEntry(filename);
-        BufferedReader in = new BufferedReader(new InputStreamReader(jarFile.getInputStream(jarEntry), Charset.forName("UTF-8")));
-        try {
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(jarFile.getInputStream(jarEntry), Charset.forName("UTF-8")))) {
             String line;
             while ((line = in.readLine()) != null) {
                 try {
@@ -136,8 +129,6 @@ public final class PluginManager {
                     throw new RuntimeException("Exception thrown while instantiating plugin " + line, e);
                 }
             }
-        } finally {
-            in.close();
         }
     }
     
@@ -145,8 +136,7 @@ public final class PluginManager {
         Enumeration<URL> resources = classLoader.getResources(filename);
         while (resources.hasMoreElements()) {
             URL url = resources.nextElement();
-            BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream(), Charset.forName("UTF-8")));
-            try {
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream(), Charset.forName("UTF-8")))) {
                 String line;
                 while ((line = in.readLine()) != null) {
                     try {
@@ -161,13 +151,11 @@ public final class PluginManager {
                         throw new RuntimeException("Exception thrown while instantiating plugin " + line, e);
                     }
                 }
-            } finally {
-                in.close();
             }
         }
     }
     
-    private static final Map<JarFile, ClassLoader> pluginJars = new HashMap<JarFile, ClassLoader>();
+    private static final Map<JarFile, ClassLoader> pluginJars = new HashMap<>();
     private static final int BUFFER_SIZE = 32768;
     private static final ClassLoader classLoader = new ClassLoader(ClassLoader.getSystemClassLoader()) {
         @Override

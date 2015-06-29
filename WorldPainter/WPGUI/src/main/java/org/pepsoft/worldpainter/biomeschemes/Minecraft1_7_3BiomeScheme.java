@@ -151,9 +151,9 @@ public final class Minecraft1_7_3BiomeScheme extends AbstractBiomeScheme {
         "Rainforest"
     };
     
-    public static final Set<Integer> DRY_BIOMES = new HashSet<Integer>(Arrays.asList(BIOME_DESERT));
-    public static final Set<Integer> COLD_BIOMES = new HashSet<Integer>(Arrays.asList(BIOME_ICE_DESERT, BIOME_TAIGA, BIOME_TUNDRA));
-    public static final Set<Integer> FORESTED_BIOMES = new HashSet<Integer>(Arrays.asList(BIOME_FOREST, BIOME_RAINFOREST, BIOME_SEASONAL_FOREST, BIOME_TAIGA));
+    public static final Set<Integer> DRY_BIOMES = new HashSet<>(Arrays.asList(BIOME_DESERT));
+    public static final Set<Integer> COLD_BIOMES = new HashSet<>(Arrays.asList(BIOME_ICE_DESERT, BIOME_TAIGA, BIOME_TUNDRA));
+    public static final Set<Integer> FORESTED_BIOMES = new HashSet<>(Arrays.asList(BIOME_FOREST, BIOME_RAINFOREST, BIOME_SEASONAL_FOREST, BIOME_TAIGA));
     public static final Set<Integer> SWAMPY_BIOMES = Collections.emptySet();
     
     private long seed = Long.MIN_VALUE;

@@ -290,8 +290,7 @@ public final class XDG {
 
     private static void readShellVarScript(File script, Properties props) {
         try {
-            BufferedReader in = new BufferedReader(new FileReader(script));
-            try {
+            try (BufferedReader in = new BufferedReader(new FileReader(script))) {
                 String line;
                 while ((line = in.readLine()) != null) {
                     line = line.trim();
@@ -314,13 +313,11 @@ public final class XDG {
                     do {
                         previousValue = value;
                         value = expandVariables(value);
-                    } while (! value.equals(previousValue));
+                    } while (!value.equals(previousValue));
 
                     // Store the variables as properties
                     props.setProperty(key, value);
                 }
-            } finally {
-                in.close();
             }
         } catch (IOException e) {
             throw new RuntimeException("I/O error reading " + script);

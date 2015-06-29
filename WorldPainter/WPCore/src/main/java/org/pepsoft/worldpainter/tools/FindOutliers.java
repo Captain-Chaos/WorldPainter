@@ -30,8 +30,8 @@ public class FindOutliers {
             }
             int regionCount = 0, chunkCount = 0;
             int lowestChunkX = Integer.MAX_VALUE, highestChunkX = Integer.MIN_VALUE, lowestChunkZ = Integer.MAX_VALUE, highestChunkZ = Integer.MIN_VALUE;
-            List<Integer> xValues = new ArrayList<Integer>(), zValues = new ArrayList<Integer>();
-            List<Point> chunks = new ArrayList<Point>();
+            List<Integer> xValues = new ArrayList<>(), zValues = new ArrayList<>();
+            List<Point> chunks = new ArrayList<>();
             for (File file: regionFiles) {
                 String[] nameFrags = file.getName().split("\\.");
                 int regionX = Integer.parseInt(nameFrags[1]);
@@ -83,7 +83,7 @@ public class FindOutliers {
             float iqr = q3 - q1;
             int lowerLimit = (int) (q2 - iqr * 1.5f);
             int upperLimit = (int) (q2 + iqr * 1.5f);
-            Set<Point> outlyingChunks = new HashSet<Point>();
+            Set<Point> outlyingChunks = new HashSet<>();
             for (Point chunk: chunks) {
                 if ((chunk.x < lowerLimit) || (chunk.x > upperLimit)) {
                     outlyingChunks.add(chunk);

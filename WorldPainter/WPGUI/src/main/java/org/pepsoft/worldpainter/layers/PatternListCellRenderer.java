@@ -36,5 +36,5 @@ public class PatternListCellRenderer extends DefaultListCellRenderer {
         return this;
     }
     
-    private final Map<Pattern, Icon> iconCache = new HashMap<Pattern, Icon>();
+    private final Map<Pattern, Icon> iconCache = new HashMap<>();
 }

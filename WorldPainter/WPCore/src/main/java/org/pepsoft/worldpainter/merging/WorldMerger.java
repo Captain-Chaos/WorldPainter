@@ -244,11 +244,8 @@ public class WorldMerger extends WorldExporter {
         // Update the session.lock file, hopefully kicking out any Minecraft instances which may have tried to open the
         // map in the mean time:
         File sessionLockFile = new File(worldDir, "session.lock");
-        DataOutputStream sessionOut = new DataOutputStream(new FileOutputStream(sessionLockFile));
-        try {
+        try (DataOutputStream sessionOut = new DataOutputStream(new FileOutputStream(sessionLockFile))) {
             sessionOut.writeLong(System.currentTimeMillis());
-        } finally {
-            sessionOut.close();
         }
 
         // Log an event
@@ -309,7 +306,7 @@ public class WorldMerger extends WorldExporter {
         try {
             
             // Gather all layers used on the map
-            final Map<Layer, LayerExporter<Layer>> exporters = new HashMap<Layer, LayerExporter<Layer>>();
+            final Map<Layer, LayerExporter<Layer>> exporters = new HashMap<>();
             Set<Layer> allLayers = dimension.getAllLayers(false);
             allLayers.addAll(dimension.getMinimumLayers());
             // If there are combined layers, apply them and gather any newly
@@ -317,7 +314,7 @@ public class WorldMerger extends WorldExporter {
             boolean done;
             do {
                 done = true;
-                for (Layer layer: new HashSet<Layer>(allLayers)) {
+                for (Layer layer: new HashSet<>(allLayers)) {
                     if (layer instanceof CombinedLayer) {
                         // Apply the combined layer
                         Set<Layer> addedLayers = ((CombinedLayer) layer).apply(dimension);
@@ -345,7 +342,7 @@ public class WorldMerger extends WorldExporter {
 
             // Sort tiles into regions
             int lowestRegionX = Integer.MAX_VALUE, highestRegionX = Integer.MIN_VALUE, lowestRegionZ = Integer.MAX_VALUE, highestRegionZ = Integer.MIN_VALUE;
-            Map<Point, Map<Point, Tile>> tilesByRegion = new HashMap<Point, Map<Point, Tile>>();
+            Map<Point, Map<Point, Tile>> tilesByRegion = new HashMap<>();
             final boolean tileSelection = selectedTiles != null;
             if (tileSelection) {
                 // Sanity check
@@ -373,7 +370,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                     Point regionCoords = new Point(regionX, regionZ);
                     Map<Point, Tile> tilesForRegion = tilesByRegion.get(regionCoords);
                     if (tilesForRegion == null) {
-                        tilesForRegion = new HashMap<Point, Tile>();
+                        tilesForRegion = new HashMap<>();
                         tilesByRegion.put(regionCoords, tilesForRegion);
                     }
                     tilesForRegion.put(tileCoords, tile);
@@ -413,7 +410,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                     Point regionCoords = new Point(regionX, regionZ);
                     Map<Point, Tile> tilesForRegion = tilesByRegion.get(regionCoords);
                     if (tilesForRegion == null) {
-                        tilesForRegion = new HashMap<Point, Tile>();
+                        tilesForRegion = new HashMap<>();
                         tilesByRegion.put(regionCoords, tilesForRegion);
                     }
                     tilesForRegion.put(new Point(tile.getX(), tile.getY()), tile);
@@ -437,13 +434,10 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
             final Pattern regionFilePattern = (version == SUPPORTED_VERSION_2)
                 ? Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mca")
                 : Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mcr");
-            File[] existingRegionFiles = backupRegionDir.listFiles(new FilenameFilter() {
-                @Override
-                public boolean accept(File dir, String name) {
-                    return regionFilePattern.matcher(name).matches();
-                }
+            File[] existingRegionFiles = backupRegionDir.listFiles((dir, name) -> {
+                return regionFilePattern.matcher(name).matches();
             });
-            Map<Point, File> existingRegions = new HashMap<Point, File>();
+            Map<Point, File> existingRegions = new HashMap<>();
             for (File file: existingRegionFiles) {
                 String[] parts = file.getName().split("\\.");
                 int regionX = Integer.parseInt(parts[1]);
@@ -462,13 +456,13 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                     highestRegionZ = regionZ;
                 }
             }
-            final Set<Point> allRegionCoords = new HashSet<Point>();
+            final Set<Point> allRegionCoords = new HashSet<>();
             allRegionCoords.addAll(tilesByRegion.keySet());
             allRegionCoords.addAll(existingRegions.keySet());
 
             // Sort the regions to export the first two rows together, and then
             // row by row, to get the optimum tempo of performing fixups
-            List<Point> sortedRegions = new ArrayList<Point>(allRegionCoords.size());
+            List<Point> sortedRegions = new ArrayList<>(allRegionCoords.size());
             if (lowestRegionZ == highestRegionZ) {
                 // No point in sorting it
                 sortedRegions.addAll(allRegionCoords);
@@ -510,8 +504,8 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
             }
             logger.info("Using " + threads + " thread(s) for merge (cores: " + runtime.availableProcessors() + ", available memory: " + (maxMemoryAvailable / 1048576L) + " MB)");
 
-            final Map<Point, List<Fixup> >fixups = new HashMap<Point, List<Fixup>>();
-            final Set<Point> exportedRegions = new HashSet<Point>();
+            final Map<Point, List<Fixup> >fixups = new HashMap<>();
+            final Set<Point> exportedRegions = new HashSet<>();
             ExecutorService executor = Executors.newFixedThreadPool(threads);
             final ParallelProgressManager parallelProgressManager = (progressReceiver != null) ? new ParallelProgressManager(progressReceiver, allRegionCoords.size()) : null;
             try {
@@ -521,71 +515,68 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                         if (tilesByRegion.containsKey(regionCoords)) {
                             // Region exists in new and existing maps; merge it
                             final Map<Point, Tile> tiles = tilesByRegion.get(regionCoords);
-                            executor.execute(new Runnable() {
-                                @Override
-                                public void run() {
-                                    ProgressReceiver progressReceiver = (parallelProgressManager != null) ? parallelProgressManager.createProgressReceiver() : null;
-                                    if (progressReceiver != null) {
-                                        try {
-                                            progressReceiver.checkForCancellation();
-                                        } catch (ProgressReceiver.OperationCancelled e) {
-                                            return;
-                                        }
-                                    }
+                            executor.execute(() -> {
+                                ProgressReceiver progressReceiver1 = (parallelProgressManager != null) ? parallelProgressManager.createProgressReceiver() : null;
+                                if (progressReceiver1 != null) {
                                     try {
-                                        List<Fixup> regionFixups = new ArrayList<Fixup>();
-                                        WorldRegion minecraftWorld = new WorldRegion(regionCoords.x, regionCoords.y, dimension.getMaxHeight(), version);
+                                        progressReceiver1.checkForCancellation();
+                                    } catch (ProgressReceiver.OperationCancelled e) {
+                                        return;
+                                    }
+                                }
+                                try {
+                                    List<Fixup> regionFixups = new ArrayList<>();
+                                    WorldRegion minecraftWorld = new WorldRegion(regionCoords.x, regionCoords.y, dimension.getMaxHeight(), version);
+                                    try {
+                                        String regionWarnings = mergeRegion(minecraftWorld, backupRegionDir, dimension, regionCoords, tiles, tileSelection, exporters, chunkFactory, regionFixups, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.0f, 0.9f) : null);
+                                        if (regionWarnings != null) {
+                                            if (warnings == null) {
+                                                warnings = regionWarnings;
+                                            } else {
+                                                warnings = warnings + regionWarnings;
+                                            }
+                                        }
+                                        if (logger.isLoggable(java.util.logging.Level.FINE)) {
+                                            logger.fine("Merged region " + regionCoords.x + "," + regionCoords.y);
+                                        }
+                                    } finally {
+                                        minecraftWorld.save(dimensionDir);
+                                    }
+                                    synchronized (fixups) {
+                                        if (! regionFixups.isEmpty()) {
+                                            fixups.put(new Point(regionCoords.x, regionCoords.y), regionFixups);
+                                        }
+                                        exportedRegions.add(regionCoords);
+                                    }
+                                    // Apply all fixups which can be applied because
+                                    // all surrounding regions have been exported
+                                    // (or are not going to be), but only if another
+                                    // thread is not already doing it
+                                    if (performingFixups.tryAcquire()) {
                                         try {
-                                            String regionWarnings = mergeRegion(minecraftWorld, backupRegionDir, dimension, regionCoords, tiles, tileSelection, exporters, chunkFactory, regionFixups, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.0f, 0.9f) : null);
-                                            if (regionWarnings != null) {
-                                                if (warnings == null) {
-                                                    warnings = regionWarnings;
-                                                } else {
-                                                    warnings = warnings + regionWarnings;
-                                                }
-                                            }
-                                            if (logger.isLoggable(java.util.logging.Level.FINE)) {
-                                                logger.fine("Merged region " + regionCoords.x + "," + regionCoords.y);
-                                            }
-                                        } finally {
-                                            minecraftWorld.save(dimensionDir);
-                                        }
-                                        synchronized (fixups) {
-                                            if (! regionFixups.isEmpty()) {
-                                                fixups.put(new Point(regionCoords.x, regionCoords.y), regionFixups);
-                                            }
-                                            exportedRegions.add(regionCoords);
-                                        }
-                                        // Apply all fixups which can be applied because
-                                        // all surrounding regions have been exported
-                                        // (or are not going to be), but only if another
-                                        // thread is not already doing it
-                                        if (performingFixups.tryAcquire()) {
-                                            try {
-                                                Map<Point, List<Fixup>> myFixups = new HashMap<Point, List<Fixup>>();
-                                                synchronized (fixups) {
-                                                    for (Iterator<Map.Entry<Point, List<Fixup>>> i = fixups.entrySet().iterator(); i.hasNext(); ) {
-                                                        Map.Entry<Point, List<Fixup>> entry = i.next();
-                                                        Point fixupRegionCoords = entry.getKey();
-                                                        if (isReadyForFixups(allRegionCoords, exportedRegions, fixupRegionCoords)) {
-                                                            myFixups.put(fixupRegionCoords, entry.getValue());
-                                                            i.remove();
-                                                        }
+                                            Map<Point, List<Fixup>> myFixups = new HashMap<>();
+                                            synchronized (fixups) {
+                                                for (Iterator<Map.Entry<Point, List<Fixup>>> i = fixups.entrySet().iterator(); i.hasNext(); ) {
+                                                    Map.Entry<Point, List<Fixup>> entry = i.next();
+                                                    Point fixupRegionCoords = entry.getKey();
+                                                    if (isReadyForFixups(allRegionCoords, exportedRegions, fixupRegionCoords)) {
+                                                        myFixups.put(fixupRegionCoords, entry.getValue());
+                                                        i.remove();
                                                     }
                                                 }
-                                                if (! myFixups.isEmpty()) {
-                                                    performFixups(worldDir, dimension, version, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.9f, 0.1f) : null, myFixups);
-                                                }
-                                            } finally {
-                                                performingFixups.release();
                                             }
+                                            if (! myFixups.isEmpty()) {
+                                                performFixups(worldDir, dimension, version, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.9f, 0.1f) : null, myFixups);
+                                            }
+                                        } finally {
+                                            performingFixups.release();
                                         }
-                                    } catch (Throwable t) {
-                                        if (progressReceiver != null) {
-                                            progressReceiver.exceptionThrown(t);
-                                        } else {
-                                            logger.log(java.util.logging.Level.SEVERE, "Exception while exporting region", t);
-                                        }
+                                    }
+                                } catch (Throwable t) {
+                                    if (progressReceiver1 != null) {
+                                        progressReceiver1.exceptionThrown(t);
+                                    } else {
+                                        logger.log(java.util.logging.Level.SEVERE, "Exception while exporting region", t);
                                     }
                                 }
                             });
@@ -603,66 +594,63 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                         }
                     } else {
                         // Region only exists in new world. Create it as new
-                        executor.execute(new Runnable() {
-                            @Override
-                            public void run() {
-                                ProgressReceiver progressReceiver = (parallelProgressManager != null) ? parallelProgressManager.createProgressReceiver() : null;
-                                if (progressReceiver != null) {
-                                    try {
-                                        progressReceiver.checkForCancellation();
-                                    } catch (ProgressReceiver.OperationCancelled e) {
-                                        return;
+                        executor.execute(() -> {
+                            ProgressReceiver progressReceiver1 = (parallelProgressManager != null) ? parallelProgressManager.createProgressReceiver() : null;
+                            if (progressReceiver1 != null) {
+                                try {
+                                    progressReceiver1.checkForCancellation();
+                                } catch (ProgressReceiver.OperationCancelled e) {
+                                    return;
+                                }
+                            }
+                            try {
+                                WorldRegion minecraftWorld = new WorldRegion(regionCoords.x, regionCoords.y, dimension.getMaxHeight(), version);
+                                ExportResults exportResults = null;
+                                try {
+                                    exportResults = exportRegion(minecraftWorld, dimension, null, regionCoords, tileSelection, exporters, null, chunkFactory, null, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.9f, 0.1f) : null);
+                                    if (logger.isLoggable(java.util.logging.Level.FINE)) {
+                                        logger.fine("Generated region " + regionCoords.x + "," + regionCoords.y);
+                                    }
+                                } finally {
+                                    if ((exportResults != null) && exportResults.chunksGenerated) {
+                                        minecraftWorld.save(dimensionDir);
                                     }
                                 }
-                                try {
-                                    WorldRegion minecraftWorld = new WorldRegion(regionCoords.x, regionCoords.y, dimension.getMaxHeight(), version);
-                                    ExportResults exportResults = null;
+                                synchronized (fixups) {
+                                    if ((exportResults.fixups != null) && (! exportResults.fixups.isEmpty())) {
+                                        fixups.put(new Point(regionCoords.x, regionCoords.y), exportResults.fixups);
+                                    }
+                                    exportedRegions.add(regionCoords);
+                                }
+                                // Apply all fixups which can be applied because
+                                // all surrounding regions have been exported
+                                // (or are not going to be), but only if another
+                                // thread is not already doing it
+                                if (performingFixups.tryAcquire()) {
                                     try {
-                                        exportResults = exportRegion(minecraftWorld, dimension, null, regionCoords, tileSelection, exporters, null, chunkFactory, null, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.9f, 0.1f) : null);
-                                        if (logger.isLoggable(java.util.logging.Level.FINE)) {
-                                            logger.fine("Generated region " + regionCoords.x + "," + regionCoords.y);
-                                        }
-                                    } finally {
-                                        if ((exportResults != null) && exportResults.chunksGenerated) {
-                                            minecraftWorld.save(dimensionDir);
-                                        }
-                                    }
-                                    synchronized (fixups) {
-                                        if ((exportResults.fixups != null) && (! exportResults.fixups.isEmpty())) {
-                                            fixups.put(new Point(regionCoords.x, regionCoords.y), exportResults.fixups);
-                                        }
-                                        exportedRegions.add(regionCoords);
-                                    }
-                                    // Apply all fixups which can be applied because
-                                    // all surrounding regions have been exported
-                                    // (or are not going to be), but only if another
-                                    // thread is not already doing it
-                                    if (performingFixups.tryAcquire()) {
-                                        try {
-                                            Map<Point, List<Fixup>> myFixups = new HashMap<Point, List<Fixup>>();
-                                            synchronized (fixups) {
-                                                for (Iterator<Map.Entry<Point, List<Fixup>>> i = fixups.entrySet().iterator(); i.hasNext(); ) {
-                                                    Map.Entry<Point, List<Fixup>> entry = i.next();
-                                                    Point fixupRegionCoords = entry.getKey();
-                                                    if (isReadyForFixups(allRegionCoords, exportedRegions, fixupRegionCoords)) {
-                                                        myFixups.put(fixupRegionCoords, entry.getValue());
-                                                        i.remove();
-                                                    }
+                                        Map<Point, List<Fixup>> myFixups = new HashMap<>();
+                                        synchronized (fixups) {
+                                            for (Iterator<Map.Entry<Point, List<Fixup>>> i = fixups.entrySet().iterator(); i.hasNext(); ) {
+                                                Map.Entry<Point, List<Fixup>> entry = i.next();
+                                                Point fixupRegionCoords = entry.getKey();
+                                                if (isReadyForFixups(allRegionCoords, exportedRegions, fixupRegionCoords)) {
+                                                    myFixups.put(fixupRegionCoords, entry.getValue());
+                                                    i.remove();
                                                 }
                                             }
-                                            if (! myFixups.isEmpty()) {
-                                                performFixups(worldDir, dimension, version, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.9f, 0.1f) : null, myFixups);
-                                            }
-                                        } finally {
-                                            performingFixups.release();
                                         }
+                                        if (! myFixups.isEmpty()) {
+                                            performFixups(worldDir, dimension, version, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.9f, 0.1f) : null, myFixups);
+                                        }
+                                    } finally {
+                                        performingFixups.release();
                                     }
-                                } catch (Throwable t) {
-                                    if (progressReceiver != null) {
-                                        progressReceiver.exceptionThrown(t);
-                                    } else {
-                                        logger.log(java.util.logging.Level.SEVERE, "Exception while exporting region", t);
-                                    }
+                                }
+                            } catch (Throwable t) {
+                                if (progressReceiver1 != null) {
+                                    progressReceiver1.exceptionThrown(t);
+                                } else {
+                                    logger.log(java.util.logging.Level.SEVERE, "Exception while exporting region", t);
                                 }
                             }
                         });
@@ -701,7 +689,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
     }
     
     private String mergeRegion(MinecraftWorld minecraftWorld, File oldRegionDir, Dimension dimension, Point regionCoords, Map<Point, Tile> tiles, boolean tileSelection, Map<Layer, LayerExporter<Layer>> exporters, ChunkFactory chunkFactory, List<Fixup> fixups, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
-        Set<Layer> allLayers = new HashSet<Layer>();
+        Set<Layer> allLayers = new HashSet<>();
         for (Tile tile: tiles.values()) {
             allLayers.addAll(tile.getLayers());
         }
@@ -710,7 +698,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         Set<Layer> minimumLayers = dimension.getMinimumLayers();
         allLayers.addAll(minimumLayers);
         
-        List<Layer> secondaryPassLayers = new ArrayList<Layer>();
+        List<Layer> secondaryPassLayers = new ArrayList<>();
         for (Layer layer: allLayers) {
             LayerExporter exporter = layer.getExporter();
             if (exporter instanceof SecondPassLayerExporter) {
@@ -750,11 +738,8 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                 String timingMessage = (t2 - t1) + ", " + (t3 - t2) + ", " + (t4 - t3) + ", " + (t5 - t4) + ", " + (t6 - t5) + ", " + (t6 - t1);
 //                System.out.println("Merge timing: " + timingMessage);
                 synchronized (TIMING_FILE_LOCK) {
-                    PrintWriter out = new PrintWriter(new FileOutputStream("mergetimings.csv", true));
-                    try {
+                    try (PrintWriter out = new PrintWriter(new FileOutputStream("mergetimings.csv", true))) {
                         out.println(timingMessage);
-                    } finally {
-                        out.close();
                     }
                 }
             }
@@ -835,11 +820,8 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         // Find all the region files of the existing level
         File oldRegionDir = new File(backupDir, "region");
         final Pattern regionFilePattern = Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mca");
-        File[] oldRegionFiles = oldRegionDir.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return regionFilePattern.matcher(name).matches();
-            }
+        File[] oldRegionFiles = oldRegionDir.listFiles((dir, name) -> {
+            return regionFilePattern.matcher(name).matches();
         });
 
         // Process each region file, copying every chunk unmodified, except
@@ -860,12 +842,9 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                         for (int z = 0; z < 32; z++) {
                             if (oldRegion.containsChunk(x, z)) {
                                 ChunkImpl2 chunk;
-                                NBTInputStream in = new NBTInputStream(oldRegion.getChunkDataInputStream(x, z));
-                                try {
+                                try (NBTInputStream in = new NBTInputStream(oldRegion.getChunkDataInputStream(x, z))) {
                                     CompoundTag tag = (CompoundTag) in.readTag();
                                     chunk = new ChunkImpl2(tag, level.getMaxHeight());
-                                } finally {
-                                    in.close();
                                 }
                                 int chunkX = chunk.getxPos(), chunkZ = chunk.getzPos();
                                 for (int xx = 0; xx < 16; xx++) {
@@ -873,11 +852,8 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                                         chunk.setBiome(xx, zz, dimension.getLayerValueAt(Biome.INSTANCE, (chunkX << 4) | xx, (chunkZ << 4) | zz));
                                     }
                                 }
-                                NBTOutputStream out = new NBTOutputStream(newRegion.getChunkDataOutputStream(x, z));
-                                try {
+                                try (NBTOutputStream out = new NBTOutputStream(newRegion.getChunkDataOutputStream(x, z))) {
                                     out.writeTag(chunk.toNBT());
-                                } finally {
-                                    out.close();
                                 }
                             }
                             chunkCount++;
@@ -902,8 +878,8 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         int highestChunkY = (regionCoords.y << 5) + 32;
         int version = dimension.getWorld().getVersion();
         int maxHeight = dimension.getMaxHeight();
-        Map<Point, RegionFile> regionFiles = new HashMap<Point, RegionFile>();
-        Set<Point> damagedRegions = new HashSet<Point>();
+        Map<Point, RegionFile> regionFiles = new HashMap<>();
+        Set<Point> damagedRegions = new HashSet<>();
         StringBuilder reportBuilder = new StringBuilder();
         try {
             int chunkNo = 0;
@@ -963,11 +939,8 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                                 logger.warning("Missing chunk data in existing map for chunk " + chunkXInRegion + ", " + chunkYInRegion + " in " + regionFile + "; skipping chunk");
                                 continue;
                             }
-                            NBTInputStream in = new NBTInputStream(chunkData);
-                            try {
+                            try (NBTInputStream in = new NBTInputStream(chunkData)) {
                                 tag = in.readTag();
-                            } finally {
-                                in.close();
                             }
                         } catch (IOException e) {
                             reportBuilder.append("I/O error while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
@@ -1138,8 +1111,8 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         int highestChunkY = (regionCoords.y << 5) + 31;
         int version = dimension.getWorld().getVersion();
         int maxHeight = dimension.getMaxHeight();
-        Map<Point, RegionFile> regionFiles = new HashMap<Point, RegionFile>();
-        Set<Point> damagedRegions = new HashSet<Point>();
+        Map<Point, RegionFile> regionFiles = new HashMap<>();
+        Set<Point> damagedRegions = new HashSet<>();
         StringBuilder reportBuilder = new StringBuilder();
         try {
             int chunkNo = 0;
@@ -1184,11 +1157,8 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                                 logger.warning("Missing chunk data for chunk " + chunkXInRegion + ", " + chunkYInRegion + " in " + regionFile + "; skipping chunk");
                                 continue;
                             }
-                            NBTInputStream in = new NBTInputStream(chunkData);
-                            try {
+                            try (NBTInputStream in = new NBTInputStream(chunkData)) {
                                 tag = in.readTag();
-                            } finally {
-                                in.close();
                             }
                         } catch (IOException e) {
                             reportBuilder.append("I/O error while reading chunk " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);

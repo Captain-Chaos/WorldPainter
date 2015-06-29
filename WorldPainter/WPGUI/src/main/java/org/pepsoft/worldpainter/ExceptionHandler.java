@@ -31,12 +31,7 @@ public class ExceptionHandler implements Thread.UncaughtExceptionHandler {
         } else  if (SwingUtilities.isEventDispatchThread()) {
             handle(e);
         } else {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    handle(e);
-                }
-            });
+            SwingUtilities.invokeLater(() -> handle(e));
         }
     }
     

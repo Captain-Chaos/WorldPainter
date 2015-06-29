@@ -27,7 +27,7 @@ public class MemoryUtils {
         if (object == null) {
             return 0;
         } else {
-            IdentityHashMap<Object, Void> processedObjects = new IdentityHashMap<Object, Void>();
+            IdentityHashMap<Object, Void> processedObjects = new IdentityHashMap<>();
             return getSize(object, processedObjects, stopAt/*, "root"*/);
         }
     }
@@ -72,9 +72,9 @@ public class MemoryUtils {
                 } else {
                     Object[] array = (Object[]) object;
                     objectSize = array.length * 4; // References
-                    for (int i = 0; i < array.length; i++) {
-                        if (array[i] != null) {
-                            objectSize += getSize(array[i], processedObjects, stopAt/*, trail + '[' + i + ']'*/);
+                    for (Object anArray : array) {
+                        if (anArray != null) {
+                            objectSize += getSize(anArray, processedObjects, stopAt/*, trail + '[' + i + ']'*/);
                         }
                     }
                 }
@@ -115,7 +115,7 @@ public class MemoryUtils {
         }
     }
     
-    private static final Map<Class<?>, Integer> PRIMITIVE_TYPE_SIZES = new HashMap<Class<?>, Integer>();
+    private static final Map<Class<?>, Integer> PRIMITIVE_TYPE_SIZES = new HashMap<>();
     
     static {
         PRIMITIVE_TYPE_SIZES.put(boolean.class, 1);

@@ -25,11 +25,8 @@ public class PruneTiles {
         File worldFile = new File(args[0]);
         int maxTileDistance = Integer.parseInt(args[1]);
         World2 world;
-        ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new FileInputStream(worldFile)));
-        try {
+        try (ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new FileInputStream(worldFile)))) {
             world = (World2) in.readObject();
-        } finally {
-            in.close();
         }
         for (Dimension dimension: world.getDimensions()) {
             for (Tile tile: dimension.getTiles()) {
@@ -41,11 +38,8 @@ public class PruneTiles {
                 }
             }
         }
-        ObjectOutputStream out = new ObjectOutputStream(new GZIPOutputStream(new FileOutputStream(worldFile)));
-        try {
+        try (ObjectOutputStream out = new ObjectOutputStream(new GZIPOutputStream(new FileOutputStream(worldFile)))) {
             out.writeObject(world);
-        } finally {
-            out.close();
         }
     }
 }

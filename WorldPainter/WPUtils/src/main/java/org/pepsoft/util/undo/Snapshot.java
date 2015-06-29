@@ -41,7 +41,7 @@ public final class Snapshot {
     
     private final UndoManager undoManager;
     int frame;
-    private final Map<BufferKey<?>, Object> bufferCache = new HashMap<BufferKey<?>, Object>();
+    private final Map<BufferKey<?>, Object> bufferCache = new HashMap<>();
     
     private static final Logger logger = Logger.getLogger(Snapshot.class.getName());
 }

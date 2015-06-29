@@ -39,48 +39,53 @@ public class Mapper {
         File output = null;
         for (int i = 0; i < args.length; i++) {
             String arg = args[i].trim();
-            if (arg.equals("-d")) {
-                if (i < args.length - 1) {
-                    i++;
-                    try {
-                        dim = Integer.parseInt(args[i].trim());
-                    } catch (NumberFormatException e) {
-                        error("Invalid argument to -d option: \"" + args[i] + "\"");
-                    }
-                } else {
-                    error("Missing argument to -d option");
-                }
-            } else if (arg.equals("-c")) {
-                if (i < args.length - 1) {
-                    i++;
-                    colourSchemeName = args[i].trim();
-                } else {
-                    error("Missing argument to -c option");
-                }
-            } else if (arg.equals("-o")) {
-                if (i < args.length - 1) {
-                    i++;
-                    String outputName = args[i].trim();
-                    if (! outputName.toLowerCase().endsWith(".png")) {
-                        error("Only PNG format suppored for output file");
-                    }
-                    output = new File(outputName);
-                    if (output.getParentFile() != null) {
-                        if (! output.isDirectory()) {
-                            error("Parent directory of output file does not exist or is not a directory: \"" + output.getParentFile() + "\"");
-                        } else if (! output.canWrite()) {
-                            error("Parent directory of output file is not writeable: \"" + output.getParentFile() + "\"");
+            switch (arg) {
+                case "-d":
+                    if (i < args.length - 1) {
+                        i++;
+                        try {
+                            dim = Integer.parseInt(args[i].trim());
+                        } catch (NumberFormatException e) {
+                            error("Invalid argument to -d option: \"" + args[i] + "\"");
                         }
+                    } else {
+                        error("Missing argument to -d option");
                     }
-                } else {
-                    error("Missing argument to -o option");
-                }
-            } else {
-                if (worldDir != null) {
-                    error("Unrecognised option: \"" + arg + "\"");
-                } else {
-                    worldDir = new File(arg);
-                }
+                    break;
+                case "-c":
+                    if (i < args.length - 1) {
+                        i++;
+                        colourSchemeName = args[i].trim();
+                    } else {
+                        error("Missing argument to -c option");
+                    }
+                    break;
+                case "-o":
+                    if (i < args.length - 1) {
+                        i++;
+                        String outputName = args[i].trim();
+                        if (!outputName.toLowerCase().endsWith(".png")) {
+                            error("Only PNG format suppored for output file");
+                        }
+                        output = new File(outputName);
+                        if (output.getParentFile() != null) {
+                            if (!output.isDirectory()) {
+                                error("Parent directory of output file does not exist or is not a directory: \"" + output.getParentFile() + "\"");
+                            } else if (!output.canWrite()) {
+                                error("Parent directory of output file is not writeable: \"" + output.getParentFile() + "\"");
+                            }
+                        }
+                    } else {
+                        error("Missing argument to -o option");
+                    }
+                    break;
+                default:
+                    if (worldDir != null) {
+                        error("Unrecognised option: \"" + arg + "\"");
+                    } else {
+                        worldDir = new File(arg);
+                    }
+                    break;
             }
         }
         if (worldDir == null) {
@@ -133,18 +138,8 @@ public class Mapper {
 
         // Determine size
         File[] regionFiles = regionDir.listFiles((version == SUPPORTED_VERSION_1)
-            ? new FilenameFilter() {
-                @Override
-                public boolean accept(File dir, String name) {
-                    return name.toLowerCase().endsWith(".mcr");
-                }
-            }
-            : new FilenameFilter() {
-                @Override
-                public boolean accept(File dir, String name) {
-                    return name.toLowerCase().endsWith(".mca");
-                }
-            });
+            ? (dir, name) -> name.toLowerCase().endsWith(".mcr")
+                : (FilenameFilter) (dir, name) -> name.toLowerCase().endsWith(".mca"));
         int tmpLowestRegionX = Integer.MAX_VALUE, tmpHighestRegionX = Integer.MIN_VALUE;
         int tmpLowestRegionZ = Integer.MAX_VALUE, tmpHighestRegionZ = Integer.MIN_VALUE;
         for (File regionFile: regionFiles) {
@@ -310,82 +305,79 @@ public class Mapper {
         ExecutorService executorService = Executors.newFixedThreadPool(threads);
         for (File file: regionFiles) {
             final File finalFile = file;
-            executorService.submit(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        String[] parts = finalFile.getName().split("\\.");
-                        int regionX = Integer.parseInt(parts[1]);
-                        int regionY = Integer.parseInt(parts[2]);
-                        WorldRegion world = new WorldRegion(regionDir, regionX, regionY, maxHeight, version);
-                        int[][] heightCache = new int[544][544];
-                        for (int i = 0; i < 544; i++) {
-                            Arrays.fill(heightCache[i], -1);
-                        }
-                        for (int chunkX = 0; chunkX < 32; chunkX++) {
-                            for (int chunkY = 0; chunkY < 32; chunkY++) {
-                                int worldChunkX = (regionX << 5) | chunkX;
-                                int worldChunkY = (regionY << 5) | chunkY;
-                                if (world.isChunkPresent(worldChunkX, worldChunkY)) {
-                                    for (int x = 0; x < 16; x++) {
-                                        for (int y = 0; y < 16; y++) {
-                                            int worldX = (worldChunkX << 4) | x;
-                                            int worldY = (worldChunkY << 4) | y;
-                                            boolean snow = false, water = false, lava = false;
-                                            int waterLevel = 0;
-                                            for (int height = maxHeight - 1; height >= 0; height--) {
-                                                int blockType = world.getBlockTypeAt(worldX, worldY, height);
-                                                if (blockType != BLK_AIR) {
-                                                    if (blockType == BLK_SNOW) {
-                                                        snow = true;
-                                                    } else if ((blockType == BLK_STATIONARY_WATER) || (blockType == BLK_WATER) || (blockType == BLK_STATIONARY_LAVA) || (blockType == BLK_LAVA)) {
-                                                        if ((world.getDataAt(worldX, worldY, height) == 0) && (waterLevel == 0)) {
-                                                            waterLevel = height;
-                                                            if ((blockType == BLK_LAVA) || (blockType == BLK_STATIONARY_LAVA)) {
-                                                                lava = true;
-                                                            } else {
-                                                                water = true;
-                                                            }
+            executorService.submit(() -> {
+                try {
+                    String[] parts = finalFile.getName().split("\\.");
+                    int regionX = Integer.parseInt(parts[1]);
+                    int regionY = Integer.parseInt(parts[2]);
+                    WorldRegion world = new WorldRegion(regionDir, regionX, regionY, maxHeight, version);
+                    int[][] heightCache = new int[544][544];
+                    for (int i = 0; i < 544; i++) {
+                        Arrays.fill(heightCache[i], -1);
+                    }
+                    for (int chunkX = 0; chunkX < 32; chunkX++) {
+                        for (int chunkY = 0; chunkY < 32; chunkY++) {
+                            int worldChunkX = (regionX << 5) | chunkX;
+                            int worldChunkY = (regionY << 5) | chunkY;
+                            if (world.isChunkPresent(worldChunkX, worldChunkY)) {
+                                for (int x = 0; x < 16; x++) {
+                                    for (int y = 0; y < 16; y++) {
+                                        int worldX = (worldChunkX << 4) | x;
+                                        int worldY = (worldChunkY << 4) | y;
+                                        boolean snow = false, water = false, lava = false;
+                                        int waterLevel = 0;
+                                        for (int height = maxHeight - 1; height >= 0; height--) {
+                                            int blockType = world.getBlockTypeAt(worldX, worldY, height);
+                                            if (blockType != BLK_AIR) {
+                                                if (blockType == BLK_SNOW) {
+                                                    snow = true;
+                                                } else if ((blockType == BLK_STATIONARY_WATER) || (blockType == BLK_WATER) || (blockType == BLK_STATIONARY_LAVA) || (blockType == BLK_LAVA)) {
+                                                    if ((world.getDataAt(worldX, worldY, height) == 0) && (waterLevel == 0)) {
+                                                        waterLevel = height;
+                                                        if ((blockType == BLK_LAVA) || (blockType == BLK_STATIONARY_LAVA)) {
+                                                            lava = true;
+                                                        } else {
+                                                            water = true;
                                                         }
-                                                    } else if (TERRAIN_BLOCKS.contains(blockType)) {
-                                                        // Terrain found
-                                                        int data = world.getDataAt(worldX, worldY, height);
-                                                        int depth = waterLevel - height;
-                                                        int fluidAlpha = 0xff >> Math.min(depth, 3);
-                                                        int colour = colourScheme.getColour(blockType, data);
-                                                        if (depth > 0) {
-                                                            colour = ColourUtils.multiply(colour, getBrightenAmount(world, heightCache, ((chunkX + 1) << 4) | x, ((chunkY + 1) << 4) | y, regionX, regionY));
-                                                        }
-                                                        if (water) {
-                                                            colour = ColourUtils.mix(colour, waterColour, fluidAlpha);
-                                                        } else if (lava) {
-                                                            colour = ColourUtils.mix(colour, lavaColour, fluidAlpha);
-                                                        }
-                                                        if (snow) {
-                                                            colour = ColourUtils.mix(colour, snowColour, 64);
-                                                        }
-                                                        if (depth <= 0) {
-                                                            colour = ColourUtils.multiply(colour, getBrightenAmount(world, heightCache, ((chunkX + 1) << 4) | x, ((chunkY + 1) << 4) | y, regionX, regionY));
-                                                        }
-                                                        image.setRGB(worldX - imageOffsetX, worldY - imageOffsetY, 0xff000000 | colour);
-                                                        break;
-                                                    } else {
-                                                        // Non-terrain block found (not shaded)
-                                                        int data = world.getDataAt(worldX, worldY, height);
-                                                        int depth = waterLevel - height;
-                                                        int fluidAlpha = 0xff >> Math.min(depth, 3);
-                                                        int colour = colourScheme.getColour(blockType, data);
-                                                        if (water) {
-                                                            colour = ColourUtils.mix(colour, waterColour, fluidAlpha);
-                                                        } else if (lava) {
-                                                            colour = ColourUtils.mix(colour, lavaColour, fluidAlpha);
-                                                        }
-                                                        if (snow) {
-                                                            colour = ColourUtils.mix(colour, snowColour);
-                                                        }
-                                                        image.setRGB(worldX - imageOffsetX, worldY - imageOffsetY, 0xff000000 | colour);
-                                                        break;
                                                     }
+                                                } else if (TERRAIN_BLOCKS.contains(blockType)) {
+                                                    // Terrain found
+                                                    int data = world.getDataAt(worldX, worldY, height);
+                                                    int depth = waterLevel - height;
+                                                    int fluidAlpha = 0xff >> Math.min(depth, 3);
+                                                    int colour = colourScheme.getColour(blockType, data);
+                                                    if (depth > 0) {
+                                                        colour = ColourUtils.multiply(colour, getBrightenAmount(world, heightCache, ((chunkX + 1) << 4) | x, ((chunkY + 1) << 4) | y, regionX, regionY));
+                                                    }
+                                                    if (water) {
+                                                        colour = ColourUtils.mix(colour, waterColour, fluidAlpha);
+                                                    } else if (lava) {
+                                                        colour = ColourUtils.mix(colour, lavaColour, fluidAlpha);
+                                                    }
+                                                    if (snow) {
+                                                        colour = ColourUtils.mix(colour, snowColour, 64);
+                                                    }
+                                                    if (depth <= 0) {
+                                                        colour = ColourUtils.multiply(colour, getBrightenAmount(world, heightCache, ((chunkX + 1) << 4) | x, ((chunkY + 1) << 4) | y, regionX, regionY));
+                                                    }
+                                                    image.setRGB(worldX - imageOffsetX, worldY - imageOffsetY, 0xff000000 | colour);
+                                                    break;
+                                                } else {
+                                                    // Non-terrain block found (not shaded)
+                                                    int data = world.getDataAt(worldX, worldY, height);
+                                                    int depth = waterLevel - height;
+                                                    int fluidAlpha = 0xff >> Math.min(depth, 3);
+                                                    int colour = colourScheme.getColour(blockType, data);
+                                                    if (water) {
+                                                        colour = ColourUtils.mix(colour, waterColour, fluidAlpha);
+                                                    } else if (lava) {
+                                                        colour = ColourUtils.mix(colour, lavaColour, fluidAlpha);
+                                                    }
+                                                    if (snow) {
+                                                        colour = ColourUtils.mix(colour, snowColour);
+                                                    }
+                                                    image.setRGB(worldX - imageOffsetX, worldY - imageOffsetY, 0xff000000 | colour);
+                                                    break;
                                                 }
                                             }
                                         }
@@ -393,12 +385,12 @@ public class Mapper {
                                 }
                             }
                         }
-                        System.out.print('.');
-                        System.out.flush();
-                    } catch (Throwable t) {
-                        t.printStackTrace();
-                        System.exit(1);
                     }
+                    System.out.print('.');
+                    System.out.flush();
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                    System.exit(1);
                 }
             });
         }
@@ -439,7 +431,7 @@ public class Mapper {
     
 //    private static MinecraftWorldImpl world;
     private static int maxHeight;
-    private static final Set<Integer> TERRAIN_BLOCKS = new HashSet<Integer>();
+    private static final Set<Integer> TERRAIN_BLOCKS = new HashSet<>();
     
     static {
         TERRAIN_BLOCKS.add(BLK_STONE);

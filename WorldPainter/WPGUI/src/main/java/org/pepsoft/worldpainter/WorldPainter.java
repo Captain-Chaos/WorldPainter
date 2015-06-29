@@ -306,12 +306,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
                     JOptionPane.showMessageDialog(this, "An error occurred while loading the overlay image.\nIt may not be a valid or supported image file, or the file may be corrupted.", "Error Loading Image", JOptionPane.ERROR_MESSAGE);
                     this.drawOverlay = false;
                     return;
-                } catch (RuntimeException e) {
-                    logger.log(Level.SEVERE, e.getClass().getSimpleName() + " while loading image " + file ,e);
-                    JOptionPane.showMessageDialog(this, "An error occurred while loading the overlay image.\nThere may not be enough available memory, or the image may be too large.", "Error Loading Image", JOptionPane.ERROR_MESSAGE);
-                    this.drawOverlay = false;
-                    return;
-                } catch (Error e) {
+                } catch (RuntimeException | Error e) {
                     logger.log(Level.SEVERE, e.getClass().getSimpleName() + " while loading image " + file ,e);
                     JOptionPane.showMessageDialog(this, "An error occurred while loading the overlay image.\nThere may not be enough available memory, or the image may be too large.", "Error Loading Image", JOptionPane.ERROR_MESSAGE);
                     this.drawOverlay = false;
@@ -392,7 +387,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
 
     public void addHiddenLayer(Layer hiddenLayer) {
         if (! hiddenLayers.contains(hiddenLayer)) {
-            Set<Layer> oldHiddenLayers = new HashSet<Layer>(hiddenLayers);
+            Set<Layer> oldHiddenLayers = new HashSet<>(hiddenLayers);
             hiddenLayers.add(hiddenLayer);
             if (dimension != null) {
                 tileProvider.addHiddenLayer(hiddenLayer);
@@ -404,7 +399,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
 
     public void removeHiddenLayer(Layer hiddenLayer) {
         if (hiddenLayers.contains(hiddenLayer)) {
-            Set<Layer> oldHiddenLayers = new HashSet<Layer>(hiddenLayers);
+            Set<Layer> oldHiddenLayers = new HashSet<>(hiddenLayers);
             hiddenLayers.remove(hiddenLayer);
             if (dimension != null) {
                 tileProvider.removeHiddenLayer(hiddenLayer);
@@ -474,7 +469,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             return;
         }
         int count = 0;
-        Set<Point> coords = new HashSet<Point>();
+        Set<Point> coords = new HashSet<>();
         for (Tile tile: dimension.getTiles()) {
             if (tile.hasLayer(layer)) {
                 coords.add(new Point(tile.getX(), tile.getY()));
@@ -608,12 +603,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
                 // just because the cursor jumps a large distance for some
                 // reason
                 repaintWorld(oldRectangle.x, oldRectangle.y, oldRectangle.width, oldRectangle.height);
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        repaintWorld(newRectangle.x, newRectangle.y, newRectangle.width, newRectangle.height);
-                    }
-                });
+                SwingUtilities.invokeLater(() -> repaintWorld(newRectangle.x, newRectangle.y, newRectangle.width, newRectangle.height));
             }
         }
     }
@@ -789,7 +779,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         return null;
     }
     
-    private final HashSet<Layer> hiddenLayers = new HashSet<Layer>();
+    private final HashSet<Layer> hiddenLayers = new HashSet<>();
     private final CustomBiomeManager customBiomeManager;
     private Dimension dimension;
     private int mouseX, mouseY, radius, effectiveRadius, overlayOffsetX, overlayOffsetY, contourSeparation, brushRotation;

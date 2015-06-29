@@ -36,10 +36,10 @@ public abstract class Minecraft1_2JarBiomeScheme extends AbstractMinecraft1_2Bio
         String bufferManagerClassName = classNames[1];
         String worldGeneratorClassName = classNames[2];
         try {
-            List<URL> classpath = new ArrayList<URL>();
+            List<URL> classpath = new ArrayList<>();
             classpath.add(minecraftJar.toURI().toURL());
             if ((libDir != null) && libDir.isDirectory()) {
-                List<URL> jars = new ArrayList<URL>();
+                List<URL> jars = new ArrayList<>();
                 scanDir(libDir, jars);
                 classpath.addAll(jars);
             }
@@ -52,9 +52,7 @@ public abstract class Minecraft1_2JarBiomeScheme extends AbstractMinecraft1_2Bio
             clearBuffersMethod = bufferManagerClass.getMethod("a");
         } catch (MalformedURLException e) {
             throw new RuntimeException("Malformed URL exception while loading minecraft.jar", e);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Not a valid " + version + " minecraft.jar", e);
-        } catch (NoSuchMethodException e) {
+        } catch (ClassNotFoundException | NoSuchMethodException e) {
             throw new RuntimeException("Not a valid " + version + " minecraft.jar", e);
         }
     }
@@ -87,12 +85,7 @@ public abstract class Minecraft1_2JarBiomeScheme extends AbstractMinecraft1_2Bio
     }
     
     private void scanDir(File dir, List<URL> classpath) {
-        File[] files = dir.listFiles(new FileFilter() {
-            @Override
-            public boolean accept(File pathname) {
-                return pathname.isDirectory() || pathname.getName().toLowerCase().endsWith(".jar");
-            }
-        });
+        File[] files = dir.listFiles(pathname -> pathname.isDirectory() || pathname.getName().toLowerCase().endsWith(".jar"));
         for (File file: files) {
             if (file.isDirectory()) {
                 scanDir(file, classpath);

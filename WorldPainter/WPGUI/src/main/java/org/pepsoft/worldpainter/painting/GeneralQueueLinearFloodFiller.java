@@ -99,7 +99,7 @@ public class GeneralQueueLinearFloodFiller {
     private void prepare() {
         //Called before starting flood-fill
         blocksChecked = new BitSet(width * height);
-        ranges = new LinkedList<FloodFillRange>();
+        ranges = new LinkedList<>();
     }
 
     private void processRange(FloodFillRange range) {

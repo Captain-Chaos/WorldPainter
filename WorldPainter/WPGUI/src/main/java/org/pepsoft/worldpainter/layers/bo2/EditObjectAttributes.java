@@ -189,7 +189,7 @@ public class EditObjectAttributes extends javax.swing.JDialog {
             }
             Map<String, Serializable> attributes = object.getAttributes();
             if (attributes == null) {
-                attributes = new HashMap<String, Serializable>();
+                attributes = new HashMap<>();
             }
             if (checkBoxFrequencyActive.isSelected()) {
                 int frequency = (Integer) spinnerFrequency.getValue();
@@ -385,33 +385,17 @@ public class EditObjectAttributes extends javax.swing.JDialog {
         buttonOffsetAuto.setText("Auto");
         buttonOffsetAuto.setToolTipText("This will try to set the offset to the base of the object.");
         buttonOffsetAuto.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
-        buttonOffsetAuto.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonOffsetAutoActionPerformed(evt);
-            }
-        });
+        buttonOffsetAuto.addActionListener(this::buttonOffsetAutoActionPerformed);
 
         buttonOffsetReset.setText("Zero");
         buttonOffsetReset.setToolTipText("This will set the offset to all zeroes.");
-        buttonOffsetReset.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonOffsetResetActionPerformed(evt);
-            }
-        });
+        buttonOffsetReset.addActionListener(this::buttonOffsetResetActionPerformed);
 
         buttonCancel.setText("Cancel");
-        buttonCancel.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonCancelActionPerformed(evt);
-            }
-        });
+        buttonCancel.addActionListener(this::buttonCancelActionPerformed);
 
         buttonOK.setText("OK");
-        buttonOK.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonOKActionPerformed(evt);
-            }
-        });
+        buttonOK.addActionListener(this::buttonOKActionPerformed);
 
         fieldName.setColumns(20);
         fieldName.setText("jTextField1");
@@ -457,22 +441,14 @@ public class EditObjectAttributes extends javax.swing.JDialog {
         checkBoxFrequencyActive.setSelected(true);
         checkBoxFrequencyActive.setText(" ");
         checkBoxFrequencyActive.setEnabled(false);
-        checkBoxFrequencyActive.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                checkBoxFrequencyActiveActionPerformed(evt);
-            }
-        });
+        checkBoxFrequencyActive.addActionListener(this::checkBoxFrequencyActiveActionPerformed);
 
         jLabel9.setText("Leaf blocks should:");
 
         comboBoxLeafDecayMode.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "no change", "behave as exported", "decay", "not decay" }));
 
         checkBoxReplace.setText("replace with air:");
-        checkBoxReplace.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                checkBoxReplaceActionPerformed(evt);
-            }
-        });
+        checkBoxReplace.addActionListener(this::checkBoxReplaceActionPerformed);
 
         jLabel10.setText("block ID:");
 
@@ -702,7 +678,7 @@ public class EditObjectAttributes extends javax.swing.JDialog {
 
     private final Collection<WPObject> objects;
     private final File file;
-    private final Map<WPObject, Point3i> offsets = new HashMap<WPObject, Point3i>();
+    private final Map<WPObject, Point3i> offsets = new HashMap<>();
     private final ColourScheme colourScheme;
     private boolean cancelled = true;
     

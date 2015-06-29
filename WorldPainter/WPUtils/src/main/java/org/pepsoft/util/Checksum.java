@@ -36,8 +36,8 @@ public class Checksum {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder(checksum.length * 2);
-        for (int i = 0; i < checksum.length; i++) {
-            int _byte = checksum[i] & 0xFF;
+        for (byte aChecksum : checksum) {
+            int _byte = aChecksum & 0xFF;
             if (_byte < 16) {
                 sb.append('0');
             }

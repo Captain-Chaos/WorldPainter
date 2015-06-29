@@ -38,7 +38,7 @@ public class ProgressDialog<T> extends javax.swing.JDialog implements ComponentL
     }
     
     public static <T> T executeTask(Window parent, ProgressTask<T> task, boolean cancelable) {
-        ProgressDialog<T> dialog = new ProgressDialog<T>(parent, task, cancelable);
+        ProgressDialog<T> dialog = new ProgressDialog<>(parent, task, cancelable);
         dialog.setVisible(true);
         if (dialog.cancelled) {
             return null;

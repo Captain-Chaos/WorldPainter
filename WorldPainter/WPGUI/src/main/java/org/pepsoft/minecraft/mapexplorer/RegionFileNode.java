@@ -48,7 +48,7 @@ public class RegionFileNode implements Node {
 
     private void loadChildren() {
         try {
-            List<Node> chunks = new ArrayList<Node>();
+            List<Node> chunks = new ArrayList<>();
             RegionFile regionFile = new RegionFile(file);
             for (int chunkX = 0; chunkX < 32; chunkX++) {
                 for (int chunkZ = 0; chunkZ < 32; chunkZ++) {

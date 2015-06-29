@@ -713,7 +713,7 @@ public class RODelegatingDimension extends Dimension {
     }
     
     protected final Dimension dimension;
-    private final Map<Point, RODelegatingTile> tileCache = new HashMap<Point, RODelegatingTile>();
+    private final Map<Point, RODelegatingTile> tileCache = new HashMap<>();
     
     private static final long serialVersionUID = 1L;
 }

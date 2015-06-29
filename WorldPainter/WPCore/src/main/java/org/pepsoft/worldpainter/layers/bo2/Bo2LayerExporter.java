@@ -42,7 +42,7 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
         final Bo2ObjectProvider objectProvider = layer.getObjectProvider();
         final int maxHeight = dimension.getMaxHeight();
         final int maxZ = maxHeight - 1;
-        final List<Fixup> fixups = new ArrayList<Fixup>();
+        final List<Fixup> fixups = new ArrayList<>();
         for (int chunkX = area.x; chunkX < area.x + area.width; chunkX += 16) {
             for (int chunkY = area.y; chunkY < area.y + area.height; chunkY += 16) {
                 // Set the seed and randomizer according to the chunk

@@ -35,7 +35,7 @@ public final class RegionFileCache {
     private static final int MAX_CACHE_SIZE = 256;
 
 
-    private static final Map<File, Reference<RegionFile>> cache = new HashMap<File, Reference<RegionFile>>();
+    private static final Map<File, Reference<RegionFile>> cache = new HashMap<>();
 
     private RegionFileCache() {
     }
@@ -67,7 +67,7 @@ public final class RegionFileCache {
         }
 
         regionFile = new RegionFile(file);
-        cache.put(file, new SoftReference<RegionFile>(regionFile));
+        cache.put(file, new SoftReference<>(regionFile));
         return regionFile;
     }
     
@@ -95,7 +95,7 @@ public final class RegionFileCache {
         }
 
         regionFile = new RegionFile(file);
-        cache.put(file, new SoftReference<RegionFile>(regionFile));
+        cache.put(file, new SoftReference<>(regionFile));
         return regionFile;
     }
 

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
@@ -21,10 +22,8 @@ import org.pepsoft.worldpainter.layers.Layer;
  */
 public class CombinedLayerTableModel implements TableModel {
     public CombinedLayerTableModel(List<Layer> layers, Map<Layer, Float> factors) {
-        rows = new ArrayList<Row>(layers.size());
-        for (Layer layer: layers) {
-            rows.add(new Row(layer, (int) (factors.get(layer) * 100 + 0.5f), ((layer instanceof CustomLayer) ? ((CustomLayer) layer).isHide() : false)));
-        }
+        rows = new ArrayList<>(layers.size());
+        rows.addAll(layers.stream().map(layer -> new Row(layer, (int) (factors.get(layer) * 100 + 0.5f), ((layer instanceof CustomLayer) ? ((CustomLayer) layer).isHide() : false))).collect(Collectors.toList()));
     }
     
     void addRow(Row row) {
@@ -44,8 +43,8 @@ public class CombinedLayerTableModel implements TableModel {
     }
 
     void saveSettings(CombinedLayer layer) {
-        List<Layer> layers = new ArrayList<Layer>(rows.size());
-        Map<Layer, Float> factors = new HashMap<Layer, Float>();
+        List<Layer> layers = new ArrayList<>(rows.size());
+        Map<Layer, Float> factors = new HashMap<>();
         for (Row row: rows) {
             layers.add(row.layer);
             if (row.layer instanceof CustomLayer) {
@@ -137,7 +136,7 @@ public class CombinedLayerTableModel implements TableModel {
     }
     
     private final List<Row> rows;
-    private final List<TableModelListener> listeners = new ArrayList<TableModelListener>();
+    private final List<TableModelListener> listeners = new ArrayList<>();
     
     public static final int COLUMN_LAYER  = 0;
     public static final int COLUMN_FACTOR = 1;

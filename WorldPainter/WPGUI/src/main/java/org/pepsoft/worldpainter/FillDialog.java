@@ -699,11 +699,7 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
 
         buttonGroup1.add(radioButtonTerrain);
         radioButtonTerrain.setText("fill with terrain type:");
-        radioButtonTerrain.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonTerrainActionPerformed(evt);
-            }
-        });
+        radioButtonTerrain.addActionListener(this::radioButtonTerrainActionPerformed);
 
         comboBoxTerrain.setModel(new DefaultComboBoxModel(Terrain.getConfiguredValues()));
         comboBoxTerrain.setEnabled(false);
@@ -711,53 +707,29 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
 
         buttonGroup1.add(radioButtonBiome);
         radioButtonBiome.setText("fill with biome:");
-        radioButtonBiome.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonBiomeActionPerformed(evt);
-            }
-        });
+        radioButtonBiome.addActionListener(this::radioButtonBiomeActionPerformed);
 
         comboBoxBiome.setEnabled(false);
 
         buttonCancel.setText("Cancel");
-        buttonCancel.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonCancelActionPerformed(evt);
-            }
-        });
+        buttonCancel.addActionListener(this::buttonCancelActionPerformed);
 
         buttonFill.setText("Go");
         buttonFill.setEnabled(false);
-        buttonFill.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonFillActionPerformed(evt);
-            }
-        });
+        buttonFill.addActionListener(this::buttonFillActionPerformed);
 
         buttonGroup1.add(radioButtonClearLayer);
         radioButtonClearLayer.setText("remove a layer:");
-        radioButtonClearLayer.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonClearLayerActionPerformed(evt);
-            }
-        });
+        radioButtonClearLayer.addActionListener(this::radioButtonClearLayerActionPerformed);
 
         comboBoxClearLayer.setEnabled(false);
 
         buttonGroup1.add(radioButtonSetLayer);
         radioButtonSetLayer.setText("fill with layer:");
-        radioButtonSetLayer.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonSetLayerActionPerformed(evt);
-            }
-        });
+        radioButtonSetLayer.addActionListener(this::radioButtonSetLayerActionPerformed);
 
         comboBoxSetLayer.setEnabled(false);
-        comboBoxSetLayer.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                comboBoxSetLayerActionPerformed(evt);
-            }
-        });
+        comboBoxSetLayer.addActionListener(this::comboBoxSetLayerActionPerformed);
 
         sliderLayerValue.setMajorTickSpacing(7);
         sliderLayerValue.setMinimum(2);
@@ -767,49 +739,29 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
 
         buttonGroup1.add(radioButtonInvertLayer);
         radioButtonInvertLayer.setText("invert a layer:");
-        radioButtonInvertLayer.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonInvertLayerActionPerformed(evt);
-            }
-        });
+        radioButtonInvertLayer.addActionListener(this::radioButtonInvertLayerActionPerformed);
 
         comboBoxInvertLayer.setEnabled(false);
 
         buttonGroup1.add(radioButtonResetWater);
         radioButtonResetWater.setText("reset all water or lava");
         radioButtonResetWater.setToolTipText("This resets the fluid level and type (water or lava) to the default everywhere");
-        radioButtonResetWater.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonResetWaterActionPerformed(evt);
-            }
-        });
+        radioButtonResetWater.addActionListener(this::radioButtonResetWaterActionPerformed);
 
         buttonGroup1.add(radioButtonResetTerrain);
         radioButtonResetTerrain.setText("reset terrain type to default");
         radioButtonResetTerrain.setToolTipText("Reset the terrain type of the entire map to the altitude-dependent default");
-        radioButtonResetTerrain.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonResetTerrainActionPerformed(evt);
-            }
-        });
+        radioButtonResetTerrain.addActionListener(this::radioButtonResetTerrainActionPerformed);
 
         jSeparator1.setOrientation(javax.swing.SwingConstants.VERTICAL);
 
         buttonGroup1.add(radioButtonResetBiomes);
         radioButtonResetBiomes.setText("reset biomes to automatic");
-        radioButtonResetBiomes.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonResetBiomesActionPerformed(evt);
-            }
-        });
+        radioButtonResetBiomes.addActionListener(this::radioButtonResetBiomesActionPerformed);
 
         buttonGroup1.add(radioButtonMakeBiomesPermanent);
         radioButtonMakeBiomesPermanent.setText("make automatic biomes permanent");
-        radioButtonMakeBiomesPermanent.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonMakeBiomesPermanentActionPerformed(evt);
-            }
-        });
+        radioButtonMakeBiomesPermanent.addActionListener(this::radioButtonMakeBiomesPermanentActionPerformed);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);

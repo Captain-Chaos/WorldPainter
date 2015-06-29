@@ -17,7 +17,7 @@ import static org.pepsoft.minecraft.Constants.*;
  */
 public class TileEntity extends AbstractNBTItem {
     public TileEntity(String id) {
-        super(new CompoundTag("", new HashMap<String, Tag>()));
+        super(new CompoundTag("", new HashMap<>()));
         if (id == null) {
             throw new NullPointerException();
         }
@@ -58,12 +58,13 @@ public class TileEntity extends AbstractNBTItem {
 
     public static TileEntity fromNBT(CompoundTag tileEntityTag) {
         String id = ((StringTag) tileEntityTag.getTag(TAG_ID)).getValue();
-        if (id.equals(ID_CHEST)) {
-            return new Chest(tileEntityTag);
-        } else if (id.equals(ID_SIGN)) {
-            return new WallSign(tileEntityTag);
-        } else {
-            return new TileEntity(tileEntityTag);
+        switch (id) {
+            case ID_CHEST:
+                return new Chest(tileEntityTag);
+            case ID_SIGN:
+                return new WallSign(tileEntityTag);
+            default:
+                return new TileEntity(tileEntityTag);
         }
     }
     

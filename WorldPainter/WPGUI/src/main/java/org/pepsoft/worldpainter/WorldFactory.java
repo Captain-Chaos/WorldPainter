@@ -108,7 +108,7 @@ public final class WorldFactory {
             HeightMapTileFactory defaultTileFactory = (HeightMapTileFactory) defaults.getTileFactory();
             SimpleTheme defaultTheme = (SimpleTheme) defaultTileFactory.getTheme();
             SimpleTheme theme = (SimpleTheme) tileFactory.getTheme();
-            theme.setTerrainRanges(new TreeMap<Integer, Terrain>(defaultTheme.getTerrainRanges()));
+            theme.setTerrainRanges(new TreeMap<>(defaultTheme.getTerrainRanges()));
             theme.setRandomise(defaultTheme.isRandomise());
         }
         final World2 world = new World2(World2.DEFAULT_OCEAN_SEED, tileFactory, tileFactory.getMaxHeight());

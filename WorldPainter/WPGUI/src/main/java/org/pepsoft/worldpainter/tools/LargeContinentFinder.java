@@ -31,13 +31,11 @@ public class LargeContinentFinder {
         }
         long seed = 0;
         final int[] biomes = new int[TILE_SIZE * TILE_SIZE];
-        final SortedSet<World> largeContinentWorlds = new TreeSet<World>();
+        final SortedSet<World> largeContinentWorlds = new TreeSet<>();
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
-                for (World world: largeContinentWorlds) {
-                    System.out.println(world);
-                }
+                largeContinentWorlds.forEach(System.out::println);
             }
         });
         while (true) {
@@ -47,28 +45,23 @@ public class LargeContinentFinder {
 //                System.out.print('.');
             biomeScheme.setSeed(seed);
             
-            int continentTilesFound = visitTilesInSpiral(new TileVisitor() {
-                @Override
-                public boolean visitBlock(int x, int z) {
+            int continentTilesFound = visitTilesInSpiral((x, z) -> {
 //                    System.out.println("Visiting " + x + ", " + z);
-                    biomeScheme.getBiomes(x * TILE_SIZE, z * TILE_SIZE, TILE_SIZE, TILE_SIZE, biomes);
-                    
-                    for (int i = 0; i < biomes.length; i++) {
-                        if ((biomes[i] == BIOME_OCEAN) || (biomes[i] == BIOME_DEEP_OCEAN)) {
-                            return false;
-                        }
+                biomeScheme.getBiomes(x * TILE_SIZE, z * TILE_SIZE, TILE_SIZE, TILE_SIZE, biomes);
+
+                for (int biome : biomes) {
+                    if ((biome == BIOME_OCEAN) || (biome == BIOME_DEEP_OCEAN)) {
+                        return false;
                     }
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    return true;
                 }
-                
-                
+
+
+
+
+
+
+
+                return true;
             });
             if (largeContinentWorlds.isEmpty() || (continentTilesFound > largeContinentWorlds.first().continentTiles)) {
                 if (largeContinentWorlds.size() > 100) {

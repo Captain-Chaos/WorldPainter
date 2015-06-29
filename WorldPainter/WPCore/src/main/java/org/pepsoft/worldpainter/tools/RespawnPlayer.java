@@ -30,11 +30,8 @@ import static org.pepsoft.minecraft.Constants.*;
 public class RespawnPlayer {
     public static void respawnPlayer(File levelDatFile) throws IOException {
         CompoundTag outerTag;
-        NBTInputStream in = new NBTInputStream(new GZIPInputStream(new FileInputStream(levelDatFile)));
-        try {
+        try (NBTInputStream in = new NBTInputStream(new GZIPInputStream(new FileInputStream(levelDatFile)))) {
             outerTag = (CompoundTag) in.readTag();
-        } finally {
-            in.close();
         }
         CompoundTag dataTag = (CompoundTag) outerTag.getTag(TAG_DATA);
         int spawnX = ((IntTag) dataTag.getTag(TAG_SPAWN_X)).getValue();
@@ -43,21 +40,18 @@ public class RespawnPlayer {
         CompoundTag playerTag = (CompoundTag) dataTag.getTag(TAG_PLAYER);
         playerTag.setTag(TAG_DEATH_TIME, new ShortTag(TAG_DEATH_TIME, (short) 0));
         playerTag.setTag(TAG_HEALTH, new ShortTag(TAG_HEALTH, (short) 20));
-        List<Tag> motionList = new ArrayList<Tag>(3);
+        List<Tag> motionList = new ArrayList<>(3);
         motionList.add(new DoubleTag(null, 0));
         motionList.add(new DoubleTag(null, 0));
         motionList.add(new DoubleTag(null, 0));
         playerTag.setTag(TAG_MOTION, new ListTag(TAG_MOTION, DoubleTag.class, motionList));
-        List<Tag> posList = new ArrayList<Tag>(3);
+        List<Tag> posList = new ArrayList<>(3);
         posList.add(new DoubleTag(null, spawnX + 0.5));
         posList.add(new DoubleTag(null, spawnY + 3));
         posList.add(new DoubleTag(null, spawnZ + 0.5));
         playerTag.setTag(TAG_POS, new ListTag(TAG_POS, DoubleTag.class, posList));
-        NBTOutputStream out = new NBTOutputStream(new GZIPOutputStream(new FileOutputStream(levelDatFile)));
-        try {
+        try (NBTOutputStream out = new NBTOutputStream(new GZIPOutputStream(new FileOutputStream(levelDatFile)))) {
             out.writeTag(outerTag);
-        } finally {
-            out.close();
         }
     }
 }

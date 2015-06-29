@@ -292,7 +292,7 @@ public class TileSelector extends javax.swing.JPanel {
         if (this.allowNonExistentTileSelection != allowNonExistentTileSelection) {
             this.allowNonExistentTileSelection = allowNonExistentTileSelection;
             if ((! allowNonExistentTileSelection) && (dimension != null)) {
-                Set<Point> selectedTiles = new HashSet<Point>(viewer.getSelectedTiles());
+                Set<Point> selectedTiles = new HashSet<>(viewer.getSelectedTiles());
                 boolean tilesRemoved = false;
                 for (Iterator<Point> i = selectedTiles.iterator(); i.hasNext(); ) {
                     Point tileCoords = i.next();
@@ -340,11 +340,7 @@ public class TileSelector extends javax.swing.JPanel {
                 viewer.removeSelectedTile(tileCoords);
             }
         }
-        for (Point tileCoords: new HashSet<Point>(viewer.getSelectedTiles())) {
-            if (dimension.getTile(tileCoords) == null) {
-                viewer.removeSelectedTile(tileCoords);
-            }
-        }
+        new HashSet<>(viewer.getSelectedTiles()).stream().filter(tileCoords -> dimension.getTile(tileCoords) == null).forEach(viewer::removeSelectedTile);
         setControlStates();
         notifyListeners();
     }
@@ -415,42 +411,22 @@ public class TileSelector extends javax.swing.JPanel {
 
         buttonSpawn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/spawn_red.png"))); // NOI18N
         buttonSpawn.setEnabled(false);
-        buttonSpawn.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonSpawnActionPerformed(evt);
-            }
-        });
+        buttonSpawn.addActionListener(this::buttonSpawnActionPerformed);
 
         buttonOrigin.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/arrow_in.png"))); // NOI18N
-        buttonOrigin.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonOriginActionPerformed(evt);
-            }
-        });
+        buttonOrigin.addActionListener(this::buttonOriginActionPerformed);
 
         buttonSelectAll.setText("Select all tiles");
         buttonSelectAll.setEnabled(false);
-        buttonSelectAll.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonSelectAllActionPerformed(evt);
-            }
-        });
+        buttonSelectAll.addActionListener(this::buttonSelectAllActionPerformed);
 
         buttonInvertSelection.setText("Invert selection");
         buttonInvertSelection.setEnabled(false);
-        buttonInvertSelection.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonInvertSelectionActionPerformed(evt);
-            }
-        });
+        buttonInvertSelection.addActionListener(this::buttonInvertSelectionActionPerformed);
 
         buttonClearSelection.setText("Clear selection");
         buttonClearSelection.setEnabled(false);
-        buttonClearSelection.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonClearSelectionActionPerformed(evt);
-            }
-        });
+        buttonClearSelection.addActionListener(this::buttonClearSelectionActionPerformed);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -512,7 +488,7 @@ public class TileSelector extends javax.swing.JPanel {
     // End of variables declaration//GEN-END:variables
 
     private final WPTileSelectionViewer viewer = new WPTileSelectionViewer(false, Math.max(Runtime.getRuntime().availableProcessors() - 1, 1), true);
-    private final List<Listener> listeners = new ArrayList<Listener>();
+    private final List<Listener> listeners = new ArrayList<>();
     private Dimension dimension;
     private ColourScheme colourScheme;
     private BiomeScheme biomeScheme;

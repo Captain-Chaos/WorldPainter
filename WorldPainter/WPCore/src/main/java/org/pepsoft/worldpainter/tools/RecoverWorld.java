@@ -28,37 +28,21 @@ public class RecoverWorld {
         // hold of the objects as they are created during deserialisation, even
         // if the readObject() method throws an exception and never returns an
         // instance
-        final List<World2> worlds = new ArrayList<World2>();
-        final Map<Dimension, List<Tile>> tiles = new HashMap<Dimension, List<Tile>>();
+        final List<World2> worlds = new ArrayList<>();
+        final Map<Dimension, List<Tile>> tiles = new HashMap<>();
         @SuppressWarnings("unchecked")
         final List<Tile>[] tileListHolder = new List[1];
-        InstanceKeeper.setInstantiationListener(World2.class, new InstantiationListener<World2>() {
-            @Override
-            public void objectInstaniated(World2 world) {
-                worlds.add(world);
-            }
+        InstanceKeeper.setInstantiationListener(World2.class, worlds::add);
+        InstanceKeeper.setInstantiationListener(Dimension.class, dimension -> {
+            List<Tile> tileList = new ArrayList<>();
+            tiles.put(dimension, tileList);
+            tileListHolder[0] = tileList;
         });
-        InstanceKeeper.setInstantiationListener(Dimension.class, new InstantiationListener<Dimension>() {
-            @Override
-            public void objectInstaniated(Dimension dimension) {
-                List<Tile> tileList = new ArrayList<Tile>();
-                tiles.put(dimension, tileList);
-                tileListHolder[0] = tileList;
-            }
-        });
-        InstanceKeeper.setInstantiationListener(Tile.class, new InstantiationListener<Tile>() {
-            @Override
-            public void objectInstaniated(Tile tile) {
-                tileListHolder[0].add(tile);
-            }
-        });
+        InstanceKeeper.setInstantiationListener(Tile.class, tileListHolder[0]::add);
         File file = new File(args[0]);
         try {
-            ObjectInputStream in = new ObjectInputStream(new FileInputStream(file));
-            try {
+            try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(file))) {
                 in.readObject();
-            } finally {
-                in.close();
             }
         } catch (IOException e) {
             System.err.println("Warning: I/O error while reading world; world most likely corrupted! (Type: " + e.getClass().getSimpleName() + ", message: " + e.getMessage() + ")");
@@ -191,11 +175,8 @@ public class RecoverWorld {
         }
         filename = filename + ".recovered.world";
         File outFile = new File(file.getParentFile(), filename);
-        ObjectOutputStream out = new ObjectOutputStream(new GZIPOutputStream(new FileOutputStream(outFile)));
-        try {
+        try (ObjectOutputStream out = new ObjectOutputStream(new GZIPOutputStream(new FileOutputStream(outFile)))) {
             out.writeObject(newWorld);
-        } finally {
-            out.close();
         }
         System.out.println("Recovered world written to " + outFile);
     }

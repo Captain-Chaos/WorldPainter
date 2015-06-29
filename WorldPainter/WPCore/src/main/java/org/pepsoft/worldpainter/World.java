@@ -19,6 +19,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.pepsoft.util.undo.UndoManager;
 import static org.pepsoft.worldpainter.Constants.*;
 import org.pepsoft.worldpainter.layers.*;
@@ -137,7 +139,7 @@ public class World implements TileProvider, Serializable, Tile.Listener {
     }
 
     public Collection<Tile> getTiles() {
-        return new ArrayList<Tile>(tiles.values());
+        return new ArrayList<>(tiles.values());
     }
 
     public void addTile(Tile tile) {
@@ -324,12 +326,7 @@ public class World implements TileProvider, Serializable, Tile.Listener {
      */
     @SuppressWarnings("unchecked")
     public Set<Layer> getMinimumLayers() {
-        Set<Layer> layers = new HashSet<Layer> ();
-        for (ExporterSettings<?> settings: layerSettings.values()) {
-            if (settings.isApplyEverywhere()) {
-                layers.add(settings.getLayer());
-            }
-        }
+        Set<Layer> layers = layerSettings.values().stream().filter(ExporterSettings::isApplyEverywhere).map(ExporterSettings::getLayer).collect(Collectors.toSet());
         return layers;
     }
 
@@ -407,7 +404,7 @@ public class World implements TileProvider, Serializable, Tile.Listener {
             spawnPoint = new Point(15, 0);
         }
         if (layerSettings == null) {
-            layerSettings = new HashMap<Layer, ExporterSettings>();
+            layerSettings = new HashMap<>();
         }
         if (minecraftSeed == Long.MIN_VALUE) {
             minecraftSeed = seed;
@@ -415,7 +412,7 @@ public class World implements TileProvider, Serializable, Tile.Listener {
     }
 
     private final long seed;
-    private final Map<Point, Tile> tiles = new HashMap<Point, Tile>();
+    private final Map<Point, Tile> tiles = new HashMap<>();
     private final TileFactory tileFactory;
     private final int lowestX = Integer.MAX_VALUE, highestX = Integer.MIN_VALUE, lowestY = Integer.MAX_VALUE, highestY = Integer.MIN_VALUE;
     private final String name = "Generated World";
@@ -426,7 +423,7 @@ public class World implements TileProvider, Serializable, Tile.Listener {
     private boolean darkLevel, bedrockWall;
     private Point spawnPoint = new Point(15, 0);
     private File importedFrom;
-    private Map<Layer, ExporterSettings> layerSettings = new HashMap<Layer, ExporterSettings>();
+    private Map<Layer, ExporterSettings> layerSettings = new HashMap<>();
     private long minecraftSeed = Long.MIN_VALUE;
 
     private static final long serialVersionUID = 2011032801L;

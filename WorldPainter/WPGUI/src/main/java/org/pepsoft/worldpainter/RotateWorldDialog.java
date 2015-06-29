@@ -85,46 +85,30 @@ public class RotateWorldDialog extends javax.swing.JDialog implements ProgressRe
     
     @Override
     public synchronized void setProgress(final float progress) throws OperationCancelled {
-        doOnEventThread(new Runnable() {
-            @Override
-            public void run() {
-                jProgressBar1.setValue((int) (progress * 100));
-            }
-        });
+        doOnEventThread(() -> jProgressBar1.setValue((int) (progress * 100)));
     }
 
     @Override
     public synchronized void exceptionThrown(final Throwable exception) {
-        doOnEventThread(new Runnable() {
-            @Override
-            public void run() {
-                ErrorDialog errorDialog = new ErrorDialog(RotateWorldDialog.this);
-                errorDialog.setException(exception);
-                errorDialog.setVisible(true);
-                dispose();
-            }
+        doOnEventThread(() -> {
+            ErrorDialog errorDialog = new ErrorDialog(RotateWorldDialog.this);
+            errorDialog.setException(exception);
+            errorDialog.setVisible(true);
+            dispose();
         });
     }
 
     @Override
     public synchronized void done() {
-        doOnEventThread(new Runnable() {
-            @Override
-            public void run() {
-                cancelled = false;
-                dispose();
-            }
+        doOnEventThread(() -> {
+            cancelled = false;
+            dispose();
         });
     }
 
     @Override
     public synchronized void setMessage(final String message) throws OperationCancelled {
-        doOnEventThread(new Runnable() {
-            @Override
-            public void run() {
-                labelProgressMessage.setText(message);
-            }
-        });
+        doOnEventThread(() -> labelProgressMessage.setText(message));
     }
 
     @Override
@@ -134,12 +118,7 @@ public class RotateWorldDialog extends javax.swing.JDialog implements ProgressRe
 
     @Override
     public void reset() {
-        doOnEventThread(new Runnable() {
-            @Override
-            public void run() {
-                jProgressBar1.setValue(0);
-            }
-        });
+        doOnEventThread(() -> jProgressBar1.setValue(0));
     }
 
     private void rotate() {
@@ -207,18 +186,10 @@ public class RotateWorldDialog extends javax.swing.JDialog implements ProgressRe
         jLabel1.setText("Choose a rotation angle and press the Rotate button to rotate the world:");
 
         buttonCancel.setText("Cancel");
-        buttonCancel.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonCancelActionPerformed(evt);
-            }
-        });
+        buttonCancel.addActionListener(this::buttonCancelActionPerformed);
 
         buttonRotate.setText("Rotate");
-        buttonRotate.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonRotateActionPerformed(evt);
-            }
-        });
+        buttonRotate.addActionListener(this::buttonRotateActionPerformed);
 
         labelProgressMessage.setText(" ");
 

@@ -465,16 +465,16 @@ public final class Constants {
     /**
      * A map from tile entity ID's to the corresponding block ID's.
      */
-    public static final Map<String, Set<Integer>> TILE_ENTITY_MAP = new HashMap<String, Set<Integer>>();
+    public static final Map<String, Set<Integer>> TILE_ENTITY_MAP = new HashMap<>();
     
     static {
         TILE_ENTITY_MAP.put(ID_AIRPORTAL, Collections.singleton(BLK_END_PORTAL));
         TILE_ENTITY_MAP.put(ID_BEACON, Collections.singleton(BLK_BEACON));
         TILE_ENTITY_MAP.put(ID_CAULDRON, Collections.singleton(BLK_BREWING_STAND));
-        TILE_ENTITY_MAP.put(ID_CHEST, Collections.unmodifiableSet(new HashSet<Integer>(Arrays.asList(BLK_CHEST, BLK_TRAPPED_CHEST))));
-        TILE_ENTITY_MAP.put(ID_COMPARATOR, Collections.unmodifiableSet(new HashSet<Integer>(Arrays.asList(BLK_REDSTONE_COMPARATOR_UNPOWERED, BLK_REDSTONE_COMPARATOR_POWERED))));
+        TILE_ENTITY_MAP.put(ID_CHEST, Collections.unmodifiableSet(new HashSet<>(Arrays.asList(BLK_CHEST, BLK_TRAPPED_CHEST))));
+        TILE_ENTITY_MAP.put(ID_COMPARATOR, Collections.unmodifiableSet(new HashSet<>(Arrays.asList(BLK_REDSTONE_COMPARATOR_UNPOWERED, BLK_REDSTONE_COMPARATOR_POWERED))));
         TILE_ENTITY_MAP.put(ID_CONTROL, Collections.singleton(BLK_COMMAND_BLOCK));
-        TILE_ENTITY_MAP.put(ID_DLDETECTOR, Collections.unmodifiableSet(new HashSet<Integer>(Arrays.asList(BLK_DAYLIGHT_SENSOR, BLK_DAYLIGHT_SENSOR_INVERTED))));
+        TILE_ENTITY_MAP.put(ID_DLDETECTOR, Collections.unmodifiableSet(new HashSet<>(Arrays.asList(BLK_DAYLIGHT_SENSOR, BLK_DAYLIGHT_SENSOR_INVERTED))));
         TILE_ENTITY_MAP.put(ID_DROPPER, Collections.singleton(BLK_DROPPER));
         TILE_ENTITY_MAP.put(ID_ENCHANTTABLE, Collections.singleton(BLK_ENCHANTMENT_TABLE));
         TILE_ENTITY_MAP.put(ID_ENDERCHEST, Collections.singleton(BLK_ENDER_CHEST));
@@ -485,14 +485,14 @@ public final class Constants {
         TILE_ENTITY_MAP.put(ID_MUSIC, Collections.singleton(BLK_NOTE_BLOCK));
         TILE_ENTITY_MAP.put(ID_PISTON, Collections.singleton(BLK_PISTON_HEAD));
         TILE_ENTITY_MAP.put(ID_RECORDPLAYER, Collections.singleton(BLK_JUKEBOX));
-        TILE_ENTITY_MAP.put(ID_SIGN, Collections.unmodifiableSet(new HashSet<Integer>(Arrays.asList(BLK_SIGN, BLK_WALL_SIGN))));
+        TILE_ENTITY_MAP.put(ID_SIGN, Collections.unmodifiableSet(new HashSet<>(Arrays.asList(BLK_SIGN, BLK_WALL_SIGN))));
         TILE_ENTITY_MAP.put(ID_SKULL, Collections.singleton(BLK_HEAD));
         TILE_ENTITY_MAP.put(ID_TRAP, Collections.singleton(BLK_DISPENSER));
-        TILE_ENTITY_MAP.put(ID_BANNER, Collections.unmodifiableSet(new HashSet<Integer>(Arrays.asList(BLK_STANDING_BANNER, BLK_WALL_BANNER))));
+        TILE_ENTITY_MAP.put(ID_BANNER, Collections.unmodifiableSet(new HashSet<>(Arrays.asList(BLK_STANDING_BANNER, BLK_WALL_BANNER))));
 
         // Make sure the tile entity flag in the block database is consistent
         // with the tile entity map:
-        Set<Integer> allTileEntityIds = new HashSet<Integer>();
+        Set<Integer> allTileEntityIds = new HashSet<>();
         for (Set<Integer> blockIdSet: TILE_ENTITY_MAP.values()) {
             allTileEntityIds.addAll(blockIdSet);
             for (int blockId: blockIdSet) {

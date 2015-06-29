@@ -132,7 +132,7 @@ public class EditLayerDialog<L extends Layer> extends WorldPainterDialog impleme
 
     @Override
     public List<Layer> getAllLayers() {
-        return new ArrayList<Layer>(app.getAllLayers());
+        return new ArrayList<>(app.getAllLayers());
     }
 
     // ActionListener
@@ -178,12 +178,7 @@ renderLoop:                 do {
                                     previewCreator.setLayer(settings.getLayer());
                                     previewCreator.setSettings((ExporterSettings<Layer>) settings);
                                     final MinecraftWorldObject preview = previewCreator.renderPreview();
-                                    SwingUtilities.invokeLater(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            dynMapPreviewer1.setObject(preview);
-                                        }
-                                    });
+                                    SwingUtilities.invokeLater(() -> dynMapPreviewer1.setObject(preview));
                                 }
                                 synchronized (PREVIEW_STATE_LOCK) {
                                     switch (previewRenderState) {
@@ -246,25 +241,13 @@ renderLoop:                 do {
         dynMapPreviewer1.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
         buttonCancel.setText("Cancel");
-        buttonCancel.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonCancelActionPerformed(evt);
-            }
-        });
+        buttonCancel.addActionListener(this::buttonCancelActionPerformed);
 
         buttonOK.setText("OK");
-        buttonOK.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonOKActionPerformed(evt);
-            }
-        });
+        buttonOK.addActionListener(this::buttonOKActionPerformed);
 
         jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-        jComboBox1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jComboBox1ActionPerformed(evt);
-            }
-        });
+        jComboBox1.addActionListener(this::jComboBox1ActionPerformed);
 
         jLabel1.setText("Pattern:");
 

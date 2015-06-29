@@ -56,7 +56,7 @@ public final class CompoundTag extends Tag {
      */
     public CompoundTag(String name, Map<String, Tag> value) {
         super(name);
-        this.value = new HashMap<String, Tag>(value);
+        this.value = new HashMap<>(value);
     }
 
     @Override
@@ -99,7 +99,7 @@ public final class CompoundTag extends Tag {
     @Override
     public CompoundTag clone() {
         CompoundTag clone = (CompoundTag) super.clone();
-        clone.value = new HashMap<String, Tag>();
+        clone.value = new HashMap<>();
         for (Map.Entry<String, Tag> entry: value.entrySet()) {
             clone.value.put(entry.getKey(), entry.getValue().clone());
         }

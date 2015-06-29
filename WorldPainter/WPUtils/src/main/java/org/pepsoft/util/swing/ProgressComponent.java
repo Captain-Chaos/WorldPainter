@@ -62,7 +62,7 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
 
     public void start() {
         if ("true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.devMode"))) {
-            stats = new ArrayList<int[]>();
+            stats = new ArrayList<>();
         }
         jButton1.setEnabled(cancelable);
         jProgressBar1.setIndeterminate(true);
@@ -88,47 +88,41 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
     @Override
     public synchronized void setProgress(final float progress) throws OperationCancelled {
         checkForCancellation();
-        doOnEventThread(new Runnable() {
-            @Override
-            public void run() {
-                progressReports++;
-                long now = System.currentTimeMillis();
-                long elapsed = now - start;
-                float speed = elapsed / progress;
-                remaining = (long) ((1.0f - progress) * speed);
-                lastUpdate = now;
-                if ((! timeEstimatesActivated) && (elapsed >= 60000) && (progressReports >= 10)) {
-                    timeEstimatesActivated = true;
-                }
-                if (jProgressBar1.isIndeterminate()) {
-                    jProgressBar1.setIndeterminate(false);
-                }
-                jProgressBar1.setValue((int) (progress * 100f + 0.5f));
+        doOnEventThread(() -> {
+            progressReports++;
+            long now = System.currentTimeMillis();
+            long elapsed = now - start;
+            float speed = elapsed / progress;
+            remaining = (long) ((1.0f - progress) * speed);
+            lastUpdate = now;
+            if ((! timeEstimatesActivated) && (elapsed >= 60000) && (progressReports >= 10)) {
+                timeEstimatesActivated = true;
             }
+            if (jProgressBar1.isIndeterminate()) {
+                jProgressBar1.setIndeterminate(false);
+            }
+            jProgressBar1.setValue((int) (progress * 100f + 0.5f));
         });
     }
 
     @Override
     public synchronized void exceptionThrown(final Throwable exception) {
-        doOnEventThread(new Runnable() {
-            @Override
-            public void run() {
-                timer.stop();
-                if (jProgressBar1.isIndeterminate()) {
-                    jProgressBar1.setIndeterminate(false);
+        doOnEventThread(() -> {
+            timer.stop();
+            if (jProgressBar1.isIndeterminate()) {
+                jProgressBar1.setIndeterminate(false);
+            }
+            jButton1.setEnabled(false);
+            inhibitDone = true;
+            if (exception instanceof OperationCancelled) {
+                jLabel2.setText("Cancelled");
+                if (listener != null) {
+                    listener.cancelled();
                 }
-                jButton1.setEnabled(false);
-                inhibitDone = true;
-                if (exception instanceof OperationCancelled) {
-                    jLabel2.setText("Cancelled");
-                    if (listener != null) {
-                        listener.cancelled();
-                    }
-                } else {
-                    jLabel2.setText("Error");
-                    if (listener != null) {
-                        listener.exceptionThrown(exception);
-                    }
+            } else {
+                jLabel2.setText("Error");
+                if (listener != null) {
+                    listener.exceptionThrown(exception);
                 }
             }
         });
@@ -136,35 +130,29 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
 
     @Override
     public synchronized void done() {
-        doOnEventThread(new Runnable() {
-            @Override
-            public void run() {
-                timer.stop();
-                if (jProgressBar1.isIndeterminate()) {
-                    jProgressBar1.setIndeterminate(false);
-                }
-                jProgressBar1.setValue(100);
-                jButton1.setEnabled(false);
-                jLabel2.setText("Done");
-                if (stats != null) {
-                    try {
-                        PrintWriter out = new PrintWriter(new File("logs/" + FileUtils.sanitiseName(task.getName() + "-" + new Date() + ".csv")));
-                        try {
-                            int second = 1;
-                            out.println("second,calculated,displayed");
-                            for (int[] statsRow: stats) {
-                                out.println(second++ + "," + statsRow[0] + "," + statsRow[1]);
-                            }
-                        } finally {
-                            out.close();
+        doOnEventThread(() -> {
+            timer.stop();
+            if (jProgressBar1.isIndeterminate()) {
+                jProgressBar1.setIndeterminate(false);
+            }
+            jProgressBar1.setValue(100);
+            jButton1.setEnabled(false);
+            jLabel2.setText("Done");
+            if (stats != null) {
+                try {
+                    try (PrintWriter out = new PrintWriter(new File("logs/" + FileUtils.sanitiseName(task.getName() + "-" + new Date() + ".csv")))) {
+                        int second = 1;
+                        out.println("second,calculated,displayed");
+                        for (int[] statsRow : stats) {
+                            out.println(second++ + "," + statsRow[0] + "," + statsRow[1]);
                         }
-                    } catch (IOException e) {
-                        logger.log(Level.SEVERE, "I/O error while dumping statistics", e);
                     }
+                } catch (IOException e) {
+                    logger.log(Level.SEVERE, "I/O error while dumping statistics", e);
                 }
-                if ((listener != null) && (! inhibitDone)) {
-                    listener.done(result);
-                }
+            }
+            if ((listener != null) && (! inhibitDone)) {
+                listener.done(result);
             }
         });
     }
@@ -172,12 +160,7 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
     @Override
     public synchronized void setMessage(final String message) throws OperationCancelled {
         checkForCancellation();
-        doOnEventThread(new Runnable() {
-            @Override
-            public void run() {
-                jLabel1.setText(task.getName() + ((message != null) ? (", " + message) : ""));
-            }
-        });
+        doOnEventThread(() -> jLabel1.setText(task.getName() + ((message != null) ? (", " + message) : "")));
     }
 
     @Override
@@ -190,33 +173,27 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
     @Override
     public synchronized void reset() throws OperationCancelled {
         checkForCancellation();
-        doOnEventThread(new Runnable() {
-            @Override
-            public void run() {
-                if (stats != null) {
-                    try {
-                        PrintWriter out = new PrintWriter(new File("logs/" + FileUtils.sanitiseName(task.getName() + "-" + new Date() + ".csv")));
-                        try {
-                            int second = 1;
-                            out.println("second,calculated,displayed");
-                            for (int[] statsRow: stats) {
-                                out.println(second++ + "," + statsRow[0] + "," + statsRow[1]);
-                            }
-                        } finally {
-                            out.close();
+        doOnEventThread(() -> {
+            if (stats != null) {
+                try {
+                    try (PrintWriter out = new PrintWriter(new File("logs/" + FileUtils.sanitiseName(task.getName() + "-" + new Date() + ".csv")))) {
+                        int second = 1;
+                        out.println("second,calculated,displayed");
+                        for (int[] statsRow : stats) {
+                            out.println(second++ + "," + statsRow[0] + "," + statsRow[1]);
                         }
-                    } catch (IOException e) {
-                        logger.log(Level.SEVERE, "I/O error while dumping statistics", e);
                     }
-                    stats = new ArrayList<int[]>();
+                } catch (IOException e) {
+                    logger.log(Level.SEVERE, "I/O error while dumping statistics", e);
                 }
-                jProgressBar1.setIndeterminate(true);
-                start = System.currentTimeMillis();
-                progressReports = 0;
-                lastReportedMinutes = Integer.MAX_VALUE;
-                timeEstimatesActivated = false;
-                jLabel2.setText(" ");
+                stats = new ArrayList<>();
             }
+            jProgressBar1.setIndeterminate(true);
+            start = System.currentTimeMillis();
+            progressReports = 0;
+            lastReportedMinutes = Integer.MAX_VALUE;
+            timeEstimatesActivated = false;
+            jLabel2.setText(" ");
         });
     }
     
@@ -276,11 +253,7 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
 
         jButton1.setText("Cancel");
         jButton1.setEnabled(false);
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
+        jButton1.addActionListener(this::jButton1ActionPerformed);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);

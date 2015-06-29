@@ -66,18 +66,10 @@ public class ExportPartDialog extends WorldPainterDialog {
         fieldDirectory.setText("jTextField2");
 
         buttonCancel.setText("Cancel");
-        buttonCancel.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonCancelActionPerformed(evt);
-            }
-        });
+        buttonCancel.addActionListener(this::buttonCancelActionPerformed);
 
         buttonExport.setText("Export");
-        buttonExport.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonExportActionPerformed(evt);
-            }
-        });
+        buttonExport.addActionListener(this::buttonExportActionPerformed);
 
         jButton1.setText("...");
 

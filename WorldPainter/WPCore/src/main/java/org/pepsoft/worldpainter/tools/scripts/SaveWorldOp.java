@@ -85,11 +85,8 @@ public class SaveWorldOp extends AbstractOperation<Void> {
                 }
             }
 
-            ObjectOutputStream out = new ObjectOutputStream(new GZIPOutputStream(new FileOutputStream(file)));
-            try {
+            try (ObjectOutputStream out = new ObjectOutputStream(new GZIPOutputStream(new FileOutputStream(file)))) {
                 out.writeObject(world);
-            } finally {
-                out.close();
             }
         } catch (IOException e) {
             throw new ScriptException("I/O error saving file (message: " + e.getMessage() + ")", e);

@@ -32,7 +32,7 @@ import static org.pepsoft.worldpainter.Constants.SMALL_BLOBS;
  */
 public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T> implements SecondPassLayerExporter<T>, IncidentalLayerExporter<T> {
     public TreesExporter(T layer) {
-        super(layer, new TreeLayerSettings<T>(layer));
+        super(layer, new TreeLayerSettings<>(layer));
     }
     
     @Override
@@ -159,7 +159,7 @@ public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T>
         }
     }
 
-    private final ThreadLocal<PerlinNoise> perlinNoiseRef = new ThreadLocal<PerlinNoise>();
+    private final ThreadLocal<PerlinNoise> perlinNoiseRef = new ThreadLocal<>();
 
     private static final long SEED_OFFSET = 61380672;
     
@@ -233,7 +233,7 @@ public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T>
 
         @Override
         public ExporterSettings<T> clone() {
-            TreeLayerSettings<T> clone = new TreeLayerSettings<T>(layer);
+            TreeLayerSettings<T> clone = new TreeLayerSettings<>(layer);
             clone.minimumLevel = minimumLevel;
             return clone;
         }
@@ -278,7 +278,7 @@ public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T>
         }
         
         private Object readResolve() throws ObjectStreamException {
-            TreeLayerSettings<DeciduousForest> settings = new TreeLayerSettings<DeciduousForest>(DeciduousForest.INSTANCE);
+            TreeLayerSettings<DeciduousForest> settings = new TreeLayerSettings<>(DeciduousForest.INSTANCE);
             settings.setMinimumLevel(minimumLevel);
             return settings;
         }
@@ -306,7 +306,7 @@ public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T>
         }
         
         private Object readResolve() throws ObjectStreamException {
-            TreeLayerSettings<PineForest> settings = new TreeLayerSettings<PineForest>(PineForest.INSTANCE);
+            TreeLayerSettings<PineForest> settings = new TreeLayerSettings<>(PineForest.INSTANCE);
             settings.setMinimumLevel(minimumLevel);
             return settings;
         }

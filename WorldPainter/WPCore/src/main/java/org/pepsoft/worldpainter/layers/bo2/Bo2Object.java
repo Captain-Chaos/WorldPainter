@@ -29,23 +29,23 @@ public final class Bo2Object extends AbstractObject implements Bo2ObjectProvider
         this.origin = origin;
         this.dimensions = dimensions;
         if ((origin.x != 0) || (origin.y != 0) || (origin.z != 0)) {
-            if (attributes == null) attributes = new HashMap<String, Serializable>();
+            if (attributes == null) attributes = new HashMap<>();
             attributes.put(ATTRIBUTE_OFFSET, new Point3i(-origin.x, -origin.y, -origin.z));
         }
         if (properties.containsKey(KEY_RANDOM_ROTATION) && (! Boolean.valueOf(properties.get(KEY_RANDOM_ROTATION)))) {
-            if (attributes == null) attributes = new HashMap<String, Serializable>();
+            if (attributes == null) attributes = new HashMap<>();
             attributes.put(WPObject.ATTRIBUTE_RANDOM_ROTATION, false);
         }
         if (properties.containsKey(KEY_NEEDS_FOUNDATION) && ! Boolean.valueOf(properties.get(KEY_NEEDS_FOUNDATION))) {
-            if (attributes == null) attributes = new HashMap<String, Serializable>();
+            if (attributes == null) attributes = new HashMap<>();
             attributes.put(WPObject.ATTRIBUTE_NEEDS_FOUNDATION, false);
         }
         if (properties.containsKey(KEY_SPAWN_LAVA) && Boolean.valueOf(properties.get(KEY_SPAWN_LAVA))) {
-            if (attributes == null) attributes = new HashMap<String, Serializable>();
+            if (attributes == null) attributes = new HashMap<>();
             attributes.put(WPObject.ATTRIBUTE_SPAWN_IN_LAVA, true);
         }
         if (properties.containsKey(KEY_SPAWN_WATER) && Boolean.valueOf(properties.get(KEY_SPAWN_WATER))) {
-            if (attributes == null) attributes = new HashMap<String, Serializable>();
+            if (attributes == null) attributes = new HashMap<>();
             attributes.put(WPObject.ATTRIBUTE_SPAWN_IN_WATER, true);
         }
         this.attributes = attributes;
@@ -110,7 +110,7 @@ public final class Bo2Object extends AbstractObject implements Bo2ObjectProvider
     public void setAttribute(String key, Serializable value) {
         if (value != null) {
             if (attributes == null) {
-                attributes = new HashMap<String, Serializable>();
+                attributes = new HashMap<>();
             }
             attributes.put(key, value);
         } else if (attributes != null) {
@@ -132,7 +132,7 @@ public final class Bo2Object extends AbstractObject implements Bo2ObjectProvider
         clone.origin = (Point3i) origin.clone();
         clone.dimensions = (Point3i) dimensions.clone();
         if (attributes != null) {
-            clone.attributes = new HashMap<String, Serializable>(attributes);
+            clone.attributes = new HashMap<>(attributes);
         }
         return clone;
     }
@@ -152,23 +152,23 @@ public final class Bo2Object extends AbstractObject implements Bo2ObjectProvider
         // Legacy
         if (version == 0) {
             if ((origin.x != 0) || (origin.y != 0) || (origin.z != 0)) {
-                if (attributes == null) attributes = new HashMap<String, Serializable>();
+                if (attributes == null) attributes = new HashMap<>();
                 attributes.put(ATTRIBUTE_OFFSET, new Point3i(-origin.x, -origin.y, -origin.z));
             }
             if (properties.containsKey(KEY_RANDOM_ROTATION) && (! Boolean.valueOf(properties.get(KEY_RANDOM_ROTATION)))) {
-                if (attributes == null) attributes = new HashMap<String, Serializable>();
+                if (attributes == null) attributes = new HashMap<>();
                 attributes.put(WPObject.ATTRIBUTE_RANDOM_ROTATION, false);
             }
             if (properties.containsKey(KEY_NEEDS_FOUNDATION) && ! Boolean.valueOf(properties.get(KEY_NEEDS_FOUNDATION))) {
-                if (attributes == null) attributes = new HashMap<String, Serializable>();
+                if (attributes == null) attributes = new HashMap<>();
                 attributes.put(WPObject.ATTRIBUTE_NEEDS_FOUNDATION, false);
             }
             if (properties.containsKey(KEY_SPAWN_LAVA) && Boolean.valueOf(properties.get(KEY_SPAWN_LAVA))) {
-                if (attributes == null) attributes = new HashMap<String, Serializable>();
+                if (attributes == null) attributes = new HashMap<>();
                 attributes.put(WPObject.ATTRIBUTE_SPAWN_IN_LAVA, true);
             }
             if (properties.containsKey(KEY_SPAWN_WATER) && Boolean.valueOf(properties.get(KEY_SPAWN_WATER))) {
-                if (attributes == null) attributes = new HashMap<String, Serializable>();
+                if (attributes == null) attributes = new HashMap<>();
                 attributes.put(WPObject.ATTRIBUTE_SPAWN_IN_WATER, true);
             }
             version = 1;
@@ -188,10 +188,9 @@ public final class Bo2Object extends AbstractObject implements Bo2ObjectProvider
     }
 
     public static Bo2Object load(String objectName, InputStream stream) throws IOException {
-        BufferedReader in = new BufferedReader(new InputStreamReader(stream, Charset.forName("US-ASCII")));
-        try {
-            Map<String, String> properties = new HashMap<String, String>();
-            Map<Point3i, Bo2BlockSpec> blocks = new HashMap<Point3i, Bo2BlockSpec>();
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(stream, Charset.forName("US-ASCII")))) {
+            Map<String, String> properties = new HashMap<>();
+            Map<Point3i, Bo2BlockSpec> blocks = new HashMap<>();
             boolean readingMetaData = false, readingData = false;
             String line;
             int lowestX = Integer.MAX_VALUE, highestX = Integer.MIN_VALUE;
@@ -251,7 +250,7 @@ public final class Bo2Object extends AbstractObject implements Bo2ObjectProvider
                         } else {
                             data = Integer.parseInt(spec.substring(p + 1, p2));
                             p = spec.indexOf('@', p2 + 1);
-                            branch = new int[] {Integer.parseInt(spec.substring(p2 + 1, p)), Integer.parseInt(spec.substring(p + 1))};
+                            branch = new int[]{Integer.parseInt(spec.substring(p2 + 1, p)), Integer.parseInt(spec.substring(p + 1))};
                         }
                     }
                     Point3i coords = new Point3i(x, y, z);
@@ -266,8 +265,6 @@ public final class Bo2Object extends AbstractObject implements Bo2ObjectProvider
                 throw new IOException("No blocks found in the file; is this a bo2 object?");
             }
             return new Bo2Object(objectName, properties, blocks, new Point3i(-lowestX, -lowestY, -lowestZ), new Point3i(highestX - lowestX + 1, highestY - lowestY + 1, highestZ - lowestZ + 1), null);
-        } finally {
-            in.close();
         }
     }
  

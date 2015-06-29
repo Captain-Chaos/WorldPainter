@@ -53,23 +53,17 @@ public class NBTFileNode implements Node {
     private void loadChildren() {
         try {
             if (compressed == null) {
-                FileInputStream in = new FileInputStream(file);
-                try {
+                try (FileInputStream in = new FileInputStream(file)) {
                     byte[] magicNumber = new byte[2];
                     // TODO: not strictly correct, but will probably always work in
                     // practice. Famous last words
                     in.read(magicNumber);
                     compressed = (magicNumber[0] == (byte) 0x1f) && (magicNumber[1] == (byte) 0x8b);
-                } finally {
-                    in.close();
                 }
             }
-            NBTInputStream in = new NBTInputStream(compressed ? new GZIPInputStream(new FileInputStream(file)) : new FileInputStream(file));
-            try {
+            try (NBTInputStream in = new NBTInputStream(compressed ? new GZIPInputStream(new FileInputStream(file)) : new FileInputStream(file))) {
                 tag = in.readTag();
-                children = new Node[] {new TagNode(tag)};
-            } finally {
-                in.close();
+                children = new Node[]{new TagNode(tag)};
             }
         } catch (IOException e) {
             throw new RuntimeException("I/O error while reading level.dat file", e);

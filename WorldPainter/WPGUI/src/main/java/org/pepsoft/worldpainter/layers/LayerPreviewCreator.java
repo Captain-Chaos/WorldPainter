@@ -132,12 +132,8 @@ public class LayerPreviewCreator {
         if (layer instanceof CombinedLayer) {
             Set<Layer> addedLayers = ((CombinedLayer) layer).apply(tile);
             while (! addedLayers.isEmpty()) {
-                Set<Layer> newlyAddedLayers = new HashSet<Layer>();
-                for (Layer layer: addedLayers) {
-                    if (layer instanceof CombinedLayer) {
-                        newlyAddedLayers.addAll(((CombinedLayer) layer).apply(tile));
-                    }
-                }
+                Set<Layer> newlyAddedLayers = new HashSet<>();
+                addedLayers.stream().filter(layer -> layer instanceof CombinedLayer).forEach(layer -> newlyAddedLayers.addAll(((CombinedLayer) layer).apply(tile)));
                 addedLayers = newlyAddedLayers;
             }
         }

@@ -90,18 +90,15 @@ public class BiomesViewerFrame extends JFrame {
             imageViewer.moveToMarker();
         }
         imageViewer.setTileProvider(tileProvider);
-        imageViewer.addMouseWheelListener(new MouseWheelListener() {
-            @Override
-            public void mouseWheelMoved(MouseWheelEvent e) {
-                int rotation = e.getWheelRotation();
-                int zoom = imageViewer.getZoom();
-                if (rotation < 0) {
-                    zoom = Math.min(zoom + -rotation, 0);
-                } else {
-                    zoom = Math.max(zoom - rotation, -4);
-                }
-                imageViewer.setZoom(zoom);
+        imageViewer.addMouseWheelListener(e -> {
+            int rotation = e.getWheelRotation();
+            int zoom = imageViewer.getZoom();
+            if (rotation < 0) {
+                zoom = Math.min(zoom + -rotation, 0);
+            } else {
+                zoom = Math.max(zoom - rotation, -4);
             }
+            imageViewer.setZoom(zoom);
         });
         
         if (! standAloneMode) {
@@ -126,79 +123,67 @@ public class BiomesViewerFrame extends JFrame {
         } else if (biomeScheme instanceof Minecraft1_1BiomeScheme) {
             schemeChooser.setSelectedIndex(4);
         }
-        schemeChooser.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent e) {
-                int selectedIndex = schemeChooser.getSelectedIndex();
-                BiomeScheme biomeScheme = null;
-                switch (selectedIndex) {
-                    case 0:
-                        if (! (BiomesViewerFrame.this.biomeScheme instanceof Minecraft1_7BiomeScheme)) {
-                            biomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_DEFAULT, BiomesViewerFrame.this);
-                        }
-                        break;
-                    case 1:
-                        if (! (BiomesViewerFrame.this.biomeScheme instanceof Minecraft1_7LargeBiomeScheme)) {
-                            biomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_LARGE, BiomesViewerFrame.this);
-                        }
-                        break;
-                    case 2:
-                        if (! (BiomesViewerFrame.this.biomeScheme instanceof Minecraft1_2BiomeScheme)) {
-                            biomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_2_AND_1_3_DEFAULT, BiomesViewerFrame.this);
-                        }
-                        break;
-                    case 3:
-                        if (! (BiomesViewerFrame.this.biomeScheme instanceof Minecraft1_3LargeBiomeScheme)) {
-                            biomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_3_LARGE, BiomesViewerFrame.this);
-                        }
-                        break;
-                    case 4:
-                        if (! (BiomesViewerFrame.this.biomeScheme instanceof Minecraft1_1BiomeScheme)) {
-                            biomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_1, BiomesViewerFrame.this);
-                        }
-                        break;
-                }
-                if (biomeScheme != null) {
-                    BiomesViewerFrame.this.biomeScheme = biomeScheme;
-                    BiomesViewerFrame.this.biomeScheme.setSeed(((Number) seedSpinner.getValue()).longValue());
-                    imageViewer.setTileProvider(new BiomesTileProvider(BiomesViewerFrame.this.biomeScheme, BiomesViewerFrame.this.colourScheme, imageViewer.getZoom(), false));
-                }
+        schemeChooser.addItemListener(e -> {
+            int selectedIndex = schemeChooser.getSelectedIndex();
+            BiomeScheme biomeScheme1 = null;
+            switch (selectedIndex) {
+                case 0:
+                    if (! (BiomesViewerFrame.this.biomeScheme instanceof Minecraft1_7BiomeScheme)) {
+                        biomeScheme1 = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_DEFAULT, BiomesViewerFrame.this);
+                    }
+                    break;
+                case 1:
+                    if (! (BiomesViewerFrame.this.biomeScheme instanceof Minecraft1_7LargeBiomeScheme)) {
+                        biomeScheme1 = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_LARGE, BiomesViewerFrame.this);
+                    }
+                    break;
+                case 2:
+                    if (! (BiomesViewerFrame.this.biomeScheme instanceof Minecraft1_2BiomeScheme)) {
+                        biomeScheme1 = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_2_AND_1_3_DEFAULT, BiomesViewerFrame.this);
+                    }
+                    break;
+                case 3:
+                    if (! (BiomesViewerFrame.this.biomeScheme instanceof Minecraft1_3LargeBiomeScheme)) {
+                        biomeScheme1 = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_3_LARGE, BiomesViewerFrame.this);
+                    }
+                    break;
+                case 4:
+                    if (! (BiomesViewerFrame.this.biomeScheme instanceof Minecraft1_1BiomeScheme)) {
+                        biomeScheme1 = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_1, BiomesViewerFrame.this);
+                    }
+                    break;
+            }
+            if (biomeScheme1 != null) {
+                BiomesViewerFrame.this.biomeScheme = biomeScheme1;
+                BiomesViewerFrame.this.biomeScheme.setSeed(((Number) seedSpinner.getValue()).longValue());
+                imageViewer.setTileProvider(new BiomesTileProvider(BiomesViewerFrame.this.biomeScheme, BiomesViewerFrame.this.colourScheme, imageViewer.getZoom(), false));
             }
         });
         toolBar.add(schemeChooser);
         toolBar.add(Box.createHorizontalStrut(5));
         toolBar.add(new JLabel("Seed:"));
         seedSpinner.setEditor(new JSpinner.NumberEditor(seedSpinner, "0"));
-        seedSpinner.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                BiomesViewerFrame.this.biomeScheme.setSeed(((Number) seedSpinner.getValue()).longValue());
-                imageViewer.setTileProvider(new BiomesTileProvider(BiomesViewerFrame.this.biomeScheme, BiomesViewerFrame.this.colourScheme, imageViewer.getZoom(), false));
-            }
+        seedSpinner.addChangeListener(e -> {
+            BiomesViewerFrame.this.biomeScheme.setSeed(((Number) seedSpinner.getValue()).longValue());
+            imageViewer.setTileProvider(new BiomesTileProvider(BiomesViewerFrame.this.biomeScheme, BiomesViewerFrame.this.colourScheme, imageViewer.getZoom(), false));
         });
         toolBar.add(seedSpinner);
         getContentPane().add(toolBar, BorderLayout.NORTH);
         
         toolBar = new JToolBar();
         JButton button = new JButton("-");
-        button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int zoom = imageViewer.getZoom();
-                zoom = Math.max(zoom - 1, -4);
-                imageViewer.setZoom(zoom);
-            }
+        button.addActionListener(e -> {
+            int zoom = imageViewer.getZoom();
+            zoom = Math.max(zoom - 1, -4);
+            imageViewer.setZoom(zoom);
         });
         toolBar.add(button);
         
         button = new JButton("+");
-        button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int zoom = imageViewer.getZoom();
-                zoom = Math.min(zoom + 1, 0);
-                imageViewer.setZoom(zoom);
-            }
+        button.addActionListener(e -> {
+            int zoom = imageViewer.getZoom();
+            zoom = Math.min(zoom + 1, 0);
+            imageViewer.setZoom(zoom);
         });
         toolBar.add(button);
         
@@ -206,25 +191,17 @@ public class BiomesViewerFrame extends JFrame {
         createWorldButton = new JButton("Create world");
         if (! standAloneMode) {
             createWorldButton.setToolTipText("Create a new WorldPainter world from the selected tiles");
-            createWorldButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    createWorld();
-                }
-            });
+            createWorldButton.addActionListener(e -> createWorld());
         }
         createWorldButton.setEnabled(false);
         toolBar.add(createWorldButton);
         
         toolBar.add(Box.createHorizontalStrut(5));
         button = new JButton("Reset");
-        button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                imageViewer.reset();
-                if (marker != null) {
-                    imageViewer.moveToMarker();
-                }
+        button.addActionListener(e -> {
+            imageViewer.reset();
+            if (marker != null) {
+                imageViewer.moveToMarker();
             }
         });
         toolBar.add(button);
@@ -233,67 +210,59 @@ public class BiomesViewerFrame extends JFrame {
             toolBar.add(Box.createHorizontalStrut(5));
             button = new JButton("Copy seed to world");
             button.setToolTipText("Copy the current seed to the world currently being edited");
-            button.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    BiomesViewerFrame.this.seedListener.setSeed(((Number) seedSpinner.getValue()).longValue(), ((schemeChooser.getSelectedIndex() == 1) || (schemeChooser.getSelectedIndex() == 3)) ? Generator.LARGE_BIOMES : Generator.DEFAULT);
-                }
-            });
+            button.addActionListener(e -> BiomesViewerFrame.this.seedListener.setSeed(((Number) seedSpinner.getValue()).longValue(), ((schemeChooser.getSelectedIndex() == 1) || (schemeChooser.getSelectedIndex() == 3)) ? Generator.LARGE_BIOMES : Generator.DEFAULT));
             toolBar.add(button);
         }
         
         toolBar.add(Box.createHorizontalStrut(5));
         button = new JButton("Play here");
         button.setToolTipText("Create a map in Minecraft with this seed and at this location");
-        button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent event) {
-                String name = JOptionPane.showInputDialog(BiomesViewerFrame.this, "Type a name for the map:", "Map Name", JOptionPane.QUESTION_MESSAGE);
-                if ((name == null) || (name.trim().length() == 0)) {
-                    return;
-                }
-                name = name.trim();
-                File savesDir;
-                boolean minecraftDirUsed = false;
-                File minecraftDir = MinecraftUtil.findMinecraftDir();
-                if (minecraftDir != null) {
-                    savesDir = new File(minecraftDir, "saves");
-                    minecraftDirUsed = true;
-                } else {
-                    savesDir = DesktopUtils.getDocumentsFolder();
-                }
-                File worldDir = new File(savesDir, name);
-                int ordinal = 1;
-                while (worldDir.isDirectory()) {
-                    worldDir = new File(savesDir, name + ordinal);
-                    ordinal++;
-                }
-                if (! worldDir.mkdirs()) {
-                    throw new RuntimeException("Could not create " + worldDir);
-                }
-                BiomeScheme biomeScheme = BiomesViewerFrame.this.biomeScheme;
-                Level level = new Level(Constants.DEFAULT_MAX_HEIGHT_1, (biomeScheme instanceof Minecraft1_1BiomeScheme) ? Constants.SUPPORTED_VERSION_1 : Constants.SUPPORTED_VERSION_2);
-                if (! (biomeScheme instanceof Minecraft1_1BiomeScheme)) {
-                    level.setGenerator(((biomeScheme instanceof Minecraft1_3LargeBiomeScheme) || (biomeScheme instanceof Minecraft1_7LargeBiomeScheme) || (biomeScheme instanceof Minecraft1_8LargeBiomeScheme)) ? Generator.LARGE_BIOMES : Generator.DEFAULT);
-                }
-                level.setGameType(World2.GAME_TYPE_SURVIVAL);
-                level.setMapFeatures(true);
-                level.setName(name);
-                level.setSeed(((Number) seedSpinner.getValue()).longValue());
-                Point worldCoords = imageViewer.getViewLocation();
-                level.setSpawnX(worldCoords.x);
-                level.setSpawnZ(worldCoords.y);
-                level.setSpawnY(64);
-                try {
-                    level.save(worldDir);
-                } catch (IOException e) {
-                    throw new RuntimeException("I/O error writing level.dat file", e);
-                }
-                if (minecraftDirUsed) {
-                    JOptionPane.showMessageDialog(BiomesViewerFrame.this, "Map saved! You can find it in Minecraft under Singleplayer.");
-                } else {
-                    JOptionPane.showMessageDialog(BiomesViewerFrame.this, "Map saved as " + worldDir + ".\nMove it to your Minecraft saves directory to play.");
-                }
+        button.addActionListener(event -> {
+            String name = JOptionPane.showInputDialog(BiomesViewerFrame.this, "Type a name for the map:", "Map Name", JOptionPane.QUESTION_MESSAGE);
+            if ((name == null) || (name.trim().length() == 0)) {
+                return;
+            }
+            name = name.trim();
+            File savesDir;
+            boolean minecraftDirUsed = false;
+            File minecraftDir = MinecraftUtil.findMinecraftDir();
+            if (minecraftDir != null) {
+                savesDir = new File(minecraftDir, "saves");
+                minecraftDirUsed = true;
+            } else {
+                savesDir = DesktopUtils.getDocumentsFolder();
+            }
+            File worldDir = new File(savesDir, name);
+            int ordinal = 1;
+            while (worldDir.isDirectory()) {
+                worldDir = new File(savesDir, name + ordinal);
+                ordinal++;
+            }
+            if (! worldDir.mkdirs()) {
+                throw new RuntimeException("Could not create " + worldDir);
+            }
+            BiomeScheme biomeScheme1 = BiomesViewerFrame.this.biomeScheme;
+            Level level = new Level(Constants.DEFAULT_MAX_HEIGHT_1, (biomeScheme1 instanceof Minecraft1_1BiomeScheme) ? Constants.SUPPORTED_VERSION_1 : Constants.SUPPORTED_VERSION_2);
+            if (! (biomeScheme1 instanceof Minecraft1_1BiomeScheme)) {
+                level.setGenerator(((biomeScheme1 instanceof Minecraft1_3LargeBiomeScheme) || (biomeScheme1 instanceof Minecraft1_7LargeBiomeScheme) || (biomeScheme1 instanceof Minecraft1_8LargeBiomeScheme)) ? Generator.LARGE_BIOMES : Generator.DEFAULT);
+            }
+            level.setGameType(World2.GAME_TYPE_SURVIVAL);
+            level.setMapFeatures(true);
+            level.setName(name);
+            level.setSeed(((Number) seedSpinner.getValue()).longValue());
+            Point worldCoords = imageViewer.getViewLocation();
+            level.setSpawnX(worldCoords.x);
+            level.setSpawnZ(worldCoords.y);
+            level.setSpawnY(64);
+            try {
+                level.save(worldDir);
+            } catch (IOException e) {
+                throw new RuntimeException("I/O error writing level.dat file", e);
+            }
+            if (minecraftDirUsed) {
+                JOptionPane.showMessageDialog(BiomesViewerFrame.this, "Map saved! You can find it in Minecraft under Singleplayer.");
+            } else {
+                JOptionPane.showMessageDialog(BiomesViewerFrame.this, "Map saved as " + worldDir + ".\nMove it to your Minecraft saves directory to play.");
             }
         });
         toolBar.add(button);

@@ -350,55 +350,31 @@ outer:          for (int x = 0; x < width; x++) {
         jLabel1.setText("Select the image to import as a height map:");
 
         buttonSelectFile.setText("...");
-        buttonSelectFile.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonSelectFileActionPerformed(evt);
-            }
-        });
+        buttonSelectFile.addActionListener(this::buttonSelectFileActionPerformed);
 
         labelImageDimensions.setText("Image size: ? x ?, bit depth: ?, lowest value: ?, highest value: ?");
 
         buttonCancel.setText("Cancel");
-        buttonCancel.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonCancelActionPerformed(evt);
-            }
-        });
+        buttonCancel.addActionListener(this::buttonCancelActionPerformed);
 
         buttonOk.setText("OK");
         buttonOk.setEnabled(false);
-        buttonOk.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonOkActionPerformed(evt);
-            }
-        });
+        buttonOk.addActionListener(this::buttonOkActionPerformed);
 
         checkBoxInvert.setText("Invert (white is low, black is high)");
 
-        jTabbedPane1.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                jTabbedPane1StateChanged(evt);
-            }
-        });
+        jTabbedPane1.addChangeListener(this::jTabbedPane1StateChanged);
 
         jLabel3.setText("Scale:");
 
         spinnerScale.setModel(new javax.swing.SpinnerNumberModel(100, 1, 999, 1));
-        spinnerScale.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerScaleStateChanged(evt);
-            }
-        });
+        spinnerScale.addChangeListener(this::spinnerScaleStateChanged);
 
         labelWorldDimensions.setText("Scaled size: ? x ? blocks");
 
         comboBoxHeight.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "32", "64", "128", "256", "512", "1024", "2048" }));
         comboBoxHeight.setSelectedIndex(3);
-        comboBoxHeight.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                comboBoxHeightActionPerformed(evt);
-            }
-        });
+        comboBoxHeight.addActionListener(this::comboBoxHeightActionPerformed);
 
         jLabel4.setText("%");
 
@@ -425,22 +401,14 @@ outer:          for (int x = 0; x < width; x++) {
         jPanel1.add(jLabel7, gridBagConstraints);
 
         spinnerImageLow.setModel(new javax.swing.SpinnerNumberModel(0, 0, 65535, 1));
-        spinnerImageLow.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerImageLowStateChanged(evt);
-            }
-        });
+        spinnerImageLow.addChangeListener(this::spinnerImageLowStateChanged);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         jPanel1.add(spinnerImageLow, gridBagConstraints);
 
         spinnerWorldLow.setModel(new javax.swing.SpinnerNumberModel(0, 0, 65535, 1));
-        spinnerWorldLow.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerWorldLowStateChanged(evt);
-            }
-        });
+        spinnerWorldLow.addChangeListener(this::spinnerWorldLowStateChanged);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
@@ -460,11 +428,7 @@ outer:          for (int x = 0; x < width; x++) {
         jPanel1.add(labelImageWaterLevel, gridBagConstraints);
 
         spinnerWorldMiddle.setModel(new javax.swing.SpinnerNumberModel(62, 0, 65535, 1));
-        spinnerWorldMiddle.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerWorldMiddleStateChanged(evt);
-            }
-        });
+        spinnerWorldMiddle.addChangeListener(this::spinnerWorldMiddleStateChanged);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
@@ -478,22 +442,14 @@ outer:          for (int x = 0; x < width; x++) {
         jPanel1.add(jLabel9, gridBagConstraints);
 
         spinnerImageHigh.setModel(new javax.swing.SpinnerNumberModel(255, 0, 65535, 1));
-        spinnerImageHigh.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerImageHighStateChanged(evt);
-            }
-        });
+        spinnerImageHigh.addChangeListener(this::spinnerImageHighStateChanged);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         jPanel1.add(spinnerImageHigh, gridBagConstraints);
 
         spinnerWorldHigh.setModel(new javax.swing.SpinnerNumberModel(255, 0, 65535, 1));
-        spinnerWorldHigh.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerWorldHighStateChanged(evt);
-            }
-        });
+        spinnerWorldHigh.addChangeListener(this::spinnerWorldHighStateChanged);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
@@ -505,11 +461,7 @@ outer:          for (int x = 0; x < width; x++) {
         jLabel10.setText("blocks");
 
         checkBoxVoid.setText("create Void below image value:");
-        checkBoxVoid.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                checkBoxVoidActionPerformed(evt);
-            }
-        });
+        checkBoxVoid.addActionListener(this::checkBoxVoidActionPerformed);
 
         spinnerVoidBelow.setModel(new javax.swing.SpinnerNumberModel(1, 1, 255, 1));
         spinnerVoidBelow.setEnabled(false);
@@ -523,22 +475,14 @@ outer:          for (int x = 0; x < width; x++) {
 
         spinnerOffsetX.setModel(new javax.swing.SpinnerNumberModel(0, -999999, 999999, 1));
         spinnerOffsetX.setToolTipText("The origin of the height map will be at these coordinates in the map");
-        spinnerOffsetX.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerOffsetXStateChanged(evt);
-            }
-        });
+        spinnerOffsetX.addChangeListener(this::spinnerOffsetXStateChanged);
 
         jLabel12.setText(",");
         jLabel12.setToolTipText("The origin of the height map will be at these coordinates in the map");
 
         spinnerOffsetY.setModel(new javax.swing.SpinnerNumberModel(0, -999999, 999999, 1));
         spinnerOffsetY.setToolTipText("The origin of the height map will be at these coordinates in the map");
-        spinnerOffsetY.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerOffsetYStateChanged(evt);
-            }
-        });
+        spinnerOffsetY.addChangeListener(this::spinnerOffsetYStateChanged);
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -609,25 +553,13 @@ outer:          for (int x = 0; x < width; x++) {
         jTabbedPane1.addTab("Scaling", jPanel2);
 
         buttonLoadDefaults.setText("Load Defaults");
-        buttonLoadDefaults.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonLoadDefaultsActionPerformed(evt);
-            }
-        });
+        buttonLoadDefaults.addActionListener(this::buttonLoadDefaultsActionPerformed);
 
         buttonSaveAsDefaults.setText("Save As Defaults");
-        buttonSaveAsDefaults.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonSaveAsDefaultsActionPerformed(evt);
-            }
-        });
+        buttonSaveAsDefaults.addActionListener(this::buttonSaveAsDefaultsActionPerformed);
 
         buttonResetDefaults.setText("Reset");
-        buttonResetDefaults.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonResetDefaultsActionPerformed(evt);
-            }
-        });
+        buttonResetDefaults.addActionListener(this::buttonResetDefaultsActionPerformed);
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -782,7 +714,7 @@ outer:          for (int x = 0; x < width; x++) {
         } else if (config.getHeightMapsDirectory() != null) {
             fileChooser.setCurrentDirectory(config.getHeightMapsDirectory());
         }
-        final Set<String> extensions = new HashSet<String>(Arrays.asList(ImageIO.getReaderFileSuffixes()));
+        final Set<String> extensions = new HashSet<>(Arrays.asList(ImageIO.getReaderFileSuffixes()));
         StringBuilder sb = new StringBuilder("Supported image formats (");
         boolean first = true;
         for (String extension: extensions) {

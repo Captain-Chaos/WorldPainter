@@ -148,11 +148,7 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
                 logger.log(Level.SEVERE, "I/O error while loading image " + file ,e);
                 JOptionPane.showMessageDialog(this, "An error occurred while loading the overlay image.\nIt may not be a valid or supported image file, or the file may be corrupted.", "Error Loading Image", JOptionPane.ERROR_MESSAGE);
                 return;
-            } catch (RuntimeException e) {
-                logger.log(Level.SEVERE, e.getClass().getSimpleName() + " while loading image " + file ,e);
-                JOptionPane.showMessageDialog(this, "An error occurred while loading the overlay image.\nThere may not be enough available memory, or the image may be too large.", "Error Loading Image", JOptionPane.ERROR_MESSAGE);
-                return;
-            } catch (Error e) {
+            } catch (RuntimeException | Error e) {
                 logger.log(Level.SEVERE, e.getClass().getSimpleName() + " while loading image " + file ,e);
                 JOptionPane.showMessageDialog(this, "An error occurred while loading the overlay image.\nThere may not be enough available memory, or the image may be too large.", "Error Loading Image", JOptionPane.ERROR_MESSAGE);
                 return;
@@ -213,7 +209,7 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
     
     private void selectImage() {
         JFileChooser fileChooser = new JFileChooser();
-        final Set<String> extensions = new HashSet<String>(Arrays.asList(ImageIO.getReaderFileSuffixes()));
+        final Set<String> extensions = new HashSet<>(Arrays.asList(ImageIO.getReaderFileSuffixes()));
         StringBuilder sb = new StringBuilder("Supported image formats (");
         boolean first = true;
         for (String extension: extensions) {
@@ -276,12 +272,9 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
 
     private void scheduleImageUpdate() {
         if (imageUpdateTimer == null) {
-            imageUpdateTimer = new Timer(1000, new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    updateImageFile();
-                    imageUpdateTimer = null;
-                }
+            imageUpdateTimer = new Timer(1000, e -> {
+                updateImageFile();
+                imageUpdateTimer = null;
             });
             imageUpdateTimer.setRepeats(false);
             imageUpdateTimer.start();
@@ -327,28 +320,16 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
         setTitle("Configure View");
 
         checkBoxGrid.setText("Grid");
-        checkBoxGrid.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                checkBoxGridActionPerformed(evt);
-            }
-        });
+        checkBoxGrid.addActionListener(this::checkBoxGridActionPerformed);
 
         spinnerGridSize.setModel(new javax.swing.SpinnerNumberModel(128, 2, 9999, 1));
         spinnerGridSize.setEnabled(false);
-        spinnerGridSize.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerGridSizeStateChanged(evt);
-            }
-        });
+        spinnerGridSize.addChangeListener(this::spinnerGridSizeStateChanged);
 
         jLabel1.setText("Grid size:");
 
         checkBoxImageOverlay.setText("Image overlay");
-        checkBoxImageOverlay.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                checkBoxImageOverlayActionPerformed(evt);
-            }
-        });
+        checkBoxImageOverlay.addActionListener(this::checkBoxImageOverlayActionPerformed);
 
         jLabel2.setText("Image:");
 
@@ -356,21 +337,13 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
 
         buttonSelectImage.setText("...");
         buttonSelectImage.setEnabled(false);
-        buttonSelectImage.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonSelectImageActionPerformed(evt);
-            }
-        });
+        buttonSelectImage.addActionListener(this::buttonSelectImageActionPerformed);
 
         jLabel3.setText("Scale:");
 
         spinnerScale.setModel(new javax.swing.SpinnerNumberModel(100, 1, 9999, 1));
         spinnerScale.setEnabled(false);
-        spinnerScale.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerScaleStateChanged(evt);
-            }
-        });
+        spinnerScale.addChangeListener(this::spinnerScaleStateChanged);
 
         jLabel4.setText("%");
 
@@ -378,11 +351,7 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
 
         spinnerTransparency.setModel(new javax.swing.SpinnerNumberModel(50, 0, 99, 1));
         spinnerTransparency.setEnabled(false);
-        spinnerTransparency.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerTransparencyStateChanged(evt);
-            }
-        });
+        spinnerTransparency.addChangeListener(this::spinnerTransparencyStateChanged);
 
         jLabel6.setText("%");
 
@@ -390,47 +359,27 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
 
         spinnerXOffset.setModel(new javax.swing.SpinnerNumberModel(0, -999999, 999999, 1));
         spinnerXOffset.setEnabled(false);
-        spinnerXOffset.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerXOffsetStateChanged(evt);
-            }
-        });
+        spinnerXOffset.addChangeListener(this::spinnerXOffsetStateChanged);
 
         jLabel8.setText(", Y offset:");
 
         spinnerYOffset.setModel(new javax.swing.SpinnerNumberModel(0, -999999, 999999, 1));
         spinnerYOffset.setEnabled(false);
-        spinnerYOffset.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerYOffsetStateChanged(evt);
-            }
-        });
+        spinnerYOffset.addChangeListener(this::spinnerYOffsetStateChanged);
 
         buttonClose.setText("Close");
-        buttonClose.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonCloseActionPerformed(evt);
-            }
-        });
+        buttonClose.addActionListener(this::buttonCloseActionPerformed);
 
         jLabel9.setText("blocks");
 
         checkBoxContours.setSelected(true);
         checkBoxContours.setText("Contour lines");
-        checkBoxContours.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                checkBoxContoursActionPerformed(evt);
-            }
-        });
+        checkBoxContours.addActionListener(this::checkBoxContoursActionPerformed);
 
         jLabel10.setText("Separation:");
 
         spinnerContourSeparation.setModel(new javax.swing.SpinnerNumberModel(10, 2, 999, 1));
-        spinnerContourSeparation.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerContourSeparationStateChanged(evt);
-            }
-        });
+        spinnerContourSeparation.addChangeListener(this::spinnerContourSeparationStateChanged);
 
         jLabel11.setText("blocks");
 

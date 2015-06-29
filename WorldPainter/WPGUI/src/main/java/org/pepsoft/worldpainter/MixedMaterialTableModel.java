@@ -98,8 +98,8 @@ public class MixedMaterialTableModel implements TableModel {
             } else {
                 if (previousMode == Mode.LAYERED) {
                     int total = 0;
-                    for (int i = 0; i < rows.length; i++) {
-                        total += rows[i].occurrence;
+                    for (Row row : rows) {
+                        total += row.occurrence;
                     }
                     int remaining = 1000;
                     for (int i = 0; i < rows.length; i++) {
@@ -238,7 +238,7 @@ public class MixedMaterialTableModel implements TableModel {
         }
     }
     
-    private final List<TableModelListener> listeners = new ArrayList<TableModelListener>();
+    private final List<TableModelListener> listeners = new ArrayList<>();
     private Row[] rows;
     private Mode mode;
     

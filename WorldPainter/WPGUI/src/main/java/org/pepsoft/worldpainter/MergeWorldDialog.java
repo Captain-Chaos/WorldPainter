@@ -257,22 +257,17 @@ public class MergeWorldDialog extends javax.swing.JDialog implements Listener {
                     }
                     if (merger.getWarnings() != null) {
                         try {
-                            SwingUtilities.invokeAndWait(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Icon warningIcon = UIManager.getIcon("OptionPane.warningIcon");
-                                    Toolkit.getDefaultToolkit().beep();
-                                    int selectedOption = JOptionPane.showOptionDialog(MergeWorldDialog.this, "The merge process generated warnings! The existing map may have had pre-\nexisting damage or corruption. Not all chunks may have been merged correctly.", "Merge Warnings", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, warningIcon, new Object[] {"Review warnings", "OK"}, null);
-                                    if (selectedOption == 0) {
-                                        ImportWarningsDialog warningsDialog = new ImportWarningsDialog(MergeWorldDialog.this, "Merge Warnings");
-                                        warningsDialog.setWarnings(merger.getWarnings());
-                                        warningsDialog.setVisible(true);
-                                    }
+                            SwingUtilities.invokeAndWait(() -> {
+                                Icon warningIcon = UIManager.getIcon("OptionPane.warningIcon");
+                                Toolkit.getDefaultToolkit().beep();
+                                int selectedOption = JOptionPane.showOptionDialog(MergeWorldDialog.this, "The merge process generated warnings! The existing map may have had pre-\nexisting damage or corruption. Not all chunks may have been merged correctly.", "Merge Warnings", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, warningIcon, new Object[] {"Review warnings", "OK"}, null);
+                                if (selectedOption == 0) {
+                                    ImportWarningsDialog warningsDialog = new ImportWarningsDialog(MergeWorldDialog.this, "Merge Warnings");
+                                    warningsDialog.setWarnings(merger.getWarnings());
+                                    warningsDialog.setVisible(true);
                                 }
                             });
-                        } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
-                        } catch (InvocationTargetException e) {
+                        } catch (InterruptedException | InvocationTargetException e) {
                             throw new RuntimeException(e);
                         }
                     }
@@ -407,63 +402,35 @@ public class MergeWorldDialog extends javax.swing.JDialog implements Listener {
         fieldLevelDatFile.setText("jTextField1");
 
         buttonSelectDirectory.setText("...");
-        buttonSelectDirectory.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonSelectDirectoryActionPerformed(evt);
-            }
-        });
+        buttonSelectDirectory.addActionListener(this::buttonSelectDirectoryActionPerformed);
 
         buttonMerge.setText("Merge");
-        buttonMerge.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonMergeActionPerformed(evt);
-            }
-        });
+        buttonMerge.addActionListener(this::buttonMergeActionPerformed);
 
         buttonGroup1.add(radioButtonAll);
         radioButtonAll.setSelected(true);
         radioButtonAll.setText("Merge old and new chunks");
         radioButtonAll.setToolTipText("Will merge everything (terrain type and height changes, new layers, biome changes, etc.). Takes a very long time.");
-        radioButtonAll.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonAllActionPerformed(evt);
-            }
-        });
+        radioButtonAll.addActionListener(this::radioButtonAllActionPerformed);
 
         buttonGroup1.add(radioButtonBiomes);
         radioButtonBiomes.setText("Only change the biomes");
         radioButtonBiomes.setToolTipText("<html>Will merge <i>only</i> biome changes. Ignores the read-only layer. Much quicker than merging everything, and with no side effects.</html>");
-        radioButtonBiomes.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonBiomesActionPerformed(evt);
-            }
-        });
+        radioButtonBiomes.addActionListener(this::radioButtonBiomesActionPerformed);
 
         buttonGroup1.add(jRadioButton1);
         jRadioButton1.setText("Completely replace chunks with new chunks");
         jRadioButton1.setToolTipText("<html><i>This will </i>replace<i> all non-read-only chunks,<br>destroying everything that's there in the existing map! </i></html>");
-        jRadioButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButton1ActionPerformed(evt);
-            }
-        });
+        jRadioButton1.addActionListener(this::jRadioButton1ActionPerformed);
 
         buttonGroup2.add(radioButtonExportEverything);
         radioButtonExportEverything.setSelected(true);
         radioButtonExportEverything.setText("Merge everything");
-        radioButtonExportEverything.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonExportEverythingActionPerformed(evt);
-            }
-        });
+        radioButtonExportEverything.addActionListener(this::radioButtonExportEverythingActionPerformed);
 
         buttonGroup2.add(radioButtonExportSelection);
         radioButtonExportSelection.setText("merge selected tiles");
-        radioButtonExportSelection.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonExportSelectionActionPerformed(evt);
-            }
-        });
+        radioButtonExportSelection.addActionListener(this::radioButtonExportSelectionActionPerformed);
 
         labelSelectTiles.setText("<html><u>select tiles</u></html>");
         labelSelectTiles.addMouseListener(new java.awt.event.MouseAdapter() {

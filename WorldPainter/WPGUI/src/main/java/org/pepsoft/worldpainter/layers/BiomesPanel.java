@@ -75,8 +75,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         label2.setAlignmentX(0.0f);
         add(label2);
 
-        for (int i = 0; i < BIOME_ORDER.length; i++) {
-            final int biome = BIOME_ORDER[i];
+        for (final int biome : BIOME_ORDER) {
             if (biome != -1) {
                 final JToggleButton button = new JToggleButton(new ImageIcon(BiomeSchemeManager.createImage(BIOME_SCHEME, biome, colourScheme)));
                 button.putClientProperty(KEY_BIOME, biome);
@@ -86,7 +85,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
                 tooltip.append(" (");
                 List<Integer> variantIds = findVariants(biome);
                 boolean first = true;
-                for (Integer variantId: variantIds) {
+                for (Integer variantId : variantIds) {
                     if (first) {
                         first = false;
                     } else {
@@ -97,12 +96,9 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
                 tooltip.append(')');
                 button.setToolTipText(tooltip.toString());
                 buttonGroup.add(button);
-                button.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        if (button.isSelected()) {
-                            selectBaseBiome(biome);
-                        }
+                button.addActionListener(e -> {
+                    if (button.isSelected()) {
+                        selectBaseBiome(biome);
                     }
                 });
                 grid.add(button);
@@ -114,21 +110,18 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         JButton addCustomBiomeButton = new JButton(IconUtils.loadIcon("org/pepsoft/worldpainter/icons/plus.png"));
         addCustomBiomeButton.setMargin(new Insets(2, 2, 2, 2));
         addCustomBiomeButton.setToolTipText("Add a custom biome");
-        addCustomBiomeButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                final Window parent = SwingUtilities.getWindowAncestor(BiomesPanel.this);
-                final int id = customBiomeManager.getNextId();
-                if (id == -1) {
-                    JOptionPane.showMessageDialog(parent, "Maximum number of custom biomes reached", "Maximum Reached", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                CustomBiome customBiome = new CustomBiome("Custom", id, Color.ORANGE.getRGB());
-                CustomBiomeDialog dialog = new CustomBiomeDialog(parent, customBiome, true);
-                dialog.setVisible(true);
-                if (! dialog.isCancelled()) {
-                    customBiomeManager.addCustomBiome(parent, customBiome);
-                }
+        addCustomBiomeButton.addActionListener(e -> {
+            final Window parent = SwingUtilities.getWindowAncestor(BiomesPanel.this);
+            final int id = customBiomeManager.getNextId();
+            if (id == -1) {
+                JOptionPane.showMessageDialog(parent, "Maximum number of custom biomes reached", "Maximum Reached", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            CustomBiome customBiome = new CustomBiome("Custom", id, Color.ORANGE.getRGB());
+            CustomBiomeDialog dialog = new CustomBiomeDialog(parent, customBiome, true);
+            dialog.setVisible(true);
+            if (! dialog.isCancelled()) {
+                customBiomeManager.addCustomBiome(parent, customBiome);
             }
         });
         grid.add(addCustomBiomeButton);
@@ -141,12 +134,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         checkBoxF.setEnabled(false);
         checkBoxVariant.setEnabled(false);
 
-        ActionListener optionActionListener = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                updateOptions();
-            }
-        };
+        ActionListener optionActionListener = e -> updateOptions();
         checkBoxHillsShore.addActionListener(optionActionListener);
         checkBoxEdgePlateau.addActionListener(optionActionListener);
         checkBoxM.addActionListener(optionActionListener);
@@ -252,12 +240,9 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         button.setMargin(new Insets(2, 2, 2, 2));
         button.setToolTipText(customBiome.getName() + " (" + biome + ")");
         buttonGroup.add(button);
-        button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (button.isSelected()) {
-                    selectBaseBiome(biome);
-                }
+        button.addActionListener(e -> {
+            if (button.isSelected()) {
+                selectBaseBiome(biome);
             }
         });
         grid.add(button, grid.getComponentCount() - 1);
@@ -333,7 +318,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
      *     the base biome itself).
      */
     private List<Integer> findVariants(int baseId) {
-        List<Integer> variants = new ArrayList<Integer>();
+        List<Integer> variants = new ArrayList<>();
         for (BiomeDescriptor descriptor: DESCRIPTORS) {
             if (descriptor.getBaseId() == baseId) {
                 variants.add(descriptor.getId());

@@ -458,7 +458,7 @@ public class MappingOp extends AbstractOperation<Void> {
     }
 
     private final int[] mapping = new int[65536];
-    private final Map<Integer, Integer> colourMapping = new HashMap<Integer, Integer>();
+    private final Map<Integer, Integer> colourMapping = new HashMap<>();
     private HeightMap heightMap;
     private Layer layer;
     private World2 world;

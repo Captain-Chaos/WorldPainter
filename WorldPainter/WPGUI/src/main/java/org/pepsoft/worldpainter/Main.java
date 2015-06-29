@@ -156,13 +156,7 @@ public class Main {
         Configuration config = null;
         try {
             config = Configuration.load(); // This will migrate the configuration directory if necessary
-        } catch (IOException e) {
-            configError(e);
-        } catch (ClassNotFoundException e) {
-            configError(e);
-        } catch (RuntimeException e) {
-            configError(e);
-        } catch (Error e) {
+        } catch (IOException | Error | RuntimeException | ClassNotFoundException e) {
             configError(e);
         }
         if (config == null) {
@@ -243,18 +237,16 @@ public class Main {
                     EventVO sessionEvent = new EventVO("worldpainter.session").setAttribute(EventVO.ATTRIBUTE_TIMESTAMP, new Date(start)).duration(System.currentTimeMillis() - start);
                     StringBuilder sb = new StringBuilder();
                     List<Plugin> plugins = WPPluginManager.getInstance().getAllPlugins();
-                    for (Plugin plugin: plugins) {
-                        if (! plugin.getName().equals("Default")) {
-                            if (sb.length() > 0) {
-                                sb.append(',');
-                            }
-                            sb.append("{name=");
-                            sb.append(plugin.getName().replaceAll("[ \\t\\n\\x0B\\f\\r\\.]", ""));
-                            sb.append(",version=");
-                            sb.append(plugin.getVersion());
-                            sb.append('}');
+                    plugins.stream().filter(plugin -> !plugin.getName().equals("Default")).forEach(plugin -> {
+                        if (sb.length() > 0) {
+                            sb.append(',');
                         }
-                    }
+                        sb.append("{name=");
+                        sb.append(plugin.getName().replaceAll("[ \\t\\n\\x0B\\f\\r\\.]", ""));
+                        sb.append(",version=");
+                        sb.append(plugin.getVersion());
+                        sb.append('}');
+                    });
                     if (sb.length() > 0) {
                         sessionEvent.setAttribute(ATTRIBUTE_KEY_PLUGINS, sb.toString());
                     }
@@ -277,26 +269,24 @@ public class Main {
         });
         
         // Make the "action:" and "bitcoin:" URLs used in various places work:
-        URL.setURLStreamHandlerFactory(new URLStreamHandlerFactory() {
-            @Override
-            public URLStreamHandler createURLStreamHandler(String protocol) {
-                if (protocol.equals("action")) {
+        URL.setURLStreamHandlerFactory(protocol -> {
+            switch (protocol) {
+                case "action":
                     return new URLStreamHandler() {
                         @Override
                         protected URLConnection openConnection(URL u) throws IOException {
                             throw new UnsupportedOperationException("Not supported");
                         }
                     };
-                } else if (protocol.equals("bitcoin")) {
+                case "bitcoin":
                     return new URLStreamHandler() {
                         @Override
                         protected URLConnection openConnection(URL u) throws IOException {
                             throw new UnsupportedOperationException("Not supported");
                         }
                     };
-                } else {
+                default:
                     return null;
-                }
             }
         });
 
@@ -324,87 +314,77 @@ public class Main {
         }
         
         final Configuration.LookAndFeel lookAndFeel = (config.getLookAndFeel() != null) ? config.getLookAndFeel() : Configuration.LookAndFeel.SYSTEM;
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                // Install configured look and feel
-                try {
-                    String laf;
-                    switch (lookAndFeel) {
-                        case SYSTEM:
-                            // Use Metal on Linux + Java 6 because we're using
-                            // Java 7 versions of JIDE jars which will otherwise
-                            // fail to initialise
-                            laf = (SystemUtils.isLinux() && (! JAVA_7)) ? "javax.swing.plaf.metal.MetalLookAndFeel" : UIManager.getSystemLookAndFeelClassName();
-                            break;
-                        case METAL:
-                            laf = "javax.swing.plaf.metal.MetalLookAndFeel";
-                            break;
-                        case NIMBUS:
-                            laf = JAVA_7 ? "javax.swing.plaf.nimbus.NimbusLookAndFeel" : "com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel";
-                            break;
-                        case DARK_METAL:
-                            laf = "org.netbeans.swing.laf.dark.DarkMetalLookAndFeel";
-                            break;
-                        case DARK_NIMBUS:
-                            laf = JAVA_7 ? "org.netbeans.swing.laf.dark.DarkNimbusLookAndFeel" : "com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel";
-                            break;
-                        default:
-                            throw new InternalError();
-                    }
-                    logger.fine("Installing look and feel: " + laf);
-                    UIManager.setLookAndFeel(laf);
-                    if (JAVA_7 || (! SystemUtils.isLinux())) {
-                        // This would fail on Linux on Java 6 because we're
-                        // using the Java 7 version of the JIDE extensions jar
-                        LookAndFeelFactory.installJideExtension();
-                    }
-                    if ((lookAndFeel == Configuration.LookAndFeel.DARK_METAL)
-                            || (lookAndFeel == Configuration.LookAndFeel.DARK_NIMBUS)) {
-                        // Patch some things to make dark themes look better
-                        VoidRenderer.setColour(UIManager.getColor("Panel.background").getRGB());
-                        if (lookAndFeel == Configuration.LookAndFeel.DARK_METAL) {
-                            UIManager.put("ContentContainer.background", UIManager.getColor("desktop"));
-                            UIManager.put("JideTabbedPane.foreground", new Color(222, 222, 222));
-                        }
-                    }
-                } catch (ClassNotFoundException e) {
-                    logger.log(Level.WARNING, "Could not install selected look an feel", e);
-                } catch (InstantiationException e) {
-                    logger.log(Level.WARNING, "Could not install selected look an feel", e);
-                } catch (IllegalAccessException e) {
-                    logger.log(Level.WARNING, "Could not install selected look and feel", e);
-                } catch (UnsupportedLookAndFeelException e) {
-                    logger.log(Level.WARNING, "Could not install selected look and feel", e);
+        SwingUtilities.invokeLater(() -> {
+            // Install configured look and feel
+            try {
+                String laf;
+                switch (lookAndFeel) {
+                    case SYSTEM:
+                        // Use Metal on Linux + Java 6 because we're using
+                        // Java 7 versions of JIDE jars which will otherwise
+                        // fail to initialise
+                        laf = (SystemUtils.isLinux() && (! JAVA_7)) ? "javax.swing.plaf.metal.MetalLookAndFeel" : UIManager.getSystemLookAndFeelClassName();
+                        break;
+                    case METAL:
+                        laf = "javax.swing.plaf.metal.MetalLookAndFeel";
+                        break;
+                    case NIMBUS:
+                        laf = JAVA_7 ? "javax.swing.plaf.nimbus.NimbusLookAndFeel" : "com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel";
+                        break;
+                    case DARK_METAL:
+                        laf = "org.netbeans.swing.laf.dark.DarkMetalLookAndFeel";
+                        break;
+                    case DARK_NIMBUS:
+                        laf = JAVA_7 ? "org.netbeans.swing.laf.dark.DarkNimbusLookAndFeel" : "com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel";
+                        break;
+                    default:
+                        throw new InternalError();
                 }
-
-                // Don't paint values above sliders in GTK look and feel
-                UIManager.put("Slider.paintValue", Boolean.FALSE);
-
-                final App app = App.getInstance();
-                app.setVisible(true);
-                // Swing quirk:
-                if (Configuration.getInstance().isMaximised() && (System.getProperty("org.pepsoft.worldpainter.size") == null)) {
-                    app.setExtendedState(Frame.MAXIMIZED_BOTH);
+                logger.fine("Installing look and feel: " + laf);
+                UIManager.setLookAndFeel(laf);
+                if (JAVA_7 || (! SystemUtils.isLinux())) {
+                    // This would fail on Linux on Java 6 because we're
+                    // using the Java 7 version of the JIDE extensions jar
+                    LookAndFeelFactory.installJideExtension();
                 }
-                
-                // Do this later to give the app the chance to properly set
-                // itself up
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (world != null) {
-                            // On a Mac we may be doing this unnecessarily because we
-                            // may be opening a .world file, but it has proven difficult
-                            // to detect that. TODO
-                            app.setWorld(world);
-                        } else {
-                            app.open(file);
-                        }
-                        DonationDialog.maybeShowDonationDialog(app);
+                if ((lookAndFeel == Configuration.LookAndFeel.DARK_METAL)
+                        || (lookAndFeel == Configuration.LookAndFeel.DARK_NIMBUS)) {
+                    // Patch some things to make dark themes look better
+                    VoidRenderer.setColour(UIManager.getColor("Panel.background").getRGB());
+                    if (lookAndFeel == Configuration.LookAndFeel.DARK_METAL) {
+                        UIManager.put("ContentContainer.background", UIManager.getColor("desktop"));
+                        UIManager.put("JideTabbedPane.foreground", new Color(222, 222, 222));
                     }
-                });
+                }
+            } catch (ClassNotFoundException | InstantiationException e) {
+                logger.log(Level.WARNING, "Could not install selected look an feel", e);
+            } catch (IllegalAccessException | UnsupportedLookAndFeelException e) {
+                logger.log(Level.WARNING, "Could not install selected look and feel", e);
             }
+
+            // Don't paint values above sliders in GTK look and feel
+            UIManager.put("Slider.paintValue", Boolean.FALSE);
+
+            final App app = App.getInstance();
+            app.setVisible(true);
+            // Swing quirk:
+            if (Configuration.getInstance().isMaximised() && (System.getProperty("org.pepsoft.worldpainter.size") == null)) {
+                app.setExtendedState(Frame.MAXIMIZED_BOTH);
+            }
+
+            // Do this later to give the app the chance to properly set
+            // itself up
+            SwingUtilities.invokeLater(() -> {
+                if (world != null) {
+                    // On a Mac we may be doing this unnecessarily because we
+                    // may be opening a .world file, but it has proven difficult
+                    // to detect that. TODO
+                    app.setWorld(world);
+                } else {
+                    app.open(file);
+                }
+                DonationDialog.maybeShowDonationDialog(app);
+            });
         });
     }
 
@@ -420,7 +400,7 @@ public class Main {
      * created in the package.
      */
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
-    private static final List<Logger> additionalLoggers = new ArrayList<Logger>();
+    private static final List<Logger> additionalLoggers = new ArrayList<>();
 
     static PrivateContext privateContext;
 }

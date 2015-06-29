@@ -77,5 +77,5 @@ public abstract class BetterAction extends org.pepsoft.util.swing.BetterAction {
     private final String statisticsKey;
     private final boolean logEvent;
 
-    private static final Map<String, Long> actionCounts = new HashMap<String, Long>();
+    private static final Map<String, Long> actionCounts = new HashMap<>();
 }
