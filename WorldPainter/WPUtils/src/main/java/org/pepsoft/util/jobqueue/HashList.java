@@ -270,7 +270,7 @@ public class HashList<E> extends AbstractList<E> implements Set<E> {
 
     @Override
     public Spliterator<E> spliterator() {
-        return super.spliterator();
+        return Spliterators.spliterator(this, Spliterator.ORDERED | Spliterator.DISTINCT);
     }
 
     private final Map<E, Element> map;
