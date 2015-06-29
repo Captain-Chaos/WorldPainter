@@ -46,6 +46,4 @@ public class ScriptException extends Exception {
     public ScriptException(Throwable thrwbl) {
         super(thrwbl);
     }
-
-    private static final long serialVersionUID = 1L;
 }

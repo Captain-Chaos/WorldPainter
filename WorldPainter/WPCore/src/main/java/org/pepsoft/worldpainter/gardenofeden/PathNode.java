@@ -14,6 +14,4 @@ public abstract class PathNode extends Seed {
     public PathNode(Garden garden, long seed, PathNode parent, Point3i location, int germinationTime, int category) {
         super(garden, seed, parent, location, germinationTime, category);
     }
-
-    private static final long serialVersionUID = 5064125779318621978L;
 }

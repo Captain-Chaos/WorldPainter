@@ -79,6 +79,4 @@ public class DisplacementHeightMap extends AbstractHeightMap {
     }
     
     private final HeightMap baseHeightMap, angleMap, distanceMap;
-
-    private static final long serialVersionUID = -1352637927505276390L;
 }

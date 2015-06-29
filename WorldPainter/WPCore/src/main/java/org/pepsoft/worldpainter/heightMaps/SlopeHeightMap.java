@@ -92,5 +92,4 @@ public class SlopeHeightMap extends AbstractHeightMap {
 
     private static final double ROOT_EIGHT = Math.sqrt(8.0);
     private static final double RADIANS_TO_DEGREES = 180 / Math.PI;
-    private static final long serialVersionUID = 1739316597277213055L;
 }
