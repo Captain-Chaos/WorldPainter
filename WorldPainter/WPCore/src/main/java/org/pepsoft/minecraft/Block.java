@@ -164,9 +164,7 @@ public final class Block implements Serializable {
     /**
      * Whether the block can occur as part of a pristine Minecraft-generated
      * landscape, <em>excluding</em> artificial structures such as abandoned
-     * mineshafts, villages, temples, strongholds, etc. <strong>Note</strong>
-     * that for historical reasons blocks belonging to dungeons <em>are</em>
-     * included.
+     * mineshafts, villages, temples, strongholds, etc.
      */
     public final transient boolean natural;
 
