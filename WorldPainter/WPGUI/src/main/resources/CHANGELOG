@@ -1,5 +1,6 @@
 -- Version 2.0.0, released ...
 
+ * WorldPainter now requires Java 8! Download Java 8 from Oracle here: http://www.oracle.com/technetwork/java/javase/downloads/jre8-downloads-2133155.html
  * The way of painting layers, terrain and biomes has been changed. You now have a set of powerful new general painting tools, which can paint with any terrain, layer or biome you select
    + This means that instead of just selecting a layer or terrain in order to paint it, you must now select the "paint" (a layer, a terrain, a biome or an annotation colour) from one of the palettes *and* a painting tool from the top row of the tool box. For the old behaviour, select the Spray Paint tool (the top left button in the tool box, or Alt+r)
    + The new painting tools are powerful and flexible. They are:

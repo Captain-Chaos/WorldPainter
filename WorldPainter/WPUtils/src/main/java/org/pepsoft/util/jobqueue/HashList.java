@@ -4,13 +4,7 @@
  */
 package org.pepsoft.util.jobqueue;
 
-import java.util.AbstractList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A combination of the List and Set interfaces. A List which can only contain
@@ -272,6 +266,11 @@ public class HashList<E> extends AbstractList<E> implements Set<E> {
             private Element element = startElement;
             private int index = initialIndex - 1;
         };
+    }
+
+    @Override
+    public Spliterator<E> spliterator() {
+        return super.spliterator();
     }
 
     private final Map<E, Element> map;
