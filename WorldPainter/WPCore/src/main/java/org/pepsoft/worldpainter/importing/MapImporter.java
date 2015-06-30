@@ -368,11 +368,9 @@ public class MapImporter {
             }
         }
         
-        // Process chunks that were only added to fill out a tile. They should
-        // *always* be read-only, regardless of the setting of the read-only
-        // option
+        // Process chunks that were only added to fill out a tile
         for (Point newChunkCoords: newChunks) {
-            dimension.setBitLayerValueAt(ReadOnly.INSTANCE, newChunkCoords.x, newChunkCoords.y, true);
+            dimension.setBitLayerValueAt(NotPresent.INSTANCE, newChunkCoords.x, newChunkCoords.y, true);
             if (populateNewChunks) {
                 dimension.setBitLayerValueAt(Populate.INSTANCE, newChunkCoords.x, newChunkCoords.y, true);
             }

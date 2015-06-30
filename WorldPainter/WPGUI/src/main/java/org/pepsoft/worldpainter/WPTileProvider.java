@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.pepsoft.util.swing.TileListener;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.layers.NotPresent;
 import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
 
 import java.awt.*;
@@ -118,8 +119,24 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
                             TileType tileType = getUnzoomedTileType(x * scale + dx, y * scale + dy);
                             switch (tileType) {
                                 case WORLD:
+                                    Tile tile = tileProvider.getTile(x * scale + dx, y * scale + dy);
+                                    if (tile.hasLayer(NotPresent.INSTANCE)) {
+                                        if (surroundingTileProvider != null) {
+                                            if (surroundingTileImage == null) {
+                                                surroundingTileImage = new BufferedImage(TILE_SIZE, TILE_SIZE, BufferedImage.TYPE_INT_ARGB);
+                                                surroundingTileProvider.paintTile(surroundingTileImage, x, y, 0, 0);
+                                            }
+                                            g2.drawImage(surroundingTileImage,
+                                                    imageX + dx * subSize, imageY + dy * subSize, imageX + (dx + 1) * subSize, imageY + (dy + 1) * subSize,
+                                                    imageX + dx * subSize, imageY + dy * subSize, imageX + (dx + 1) * subSize, imageY + (dy + 1) * subSize,
+                                                    null);
+                                        } else {
+                                            g2.setColor(voidColour);
+                                            g2.fillRect(imageX + dx * subSize, imageY + dy * subSize, subSize, subSize);
+                                        }
+                                    }
                                     TileRenderer tileRenderer = tileRendererRef.get();
-                                    tileRenderer.setTile(tileProvider.getTile(x * scale + dx, y * scale + dy));
+                                    tileRenderer.setTile(tile);
                                     tileRenderer.renderTile(tileImage, dx * subSize, dy * subSize);
                                     break;
                                 case BORDER:
@@ -371,6 +388,9 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
         switch (tileType) {
             case WORLD:
                 Tile tile = tileProvider.getTile(x, y);
+                if (tile.hasLayer(NotPresent.INSTANCE) && (surroundingTileProvider != null)) {
+                    surroundingTileProvider.paintTile(tileImage, x, y, dx, dy);
+                }
                 TileRenderer tileRenderer = tileRendererRef.get();
                 tileRenderer.setTile(tile);
                 tileRenderer.renderTile(tileImage, dx, dy);

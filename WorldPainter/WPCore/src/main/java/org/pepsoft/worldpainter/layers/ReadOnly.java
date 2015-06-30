@@ -5,6 +5,8 @@
 package org.pepsoft.worldpainter.layers;
 
 /**
+ *  Technical layer which indicates that a chunk should not be merged when the
+ *  world is merged with an existing map.
  *
  * @author pepijn
  */
