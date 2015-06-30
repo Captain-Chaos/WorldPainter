@@ -279,7 +279,7 @@ public final class App extends JFrame implements RadiusControl,
      * @param world The world to set, or <code>null</code>.
      */
     public void setWorld(World2 world) {
-        if ((this.world != null) && ((world != null) && (this.world != world))) {
+        if ((this.world != null) && (world != null) && (this.world != world)) {
             throw new IllegalStateException(world + " != " + this.world);
         }
         if (world != null) {
