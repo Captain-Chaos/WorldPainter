@@ -17,7 +17,7 @@
        o For terrain types the area that is filled is the contiguous area with the same terrain type as where you clicked. In other words the terrain type you click on is replaced with the selected terrain type
        o Biomes and annotations work the same as terrain types; the contiguous area with the same biome or annotation colour where you clicked is replaced
      - The Text tool. This allows you to draw text on the world with any font, size and orientation. It's primarily an annotation tool which makes the most sense to use with the colours on the Annotations panel, but it works with any selected layer, terrain or biome as well, if you wish
-       o The text can be rotates in 90 degree steps
+       o The text can be rotated in 90 degree steps
    + All these tools (including Fill and Text) support performing the inverse operation by right-clicking instead of left-clicking. Layers are removed, biomes are reset to automatic and terrain is reset according to the Default Terrain settings of the Dimension Properties
  * The map can now be shifted horizontally!
    + The map can only be shifted by whole tiles (in other words in steps of 128 blocks)
