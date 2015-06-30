@@ -8,7 +8,7 @@ package org.pepsoft.minecraft;
 import java.util.HashMap;
 import org.jnbt.CompoundTag;
 import org.jnbt.StringTag;
-import org.jnbt.Tag;
+
 import static org.pepsoft.minecraft.Constants.*;
 
 /**

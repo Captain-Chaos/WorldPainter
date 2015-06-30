@@ -18,8 +18,6 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.table.TableColumn;
 import org.pepsoft.worldpainter.BiomeListCellRenderer;
 import org.pepsoft.worldpainter.ColourScheme;

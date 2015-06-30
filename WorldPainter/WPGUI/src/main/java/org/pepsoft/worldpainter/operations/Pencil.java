@@ -22,7 +22,6 @@ import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.MapDragControl;
 import org.pepsoft.worldpainter.RadiusControl;
 import org.pepsoft.worldpainter.WorldPainterView;
-import org.pepsoft.worldpainter.painting.*;
 import org.pepsoft.worldpainter.painting.Paint;
 
 import java.awt.*;

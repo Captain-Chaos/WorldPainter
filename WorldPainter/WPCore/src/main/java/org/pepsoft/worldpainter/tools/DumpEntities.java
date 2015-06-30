@@ -9,8 +9,6 @@ import java.io.IOException;
 import org.jnbt.CompoundTag;
 import org.jnbt.NBTInputStream;
 import org.pepsoft.minecraft.ChunkImpl2;
-import org.pepsoft.minecraft.Constants;
-import org.pepsoft.minecraft.Entity;
 import org.pepsoft.minecraft.Painting;
 import org.pepsoft.minecraft.RegionFile;
 

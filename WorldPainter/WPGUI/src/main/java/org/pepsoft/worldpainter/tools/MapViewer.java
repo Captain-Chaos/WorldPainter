@@ -17,8 +17,6 @@ import org.pepsoft.worldpainter.util.MinecraftUtil;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import java.awt.*;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
 import java.awt.image.BufferedImage;
 import java.io.DataInputStream;
 import java.io.File;

@@ -17,7 +17,7 @@ import java.awt.Window;
 import org.pepsoft.worldpainter.layers.Caverns;
 import org.pepsoft.worldpainter.layers.Resources;
 import org.pepsoft.worldpainter.layers.exporters.CavernsExporter.CavernsSettings;
-import javax.swing.KeyStroke;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.Collections;

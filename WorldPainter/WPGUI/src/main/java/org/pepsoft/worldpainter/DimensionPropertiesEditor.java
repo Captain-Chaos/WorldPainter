@@ -19,8 +19,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JSpinner;
 import javax.swing.JSpinner.NumberEditor;
 import javax.swing.SpinnerNumberModel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import org.pepsoft.worldpainter.layers.Caverns;
 import org.pepsoft.worldpainter.layers.Chasms;

@@ -18,7 +18,6 @@ import org.pepsoft.worldpainter.HeightMapTileFactory;
 import org.pepsoft.worldpainter.TileFactory;
 import org.pepsoft.worldpainter.World2;
 import org.pepsoft.worldpainter.heightMaps.ConstantHeightMap;
-import org.pepsoft.worldpainter.heightMaps.NoiseHeightMap;
 import org.pepsoft.worldpainter.heightMaps.SumHeightMap;
 
 /**

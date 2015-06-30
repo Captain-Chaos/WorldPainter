@@ -14,7 +14,6 @@ import org.pepsoft.worldpainter.gardenofeden.Garden;
 import org.pepsoft.worldpainter.gardenofeden.PathNode;
 import org.pepsoft.worldpainter.layers.GardenCategory;
 import org.pepsoft.worldpainter.util.GeometryUtil;
-import org.pepsoft.worldpainter.util.GeometryUtil.GeometryVisitor;
 
 /**
  *

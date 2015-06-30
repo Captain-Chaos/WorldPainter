@@ -7,7 +7,6 @@ package org.pepsoft.worldpainter;
 
 import com.jidesoft.docking.*;
 import com.jidesoft.swing.JideLabel;
-import com.jidesoft.swing.JideTabbedPane;
 import org.jetbrains.annotations.NonNls;
 import org.pepsoft.minecraft.Direction;
 import org.pepsoft.minecraft.Material;
@@ -62,8 +61,6 @@ import javax.swing.*;
 import javax.swing.Box;
 import javax.swing.Timer;
 import javax.swing.border.BevelBorder;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.awt.event.*;

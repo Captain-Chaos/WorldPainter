@@ -4,8 +4,6 @@
  */
 package org.pepsoft.util.swing;
 
-import org.pepsoft.util.AwtUtils;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -21,8 +19,6 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
 
 /**
  * A generic visual component which can display one or more layers of large or

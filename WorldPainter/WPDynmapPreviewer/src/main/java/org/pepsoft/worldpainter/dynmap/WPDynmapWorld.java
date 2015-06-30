@@ -12,7 +12,6 @@ import org.pepsoft.worldpainter.exporting.MinecraftWorldImpl;
 
 import javax.vecmath.Point3i;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
