@@ -138,10 +138,13 @@ public final class NibbleLayerPaint extends LayerPaint {
 
     @Override
     public void applyPixel(Dimension dimension, int x, int y) {
-        final Tile tile = dimension.getTileForEditing(x >> 5, y >> 5);
+        final Tile tile = dimension.getTileForEditing(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
         if (tile != null) {
-            final int xInTile = x & 0x1f, yInTile = y & 0x1f;
-            tile.setLayerValue(layer, xInTile, yInTile, Math.min((int) (brush.getLevel() * 14 + 1), tile.getLayerValue(layer, xInTile, yInTile)));
+            final int xInTile = x & TILE_SIZE_MASK, yInTile = y & TILE_SIZE_MASK;
+            final int value = (int) (brush.getLevel() * 14 + 1);
+            if (tile.getLayerValue(layer, xInTile, yInTile) < value) {
+                tile.setLayerValue(layer, xInTile, yInTile, value);
+            }
         }
     }
 
