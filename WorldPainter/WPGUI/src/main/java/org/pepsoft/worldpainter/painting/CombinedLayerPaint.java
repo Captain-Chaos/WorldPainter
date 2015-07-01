@@ -232,7 +232,10 @@ public final class CombinedLayerPaint extends LayerPaint {
         final Tile tile = dimension.getTileForEditing(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
         if (tile != null) {
             final int xInTile = x & TILE_SIZE_MASK, yInTile = y & TILE_SIZE_MASK;
-            tile.setLayerValue(layer, xInTile, yInTile, Math.min((int) (brush.getLevel() * 14 + 1), tile.getLayerValue(layer, xInTile, yInTile)));
+            final int value = (int) (brush.getLevel() * 14 + 1);
+            if (tile.getLayerValue(layer, xInTile, yInTile) < value) {
+                tile.setLayerValue(layer, xInTile, yInTile, value);
+            }
             final Terrain terrain = ((CombinedLayer) layer).getTerrain();
             if (terrain != null) {
                 tile.setTerrain(xInTile, yInTile, terrain);
