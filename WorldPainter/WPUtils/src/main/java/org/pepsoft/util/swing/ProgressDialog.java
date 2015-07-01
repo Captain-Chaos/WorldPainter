@@ -32,11 +32,34 @@ public class ProgressDialog<T> extends javax.swing.JDialog implements ComponentL
         setLocationRelativeTo(parent);
         addComponentListener(this);
     }
-    
+
+    /**
+     * Execute a task in the background with progress reporting via a modal
+     * dialog with a progress bar. The Cancel button is enabled.
+     *
+     * @param parent The parent window for the modal dialog.
+     * @param task The task to execute.
+     * @param <T> The return type of the task. Use {@link Void} for tasks which
+     *     don't return a value.
+     * @return The result of the task, or <code>null</code> if the task does not
+     *     return a result.
+     */
     public static <T> T executeTask(Window parent, ProgressTask<T> task) {
         return executeTask(parent, task, true);
     }
     
+    /**
+     * Execute a task in the background with progress reporting via a modal
+     * dialog with a progress bar.
+     *
+     * @param parent The parent window for the modal dialog.
+     * @param task The task to execute.
+     * @param cancelable Whether the Cancel button should be enabled.
+     * @param <T> The return type of the task. Use {@link Void} for tasks which
+     *     don't return a value.
+     * @return The result of the task, or <code>null</code> if the task does not
+     *     return a result.
+     */
     public static <T> T executeTask(Window parent, ProgressTask<T> task, boolean cancelable) {
         ProgressDialog<T> dialog = new ProgressDialog<>(parent, task, cancelable);
         dialog.setVisible(true);
