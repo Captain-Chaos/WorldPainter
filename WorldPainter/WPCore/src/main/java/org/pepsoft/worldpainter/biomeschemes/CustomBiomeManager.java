@@ -7,6 +7,7 @@ package org.pepsoft.worldpainter.biomeschemes;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -79,12 +80,41 @@ public class CustomBiomeManager {
         return true;
     }
     
+    /**
+     * Indicates that some aspect of a custom biome (other than the ID, which is
+     * not allowed to change) has changed.
+     * 
+     * @param customBiome The custom biome that has been modified.
+     */
     public void editCustomBiome(CustomBiome customBiome) {
-        throw new UnsupportedOperationException("Not yet implemented");
+        for (CustomBiome existingCustomBiome: customBiomes) {
+            if (existingCustomBiome.getId() == customBiome.getId()) {
+                for (CustomBiomeListener listener: listeners) {
+                    listener.customBiomeChanged(customBiome);
+                }
+                return;
+            }
+        }
+        throw new IllegalArgumentException("There is no custom biome installed with ID " + customBiome.getId());
     }
     
-    public void removeCustomBiome() {
-        throw new UnsupportedOperationException("Not yet implemented");
+    /**
+     * Removes a custom biome.
+     * 
+     * @param customBiome The custom biome to remove.
+     */
+    public void removeCustomBiome(CustomBiome customBiome) {
+        for (Iterator<CustomBiome> i = customBiomes.iterator(); i.hasNext(); ) {
+            CustomBiome existingCustomBiome = i.next();
+            if (existingCustomBiome.getId() == customBiome.getId()) {
+                i.remove();
+                for (CustomBiomeListener listener: listeners) {
+                    listener.customBiomeRemoved(customBiome);
+                }
+                return;
+            }
+        }
+        throw new IllegalArgumentException("There is no custom biome installed with ID " + customBiome.getId());
     }
     
     public void addListener(CustomBiomeListener listener) {
@@ -99,8 +129,8 @@ public class CustomBiomeManager {
         return (biome <= Minecraft1_7Biomes.HIGHEST_BIOME_ID) && (Minecraft1_7Biomes.BIOME_NAMES[biome] != null);
     }
 
+    private final List<CustomBiomeListener> listeners = new ArrayList<>();
     private List<CustomBiome> customBiomes;
-    private List<CustomBiomeListener> listeners = new ArrayList<>();
     
     public interface CustomBiomeListener {
         void customBiomeAdded(CustomBiome customBiome);

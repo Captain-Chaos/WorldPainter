@@ -71,6 +71,7 @@ import java.awt.image.BufferedImageOp;
 import java.awt.image.WritableRaster;
 import java.beans.PropertyChangeListener;
 import java.io.*;
+import java.lang.Void;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -518,7 +519,12 @@ public final class App extends JFrame implements RadiusControl,
                     customBiomes = null;
                 }
             }
-            customBiomeManager.setCustomBiomes(customBiomes);
+            programmaticChange = true;
+            try {
+                customBiomeManager.setCustomBiomes(customBiomes);
+            } finally {
+                programmaticChange = false;
+            }
         } else {
             view.setDimension(null);
             setTitle("WorldPainter"); // NOI18N
@@ -546,52 +552,70 @@ public final class App extends JFrame implements RadiusControl,
                 deselectTool();
             }
             
-            customBiomeManager.setCustomBiomes(null);
+            programmaticChange = true;
+            try {
+                customBiomeManager.setCustomBiomes(null);
+            } finally {
+                programmaticChange = false;
+            }
         }
     }
 
     public void updateStatusBar(int x, int y) {
+        setTextIfDifferent(locationLabel, MessageFormat.format(strings.getString("location.0.1"), x, y));
         if (dimension == null) {
+            setTextIfDifferent(heightLabel, " ");
+            setTextIfDifferent(waterLabel, " ");
+            setTextIfDifferent(materialLabel, " ");
+            setTextIfDifferent(biomeLabel, " ");
             return;
         }
-        locationLabel.setText(MessageFormat.format(strings.getString("location.0.1"), x, y));
         int height = dimension.getIntHeightAt(x, y);
         if (height == -1) {
             // Not on a tile
-            heightLabel.setText(" ");
-            waterLabel.setText(" ");
+            setTextIfDifferent(heightLabel, " ");
+            setTextIfDifferent(waterLabel, " ");
             if (dimension.isBorderTile(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS)) {
-                materialLabel.setText("Border");
+                setTextIfDifferent(materialLabel, "Border");
             } else {
-                materialLabel.setText("Minecraft Generated");
+                setTextIfDifferent(materialLabel, "Minecraft Generated");
             }
-            biomeLabel.setText(" ");
+            setTextIfDifferent(biomeLabel, " ");
             return;
         }
         if (devMode) {
-            heightLabel.setText(MessageFormat.format("Height: {0} ({1}) of {2}", dimension.getHeightAt(x, y), height, dimension.getMaxHeight() - 1));
+            setTextIfDifferent(heightLabel, MessageFormat.format("Height: {0} ({1}) of {2}", dimension.getHeightAt(x, y), height, dimension.getMaxHeight() - 1));
         } else {
-            heightLabel.setText(MessageFormat.format(strings.getString("height.0.of.1"), height, dimension.getMaxHeight() - 1));
+            setTextIfDifferent(heightLabel, MessageFormat.format(strings.getString("height.0.of.1"), height, dimension.getMaxHeight() - 1));
         }
         if ((activeOperation instanceof PaintOperation) && (paint instanceof LayerPaint)) {
             Layer layer = ((LayerPaint) paint).getLayer();
             switch (layer.getDataSize()) {
                 case BIT:
                 case BIT_PER_CHUNK:
-                    waterLabel.setText(MessageFormat.format(strings.getString("layer.0.on.off"), layer.getName(), (dimension.getBitLayerValueAt(layer, x, y) ? 1 : 0)));
+                    setTextIfDifferent(waterLabel, MessageFormat.format(strings.getString("layer.0.on.off"), layer.getName(), (dimension.getBitLayerValueAt(layer, x, y) ? 1 : 0)));
                     break;
                 case NIBBLE:
-                    int value = dimension.getLayerValueAt(layer, x, y);
-                    int strength = (value > 0) ? ((value - 1) * 100  / 14 + 1): 0;
-                    if ((strength == 51) || (strength == 101)) {
-                        strength--;
+                    int value, strength;
+                    if (! layer.equals(Annotations.INSTANCE)) {
+                        value = dimension.getLayerValueAt(layer, x, y);
+                        strength = (value > 0) ? ((value - 1) * 100  / 14 + 1): 0;
+                        if ((strength == 51) || (strength == 101)) {
+                            strength--;
+                        }
+                        setTextIfDifferent(waterLabel, MessageFormat.format(strings.getString("layer.0.level.1"), layer.getName(), strength));
+                    } else {
+                        setTextIfDifferent(waterLabel, " ");
                     }
-                    waterLabel.setText(MessageFormat.format(strings.getString("layer.0.level.1"), layer.getName(), strength));
                     break;
                 case BYTE:
-                    value = dimension.getLayerValueAt(layer, x, y);
-                    strength = (value > 0) ? ((value - 1) * 100  / 254 + 1): 0;
-                    waterLabel.setText(MessageFormat.format(strings.getString("layer.0.level.1"), layer.getName(), strength));
+                    if (! layer.equals(Biome.INSTANCE)) {
+                        value = dimension.getLayerValueAt(layer, x, y);
+                        strength = (value > 0) ? ((value - 1) * 100  / 254 + 1): 0;
+                        setTextIfDifferent(waterLabel, MessageFormat.format(strings.getString("layer.0.level.1"), layer.getName(), strength));
+                    } else {
+                        setTextIfDifferent(waterLabel, " ");
+                    }
                     break;
                 default:
                     // Do nothing
@@ -600,38 +624,44 @@ public final class App extends JFrame implements RadiusControl,
         } else if (activeOperation instanceof GardenOfEdenOperation) {
             switch(dimension.getLayerValueAt(GardenCategory.INSTANCE, x, y)) {
                 case GardenCategory.CATEGORY_BUILDING:
-                    waterLabel.setText(strings.getString("structure.building"));
+                    setTextIfDifferent(waterLabel, strings.getString("structure.building"));
                     break;
                 case GardenCategory.CATEGORY_FIELD:
-                    waterLabel.setText(strings.getString("structure.field"));
+                    setTextIfDifferent(waterLabel, strings.getString("structure.field"));
                     break;
                 case GardenCategory.CATEGORY_ROAD:
-                    waterLabel.setText(strings.getString("structure.road"));
+                    setTextIfDifferent(waterLabel, strings.getString("structure.road"));
                     break;
                 case GardenCategory.CATEGORY_STREET_FURNITURE:
-                    waterLabel.setText(strings.getString("structure.street.furniture"));
+                    setTextIfDifferent(waterLabel, strings.getString("structure.street.furniture"));
                     break;
                 case GardenCategory.CATEGORY_WATER:
-                    waterLabel.setText(strings.getString("structure.water"));
+                    setTextIfDifferent(waterLabel, strings.getString("structure.water"));
+                    break;
+                case GardenCategory.CATEGORY_TREE:
+                    setTextIfDifferent(waterLabel, "Structure: tree");
+                    break;
+                case GardenCategory.CATEGORY_OBJECT:
+                    setTextIfDifferent(waterLabel, "Structure: object");
                     break;
                 default:
-                    waterLabel.setText(null);
+                    setTextIfDifferent(waterLabel, " ");
                     break;
             }
         } else {
             int waterLevel = dimension.getWaterLevelAt(x, y);
             if (waterLevel > height) {
-                waterLabel.setText(MessageFormat.format(strings.getString("fluid.level.1.depth.2"), dimension.getBitLayerValueAt(FloodWithLava.INSTANCE, x, y) ? 1 : 0, waterLevel, waterLevel - height));
+                setTextIfDifferent(waterLabel, MessageFormat.format(strings.getString("fluid.level.1.depth.2"), dimension.getBitLayerValueAt(FloodWithLava.INSTANCE, x, y) ? 1 : 0, waterLevel, waterLevel - height));
             } else {
-                waterLabel.setText(" ");
+                setTextIfDifferent(waterLabel, " ");
             }
         }
         Terrain terrain = dimension.getTerrainAt(x, y);
         if (terrain.isCustom()) {
             int index = terrain.getCustomTerrainIndex();
-            materialLabel.setText(MessageFormat.format(strings.getString("material.custom.1.0"), Terrain.getCustomMaterial(index), index + 1));
+            setTextIfDifferent(materialLabel, MessageFormat.format(strings.getString("material.custom.1.0"), Terrain.getCustomMaterial(index), index + 1));
         } else {
-            materialLabel.setText(MessageFormat.format(strings.getString("material.0"), terrain.getName()));
+            setTextIfDifferent(materialLabel, MessageFormat.format(strings.getString("material.0"), terrain.getName()));
         }
         // TODO: apparently this was sometimes invoked at or soon after startup,
         // with biomeNames being null, causing a NPE. How is this possible?
@@ -642,20 +672,20 @@ public final class App extends JFrame implements RadiusControl,
                 biome = dimension.getAutoBiome(x, y);
                 if (biome != -1) {
                     if (biomeNames[biome] == null) {
-                        biomeLabel.setText("Auto biome: biome " + biome);
+                        setTextIfDifferent(biomeLabel, "Auto biome: biome " + biome);
                     } else {
-                        biomeLabel.setText("Auto biome: " + biomeNames[biome]);
+                        setTextIfDifferent(biomeLabel, "Auto biome: " + biomeNames[biome]);
                     }
                 }
             } else if (biome != -1) {
                 if (biomeNames[biome] == null) {
-                    biomeLabel.setText(MessageFormat.format(strings.getString("biome.0"), biome));
+                    setTextIfDifferent(biomeLabel, MessageFormat.format(strings.getString("biome.0"), biome));
                 } else {
-                    biomeLabel.setText(MessageFormat.format(strings.getString("biome.0"), biomeNames[biome]));
+                    setTextIfDifferent(biomeLabel, MessageFormat.format(strings.getString("biome.0"), biomeNames[biome]));
                 }
             }
         } else {
-            biomeLabel.setText(strings.getString("biome-"));
+            setTextIfDifferent(biomeLabel, strings.getString("biome-"));
         }
     }
 
@@ -1230,16 +1260,74 @@ public final class App extends JFrame implements RadiusControl,
     @Override
     public void customBiomeAdded(CustomBiome customBiome) {
         biomeNames[customBiome.getId()] = customBiome.getName() + " (ID " + customBiome.getId() + ")";
+        if ((! programmaticChange) && (dimension != null)) {
+            // It's possible that the biome ID already exists in the world, for
+            // instance of the user removed a biome and then performed an undo,
+            // so repaint it
+            view.refreshTilesForLayer(Biome.INSTANCE, false);
+        }
     }
 
     @Override
     public void customBiomeChanged(CustomBiome customBiome) {
         biomeNames[customBiome.getId()] = customBiome.getName() + " (ID " + customBiome.getId() + ")";
+        if ((! programmaticChange) && (dimension != null)) {
+            view.refreshTilesForLayer(Biome.INSTANCE, false);
+        }
     }
 
     @Override
     public void customBiomeRemoved(CustomBiome customBiome) {
         biomeNames[customBiome.getId()] = null;
+        if ((! programmaticChange) && (dimension != null)) {
+            ProgressDialog.executeTask(this, new ProgressTask<Void>() {
+                @Override
+                public String getName() {
+                    return "Removing custom biome " + customBiome.getName();
+                }
+
+                @Override
+                public Void execute(ProgressReceiver progressReceiver) throws OperationCancelled {
+                    dimension.armSavePoint();
+                    int customBiomeId = customBiome.getId();
+                    boolean biomesChanged = false;
+                    for (Tile tile : dimension.getTiles()) {
+                        if (tile.hasLayer(Biome.INSTANCE)) {
+                            tile.inhibitEvents();
+                            try {
+                                boolean allCustomOrAuto = true;
+                                for (int x = 0; x < TILE_SIZE; x++) {
+                                    for (int y = 0; y < TILE_SIZE; y++) {
+                                        int layerValue = tile.getLayerValue(Biome.INSTANCE, x, y);
+                                        if (layerValue == customBiomeId) {
+                                            tile.setLayerValue(Biome.INSTANCE, x, y, 255);
+                                            biomesChanged = true;
+                                        } else if (layerValue != 255) {
+                                            allCustomOrAuto = false;
+                                        }
+                                    }
+                                }
+                                if (allCustomOrAuto) {
+                                    // This tile was completely filled with the
+                                    // custom biome and/or automatic biome.
+                                    // Since we're replacing it with automatic
+                                    // biome, which is the default layer value,
+                                    // we can delete the layer data to conserve
+                                    // space
+                                    tile.clearLayerData(Biome.INSTANCE);
+                                }
+                            } finally {
+                                tile.releaseEvents();
+                            }
+                        }
+                    }
+                    if (biomesChanged) {
+                        dimension.armSavePoint();
+                    }
+                    return null;
+                }
+            }, false);
+        }
     }
     
     // DockableHolder
@@ -1257,6 +1345,23 @@ public final class App extends JFrame implements RadiusControl,
 
     ColourScheme getColourScheme(int index) {
         return colourSchemes[index];
+    }
+
+    /**
+     * {@link JLabel#setText(String)} does not check whether the new value is
+     * different. On the other hand {@link JLabel#getText()} is a very simple
+     * method which just returns a field. So if the text will frequently not
+     * have changed, it is cheaper to check with <code>getText()</code> whether
+     * the text is different and only invoke <code>setText()</code> if it is,
+     * which is what this method does.
+     *
+     * @param label The label on which to set the <code>text</code> property.
+     * @param text The text to set.
+     */
+    private void setTextIfDifferent(JLabel label, String text) {
+        if (! label.getText().equals(text)) {
+            label.setText(text);
+        }
     }
 
     private void loadCustomBrushes() {
@@ -2660,6 +2765,7 @@ public final class App extends JFrame implements RadiusControl,
     public List<Component> createCustomLayerButton(final CustomLayer layer) {
         final List<Component> buttonComponents = createLayerButton(layer, '\0', true);
         final JToggleButton button = (JToggleButton) buttonComponents.get(2);
+        button.setToolTipText(button.getToolTipText() + "; right-click for options");
         button.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -2746,7 +2852,7 @@ public final class App extends JFrame implements RadiusControl,
                 dialog.setVisible(true);
                 if (!dialog.isCancelled()) {
                     button.setText(layer.getName());
-                    button.setToolTipText(layer.getName() + ": " + layer.getDescription());
+                    button.setToolTipText(layer.getName() + ": " + layer.getDescription() + "; right-click for options");
                     int newColour = layer.getColour();
                     boolean viewRefreshed = false;
                     if (newColour != previousColour) {

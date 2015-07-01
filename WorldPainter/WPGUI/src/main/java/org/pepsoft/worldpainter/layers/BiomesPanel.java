@@ -7,6 +7,8 @@ import org.pepsoft.worldpainter.biomeschemes.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.List;
@@ -237,7 +239,53 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         final JToggleButton button = new JToggleButton(new ImageIcon(createIcon(customBiome.getColour())));
         button.putClientProperty(KEY_BIOME, biome);
         button.setMargin(new Insets(2, 2, 2, 2));
-        button.setToolTipText(customBiome.getName() + " (" + biome + ")");
+        button.setToolTipText(customBiome.getName() + " (" + biome + "); right-click for options");
+        button.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mousePressed(MouseEvent e) {
+                    if (e.isPopupTrigger()) {
+                        showPopupMenu(e);
+                    }
+                }
+
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    if (e.isPopupTrigger()) {
+                        showPopupMenu(e);
+                    }
+                }
+                
+                @Override
+                public void mouseReleased(MouseEvent e) {
+                    if (e.isPopupTrigger()) {
+                        showPopupMenu(e);
+                    }
+                }
+
+                private void showPopupMenu(MouseEvent e) {
+                    JPopupMenu popup = new JPopupMenu();
+                    
+                    JMenuItem item = new JMenuItem("Edit...");
+                    item.addActionListener(actionEvent -> {
+                        CustomBiomeDialog dialog = new CustomBiomeDialog(SwingUtilities.getWindowAncestor(button), customBiome, false);
+                        dialog.setVisible(true);
+                        if (! dialog.isCancelled()) {
+                            customBiomeManager.editCustomBiome(customBiome);
+                        }
+                    });
+                    popup.add(item);
+                    
+                    item = new JMenuItem("Remove...");
+                    item.addActionListener(actionEvent -> {
+                        if (JOptionPane.showConfirmDialog(button, "Are you sure you want to remove custom biome \"" + customBiome.getName() + "\" (ID: " + customBiome.getId() + ")?\nAny occurrences will be replaced with Automatic Biomes", "Confirm Removal", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+                            customBiomeManager.removeCustomBiome(customBiome);
+                        }
+                    });
+                    popup.add(item);
+                    
+                    popup.show(button, e.getX(), e.getY());
+                }
+            });
         buttonGroup.add(button);
         button.addActionListener(e -> {
             if (button.isSelected()) {
