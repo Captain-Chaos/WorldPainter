@@ -139,13 +139,11 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
             jButton1.setEnabled(false);
             jLabel2.setText("Done");
             if (stats != null) {
-                try {
-                    try (PrintWriter out = new PrintWriter(new File("logs/" + FileUtils.sanitiseName(task.getName() + "-" + new Date() + ".csv")))) {
-                        int second = 1;
-                        out.println("second,calculated,displayed");
-                        for (int[] statsRow : stats) {
-                            out.println(second++ + "," + statsRow[0] + "," + statsRow[1]);
-                        }
+                try (PrintWriter out = new PrintWriter(new File("logs/" + FileUtils.sanitiseName(task.getName() + "-" + new Date() + ".csv")))) {
+                    int second = 1;
+                    out.println("second,calculated,displayed");
+                    for (int[] statsRow : stats) {
+                        out.println(second++ + "," + statsRow[0] + "," + statsRow[1]);
                     }
                 } catch (IOException e) {
                     logger.log(Level.SEVERE, "I/O error while dumping statistics", e);
