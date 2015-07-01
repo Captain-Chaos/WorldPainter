@@ -11,7 +11,6 @@ import org.jnbt.NBTOutputStream;
 import org.jnbt.Tag;
 import org.pepsoft.minecraft.*;
 import org.pepsoft.util.jobqueue.HashList;
-import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.layers.ReadOnly;
 
 import javax.vecmath.Point3i;

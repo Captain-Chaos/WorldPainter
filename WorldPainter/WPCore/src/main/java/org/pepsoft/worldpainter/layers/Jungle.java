@@ -5,7 +5,7 @@
 package org.pepsoft.worldpainter.layers;
 
 import java.util.Random;
-import org.pepsoft.util.PerlinNoise;
+
 import org.pepsoft.worldpainter.layers.trees.Bush;
 import org.pepsoft.worldpainter.layers.trees.JungleTree;
 import org.pepsoft.worldpainter.layers.trees.OakTree;

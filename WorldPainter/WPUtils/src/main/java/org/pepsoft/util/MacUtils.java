@@ -18,14 +18,10 @@
 
 package org.pepsoft.util;
 
-import com.apple.eawt.AppEvent;
 import com.apple.eawt.Application;
-import com.apple.eawt.PreferencesHandler;
-import com.apple.eawt.QuitResponse;
 
 import java.io.File;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 /**
  * Utility methods for integrating into the Mac OS X desktop environment.

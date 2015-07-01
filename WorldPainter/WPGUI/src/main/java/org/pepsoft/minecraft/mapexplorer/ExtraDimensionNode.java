@@ -5,9 +5,7 @@
 package org.pepsoft.minecraft.mapexplorer;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.regex.Pattern;
 import static org.pepsoft.minecraft.Constants.*;
 

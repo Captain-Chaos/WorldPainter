@@ -65,6 +65,4 @@ public final class BitmapHeightMap extends AbstractHeightMap {
     private final int channel;
     private final Raster raster;
     private final Rectangle extent;
-
-    private static final long serialVersionUID = -8534259463025584006L;
 }

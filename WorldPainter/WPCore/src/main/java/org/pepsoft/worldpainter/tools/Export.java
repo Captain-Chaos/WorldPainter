@@ -11,7 +11,6 @@ import java.io.ObjectInputStream;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.util.logging.Level;
 import java.util.zip.GZIPInputStream;
 import org.pepsoft.minecraft.Constants;
 import org.pepsoft.util.FileUtils;

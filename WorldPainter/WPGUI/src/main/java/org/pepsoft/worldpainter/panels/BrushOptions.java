@@ -5,7 +5,6 @@
 package org.pepsoft.worldpainter.panels;
 
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.*;
 import javax.swing.AbstractAction;
 import javax.swing.Action;

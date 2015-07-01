@@ -10,7 +10,6 @@ import org.jnbt.Tag;
 import org.pepsoft.minecraft.*;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.regex.Pattern;
 

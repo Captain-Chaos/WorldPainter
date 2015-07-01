@@ -16,7 +16,6 @@ import org.pepsoft.worldpainter.gardenofeden.Seed;
 import org.pepsoft.worldpainter.layers.CombinedLayer;
 import org.pepsoft.worldpainter.layers.GardenCategory;
 import org.pepsoft.worldpainter.layers.Layer;
-import org.pepsoft.worldpainter.layers.ReadOnly;
 import org.pepsoft.worldpainter.util.FileInUseException;
 import org.pepsoft.worldpainter.vo.AttributeKeyVO;
 import org.pepsoft.worldpainter.vo.EventVO;
@@ -490,18 +489,14 @@ public class WorldExporter {
         final boolean border = (dimension.getBorder() != null) && (dimension.getBorderSize() > 0);
         if (tileSelection) {
             // Tile selection. Don't export bedrock wall or border tiles
-            if (tiles.containsKey(tileCoords) && (! dimension.getBitLayerValueAt(ReadOnly.INSTANCE, chunkX << 4, chunkY << 4))) {
+            if (tiles.containsKey(tileCoords)) {
                 return chunkFactory.createChunk(chunkX, chunkY);
             } else {
                 return null;
             }
         } else {
             if (dimension.getTile(tileCoords) != null) {
-                if (! dimension.getBitLayerValueAt(ReadOnly.INSTANCE, chunkX << 4, chunkY << 4)) {
-                    return chunkFactory.createChunk(chunkX, chunkY);
-                } else {
-                    return null;
-                }
+                return chunkFactory.createChunk(chunkX, chunkY);
             } else if (! ceiling) {
                 // Might be a border or bedrock wall chunk (but not if this is a
                 // ceiling dimension

@@ -5,7 +5,6 @@
 package org.pepsoft.worldpainter.biomeschemes;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

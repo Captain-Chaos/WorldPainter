@@ -7,7 +7,6 @@ package org.pepsoft.worldpainter;
 
 import com.jidesoft.docking.*;
 import com.jidesoft.swing.JideLabel;
-import com.jidesoft.swing.JideTabbedPane;
 import org.jetbrains.annotations.NonNls;
 import org.pepsoft.minecraft.Direction;
 import org.pepsoft.minecraft.Material;
@@ -62,8 +61,6 @@ import javax.swing.*;
 import javax.swing.Box;
 import javax.swing.Timer;
 import javax.swing.border.BevelBorder;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.awt.event.*;
@@ -282,7 +279,7 @@ public final class App extends JFrame implements RadiusControl,
      * @param world The world to set, or <code>null</code>.
      */
     public void setWorld(World2 world) {
-        if ((this.world != null) && ((world != null) && (this.world != world))) {
+        if ((this.world != null) && (world != null) && (this.world != world)) {
             throw new IllegalStateException(world + " != " + this.world);
         }
         if (world != null) {

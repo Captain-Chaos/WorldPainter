@@ -6,7 +6,6 @@ package org.pepsoft.worldpainter.tools;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FilenameFilter;
 import java.io.ObjectInputStream;
 import java.util.zip.GZIPInputStream;
 

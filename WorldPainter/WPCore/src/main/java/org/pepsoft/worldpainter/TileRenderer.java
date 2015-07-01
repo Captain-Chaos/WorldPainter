@@ -7,10 +7,7 @@ package org.pepsoft.worldpainter;
 
 import org.pepsoft.util.ColourUtils;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
-import org.pepsoft.worldpainter.layers.Biome;
-import org.pepsoft.worldpainter.layers.FloodWithLava;
-import org.pepsoft.worldpainter.layers.Frost;
-import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.renderers.*;
 
 import java.awt.*;
@@ -204,7 +201,7 @@ public final class TileRenderer {
             layerList.add(Biome.INSTANCE);
         }
         layerList.removeAll(hiddenLayers);
-        final boolean _void = layerList.contains(org.pepsoft.worldpainter.layers.Void.INSTANCE);
+        final boolean _void = layerList.contains(org.pepsoft.worldpainter.layers.Void.INSTANCE), notAllChunksPresent = layerList.contains(NotPresent.INSTANCE);
         final Layer[] layers = layerList.toArray(new Layer[layerList.size()]);
         final LayerRenderer[] renderers = new LayerRenderer[layers.length];
         boolean renderBiomes = false;
@@ -239,7 +236,9 @@ public final class TileRenderer {
         if (zoom == 0) {
             for (int x = 0; x < TILE_SIZE; x++) {
                 for (int y = 0; y < TILE_SIZE; y++) {
-                    if ((! noOpposites) && oppositesOverlap[x | (y << TILE_SIZE_BITS)] && CEILING_PATTERN[x & 0x7][y & 0x7]) {
+                    if (notAllChunksPresent && (tile.getBitLayerValue(NotPresent.INSTANCE, x, y))) {
+                        renderBuffer[x | (y << TILE_SIZE_BITS)] = 0x00000000;
+                    } else if ((! noOpposites) && oppositesOverlap[x | (y << TILE_SIZE_BITS)] && CEILING_PATTERN[x & 0x7][y & 0x7]) {
                         renderBuffer[x | (y << TILE_SIZE_BITS)] = 0xff000000;
                     } else if (_void && tile.getBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, x, y)) {
                         renderBuffer[x | (y << TILE_SIZE_BITS)] = 0xff000000 | getPixelColour(tileX, tileY, x, y, voidLayers, voidRenderers, false);
@@ -261,7 +260,9 @@ public final class TileRenderer {
             final int tileSize = TILE_SIZE / scale;
             for (int x = 0; x < TILE_SIZE; x += scale) {
                 for (int y = 0; y < TILE_SIZE; y += scale) {
-                    if ((! noOpposites) && oppositesOverlap[x | (y << TILE_SIZE_BITS)]) {
+                    if (notAllChunksPresent && (tile.getBitLayerValue(NotPresent.INSTANCE, x, y))) {
+                        renderBuffer[x / scale + y * tileSize] = 0x00000000;
+                    } else if ((! noOpposites) && oppositesOverlap[x | (y << TILE_SIZE_BITS)]) {
                         renderBuffer[x / scale + y * tileSize] = 0xff000000;
                     } else if (_void && tile.getBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, x, y)) {
                         renderBuffer[x / scale + y * tileSize] = 0xff000000 | getPixelColour(tileX, tileY, x, y, voidLayers, voidRenderers, false);

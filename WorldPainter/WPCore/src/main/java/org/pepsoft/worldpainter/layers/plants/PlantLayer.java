@@ -89,8 +89,6 @@ public class PlantLayer extends CustomLayer {
             }
 
             private final Random random = new Random();
-
-            private static final long serialVersionUID = 1177633069840535010L;
         };
     }
     

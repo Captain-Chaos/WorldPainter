@@ -140,6 +140,4 @@ public class TransformingHeightMap extends AbstractHeightMap {
     private final int offsetX, offsetY;
     private final double scale;
     private final boolean baseHeightMapScaled;
-
-    private static final long serialVersionUID = 6377738500757377240L;
 }

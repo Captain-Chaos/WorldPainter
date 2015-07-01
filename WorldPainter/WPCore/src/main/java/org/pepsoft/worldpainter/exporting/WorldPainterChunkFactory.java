@@ -15,15 +15,12 @@ import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.Tile;
-import org.pepsoft.worldpainter.layers.Biome;
-import org.pepsoft.worldpainter.layers.FloodWithLava;
-import org.pepsoft.worldpainter.layers.Layer;
-import org.pepsoft.worldpainter.layers.Populate;
+import org.pepsoft.worldpainter.layers.*;
+
 import static org.pepsoft.minecraft.Constants.*;
 import org.pepsoft.minecraft.Material;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.*;
-import org.pepsoft.worldpainter.layers.Frost;
 
 /**
  *
@@ -57,6 +54,12 @@ public class WorldPainterChunkFactory implements ChunkFactory {
     }
     
     public ChunkCreationResult createChunk(Tile tile, int chunkX, int chunkZ) {
+        if (tile.getBitLayerValue(ReadOnly.INSTANCE, (chunkX << 4) & TILE_SIZE_MASK, (chunkZ << 4) & TILE_SIZE_MASK)
+                || tile.getBitLayerValue(NotPresent.INSTANCE, (chunkX << 4) & TILE_SIZE_MASK, (chunkZ << 4) & TILE_SIZE_MASK)) {
+            // Chunk is marked as read-only or not present; don't export or
+            // merge it
+            return null;
+        }
         final long seed = dimension.getSeed();
         if (sugarCaneNoise.getSeed() != (seed + SUGAR_CANE_SEED_OFFSET)) {
             sugarCaneNoise.setSeed(seed + SUGAR_CANE_SEED_OFFSET);

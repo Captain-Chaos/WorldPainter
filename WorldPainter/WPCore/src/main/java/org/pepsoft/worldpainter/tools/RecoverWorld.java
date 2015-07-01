@@ -5,7 +5,6 @@
 package org.pepsoft.worldpainter.tools;
 
 import org.pepsoft.worldpainter.*;
-import org.pepsoft.worldpainter.InstanceKeeper.InstantiationListener;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 

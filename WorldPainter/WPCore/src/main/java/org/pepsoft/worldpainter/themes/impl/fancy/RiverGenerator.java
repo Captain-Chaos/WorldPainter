@@ -12,7 +12,6 @@ import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Tile;
 import static org.pepsoft.worldpainter.Constants.*;
 import org.pepsoft.worldpainter.gardenofeden.Garden;
-import org.pepsoft.worldpainter.gardenofeden.Seed;
 
 /**
  *

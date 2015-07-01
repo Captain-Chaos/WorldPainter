@@ -8,7 +8,6 @@ package org.pepsoft.worldpainter.layers.bo2;
 
 import java.awt.Color;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.MalformedURLException;

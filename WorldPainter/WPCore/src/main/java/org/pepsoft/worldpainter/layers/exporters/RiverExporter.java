@@ -17,7 +17,6 @@ import org.pepsoft.worldpainter.exporting.SecondPassLayerExporter;
 import org.pepsoft.worldpainter.layers.FloodWithLava;
 import org.pepsoft.worldpainter.layers.River;
 import org.pepsoft.worldpainter.util.GeometryUtil;
-import org.pepsoft.worldpainter.util.GeometryUtil.GeometryVisitor;
 
 import java.awt.*;
 import java.util.List;
