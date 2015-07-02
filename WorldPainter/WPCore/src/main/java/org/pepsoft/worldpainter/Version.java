@@ -17,12 +17,14 @@ public class Version {
     }
     
     public static final String VERSION;
-    
+    public static final String BUILD;
+
     static {
         Properties versionProps = new Properties();
         try {
             versionProps.load(Version.class.getResourceAsStream("/org.pepsoft.worldpainter.properties"));
             VERSION = versionProps.getProperty("org.pepsoft.worldpainter.version");
+            BUILD = versionProps.getProperty("org.pepsoft.worldpainter.build");
         } catch (IOException e) {
             throw new RuntimeException("I/O error loading version number from classpath", e);
         }

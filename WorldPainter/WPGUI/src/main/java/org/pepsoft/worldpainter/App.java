@@ -29,8 +29,6 @@ import org.pepsoft.worldpainter.colourschemes.DynMapColourScheme;
 import org.pepsoft.worldpainter.gardenofeden.GardenOfEdenOperation;
 import org.pepsoft.worldpainter.importing.MapImportDialog;
 import org.pepsoft.worldpainter.layers.*;
-import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
-import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter.ResourcesExporterSettings;
 import org.pepsoft.worldpainter.layers.groundcover.GroundCoverLayer;
 import org.pepsoft.worldpainter.layers.plants.PlantLayer;
 import org.pepsoft.worldpainter.layers.pockets.UndergroundPocketsDialog;
@@ -38,7 +36,6 @@ import org.pepsoft.worldpainter.layers.pockets.UndergroundPocketsLayer;
 import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayer;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayerDialog;
-import org.pepsoft.worldpainter.objects.AbstractObject;
 import org.pepsoft.worldpainter.operations.*;
 import org.pepsoft.worldpainter.painting.DiscreteLayerPaint;
 import org.pepsoft.worldpainter.painting.LayerPaint;
@@ -765,14 +762,10 @@ public final class App extends JFrame implements RadiusControl,
             @Override
             public World2 execute(ProgressReceiver progressReceiver) throws OperationCancelled {
                 try {
-                    try (WPCustomObjectInputStream in = new WPCustomObjectInputStream(new GZIPInputStream(new FileInputStream(file)), PluginManager.getPluginClassLoader(), AbstractObject.class)) {
-                        Object object = in.readObject();
-                        if (object instanceof World2) {
-                            return (World2) object;
-                        } else {
-                            return migrate(object);
-                        }
-                    }
+                    WorldIO worldIO = new WorldIO();
+                    worldIO.load(new FileInputStream(file));
+                    return worldIO.getWorld();
+                } catch (UnloadableWorldException e) {
                 } catch (ZipException e) {
                     logger.log(java.util.logging.Level.SEVERE, "ZipException while loading " + file, e);
                     reportDamagedFile();
@@ -787,7 +780,7 @@ public final class App extends JFrame implements RadiusControl,
                     return null;
                 } catch (InvalidClassException e) {
                     logger.log(java.util.logging.Level.SEVERE, "InvalidClassException while loading " + file, e);
-                    reportMissingPlugins();
+                    reportIncompatibleFile();
                     return null;
                 } catch (IOException e) {
                     if (e.getMessage().equals("Not in GZIP format")) {
@@ -799,7 +792,7 @@ public final class App extends JFrame implements RadiusControl,
                     }
                 } catch (ClassNotFoundException e) {
                     logger.log(java.util.logging.Level.SEVERE, "ClassNotFoundException while loading " + file, e);
-                    reportMissingPlugins();
+                    reportIncompatibleFile();
                     return null;
                 } catch (IllegalArgumentException e) {
                     logger.log(java.util.logging.Level.SEVERE, "IllegalArgumentException while loading " + file, e);
@@ -818,19 +811,9 @@ public final class App extends JFrame implements RadiusControl,
                 }
             }
 
-            private void reportMissingPlugins() {
+            private void reportIncompatibleFile() {
                 try {
                     SwingUtilities.invokeAndWait(() -> JOptionPane.showMessageDialog(App.this, strings.getString("you.don.t.have.the.right.plugins.installed"), strings.getString("missing.plugin.s"), JOptionPane.ERROR_MESSAGE));
-                } catch (InterruptedException e) {
-                    throw new RuntimeException("Thread interrupted while reporting damaged file " + file, e);
-                } catch (InvocationTargetException e) {
-                    throw new RuntimeException("Invocation target exception while reporting damaged file " + file, e);
-                }
-            }
-
-            private void reportWorldPainterTooOld() {
-                try {
-                    SwingUtilities.invokeAndWait(() -> JOptionPane.showMessageDialog(App.this, "This world was created with a newer version of WorldPainter.\nPlease upgrade WorldPainter to the latest version to load it.", "WorldPainter Too Old", JOptionPane.ERROR_MESSAGE));
                 } catch (InterruptedException e) {
                     throw new RuntimeException("Thread interrupted while reporting damaged file " + file, e);
                 } catch (InvocationTargetException e) {
@@ -1700,10 +1683,9 @@ public final class App extends JFrame implements RadiusControl,
                         progressReceiver.setMessage(null);
                     }
 
-                    try (ObjectOutputStream out = new ObjectOutputStream(new GZIPOutputStream(new FileOutputStream(normalisedFile)))) {
-                        out.writeObject(world);
-                    }
-                    
+                    WorldIO worldIO = new WorldIO(world);
+                    worldIO.save(new FileOutputStream(normalisedFile));
+
                     Map<String, byte[]> layoutData = config.getJideLayoutData();
                     if (layoutData == null) {
                         layoutData = new HashMap<>();
@@ -4223,91 +4205,7 @@ public final class App extends JFrame implements RadiusControl,
             }
         }
     }
-    
-    private World2 migrate(Object object) {
-        if (object instanceof World) {
-            World oldWorld = (World) object;
-            World2 newWorld = new World2(oldWorld.getMinecraftSeed(), oldWorld.getTileFactory(), 128);
-            newWorld.setCreateGoodiesChest(oldWorld.isCreateGoodiesChest());
-            newWorld.setImportedFrom(oldWorld.getImportedFrom());
-            newWorld.setName(oldWorld.getName());
-            newWorld.setSpawnPoint(oldWorld.getSpawnPoint());
-            Dimension dim0 = newWorld.getDimension(0);
-            Generator generator = Generator.DEFAULT;
-            TileFactory tileFactory = dim0.getTileFactory();
-            if ((tileFactory instanceof HeightMapTileFactory)
-                    && (((HeightMapTileFactory) tileFactory).getWaterHeight() < 32)
-                    && (((HeightMapTileFactory) tileFactory).getBaseHeight() < 32)) {
-                // Low level
-                generator = Generator.FLAT;
-            }
-            newWorld.setGenerator(generator);
-            newWorld.setAskToConvertToAnvil(true);
-            newWorld.setUpIs(Direction.WEST);
-            newWorld.setAskToRotate(true);
-            newWorld.setAllowMerging(false);
-            dim0.setEventsInhibited(true);
-            try {
-                dim0.setBedrockWall(oldWorld.isBedrockWall());
-                dim0.setBorder((oldWorld.getBorder() != null) ? Dimension.Border.valueOf(oldWorld.getBorder().name()) : null);
-                dim0.setDarkLevel(oldWorld.isDarkLevel());
-                for (Map.Entry<Layer, ExporterSettings> entry: oldWorld.getAllLayerSettings().entrySet()) {
-                    dim0.setLayerSettings(entry.getKey(), entry.getValue());
-                }
-                dim0.setMinecraftSeed(oldWorld.getMinecraftSeed());
-                dim0.setPopulate(oldWorld.isPopulate());
-                dim0.setContoursEnabled(false);
-                Terrain subsurfaceMaterial = oldWorld.getSubsurfaceMaterial();
-                ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) dim0.getLayerSettings(Resources.INSTANCE);
-                if (subsurfaceMaterial == Terrain.RESOURCES) {
-                    dim0.setSubsurfaceMaterial(Terrain.STONE);
-                } else {
-                    dim0.setSubsurfaceMaterial(subsurfaceMaterial);
-                    resourcesSettings.setMinimumLevel(0);
-                }
-                
-                // Load legacy settings
-                resourcesSettings.setChance(BLK_GOLD_ORE,         1);
-                resourcesSettings.setChance(BLK_IRON_ORE,         5);
-                resourcesSettings.setChance(BLK_COAL,             9);
-                resourcesSettings.setChance(BLK_LAPIS_LAZULI_ORE, 1);
-                resourcesSettings.setChance(BLK_DIAMOND_ORE,      1);
-                resourcesSettings.setChance(BLK_REDSTONE_ORE,     6);
-                resourcesSettings.setChance(BLK_WATER,            1);
-                resourcesSettings.setChance(BLK_LAVA,             1);
-                resourcesSettings.setChance(BLK_DIRT,             9);
-                resourcesSettings.setChance(BLK_GRAVEL,           9);
-                resourcesSettings.setChance(BLK_EMERALD_ORE,      0);
-                resourcesSettings.setMaxLevel(BLK_GOLD_ORE,         Terrain.GOLD_LEVEL);
-                resourcesSettings.setMaxLevel(BLK_IRON_ORE,         Terrain.IRON_LEVEL);
-                resourcesSettings.setMaxLevel(BLK_COAL,             Terrain.COAL_LEVEL);
-                resourcesSettings.setMaxLevel(BLK_LAPIS_LAZULI_ORE, Terrain.LAPIS_LAZULI_LEVEL);
-                resourcesSettings.setMaxLevel(BLK_DIAMOND_ORE,      Terrain.DIAMOND_LEVEL);
-                resourcesSettings.setMaxLevel(BLK_REDSTONE_ORE,     Terrain.REDSTONE_LEVEL);
-                resourcesSettings.setMaxLevel(BLK_WATER,            Terrain.WATER_LEVEL);
-                resourcesSettings.setMaxLevel(BLK_LAVA,             Terrain.LAVA_LEVEL);
-                resourcesSettings.setMaxLevel(BLK_DIRT,             Terrain.DIRT_LEVEL);
-                resourcesSettings.setMaxLevel(BLK_GRAVEL,           Terrain.GRAVEL_LEVEL);
-                resourcesSettings.setMaxLevel(BLK_EMERALD_ORE,      Terrain.GOLD_LEVEL);
 
-                oldWorld.getTiles().forEach(dim0::addTile);
-            } finally {
-                dim0.setEventsInhibited(false);
-            }
-            newWorld.setDirty(false);
-
-            // Log event
-            Configuration config = Configuration.getInstance();
-            if (config != null) {
-                config.logEvent(new EventVO(EVENT_KEY_ACTION_MIGRATE_WORLD).addTimestamp());
-            }
-
-            return newWorld;
-        } else {
-            throw new IllegalArgumentException("Save file format not supported");
-        }
-    }
-    
     private void setDimensionControlStates() {
         boolean imported = (world != null) && (world.getImportedFrom() != null);
         boolean nether = (world != null) && (world.getDimension(DIM_NETHER) != null);

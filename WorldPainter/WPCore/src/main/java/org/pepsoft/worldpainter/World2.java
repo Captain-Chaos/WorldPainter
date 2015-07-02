@@ -17,11 +17,10 @@ import org.pepsoft.worldpainter.layers.Layer;
 import java.awt.*;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.io.File;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.Serializable;
+import java.io.*;
+import java.text.MessageFormat;
 import java.util.*;
+import java.util.List;
 import java.util.logging.Logger;
 
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
@@ -367,6 +366,14 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         }
     }
 
+    public List<String> getHistory() {
+        return history;
+    }
+
+    public Map<String, Object> getMetadata() {
+        return metadata;
+    }
+
     /**
      * Transforms all dimensions of this world horizontally. If an undo manager
      * is installed this operation will destroy all undo info.
@@ -544,6 +551,10 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
                 difficulty = org.pepsoft.minecraft.Constants.DIFFICULTY_NORMAL;
             }
         }
+        if (wpVersion < 3) {
+            history = new ArrayList<>();
+            history.add(MessageFormat.format("Created by WorldPainter before 2.0.0, on or before {0,date,dd-MM-yyyy}", new Date()));
+        }
         wpVersion = CURRENT_WP_VERSION;
         
         // Bug fix: fix the maxHeight of the dimensions, which somehow is not
@@ -560,6 +571,9 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         if (mixedMaterials.length != Terrain.CUSTOM_TERRAIN_COUNT) {
             mixedMaterials = Arrays.copyOf(mixedMaterials, Terrain.CUSTOM_TERRAIN_COUNT);
         }
+
+        // Initialise transient properties
+        metadata = new HashMap<>();
     }
 
     private String name = "Generated World";
@@ -598,7 +612,9 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     private boolean extendedBlockIds;
     private int wpVersion = CURRENT_WP_VERSION;
     private int difficulty = org.pepsoft.minecraft.Constants.DIFFICULTY_NORMAL;
+    private List<String> history = new ArrayList<>();
     private transient Set<Warning> warnings;
+    private transient Map<String, Object> metadata = new HashMap<>();
 
     @Deprecated
     public static final int BIOME_ALGORITHM_NONE                = -1;
@@ -617,8 +633,26 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     public static final int GAME_TYPE_CREATIVE  = 1;
     public static final int GAME_TYPE_ADVENTURE = 2;
     public static final int GAME_TYPE_HARDCORE  = 3;
-    
-    private static final int CURRENT_WP_VERSION = 2;
+
+    /**
+     * A {@link String} containing the WorldPainter version with which this file
+     * was saved.
+     */
+    public static final String METADATA_KEY_WP_VERSION = "org.pepsoft.worldpainter.wp.version";
+
+    /**
+     * A {@link String} containing the WorldPainter timestamp with which this file
+     * was saved.
+     */
+    public static final String METADATA_KEY_WP_TIMESTAMP = "org.pepsoft.worldpainter.wp.timestamp";
+
+    /**
+     * A {@link String} containing the WorldPainter version with which this file
+     * was saved.
+     */
+    public static final String METADATA_KEY_TIMESTAMP = "org.pepsoft.worldpainter.timestamp";
+
+    private static final int CURRENT_WP_VERSION = 3;
 
     private static final Logger logger = Logger.getLogger(World2.class.getName());
     private static final long serialVersionUID = 2011062401L;

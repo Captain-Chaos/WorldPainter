@@ -113,7 +113,7 @@ public class Main {
             pepsoftLogger.setLevel(Level.FINE);
             additionalLoggers.add(pepsoftLogger);
         }
-        logger.info("Starting WorldPainter " + Version.VERSION);
+        logger.info("Starting WorldPainter " + Version.VERSION + " (" + Version.BUILD + ")");
 
         // Set the acceleration mode. For some reason we don't fully understand,
         // loading the Configuration from disk initialises Java2D, so we have to
