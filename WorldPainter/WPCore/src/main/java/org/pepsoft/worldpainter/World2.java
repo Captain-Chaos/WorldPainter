@@ -374,6 +374,10 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         return metadata;
     }
 
+    public void setMetadata(Map<String, Object> metadata) {
+        this.metadata = metadata;
+    }
+
     /**
      * Transforms all dimensions of this world horizontally. If an undo manager
      * is installed this operation will destroy all undo info.
@@ -571,9 +575,6 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         if (mixedMaterials.length != Terrain.CUSTOM_TERRAIN_COUNT) {
             mixedMaterials = Arrays.copyOf(mixedMaterials, Terrain.CUSTOM_TERRAIN_COUNT);
         }
-
-        // Initialise transient properties
-        metadata = new HashMap<>();
     }
 
     private String name = "Generated World";
@@ -614,7 +615,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     private int difficulty = org.pepsoft.minecraft.Constants.DIFFICULTY_NORMAL;
     private List<String> history = new ArrayList<>();
     private transient Set<Warning> warnings;
-    private transient Map<String, Object> metadata = new HashMap<>();
+    private transient Map<String, Object> metadata;
 
     @Deprecated
     public static final int BIOME_ALGORITHM_NONE                = -1;
@@ -641,16 +642,25 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     public static final String METADATA_KEY_WP_VERSION = "org.pepsoft.worldpainter.wp.version";
 
     /**
-     * A {@link String} containing the WorldPainter timestamp with which this file
+     * A {@link String} containing the WorldPainter build with which this file
      * was saved.
      */
-    public static final String METADATA_KEY_WP_TIMESTAMP = "org.pepsoft.worldpainter.wp.timestamp";
+    public static final String METADATA_KEY_WP_BUILD = "org.pepsoft.worldpainter.wp.build";
 
     /**
-     * A {@link String} containing the WorldPainter version with which this file
-     * was saved.
+     * A {@link Date} containing the time at which this file was saved.
      */
     public static final String METADATA_KEY_TIMESTAMP = "org.pepsoft.worldpainter.timestamp";
+
+    /**
+     * An optional two dimensional {@link String}[][2] array containing the
+     * plugins installed in the WorldPainter instance which saved the file. One
+     * row per plugin, which each row containing two elements, the first being
+     * the plugin name, the second being the plugin version.
+     *
+     * <p>May be <code>null</code> if no non-standard plugins were present.
+     */
+    public static final String METADATA_KEY_PLUGINS = "org.pepsoft.worldpainter.plugins";
 
     private static final int CURRENT_WP_VERSION = 3;
 

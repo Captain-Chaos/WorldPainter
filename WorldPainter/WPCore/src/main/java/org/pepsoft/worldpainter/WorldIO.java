@@ -8,12 +8,12 @@ import org.pepsoft.worldpainter.layers.Resources;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter;
 import org.pepsoft.worldpainter.objects.AbstractObject;
+import org.pepsoft.worldpainter.plugins.Plugin;
+import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.pepsoft.worldpainter.vo.EventVO;
 
 import java.io.*;
-import java.text.MessageFormat;
-import java.util.Date;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -49,7 +49,22 @@ public class WorldIO {
      */
     public void save(OutputStream out) throws IOException {
         try (ObjectOutputStream wrappedOut = new ObjectOutputStream(new GZIPOutputStream(out))) {
-            wrappedOut.writeObject(world.getMetadata());
+            Map<String, Object> metadata = new HashMap<>();
+            metadata.put(World2.METADATA_KEY_WP_VERSION, Version.VERSION);
+            metadata.put(World2.METADATA_KEY_WP_BUILD, Version.BUILD);
+            metadata.put(World2.METADATA_KEY_TIMESTAMP, new Date());
+            List<String[]> pluginArray = new ArrayList<>();
+            for (Plugin plugin: WPPluginManager.getInstance().getAllPlugins()) {
+                if (plugin.getName().equals("Default") || plugin.getName().equals("DefaultLayerEditorProvider")) {
+                    // Don't include the system plugins
+                    continue;
+                }
+                pluginArray.add(new String[] {plugin.getName(), plugin.getVersion()});
+            }
+            if (! pluginArray.isEmpty()) {
+                metadata.put(World2.METADATA_KEY_PLUGINS, pluginArray.toArray(new String[pluginArray.size()][]));
+            }
+            wrappedOut.writeObject(metadata);
             wrappedOut.writeObject(world);
         }
     }
@@ -93,7 +108,7 @@ public class WorldIO {
             throw new UnloadableWorldException("InvalidClassException while loading world", e, metadata);
         } catch (IOException e) {
             if (e.getMessage().equals("Not in GZIP format")) {
-                throw new UnloadableWorldException("IOException while loading world", e, metadata);
+                throw new UnloadableWorldException("Not in GZIP format", e, metadata);
             } else {
                 throw e;
             }
@@ -103,7 +118,7 @@ public class WorldIO {
             throw new UnloadableWorldException("IllegalArgumentException while loading world", e, metadata);
         }
         if (metadata != null) {
-            world.getMetadata().putAll(metadata);
+            world.setMetadata(metadata);
         }
     }
 

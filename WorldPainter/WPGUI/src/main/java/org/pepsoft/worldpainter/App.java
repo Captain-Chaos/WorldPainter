@@ -73,6 +73,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 import java.util.logging.Level;
@@ -80,7 +81,6 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
-import java.util.zip.ZipException;
 
 import static com.jidesoft.docking.DockContext.DOCK_SIDE_EAST;
 import static com.jidesoft.docking.DockContext.DOCK_SIDE_WEST;
@@ -764,60 +764,78 @@ public final class App extends JFrame implements RadiusControl,
                 try {
                     WorldIO worldIO = new WorldIO();
                     worldIO.load(new FileInputStream(file));
-                    return worldIO.getWorld();
+                    World2 world = worldIO.getWorld();
+                    if (logger.isLoggable(Level.FINE) && (world.getMetadata() != null)) {
+                        logMetadata(Level.FINE, world.getMetadata());
+                    }
+                    return world;
                 } catch (UnloadableWorldException e) {
-                } catch (ZipException e) {
-                    logger.log(java.util.logging.Level.SEVERE, "ZipException while loading " + file, e);
-                    reportDamagedFile();
-                    return null;
-                } catch (StreamCorruptedException e) {
-                    logger.log(java.util.logging.Level.SEVERE, "StreamCorruptedException while loading " + file, e);
-                    reportDamagedFile();
-                    return null;
-                } catch (EOFException e) {
-                    logger.log(java.util.logging.Level.SEVERE, "EOFException while loading " + file, e);
-                    reportDamagedFile();
-                    return null;
-                } catch (InvalidClassException e) {
-                    logger.log(java.util.logging.Level.SEVERE, "InvalidClassException while loading " + file, e);
-                    reportIncompatibleFile();
+                    logger.log(Level.SEVERE, "Could not load world from file " + file, e);
+                    if (e.getMetadata() != null) {
+                        logMetadata(Level.SEVERE, e.getMetadata());
+                    }
+                    reportUnloadableWorldException(e);
                     return null;
                 } catch (IOException e) {
-                    if (e.getMessage().equals("Not in GZIP format")) {
-                        logger.log(java.util.logging.Level.SEVERE, "IOException while loading " + file, e);
-                        reportDamagedFile();
-                        return null;
-                    } else {
-                        throw new RuntimeException("I/O error while loading world", e);
-                    }
-                } catch (ClassNotFoundException e) {
-                    logger.log(java.util.logging.Level.SEVERE, "ClassNotFoundException while loading " + file, e);
-                    reportIncompatibleFile();
-                    return null;
-                } catch (IllegalArgumentException e) {
-                    logger.log(java.util.logging.Level.SEVERE, "IllegalArgumentException while loading " + file, e);
-                    reportWorldPainterTooOld();
-                    return null;
-                }
-            }
-            
-            private void reportDamagedFile() {
-                try {
-                    SwingUtilities.invokeAndWait(() -> JOptionPane.showMessageDialog(App.this, strings.getString("the.file.is.damaged"), strings.getString("file.damaged"), JOptionPane.ERROR_MESSAGE));
-                } catch (InterruptedException e) {
-                    throw new RuntimeException("Thread interrupted while reporting damaged file " + file, e);
-                } catch (InvocationTargetException e) {
-                    throw new RuntimeException("Invocation target exception while reporting damaged file " + file, e);
+                    throw new RuntimeException("I/O error while loading world", e);
                 }
             }
 
-            private void reportIncompatibleFile() {
+            private void appendMetadata(StringBuilder sb, Map<String, Object> metadata) {
+                for (Map.Entry<String, Object> entry: metadata.entrySet()) {
+                    switch (entry.getKey()) {
+                        case World2.METADATA_KEY_WP_VERSION:
+                            sb.append("Saved with WorldPainter ").append(entry.getValue());
+                            String build = (String) metadata.get(World2.METADATA_KEY_WP_BUILD);
+                            if (build != null) {
+                                sb.append(" (").append(build).append(')');
+                            }
+                            sb.append('\n');
+                            break;
+                        case World2.METADATA_KEY_TIMESTAMP:
+                            sb.append("Saved on ").append(SimpleDateFormat.getDateTimeInstance().format((Date) entry.getValue())).append('\n');
+                            break;
+                        case World2.METADATA_KEY_PLUGINS:
+                            String[][] plugins = (String[][]) entry.getValue();
+                            for (String[] plugin: plugins) {
+                                sb.append("Plugin: ").append(plugin[0]).append(" (").append(plugin[1]).append(")\n");
+                            }
+                            break;
+                    }
+                }
+            }
+
+            private void logMetadata(Level logLevel, Map<String, Object> metadata) {
+                StringBuilder sb = new StringBuilder("Metadata from world file:\n");
+                appendMetadata(sb, metadata);
+                logger.log(logLevel, sb.toString());
+            }
+
+            private void reportUnloadableWorldException(UnloadableWorldException e) {
                 try {
-                    SwingUtilities.invokeAndWait(() -> JOptionPane.showMessageDialog(App.this, strings.getString("you.don.t.have.the.right.plugins.installed"), strings.getString("missing.plugin.s"), JOptionPane.ERROR_MESSAGE));
-                } catch (InterruptedException e) {
-                    throw new RuntimeException("Thread interrupted while reporting damaged file " + file, e);
-                } catch (InvocationTargetException e) {
-                    throw new RuntimeException("Invocation target exception while reporting damaged file " + file, e);
+                    String text;
+                    if (e.getMetadata() != null) {
+                        StringBuilder sb = new StringBuilder("WorldPainter could not load the file. The cause may be one of:\n" +
+                                "\n" +
+                                "* The file is damaged or corrupted\n" +
+                                "* The file was created with a newer version of WorldPainter\n" +
+                                "* The file was created using WorldPainter plugins which you do not have\n" +
+                                "\n");
+                        appendMetadata(sb, e.getMetadata());
+                        text = sb.toString();
+                    } else {
+                        text = "WorldPainter could not load the file. The cause may be one of:\n" +
+                                "\n" +
+                                "* The file is not a WorldPainter world\n" +
+                                "* The file is damaged or corrupted\n" +
+                                "* The file was created with a newer version of WorldPainter\n" +
+                                "* The file was created using WorldPainter plugins which you do not have";
+                    }
+                    SwingUtilities.invokeAndWait(() -> JOptionPane.showMessageDialog(App.this, text, strings.getString("file.damaged"), JOptionPane.ERROR_MESSAGE));
+                } catch (InterruptedException e2) {
+                    throw new RuntimeException("Thread interrupted while reporting unloadable file " + file, e2);
+                } catch (InvocationTargetException e2) {
+                    throw new RuntimeException("Invocation target exception while reporting unloadable file " + file, e2);
                 }
             }
         }, false);
@@ -2678,31 +2696,31 @@ public final class App extends JFrame implements RadiusControl,
     private void updateBrushRotation() {
         int desiredBrushRotation = (activeOperation instanceof PaintOperation) ? brushRotation : toolBrushRotation;
         if (desiredBrushRotation != previousBrushRotation) {
-            long start = System.currentTimeMillis();
+//            long start = System.currentTimeMillis();
             if (desiredBrushRotation == 0) {
                 for (Map.Entry<Brush, JToggleButton> entry: brushButtons.entrySet()) {
                     Brush brush = entry.getKey();
                     JToggleButton button = entry.getValue();
-                    button.setIcon(createBrushIcon(brush, 0));
-                    if (button.isSelected() && (activeOperation instanceof RadiusOperation)) {
-                        ((RadiusOperation) activeOperation).setBrush(brush);
+//                    button.setIcon(createBrushIcon(brush, 0));
+                    if (button.isSelected() && (activeOperation instanceof BrushOperation)) {
+                        ((BrushOperation) activeOperation).setBrush(brush);
                     }
                 }
             } else {
                 for (Map.Entry<Brush, JToggleButton> entry: brushButtons.entrySet()) {
                     Brush brush = entry.getKey();
                     JToggleButton button = entry.getValue();
-                    button.setIcon(createBrushIcon(brush, desiredBrushRotation));
-                    if (button.isSelected() && (activeOperation instanceof RadiusOperation)) {
+//                    button.setIcon(createBrushIcon(brush, desiredBrushRotation));
+                    if (button.isSelected() && (activeOperation instanceof BrushOperation)) {
                         Brush rotatedBrush = RotatedBrush.rotate(brush, desiredBrushRotation);
-                        ((RadiusOperation) activeOperation).setBrush(rotatedBrush);
+                        ((BrushOperation) activeOperation).setBrush(rotatedBrush);
                     }
                 }
             }
             view.setBrushRotation(desiredBrushRotation);
-            if (logger.isLoggable(Level.FINE)) {
-                logger.fine("Updating brush rotation took " + (System.currentTimeMillis() - start) + " ms");
-            }
+//            if (logger.isLoggable(Level.FINE)) {
+//                logger.fine("Updating brush rotation took " + (System.currentTimeMillis() - start) + " ms");
+//            }
             previousBrushRotation = desiredBrushRotation;
         }
     }
@@ -3949,8 +3967,10 @@ public final class App extends JFrame implements RadiusControl,
                         if (operation instanceof MouseOrTabletOperation) {
                             ((MouseOrTabletOperation) operation).setLevel(level);
                             if (operation instanceof RadiusOperation) {
-                                ((RadiusOperation) operation).setBrush(brushRotation == 0 ? brush : RotatedBrush.rotate(brush, brushRotation));
                                 ((RadiusOperation) operation).setFilter(filter);
+                            }
+                            if (operation instanceof BrushOperation) {
+                                ((BrushOperation) operation).setBrush(brushRotation == 0 ? brush : RotatedBrush.rotate(brush, brushRotation));
                                 selectBrushButton(brush);
                                 view.setBrushShape(brush.getBrushShape());
                                 view.setBrushRotation(brushRotation);
@@ -3969,8 +3989,10 @@ public final class App extends JFrame implements RadiusControl,
                         if (operation instanceof MouseOrTabletOperation) {
                             ((MouseOrTabletOperation) operation).setLevel(toolLevel);
                             if (operation instanceof RadiusOperation) {
-                                ((RadiusOperation) operation).setBrush(toolBrushRotation == 0 ? toolBrush : RotatedBrush.rotate(toolBrush, toolBrushRotation));
                                 ((RadiusOperation) operation).setFilter(toolFilter);
+                            }
+                            if (operation instanceof BrushOperation) {
+                                ((BrushOperation) operation).setBrush(toolBrushRotation == 0 ? toolBrush : RotatedBrush.rotate(toolBrush, toolBrushRotation));
                                 selectBrushButton(toolBrush);
                                 view.setBrushShape(toolBrush.getBrushShape());
                                 view.setBrushRotation(toolBrushRotation);
@@ -4142,8 +4164,8 @@ public final class App extends JFrame implements RadiusControl,
                     toolBrush = brush;
                     effectiveRotation = toolBrushRotation;
                 }
-                if (activeOperation instanceof RadiusOperation) {
-                    ((RadiusOperation) activeOperation).setBrush((effectiveRotation == 0) ? brush : RotatedBrush.rotate(brush, effectiveRotation));
+                if (activeOperation instanceof BrushOperation) {
+                    ((BrushOperation) activeOperation).setBrush((effectiveRotation == 0) ? brush : RotatedBrush.rotate(brush, effectiveRotation));
                 }
                 view.setBrushShape(brush.getBrushShape());
             }

@@ -73,7 +73,7 @@ public final class BitmapBrush extends AbstractBrush {
 
     @Override
     public BrushShape getBrushShape() {
-        return BrushShape.SQUARE;
+        return BrushShape.BITMAP;
     }
     
     private void createMask() {

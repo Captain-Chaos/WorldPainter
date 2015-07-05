@@ -10,5 +10,5 @@ package org.pepsoft.worldpainter.brushes;
  * @author pepijn
  */
 public enum BrushShape {
-    CIRCLE, SQUARE;
+    CIRCLE, SQUARE, BITMAP;
 }

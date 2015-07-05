@@ -33,6 +33,7 @@
    + The requirements are the same as for Smooth Snow: the world must either be hand crafted, or created from a high resolution (16-bit) height map. Worlds created from 8-bit height maps won't have the extra precision needed, although you can create it by using the Smooth tool along the path of the area where you want to apply this feature
  * The merge process now preserves non-standard content from the existing level.dat file, such as for instance block ID mappings stored there by mods.
  * When importing existing Minecraft maps the chunks that have to be added around the edges to make up whole tiles are handled a little more elegantly: instead of being marked "read only" they are marked "not present" and are not displayed in the editor and are not Exported or Merged. The "Not Present" layer is a normal layer like the "Read Only" layer which you can remove in the normal way if you want the chunk to be present.
+ * The brush images on the brush buttons are no longer rotated when the brush rotation is changed, since it took too much time with many custom brushes. Instead the brush outline will show an arrow indicating the original top of the brush
  * Bug fix: don't change floating red sand to chiseled sandstone
 
 -- Version 1.11.2, released 28-6-2015

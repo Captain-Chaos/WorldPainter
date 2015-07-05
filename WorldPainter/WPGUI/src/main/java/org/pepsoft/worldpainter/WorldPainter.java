@@ -649,7 +649,6 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
                     final float strokeWidth = 1 / scale;
                     g2.setStroke(new BasicStroke(strokeWidth, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f, new float[] {3 * strokeWidth, 3 * strokeWidth}, 0));
                     final int diameter = radius * 2 + 1;
-                    // TODO: this draws one pixel too far to the right and down
                     switch (brushShape) {
                         case CIRCLE:
                             g2.drawOval(mouseX - radius, mouseY - radius, diameter, diameter);
@@ -666,6 +665,34 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
                                         g2.rotate(brushRotation / 180.0 * Math.PI, mouseX, mouseY);
                                     }
                                     g2.drawRect(mouseX - radius, mouseY - radius, diameter, diameter);
+                                } finally {
+                                    g2.setTransform(existingTransform);
+                                }
+                            }
+                            break;
+                        case BITMAP:
+                            final int arrowSize = radius / 2;
+                            if (brushRotation == 0) {
+                                g2.drawRect(mouseX - radius, mouseY - radius, diameter, diameter);
+                                if (arrowSize > 0) {
+                                    g2.drawLine(mouseX, mouseY - radius, mouseX - arrowSize, mouseY - radius + arrowSize);
+                                    g2.drawLine(mouseX - arrowSize, mouseY - radius + arrowSize, mouseX + arrowSize + 1, mouseY - radius + arrowSize);
+                                    g2.drawLine(mouseX + arrowSize + 1, mouseY - radius + arrowSize, mouseX + 1, mouseY - radius);
+                                }
+                            } else {
+                                AffineTransform existingTransform = g2.getTransform();
+                                try {
+                                    if (scale > 1.0f) {
+                                        g2.rotate(brushRotation / 180.0 * Math.PI, mouseX + 0.5, mouseY + 0.5);
+                                    } else {
+                                        g2.rotate(brushRotation / 180.0 * Math.PI, mouseX, mouseY);
+                                    }
+                                    g2.drawRect(mouseX - radius, mouseY - radius, diameter, diameter);
+                                    if (arrowSize > 0) {
+                                        g2.drawLine(mouseX, mouseY - radius, mouseX - arrowSize, mouseY - radius + arrowSize);
+                                        g2.drawLine(mouseX - arrowSize, mouseY - radius + arrowSize, mouseX + arrowSize + 1, mouseY - radius + arrowSize);
+                                        g2.drawLine(mouseX + arrowSize + 1, mouseY - radius + arrowSize, mouseX + 1, mouseY - radius);
+                                    }
                                 } finally {
                                     g2.setTransform(existingTransform);
                                 }

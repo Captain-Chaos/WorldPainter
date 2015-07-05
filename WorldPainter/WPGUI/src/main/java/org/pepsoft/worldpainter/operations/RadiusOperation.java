@@ -39,7 +39,7 @@ import org.pepsoft.worldpainter.brushes.Brush;
  *
  * @author pepijn
  */
-public abstract class RadiusOperation extends MouseOrTabletOperation {
+public abstract class RadiusOperation extends MouseOrTabletOperation implements BrushOperation {
     public RadiusOperation(String name, String description, WorldPainterView view, RadiusControl radiusControl, MapDragControl mapDragControl, String statisticsKey) {
         super(name, description, view, statisticsKey);
         this.radiusControl = radiusControl;
@@ -52,10 +52,12 @@ public abstract class RadiusOperation extends MouseOrTabletOperation {
         this.mapDragControl = mapDragControl;
     }
 
+    @Override
     public final Brush getBrush() {
         return brush;
     }
 
+    @Override
     public final void setBrush(Brush brush) {
         this.brush = brush;
         if (brush != null) {
