@@ -21,6 +21,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Material.SNOW;
 
 /**
  *
@@ -80,14 +81,15 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
                                 // strange. Also replace existing snow, as we
                                 // might want to place thicker snow
                                 if ((previousBlockType == BLK_AIR) || (previousBlockType == BLK_TALL_GRASS) || (previousBlockType == BLK_SNOW)) {
-                                    if ((mode == FrostSettings.MODE_SMOOTH_AT_ALL_ELEVATIONS) || (height == dimension.getIntHeightAt(x, y))) {
+                                    if ((mode == FrostSettings.MODE_SMOOTH_AT_ALL_ELEVATIONS)
+                                            || (height == dimension.getIntHeightAt(x, y))
+                                            || (blockType == BLK_SNOW_BLOCK)) {
                                         // Only vary the snow tickness if we're
                                         // at surface height, otherwise it looks
                                         // odd
                                         switch (mode) {
                                             case FrostSettings.MODE_FLAT:
-                                                minecraftWorld.setBlockTypeAt(x, y, height + 1, BLK_SNOW);
-                                                minecraftWorld.setDataAt(     x, y, height + 1, 0);
+                                                minecraftWorld.setMaterialAt(x, y, height + 1, SNOW);
                                                 break;
                                             case FrostSettings.MODE_RANDOM:
                                                 minecraftWorld.setBlockTypeAt(x, y, height + 1, BLK_SNOW);
@@ -106,8 +108,7 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
                                     } else {
                                         // At other elevations just place a
                                         // regular thin snow block
-                                        minecraftWorld.setBlockTypeAt(x, y, height + 1, BLK_SNOW);
-                                        minecraftWorld.setDataAt(     x, y, height + 1, 0);
+                                        minecraftWorld.setMaterialAt(x, y, height + 1, SNOW);
                                     }
                                 }
                                 break;
@@ -144,7 +145,7 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
         BLK_COBBLESTONE_WALL, BLK_FLOWER_POT, BLK_CARROTS, BLK_POTATOES,
         BLK_WOODEN_BUTTON, BLK_HEAD, BLK_ANVIL, BLK_TRAPPED_CHEST,
         BLK_WEIGHTED_PRESSURE_PLATE_HEAVY, BLK_WEIGHTED_PRESSURE_PLATE_LIGHT,
-            BLK_REDSTONE_COMPARATOR_UNPOWERED, BLK_DAYLIGHT_SENSOR, BLK_ACTIVATOR_RAIL,
+        BLK_REDSTONE_COMPARATOR_UNPOWERED, BLK_DAYLIGHT_SENSOR, BLK_ACTIVATOR_RAIL,
         BLK_STAINED_GLASS_PANE, BLK_ACACIA_WOOD_STAIRS,
         BLK_DARK_OAK_WOOD_STAIRS, BLK_CARPET, BLK_LARGE_FLOWERS, BLK_PACKED_ICE);
     private static final Logger logger = Logger.getLogger(FrostExporter.class.getName());
