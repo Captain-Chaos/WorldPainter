@@ -28,6 +28,7 @@ import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 import javax.swing.text.html.HTMLDocument;
 
+import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.Layer;
 
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
@@ -126,6 +127,9 @@ public class TileEditor extends javax.swing.JDialog implements TileSelector.List
                 }
             }
         }
+        if (tilesToAdd.isEmpty()) {
+            return;
+        }
         
         // Try to guestimate whether there is enough memory to add the selected
         // number of tiles, and if not, ask the user whether they want to
@@ -167,6 +171,12 @@ public class TileEditor extends javax.swing.JDialog implements TileSelector.List
             dimension.setEventsInhibited(false);
         }
         dimension.armSavePoint();
+
+        World2 world = dimension.getWorld();
+        if (world != null) {
+            world.addHistoryEntry(HistoryEntry.WORLD_TILES_ADDED, dimension.getName(), tilesToAdd.size());
+        }
+
         tileSelector1.clearSelection();
         tileSelector1.refresh();
         setControlStates();
@@ -175,6 +185,9 @@ public class TileEditor extends javax.swing.JDialog implements TileSelector.List
     private void removeTiles() {
         Set<Point> selectedTiles = tileSelector1.getSelectedTiles();
         Set<Point> tilesToRemove = selectedTiles.stream().filter(selectedTile -> dimension.getTile(selectedTile) != null).collect(Collectors.toSet());
+        if (tilesToRemove.isEmpty()) {
+            return;
+        }
         if (tilesToRemove.size() == dimension.getTileCount()) {
             JOptionPane.showMessageDialog(this, "<html>You cannot remove <em>all</em> tiles from the dimension!</html>", "All Tiles Selected", JOptionPane.ERROR_MESSAGE);
             return;
@@ -188,6 +201,10 @@ public class TileEditor extends javax.swing.JDialog implements TileSelector.List
                 dimension.setEventsInhibited(false);
             }
             dimension.armSavePoint();
+            World2 world = dimension.getWorld();
+            if (world != null) {
+                world.addHistoryEntry(HistoryEntry.WORLD_TILES_REMOVED, dimension.getName(), tilesToRemove.size());
+            }
             tileSelector1.clearSelection();
             tileSelector1.refresh();
             setControlStates();

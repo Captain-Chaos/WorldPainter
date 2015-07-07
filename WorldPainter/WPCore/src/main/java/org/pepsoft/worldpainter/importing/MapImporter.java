@@ -12,6 +12,7 @@ import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.exporters.FrostExporter.FrostSettings;
 import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter.ResourcesExporterSettings;
@@ -67,6 +68,7 @@ public class MapImporter {
         String name = level.getName().trim();
         int maxHeight = level.getMaxHeight();
         World2 world = new World2(maxHeight);
+        world.addHistoryEntry(HistoryEntry.WORLD_IMPORTED_FROM_MINECRAFT_MAP, level.getName(), levelDatFile.getParentFile());
         world.setCreateGoodiesChest(false);
         world.setName(name);
         world.setSpawnPoint(new Point(level.getSpawnX(), level.getSpawnZ()));

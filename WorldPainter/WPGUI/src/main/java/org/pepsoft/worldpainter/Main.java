@@ -7,8 +7,22 @@ package org.pepsoft.worldpainter;
 
 import com.jidesoft.plaf.LookAndFeelFactory;
 import com.jidesoft.utils.Lm;
-import java.awt.Color;
-import java.awt.Frame;
+import org.pepsoft.util.SystemUtils;
+import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
+import org.pepsoft.worldpainter.browser.WPTrustManager;
+import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
+import org.pepsoft.worldpainter.operations.MouseOrTabletOperation;
+import org.pepsoft.worldpainter.plugins.Plugin;
+import org.pepsoft.worldpainter.plugins.WPPluginManager;
+import org.pepsoft.worldpainter.util.BetterAction;
+import org.pepsoft.worldpainter.util.WPLogManager;
+import org.pepsoft.worldpainter.vo.EventVO;
+
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.swing.*;
+import java.awt.*;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
@@ -20,33 +34,14 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.*;
-import java.util.logging.FileHandler;
+import java.util.List;
+import java.util.logging.*;
 import java.util.logging.Formatter;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.LogManager;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
-import org.pepsoft.util.SystemUtils;
-import org.pepsoft.worldpainter.browser.WPTrustManager;
-import org.pepsoft.worldpainter.plugins.WPPluginManager;
-import org.pepsoft.worldpainter.util.WPLogManager;
-import static org.pepsoft.worldpainter.Constants.*;
-import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
-import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
-import org.pepsoft.worldpainter.operations.MouseOrTabletOperation;
-import org.pepsoft.worldpainter.plugins.Plugin;
-import org.pepsoft.worldpainter.util.BetterAction;
-import org.pepsoft.worldpainter.vo.EventVO;
+
+import static org.pepsoft.worldpainter.Constants.ATTRIBUTE_KEY_PLUGINS;
+import static org.pepsoft.worldpainter.Constants.JAVA_7;
 
 /**
  *

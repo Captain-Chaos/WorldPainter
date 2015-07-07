@@ -87,6 +87,7 @@ public class ImportHeightMapOp extends AbstractOperation<World2> {
             throw new ScriptException("heightMap not set");
         }
         importer.setImage(heightMap.getImage());
+        importer.setImageFile(heightMap.getImageFile());
         HeightMapTileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), Terrain.GRASS, DEFAULT_MAX_HEIGHT_2, 58, 62, false, true, 20, 1.0);
         Theme defaults = Configuration.getInstance().getHeightMapDefaultTheme();
         if (defaults != null) {

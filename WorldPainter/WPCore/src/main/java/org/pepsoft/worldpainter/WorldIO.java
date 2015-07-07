@@ -3,6 +3,7 @@ package org.pepsoft.worldpainter;
 import org.pepsoft.minecraft.Direction;
 import org.pepsoft.util.PluginManager;
 import org.pepsoft.util.WPCustomObjectInputStream;
+import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.Resources;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
@@ -201,7 +202,7 @@ public class WorldIO {
             }
 
             // Record origin of world in history
-            newWorld.getHistory().add("Created by WorldPainter before 0.2, before 16-7-2011");
+            newWorld.addHistoryEntry(HistoryEntry.WORLD_LEGACY_PRE_0_2);
 
             return newWorld;
         } else {

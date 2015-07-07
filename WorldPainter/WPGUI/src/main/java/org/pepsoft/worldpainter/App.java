@@ -27,6 +27,8 @@ import org.pepsoft.worldpainter.brushes.RotatedBrush;
 import org.pepsoft.worldpainter.brushes.SymmetricBrush;
 import org.pepsoft.worldpainter.colourschemes.DynMapColourScheme;
 import org.pepsoft.worldpainter.gardenofeden.GardenOfEdenOperation;
+import org.pepsoft.worldpainter.history.HistoryEntry;
+import org.pepsoft.worldpainter.history.WorldHistoryDialog;
 import org.pepsoft.worldpainter.importing.MapImportDialog;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.groundcover.GroundCoverLayer;
@@ -765,6 +767,7 @@ public final class App extends JFrame implements RadiusControl,
                     WorldIO worldIO = new WorldIO();
                     worldIO.load(new FileInputStream(file));
                     World2 world = worldIO.getWorld();
+                    world.addHistoryEntry(HistoryEntry.WORLD_LOADED, file);
                     if (logger.isLoggable(Level.FINE) && (world.getMetadata() != null)) {
                         logMetadata(Level.FINE, world.getMetadata());
                     }
@@ -900,6 +903,7 @@ public final class App extends JFrame implements RadiusControl,
         if (newWorld.isAskToConvertToAnvil() && (newWorld.getMaxHeight() == DEFAULT_MAX_HEIGHT_1) && (newWorld.getImportedFrom() == null)) {
             if (JOptionPane.showConfirmDialog(this, strings.getString("this.world.is.128.blocks.high"), strings.getString("convert.world.height"), JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
                 ChangeHeightDialog.resizeWorld(newWorld, HeightTransform.IDENTITY, DEFAULT_MAX_HEIGHT_2, this);
+                newWorld.addHistoryEntry(HistoryEntry.WORLD_MAX_HEIGHT_CHANGED, DEFAULT_MAX_HEIGHT_2);
                 // Force the version to "Anvil" if it was previously exported
                 // with the old format
                 if (newWorld.getVersion() != 0) {
@@ -924,6 +928,9 @@ public final class App extends JFrame implements RadiusControl,
                     @Override
                     public java.lang.Void execute(ProgressReceiver progressReceiver) throws OperationCancelled {
                         newWorld.transform(CoordinateTransform.ROTATE_CLOCKWISE_270_DEGREES, progressReceiver);
+                        for (Dimension dimension: newWorld.getDimensions()) {
+                            newWorld.addHistoryEntry(HistoryEntry.WORLD_DIMENSION_ROTATED, dimension.getName(), 270);
+                        }
                         return null;
                     }
                 }, false);
@@ -1701,6 +1708,7 @@ public final class App extends JFrame implements RadiusControl,
                         progressReceiver.setMessage(null);
                     }
 
+                    world.addHistoryEntry(HistoryEntry.WORLD_SAVED, normalisedFile);
                     WorldIO worldIO = new WorldIO(world);
                     worldIO.save(new FileOutputStream(normalisedFile));
 
@@ -2895,7 +2903,7 @@ public final class App extends JFrame implements RadiusControl,
                     }
                     if (layer instanceof LayerContainer) {
                         boolean layersUnhidden = false;
-                        for (Layer subLayer: ((LayerContainer) layer).getLayers()) {
+                        for (Layer subLayer : ((LayerContainer) layer).getLayers()) {
                             if ((subLayer instanceof CustomLayer) && ((CustomLayer) subLayer).isHide()) {
                                 ((CustomLayer) subLayer).setHide(false);
                                 layersUnhidden = true;
@@ -2984,6 +2992,20 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private JMenuBar createMenuBar() {
+        JMenuBar menuBar = new JMenuBar();
+        menuBar.add(createFileMenu());
+        menuBar.add(createEditMenu());
+        menuBar.add(createViewMenu());
+        Configuration config = Configuration.getInstance();
+        if (! config.isEasyMode()) {
+            menuBar.add(createToolsMenu());
+        }
+        menuBar.add(createHelpMenu());
+        addStatisticsTo(menuBar, "menu", config);
+        return menuBar;
+    }
+    
+    private JMenu createFileMenu() {
         JMenuItem menuItem = new JMenuItem(ACTION_NEW_WORLD);
         menuItem.setMnemonic('n');
         JMenu menu = new JMenu(strings.getString("file"));
@@ -3073,13 +3095,13 @@ public final class App extends JFrame implements RadiusControl,
             menuItem.setMnemonic('x');
             menu.add(menuItem);
         }
-        
-        JMenuBar menuBar = new JMenuBar();
-        menuBar.add(menu);
-
-        menuItem = new JMenuItem(ACTION_UNDO);
+        return menu;
+    }
+    
+    private JMenu createEditMenu() {
+        JMenuItem menuItem = new JMenuItem(ACTION_UNDO);
         menuItem.setMnemonic('u');
-        menu = new JMenu(strings.getString("edit"));
+        JMenu menu = new JMenu(strings.getString("edit"));
         menu.setMnemonic('e');
         menu.add(menuItem);
 
@@ -3103,6 +3125,7 @@ public final class App extends JFrame implements RadiusControl,
         menuItem.setMnemonic('p');
         menu.add(menuItem);
 
+        Configuration config = Configuration.getInstance();
         if (! config.isEasyMode()) {
             menuItem = new JMenuItem(ACTION_CHANGE_HEIGHT);
             menuItem.setMnemonic('h');
@@ -3230,11 +3253,13 @@ public final class App extends JFrame implements RadiusControl,
             menuItem.setMnemonic('f');
             menu.add(menuItem);
         }
-        menuBar.add(menu);
+        return menu;
+    }
 
-        menuItem = new JMenuItem(ACTION_ZOOM_IN);
+    private JMenu createViewMenu() {
+        JMenuItem menuItem = new JMenuItem(ACTION_ZOOM_IN);
         menuItem.setMnemonic('i');
-        menu = new JMenu(strings.getString("view"));
+        JMenu menu = new JMenu(strings.getString("view"));
         menu.setMnemonic('v');
         menu.add(menuItem);
 
@@ -3293,6 +3318,7 @@ public final class App extends JFrame implements RadiusControl,
         Set<String> deprecatedColourSchemes = new HashSet<>(Arrays.asList("Flames", "Ovocean", "Sk89q"));
         final int schemeCount = colourSchemeNames.length;
         final JCheckBoxMenuItem[] schemeMenuItems = new JCheckBoxMenuItem[schemeCount];
+        Configuration config = Configuration.getInstance();
         for (int i = 0; i < colourSchemeNames.length; i++) {
             final int index = i;
             schemeMenuItems[index] = new JCheckBoxMenuItem(colourSchemeNames[index]);
@@ -3380,147 +3406,160 @@ public final class App extends JFrame implements RadiusControl,
         menuItem.setMnemonic('3');
         menuItem.setAccelerator(KeyStroke.getKeyStroke(VK_3, PLATFORM_COMMAND_MASK));
         menu.add(menuItem);
-        
-        menuBar.add(menu);
 
-        if (! config.isEasyMode()) {
-            menuItem = new JMenuItem(strings.getString("respawn.player") + "...");
-            menuItem.addActionListener(e -> {
-                RespawnPlayerDialog dialog = new RespawnPlayerDialog(App.this);
+        menu.addSeparator();
+
+        menuItem = new JMenuItem("View world history...");
+        menuItem.addActionListener(e -> {
+            if (world != null) {
+                WorldHistoryDialog dialog = new WorldHistoryDialog(this, world);
                 dialog.setVisible(true);
-            });
-            menuItem.setMnemonic('r');
-            menu = new JMenu(strings.getString("tools"));
-            menu.setMnemonic('t');
-            menu.add(menuItem);
+            }
+        });
+        menu.add(menuItem);
 
-            menuItem = new JMenuItem(strings.getString("open.custom.brushes.folder"));
-            menuItem.addActionListener(e -> {
-                File brushesDir = new File(Configuration.getConfigDir(), "brushes");
-                if (! brushesDir.exists()) {
-                    if (! brushesDir.mkdirs()) {
-                        Toolkit.getDefaultToolkit().beep();
-                        return;
-                    }
+        return menu;
+    }
+
+    private JMenu createToolsMenu() {
+        JMenuItem menuItem = new JMenuItem(strings.getString("respawn.player") + "...");
+        menuItem.addActionListener(e -> {
+            RespawnPlayerDialog dialog = new RespawnPlayerDialog(App.this);
+            dialog.setVisible(true);
+        });
+        menuItem.setMnemonic('r');
+        JMenu menu = new JMenu(strings.getString("tools"));
+        menu.setMnemonic('t');
+        menu.add(menuItem);
+
+        menuItem = new JMenuItem(strings.getString("open.custom.brushes.folder"));
+        menuItem.addActionListener(e -> {
+            File brushesDir = new File(Configuration.getConfigDir(), "brushes");
+            if (! brushesDir.exists()) {
+                if (! brushesDir.mkdirs()) {
+                    Toolkit.getDefaultToolkit().beep();
+                    return;
                 }
-                DesktopUtils.open(brushesDir);
-            });
-            menuItem.setMnemonic('c');
-            menu.add(menuItem);
+            }
+            DesktopUtils.open(brushesDir);
+        });
+        menuItem.setMnemonic('c');
+        menu.add(menuItem);
 
-            menuItem = new JMenuItem(strings.getString("open.plugins.folder"));
-            menuItem.addActionListener(e -> {
-                File pluginsDir = new File(Configuration.getConfigDir(), "plugins");
-                if (! pluginsDir.exists()) {
-                    if (! pluginsDir.mkdirs()) {
-                        Toolkit.getDefaultToolkit().beep();
-                        return;
-                    }
+        menuItem = new JMenuItem(strings.getString("open.plugins.folder"));
+        menuItem.addActionListener(e -> {
+            File pluginsDir = new File(Configuration.getConfigDir(), "plugins");
+            if (! pluginsDir.exists()) {
+                if (! pluginsDir.mkdirs()) {
+                    Toolkit.getDefaultToolkit().beep();
+                    return;
                 }
-                DesktopUtils.open(pluginsDir);
-            });
-            menuItem.setMnemonic('p');
-            menu.add(menuItem);
+            }
+            DesktopUtils.open(pluginsDir);
+        });
+        menuItem.setMnemonic('p');
+        menu.add(menuItem);
 
-            menuItem = new JMenuItem(strings.getString("biomes.viewer") + "...");
-            menuItem.addActionListener(event -> {
-                if (biomesViewerFrame != null) {
-                    biomesViewerFrame.requestFocus();
-                } else {
-                    BiomeScheme viewerScheme = null;
-                    boolean askedFor17 = false;
-                    if ((dimension != null) && (dimension.getDim() == DIM_NORMAL) && (dimension.getMaxHeight() == DEFAULT_MAX_HEIGHT_2)) {
-                        if (world.getGenerator() == Generator.LARGE_BIOMES) {
-                            viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_LARGE, null, false);
-                            if (viewerScheme == null) {
-                                askedFor17 = true;
-                                viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_LARGE, App.this, true);
-                            }
-                        } else {
-                            viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_DEFAULT, null, false);
-                            if (viewerScheme == null) {
-                                askedFor17 = true;
-                                viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_DEFAULT, App.this, true);
-                            }
+        menuItem = new JMenuItem(strings.getString("biomes.viewer") + "...");
+        menuItem.addActionListener(event -> {
+            if (biomesViewerFrame != null) {
+                biomesViewerFrame.requestFocus();
+            } else {
+                BiomeScheme viewerScheme = null;
+                boolean askedFor17 = false;
+                if ((dimension != null) && (dimension.getDim() == DIM_NORMAL) && (dimension.getMaxHeight() == DEFAULT_MAX_HEIGHT_2)) {
+                    if (world.getGenerator() == Generator.LARGE_BIOMES) {
+                        viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_LARGE, null, false);
+                        if (viewerScheme == null) {
+                            askedFor17 = true;
+                            viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_LARGE, App.this, true);
                         }
-                    }
-                    if (viewerScheme == null) {
+                    } else {
                         viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_DEFAULT, null, false);
-                    }
-                    if (viewerScheme == null) {
-                        viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_2_AND_1_3_DEFAULT, null, false);
-                    }
-                    if (viewerScheme == null) {
-                        viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_1, null, false);
-                    }
-                    if ((viewerScheme == null) && (! askedFor17)) {
-                        askedFor17 = true;
-                        viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_DEFAULT, App.this, true);
-                    }
-                    if (viewerScheme == null) {
-                        viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_2_AND_1_3_DEFAULT, App.this, true);
-                    }
-                    if (viewerScheme == null) {
-                        viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_1, App.this, true);
-                    }
-                    if (viewerScheme == null) {
-                        JOptionPane.showMessageDialog(App.this, strings.getString("you.must.supply.an.original.minecraft.jar"), strings.getString("no.minecraft.jar.supplied"), JOptionPane.ERROR_MESSAGE);
-                        return;
-                    }
-                    logger.info("Opening biomes viewer");
-                    biomesViewerFrame = new BiomesViewerFrame(dimension.getMinecraftSeed(), world.getSpawnPoint(), viewerScheme, colourSchemes[0], App.this);
-                    biomesViewerFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-                    biomesViewerFrame.addWindowListener(new WindowAdapter() {
-                        @Override
-                        public void windowClosing(WindowEvent e) {
-                            // TODO not sure how this can be null, but at least
-                            // one error has been reported by a user where it
-                            // was
-                            if (biomesViewerFrame != null) {
-                                biomesViewerFrame.destroy();
-                                biomesViewerFrame.dispose();
-                                biomesViewerFrame = null;
-                            }
+                        if (viewerScheme == null) {
+                            askedFor17 = true;
+                            viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_DEFAULT, App.this, true);
                         }
-                    });
-                    biomesViewerFrame.setLocationRelativeTo(App.this);
-                    biomesViewerFrame.setVisible(true);
+                    }
                 }
-            });
-            menuItem.setMnemonic('b');
-            menu.add(menuItem);
+                if (viewerScheme == null) {
+                    viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_DEFAULT, null, false);
+                }
+                if (viewerScheme == null) {
+                    viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_2_AND_1_3_DEFAULT, null, false);
+                }
+                if (viewerScheme == null) {
+                    viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_1, null, false);
+                }
+                if ((viewerScheme == null) && (! askedFor17)) {
+                    askedFor17 = true;
+                    viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_DEFAULT, App.this, true);
+                }
+                if (viewerScheme == null) {
+                    viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_2_AND_1_3_DEFAULT, App.this, true);
+                }
+                if (viewerScheme == null) {
+                    viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_1, App.this, true);
+                }
+                if (viewerScheme == null) {
+                    JOptionPane.showMessageDialog(App.this, strings.getString("you.must.supply.an.original.minecraft.jar"), strings.getString("no.minecraft.jar.supplied"), JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                logger.info("Opening biomes viewer");
+                biomesViewerFrame = new BiomesViewerFrame(dimension.getMinecraftSeed(), world.getSpawnPoint(), viewerScheme, colourSchemes[0], App.this);
+                biomesViewerFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+                biomesViewerFrame.addWindowListener(new WindowAdapter() {
+                    @Override
+                    public void windowClosing(WindowEvent e) {
+                        // TODO not sure how this can be null, but at least
+                        // one error has been reported by a user where it
+                        // was
+                        if (biomesViewerFrame != null) {
+                            biomesViewerFrame.destroy();
+                            biomesViewerFrame.dispose();
+                            biomesViewerFrame = null;
+                        }
+                    }
+                });
+                biomesViewerFrame.setLocationRelativeTo(App.this);
+                biomesViewerFrame.setVisible(true);
+            }
+        });
+        menuItem.setMnemonic('b');
+        menu.add(menuItem);
 
-    //        menuItem = new JMenuItem("Manage plugins...");
-    //        menuItem.addActionListener(new ActionListener() {
-    //            @Override
-    //            public void actionPerformed(ActionEvent e) {
-    //                StringBuilder url = new StringBuilder("http://bo.worldpainter.net:8081/wp/plugins/overview.jsp");
-    //                url.append("?uuid=").append(Configuration.getInstance().getUuid().toString());
-    //                boolean first = true;
-    //                for (Plugin plugin: PluginManager.getInstance().getAllPlugins()) {
-    //                    if (plugin.getName().equals("Default")) {
-    //                        continue;
-    //                    }
-    //                    if (first) {
-    //                        url.append("&plugins=");
-    //                        first = false;
-    //                    } else {
-    //                        url.append(',');
-    //                    }
-    //                    url.append(plugin.getName().replaceAll("\\s", "").toLowerCase());
-    //                }
-    //                SimpleBrowser browser = new SimpleBrowser(App.this, true, "Manage Plugins", url.toString());
-    //                browser.setVisible(true);
-    //            }
-    //        });
-    //        menuItem.setMnemonic('p');
-    //        menu.add(menuItem);
-            menuBar.add(menu);
-        }
-        
-        menuItem = new JMenuItem(ACTION_OPEN_DOCUMENTATION);
+//        menuItem = new JMenuItem("Manage plugins...");
+//        menuItem.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                StringBuilder url = new StringBuilder("http://bo.worldpainter.net:8081/wp/plugins/overview.jsp");
+//                url.append("?uuid=").append(Configuration.getInstance().getUuid().toString());
+//                boolean first = true;
+//                for (Plugin plugin: PluginManager.getInstance().getAllPlugins()) {
+//                    if (plugin.getName().equals("Default")) {
+//                        continue;
+//                    }
+//                    if (first) {
+//                        url.append("&plugins=");
+//                        first = false;
+//                    } else {
+//                        url.append(',');
+//                    }
+//                    url.append(plugin.getName().replaceAll("\\s", "").toLowerCase());
+//                }
+//                SimpleBrowser browser = new SimpleBrowser(App.this, true, "Manage Plugins", url.toString());
+//                browser.setVisible(true);
+//            }
+//        });
+//        menuItem.setMnemonic('p');
+//        menu.add(menuItem);
+        return menu;
+    }
+
+    private JMenu createHelpMenu() {
+        JMenuItem menuItem = new JMenuItem(ACTION_OPEN_DOCUMENTATION);
         menuItem.setMnemonic('d');
-        menu = new JMenu(strings.getString("help"));
+        JMenu menu = new JMenu(strings.getString("help"));
 //        menu.setMnemonic('h');
         menu.add(menuItem);
 
@@ -3535,11 +3574,7 @@ public final class App extends JFrame implements RadiusControl,
             });
             menu.add(menuItem);
         }
-        menuBar.add(menu);
-        
-        addStatisticsTo(menuBar, "menu", config);
-        
-        return menuBar;
+        return menu;
     }
 
     private void addSurfaceCeiling() {

@@ -16,6 +16,7 @@ import org.pepsoft.util.SubProgressReceiver;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.exporting.*;
+import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.util.FileInUseException;
 import org.pepsoft.worldpainter.vo.EventVO;
@@ -246,6 +247,13 @@ public class WorldMerger extends WorldExporter {
         File sessionLockFile = new File(worldDir, "session.lock");
         try (DataOutputStream sessionOut = new DataOutputStream(new FileOutputStream(sessionLockFile))) {
             sessionOut.writeLong(System.currentTimeMillis());
+        }
+
+        // Record the merge in the world history
+        if (selectedTiles == null) {
+            world.addHistoryEntry(HistoryEntry.WORLD_MERGED_FULL, level.getName(), worldDir);
+        } else {
+            world.addHistoryEntry(HistoryEntry.WORLD_MERGED_PARTIAL, level.getName(), worldDir, dimension.getName());
         }
 
         // Log an event

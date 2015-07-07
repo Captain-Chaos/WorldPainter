@@ -13,6 +13,7 @@ import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.gardenofeden.GardenExporter;
 import org.pepsoft.worldpainter.gardenofeden.Seed;
+import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.CombinedLayer;
 import org.pepsoft.worldpainter.layers.GardenCategory;
 import org.pepsoft.worldpainter.layers.Layer;
@@ -142,6 +143,13 @@ public class WorldExporter {
         File sessionLockFile = new File(worldDir, "session.lock");
         try (DataOutputStream sessionOut = new DataOutputStream(new FileOutputStream(sessionLockFile))) {
             sessionOut.writeLong(System.currentTimeMillis());
+        }
+
+        // Record the export in the world history
+        if (selectedDimension == -1) {
+            world.addHistoryEntry(HistoryEntry.WORLD_EXPORTED_FULL, name, worldDir);
+        } else {
+            world.addHistoryEntry(HistoryEntry.WORLD_EXPORTED_PARTIAL, name, worldDir, world.getDimension(selectedDimension).getName());
         }
 
         // Log an event

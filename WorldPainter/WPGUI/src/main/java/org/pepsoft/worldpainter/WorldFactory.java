@@ -14,6 +14,7 @@ import org.pepsoft.util.MathUtils;
 import static org.pepsoft.worldpainter.Constants.*;
 import org.pepsoft.worldpainter.MixedMaterial.Row;
 import org.pepsoft.worldpainter.biomeschemes.Minecraft1_2BiomeScheme;
+import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.Frost;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
@@ -112,6 +113,7 @@ public final class WorldFactory {
             theme.setRandomise(defaultTheme.isRandomise());
         }
         final World2 world = new World2(World2.DEFAULT_OCEAN_SEED, tileFactory, tileFactory.getMaxHeight());
+        world.addHistoryEntry(HistoryEntry.WORLD_CREATED);
         final ResourceBundle strings = ResourceBundle.getBundle("org.pepsoft.worldpainter.resources.strings");
         world.setName(strings.getString("generated.world"));
         
@@ -161,6 +163,7 @@ public final class WorldFactory {
         final HeightMapTileFactory tileFactory = TileFactoryFactory.createFancyTileFactory(seed, Terrain.GRASS, DEFAULT_MAX_HEIGHT_2, 58, 62, false, 20f, 1.0);
         final Dimension defaults = config.getDefaultTerrainAndLayerSettings();
         final World2 world = new World2(World2.DEFAULT_OCEAN_SEED, tileFactory, tileFactory.getMaxHeight());
+        world.addHistoryEntry(HistoryEntry.WORLD_CREATED);
         if (config.getDefaultMaxHeight() == DEFAULT_MAX_HEIGHT_2) {
             world.setGenerator(Generator.LARGE_BIOMES);
         }

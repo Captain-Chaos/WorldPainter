@@ -5,6 +5,7 @@
 package org.pepsoft.worldpainter.tools;
 
 import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 
@@ -65,6 +66,7 @@ public class RecoverWorld {
             }
             if (newWorld == null) {
                 newWorld = new World2(maxHeight);
+                newWorld.addHistoryEntry(HistoryEntry.WORLD_RECOVERED);
                 if (worlds.size() > 0) {
                     World2 world = worlds.get(0);
                     if (world.getName() != null) {

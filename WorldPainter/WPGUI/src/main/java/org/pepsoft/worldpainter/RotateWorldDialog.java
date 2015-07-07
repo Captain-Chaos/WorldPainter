@@ -16,6 +16,7 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import org.pepsoft.util.SubProgressReceiver;
+import org.pepsoft.worldpainter.history.HistoryEntry;
 
 import static org.pepsoft.worldpainter.Constants.*;
 
@@ -125,12 +126,16 @@ public class RotateWorldDialog extends javax.swing.JDialog implements ProgressRe
         buttonRotate.setEnabled(false);
         buttonCancel.setEnabled(false);
         final CoordinateTransform transform;
+        final int degrees;
         if (jRadioButton1.isSelected()) {
             transform = CoordinateTransform.ROTATE_CLOCKWISE_90_DEGREES;
+            degrees = 90;
         } else if (jRadioButton2.isSelected()) {
             transform = CoordinateTransform.ROTATE_180_DEGREES;
+            degrees = 180;
         } else {
             transform = CoordinateTransform.ROTATE_CLOCKWISE_270_DEGREES;
+            degrees = 270;
         }
         new Thread("World Rotator") {
             @Override
@@ -138,9 +143,12 @@ public class RotateWorldDialog extends javax.swing.JDialog implements ProgressRe
                 try {
                     if ((oppositeDim == -1) || (! jCheckBox1.isSelected())) {
                         world.transform(dim, transform, RotateWorldDialog.this);
+                        world.addHistoryEntry(HistoryEntry.WORLD_DIMENSION_ROTATED, world.getDimension(dim).getName(), degrees);
                     } else {
                         world.transform(dim, transform, new SubProgressReceiver(RotateWorldDialog.this, 0.0f, 0.5f));
+                        world.addHistoryEntry(HistoryEntry.WORLD_DIMENSION_ROTATED, world.getDimension(dim).getName(), degrees);
                         world.transform(oppositeDim, transform, new SubProgressReceiver(RotateWorldDialog.this, 0.5f, 0.5f));
+                        world.addHistoryEntry(HistoryEntry.WORLD_DIMENSION_ROTATED, world.getDimension(oppositeDim).getName(), degrees);
                     }
                     done();
                 } catch (Throwable t) {

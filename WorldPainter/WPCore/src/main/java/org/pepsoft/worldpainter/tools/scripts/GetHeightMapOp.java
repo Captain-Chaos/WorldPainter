@@ -73,12 +73,12 @@ public class GetHeightMapOp extends AbstractOperation<HeightMap> {
             BufferedImage image = ImageIO.read(file);
             boolean greyscale = (image.getType() == BufferedImage.TYPE_BYTE_BINARY) || (image.getType() == BufferedImage.TYPE_BYTE_GRAY);
             if (channel == -1) {
-                return new BitmapHeightMap(file.getName(), image);
+                return new BitmapHeightMap(file.getName(), image, file);
             } else {
                 if (greyscale) {
                     throw new ScriptException("Colour channel selected for grey scale image");
                 }
-                return new BitmapHeightMap(file.getName(), image, channel);
+                return new BitmapHeightMap(file.getName(), image, channel, file);
             }
         } catch (IOException e) {
             throw new ScriptException("I/O error while loading image " + fileName, e);

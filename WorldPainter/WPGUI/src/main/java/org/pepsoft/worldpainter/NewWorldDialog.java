@@ -11,44 +11,38 @@
 
 package org.pepsoft.worldpainter;
 
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.Window;
+import org.pepsoft.minecraft.Material;
+import org.pepsoft.util.MathUtils;
+import org.pepsoft.util.ProgressReceiver;
+import org.pepsoft.worldpainter.Dimension.Border;
+import org.pepsoft.worldpainter.biomeschemes.AutoBiomeScheme;
+import org.pepsoft.worldpainter.biomeschemes.Minecraft1_2BiomeScheme;
+import org.pepsoft.worldpainter.history.HistoryEntry;
+import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.layers.Caverns;
+import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.Resources;
 import org.pepsoft.worldpainter.layers.exporters.CavernsExporter.CavernsSettings;
+import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
+import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter;
+import org.pepsoft.worldpainter.themes.SimpleTheme;
+import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
 
+import javax.swing.*;
+import javax.swing.JSpinner.DefaultEditor;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
-import javax.swing.*;
-import javax.swing.JSpinner.DefaultEditor;
-import org.pepsoft.util.ProgressReceiver;
-import org.pepsoft.worldpainter.layers.Layer;
-import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
-import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter;
-import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
-import static org.pepsoft.worldpainter.Terrain.*;
-import static org.pepsoft.worldpainter.Constants.*;
+
 import static org.pepsoft.minecraft.Constants.*;
-import org.pepsoft.minecraft.Material;
-import org.pepsoft.util.MathUtils;
-import org.pepsoft.worldpainter.Dimension.Border;
-import org.pepsoft.worldpainter.biomeschemes.AutoBiomeScheme;
-import org.pepsoft.worldpainter.biomeschemes.Minecraft1_2BiomeScheme;
-import org.pepsoft.worldpainter.layers.Biome;
-import org.pepsoft.worldpainter.themes.SimpleTheme;
+import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.Terrain.*;
 
 /**
  *
@@ -258,6 +252,7 @@ public class NewWorldDialog extends javax.swing.JDialog {
             return null;
         }
         final World2 world = new World2(dimension.getMaxHeight());
+        world.addHistoryEntry(HistoryEntry.WORLD_CREATED);
         final boolean minecraft11Only = dimension.getMaxHeight() != DEFAULT_MAX_HEIGHT_2;
         world.setName(name);
 

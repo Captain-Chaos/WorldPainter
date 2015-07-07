@@ -11,14 +11,17 @@ import org.pepsoft.util.MemoryUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
 import org.pepsoft.util.undo.UndoManager;
+import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.layers.Layer;
 
 import java.awt.*;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.io.*;
-import java.text.MessageFormat;
+import java.io.File;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.util.*;
 import java.util.List;
 import java.util.logging.Logger;
@@ -190,12 +193,17 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
                 }
             }
         }
+        if (dimension.getDim() != DIM_NORMAL) {
+            history.add(new HistoryEntry(HistoryEntry.WORLD_DIMENSION_ADDED, dimension.getName()));
+        }
     }
 
     public Dimension removeDimension(int dim) {
         if (dimensions.containsKey(dim)) {
             dirty = true;
-            return dimensions.remove(dim);
+            Dimension dimension = dimensions.remove(dim);
+            history.add(new HistoryEntry(HistoryEntry.WORLD_DIMENSION_REMOVED, dimension.getName()));
+            return dimension;
         } else {
             throw new IllegalStateException("Dimension " + dim + " does not exist");
         }
@@ -366,8 +374,16 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         }
     }
 
-    public List<String> getHistory() {
-        return history;
+    public List<HistoryEntry> getHistory() {
+        synchronized (history) {
+            return history;
+        }
+    }
+
+    public void addHistoryEntry(int key, Serializable... args) {
+        synchronized (history) {
+            history.add(new HistoryEntry(key, args));
+        }
     }
 
     public Map<String, Object> getMetadata() {
@@ -557,7 +573,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         }
         if (wpVersion < 3) {
             history = new ArrayList<>();
-            history.add(MessageFormat.format("Created by WorldPainter before 2.0.0, on or before {0,date,dd-MM-yyyy}", new Date()));
+            history.add(new HistoryEntry(HistoryEntry.WORLD_LEGACY_PRE_2_0_0));
         }
         wpVersion = CURRENT_WP_VERSION;
         
@@ -613,7 +629,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     private boolean extendedBlockIds;
     private int wpVersion = CURRENT_WP_VERSION;
     private int difficulty = org.pepsoft.minecraft.Constants.DIFFICULTY_NORMAL;
-    private List<String> history = new ArrayList<>();
+    private List<HistoryEntry> history = new ArrayList<>();
     private transient Set<Warning> warnings;
     private transient Map<String, Object> metadata;
 

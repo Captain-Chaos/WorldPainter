@@ -12,6 +12,7 @@ import java.awt.RenderingHints;
 import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
+import java.io.File;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,6 +26,7 @@ import org.pepsoft.worldpainter.Generator;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.TileFactory;
 import org.pepsoft.worldpainter.World2;
+import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.Frost;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
@@ -73,6 +75,7 @@ public class HeightMapImporter {
         final boolean oneOnOne = (worldLowLevel == imageLowLevel) && (worldHighLevel == imageHighLevel);
         final boolean highRes = (bitDepth == 16) && (! oneOnOne) && (worldHighLevel < maxHeight);
         final World2 world = new World2(World2.DEFAULT_OCEAN_SEED, tileFactory, maxHeight);
+        world.addHistoryEntry(HistoryEntry.WORLD_IMPORTED_FROM_HEIGHT_MAP, imageFile);
         int p = name.lastIndexOf('.');
         if (p != -1) {
             name = name.substring(0, p);
@@ -308,7 +311,15 @@ public class HeightMapImporter {
     public void setInvert(boolean invert) {
         this.invert = invert;
     }
-    
+
+    public File getImageFile() {
+        return imageFile;
+    }
+
+    public void setImageFile(File imageFile) {
+        this.imageFile = imageFile;
+    }
+
     private void initHistogramIfNecessary() {
         if (histogram == null) {
             final int imageWidth = image.getWidth(), imageHeight = image.getHeight();
@@ -369,6 +380,7 @@ public class HeightMapImporter {
     private boolean invert;
     private float[] levelMapping;
     private int[] histogram, levelMappingInt;
+    private File imageFile;
     
     private static final Logger logger = Logger.getLogger(HeightMapImporter.class.getName());
 }

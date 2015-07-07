@@ -81,7 +81,7 @@ public class TransformingHeightMap extends AbstractHeightMap {
                     } finally {
                         g2.dispose();
                     }
-                    this.baseHeightMap = new BitmapHeightMap(baseHeightMap.getName() + " (scaled)", scaledImage);
+                    this.baseHeightMap = new BitmapHeightMap(baseHeightMap.getName() + " (scaled)", scaledImage, ((BitmapHeightMap) baseHeightMap).getImageFile());
                     baseHeightMapScaled = true;
                 } else {
                     throw new UnsupportedOperationException("Scaling of colour height maps not supported yet");

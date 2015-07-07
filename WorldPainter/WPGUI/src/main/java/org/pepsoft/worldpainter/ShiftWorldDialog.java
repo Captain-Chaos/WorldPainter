@@ -20,6 +20,7 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
+import org.pepsoft.worldpainter.history.HistoryEntry;
 
 import static org.pepsoft.worldpainter.Constants.*;
 
@@ -57,11 +58,11 @@ public class ShiftWorldDialog extends javax.swing.JDialog implements ProgressRec
         if (opposite != null) {
             oppositeDim = opposite.getDim();
         } else {
-            oppositeDim = -1;
+            oppositeDim = Integer.MIN_VALUE;
         }
 
         initComponents();
-        jCheckBox1.setEnabled(oppositeDim != -1);
+        jCheckBox1.setEnabled(oppositeDim != Integer.MIN_VALUE);
 
         ActionMap actionMap = rootPane.getActionMap();
         actionMap.put("cancel", new AbstractAction("cancel") {
@@ -128,16 +129,20 @@ public class ShiftWorldDialog extends javax.swing.JDialog implements ProgressRec
     private void shift() {
         buttonShift.setEnabled(false);
         buttonCancel.setEnabled(false);
-        final CoordinateTransform transform = new Translation((Integer) jSpinner1.getValue(), (Integer) jSpinner2.getValue());
+        final int east = (Integer) jSpinner1.getValue(), south = (Integer) jSpinner2.getValue();
+        final CoordinateTransform transform = new Translation(east, south);
         new Thread("World Shifter") {
             @Override
             public void run() {
                 try {
-                    if ((oppositeDim == -1) || (! jCheckBox1.isSelected())) {
+                    if ((oppositeDim == Integer.MIN_VALUE) || (! jCheckBox1.isSelected())) {
                         world.transform(dim, transform, ShiftWorldDialog.this);
+                        world.addHistoryEntry(HistoryEntry.WORLD_DIMENSION_SHIFTED_HORIZONTALLY, world.getDimension(dim).getName(), east, south);
                     } else {
                         world.transform(dim, transform, new SubProgressReceiver(ShiftWorldDialog.this, 0.0f, 0.5f));
+                        world.addHistoryEntry(HistoryEntry.WORLD_DIMENSION_SHIFTED_HORIZONTALLY, world.getDimension(dim).getName(), east, south);
                         world.transform(oppositeDim, transform, new SubProgressReceiver(ShiftWorldDialog.this, 0.5f, 0.5f));
+                        world.addHistoryEntry(HistoryEntry.WORLD_DIMENSION_SHIFTED_HORIZONTALLY, world.getDimension(oppositeDim).getName(), east, south);
                     }
                     done();
                 } catch (Throwable t) {

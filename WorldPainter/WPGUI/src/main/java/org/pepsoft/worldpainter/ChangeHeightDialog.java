@@ -25,6 +25,7 @@ import javax.swing.SpinnerNumberModel;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.worldpainter.heightMaps.HeightMapUtils;
+import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.Resources;
 import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter.ResourcesExporterSettings;
 import static org.pepsoft.minecraft.Constants.*;
@@ -51,7 +52,7 @@ public class ChangeHeightDialog extends javax.swing.JDialog {
             public void actionPerformed(ActionEvent e) {
                 dispose();
             }
-            
+
             private static final long serialVersionUID = 1L;
         });
 
@@ -88,8 +89,9 @@ public class ChangeHeightDialog extends javax.swing.JDialog {
     }
     
     private void doResize() {
+        int oldMaxHeight = world.getMaxHeight();
         int newMaxHeight = Integer.parseInt((String) comboBoxNewHeight.getSelectedItem());
-        if ((newMaxHeight != world.getMaxHeight()) && (world.getImportedFrom() != null) && (JOptionPane.showConfirmDialog(this, "<html>This world was imported from an existing map!<br>Are you <i>sure</i> you want to change the height?<br>You will not be able to merge it back to the existing map any more!</html>", "Import from Existing Map", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION)) {
+        if ((newMaxHeight != oldMaxHeight) && (world.getImportedFrom() != null) && (JOptionPane.showConfirmDialog(this, "<html>This world was imported from an existing map!<br>Are you <i>sure</i> you want to change the height?<br>You will not be able to merge it back to the existing map any more!</html>", "Import from Existing Map", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION)) {
             return;
         }
         boolean scale = checkBoxScale.isSelected();
@@ -98,6 +100,14 @@ public class ChangeHeightDialog extends javax.swing.JDialog {
         int translateAmount = (Integer) spinnerTranslateAmount.getValue();
         HeightTransform transform = HeightTransform.get(scale ? scaleAmount : 100, translate ? translateAmount : 0);
         resizeWorld(world, transform, newMaxHeight, this);
+        if (newMaxHeight != oldMaxHeight) {
+            world.addHistoryEntry(HistoryEntry.WORLD_MAX_HEIGHT_CHANGED, newMaxHeight);
+        }
+        if (translate) {
+            for (Dimension dimension: world.getDimensions()) {
+                world.addHistoryEntry(HistoryEntry.WORLD_DIMENSION_SHIFTED_VERTICALLY, dimension.getName(), translateAmount);
+            }
+        }
     }
     
     static void resizeWorld(final World2 world, final HeightTransform transform, final int newMaxHeight, final Window parent) {
@@ -150,6 +160,7 @@ public class ChangeHeightDialog extends javax.swing.JDialog {
                                     resourcesSettings.setMaxLevel(blockType, clamp(transform.transformHeight(resourcesSettings.getMaxLevel(blockType)), newMaxHeight - 1));
                                 }
                             }
+                            dim.clearUndo();
                             dim.armSavePoint();
                         } finally {
                             dim.getTiles().forEach(org.pepsoft.worldpainter.Tile::releaseEvents);

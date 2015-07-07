@@ -76,6 +76,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
     public World2 getImportedWorld() {
         final HeightMapImporter importer = new HeightMapImporter();
         importer.setImage(image);
+        importer.setImageFile(selectedFile);
         String name = selectedFile.getName();
         int p = name.lastIndexOf('.');
         if (p != -1) {
