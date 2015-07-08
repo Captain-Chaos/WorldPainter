@@ -1,6 +1,7 @@
 package org.pepsoft.worldpainter.dynmap;
 
 import org.pepsoft.util.Box;
+import org.pepsoft.util.IconUtils;
 import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.swing.TiledImageViewer;
 import org.pepsoft.worldpainter.layers.bo2.Schematic;
@@ -36,6 +37,7 @@ public class DynMapPreviewer extends TiledImageViewer {
         azimuth = myAzimuth;
         inclination = myInclination;
         zoom = myZoom;
+        setZoom(zoom);
         setFocusable(true);
 
         addMouseWheelListener(e -> {
@@ -45,76 +47,7 @@ public class DynMapPreviewer extends TiledImageViewer {
             }
         });
 
-        Action zoomIn = new AbstractAction() {
-            public void actionPerformed(ActionEvent e) {
-                zoom++;
-                setZoom(zoom);
-            }
-        };
-        Action zoomOut = new AbstractAction() {
-            public void actionPerformed(ActionEvent e) {
-                if (zoom > -4) {
-                    zoom--;
-                    setZoom(zoom);
-                }
-            }
-        };
-        Action rotateLeft = new AbstractAction() {
-            public void actionPerformed(ActionEvent e) {
-                azimuth = MathUtils.mod(azimuth - 15.0, 360.0);
-                tileProvider.setAzimuth(azimuth);
-                refresh(true);
-            }
-        };
-        Action rotateRight = new AbstractAction() {
-            public void actionPerformed(ActionEvent e) {
-                azimuth = MathUtils.mod(azimuth + 15.0, 360.0);
-                tileProvider.setAzimuth(azimuth);
-                refresh(true);
-            }
-        };
-        Action rotateUp = new AbstractAction() {
-            public void actionPerformed(ActionEvent e) {
-                double oldInclination = inclination;
-                inclination = Math.max(inclination - 15.0, 30.0);
-                if (inclination != oldInclination) {
-                    tileProvider.setInclination(inclination);
-                    refresh(true);
-                }
-            }
-        };
-        Action rotateDown = new AbstractAction() {
-            public void actionPerformed(ActionEvent e) {
-                double oldInclination = inclination;
-                inclination = Math.min(inclination + 15.0, 90.0);
-                if (inclination != oldInclination) {
-                    tileProvider.setInclination(inclination);
-                    refresh(true);
-                }
-            }
-        };
-        Action reset = new AbstractAction() {
-            public void actionPerformed(ActionEvent e) {
-                if ((azimuth != initialAzimuth) || (inclination != initialInclination) || (zoom != initialZoom)) {
-                    if (azimuth != initialAzimuth) {
-                        azimuth = initialAzimuth;
-                        tileProvider.setAzimuth(azimuth);
-                    }
-                    if (inclination != initialInclination) {
-                        inclination = initialInclination;
-                        tileProvider.setInclination(inclination);
-                    }
-                    if (zoom != initialZoom) {
-                        zoom = initialZoom;
-                        setZoom(zoom); // Will also refresh the view
-                    } else {
-                        refresh(true);
-                    }
-                }
-            }
-        };
-
-        InputMap inputMap = getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        InputMap inputMap = getInputMap(JComponent.WHEN_FOCUSED);
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), "rotateLeft");
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), "rotateRight");
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "rotateUp");
@@ -135,6 +68,21 @@ public class DynMapPreviewer extends TiledImageViewer {
         actionMap.put("zoomIn", zoomIn);
         actionMap.put("zoomOut", zoomOut);
         actionMap.put("reset", reset);
+
+        JPanel buttonPanel = new JPanel(new GridLayout(2, 3, 2, 2));
+        buttonPanel.setOpaque(false);
+
+        buttonPanel.add(createActionButton(rotateLeft));
+        buttonPanel.add(createActionButton(rotateUp));
+        buttonPanel.add(createActionButton(rotateRight));
+
+        buttonPanel.add(createActionButton(zoomIn));
+        buttonPanel.add(createActionButton(rotateDown));
+        buttonPanel.add(createActionButton(zoomOut));
+
+        buttonPanel.setSize(buttonPanel.getPreferredSize());
+        buttonPanel.setLocation(4, 4);
+        add(buttonPanel);
     }
 
     public WPObject getObject() {
@@ -209,6 +157,13 @@ public class DynMapPreviewer extends TiledImageViewer {
         return image;
     }
 
+    private JButton createActionButton(Action action) {
+        JButton button = new JButton(action);
+        button.setHideActionText(true);
+        button.setMargin(new Insets(0, 0, 0, 0));
+        return button;
+    }
+
     public static void main(String[] args) throws IOException {
         JFrame frame = new JFrame("DynMapPreviewerTest");
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -220,6 +175,80 @@ public class DynMapPreviewer extends TiledImageViewer {
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }
+
+    private final Action zoomIn = new AbstractAction("Zoom In", IconUtils.loadIcon("org/pepsoft/worldpainter/icons/magnifier_zoom_in.png")) {
+            public void actionPerformed(ActionEvent e) {
+                zoom++;
+                setZoom(zoom);
+            }
+        };
+
+    private final Action zoomOut = new AbstractAction("Zoom In", IconUtils.loadIcon("org/pepsoft/worldpainter/icons/magnifier_zoom_out.png")) {
+            public void actionPerformed(ActionEvent e) {
+                if (zoom > -4) {
+                    zoom--;
+                    setZoom(zoom);
+                }
+            }
+        };
+        Action rotateLeft = new AbstractAction("Zoom In", IconUtils.loadIcon("org/pepsoft/worldpainter/icons/arrow_left.png")) {
+            public void actionPerformed(ActionEvent e) {
+                azimuth = MathUtils.mod(azimuth - 15.0, 360.0);
+                tileProvider.setAzimuth(azimuth);
+                refresh(true);
+            }
+        };
+
+    private final Action rotateRight = new AbstractAction("Zoom In", IconUtils.loadIcon("org/pepsoft/worldpainter/icons/arrow_right.png")) {
+            public void actionPerformed(ActionEvent e) {
+                azimuth = MathUtils.mod(azimuth + 15.0, 360.0);
+                tileProvider.setAzimuth(azimuth);
+                refresh(true);
+            }
+        };
+
+    private final Action rotateUp = new AbstractAction("Zoom In", IconUtils.loadIcon("org/pepsoft/worldpainter/icons/arrow_up.png")) {
+            public void actionPerformed(ActionEvent e) {
+                double oldInclination = inclination;
+                inclination = Math.max(inclination - 15.0, 30.0);
+                if (inclination != oldInclination) {
+                    tileProvider.setInclination(inclination);
+                    refresh(true);
+                }
+            }
+        };
+
+    private final Action rotateDown = new AbstractAction("Zoom In", IconUtils.loadIcon("org/pepsoft/worldpainter/icons/arrow_down.png")) {
+            public void actionPerformed(ActionEvent e) {
+                double oldInclination = inclination;
+                inclination = Math.min(inclination + 15.0, 90.0);
+                if (inclination != oldInclination) {
+                    tileProvider.setInclination(inclination);
+                    refresh(true);
+                }
+            }
+        };
+
+    private final Action reset = new AbstractAction("Reset") {
+            public void actionPerformed(ActionEvent e) {
+                if ((azimuth != initialAzimuth) || (inclination != initialInclination) || (zoom != initialZoom)) {
+                    if (azimuth != initialAzimuth) {
+                        azimuth = initialAzimuth;
+                        tileProvider.setAzimuth(azimuth);
+                    }
+                    if (inclination != initialInclination) {
+                        inclination = initialInclination;
+                        tileProvider.setInclination(inclination);
+                    }
+                    if (zoom != initialZoom) {
+                        zoom = initialZoom;
+                        setZoom(zoom); // Will also refresh the view
+                    } else {
+                        refresh(true);
+                    }
+                }
+            }
+        };
 
     private final double initialAzimuth, initialInclination;
     private final int initialZoom;
