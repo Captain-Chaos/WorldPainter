@@ -50,9 +50,7 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
                 // same, no matter how often it is rendered
                 final long seed = dimension.getSeed() + (chunkX >> 4) * 65537 + (chunkY >> 4) * 4099;
                 final Random random = new Random(seed);
-                if (objectProvider instanceof Bo2ObjectTube) {
-                    ((Bo2ObjectTube) objectProvider).setSeed(seed);
-                }
+                objectProvider.setSeed(seed);
                 for (int x = chunkX; x < chunkX + 16; x++) {
 objectLoop:         for (int y = chunkY; y < chunkY + 16; y++) {
                         final int height = dimension.getIntHeightAt(x, y);
