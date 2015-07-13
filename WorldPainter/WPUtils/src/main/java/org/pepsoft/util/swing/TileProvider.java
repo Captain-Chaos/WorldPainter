@@ -32,9 +32,10 @@ public interface TileProvider {
     /**
      * Paint the tile at the specified tile coordinates to an image. The X
      * coordinate increases to the right and the Y coordinate increases towards
-     * the bottom. An image of the correct size will be provided on which to
-     * paint the tile. The tile provider may be requested to paint the tile in
-     * a different location on the provided image than the top left corner.
+     * the bottom. An image of the correct size (or larger) will be provided on
+     * which to paint the tile. The tile provider may be requested to paint the
+     * tile in a different location on the provided image than the top left
+     * corner.
      *
      * @param image The image on which to paint the tile
      * @param x The X coordinate (in tiles) of the tile to paint.

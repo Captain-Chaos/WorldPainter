@@ -28,7 +28,7 @@ import static org.pepsoft.worldpainter.Constants.TILE_SIZE_MASK;
 /**
  * Paint which paints a bit sized layer using a brush, with undo and dynamic level support.
  *
- * <p><strong>Note:</strong> does <em>not</em> do any event inhibitation management.
+ * <p><strong>Note:</strong> does <em>not</em> do any event inhibition management.
  *
  * <p>Created by pepijn on 15-05-15.
  */

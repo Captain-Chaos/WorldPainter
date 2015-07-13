@@ -21,6 +21,8 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 /**
+ * A localised operation which uses the mouse or tablet to indicate where and
+ * how it should be applied.
  *
  * @author pepijn
  */
@@ -34,8 +36,8 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
      * @param view The WorldPainter view through which the dimension that is being edited is being displayed and on
      *             which the operation should install its listeners to register user mouse, keyboard and tablet actions.
      * @param statisticsKey The key with which use of this operation will be logged in the usage data sent back to the
-     *                      developer. Should start with "flood.", followed by some name to distinguish it from any
-     *                      other operation, optionally followed by some basic or fundamental setting, if it has one.
+     *                      developer. Should start with a reverse-DNS style identifier, optionally followed by some
+     *                      basic or fundamental setting, if it has one.
      */
     protected MouseOrTabletOperation(String name, String description, WorldPainterView view, String statisticsKey) {
         this(name, description, view, -1, true, statisticsKey);
@@ -55,8 +57,8 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
      * @param delay The delay in ms between each invocation of {@link #tick(int, int, boolean, boolean, float)} while
      *              this operation is being applied by the user.
      * @param statisticsKey The key with which use of this operation will be logged in the usage data sent back to the
-     *                      developer. Should start with "flood.", followed by some name to distinguish it from any
-     *                      other operation, optionally followed by some basic or fundamental setting, if it has one.
+     *                      developer. Should start with a reverse-DNS style identifier, optionally followed by some
+     *                      basic or fundamental setting, if it has one.
      */
     protected MouseOrTabletOperation(String name, String description, WorldPainterView view, int delay, String statisticsKey) {
         this(name, description, view, delay, false, statisticsKey);
@@ -69,8 +71,8 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
      * @param name The short name of the operation. May be displayed on the operation's tool button.
      * @param description A longer description of the operation. May be displayed to the user as a tooltip.
      * @param statisticsKey The key with which use of this operation will be logged in the usage data sent back to the
-     *                      developer. Should start with "flood.", followed by some name to distinguish it from any
-     *                      other operation, optionally followed by some basic or fundamental setting, if it has one.
+     *                      developer. Should start with a reverse-DNS style identifier, optionally followed by some
+     *                      basic or fundamental setting, if it has one.
      */
     protected MouseOrTabletOperation(String name, String description, String statisticsKey) {
         this(name, description, null, -1, true, statisticsKey);
@@ -88,8 +90,8 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
      * @param delay The delay in ms between each invocation of {@link #tick(int, int, boolean, boolean, float)} while
      *              this operation is being applied by the user.
      * @param statisticsKey The key with which use of this operation will be logged in the usage data sent back to the
-     *                      developer. Should start with "flood.", followed by some name to distinguish it from any
-     *                      other operation, optionally followed by some basic or fundamental setting, if it has one.
+     *                      developer. Should start with a reverse-DNS style identifier, optionally followed by some
+     *                      basic or fundamental setting, if it has one.
      */
     protected MouseOrTabletOperation(String name, String description, int delay, String statisticsKey) {
         this(name, description, null, delay, false, statisticsKey);
@@ -310,13 +312,18 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
      * @param centreY The y coordinate of the center of the brush, in world
      *     coordinates.
      * @param inverse Whether to perform the "inverse" operation instead of the
-     *     regular operation, if applicable.
+     *     regular operation, if applicable. If the operation has no inverse it
+     *     should just apply the normal operation.
      * @param first Whether this is the first tick of a continuous operation.
      *     For a one shot operation this will always be <code>true</code>.
      * @param dynamicLevel The dynamic level (from 0.0f to 1.0f inclusive) to
      *     apply in addition to the <code>level</code> property, for instance
      *     due to a pressure sensitive stylus being used. In other words,
      *     <strong>not</strong> the total level at which to apply the operation!
+     *     Operations are free to ignore this if it is not applicable. If the
+     *     operation is being applied through a means which doesn't provide a
+     *     dynamic level (for instance the mouse), this will be <em>exactly</em>
+     *     <code>1.0f</code>.
      */
     protected abstract void tick(int centreX, int centreY, boolean inverse, boolean first, float dynamicLevel);
     
