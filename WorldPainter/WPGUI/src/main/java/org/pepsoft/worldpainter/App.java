@@ -4142,8 +4142,8 @@ public final class App extends JFrame implements RadiusControl,
     private void paintChanged() {
         if (activeOperation instanceof PaintOperation) {
             ((PaintOperation) activeOperation).setPaint(paint);
-            updateLayerVisibility();
         }
+        updateLayerVisibility();
     }
 
     /**
