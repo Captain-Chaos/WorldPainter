@@ -36,8 +36,7 @@ public class DynMapPreviewer extends TiledImageViewer {
         initialZoom = myZoom;
         azimuth = myAzimuth;
         inclination = myInclination;
-        zoom = myZoom;
-        setZoom(zoom);
+        setZoom(myZoom);
         setFocusable(true);
 
         addMouseWheelListener(e -> {
@@ -69,6 +68,8 @@ public class DynMapPreviewer extends TiledImageViewer {
         actionMap.put("zoomOut", zoomOut);
         actionMap.put("reset", reset);
 
+        setActionStates();
+
         JPanel buttonPanel = new JPanel(new GridLayout(2, 3, 2, 2));
         buttonPanel.setOpaque(false);
 
@@ -91,6 +92,7 @@ public class DynMapPreviewer extends TiledImageViewer {
 
     public void setObject(WPObject object) {
         this.object = object;
+        setActionStates();
         if (object != null) {
             WPObjectDynmapWorld dmWorld = new WPObjectDynmapWorld(object);
             tileProvider = new DynMapTileProvider(dmWorld);
@@ -117,6 +119,7 @@ public class DynMapPreviewer extends TiledImageViewer {
 
     public void setAzimuth(double azimuth) {
         this.azimuth = azimuth;
+        setActionStates();
         if (tileProvider != null) {
             tileProvider.setAzimuth(azimuth);
         }
@@ -128,6 +131,7 @@ public class DynMapPreviewer extends TiledImageViewer {
 
     public void setInclination(double inclination) {
         this.inclination = inclination;
+        setActionStates();
         if (tileProvider != null) {
             tileProvider.setInclination(inclination);
         }
@@ -164,6 +168,15 @@ public class DynMapPreviewer extends TiledImageViewer {
         return button;
     }
 
+    private void setActionStates() {
+        zoomIn.setEnabled(object != null);
+        zoomOut.setEnabled((object != null) && (getZoom() > -4));
+        rotateLeft.setEnabled(object != null);
+        rotateRight.setEnabled(object != null);
+        rotateUp.setEnabled((object != null) && (inclination > 30.0));
+        rotateDown.setEnabled((object != null) && (inclination < 90.0));
+    }
+
     public static void main(String[] args) throws IOException {
         JFrame frame = new JFrame("DynMapPreviewerTest");
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -178,16 +191,16 @@ public class DynMapPreviewer extends TiledImageViewer {
 
     private final Action zoomIn = new AbstractAction("Zoom In", IconUtils.loadIcon("org/pepsoft/worldpainter/icons/magnifier_zoom_in.png")) {
             public void actionPerformed(ActionEvent e) {
-                zoom++;
-                setZoom(zoom);
+                setZoom(getZoom() + 1);
+                setActionStates();
             }
         };
 
     private final Action zoomOut = new AbstractAction("Zoom In", IconUtils.loadIcon("org/pepsoft/worldpainter/icons/magnifier_zoom_out.png")) {
             public void actionPerformed(ActionEvent e) {
-                if (zoom > -4) {
-                    zoom--;
-                    setZoom(zoom);
+                if (getZoom() > -4) {
+                    setZoom(getZoom() - 1);
+                    setActionStates();
                 }
             }
         };
@@ -212,6 +225,7 @@ public class DynMapPreviewer extends TiledImageViewer {
                 double oldInclination = inclination;
                 inclination = Math.max(inclination - 15.0, 30.0);
                 if (inclination != oldInclination) {
+                    setActionStates();
                     tileProvider.setInclination(inclination);
                     refresh(true);
                 }
@@ -223,6 +237,7 @@ public class DynMapPreviewer extends TiledImageViewer {
                 double oldInclination = inclination;
                 inclination = Math.min(inclination + 15.0, 90.0);
                 if (inclination != oldInclination) {
+                    setActionStates();
                     tileProvider.setInclination(inclination);
                     refresh(true);
                 }
@@ -231,7 +246,7 @@ public class DynMapPreviewer extends TiledImageViewer {
 
     private final Action reset = new AbstractAction("Reset") {
             public void actionPerformed(ActionEvent e) {
-                if ((azimuth != initialAzimuth) || (inclination != initialInclination) || (zoom != initialZoom)) {
+                if ((azimuth != initialAzimuth) || (inclination != initialInclination) || (getZoom() != initialZoom)) {
                     if (azimuth != initialAzimuth) {
                         azimuth = initialAzimuth;
                         tileProvider.setAzimuth(azimuth);
@@ -240,12 +255,12 @@ public class DynMapPreviewer extends TiledImageViewer {
                         inclination = initialInclination;
                         tileProvider.setInclination(inclination);
                     }
-                    if (zoom != initialZoom) {
-                        zoom = initialZoom;
-                        setZoom(zoom); // Will also refresh the view
+                    if (getZoom() != initialZoom) {
+                        setZoom(initialZoom); // Will also refresh the view
                     } else {
                         refresh(true);
                     }
+                    setActionStates();
                 }
             }
         };
@@ -256,5 +271,4 @@ public class DynMapPreviewer extends TiledImageViewer {
     private DynMapTileProvider tileProvider;
     private double azimuth, inclination;
     private boolean caves;
-    private int zoom;
 }
