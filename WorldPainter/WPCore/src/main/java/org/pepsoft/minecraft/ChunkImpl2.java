@@ -569,29 +569,29 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk {
          */
         boolean isEmpty() {
             for (byte b: blocks) {
-                if (b != 0) {
+                if (b != (byte) 0) {
                     return false;
                 }
             }
             if (add != null) {
                 for (byte b: add) {
-                    if (b != 0) {
+                    if (b != (byte) 0) {
                         return false;
                     }
                 }
             }
             for (byte b: skyLight) {
-                if (b != -1) {
+                if (b != (byte) -1) {
                     return false;
                 }
             }
             for (byte b: blockLight) {
-                if (b != 0) {
+                if (b != (byte) 0) {
                     return false;
                 }
             }
             for (byte b: data) {
-                if (b != 0) {
+                if (b != (byte) 0) {
                     return false;
                 }
             }
