@@ -196,6 +196,7 @@ renderLoop:                 do {
                             } while(true);
                         }
                     }.start();
+                    previewRenderState = PreviewRenderState.RENDERING;
                     break;
                 case RENDERING:
                     // A preview is already being rendered; set the state such
