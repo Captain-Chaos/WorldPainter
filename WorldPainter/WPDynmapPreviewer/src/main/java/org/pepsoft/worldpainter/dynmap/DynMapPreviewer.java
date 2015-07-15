@@ -204,7 +204,8 @@ public class DynMapPreviewer extends TiledImageViewer {
                 }
             }
         };
-        Action rotateLeft = new AbstractAction("Zoom In", IconUtils.loadIcon("org/pepsoft/worldpainter/icons/arrow_left.png")) {
+
+    private final Action rotateLeft = new AbstractAction("Zoom In", IconUtils.loadIcon("org/pepsoft/worldpainter/icons/arrow_left.png")) {
             public void actionPerformed(ActionEvent e) {
                 azimuth = MathUtils.mod(azimuth - 15.0, 360.0);
                 tileProvider.setAzimuth(azimuth);
