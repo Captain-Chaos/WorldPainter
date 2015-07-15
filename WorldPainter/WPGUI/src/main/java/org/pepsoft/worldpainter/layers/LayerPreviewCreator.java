@@ -133,7 +133,9 @@ public class LayerPreviewCreator {
             Set<Layer> addedLayers = ((CombinedLayer) layer).apply(tile);
             while (! addedLayers.isEmpty()) {
                 Set<Layer> newlyAddedLayers = new HashSet<>();
-                addedLayers.stream().filter(layer -> layer instanceof CombinedLayer).forEach(layer -> newlyAddedLayers.addAll(((CombinedLayer) layer).apply(tile)));
+                addedLayers.stream()
+                    .filter(layer -> layer instanceof CombinedLayer)
+                    .forEach(layer -> newlyAddedLayers.addAll(((CombinedLayer) layer).apply(tile)));
                 addedLayers = newlyAddedLayers;
             }
         }
@@ -165,7 +167,7 @@ public class LayerPreviewCreator {
         } else if (exporter instanceof SecondPassLayerExporter) {
             // Phase three: generate terrain
             timestamp = now;
-            WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(dimension, Collections.singletonMap(layer, exporter), Constants.SUPPORTED_VERSION_2, previewHeight);
+            WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(dimension, Collections.emptyMap(), Constants.SUPPORTED_VERSION_2, previewHeight);
             for (int x = 0; x < 8; x++) {
                 for (int y = 0; y < 8; y++) {
                     minecraftWorldObject.addChunk(chunkFactory.createChunk(x, y).chunk);
