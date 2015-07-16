@@ -207,7 +207,7 @@ public class AboutDialog extends javax.swing.JDialog implements WindowListener {
         for (Plugin plugin: plugins) {
             Properties properties = plugin.getProperties();
             String name = properties.getProperty(Plugin.PROPERTY_NAME);
-            if (! name.equals("Default")) { // NOI18N
+            if (! (name.equals("Default") || name.equals("DefaultLayerEditorProvider"))) { // NOI18N
                 String version = properties.getProperty(Plugin.PROPERTY_VERSION);
                 message += MessageFormat.format(strings.getString("0.plugin.version.1.n"), name, version);
             }
