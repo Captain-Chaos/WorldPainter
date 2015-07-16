@@ -10,11 +10,14 @@
  */
 package org.pepsoft.worldpainter;
 
-import java.awt.Frame;
-import java.awt.Graphics2D;
-import java.awt.GraphicsConfiguration;
-import java.awt.RenderingHints;
-import java.awt.Transparency;
+import org.pepsoft.util.FileUtils;
+
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.filechooser.FileFilter;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
@@ -27,18 +30,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.imageio.ImageIO;
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
-import javax.swing.InputMap;
-import javax.swing.JComponent;
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
-import javax.swing.KeyStroke;
-import javax.swing.Timer;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.filechooser.FileFilter;
 
 /**
  *
@@ -207,7 +198,6 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
     }
     
     private void selectImage() {
-        JFileChooser fileChooser = new JFileChooser();
         final Set<String> extensions = new HashSet<>(Arrays.asList(ImageIO.getReaderFileSuffixes()));
         StringBuilder sb = new StringBuilder("Supported image formats (");
         boolean first = true;
@@ -222,7 +212,8 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
         }
         sb.append(')');
         final String description = sb.toString();
-        fileChooser.setFileFilter(new FileFilter() {
+        File selectedFile = new File(fieldImage.getText());
+        selectedFile = FileUtils.selectFileForOpen(this, "Select an overlay image file", (selectedFile.isFile()) ? selectedFile : null, new FileFilter() {
             @Override
             public boolean accept(File f) {
                 if (f.isDirectory()) {
@@ -243,13 +234,8 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
                 return description;
             }
         });
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        File selectedFile = new File(fieldImage.getText());
-        if (selectedFile.isFile()) {
-            fileChooser.setSelectedFile(selectedFile);
-        }
-        if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            fieldImage.setText(fileChooser.getSelectedFile().getAbsolutePath());
+        if (selectedFile != null) {
+            fieldImage.setText(selectedFile.getAbsolutePath());
         }
     }
     

@@ -11,43 +11,33 @@
 
 package org.pepsoft.worldpainter;
 
-import java.awt.Color;
-import java.awt.Cursor;
-import java.awt.Point;
-import java.awt.Toolkit;
+import org.pepsoft.minecraft.Level;
+import org.pepsoft.util.DesktopUtils;
+import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ProgressReceiver;
+import org.pepsoft.util.ProgressReceiver.OperationCancelled;
+import org.pepsoft.util.swing.ProgressComponent.Listener;
+import org.pepsoft.util.swing.ProgressTask;
+import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
+import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.merging.WorldMerger;
+import org.pepsoft.worldpainter.util.FileInUseException;
 import org.pepsoft.worldpainter.util.MinecraftUtil;
+
+import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.filechooser.FileFilter;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import javax.swing.event.DocumentEvent;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Set;
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
-import javax.swing.Icon;
-import javax.swing.InputMap;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
-import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.event.DocumentListener;
-import javax.swing.filechooser.FileFilter;
-import org.pepsoft.minecraft.Level;
-import org.pepsoft.util.DesktopUtils;
-import org.pepsoft.util.ProgressReceiver.OperationCancelled;
-import org.pepsoft.util.swing.ProgressComponent.Listener;
-import org.pepsoft.util.swing.ProgressTask;
-import org.pepsoft.worldpainter.merging.WorldMerger;
-import org.pepsoft.worldpainter.util.FileInUseException;
+
 import static org.pepsoft.worldpainter.Constants.*;
-import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
-import org.pepsoft.worldpainter.layers.Layer;
 
 /**
  *
@@ -322,15 +312,8 @@ public class MergeWorldDialog extends javax.swing.JDialog implements Listener {
     }
 
     private void selectLevelDatFile() {
-        JFileChooser fileChooser = new JFileChooser();
         File file = new File(fieldLevelDatFile.getText().trim());
-        if (file.isDirectory()) {
-            fileChooser.setCurrentDirectory(file);
-        } else {
-            fileChooser.setSelectedFile(file);
-        }
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        fileChooser.setFileFilter(new FileFilter() {
+        file = FileUtils.selectFileForOpen(this, "Select Minecraft map level.dat file", file.exists() ? file : null, new FileFilter() {
             @Override
             public boolean accept(File f) {
                 return f.isDirectory() || f.getName().equalsIgnoreCase("level.dat");
@@ -341,8 +324,8 @@ public class MergeWorldDialog extends javax.swing.JDialog implements Listener {
                 return "Minecraft level.dat files";
             }
         });
-        if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            fieldLevelDatFile.setText(fileChooser.getSelectedFile().getAbsolutePath());
+        if (file != null) {
+            fieldLevelDatFile.setText(file.getAbsolutePath());
         }
     }
 

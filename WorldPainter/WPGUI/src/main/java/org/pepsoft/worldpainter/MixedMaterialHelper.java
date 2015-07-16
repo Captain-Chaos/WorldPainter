@@ -31,9 +31,7 @@ public class MixedMaterialHelper {
         if ((terrainDirectory == null) || (! terrainDirectory.isDirectory())) {
             terrainDirectory = DesktopUtils.getDocumentsFolder();
         }
-        JFileChooser fileChooser = new JFileChooser(terrainDirectory);
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        fileChooser.setFileFilter(new FileFilter() {
+        File selectedFile = FileUtils.selectFileForOpen(SwingUtilities.getWindowAncestor(parent), "Select WorldPainter custom terrain file", terrainDirectory, new FileFilter() {
             @Override
             public boolean accept(File f) {
                 return f.isDirectory() || f.getName().toLowerCase().endsWith(".terrain");
@@ -44,8 +42,7 @@ public class MixedMaterialHelper {
                 return "WorldPainter Custom Terrains (*.terrain)";
             }
         });
-        if (fileChooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION) {
-            File selectedFile = fileChooser.getSelectedFile();
+        if (selectedFile != null) {
             try {
                 try (ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new BufferedInputStream(new FileInputStream(selectedFile))))) {
                     return (MixedMaterial) in.readObject();
@@ -66,10 +63,7 @@ public class MixedMaterialHelper {
             terrainDirectory = DesktopUtils.getDocumentsFolder();
         }
         File selectedFile = new File(terrainDirectory, FileUtils.sanitiseName(material.getName()) + ".terrain");
-        JFileChooser fileChooser = new JFileChooser(terrainDirectory);
-        fileChooser.setSelectedFile(selectedFile);
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        fileChooser.setFileFilter(new FileFilter() {
+        selectedFile = FileUtils.selectFileForSave(SwingUtilities.getWindowAncestor(parent), "Export as WorldPainter custom terrain file", selectedFile, new FileFilter() {
             @Override
             public boolean accept(File f) {
                 return f.isDirectory() || f.getName().toLowerCase().endsWith(".terrain");
@@ -80,8 +74,7 @@ public class MixedMaterialHelper {
                 return "WorldPainter Custom Terrains (*.terrain)";
             }
         });
-        if (fileChooser.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
-            selectedFile = fileChooser.getSelectedFile();
+        if (selectedFile != null) {
             if (! selectedFile.getName().toLowerCase().endsWith(".terrain")) {
                 selectedFile = new File(selectedFile.getPath() + ".terrain");
             }

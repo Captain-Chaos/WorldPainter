@@ -1503,7 +1503,7 @@ public final class App extends JFrame implements RadiusControl,
         } else {
             dir = DesktopUtils.getDocumentsFolder();
         }
-        File selectedFile = FileUtils.openFile(this, "Select a WorldPainter world", dir,
+        File selectedFile = FileUtils.selectFileForOpen(this, "Select a WorldPainter world", dir,
                 new FileFilter() {
                     @Override
                     public boolean accept(File f) {
@@ -1573,9 +1573,7 @@ public final class App extends JFrame implements RadiusControl,
                 file = new File(DesktopUtils.getDocumentsFolder(), FileUtils.sanitiseName(world.getName().trim() + ".world"));
             }
         }
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setSelectedFile(file);
-        fileChooser.setFileFilter(new FileFilter() {
+        file = FileUtils.selectFileForSave(App.this, "Save as a WorldPainter world", file, new FileFilter() {
             @Override
             public boolean accept(File f) {
                 return f.isDirectory()
@@ -1587,16 +1585,13 @@ public final class App extends JFrame implements RadiusControl,
                 return strings.getString("worldpainter.files.world");
             }
         });
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        if (fileChooser.showSaveDialog(App.this) == JFileChooser.APPROVE_OPTION) {
-            file = fileChooser.getSelectedFile();
+        if (file != null) {
             if (! file.getName().toLowerCase().endsWith(".world")) {
                 file = new File(file.getParentFile(), file.getName() + ".world");
             }
             if (file.exists() && (JOptionPane.showConfirmDialog(App.this, strings.getString("do.you.want.to.overwrite.the.file"), strings.getString("file.exists"), JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION)) {
                 return false;
             }
-
             if (save(file)) {
                 JOptionPane.showMessageDialog(App.this, strings.getString("file.saved"), strings.getString("success"), JOptionPane.INFORMATION_MESSAGE);
                 return true;
@@ -4438,7 +4433,6 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void exportImage() {
-        JFileChooser fileChooser = new JFileChooser();
         final Set<String> extensions = new HashSet<>(Arrays.asList(ImageIO.getReaderFileSuffixes()));
         StringBuilder sb = new StringBuilder(strings.getString("supported.image.formats"));
         sb.append(" (");
@@ -4454,7 +4448,8 @@ public final class App extends JFrame implements RadiusControl,
         }
         sb.append(')');
         final String description = sb.toString();
-        fileChooser.setFileFilter(new FileFilter() {
+        String defaultname = world.getName().replaceAll("\\s", "").toLowerCase() + ((dimension.getDim() == DIM_NORMAL) ? "" : ("_" + dimension.getName().toLowerCase())) + ".png"; // NOI18N
+        File selectedFile = FileUtils.selectFileForSave(App.this, "Export as image file", new File(defaultname), new FileFilter() {
             @Override
             public boolean accept(File f) {
                 if (f.isDirectory()) {
@@ -4475,11 +4470,7 @@ public final class App extends JFrame implements RadiusControl,
                 return description;
             }
         });
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        String defaultname = world.getName().replaceAll("\\s", "").toLowerCase() + ((dimension.getDim() == DIM_NORMAL) ? "" : ("_" + dimension.getName().toLowerCase())) + ".png"; // NOI18N
-        fileChooser.setSelectedFile(new File(defaultname));
-        if (fileChooser.showSaveDialog(App.this) == JFileChooser.APPROVE_OPTION) {
-            File selectedFile = fileChooser.getSelectedFile();
+        if (selectedFile != null) {
             final String type;
             int p = selectedFile.getName().lastIndexOf('.');
             if (p != -1) {
@@ -4494,6 +4485,7 @@ public final class App extends JFrame implements RadiusControl,
                 }
             }
             final File file = selectedFile;
+            //noinspection ConstantConditions // Can't happen for non-cancelable task
             if (! ProgressDialog.executeTask(App.this, new ProgressTask<Boolean>() {
                         @Override
                         public String getName() {
@@ -4518,7 +4510,6 @@ public final class App extends JFrame implements RadiusControl,
     }
     
     private void exportHeightMap() {
-        JFileChooser fileChooser = new JFileChooser();
         final Set<String> extensions = new HashSet<>(Arrays.asList(ImageIO.getReaderFileSuffixes()));
         StringBuilder sb = new StringBuilder(strings.getString("supported.image.formats"));
         sb.append(" (");
@@ -4534,7 +4525,8 @@ public final class App extends JFrame implements RadiusControl,
         }
         sb.append(')');
         final String description = sb.toString();
-        fileChooser.setFileFilter(new FileFilter() {
+        String defaultname = world.getName().replaceAll("\\s", "").toLowerCase() + ((dimension.getDim() == DIM_NORMAL) ? "" : ("_" + dimension.getName().toLowerCase())) + "_heightmap.png"; // NOI18N
+        File selectedFile = FileUtils.selectFileForSave(App.this, "Export as height map image file", new File(defaultname), new FileFilter() {
             @Override
             public boolean accept(File f) {
                 if (f.isDirectory()) {
@@ -4555,11 +4547,7 @@ public final class App extends JFrame implements RadiusControl,
                 return description;
             }
         });
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        String defaultname = world.getName().replaceAll("\\s", "").toLowerCase() + ((dimension.getDim() == DIM_NORMAL) ? "" : ("_" + dimension.getName().toLowerCase())) + "_heightmap.png"; // NOI18N
-        fileChooser.setSelectedFile(new File(defaultname));
-        if (fileChooser.showSaveDialog(App.this) == JFileChooser.APPROVE_OPTION) {
-            File selectedFile = fileChooser.getSelectedFile();
+        if (selectedFile != null) {
             final String type;
             int p = selectedFile.getName().lastIndexOf('.');
             if (p != -1) {
@@ -4574,6 +4562,7 @@ public final class App extends JFrame implements RadiusControl,
                 }
             }
             final File file = selectedFile;
+            //noinspection ConstantConditions // Can't happen for non-cancelable task
             if (! ProgressDialog.executeTask(App.this, new ProgressTask<Boolean>() {
                         @Override
                         public String getName() {
@@ -4615,8 +4604,7 @@ public final class App extends JFrame implements RadiusControl,
         if ((layerDirectory == null) || (! layerDirectory.isDirectory())) {
             layerDirectory = DesktopUtils.getDocumentsFolder();
         }
-        JFileChooser fileChooser = new JFileChooser(layerDirectory);
-        fileChooser.setFileFilter(new FileFilter() {
+        File[] selectedFiles = FileUtils.selectFilesForOpen(this, "Select WorldPainter layer file(s)", layerDirectory, new FileFilter() {
             @Override
             public boolean accept(File f) {
                 return f.isDirectory() || f.getName().toLowerCase().endsWith(".layer");
@@ -4627,10 +4615,7 @@ public final class App extends JFrame implements RadiusControl,
                 return "WorldPainter Custom Layers (*.layer)";
             }
         });
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        fileChooser.setMultiSelectionEnabled(true);
-        if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            File[] selectedFiles = fileChooser.getSelectedFiles();
+        if (selectedFiles != null) {
             boolean updateCustomTerrainButtons = false;
             for (File selectedFile: selectedFiles) {
                 try {
@@ -4714,9 +4699,7 @@ public final class App extends JFrame implements RadiusControl,
         if ((layerDirectory == null) || (! layerDirectory.isDirectory())) {
             layerDirectory = DesktopUtils.getDocumentsFolder();
         }
-        JFileChooser fileChooser = new JFileChooser(layerDirectory);
-        fileChooser.setSelectedFile(new File(layerDirectory, FileUtils.sanitiseName(layer.getName()) + ".layer"));
-        fileChooser.setFileFilter(new FileFilter() {
+        File selectedFile = FileUtils.selectFileForSave(this, "Export WorldPainter layer file", new File(layerDirectory, FileUtils.sanitiseName(layer.getName()) + ".layer"), new FileFilter() {
             @Override
             public boolean accept(File f) {
                 return f.isDirectory() || f.getName().toLowerCase().endsWith(".layer");
@@ -4727,9 +4710,7 @@ public final class App extends JFrame implements RadiusControl,
                 return "WorldPainter Custom Layers (*.layer)";
             }
         });
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-            File selectedFile = fileChooser.getSelectedFile();
+        if (selectedFile != null) {
             if (! selectedFile.getName().toLowerCase().endsWith(".layer")) {
                 selectedFile = new File(selectedFile.getPath() + ".layer");
             }

@@ -77,7 +77,8 @@ public class FileUtils {
      * Recursively copy a directory including all contents.
      * 
      * @param dir The directory to copy.
-     * @param destParent The parent directory to copy the directory to.
+     * @param destParent The parent directory to copy the directory into using
+     *     the same name as the source directory.
      * @throws IOException If there is an I/O error while performing the copy.
      */
     public static void copyDir(File dir, File destParent) throws IOException {
@@ -105,7 +106,8 @@ public class FileUtils {
      * Copy a file to another directory.
      * 
      * @param file The file to copy.
-     * @param destDir The parent directory to copy the file to.
+     * @param destDir The directory to copy the file into, using the same name
+     *     as the source file.
      * @throws IOException If there is an I/O error while performing the copy.
      */
     public static void copyFile(File file, File destDir) throws IOException {
@@ -120,7 +122,8 @@ public class FileUtils {
      * Copy a file to another directory with optional progress reporting.
      * 
      * @param file The file to copy.
-     * @param destDir The parent directory to copy the file to.
+     * @param destDir The directory to copy the file into, using the same name
+     *     as the source file.
      * @param progressReceiver The progress receiver to report copying progress
      *     to. May be <code>null</code>.
      * @throws IOException If there is an I/O error while performing the copy.
@@ -132,16 +135,14 @@ public class FileUtils {
         }
         long fileSize = file.length();
         long bytesCopied = 0;
-        try (FileInputStream in = new FileInputStream(file)) {
-            try (FileOutputStream out = new FileOutputStream(destFile)) {
-                int bytesRead;
-                byte[] buffer = new byte[BUFFER_SIZE];
-                while ((bytesRead = in.read(buffer)) != -1) {
-                    out.write(buffer, 0, bytesRead);
-                    bytesCopied += bytesRead;
-                    if ((progressReceiver != null) && (fileSize > 0)) {
-                        progressReceiver.setProgress((float) ((double) bytesCopied / fileSize));
-                    }
+        try (FileInputStream in = new FileInputStream(file); FileOutputStream out = new FileOutputStream(destFile)) {
+            int bytesRead;
+            byte[] buffer = new byte[BUFFER_SIZE];
+            while ((bytesRead = in.read(buffer)) != -1) {
+                out.write(buffer, 0, bytesRead);
+                bytesCopied += bytesRead;
+                if ((progressReceiver != null) && (fileSize > 0)) {
+                    progressReceiver.setProgress((float) ((double) bytesCopied / fileSize));
                 }
             }
         }
@@ -152,8 +153,9 @@ public class FileUtils {
      * Recursively delete a directory and all its contents.
      * 
      * @param dir The directory to delete.
+     * @return <code>true</code> if and only if the directory is successfully deleted; <code>false</code> otherwise
      */
-    public static void deleteDir(File dir) {
+    public static boolean deleteDir(File dir) {
         if (! dir.isDirectory()) {
             throw new IllegalArgumentException(dir + " does not exist or is not a directory");
         }
@@ -165,7 +167,7 @@ public class FileUtils {
                 file.delete();
             }
         }
-        dir.delete();
+        return dir.delete();
     }
     
     /**
@@ -209,25 +211,190 @@ public class FileUtils {
         return sb.toString();
     }
 
-    public static File openFile(Frame parent, String title, File dir, final FileFilter fileFilter) {
+    /**
+     * Select a single existing file for loading.
+     *
+     * @param parent The window relative to which the modal file dialog should
+     *               be displayed.
+     * @param title The text for the title bar of the file dialog.
+     * @param fileOrDir A file or directory to preselect.
+     * @param fileFilter A filter limiting which files and/or directories can be
+     *                   selected.
+     * @return The selected file, or <code>null</code> if the user cancelled the
+     * dialog.
+     */
+    public static File selectFileForOpen(Window parent, String title, File fileOrDir, final FileFilter fileFilter) {
         if (SystemUtils.isMac()) {
             // On Macs the AWT file dialog looks much closer to native than the
             // Swing one, so use it
-            FileDialog fileDialog = new FileDialog(parent, title, FileDialog.LOAD);
-            fileDialog.setDirectory(dir.getPath());
+            FileDialog fileDialog;
+            if (parent instanceof Frame) {
+                fileDialog = new FileDialog((Frame) parent, title, FileDialog.LOAD);
+            } else {
+                fileDialog = new FileDialog((Dialog) parent, title, FileDialog.LOAD);
+            }
+            if (fileOrDir != null) {
+                if (fileOrDir.isDirectory()) {
+                    fileDialog.setDirectory(fileOrDir.getPath());
+                } else if (fileOrDir.isFile()) {
+                    fileDialog.setDirectory(fileOrDir.getParent());
+                    fileDialog.setDirectory(fileOrDir.getName());
+                }
+            }
             fileDialog.setFilenameFilter((file, s) -> fileFilter.accept(new File(file, s)));
             fileDialog.setVisible(true);
-            String selectedFileStr = fileDialog.getFile();
-            if (selectedFileStr != null) {
-                return new File(fileDialog.getDirectory(), selectedFileStr);
+            File[] files = fileDialog.getFiles();
+            if (files.length == 1) {
+                return files[0];
             } else {
                 return null;
             }
         } else {
-            JFileChooser fileChooser = new JFileChooser(dir);
+            JFileChooser fileChooser;
+            if (fileOrDir != null) {
+                if (fileOrDir.isDirectory()) {
+                    fileChooser = new JFileChooser(fileOrDir);
+                } else if (fileOrDir.isFile()) {
+                    fileChooser = new JFileChooser(fileOrDir.getParentFile());
+                    fileChooser.setSelectedFile(fileOrDir);
+                } else {
+                    fileChooser = new JFileChooser();
+                }
+            } else {
+                fileChooser = new JFileChooser();
+            }
+            fileChooser.setDialogTitle(title);
             fileChooser.setFileFilter(fileFilter);
             fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
             if (fileChooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION) {
+                return fileChooser.getSelectedFile();
+            } else {
+                return null;
+            }
+        }
+    }
+
+    /**
+     * Select one or more existing files for loading.
+     *
+     * @param parent The window relative to which the modal file dialog should
+     *               be displayed.
+     * @param title The text for the title bar of the file dialog.
+     * @param fileOrDir A file or directory to preselect.
+     * @param fileFilter A filter limiting which files and/or directories can be
+     *                   selected.
+     * @return The selected file(s), or <code>null</code> if the user cancelled
+     * the dialog.
+     */
+    public static File[] selectFilesForOpen(Window parent, String title, File fileOrDir, final FileFilter fileFilter) {
+        if (SystemUtils.isMac()) {
+            // On Macs the AWT file dialog looks much closer to native than the
+            // Swing one, so use it
+            FileDialog fileDialog;
+            if (parent instanceof Frame) {
+                fileDialog = new FileDialog((Frame) parent, title, FileDialog.LOAD);
+            } else {
+                fileDialog = new FileDialog((Dialog) parent, title, FileDialog.LOAD);
+            }
+            fileDialog.setMultipleMode(true);
+            if (fileOrDir != null) {
+                if (fileOrDir.isDirectory()) {
+                    fileDialog.setDirectory(fileOrDir.getPath());
+                } else if (fileOrDir.isFile()) {
+                    fileDialog.setDirectory(fileOrDir.getParent());
+                    fileDialog.setDirectory(fileOrDir.getName());
+                }
+            }
+            fileDialog.setFilenameFilter((file, s) -> fileFilter.accept(new File(file, s)));
+            fileDialog.setVisible(true);
+            File[] files = fileDialog.getFiles();
+            if (files.length > 0) {
+                return files;
+            } else {
+                return null;
+            }
+        } else {
+            JFileChooser fileChooser;
+            if (fileOrDir != null) {
+                if (fileOrDir.isDirectory()) {
+                    fileChooser = new JFileChooser(fileOrDir);
+                } else if (fileOrDir.isFile()) {
+                    fileChooser = new JFileChooser(fileOrDir.getParentFile());
+                    fileChooser.setSelectedFile(fileOrDir);
+                } else {
+                    fileChooser = new JFileChooser();
+                }
+            } else {
+                fileChooser = new JFileChooser();
+            }
+            fileChooser.setDialogTitle(title);
+            fileChooser.setFileFilter(fileFilter);
+            fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            if (fileChooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION) {
+                return fileChooser.getSelectedFiles();
+            } else {
+                return null;
+            }
+        }
+    }
+
+    /**
+     * Select a single filename for saving. May be the name of an existing file,
+     * or a non-existent file.
+     *
+     * @param parent The window relative to which the modal file dialog should
+     *               be displayed.
+     * @param title The text for the title bar of the file dialog.
+     * @param fileOrDir An existing file or directory to preselect.
+     * @param fileFilter A filter limiting which files and/or directories can be
+     *                   selected.
+     * @return The selected file, or <code>null</code> if the user cancelled the
+     * dialog.
+     */
+    public static File selectFileForSave(Window parent, String title, File fileOrDir, final FileFilter fileFilter) {
+        if (SystemUtils.isMac()) {
+            // On Macs the AWT file dialog looks much closer to native than the
+            // Swing one, so use it
+            FileDialog fileDialog;
+            if (parent instanceof Frame) {
+                fileDialog = new FileDialog((Frame) parent, title, FileDialog.SAVE);
+            } else {
+                fileDialog = new FileDialog((Dialog) parent, title, FileDialog.SAVE);
+            }
+            if (fileOrDir != null) {
+                if (fileOrDir.isDirectory()) {
+                    fileDialog.setDirectory(fileOrDir.getPath());
+                } else if (fileOrDir.isFile()) {
+                    fileDialog.setDirectory(fileOrDir.getParent());
+                    fileDialog.setDirectory(fileOrDir.getName());
+                }
+            }
+            fileDialog.setFilenameFilter((file, s) -> fileFilter.accept(new File(file, s)));
+            fileDialog.setVisible(true);
+            File[] files = fileDialog.getFiles();
+            if (files.length == 1) {
+                return files[0];
+            } else {
+                return null;
+            }
+        } else {
+            JFileChooser fileChooser;
+            if (fileOrDir != null) {
+                if (fileOrDir.isDirectory()) {
+                    fileChooser = new JFileChooser(fileOrDir);
+                } else if (fileOrDir.isFile()) {
+                    fileChooser = new JFileChooser(fileOrDir.getParentFile());
+                    fileChooser.setSelectedFile(fileOrDir);
+                } else {
+                    fileChooser = new JFileChooser();
+                }
+            } else {
+                fileChooser = new JFileChooser();
+            }
+            fileChooser.setDialogTitle(title);
+            fileChooser.setFileFilter(fileFilter);
+            fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            if (fileChooser.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
                 return fileChooser.getSelectedFile();
             } else {
                 return null;

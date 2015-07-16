@@ -11,22 +11,18 @@
 
 package org.pepsoft.worldpainter.tools;
 
+import org.pepsoft.util.DesktopUtils;
+import org.pepsoft.util.FileUtils;
+import org.pepsoft.worldpainter.Configuration;
+
+import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.filechooser.FileFilter;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
-import javax.swing.InputMap;
-import javax.swing.JComponent;
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
-import javax.swing.KeyStroke;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.filechooser.FileFilter;
-import org.pepsoft.util.DesktopUtils;
-import org.pepsoft.worldpainter.Configuration;
 
 /**
  *
@@ -68,14 +64,14 @@ public class RespawnPlayerDialog extends javax.swing.JDialog {
     }
 
     private void selectFile() {
-        JFileChooser fileChooser = new JFileChooser();
+        File mySavesDir;
         Configuration config = Configuration.getInstance();
         if ((config != null) && (config.getSavesDirectory() != null)) {
-            fileChooser.setCurrentDirectory(config.getSavesDirectory());
+            mySavesDir = config.getSavesDirectory();
         } else {
-            fileChooser.setCurrentDirectory(DesktopUtils.getDocumentsFolder());
+            mySavesDir = DesktopUtils.getDocumentsFolder();
         }
-        fileChooser.setFileFilter(new FileFilter() {
+        File levelDatFile = FileUtils.selectFileForOpen(this, "Select Minecraft map level.dat file", mySavesDir, new FileFilter() {
             @Override
             public boolean accept(File f) {
                 return f.isDirectory() || f.getName().equalsIgnoreCase("level.dat");
@@ -86,8 +82,8 @@ public class RespawnPlayerDialog extends javax.swing.JDialog {
                 return "Minecraft level.dat files";
             }
         });
-        if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            jTextField1.setText(fileChooser.getSelectedFile().getAbsolutePath());
+        if (levelDatFile != null) {
+            jTextField1.setText(levelDatFile.getAbsolutePath());
         }
     }
 

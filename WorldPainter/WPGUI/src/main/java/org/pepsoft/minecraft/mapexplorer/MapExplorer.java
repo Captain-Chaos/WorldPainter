@@ -5,16 +5,14 @@
 
 package org.pepsoft.minecraft.mapexplorer;
 
-import java.awt.BorderLayout;
-import java.io.File;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JScrollPane;
-import javax.swing.JTree;
-import javax.swing.SwingUtilities;
+import org.pepsoft.util.FileUtils;
+import org.pepsoft.worldpainter.util.MinecraftUtil;
+
+import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.tree.TreeModel;
-import org.pepsoft.worldpainter.util.MinecraftUtil;
+import java.awt.*;
+import java.io.File;
 
 /**
  *
@@ -23,8 +21,7 @@ import org.pepsoft.worldpainter.util.MinecraftUtil;
 public class MapExplorer {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            JFileChooser fileChooser = new JFileChooser();
-            fileChooser.setFileFilter(new FileFilter() {
+            File file = FileUtils.selectFileForOpen(null, "Select Minecraft map level.dat file", new File(MinecraftUtil.findMinecraftDir(), "saves"), new FileFilter() {
                 @Override
                 public boolean accept(File f) {
                     return f.isDirectory() || f.getName().equals("level.dat") || f.getName().toLowerCase().endsWith(".schematic");
@@ -35,10 +32,7 @@ public class MapExplorer {
                     return "Minecraft level.dat files or MCEdit .schematic files";
                 }
             });
-            fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-            fileChooser.setCurrentDirectory(new File(MinecraftUtil.findMinecraftDir(), "saves"));
-            if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-                File file = fileChooser.getSelectedFile();
+            if (file != null) {
                 JFrame frame = new JFrame("Minecraft Map Explorer");
                 frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
                 TreeModel treeModel = new MapTreeModel(file);

@@ -108,8 +108,7 @@ public class BiomeSchemeManager {
             } else if (askUser) {
                 // We don't have a jar for this biome scheme, but we're allowed to
                 // ask the user for it, so do so
-                final JFileChooser fileChooser = new JFileChooser();
-                fileChooser.setFileFilter(new FileFilter() {
+                final File minecraftJar = FileUtils.selectFileForOpen(SwingUtilities.getWindowAncestor(parent), "Select Minecraft " + version + " minecraft.jar", null, new FileFilter() {
                     @Override
                     public boolean accept(File f) {
                         return f.isDirectory() || f.getName().toLowerCase().endsWith(".jar");
@@ -120,10 +119,7 @@ public class BiomeSchemeManager {
                         return "Java archives (*.jar)";
                     }
                 });
-                fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-                fileChooser.setDialogTitle("Select Minecraft " + version + " minecraft.jar");
-                if (fileChooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION) {
-                    final File minecraftJar = fileChooser.getSelectedFile();
+                if (minecraftJar != null) {
                     if (! minecraftJar.isFile()) {
                         logger.info("Could not find compatible jar for biome scheme " + version + " and user selected a directory or a non existant file");
                         JOptionPane.showMessageDialog(parent, "The selected file is a directory, or is non existant", "No File Selected", JOptionPane.ERROR_MESSAGE);

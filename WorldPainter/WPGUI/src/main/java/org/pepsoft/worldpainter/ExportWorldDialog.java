@@ -380,6 +380,8 @@ public class ExportWorldDialog extends javax.swing.JDialog {
     }
 
     private void selectDir() {
+        // Can't use FileUtils.selectFileForOpen() since it doesn't support
+        // selecting a directory
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setSelectedFile(new File(fieldDirectory.getText().trim()));
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);

@@ -4,50 +4,34 @@
  */
 package org.pepsoft.worldpainter.importing;
 
-import java.awt.Toolkit;
+import org.pepsoft.minecraft.Level;
+import org.pepsoft.minecraft.RegionFile;
+import org.pepsoft.util.FileUtils;
+import org.pepsoft.util.ProgressReceiver;
+import org.pepsoft.util.ProgressReceiver.OperationCancelled;
+import org.pepsoft.util.swing.ProgressDialog;
+import org.pepsoft.util.swing.ProgressTask;
+import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.util.MinecraftUtil;
+
+import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.filechooser.FileFilter;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
-import java.util.ResourceBundle;
-import java.util.Set;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
-import javax.swing.Icon;
-import javax.swing.InputMap;
-import javax.swing.JComponent;
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
-import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.filechooser.FileFilter;
-import java.awt.Point;
-import org.pepsoft.minecraft.Level;
-import org.pepsoft.minecraft.RegionFile;
-import org.pepsoft.util.ProgressReceiver;
-import org.pepsoft.util.ProgressReceiver.OperationCancelled;
-import org.pepsoft.util.swing.ProgressDialog;
-import org.pepsoft.util.swing.ProgressTask;
-import org.pepsoft.worldpainter.Configuration;
-import org.pepsoft.worldpainter.ImportWarningsDialog;
-import org.pepsoft.worldpainter.Terrain;
-import org.pepsoft.worldpainter.TileFactory;
-import org.pepsoft.worldpainter.TileFactoryFactory;
-import org.pepsoft.worldpainter.World2;
-import org.pepsoft.worldpainter.util.MinecraftUtil;
-import static org.pepsoft.minecraft.Constants.*;
-import org.pepsoft.worldpainter.App;
+
+import static org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_1;
+import static org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_2;
 
 /**
  *
@@ -347,14 +331,11 @@ public class MapImportDialog extends javax.swing.JDialog {
     }
     
     private void selectFile() {
-        JFileChooser fileChooser = new JFileChooser();
-        Configuration config = Configuration.getInstance();
-        if (config.getSavesDirectory() != null) {
-            fileChooser.setCurrentDirectory(config.getSavesDirectory());
-        } else if (MinecraftUtil.findMinecraftDir() != null) {
-            fileChooser.setCurrentDirectory(new File(MinecraftUtil.findMinecraftDir(), "saves"));
+        File mySavesDir = Configuration.getInstance().getSavesDirectory();
+        if ((mySavesDir == null) && (MinecraftUtil.findMinecraftDir() != null)) {
+            mySavesDir = new File(MinecraftUtil.findMinecraftDir(), "saves");
         }
-        fileChooser.setFileFilter(new FileFilter() {
+        File selectedFile = FileUtils.selectFileForOpen(this, "Select Minecraft map level.dat file", mySavesDir, new FileFilter() {
             @Override
             public boolean accept(File f) {
                 return f.isDirectory() || f.getName().equalsIgnoreCase("level.dat");
@@ -365,9 +346,8 @@ public class MapImportDialog extends javax.swing.JDialog {
                 return strings.getString("minecraft.level.dat.file");
             }
         });
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            fieldFilename.setText(fileChooser.getSelectedFile().getAbsolutePath());
+        if (selectedFile != null) {
+            fieldFilename.setText(selectedFile.getAbsolutePath());
         }        
     }
     

@@ -4,39 +4,8 @@
  */
 package org.pepsoft.worldpainter.threedeeview;
 
-import java.awt.BorderLayout;
-import java.awt.HeadlessException;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.event.ActionEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import javax.imageio.ImageIO;
-import javax.swing.Action;
-import javax.swing.ActionMap;
-import javax.swing.Icon;
-import javax.swing.InputMap;
-import javax.swing.JComponent;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-import javax.swing.JScrollBar;
-import javax.swing.JScrollPane;
-import javax.swing.JToggleButton;
-import javax.swing.JToolBar;
-import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
-import javax.swing.filechooser.FileFilter;
 import org.pepsoft.minecraft.Direction;
+import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
@@ -44,11 +13,23 @@ import org.pepsoft.util.swing.ProgressDialog;
 import org.pepsoft.util.swing.ProgressTask;
 import org.pepsoft.worldpainter.App;
 import org.pepsoft.worldpainter.ColourScheme;
-import static org.pepsoft.worldpainter.Constants.*;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.biomeschemes.AutoBiomeScheme;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.util.BetterAction;
+
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
+import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 
 /**
  *
@@ -252,7 +233,6 @@ public class ThreeDeeFrame extends JFrame implements WindowListener {
         
         @Override
         public void performAction(ActionEvent e) {
-            JFileChooser fileChooser = new JFileChooser();
             final Set<String> extensions = new HashSet<>(Arrays.asList(ImageIO.getReaderFileSuffixes()));
             StringBuilder sb = new StringBuilder("Supported image formats (");
             boolean first = true;
@@ -267,7 +247,8 @@ public class ThreeDeeFrame extends JFrame implements WindowListener {
             }
             sb.append(')');
             final String description = sb.toString();
-            fileChooser.setFileFilter(new FileFilter() {
+            String defaultname = dimension.getWorld().getName().replaceAll("\\s", "").toLowerCase() + ((dimension.getDim() == DIM_NORMAL) ? "" : ("_" + dimension.getName().toLowerCase())) + "_3d.png";
+            File selectedFile = FileUtils.selectFileForOpen(ThreeDeeFrame.this, "Export as image file", new File(defaultname), new FileFilter() {
                 @Override
                 public boolean accept(File f) {
                     if (f.isDirectory()) {
@@ -288,11 +269,7 @@ public class ThreeDeeFrame extends JFrame implements WindowListener {
                     return description;
                 }
             });
-            fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-            String defaultname = dimension.getWorld().getName().replaceAll("\\s", "").toLowerCase() + ((dimension.getDim() == DIM_NORMAL) ? "" : ("_" + dimension.getName().toLowerCase())) + "_3d.png";
-            fileChooser.setSelectedFile(new File(defaultname));
-            if (fileChooser.showSaveDialog(ThreeDeeFrame.this) == JFileChooser.APPROVE_OPTION) {
-                File selectedFile = fileChooser.getSelectedFile();
+            if (selectedFile != null) {
                 final String type;
                 int p = selectedFile.getName().lastIndexOf('.');
                 if (p != -1) {

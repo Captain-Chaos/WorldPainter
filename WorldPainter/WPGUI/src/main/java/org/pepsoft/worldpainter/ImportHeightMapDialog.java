@@ -10,8 +10,24 @@
  */
 package org.pepsoft.worldpainter;
 
-import java.awt.Color;
-import java.awt.Window;
+import org.pepsoft.util.FileUtils;
+import org.pepsoft.util.ProgressReceiver;
+import org.pepsoft.util.ProgressReceiver.OperationCancelled;
+import org.pepsoft.util.swing.ProgressDialog;
+import org.pepsoft.util.swing.ProgressTask;
+import org.pepsoft.worldpainter.heightMaps.HeightMapUtils;
+import org.pepsoft.worldpainter.importing.HeightMapImporter;
+import org.pepsoft.worldpainter.themes.SimpleTheme;
+import org.pepsoft.worldpainter.themes.SimpleThemeEditor;
+import org.pepsoft.worldpainter.themes.Theme;
+
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import javax.swing.JSpinner.NumberEditor;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.filechooser.FileFilter;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.io.File;
@@ -23,26 +39,8 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.imageio.ImageIO;
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
-import javax.swing.JSpinner.NumberEditor;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.filechooser.FileFilter;
-
-import org.pepsoft.util.ProgressReceiver;
-import org.pepsoft.util.ProgressReceiver.OperationCancelled;
-import org.pepsoft.util.swing.ProgressDialog;
-import org.pepsoft.util.swing.ProgressTask;
-import org.pepsoft.worldpainter.heightMaps.HeightMapUtils;
-
-import static org.pepsoft.minecraft.Constants.*;
-import org.pepsoft.worldpainter.importing.HeightMapImporter;
-import org.pepsoft.worldpainter.themes.SimpleTheme;
-import org.pepsoft.worldpainter.themes.SimpleThemeEditor;
-import org.pepsoft.worldpainter.themes.Theme;
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_1;
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
 
 /**
  *
@@ -708,12 +706,9 @@ outer:          for (int x = 0; x < width; x++) {
     }//GEN-LAST:event_spinnerWorldHighStateChanged
 
     private void buttonSelectFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonSelectFileActionPerformed
-        JFileChooser fileChooser = new JFileChooser();
-        Configuration config = Configuration.getInstance();
-        if (heightMapDir != null) {
-            fileChooser.setCurrentDirectory(heightMapDir);
-        } else if (config.getHeightMapsDirectory() != null) {
-            fileChooser.setCurrentDirectory(config.getHeightMapsDirectory());
+        File myHeightMapDir = heightMapDir;
+        if (heightMapDir == null) {
+            myHeightMapDir = Configuration.getInstance().getHeightMapsDirectory();
         }
         final Set<String> extensions = new HashSet<>(Arrays.asList(ImageIO.getReaderFileSuffixes()));
         StringBuilder sb = new StringBuilder("Supported image formats (");
@@ -729,7 +724,7 @@ outer:          for (int x = 0; x < width; x++) {
         }
         sb.append(')');
         final String description = sb.toString();
-        fileChooser.setFileFilter(new FileFilter() {
+        File file = FileUtils.selectFileForOpen(this, "Select a height map image file", myHeightMapDir, new FileFilter() {
             @Override
             public boolean accept(File f) {
                 if (f.isDirectory()) {
@@ -750,9 +745,7 @@ outer:          for (int x = 0; x < width; x++) {
                 return description;
             }
         });
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            File file = fileChooser.getSelectedFile();
+        if (file != null) {
             heightMapDir = file.getParentFile();
             fieldFilename.setText(file.getAbsolutePath());
         }

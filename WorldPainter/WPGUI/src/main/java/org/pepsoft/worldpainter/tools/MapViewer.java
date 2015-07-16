@@ -7,6 +7,7 @@ package org.pepsoft.worldpainter.tools;
 import org.jnbt.CompoundTag;
 import org.jnbt.NBTInputStream;
 import org.pepsoft.minecraft.*;
+import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.swing.TileListener;
 import org.pepsoft.util.swing.TileProvider;
 import org.pepsoft.util.swing.TiledImageViewer;
@@ -32,14 +33,12 @@ import java.util.Map;
  */
 public class MapViewer {
     public static void main(String[] args) throws IOException {
-        JFileChooser fileChooser;
+        File mySavesDir = null;
         File minecraftDir = MinecraftUtil.findMinecraftDir();
         if (minecraftDir != null) {
-            fileChooser = new JFileChooser(new File(minecraftDir, "saves"));
-        } else {
-            fileChooser = new JFileChooser();
+            mySavesDir = new File(minecraftDir, "saves");
         }
-        fileChooser.setFileFilter(new FileFilter() {
+        File levelDatFile = FileUtils.selectFileForOpen(null, "Select Minecraft map level.dat file", mySavesDir, new FileFilter() {
             @Override
             public boolean accept(File f) {
                 return f.isDirectory() || f.getName().equalsIgnoreCase("level.dat");
@@ -50,8 +49,7 @@ public class MapViewer {
                 return "Minecraft levels (level.dat)";
             }
         });
-        if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-            File levelDatFile = fileChooser.getSelectedFile();
+        if (levelDatFile != null) {
             final File worldDir = levelDatFile.getParentFile();
             Level level = Level.load(levelDatFile);
             final int maxHeight = level.getMaxHeight();
