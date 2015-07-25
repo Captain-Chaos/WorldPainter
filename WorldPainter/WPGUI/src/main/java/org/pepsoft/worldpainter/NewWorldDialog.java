@@ -198,6 +198,7 @@ public class NewWorldDialog extends javax.swing.JDialog {
         updatePreview();
         
         setControlStates();
+        updateWalkingTimes();
     }
 
     public boolean isCancelled() {
@@ -642,6 +643,35 @@ public class NewWorldDialog extends javax.swing.JDialog {
         return tileFactory;
     }
 
+    private void updateWalkingTimes() {
+        int width = (Integer) spinnerWidth.getValue();
+        if (checkBoxCircular.isSelected()) {
+            labelWalkingTimes.setText(blocksToWalkingTime(width));
+        } else {
+            int length = (Integer) spinnerLength.getValue();
+            if (width == length) {
+                labelWalkingTimes.setText(blocksToWalkingTime(width));
+            } else {
+                labelWalkingTimes.setText("West to east: " + blocksToWalkingTime(width) + ", north to south: " + blocksToWalkingTime(length));
+            }
+        }
+    }
+    
+    private String blocksToWalkingTime(int blocks) {
+        int mins = (int) (blocks / 256f + 0.5f);
+        if (mins < 60) {
+            return mins + " min.";
+        } else {
+            int hours = mins / 60;
+            mins -= 60 * hours;
+            if (mins == 0) {
+                return hours + "hr.";
+            } else {
+                return hours + "hr., " + mins + " min.";
+            }
+        }
+    }
+
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -691,6 +721,8 @@ public class NewWorldDialog extends javax.swing.JDialog {
         radioButtonCustomSeed = new javax.swing.JRadioButton();
         labelWarning = new javax.swing.JLabel();
         checkBoxExtendedBlockIds = new javax.swing.JCheckBox();
+        jLabel12 = new javax.swing.JLabel();
+        labelWalkingTimes = new javax.swing.JLabel();
         jPanel3 = new javax.swing.JPanel();
         tiledImageViewer1 = new org.pepsoft.util.swing.TiledImageViewer();
         buttonCreate = new javax.swing.JButton();
@@ -699,25 +731,45 @@ public class NewWorldDialog extends javax.swing.JDialog {
         setTitle("Create New World");
 
         buttonCancel.setText("Cancel");
-        buttonCancel.addActionListener(this::buttonCancelActionPerformed);
+        buttonCancel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonCancelActionPerformed(evt);
+            }
+        });
 
         spinnerWaterLevel.setModel(new javax.swing.SpinnerNumberModel(62, 0, 127, 1));
-        spinnerWaterLevel.addChangeListener(this::spinnerWaterLevelStateChanged);
+        spinnerWaterLevel.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerWaterLevelStateChanged(evt);
+            }
+        });
 
         jLabel20.setText("%");
 
         buttonGroup1.add(radioButtonFlat);
         radioButtonFlat.setText("Flat");
-        radioButtonFlat.addActionListener(this::radioButtonFlatActionPerformed);
+        radioButtonFlat.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonFlatActionPerformed(evt);
+            }
+        });
 
         jLabel5.setText("Level:");
 
         comboBoxMaxHeight.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "32", "64", "128", "256", "512", "1024", "2048" }));
         comboBoxMaxHeight.setSelectedIndex(3);
-        comboBoxMaxHeight.addActionListener(this::comboBoxMaxHeightActionPerformed);
+        comboBoxMaxHeight.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboBoxMaxHeightActionPerformed(evt);
+            }
+        });
 
         spinnerLength.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(640), Integer.valueOf(1), null, Integer.valueOf(128)));
-        spinnerLength.addChangeListener(this::spinnerLengthStateChanged);
+        spinnerLength.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerLengthStateChanged(evt);
+            }
+        });
 
         jLabel6.setText("Surface material:");
 
@@ -732,16 +784,28 @@ public class NewWorldDialog extends javax.swing.JDialog {
         });
 
         spinnerRange.setModel(new javax.swing.SpinnerNumberModel(20, 1, 255, 1));
-        spinnerRange.addChangeListener(this::spinnerRangeStateChanged);
+        spinnerRange.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerRangeStateChanged(evt);
+            }
+        });
 
         checkBoxCircular.setText("Circular world");
         checkBoxCircular.setToolTipText("<html>This will create a cirular world. The dimension indicates the diameter of the circle, and<br>\nthe origin (0,0) will be the centre. The Void layer will be used to create the circular edge of the world.</html>");
-        checkBoxCircular.addActionListener(this::checkBoxCircularActionPerformed);
+        checkBoxCircular.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxCircularActionPerformed(evt);
+            }
+        });
 
         jLabel19.setText("Horizontal hill size:");
 
         spinnerTerrainLevel.setModel(new javax.swing.SpinnerNumberModel(58, 1, 127, 1));
-        spinnerTerrainLevel.addChangeListener(this::spinnerTerrainLevelStateChanged);
+        spinnerTerrainLevel.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerTerrainLevelStateChanged(evt);
+            }
+        });
 
         jLabel8.setText("Name:");
 
@@ -750,29 +814,49 @@ public class NewWorldDialog extends javax.swing.JDialog {
         checkBoxBeaches.setSelected(true);
         checkBoxBeaches.setText("Beaches:");
         checkBoxBeaches.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
-        checkBoxBeaches.addActionListener(this::checkBoxBeachesActionPerformed);
+        checkBoxBeaches.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxBeachesActionPerformed(evt);
+            }
+        });
 
         jLabel2.setText("x");
 
         spinnerScale.setModel(new javax.swing.SpinnerNumberModel(100, 1, 999, 1));
-        spinnerScale.addChangeListener(this::spinnerScaleStateChanged);
+        spinnerScale.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerScaleStateChanged(evt);
+            }
+        });
 
         jLabel7.setText("Minecraft seed:");
 
         buttonGroup1.add(radioButtonHilly);
         radioButtonHilly.setSelected(true);
         radioButtonHilly.setText("Hilly");
-        radioButtonHilly.addActionListener(this::radioButtonHillyActionPerformed);
+        radioButtonHilly.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonHillyActionPerformed(evt);
+            }
+        });
 
         jLabel3.setText("blocks (in multiples of 128)");
 
         buttonRandomSeed.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/arrow_rotate_clockwise.png"))); // NOI18N
         buttonRandomSeed.setToolTipText("Choose a random seed");
         buttonRandomSeed.setEnabled(false);
-        buttonRandomSeed.addActionListener(this::buttonRandomSeedActionPerformed);
+        buttonRandomSeed.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonRandomSeedActionPerformed(evt);
+            }
+        });
 
         comboBoxSurfaceMaterial.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "GRASS" }));
-        comboBoxSurfaceMaterial.addActionListener(this::comboBoxSurfaceMaterialActionPerformed);
+        comboBoxSurfaceMaterial.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboBoxSurfaceMaterialActionPerformed(evt);
+            }
+        });
 
         jLabel10.setText("Height:");
 
@@ -784,30 +868,50 @@ public class NewWorldDialog extends javax.swing.JDialog {
 
         checkBoxLava.setText("Lava instead of water:");
         checkBoxLava.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
-        checkBoxLava.addActionListener(this::checkBoxLavaActionPerformed);
+        checkBoxLava.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxLavaActionPerformed(evt);
+            }
+        });
 
         jLabel4.setText("Topography:");
 
         jLabel18.setText("Hill height:");
 
         spinnerWidth.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(640), Integer.valueOf(1), null, Integer.valueOf(128)));
-        spinnerWidth.addChangeListener(this::spinnerWidthStateChanged);
+        spinnerWidth.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerWidthStateChanged(evt);
+            }
+        });
 
         buttonGroup2.add(radioButtonOceanSeed);
         radioButtonOceanSeed.setSelected(true);
         radioButtonOceanSeed.setText("Ocean");
         radioButtonOceanSeed.setToolTipText("A seed with a huge ocean around the origin");
-        radioButtonOceanSeed.addActionListener(this::radioButtonOceanSeedActionPerformed);
+        radioButtonOceanSeed.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonOceanSeedActionPerformed(evt);
+            }
+        });
 
         buttonGroup2.add(radioButtonLandSeed);
         radioButtonLandSeed.setText("Land");
         radioButtonLandSeed.setToolTipText("A seed with a large continent around the origin");
-        radioButtonLandSeed.addActionListener(this::radioButtonLandSeedActionPerformed);
+        radioButtonLandSeed.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonLandSeedActionPerformed(evt);
+            }
+        });
 
         buttonGroup2.add(radioButtonCustomSeed);
         radioButtonCustomSeed.setText(" ");
         radioButtonCustomSeed.setToolTipText("Set your own custom Minecraft seed");
-        radioButtonCustomSeed.addActionListener(this::radioButtonCustomSeedActionPerformed);
+        radioButtonCustomSeed.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonCustomSeedActionPerformed(evt);
+            }
+        });
 
         labelWarning.setFont(labelWarning.getFont().deriveFont(labelWarning.getFont().getStyle() | java.awt.Font.BOLD));
         labelWarning.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/error.png"))); // NOI18N
@@ -817,6 +921,10 @@ public class NewWorldDialog extends javax.swing.JDialog {
         checkBoxExtendedBlockIds.setToolTipText("Wether to support block IDs higher than 255 but lower than 4096, as used by various mods");
         checkBoxExtendedBlockIds.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
 
+        jLabel12.setText("Edge to edge walking time:");
+
+        labelWalkingTimes.setText("...");
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
@@ -824,9 +932,6 @@ public class NewWorldDialog extends javax.swing.JDialog {
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addGap(0, 0, 0)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(checkBoxExtendedBlockIds)
-                        .addGap(0, 0, Short.MAX_VALUE))
                     .addComponent(fieldName)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
                         .addComponent(radioButtonOceanSeed)
@@ -890,7 +995,13 @@ public class NewWorldDialog extends javax.swing.JDialog {
                                 .addComponent(jLabel20))
                             .addComponent(comboBoxSurfaceMaterial, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel6))
-                        .addContainerGap())))
+                        .addContainerGap())
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(labelWalkingTimes)
+                            .addComponent(jLabel12)
+                            .addComponent(checkBoxExtendedBlockIds))
+                        .addGap(0, 0, Short.MAX_VALUE))))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -915,6 +1026,10 @@ public class NewWorldDialog extends javax.swing.JDialog {
                     .addComponent(comboBoxMaxHeight, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel11)
                     .addComponent(labelWarning))
+                .addGap(18, 18, 18)
+                .addComponent(jLabel12)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(labelWalkingTimes)
                 .addGap(18, 18, 18)
                 .addComponent(jLabel4)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -982,7 +1097,11 @@ public class NewWorldDialog extends javax.swing.JDialog {
         );
 
         buttonCreate.setText("Create");
-        buttonCreate.addActionListener(this::buttonCreateActionPerformed);
+        buttonCreate.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonCreateActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -1120,6 +1239,7 @@ public class NewWorldDialog extends javax.swing.JDialog {
                 spinnerWidth.setValue(value + 1);
             }
         }
+        updateWalkingTimes();
     }//GEN-LAST:event_spinnerWidthStateChanged
 
     private void spinnerLengthStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerLengthStateChanged
@@ -1135,6 +1255,7 @@ public class NewWorldDialog extends javax.swing.JDialog {
                 spinnerLength.setValue(value + 1);
             }
         }
+        updateWalkingTimes();
     }//GEN-LAST:event_spinnerLengthStateChanged
 
     private void checkBoxCircularActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxCircularActionPerformed
@@ -1147,6 +1268,7 @@ public class NewWorldDialog extends javax.swing.JDialog {
             jLabel3.setText("blocks (in multiples of 128)");
         }
         setControlStates();
+        updateWalkingTimes();
     }//GEN-LAST:event_checkBoxCircularActionPerformed
 
     private void buttonRandomSeedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonRandomSeedActionPerformed
@@ -1226,6 +1348,7 @@ public class NewWorldDialog extends javax.swing.JDialog {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
+    private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel17;
     private javax.swing.JLabel jLabel18;
     private javax.swing.JLabel jLabel19;
@@ -1240,6 +1363,7 @@ public class NewWorldDialog extends javax.swing.JDialog {
     private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
+    private javax.swing.JLabel labelWalkingTimes;
     private javax.swing.JLabel labelWarning;
     private javax.swing.JRadioButton radioButtonCustomSeed;
     private javax.swing.JRadioButton radioButtonFlat;

@@ -84,10 +84,6 @@
               <Group type="102" alignment="0" attributes="0">
                   <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
-                      <Group type="102" attributes="0">
-                          <Component id="checkBoxExtendedBlockIds" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
-                      </Group>
                       <Component id="fieldName" alignment="0" max="32767" attributes="0"/>
                       <Group type="102" alignment="1" attributes="0">
                           <Component id="radioButtonOceanSeed" min="-2" max="-2" attributes="0"/>
@@ -161,6 +157,14 @@
                           </Group>
                           <EmptySpace max="32767" attributes="0"/>
                       </Group>
+                      <Group type="102" attributes="0">
+                          <Group type="103" groupAlignment="0" attributes="0">
+                              <Component id="labelWalkingTimes" min="-2" max="-2" attributes="0"/>
+                              <Component id="jLabel12" min="-2" max="-2" attributes="0"/>
+                              <Component id="checkBoxExtendedBlockIds" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                          <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                      </Group>
                   </Group>
               </Group>
           </Group>
@@ -190,7 +194,11 @@
                       <Component id="jLabel11" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="labelWarning" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <EmptySpace type="separate" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace type="separate" max="-2" attributes="0"/>
+                  <Component id="jLabel12" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="labelWalkingTimes" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace type="separate" max="-2" attributes="0"/>
                   <Component id="jLabel4" min="-2" max="-2" attributes="0"/>
                   <EmptySpace min="-2" max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
@@ -537,6 +545,16 @@
             <Property name="text" type="java.lang.String" value="Extended block IDs:"/>
             <Property name="toolTipText" type="java.lang.String" value="Wether to support block IDs higher than 255 but lower than 4096, as used by various mods"/>
             <Property name="horizontalTextPosition" type="int" value="10"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JLabel" name="jLabel12">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Edge to edge walking time:"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JLabel" name="labelWalkingTimes">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="..."/>
           </Properties>
         </Component>
       </SubComponents>
