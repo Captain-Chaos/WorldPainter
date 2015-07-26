@@ -28,7 +28,7 @@ public class Bo2BlockSpec implements Serializable {
     }
 
     public int[] getBranch() {
-        return branch.clone();
+        return (branch != null) ? branch.clone() : null;
     }
 
     public Material getMaterial() {
