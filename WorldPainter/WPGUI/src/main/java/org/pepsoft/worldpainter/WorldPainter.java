@@ -747,11 +747,14 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         if (overlayTransparency == 1.0f) {
             // Fully transparent
             return;
-        } else if (overlayTransparency > 0.0f) {
-            // Transparent
-            Composite savedComposite = g2.getComposite();
+        } else {
+            // Translucent or fully opaque
+            Composite savedComposite = (overlayTransparency > 0.0f) ? g2.getComposite() : null;
             try {
-                g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f - overlayTransparency));
+                if (overlayTransparency > 0.0f) {
+                    // Translucent
+                    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f - overlayTransparency));
+                }
                 if (overlayScale == 1.0f) {
                     // 1:1 scale
                     g2.drawImage(overlay, overlayOffsetX, overlayOffsetY, null);
@@ -769,24 +772,9 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
                     }
                 }
             } finally {
-                g2.setComposite(savedComposite);
-            }
-        } else {
-            // Fully opaque
-            if (overlayScale == 1.0f) {
-                // 1:1 scale
-                g2.drawImage(overlay, overlayOffsetX, overlayOffsetY, null);
-            } else {
-                int width = Math.round(overlay.getWidth() * overlayScale);
-                int height = Math.round(overlay.getHeight() * overlayScale);
-                Object savedInterpolation = g2.getRenderingHint(RenderingHints.KEY_INTERPOLATION);
-                try {
-                    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-                    g2.drawImage(overlay, overlayOffsetX, overlayOffsetY, width, height, null);
-                } finally {
-                    if (savedInterpolation != null) {
-                        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, savedInterpolation);
-                    }
+                if (overlayTransparency > 0.0f) {
+                    // Translucent
+                    g2.setComposite(savedComposite);
                 }
             }
         }
