@@ -628,8 +628,11 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     
     @Override
     protected void paintComponent(Graphics g) {
+        // Paint the tiles, grid and markers:
         super.paintComponent(g);
+
         if (dimension != null) {
+            // Paint anything else:
             final Graphics2D g2 = (Graphics2D) g;
             final Color savedColour = g2.getColor();
             final Object savedAAValue = g2.getRenderingHint(RenderingHints.KEY_ANTIALIASING);

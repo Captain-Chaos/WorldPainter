@@ -603,11 +603,13 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
     protected final float transformGraphics(Graphics2D g2) {
         g2.translate(getWidth() / 2, getHeight() / 2);
         g2.translate(-viewX, -viewY);
-        float scale = (float) Math.pow(2.0, zoom);
         if (zoom != 0) {
+            float scale = (float) Math.pow(2.0, zoom);
             g2.scale(scale, scale);
+            return scale;
+        } else {
+            return 1.0f;
         }
-        return scale;
     }
 
     protected final void paintMarkerIfApplicable(Graphics g2) {
@@ -628,37 +630,55 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         if (! paintGrid) {
             return;
         }
+
+        // Save the current graphics canvas configuration
         final Color savedColour = g2.getColor();
         final Stroke savedStroke = g2.getStroke();
         final Font savedFont = g2.getFont();
         final Object savedTextAAHint = g2.getRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING);
+
         try {
+            // Determine which grid lines to draw, in world coordinates
             final Rectangle clipInWorld = viewToWorld(g2.getClipBounds());
             final int x1 = ((clipInWorld.x / gridSize) - 1) * gridSize;
             final int x2 = ((clipInWorld.x + clipInWorld.width) / gridSize + 1) * gridSize;
             final int y1 = ((clipInWorld.y / gridSize) - 1) * gridSize;
             final int y2 = ((clipInWorld.y + clipInWorld.height) / gridSize + 1) * gridSize;
             g2.setColor(Color.BLACK);
+
+            // Determine the exclusion zone for preventing labels from being
+            // obscured by grid lines or other labels
             final Rectangle2D fontBounds = BOLD_FONT.getStringBounds("-00000", g2.getFontRenderContext());
             final int fontHeight = (int) (fontBounds.getHeight() + 0.5), fontWidth = (int) (fontBounds.getWidth() + 0.5);
             final int leftClear = fontWidth + 4, topClear = fontHeight + 6;
+
+            // Create and install strokes and fonts
             final Stroke normalStroke = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, new float[]{2f, 2f}, 0.0f);
             final Stroke regionBorderStroke = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, new float[]{6f, 2f}, 0.0f);
+
             final boolean drawRegionBorders = (gridSize <= 512) && (gridSize & (gridSize - 1)) == 0; // Power of two
             final int width = getWidth(), height = getHeight();
             int xLabelSkip = gridSize, yLabelSkip = gridSize;
             final float scale = (float) Math.pow(2.0, getZoom());
+
+            // Determine per how many grid lines minimum a label can be draw
+            // so that they don't obscure one another, for the horizontal and
+            // vertical direction
             while ((xLabelSkip * scale) < fontWidth) {
                 xLabelSkip += gridSize;
             }
             while ((yLabelSkip * scale) < fontHeight) {
                 yLabelSkip += gridSize;
             }
+
+            // Initial setup of the graphics canvas
             g2.setStroke(normalStroke);
             g2.setFont(NORMAL_FONT);
             boolean normalFontInstalled = true;
             g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_GASP);
             boolean normalStrokeInstalled = true;
+
+            // Draw the vertical grid lines and corresponding labels
             for (int x = x1; x <= x2; x += gridSize) {
                 if ((x == 0) || (drawRegionBorders && ((x % 512) == 0))) {
                     g2.setStroke(regionBorderStroke);
@@ -684,6 +704,8 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                     g2.drawLine(lineStartInView.x, topClear, lineStartInView.x, height);
                 }
             }
+
+            // Draw the horizontal grid lines and corresponding labels
             for (int y = y1; y <= y2; y += gridSize) {
                 if ((y == 0) || (drawRegionBorders && ((y % 512) == 0))) {
                     g2.setStroke(regionBorderStroke);
@@ -710,6 +732,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                 }
             }
         } finally {
+            // Restore the original graphics canvas configuration
             g2.setColor(savedColour);
             g2.setStroke(savedStroke);
             g2.setFont(savedFont);
