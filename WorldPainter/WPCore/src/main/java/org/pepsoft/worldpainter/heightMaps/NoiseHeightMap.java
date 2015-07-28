@@ -9,6 +9,8 @@ import java.util.Random;
 import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.HeightMap;
+import org.pepsoft.worldpainter.NoiseSettings;
+
 import static org.pepsoft.worldpainter.Constants.*;
 
 /**
@@ -16,6 +18,22 @@ import static org.pepsoft.worldpainter.Constants.*;
  * @author pepijn
  */
 public final class NoiseHeightMap implements HeightMap {
+    public NoiseHeightMap(NoiseSettings noiseSettings) {
+        this(null, noiseSettings.getRange() * 2, noiseSettings.getScale() / 5, noiseSettings.getRoughness() + 1, new Random().nextLong());
+    }
+
+    public NoiseHeightMap(NoiseSettings noiseSettings, long seedOffset) {
+        this(null, noiseSettings.getRange() * 2, noiseSettings.getScale() / 5, noiseSettings.getRoughness() + 1, seedOffset);
+    }
+
+    public NoiseHeightMap(String name, NoiseSettings noiseSettings) {
+        this(name, noiseSettings.getRange() * 2, noiseSettings.getScale() / 5, noiseSettings.getRoughness() + 1, new Random().nextLong());
+    }
+
+    public NoiseHeightMap(String name, NoiseSettings noiseSettings, long seedOffset) {
+        this(name, noiseSettings.getRange() * 2, noiseSettings.getScale() / 5, noiseSettings.getRoughness() + 1, seedOffset);
+    }
+
     public NoiseHeightMap(float range, double scale, int octaves) {
         this(null, range, scale, octaves, new Random().nextLong());
     }

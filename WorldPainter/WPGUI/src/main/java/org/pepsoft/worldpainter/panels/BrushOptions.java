@@ -254,44 +254,37 @@ public class BrushOptions extends javax.swing.JPanel {
         popupMenu.add(terrainMenu);
         
         JMenu layerMenu = new JMenu("Layer");
-        for (Layer layer: LayerManager.getInstance().getLayers()) {
-            if (layer.equals(Biome.INSTANCE)) {
-                continue;
-            }
-            final Layer selectedLayer = layer;
-            final String name = layer.getName();
-            final Icon icon = new ImageIcon(layer.getIcon());
-            JMenuItem menuItem = new JMenuItem(name, icon);
-            menuItem.addActionListener(e -> listener.objectSelected(selectedLayer, name, icon));
-            layerMenu.add(menuItem);
-        }
+        LayerManager.getInstance().getLayers().stream()
+            .filter(l -> !l.equals(Biome.INSTANCE))
+            .forEach(l -> {
+                JMenuItem menuItem = new JMenuItem(l.getName(), new ImageIcon(l.getIcon()));
+                menuItem.addActionListener(e -> listener.objectSelected(l, l.getName(), new ImageIcon(l.getIcon())));
+                layerMenu.add(menuItem);
+            });
         Set<CustomLayer> customLayers = app.getCustomLayers();
         if (customLayers.size() > 15) {
-            // If there are ten or more custom layers, split them by palette and
-            // move them to separate submenus to try and conserve screen space
-            Map<String, Collection<CustomLayer>> layersByPalette = app.getCustomLayersByPalette();
-            for (Map.Entry<String, Collection<CustomLayer>> entry: layersByPalette.entrySet()) {
-                String palette = entry.getKey();
-                JMenu paletteMenu = new JMenu(palette != null ? palette : "Hidden Layers");
-                for (CustomLayer layer: entry.getValue()) {
-                    final Layer selectedLayer = layer;
-                    final String name = layer.getName();
-                    final Icon icon = new ImageIcon(layer.getIcon());
-                    JMenuItem menuItem = new JMenuItem(name, icon);
-                    menuItem.addActionListener(e -> listener.objectSelected(selectedLayer, name, icon));
-                    paletteMenu.add(menuItem);
-                }
-                layerMenu.add(paletteMenu);
-            }
+            // If there are fifteen or more custom layers, split them by palette
+            // and move them to separate submenus to try and conserve screen
+            // space
+            app.getCustomLayersByPalette().entrySet().stream()
+                .map((entry) -> {
+                    String palette = entry.getKey();
+                    JMenu paletteMenu = new JMenu(palette != null ? palette : "Hidden Layers");
+                    entry.getValue().forEach(l -> {
+                        JMenuItem menuItem = new JMenuItem(l.getName(), new ImageIcon(l.getIcon()));
+                        menuItem.addActionListener(e -> listener.objectSelected(l, l.getName(), new ImageIcon(l.getIcon())));
+                        paletteMenu.add(menuItem);
+                    });
+                    return paletteMenu;
+                }).forEach((paletteMenu) -> {
+                    layerMenu.add(paletteMenu);
+                });
         } else {
-            for (CustomLayer layer: customLayers) {
-                final Layer selectedLayer = layer;
-                final String name = layer.getName();
-                final Icon icon = new ImageIcon(layer.getIcon());
-                JMenuItem menuItem = new JMenuItem(name, icon);
-                menuItem.addActionListener(e -> listener.objectSelected(selectedLayer, name, icon));
+            customLayers.forEach(l -> {
+                JMenuItem menuItem = new JMenuItem(l.getName(), new ImageIcon(l.getIcon()));
+                menuItem.addActionListener(e -> listener.objectSelected(l, l.getName(), new ImageIcon(l.getIcon())));
                 layerMenu.add(menuItem);
-            }
+            });
         }
         popupMenu.add(layerMenu);
         

@@ -454,7 +454,7 @@ public class MixedMaterial implements Serializable, Comparable<MixedMaterial> {
                 }
                 materials = tmpMaterials.toArray(new Material[tmpMaterials.size()]);
                 if (variation != null) {
-                    layerNoiseheightMap = new NoiseHeightMap(variation.getRange() * 2, variation.getScale() / 5, variation.getRoughness() + 1, NOISE_SEED_OFFSET);
+                    layerNoiseheightMap = new NoiseHeightMap(variation, NOISE_SEED_OFFSET);
                     layerNoiseOffset = variation.getRange();
                 } else {
                     layerNoiseheightMap = null;

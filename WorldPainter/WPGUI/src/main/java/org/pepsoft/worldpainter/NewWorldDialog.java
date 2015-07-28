@@ -648,11 +648,13 @@ public class NewWorldDialog extends javax.swing.JDialog {
         if (checkBoxCircular.isSelected()) {
             labelWalkingTimes.setText(blocksToWalkingTime(width));
         } else {
+            String westEastTime = blocksToWalkingTime(width);
             int length = (Integer) spinnerLength.getValue();
-            if (width == length) {
-                labelWalkingTimes.setText(blocksToWalkingTime(width));
+            String northSouthTime = blocksToWalkingTime(length);
+            if (westEastTime.equals(northSouthTime)) {
+                labelWalkingTimes.setText(westEastTime);
             } else {
-                labelWalkingTimes.setText("West to east: " + blocksToWalkingTime(width) + ", north to south: " + blocksToWalkingTime(length));
+                labelWalkingTimes.setText("West to east: " + westEastTime + ", north to south: " + northSouthTime);
             }
         }
     }

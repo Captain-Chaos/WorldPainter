@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.Map;
+import org.pepsoft.minecraft.Constants;
 import org.pepsoft.worldpainter.MixedMaterial;
 import org.pepsoft.worldpainter.NoiseSettings;
 import org.pepsoft.worldpainter.exporting.LayerExporter;
@@ -237,7 +238,7 @@ public class TunnelLayer extends CustomLayer {
     
     public enum Mode {FIXED_HEIGHT, CONSTANT_DEPTH, INVERTED_DEPTH}
     
-    public static class LayerSettings implements Serializable {
+    public static class LayerSettings implements Serializable, Cloneable {
         public int getIntensity() {
             return intensity;
         }
@@ -270,10 +271,23 @@ public class TunnelLayer extends CustomLayer {
             this.maxLevel = maxLevel;
         }
         
+        @Override
+        public LayerSettings clone() {
+            try {
+                LayerSettings clone = (LayerSettings) super.clone();
+                if (variation != null) {
+                    clone.variation = variation.clone();
+                }
+                return clone;
+            } catch (CloneNotSupportedException e) {
+                throw new InternalError();
+            }
+        }
+        
         /**
          * The base intensity with which the layer will be applied.
          */
-        private int intensity;
+        private int intensity = 50;
         
         /**
          * The random variation which will be applied to the layer intensity.
@@ -283,7 +297,7 @@ public class TunnelLayer extends CustomLayer {
         /**
          * The minimum and maximum heights at which the layer should be applied.
          */
-        private int minLevel = 0, maxLevel = Integer.MAX_VALUE;
+        private int minLevel = 0, maxLevel = Constants.DEFAULT_MAX_HEIGHT_2 - 1;
         
         private static final long serialVersionUID = 1L;
     }

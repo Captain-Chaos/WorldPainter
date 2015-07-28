@@ -17,12 +17,27 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import org.pepsoft.worldpainter.App;
+import org.pepsoft.worldpainter.exporting.IncidentalLayerExporter;
+import org.pepsoft.worldpainter.layers.Bo2Layer;
+import org.pepsoft.worldpainter.layers.CustomLayer;
+import org.pepsoft.worldpainter.layers.EditLayerDialog;
+import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.layers.LayerManager;
+import org.pepsoft.worldpainter.layers.LayerTableCellRenderer;
+import org.pepsoft.worldpainter.layers.groundcover.GroundCoverLayer;
+import org.pepsoft.worldpainter.layers.plants.PlantLayer;
 
 /**
  *
  * @author SchmitzP
  */
-public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements ChangeListener {
+public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements ChangeListener, ListSelectionListener {
     public TunnelLayerDialog(Window parent, TunnelLayer layer, boolean extendedBlockIds, ColourScheme colourScheme, int maxHeight, int baseHeight, int waterLevel) {
         super(parent);
         this.layer = layer;
@@ -31,6 +46,7 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
         this.maxHeight = maxHeight;
         
         initComponents();
+        tableFloorLayers.getSelectionModel().addListSelectionListener(this);
         mixedMaterialSelectorFloor.setExtendedBlockIds(extendedBlockIds);
         mixedMaterialSelectorFloor.setColourScheme(colourScheme);
         mixedMaterialSelectorRoof.setExtendedBlockIds(extendedBlockIds);
@@ -45,8 +61,6 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
         ((SpinnerNumberModel) spinnerRoofMin.getModel()).setMaximum(maxHeight - 1);
         ((SpinnerNumberModel) spinnerRoofMax.getModel()).setMaximum(maxHeight - 1);
         ((SpinnerNumberModel) spinnerFloodLevel.getModel()).setMaximum(maxHeight - 1);
-        // Disable the tunnel floor layers tab for now
-        jTabbedPane1.setEnabledAt(1, false);
         
         loadSettings();
         
@@ -65,6 +79,13 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
         return layer;
     }
 
+    // ListSelectionListener
+
+    @Override
+    public void valueChanged(ListSelectionEvent e) {
+        setControlStates();
+    }
+    
     // ChangeListener
     
     @Override
@@ -102,55 +123,66 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
     }
     
     private void loadSettings() {
-        spinnerFloorLevel.setValue(layer.getFloorLevel());
-        spinnerFloorMin.setValue(layer.getFloorMin());
-        spinnerFloorMax.setValue(Math.min(layer.getFloorMax(), maxHeight - 1));
-        mixedMaterialSelectorFloor.setMaterial(layer.getFloorMaterial());
-        switch (layer.getFloorMode()) {
-            case CONSTANT_DEPTH:
-                radioButtonFloorFixedDepth.setSelected(true);
-                break;
-            case FIXED_HEIGHT:
-                radioButtonFloorFixedLevel.setSelected(true);
-                break;
-            case INVERTED_DEPTH:
-                radioButtonFloorInverse.setSelected(true);
-                break;
+        programmaticChange = true;
+        try {
+            spinnerFloorLevel.setValue(layer.getFloorLevel());
+            spinnerFloorMin.setValue(layer.getFloorMin());
+            spinnerFloorMax.setValue(Math.min(layer.getFloorMax(), maxHeight - 1));
+            mixedMaterialSelectorFloor.setMaterial(layer.getFloorMaterial());
+            switch (layer.getFloorMode()) {
+                case CONSTANT_DEPTH:
+                    radioButtonFloorFixedDepth.setSelected(true);
+                    break;
+                case FIXED_HEIGHT:
+                    radioButtonFloorFixedLevel.setSelected(true);
+                    break;
+                case INVERTED_DEPTH:
+                    radioButtonFloorInverse.setSelected(true);
+                    break;
+            }
+            NoiseSettings floorNoise = layer.getFloorNoise();
+            if (floorNoise == null) {
+                floorNoise = new NoiseSettings();
+            }
+            noiseSettingsEditorFloor.setNoiseSettings(floorNoise);
+            spinnerRoofLevel.setValue(layer.getRoofLevel());
+            spinnerRoofMin.setValue(layer.getRoofMin());
+            spinnerRoofMax.setValue(Math.min(layer.getRoofMax(), maxHeight - 1));
+            mixedMaterialSelectorRoof.setMaterial(layer.getRoofMaterial());
+            switch (layer.getRoofMode()) {
+                case CONSTANT_DEPTH:
+                    radioButtonRoofFixedDepth.setSelected(true);
+                    break;
+                case FIXED_HEIGHT:
+                    radioButtonRoofFixedLevel.setSelected(true);
+                    break;
+                case INVERTED_DEPTH:
+                    radioButtonRoofInverse.setSelected(true);
+                    break;
+            }
+            NoiseSettings roofNoise = layer.getRoofNoise();
+            if (roofNoise == null) {
+                roofNoise = new NoiseSettings();
+            }
+            noiseSettingsEditorRoof.setNoiseSettings(roofNoise);
+            spinnerWallFloorDepth.setValue(layer.getFloorWallDepth());
+            spinnerWallRoofDepth.setValue(layer.getRoofWallDepth());
+            mixedMaterialSelectorWall.setMaterial(layer.getWallMaterial());
+            textFieldName.setText(layer.getName());
+            colourEditor1.setColour(layer.getColour());
+            checkBoxRemoveWater.setSelected(layer.isRemoveWater());
+            checkBoxFlood.setSelected(layer.getFloodLevel() > 0);
+            spinnerFloodLevel.setValue((layer.getFloodLevel() > 0) ? layer.getFloodLevel() : waterLevel);
+            checkBoxFloodWithLava.setSelected(layer.isFloodWithLava());
+
+            Map<Layer, TunnelLayer.LayerSettings> floorLayers = layer.getFloorLayers();
+            floorLayersTableModel = new TunnelFloorLayersTableModel(floorLayers, maxHeight);
+            tableFloorLayers.setModel(floorLayersTableModel);
+            tableFloorLayers.getColumnModel().getColumn(TunnelFloorLayersTableModel.COLUMN_NAME).setCellRenderer(new LayerTableCellRenderer());
+        } finally {
+            programmaticChange = false;
         }
-        NoiseSettings floorNoise = layer.getFloorNoise();
-        if (floorNoise == null) {
-            floorNoise = new NoiseSettings();
-        }
-        noiseSettingsEditorFloor.setNoiseSettings(floorNoise);
-        spinnerRoofLevel.setValue(layer.getRoofLevel());
-        spinnerRoofMin.setValue(layer.getRoofMin());
-        spinnerRoofMax.setValue(Math.min(layer.getRoofMax(), maxHeight - 1));
-        mixedMaterialSelectorRoof.setMaterial(layer.getRoofMaterial());
-        switch (layer.getRoofMode()) {
-            case CONSTANT_DEPTH:
-                radioButtonRoofFixedDepth.setSelected(true);
-                break;
-            case FIXED_HEIGHT:
-                radioButtonRoofFixedLevel.setSelected(true);
-                break;
-            case INVERTED_DEPTH:
-                radioButtonRoofInverse.setSelected(true);
-                break;
-        }
-        NoiseSettings roofNoise = layer.getRoofNoise();
-        if (roofNoise == null) {
-            roofNoise = new NoiseSettings();
-        }
-        noiseSettingsEditorRoof.setNoiseSettings(roofNoise);
-        spinnerWallFloorDepth.setValue(layer.getFloorWallDepth());
-        spinnerWallRoofDepth.setValue(layer.getRoofWallDepth());
-        mixedMaterialSelectorWall.setMaterial(layer.getWallMaterial());
-        textFieldName.setText(layer.getName());
-        colourEditor1.setColour(layer.getColour());
-        checkBoxRemoveWater.setSelected(layer.isRemoveWater());
-        checkBoxFlood.setSelected(layer.getFloodLevel() > 0);
-        spinnerFloodLevel.setValue((layer.getFloodLevel() > 0) ? layer.getFloodLevel() : waterLevel);
-        checkBoxFloodWithLava.setSelected(layer.isFloodWithLava());
+        
         setControlStates();
     }
 
@@ -212,6 +244,9 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
         layer.setRemoveWater(checkBoxRemoveWater.isSelected());
         layer.setFloodLevel(checkBoxFlood.isSelected() ? (Integer) spinnerFloodLevel.getValue() : 0);
         layer.setFloodWithLava(checkBoxFloodWithLava.isSelected());
+        
+        Map<Layer, TunnelLayer.LayerSettings> floorLayers = floorLayersTableModel.getLayers();
+        layer.setFloorLayers(((floorLayers != null) && (! floorLayers.isEmpty())) ? floorLayers : null);
     }
     
     private void setControlStates() {
@@ -221,22 +256,118 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
         spinnerRoofMax.setEnabled(! radioButtonRoofFixedLevel.isSelected());
         spinnerFloodLevel.setEnabled(checkBoxFlood.isSelected());
         checkBoxFloodWithLava.setEnabled(checkBoxFlood.isSelected());
+        
+        int selectedFloorRow = tableFloorLayers.getSelectedRow();
+        if (selectedFloorRow != -1) {
+            buttonRemoveFloorLayer.setEnabled(tableFloorLayers.getSelectedRowCount() > 0);
+            Layer selectedLayer = floorLayersTableModel.getLayer(selectedFloorRow);
+            buttonEditFloorLayer.setEnabled(selectedLayer instanceof CustomLayer);
+        } else {
+            buttonRemoveFloorLayer.setEnabled(false);
+            buttonEditFloorLayer.setEnabled(false);
+        }
     }
 
     private void removeFloorLayer() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        int selectedRow = tableFloorLayers.getSelectedRow();
+        if (selectedRow != -1) {
+            floorLayersTableModel.removeLayer(selectedRow);
+        }
     }
 
     private void editFloorLayer() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        int selectedRow = tableFloorLayers.getSelectedRow();
+        if (selectedRow != -1) {
+            Layer layer = floorLayersTableModel.getLayer(selectedRow);
+            if (layer instanceof CustomLayer) {
+                EditLayerDialog<Layer> dialog = new EditLayerDialog<>(this, layer);
+                dialog.setVisible(true);
+                if (! dialog.isCancelled()) {
+                    floorLayersTableModel.layerChanged(selectedRow);
+                }
+            }
+        }
     }
 
     private void addFloorLayer() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        JPopupMenu popupMenu = new JPopupMenu();
+        LayerManager.getInstance().getLayers().stream()
+            .filter(l -> l.getExporter() instanceof IncidentalLayerExporter)
+            .forEach(l -> {
+                JMenuItem menuItem = new JMenuItem(l.getName(), new ImageIcon(l.getIcon()));
+                menuItem.addActionListener(e -> floorLayersTableModel.addLayer(l));
+                popupMenu.add(menuItem);
+            });
+        App app = App.getInstance();
+        Set<CustomLayer> customLayers = app.getCustomLayers().stream()
+            .filter(l -> l.getExporter() instanceof IncidentalLayerExporter)
+            .collect(Collectors.toSet());
+        if (customLayers.size() > 15) {
+            // If there are fifteen or more custom layers, split them by palette
+            // and move them to separate submenus to try and conserve screen
+            // space
+            app.getCustomLayersByPalette().entrySet().stream()
+                .map((entry) -> {
+                    String palette = entry.getKey();
+                    JMenu paletteMenu = new JMenu(palette != null ? palette : "Hidden Layers");
+                    entry.getValue().stream()
+                        .filter(l -> l.getExporter() instanceof IncidentalLayerExporter)
+                        .forEach(l -> {
+                            JMenuItem menuItem = new JMenuItem(l.getName(), new ImageIcon(l.getIcon()));
+                            menuItem.addActionListener(e -> floorLayersTableModel.addLayer(l));
+                            paletteMenu.add(menuItem);
+                        });
+                    return paletteMenu;
+                }).filter((paletteMenu) -> (paletteMenu.getItemCount() > 0))
+                .forEach((paletteMenu) -> {
+                    popupMenu.add(paletteMenu);
+                });
+        } else {
+            customLayers.forEach(l -> {
+                JMenuItem menuItem = new JMenuItem(l.getName(), new ImageIcon(l.getIcon()));
+                menuItem.addActionListener(e -> floorLayersTableModel.addLayer(l));
+                popupMenu.add(menuItem);
+            });
+        }
+        popupMenu.show(buttonAddFloorLayer, buttonAddFloorLayer.getWidth(), 0);
     }
 
     private void newFloorLayer() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        JPopupMenu popupMenu = new JPopupMenu();
+        JMenuItem item = new JMenuItem("Custom Objects Layer");
+        item.addActionListener(e -> {
+            EditLayerDialog<Bo2Layer> dialog = new EditLayerDialog(TunnelLayerDialog.this, Bo2Layer.class);
+            dialog.setVisible(true);
+            if (! dialog.isCancelled()) {
+                Bo2Layer newLayer = dialog.getLayer();
+                newLayer.setHide(true);
+                floorLayersTableModel.addLayer(newLayer);
+            }
+        });
+        popupMenu.add(item);
+        item = new JMenuItem("Custom Ground Cover Layer");
+        item.addActionListener(e -> {
+            EditLayerDialog<GroundCoverLayer> dialog = new EditLayerDialog(TunnelLayerDialog.this, GroundCoverLayer.class);
+            dialog.setVisible(true);
+            if (! dialog.isCancelled()) {
+                GroundCoverLayer newLayer = dialog.getLayer();
+                newLayer.setHide(true);
+                floorLayersTableModel.addLayer(newLayer);
+            }
+        });
+        popupMenu.add(item);
+        item = new JMenuItem("Custom Plants Layer");
+        item.addActionListener(e -> {
+            EditLayerDialog<PlantLayer> dialog = new EditLayerDialog(TunnelLayerDialog.this, PlantLayer.class);
+            dialog.setVisible(true);
+            if (! dialog.isCancelled()) {
+                PlantLayer newLayer = dialog.getLayer();
+                newLayer.setHide(true);
+                floorLayersTableModel.addLayer(newLayer);
+            }
+        });
+        popupMenu.add(item);
+        popupMenu.show(buttonNewFloorLayer, buttonNewFloorLayer.getWidth(), 0);
     }
     
     /**
@@ -315,13 +446,25 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
         setTitle("Configure Cave/Tunnel Layer");
 
         buttonCancel.setText("Cancel");
-        buttonCancel.addActionListener(this::buttonCancelActionPerformed);
+        buttonCancel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonCancelActionPerformed(evt);
+            }
+        });
 
         buttonOK.setText("OK");
-        buttonOK.addActionListener(this::buttonOKActionPerformed);
+        buttonOK.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonOKActionPerformed(evt);
+            }
+        });
 
         buttonReset.setText("Reset");
-        buttonReset.addActionListener(this::buttonResetActionPerformed);
+        buttonReset.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonResetActionPerformed(evt);
+            }
+        });
 
         jLabel1.setText("Create underground tunnels and caves with the following properties:");
 
@@ -334,10 +477,18 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
 
         buttonGroup1.add(radioButtonFloorFixedLevel);
         radioButtonFloorFixedLevel.setText("fixed level");
-        radioButtonFloorFixedLevel.addActionListener(this::radioButtonFloorFixedLevelActionPerformed);
+        radioButtonFloorFixedLevel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonFloorFixedLevelActionPerformed(evt);
+            }
+        });
 
         spinnerRoofLevel.setModel(new javax.swing.SpinnerNumberModel(0, 0, 255, 1));
-        spinnerRoofLevel.addChangeListener(this::spinnerRoofLevelStateChanged);
+        spinnerRoofLevel.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerRoofLevelStateChanged(evt);
+            }
+        });
 
         jLabel12.setText("Walls:");
 
@@ -346,23 +497,39 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
         jLabel9.setText("Variation:");
 
         spinnerFloorLevel.setModel(new javax.swing.SpinnerNumberModel(0, 0, 255, 1));
-        spinnerFloorLevel.addChangeListener(this::spinnerFloorLevelStateChanged);
+        spinnerFloorLevel.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerFloorLevelStateChanged(evt);
+            }
+        });
 
         jLabel20.setText("Options:");
 
         buttonGroup3.add(radioButtonRoofFixedDepth);
         radioButtonRoofFixedDepth.setText("fixed depth");
-        radioButtonRoofFixedDepth.addActionListener(this::radioButtonRoofFixedDepthActionPerformed);
+        radioButtonRoofFixedDepth.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonRoofFixedDepthActionPerformed(evt);
+            }
+        });
 
         spinnerFloorMin.setModel(new javax.swing.SpinnerNumberModel(0, 0, 255, 1));
         spinnerFloorMin.setEnabled(false);
-        spinnerFloorMin.addChangeListener(this::spinnerFloorMinStateChanged);
+        spinnerFloorMin.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerFloorMinStateChanged(evt);
+            }
+        });
 
         jLabel17.setText(", max:");
 
         spinnerRoofMin.setModel(new javax.swing.SpinnerNumberModel(0, 0, 255, 1));
         spinnerRoofMin.setEnabled(false);
-        spinnerRoofMin.addChangeListener(this::spinnerRoofMinStateChanged);
+        spinnerRoofMin.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerRoofMinStateChanged(evt);
+            }
+        });
 
         jLabel18.setText("Absolute min:");
 
@@ -370,22 +537,38 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
 
         spinnerFloodLevel.setModel(new javax.swing.SpinnerNumberModel(1, 1, 255, 1));
         spinnerFloodLevel.setEnabled(false);
-        spinnerFloodLevel.addChangeListener(this::spinnerFloodLevelStateChanged);
+        spinnerFloodLevel.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerFloodLevelStateChanged(evt);
+            }
+        });
 
         buttonGroup1.add(radioButtonFloorFixedDepth);
         radioButtonFloorFixedDepth.setText("fixed depth");
-        radioButtonFloorFixedDepth.addActionListener(this::radioButtonFloorFixedDepthActionPerformed);
+        radioButtonFloorFixedDepth.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonFloorFixedDepthActionPerformed(evt);
+            }
+        });
 
         jLabel14.setText("Material:");
 
         checkBoxFloodWithLava.setText("Flood with lava:");
         checkBoxFloodWithLava.setEnabled(false);
         checkBoxFloodWithLava.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
-        checkBoxFloodWithLava.addActionListener(this::checkBoxFloodWithLavaActionPerformed);
+        checkBoxFloodWithLava.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxFloodWithLavaActionPerformed(evt);
+            }
+        });
 
         spinnerRoofMax.setModel(new javax.swing.SpinnerNumberModel(255, 0, 255, 1));
         spinnerRoofMax.setEnabled(false);
-        spinnerRoofMax.addChangeListener(this::spinnerRoofMaxStateChanged);
+        spinnerRoofMax.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerRoofMaxStateChanged(evt);
+            }
+        });
 
         jLabel13.setText("Bottom width:");
 
@@ -394,18 +577,34 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
         jLabel16.setText("Absolute min:");
 
         spinnerWallRoofDepth.setModel(new javax.swing.SpinnerNumberModel(0, 0, 255, 1));
-        spinnerWallRoofDepth.addChangeListener(this::spinnerWallRoofDepthStateChanged);
+        spinnerWallRoofDepth.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerWallRoofDepthStateChanged(evt);
+            }
+        });
 
         spinnerWallFloorDepth.setModel(new javax.swing.SpinnerNumberModel(0, 0, 255, 1));
-        spinnerWallFloorDepth.addChangeListener(this::spinnerWallFloorDepthStateChanged);
+        spinnerWallFloorDepth.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerWallFloorDepthStateChanged(evt);
+            }
+        });
 
         checkBoxRemoveWater.setText("Remove water or lava:");
         checkBoxRemoveWater.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
-        checkBoxRemoveWater.addActionListener(this::checkBoxRemoveWaterActionPerformed);
+        checkBoxRemoveWater.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxRemoveWaterActionPerformed(evt);
+            }
+        });
 
         spinnerFloorMax.setModel(new javax.swing.SpinnerNumberModel(255, 0, 255, 1));
         spinnerFloorMax.setEnabled(false);
-        spinnerFloorMax.addChangeListener(this::spinnerFloorMaxStateChanged);
+        spinnerFloorMax.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerFloorMaxStateChanged(evt);
+            }
+        });
 
         jLabel19.setText(", max:");
 
@@ -415,22 +614,38 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
 
         buttonGroup1.add(radioButtonFloorInverse);
         radioButtonFloorInverse.setText("opposite of terrain");
-        radioButtonFloorInverse.addActionListener(this::radioButtonFloorInverseActionPerformed);
+        radioButtonFloorInverse.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonFloorInverseActionPerformed(evt);
+            }
+        });
 
         checkBoxFlood.setText("Flood the caves/tunnels:");
         checkBoxFlood.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
-        checkBoxFlood.addActionListener(this::checkBoxFloodActionPerformed);
+        checkBoxFlood.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxFloodActionPerformed(evt);
+            }
+        });
 
         buttonGroup3.add(radioButtonRoofFixedLevel);
         radioButtonRoofFixedLevel.setSelected(true);
         radioButtonRoofFixedLevel.setText("fixed level");
-        radioButtonRoofFixedLevel.addActionListener(this::radioButtonRoofFixedLevelActionPerformed);
+        radioButtonRoofFixedLevel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonRoofFixedLevelActionPerformed(evt);
+            }
+        });
 
         jLabel3.setText("Level:");
 
         buttonGroup3.add(radioButtonRoofInverse);
         radioButtonRoofInverse.setText("opposite of terrain");
-        radioButtonRoofInverse.addActionListener(this::radioButtonRoofInverseActionPerformed);
+        radioButtonRoofInverse.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonRoofInverseActionPerformed(evt);
+            }
+        });
 
         jLabel15.setText("Top width:");
 
@@ -615,30 +830,41 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
 
         jLabel22.setText("You can add custom layers here which will be rendered on the cave/tunnel floors:");
 
-        tableFloorLayers.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
-            },
-            new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
+        tableFloorLayers.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        tableFloorLayers.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tableFloorLayersMouseClicked(evt);
             }
-        ));
+        });
         jScrollPane1.setViewportView(tableFloorLayers);
 
         buttonNewFloorLayer.setText("Create New");
-        buttonNewFloorLayer.addActionListener(this::buttonNewFloorLayerActionPerformed);
+        buttonNewFloorLayer.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonNewFloorLayerActionPerformed(evt);
+            }
+        });
 
         buttonAddFloorLayer.setText("Add Existing");
-        buttonAddFloorLayer.addActionListener(this::buttonAddFloorLayerActionPerformed);
+        buttonAddFloorLayer.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonAddFloorLayerActionPerformed(evt);
+            }
+        });
 
         buttonEditFloorLayer.setText("Edit");
-        buttonEditFloorLayer.addActionListener(this::buttonEditFloorLayerActionPerformed);
+        buttonEditFloorLayer.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonEditFloorLayerActionPerformed(evt);
+            }
+        });
 
         buttonRemoveFloorLayer.setText("Remove");
-        buttonRemoveFloorLayer.addActionListener(this::buttonRemoveFloorLayerActionPerformed);
+        buttonRemoveFloorLayer.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonRemoveFloorLayerActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -679,7 +905,7 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
                 .addContainerGap())
         );
 
-        jTabbedPane1.addTab("Custom Layers", jPanel2);
+        jTabbedPane1.addTab("Floor Layers", jPanel2);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -766,10 +992,12 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
     }//GEN-LAST:event_radioButtonFloorInverseActionPerformed
 
     private void spinnerFloorMaxStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerFloorMaxStateChanged
-        if ((Integer) spinnerFloorMax.getValue() < (Integer) spinnerFloorMin.getValue()) {
-            spinnerFloorMin.setValue(spinnerFloorMax.getValue());
+        if (! programmaticChange) {
+            if ((Integer) spinnerFloorMax.getValue() < (Integer) spinnerFloorMin.getValue()) {
+                spinnerFloorMin.setValue(spinnerFloorMax.getValue());
+            }
+            updatePreview();
         }
-        updatePreview();
     }//GEN-LAST:event_spinnerFloorMaxStateChanged
 
     private void checkBoxRemoveWaterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxRemoveWaterActionPerformed
@@ -777,18 +1005,24 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
     }//GEN-LAST:event_checkBoxRemoveWaterActionPerformed
 
     private void spinnerWallFloorDepthStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerWallFloorDepthStateChanged
-        updatePreview();
+        if (! programmaticChange) {
+            updatePreview();
+        }
     }//GEN-LAST:event_spinnerWallFloorDepthStateChanged
 
     private void spinnerWallRoofDepthStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerWallRoofDepthStateChanged
-        updatePreview();
+        if (! programmaticChange) {
+            updatePreview();
+        }
     }//GEN-LAST:event_spinnerWallRoofDepthStateChanged
 
     private void spinnerRoofMaxStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerRoofMaxStateChanged
-        if ((Integer) spinnerRoofMax.getValue() < (Integer) spinnerRoofMin.getValue()) {
-            spinnerRoofMin.setValue(spinnerRoofMax.getValue());
+        if (! programmaticChange) {
+            if ((Integer) spinnerRoofMax.getValue() < (Integer) spinnerRoofMin.getValue()) {
+                spinnerRoofMin.setValue(spinnerRoofMax.getValue());
+            }
+            updatePreview();
         }
-        updatePreview();
     }//GEN-LAST:event_spinnerRoofMaxStateChanged
 
     private void checkBoxFloodWithLavaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxFloodWithLavaActionPerformed
@@ -801,21 +1035,27 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
     }//GEN-LAST:event_radioButtonFloorFixedDepthActionPerformed
 
     private void spinnerFloodLevelStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerFloodLevelStateChanged
-        updatePreview();
+        if (! programmaticChange) {
+            updatePreview();
+        }
     }//GEN-LAST:event_spinnerFloodLevelStateChanged
 
     private void spinnerRoofMinStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerRoofMinStateChanged
-        if ((Integer) spinnerRoofMax.getValue() < (Integer) spinnerRoofMin.getValue()) {
-            spinnerRoofMax.setValue(spinnerRoofMin.getValue());
+        if (! programmaticChange) {
+            if ((Integer) spinnerRoofMax.getValue() < (Integer) spinnerRoofMin.getValue()) {
+                spinnerRoofMax.setValue(spinnerRoofMin.getValue());
+            }
+            updatePreview();
         }
-        updatePreview();
     }//GEN-LAST:event_spinnerRoofMinStateChanged
 
     private void spinnerFloorMinStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerFloorMinStateChanged
-        if ((Integer) spinnerFloorMax.getValue() < (Integer) spinnerFloorMin.getValue()) {
-            spinnerFloorMax.setValue(spinnerFloorMin.getValue());
+        if (! programmaticChange) {
+            if ((Integer) spinnerFloorMax.getValue() < (Integer) spinnerFloorMin.getValue()) {
+                spinnerFloorMax.setValue(spinnerFloorMin.getValue());
+            }
+            updatePreview();
         }
-        updatePreview();
     }//GEN-LAST:event_spinnerFloorMinStateChanged
 
     private void radioButtonRoofFixedDepthActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonRoofFixedDepthActionPerformed
@@ -824,11 +1064,15 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
     }//GEN-LAST:event_radioButtonRoofFixedDepthActionPerformed
 
     private void spinnerFloorLevelStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerFloorLevelStateChanged
-        updatePreview();
+        if (! programmaticChange) {
+            updatePreview();
+        }
     }//GEN-LAST:event_spinnerFloorLevelStateChanged
 
     private void spinnerRoofLevelStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerRoofLevelStateChanged
-        updatePreview();
+        if (! programmaticChange) {
+            updatePreview();
+        }
     }//GEN-LAST:event_spinnerRoofLevelStateChanged
 
     private void radioButtonFloorFixedLevelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonFloorFixedLevelActionPerformed
@@ -851,6 +1095,15 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
     private void buttonRemoveFloorLayerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonRemoveFloorLayerActionPerformed
         removeFloorLayer();
     }//GEN-LAST:event_buttonRemoveFloorLayerActionPerformed
+
+    private void tableFloorLayersMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tableFloorLayersMouseClicked
+        if ((! evt.isPopupTrigger()) && (evt.getClickCount() == 2)) {
+            int column = tableFloorLayers.columnAtPoint(evt.getPoint());
+            if (column == TunnelFloorLayersTableModel.COLUMN_NAME) {
+                editFloorLayer();
+            }
+        }
+    }//GEN-LAST:event_tableFloorLayersMouseClicked
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonAddFloorLayer;
@@ -919,6 +1172,8 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
 
     private final TunnelLayer layer;
     private final int waterLevel, baseHeight, maxHeight;
+    private TunnelFloorLayersTableModel floorLayersTableModel;
+    private boolean programmaticChange;
 
     private static final long serialVersionUID = 1L;
 }

@@ -2,14 +2,13 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.pepsoft.worldpainter.layers.combined;
+package org.pepsoft.worldpainter.layers;
 
 import java.awt.Component;
 import java.awt.image.BufferedImage;
 import javax.swing.ImageIcon;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
-import org.pepsoft.worldpainter.layers.Layer;
 
 /**
  *

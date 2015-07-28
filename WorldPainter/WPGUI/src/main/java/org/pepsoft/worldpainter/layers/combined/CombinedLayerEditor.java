@@ -6,6 +6,7 @@
 
 package org.pepsoft.worldpainter.layers.combined;
 
+import org.pepsoft.worldpainter.layers.LayerTableCellRenderer;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;

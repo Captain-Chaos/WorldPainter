@@ -31,14 +31,14 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
     public TunnelLayerExporter(TunnelLayer layer) {
         super(layer);
         if (layer.getFloorNoise() != null) {
-            floorNoise = new NoiseHeightMap(layer.getFloorNoise().getRange() * 2, layer.getFloorNoise().getScale() / 5, layer.getFloorNoise().getRoughness() + 1, FLOOR_NOISE_SEED_OFFSET);
+            floorNoise = new NoiseHeightMap(layer.getFloorNoise(), FLOOR_NOISE_SEED_OFFSET);
             floorNoiseOffset = layer.getFloorNoise().getRange();
         } else {
             floorNoise = null;
             floorNoiseOffset = 0;
         }
         if (layer.getRoofNoise()!= null) {
-            roofNoise = new NoiseHeightMap(layer.getRoofNoise().getRange() * 2, layer.getRoofNoise().getScale() / 5, layer.getRoofNoise().getRoughness() + 1, ROOF_NOISE_SEED_OFFSET);
+            roofNoise = new NoiseHeightMap(layer.getRoofNoise(), ROOF_NOISE_SEED_OFFSET);
             roofNoiseOffset = layer.getRoofNoise().getRange();
         } else {
             roofNoise = null;
@@ -65,19 +65,27 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
         final Map<Layer, TunnelLayer.LayerSettings> floorLayers = layer.getFloorLayers();
         final IncidentalLayerExporter[] floorExporters;
         final TunnelLayer.LayerSettings[] floorLayerSettings;
+        final NoiseHeightMap[] floorLayerNoise;
         final boolean floorLayersPresent = (floorLayers != null) && (! floorLayers.isEmpty());
         if (floorLayersPresent) {
             floorExporters = new IncidentalLayerExporter[floorLayers.size()];
             floorLayerSettings = new TunnelLayer.LayerSettings[floorLayers.size()];
+            floorLayerNoise = new NoiseHeightMap[floorLayers.size()];
             int index = 0;
             for (Layer floorLayer: floorLayers.keySet()) {
                 floorExporters[index] = (IncidentalLayerExporter) floorLayer.getExporter();
-                floorLayerSettings[index] = floorLayers.get(floorLayer);
+                TunnelLayer.LayerSettings layerSettings = floorLayers.get(floorLayer);
+                floorLayerSettings[index] = layerSettings;
+                if (layerSettings.getVariation() != null) {
+                    floorLayerNoise[index] = new NoiseHeightMap(layerSettings.getVariation(), index);
+                    floorLayerNoise[index].setSeed(dimension.getSeed());
+                }
                 index++;
             }
         } else {
             floorExporters = null;
             floorLayerSettings = null;
+            floorLayerNoise = null;
         }
         if (floorNoise != null) {
             floorNoise.setSeed(dimension.getSeed());
@@ -119,14 +127,22 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
                             // the bottom. Remove the floor block, as that is
                             // probably what the user wants
                             if ((floodLevel > 0) && (0 <= floodLevel)) {
-                                world.setMaterialAt(x, y, 0, floodWithLava ? Material.LAVA : Material.WATER);
+                                world.setMaterialAt(x, y, 0, floodWithLava ? Material.STATIONARY_LAVA: Material.STATIONARY_WATER);
                             } else {
                                 world.setMaterialAt(x, y, 0, Material.AIR);
                             }
                         } else if (floorLayersPresent) {
-                            Point3i location = new Point3i(x, y, actualFloorLevel + 1);
-                            for (IncidentalLayerExporter exporter: floorExporters) {
-                                exporter.apply(dimension, location, 50, exportedArea, world);
+                            int z = actualFloorLevel + 1;
+                            Point3i location = new Point3i(x, y, z);
+                            for (int i = 0; i < floorExporters.length; i++) {
+                                if ((z >= floorLayerSettings[i].getMinLevel()) && (z <= floorLayerSettings[i].getMaxLevel())) {
+                                    int intensity = floorLayerNoise[i] != null
+                                        ? MathUtils.clamp(0, (int) (floorLayerSettings[i].getIntensity() + floorLayerNoise[i].getValue(x, y, z) + 0.5f), 100)
+                                        : floorLayerSettings[i].getIntensity();
+                                    if (intensity > 0) {
+                                        floorExporters[i].apply(dimension, location, intensity, exportedArea, world);
+                                    }
+                                }
                             }
                         }
                     }
@@ -239,9 +255,17 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
                                 world.setMaterialAt(x, y, 0, Material.AIR);
                             }
                         } else if (floorLayersPresent) {
-                            Point3i location = new Point3i(x, y, actualFloorLevel + 1);
-                            for (IncidentalLayerExporter exporter: floorExporters) {
-                                exporter.apply(dimension, location, 50, exportedArea, world);
+                            int z = actualFloorLevel + 1;
+                            Point3i location = new Point3i(x, y, z);
+                            for (int i = 0; i < floorExporters.length; i++) {
+                                if ((z >= floorLayerSettings[i].getMinLevel()) && (z <= floorLayerSettings[i].getMaxLevel())) {
+                                    int intensity = floorLayerNoise[i] != null
+                                        ? MathUtils.clamp(0, (int) (floorLayerSettings[i].getIntensity() + floorLayerNoise[i].getValue(x, y, z) + 0.5f), 100)
+                                        : floorLayerSettings[i].getIntensity();
+                                    if (intensity > 0) {
+                                        floorExporters[i].apply(dimension, location, intensity, exportedArea, world);
+                                    }
+                                }
                             }
                         }
                     }

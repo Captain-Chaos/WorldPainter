@@ -41,7 +41,7 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
         super(layer);
         NoiseSettings noiseSettings = layer.getNoiseSettings();
         if (noiseSettings != null) {
-            noiseHeightMap = new NoiseHeightMap(noiseSettings.getRange() * 2, noiseSettings.getScale() / 5, noiseSettings.getRoughness() + 1, NOISE_SEED_OFFSET);
+            noiseHeightMap = new NoiseHeightMap(noiseSettings, NOISE_SEED_OFFSET);
             noiseOffset = noiseSettings.getRange();
         } else {
             noiseHeightMap = null;

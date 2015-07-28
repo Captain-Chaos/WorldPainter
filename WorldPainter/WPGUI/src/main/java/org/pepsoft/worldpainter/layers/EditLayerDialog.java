@@ -7,6 +7,7 @@
 package org.pepsoft.worldpainter.layers;
 
 import java.awt.BorderLayout;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
@@ -34,25 +35,25 @@ public class EditLayerDialog<L extends Layer> extends WorldPainterDialog impleme
      * Creates new form EditLayerDialog for creating a new instance of a
      * specific layer type.
      * 
-     * @param app The <code>App</code> instance from which to get context information.
+     * @param parent The window relative to which to display the dialog.
      * @param layerType The type of layer of which to create a new instance.
      */
-    public EditLayerDialog(App app, Class<L> layerType) {
-        this(app, null, LayerEditorManager.getInstance().createEditor(layerType));
+    public EditLayerDialog(Window parent, Class<L> layerType) {
+        this(parent, null, LayerEditorManager.getInstance().createEditor(layerType));
     }
     
     /**
      * Creates new form EditLayerDialog for editing an existing layer.
      * 
-     * @param app The <code>App</code> instance from which to get context information.
+     * @param parent The window relative to which to display the dialog.
      * @param layer The layer to edit..
      */
-    public EditLayerDialog(App app, L layer) {
-        this(app, layer, LayerEditorManager.getInstance().createEditor((Class<L>) layer.getClass()));
+    public EditLayerDialog(Window parent, L layer) {
+        this(parent, layer, LayerEditorManager.getInstance().createEditor((Class<L>) layer.getClass()));
     }
 
-    private EditLayerDialog(App app, L layer, LayerEditor<L> editor) {
-        super(app);
+    private EditLayerDialog(Window parent, L layer, LayerEditor<L> editor) {
+        super(parent);
         if (editor == null) {
             throw new IllegalArgumentException("No editor available for layer type" + ((layer != null) ? layer.getClass() : ""));
         }
@@ -60,8 +61,8 @@ public class EditLayerDialog<L extends Layer> extends WorldPainterDialog impleme
         if (layer == null) {
             layer = editor.createLayer();
         }
+        this.app = App.getInstance();
         previewCreator = LayerPreviewCreator.createPreviewerForLayer(layer, app.getDimension());
-        this.app = app;
 
         initComponents();
         if (! (layer instanceof CustomLayer)) {
@@ -95,7 +96,7 @@ public class EditLayerDialog<L extends Layer> extends WorldPainterDialog impleme
         });
 
         pack();
-        setLocationRelativeTo(app);
+        setLocationRelativeTo(parent);
     }
 
     public L getLayer() {
