@@ -18,6 +18,7 @@ import org.pepsoft.worldpainter.layers.Layer;
 import javax.vecmath.Point3i;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -62,31 +63,6 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
         final int minZ = dimension.isBottomless() ? 0 : 1, maxZ = dimension.getMaxHeight() - 1;
         final boolean removeWater = layer.isRemoveWater(), floodWithLava = layer.isFloodWithLava();
         final MixedMaterial floorMaterial = layer.getFloorMaterial(), wallMaterial = layer.getWallMaterial(), roofMaterial = layer.getRoofMaterial();
-        final Map<Layer, TunnelLayer.LayerSettings> floorLayers = layer.getFloorLayers();
-        final IncidentalLayerExporter[] floorExporters;
-        final TunnelLayer.LayerSettings[] floorLayerSettings;
-        final NoiseHeightMap[] floorLayerNoise;
-        final boolean floorLayersPresent = (floorLayers != null) && (! floorLayers.isEmpty());
-        if (floorLayersPresent) {
-            floorExporters = new IncidentalLayerExporter[floorLayers.size()];
-            floorLayerSettings = new TunnelLayer.LayerSettings[floorLayers.size()];
-            floorLayerNoise = new NoiseHeightMap[floorLayers.size()];
-            int index = 0;
-            for (Layer floorLayer: floorLayers.keySet()) {
-                floorExporters[index] = (IncidentalLayerExporter) floorLayer.getExporter();
-                TunnelLayer.LayerSettings layerSettings = floorLayers.get(floorLayer);
-                floorLayerSettings[index] = layerSettings;
-                if (layerSettings.getVariation() != null) {
-                    floorLayerNoise[index] = new NoiseHeightMap(layerSettings.getVariation(), index);
-                    floorLayerNoise[index].setSeed(dimension.getSeed());
-                }
-                index++;
-            }
-        } else {
-            floorExporters = null;
-            floorLayerSettings = null;
-            floorLayerNoise = null;
-        }
         if (floorNoise != null) {
             floorNoise.setSeed(dimension.getSeed());
         }
@@ -130,19 +106,6 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
                                 world.setMaterialAt(x, y, 0, floodWithLava ? Material.STATIONARY_LAVA: Material.STATIONARY_WATER);
                             } else {
                                 world.setMaterialAt(x, y, 0, Material.AIR);
-                            }
-                        } else if (floorLayersPresent) {
-                            int z = actualFloorLevel + 1;
-                            Point3i location = new Point3i(x, y, z);
-                            for (int i = 0; i < floorExporters.length; i++) {
-                                if ((z >= floorLayerSettings[i].getMinLevel()) && (z <= floorLayerSettings[i].getMaxLevel())) {
-                                    int intensity = floorLayerNoise[i] != null
-                                        ? MathUtils.clamp(0, (int) (floorLayerSettings[i].getIntensity() + floorLayerNoise[i].getValue(x, y, z) + 0.5f), 100)
-                                        : floorLayerSettings[i].getIntensity();
-                                    if (intensity > 0) {
-                                        floorExporters[i].apply(dimension, location, intensity, exportedArea, world);
-                                    }
-                                }
                             }
                         }
                     }
@@ -254,16 +217,59 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
                             } else {
                                 world.setMaterialAt(x, y, 0, Material.AIR);
                             }
-                        } else if (floorLayersPresent) {
-                            int z = actualFloorLevel + 1;
-                            Point3i location = new Point3i(x, y, z);
-                            for (int i = 0; i < floorExporters.length; i++) {
-                                if ((z >= floorLayerSettings[i].getMinLevel()) && (z <= floorLayerSettings[i].getMaxLevel())) {
-                                    int intensity = floorLayerNoise[i] != null
+                        }
+                    }
+                }
+            }
+        }
+
+        // Second/third pass: render floor layers
+        List<Fixup> fixups = new ArrayList<>();
+        final Map<Layer, TunnelLayer.LayerSettings> floorLayers = layer.getFloorLayers();
+        if ((floorLayers != null) && (! floorLayers.isEmpty())) {
+            final IncidentalLayerExporter[] floorExporters = new IncidentalLayerExporter[floorLayers.size()];
+            final TunnelLayer.LayerSettings[] floorLayerSettings = new TunnelLayer.LayerSettings[floorLayers.size()];
+            final NoiseHeightMap[] floorLayerNoise = new NoiseHeightMap[floorLayers.size()];
+            int index = 0;
+            for (Layer floorLayer: floorLayers.keySet()) {
+                floorExporters[index] = (IncidentalLayerExporter) floorLayer.getExporter();
+                TunnelLayer.LayerSettings layerSettings = floorLayers.get(floorLayer);
+                floorLayerSettings[index] = layerSettings;
+                if (layerSettings.getVariation() != null) {
+                    floorLayerNoise[index] = new NoiseHeightMap(layerSettings.getVariation(), index);
+                    floorLayerNoise[index].setSeed(dimension.getSeed());
+                }
+                index++;
+            }
+            final TunnelFloorDimension floorDimension = new TunnelFloorDimension(dimension, layer);
+            for (int x = area.x; x < area.x + area.width; x++) {
+                for (int y = area.y; y < area.y + area.height; y++) {
+                    if (dimension.getBitLayerValueAt(layer, x, y)) {
+                        final int terrainHeight = dimension.getIntHeightAt(x, y);
+                        int actualFloorLevel = calculateLevel(floorMode, floorLevel, terrainHeight, floorMin, floorMax, minZ, maxZ, (floorNoise != null) ? ((int) floorNoise.getHeight(x, y) - floorNoiseOffset) : 0);
+                        int actualRoofLevel = calculateLevel(roofMode, roofLevel, terrainHeight, roofMin, roofMax, minZ, maxZ, (roofNoise != null) ? ((int) roofNoise.getHeight(x, y) - roofNoiseOffset) : 0);
+                        if (actualRoofLevel <= actualFloorLevel) {
+                            continue;
+                        }
+                        final float distanceToWall = dimension.getDistanceToEdge(layer, x, y, maxWallDepth) - 1;
+                        final int floorLedgeHeight = calculateLedgeHeight(floorWallDepth, distanceToWall);
+                        final int roofLedgeHeight = calculateLedgeHeight(roofWallDepth, distanceToWall);
+                        actualFloorLevel += floorLedgeHeight;
+                        actualRoofLevel -= roofLedgeHeight;
+                        if ((actualRoofLevel <= actualFloorLevel) || (actualFloorLevel == 0)) {
+                            continue;
+                        }
+                        final int z = actualFloorLevel + 1;
+                        final Point3i location = new Point3i(x, y, z);
+                        for (int i = 0; i < floorExporters.length; i++) {
+                            if ((z >= floorLayerSettings[i].getMinLevel()) && (z <= floorLayerSettings[i].getMaxLevel())) {
+                                final int intensity = floorLayerNoise[i] != null
                                         ? MathUtils.clamp(0, (int) (floorLayerSettings[i].getIntensity() + floorLayerNoise[i].getValue(x, y, z) + 0.5f), 100)
                                         : floorLayerSettings[i].getIntensity();
-                                    if (intensity > 0) {
-                                        floorExporters[i].apply(dimension, location, intensity, exportedArea, world);
+                                if (intensity > 0) {
+                                    Fixup fixup = floorExporters[i].apply(floorDimension, location, intensity, exportedArea, world);
+                                    if (fixup != null) {
+                                        fixups.add(fixup);
                                     }
                                 }
                             }
@@ -272,7 +278,8 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
                 }
             }
         }
-        return null;
+
+        return fixups.isEmpty() ? null : fixups;
     }
     
 //    private void excavateDisc(final MinecraftWorld world, final int x, final int y, final int z, int r, final Material materialAbove, final Material materialBesides, final Material materialBelow) {
@@ -346,7 +353,7 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
         return preview;
     }
 
-    private int calculateLevel(TunnelLayer.Mode mode, int level, int terrainHeight, int minLevel, int maxLevel, int minZ, int maxZ, int offset) {
+    static int calculateLevel(TunnelLayer.Mode mode, int level, int terrainHeight, int minLevel, int maxLevel, int minZ, int maxZ, int offset) {
         switch (mode) {
             case CONSTANT_DEPTH:
                 return MathUtils.clamp(minZ, MathUtils.clamp(minLevel, terrainHeight - level, maxLevel) + offset, maxZ);
@@ -359,7 +366,7 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
         }
     }
     
-    private int calculateLedgeHeight(int wallDepth, float distanceToWall) {
+    static int calculateLedgeHeight(int wallDepth, float distanceToWall) {
         if (distanceToWall > wallDepth) {
             return 0;
         } else {
@@ -384,10 +391,9 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
     private final NoiseHeightMap floorNoise, roofNoise;
     private final int floorNoiseOffset, roofNoiseOffset;
 //    private final PerlinNoise wallNoise;
-    
+
+    static final long FLOOR_NOISE_SEED_OFFSET = 177766561L;
+    static final long ROOF_NOISE_SEED_OFFSET = 184818453L;
+
     private static final long MATERIAL_SEED = 0x688b2af137c77e0cL;
-    private static final long FLOOR_NOISE_SEED_OFFSET = 177766561L;
-    private static final long ROOF_NOISE_SEED_OFFSET = 184818453L;
-    
-    enum RenderState {AIR, WATER, LAVA, UNDERGROUND}
 }
