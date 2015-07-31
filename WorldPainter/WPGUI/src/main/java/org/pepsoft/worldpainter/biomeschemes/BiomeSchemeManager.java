@@ -22,8 +22,6 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static org.pepsoft.worldpainter.Constants.*;
@@ -227,7 +225,7 @@ public class BiomeSchemeManager {
                 try {
                     doInitialisation();
                 } catch (Throwable t) {
-                    logger.log(Level.SEVERE, t.getClass().getSimpleName() + " while scanning for Minecraft jars", t);
+                    logger.error(t.getClass().getSimpleName() + " while scanning for Minecraft jars", t);
                 }
             }, "Biome Scheme Manager Initialiser").start();
         }
@@ -273,7 +271,7 @@ public class BiomeSchemeManager {
                         }
                     }
                 } catch (IOException e) {
-                    logger.log(Level.SEVERE, "I/O error while scanning potential Minecraft jar or directory " + file.getAbsolutePath() + "; skipping file", e);
+                    logger.error("I/O error while scanning potential Minecraft jar or directory " + file.getAbsolutePath() + "; skipping file", e);
                 }
             }
         }
@@ -375,7 +373,7 @@ public class BiomeSchemeManager {
                             }
                         }
                     } catch (IOException e) {
-                        logger.log(Level.SEVERE, "I/O error while scanning Minecraft jar " + file.getAbsolutePath() + "; skipping file", e);
+                        logger.error("I/O error while scanning Minecraft jar " + file.getAbsolutePath() + "; skipping file", e);
                     }
                 }
             } finally {
@@ -454,7 +452,7 @@ public class BiomeSchemeManager {
         descriptors.add(descriptor);
     }
 
-    private static final Logger logger = Logger.getLogger(BiomeSchemeManager.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(BiomeSchemeManager.class);
 
     static class BiomeSchemeDescriptor {
         BiomeSchemeDescriptor(Version minecraftVersion, int biomeScheme, Class<? extends BiomeScheme> _class, boolean addLibraries) {

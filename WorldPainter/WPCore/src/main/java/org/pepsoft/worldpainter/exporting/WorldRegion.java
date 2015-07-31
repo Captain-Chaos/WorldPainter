@@ -15,8 +15,6 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static org.pepsoft.minecraft.Block.BLOCK_TYPE_NAMES;
 import static org.pepsoft.minecraft.Constants.BLK_AIR;
@@ -306,7 +304,7 @@ public class WorldRegion implements MinecraftWorld {
                                 final TileEntity tileEntity = i.next();
                                 final Set<Integer> blockIds = Constants.TILE_ENTITY_MAP.get(tileEntity.getId());
                                 if (blockIds == null) {
-                                    logger.warning("Unknown tile entity ID \"" + tileEntity.getId() + "\" encountered @ " + tileEntity.getX() + "," + tileEntity.getZ() + "," + tileEntity.getY() + "; can't check whether the corresponding block is there!");
+                                    logger.warn("Unknown tile entity ID \"" + tileEntity.getId() + "\" encountered @ " + tileEntity.getX() + "," + tileEntity.getZ() + "," + tileEntity.getY() + "; can't check whether the corresponding block is there!");
                                 } else {
                                     final int existingBlockId = chunk.getBlockType(tileEntity.getX() & 0xf, tileEntity.getY(), tileEntity.getZ() & 0xf);
                                     if (! blockIds.contains(existingBlockId)) {
@@ -314,8 +312,8 @@ public class WorldRegion implements MinecraftWorld {
                                         // is not a tile entity, or a different
                                         // tile entity. Remove the data
                                         i.remove();
-                                        if (logger.isLoggable(Level.FINE)) {
-                                            logger.fine("Removing tile entity " + tileEntity.getId() + " @ " + tileEntity.getX() + "," + tileEntity.getZ() + "," + tileEntity.getY() + " because the block at that location is a " + BLOCK_TYPE_NAMES[existingBlockId]);
+                                        if (logger.isDebugEnabled()) {
+                                            logger.debug("Removing tile entity " + tileEntity.getId() + " @ " + tileEntity.getX() + "," + tileEntity.getZ() + "," + tileEntity.getY() + " because the block at that location is a " + BLOCK_TYPE_NAMES[existingBlockId]);
                                         }
                                     }
                                 }
@@ -330,7 +328,7 @@ public class WorldRegion implements MinecraftWorld {
                                     // There is already tile data for that location in the chunk;
                                     // remove this copy
                                     i.remove();
-                                    logger.warning("Removing tile entity " + tileEntity.getId() + " @ " + tileEntity.getX() + "," + tileEntity.getZ() + "," + tileEntity.getY() + " because there is already a tile entity of the same type at that location");
+                                    logger.warn("Removing tile entity " + tileEntity.getId() + " @ " + tileEntity.getX() + "," + tileEntity.getZ() + "," + tileEntity.getY() + " because there is already a tile entity of the same type at that location");
                                 } else {
                                     occupiedCoords.add(coords);
                                 }
@@ -365,5 +363,5 @@ public class WorldRegion implements MinecraftWorld {
     
     public static final int CHUNKS_PER_SIDE = 32;
     
-    private static final Logger logger = Logger.getLogger(WorldRegion.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WorldRegion.class);
 }

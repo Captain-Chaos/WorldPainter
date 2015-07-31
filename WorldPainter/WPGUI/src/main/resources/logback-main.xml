@@ -1,0 +1,24 @@
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>[%d] {%-6p} \(%30c{30}\) %m%ex%n</pattern>
+        </encoder>
+    </appender>
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${org.pepsoft.worldpainter.configDir}/logfile0.txt</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <fileNamePattern>${org.pepsoft.worldpainter.configDir}/logfile0.txt.%i</fileNamePattern>
+            <minIndex>1</minIndex>
+            <maxIndex>1</maxIndex>
+        </rollingPolicy>
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy"/>
+        <encoder>
+            <pattern>[%d] {%-6p} \(%30c{30}\) %m%ex%n</pattern>
+        </encoder>
+    </appender>
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
+    </root>
+    <logger name="org.pepsoft" level="${org.pepsoft.worldpainter.logLevel}"/>
+</configuration>

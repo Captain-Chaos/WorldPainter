@@ -23,8 +23,6 @@ import java.io.InputStream;
 import java.util.SortedMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static org.pepsoft.worldpainter.util.I18nHelper.m;
 
@@ -165,7 +163,7 @@ public class PlantDialog extends CustomLayerDialog<PlantLayer> {
                 if (! jars.isEmpty()) {
                     resourcesJar = jars.get(jars.lastKey());
                 } else {
-                    logger.warning("Could not find Minecraft jar for loading plant icons");
+                    logger.warn("Could not find Minecraft jar for loading plant icons");
                     resourcesJar = RESOURCES_NOT_AVAILABLE;
                     return null;
                 }
@@ -173,21 +171,21 @@ public class PlantDialog extends CustomLayerDialog<PlantLayer> {
             try (JarFile jarFile = new JarFile(resourcesJar)) {
                 JarEntry entry = jarFile.getJarEntry("assets/minecraft/textures/" + name);
                 if (entry != null) {
-                    if (logger.isLoggable(Level.FINE)) {
-                        logger.fine("Loading plant icon " + name + " from " + resourcesJar);
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Loading plant icon " + name + " from " + resourcesJar);
                     }
                     try (InputStream in = jarFile.getInputStream(entry)) {
                         return ImageIO.read(in);
                     }
                 } else {
-                    if (logger.isLoggable(Level.FINE)) {
-                        logger.fine("Could not find plant icon " + name + " in Minecraft jar " + resourcesJar);
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Could not find plant icon " + name + " in Minecraft jar " + resourcesJar);
                     }
                     return null;
                 }
             }
         } catch (IOException e) {
-            logger.log(Level.SEVERE, "I/O error while trying to load plant icon " + name + "; continuing without icon", e);
+            logger.error("I/O error while trying to load plant icon " + name + "; continuing without icon", e);
             resourcesJar = RESOURCES_NOT_AVAILABLE;
             return null;
         }
@@ -509,5 +507,5 @@ public class PlantDialog extends CustomLayerDialog<PlantLayer> {
 
     private static File resourcesJar;
     private static final File RESOURCES_NOT_AVAILABLE = new File("~~~RESOURCES_NOT_AVAILABLE~~~");
-    private static final Logger logger = Logger.getLogger(PlantDialog.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(PlantDialog.class);
 }

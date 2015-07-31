@@ -4,8 +4,6 @@
  */
 package org.pepsoft.util;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * A manager of parallel progress receivers, which reports to one parent
@@ -138,7 +136,7 @@ public class ParallelProgressManager {
             exceptionReported = true;
             progressReceiver.exceptionThrown(exception);
         } else {
-            logger.log(Level.SEVERE, "Secondary exception from parallel task; not reporting to progress receiver", exception);
+            logger.error("Secondary exception from parallel task; not reporting to progress receiver", exception);
         }
     }
 
@@ -197,7 +195,7 @@ public class ParallelProgressManager {
     private ProgressReceiver.OperationCancelled cancelledException;
     private boolean started, exceptionThrown, exceptionReported;
 
-    private static final Logger logger = Logger.getLogger(ParallelProgressManager.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ParallelProgressManager.class);
 
     private class SubProgressReceiver implements ProgressReceiver {
         private SubProgressReceiver(int index) {

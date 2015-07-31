@@ -24,7 +24,6 @@ import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.*;
 import java.util.List;
-import java.util.logging.Logger;
 
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
@@ -581,7 +580,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         // always correctly set (possibly only on imported worlds from
         // non-standard height maps due to a bug which should be fixed).
         dimensions.values().stream().filter(dimension -> dimension.getMaxHeight() != maxheight).forEach(dimension -> {
-            logger.warning("Fixing maxHeight of dimension " + dimension.getDim() + " (was " + dimension.getMaxHeight() + ", should be " + maxheight + ")");
+            logger.warn("Fixing maxHeight of dimension " + dimension.getDim() + " (was " + dimension.getMaxHeight() + ", should be " + maxheight + ")");
             dimension.setMaxHeight(maxheight);
             dimension.setDirty(false);
         });
@@ -680,7 +679,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
 
     private static final int CURRENT_WP_VERSION = 3;
 
-    private static final Logger logger = Logger.getLogger(World2.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(World2.class);
     private static final long serialVersionUID = 2011062401L;
 
     enum Warning {AUTO_BIOMES_ENABLED, AUTO_BIOMES_DISABLED}

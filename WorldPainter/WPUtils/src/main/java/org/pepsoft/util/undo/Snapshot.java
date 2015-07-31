@@ -6,8 +6,6 @@ package org.pepsoft.util.undo;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -25,13 +23,13 @@ public final class Snapshot {
             throw new IllegalStateException("Undo history frame no longer available");
         }
         if (bufferCache.containsKey(key)) {
-            if (logger.isLoggable(Level.FINE)) {
-                logger.fine("Getting buffer " + key + " for reading from buffer cache");
+            if (logger.isDebugEnabled()) {
+                logger.debug("Getting buffer " + key + " for reading from buffer cache");
             }
             return (T) bufferCache.get(key);
         } else {
-            if (logger.isLoggable(Level.FINE)) {
-                logger.fine("Getting buffer " + key + " for reading from history");
+            if (logger.isDebugEnabled()) {
+                logger.debug("Getting buffer " + key + " for reading from history");
             }
             T buffer = undoManager.findMostRecentCopy(key, frame);
             bufferCache.put(key, buffer);
@@ -43,5 +41,5 @@ public final class Snapshot {
     int frame;
     private final Map<BufferKey<?>, Object> bufferCache = new HashMap<>();
     
-    private static final Logger logger = Logger.getLogger(Snapshot.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Snapshot.class);
 }

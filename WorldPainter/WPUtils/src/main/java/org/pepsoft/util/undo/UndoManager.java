@@ -11,8 +11,6 @@ import javax.swing.*;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static org.pepsoft.util.ObjectUtils.copyObject;
 
@@ -66,8 +64,8 @@ public class UndoManager {
         if ((! savePointArmed) /*&& ((currentFrame < (history.size() - 1)) || isDirty())*/) {
             savePointArmed = true;
             listeners.forEach(org.pepsoft.util.undo.UndoListener::savePointArmed);
-            if (logger.isLoggable(Level.FINE)) {
-                logger.fine("Save point armed");
+            if (logger.isDebugEnabled()) {
+                logger.debug("Save point armed");
             }
         }
     }
@@ -96,9 +94,9 @@ public class UndoManager {
         
         updateActions();
 
-        if (logger.isLoggable(Level.FINE)) {
-            logger.fine("Save point set; new current frame: " + currentFrame);
-            if (logger.isLoggable(Level.FINER)) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Save point set; new current frame: " + currentFrame);
+            if (logger.isTraceEnabled()) {
                 dumpBuffer();
             }
         }
@@ -149,16 +147,16 @@ public class UndoManager {
                 }
             }
             updateActions();
-            if (logger.isLoggable(Level.FINE)) {
-                logger.fine("Undo requested; now at frame " + currentFrame + " (total: " + history.size() + ")");
-                if (logger.isLoggable(Level.FINER)) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Undo requested; now at frame " + currentFrame + " (total: " + history.size() + ")");
+                if (logger.isTraceEnabled()) {
                     dumpBuffer();
                 }
             }
             return true;
         } else {
-            if (logger.isLoggable(Level.FINE)) {
-                logger.fine("Undo requested, but no more frames available");
+            if (logger.isDebugEnabled()) {
+                logger.debug("Undo requested, but no more frames available");
             }
             return false;
         }
@@ -184,16 +182,16 @@ public class UndoManager {
                 }
             }
             updateActions();
-            if (logger.isLoggable(Level.FINE)) {
-                logger.fine("Redo requested; now at frame " + currentFrame + " (total: " + history.size() + ")");
-                if (logger.isLoggable(Level.FINER)) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Redo requested; now at frame " + currentFrame + " (total: " + history.size() + ")");
+                if (logger.isTraceEnabled()) {
                     dumpBuffer();
                 }
             }
             return true;
         } else {
-            if (logger.isLoggable(Level.FINE)) {
-                logger.fine("Redo requested, but no more frames available");
+            if (logger.isDebugEnabled()) {
+                logger.debug("Redo requested, but no more frames available");
             }
             return false;
         }
@@ -213,7 +211,7 @@ public class UndoManager {
         updateSnapshots(-deletedFrames);
         updateActions();
         savePointArmed = false;
-        if (logger.isLoggable(Level.FINER)) {
+        if (logger.isTraceEnabled()) {
             dumpBuffer();
         }
     }
@@ -245,8 +243,8 @@ public class UndoManager {
         if (listener != null) {
             keyListeners.put(key, listener);
         }
-        if (logger.isLoggable(Level.FINER)) {
-            logger.finer("Buffer added: " + key);
+        if (logger.isTraceEnabled()) {
+            logger.trace("Buffer added: " + key);
         }
     }
 
@@ -257,26 +255,26 @@ public class UndoManager {
             historyFrame.remove(key);
         }
         keyListeners.remove(key);
-        if (logger.isLoggable(Level.FINER)) {
-            logger.finer("Buffer removed: " + key);
+        if (logger.isTraceEnabled()) {
+            logger.trace("Buffer removed: " + key);
         }
     }
 
     @SuppressWarnings("unchecked")
     public <T> T getBuffer(BufferKey<T> key) {
         if (writeableBufferCache.containsKey(key)) {
-            if (logger.isLoggable(Level.FINER)) {
-                logger.finer("Getting buffer " + key + " for reading from writeable buffer cache");
+            if (logger.isTraceEnabled()) {
+                logger.trace("Getting buffer " + key + " for reading from writeable buffer cache");
             }
             return (T) writeableBufferCache.get(key);
         } else if (readOnlyBufferCache.containsKey(key)) {
-            if (logger.isLoggable(Level.FINER)) {
-                logger.finer("Getting buffer " + key + " for reading from read-only buffer cache");
+            if (logger.isTraceEnabled()) {
+                logger.trace("Getting buffer " + key + " for reading from read-only buffer cache");
             }
             return (T) readOnlyBufferCache.get(key);
         } else {
-            if (logger.isLoggable(Level.FINER)) {
-                logger.finer("Getting buffer " + key + " for reading from history");
+            if (logger.isTraceEnabled()) {
+                logger.trace("Getting buffer " + key + " for reading from history");
             }
             T buffer = findMostRecentCopy(key);
             readOnlyBufferCache.put(key, buffer);
@@ -290,15 +288,15 @@ public class UndoManager {
             savePoint();
         }
         if (writeableBufferCache.containsKey(key)) {
-            if (logger.isLoggable(Level.FINER)) {
-                logger.finer("Getting buffer " + key + " for writing from writeable buffer cache");
+            if (logger.isTraceEnabled()) {
+                logger.trace("Getting buffer " + key + " for writing from writeable buffer cache");
             }
             return (T) writeableBufferCache.get(key);
         } else {
             clearRedo();
             if (readOnlyBufferCache.containsKey(key)) {
-                if (logger.isLoggable(Level.FINER)) {
-                    logger.finer("Copying buffer " + key + " for writing from read-only buffer cache");
+                if (logger.isTraceEnabled()) {
+                    logger.trace("Copying buffer " + key + " for writing from read-only buffer cache");
                 }
                 T buffer = (T) readOnlyBufferCache.remove(key);
                 T copy = copyObject(buffer);
@@ -306,8 +304,8 @@ public class UndoManager {
                 writeableBufferCache.put(key, copy);
                 return copy;
             } else {
-                if (logger.isLoggable(Level.FINER)) {
-                    logger.finer("Copying buffer " + key + " for writing from history");
+                if (logger.isTraceEnabled()) {
+                    logger.trace("Copying buffer " + key + " for writing from history");
                 }
                 Map<BufferKey<?>, Object> currentHistoryFrame = history.getLast();
                 if (currentHistoryFrame.containsKey(key)) {
@@ -329,15 +327,15 @@ public class UndoManager {
     }
 
     public void addListener(UndoListener listener) {
-        if (logger.isLoggable(Level.FINER)) {
-            logger.finer("Adding listener " + listener);
+        if (logger.isTraceEnabled()) {
+            logger.trace("Adding listener " + listener);
         }
         listeners.add(listener);
     }
 
     public void removeListener(UndoListener listener) {
-        if (logger.isLoggable(Level.FINER)) {
-            logger.finer("Removing listener " + listener);
+        if (logger.isTraceEnabled()) {
+            logger.trace("Removing listener " + listener);
         }
         listeners.remove(listener);
     }
@@ -355,22 +353,22 @@ public class UndoManager {
     }
     
     private void updateSnapshots(int delta) {
-        if (logger.isLoggable(Level.FINE)) {
-            logger.fine("Updating snapshots");
+        if (logger.isDebugEnabled()) {
+            logger.debug("Updating snapshots");
         }
         int frameCount = history.size();
         for (Iterator<Reference<Snapshot>> i = snapshots.iterator(); i.hasNext(); ) {
             Snapshot snapshot = i.next().get();
             if (snapshot == null) {
-                if (logger.isLoggable(Level.FINE)) {
-                    logger.fine("Removing garbage collected snapshot");
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Removing garbage collected snapshot");
                 }
                 i.remove();
             } else {
                 snapshot.frame += delta;
                 if ((snapshot.frame < 0) || (snapshot.frame >= frameCount)) {
-                    if (logger.isLoggable(Level.FINE)) {
-                        logger.fine("Disabling and removing snapshot with invalid frame reference");
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Disabling and removing snapshot with invalid frame reference");
                     }
                     snapshot.frame = -1;
                     i.remove();
@@ -388,14 +386,14 @@ public class UndoManager {
         if (deletedFrames > 0) {
             updateSnapshots(-deletedFrames);
         }
-        if (logger.isLoggable(Level.FINER)) {
+        if (logger.isTraceEnabled()) {
             dumpBuffer();
         }
     }
     
     private void shrinkHistory() {
-        if (logger.isLoggable(Level.FINE)) {
-            logger.fine("Removing oldest history frame; moving contents to next oldest frame");
+        if (logger.isDebugEnabled()) {
+            logger.debug("Removing oldest history frame; moving contents to next oldest frame");
         }
         
         // Remove oldest frame
@@ -420,15 +418,15 @@ public class UndoManager {
         for (ListIterator<Map<BufferKey<?>, Object>> i = history.listIterator(frame + 1); i.hasPrevious(); ) {
             Map<BufferKey<?>, Object> historyFrame = i.previous();
             if (historyFrame.containsKey(key)) {
-                if (logger.isLoggable(Level.FINER)) {
-                    logger.finer("Most recent copy of buffer " + key + " found in frame " + frame + " of history");
+                if (logger.isTraceEnabled()) {
+                    logger.trace("Most recent copy of buffer " + key + " found in frame " + frame + " of history");
                 }
                 return (T) historyFrame.get(key);
             }
             frame--;
         }
-        if (logger.isLoggable(Level.FINER)) {
-            logger.finer("Buffer " + key + " not present in undo history");
+        if (logger.isTraceEnabled()) {
+            logger.trace("Buffer " + key + " not present in undo history");
         }
         return null;
     }
@@ -439,10 +437,10 @@ public class UndoManager {
         for (Map<BufferKey<?>, Object> frame: history) {
             int frameSize = MemoryUtils.getSize(frame, stopAt);
             totalDataSize += frameSize;
-            logger.fine(((index == currentFrame) ? "* " : "  ") + " " + ((index < 10) ? "0" : "") + index + ": " + frame.size() + " buffers (size: " + (frameSize / 1024) + " KB)");
+            logger.debug(((index == currentFrame) ? "* " : "  ") + " " + ((index < 10) ? "0" : "") + index + ": " + frame.size() + " buffers (size: " + (frameSize / 1024) + " KB)");
             index++;
         }
-        logger.fine("   Total data size: " + (totalDataSize / 1024) + " KB");
+        logger.debug("   Total data size: " + (totalDataSize / 1024) + " KB");
     }
     
     private void updateActions() {
@@ -467,5 +465,5 @@ public class UndoManager {
     private Set<Class<?>> stopAt;
 
     private static final int DEFAULT_MAX_FRAMES = 25;
-    private static final Logger logger = Logger.getLogger(UndoManager.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(UndoManager.class);
 }

@@ -18,7 +18,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 
 /**
  * A localised operation which uses the mouse or tablet to indicate where and
@@ -106,7 +105,7 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
         statisticsKeyUndo = statisticsKey + ".undo";
         legacy = (System.getProperty("os.name").startsWith("Mac OS X") && System.getProperty("os.version").startsWith("10.4.")) || "true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.disableTabletSupport"));
         if (legacy) {
-            logger.warning("Tablet support disabled for operation " + name);
+            logger.warn("Tablet support disabled for operation " + name);
         }
     }
     
@@ -373,5 +372,5 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
     private boolean undo;
     
     private static final Map<String, Long> operationCounts = new HashMap<>();
-    private static final Logger logger = Logger.getLogger(MouseOrTabletOperation.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MouseOrTabletOperation.class);
 }

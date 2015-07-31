@@ -32,8 +32,6 @@ import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.*;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static org.pepsoft.minecraft.Constants.*;
@@ -1346,7 +1344,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                     overlayCoords = new Rectangle(overlayOffsetX + (lowestX << TILE_SIZE_BITS), overlayOffsetY + (lowestY << TILE_SIZE_BITS), Math.round(overlaySize.width * overlayScale), Math.round(overlaySize.height * overlayScale));
                 } catch (IOException e) {
                     // Don't bother user with it, just clear the overlay
-                    logger.log(Level.SEVERE, "I/O error while trying to determine size of " + overlay, e);
+                    logger.error("I/O error while trying to determine size of " + overlay, e);
                     overlay = null;
                     overlayEnabled = false;
                     overlayOffsetX = 0;
@@ -1688,7 +1686,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     private static final long TOP_LAYER_DEPTH_SEED_OFFSET = 180728193;
     private static final float ROOT_EIGHT = (float) Math.sqrt(8.0);
     private static final int CURRENT_WP_VERSION = 3;
-    private static final Logger logger = Logger.getLogger(Dimension.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Dimension.class);
     private static final long serialVersionUID = 2011062401L;
 
     public interface Listener {

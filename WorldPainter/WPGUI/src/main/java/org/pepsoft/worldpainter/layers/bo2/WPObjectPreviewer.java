@@ -9,8 +9,6 @@ import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.border.BevelBorder;
@@ -51,13 +49,13 @@ public class WPObjectPreviewer extends JPanel implements PropertyChangeListener 
                 }
                 setObject(object);
             } catch (Throwable t) {
-                logger.log(Level.SEVERE, "Exception while trying to generate preview for " + file, t);
+                logger.error("Exception while trying to generate preview for " + file, t);
             }
         }
     }
     
     private final DynMapPreviewer previewer;
 
-    private static final Logger logger = Logger.getLogger(WPObjectPreviewer.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WPObjectPreviewer.class);
     private static final long serialVersionUID = 1L;
 }

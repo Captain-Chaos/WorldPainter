@@ -25,8 +25,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static org.pepsoft.minecraft.Block.*;
 import static org.pepsoft.minecraft.Constants.*;
@@ -146,12 +144,12 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                         entityY = y + pos[2] + offset.y,
                         entityZ = z + pos[1] + offset.z;
                 if ((entityZ < 0) || (entityY > (world.getMaxHeight() - 1))) {
-                    if (logger.isLoggable(Level.FINE)) {
-                        logger.fine("NOT adding entity " + entity.getId() + " @ " + entityX + "," + entityY + "," + entityZ + " because z coordinate is out of range!");
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("NOT adding entity " + entity.getId() + " @ " + entityX + "," + entityY + "," + entityZ + " because z coordinate is out of range!");
                     }
                 } else {
-                    if (logger.isLoggable(Level.FINE)) {
-                        logger.fine("Adding entity " + entity.getId() + " @ " + entityX + "," + entityY + "," + entityZ);
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Adding entity " + entity.getId() + " @ " + entityX + "," + entityY + "," + entityZ);
                     }
                     world.addEntity(entityX, entityY, entityZ, entity);
                 }
@@ -165,19 +163,19 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                     tileEntityZ = z + tileEntity.getY() + offset.z;
                 final String entityId = tileEntity.getId();
                 if ((tileEntityZ < 0) || (tileEntityZ >= world.getMaxHeight())) {
-                    if (logger.isLoggable(Level.FINE)) {
-                        logger.fine("NOT adding tile entity " + entityId + " @ " + tileEntityX + "," + tileEntityY + "," + tileEntityZ + " because z coordinate is out of range!");
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("NOT adding tile entity " + entityId + " @ " + tileEntityX + "," + tileEntityY + "," + tileEntityZ + " because z coordinate is out of range!");
                     }
                 } else {
                     final int existingBlockType = world.getBlockTypeAt(tileEntityX, tileEntityY, tileEntityZ);
                     if (! TILE_ENTITY_MAP.containsKey(entityId)) {
-                        if (logger.isLoggable(Level.FINE)) {
-                            logger.fine("Adding unknown tile entity " + entityId + " @ " + tileEntityX + "," + tileEntityY + "," + tileEntityZ + " (block type: " + BLOCK_TYPE_NAMES[existingBlockType] + "; not able to detect whether the block type is correct; map may cause errors!)");
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Adding unknown tile entity " + entityId + " @ " + tileEntityX + "," + tileEntityY + "," + tileEntityZ + " (block type: " + BLOCK_TYPE_NAMES[existingBlockType] + "; not able to detect whether the block type is correct; map may cause errors!)");
                         }
                         world.addTileEntity(tileEntityX, tileEntityY, tileEntityZ, tileEntity);
                     } else if (TILE_ENTITY_MAP.get(entityId).contains(existingBlockType)) {
-                        if (logger.isLoggable(Level.FINE)) {
-                            logger.fine("Adding tile entity " + entityId + " @ " + tileEntityX + "," + tileEntityY + "," + tileEntityZ + " (block type: " + BLOCK_TYPE_NAMES[existingBlockType] + ")");
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Adding tile entity " + entityId + " @ " + tileEntityX + "," + tileEntityY + "," + tileEntityZ + " (block type: " + BLOCK_TYPE_NAMES[existingBlockType] + ")");
                         }
                         world.addTileEntity(tileEntityX, tileEntityY, tileEntityZ, tileEntity);
                     } else {
@@ -186,8 +184,8 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                         // happen, for instance if the block was not placed because
                         // it collided with another block, or it was below or above
                         // the world limits)
-                        if (logger.isLoggable(Level.FINE)) {
-                            logger.fine("NOT adding tile entity " + entityId + " @ " + tileEntityX + "," + tileEntityY + "," + tileEntityZ + " because the block there is not a (or not the same) tile entity: " + BLOCK_TYPE_NAMES[existingBlockType] + "!");
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("NOT adding tile entity " + entityId + " @ " + tileEntityX + "," + tileEntityY + "," + tileEntityZ + " because the block there is not a (or not the same) tile entity: " + BLOCK_TYPE_NAMES[existingBlockType] + "!");
                         }
                     }
                 }
@@ -202,7 +200,9 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
         final Point3i dimensions = object.getDimensions();
         final Point3i offset = object.getAttribute(ATTRIBUTE_OFFSET, new Point3i());
         if ((((long) x + offset.x) < Integer.MIN_VALUE) || (((long) x + offset.x) > Integer.MAX_VALUE)) {
-            // The object extends beyond the limits of a 32 bit signed integer in the X dimension
+            if (logger.isDebugEnabled()) {
+                logger.debug("Object {0}@{1},{2},{3} extends beyond the limits of a 32 bit signed integer in the X dimension");
+            }
             return false;
         }
         if ((((long) x + dimensions.x - 1 + offset.x) < Integer.MIN_VALUE) || (((long) x + dimensions.x - 1 + offset.x) > Integer.MAX_VALUE)) {
@@ -260,14 +260,14 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                                     // custom object, is substantial, and there is already a
                                     // substantial block at the same location in the world;
                                     // there is no room for this object
-                                    if (logger.isLoggable(Level.FINER)) {
-                                        logger.finer("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " due to collision with existing above ground block of type " + BLOCK_TYPE_NAMES[world.getBlockTypeAt(worldX, worldY, worldZ)]);
+                                    if (logger.isTraceEnabled()) {
+                                        logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " due to collision with existing above ground block of type " + BLOCK_TYPE_NAMES[world.getBlockTypeAt(worldX, worldY, worldZ)]);
                                     }
                                     return false;
                                 }
                                 if ((! allowConnectingBlocks) && wouldConnect(world, worldX, worldY, worldZ, objectBlock.id)) {
-                                    if (logger.isLoggable(Level.FINER)) {
-                                        logger.finer("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " because it would cause a connecting block");
+                                    if (logger.isTraceEnabled()) {
+                                        logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " because it would cause a connecting block");
                                     }
                                     return false;
                                 }
@@ -289,8 +289,8 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                             if ((worldZ <= terrainHeight) && (! object.getMaterial(dx, dy, dz).block.veryInsubstantial)) {
                                 // A solid block in the object collides with
                                 // the floor
-                                if (logger.isLoggable(Level.FINER)) {
-                                    logger.finer("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " due to collision with floor");
+                                if (logger.isTraceEnabled()) {
+                                    logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " due to collision with floor");
                                 }
                                 return false;
                             } else if ((worldZ > terrainHeight) && (collisionMode != COLLISION_MODE_NONE)) {
@@ -303,14 +303,14 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                                         // substantial, and there is already a
                                         // substantial block at the same location in the
                                         // world; there is no room for this object
-                                        if (logger.isLoggable(Level.FINER)) {
-                                            logger.finer("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " due to collision with existing above ground block of type " + BLOCK_TYPE_NAMES[world.getBlockTypeAt(worldX, worldY, worldZ)]);
+                                        if (logger.isTraceEnabled()) {
+                                            logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " due to collision with existing above ground block of type " + BLOCK_TYPE_NAMES[world.getBlockTypeAt(worldX, worldY, worldZ)]);
                                         }
                                         return false;
                                     }
                                     if ((! allowConnectingBlocks) && wouldConnect(world, worldX, worldY, worldZ, objectBlock.id)) {
-                                        if (logger.isLoggable(Level.FINER)) {
-                                            logger.finer("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " because it would cause a connecting block");
+                                        if (logger.isTraceEnabled()) {
+                                            logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " because it would cause a connecting block");
                                         }
                                         return false;
                                     }
@@ -321,8 +321,8 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                 }
             }
         }
-        if (logger.isLoggable(Level.FINEST)) {
-            logger.finest("There is room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement);
+        if (logger.isTraceEnabled()) {
+            logger.trace("There is room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement);
         }
         return true;
     }
@@ -335,23 +335,23 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
      */
     private static boolean wouldConnect(MinecraftWorld world, int worldX, int worldY, int worldZ, int objectBlock) {
         if (wouldConnect(objectBlock, world.getBlockTypeAt(worldX - 1, worldY, worldZ))) {
-            if (logger.isLoggable(Level.FINER)) {
-                logger.finer(BLOCK_TYPE_NAMES[objectBlock] + " @ " + worldX + "," + worldY + "," + worldZ + " would connect to " + BLOCK_TYPE_NAMES[world.getBlockTypeAt(worldX - 1, worldY, worldZ)] + " @ dx = -1");
+            if (logger.isTraceEnabled()) {
+                logger.trace(BLOCK_TYPE_NAMES[objectBlock] + " @ " + worldX + "," + worldY + "," + worldZ + " would connect to " + BLOCK_TYPE_NAMES[world.getBlockTypeAt(worldX - 1, worldY, worldZ)] + " @ dx = -1");
             }
             return true;
         } else if (wouldConnect(objectBlock, world.getBlockTypeAt(worldX, worldY - 1, worldZ))) {
-            if (logger.isLoggable(Level.FINER)) {
-                logger.finer(BLOCK_TYPE_NAMES[objectBlock] + " @ " + worldX + "," + worldY + "," + worldZ + " would connect to " + BLOCK_TYPE_NAMES[world.getBlockTypeAt(worldX, worldY - 1, worldZ)] + " @ dy = -1");
+            if (logger.isTraceEnabled()) {
+                logger.trace(BLOCK_TYPE_NAMES[objectBlock] + " @ " + worldX + "," + worldY + "," + worldZ + " would connect to " + BLOCK_TYPE_NAMES[world.getBlockTypeAt(worldX, worldY - 1, worldZ)] + " @ dy = -1");
             }
             return true;
         } else if (wouldConnect(objectBlock, world.getBlockTypeAt(worldX + 1, worldY, worldZ))) {
-            if (logger.isLoggable(Level.FINER)) {
-                logger.finer(BLOCK_TYPE_NAMES[objectBlock] + " @ " + worldX + "," + worldY + "," + worldZ + " would connect to " + BLOCK_TYPE_NAMES[world.getBlockTypeAt(worldX + 1, worldY, worldZ)] + " @ dx = 1");
+            if (logger.isTraceEnabled()) {
+                logger.trace(BLOCK_TYPE_NAMES[objectBlock] + " @ " + worldX + "," + worldY + "," + worldZ + " would connect to " + BLOCK_TYPE_NAMES[world.getBlockTypeAt(worldX + 1, worldY, worldZ)] + " @ dx = 1");
             }
             return true;
         } else if (wouldConnect(objectBlock, world.getBlockTypeAt(worldX, worldY + 1, worldZ))) {
-            if (logger.isLoggable(Level.FINER)) {
-                logger.finer(BLOCK_TYPE_NAMES[objectBlock] + " @ " + worldX + "," + worldY + "," + worldZ + " would connect to " + BLOCK_TYPE_NAMES[world.getBlockTypeAt(worldX, worldY + 1, worldZ)] + " @ dy = 1");
+            if (logger.isTraceEnabled()) {
+                logger.trace(BLOCK_TYPE_NAMES[objectBlock] + " @ " + worldX + "," + worldY + "," + worldZ + " would connect to " + BLOCK_TYPE_NAMES[world.getBlockTypeAt(worldX, worldY + 1, worldZ)] + " @ dy = 1");
             }
             return true;
         } else {
@@ -412,7 +412,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
     }
     
     private static final Set<Integer> AIR_AND_FLUIDS = new HashSet<>(Arrays.asList(BLK_AIR, BLK_WATER, BLK_STATIONARY_WATER, BLK_LAVA, BLK_STATIONARY_LAVA));
-    private static final Logger logger = Logger.getLogger(WPObjectExporter.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WPObjectExporter.class);
 
     public static class WPObjectFixup implements Fixup {
         public WPObjectFixup(WPObject object, int x, int y, int z, Placement placement) {
@@ -427,8 +427,8 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
         public void fixup(MinecraftWorld world, Dimension dimension) {
             // Recheck whether there is room
             if (isRoom(world, dimension, object, x, y, z, placement)) {
-                if (logger.isLoggable(Level.FINER)) {
-                    logger.finer("Placing custom object " + object.getName() + " @ " + x + "," + y + "," + z + " in fixup");
+                if (logger.isTraceEnabled()) {
+                    logger.trace("Placing custom object " + object.getName() + " @ " + x + "," + y + "," + z + " in fixup");
                 }
                 WPObjectExporter.renderObject(world, dimension, object, x, y, z);
                 
@@ -442,8 +442,8 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                 // Fixups are done *after* lighting,
                 // so we have to relight the area
                 recalculateLight(world, getBounds(object, x, y, z));
-            } else if (logger.isLoggable(Level.FINER)) {
-                logger.finer("No room for custom object " + object.getName() + " @ " + x + "," + y + "," + z + " in fixup");
+            } else if (logger.isTraceEnabled()) {
+                logger.trace("No room for custom object " + object.getName() + " @ " + x + "," + y + "," + z + " in fixup");
             }
         }
 
@@ -454,14 +454,14 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
             // terrain underneath the object
             Box dirtyArea = new Box(lightBox.getX1() - 1, lightBox.getX2() + 1, MathUtils.clamp(0, lightBox.getZ1() - 5, world.getMaxHeight() - 1), MathUtils.clamp(0, lightBox.getZ2() + 1, world.getMaxHeight() - 1), lightBox.getY1() - 1, lightBox.getY2() + 1);
             if (dirtyArea.getVolume() == 0) {
-                if (logger.isLoggable(Level.FINER)) {
-                    logger.finer("Dirty area for lighting calculation is empty; skipping lighting calculation");
+                if (logger.isTraceEnabled()) {
+                    logger.trace("Dirty area for lighting calculation is empty; skipping lighting calculation");
                 }
                 return;
             }
             lightingCalculator.setDirtyArea(dirtyArea);
-            if (logger.isLoggable(Level.FINER)) {
-                logger.finer("Recalculating light in " + lightingCalculator.getDirtyArea());
+            if (logger.isTraceEnabled()) {
+                logger.trace("Recalculating light in " + lightingCalculator.getDirtyArea());
             }
             lightingCalculator.recalculatePrimaryLight();
             while (lightingCalculator.calculateSecondaryLight());

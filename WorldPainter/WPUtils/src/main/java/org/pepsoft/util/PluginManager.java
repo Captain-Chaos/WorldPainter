@@ -18,8 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * A general purpose plugin manager.
@@ -36,8 +34,8 @@ public final class PluginManager {
     }
     
     public static void loadPlugins(File pluginDir, PublicKey publicKey, String logPrefix) {
-        if (logger.isLoggable(Level.FINE)) {
-            logger.fine(logPrefix + "Loading plugins");
+        if (logger.isDebugEnabled()) {
+            logger.debug(logPrefix + "Loading plugins");
         }
         File[] pluginFiles = pluginDir.listFiles((dir, name) -> {
             return name.toLowerCase().endsWith(".jar");
@@ -47,7 +45,7 @@ public final class PluginManager {
                 try {
                     JarFile jarFile = new JarFile(pluginFile);
                     if (! isSigned(jarFile, publicKey)) {
-                        logger.severe(logPrefix + jarFile.getName() + " is not official or has been tampered with; not loading it");
+                        logger.error(logPrefix + jarFile.getName() + " is not official or has been tampered with; not loading it");
                         continue;
                     }
                     ClassLoader pluginClassLoader = new URLClassLoader(new URL[] {pluginFile.toURI().toURL()});
@@ -167,11 +165,11 @@ public final class PluginManager {
                 } catch (ClassNotFoundException e) {
                     continue;
                 }
-                logger.fine("Loading " + name + " from " + entry.getKey().getName());
+                logger.debug("Loading " + name + " from " + entry.getKey().getName());
                 return _class;
             }
             throw new ClassNotFoundException("Class " + name + " not found in plugin class loaders");
         }
     };
-    private static final Logger logger = Logger.getLogger(PluginManager.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(PluginManager.class);
 }

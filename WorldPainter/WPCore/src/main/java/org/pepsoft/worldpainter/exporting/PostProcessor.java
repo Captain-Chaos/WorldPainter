@@ -6,7 +6,6 @@ import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.objects.MinecraftWorldObject;
 
 import java.awt.*;
-import java.util.logging.Logger;
 
 import static org.pepsoft.minecraft.Block.*;
 import static org.pepsoft.minecraft.Constants.*;
@@ -144,8 +143,8 @@ public class PostProcessor {
                                 if (blockTypeBelow != BLK_LARGE_FLOWERS) {
                                     // There's a non-double high plant block below;
                                     // replace this block with air
-                                    if (logger.isLoggable(java.util.logging.Level.FINER)) {
-                                        logger.finer("Block @ " + x + "," + z + "," + y + " is upper large flower block; block below is " + BLOCK_TYPE_NAMES[blockTypeBelow] + "; removing block");
+                                    if (logger.isTraceEnabled()) {
+                                        logger.trace("Block @ " + x + "," + z + "," + y + " is upper large flower block; block below is " + BLOCK_TYPE_NAMES[blockTypeBelow] + "; removing block");
                                     }
                                     minecraftWorld.setMaterialAt(x, y, z, Material.AIR);
                                     blockType = BLK_AIR;
@@ -157,16 +156,16 @@ public class PostProcessor {
                                     if ((minecraftWorld.getDataAt(x, y, z + 1) & 0x8) == 0) {
                                         // There's another lower half above. Replace
                                         // this block with air
-                                        if (logger.isLoggable(java.util.logging.Level.FINER)) {
-                                            logger.finer("Block @ " + x + "," + z + "," + y + " is lower large flower block; block above is another lower large flower block; removing block");
+                                        if (logger.isTraceEnabled()) {
+                                            logger.trace("Block @ " + x + "," + z + "," + y + " is lower large flower block; block above is another lower large flower block; removing block");
                                         }
                                         minecraftWorld.setMaterialAt(x, y, z, Material.AIR);
                                         blockType = BLK_AIR;
                                     } else if ((blockTypeBelow != BLK_GRASS) && (blockTypeBelow != BLK_DIRT)) {
                                         // Double high plants can (presumably; TODO:
                                         // check) only exist on grass or dirt
-                                        if (logger.isLoggable(java.util.logging.Level.FINER)) {
-                                            logger.finer("Block @ " + x + "," + z + "," + y + " is lower large flower block; block above is " + BLOCK_TYPE_NAMES[blockTypeBelow] + "; removing block");
+                                        if (logger.isTraceEnabled()) {
+                                            logger.trace("Block @ " + x + "," + z + "," + y + " is lower large flower block; block above is " + BLOCK_TYPE_NAMES[blockTypeBelow] + "; removing block");
                                         }
                                         minecraftWorld.setMaterialAt(x, y, z, Material.AIR);
                                         blockType = BLK_AIR;
@@ -174,8 +173,8 @@ public class PostProcessor {
                                 } else {
                                     // There's a non-double high plant block above;
                                     // replace this block with air
-                                    if (logger.isLoggable(java.util.logging.Level.FINER)) {
-                                        logger.finer("Block @ " + x + "," + z + "," + y + " is lower large flower block; block above is " + BLOCK_TYPE_NAMES[blockTypeBelow] + "; removing block");
+                                    if (logger.isTraceEnabled()) {
+                                        logger.trace("Block @ " + x + "," + z + "," + y + " is lower large flower block; block above is " + BLOCK_TYPE_NAMES[blockTypeBelow] + "; removing block");
                                     }
                                     minecraftWorld.setMaterialAt(x, y, z, Material.AIR);
                                     blockType = BLK_AIR;
@@ -207,5 +206,5 @@ public class PostProcessor {
     }
 
     private static final boolean supportSand = ! "false".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.supportSand"));
-    private static final Logger logger = Logger.getLogger(PostProcessor.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(PostProcessor.class);
 }

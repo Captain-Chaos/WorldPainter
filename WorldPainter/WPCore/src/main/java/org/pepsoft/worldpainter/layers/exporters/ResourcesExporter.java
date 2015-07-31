@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-import java.util.logging.Logger;
 import org.pepsoft.minecraft.Chunk;
 import static org.pepsoft.minecraft.Constants.*;
 import org.pepsoft.util.PerlinNoise;
@@ -278,7 +277,7 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
             
             // Fix static water and lava
             if (! maxLevels.containsKey(BLK_WATER)) {
-                logger.warning("Fixing water and lava settings");
+                logger.warn("Fixing water and lava settings");
                 maxLevels.put(BLK_WATER, maxLevels.get(BLK_STATIONARY_WATER));
                 chances.put(BLK_WATER, chances.get(BLK_STATIONARY_WATER));
                 seedOffsets.put(BLK_WATER, seedOffsets.get(BLK_STATIONARY_WATER));
@@ -321,6 +320,6 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
         private Map<Integer, Integer> minLevels = new HashMap<>();
 
         private static final long serialVersionUID = 1L;
-        private static final Logger logger = Logger.getLogger(ResourcesExporter.class.getName());
+        private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ResourcesExporter.class);
     }
 }

@@ -21,8 +21,6 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static org.pepsoft.minecraft.Block.BLOCKS;
 import static org.pepsoft.minecraft.Constants.*;
@@ -170,42 +168,42 @@ objectLoop:         for (int y = chunkY; y < chunkY + 16; y++) {
         if (flooded && (spawnUnderWater || spawnUnderLava || spawnOnWater || spawnOnLava)) {
             boolean lava = dimension.getBitLayerValueAt(FloodWithLava.INSTANCE, x, y);
             if (lava ? (spawnUnderLava && spawnOnLava) : (spawnUnderWater && spawnOnWater)) {
-                if (logger.isLoggable(Level.FINER)) {
-                    logger.finer("Object " + object.getName() + " @ " + x + "," + y + "," + z + " potentially placeable under or on water or lava");
+                if (logger.isTraceEnabled()) {
+                    logger.trace("Object " + object.getName() + " @ " + x + "," + y + "," + z + " potentially placeable under or on water or lava");
                 }
                 return random.nextBoolean() ? Placement.ON_LAND : Placement.FLOATING;
             } else if (lava ? spawnUnderLava : spawnUnderWater) {
-                if (logger.isLoggable(Level.FINER)) {
-                    logger.finer("Object " + object.getName() + " @ " + x + "," + y + "," + z + " potentially placeable under water or lava");
+                if (logger.isTraceEnabled()) {
+                    logger.trace("Object " + object.getName() + " @ " + x + "," + y + "," + z + " potentially placeable under water or lava");
                 }
                 return Placement.ON_LAND;
             } else if (lava ? spawnOnLava : spawnOnWater) {
-                if (logger.isLoggable(Level.FINER)) {
-                    logger.finer("Object " + object.getName() + " @ " + x + "," + y + "," + z + " potentially placeable on water or lava");
+                if (logger.isTraceEnabled()) {
+                    logger.trace("Object " + object.getName() + " @ " + x + "," + y + "," + z + " potentially placeable on water or lava");
                 }
                 return Placement.FLOATING;
             }
         } else if (! flooded) {
             int blockTypeUnderCoords = (z > 0) ? minecraftWorld.getBlockTypeAt(x, y, z - 1) : BLK_AIR;
             if (object.getAttribute(ATTRIBUTE_SPAWN_ON_LAND, true) && (! BLOCKS[blockTypeUnderCoords].veryInsubstantial)) {
-                if (logger.isLoggable(Level.FINER)) {
-                    logger.finer("Object " + object.getName() + " @ " + x + "," + y + "," + z + " potentially placeable on land");
+                if (logger.isTraceEnabled()) {
+                    logger.trace("Object " + object.getName() + " @ " + x + "," + y + "," + z + " potentially placeable on land");
                 }
                 return Placement.ON_LAND;
             } else if ((! object.getAttribute(ATTRIBUTE_NEEDS_FOUNDATION, true)) && BLOCKS[blockTypeUnderCoords].veryInsubstantial) {
-                if (logger.isLoggable(Level.FINER)) {
-                    logger.finer("Object " + object.getName() + " @ " + x + "," + y + "," + z + " potentially placeable in the air");
+                if (logger.isTraceEnabled()) {
+                    logger.trace("Object " + object.getName() + " @ " + x + "," + y + "," + z + " potentially placeable in the air");
                 }
                 return Placement.ON_LAND;
             }
         }
-        if (logger.isLoggable(Level.FINEST)) {
-            logger.finest("Object " + object.getName() + " @ " + x + "," + y + "," + z + " not placeable");
+        if (logger.isTraceEnabled()) {
+            logger.trace("Object " + object.getName() + " @ " + x + "," + y + "," + z + " not placeable");
         }
         return Placement.NONE;
     }
     
-    private static final Logger logger = Logger.getLogger(Bo2LayerExporter.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Bo2LayerExporter.class);
     private final ThreadLocal<Random> incidentalRandomRef = new ThreadLocal<Random>() {
         @Override
         protected Random initialValue() {

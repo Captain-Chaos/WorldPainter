@@ -12,7 +12,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Logger;
 import org.jetbrains.annotations.NonNls;
 
 import javax.swing.*;
@@ -96,7 +95,7 @@ public class FileUtils {
             } else if (file.isFile()) {
                 copyFile(file, destDir);
             } else {
-                logger.warning("Not copying " + file + "; not a regular file or directory");
+                logger.warn("Not copying " + file + "; not a regular file or directory");
             }
         }
         destDir.setLastModified(dir.lastModified());
@@ -423,5 +422,5 @@ public class FileUtils {
                     "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3",
                     "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"));
     private static final char REPLACEMENT_CHAR = '_';
-    private static final Logger logger = Logger.getLogger(FileUtils.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(FileUtils.class);
 }

@@ -15,8 +15,6 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static org.pepsoft.minecraft.Constants.*;
@@ -220,7 +218,7 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
             // Log at debug level because this tends to happen when zooming in
             // and out, probably due to some state getting out of sync. It
             // doesn't so far appear to have any visible consequences.
-            logger.log(Level.SEVERE, "Exception while generating image for tile at " + x + ", " + y, e);
+            logger.error("Exception while generating image for tile at " + x + ", " + y, e);
         }
     }
 
@@ -570,7 +568,7 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
     private int zoom = 0;
     private volatile ThreadLocal<TileRenderer> tileRendererRef;
 
-    private static final Logger logger = Logger.getLogger(WPTileProvider.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WPTileProvider.class);
     
     private enum TileType {
         /**

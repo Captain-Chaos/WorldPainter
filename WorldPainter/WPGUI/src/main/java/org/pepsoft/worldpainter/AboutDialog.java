@@ -28,8 +28,6 @@ import java.text.MessageFormat;
 import java.util.List;
 import java.util.Properties;
 import java.util.ResourceBundle;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
@@ -190,7 +188,7 @@ public class AboutDialog extends javax.swing.JDialog implements WindowListener {
                             installDir = installDir.getParentFile().getParentFile().getParentFile();
                         }
                     } catch (URISyntaxException e) {
-                        logger.log(Level.SEVERE, "URI syntax exception while trying to find install dir", e);
+                        logger.error("URI syntax exception while trying to find install dir", e);
                     }
                     break;
                 }
@@ -358,5 +356,5 @@ public class AboutDialog extends javax.swing.JDialog implements WindowListener {
     private static final int BUFFER_SIZE = 32768;
     private static final ResourceBundle strings = ResourceBundle.getBundle("org.pepsoft.worldpainter.resources.strings"); // NOI18N
     private static final long serialVersionUID = 1L;
-    private static final Logger logger = Logger.getLogger(AboutDialog.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(AboutDialog.class);
 }

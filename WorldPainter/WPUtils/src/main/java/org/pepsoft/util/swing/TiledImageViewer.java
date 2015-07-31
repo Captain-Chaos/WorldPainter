@@ -17,8 +17,6 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * A generic visual component which can display one or more layers of large or
@@ -171,8 +169,8 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
             tileCaches.put(tileProvider, new HashMap<>());
             dirtyTileCaches.put(tileProvider, new HashMap<>());
             if (tileRenderers == null) {
-                if (logger.isLoggable(Level.FINE)) {
-                    logger.fine("Starting " + threads + " tile rendering threads");
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Starting " + threads + " tile rendering threads");
                 }
                 queue = new PriorityBlockingQueue<>();
                 tileRenderers = new ThreadPoolExecutor(threads, threads, 0, TimeUnit.MILLISECONDS, queue);
@@ -834,7 +832,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         Image tile = getTile(tileProvider, x, y, effectiveZoom, gc);
         if (tile != null) {
 //            if ((tile instanceof VolatileImage) && (((VolatileImage) tile).validate(gc) != VolatileImage.IMAGE_OK)) {
-//                logger.severe("Image not OK right before painting!");
+//                logger.error("Image not OK right before painting!");
 //            }
 //            ImageCapabilities capabilities = tile.getCapabilities(gc);
 //            System.out.print(capabilities.isAccelerated() ? 'a' : '-');
@@ -1061,16 +1059,16 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
             // hierarchy
             if (isDisplayable()) {
                 if (! tileProviders.isEmpty()) {
-                    if (logger.isLoggable(Level.FINE)) {
-                        logger.fine("Starting " + threads + " tile rendering threads");
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Starting " + threads + " tile rendering threads");
                     }
                     queue = new PriorityBlockingQueue<>();
                     tileRenderers = new ThreadPoolExecutor(threads, threads, 0, TimeUnit.MILLISECONDS, queue);
                 }
             } else {
                 if (tileRenderers != null) {
-                    if (logger.isLoggable(Level.FINE)) {
-                        logger.fine("Shutting down " + threads + " tile rendering threads");
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Shutting down " + threads + " tile rendering threads");
                     }
                     queue.clear();
                     tileRenderers.shutdownNow();
@@ -1120,7 +1118,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
     private static final Font NORMAL_FONT = new Font("SansSerif", Font.PLAIN, 10);
     private static final Font BOLD_FONT = new Font("SansSerif", Font.BOLD, 10);
     private static final long serialVersionUID = 1L;
-    private static final Logger logger = Logger.getLogger(TiledImageViewer.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(TiledImageViewer.class);
     
     class TileRenderJob implements Runnable, Comparable<TileRenderJob> {
         TileRenderJob(Map<Point, Reference<? extends Image>> tileCache, Map<Point, Reference<? extends Image>> dirtyTileCache, Point coords, TileProvider tileProvider, int effectiveZoom, Image image) {
@@ -1136,8 +1134,8 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         
         @Override
         public void run() {
-            if (logger.isLoggable(Level.FINER)) {
-                logger.finer("Rendering tile " + coords);
+            if (logger.isTraceEnabled()) {
+                logger.trace("Rendering tile " + coords);
             }
             final int tileSize = tileProvider.getTileSize();
             VolatileImage tile;
@@ -1155,18 +1153,18 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
 //                        break;
 //                    case VolatileImage.IMAGE_RESTORED:
 //                        // Weird, but shouldn't be a problem as we're about to paint it
-//                        if (logger.isLoggable(Level.FINE)) {
-//                            logger.fine("Volatile image validation result IMAGE_RESTORED right after creation!");
+//                        if (logger.isDebugEnabled()) {
+//                            logger.debug("Volatile image validation result IMAGE_RESTORED right after creation!");
 //                        }
 //                        break;
 //                    case VolatileImage.IMAGE_INCOMPATIBLE:
-//                        logger.severe("Volatile image validation result IMAGE_INCOMPATIBLE right after creation!");
+//                        logger.error("Volatile image validation result IMAGE_INCOMPATIBLE right after creation!");
 //                        break;
 //                }
             }
             tileProvider.paintTile(tile, coords.x, coords.y, 0, 0);
 //            if (tile.validate(gc) != VolatileImage.IMAGE_OK) {
-//                logger.severe("Image not OK right after rendering!");
+//                logger.error("Image not OK right after rendering!");
 //            }
             synchronized (TILE_CACHE_LOCK) {
                 tileCache.put(coords, new SoftReference<Image>(tile));

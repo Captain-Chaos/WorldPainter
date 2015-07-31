@@ -15,7 +15,6 @@ import org.pepsoft.worldpainter.vo.EventVO;
 
 import java.io.*;
 import java.util.*;
-import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipException;
@@ -212,5 +211,5 @@ public class WorldIO {
 
     private World2 world;
 
-    private static final Logger logger = Logger.getLogger(WorldIO.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WorldIO.class);
 }

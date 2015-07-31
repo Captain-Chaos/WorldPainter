@@ -25,8 +25,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
@@ -53,7 +51,7 @@ public class ErrorDialog extends javax.swing.JDialog {
     }
 
     public void setException(Throwable exception) {
-        logger.log(Level.SEVERE, exception.getClass().getSimpleName() + ": " + exception.getMessage(), exception);
+        logger.error(exception.getClass().getSimpleName() + ": " + exception.getMessage(), exception);
         
         Throwable rootCause = exception;
         while (rootCause.getCause() != null) {
@@ -191,7 +189,7 @@ public class ErrorDialog extends javax.swing.JDialog {
         body = sb.toString();
 
         if (! "true".equals(System.getProperty("org.pepsoft.worldpainter.devMode"))) {
-            logger.severe(body);
+            logger.error(body);
         }
     }
 
@@ -230,10 +228,10 @@ public class ErrorDialog extends javax.swing.JDialog {
             desktop.mail(uri);
             JOptionPane.showMessageDialog(this, "A new email message should have been opened now for you to send.\nIf it did not work, please use the \"copy to clipboard\" button\nand manually mail the information to worldpainter@pepsoft.org.", "Email Created", JOptionPane.INFORMATION_MESSAGE);
         } catch (URISyntaxException e) {
-            logger.log(Level.SEVERE, "URI syntax error while trying to send email", e);
+            logger.error("URI syntax error while trying to send email", e);
             JOptionPane.showMessageDialog(this, "Could not create email message with error details!\nPlease use the \"copy to clipboard\" button and mail\nthe information to worldpainter@pepsoft.org.", "Could Not Create Email", JOptionPane.ERROR_MESSAGE);
         } catch (IOException e) {
-            logger.log(Level.SEVERE, "I/O error while trying to send email", e);
+            logger.error("I/O error while trying to send email", e);
             JOptionPane.showMessageDialog(this, "Could not create email message with error details!\nPlease use the \"copy to clipboard\" button and mail\nthe information to worldpainter@pepsoft.org.", "Could Not Create Email", JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -354,6 +352,6 @@ public class ErrorDialog extends javax.swing.JDialog {
         "user.language",
     };
 
-    private static final Logger logger = Logger.getLogger(ErrorDialog.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ErrorDialog.class);
     private static final long serialVersionUID = 1L;
 }

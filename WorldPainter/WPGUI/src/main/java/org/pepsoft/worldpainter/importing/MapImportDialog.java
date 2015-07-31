@@ -27,7 +27,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.List;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import static org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_1;
@@ -119,28 +118,28 @@ public class MapImportDialog extends javax.swing.JDialog {
             Level testLevel = Level.load(levelDatFile);
             version = testLevel.getVersion();
         } catch (IOException e) {
-            logger.log(java.util.logging.Level.SEVERE, "IOException while analysing map " + levelDatFile, e);
+            logger.error("IOException while analysing map " + levelDatFile, e);
             JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("selected.file.is.not.a.valid.level.dat.file"), strings.getString("invalid.file"), JOptionPane.ERROR_MESSAGE);
             return;
         } catch (IllegalArgumentException e) {
-            logger.log(java.util.logging.Level.SEVERE, "IllegalArgumentException while analysing map " + levelDatFile, e);
+            logger.error("IllegalArgumentException while analysing map " + levelDatFile, e);
             JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("selected.file.is.not.a.valid.level.dat.file"), strings.getString("invalid.file"), JOptionPane.ERROR_MESSAGE);
             return;
         } catch (NullPointerException e) {
-            logger.log(java.util.logging.Level.SEVERE, "NullPointerException while analysing map " + levelDatFile, e);
+            logger.error("NullPointerException while analysing map " + levelDatFile, e);
             JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("selected.file.is.not.a.valid.level.dat.file"), strings.getString("invalid.file"), JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         // Other sanity checks
         if ((version != SUPPORTED_VERSION_1) && (version != SUPPORTED_VERSION_2)) {
-            logger.severe("Unsupported Minecraft version while analysing map " + levelDatFile);
+            logger.error("Unsupported Minecraft version while analysing map " + levelDatFile);
             JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("unsupported.minecraft.version"), strings.getString("unsupported.version"), JOptionPane.ERROR_MESSAGE);
             return;
         }
         File regionDir = new File(worldDir, "region");
         if (! regionDir.isDirectory()) {
-            logger.severe("Region directory missing while analysing map " + levelDatFile);
+            logger.error("Region directory missing while analysing map " + levelDatFile);
             JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("the.region.folder.is.missing"), strings.getString("region.folder.missing"), JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -151,7 +150,7 @@ public class MapImportDialog extends javax.swing.JDialog {
             return regionFilePattern.matcher(name).matches();
         });
         if ((regionFiles == null) || (regionFiles.length == 0)) {
-            logger.severe("Region files missing while analysing map " + levelDatFile);
+            logger.error("Region files missing while analysing map " + levelDatFile);
             JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("the.region.folder.contains.no.region.files"), strings.getString("region.files.missing"), JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -677,7 +676,7 @@ public class MapImportDialog extends javax.swing.JDialog {
     private boolean cancelled = true;
     private World2 importedWorld;
     
-    private static final Logger logger = Logger.getLogger(MapImportDialog.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MapImportDialog.class);
     private static final ResourceBundle strings = ResourceBundle.getBundle("org.pepsoft.worldpainter.resources.strings"); // NOI18N
     private static final NumberFormat FORMATTER = NumberFormat.getIntegerInstance();
     private static final long serialVersionUID = 1L;

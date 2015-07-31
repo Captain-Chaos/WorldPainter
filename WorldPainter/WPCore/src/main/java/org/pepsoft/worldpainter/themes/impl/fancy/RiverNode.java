@@ -7,7 +7,6 @@ package org.pepsoft.worldpainter.themes.impl.fancy;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Logger;
 import javax.vecmath.Point3i;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.gardenofeden.Garden;
@@ -122,7 +121,7 @@ public class RiverNode extends PathNode {
 
     public void apply(final Dimension dimension, final Dimension dimensionSnapshot, Set<RiverNode> processedNodes) {
         if (processedNodes.contains(this)) {
-            logger.severe("Loop in river!");
+            logger.error("Loop in river!");
             return;
         } else {
             processedNodes.add(this);
@@ -185,7 +184,7 @@ public class RiverNode extends PathNode {
         Set<RiverNode> processedNodes = new HashSet<>();
         while (node != null) {
             if (processedNodes.contains(node)) {
-                logger.severe("Loop in river!");
+                logger.error("Loop in river!");
                 return;
             } else {
                 processedNodes.add(node);
@@ -222,6 +221,6 @@ public class RiverNode extends PathNode {
     
     private RiverNode child;
     
-    private static final Logger logger = Logger.getLogger(RiverNode.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(RiverNode.class);
     private static final long serialVersionUID = 1L;
 }

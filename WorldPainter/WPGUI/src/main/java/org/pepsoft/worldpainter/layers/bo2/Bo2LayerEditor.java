@@ -30,8 +30,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static org.pepsoft.worldpainter.objects.WPObject.*;
 
@@ -83,8 +81,8 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
         List<File> files = layer.getFiles();
         if (files != null) {
             if (files.isEmpty()) {
-                if (logger.isLoggable(Level.FINE)) {
-                    logger.fine("Existing layer contains new style objects");
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Existing layer contains new style objects");
                 }
                 // New layer; files stored in object attributes
                 objects.addAll(layer.getObjectProvider().getAllObjects());
@@ -104,7 +102,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                             }
                             objects.add(object);
                         } catch (IOException e) {
-                            logger.log(Level.SEVERE, "I/O error while trying to load custom object " + file, e);
+                            logger.error("I/O error while trying to load custom object " + file, e);
                             missingFiles++;
                         }
                     }
@@ -121,7 +119,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                                 }
                                 objects.add(object);
                             } catch (IOException e) {
-                                logger.log(Level.SEVERE, "I/O error while trying to load custom object " + file, e);
+                                logger.error("I/O error while trying to load custom object " + file, e);
                                 missingFiles++;
                             }
                         } else {
@@ -304,7 +302,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                                     }
                                     listModel.addElement(object);
                                 } catch (IOException e) {
-                                    logger.log(Level.SEVERE, "I/O error while trying to load custom object " + file, e);
+                                    logger.error("I/O error while trying to load custom object " + file, e);
                                     JOptionPane.showMessageDialog(this, "I/O error while loading " + file.getName() + "; it was not added", "I/O Error", JOptionPane.ERROR_MESSAGE);
                                 }
                             }
@@ -330,7 +328,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                             }
                             listModel.addElement(object);
                         } catch (IOException e) {
-                            logger.log(Level.SEVERE, "I/O error while trying to load custom object " + selectedFile, e);
+                            logger.error("I/O error while trying to load custom object " + selectedFile, e);
                             JOptionPane.showMessageDialog(this, "I/O error while loading " + selectedFile.getName() + "; it was not added", "I/O Error", JOptionPane.ERROR_MESSAGE);
                         }
                     }
@@ -385,7 +383,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                         }
                         listModel.setElementAt(object, indice);
                     } catch (IOException e) {
-                        logger.log(Level.SEVERE, "I/O error while reloading " + file, e);
+                        logger.error("I/O error while reloading " + file, e);
                         errors.append(file.getPath()).append('\n');
                     }
                 } else {
@@ -874,6 +872,6 @@ outer:  for (Enumeration<WPObject> e = (Enumeration<WPObject>) listModel.element
     private ColourScheme colourScheme;
     private int selectedColour = Color.ORANGE.getRGB();
     
-    private static final Logger logger = Logger.getLogger(Bo2LayerEditor.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Bo2LayerEditor.class);
     private static final long serialVersionUID = 1L;
 }

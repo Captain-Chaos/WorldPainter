@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import static org.pepsoft.minecraft.Block.BLOCKS;
@@ -235,7 +234,7 @@ public class WorldMerger extends WorldExporter {
                 } else if (file.isDirectory()) {
                     FileUtils.copyDir(file, worldDir);
                 } else {
-                    logger.warning("Not copying " + file + "; not a regular file or directory");
+                    logger.warn("Not copying " + file + "; not a regular file or directory");
                 }
             }
         }
@@ -544,8 +543,8 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                                                 warnings = warnings + regionWarnings;
                                             }
                                         }
-                                        if (logger.isLoggable(java.util.logging.Level.FINE)) {
-                                            logger.fine("Merged region " + regionCoords.x + "," + regionCoords.y);
+                                        if (logger.isDebugEnabled()) {
+                                            logger.debug("Merged region " + regionCoords.x + "," + regionCoords.y);
                                         }
                                     } finally {
                                         minecraftWorld.save(dimensionDir);
@@ -584,7 +583,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                                     if (progressReceiver1 != null) {
                                         progressReceiver1.exceptionThrown(t);
                                     } else {
-                                        logger.log(java.util.logging.Level.SEVERE, "Exception while exporting region", t);
+                                        logger.error("Exception while exporting region", t);
                                     }
                                 }
                             });
@@ -596,8 +595,8 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                             synchronized (fixups) {
                                 exportedRegions.add(regionCoords);
                             }
-                            if (logger.isLoggable(java.util.logging.Level.FINE)) {
-                                logger.fine("Copied region " + regionCoords.x + "," + regionCoords.y);
+                            if (logger.isDebugEnabled()) {
+                                logger.debug("Copied region " + regionCoords.x + "," + regionCoords.y);
                             }
                         }
                     } else {
@@ -616,8 +615,8 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                                 ExportResults exportResults = null;
                                 try {
                                     exportResults = exportRegion(minecraftWorld, dimension, null, regionCoords, tileSelection, exporters, null, chunkFactory, null, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.9f, 0.1f) : null);
-                                    if (logger.isLoggable(java.util.logging.Level.FINE)) {
-                                        logger.fine("Generated region " + regionCoords.x + "," + regionCoords.y);
+                                    if (logger.isDebugEnabled()) {
+                                        logger.debug("Generated region " + regionCoords.x + "," + regionCoords.y);
                                     }
                                 } finally {
                                     if ((exportResults != null) && exportResults.chunksGenerated) {
@@ -658,7 +657,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                                 if (progressReceiver1 != null) {
                                     progressReceiver1.exceptionThrown(t);
                                 } else {
-                                    logger.log(java.util.logging.Level.SEVERE, "Exception while exporting region", t);
+                                    logger.error("Exception while exporting region", t);
                                 }
                             }
                         });
@@ -814,7 +813,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                 } else if (file.isDirectory()) {
                     FileUtils.copyDir(file, worldDir);
                 } else {
-                    logger.warning("Not copying " + file + "; not a regular file or directory");
+                    logger.warn("Not copying " + file + "; not a regular file or directory");
                 }
             }
         }
@@ -928,7 +927,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                             regionFiles.put(coords, regionFile);
                         } catch (IOException e) {
                             reportBuilder.append("I/O error while opening region file " + file + " (message: \"" + e.getMessage() + "\"); skipping region" + EOL);
-                            logger.log(java.util.logging.Level.SEVERE, "I/O error while opening region file " + file + "; skipping region", e);
+                            logger.error("I/O error while opening region file " + file + "; skipping region", e);
                             damagedRegions.add(coords);
                             continue;
                         }
@@ -944,7 +943,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                                 // isChunkPresent(), but in practice it does. Perhaps
                                 // corrupted data?
                                 reportBuilder.append("Missing chunk data in existing map for chunk " + chunkXInRegion + ", " + chunkYInRegion + " in " + regionFile + "; skipping chunk" + EOL);
-                                logger.warning("Missing chunk data in existing map for chunk " + chunkXInRegion + ", " + chunkYInRegion + " in " + regionFile + "; skipping chunk");
+                                logger.warn("Missing chunk data in existing map for chunk " + chunkXInRegion + ", " + chunkYInRegion + " in " + regionFile + "; skipping chunk");
                                 continue;
                             }
                             try (NBTInputStream in = new NBTInputStream(chunkData)) {
@@ -952,11 +951,11 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                             }
                         } catch (IOException e) {
                             reportBuilder.append("I/O error while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
-                            logger.log(java.util.logging.Level.SEVERE, "I/O error while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk", e);
+                            logger.error("I/O error while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk", e);
                             continue;
                         } catch (IllegalArgumentException e) {
                             reportBuilder.append("Illegal argument exception while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
-                            logger.log(java.util.logging.Level.SEVERE, "Illegal argument exception while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk", e);
+                            logger.error("Illegal argument exception while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk", e);
                             continue;
                         }
                         Chunk existingChunk = (version == SUPPORTED_VERSION_2)
@@ -975,11 +974,11 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                                 minecraftWorld.addChunk(newChunk);
                             } catch (NullPointerException e) {
                                 reportBuilder.append("Null pointer exception while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk" + EOL);
-                                logger.log(java.util.logging.Level.SEVERE, "Null pointer exception while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk", e);
+                                logger.error("Null pointer exception while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk", e);
                                 continue;
                             } catch (ArrayIndexOutOfBoundsException e) {
                                 reportBuilder.append("Array index out of bounds while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
-                                logger.log(java.util.logging.Level.SEVERE, "Array index out of bounds while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk", e);
+                                logger.error("Array index out of bounds while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk", e);
                                 continue;
                             }
                         } else {
@@ -1146,7 +1145,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                             regionFiles.put(coords, regionFile);
                         } catch (IOException e) {
                             reportBuilder.append("I/O error while opening region file " + file + " (message: \"" + e.getMessage() + "\"); skipping region" + EOL);
-                            logger.log(java.util.logging.Level.SEVERE, "I/O error while opening region file " + file + "; skipping region", e);
+                            logger.error("I/O error while opening region file " + file + "; skipping region", e);
                             damagedRegions.add(coords);
                             continue;
                         }
@@ -1162,7 +1161,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                                 // with isChunkPresent(), but in practice it
                                 // does. Perhaps corrupted data?
                                 reportBuilder.append("Missing chunk data for chunk " + chunkXInRegion + ", " + chunkYInRegion + " in " + regionFile + "; skipping chunk" + EOL);
-                                logger.warning("Missing chunk data for chunk " + chunkXInRegion + ", " + chunkYInRegion + " in " + regionFile + "; skipping chunk");
+                                logger.warn("Missing chunk data for chunk " + chunkXInRegion + ", " + chunkYInRegion + " in " + regionFile + "; skipping chunk");
                                 continue;
                             }
                             try (NBTInputStream in = new NBTInputStream(chunkData)) {
@@ -1170,11 +1169,11 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                             }
                         } catch (IOException e) {
                             reportBuilder.append("I/O error while reading chunk " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
-                            logger.log(java.util.logging.Level.SEVERE, "I/O error while reading chunk " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk", e);
+                            logger.error("I/O error while reading chunk " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk", e);
                             continue;
                         } catch (IllegalArgumentException e) {
                             reportBuilder.append("Illegal argument exception while reading chunk " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
-                            logger.log(java.util.logging.Level.SEVERE, "Illegal argument exception while reading chunk " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk", e);
+                            logger.error("Illegal argument exception while reading chunk " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk", e);
                             continue;
                         }
                         Chunk existingChunk = (version == SUPPORTED_VERSION_1)
@@ -1457,7 +1456,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
     private String warnings;
     private int surfaceMergeDepth = 1;
     
-    private static final Logger logger = Logger.getLogger(WorldMerger.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WorldMerger.class);
     private static final Object TIMING_FILE_LOCK = new Object();
     private static final String EOL = System.getProperty("line.separator");
     private static final BitSet SOLID_BLOCKS = new BitSet();

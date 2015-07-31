@@ -27,8 +27,6 @@ import java.awt.*;
 import java.io.*;
 import java.util.*;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
 import static org.pepsoft.minecraft.Material.DIRT;
@@ -39,8 +37,8 @@ import static org.pepsoft.minecraft.Material.DIRT;
  */
 public final class Configuration implements Serializable, EventLogger, MinecraftJarProvider {
     public Configuration() {
-        if (logger.isLoggable(Level.FINE)) {
-            logger.fine("Creating new configuration");
+        if (logger.isDebugEnabled()) {
+            logger.debug("Creating new configuration");
         }
     }
 
@@ -820,7 +818,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
             } else if (oldFile.isFile()) {
                 FileUtils.copyFile(oldFile, newConfigDir);
             } else {
-                logger.warning("Directory entry encountered which was neither file nor directory: " + oldFile);
+                logger.warn("Directory entry encountered which was neither file nor directory: " + oldFile);
             }
         }
         FileUtils.deleteDir(oldConfigDir);
@@ -872,7 +870,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private transient AccelerationType accelerationType;
 
     private static Configuration instance;
-    private static final Logger logger = Logger.getLogger(Configuration.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Configuration.class);
     private static final long serialVersionUID = 2011041801L;
     private static final int CIRCULAR_WORLD = -1;
     private static final int CURRENT_VERSION = 11;

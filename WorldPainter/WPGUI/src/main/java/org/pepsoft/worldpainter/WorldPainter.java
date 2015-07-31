@@ -29,8 +29,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static org.pepsoft.worldpainter.Constants.*;
 
@@ -302,12 +300,12 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
                 try {
                     myOverlay = ImageIO.read(file);
                 } catch (IOException e) {
-                    logger.log(Level.SEVERE, "I/O error while loading image " + file ,e);
+                    logger.error("I/O error while loading image " + file ,e);
                     JOptionPane.showMessageDialog(this, "An error occurred while loading the overlay image.\nIt may not be a valid or supported image file, or the file may be corrupted.", "Error Loading Image", JOptionPane.ERROR_MESSAGE);
                     this.drawOverlay = false;
                     return;
                 } catch (RuntimeException | Error e) {
-                    logger.log(Level.SEVERE, e.getClass().getSimpleName() + " while loading image " + file ,e);
+                    logger.error(e.getClass().getSimpleName() + " while loading image " + file ,e);
                     JOptionPane.showMessageDialog(this, "An error occurred while loading the overlay image.\nThere may not be enough available memory, or the image may be too large.", "Error Loading Image", JOptionPane.ERROR_MESSAGE);
                     this.drawOverlay = false;
                     return;
@@ -439,12 +437,12 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
                     } catch (Exception e) {
                         // TODO: this seems to happen with the Minecraft 1.6 jar
                         // Why?
-                        logger.log(Level.SEVERE, "An exception occurred while trying to load or initialize Minecraft jar; continuing without showing biomes", e);
+                        logger.error("An exception occurred while trying to load or initialize Minecraft jar; continuing without showing biomes", e);
                         mcBiomeScheme = null;
                     } catch (Error e) {
                         // TODO: this seems to happen with the Minecraft 1.6 jar
                         // Why?
-                        logger.log(Level.SEVERE, "An error occurred while trying to load or initialize Minecraft jar; continuing without showing biomes", e);
+                        logger.error("An error occurred while trying to load or initialize Minecraft jar; continuing without showing biomes", e);
                         mcBiomeScheme = null;
                     }
                 }
@@ -479,8 +477,8 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         if (count > 0) {
             refresh(tileProvider, coords);
         }
-        if (logger.isLoggable(Level.FINE)) {
-            logger.fine("Refreshing " + count + " tiles for layer " + layer.getName());
+        if (logger.isDebugEnabled()) {
+            logger.debug("Refreshing " + count + " tiles for layer " + layer.getName());
         }
     }
     
@@ -820,6 +818,6 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     private static final int DAY_WALK_DISTANCE_DIAMETER = 2 * DAY_WALK_DISTANCE_RADIUS;
     private static final int DAY_NIGHT_WALK_DISTANCE_RADIUS = 5120;
     private static final int DAY_NIGHT_WALK_DISTANCE_DIAMETER = 2 * DAY_NIGHT_WALK_DISTANCE_RADIUS;
-    private static final Logger logger = Logger.getLogger(WorldPainter.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WorldPainter.class);
     private static final long serialVersionUID = 1L;
 }

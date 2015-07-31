@@ -5,8 +5,6 @@
 package org.pepsoft.worldpainter.threedeeview;
 
 import java.awt.image.BufferedImage;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.pepsoft.util.jobqueue.UniqueJobQueue;
 import org.pepsoft.worldpainter.BiomeScheme;
 import org.pepsoft.worldpainter.ColourScheme;
@@ -29,8 +27,8 @@ public class Background3DTileRenderer extends Thread {
 
     @Override
     public void run() {
-        if (logger.isLoggable(Level.FINE)) {
-            logger.fine("Background 3D rendering thread started");
+        if (logger.isDebugEnabled()) {
+            logger.debug("Background 3D rendering thread started");
         }
         try {
             while (running) {
@@ -45,8 +43,8 @@ public class Background3DTileRenderer extends Thread {
                 throw new RuntimeException("Thread interrupted while waiting for render job", e);
             }
         }
-        if (logger.isLoggable(Level.FINE)) {
-            logger.fine("Background 3D rendering thread halted");
+        if (logger.isDebugEnabled()) {
+            logger.debug("Background 3D rendering thread halted");
         }
     }
     
@@ -63,8 +61,8 @@ public class Background3DTileRenderer extends Thread {
     }
     
     private void renderTile(Tile tile) {
-        if (logger.isLoggable(Level.FINER)) {
-            logger.finer("Rendering 3D view of tile " + tile);
+        if (logger.isTraceEnabled()) {
+            logger.trace("Rendering 3D view of tile " + tile);
         }
         BufferedImage image = renderer.render(tile);
         if (running) {
@@ -77,5 +75,5 @@ public class Background3DTileRenderer extends Thread {
     private final Tile3DRenderer renderer;
     private volatile boolean running = true, rendering;
     
-    private static final Logger logger = Logger.getLogger(Background3DTileRenderer.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Background3DTileRenderer.class);
 }

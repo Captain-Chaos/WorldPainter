@@ -15,7 +15,6 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.util.*;
 import java.util.List;
-import java.util.logging.Logger;
 
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
@@ -365,7 +364,7 @@ public final class TileRenderer {
                     if (bitLayerValue) {
                         final BitLayerRenderer renderer = (BitLayerRenderer) renderers[i];
                         if (renderer == null) {
-                            logger.severe("Missing renderer for layer " + layer + " (type: " + layer.getClass().getSimpleName() + ")");
+                            logger.error("Missing renderer for layer " + layer + " (type: " + layer.getClass().getSimpleName() + ")");
                             if (! missingRendererReportedFor.contains(layer)) {
                                 missingRendererReportedFor.add(layer);
                                 throw new IllegalStateException("Missing renderer for layer " + layer + " (type: " + layer.getClass().getSimpleName() + ")");
@@ -381,7 +380,7 @@ public final class TileRenderer {
                     if (layerValue > 0) {
                         final NibbleLayerRenderer renderer = (NibbleLayerRenderer) renderers[i];
                         if (renderer == null) {
-                            logger.severe("Missing renderer for layer " + layer + " (type: " + layer.getClass().getSimpleName() + ")");
+                            logger.error("Missing renderer for layer " + layer + " (type: " + layer.getClass().getSimpleName() + ")");
                             if (! missingRendererReportedFor.contains(layer)) {
                                 missingRendererReportedFor.add(layer);
                                 throw new IllegalStateException("Missing renderer for layer " + layer + " (type: " + layer.getClass().getSimpleName() + ")");
@@ -395,7 +394,7 @@ public final class TileRenderer {
                 case BYTE:
                     final ByteLayerRenderer renderer = (ByteLayerRenderer) renderers[i];
                     if (renderer == null) {
-                        logger.severe("Missing renderer for layer " + layer + " (type: " + layer.getClass().getSimpleName() + ")");
+                        logger.error("Missing renderer for layer " + layer + " (type: " + layer.getClass().getSimpleName() + ")");
                         if (! missingRendererReportedFor.contains(layer)) {
                             missingRendererReportedFor.add(layer);
                             throw new IllegalStateException("Missing renderer for layer " + layer + " (type: " + layer.getClass().getSimpleName() + ")");
@@ -468,7 +467,7 @@ public final class TileRenderer {
             { true, false, false, false, false,  true,  true,  true},
             {false, false, false, false, false, false,  true,  true},
             { true, false, false, false, false,  true,  true,  true}};
-    private static final Logger logger = Logger.getLogger(TileRenderer.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(TileRenderer.class);
 
     public enum LightOrigin {
         NORTHWEST {

@@ -15,10 +15,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.pepsoft.minecraft.Constants.*;
 
@@ -194,6 +191,10 @@ public abstract class AbstractMinecraft1_7BiomeScheme extends AbstractBiomeSchem
                     String[] parts = libraryDescriptor.split(":");
                     String libraryGroup = parts[0];
                     String libraryName = parts[1];
+                    if (IGNORED_LIBRARY_NAMES.contains(libraryName)) {
+                        // We want all logging to be redirected to the slf4j API
+                        continue;
+                    }
                     String libraryVersion = parts[2];
                     File libraryDir = new File(libDir, libraryGroup.replace('.', '/') + '/' + libraryName + '/' + libraryVersion);
                     File libraryFile = new File(libraryDir, libraryName + '-' + libraryVersion + ".jar");
@@ -211,6 +212,7 @@ public abstract class AbstractMinecraft1_7BiomeScheme extends AbstractBiomeSchem
     }
 
     private static final boolean[][][] BIOME_PATTERNS = new boolean[168][][];
+    private static final Set<String> IGNORED_LIBRARY_NAMES = new HashSet<>(Arrays.asList("log4j-api", "log4j-core", "commons-logging"));
 
     static {
         try {

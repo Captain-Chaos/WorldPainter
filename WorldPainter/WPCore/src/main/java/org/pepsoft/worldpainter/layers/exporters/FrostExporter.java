@@ -17,8 +17,6 @@ import java.awt.*;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.SNOW;
@@ -43,8 +41,8 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
         final BitSet noSnowOn = (BitSet) NO_SNOW_ON.clone();
         String customNoSnowOnIds = System.getProperty("org.pepsoft.worldpainter.noSnowOn");
         if ((customNoSnowOnIds != null) && (! customNoSnowOnIds.trim().isEmpty())) {
-            if (logger.isLoggable(Level.FINE)) {
-                logger.fine("Not placing snow on the following additional block IDs: \"" + customNoSnowOnIds + "\"");
+            if (logger.isDebugEnabled()) {
+                logger.debug("Not placing snow on the following additional block IDs: \"" + customNoSnowOnIds + "\"");
             }
             for (String id: customNoSnowOnIds.split("[,;]")) {
                 noSnowOn.set(Integer.parseInt(id.trim()));
@@ -148,7 +146,7 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
         BLK_REDSTONE_COMPARATOR_UNPOWERED, BLK_DAYLIGHT_SENSOR, BLK_ACTIVATOR_RAIL,
         BLK_STAINED_GLASS_PANE, BLK_ACACIA_WOOD_STAIRS,
         BLK_DARK_OAK_WOOD_STAIRS, BLK_CARPET, BLK_LARGE_FLOWERS, BLK_PACKED_ICE);
-    private static final Logger logger = Logger.getLogger(FrostExporter.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(FrostExporter.class);
     
     public static class FrostSettings implements ExporterSettings<Frost> {
         @Override

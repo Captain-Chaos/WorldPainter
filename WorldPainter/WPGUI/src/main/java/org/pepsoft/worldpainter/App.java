@@ -78,8 +78,6 @@ import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -768,14 +766,14 @@ public final class App extends JFrame implements RadiusControl,
                     worldIO.load(new FileInputStream(file));
                     World2 world = worldIO.getWorld();
                     world.addHistoryEntry(HistoryEntry.WORLD_LOADED, file);
-                    if (logger.isLoggable(Level.FINE) && (world.getMetadata() != null)) {
-                        logMetadata(Level.FINE, world.getMetadata());
+                    if (logger.isDebugEnabled() && (world.getMetadata() != null)) {
+                        logMetadataAsDebug(world.getMetadata());
                     }
                     return world;
                 } catch (UnloadableWorldException e) {
-                    logger.log(Level.SEVERE, "Could not load world from file " + file, e);
+                    logger.error("Could not load world from file " + file, e);
                     if (e.getMetadata() != null) {
-                        logMetadata(Level.SEVERE, e.getMetadata());
+                        logMetadataAsError(e.getMetadata());
                     }
                     reportUnloadableWorldException(e);
                     return null;
@@ -808,10 +806,16 @@ public final class App extends JFrame implements RadiusControl,
                 }
             }
 
-            private void logMetadata(Level logLevel, Map<String, Object> metadata) {
+            private void logMetadataAsDebug(Map<String, Object> metadata) {
                 StringBuilder sb = new StringBuilder("Metadata from world file:\n");
                 appendMetadata(sb, metadata);
-                logger.log(logLevel, sb.toString());
+                logger.debug(sb.toString());
+            }
+
+            private void logMetadataAsError(Map<String, Object> metadata) {
+                StringBuilder sb = new StringBuilder("Metadata from world file:\n");
+                appendMetadata(sb, metadata);
+                logger.error(sb.toString());
             }
 
             private void reportUnloadableWorldException(UnloadableWorldException e) {
@@ -1406,7 +1410,7 @@ public final class App extends JFrame implements RadiusControl,
                 try {
                     brushes.add(new BitmapBrush(file));
                 } catch (RuntimeException e) {
-                    logger.log(Level.SEVERE, "There was an error loading custom brush image file " + file.getName() + "; skipping file", e);
+                    logger.error("There was an error loading custom brush image file " + file.getName() + "; skipping file", e);
                 }
             }
         }
@@ -1518,12 +1522,12 @@ public final class App extends JFrame implements RadiusControl,
                 });
         if (selectedFile != null) {
             if (! selectedFile.isFile()) {
-                if (logger.isLoggable(Level.FINE)) {
+                if (logger.isDebugEnabled()) {
                     try {
-                        logger.fine("Path not a file according to File.isFile(): \"" + selectedFile + "\" (directory: " + selectedFile.isDirectory() + "; length: " + selectedFile.length() + "; absolutePath: \"" + selectedFile.getAbsolutePath() + "\"; canonicalPath: \"" + selectedFile.getCanonicalPath() + "\")");
+                        logger.debug("Path not a file according to File.isFile(): \"" + selectedFile + "\" (directory: " + selectedFile.isDirectory() + "; length: " + selectedFile.length() + "; absolutePath: \"" + selectedFile.getAbsolutePath() + "\"; canonicalPath: \"" + selectedFile.getCanonicalPath() + "\")");
                     } catch (IOException e) {
-                        logger.fine("Path not a file according to File.isFile(): \"" + selectedFile + "\" (directory: " + selectedFile.isDirectory() + "; length: " + selectedFile.length() + "; absolutePath: \"" + selectedFile.getAbsolutePath() + "\")");
-                        logger.log(Level.WARNING, "I/O error while trying to report canonical path of file: \"" + selectedFile + "\"", e);
+                        logger.debug("Path not a file according to File.isFile(): \"" + selectedFile + "\" (directory: " + selectedFile.isDirectory() + "; length: " + selectedFile.length() + "; absolutePath: \"" + selectedFile.getAbsolutePath() + "\")");
+                        logger.warn("I/O error while trying to report canonical path of file: \"" + selectedFile + "\"", e);
                     }
                 }
                 JOptionPane.showMessageDialog(this, "The specified path does not exist or is not a file", "File Does Not Exist", JOptionPane.ERROR_MESSAGE);
@@ -2131,8 +2135,8 @@ public final class App extends JFrame implements RadiusControl,
         memoryBar.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (logger.isLoggable(Level.FINE)) {
-                    logger.fine("Forcing garbage collect");
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Forcing garbage collect");
                 }
                 System.gc();
             }
@@ -2721,8 +2725,8 @@ public final class App extends JFrame implements RadiusControl,
                 }
             }
             view.setBrushRotation(desiredBrushRotation);
-//            if (logger.isLoggable(Level.FINE)) {
-//                logger.fine("Updating brush rotation took " + (System.currentTimeMillis() - start) + " ms");
+//            if (logger.isDebugEnabled()) {
+//                logger.debug("Updating brush rotation took " + (System.currentTimeMillis() - start) + " ms");
 //            }
             previousBrushRotation = desiredBrushRotation;
         }
@@ -4643,19 +4647,19 @@ public final class App extends JFrame implements RadiusControl,
                         }
                     }
                 } catch (FileNotFoundException e) {
-                    logger.log(Level.SEVERE, "File not found while loading file " + selectedFile, e);
+                    logger.error("File not found while loading file " + selectedFile, e);
                     JOptionPane.showMessageDialog(this, "The specified path does not exist or is not a file", "Nonexistent File", JOptionPane.ERROR_MESSAGE);
                     return;
                 } catch (IOException e) {
-                    logger.log(Level.SEVERE, "I/O error while loading file " + selectedFile, e);
+                    logger.error("I/O error while loading file " + selectedFile, e);
                     JOptionPane.showMessageDialog(this, "I/O error occurred while reading the specified file,\nor is not a (valid) WorldPainter layer file", "I/O Error Or Invalid File", JOptionPane.ERROR_MESSAGE);
                     return;
                 } catch (ClassNotFoundException e) {
-                    logger.log(Level.SEVERE, "Class not found exception while loading file " + selectedFile, e);
+                    logger.error("Class not found exception while loading file " + selectedFile, e);
                     JOptionPane.showMessageDialog(this, "The specified file is not a (valid) WorldPainter layer file", "Invalid File", JOptionPane.ERROR_MESSAGE);
                     return;
                 } catch (ClassCastException e) {
-                    logger.log(Level.SEVERE, "Class cast exception while loading file " + selectedFile, e);
+                    logger.error("Class cast exception while loading file " + selectedFile, e);
                     JOptionPane.showMessageDialog(this, "The specified file is not a (valid) WorldPainter layer file", "Invalid File", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
@@ -5607,7 +5611,7 @@ public final class App extends JFrame implements RadiusControl,
     
     private static final long ONE_MEGABYTE = 1024 * 1024;
     
-    private static final Logger logger = Logger.getLogger(App.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(App.class);
 
     private static final Icon ICON_NEW_WORLD            = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/page_white.png");
     private static final Icon ICON_OPEN_WORLD           = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/folder_page_white.png");

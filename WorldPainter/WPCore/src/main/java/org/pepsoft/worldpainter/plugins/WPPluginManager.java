@@ -5,7 +5,6 @@
 package org.pepsoft.worldpainter.plugins;
 
 import java.util.*;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -19,7 +18,7 @@ public class WPPluginManager {
         for (Iterator<Plugin> i = allPlugins.iterator(); i.hasNext(); ) {
             Plugin plugin = i.next();
             if ((plugin.getUUIDs() != null) && (uuid != null) && (! plugin.getUUIDs().contains(uuid))) {
-                logger.severe(logPrefix + plugin.getName() + " plugin is not authorised for this installation; not loading it");
+                logger.error(logPrefix + plugin.getName() + " plugin is not authorised for this installation; not loading it");
                 i.remove();
                 continue;
             }
@@ -63,5 +62,5 @@ public class WPPluginManager {
     
     private static WPPluginManager instance;
     private static final String FILENAME = "org.pepsoft.worldpainter.plugins";
-    private static final Logger logger = Logger.getLogger(WPPluginManager.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WPPluginManager.class);
 }

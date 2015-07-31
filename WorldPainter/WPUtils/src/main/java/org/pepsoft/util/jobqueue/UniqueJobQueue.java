@@ -4,8 +4,6 @@
  */
 package org.pepsoft.util.jobqueue;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * A FIFO job queue where each job may only exist at most once in the queue.
@@ -49,15 +47,15 @@ public class UniqueJobQueue<T extends Job> {
      */
     public synchronized boolean scheduleJobIfNotScheduled(T job) {
         if (! queue.contains(job)) {
-            if (logger.isLoggable(Level.FINER)) {
-                logger.finer("Scheduling job " + job);
+            if (logger.isTraceEnabled()) {
+                logger.trace("Scheduling job " + job);
             }
             queue.add(job);
             notifyAll();
             return true;
         } else {
-            if (logger.isLoggable(Level.FINER)) {
-                logger.finer("NOT scheduling job " + job + " due to duplicate on queue");
+            if (logger.isTraceEnabled()) {
+                logger.trace("NOT scheduling job " + job + " due to duplicate on queue");
             }
             return false;
         }
@@ -73,15 +71,15 @@ public class UniqueJobQueue<T extends Job> {
      */
     public synchronized boolean rescheduleJob(T job) {
         if (queue.contains(job)) {
-            if (logger.isLoggable(Level.FINE)) {
-                logger.fine("Scheduling job " + job + ", replacing existing job");
+            if (logger.isDebugEnabled()) {
+                logger.debug("Scheduling job " + job + ", replacing existing job");
             }
             queue.add(job);
             notifyAll();
             return true;
         } else {
-            if (logger.isLoggable(Level.FINE)) {
-                logger.fine("Scheduling job " + job);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Scheduling job " + job);
             }
             queue.add(job);
             notifyAll();
@@ -125,5 +123,5 @@ public class UniqueJobQueue<T extends Job> {
     
     private final HashList<T> queue = new HashList<>();
     
-    private static final Logger logger = Logger.getLogger(UniqueJobQueue.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(UniqueJobQueue.class);
 }

@@ -11,7 +11,6 @@ import java.io.ObjectStreamClass;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Logger;
 
 /**
  * A custom object input stream, which can use a specific class loader to load
@@ -46,12 +45,12 @@ public class WPCustomObjectInputStream extends ObjectInputStream {
                 final long localSUID = localClassDescriptor.getSerialVersionUID();
                 final long streamSUID = resultClassDescriptor.getSerialVersionUID();
                 if (streamSUID != localSUID) {
-                    logger.warning("Overriding serialized class version mismatch: local serialVersionUID = " + localSUID + " stream serialVersionUID = " + streamSUID);
+                    logger.warn("Overriding serialized class version mismatch: local serialVersionUID = " + localSUID + " stream serialVersionUID = " + streamSUID);
                     resultClassDescriptor = localClassDescriptor;
                 }
             }
         } else if (localClass == null) {
-            logger.warning("No local class for " + resultClassDescriptor.getName());
+            logger.warn("No local class for " + resultClassDescriptor.getName());
         }
         return resultClassDescriptor;
     }
@@ -59,5 +58,5 @@ public class WPCustomObjectInputStream extends ObjectInputStream {
     private final ClassLoader classLoader;
     private final Set<Class<?>> patchClasses;
 
-    private static final Logger logger = Logger.getLogger(WPCustomObjectInputStream.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WPCustomObjectInputStream.class);
 }

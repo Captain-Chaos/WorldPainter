@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.Icon;
@@ -45,7 +44,7 @@ public class ThemeListCellRenderer extends DefaultListCellRenderer {
                 throw new RuntimeException("I/O error getting default texture map from minecraft.jar", e);
             }
         } else {
-            logger.warning("Minecraft installation not found; could not load default texture map!");
+            logger.warn("Minecraft installation not found; could not load default texture map!");
             texturePack = null;
         }
     }
@@ -68,6 +67,6 @@ public class ThemeListCellRenderer extends DefaultListCellRenderer {
     private final BufferedImage texturePack;
     private final Map<Theme, Icon> iconCache = new HashMap<>();
     
-    private static final Logger logger = Logger.getLogger(ThemeListCellRenderer.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ThemeListCellRenderer.class);
     private static final long serialVersionUID = 1L;
 }

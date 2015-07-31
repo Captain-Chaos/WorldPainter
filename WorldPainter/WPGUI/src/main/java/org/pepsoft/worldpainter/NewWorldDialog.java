@@ -38,7 +38,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Logger;
 
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
@@ -1390,6 +1389,6 @@ public class NewWorldDialog extends javax.swing.JDialog {
 
     static final int ESTIMATED_TILE_DATA_SIZE = 81; // in KB
     
-    private static final Logger logger = Logger.getLogger(NewWorldDialog.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(NewWorldDialog.class);
     private static final long serialVersionUID = 1L;
 }

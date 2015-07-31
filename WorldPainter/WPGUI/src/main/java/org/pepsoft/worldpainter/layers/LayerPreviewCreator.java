@@ -32,8 +32,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 
@@ -57,8 +55,8 @@ public class LayerPreviewCreator {
         dimension.setSubsurfaceMaterial(Terrain.STONE);
         MinecraftWorldObject minecraftWorldObject = new MinecraftWorldObject(layer.getName() + " Preview", new Box(-8, 136, -8, 136, 0, previewHeight), previewHeight, null, new Point3i(-64, -64, 0));
         long now = System.currentTimeMillis();
-        if (logger.isLoggable(Level.FINE)) {
-            logger.fine("Creating data structures took " + (now - timestamp) + " ms");
+        if (logger.isDebugEnabled()) {
+            logger.debug("Creating data structures took " + (now - timestamp) + " ms");
         }
 
         // Phase two: apply layer to dimension
@@ -141,8 +139,8 @@ public class LayerPreviewCreator {
         }
         dimension.addTile(tile);
         now = System.currentTimeMillis();
-        if (logger.isLoggable(Level.FINE)) {
-            logger.fine("Applying layer(s) took " + (now - timestamp) + " ms");
+        if (logger.isDebugEnabled()) {
+            logger.debug("Applying layer(s) took " + (now - timestamp) + " ms");
         }
 
         LayerExporter<Layer> exporter = layer.getExporter();
@@ -161,8 +159,8 @@ public class LayerPreviewCreator {
                 }
             }
             now = System.currentTimeMillis();
-            if (logger.isLoggable(Level.FINE)) {
-                logger.fine("Generating terrain and rendering layer took " + (now - timestamp) + " ms");
+            if (logger.isDebugEnabled()) {
+                logger.debug("Generating terrain and rendering layer took " + (now - timestamp) + " ms");
             }
         } else if (exporter instanceof SecondPassLayerExporter) {
             // Phase three: generate terrain
@@ -174,8 +172,8 @@ public class LayerPreviewCreator {
                 }
             }
             now = System.currentTimeMillis();
-            if (logger.isLoggable(Level.FINE)) {
-                logger.fine("Generating terrain took " + (now - timestamp) + " ms");
+            if (logger.isDebugEnabled()) {
+                logger.debug("Generating terrain took " + (now - timestamp) + " ms");
             }
 
             // Phase four: render the layer
@@ -183,8 +181,8 @@ public class LayerPreviewCreator {
             Rectangle area = new Rectangle(128, 128);
             ((SecondPassLayerExporter<Layer>) exporter).render(dimension, area, area, minecraftWorldObject);
             now = System.currentTimeMillis();
-            if (logger.isLoggable(Level.FINE)) {
-                logger.fine("Rendering layer took " + (now - timestamp) + " ms");
+            if (logger.isDebugEnabled()) {
+                logger.debug("Rendering layer took " + (now - timestamp) + " ms");
             }
         } else {
             throw new IllegalArgumentException("Unknown exporter type " + exporter.getClass() + " encountered");
@@ -199,8 +197,8 @@ public class LayerPreviewCreator {
             // Can't happen since we didn't pass in a progress receiver
             throw new InternalError();
         }
-        if (logger.isLoggable(Level.FINE)) {
-            logger.fine("Post processing took " + (now - timestamp) + " ms");
+        if (logger.isDebugEnabled()) {
+            logger.debug("Post processing took " + (now - timestamp) + " ms");
         }
 
         return minecraftWorldObject;
@@ -322,7 +320,7 @@ public class LayerPreviewCreator {
     private boolean subterranean;
     private Pattern pattern = CONSTANT_HALF_PLUS_GRADIENT_PLUS_HIGHLIGHT;
 
-    private static final Logger logger = Logger.getLogger(LayerPreviewCreator.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(LayerPreviewCreator.class);
 
     public static abstract class Pattern {
         protected Pattern(String description) {

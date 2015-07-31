@@ -18,8 +18,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import org.pepsoft.util.FileUtils;
@@ -146,7 +144,7 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
                         out.println(second++ + "," + statsRow[0] + "," + statsRow[1]);
                     }
                 } catch (IOException e) {
-                    logger.log(Level.SEVERE, "I/O error while dumping statistics", e);
+                    logger.error("I/O error while dumping statistics", e);
                 }
             }
             if ((listener != null) && (! inhibitDone)) {
@@ -182,7 +180,7 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
                         }
                     }
                 } catch (IOException e) {
-                    logger.log(Level.SEVERE, "I/O error while dumping statistics", e);
+                    logger.error("I/O error while dumping statistics", e);
                 }
                 stats = new ArrayList<>();
             }
@@ -300,7 +298,7 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
     private boolean timeEstimatesActivated, inhibitDone, cancelable = true;
     private List<int[]> stats;
  
-    private static final Logger logger = Logger.getLogger(ProgressComponent.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ProgressComponent.class);
     private static final long serialVersionUID = 1L;
     
     public interface Listener<T> {

@@ -24,8 +24,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.undo.BufferKey;
@@ -1006,16 +1004,16 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
 
     @Override
     public synchronized void savePointArmed() {
-        if (logger.isLoggable(Level.FINER)) {
-            logger.finer("Save point armed; clearing writable buffers");
+        if (logger.isTraceEnabled()) {
+            logger.trace("Save point armed; clearing writable buffers");
         }
         writeableBuffers.clear();
     }
 
     @Override
     public synchronized void savePointCreated() {
-        if (logger.isLoggable(Level.FINER)) {
-            logger.finer("Save point created; clearing writable buffers");
+        if (logger.isTraceEnabled()) {
+            logger.trace("Save point created; clearing writable buffers");
         }
         writeableBuffers.clear();
     }
@@ -1033,8 +1031,8 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
     @Override
     public synchronized void bufferChanged(BufferKey<?> key) {
         TileUndoBufferKey<?> tileKey = (TileUndoBufferKey<?>) key;
-        if (logger.isLoggable(Level.FINER)) {
-            logger.finer("Buffer " + key + " changed; clearing buffer cache for type " + tileKey.buffer + " and notifying listeners");
+        if (logger.isTraceEnabled()) {
+            logger.trace("Buffer " + key + " changed; clearing buffer cache for type " + tileKey.buffer + " and notifying listeners");
         }
         switch (tileKey.buffer) {
             case BIT_LAYER_DATA:
@@ -1458,7 +1456,7 @@ layerLoop: for (Iterator<Map.Entry<Layer, byte[]>> i = layerData.entrySet().iter
 
     private static final float SQRT_OF_EIGHT = (float) Math.sqrt(8.0);
     
-    private static final Logger logger = Logger.getLogger(Tile.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Tile.class);
     
     private static final long serialVersionUID = 2011040101L;
 

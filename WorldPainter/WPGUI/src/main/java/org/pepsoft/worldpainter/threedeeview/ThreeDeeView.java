@@ -647,7 +647,7 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
     private int waterLevel, zoom = 1, scale = 1;
     private Point highlightTile, highlightPoint;
     
-//    private static final Logger logger = Logger.getLogger(ThreeDeeView.class.getName());
+//    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ThreeDeeView.class);
     private static final long serialVersionUID = 2011101701L;
 
     public enum RefreshMode {IMMEDIATE, DELAYED, MANUAL}

@@ -28,8 +28,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -135,11 +133,11 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
             try {
                 image = ImageIO.read(file);
             } catch (IOException e) {
-                logger.log(Level.SEVERE, "I/O error while loading image " + file ,e);
+                logger.error("I/O error while loading image " + file ,e);
                 JOptionPane.showMessageDialog(this, "An error occurred while loading the overlay image.\nIt may not be a valid or supported image file, or the file may be corrupted.", "Error Loading Image", JOptionPane.ERROR_MESSAGE);
                 return;
             } catch (RuntimeException | Error e) {
-                logger.log(Level.SEVERE, e.getClass().getSimpleName() + " while loading image " + file ,e);
+                logger.error(e.getClass().getSimpleName() + " while loading image " + file ,e);
                 JOptionPane.showMessageDialog(this, "An error occurred while loading the overlay image.\nThere may not be enough available memory, or the image may be too large.", "Error Loading Image", JOptionPane.ERROR_MESSAGE);
                 return;
             }
@@ -187,11 +185,11 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
                 return optimumImage;
             }
         } catch (RuntimeException e) {
-            logger.log(Level.SEVERE, e.getClass().getSimpleName() + " while scaling image of size " + image.getWidth() + "x" + image.getHeight() + " and type " + image.getType() + " to " + scale + "%", e);
+            logger.error(e.getClass().getSimpleName() + " while scaling image of size " + image.getWidth() + "x" + image.getHeight() + " and type " + image.getType() + " to " + scale + "%", e);
             JOptionPane.showMessageDialog(null, "An error occurred while " + ((scale == 100) ? "optimising" : "scaling") + " the overlay image.\nThere may not be enough available memory, or the image may be too large.", "Error " + ((scale == 100) ? "Optimising" : "Scaling") + " Image", JOptionPane.ERROR_MESSAGE);
             return null;
         } catch (Error e) {
-            logger.log(Level.SEVERE, e.getClass().getSimpleName() + " while scaling image of size " + image.getWidth() + "x" + image.getHeight() + " and type " + image.getType() + " to " + scale + "%", e);
+            logger.error(e.getClass().getSimpleName() + " while scaling image of size " + image.getWidth() + "x" + image.getHeight() + " and type " + image.getType() + " to " + scale + "%", e);
             JOptionPane.showMessageDialog(null, "An error occurred while " + ((scale == 100) ? "optimising" : "scaling") + " the overlay image.\nThere may not be enough available memory, or the image may be too large.", "Error " + ((scale == 100) ? "Optimising" : "Scaling") + " Image", JOptionPane.ERROR_MESSAGE);
             return null;
         }
@@ -579,6 +577,6 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
     private final boolean enableOverlay;
     private Timer imageUpdateTimer;
 
-    private static final Logger logger = Logger.getLogger(ConfigureViewDialog.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ConfigureViewDialog.class);
     private static final long serialVersionUID = 1L;
 }

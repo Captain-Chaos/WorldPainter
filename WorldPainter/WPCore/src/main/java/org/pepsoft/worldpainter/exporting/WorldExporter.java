@@ -31,7 +31,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
 
 import static org.pepsoft.minecraft.Block.BLOCKS;
 import static org.pepsoft.minecraft.Constants.*;
@@ -738,8 +737,8 @@ public class WorldExporter {
                             ExportResults exportResults = null;
                             try {
                                 exportResults = exportRegion(minecraftWorld, dimension, ceiling, regionCoords, tileSelection, exporters, ceilingExporters, chunkFactory, ceilingChunkFactory, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.0f, 0.9f) : null);
-                                if (logger.isLoggable(java.util.logging.Level.FINE)) {
-                                    logger.fine("Generated region " + regionCoords.x + "," + regionCoords.y);
+                                if (logger.isDebugEnabled()) {
+                                    logger.debug("Generated region " + regionCoords.x + "," + regionCoords.y);
                                 }
                                 if (exportResults.chunksGenerated) {
                                     synchronized (collectedStats) {
@@ -787,7 +786,7 @@ public class WorldExporter {
                             if (progressReceiver1 != null) {
                                 progressReceiver1.exceptionThrown(t);
                             } else {
-                                logger.log(java.util.logging.Level.SEVERE, "Exception while exporting region", t);
+                                logger.error("Exception while exporting region", t);
                             }
                         }
                     });
@@ -916,22 +915,22 @@ public class WorldExporter {
         int count = 0, total = fixups.size();
         for (Map.Entry<Point, List<Fixup>> entry: fixups.entrySet()) {
             List<Fixup> regionFixups = entry.getValue();
-            if (logger.isLoggable(java.util.logging.Level.FINE)) {
-                logger.fine("Performing " + regionFixups.size() + " fixups for region " + entry.getKey().x + "," + entry.getKey().y);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Performing " + regionFixups.size() + " fixups for region " + entry.getKey().x + "," + entry.getKey().y);
             }
             for (Fixup fixup: regionFixups) {
                 fixup.fixup(minecraftWorld, dimension);
             }
-            if (logger.isLoggable(java.util.logging.Level.FINE)) {
-                logger.fine("Flushing region files (chunks in cache: " + minecraftWorld.getCacheSize() + ")");
+            if (logger.isDebugEnabled()) {
+                logger.debug("Flushing region files (chunks in cache: " + minecraftWorld.getCacheSize() + ")");
             }
             minecraftWorld.flush(); // Might affect performance of other threads also performing fixups, but should not cause errors
             if (progressReceiver != null) {
                 progressReceiver.setProgress((float) ++count / total);
             }
         }
-        if (logger.isLoggable(java.util.logging.Level.FINER)) {
-            logger.finer("Fixups for " + fixups.size() + " regions took " + (System.currentTimeMillis() - start) + " ms");
+        if (logger.isTraceEnabled()) {
+            logger.trace("Fixups for " + fixups.size() + " regions took " + (System.currentTimeMillis() - start) + " ms");
         }
     }
 
@@ -972,7 +971,7 @@ public class WorldExporter {
     protected final Semaphore performingFixups = new Semaphore(1);
 
     private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMddHHmmss");
-    private static final Logger logger = Logger.getLogger(WorldExporter.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WorldExporter.class);
     private static final Object TIMING_FILE_LOCK = new Object();
     
     public static class ExportResults {

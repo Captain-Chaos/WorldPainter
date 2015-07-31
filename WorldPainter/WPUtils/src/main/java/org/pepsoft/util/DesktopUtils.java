@@ -13,8 +13,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Utility methods for integrating into desktop environments. These methods do
@@ -54,7 +52,7 @@ public final class DesktopUtils {
                 }
             }
         } catch (IOException e) {
-            logger.log(Level.SEVERE, "I/O error while trying to open " + file, e);
+            logger.error("I/O error while trying to open " + file, e);
             Toolkit.getDefaultToolkit().beep();
             return false;
         }
@@ -95,7 +93,7 @@ public final class DesktopUtils {
             Desktop.getDesktop().browse(url.toURI());
             return true;
         } catch (URISyntaxException e) {
-            logger.log(Level.SEVERE, "URI syntax exception while trying to open " + url, e);
+            logger.error("URI syntax exception while trying to open " + url, e);
             Toolkit.getDefaultToolkit().beep();
             return false;
         } catch (IOException e) {
@@ -106,7 +104,7 @@ public final class DesktopUtils {
             } else if (SystemUtils.isWindows()) {
                 return ProcessUtils.runAndWait("start", url.toExternalForm()) == 0;
             } else {
-                logger.log(Level.SEVERE, "I/O error while trying to open " + url, e);
+                logger.error("I/O error while trying to open " + url, e);
                 Toolkit.getDefaultToolkit().beep();
                 return false;
             }
@@ -129,5 +127,5 @@ public final class DesktopUtils {
         System.out.println("Documents folder: " + getDocumentsFolder());
     }
 
-    private static final Logger logger = Logger.getLogger(DesktopUtils.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(DesktopUtils.class);
 }

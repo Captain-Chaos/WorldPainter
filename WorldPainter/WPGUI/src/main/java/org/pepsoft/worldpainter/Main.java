@@ -5,6 +5,10 @@
 
 package org.pepsoft.worldpainter;
 
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.joran.JoranConfigurator;
+import ch.qos.logback.core.joran.spi.JoranException;
+import ch.qos.logback.core.util.StatusPrinter;
 import com.jidesoft.plaf.LookAndFeelFactory;
 import com.jidesoft.utils.Lm;
 import org.pepsoft.util.SystemUtils;
@@ -15,15 +19,17 @@ import org.pepsoft.worldpainter.operations.MouseOrTabletOperation;
 import org.pepsoft.worldpainter.plugins.Plugin;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.pepsoft.worldpainter.util.BetterAction;
-import org.pepsoft.worldpainter.util.WPLogManager;
 import org.pepsoft.worldpainter.vo.EventVO;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.swing.*;
 import java.awt.*;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
@@ -35,8 +41,6 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.*;
 import java.util.List;
-import java.util.logging.*;
-import java.util.logging.Formatter;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -65,49 +69,23 @@ public class Main {
         Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler());
 
         // Configure logging
-        Logger rootLogger = Logger.getLogger("");
-        rootLogger.setLevel(Level.INFO);
         boolean debugLogging = "true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.debugLogging"));
-        Formatter formatter = new Formatter() {
-                @Override
-                public String format(LogRecord record) {
-                    StringWriter sw = new StringWriter();
-                    StringBuffer sb = sw.getBuffer();
-                    java.util.Formatter formatter = new java.util.Formatter(sb);
-                    String loggerName = record.getLoggerName();
-                    if (loggerName.length() > 30) {
-                        loggerName = loggerName.substring(loggerName.length() - 30);
-                    }
-                    long date = record.getMillis();
-                    long millis = date % 1000;
-                    formatter.format("[%tF %<tT.%03d] {%-6s} (%30s) %s%n", date, millis, record.getLevel().getName(), loggerName, record.getMessage());
-                    if (record.getThrown() != null) {
-                        record.getThrown().printStackTrace(new PrintWriter(sw, false));
-                    }
-                    return sb.toString();
-                }
-            };
-        for (Handler handler: rootLogger.getHandlers()) {
-            handler.setLevel(debugLogging ? Level.FINER : Level.INFO);
-            handler.setFormatter(formatter);
-        }
         File configDir = Configuration.getConfigDir();
         if (! configDir.isDirectory()) {
             configDir.mkdirs();
         }
+        LoggerContext logContext = (LoggerContext) LoggerFactory.getILoggerFactory();
         try {
-            FileHandler fileHandler = new FileHandler(configDir.getAbsolutePath() + "/logfile%g.txt", 10 * 1024 * 1024, 2, true);
-            fileHandler.setLevel(debugLogging ? Level.FINER : Level.INFO);
-            fileHandler.setFormatter(formatter);
-            rootLogger.addHandler(fileHandler);
-        } catch (IOException e) {
-            e.printStackTrace();
+            JoranConfigurator configurator = new JoranConfigurator();
+            configurator.setContext(logContext);
+            logContext.reset();
+            System.setProperty("org.pepsoft.worldpainter.configDir", configDir.getAbsolutePath());
+            System.setProperty("org.pepsoft.worldpainter.logLevel", debugLogging ? "DEBUG" : "INFO");
+            configurator.doConfigure(ClassLoader.getSystemResourceAsStream("logback-main.xml"));
+        } catch (JoranException e) {
+            // StatusPrinter will handle this
         }
-        if (debugLogging) {
-            Logger pepsoftLogger = Logger.getLogger("org.pepsoft");
-            pepsoftLogger.setLevel(Level.FINE);
-            additionalLoggers.add(pepsoftLogger);
-        }
+        StatusPrinter.printInCaseOfErrorsOrWarnings(logContext);
         logger.info("Starting WorldPainter " + Version.VERSION + " (" + Version.BUILD + ")");
 
         // Set the acceleration mode. For some reason we don't fully understand,
@@ -154,7 +132,7 @@ public class Main {
             configError(e);
         }
         if (config == null) {
-            if (! logger.isLoggable(Level.FINE)) {
+            if (! logger.isDebugEnabled()) {
                 // If debug logging is on, the Configuration constructor will
                 // already log this
                 logger.info("Creating new configuration");
@@ -182,18 +160,18 @@ public class Main {
             sslContext.init(null, new TrustManager[] {trustManager}, new SecureRandom());
             HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
         } catch (CertificateException e) {
-            logger.log(Level.SEVERE, "Certificate exception while loading trusted root certificate", e);
+            logger.error("Certificate exception while loading trusted root certificate", e);
         } catch (NoSuchAlgorithmException  e) {
-            logger.log(Level.SEVERE, "No such algorithm exception while loading trusted root certificate", e);
+            logger.error("No such algorithm exception while loading trusted root certificate", e);
         } catch (KeyManagementException e) {
-            logger.log(Level.SEVERE, "Key management exception while loading trusted root certificate", e);
+            logger.error("Key management exception while loading trusted root certificate", e);
         }
         
         // Load the plugins
         if (trustedCert != null) {
             org.pepsoft.util.PluginManager.loadPlugins(new File(configDir, "plugins"), trustedCert.getPublicKey());
         } else {
-            logger.severe("Trusted root certificate not available; not loading plugins");
+            logger.error("Trusted root certificate not available; not loading plugins");
         }
         WPPluginManager.initialise(config.getUuid());
         
@@ -210,7 +188,7 @@ public class Main {
             }
         }
         if (privateContext == null) {
-            logger.fine("No private context found on classpath; update checks and usage data submission disabled");
+            logger.debug("No private context found on classpath; update checks and usage data submission disabled");
             config.setPingAllowed(false);
         }
 
@@ -253,12 +231,11 @@ public class Main {
                     prefs.put("accelerationType", config.getAccelerationType().name());
                     prefs.flush();
                 } catch (IOException e) {
-                    logger.log(Level.SEVERE, "I/O error saving configuration", e);
+                    logger.error("I/O error saving configuration", e);
                 } catch (BackingStoreException e) {
-                    logger.log(Level.SEVERE, "Backing store exception saving acceleration type", e);
+                    logger.error("Backing store exception saving acceleration type", e);
                 }
                 logger.info("Shutting down WorldPainter");
-                ((WPLogManager) LogManager.getLogManager()).realReset();
             }
         });
         
@@ -334,7 +311,7 @@ public class Main {
                     default:
                         throw new InternalError();
                 }
-                logger.fine("Installing look and feel: " + laf);
+                logger.debug("Installing look and feel: " + laf);
                 UIManager.setLookAndFeel(laf);
                 if (JAVA_7 || (! SystemUtils.isLinux())) {
                     // This would fail on Linux on Java 6 because we're
@@ -351,9 +328,9 @@ public class Main {
                     }
                 }
             } catch (ClassNotFoundException | InstantiationException e) {
-                logger.log(Level.WARNING, "Could not install selected look an feel", e);
+                logger.warn("Could not install selected look an feel", e);
             } catch (IllegalAccessException | UnsupportedLookAndFeelException e) {
-                logger.log(Level.WARNING, "Could not install selected look and feel", e);
+                logger.warn("Could not install selected look and feel", e);
             }
 
             // Don't paint values above sliders in GTK look and feel
@@ -386,15 +363,7 @@ public class Main {
         JOptionPane.showMessageDialog(null, "Could not read configuration file! Resetting configuration.\n\nException type: " + e.getClass().getSimpleName() + "\nMessage: " + e.getMessage(), "Configuration Error", JOptionPane.ERROR_MESSAGE);
     }
     
-    private static final Logger logger = Logger.getLogger(Main.class.getName());
-    
-    /**
-     * A list of references to package loggers which had diverging log levels
-     * set, so that they don't get garbage collected before an actual logger is
-     * created in the package.
-     */
-    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
-    private static final List<Logger> additionalLoggers = new ArrayList<>();
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Main.class);
 
     static PrivateContext privateContext;
 }

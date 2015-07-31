@@ -36,8 +36,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_1;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
@@ -226,7 +224,7 @@ outer:          for (int x = 0; x < width; x++) {
                 updateImageWaterLevel();
             }
         } catch (IOException e) {
-            logger.log(Level.SEVERE, "I/O error loading image " + selectedFile, e);
+            logger.error("I/O error loading image " + selectedFile, e);
             labelImageDimensions.setForeground(Color.RED);
             labelImageDimensions.setText(String.format("I/O error loading image (message: " + e.getMessage() + ")!"));
             selectedFile = null;
@@ -890,6 +888,6 @@ outer:          for (int x = 0; x < width; x++) {
     private volatile BufferedImage image;
     private int previousMaxHeight = DEFAULT_MAX_HEIGHT_2, bitDepth = 8, imageLowValue = 32, imageHighValue = 224;
     
-    private static final Logger logger = Logger.getLogger(ImportHeightMapDialog.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ImportHeightMapDialog.class);
     private static final long serialVersionUID = 1L;
 }

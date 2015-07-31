@@ -23,7 +23,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import static org.pepsoft.minecraft.Constants.*;
@@ -226,7 +225,7 @@ public class MapImporter {
                                         // with isChunkPresent(), but in practice it
                                         // does. Perhaps corrupted data?
                                         reportBuilder.append("Missing chunk data for chunk " + x + ", " + z + " in " + file + "; skipping chunk" + EOL);
-                                        logger.warning("Missing chunk data for chunk " + x + ", " + z + " in " + file + "; skipping chunk");
+                                        logger.warn("Missing chunk data for chunk " + x + ", " + z + " in " + file + "; skipping chunk");
                                         continue;
                                     }
                                     try (NBTInputStream in = new NBTInputStream(chunkData)) {
@@ -234,15 +233,15 @@ public class MapImporter {
                                     }
                                 } catch (IOException e) {
                                     reportBuilder.append("I/O error while reading chunk " + x + ", " + z + " from file " + file + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
-                                    logger.log(java.util.logging.Level.SEVERE, "I/O error while reading chunk " + x + ", " + z + " from file " + file + "; skipping chunk", e);
+                                    logger.error("I/O error while reading chunk " + x + ", " + z + " from file " + file + "; skipping chunk", e);
                                     continue;
                                 } catch (IllegalArgumentException e) {
                                     reportBuilder.append("Illegal argument exception while reading chunk " + x + ", " + z + " from file " + file + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
-                                    logger.log(java.util.logging.Level.SEVERE, "Illegal argument exception while reading chunk " + x + ", " + z + " from file " + file + "; skipping chunk", e);
+                                    logger.error("Illegal argument exception while reading chunk " + x + ", " + z + " from file " + file + "; skipping chunk", e);
                                     continue;
                                 } catch (NegativeArraySizeException e) {
                                     reportBuilder.append("Negative array size exception while reading chunk " + x + ", " + z + " from file " + file + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
-                                    logger.log(java.util.logging.Level.SEVERE, "Negative array size exception while reading chunk " + x + ", " + z + " from file " + file + "; skipping chunk", e);
+                                    logger.error("Negative array size exception while reading chunk " + x + ", " + z + " from file " + file + "; skipping chunk", e);
                                     continue;
                                 }
                                 final Chunk chunk = (version == SUPPORTED_VERSION_1)
@@ -344,11 +343,11 @@ public class MapImporter {
                                     }
                                 } catch (NullPointerException e) {
                                     reportBuilder.append("Null pointer exception while reading chunk " + x + ", " + z + " from file " + file + "; skipping chunk" + EOL);
-                                    logger.log(java.util.logging.Level.SEVERE, "Null pointer exception while reading chunk " + x + ", " + z + " from file " + file + "; skipping chunk", e);
+                                    logger.error("Null pointer exception while reading chunk " + x + ", " + z + " from file " + file + "; skipping chunk", e);
                                     continue;
                                 } catch (ArrayIndexOutOfBoundsException e) {
                                     reportBuilder.append("Array index out of bounds while reading chunk " + x + ", " + z + " from file " + file + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
-                                    logger.log(java.util.logging.Level.SEVERE, "Array index out of bounds while reading chunk " + x + ", " + z + " from file " + file + "; skipping chunk", e);
+                                    logger.error("Array index out of bounds while reading chunk " + x + ", " + z + " from file " + file + "; skipping chunk", e);
                                     continue;
                                 }
 
@@ -365,7 +364,7 @@ public class MapImporter {
                 }
             } catch (IOException e) {
                 reportBuilder.append("I/O error while opening region file " + file + " (message: \"" + e.getMessage() + "\"); skipping region" + EOL);
-                logger.log(java.util.logging.Level.SEVERE, "I/O error while opening region file " + file + "; skipping region", e);
+                logger.error("I/O error while opening region file " + file + "; skipping region", e);
             }
         }
         
@@ -400,7 +399,7 @@ public class MapImporter {
     public static final Map<Material, Terrain> SPECIAL_TERRAIN_MAPPING = new HashMap<>();
     public static final BitSet NATURAL_BLOCKS = new BitSet();
 
-    private static final Logger logger = Logger.getLogger(MapImporter.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MapImporter.class);
     private static final String EOL = System.getProperty("line.separator");
     
     static {

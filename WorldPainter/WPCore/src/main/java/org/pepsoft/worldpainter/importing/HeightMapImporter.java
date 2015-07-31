@@ -14,8 +14,6 @@ import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
 import java.io.File;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import static org.pepsoft.minecraft.Constants.*;
 import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.ProgressReceiver;
@@ -50,7 +48,7 @@ public class HeightMapImporter {
      *     operation).
      */
     public World2 doImport(ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
-        logger.log(Level.INFO, "Importing world from height map {0} (size: {1}x{2})", new Object[]{name, image.getWidth(), image.getHeight()});
+        logger.info("Importing world from height map {0} (size: {1}x{2})", new Object[]{name, image.getWidth(), image.getHeight()});
 
         final int widthInBlocks = image.getWidth() * scale / 100;
         final int heightInBlocks = image.getHeight() * scale / 100;
@@ -382,5 +380,5 @@ public class HeightMapImporter {
     private int[] histogram, levelMappingInt;
     private File imageFile;
     
-    private static final Logger logger = Logger.getLogger(HeightMapImporter.class.getName());
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(HeightMapImporter.class);
 }
