@@ -28,6 +28,7 @@
    + It affects the currently showing dimension, and by default also the corresponding ceiling or surface dimension, although that can be turned off
    + The Rotate operation used to affect all dimensions, but that has been changed to be consistent with the new Shift operation
    + Rotate and Shift operations destroy all undo and redo information and therefore they cannot be undone!
+ * The Custom Object Layer now supports bo3 objects! The support is basic; advanced features such as branches and block checks are *not* supported. However, random blocks *are* supported, as are tile entities (chests, etc.)!
  * If you use half slabs as a custom terrain type, WorldPainter will automatically combine it with double slabs of the same type to make smoother terrain
    + This is great for creating, for instance, smooth cobblestone or stone slab roads (easily made with the new Pencil tool) which you can walk without having to jump
    + The requirements are the same as for Smooth Snow: the world must either be hand crafted, or created from a high resolution (16-bit) height map. Worlds created from 8-bit height maps won't have the extra precision needed, although you can create it by using the Smooth tool along the path of the area where you want to apply this feature
