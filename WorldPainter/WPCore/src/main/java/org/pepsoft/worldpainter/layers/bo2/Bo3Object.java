@@ -4,26 +4,31 @@
  */
 package org.pepsoft.worldpainter.layers.bo2;
 
+import com.khorn.terraincontrol.util.minecraftTypes.DefaultMaterial;
+import org.jnbt.CompoundTag;
+import org.jnbt.NBTInputStream;
+import org.jnbt.Tag;
 import org.pepsoft.minecraft.Entity;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.minecraft.TileEntity;
 import org.pepsoft.worldpainter.objects.AbstractObject;
 import org.pepsoft.worldpainter.objects.WPObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.vecmath.Point3i;
 import java.io.*;
 import java.nio.charset.Charset;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.zip.GZIPInputStream;
 
 /**
  *
  * @author pepijn
  */
 public final class Bo3Object extends AbstractObject implements Bo2ObjectProvider {
-    private Bo3Object(String name, Map<String, String> properties, Map<Point3i, Bo2BlockSpec> blocks, Point3i origin, Point3i dimensions, Map<String, Serializable> attributes) {
+    private Bo3Object(String name, Map<String, String> properties, Map<Point3i, Bo3BlockSpec> blocks, Point3i origin, Point3i dimensions, Map<String, Serializable> attributes) {
         this.name = name;
         this.properties = properties;
         this.blocks = blocks;
@@ -33,21 +38,9 @@ public final class Bo3Object extends AbstractObject implements Bo2ObjectProvider
             if (attributes == null) attributes = new HashMap<>();
             attributes.put(ATTRIBUTE_OFFSET, new Point3i(-origin.x, -origin.y, -origin.z));
         }
-        if (properties.containsKey(KEY_RANDOM_ROTATION) && (! Boolean.valueOf(properties.get(KEY_RANDOM_ROTATION)))) {
+        if ((! properties.containsKey(KEY_RANDOM_ROTATION)) || (! Boolean.valueOf(properties.get(KEY_RANDOM_ROTATION)))) {
             if (attributes == null) attributes = new HashMap<>();
             attributes.put(WPObject.ATTRIBUTE_RANDOM_ROTATION, false);
-        }
-        if (properties.containsKey(KEY_NEEDS_FOUNDATION) && ! Boolean.valueOf(properties.get(KEY_NEEDS_FOUNDATION))) {
-            if (attributes == null) attributes = new HashMap<>();
-            attributes.put(WPObject.ATTRIBUTE_NEEDS_FOUNDATION, false);
-        }
-        if (properties.containsKey(KEY_SPAWN_LAVA) && Boolean.valueOf(properties.get(KEY_SPAWN_LAVA))) {
-            if (attributes == null) attributes = new HashMap<>();
-            attributes.put(WPObject.ATTRIBUTE_SPAWN_IN_LAVA, true);
-        }
-        if (properties.containsKey(KEY_SPAWN_WATER) && Boolean.valueOf(properties.get(KEY_SPAWN_WATER))) {
-            if (attributes == null) attributes = new HashMap<>();
-            attributes.put(WPObject.ATTRIBUTE_SPAWN_IN_WATER, true);
         }
         this.attributes = attributes;
     }
@@ -89,7 +82,22 @@ public final class Bo3Object extends AbstractObject implements Bo2ObjectProvider
 
     @Override
     public List<TileEntity> getTileEntities() {
-        return null;
+        if (tileEntities == null) {
+            tileEntities = blocks.values().stream()
+                .flatMap(block -> block.getTileEntities().stream())
+                .map(tileEntity -> {
+                    tileEntity.setX(tileEntity.getX() + origin.x);
+                    tileEntity.setY(tileEntity.getY() + origin.z);
+                    tileEntity.setZ(tileEntity.getZ() + origin.y);
+                    return tileEntity;
+                })
+                .collect(Collectors.toList());
+        }
+        if (tileEntities.isEmpty()) {
+            return null;
+        } else {
+            return tileEntities;
+        }
     }
 
     @Override
@@ -147,139 +155,143 @@ public final class Bo3Object extends AbstractObject implements Bo2ObjectProvider
         return load(name, file);
     }
 
-    private void readObject(ObjectInputStream in) throws  IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        
-        // Legacy
-        if (version == 0) {
-            if ((origin.x != 0) || (origin.y != 0) || (origin.z != 0)) {
-                if (attributes == null) attributes = new HashMap<>();
-                attributes.put(ATTRIBUTE_OFFSET, new Point3i(-origin.x, -origin.y, -origin.z));
-            }
-            if (properties.containsKey(KEY_RANDOM_ROTATION) && (! Boolean.valueOf(properties.get(KEY_RANDOM_ROTATION)))) {
-                if (attributes == null) attributes = new HashMap<>();
-                attributes.put(WPObject.ATTRIBUTE_RANDOM_ROTATION, false);
-            }
-            if (properties.containsKey(KEY_NEEDS_FOUNDATION) && ! Boolean.valueOf(properties.get(KEY_NEEDS_FOUNDATION))) {
-                if (attributes == null) attributes = new HashMap<>();
-                attributes.put(WPObject.ATTRIBUTE_NEEDS_FOUNDATION, false);
-            }
-            if (properties.containsKey(KEY_SPAWN_LAVA) && Boolean.valueOf(properties.get(KEY_SPAWN_LAVA))) {
-                if (attributes == null) attributes = new HashMap<>();
-                attributes.put(WPObject.ATTRIBUTE_SPAWN_IN_LAVA, true);
-            }
-            if (properties.containsKey(KEY_SPAWN_WATER) && Boolean.valueOf(properties.get(KEY_SPAWN_WATER))) {
-                if (attributes == null) attributes = new HashMap<>();
-                attributes.put(WPObject.ATTRIBUTE_SPAWN_IN_WATER, true);
-            }
-            version = 1;
-        }
-        if (version == 1) {
-            if (! attributes.containsKey(ATTRIBUTE_LEAF_DECAY_MODE)) {
-                attributes.put(ATTRIBUTE_LEAF_DECAY_MODE, LEAF_DECAY_ON);
-            }
-            version = 2;
-        }
-    }
-
     public static Bo3Object load(String objectName, File file) throws IOException {
-        Bo3Object object = load(objectName, new FileInputStream(file));
-        object.setAttribute(WPObject.ATTRIBUTE_FILE, file);
-        return object;
-    }
-
-    public static Bo3Object load(String objectName, InputStream stream) throws IOException {
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(stream, Charset.forName("US-ASCII")))) {
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), Charset.forName("US-ASCII")))) {
             Map<String, String> properties = new HashMap<>();
-            Map<Point3i, Bo2BlockSpec> blocks = new HashMap<>();
-            boolean readingMetaData = false, readingData = false;
+            Map<Point3i, Bo3BlockSpec> blocks = new HashMap<>();
             String line;
             int lowestX = Integer.MAX_VALUE, highestX = Integer.MIN_VALUE;
             int lowestY = Integer.MAX_VALUE, highestY = Integer.MIN_VALUE;
             int lowestZ = Integer.MAX_VALUE, highestZ = Integer.MIN_VALUE;
             while ((line = in.readLine()) != null) {
-                if (line.trim().length() == 0) {
+                line = line.trim();
+                if (line.isEmpty() || line.startsWith("#")) {
                     continue;
-                }
-                if (readingMetaData) {
-                    if (line.equals("[DATA]")) {
-                        readingMetaData = false;
-                        readingData = true;
-                    } else {
-                        int p = line.indexOf('=');
-                        String name = line.substring(0, p).trim();
-                        String value = line.substring(p + 1).trim();
-                        properties.put(name, value);
-                    }
-                } else if (readingData) {
-                    int p = line.indexOf(':');
-                    String coordinates = line.substring(0, p);
-                    String spec = line.substring(p + 1);
-                    p = coordinates.indexOf(',');
-                    int x = Integer.parseInt(coordinates.substring(0, p));
-                    int p2 = coordinates.indexOf(',', p + 1);
-                    int y = Integer.parseInt(coordinates.substring(p + 1, p2));
-                    int z = Integer.parseInt(coordinates.substring(p2 + 1));
-                    if (x < lowestX) {
-                        lowestX = x;
-                    }
-                    if (x > highestX) {
-                        highestX = x;
-                    }
-                    if (y < lowestY) {
-                        lowestY = y;
-                    }
-                    if (y > highestY) {
-                        highestY = y;
-                    }
-                    if (z < lowestZ) {
-                        lowestZ = z;
-                    }
-                    if (z > highestZ) {
-                        highestZ = z;
-                    }
-                    p = spec.indexOf('.');
-                    int blockId, data = 0;
-                    int[] branch = null;
-                    if (p == -1) {
-                        blockId = Integer.parseInt(spec);
-                    } else {
-                        blockId = Integer.parseInt(spec.substring(0, p));
-                        p2 = spec.indexOf('#', p + 1);
-                        if (p2 == -1) {
-                            data = Integer.parseInt(spec.substring(p + 1));
-                        } else {
-                            data = Integer.parseInt(spec.substring(p + 1, p2));
-                            p = spec.indexOf('@', p2 + 1);
-                            branch = new int[]{Integer.parseInt(spec.substring(p2 + 1, p)), Integer.parseInt(spec.substring(p + 1))};
-                        }
+                } else if (line.startsWith("Block")) {
+                    // Block spec
+                    Deque<String> args = getArgs(line);
+                    int x = Integer.parseInt(args.pop());
+                    int z = Integer.parseInt(args.pop());
+                    int y = Integer.parseInt(args.pop());
+                    if (x < lowestX)  {lowestX = x;}
+                    if (x > highestX) {highestX = x;}
+                    if (y < lowestY)  {lowestY = y;}
+                    if (y > highestY) {highestY = y;}
+                    if (z < lowestZ)  {lowestZ = z;}
+                    if (z > highestZ) {highestZ = z;}
+                    Material material = decodeMaterial(args.pop());
+                    TileEntity tileEntity = null;
+                    if (! args.isEmpty()) {
+                        tileEntity = loadTileEntity(file, args.pop());
                     }
                     Point3i coords = new Point3i(x, y, z);
-                    blocks.put(coords, new Bo2BlockSpec(coords, Material.get(blockId, data), branch));
+                    blocks.put(coords, new Bo3BlockSpec(coords, material, tileEntity));
+                } else if (line.startsWith("RandomBlock")) {
+                    // Random block spec
+                    Deque<String> args = getArgs(line);
+                    int x = Integer.parseInt(args.pop());
+                    int z = Integer.parseInt(args.pop());
+                    int y = Integer.parseInt(args.pop());
+                    if (x < lowestX)  {lowestX = x;}
+                    if (x > highestX) {highestX = x;}
+                    if (y < lowestY)  {lowestY = y;}
+                    if (y > highestY) {highestY = y;}
+                    if (z < lowestZ)  {lowestZ = z;}
+                    if (z > highestZ) {highestZ = z;}
+                    List<Bo3BlockSpec.RandomBlock> randomBlocks = new ArrayList<>();
+                    do {
+                        Material material = decodeMaterial(args.pop());
+                        String nbtOrChance = args.pop();
+                        TileEntity tileEntity = null;
+                        int chance;
+                        try {
+                            chance = Integer.parseInt(nbtOrChance);
+                        } catch (NumberFormatException e) {
+                            tileEntity = loadTileEntity(file, nbtOrChance);
+                            chance = Integer.parseInt(args.pop());
+                        }
+                        randomBlocks.add(new Bo3BlockSpec.RandomBlock(material, tileEntity, chance));
+                    } while (! args.isEmpty());
+                    Point3i coords = new Point3i(x, y, z);
+                    blocks.put(coords, new Bo3BlockSpec(coords, randomBlocks.toArray(new Bo3BlockSpec.RandomBlock[randomBlocks.size()])));
+                } else if (line.startsWith("BlockCheck") || line.startsWith("LightCheck") || line.startsWith("Branch") || line.startsWith("WeightedBranch")) {
+                    logger.warn("Ignoring unsupported bo3 feature " + line);
                 } else {
-                    if (line.equals("[META]")) {
-                        readingMetaData = true;
+                    int p = line.indexOf(':');
+                    if (p != -1) {
+                        properties.put(line.substring(0, p).trim(), line.substring(p + 1).trim());
+                    } else {
+                        logger.warn("Ignoring unrecognised line: " + line);
                     }
                 }
             }
             if (blocks.isEmpty()) {
                 throw new IOException("No blocks found in the file; is this a bo3 object?");
             }
-            return new Bo3Object(objectName, properties, blocks, new Point3i(-lowestX, -lowestY, -lowestZ), new Point3i(highestX - lowestX + 1, highestY - lowestY + 1, highestZ - lowestZ + 1), null);
+            Map<String, Serializable> attributes = new HashMap<>(Collections.singletonMap(WPObject.ATTRIBUTE_FILE, file));
+            return new Bo3Object(objectName, properties, blocks, new Point3i(-lowestX, -lowestY, -lowestZ), new Point3i(highestX - lowestX + 1, highestY - lowestY + 1, highestZ - lowestZ + 1), attributes);
+        }
+    }
+
+    private static Deque<String> getArgs(String line) {
+        int start = line.indexOf('(');
+        if (start != -1) {
+            int end = line.lastIndexOf(')');
+            if (end != -1) {
+                Deque<String> args = new ArrayDeque<>();
+                args.addAll(Arrays.asList(line.substring(start + 1, end).split(",")));
+                return args;
+            }
+        }
+        throw new IllegalArgumentException("Could not parse line \"" + line + "\"");
+    }
+
+    private static Material decodeMaterial(String materialSpec) {
+        int p = materialSpec.indexOf(':');
+        if (p == -1) {
+            if (Character.isDigit(materialSpec.charAt(0))) {
+                return Material.get(Integer.parseInt(materialSpec));
+            } else {
+                return Material.get(DefaultMaterial.valueOf(materialSpec).id);
+            }
+        } else {
+            String idSpec = materialSpec.substring(0, p).trim();
+            String dataSpec = materialSpec.substring(p + 1).trim();
+            if (Character.isDigit(idSpec.charAt(0))) {
+                return Material.get(Integer.parseInt(idSpec), Integer.parseInt(dataSpec));
+            } else {
+                return Material.get(DefaultMaterial.valueOf(idSpec).id, Integer.parseInt(dataSpec));
+            }
+        }
+    }
+
+    private static TileEntity loadTileEntity(File bo3File, String nbtFileName) throws IOException {
+        File nbtFile = new File(bo3File.getParentFile(), nbtFileName);
+        try (NBTInputStream in = new NBTInputStream(new GZIPInputStream(new FileInputStream(nbtFile)))) {
+            CompoundTag tag = (CompoundTag) in.readTag();
+            Map<String, Tag> map = tag.getValue();
+            if ((map.size() == 1) && (map.values().iterator().next() instanceof CompoundTag)) {
+                // If the root tag is a CompoundTag which only contains another
+                // CompoundTag, assume that the nested CompoundTag actually
+                // contains the data
+                return TileEntity.fromNBT((CompoundTag) tag.getValue().values().iterator().next());
+            } else {
+                return TileEntity.fromNBT(tag);
+            }
         }
     }
  
     private String name;
     private final Map<String, String> properties;
-    private final Map<Point3i, Bo2BlockSpec> blocks;
+    private final Map<Point3i, Bo3BlockSpec> blocks;
     private Point3i origin, dimensions;
     private Map<String, Serializable> attributes;
-    private int version = 2;
+    private int version = 1;
+    private transient List<TileEntity> tileEntities;
     
-    public static final String KEY_SPAWN_WATER              = "spawnWater";
-    public static final String KEY_SPAWN_LAVA               = "spawnLava";
-    public static final String KEY_NEEDS_FOUNDATION         = "needsFoundation";
-    public static final String KEY_RANDOM_ROTATION          = "randomRotation";
-    
+    public static final String KEY_RANDOM_ROTATION = "RotateRandomly";
+
+    private static final Logger logger = LoggerFactory.getLogger(Bo3Object.class);
+
     private static final long serialVersionUID = 1L;
 }

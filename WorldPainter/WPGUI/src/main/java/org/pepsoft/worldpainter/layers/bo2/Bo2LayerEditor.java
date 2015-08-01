@@ -264,12 +264,12 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
         fileChooser.setFileFilter(new FileFilter() {
             @Override
             public boolean accept(File f) {
-                return f.isDirectory() || f.getName().toLowerCase().endsWith(".bo2") || f.getName().toLowerCase().endsWith(".schematic");
+                return f.isDirectory() || f.getName().toLowerCase().endsWith(".bo2") || f.getName().toLowerCase().endsWith(".bo3") || f.getName().toLowerCase().endsWith(".schematic");
             }
 
             @Override
             public String getDescription() {
-                return "Custom Object Files (*.bo2, *.schematic)";
+                return "Custom Object Files (*.bo2, *.bo3, *.schematic)";
             }
         });
         WPObjectPreviewer previewer = new WPObjectPreviewer();
@@ -288,7 +288,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                             }
                             fieldName.setText(name);
                         }
-                        File[] files = selectedFile.listFiles((dir, name) -> name.toLowerCase().endsWith(".bo2") || name.toLowerCase().endsWith(".schematic"));
+                        File[] files = selectedFile.listFiles((dir, name) -> name.toLowerCase().endsWith(".bo2") || name.toLowerCase().endsWith(".bo3") || name.toLowerCase().endsWith(".schematic"));
                         if (files.length == 0) {
                             JOptionPane.showMessageDialog(this, "Directory " + selectedFile.getName() + " does not contain any .bo2 or .schematic files.", "No Custom Object Files", JOptionPane.ERROR_MESSAGE);
                         } else {
@@ -297,6 +297,8 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                                     WPObject object;
                                     if (file.getName().toLowerCase().endsWith(".bo2")) {
                                         object = Bo2Object.load(file);
+                                    } else if (file.getName().toLowerCase().endsWith(".bo3")) {
+                                        object = Bo3Object.load(file);
                                     } else {
                                         object = Schematic.load(file);
                                     }
@@ -323,6 +325,8 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                             WPObject object;
                             if (selectedFile.getName().toLowerCase().endsWith(".bo2")) {
                                 object = Bo2Object.load(selectedFile);
+                            } else if (selectedFile.getName().toLowerCase().endsWith(".bo3")) {
+                                object = Bo3Object.load(selectedFile);
                             } else {
                                 object = Schematic.load(selectedFile);
                             }
@@ -370,6 +374,8 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                         Map<String, Serializable> existingAttributes = object.getAttributes();
                         if (file.getName().toLowerCase().endsWith(".bo2")) {
                             object = Bo2Object.load(file);
+                        } else if (file.getName().toLowerCase().endsWith(".bo3")) {
+                            object = Bo3Object.load(file);
                         } else {
                             object = Schematic.load(file);
                         }
