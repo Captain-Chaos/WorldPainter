@@ -24,12 +24,12 @@ public class MapExplorer {
             File file = FileUtils.selectFileForOpen(null, "Select Minecraft map level.dat file", new File(MinecraftUtil.findMinecraftDir(), "saves"), new FileFilter() {
                 @Override
                 public boolean accept(File f) {
-                    return f.isDirectory() || f.getName().equals("level.dat") || f.getName().toLowerCase().endsWith(".schematic");
+                    return f.isDirectory() || f.getName().equals("level.dat") || f.getName().toLowerCase().endsWith(".schematic") || f.getName().toLowerCase().endsWith(".nbt");
                 }
 
                 @Override
                 public String getDescription() {
-                    return "Minecraft level.dat files or MCEdit .schematic files";
+                    return "Minecraft level.dat files, MCEdit .schematic files or bo3 .nbt files";
                 }
             });
             if (file != null) {
