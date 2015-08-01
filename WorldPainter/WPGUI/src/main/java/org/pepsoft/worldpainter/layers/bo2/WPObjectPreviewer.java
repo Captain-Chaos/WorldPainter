@@ -44,6 +44,8 @@ public class WPObjectPreviewer extends JPanel implements PropertyChangeListener 
                 String filename = file.getName().toLowerCase();
                 if (filename.toLowerCase().endsWith(".bo2")) {
                     object = Bo2Object.load(file);
+                } else if (filename.toLowerCase().endsWith(".bo3")) {
+                    object = Bo3Object.load(file);
                 } else if (filename.toLowerCase().endsWith(".schematic")) {
                     object = Schematic.load(file);
                 }
