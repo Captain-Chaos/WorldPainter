@@ -44,6 +44,14 @@ public class Bo2Layer extends CustomLayer {
         return new Bo2LayerExporter(this);
     }
 
+    public int getDensity() {
+        return density;
+    }
+
+    public void setDensity(int density) {
+        this.density = density;
+    }
+
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
 
@@ -52,6 +60,9 @@ public class Bo2Layer extends CustomLayer {
             setColour(colour);
             colour = 0;
         }
+        if (density == 0) {
+            density = 20;
+        }
     }
     
     private Bo2ObjectProvider objectProvider;
@@ -59,6 +70,7 @@ public class Bo2Layer extends CustomLayer {
     private int colour;
     @Deprecated
     private List<File> files = Collections.emptyList();
+    private int density = 20;
 
     private static final long serialVersionUID = 1L;
 }

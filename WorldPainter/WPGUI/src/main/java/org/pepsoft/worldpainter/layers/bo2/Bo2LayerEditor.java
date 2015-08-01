@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.NumberFormat;
 import java.util.*;
 import java.util.List;
 
@@ -50,6 +51,8 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
         
         listObjects.getSelectionModel().addListSelectionListener(this);
         fieldName.getDocument().addDocumentListener(this);
+
+        updateBlocksPerAttempt();
     }
 
     // LayerEditor
@@ -140,6 +143,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
         for (WPObject object: objects) {
             listModel.addElement(object.clone());
         }
+        spinnerBlocksPerAttempt.setValue(layer.getDensity());
         
         setLabelColour();
         
@@ -217,12 +221,13 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
         }
         Bo2ObjectProvider objectProvider = new Bo2ObjectTube(name, objects);
         if (layer == null) {
-            return new Bo2Layer(objectProvider, selectedColour);
+            layer = new Bo2Layer(objectProvider, selectedColour);
         } else {
             layer.setObjectProvider(objectProvider);
             layer.setColour(selectedColour);
-            return layer;
         }
+        layer.setDensity((Integer) spinnerBlocksPerAttempt.getValue());
+        return layer;
     }
 
     private void pickColour() {
@@ -571,7 +576,20 @@ outer:  for (Enumeration<WPObject> e = (Enumeration<WPObject>) listModel.element
         }
         refreshLeafDecaySettings();
     }
-    
+
+    private void updateBlocksPerAttempt() {
+        int blocksAt50 = (Integer) spinnerBlocksPerAttempt.getValue();
+        int blocksAt1 = blocksAt50 * 64, blocksAt100 = (int) (blocksAt50 / 3.515625f + 0.5f);
+        StringBuilder sb = new StringBuilder();
+        sb.append("one per ").append(numberFormat.format(blocksAt1)).append(" blocks at 1%");
+        if (blocksAt100 <= 1) {
+            sb.append("; one every block at 100%)");
+        } else {
+            sb.append("; one per ").append(numberFormat.format(blocksAt100)).append(" blocks at 100%)");
+        }
+        labelBlocksPerAttempt.setText(sb.toString());
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -603,18 +621,31 @@ outer:  for (Enumeration<WPObject> e = (Enumeration<WPObject>) listModel.element
         jLabel2 = new javax.swing.JLabel();
         buttonAddFile = new javax.swing.JButton();
         buttonRemoveFile = new javax.swing.JButton();
+        jLabel7 = new javax.swing.JLabel();
+        spinnerBlocksPerAttempt = new javax.swing.JSpinner();
+        jLabel9 = new javax.swing.JLabel();
+        labelBlocksPerAttempt = new javax.swing.JLabel();
+        jLabel10 = new javax.swing.JLabel();
 
         buttonReloadAll.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/arrow_rotate_clockwise.png"))); // NOI18N
         buttonReloadAll.setToolTipText("Reload all or selected objects from disk");
         buttonReloadAll.setEnabled(false);
-        buttonReloadAll.addActionListener(this::buttonReloadAllActionPerformed);
+        buttonReloadAll.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonReloadAllActionPerformed(evt);
+            }
+        });
 
         jSeparator2.setOrientation(javax.swing.SwingConstants.VERTICAL);
 
         buttonEdit.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/brick_edit.png"))); // NOI18N
         buttonEdit.setToolTipText("Edit selected object(s) options");
         buttonEdit.setEnabled(false);
-        buttonEdit.addActionListener(this::buttonEditActionPerformed);
+        buttonEdit.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonEditActionPerformed(evt);
+            }
+        });
 
         labelLeafDecayTitle.setText("Leaf decay settings for these objects:");
 
@@ -623,15 +654,27 @@ outer:  for (Enumeration<WPObject> e = (Enumeration<WPObject>) listModel.element
 
         buttonSetDecay.setText("Set all to decay");
         buttonSetDecay.setToolTipText("Set all objects to decaying leaves");
-        buttonSetDecay.addActionListener(this::buttonSetDecayActionPerformed);
+        buttonSetDecay.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonSetDecayActionPerformed(evt);
+            }
+        });
 
         buttonSetNoDecay.setText("<html>Set all to <b>not</b> decay</html>");
         buttonSetNoDecay.setToolTipText("Set all objects to non decaying leaves");
-        buttonSetNoDecay.addActionListener(this::buttonSetNoDecayActionPerformed);
+        buttonSetNoDecay.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonSetNoDecayActionPerformed(evt);
+            }
+        });
 
         buttonReset.setText("Reset");
         buttonReset.setToolTipText("Reset leaf decay to object defaults");
-        buttonReset.addActionListener(this::buttonResetActionPerformed);
+        buttonReset.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonResetActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -700,7 +743,11 @@ outer:  for (Enumeration<WPObject> e = (Enumeration<WPObject>) listModel.element
         jLabel5.setOpaque(true);
 
         buttonPickColour.setText("...");
-        buttonPickColour.addActionListener(this::buttonPickColourActionPerformed);
+        buttonPickColour.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonPickColourActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -737,26 +784,40 @@ outer:  for (Enumeration<WPObject> e = (Enumeration<WPObject>) listModel.element
 
         buttonAddFile.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/brick_add.png"))); // NOI18N
         buttonAddFile.setToolTipText("Add one or more objects");
-        buttonAddFile.addActionListener(this::buttonAddFileActionPerformed);
+        buttonAddFile.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonAddFileActionPerformed(evt);
+            }
+        });
 
         buttonRemoveFile.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/brick_delete.png"))); // NOI18N
         buttonRemoveFile.setToolTipText("Remove selected object(s)");
         buttonRemoveFile.setEnabled(false);
-        buttonRemoveFile.addActionListener(this::buttonRemoveFileActionPerformed);
+        buttonRemoveFile.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonRemoveFileActionPerformed(evt);
+            }
+        });
+
+        jLabel7.setText("Sparseness:");
+
+        spinnerBlocksPerAttempt.setModel(new javax.swing.SpinnerNumberModel(20, 1, 100000, 1));
+        spinnerBlocksPerAttempt.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerBlocksPerAttemptStateChanged(evt);
+            }
+        });
+
+        jLabel9.setText(" blocks (at 50% intensity;");
+
+        labelBlocksPerAttempt.setText("one per x blocks at 1%; one per y blocks at 100%)");
+
+        jLabel10.setText("one object per ");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jLabel2)
-            .addComponent(jLabel1)
-            .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jSeparator2, javax.swing.GroupLayout.PREFERRED_SIZE, 2, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
             .addGroup(layout.createSequentialGroup()
                 .addComponent(jScrollPane1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -765,6 +826,29 @@ outer:  for (Enumeration<WPObject> e = (Enumeration<WPObject>) listModel.element
                     .addComponent(buttonRemoveFile, javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(buttonEdit, javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(buttonReloadAll, javax.swing.GroupLayout.Alignment.TRAILING)))
+            .addGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel2)
+                    .addComponent(jLabel1)
+                    .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jSeparator2, javax.swing.GroupLayout.PREFERRED_SIZE, 2, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel7)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(labelBlocksPerAttempt)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel10)
+                                .addGap(0, 0, 0)
+                                .addComponent(spinnerBlocksPerAttempt, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 0, 0)
+                                .addComponent(jLabel9)))))
+                .addGap(0, 0, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -786,6 +870,14 @@ outer:  for (Enumeration<WPObject> e = (Enumeration<WPObject>) listModel.element
                         .addComponent(buttonReloadAll)
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel7)
+                    .addComponent(spinnerBlocksPerAttempt, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel9)
+                    .addComponent(jLabel10))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(labelBlocksPerAttempt)
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(jSeparator2)
@@ -848,6 +940,11 @@ outer:  for (Enumeration<WPObject> e = (Enumeration<WPObject>) listModel.element
         removeFiles();
     }//GEN-LAST:event_buttonRemoveFileActionPerformed
 
+    private void spinnerBlocksPerAttemptStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerBlocksPerAttemptStateChanged
+        updateBlocksPerAttempt();
+        settingsChanged();
+    }//GEN-LAST:event_spinnerBlocksPerAttemptStateChanged
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonAddFile;
@@ -860,21 +957,27 @@ outer:  for (Enumeration<WPObject> e = (Enumeration<WPObject>) listModel.element
     private javax.swing.JButton buttonSetNoDecay;
     private javax.swing.JTextField fieldName;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSeparator jSeparator2;
+    private javax.swing.JLabel labelBlocksPerAttempt;
     private javax.swing.JLabel labelEffectiveLeafDecaySetting;
     private javax.swing.JLabel labelLeafDecayTitle;
     private javax.swing.JList listObjects;
+    private javax.swing.JSpinner spinnerBlocksPerAttempt;
     // End of variables declaration//GEN-END:variables
 
     private final DefaultListModel listModel;
+    private final NumberFormat numberFormat = NumberFormat.getInstance();
     private ColourScheme colourScheme;
     private int selectedColour = Color.ORANGE.getRGB();
     

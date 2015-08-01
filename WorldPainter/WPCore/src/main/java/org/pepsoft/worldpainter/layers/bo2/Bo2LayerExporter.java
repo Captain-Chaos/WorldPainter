@@ -41,6 +41,7 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
         final int maxHeight = dimension.getMaxHeight();
         final int maxZ = maxHeight - 1;
         final List<Fixup> fixups = new ArrayList<>();
+        final int density = layer.getDensity() * 64;
         for (int chunkX = area.x; chunkX < area.x + area.width; chunkX += 16) {
             for (int chunkY = area.y; chunkY < area.y + area.height; chunkY += 16) {
                 // Set the seed and randomizer according to the chunk
@@ -57,7 +58,7 @@ objectLoop:         for (int y = chunkY; y < chunkY + 16; y++) {
                             continue;
                         }
                         final int strength = dimension.getLayerValueAt(layer, x, y);
-                        if ((strength > 0) && (random.nextInt(1280) <= strength * strength)) {
+                        if ((strength > 0) && (random.nextInt(density) <= strength * strength)) {
                             WPObject object = objectProvider.getObject();
                             final Placement placement = getPlacement(minecraftWorld, dimension, x, y, height + 1, object, random);
                             if (placement == Placement.NONE) {
@@ -112,7 +113,7 @@ objectLoop:         for (int y = chunkY; y < chunkY + 16; y++) {
         final Random random = incidentalRandomRef.get();
         final long seed = dimension.getSeed() ^ ((long) location.x << 40) ^ ((long) location.y << 20) ^ (location.z);
         random.setSeed(seed);
-        if ((intensity > 0) && (random.nextInt(1280) <= intensity * intensity / 225)) {
+        if ((intensity > 0) && (random.nextInt(layer.getDensity() * 20) <= intensity * intensity / 225)) {
             final Bo2ObjectProvider objectProvider = layer.getObjectProvider();
             objectProvider.setSeed(seed);
             WPObject object = objectProvider.getObject();
