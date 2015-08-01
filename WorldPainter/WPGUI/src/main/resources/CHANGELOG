@@ -24,7 +24,7 @@
    + The view can be rotated using the cursor keys or W, S, A and D keys, panned using the mouse and zoomed using the scroll wheel or the - and + keys
  * The Custom Object Layer has received some improvements:
    + It now supports bo3 objects! The support is basic; advanced features such as branches and block checks are *not* supported. However, random blocks *are* supported, as are tile entities (chests, etc.)!
-   + It now has a sparseness setting with which you can control the overall density of the layer. The setting controls per how many blocks the layer will attempt to place an object (the actual number of placed objects may be less if objects cannot be placed, for instance due to inappropriate underground or intersecting another object). The configured value corresponds to a layer intensity of 50% (the default). The effective value at 1% and 100% intensity is also displayed
+   + It now has a sparseness setting with which you can control the overall density of the layer. The setting controls per how many blocks the layer will attempt to place an object (the actual number of placed objects may be fewer if objects cannot be placed, for instance due to inappropriate underground or intersecting another object). The configured value corresponds to a layer intensity of 50% (the default). The effective values at 1% and 100% intensity are also displayed
  * The map can now be shifted horizontally!
    + The map can only be shifted by whole tiles (in other words in steps of 128 blocks)
    + The new operation can be found next to the Rotate operation in the toolbar and looks like a cross with four arrows. It is also in the Edit menu, underneath the existing Rotate item
