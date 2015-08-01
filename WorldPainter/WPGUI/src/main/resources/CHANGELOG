@@ -42,6 +42,7 @@
  * When importing existing Minecraft maps biomes which match what WorldPainter's automatic biome would be are imported as automatic (so that they automatically change appropriately when editing the world)
  * The brush images on the brush buttons are no longer rotated when the brush rotation is changed, since it took too much time with many custom brushes. Instead the brush outline will show an arrow indicating the original top of the brush
  * Bug fix: don't change floating red sand to chiseled sandstone
+ * Bug fix: use correct data value for goodies chest so that it shows again in-game
 
 -- Version 1.11.2, released 28-6-2015
 
