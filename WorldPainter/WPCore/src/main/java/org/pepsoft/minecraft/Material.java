@@ -906,11 +906,12 @@ public final class Material implements Serializable, Comparable<Material> {
     }
     
     private Object readResolve() throws ObjectStreamException {
-        return get(blockType, data);
+        return MATERIALS[(blockType << 4) | data];
     }
     
-    public final int blockType, data, index;
-    public final Block block;
+    public final int blockType, data;
+    public final transient int index;
+    public final transient Block block;
     
     private static final Material[] MATERIALS = new Material[65536];
     
@@ -971,7 +972,10 @@ public final class Material implements Serializable, Comparable<Material> {
     public static final Material COBBLESTONE_STAIRS    = get(BLK_COBBLESTONE_STAIRS);
     public static final Material GLASS                 = get(BLK_GLASS);
     public static final Material WOODEN_STAIRS         = get(BLK_WOODEN_STAIRS);
-    public static final Material CHEST                 = get(BLK_CHEST);
+    public static final Material CHEST_NORTH           = get(BLK_CHEST, 2);
+    public static final Material CHEST_SOUTH           = get(BLK_CHEST, 3);
+    public static final Material CHEST_WEST            = get(BLK_CHEST, 4);
+    public static final Material CHEST_EAST            = get(BLK_CHEST, 5);
     public static final Material WALL_SIGN             = get(BLK_WALL_SIGN);
     public static final Material BRICK_STAIRS          = get(BLK_BRICK_STAIRS);
     public static final Material STONE_BRICK_STAIRS    = get(BLK_STONE_BRICK_STAIRS);
