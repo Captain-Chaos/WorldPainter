@@ -316,7 +316,7 @@ public class WorldExporter {
             Point goodiesPoint = (Point) world.getSpawnPoint().clone();
             goodiesPoint.translate(3, 3);
             int height = Math.min(dimension.getIntHeightAt(goodiesPoint) + 1, dimension.getMaxHeight() - 1);
-            minecraftWorld.setBlockTypeAt(goodiesPoint.x, goodiesPoint.y, height, BLK_CHEST);
+            minecraftWorld.setMaterialAt(goodiesPoint.x, goodiesPoint.y, height, Material.CHEST_NORTH);
             Chunk chunk = minecraftWorld.getChunk(goodiesPoint.x >> 4, goodiesPoint.y >> 4);
             if (chunk != null) {
                 Chest goodiesChest = createGoodiesChest();
