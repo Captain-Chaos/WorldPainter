@@ -99,7 +99,7 @@ public abstract class AbstractMinecraft1_7BiomeScheme extends AbstractBiomeSchem
             case BIOME_HELL:
                 return colourScheme.getColour(BLK_NETHERRACK);
             case BIOME_SKY:
-                return colourScheme.getColour(BLK_AIR);
+                return colourScheme.getColour(BLK_END_STONE);
             case BIOME_FROZEN_OCEAN:
             case BIOME_FROZEN_RIVER:
                 return colourScheme.getColour(BLK_ICE);
