@@ -40,7 +40,7 @@ public final class Minecraft1_7LargeBiomeScheme extends Minecraft1_7JarBiomeSche
         }
     }
     
-    private static Object largeBiomesGenerator;
+    private final Object largeBiomesGenerator;
     
     private static final Map<Checksum, String[]> HASHES_TO_CLASSNAMES = new HashMap<>();
 
