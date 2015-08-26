@@ -1229,7 +1229,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                         }
                         // Merge surface layer blocks
                         for (int y = mergeLimit + 1; y <= newHeight; y++) {
-                            mergeSurfaceBlock(existingChunk, newChunk, x, y, z);
+                            mergeSurfaceBlock(existingChunk, newChunk, x, y, z, z <= oldHeight);
                         }
                         // Merge above ground portion from existing chunk, raised by
                         // the appropriate amount
@@ -1325,10 +1325,11 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
      * @param x The X coordinate of the block to merge.
      * @param y The Y coordinate of the block to merge.
      * @param z The Z coordinate of the block to merge.
+     * @param preserveCaves Whether empty blocks from the existing chunk should be preserved.
      */
-    private void mergeSurfaceBlock(final Chunk existingChunk, final Chunk newChunk, final int x, final int y, final int z) {
+    private void mergeSurfaceBlock(final Chunk existingChunk, final Chunk newChunk, final int x, final int y, final int z, final boolean preserveCaves) {
         final int existingBlockType = existingChunk.getBlockType(x, y, z);
-        if (BLOCKS[existingBlockType].veryInsubstantial || (! BLOCKS[existingBlockType].natural)) {
+        if (preserveCaves && (BLOCKS[existingBlockType].veryInsubstantial || (! BLOCKS[existingBlockType].natural))) {
             newChunk.setBlockType(x, y, z, existingBlockType);
             newChunk.setDataValue(x, y, z, existingChunk.getDataValue(x, y, z));
             newChunk.setSkyLightLevel(x, y, z, existingChunk.getSkyLightLevel(x, y, z));
