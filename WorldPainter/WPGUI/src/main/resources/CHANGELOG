@@ -21,10 +21,14 @@
    + All these tools (including Fill and Text) support performing the inverse operation by right-clicking instead of left-clicking. Layers are removed, biomes are reset to automatic and terrain is reset according to the Default Terrain settings of the Dimension Properties
  * All custom layer settings screens, and object settings screens, now have previews provided by dynmap (except the layers which already had a more useful preview)
    + The layer settings screens show what one tile would look like in-game with the layer applied using the current settings, providing a way to evaluate those settings. A drop down list provides a few different patterns for the layer to be distributed in the preview.
-   + The view can be rotated using the cursor keys or W, S, A and D keys, panned using the mouse and zoomed using the scroll wheel or the - and + keys
+   + The view can be rotated and zoomed using the buttons on the screen and the mouse wheel, and panned using the mouse
  * The Custom Object Layer has received some improvements:
    + It now supports bo3 objects! The support is basic; advanced features such as branches and block checks are *not* supported. However, random blocks *are* supported, as are tile entities (chests, etc.)!
    + It now has a sparseness setting with which you can control the overall density of the layer. The setting controls per how many blocks the layer will attempt to place an object (the actual number of placed objects may be fewer if objects cannot be placed, for instance due to inappropriate underground or intersecting another object). The configured value corresponds to a layer intensity of 50% (the default). The effective values at 1% and 100% intensity are also displayed
+ * The Custom Caves/Tunnels Layer can now place other layers on the tunnel floors!
+   + The layer settings screen has a new Floor Layers tab, on which you can add and configure layers, either existing ones or new ones
+   + These layers will be rendered on the floor of any caves/tunnels created by the Caves/Tunnels Layer
+   + You have limited control over where and how intensely these layers are applied: you can set a base intensity as a percentage, and you can specify a random variation which is added to the base intensity. In addition you can specify a minimum and maximum height at which the layer should be applied
  * The map can now be shifted horizontally!
    + The map can only be shifted by whole tiles (in other words in steps of 128 blocks)
    + The new operation can be found next to the Rotate operation in the toolbar and looks like a cross with four arrows. It is also in the Edit menu, underneath the existing Rotate item
@@ -34,6 +38,8 @@
  * If you use half slabs as a custom terrain type, WorldPainter will automatically combine it with double slabs of the same type to make smoother terrain
    + This is great for creating, for instance, smooth cobblestone or stone slab roads (easily made with the new Pencil tool) which you can walk without having to jump
    + The requirements are the same as for Smooth Snow: the world must either be hand crafted, or created from a high resolution (16-bit) height map. Worlds created from 8-bit height maps won't have the extra precision needed, although you can create it by using the Smooth tool along the path of the area where you want to apply this feature
+ * The tile selection screen and the biomes viewer now show the grid, to make selection of specific tiles or regions easier
+ * The tile selection screen in addition now shows the border and/or bedrock wall, to better judge how the tiles fit into the surrounding Minecraft-generated land
  * There are now two new performance settings on a new Performance tab of the Preferences screen
    + The first setting controls the hardware acceleration scheme used for painting the editor. Experiment with it to determine which scheme performs best on your computer. Note that you need to restart WorldPainter for the change to take effect
    + The second setting concerns the way the overlay image is scaled and painted. There are different ways and which one performs best depends on many factors, such as the size and type of the image, how much regular and video RAM you have, your video driver and Java version, etc., etc. If you have problems with the overlay image, try experimenting with this setting
