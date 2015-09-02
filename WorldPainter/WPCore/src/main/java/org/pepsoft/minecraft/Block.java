@@ -70,7 +70,7 @@ public final class Block implements Serializable {
 
     @Override
     public String toString() {
-        return name;
+        return (name != null) ? name : Integer.toString(id);
     }
 
     /**

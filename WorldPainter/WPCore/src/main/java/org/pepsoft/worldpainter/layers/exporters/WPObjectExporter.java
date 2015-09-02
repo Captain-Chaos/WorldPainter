@@ -201,7 +201,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
         final Point3i offset = object.getAttribute(ATTRIBUTE_OFFSET, new Point3i());
         if ((((long) x + offset.x) < Integer.MIN_VALUE) || (((long) x + offset.x) > Integer.MAX_VALUE)) {
             if (logger.isDebugEnabled()) {
-                logger.debug("Object {0}@{1},{2},{3} extends beyond the limits of a 32 bit signed integer in the X dimension");
+                logger.debug("Object {0}@{1},{2},{3} extends beyond the limits of a 32 bit signed integer in the X dimension", object.getName(), x, y, z);
             }
             return false;
         }
@@ -235,11 +235,16 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
         final boolean allowConnectingBlocks = false;
         // Check if the object fits vertically
         if (((long) z + dimensions.z - 1 + offset.z) >= world.getMaxHeight()) {
+            if (logger.isTraceEnabled()) {
+                logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " because it does not fit below the map height of " + world.getMaxHeight());
+            }
             return false;
         }
         if (((long) z + dimensions.z - 1 + offset.z) < 0) {
-            // The object is entirely beneath the bedrock
-            return true;
+            if (logger.isTraceEnabled()) {
+                logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " because it is entirely below the bedrock");
+            }
+            return false;
         }
         if ((placement == Placement.ON_LAND) && (collisionMode != COLLISION_MODE_NONE)) {
             // Check block by block whether there is room
@@ -261,7 +266,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                                     // substantial block at the same location in the world;
                                     // there is no room for this object
                                     if (logger.isTraceEnabled()) {
-                                        logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " due to collision with existing above ground block of type " + BLOCK_TYPE_NAMES[world.getBlockTypeAt(worldX, worldY, worldZ)]);
+                                        logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " due to collision with existing above ground block of type " + BLOCKS[world.getBlockTypeAt(worldX, worldY, worldZ)]);
                                     }
                                     return false;
                                 }
