@@ -168,7 +168,9 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
             tileProvider.addTileListener(this);
             tileCaches.put(tileProvider, new HashMap<>());
             dirtyTileCaches.put(tileProvider, new HashMap<>());
-            if (tileRenderers == null) {
+            if ((tileRenderers == null) && isDisplayable()) {
+                // The component is already visible but had no tile providers
+                // installed yet; start the background threads
                 if (logger.isDebugEnabled()) {
                     logger.debug("Starting " + threads + " tile rendering threads");
                 }
@@ -1135,7 +1137,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         @Override
         public void run() {
             if (logger.isTraceEnabled()) {
-                logger.trace("Rendering tile " + coords);
+                logger.trace("Rendering tile " + coords.x + "," + coords.y);
             }
             final int tileSize = tileProvider.getTileSize();
             VolatileImage tile;
