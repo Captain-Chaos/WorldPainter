@@ -21,6 +21,7 @@ import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.pepsoft.worldpainter.util.BetterAction;
 import org.pepsoft.worldpainter.vo.EventVO;
 import org.slf4j.LoggerFactory;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
@@ -69,7 +70,14 @@ public class Main {
         Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler());
 
         // Configure logging
-        boolean debugLogging = "true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.debugLogging"));
+        String logLevel;
+        if ("true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.debugLogging"))) {
+            logLevel = "DEBUG";
+        } else if ("extra".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.debugLogging"))) {
+            logLevel = "TRACE";
+        } else {
+            logLevel = "INFO";
+        }
         File configDir = Configuration.getConfigDir();
         if (! configDir.isDirectory()) {
             configDir.mkdirs();
@@ -80,12 +88,14 @@ public class Main {
             configurator.setContext(logContext);
             logContext.reset();
             System.setProperty("org.pepsoft.worldpainter.configDir", configDir.getAbsolutePath());
-            System.setProperty("org.pepsoft.worldpainter.logLevel", debugLogging ? "DEBUG" : "INFO");
+            System.setProperty("org.pepsoft.worldpainter.logLevel", logLevel);
             configurator.doConfigure(ClassLoader.getSystemResourceAsStream("logback-main.xml"));
         } catch (JoranException e) {
             // StatusPrinter will handle this
         }
         StatusPrinter.printInCaseOfErrorsOrWarnings(logContext);
+        SLF4JBridgeHandler.removeHandlersForRootLogger();
+        SLF4JBridgeHandler.install();
         logger.info("Starting WorldPainter " + Version.VERSION + " (" + Version.BUILD + ")");
 
         // Set the acceleration mode. For some reason we don't fully understand,
