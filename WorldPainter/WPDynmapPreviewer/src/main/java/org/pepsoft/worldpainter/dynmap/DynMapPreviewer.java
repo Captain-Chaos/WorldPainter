@@ -6,6 +6,7 @@ import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.swing.TiledImageViewer;
 import org.pepsoft.worldpainter.layers.bo2.Schematic;
 import org.pepsoft.worldpainter.objects.WPObject;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import javax.swing.*;
 import javax.vecmath.Point3i;
@@ -178,6 +179,10 @@ public class DynMapPreviewer extends TiledImageViewer {
     }
 
     public static void main(String[] args) throws IOException {
+        // Install java.util.logging -> slf4j bridge:
+        SLF4JBridgeHandler.removeHandlersForRootLogger();
+        SLF4JBridgeHandler.install();
+
         JFrame frame = new JFrame("DynMapPreviewerTest");
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         DynMapPreviewer viewer = new DynMapPreviewer();

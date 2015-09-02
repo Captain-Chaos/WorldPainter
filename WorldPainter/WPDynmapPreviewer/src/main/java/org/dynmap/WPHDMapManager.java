@@ -12,10 +12,12 @@ import org.dynmap.hdmap.*;
  */
 class WPHDMapManager extends HDMapManager {
     void init(ConfigurationNode configNode) {
-        perspectives.put("default", new IsoHDPerspective(null, configNode));
-//        shaders.put("default", new TexturePackHDShader(null, configNode));
-        shaders.put("default", new DefaultHDShader(null, configNode));
-        shaders.put("caves", new CaveHDShader(null, configNode));
-        lightings.put("default", new DefaultHDLighting(null, configNode));
+        DynmapCore core = new DynmapCore();
+        perspectives.put("default", new IsoHDPerspective(core, configNode));
+        TexturePack.loadTextureMapping(core, configNode);
+        shaders.put("default", new TexturePackHDShader(core, configNode));
+//        shaders.put("default", new DefaultHDShader(core, configNode));
+        shaders.put("caves", new CaveHDShader(core, configNode));
+        lightings.put("default", new DefaultHDLighting(core, configNode));
     }
 }
