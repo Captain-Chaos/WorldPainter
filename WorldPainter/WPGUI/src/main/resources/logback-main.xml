@@ -1,7 +1,7 @@
 <configuration>
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>[%d] {%-6p} \(%30c{30}\) %m%ex%n</pattern>
+            <pattern>[%d] {%-6p} \(%30c{30}\) %m%n%ex</pattern>
         </encoder>
     </appender>
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
@@ -13,7 +13,7 @@
         </rollingPolicy>
         <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy"/>
         <encoder>
-            <pattern>[%d] {%-6p} \(%30c{30}\) %m%ex%n</pattern>
+            <pattern>[%d] {%-6p} \(%30c{30}\) %m%n%ex</pattern>
         </encoder>
     </appender>
     <root level="INFO">
