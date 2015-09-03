@@ -326,6 +326,7 @@ public class FileUtils {
             } else {
                 fileChooser = new JFileChooser();
             }
+            fileChooser.setMultiSelectionEnabled(true);
             fileChooser.setDialogTitle(title);
             fileChooser.setFileFilter(fileFilter);
             fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
