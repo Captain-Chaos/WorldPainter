@@ -4,6 +4,9 @@ import org.pepsoft.util.Box;
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.swing.TiledImageViewer;
+import org.pepsoft.worldpainter.Configuration;
+import org.pepsoft.worldpainter.layers.bo2.Bo2Object;
+import org.pepsoft.worldpainter.layers.bo2.Bo3Object;
 import org.pepsoft.worldpainter.layers.bo2.Schematic;
 import org.pepsoft.worldpainter.objects.WPObject;
 import org.slf4j.bridge.SLF4JBridgeHandler;
@@ -183,10 +186,27 @@ public class DynMapPreviewer extends TiledImageViewer {
         SLF4JBridgeHandler.removeHandlersForRootLogger();
         SLF4JBridgeHandler.install();
 
+        // Install default config
+        Configuration.setInstance(new Configuration());
+
         JFrame frame = new JFrame("DynMapPreviewerTest");
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         DynMapPreviewer viewer = new DynMapPreviewer();
-        WPObject object = Schematic.load(new File(args[0]));
+        WPObject object;
+        int p = args[0].lastIndexOf('.');
+        switch (args[0].substring(p + 1)) {
+            case "schematic":
+                object = Schematic.load(new File(args[0]));
+                break;
+            case "bo2":
+                object = Bo2Object.load(new File(args[0]));
+                break;
+            case "bo3":
+                object = Bo3Object.load(new File(args[0]));
+                break;
+            default:
+                throw new IllegalArgumentException(args[0]);
+        }
         viewer.setObject(object);
         frame.getContentPane().add(viewer, BorderLayout.CENTER);
         frame.setSize(800, 600);

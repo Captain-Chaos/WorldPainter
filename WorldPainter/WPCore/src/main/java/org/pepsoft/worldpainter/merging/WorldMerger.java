@@ -230,7 +230,7 @@ public class WorldMerger extends WorldExporter {
                     && (! file.getName().equalsIgnoreCase("maxheight.txt"))
                     && (! file.getName().equalsIgnoreCase("Height.txt"))) {
                 if (file.isFile()) {
-                    FileUtils.copyFile(file, worldDir);
+                    FileUtils.copyFileToDir(file, worldDir);
                 } else if (file.isDirectory()) {
                     FileUtils.copyDir(file, worldDir);
                 } else {
@@ -591,7 +591,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                             // Region only exists in existing world. Copy it to the new
                             // world
                             ProgressReceiver subProgressReceiver = (parallelProgressManager != null) ? parallelProgressManager.createProgressReceiver() : null;
-                            FileUtils.copyFile(existingRegions.get(regionCoords), regionDir, subProgressReceiver);
+                            FileUtils.copyFileToDir(existingRegions.get(regionCoords), regionDir, subProgressReceiver);
                             synchronized (fixups) {
                                 exportedRegions.add(regionCoords);
                             }
@@ -809,7 +809,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                     && (! file.getName().equalsIgnoreCase("maxheight.txt"))
                     && (! file.getName().equalsIgnoreCase("Height.txt"))) {
                 if (file.isFile()) {
-                    FileUtils.copyFile(file, worldDir);
+                    FileUtils.copyFileToDir(file, worldDir);
                 } else if (file.isDirectory()) {
                     FileUtils.copyDir(file, worldDir);
                 } else {

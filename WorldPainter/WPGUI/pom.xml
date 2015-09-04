@@ -35,17 +35,6 @@
             <artifactId>jpen</artifactId>
             <version>2-121204</version>
         </dependency>
-        <dependency>
-            <groupId>com.googlecode.json-simple</groupId>
-            <artifactId>json-simple</artifactId>
-            <version>1.1.1</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>junit</groupId>
-                    <artifactId>junit</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
         <!-- If you can't or won't use the JIDE docking framework, you can use the JIDE open source components so that
              at least the derived Swing controls will work: -->
         <!--<dependency>-->

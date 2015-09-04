@@ -26,7 +26,6 @@ public class MapManager {
     private void init() {
         Map<String, Object> config = new HashMap<>();
         config.put("name", "WorldPainter");
-        config.put("texturepack", "standard");
         ConfigurationNode configNode = new ConfigurationNode(config);
         ((WPHDMapManager) hdmapman).init(configNode);
     }

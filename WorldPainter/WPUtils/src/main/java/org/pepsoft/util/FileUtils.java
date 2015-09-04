@@ -93,14 +93,46 @@ public class FileUtils {
             if (file.isDirectory()) {
                 copyDir(file, destDir);
             } else if (file.isFile()) {
-                copyFile(file, destDir);
+                copyFileToDir(file, destDir);
             } else {
                 logger.warn("Not copying " + file + "; not a regular file or directory");
             }
         }
         destDir.setLastModified(dir.lastModified());
     }
-    
+
+    /**
+     * Copy a file to another file.
+     *
+     * @param file The file to copy.
+     * @param destFile The file to copy the file to. If <code>overwrite</code>
+     *                 is <code>false</code> it must not exist yet. In either
+     *                 case it may not be an existing directory.
+     * @param overwrite Whether <code>destFile</code> should be overwritten if
+     *                  it already exists. If this is false and the file does
+     *                  already exist an {@link IllegalStateException} will be
+     *                  thrown.
+     * @throws IOException If there is an I/O error while performing the copy.
+     * @throws IllegalStateException If <code>overwrite</code> was
+     * <code>false</code> and <code>destDir</code> already existed.
+     */
+    public static void copyFileToFile(File file, File destFile, boolean overwrite) throws IOException {
+        if ((! overwrite) && destFile.isFile()) {
+            throw new IllegalStateException("Destination file " + destFile + " already exists");
+        }
+        if (destFile.isDirectory()) {
+            throw new IllegalStateException("Destination file is an existing directory");
+        }
+        try (FileInputStream in = new FileInputStream(file); FileOutputStream out = new FileOutputStream(destFile)) {
+            int bytesRead;
+            byte[] buffer = new byte[BUFFER_SIZE];
+            while ((bytesRead = in.read(buffer)) != -1) {
+                out.write(buffer, 0, bytesRead);
+            }
+        }
+        destFile.setLastModified(file.lastModified());
+    }
+
     /**
      * Copy a file to another directory.
      * 
@@ -109,9 +141,9 @@ public class FileUtils {
      *     as the source file.
      * @throws IOException If there is an I/O error while performing the copy.
      */
-    public static void copyFile(File file, File destDir) throws IOException {
+    public static void copyFileToDir(File file, File destDir) throws IOException {
         try {
-            copyFile(file, destDir, null);
+            copyFileToDir(file, destDir, null);
         } catch (ProgressReceiver.OperationCancelled e) {
             throw new InternalError();
         }
@@ -127,7 +159,7 @@ public class FileUtils {
      *     to. May be <code>null</code>.
      * @throws IOException If there is an I/O error while performing the copy.
      */
-    public static void copyFile(File file, File destDir, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
+    public static void copyFileToDir(File file, File destDir, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
         File destFile = new File(destDir, file.getName());
         if (destFile.isFile()) {
             throw new IllegalStateException("Destination file " + destFile + " already exists");

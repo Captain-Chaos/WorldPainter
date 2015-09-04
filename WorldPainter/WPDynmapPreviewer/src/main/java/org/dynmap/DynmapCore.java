@@ -1,6 +1,8 @@
 package org.dynmap;
 
 import org.dynmap.common.DynmapServerInterface;
+import org.pepsoft.worldpainter.Configuration;
+import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
 import org.pepsoft.worldpainter.dynmap.WPDynmapServer;
 
 import java.io.File;
@@ -12,7 +14,7 @@ import java.io.File;
  */
 public class DynmapCore {
     public File getDataFolder() {
-        return new File("D:\\private\\workspace\\DynmapCore-master\\src\\main\\resources");
+        return new File(Configuration.getConfigDir(), "dynmap");
     }
 
     public DynmapServerInterface getServer() {
@@ -36,7 +38,7 @@ public class DynmapCore {
     }
 
     public File getPluginJarFile() {
-        return new File("D:\\private\\workspace\\DynmapCore-master\\target\\DynmapCore-2.2-SNAPSHOT.jar");
+        return BiomeSchemeManager.getAllMinecraftJars().get(BiomeSchemeManager.getAllMinecraftJars().lastKey());
     }
 
     public boolean dumpMissingBlocks() {

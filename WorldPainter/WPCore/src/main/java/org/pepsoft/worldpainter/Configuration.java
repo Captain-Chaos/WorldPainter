@@ -816,7 +816,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
             if (oldFile.isDirectory()) {
                 FileUtils.copyDir(oldFile, newConfigDir);
             } else if (oldFile.isFile()) {
-                FileUtils.copyFile(oldFile, newConfigDir);
+                FileUtils.copyFileToDir(oldFile, newConfigDir);
             } else {
                 logger.warn("Directory entry encountered which was neither file nor directory: " + oldFile);
             }
