@@ -1229,7 +1229,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                         }
                         // Merge surface layer blocks
                         for (int y = mergeLimit + 1; y <= newHeight; y++) {
-                            mergeSurfaceBlock(existingChunk, newChunk, x, y, z, z <= oldHeight);
+                            mergeSurfaceBlock(existingChunk, newChunk, x, y, z, y < oldHeight);
                         }
                         // Merge above ground portion from existing chunk, raised by
                         // the appropriate amount
