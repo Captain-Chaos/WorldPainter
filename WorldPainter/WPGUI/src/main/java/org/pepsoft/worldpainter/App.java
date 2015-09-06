@@ -2021,6 +2021,16 @@ public final class App extends JFrame implements RadiusControl,
         view.addMouseListener(viewListener);
         view.addMouseWheelListener(viewListener);
 
+        if (config.getShowCalloutCount() > 0) {
+            BufferedImage callout = loadCallout("callout_1");
+            view.addOverlay("callout_1", 0, dockingManager.getFrame("tools"), callout);
+            callout = loadCallout("callout_2");
+            view.addOverlay("callout_2", -callout.getWidth(), dockingManager.getFrame("brushes"), callout);
+            callout = loadCallout("callout_3");
+            view.addOverlay("callout_3", 0, dockingManager.getFrame("layers"), callout);
+            config.setShowCalloutCount(config.getShowCalloutCount() - 1);
+        }
+
         JRootPane rootPane = getRootPane();
         ActionMap actionMap = rootPane.getActionMap();
         actionMap.put(ACTION_NAME_INCREASE_RADIUS, new BetterAction(ACTION_NAME_INCREASE_RADIUS, strings.getString("increase.radius")) {
@@ -2101,7 +2111,35 @@ public final class App extends JFrame implements RadiusControl,
             programmaticChange = false;
         }
     }
-    
+
+    private BufferedImage loadCallout(String key) {
+        try {
+            BufferedImage callout = ImageIO.read(App.class.getResourceAsStream("/org/pepsoft/worldpainter/" + key + ".png"));
+            callouts.put(key, callout);
+            return callout;
+        } catch (IOException e) {
+            throw new RuntimeException("I/O error loading callout image from classpath", e);
+        }
+    }
+
+    /**
+     * Close the callout with the specified key, if it is currently showing.
+     * Does nothing if it is not showing.
+     *
+     * @param key The key of the callout to close.
+     * @return <code>true</code> if the callout was showing and was closed;
+     * <code>false</code> otherwise.
+     */
+    private boolean closeCallout(String key) {
+        if (callouts.containsKey(key)) {
+            view.removeOverlay(key);
+            callouts.remove(key);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     private JPanel createStatusBar() {
         JPanel statusBar = new JPanel();
         statusBar.setLayout(new FlowLayout(FlowLayout.LEADING));
@@ -4048,6 +4086,18 @@ public final class App extends JFrame implements RadiusControl,
                 updateLayerVisibility();
                 updateBrushRotation();
                 operation.setActive(true);
+                if (closeCallout("callout_1")) {
+                    // If the user picked an operation which doesn't need a
+                    // brush, close the "select brush" callout too
+                    if (! (operation instanceof RadiusOperation)) {
+                        closeCallout("callout_2");
+                    }
+                    // If the user picked an operation which doesn't use paint,
+                    // close the "select paint" callout too
+                    if (! (operation instanceof PaintOperation)) {
+                        closeCallout("callout_3");
+                    }
+                }
             }
         });
         toolButtonGroup.add(button);
@@ -4143,6 +4193,7 @@ public final class App extends JFrame implements RadiusControl,
             ((PaintOperation) activeOperation).setPaint(paint);
         }
         updateLayerVisibility();
+        closeCallout("callout_3");
     }
 
     /**
@@ -4202,6 +4253,12 @@ public final class App extends JFrame implements RadiusControl,
                     ((BrushOperation) activeOperation).setBrush((effectiveRotation == 0) ? brush : RotatedBrush.rotate(brush, effectiveRotation));
                 }
                 view.setBrushShape(brush.getBrushShape());
+            }
+        });
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                closeCallout("callout_2");
             }
         });
         brushButtonGroup.add(button);
@@ -5593,6 +5650,7 @@ public final class App extends JFrame implements RadiusControl,
     private PaintUpdater paintUpdater = () -> {
         // Do nothing
     };
+    private final Map<String, BufferedImage> callouts = new HashMap<>();
 
     public static final Image ICON = IconUtils.loadImage("org/pepsoft/worldpainter/icons/shovel-icon.png");
     

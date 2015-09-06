@@ -584,6 +584,18 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         this.viewListener = viewListener;
     }
 
+    public void addOverlay(String key, int x, Component componentToTrack, BufferedImage overlay) {
+        overlays.put(key, new Overlay(componentToTrack, key, x, overlay));
+        repaint();
+    }
+
+    public void removeOverlay(String key) {
+        if (overlays.containsKey(key)) {
+            overlays.remove(key);
+            repaint();
+        }
+    }
+
     protected final boolean isTileVisible(int x, int y, int effectiveZoom) {
         return new Rectangle(0, 0, getWidth(), getHeight()).intersects(getTileBounds(x, y, effectiveZoom));
     }
@@ -814,7 +826,9 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
             g2.drawLine(middleX - 5, middleY, middleX + 5, middleY);
             g2.drawLine(middleX, middleY - 5, middleX, middleY + 5);
         }
-        
+
+        paintOverlays(g2);
+
         // Unschedule tiles which were scheduled to be rendered but are no
         // longer visible
         final Rectangle viewBounds = new Rectangle(0, 0, getWidth(), getHeight());
@@ -827,6 +841,14 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                 }
             }
         }
+    }
+
+    private void paintOverlays(Graphics2D g2) {
+        overlays.values().stream().forEach(overlay -> {
+            int x = overlay.x >= 0 ? overlay.x : getWidth() + overlay.x;
+            Point coords = SwingUtilities.convertPoint(overlay.componentToTrack, 0, 0, this);
+            g2.drawImage(overlay.image, x, coords.y, null);
+        });
     }
 
     private void paintTile(Graphics2D g2, GraphicsConfiguration gc, TileProvider tileProvider, int x, int y, int effectiveZoom) {
@@ -1087,6 +1109,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
     private final List<TileProvider> tileProviders = new ArrayList<>();
     private final Map<TileProvider, Map<Point, Reference<? extends Image>>> tileCaches = new HashMap<>(),
             dirtyTileCaches = new HashMap<>();
+    private final Map<String, Overlay> overlays = new HashMap<>();
     protected int viewX, viewY, previousX, previousY, markerX, markerY, xOffset, yOffset;
     /**
      * The zoom level in the form of an exponent of 2. I.e. the scale is 2^n,
@@ -1196,5 +1219,19 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
     
     public interface ViewListener {
         void viewChanged(TiledImageViewer source);
+    }
+
+    class Overlay {
+        Overlay(Component componentToTrack, String key, int x, BufferedImage image) {
+            this.componentToTrack = componentToTrack;
+            this.key = key;
+            this.x = x;
+            this.image = image;
+        }
+
+        final String key;
+        final int x;
+        final Component componentToTrack;
+        final BufferedImage image;
     }
 }

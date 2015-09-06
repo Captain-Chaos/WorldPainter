@@ -570,6 +570,14 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         this.overlayType = overlayType;
     }
 
+    public int getShowCalloutCount() {
+        return showCalloutCount;
+    }
+
+    public void setShowCalloutCount(int showCalloutCount) {
+        this.showCalloutCount = showCalloutCount;
+    }
+
     @Override
     public synchronized void logEvent(EventVO event) {
         if (eventLog != null) {
@@ -740,6 +748,11 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
             // Previous default; principle of least surprise:
             overlayType = OverlayType.SCALE_ON_LOAD;
         }
+        if (version < 12) {
+            defaultJideLayoutData = null;
+            jideLayoutData = null;
+            showCalloutCount = 3;
+        }
         version = CURRENT_VERSION;
         
         // Bug fix: make sure terrain ranges map conforms to surface material setting
@@ -866,6 +879,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private Map<String, byte[]> jideLayoutData;
     private LookAndFeel lookAndFeel;
     private OverlayType overlayType = OverlayType.OPTIMISE_ON_LOAD;
+    private int showCalloutCount = 3;
 
     private transient AccelerationType accelerationType;
 
@@ -873,7 +887,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Configuration.class);
     private static final long serialVersionUID = 2011041801L;
     private static final int CIRCULAR_WORLD = -1;
-    private static final int CURRENT_VERSION = 11;
+    private static final int CURRENT_VERSION = 12;
     
     public enum DonationStatus {DONATED, NO_THANK_YOU}
     
