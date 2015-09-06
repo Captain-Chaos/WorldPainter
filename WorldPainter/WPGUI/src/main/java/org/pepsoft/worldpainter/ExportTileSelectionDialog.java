@@ -52,7 +52,12 @@ public class ExportTileSelectionDialog extends javax.swing.JDialog implements Wi
             dimensions.add(dimension.getDim());
         }
         jComboBox1.setModel(new DefaultComboBoxModel(dimensions.toArray()));
-        jComboBox1.setSelectedItem(selectedDimension);
+        programmaticChange = true;
+        try {
+            jComboBox1.setSelectedItem(selectedDimension);
+        } finally {
+            programmaticChange = false;
+        }
         jComboBox1.setRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
@@ -215,11 +220,13 @@ public class ExportTileSelectionDialog extends javax.swing.JDialog implements Wi
     }// </editor-fold>//GEN-END:initComponents
 
     private void jComboBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox1ActionPerformed
-        int selectedDimension = getSelectedDimension();
-        tileSelector1.setDimension(world.getDimension(selectedDimension));
-        tileSelector1.moveToCentre();
-        tileSelector1.clearSelection();
-        buttonSetSpawn.setEnabled(selectedDimension == DIM_NORMAL);
+        if (! programmaticChange) {
+            int selectedDimension = getSelectedDimension();
+            tileSelector1.setDimension(world.getDimension(selectedDimension));
+            tileSelector1.moveToCentre();
+            tileSelector1.clearSelection();
+            buttonSetSpawn.setEnabled(selectedDimension == DIM_NORMAL);
+        }
     }//GEN-LAST:event_jComboBox1ActionPerformed
 
     private void buttonCloseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCloseActionPerformed
@@ -240,6 +247,7 @@ public class ExportTileSelectionDialog extends javax.swing.JDialog implements Wi
     // End of variables declaration//GEN-END:variables
     
     private final World2 world;
+    private boolean programmaticChange;
     
     private static final long serialVersionUID = 1L;
 }
