@@ -124,7 +124,7 @@ public class ErrorDialog extends javax.swing.JDialog {
             }
             sb.append(eol);
         }
-        sb.append("WorldPainter version: " + Version.VERSION + eol);
+        sb.append("WorldPainter version: " + Version.VERSION + " (" + Version.BUILD + ")" + eol);
         sb.append(eol);
         for (String propertyName: SYSTEM_PROPERTIES) {
             sb.append(propertyName);
