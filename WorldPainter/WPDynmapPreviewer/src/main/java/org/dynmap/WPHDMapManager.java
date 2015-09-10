@@ -37,9 +37,12 @@ class WPHDMapManager extends HDMapManager {
             if (checkDynmapResources(latestVersion, minecraftJars.get(latestVersion))) {
                 configNode.put("texturepack", "standard");
                 TexturePack.loadTextureMapping(core, configNode);
+                // Force initialisation of texture pack to get early errors:
                 TexturePack.getTexturePack(core, "standard");
                 shaders.put("default", new TexturePackHDShader(core, configNode));
             } else {
+                // Could not copy the textures for dynmap for whatever reason;
+                // fall back to solid colours
                 shaders.put("default", new DefaultHDShader(core, configNode));
             }
         }
