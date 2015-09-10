@@ -48,14 +48,21 @@ public class DumpObject {
             object.getTileEntities().forEach(entity -> System.out.println("    " + entity.getId() + " @ " + entity.getY() + "," + entity.getZ() + "," + entity.getY()));
         }
         System.out.println("Blocks:");
+        int blockCount = 0;
         for (int z = 0; z < dim.z; z++) {
             for (int x = 0; x < dim.x; x++) {
                 for (int y = 0; y < dim.y; y++) {
                     if (object.getMask(x, y, z)) {
-                        System.out.println("    " + x + "," + y + "," + z + ": " + object.getMaterial(x, y, z));
+                        blockCount++;
+                        if (blockCount <= 100) {
+                            System.out.println("    " + x + "," + y + "," + z + ": " + object.getMaterial(x, y, z));
+                        }
                     }
                 }
             }
+        }
+        if (blockCount > 100) {
+            System.out.println("    ... and " + (blockCount - 100) + " more");
         }
     }
 }
