@@ -34,6 +34,24 @@ public class DumpChunk {
         Chunk chunk = (level.getVersion() == SUPPORTED_VERSION_1)
                 ? new ChunkImpl(tag, level.getMaxHeight())
                 : new ChunkImpl2(tag, level.getMaxHeight());
+
+        System.out.println("Biomes");
+        System.out.println("X-->");
+        for (int z = 0; z < 16; z++) {
+            for (int x = 0; x < 16; x++) {
+                System.out.printf("[%3d]", chunk.getBiome(x, z));
+            }
+            if (z == 0) {
+                System.out.print(" Z");
+            } else if (z == 1) {
+                System.out.print(" |");
+            } else if (z == 2) {
+                System.out.print(" v");
+            }
+            System.out.println();
+        }
+
+        System.out.println("Blocks:");
         List<TileEntity> tileEntities = chunk.getTileEntities();
         for (int y = 0; y < level.getMaxHeight(); y++) {
             boolean blockFound = false;
