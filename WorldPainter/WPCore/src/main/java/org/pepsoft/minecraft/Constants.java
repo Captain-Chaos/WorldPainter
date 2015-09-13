@@ -479,7 +479,7 @@ public final class Constants {
         TILE_ENTITY_MAP.put(ID_ENCHANTTABLE, Collections.singleton(BLK_ENCHANTMENT_TABLE));
         TILE_ENTITY_MAP.put(ID_ENDERCHEST, Collections.singleton(BLK_ENDER_CHEST));
         TILE_ENTITY_MAP.put(ID_FLOWERPOT, Collections.singleton(BLK_FLOWER_POT));
-        TILE_ENTITY_MAP.put(ID_FURNACE, Collections.singleton(BLK_FURNACE));
+        TILE_ENTITY_MAP.put(ID_FURNACE, Collections.unmodifiableSet(new HashSet<>(Arrays.asList(BLK_FURNACE, BLK_BURNING_FURNACE))));
         TILE_ENTITY_MAP.put(ID_HOPPER, Collections.singleton(BLK_HOPPER));
         TILE_ENTITY_MAP.put(ID_MOBSPAWNER, Collections.singleton(BLK_MONSTER_SPAWNER));
         TILE_ENTITY_MAP.put(ID_MUSIC, Collections.singleton(BLK_NOTE_BLOCK));

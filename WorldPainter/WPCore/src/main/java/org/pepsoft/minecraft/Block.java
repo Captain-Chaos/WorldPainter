@@ -250,7 +250,7 @@ public final class Block implements Serializable {
 //                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
                 new Block( 60, 15,                     "Tilled Dirt",  true, false, false, false, false, false, false,  0, false),
                 new Block( 61, 15,                         "Furnace", false, false, false, false,  true, false, false,  0, false),
-                new Block( 62, 15,                 "Burning Furnace", false, false, false, false, false, false, false, 13, false),
+                new Block( 62, 15,                 "Burning Furnace", false, false, false, false,  true, false, false, 13, false),
                 new Block( 63,  0,                       "Sign Post", false, false, false, false,  true, false, false,  0, false),
                 new Block( 64,  0,                     "Wooden Door", false, false, false, false, false, false, false,  0, false),
                 new Block( 65,  0,                          "Ladder", false, false, false, false, false, false, false,  0, false),
