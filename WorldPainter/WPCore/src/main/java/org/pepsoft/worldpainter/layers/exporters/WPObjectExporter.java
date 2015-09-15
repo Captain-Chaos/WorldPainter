@@ -31,6 +31,8 @@ import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.objects.WPObject.*;
 
 /**
+ * An exporter which knows how to render {@link WPObject}s to a
+ * {@link MinecraftWorld}.
  *
  * @author pepijn
  */
@@ -194,7 +196,12 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
     }
     
     /**
-     * Check whether the coordinates of the extents of the object make sense.
+     * Check whether the coordinates of the extents of the object make sense. In
+     * other words: whether it could potentially be placeable at all given its
+     * dimensions and location.
+     *
+     * @return <code>true</code> if the object could potentially be placeable
+     *     and the caller can proceed with further checks.
      */
     public static boolean isSane(WPObject object, int x, int y, int z, int maxHeight) {
         final Point3i dimensions = object.getDimensions();
@@ -228,6 +235,16 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
         return true;
     }
 
+    /**
+     * Checks block by block and taking the object's collision mode attributes
+     * and other rules into account whether it can be placed at a particular
+     * location. This is a slow operation, so use
+     * {@link #isSane(WPObject, int, int, int, int)} first to weed out objects
+     * for which this check does not even apply.
+     *
+     * @return <code>true</code> if the object may be placed at the specified
+     *     location according to its collision mode attributes.
+     */
     public static boolean isRoom(final MinecraftWorld world, final Dimension dimension, final WPObject object, final int x, final int y, final int z, final Placement placement) {
         final Point3i dimensions = object.getDimensions();
         final Point3i offset = object.getAttribute(ATTRIBUTE_OFFSET, new Point3i());

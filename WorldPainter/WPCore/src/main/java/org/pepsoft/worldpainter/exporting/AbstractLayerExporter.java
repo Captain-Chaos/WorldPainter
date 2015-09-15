@@ -9,6 +9,7 @@ import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 
 /**
+ * An abstract base class for {@link LayerExporter} implementations.
  *
  * @author pepijn
  */

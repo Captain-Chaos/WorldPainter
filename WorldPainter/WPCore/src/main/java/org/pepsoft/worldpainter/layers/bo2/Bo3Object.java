@@ -146,6 +146,15 @@ public final class Bo3Object extends AbstractObject implements Bo2ObjectProvider
         return clone;
     }
     
+    /**
+     * Load a custom object in bo3 format from a file. The name of the object
+     * will be the name of the file, minus the extension.
+     *
+     * @param file The file from which to load the object.
+     * @return A new <code>Bo3Object</code> containing the contents of the
+     *     specified file.
+     * @throws IOException If an I/O error occurred while reading the file.
+     */
     public static Bo3Object load(File file) throws IOException {
         String name = file.getName();
         int p = name.lastIndexOf('.');
@@ -155,6 +164,15 @@ public final class Bo3Object extends AbstractObject implements Bo2ObjectProvider
         return load(name, file);
     }
 
+    /**
+     * Load a custom object in bo3 format from a file.
+     *
+     * @param objectName The name of the object.
+     * @param file The file from which to load the object.
+     * @return A new <code>Bo3Object</code> containing the contents of the
+     *     specified file.
+     * @throws IOException If an I/O error occurred while reading the file.
+     */
     public static Bo3Object load(String objectName, File file) throws IOException {
         try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), Charset.forName("US-ASCII")))) {
             Map<String, String> properties = new HashMap<>();

@@ -13,6 +13,8 @@ import org.pepsoft.minecraft.Material;
 import org.pepsoft.minecraft.TileEntity;
 
 /**
+ * A three dimensional object, consisting of Minecraft blocks, which can be
+ * placed in a map.
  *
  * @author pepijn
  */

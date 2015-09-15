@@ -136,7 +136,15 @@ public final class Bo2Object extends AbstractObject implements Bo2ObjectProvider
         }
         return clone;
     }
-    
+
+    /**
+     * Load a custom object in bo2 format from a file.
+     *
+     * @param file The file from which to load the object.
+     * @return A new <code>Bo2Object</code> containing the contents of the
+     *     specified file.
+     * @throws IOException If an I/O error occurred while reading the file.
+     */
     public static Bo2Object load(File file) throws IOException {
         String name = file.getName();
         int p = name.lastIndexOf('.');
@@ -181,12 +189,31 @@ public final class Bo2Object extends AbstractObject implements Bo2ObjectProvider
         }
     }
 
+    /**
+     * Load a custom object in bo2 format from a file.
+     *
+     * @param objectName The name of the object.
+     * @param file The file from which to load the object.
+     * @return A new <code>Bo2Object</code> containing the contents of the
+     *     specified file.
+     * @throws IOException If an I/O error occurred while reading the file.
+     */
     public static Bo2Object load(String objectName, File file) throws IOException {
         Bo2Object object = load(objectName, new FileInputStream(file));
         object.setAttribute(WPObject.ATTRIBUTE_FILE, file);
         return object;
     }
 
+    /**
+     * Load a custom object in bo2 format from an input stream. The stream is
+     * closed before exiting this method.
+     *
+     * @param objectName The name of the object.
+     * @param stream The input stream from which to load the object.
+     * @return A new <code>Bo2Object</code> containing the contents of the
+     *     specified stream.
+     * @throws IOException If an I/O error occurred while reading the stream.
+     */
     public static Bo2Object load(String objectName, InputStream stream) throws IOException {
         try (BufferedReader in = new BufferedReader(new InputStreamReader(stream, Charset.forName("US-ASCII")))) {
             Map<String, String> properties = new HashMap<>();
