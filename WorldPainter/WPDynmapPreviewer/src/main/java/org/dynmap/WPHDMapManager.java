@@ -31,10 +31,15 @@ class WPHDMapManager extends HDMapManager {
         perspectives.put("default", new IsoHDPerspective(core, configNode));
         SortedMap<Version, File> minecraftJars = BiomeSchemeManager.getAllMinecraftJars();
         if (minecraftJars.isEmpty()) {
+            logger.info("No Minecraft jars found; falling back to solid shading for 3D dynmap previews");
             shaders.put("default", new DefaultHDShader(core, configNode));
         } else {
             Version latestVersion = minecraftJars.lastKey();
             if (checkDynmapResources(latestVersion, minecraftJars.get(latestVersion))) {
+                // Note that technically we're reporting the wrong version number
+                // here and theoretically it could be wrong. In practice it
+                // should usually be right though:
+                logger.info("Using textures from Minecraft " + latestVersion + " for 3D dynmap previews");
                 configNode.put("texturepack", "standard");
                 TexturePack.loadTextureMapping(core, configNode);
                 // Force initialisation of texture pack to get early errors:
@@ -43,6 +48,7 @@ class WPHDMapManager extends HDMapManager {
             } else {
                 // Could not copy the textures for dynmap for whatever reason;
                 // fall back to solid colours
+                logger.error("Error copying textures from Minecraft; falling back to solid shading for 3D dynmap previews");
                 shaders.put("default", new DefaultHDShader(core, configNode));
             }
         }
@@ -54,6 +60,7 @@ class WPHDMapManager extends HDMapManager {
      * Dynmap is tightly coupled to certain resources existing on the
      * filesystem. Check that they are there and if not create them.
      */
+    @SuppressWarnings("ResultOfMethodCallIgnored") // Implicitly checked later
     private boolean checkDynmapResources(Version latestVersion, File latestJar) {
         File texPackDir = new File(Configuration.getConfigDir(), "dynmap/texturepacks");
         if (! texPackDir.isDirectory()) {
