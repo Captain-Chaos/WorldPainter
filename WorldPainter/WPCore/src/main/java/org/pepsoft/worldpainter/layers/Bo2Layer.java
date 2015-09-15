@@ -18,7 +18,7 @@ import org.pepsoft.worldpainter.layers.bo2.Bo2LayerExporter;
  */
 public class Bo2Layer extends CustomLayer {
     public Bo2Layer(Bo2ObjectProvider objectProvider, int colour) {
-        super(objectProvider.getName(), "Custom " + objectProvider.getName() + " objects in bo2 format", DataSize.NIBBLE, 50, colour);
+        super(objectProvider.getName(), "Custom " + objectProvider.getName() + " objects", DataSize.NIBBLE, 50, colour);
         this.objectProvider = objectProvider;
     }
 
@@ -29,7 +29,7 @@ public class Bo2Layer extends CustomLayer {
     public void setObjectProvider(Bo2ObjectProvider objectProvider) {
         this.objectProvider = objectProvider;
         setName(objectProvider.getName());
-        setDescription("Custom " + objectProvider.getName() + " objects in bo2 format");
+        setDescription("Custom " + objectProvider.getName() + " objects");
         
         // Legacy
         files = Collections.emptyList();

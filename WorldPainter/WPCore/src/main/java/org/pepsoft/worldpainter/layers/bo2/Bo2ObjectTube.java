@@ -19,6 +19,8 @@ import org.pepsoft.worldpainter.objects.WPObject;
 import static org.pepsoft.worldpainter.objects.WPObject.*;
 
 /**
+ * A custom object provider which maintains a collection of objects which it
+ * returns randomly (weighted according to their frequency attribute).
  *
  * @author pepijn
  */
@@ -68,7 +70,7 @@ public class Bo2ObjectTube implements Bo2ObjectProvider {
     }
     
     public static Bo2ObjectTube load(String name, File dir) throws IOException {
-        File[] files = dir.listFiles((dir1, name1) -> name1.toLowerCase().endsWith(".bo2") || name1.toLowerCase().endsWith(".schematic"));
+        File[] files = dir.listFiles((dir1, name1) -> name1.toLowerCase().endsWith(".bo2") || name1.toLowerCase().endsWith(".bo3") || name1.toLowerCase().endsWith(".schematic"));
         return load(name, Arrays.asList(files));
     }
     
@@ -81,6 +83,8 @@ public class Bo2ObjectTube implements Bo2ObjectProvider {
             String filename = file.getName().toLowerCase();
             if (filename.endsWith(".bo2")) {
                 objects.add(Bo2Object.load(file));
+            } else if (filename.endsWith(".bo3")) {
+                objects.add(Bo3Object.load(file));
             } else if (filename.endsWith(".schematic")) {
                 objects.add(Schematic.load(file));
             } else {
