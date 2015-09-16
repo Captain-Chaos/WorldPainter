@@ -1,3 +1,7 @@
+-- Version 2.0.1, released ...
+
+Bug fix: make "reset terrain type to default" operation on Global Operations screen work again
+
 -- Version 2.0.0, released 13-9-2015
 
  * WorldPainter now requires Java 8! Download Java 8 from Oracle here: http://www.oracle.com/technetwork/java/javase/downloads/jre8-downloads-2133155.html

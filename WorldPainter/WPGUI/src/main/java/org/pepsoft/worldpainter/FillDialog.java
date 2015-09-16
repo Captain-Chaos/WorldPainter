@@ -10,30 +10,28 @@
  */
 package org.pepsoft.worldpainter;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.util.Arrays;
-import java.util.Set;
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.InputMap;
-import javax.swing.JComponent;
-import javax.swing.KeyStroke;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.swing.ProgressDialog;
 import org.pepsoft.util.swing.ProgressTask;
 import org.pepsoft.worldpainter.biomeschemes.AutoBiomeScheme;
+import org.pepsoft.worldpainter.biomeschemes.BiomeHelper;
+import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.layers.FloodWithLava;
 import org.pepsoft.worldpainter.layers.Layer;
-import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
-import static org.pepsoft.worldpainter.Constants.*;
-import org.pepsoft.worldpainter.biomeschemes.BiomeHelper;
-import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.operations.Filter;
 import org.pepsoft.worldpainter.panels.BrushOptions.Listener;
+import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
+
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.util.Arrays;
+import java.util.Set;
+
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 
 /**
  *
@@ -634,30 +632,25 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
 
     private void resetTerrain(ProgressReceiver progressReceiver) throws OperationCancelled {
         int totalTiles = dimension.getTileCount(), tileCount = 0;
-        dimension.setEventsInhibited(true);
-        try {
-            for (Tile tile: dimension.getTiles()) {
-                final int worldTileX = tile.getX() << TILE_SIZE_BITS;
-                final int worldTileY = tile.getY() << TILE_SIZE_BITS;
-                for (int x = 0; x < TILE_SIZE; x++) {
-                    for (int y = 0; y < TILE_SIZE; y++) {
-                        boolean set;
-                        if (filter == null) {
-                            set = true;
-                        } else {
-                            float strength = filter.modifyStrength(worldTileX | x, worldTileY | y, 1.0f);
-                            set = (strength > 0.95f) || (Math.random() < strength);
-                        }
-                        if (set) {
-                            dimension.applyTheme(worldTileX | x, worldTileY | y);
-                        }
+        for (Tile tile: dimension.getTiles()) {
+            final int worldTileX = tile.getX() << TILE_SIZE_BITS;
+            final int worldTileY = tile.getY() << TILE_SIZE_BITS;
+            for (int x = 0; x < TILE_SIZE; x++) {
+                for (int y = 0; y < TILE_SIZE; y++) {
+                    boolean set;
+                    if (filter == null) {
+                        set = true;
+                    } else {
+                        float strength = filter.modifyStrength(worldTileX | x, worldTileY | y, 1.0f);
+                        set = (strength > 0.95f) || (Math.random() < strength);
+                    }
+                    if (set) {
+                        dimension.applyTheme(worldTileX | x, worldTileY | y);
                     }
                 }
-                tileCount++;
-                progressReceiver.setProgress((float) tileCount / totalTiles);
             }
-        } finally {
-            dimension.setEventsInhibited(false);
+            tileCount++;
+            progressReceiver.setProgress((float) tileCount / totalTiles);
         }
     }
 
