@@ -876,6 +876,13 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
             final Point coords = new Point(x, y);
             final Map<Point, Reference<? extends Image>> tileCache = tileCaches.get(tileProvider),
                     dirtyTileCache = dirtyTileCaches.get(tileProvider);
+            if ((tileCache == null) || (dirtyTileCache == null)) {
+                // We have reports from the wild about this happening. It has to
+                // do with the 3D dynmap previews and happens when adding custom
+                // objects. TODO: how is that possible? Race condition? Threading issue?
+                logger.warn("tileCache or dirtyTileCache null! Proceeding without a tile...");
+                return null;
+            }
             final Reference<? extends Image> ref = tileCache.get(coords);
             if (ref == RENDERING) {
                 // The tile is already queued for rendering. Return a dirty tile if
