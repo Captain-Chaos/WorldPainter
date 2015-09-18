@@ -66,7 +66,7 @@ public final class PaintFactory {
         return new TerrainPaint(terrain);
     }
 
-    public static final Paint NULL_PAINT = new Paint() {
+    public static class NullPaint implements Paint {
         @Override public Brush getBrush() {return null;}
         @Override public void setBrush(Brush brush) {}
         @Override public Filter getFilter() {return null;}
@@ -78,5 +78,7 @@ public final class PaintFactory {
         @Override public void applyPixel(Dimension dimension, int x, int y) {}
         @Override public void removePixel(Dimension dimension, int x, int y) {}
         @Override public BufferedImage getIcon(ColourScheme colourScheme) {return null;}
-    };
+    }
+
+    public static final Paint NULL_PAINT = new NullPaint();
 }

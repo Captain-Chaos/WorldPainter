@@ -6,6 +6,7 @@ import org.pepsoft.worldpainter.layers.Annotations;
 import org.pepsoft.worldpainter.layers.exporters.AnnotationsExporter;
 import org.pepsoft.worldpainter.painting.DimensionPainter;
 import org.pepsoft.worldpainter.painting.Paint;
+import org.pepsoft.worldpainter.painting.PaintFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -30,6 +31,10 @@ public class Text extends MouseOrTabletOperation implements PaintOperation {
 
     @Override
     protected void tick(int centreX, int centreY, boolean inverse, boolean first, float dynamicLevel) {
+        if (painter.getPaint() instanceof PaintFactory.NullPaint) {
+            // No paint set yet; do nothing
+            return;
+        }
         AnnotationsExporter.AnnotationsSettings settings = (AnnotationsExporter.AnnotationsSettings) getDimension().getLayerSettings(Annotations.INSTANCE);
         if (settings == null) {
             settings = new AnnotationsExporter.AnnotationsSettings();

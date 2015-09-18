@@ -307,6 +307,8 @@ public final class DimensionPainter {
                     }
                 };
             }
+        } else if (paint instanceof PaintFactory.NullPaint) {
+            return;
         } else {
             throw new IllegalArgumentException("Don't know how to fill with paint " + paint);
         }
