@@ -1,11 +1,11 @@
--- Version 2.0.1, released ...
+-- Version 2.0.1, released 18-9-2015
 
-Bug fix: make "reset terrain type to default" operation on Global Operations screen work again
-Bug fix: make brush filters work correctly again, instead of reflecting tile 0,0 any time the painted area was completely contained in one tile
-Bug fix: don't crash with NullPointerExceptions while adding custom objects. The cause of the bug is not yet known, but a workaround has been implemented so that the problem is silently logged. It is possible that as a result the 3D preview will remain empty or incomplete. Please let the author know if that happens!
-Bug fix: don't try to flood fill or let the user enter text if she has not selected a paint yet (which was causing error messages)
-Bug fix: fix some problems that caused errors when selecting or first using brushes in some circumstances
-Bug fix: don't cause an additional exception when handling an exception with an empty stack trace
+ * Bug fix: make "reset terrain type to default" operation on Global Operations screen work again
+ * Bug fix: make brush filters work correctly again, instead of reflecting tile 0,0 any time the painted area was completely contained in one tile
+ * Bug fix: don't crash with NullPointerExceptions while adding custom objects. The cause of the bug is not yet known, but a workaround has been implemented so that the problem is silently logged. It is possible that as a result the 3D preview will remain empty or incomplete. Please let the author know if that happens!
+ * Bug fix: don't try to flood fill or let the user enter text if she has not selected a paint yet (which was causing error messages)
+ * Bug fix: fix some problems that caused errors when selecting or first using brushes in some circumstances
+ * Bug fix: don't cause an additional exception when handling an exception with an empty stack trace
 
 -- Version 2.0.0, released 13-9-2015
 
