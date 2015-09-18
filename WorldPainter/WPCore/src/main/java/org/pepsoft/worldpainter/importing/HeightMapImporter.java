@@ -48,7 +48,7 @@ public class HeightMapImporter {
      *     operation).
      */
     public World2 doImport(ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
-        logger.info("Importing world from height map {0} (size: {1}x{2})", new Object[]{name, image.getWidth(), image.getHeight()});
+        logger.info("Importing world from height map {} (size: {}x{})", name, image.getWidth(), image.getHeight());
 
         final int widthInBlocks = image.getWidth() * scale / 100;
         final int heightInBlocks = image.getHeight() * scale / 100;
