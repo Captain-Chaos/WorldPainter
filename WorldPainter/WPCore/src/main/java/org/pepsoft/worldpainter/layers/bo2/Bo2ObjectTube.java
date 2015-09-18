@@ -19,6 +19,9 @@ import org.pepsoft.worldpainter.objects.WPObject;
 import static org.pepsoft.worldpainter.objects.WPObject.*;
 
 /**
+ * A custom object provider which maintains a collection of objects which it
+ * returns randomly (weighted according to their {@link
+ * WPObject#ATTRIBUTE_FREQUENCY} attributes).
  *
  * @author pepijn
  */
@@ -62,16 +65,46 @@ public class Bo2ObjectTube implements Bo2ObjectProvider {
         in.defaultReadObject();
         random = new Random();
     }
-    
+
+    /**
+     * Create a new <code>Bo2ObjectTube</code> containing all supported custom
+     * objects from a specific directory. The name of the
+     * <code>Bo2ObjectTube</code> will be set to the name of the directory.
+     *
+     * @param dir The directory containing the objects to load.
+     * @return A new <code>Bo2ObjectTube</code> containing the supported objects
+     *     from the specified directory.
+     * @throws IOException If there was an I/O error reading one of the files.
+     */
     public static Bo2ObjectTube load(File dir) throws IOException {
         return load(dir.getName(), dir);
     }
     
+    /**
+     * Create a new <code>Bo2ObjectTube</code> with a specific name, containing
+     * all supported custom objects from a specific directory.
+     *
+     * @param name The name of the new <code>Bo2ObjectTube</code>.
+     * @param dir The directory containing the objects to load.
+     * @return A new <code>Bo2ObjectTube</code> containing the supported objects
+     *     from the specified directory.
+     * @throws IOException If there was an I/O error reading one of the files.
+     */
     public static Bo2ObjectTube load(String name, File dir) throws IOException {
-        File[] files = dir.listFiles((dir1, name1) -> name1.toLowerCase().endsWith(".bo2") || name1.toLowerCase().endsWith(".schematic"));
+        File[] files = dir.listFiles((dir1, name1) -> name1.toLowerCase().endsWith(".bo2") || name1.toLowerCase().endsWith(".bo3") || name1.toLowerCase().endsWith(".schematic"));
         return load(name, Arrays.asList(files));
     }
     
+    /**
+     * Create a new <code>Bo2ObjectTube</code> with a specific name from a list
+     * of specific custom object files.
+     *
+     * @param name The name of the new <code>Bo2ObjectTube</code>.
+     * @param files The list of files containing the objects to load.
+     * @return A new <code>Bo2ObjectTube</code> containing the custom objects
+     *     from the specified file(s).
+     * @throws IOException If there was an I/O error reading one of the files.
+     */
     public static Bo2ObjectTube load(String name, Collection<File> files) throws IOException {
         if (files.isEmpty()) {
             throw new IllegalArgumentException("Cannot create an object tube with no objects");
@@ -81,6 +114,8 @@ public class Bo2ObjectTube implements Bo2ObjectProvider {
             String filename = file.getName().toLowerCase();
             if (filename.endsWith(".bo2")) {
                 objects.add(Bo2Object.load(file));
+            } else if (filename.endsWith(".bo3")) {
+                objects.add(Bo3Object.load(file));
             } else if (filename.endsWith(".schematic")) {
                 objects.add(Schematic.load(file));
             } else {

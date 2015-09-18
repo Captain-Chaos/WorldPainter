@@ -9,6 +9,7 @@ import java.io.Serializable;
 import java.util.Map;
 
 /**
+ * Abstract base class for {@link WPObject} implementations.
  *
  * @author pepijn
  */

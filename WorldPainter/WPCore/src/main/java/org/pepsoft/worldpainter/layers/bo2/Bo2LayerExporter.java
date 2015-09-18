@@ -27,6 +27,7 @@ import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.objects.WPObject.*;
 
 /**
+ * An exporter of {@link Bo2Layer}s.
  *
  * @author pepijn
  */
@@ -152,6 +153,12 @@ objectLoop:         for (int y = chunkY; y < chunkY + 16; y++) {
         return null;
     }
 
+    /**
+     * Determines whether an object fits completely into the area currently
+     * being rendere in the horizontal dimensions.
+     *
+     * @return <code>true</code> if the object fits.
+     */
     private boolean fitsInExportedArea(final Rectangle exportedArea, final WPObject object, final int x, final int y) {
         final Point3i dimensions = object.getDimensions();
         final Point3i offset = object.getAttribute(ATTRIBUTE_OFFSET, new Point3i());
@@ -161,6 +168,14 @@ objectLoop:         for (int y = chunkY; y < chunkY + 16; y++) {
             || (y + offset.y < exportedArea.y) || (y + offset.y + dimensions.y > exportedArea.y + exportedArea.height));
     }
 
+    /**
+     * Determines whether an object's attributes allow it to be placed at a
+     * certain location, and if so where along the vertical axis.
+     *
+     * @return An indication of where along the vertical axis the object may
+     *     be placed, which may be {@link Placement#NONE} if it may not be
+     *     placed at all.
+     */
     private Placement getPlacement(final MinecraftWorld minecraftWorld, final Dimension dimension, final int x, final int y, final int z, final WPObject object, final Random random) {
         final boolean spawnUnderWater = object.getAttribute(ATTRIBUTE_SPAWN_IN_WATER, false), spawnUnderLava = object.getAttribute(ATTRIBUTE_SPAWN_IN_LAVA, false);
         final boolean spawnOnWater = object.getAttribute(ATTRIBUTE_SPAWN_ON_WATER, false), spawnOnLava = object.getAttribute(ATTRIBUTE_SPAWN_ON_LAVA, false);

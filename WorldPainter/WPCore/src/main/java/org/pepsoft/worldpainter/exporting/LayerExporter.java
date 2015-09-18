@@ -11,6 +11,9 @@ import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 
 /**
+ * An exporter of {@link Layer}s. The exporter should also implement at least
+ * one of {@link FirstPassLayerExporter}, {@link SecondPassLayerExporter}, and
+ * optionally also {@link IncidentalLayerExporter}.
  *
  * @author pepijn
  */

@@ -59,7 +59,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
     
     @Override
     public Bo2Layer createLayer() {
-        return new Bo2Layer(new Bo2ObjectTube("My Custom Objects", Collections.EMPTY_LIST), Color.ORANGE.getRGB());
+        return new Bo2Layer(new Bo2ObjectTube("bo2, bo3 and/or schematic", Collections.EMPTY_LIST), Color.ORANGE.getRGB());
     }
 
     @Override
@@ -295,7 +295,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                         }
                         File[] files = selectedFile.listFiles((dir, name) -> name.toLowerCase().endsWith(".bo2") || name.toLowerCase().endsWith(".bo3") || name.toLowerCase().endsWith(".schematic"));
                         if (files.length == 0) {
-                            JOptionPane.showMessageDialog(this, "Directory " + selectedFile.getName() + " does not contain any .bo2 or .schematic files.", "No Custom Object Files", JOptionPane.ERROR_MESSAGE);
+                            JOptionPane.showMessageDialog(this, "Directory " + selectedFile.getName() + " does not contain any .bo2, .bo3 or .schematic files.", "No Custom Object Files", JOptionPane.ERROR_MESSAGE);
                         } else {
                             for (File file: files) {
                                 try {
