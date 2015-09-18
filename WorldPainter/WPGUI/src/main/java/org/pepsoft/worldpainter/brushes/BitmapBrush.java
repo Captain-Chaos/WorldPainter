@@ -65,9 +65,7 @@ public final class BitmapBrush extends AbstractBrush {
         if (level != this.level) {
             this.level = level;
             rescaleOp = new RescaleOp(level, 0, null);
-            if (radius > 0) {
-                createMask();
-            }
+            createMask();
         }
     }
 
@@ -112,7 +110,7 @@ public final class BitmapBrush extends AbstractBrush {
     
     private final BufferedImage image;
     private DataBufferByte fullStrengthBuffer, buffer;
-    private int radius, diameter;
+    private int radius, diameter = 1;
     private float level;
     private RescaleOp rescaleOp;
 }

@@ -26,9 +26,7 @@ public final class RotatedBrush extends AbstractBrush {
         this.degrees = degrees;
         radius = brush.getRadius();
         level = brush.getLevel();
-        if (radius > 0) {
-            cacheAllStrengths();
-        }
+        cacheAllStrengths();
     }
 
     public Brush getBrush() {
@@ -174,6 +172,6 @@ public final class RotatedBrush extends AbstractBrush {
     
     private Brush brush;
     private int radius, effectiveRadius, degrees, effectiveWidth, effectiveHeight;
-    private float level = 1.0f;
+    private float level;
     private Raster fullStrengthCache;
 }

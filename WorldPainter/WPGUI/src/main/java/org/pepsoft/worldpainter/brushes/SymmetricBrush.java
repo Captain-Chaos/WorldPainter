@@ -19,6 +19,7 @@ public abstract class SymmetricBrush extends AbstractBrush {
         super(name);
         this.brushShape = brushShape;
         this.rotationallySymmetric = rotationallySymmetric;
+        cacheStrengths();
     }
 
     @Override
@@ -131,9 +132,9 @@ public abstract class SymmetricBrush extends AbstractBrush {
     protected final boolean rotationallySymmetric;
     protected final BrushShape brushShape;
 
-    private int radius = -1, cachedRadius = -1;
+    private int radius, cachedRadius = -1;
     private float[][] strengthCache, fullStrengthCache;
-    private float level = -1.0f, cachedLevel = -1.0f;
+    private float level = 1.0f, cachedLevel = -1.0f;
 
     public static final SymmetricBrush CONSTANT_CIRCLE = new RadialBrush("Constant Circle", BrushShape.CIRCLE, true) {
         @Override
