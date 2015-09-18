@@ -3,6 +3,7 @@
 Bug fix: make "reset terrain type to default" operation on Global Operations screen work again
 Bug fix: make brush filters work correctly again, instead of reflecting tile 0,0 any time the painted area was completely contained in one tile
 Bug fix: don't try to flood fill or let the user enter text if she has not selected a paint yet (which was causing error messages)
+Buf fix: don't cause an additional exception when handling an exception with an empty stack trace
 
 -- Version 2.0.0, released 13-9-2015
 

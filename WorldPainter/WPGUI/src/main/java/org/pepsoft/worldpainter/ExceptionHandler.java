@@ -37,7 +37,8 @@ public class ExceptionHandler implements Thread.UncaughtExceptionHandler {
     
     private boolean shouldIgnore(Throwable rootCause) {
         if ((rootCause instanceof NullPointerException)
-                && (rootCause.getStackTrace() != null)) {
+                && (rootCause.getStackTrace() != null)
+                && (rootCause.getStackTrace().length > 0)) {
             if ((rootCause.getStackTrace()[0].getClassName().equals("javax.swing.SwingUtilities")
                         && rootCause.getStackTrace()[0].getMethodName().equals("getWindowAncestor"))
                     || (rootCause.getStackTrace()[0].getClassName().equals("javax.swing.plaf.basic.BasicProgressBarUI")
