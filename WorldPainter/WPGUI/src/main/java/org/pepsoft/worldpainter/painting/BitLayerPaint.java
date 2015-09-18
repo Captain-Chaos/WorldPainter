@@ -58,11 +58,11 @@ public final class BitLayerPaint extends LayerPaint {
                 return;
             }
             final int x1InTile = x1 & TILE_SIZE_MASK, y1InTile = y1 & TILE_SIZE_MASK, x2InTile = x2 & TILE_SIZE_MASK, y2InTile = y2 & TILE_SIZE_MASK;
-            final int centreXInTile = centreX & TILE_SIZE_MASK, centreYInTile = centreY & TILE_SIZE_MASK;
+            final int tileXInWorld = tileX1 << TILE_SIZE_BITS, tileYInWorld = tileY1 << TILE_SIZE_BITS;
             if (dither) {
                 for (int y = y1InTile; y <= y2InTile; y++) {
                     for (int x = x1InTile; x <= x2InTile; x++) {
-                        final float strength = dynamicLevel * getStrength(centreXInTile, centreYInTile, x, y);
+                        final float strength = dynamicLevel * getStrength(centreX, centreY, tileXInWorld + x, tileYInWorld + y);
                         if ((strength > 0.95f) || (Math.random() < strength)) {
                             tile.setBitLayerValue(layer, x, y, true);
                         }
@@ -71,7 +71,7 @@ public final class BitLayerPaint extends LayerPaint {
             } else {
                 for (int y = y1InTile; y <= y2InTile; y++) {
                     for (int x = x1InTile; x <= x2InTile; x++) {
-                        final float strength = dynamicLevel * getFullStrength(centreXInTile, centreYInTile, x, y);
+                        final float strength = dynamicLevel * getFullStrength(centreX, centreY, tileXInWorld + x, tileYInWorld + y);
                         if (strength > 0.75f) {
                             tile.setBitLayerValue(layer, x, y, true);
                         }
@@ -120,11 +120,11 @@ public final class BitLayerPaint extends LayerPaint {
                 return;
             }
             final int x1InTile = x1 & TILE_SIZE_MASK, y1InTile = y1 & TILE_SIZE_MASK, x2InTile = x2 & TILE_SIZE_MASK, y2InTile = y2 & TILE_SIZE_MASK;
-            final int centreXInTile = centreX & TILE_SIZE_MASK, centreYInTile = centreY & TILE_SIZE_MASK;
+            final int tileXInWorld = tileX1 << TILE_SIZE_BITS, tileYInWorld = tileY1 << TILE_SIZE_BITS;
             if (dither) {
                 for (int y = y1InTile; y <= y2InTile; y++) {
                     for (int x = x1InTile; x <= x2InTile; x++) {
-                        final float strength = dynamicLevel * getFullStrength(centreXInTile, centreYInTile, x, y);
+                        final float strength = dynamicLevel * getFullStrength(centreX, centreY, tileXInWorld + x, tileYInWorld + y);
                         if ((strength > 0.95f) || (Math.random() < strength)) {
                             tile.setBitLayerValue(layer, x, y, false);
                         }
@@ -133,7 +133,7 @@ public final class BitLayerPaint extends LayerPaint {
             } else {
                 for (int y = y1InTile; y <= y2InTile; y++) {
                     for (int x = x1InTile; x <= x2InTile; x++) {
-                        final float strength = dynamicLevel * getFullStrength(centreXInTile, centreYInTile, x, y);
+                        final float strength = dynamicLevel * getFullStrength(centreX, centreY, tileXInWorld + x, tileYInWorld + y);
                         if (strength > 0.75f) {
                             tile.setBitLayerValue(layer, x, y, false);
                         }

@@ -58,11 +58,11 @@ public final class NibbleLayerPaint extends LayerPaint {
                 return;
             }
             final int x1InTile = x1 & TILE_SIZE_MASK, y1InTile = y1 & TILE_SIZE_MASK, x2InTile = x2 & TILE_SIZE_MASK, y2InTile = y2 & TILE_SIZE_MASK;
-            final int centreXInTile = centreX & TILE_SIZE_MASK, centreYInTile = centreY & TILE_SIZE_MASK;
+            final int tileXInWorld = tileX1 << TILE_SIZE_BITS, tileYInWorld = tileY1 << TILE_SIZE_BITS;
             for (int y = y1InTile; y <= y2InTile; y++) {
                 for (int x = x1InTile; x <= x2InTile; x++) {
                     final int currentValue = tile.getLayerValue(layer, x, y);
-                    final float strength = dynamicLevel * getStrength(centreXInTile, centreYInTile, x, y);
+                    final float strength = dynamicLevel * getStrength(centreX, centreY, tileXInWorld + x, tileYInWorld + y);
                     if (strength != 0f) {
                         int targetValue = (int) (strength * 14 + 1);
                         if (targetValue > currentValue) {
@@ -106,11 +106,11 @@ public final class NibbleLayerPaint extends LayerPaint {
                 return;
             }
             final int x1InTile = x1 & TILE_SIZE_MASK, y1InTile = y1 & TILE_SIZE_MASK, x2InTile = x2 & TILE_SIZE_MASK, y2InTile = y2 & TILE_SIZE_MASK;
-            final int centreXInTile = centreX & TILE_SIZE_MASK, centreYInTile = centreY & TILE_SIZE_MASK;
+            final int tileXInWorld = tileX1 << TILE_SIZE_BITS, tileYInWorld = tileY1 << TILE_SIZE_BITS;
             for (int y = y1InTile; y <= y2InTile; y++) {
                 for (int x = x1InTile; x <= x2InTile; x++) {
                     final int currentValue = tile.getLayerValue(layer, x, y);
-                    final float strength = dynamicLevel * getFullStrength(centreXInTile, centreYInTile, x, y);
+                    final float strength = dynamicLevel * getFullStrength(centreX, centreY, tileXInWorld + x, tileYInWorld + y);
                     if (strength != 0f) {
                         int targetValue = 15 - (int) (strength * 14 + 1);
                         if (targetValue < currentValue) {
