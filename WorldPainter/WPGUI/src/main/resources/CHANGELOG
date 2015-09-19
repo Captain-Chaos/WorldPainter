@@ -1,3 +1,7 @@
+-- Version 2.0.2, released ...
+
+ * Make sure that resetting the configuration by deleting the config file also resets the acceleration type setting
+
 -- Version 2.0.1, released 18-9-2015
 
  * Bug fix: make "reset terrain type to default" operation on Global Operations screen work again
