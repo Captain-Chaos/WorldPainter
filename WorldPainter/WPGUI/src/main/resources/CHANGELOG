@@ -1,3 +1,7 @@
+-- Version 2.0.2, ...
+
+ * Added an option for resetting all workspace layouts, including those of all saved worlds, and moved workspace layout menu items to submenu
+
 -- Version 2.0.1, released 18-9-2015
 
  * Bug fix: make "reset terrain type to default" operation on Global Operations screen work again

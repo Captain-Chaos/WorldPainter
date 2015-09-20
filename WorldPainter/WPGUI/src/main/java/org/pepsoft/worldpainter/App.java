@@ -3399,18 +3399,25 @@ public final class App extends JFrame implements RadiusControl,
         
         menu.addSeparator();
 
+        JMenu workspaceLayoutMenu = new JMenu("Workspace layout");
+
         menuItem = new JMenuItem(ACTION_RESET_DOCKS);
-        menuItem.setMnemonic('d');
-        menu.add(menuItem);
+        menuItem.setMnemonic('r');
+        workspaceLayoutMenu.add(menuItem);
+
+        menuItem = new JMenuItem(ACTION_RESET_ALL_DOCKS);
+        menuItem.setMnemonic('a');
+        workspaceLayoutMenu.add(menuItem);
 
         ACTION_LOAD_LAYOUT.setEnabled(config.getDefaultJideLayoutData() != null);
         menuItem = new JMenuItem(ACTION_LOAD_LAYOUT);
-        menuItem.setMnemonic('d');
-        menu.add(menuItem);
+        menuItem.setMnemonic('l');
+        workspaceLayoutMenu.add(menuItem);
 
         menuItem = new JMenuItem(ACTION_SAVE_LAYOUT);
-        menuItem.setMnemonic('d');
-        menu.add(menuItem);
+        menuItem.setMnemonic('s');
+        workspaceLayoutMenu.add(menuItem);
+        menu.add(workspaceLayoutMenu);
 
         menu.addSeparator();
         
@@ -5529,12 +5536,23 @@ public final class App extends JFrame implements RadiusControl,
         }
     };
     
-    private final BetterAction ACTION_RESET_DOCKS = new BetterAction("resetDockLayout", "Reset workspace layout") {
+    private final BetterAction ACTION_RESET_DOCKS = new BetterAction("resetDockLayout", "Reset current and default") {
         @Override
         protected void performAction(ActionEvent e) {
             dockingManager.resetToDefault();
             Configuration config = Configuration.getInstance();
             config.setDefaultJideLayoutData(null);
+            ACTION_LOAD_LAYOUT.setEnabled(false);
+        }
+    };
+
+    private final BetterAction ACTION_RESET_ALL_DOCKS = new BetterAction("resetAllDockLayout", "Reset current, default and all saved worlds") {
+        @Override
+        protected void performAction(ActionEvent e) {
+            dockingManager.resetToDefault();
+            Configuration config = Configuration.getInstance();
+            config.setDefaultJideLayoutData(null);
+            config.setJideLayoutData(null);
             ACTION_LOAD_LAYOUT.setEnabled(false);
         }
     };
