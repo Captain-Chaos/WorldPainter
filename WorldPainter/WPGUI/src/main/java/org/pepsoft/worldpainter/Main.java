@@ -101,37 +101,44 @@ public class Main {
         // Set the acceleration mode. For some reason we don't fully understand,
         // loading the Configuration from disk initialises Java2D, so we have to
         // do this *before* then.
+        // But only do this if a config file exists. If it does not, someone may
+        // be trying to reset the configuration, so make sure that the
+        // acceleration type setting is reset too in that case.
         AccelerationType accelerationType;
-        String accelTypeName = Preferences.userNodeForPackage(Main.class).get("accelerationType", null);
-        if (accelTypeName != null) {
-            accelerationType = AccelerationType.valueOf(accelTypeName);
+        if (Configuration.getConfigFile().isFile()) {
+            String accelTypeName = Preferences.userNodeForPackage(Main.class).get("accelerationType", null);
+            if (accelTypeName != null) {
+                accelerationType = AccelerationType.valueOf(accelTypeName);
+            } else {
+                accelerationType = AccelerationType.DEFAULT;
+                // TODO: Experiment with which ones work well and use them by default!
+            }
+            switch (accelerationType) {
+                case UNACCELERATED:
+                    // Try to disable all accelerated pipelines we know of:
+                    System.setProperty("sun.java2d.d3d", "false");
+                    System.setProperty("sun.java2d.opengl", "false");
+                    System.setProperty("sun.java2d.xrender", "false");
+                    System.setProperty("apple.awt.graphics.UseQuartz", "false");
+                    break;
+                case DIRECT3D:
+                    // Direct3D should already be the default on Windows, but
+                    // enable a few things which are off by default:
+                    System.setProperty("sun.java2d.translaccel", "true");
+                    System.setProperty("sun.java2d.ddscale", "true");
+                    break;
+                case OPENGL:
+                    System.setProperty("sun.java2d.opengl", "True");
+                    break;
+                case XRENDER:
+                    System.setProperty("sun.java2d.xrender", "True");
+                    break;
+                case QUARTZ:
+                    System.setProperty("apple.awt.graphics.UseQuartz", "true");
+                    break;
+            }
         } else {
             accelerationType = AccelerationType.DEFAULT;
-            // TODO: Experiment with which ones work well and use them by default!
-        }
-        switch (accelerationType) {
-            case UNACCELERATED:
-                // Try to disable all accelerated pipelines we know of:
-                System.setProperty("sun.java2d.d3d", "false");
-                System.setProperty("sun.java2d.opengl", "false");
-                System.setProperty("sun.java2d.xrender", "false");
-                System.setProperty("apple.awt.graphics.UseQuartz", "false");
-                break;
-            case DIRECT3D:
-                // Direct3D should already be the default on Windows, but
-                // enable a few things which are off by default:
-                System.setProperty("sun.java2d.translaccel", "true");
-                System.setProperty("sun.java2d.ddscale", "true");
-                break;
-            case OPENGL:
-                System.setProperty("sun.java2d.opengl", "True");
-                break;
-            case XRENDER:
-                System.setProperty("sun.java2d.xrender", "True");
-                break;
-            case QUARTZ:
-                System.setProperty("apple.awt.graphics.UseQuartz", "true");
-                break;
         }
 
         // Load or initialise configuration
