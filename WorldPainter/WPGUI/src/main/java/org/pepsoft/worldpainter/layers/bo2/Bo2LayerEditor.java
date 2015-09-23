@@ -59,7 +59,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
     
     @Override
     public Bo2Layer createLayer() {
-        return new Bo2Layer(new Bo2ObjectTube("bo2, bo3 and/or schematic", Collections.EMPTY_LIST), Color.ORANGE.getRGB());
+        return new Bo2Layer(new Bo2ObjectTube("My Custom Objects", Collections.emptyList()), "Custom bo2, bo3 and/or schematic objects", Color.ORANGE.getRGB());
     }
 
     @Override
@@ -221,7 +221,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
         }
         Bo2ObjectProvider objectProvider = new Bo2ObjectTube(name, objects);
         if (layer == null) {
-            layer = new Bo2Layer(objectProvider, selectedColour);
+            layer = new Bo2Layer(objectProvider, "Custom bo2, bo3 and/or schematic objects", selectedColour);
         } else {
             layer.setObjectProvider(objectProvider);
             layer.setColour(selectedColour);

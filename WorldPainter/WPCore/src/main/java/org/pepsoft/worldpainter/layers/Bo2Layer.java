@@ -17,8 +17,8 @@ import org.pepsoft.worldpainter.layers.bo2.Bo2LayerExporter;
  * @author pepijn
  */
 public class Bo2Layer extends CustomLayer {
-    public Bo2Layer(Bo2ObjectProvider objectProvider, int colour) {
-        super(objectProvider.getName(), "Custom " + objectProvider.getName() + " objects", DataSize.NIBBLE, 50, colour);
+    public Bo2Layer(Bo2ObjectProvider objectProvider, String description, int colour) {
+        super(objectProvider.getName(), description, DataSize.NIBBLE, 50, colour);
         this.objectProvider = objectProvider;
     }
 
