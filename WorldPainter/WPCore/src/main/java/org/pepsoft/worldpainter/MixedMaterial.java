@@ -524,7 +524,11 @@ public class MixedMaterial implements Serializable, Comparable<MixedMaterial> {
             }
             return true;
         }
-        
+
+        public String toString() {
+            return material.toString();
+        }
+
         final Material material;
         final int occurrence;
         final float scale;
