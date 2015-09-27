@@ -2589,7 +2589,7 @@ public final class App extends JFrame implements RadiusControl,
         for (int i = 0; i < Terrain.CUSTOM_TERRAIN_COUNT; i++) {
             customMaterialButtons[i] = createTerrainButton(Terrain.getCustomTerrain(i));
             customMaterialButtons[i].setIcon(ICON_UNKNOWN_PATTERN);
-            customMaterialButtons[i].setToolTipText(strings.getString("not.set.click.to.set"));
+            customMaterialButtons[i].setToolTipText("Custom " + (i + 1) + ": " + strings.getString("not.set.click.to.set"));
             addMaterialSelectionTo(customMaterialButtons[i], i);
             customTerrainPanel.add(customMaterialButtons[i]);
         }
@@ -4184,13 +4184,25 @@ public final class App extends JFrame implements RadiusControl,
         button.setToolTipText(terrain.getName() + ": " + terrain.getDescription());
         button.addItemListener(event -> {
             if (event.getStateChange() == ItemEvent.SELECTED) {
-                paintUpdater = () -> {
-                    paint = PaintFactory.createTerrainPaint(terrain);
-                    paintChanged();
-                };
-                paintUpdater.updatePaint();
+                if (terrain.isConfigured()) {
+                    paintUpdater = () -> {
+                        paint = PaintFactory.createTerrainPaint(terrain);
+                        paintChanged();
+                    };
+                    paintUpdater.updatePaint();
+                }
             }
         });
+        if (terrain.isCustom()) {
+            button.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    if (!terrain.isConfigured()) {
+                        showCustomTerrainButtonPopup(terrain.getCustomTerrainIndex());
+                    }
+                }
+            });
+        }
         paintButtonGroup.add(button);
         return button;
     }
