@@ -4,6 +4,7 @@
  * Added an option for resetting all workspace layouts, including those of all saved worlds, and moved workspace layout menu items to submenu
  * Make sure that resetting the configuration by deleting the config file also resets the acceleration type setting
  * Show a message and undo the operation if a flood fill fails due to the area being too large, instead of crashing with an error
+ * There have been reports of worlds which use unconfigured custom terrains, causing missing tiles in the editor and errors during export. It's not yet known how this can happen, but a workaround has been implemented so that these unconfigured custom terrains are now displayed with a magenta colour (so it's easy to see where they are used) and a clearer error message is displayed on export
  * Bug fix: make removing Combined Layers work again
 
 -- Version 2.0.1, released 18-9-2015

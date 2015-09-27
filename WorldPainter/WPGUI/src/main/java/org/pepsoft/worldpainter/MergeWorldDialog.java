@@ -129,6 +129,13 @@ public class MergeWorldDialog extends javax.swing.JDialog implements Listener {
         }
         if (cause instanceof FileInUseException) {
             JOptionPane.showMessageDialog(MergeWorldDialog.this, "Could not merge the world because the existing map directory is in use.\nPlease close Minecraft and all other windows and try again.", "Map In Use", JOptionPane.ERROR_MESSAGE);
+        } else if (cause instanceof MissingCustomTerrainException) {
+            JOptionPane.showMessageDialog(MergeWorldDialog.this,
+                "Custom Terrain " + ((MissingCustomTerrainException) exception).getIndex() + " not configured!\n" +
+                "Please configure it on the Custom Terrain panel.\n" +
+                "\n" +
+                "The partially exported map is now probably corrupted.\n" +
+                "You should delete it, or export the map again.", "Unconfigured Custom Terrain", JOptionPane.ERROR_MESSAGE);
         } else {
             ErrorDialog dialog = new ErrorDialog(MergeWorldDialog.this);
             dialog.setException(exception);
