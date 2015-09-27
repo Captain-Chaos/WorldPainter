@@ -1239,6 +1239,11 @@ public final class App extends JFrame implements RadiusControl,
         menuItem.addActionListener(e -> {
             if (editCustomMaterial(customMaterialIndex)) {
                 button.setSelected(true);
+                paintUpdater = () -> {
+                    paint = PaintFactory.createTerrainPaint(Terrain.getCustomTerrain(customMaterialIndex));
+                    paintChanged();
+                };
+                paintUpdater.updatePaint();
             }
         });
         popupMenu.add(menuItem);
@@ -1247,6 +1252,11 @@ public final class App extends JFrame implements RadiusControl,
         menuItem.addActionListener(e -> {
             if (importCustomMaterial(customMaterialIndex)) {
                 button.setSelected(true);
+                paintUpdater = () -> {
+                    paint = PaintFactory.createTerrainPaint(Terrain.getCustomTerrain(customMaterialIndex));
+                    paintChanged();
+                };
+                paintUpdater.updatePaint();
             }
         });
         popupMenu.add(menuItem);
