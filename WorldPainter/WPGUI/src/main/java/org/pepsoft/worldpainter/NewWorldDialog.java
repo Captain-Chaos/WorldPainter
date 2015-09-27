@@ -629,6 +629,8 @@ public class NewWorldDialog extends javax.swing.JDialog {
                 tileFactory = TileFactoryFactory.createFlatTileFactory(seed, terrain, maxHeight, baseHeight, waterHeight, floodWithLava, beaches);
             }
             if (radioButtonAdvancedTerrain.isSelected()) {
+                theme.setWaterHeight((Integer) spinnerWaterLevel.getValue());
+                theme.setBeaches(checkBoxBeaches.isSelected());
                 tileFactory.setTheme(theme);
             }
             Configuration config = Configuration.getInstance();
@@ -691,10 +693,16 @@ public class NewWorldDialog extends javax.swing.JDialog {
     }
 
     private void editTheme() {
+        theme.setWaterHeight((Integer) spinnerWaterLevel.getValue());
+        theme.setBeaches(checkBoxBeaches.isSelected());
         EditSimpleThemeDialog dialog = new EditSimpleThemeDialog(this, theme);
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             theme = dialog.getTheme();
+            spinnerWaterLevel.setValue(theme.getWaterHeight());
+            checkBoxBeaches.setSelected(theme.isBeaches());
+            setControlStates();
+            updatePreview();
         }
     }
 
@@ -1408,10 +1416,12 @@ public class NewWorldDialog extends javax.swing.JDialog {
 
     private void radioButtonSimpleTerrainActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonSimpleTerrainActionPerformed
         setControlStates();
+        updatePreview();
     }//GEN-LAST:event_radioButtonSimpleTerrainActionPerformed
 
     private void radioButtonAdvancedTerrainActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonAdvancedTerrainActionPerformed
         setControlStates();
+        updatePreview();
     }//GEN-LAST:event_radioButtonAdvancedTerrainActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
