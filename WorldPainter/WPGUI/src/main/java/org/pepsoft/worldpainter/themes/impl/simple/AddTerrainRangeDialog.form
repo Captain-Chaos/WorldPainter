@@ -38,10 +38,10 @@
                       <Component id="comboBoxTerrainType" min="-2" max="-2" attributes="0"/>
                   </Group>
               </Group>
-              <EmptySpace pref="14" max="32767" attributes="0"/>
+              <EmptySpace max="32767" attributes="0"/>
           </Group>
           <Group type="102" alignment="1" attributes="0">
-              <EmptySpace pref="289" max="32767" attributes="0"/>
+              <EmptySpace max="32767" attributes="0"/>
               <Component id="buttonOK" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="buttonCancel" min="-2" max="-2" attributes="0"/>
@@ -79,6 +79,9 @@
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel2">
       <Properties>
+        <Property name="labelFor" type="java.awt.Component" editor="org.netbeans.modules.form.ComponentChooserEditor">
+          <ComponentRef name="spinnerLevel"/>
+        </Property>
         <Property name="text" type="java.lang.String" value="Level:"/>
       </Properties>
     </Component>
@@ -86,6 +89,9 @@
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel3">
       <Properties>
+        <Property name="labelFor" type="java.awt.Component" editor="org.netbeans.modules.form.ComponentChooserEditor">
+          <ComponentRef name="comboBoxTerrainType"/>
+        </Property>
         <Property name="text" type="java.lang.String" value="Terrain type:"/>
       </Properties>
     </Component>

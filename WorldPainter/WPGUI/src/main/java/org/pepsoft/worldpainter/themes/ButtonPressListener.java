@@ -4,10 +4,12 @@
  */
 package org.pepsoft.worldpainter.themes;
 
+import javax.swing.JTable;
+
 /**
  *
  * @author pepijn
  */
 public interface ButtonPressListener {
-    void buttonPressed(int row, int column);
+    void buttonPressed(JTable source, int row, int column);
 }

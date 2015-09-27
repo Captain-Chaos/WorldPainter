@@ -371,8 +371,8 @@
         <Container class="javax.swing.JPanel" name="jPanel5">
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
-              <JTabbedPaneConstraints tabName="Default Terrain">
-                <Property name="tabTitle" type="java.lang.String" value="Default Terrain"/>
+              <JTabbedPaneConstraints tabName="Default Terrain and Layers">
+                <Property name="tabTitle" type="java.lang.String" value="Default Terrain and Layers"/>
               </JTabbedPaneConstraints>
             </Constraint>
           </Constraints>
@@ -408,16 +408,16 @@
             </DimensionLayout>
           </Layout>
           <SubComponents>
-            <Component class="org.pepsoft.worldpainter.themes.SimpleThemeEditor" name="themeEditor">
+            <Component class="org.pepsoft.worldpainter.themes.impl.simple.SimpleThemeEditor" name="themeEditor">
             </Component>
             <Component class="javax.swing.JLabel" name="jLabel45">
               <Properties>
-                <Property name="text" type="java.lang.String" value="These are the default terrain types used by the Mountain tool, and when right-clicking a Terrain tool,"/>
+                <Property name="text" type="java.lang.String" value="These are the default terrain types and layers used by the Mountain tool, and when resetting the"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JLabel" name="jLabel46">
               <Properties>
-                <Property name="text" type="java.lang.String" value="with the minimum block level from which each terrain type is used:"/>
+                <Property name="text" type="java.lang.String" value="terrain to the default by right-clicking with a terrain type selected:"/>
               </Properties>
             </Component>
           </SubComponents>
