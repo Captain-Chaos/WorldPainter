@@ -1,4 +1,4 @@
--- Version 2.0.2, ...
+-- Version 2.0.2, released 27-9-2015
 
  * In addition to default terrain types by altitude you can now also configure default layers by altitude. This applies when creating worlds from scratch from the New World screen (there is a new "advanced" surface type setting) or when creating worlds from height maps, and you can edit the default layers afterwards from the Dimension Properties screen (Ctrl+P). This support always existed (this is how a Frost layer was placed on high altitudes), but now there is a user interface for configuring it
  * The Select Custom Material screen now has a Simple mode, which is the default, to be easier for new users and for when you want a simple material consisting of just one block type. Click on the Complex tab for the multi-material modes
