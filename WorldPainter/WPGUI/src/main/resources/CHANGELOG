@@ -4,6 +4,7 @@
  * Added an option for resetting all workspace layouts, including those of all saved worlds, and moved workspace layout menu items to submenu
  * Make sure that resetting the configuration by deleting the config file also resets the acceleration type setting
  * Show a message and undo the operation if a flood fill fails due to the area being too large, instead of crashing with an error
+ * Bug fix: make removing Combined Layers work again
 
 -- Version 2.0.1, released 18-9-2015
 
