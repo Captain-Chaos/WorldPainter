@@ -371,13 +371,13 @@ public final class TileRenderer {
             return BLACK;
         }
         final int waterLevel = tile.getWaterLevel(x, y);
-        fluidHeights[1][0] = getNeighbourFluidHeight(x, y, 0, -1);
+        fluidHeights[1][0] = getNeighbourFluidHeight(x, y, 0, -1, waterLevel);
         fluidDeltas [1][0] = fluidHeights[1][0] - waterLevel;
-        fluidHeights[0][1] = getNeighbourFluidHeight(x, y, -1, 0);
+        fluidHeights[0][1] = getNeighbourFluidHeight(x, y, -1, 0, waterLevel);
         fluidDeltas [0][1] = fluidHeights[0][1] - waterLevel;
-        fluidHeights[2][1] = getNeighbourFluidHeight(x, y, 1, 0);
+        fluidHeights[2][1] = getNeighbourFluidHeight(x, y, 1, 0, waterLevel);
         fluidDeltas [2][1] = fluidHeights[2][1] - waterLevel;
-        fluidHeights[1][2] = getNeighbourFluidHeight(x, y, 0, 1);
+        fluidHeights[1][2] = getNeighbourFluidHeight(x, y, 0, 1, waterLevel);
         fluidDeltas [1][2] = fluidHeights[1][2] - waterLevel;
         int colour;
         final int worldX = tileX | x, worldY = tileY | y;
@@ -476,11 +476,12 @@ public final class TileRenderer {
         }
     }
 
-    private int getNeighbourFluidHeight(int x, int y, int dx, int dy) {
+    private int getNeighbourFluidHeight(int x, int y, int dx, int dy, int defaultHeight) {
         x = x + dx;
         y = y + dy;
         if ((x >= 0) && (x < TILE_SIZE) && (y >= 0) && (y < TILE_SIZE)) {
-            return intFluidHeightCache[x + y * TILE_SIZE];
+            int offset = x + y * TILE_SIZE;
+            return (intFluidHeightCache[offset] > intHeightCache[offset]) ? intFluidHeightCache[offset] : defaultHeight;
         } else {
             int tileDX = 0, tileDY = 0;
             if (x < 0) {
@@ -498,7 +499,12 @@ public final class TileRenderer {
                 y -= TILE_SIZE;
             }
             Tile neighborTile = tileProvider.getTile(tile.getX() + tileDX, tile.getY() + tileDY);
-            return (neighborTile != null) ? neighborTile.getWaterLevel(x, y) : 62;
+            if (neighborTile != null) {
+                int waterLevel = neighborTile.getWaterLevel(x, y);
+                return (waterLevel > neighborTile.getIntHeight(x, y)) ? waterLevel : defaultHeight;
+            } else {
+                return defaultHeight;
+            }
         }
     }
 
