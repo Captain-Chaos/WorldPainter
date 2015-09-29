@@ -812,7 +812,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         }
     }
 
-    private static File getConfigFile() {
+    public static File getConfigFile() {
         return new File(getConfigDir(), "config");
     }
     

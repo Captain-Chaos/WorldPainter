@@ -42,6 +42,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Terrain.*;
+import org.pepsoft.worldpainter.themes.impl.simple.EditSimpleThemeDialog;
 
 /**
  *
@@ -158,6 +159,13 @@ public class NewWorldDialog extends javax.swing.JDialog {
             spinnerWidth.setEnabled(false);
             spinnerLength.setEnabled(false);
             checkBoxCircular.setEnabled(false);
+        }
+        
+        TileFactory defaultTileFactory = config.getDefaultTerrainAndLayerSettings().getTileFactory();
+        if ((defaultTileFactory instanceof HeightMapTileFactory) && (((HeightMapTileFactory) defaultTileFactory).getTheme() instanceof SimpleTheme)) {
+            theme = (SimpleTheme) ((HeightMapTileFactory) defaultTileFactory).getTheme().clone();
+        } else {
+            theme = SimpleTheme.createDefault((Terrain) comboBoxSurfaceMaterial.getSelectedItem(), Integer.parseInt((String) comboBoxMaxHeight.getSelectedItem()), (Integer) spinnerWaterLevel.getValue());
         }
         
         pack();
@@ -552,6 +560,10 @@ public class NewWorldDialog extends javax.swing.JDialog {
         radioButtonCustomSeed.setEnabled(surfaceDimension && (! seedLocked));
         buttonRandomSeed.setEnabled(surfaceDimension && radioButtonCustomSeed.isSelected() && (! seedLocked));
         fieldSeed.setEnabled(surfaceDimension && radioButtonCustomSeed.isSelected() && (! seedLocked));
+        boolean advancedTerrain = radioButtonAdvancedTerrain.isSelected();
+        comboBoxSurfaceMaterial.setEnabled(! advancedTerrain);
+        labelAdvancedTerrain.setEnabled(advancedTerrain);
+        labelAdvancedTerrain.setCursor(advancedTerrain ? Cursor.getPredefinedCursor(Cursor.HAND_CURSOR) : null);
     }
 
     private void updatePreview() {
@@ -616,6 +628,11 @@ public class NewWorldDialog extends javax.swing.JDialog {
             } else {
                 tileFactory = TileFactoryFactory.createFlatTileFactory(seed, terrain, maxHeight, baseHeight, waterHeight, floodWithLava, beaches);
             }
+            if (radioButtonAdvancedTerrain.isSelected()) {
+                theme.setWaterHeight((Integer) spinnerWaterLevel.getValue());
+                theme.setBeaches(checkBoxBeaches.isSelected());
+                tileFactory.setTheme(theme);
+            }
             Configuration config = Configuration.getInstance();
             Dimension defaults = config.getDefaultTerrainAndLayerSettings();
             if ((dim == DIM_NORMAL)
@@ -624,13 +641,15 @@ public class NewWorldDialog extends javax.swing.JDialog {
                     && (((SimpleTheme) ((HeightMapTileFactory) defaults.getTileFactory()).getTheme()).getTerrainRanges() != null)) {
                 HeightMapTileFactory defaultTileFactory = (HeightMapTileFactory) defaults.getTileFactory();
                 SimpleTheme defaultTheme = (SimpleTheme) defaultTileFactory.getTheme();
-                SortedMap<Integer, Terrain> terrainRanges = new TreeMap<>(defaultTheme.getTerrainRanges());
-                int surfaceLevel = terrainRanges.headMap(waterHeight + 3).lastKey();
-                terrainRanges.put(surfaceLevel, terrain);
-                SimpleTheme theme = (SimpleTheme) tileFactory.getTheme();
-                theme.setTerrainRanges(terrainRanges);
-                theme.setRandomise(defaultTheme.isRandomise());
-            } else if (dim != DIM_NORMAL) {
+                if (radioButtonSimpleTerrain.isSelected()) {
+                    SortedMap<Integer, Terrain> terrainRanges = new TreeMap<>(defaultTheme.getTerrainRanges());
+                    int surfaceLevel = terrainRanges.headMap(waterHeight + 3).lastKey();
+                    terrainRanges.put(surfaceLevel, terrain);
+                    SimpleTheme theme = (SimpleTheme) tileFactory.getTheme();
+                    theme.setTerrainRanges(terrainRanges);
+                    theme.setRandomise(defaultTheme.isRandomise());
+                }
+            } else if ((dim != DIM_NORMAL) && radioButtonSimpleTerrain.isSelected()) {
                 // Override the default terrain map:
                 SortedMap<Integer, Terrain> terrainMap = new TreeMap<>();
                 terrainMap.put(-1, terrain);
@@ -673,6 +692,20 @@ public class NewWorldDialog extends javax.swing.JDialog {
         }
     }
 
+    private void editTheme() {
+        theme.setWaterHeight((Integer) spinnerWaterLevel.getValue());
+        theme.setBeaches(checkBoxBeaches.isSelected());
+        EditSimpleThemeDialog dialog = new EditSimpleThemeDialog(this, theme);
+        dialog.setVisible(true);
+        if (! dialog.isCancelled()) {
+            theme = dialog.getTheme();
+            spinnerWaterLevel.setValue(theme.getWaterHeight());
+            checkBoxBeaches.setSelected(theme.isBeaches());
+            setControlStates();
+            updatePreview();
+        }
+    }
+
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -684,6 +717,7 @@ public class NewWorldDialog extends javax.swing.JDialog {
 
         buttonGroup1 = new javax.swing.ButtonGroup();
         buttonGroup2 = new javax.swing.ButtonGroup();
+        buttonGroup3 = new javax.swing.ButtonGroup();
         buttonCancel = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         spinnerWaterLevel = new javax.swing.JSpinner();
@@ -724,6 +758,9 @@ public class NewWorldDialog extends javax.swing.JDialog {
         checkBoxExtendedBlockIds = new javax.swing.JCheckBox();
         jLabel12 = new javax.swing.JLabel();
         labelWalkingTimes = new javax.swing.JLabel();
+        radioButtonSimpleTerrain = new javax.swing.JRadioButton();
+        radioButtonAdvancedTerrain = new javax.swing.JRadioButton();
+        labelAdvancedTerrain = new javax.swing.JLabel();
         jPanel3 = new javax.swing.JPanel();
         tiledImageViewer1 = new org.pepsoft.util.swing.TiledImageViewer();
         buttonCreate = new javax.swing.JButton();
@@ -926,6 +963,33 @@ public class NewWorldDialog extends javax.swing.JDialog {
 
         labelWalkingTimes.setText("...");
 
+        buttonGroup3.add(radioButtonSimpleTerrain);
+        radioButtonSimpleTerrain.setSelected(true);
+        radioButtonSimpleTerrain.setText("Simple:");
+        radioButtonSimpleTerrain.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonSimpleTerrainActionPerformed(evt);
+            }
+        });
+
+        buttonGroup3.add(radioButtonAdvancedTerrain);
+        radioButtonAdvancedTerrain.setText("Advanced:");
+        radioButtonAdvancedTerrain.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonAdvancedTerrainActionPerformed(evt);
+            }
+        });
+
+        labelAdvancedTerrain.setForeground(new java.awt.Color(0, 51, 255));
+        labelAdvancedTerrain.setText("<html><u>configure default terrain and layers</u></html>");
+        labelAdvancedTerrain.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        labelAdvancedTerrain.setEnabled(false);
+        labelAdvancedTerrain.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                labelAdvancedTerrainMouseClicked(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
@@ -994,14 +1058,20 @@ public class NewWorldDialog extends javax.swing.JDialog {
                                 .addComponent(spinnerScale, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(0, 0, 0)
                                 .addComponent(jLabel20))
-                            .addComponent(comboBoxSurfaceMaterial, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(radioButtonSimpleTerrain)
                             .addComponent(jLabel6))
                         .addContainerGap())
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(labelWalkingTimes)
                             .addComponent(jLabel12)
-                            .addComponent(checkBoxExtendedBlockIds))
+                            .addComponent(checkBoxExtendedBlockIds)
+                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addComponent(radioButtonAdvancedTerrain)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(comboBoxSurfaceMaterial, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(labelAdvancedTerrain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
                         .addGap(0, 0, Short.MAX_VALUE))))
         );
         jPanel2Layout.setVerticalGroup(
@@ -1057,7 +1127,13 @@ public class NewWorldDialog extends javax.swing.JDialog {
                 .addGap(18, 18, 18)
                 .addComponent(jLabel6)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(comboBoxSurfaceMaterial, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(comboBoxSurfaceMaterial, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(radioButtonSimpleTerrain))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(radioButtonAdvancedTerrain)
+                    .addComponent(labelAdvancedTerrain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addComponent(checkBoxExtendedBlockIds)
                 .addGap(18, 18, 18)
@@ -1332,11 +1408,28 @@ public class NewWorldDialog extends javax.swing.JDialog {
         }
     }//GEN-LAST:event_radioButtonCustomSeedActionPerformed
 
+    private void labelAdvancedTerrainMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_labelAdvancedTerrainMouseClicked
+        if (radioButtonAdvancedTerrain.isSelected()) {
+            editTheme();
+        }
+    }//GEN-LAST:event_labelAdvancedTerrainMouseClicked
+
+    private void radioButtonSimpleTerrainActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonSimpleTerrainActionPerformed
+        setControlStates();
+        updatePreview();
+    }//GEN-LAST:event_radioButtonSimpleTerrainActionPerformed
+
+    private void radioButtonAdvancedTerrainActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonAdvancedTerrainActionPerformed
+        setControlStates();
+        updatePreview();
+    }//GEN-LAST:event_radioButtonAdvancedTerrainActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonCancel;
     private javax.swing.JButton buttonCreate;
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.ButtonGroup buttonGroup2;
+    private javax.swing.ButtonGroup buttonGroup3;
     private javax.swing.JButton buttonRandomSeed;
     private javax.swing.JCheckBox checkBoxBeaches;
     private javax.swing.JCheckBox checkBoxCircular;
@@ -1364,13 +1457,16 @@ public class NewWorldDialog extends javax.swing.JDialog {
     private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
+    private javax.swing.JLabel labelAdvancedTerrain;
     private javax.swing.JLabel labelWalkingTimes;
     private javax.swing.JLabel labelWarning;
+    private javax.swing.JRadioButton radioButtonAdvancedTerrain;
     private javax.swing.JRadioButton radioButtonCustomSeed;
     private javax.swing.JRadioButton radioButtonFlat;
     private javax.swing.JRadioButton radioButtonHilly;
     private javax.swing.JRadioButton radioButtonLandSeed;
     private javax.swing.JRadioButton radioButtonOceanSeed;
+    private javax.swing.JRadioButton radioButtonSimpleTerrain;
     private javax.swing.JSpinner spinnerLength;
     private javax.swing.JSpinner spinnerRange;
     private javax.swing.JSpinner spinnerScale;
@@ -1386,6 +1482,7 @@ public class NewWorldDialog extends javax.swing.JDialog {
     private boolean cancelled = true;
     private int previousExp = 7, dim, savedTerrainLevel;
     private long worldpainterSeed;
+    private SimpleTheme theme;
 
     static final int ESTIMATED_TILE_DATA_SIZE = 81; // in KB
     

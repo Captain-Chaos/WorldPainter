@@ -1,3 +1,13 @@
+-- Version 2.0.2, released 27-9-2015
+
+ * In addition to default terrain types by altitude you can now also configure default layers by altitude. This applies when creating worlds from scratch from the New World screen (there is a new "advanced" surface type setting) or when creating worlds from height maps, and you can edit the default layers afterwards from the Dimension Properties screen (Ctrl+P). This support always existed (this is how a Frost layer was placed on high altitudes), but now there is a user interface for configuring it
+ * The Select Custom Material screen now has a Simple mode, which is the default, to be easier for new users and for when you want a simple material consisting of just one block type. Click on the Complex tab for the multi-material modes
+ * Added an option for resetting all workspace layouts, including those of all saved worlds, and moved workspace layout menu items to submenu
+ * Make sure that resetting the configuration by deleting the config file also resets the acceleration type setting
+ * Show a message and undo the operation if a flood fill fails due to the area being too large, instead of crashing with an error
+ * There have been reports of worlds which use unconfigured custom terrains, causing missing tiles in the editor and errors during export. It's not yet known how this can happen, but a workaround has been implemented so that these unconfigured custom terrains are now displayed with a magenta colour (so it's easy to see where they are used) and a clearer error message is displayed on export
+ * Bug fix: make removing Combined Layers work again
+
 -- Version 2.0.1, released 18-9-2015
 
  * Bug fix: make "reset terrain type to default" operation on Global Operations screen work again

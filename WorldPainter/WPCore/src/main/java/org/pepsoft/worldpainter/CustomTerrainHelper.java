@@ -1,12 +1,14 @@
 package org.pepsoft.worldpainter;
 
+import org.pepsoft.minecraft.Material;
+
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
-import javax.imageio.ImageIO;
-import org.pepsoft.minecraft.Material;
 
 import static org.pepsoft.minecraft.Material.AIR;
+import static org.pepsoft.minecraft.Material.WOOL_MAGENTA;
 
 /**
  * @author SchmitzP
@@ -21,7 +23,12 @@ public class CustomTerrainHelper {
         if (dz >= 0.5f) {
             return AIR;
         } else {
-            return Terrain.customMaterials[index].getMaterial(seed, x, y, z);
+            MixedMaterial material = Terrain.customMaterials[index];
+            if (material != null) {
+                return material.getMaterial(seed, x, y, z);
+            } else {
+                throw new MissingCustomTerrainException("Custom terrain " + index + " not configured", index);
+            }
         }
     }
     
@@ -30,7 +37,12 @@ public class CustomTerrainHelper {
         if (dz > 0) {
             return AIR;
         } else {
-            return Terrain.customMaterials[index].getMaterial(seed, x, y, z);
+            MixedMaterial material = Terrain.customMaterials[index];
+            if (material != null) {
+                return material.getMaterial(seed, x, y, z);
+            } else {
+                throw new MissingCustomTerrainException("Custom terrain " + index + " not configured", index);
+            }
         }
     }
 
@@ -58,19 +70,21 @@ public class CustomTerrainHelper {
 
     public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {
         MixedMaterial material = Terrain.customMaterials[index];
-        Integer colour = (material != null) ? material.getColour() : null;
+        Integer colour = (material != null) ? material.getColour() : UNKNOWN_COLOUR;
         return (colour != null) ? colour : colourScheme.getColour(getMaterial(seed, x, y, z, height));
     }
     
     public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {
         MixedMaterial material = Terrain.customMaterials[index];
-        Integer colour = (material != null) ? material.getColour() : null;
+        Integer colour = (material != null) ? material.getColour() : UNKNOWN_COLOUR;
         return (colour != null) ? colour : colourScheme.getColour(getMaterial(seed, x, y, z, height));
     }
     
     private final int index;
     
     private static final BufferedImage UNKNOWN_ICON;
+    private static final Material UNKNOWN_MATERIAL = WOOL_MAGENTA;
+    private static final Integer UNKNOWN_COLOUR = 0xff00ff; // Magenta
     
     static {
         try {

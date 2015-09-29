@@ -147,6 +147,7 @@ public final class TileRenderer {
                 final float height = tile.getHeight(x, y);
                 floatHeightCache[x | (y << TILE_SIZE_BITS)] = height;
                 intHeightCache[x | (y << TILE_SIZE_BITS)] = (int) (height + 0.5f);
+                intFluidHeightCache[x | (y << TILE_SIZE_BITS)] = tile.getWaterLevel(x, y);
             }
         }
 
@@ -244,6 +245,10 @@ public final class TileRenderer {
                     } else {
                         int colour = getPixelColour(tileX, tileY, x, y, layers, renderers, contourLines);
                         colour = ColourUtils.multiply(colour, getBrightenAmount());
+                        final int offset = x + y * TILE_SIZE;
+                        if (intFluidHeightCache[offset] > intHeightCache[offset]) {
+                            colour = ColourUtils.multiply(colour, getFluidBrightenAmount());
+                        }
                         renderBuffer[x | (y << TILE_SIZE_BITS)] = 0xff000000 | colour;
                     }
                 }
@@ -268,6 +273,10 @@ public final class TileRenderer {
                     } else {
                         int colour = getPixelColour(tileX, tileY, x, y, layers, renderers, contourLines);
                         colour = ColourUtils.multiply(colour, getBrightenAmount());
+                        final int offset = x + y * TILE_SIZE;
+                        if (intFluidHeightCache[offset] > intHeightCache[offset]) {
+                            colour = ColourUtils.multiply(colour, getFluidBrightenAmount());
+                        }
                         renderBuffer[x / scale + y * tileSize] = 0xff000000 | colour;
                     }
                 }
@@ -309,7 +318,29 @@ public final class TileRenderer {
                 throw new InternalError();
         }
     }
-    
+
+    /**
+     * Determine the brighten amount for fluid. This method assumes that the
+     * {@link #deltas} array has been filled by a previous call to
+     * {@link #getPixelColour(int, int, int, int, Layer[], LayerRenderer[], boolean)}.
+     *
+     * @return The amount by which to brighten the pixel for the specified block. May be negative.
+     */
+    private int getFluidBrightenAmount() {
+        switch (lightOrigin) {
+            case NORTHWEST:
+                return Math.max(0, ((fluidDeltas[2][1] - fluidDeltas[0][1] + fluidDeltas[1][2] - fluidDeltas[1][0]) << 5) + 256);
+            case NORTHEAST:
+                return Math.max(0, ((fluidDeltas[0][1] - fluidDeltas[2][1] + fluidDeltas[1][2] - fluidDeltas[1][0]) << 5) + 256);
+            case SOUTHEAST:
+                return Math.max(0, ((fluidDeltas[0][1] - fluidDeltas[2][1] + fluidDeltas[1][0] - fluidDeltas[1][2]) << 5) + 256);
+            case SOUTHWEST:
+                return Math.max(0, ((fluidDeltas[2][1] - fluidDeltas[0][1] + fluidDeltas[1][0] - fluidDeltas[1][2]) << 5) + 256);
+            default:
+                throw new InternalError();
+        }
+    }
+
     public LightOrigin getLightOrigin() {
         return lightOrigin;
     }
@@ -340,6 +371,14 @@ public final class TileRenderer {
             return BLACK;
         }
         final int waterLevel = tile.getWaterLevel(x, y);
+        fluidHeights[1][0] = getNeighbourFluidHeight(x, y, 0, -1, waterLevel);
+        fluidDeltas [1][0] = fluidHeights[1][0] - waterLevel;
+        fluidHeights[0][1] = getNeighbourFluidHeight(x, y, -1, 0, waterLevel);
+        fluidDeltas [0][1] = fluidHeights[0][1] - waterLevel;
+        fluidHeights[2][1] = getNeighbourFluidHeight(x, y, 1, 0, waterLevel);
+        fluidDeltas [2][1] = fluidHeights[2][1] - waterLevel;
+        fluidHeights[1][2] = getNeighbourFluidHeight(x, y, 0, 1, waterLevel);
+        fluidDeltas [1][2] = fluidHeights[1][2] - waterLevel;
         int colour;
         final int worldX = tileX | x, worldY = tileY | y;
         if ((! dry) && (waterLevel > intHeight)) {
@@ -412,7 +451,6 @@ public final class TileRenderer {
     }
 
     private int getNeighbourHeight(int x, int y, int dx, int dy) {
-//        System.out.println(x + ", " + y + ", " + dx + ", " + dy);
         x = x + dx;
         y = y + dy;
         if ((x >= 0) && (x < TILE_SIZE) && (y >= 0) && (y < TILE_SIZE)) {
@@ -438,14 +476,46 @@ public final class TileRenderer {
         }
     }
 
+    private int getNeighbourFluidHeight(int x, int y, int dx, int dy, int defaultHeight) {
+        x = x + dx;
+        y = y + dy;
+        if ((x >= 0) && (x < TILE_SIZE) && (y >= 0) && (y < TILE_SIZE)) {
+            int offset = x + y * TILE_SIZE;
+            return (intFluidHeightCache[offset] > intHeightCache[offset]) ? intFluidHeightCache[offset] : defaultHeight;
+        } else {
+            int tileDX = 0, tileDY = 0;
+            if (x < 0) {
+                tileDX = -1;
+                x += TILE_SIZE;
+            } else if (x >= TILE_SIZE) {
+                tileDX = 1;
+                x -= TILE_SIZE;
+            }
+            if (y < 0) {
+                tileDY = -1;
+                y += TILE_SIZE;
+            } else if (y >= TILE_SIZE) {
+                tileDY = 1;
+                y -= TILE_SIZE;
+            }
+            Tile neighborTile = tileProvider.getTile(tile.getX() + tileDX, tile.getY() + tileDY);
+            if (neighborTile != null) {
+                int waterLevel = neighborTile.getWaterLevel(x, y);
+                return (waterLevel > neighborTile.getIntHeight(x, y)) ? waterLevel : defaultHeight;
+            } else {
+                return defaultHeight;
+            }
+        }
+    }
+
     private final BiomeRenderer biomeRenderer;
     private final Set<Layer> hiddenLayers = new HashSet<>(Arrays.asList(FloodWithLava.INSTANCE));
-    private final int[] intHeightCache = new int[TILE_SIZE * TILE_SIZE];
+    private final int[] intHeightCache = new int[TILE_SIZE * TILE_SIZE], intFluidHeightCache = new int[TILE_SIZE * TILE_SIZE];
     private final float[] floatHeightCache = new float[TILE_SIZE * TILE_SIZE];
     private final BufferedImage bufferedImage;
     private final int[] renderBuffer;
     private final boolean dry;
-    private final int[][] heights = new int[3][3], deltas = new int[3][3];
+    private final int[][] heights = new int[3][3], deltas = new int[3][3], fluidHeights = new int[3][3], fluidDeltas = new int[3][3];
     private final Set<Layer> missingRendererReportedFor = new HashSet<>(); // TODO remove when no longer necessary!
     private final boolean[] oppositesOverlap = new boolean[TILE_SIZE * TILE_SIZE];
     private final int zoom;

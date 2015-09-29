@@ -23,6 +23,11 @@ public class Fill extends MouseOrTabletOperation implements PaintOperation, Brus
         dimension.setEventsInhibited(true);
         try {
             painter.fill(dimension, centreX, centreY, SwingUtilities.getWindowAncestor(getView()));
+        } catch (IndexOutOfBoundsException e) {
+            // This most likely indicates that the area being flooded was too
+            // large
+            dimension.undoChanges();
+            JOptionPane.showMessageDialog(getView(), "The area to be flooded is too large; please retry with a smaller area", "Area Too Large", JOptionPane.ERROR_MESSAGE);
         } finally {
             dimension.setEventsInhibited(false);
         }

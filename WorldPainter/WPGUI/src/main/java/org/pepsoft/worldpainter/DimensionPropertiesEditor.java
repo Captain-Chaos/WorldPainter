@@ -778,7 +778,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         jLabel78 = new javax.swing.JLabel();
         spinnerCeilingHeight = new javax.swing.JSpinner();
         jPanel5 = new javax.swing.JPanel();
-        themeEditor = new org.pepsoft.worldpainter.themes.SimpleThemeEditor();
+        themeEditor = new org.pepsoft.worldpainter.themes.impl.simple.SimpleThemeEditor();
         jLabel45 = new javax.swing.JLabel();
         jLabel46 = new javax.swing.JLabel();
         jPanel3 = new javax.swing.JPanel();
@@ -920,21 +920,37 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
         buttonGroup1.add(radioButtonWaterBorder);
         radioButtonWaterBorder.setText("Water");
-        radioButtonWaterBorder.addActionListener(this::radioButtonWaterBorderActionPerformed);
+        radioButtonWaterBorder.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonWaterBorderActionPerformed(evt);
+            }
+        });
 
         buttonGroup1.add(radioButtonNoBorder);
         radioButtonNoBorder.setText("No border");
-        radioButtonNoBorder.addActionListener(this::radioButtonNoBorderActionPerformed);
+        radioButtonNoBorder.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonNoBorderActionPerformed(evt);
+            }
+        });
 
         buttonGroup1.add(radioButtonVoidBorder);
         radioButtonVoidBorder.setText("Void");
-        radioButtonVoidBorder.addActionListener(this::radioButtonVoidBorderActionPerformed);
+        radioButtonVoidBorder.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonVoidBorderActionPerformed(evt);
+            }
+        });
 
         jLabel4.setText("Border:");
 
         buttonGroup1.add(radioButtonLavaBorder);
         radioButtonLavaBorder.setText("Lava");
-        radioButtonLavaBorder.addActionListener(this::radioButtonLavaBorderActionPerformed);
+        radioButtonLavaBorder.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonLavaBorderActionPerformed(evt);
+            }
+        });
 
         jLabel5.setText("Water or lava level:");
 
@@ -946,7 +962,11 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         jLabel6.setText("Underground material:");
 
         comboBoxSubsurfaceMaterial.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-        comboBoxSubsurfaceMaterial.addActionListener(this::comboBoxSubsurfaceMaterialActionPerformed);
+        comboBoxSubsurfaceMaterial.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboBoxSubsurfaceMaterialActionPerformed(evt);
+            }
+        });
 
         jLabel7.setText("Minecraft seed:");
 
@@ -958,7 +978,11 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
         spinnerBorderSize.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(256), Integer.valueOf(128), null, Integer.valueOf(128)));
         spinnerBorderSize.setEnabled(false);
-        spinnerBorderSize.addChangeListener(this::spinnerBorderSizeStateChanged);
+        spinnerBorderSize.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerBorderSizeStateChanged(evt);
+            }
+        });
 
         jLabel9.setText("blocks (in multiples of 128)");
 
@@ -967,12 +991,20 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         jLabel65.setText("Top layer minimum depth:");
 
         spinnerMinSurfaceDepth.setModel(new javax.swing.SpinnerNumberModel(3, 1, 255, 1));
-        spinnerMinSurfaceDepth.addChangeListener(this::spinnerMinSurfaceDepthStateChanged);
+        spinnerMinSurfaceDepth.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerMinSurfaceDepthStateChanged(evt);
+            }
+        });
 
         jLabel66.setText(", maximum depth:");
 
         spinnerMaxSurfaceDepth.setModel(new javax.swing.SpinnerNumberModel(7, 1, 255, 1));
-        spinnerMaxSurfaceDepth.addChangeListener(this::spinnerMaxSurfaceDepthStateChanged);
+        spinnerMaxSurfaceDepth.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerMaxSurfaceDepthStateChanged(evt);
+            }
+        });
 
         checkBoxBottomless.setText("Bottomless world");
         checkBoxBottomless.setToolTipText("<html>Generate a bottomless map:\n<ul><li>No bedrock at the bottom of the map\n<li>Caverns and chasms are open to the void</html>");
@@ -1094,9 +1126,9 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
         jTabbedPane1.addTab("General", jPanel1);
 
-        jLabel45.setText("These are the default terrain types used by the Mountain tool, and when right-clicking a Terrain tool,");
+        jLabel45.setText("These are the default terrain types and layers used by the Mountain tool, and when resetting the");
 
-        jLabel46.setText("with the minimum block level from which each terrain type is used:");
+        jLabel46.setText("terrain to the default by right-clicking with a terrain type selected:");
 
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
@@ -1123,10 +1155,14 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 .addContainerGap())
         );
 
-        jTabbedPane1.addTab("Default Terrain", jPanel5);
+        jTabbedPane1.addTab("Default Terrain and Layers", jPanel5);
 
         checkBoxCavernsEverywhere.setText("Caverns everywhere");
-        checkBoxCavernsEverywhere.addActionListener(this::checkBoxCavernsEverywhereActionPerformed);
+        checkBoxCavernsEverywhere.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxCavernsEverywhereActionPerformed(evt);
+            }
+        });
 
         sliderCavernsEverywhereLevel.setMajorTickSpacing(7);
         sliderCavernsEverywhereLevel.setMinimum(2);
@@ -1139,10 +1175,18 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         sliderChasmsEverywhereLevel.setSnapToTicks(true);
 
         checkBoxChasmsEverywhere.setText("Chasms everywhere");
-        checkBoxChasmsEverywhere.addActionListener(this::checkBoxChasmsEverywhereActionPerformed);
+        checkBoxChasmsEverywhere.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxChasmsEverywhereActionPerformed(evt);
+            }
+        });
 
         checkBoxFloodCaverns.setText("Flood the caverns and chasms");
-        checkBoxFloodCaverns.addActionListener(this::checkBoxFloodCavernsActionPerformed);
+        checkBoxFloodCaverns.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxFloodCavernsActionPerformed(evt);
+            }
+        });
 
         jLabel1.setText("Level:");
 
@@ -1154,14 +1198,22 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         jLabel2.setText("Settings for the Caverns and Chasms layers. These apply also to hand-painted Caverns and Chasms:");
 
         checkBoxCavernsBreakSurface.setText("Caverns break the surface");
-        checkBoxCavernsBreakSurface.addActionListener(this::checkBoxCavernsBreakSurfaceActionPerformed);
+        checkBoxCavernsBreakSurface.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxCavernsBreakSurfaceActionPerformed(evt);
+            }
+        });
 
         checkBoxCavernsRemoveWater.setSelected(true);
         checkBoxCavernsRemoveWater.setText("Remove water and lava above openings");
         checkBoxCavernsRemoveWater.setEnabled(false);
 
         checkBoxChasmsBreakSurface.setText("Chasms break the surface");
-        checkBoxChasmsBreakSurface.addActionListener(this::checkBoxChasmsBreakSurfaceActionPerformed);
+        checkBoxChasmsBreakSurface.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxChasmsBreakSurfaceActionPerformed(evt);
+            }
+        });
 
         jLabel70.setText("Caverns min. level:");
 
@@ -1280,7 +1332,11 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         jTabbedPane1.addTab("Caverns and Chasms", new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/caverns.png")), jPanel3); // NOI18N
 
         jCheckBox8.setText("Resources everywhere");
-        jCheckBox8.addActionListener(this::jCheckBox8ActionPerformed);
+        jCheckBox8.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBox8ActionPerformed(evt);
+            }
+        });
 
         jSlider4.setMajorTickSpacing(7);
         jSlider4.setMinimum(2);
@@ -1799,10 +1855,18 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
         checkBoxPopulate.setText("Allow Minecraft to populate the entire terrain");
         checkBoxPopulate.setToolTipText("<html>This will mark the entire terrain as unpopulated, causing Minecraft to generate trees,<br/>\nwater and lava pools, pockets of dirt, gravel, coal, ore, etc. (but not caverns) as the<br/>\nchunks are loaded. This will slow down the initial loading of each chunk, and you have<br/>\nno control over where trees, snow, etc. appear.</html>");
-        checkBoxPopulate.addActionListener(this::checkBoxPopulateActionPerformed);
+        checkBoxPopulate.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxPopulateActionPerformed(evt);
+            }
+        });
 
         checkBoxDeciduousEverywhere.setText("Deciduous forest everywhere");
-        checkBoxDeciduousEverywhere.addActionListener(this::checkBoxDeciduousEverywhereActionPerformed);
+        checkBoxDeciduousEverywhere.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxDeciduousEverywhereActionPerformed(evt);
+            }
+        });
 
         sliderDeciduousLevel.setMajorTickSpacing(7);
         sliderDeciduousLevel.setMinimum(2);
@@ -1812,7 +1876,11 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         checkBoxFrostEverywhere.setText("Frost everywhere");
 
         checkBoxPineEverywhere.setText("Pine forest everywhere");
-        checkBoxPineEverywhere.addActionListener(this::checkBoxPineEverywhereActionPerformed);
+        checkBoxPineEverywhere.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxPineEverywhereActionPerformed(evt);
+            }
+        });
 
         sliderPineLevel.setMajorTickSpacing(7);
         sliderPineLevel.setMinimum(2);
@@ -1830,7 +1898,11 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         jLabel50.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/frost.png"))); // NOI18N
 
         checkBoxJungleEverywhere.setText("Jungle everywhere");
-        checkBoxJungleEverywhere.addActionListener(this::checkBoxJungleEverywhereActionPerformed);
+        checkBoxJungleEverywhere.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxJungleEverywhereActionPerformed(evt);
+            }
+        });
 
         jLabel68.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/jungle.png"))); // NOI18N
 
@@ -1840,7 +1912,11 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         sliderJungleLevel.setSnapToTicks(true);
 
         checkBoxSwamplandEverywhere.setText("Swampland everywhere");
-        checkBoxSwamplandEverywhere.addActionListener(this::checkBoxSwamplandEverywhereActionPerformed);
+        checkBoxSwamplandEverywhere.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxSwamplandEverywhereActionPerformed(evt);
+            }
+        });
 
         jLabel69.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/swampland.png"))); // NOI18N
 
@@ -1852,7 +1928,11 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         checkBoxSnowUnderTrees.setText("Frost under trees (also applies to hand-painted Frost layer)");
 
         checkBoxExportAnnotations.setText("Export the annotations (as coloured wool)");
-        checkBoxExportAnnotations.addActionListener(this::checkBoxExportAnnotationsActionPerformed);
+        checkBoxExportAnnotations.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxExportAnnotationsActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -2245,7 +2325,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private javax.swing.JSpinner spinnerWaterChance;
     private javax.swing.JSpinner spinnerWaterMaxLevel;
     private javax.swing.JSpinner spinnerWaterMinLevel;
-    private org.pepsoft.worldpainter.themes.SimpleThemeEditor themeEditor;
+    private org.pepsoft.worldpainter.themes.impl.simple.SimpleThemeEditor themeEditor;
     // End of variables declaration//GEN-END:variables
 
     private Dimension dimension;

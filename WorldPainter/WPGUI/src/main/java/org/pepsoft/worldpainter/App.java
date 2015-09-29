@@ -1239,6 +1239,11 @@ public final class App extends JFrame implements RadiusControl,
         menuItem.addActionListener(e -> {
             if (editCustomMaterial(customMaterialIndex)) {
                 button.setSelected(true);
+                paintUpdater = () -> {
+                    paint = PaintFactory.createTerrainPaint(Terrain.getCustomTerrain(customMaterialIndex));
+                    paintChanged();
+                };
+                paintUpdater.updatePaint();
             }
         });
         popupMenu.add(menuItem);
@@ -1247,6 +1252,11 @@ public final class App extends JFrame implements RadiusControl,
         menuItem.addActionListener(e -> {
             if (importCustomMaterial(customMaterialIndex)) {
                 button.setSelected(true);
+                paintUpdater = () -> {
+                    paint = PaintFactory.createTerrainPaint(Terrain.getCustomTerrain(customMaterialIndex));
+                    paintChanged();
+                };
+                paintUpdater.updatePaint();
             }
         });
         popupMenu.add(menuItem);
@@ -2589,7 +2599,7 @@ public final class App extends JFrame implements RadiusControl,
         for (int i = 0; i < Terrain.CUSTOM_TERRAIN_COUNT; i++) {
             customMaterialButtons[i] = createTerrainButton(Terrain.getCustomTerrain(i));
             customMaterialButtons[i].setIcon(ICON_UNKNOWN_PATTERN);
-            customMaterialButtons[i].setToolTipText(strings.getString("not.set.click.to.set"));
+            customMaterialButtons[i].setToolTipText("Custom " + (i + 1) + ": " + strings.getString("not.set.click.to.set"));
             addMaterialSelectionTo(customMaterialButtons[i], i);
             customTerrainPanel.add(customMaterialButtons[i]);
         }
@@ -3399,18 +3409,25 @@ public final class App extends JFrame implements RadiusControl,
         
         menu.addSeparator();
 
+        JMenu workspaceLayoutMenu = new JMenu("Workspace layout");
+
         menuItem = new JMenuItem(ACTION_RESET_DOCKS);
-        menuItem.setMnemonic('d');
-        menu.add(menuItem);
+        menuItem.setMnemonic('r');
+        workspaceLayoutMenu.add(menuItem);
+
+        menuItem = new JMenuItem(ACTION_RESET_ALL_DOCKS);
+        menuItem.setMnemonic('a');
+        workspaceLayoutMenu.add(menuItem);
 
         ACTION_LOAD_LAYOUT.setEnabled(config.getDefaultJideLayoutData() != null);
         menuItem = new JMenuItem(ACTION_LOAD_LAYOUT);
-        menuItem.setMnemonic('d');
-        menu.add(menuItem);
+        menuItem.setMnemonic('l');
+        workspaceLayoutMenu.add(menuItem);
 
         menuItem = new JMenuItem(ACTION_SAVE_LAYOUT);
-        menuItem.setMnemonic('d');
-        menu.add(menuItem);
+        menuItem.setMnemonic('s');
+        workspaceLayoutMenu.add(menuItem);
+        menu.add(workspaceLayoutMenu);
 
         menu.addSeparator();
         
@@ -4177,13 +4194,25 @@ public final class App extends JFrame implements RadiusControl,
         button.setToolTipText(terrain.getName() + ": " + terrain.getDescription());
         button.addItemListener(event -> {
             if (event.getStateChange() == ItemEvent.SELECTED) {
-                paintUpdater = () -> {
-                    paint = PaintFactory.createTerrainPaint(terrain);
-                    paintChanged();
-                };
-                paintUpdater.updatePaint();
+                if (terrain.isConfigured()) {
+                    paintUpdater = () -> {
+                        paint = PaintFactory.createTerrainPaint(terrain);
+                        paintChanged();
+                    };
+                    paintUpdater.updatePaint();
+                }
             }
         });
+        if (terrain.isCustom()) {
+            button.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    if (!terrain.isConfigured()) {
+                        showCustomTerrainButtonPopup(terrain.getCustomTerrainIndex());
+                    }
+                }
+            });
+        }
         paintButtonGroup.add(button);
         return button;
     }
@@ -5529,12 +5558,23 @@ public final class App extends JFrame implements RadiusControl,
         }
     };
     
-    private final BetterAction ACTION_RESET_DOCKS = new BetterAction("resetDockLayout", "Reset workspace layout") {
+    private final BetterAction ACTION_RESET_DOCKS = new BetterAction("resetDockLayout", "Reset current and default") {
         @Override
         protected void performAction(ActionEvent e) {
             dockingManager.resetToDefault();
             Configuration config = Configuration.getInstance();
             config.setDefaultJideLayoutData(null);
+            ACTION_LOAD_LAYOUT.setEnabled(false);
+        }
+    };
+
+    private final BetterAction ACTION_RESET_ALL_DOCKS = new BetterAction("resetAllDockLayout", "Reset current, default and all saved worlds") {
+        @Override
+        protected void performAction(ActionEvent e) {
+            dockingManager.resetToDefault();
+            Configuration config = Configuration.getInstance();
+            config.setDefaultJideLayoutData(null);
+            config.setJideLayoutData(null);
             ACTION_LOAD_LAYOUT.setEnabled(false);
         }
     };

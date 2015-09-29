@@ -18,7 +18,7 @@ import org.pepsoft.util.swing.ProgressTask;
 import org.pepsoft.worldpainter.heightMaps.HeightMapUtils;
 import org.pepsoft.worldpainter.importing.HeightMapImporter;
 import org.pepsoft.worldpainter.themes.SimpleTheme;
-import org.pepsoft.worldpainter.themes.SimpleThemeEditor;
+import org.pepsoft.worldpainter.themes.impl.simple.SimpleThemeEditor;
 import org.pepsoft.worldpainter.themes.Theme;
 
 import javax.imageio.ImageIO;
@@ -334,7 +334,7 @@ outer:          for (int x = 0; x < width; x++) {
         jLabel12 = new javax.swing.JLabel();
         spinnerOffsetY = new javax.swing.JSpinner();
         jPanel3 = new javax.swing.JPanel();
-        heightMapTileFactoryEditor1 = new org.pepsoft.worldpainter.themes.SimpleThemeEditor();
+        heightMapTileFactoryEditor1 = new org.pepsoft.worldpainter.themes.impl.simple.SimpleThemeEditor();
         buttonLoadDefaults = new javax.swing.JButton();
         buttonSaveAsDefaults = new javax.swing.JButton();
         buttonResetDefaults = new javax.swing.JButton();
@@ -347,31 +347,55 @@ outer:          for (int x = 0; x < width; x++) {
         jLabel1.setText("Select the image to import as a height map:");
 
         buttonSelectFile.setText("...");
-        buttonSelectFile.addActionListener(this::buttonSelectFileActionPerformed);
+        buttonSelectFile.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonSelectFileActionPerformed(evt);
+            }
+        });
 
         labelImageDimensions.setText("Image size: ? x ?, bit depth: ?, lowest value: ?, highest value: ?");
 
         buttonCancel.setText("Cancel");
-        buttonCancel.addActionListener(this::buttonCancelActionPerformed);
+        buttonCancel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonCancelActionPerformed(evt);
+            }
+        });
 
         buttonOk.setText("OK");
         buttonOk.setEnabled(false);
-        buttonOk.addActionListener(this::buttonOkActionPerformed);
+        buttonOk.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonOkActionPerformed(evt);
+            }
+        });
 
         checkBoxInvert.setText("Invert (white is low, black is high)");
 
-        jTabbedPane1.addChangeListener(this::jTabbedPane1StateChanged);
+        jTabbedPane1.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                jTabbedPane1StateChanged(evt);
+            }
+        });
 
         jLabel3.setText("Scale:");
 
         spinnerScale.setModel(new javax.swing.SpinnerNumberModel(100, 1, 999, 1));
-        spinnerScale.addChangeListener(this::spinnerScaleStateChanged);
+        spinnerScale.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerScaleStateChanged(evt);
+            }
+        });
 
         labelWorldDimensions.setText("Scaled size: ? x ? blocks");
 
         comboBoxHeight.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "32", "64", "128", "256", "512", "1024", "2048" }));
         comboBoxHeight.setSelectedIndex(3);
-        comboBoxHeight.addActionListener(this::comboBoxHeightActionPerformed);
+        comboBoxHeight.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboBoxHeightActionPerformed(evt);
+            }
+        });
 
         jLabel4.setText("%");
 
@@ -398,14 +422,22 @@ outer:          for (int x = 0; x < width; x++) {
         jPanel1.add(jLabel7, gridBagConstraints);
 
         spinnerImageLow.setModel(new javax.swing.SpinnerNumberModel(0, 0, 65535, 1));
-        spinnerImageLow.addChangeListener(this::spinnerImageLowStateChanged);
+        spinnerImageLow.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerImageLowStateChanged(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         jPanel1.add(spinnerImageLow, gridBagConstraints);
 
         spinnerWorldLow.setModel(new javax.swing.SpinnerNumberModel(0, 0, 65535, 1));
-        spinnerWorldLow.addChangeListener(this::spinnerWorldLowStateChanged);
+        spinnerWorldLow.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerWorldLowStateChanged(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
@@ -425,7 +457,11 @@ outer:          for (int x = 0; x < width; x++) {
         jPanel1.add(labelImageWaterLevel, gridBagConstraints);
 
         spinnerWorldMiddle.setModel(new javax.swing.SpinnerNumberModel(62, 0, 65535, 1));
-        spinnerWorldMiddle.addChangeListener(this::spinnerWorldMiddleStateChanged);
+        spinnerWorldMiddle.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerWorldMiddleStateChanged(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
@@ -439,14 +475,22 @@ outer:          for (int x = 0; x < width; x++) {
         jPanel1.add(jLabel9, gridBagConstraints);
 
         spinnerImageHigh.setModel(new javax.swing.SpinnerNumberModel(255, 0, 65535, 1));
-        spinnerImageHigh.addChangeListener(this::spinnerImageHighStateChanged);
+        spinnerImageHigh.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerImageHighStateChanged(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         jPanel1.add(spinnerImageHigh, gridBagConstraints);
 
         spinnerWorldHigh.setModel(new javax.swing.SpinnerNumberModel(255, 0, 65535, 1));
-        spinnerWorldHigh.addChangeListener(this::spinnerWorldHighStateChanged);
+        spinnerWorldHigh.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerWorldHighStateChanged(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
@@ -458,7 +502,11 @@ outer:          for (int x = 0; x < width; x++) {
         jLabel10.setText("blocks");
 
         checkBoxVoid.setText("create Void below image value:");
-        checkBoxVoid.addActionListener(this::checkBoxVoidActionPerformed);
+        checkBoxVoid.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxVoidActionPerformed(evt);
+            }
+        });
 
         spinnerVoidBelow.setModel(new javax.swing.SpinnerNumberModel(1, 1, 255, 1));
         spinnerVoidBelow.setEnabled(false);
@@ -472,14 +520,22 @@ outer:          for (int x = 0; x < width; x++) {
 
         spinnerOffsetX.setModel(new javax.swing.SpinnerNumberModel(0, -999999, 999999, 1));
         spinnerOffsetX.setToolTipText("The origin of the height map will be at these coordinates in the map");
-        spinnerOffsetX.addChangeListener(this::spinnerOffsetXStateChanged);
+        spinnerOffsetX.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerOffsetXStateChanged(evt);
+            }
+        });
 
         jLabel12.setText(",");
         jLabel12.setToolTipText("The origin of the height map will be at these coordinates in the map");
 
         spinnerOffsetY.setModel(new javax.swing.SpinnerNumberModel(0, -999999, 999999, 1));
         spinnerOffsetY.setToolTipText("The origin of the height map will be at these coordinates in the map");
-        spinnerOffsetY.addChangeListener(this::spinnerOffsetYStateChanged);
+        spinnerOffsetY.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerOffsetYStateChanged(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -550,13 +606,25 @@ outer:          for (int x = 0; x < width; x++) {
         jTabbedPane1.addTab("Scaling", jPanel2);
 
         buttonLoadDefaults.setText("Load Defaults");
-        buttonLoadDefaults.addActionListener(this::buttonLoadDefaultsActionPerformed);
+        buttonLoadDefaults.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonLoadDefaultsActionPerformed(evt);
+            }
+        });
 
         buttonSaveAsDefaults.setText("Save As Defaults");
-        buttonSaveAsDefaults.addActionListener(this::buttonSaveAsDefaultsActionPerformed);
+        buttonSaveAsDefaults.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonSaveAsDefaultsActionPerformed(evt);
+            }
+        });
 
         buttonResetDefaults.setText("Reset");
-        buttonResetDefaults.addActionListener(this::buttonResetDefaultsActionPerformed);
+        buttonResetDefaults.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonResetDefaultsActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -579,7 +647,7 @@ outer:          for (int x = 0; x < width; x++) {
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(heightMapTileFactoryEditor1, javax.swing.GroupLayout.DEFAULT_SIZE, 190, Short.MAX_VALUE)
+                .addComponent(heightMapTileFactoryEditor1, javax.swing.GroupLayout.PREFERRED_SIZE, 190, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(buttonLoadDefaults)
@@ -588,7 +656,7 @@ outer:          for (int x = 0; x < width; x++) {
                 .addContainerGap())
         );
 
-        jTabbedPane1.addTab("Terrain", jPanel3);
+        jTabbedPane1.addTab("Terrain and Layers", jPanel3);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -849,7 +917,7 @@ outer:          for (int x = 0; x < width; x++) {
     private javax.swing.JCheckBox checkBoxVoid;
     private javax.swing.JComboBox comboBoxHeight;
     private javax.swing.JTextField fieldFilename;
-    private org.pepsoft.worldpainter.themes.SimpleThemeEditor heightMapTileFactoryEditor1;
+    private org.pepsoft.worldpainter.themes.impl.simple.SimpleThemeEditor heightMapTileFactoryEditor1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;

@@ -101,10 +101,15 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                     }
                 }
             }
-            // Prune the queue of jobs related to this tile provider
-            for (Iterator<Runnable> i = queue.iterator(); i.hasNext(); ) {
-                if (((TileRenderJob) i.next()).tileProvider == tileProvider) {
-                    i.remove();
+            // We're not completely sure how, but sometimes we reach here
+            // without the renderers having been started, so check whether there
+            // actually is a queue
+            if (queue != null) {
+                // Prune the queue of jobs related to this tile provider
+                for (Iterator<Runnable> i = queue.iterator(); i.hasNext(); ) {
+                    if (((TileRenderJob) i.next()).tileProvider == tileProvider) {
+                        i.remove();
+                    }
                 }
             }
             
@@ -115,6 +120,11 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
             tileProviders.add(index, newTileProvider);
             tileCaches.put(newTileProvider, new HashMap<>());
             dirtyTileCaches.put(newTileProvider, dirtyTileCache);
+
+            // We're not completely sure how, but sometimes we reach here
+            // without the renderers having been started, so start them now (if
+            // we're visible of course)
+            startRenderersIfApplicable();
         }
         fireViewChangedEvent();
         repaint();
@@ -168,15 +178,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
             tileProvider.addTileListener(this);
             tileCaches.put(tileProvider, new HashMap<>());
             dirtyTileCaches.put(tileProvider, new HashMap<>());
-            if ((tileRenderers == null) && isDisplayable()) {
-                // The component is already visible but had no tile providers
-                // installed yet; start the background threads
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Starting " + threads + " tile rendering threads");
-                }
-                queue = new PriorityBlockingQueue<>();
-                tileRenderers = new ThreadPoolExecutor(threads, threads, 0, TimeUnit.MILLISECONDS, queue);
-            }
+            startRenderersIfApplicable();
         }
         fireViewChangedEvent();
         repaint();
@@ -635,6 +637,18 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
             } finally {
                 g2.setColor(savedColour);
             }
+        }
+    }
+
+    private void startRenderersIfApplicable() {
+        if ((tileRenderers == null) && isDisplayable()) {
+            // The component is already visible but had no tile providers
+            // installed yet; start the background threads
+            if (logger.isDebugEnabled()) {
+                logger.debug("Starting " + threads + " tile rendering threads");
+            }
+            queue = new PriorityBlockingQueue<>();
+            tileRenderers = new ThreadPoolExecutor(threads, threads, 0, TimeUnit.MILLISECONDS, queue);
         }
     }
 

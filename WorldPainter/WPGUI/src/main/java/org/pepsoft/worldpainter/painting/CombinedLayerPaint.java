@@ -154,8 +154,8 @@ public final class CombinedLayerPaint extends LayerPaint {
                         final int currentValue = tile.getLayerValue(layer, x, y);
                         final float strength = dynamicLevel * getFullStrength(centreX, centreY, tileXInWorld + x, tileYInWorld + y);
                         if (strength != 0f) {
-                            int targetValue = (int) (strength * 14 + 1);
-                            if (targetValue > currentValue) {
+                            int targetValue = 15 - (int) (strength * 14 + 1);
+                            if (targetValue < currentValue) {
                                 tile.setLayerValue(layer, x, y, targetValue);
                             }
                             if (biomeConfigured && ((strength > 0.95f) || (Math.random() < strength))) {
@@ -170,8 +170,8 @@ public final class CombinedLayerPaint extends LayerPaint {
                         final int currentValue = tile.getLayerValue(layer, x, y);
                         final float strength = dynamicLevel * getFullStrength(centreX, centreY, tileXInWorld + x, tileYInWorld + y);
                         if (strength != 0f) {
-                            int targetValue = (int) (strength * 14 + 1);
-                            if (targetValue > currentValue) {
+                            int targetValue = 15 - (int) (strength * 14 + 1);
+                            if (targetValue < currentValue) {
                                 tile.setLayerValue(layer, x, y, targetValue);
                             }
                             if (biomeConfigured && (strength > 0.75f)) {
@@ -189,8 +189,8 @@ public final class CombinedLayerPaint extends LayerPaint {
                         final int currentValue = dimension.getLayerValueAt(layer, x, y);
                         final float strength = dynamicLevel * getFullStrength(centreX, centreY, x, y);
                         if (strength != 0f) {
-                            int targetValue = (int) (strength * 14 + 1);
-                            if (targetValue > currentValue) {
+                            int targetValue = 15 - (int) (strength * 14 + 1);
+                            if (targetValue < currentValue) {
                                 dimension.setLayerValueAt(layer, x, y, targetValue);
                             }
                             if (terrainConfigured && ((strength > 0.95f) || (Math.random() < strength))) {
@@ -208,8 +208,8 @@ public final class CombinedLayerPaint extends LayerPaint {
                         final int currentValue = dimension.getLayerValueAt(layer, x, y);
                         final float strength = dynamicLevel * getFullStrength(centreX, centreY, x, y);
                         if (strength != 0f) {
-                            int targetValue = (int) (strength * 14 + 1);
-                            if (targetValue > currentValue) {
+                            int targetValue = 15 - (int) (strength * 14 + 1);
+                            if (targetValue < currentValue) {
                                 dimension.setLayerValueAt(layer, x, y, targetValue);
                             }
                             if (strength > 0.75f) {

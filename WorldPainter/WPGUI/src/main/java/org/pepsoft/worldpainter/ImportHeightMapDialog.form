@@ -478,8 +478,8 @@
         <Container class="javax.swing.JPanel" name="jPanel3">
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
-              <JTabbedPaneConstraints tabName="Terrain">
-                <Property name="tabTitle" type="java.lang.String" value="Terrain"/>
+              <JTabbedPaneConstraints tabName="Terrain and Layers">
+                <Property name="tabTitle" type="java.lang.String" value="Terrain and Layers"/>
               </JTabbedPaneConstraints>
             </Constraint>
           </Constraints>
@@ -521,7 +521,7 @@
             </DimensionLayout>
           </Layout>
           <SubComponents>
-            <Component class="org.pepsoft.worldpainter.themes.SimpleThemeEditor" name="heightMapTileFactoryEditor1">
+            <Component class="org.pepsoft.worldpainter.themes.impl.simple.SimpleThemeEditor" name="heightMapTileFactoryEditor1">
             </Component>
             <Component class="javax.swing.JButton" name="buttonLoadDefaults">
               <Properties>

@@ -60,6 +60,13 @@ public class ExportProgressDialog extends javax.swing.JDialog implements Listene
         }
         if (cause instanceof FileInUseException) {
             JOptionPane.showMessageDialog(ExportProgressDialog.this, "Could not export the world because the existing map directory is in use.\nPlease close Minecraft and all other windows and try again.", "Map In Use", JOptionPane.ERROR_MESSAGE);
+        } else if (cause instanceof MissingCustomTerrainException) {
+            JOptionPane.showMessageDialog(ExportProgressDialog.this,
+                "Custom Terrain " + ((MissingCustomTerrainException) exception).getIndex() + " not configured!\n" +
+                "Please configure it on the Custom Terrain panel.\n" +
+                "\n" +
+                "The partially exported map is now probably corrupted.\n" +
+                "You should delete it, or export the map again.", "Unconfigured Custom Terrain", JOptionPane.ERROR_MESSAGE);
         } else {
             ErrorDialog dialog = new ErrorDialog(ExportProgressDialog.this);
             dialog.setException(exception);

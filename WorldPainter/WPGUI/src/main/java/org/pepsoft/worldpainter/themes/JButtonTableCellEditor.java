@@ -27,6 +27,7 @@ public class JButtonTableCellEditor extends AbstractCellEditor implements Action
     }
 
     public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+        source = table;
         button.setText(((JButton) value).getText());
         this.row = row;
         this.column = column;
@@ -37,13 +38,14 @@ public class JButtonTableCellEditor extends AbstractCellEditor implements Action
     
     public void actionPerformed(ActionEvent e) {
         if (listener != null) {
-            listener.buttonPressed(row, column);
+            listener.buttonPressed(source, row, column);
         }
     }
 
     private final JButton button = new JButton();
     private final ButtonPressListener listener;
     private int row, column;
+    private JTable source;
     
     private static final long serialVersionUID = 1L;
 }
