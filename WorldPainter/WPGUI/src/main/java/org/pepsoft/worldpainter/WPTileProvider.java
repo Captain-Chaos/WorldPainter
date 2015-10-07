@@ -215,9 +215,6 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
                 }
             }
         } catch (Throwable e) {
-            // Log at debug level because this tends to happen when zooming in
-            // and out, probably due to some state getting out of sync. It
-            // doesn't so far appear to have any visible consequences.
             logger.error("Exception while generating image for tile at " + x + ", " + y, e);
         }
     }
