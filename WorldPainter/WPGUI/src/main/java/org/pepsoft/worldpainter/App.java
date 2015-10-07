@@ -2219,8 +2219,8 @@ public final class App extends JFrame implements RadiusControl,
 
         toolPanel.add(createButtonForOperation(new Flood(view, false), "flood", 'f'));
         toolPanel.add(createButtonForOperation(new Flood(view, true), "flood_with_lava"));
+        toolPanel.add(createButtonForOperation(new RiverPaint(view, this, mapDragControl), "river"));
         toolPanel.add(createButtonForOperation(new Sponge(view, this, mapDragControl), "sponge"));
-        toolPanel.add(Box.createGlue());
 
         toolPanel.add(createButtonForOperation(new Height(view, this, mapDragControl), "height", 'h'));
         toolPanel.add(createButtonForOperation(new Flatten(view, this, mapDragControl), "flatten", 'a'));
@@ -2424,7 +2424,7 @@ public final class App extends JFrame implements RadiusControl,
         JPopupMenu customLayerMenu = new JPopupMenu();
         JMenuItem menuItem = new JMenuItem(strings.getString("add.a.custom.object.layer") + "...");
         menuItem.addActionListener(e -> {
-            EditLayerDialog<Bo2Layer> dialog = new EditLayerDialog(App.this, Bo2Layer.class);
+            EditLayerDialog<Bo2Layer> dialog = new EditLayerDialog<>(App.this, Bo2Layer.class);
             dialog.setVisible(true);
             if (! dialog.isCancelled()) {
                 Bo2Layer layer = dialog.getLayer();
@@ -2438,7 +2438,7 @@ public final class App extends JFrame implements RadiusControl,
         
         menuItem = new JMenuItem(strings.getString("add.a.custom.ground.cover.layer") + "...");
         menuItem.addActionListener(e -> {
-            EditLayerDialog<GroundCoverLayer> dialog = new EditLayerDialog(App.this, GroundCoverLayer.class);
+            EditLayerDialog<GroundCoverLayer> dialog = new EditLayerDialog<>(App.this, GroundCoverLayer.class);
             dialog.setVisible(true);
             if (! dialog.isCancelled()) {
                 GroundCoverLayer layer = dialog.getLayer();
