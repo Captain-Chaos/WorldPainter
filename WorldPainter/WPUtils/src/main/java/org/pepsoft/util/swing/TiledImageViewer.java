@@ -586,11 +586,27 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         this.viewListener = viewListener;
     }
 
+    /**
+     * Add an overlay. An overlay is an image which is overlaid on the editor
+     * view, on the left or right edge of the view, vertically tracking some
+     * other component. The image may be partially transparent.
+     *
+     * @param key The unique key of the overlay to add.
+     * @param x The horizontal distance from the left edge to paint the overlay,
+     *          or if negative: the horizontal distance from the right edge.
+     * @param componentToTrack The component to which
+     * @param overlay
+     */
     public void addOverlay(String key, int x, Component componentToTrack, BufferedImage overlay) {
         overlays.put(key, new Overlay(componentToTrack, key, x, overlay));
         repaint();
     }
 
+    /**
+     * Remove a previously added overlay.
+     *
+     * @param key The unique key of the overlay to remove.
+     */
     public void removeOverlay(String key) {
         if (overlays.containsKey(key)) {
             overlays.remove(key);
