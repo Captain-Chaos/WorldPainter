@@ -57,7 +57,6 @@ import org.pepsoft.worldpainter.vo.UsageVO;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.Box;
 import javax.swing.Timer;
 import javax.swing.border.BevelBorder;
 import javax.swing.filechooser.FileFilter;
@@ -88,6 +87,8 @@ import static com.jidesoft.docking.DockableFrame.*;
 import static java.awt.event.KeyEvent.*;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
+import org.pepsoft.worldpainter.importing.CustomItemsTreeModel;
+import org.pepsoft.worldpainter.importing.ImportCustomItemsDialog;
 
 //import javax.swing.JSeparator;
 
@@ -3195,53 +3196,54 @@ public final class App extends JFrame implements RadiusControl,
         menuItem.setAccelerator(KeyStroke.getKeyStroke(VK_G, PLATFORM_COMMAND_MASK));
         menu.add(menuItem);
         
-        menu.addSeparator();
-
         menuItem = new JMenuItem(ACTION_EDIT_TILES);
         menuItem.setMnemonic('t');
         menu.add(menuItem);
 
+        JMenu dimensionsMenu = new JMenu("Dimensions");
+
         addSurfaceCeilingMenuItem = new JMenuItem("Add Ceiling to Surface...");
         addSurfaceCeilingMenuItem.addActionListener(e -> addSurfaceCeiling());
-        menu.add(addSurfaceCeilingMenuItem);
+        dimensionsMenu.add(addSurfaceCeilingMenuItem);
 
         removeSurfaceCeilingMenuItem = new JMenuItem("Remove Ceiling from Surface...");
         removeSurfaceCeilingMenuItem.addActionListener(e -> removeSurfaceCeiling());
-        menu.add(removeSurfaceCeilingMenuItem);
+        dimensionsMenu.add(removeSurfaceCeilingMenuItem);
 
         addNetherMenuItem = new JMenuItem(strings.getString("add.nether") + "...");
         addNetherMenuItem.addActionListener(e -> addNether());
         addNetherMenuItem.setMnemonic('n');
-        menu.add(addNetherMenuItem);
+        dimensionsMenu.add(addNetherMenuItem);
 
         removeNetherMenuItem = new JMenuItem("Remove Nether...");
         removeNetherMenuItem.addActionListener(e -> removeNether());
-        menu.add(removeNetherMenuItem);
+        dimensionsMenu.add(removeNetherMenuItem);
 
         addNetherCeilingMenuItem = new JMenuItem("Add Ceiling to Nether...");
         addNetherCeilingMenuItem.addActionListener(e -> addNetherCeiling());
-        menu.add(addNetherCeilingMenuItem);
+        dimensionsMenu.add(addNetherCeilingMenuItem);
 
         removeNetherCeilingMenuItem = new JMenuItem("Remove Ceiling from Nether...");
         removeNetherCeilingMenuItem.addActionListener(e -> removeNetherCeiling());
-        menu.add(removeNetherCeilingMenuItem);
+        dimensionsMenu.add(removeNetherCeilingMenuItem);
 
         addEndMenuItem = new JMenuItem(strings.getString("add.end") + "...");
         addEndMenuItem.addActionListener(e -> addEnd());
         addEndMenuItem.setMnemonic('d');
-        menu.add(addEndMenuItem);
+        dimensionsMenu.add(addEndMenuItem);
         
         removeEndMenuItem = new JMenuItem("Remove End...");
         removeEndMenuItem.addActionListener(e -> removeEnd());
-        menu.add(removeEndMenuItem);
+        dimensionsMenu.add(removeEndMenuItem);
 
         addEndCeilingMenuItem = new JMenuItem("Add Ceiling to End...");
         addEndCeilingMenuItem.addActionListener(e -> addEndCeiling());
-        menu.add(addEndCeilingMenuItem);
+        dimensionsMenu.add(addEndCeilingMenuItem);
 
         removeEndCeilingMenuItem = new JMenuItem("Remove Ceiling from End...");
         removeEndCeilingMenuItem.addActionListener(e -> removeEndCeiling());
-        menu.add(removeEndCeilingMenuItem);
+        dimensionsMenu.add(removeEndCeilingMenuItem);
+        menu.add(dimensionsMenu);
 
 //        final JMenuItem easyModeItem = new JCheckBoxMenuItem("Advanced mode");
 //        if (! config.isEasyMode()) {
@@ -3287,8 +3289,6 @@ public final class App extends JFrame implements RadiusControl,
 //        menu.add(easyModeItem);
 
         if ((! config.isEasyMode()) && (! hidePreferences)) {
-            menu.addSeparator();
-
             menuItem = new JMenuItem(strings.getString("preferences") + "...");
             menuItem.addActionListener(e -> {
                 PreferencesDialog dialog = new PreferencesDialog(App.this, selectedColourScheme);
@@ -3300,6 +3300,16 @@ public final class App extends JFrame implements RadiusControl,
             menuItem.setMnemonic('f');
             menu.add(menuItem);
         }
+
+        JMenu importMenu = new JMenu("Import");
+        menuItem = new JMenuItem("Custom items from existing world");
+        menuItem.setMnemonic('c');
+        menuItem.addActionListener(e -> {
+            importCustomItemsFromWorld();
+        });
+        importMenu.add(menuItem);
+        menu.add(importMenu);
+
         return menu;
     }
 
@@ -4840,6 +4850,142 @@ public final class App extends JFrame implements RadiusControl,
             }
         }
         return new ImageIcon(image);
+    }
+
+    private void importCustomItemsFromWorld() {
+        File dir;
+        Configuration config = Configuration.getInstance();
+        if (lastSelectedFile != null) {
+            dir = lastSelectedFile.getParentFile();
+        } else if ((config != null) && (config.getWorldDirectory() != null)) {
+            dir = config.getWorldDirectory();
+        } else {
+            dir = DesktopUtils.getDocumentsFolder();
+        }
+        File selectedFile = FileUtils.selectFileForOpen(this, "Select a WorldPainter world", dir,
+                new FileFilter() {
+                    @Override
+                    public boolean accept(File f) {
+                        return f.isDirectory()
+                                || f.getName().toLowerCase().endsWith(".world");
+                    }
+
+                    @Override
+                    public String getDescription() {
+                        return strings.getString("worldpainter.files.world");
+                    }
+                });
+        if (selectedFile != null) {
+            if (! selectedFile.isFile()) {
+                if (logger.isDebugEnabled()) {
+                    try {
+                        logger.debug("Path not a file according to File.isFile(): \"" + selectedFile + "\" (directory: " + selectedFile.isDirectory() + "; length: " + selectedFile.length() + "; absolutePath: \"" + selectedFile.getAbsolutePath() + "\"; canonicalPath: \"" + selectedFile.getCanonicalPath() + "\")");
+                    } catch (IOException e) {
+                        logger.debug("Path not a file according to File.isFile(): \"" + selectedFile + "\" (directory: " + selectedFile.isDirectory() + "; length: " + selectedFile.length() + "; absolutePath: \"" + selectedFile.getAbsolutePath() + "\")");
+                        logger.warn("I/O error while trying to report canonical path of file: \"" + selectedFile + "\"", e);
+                    }
+                }
+                JOptionPane.showMessageDialog(this, "The specified path does not exist or is not a file", "File Does Not Exist", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (! selectedFile.canRead()) {
+                JOptionPane.showMessageDialog(this, "WorldPainter is not authorised to read the selected file", "Access Denied", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            final World2 selectedWorld = ProgressDialog.executeTask(this, new ProgressTask<World2>() {
+                @Override
+                public String getName() {
+                    return strings.getString("loading.world");
+                }
+
+                @Override
+                public World2 execute(ProgressReceiver progressReceiver) throws OperationCancelled {
+                    try {
+                        WorldIO worldIO = new WorldIO();
+                        worldIO.load(new FileInputStream(selectedFile));
+                        World2 world = worldIO.getWorld();
+                        return world;
+                    } catch (UnloadableWorldException e) {
+                        logger.error("Could not load world from file " + selectedFile, e);
+                        if (e.getMetadata() != null) {
+                            logMetadataAsError(e.getMetadata());
+                        }
+                        reportUnloadableWorldException(e);
+                        return null;
+                    } catch (IOException e) {
+                        throw new RuntimeException("I/O error while loading world", e);
+                    }
+                }
+
+                private void appendMetadata(StringBuilder sb, Map<String, Object> metadata) {
+                    for (Map.Entry<String, Object> entry: metadata.entrySet()) {
+                        switch (entry.getKey()) {
+                            case World2.METADATA_KEY_WP_VERSION:
+                                sb.append("Saved with WorldPainter ").append(entry.getValue());
+                                String build = (String) metadata.get(World2.METADATA_KEY_WP_BUILD);
+                                if (build != null) {
+                                    sb.append(" (").append(build).append(')');
+                                }
+                                sb.append('\n');
+                                break;
+                            case World2.METADATA_KEY_TIMESTAMP:
+                                sb.append("Saved on ").append(SimpleDateFormat.getDateTimeInstance().format((Date) entry.getValue())).append('\n');
+                                break;
+                            case World2.METADATA_KEY_PLUGINS:
+                                String[][] plugins = (String[][]) entry.getValue();
+                                for (String[] plugin: plugins) {
+                                    sb.append("Plugin: ").append(plugin[0]).append(" (").append(plugin[1]).append(")\n");
+                                }
+                                break;
+                        }
+                    }
+                }
+
+                private void logMetadataAsError(Map<String, Object> metadata) {
+                    StringBuilder sb = new StringBuilder("Metadata from world file:\n");
+                    appendMetadata(sb, metadata);
+                    logger.error(sb.toString());
+                }
+
+                private void reportUnloadableWorldException(UnloadableWorldException e) {
+                    try {
+                        String text;
+                        if (e.getMetadata() != null) {
+                            StringBuilder sb = new StringBuilder("WorldPainter could not load the file. The cause may be one of:\n" +
+                                    "\n" +
+                                    "* The file is damaged or corrupted\n" +
+                                    "* The file was created with a newer version of WorldPainter\n" +
+                                    "* The file was created using WorldPainter plugins which you do not have\n" +
+                                    "\n");
+                            appendMetadata(sb, e.getMetadata());
+                            text = sb.toString();
+                        } else {
+                            text = "WorldPainter could not load the file. The cause may be one of:\n" +
+                                    "\n" +
+                                    "* The file is not a WorldPainter world\n" +
+                                    "* The file is damaged or corrupted\n" +
+                                    "* The file was created with a newer version of WorldPainter\n" +
+                                    "* The file was created using WorldPainter plugins which you do not have";
+                        }
+                        SwingUtilities.invokeAndWait(() -> JOptionPane.showMessageDialog(App.this, text, strings.getString("file.damaged"), JOptionPane.ERROR_MESSAGE));
+                    } catch (InterruptedException e2) {
+                        throw new RuntimeException("Thread interrupted while reporting unloadable file " + selectedFile, e2);
+                    } catch (InvocationTargetException e2) {
+                        throw new RuntimeException("Invocation target exception while reporting unloadable file " + selectedFile, e2);
+                    }
+                }
+            }, false);
+            if (selectedWorld == null) {
+                // The file was damaged
+                return;
+            }
+            if (CustomItemsTreeModel.hasCustomItems(selectedWorld)) {
+                ImportCustomItemsDialog dialog = new ImportCustomItemsDialog(this, selectedWorld, selectedColourScheme);
+                dialog.setVisible(true);
+            } else {
+                JOptionPane.showMessageDialog(this, "The selected world has no custom layers, terrains or biomes.", "No Custom Items", JOptionPane.WARNING_MESSAGE);
+            }
+        }
     }
 
     static DockableFrame createDockableFrame(Component component, String title, int side, int index) {
