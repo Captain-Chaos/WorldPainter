@@ -474,108 +474,116 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         this.heightMapsDirectory = heightMapsDirectory;
     }
 
-    public Theme getHeightMapDefaultTheme() {
+    public synchronized Theme getHeightMapDefaultTheme() {
         return heightMapDefaultTheme;
     }
 
-    public void setHeightMapDefaultTheme(Theme heightMapDefaultTheme) {
+    public synchronized void setHeightMapDefaultTheme(Theme heightMapDefaultTheme) {
         this.heightMapDefaultTheme = heightMapDefaultTheme;
     }
 
-    public boolean isDefaultCreateGoodiesChest() {
+    public synchronized boolean isDefaultCreateGoodiesChest() {
         return defaultCreateGoodiesChest;
     }
 
-    public void setDefaultCreateGoodiesChest(boolean defaultCreateGoodiesChest) {
+    public synchronized void setDefaultCreateGoodiesChest(boolean defaultCreateGoodiesChest) {
         this.defaultCreateGoodiesChest = defaultCreateGoodiesChest;
     }
 
-    public boolean isDefaultMapFeatures() {
+    public synchronized boolean isDefaultMapFeatures() {
         return defaultMapFeatures;
     }
 
-    public void setDefaultMapFeatures(boolean defaultMapFeatures) {
+    public synchronized void setDefaultMapFeatures(boolean defaultMapFeatures) {
         this.defaultMapFeatures = defaultMapFeatures;
     }
 
-    public boolean isDefaultAllowCheats() {
+    public synchronized boolean isDefaultAllowCheats() {
         return defaultAllowCheats;
     }
 
-    public void setDefaultAllowCheats(boolean defaultAllowCheats) {
+    public synchronized void setDefaultAllowCheats(boolean defaultAllowCheats) {
         this.defaultAllowCheats = defaultAllowCheats;
     }
 
-    public Generator getDefaultGenerator() {
+    public synchronized Generator getDefaultGenerator() {
         return defaultGenerator;
     }
 
-    public void setDefaultGenerator(Generator defaultGenerator) {
+    public synchronized void setDefaultGenerator(Generator defaultGenerator) {
         this.defaultGenerator = defaultGenerator;
     }
 
-    public int getDefaultGameType() {
+    public synchronized int getDefaultGameType() {
         return defaultGameType;
     }
 
-    public void setDefaultGameType(int defaultGameType) {
+    public synchronized void setDefaultGameType(int defaultGameType) {
         this.defaultGameType = defaultGameType;
     }
 
-    public String getDefaultGeneratorOptions() {
+    public synchronized String getDefaultGeneratorOptions() {
         return defaultGeneratorOptions;
     }
 
-    public void setDefaultGeneratorOptions(String defaultGeneratorOptions) {
+    public synchronized void setDefaultGeneratorOptions(String defaultGeneratorOptions) {
         this.defaultGeneratorOptions = defaultGeneratorOptions;
     }
 
-    public byte[] getDefaultJideLayoutData() {
+    public synchronized byte[] getDefaultJideLayoutData() {
         return defaultJideLayoutData;
     }
 
-    public void setDefaultJideLayoutData(byte[] defaultJideLayoutData) {
+    public synchronized void setDefaultJideLayoutData(byte[] defaultJideLayoutData) {
         this.defaultJideLayoutData = defaultJideLayoutData;
     }
 
-    public Map<String, byte[]> getJideLayoutData() {
+    public synchronized Map<String, byte[]> getJideLayoutData() {
         return jideLayoutData;
     }
 
-    public void setJideLayoutData(Map<String, byte[]> jideLayoutData) {
+    public synchronized void setJideLayoutData(Map<String, byte[]> jideLayoutData) {
         this.jideLayoutData = jideLayoutData;
     }
 
-    public LookAndFeel getLookAndFeel() {
+    public synchronized LookAndFeel getLookAndFeel() {
         return lookAndFeel;
     }
 
-    public void setLookAndFeel(LookAndFeel lookAndFeel) {
+    public synchronized void setLookAndFeel(LookAndFeel lookAndFeel) {
         this.lookAndFeel = lookAndFeel;
     }
 
-    public AccelerationType getAccelerationType() {
+    public synchronized AccelerationType getAccelerationType() {
         return accelerationType;
     }
 
-    public void setAccelerationType(AccelerationType accelerationType) {
+    public synchronized void setAccelerationType(AccelerationType accelerationType) {
         this.accelerationType = accelerationType;
     }
 
-    public OverlayType getOverlayType() {
+    public synchronized OverlayType getOverlayType() {
         return overlayType;
     }
 
-    public void setOverlayType(OverlayType overlayType) {
+    public synchronized void setOverlayType(OverlayType overlayType) {
         this.overlayType = overlayType;
     }
 
-    public int getShowCalloutCount() {
+    public synchronized int getShowCalloutCount() {
         return showCalloutCount;
     }
 
-    public void setShowCalloutCount(int showCalloutCount) {
+    public synchronized void setShowCalloutCount(int showCalloutCount) {
         this.showCalloutCount = showCalloutCount;
+    }
+
+    public synchronized List<File> getRecentFiles() {
+        return recentFiles;
+    }
+
+    public synchronized void setRecentFiles(List<File> recentFiles) {
+        this.recentFiles = recentFiles;
     }
 
     @Override
@@ -880,6 +888,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private LookAndFeel lookAndFeel;
     private OverlayType overlayType = OverlayType.OPTIMISE_ON_LOAD;
     private int showCalloutCount = 3;
+    private List<File> recentFiles;
 
     private transient AccelerationType accelerationType;
 
