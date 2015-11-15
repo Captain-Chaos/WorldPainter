@@ -124,8 +124,8 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
                 tall = false;
                 for (int x = 0; x < TILE_SIZE; x++) {
                     for (int y = 0; y < TILE_SIZE; y++) {
-                        setHeight(x, y, clamp(heightTransform.transformHeight(tallHeightMap[x + y * TILE_SIZE] / 256f)));
-                        setWaterLevel(x, y, clamp(heightTransform.transformHeight(tallWaterLevel[x + y * TILE_SIZE])));
+                        setHeight(x, y, clamp(heightTransform.transformHeight(tallHeightMap[x | (y << TILE_SIZE_BITS)] / 256f)));
+                        setWaterLevel(x, y, clamp(heightTransform.transformHeight(tallWaterLevel[x | (y << TILE_SIZE_BITS)])));
                     }
                 }
                 if (undoManager != null) {
@@ -153,8 +153,8 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
                 tall = true;
                 for (int x = 0; x < TILE_SIZE; x++) {
                     for (int y = 0; y < TILE_SIZE; y++) {
-                        setHeight(x, y, clamp(heightTransform.transformHeight((heightMap[x + y * TILE_SIZE] & 0xFFFF) / 256f)));
-                        setWaterLevel(x, y, clamp(heightTransform.transformHeight(waterLevel[x + y * TILE_SIZE] & 0xFF)));
+                        setHeight(x, y, clamp(heightTransform.transformHeight((heightMap[x | (y << TILE_SIZE_BITS)] & 0xFFFF) / 256f)));
+                        setWaterLevel(x, y, clamp(heightTransform.transformHeight(waterLevel[x | (y << TILE_SIZE_BITS)] & 0xFF)));
                     }
                 }
                 if (undoManager != null) {
@@ -189,20 +189,20 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
     public synchronized float getHeight(int x, int y) {
         if (tall) {
             ensureReadable(TALL_HEIGHTMAP);
-            return tallHeightMap[x + y * TILE_SIZE] / 256f;
+            return tallHeightMap[x | (y << TILE_SIZE_BITS)] / 256f;
         } else {
             ensureReadable(HEIGHTMAP);
-            return (heightMap[x + y * TILE_SIZE] & 0xFFFF) / 256f;
+            return (heightMap[x | (y << TILE_SIZE_BITS)] & 0xFFFF) / 256f;
         }
     }
 
     public synchronized void setHeight(int x, int y, float height) {
         if (tall) {
             ensureWriteable(TALL_HEIGHTMAP);
-            tallHeightMap[x + y * TILE_SIZE] = (int) (height * 256);
+            tallHeightMap[x | (y << TILE_SIZE_BITS)] = (int) (height * 256);
         } else {
             ensureWriteable(HEIGHTMAP);
-            heightMap[x + y * TILE_SIZE] = (short) (height * 256);
+            heightMap[x | (y << TILE_SIZE_BITS)] = (short) (height * 256);
         }
         heightMapChanged();
     }
@@ -210,20 +210,20 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
     public synchronized int getRawHeight(int x, int y) {
         if (tall) {
             ensureReadable(TALL_HEIGHTMAP);
-            return tallHeightMap[x + y * TILE_SIZE];
+            return tallHeightMap[x | (y << TILE_SIZE_BITS)];
         } else {
             ensureReadable(HEIGHTMAP);
-            return heightMap[x + y * TILE_SIZE] & 0xFFFF;
+            return heightMap[x | (y << TILE_SIZE_BITS)] & 0xFFFF;
         }
     }
 
     public synchronized void setRawHeight(int x, int y, int rawHeight) {
         if (tall) {
             ensureWriteable(TALL_HEIGHTMAP);
-            tallHeightMap[x + y * TILE_SIZE] = rawHeight;
+            tallHeightMap[x | (y << TILE_SIZE_BITS)] = rawHeight;
         } else {
             ensureWriteable(HEIGHTMAP);
-            heightMap[x + y * TILE_SIZE] = (short) rawHeight;
+            heightMap[x | (y << TILE_SIZE_BITS)] = (short) rawHeight;
         }
         heightMapChanged();
     }
@@ -237,32 +237,32 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
 
     public synchronized Terrain getTerrain(int x, int y) {
         ensureReadable(TERRAIN);
-        return TERRAIN_VALUES[terrain[x + y * TILE_SIZE] & 0xFF];
+        return TERRAIN_VALUES[terrain[x | (y << TILE_SIZE_BITS)] & 0xFF];
     }
 
     public synchronized void setTerrain(int x, int y, Terrain terrain) {
         ensureWriteable(TERRAIN);
-        this.terrain[x + y * TILE_SIZE] = (byte) terrain.ordinal();
+        this.terrain[x | (y << TILE_SIZE_BITS)] = (byte) terrain.ordinal();
         terrainChanged();
     }
 
     public synchronized int getWaterLevel(int x, int y) {
         if (tall) {
             ensureReadable(TALL_WATERLEVEL);
-            return tallWaterLevel[x + y * TILE_SIZE];
+            return tallWaterLevel[x | (y << TILE_SIZE_BITS)];
         } else {
             ensureReadable(WATERLEVEL);
-            return waterLevel[x + y * TILE_SIZE] & 0xFF;
+            return waterLevel[x | (y << TILE_SIZE_BITS)] & 0xFF;
         }
     }
 
     public synchronized void setWaterLevel(int x, int y, int waterLevel) {
         if (tall) {
             ensureWriteable(TALL_WATERLEVEL);
-            this.tallWaterLevel[x + y * TILE_SIZE] = (short) waterLevel;
+            this.tallWaterLevel[x | (y << TILE_SIZE_BITS)] = (short) waterLevel;
         } else {
             ensureWriteable(WATERLEVEL);
-            this.waterLevel[x + y * TILE_SIZE] = (byte) waterLevel;
+            this.waterLevel[x | (y << TILE_SIZE_BITS)] = (byte) waterLevel;
         }
         waterLevelChanged();
     }
@@ -308,12 +308,12 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
             final DataSize dataSize = layer.getDataSize();
             final int defaultValue = layer.getDefaultValue();
             if (dataSize == DataSize.NIBBLE) {
-                final int byteOffset = x + y * TILE_SIZE;
+                final int byteOffset = x | (y << TILE_SIZE_BITS);
                 final byte _byte = entry.getValue()[byteOffset / 2];
                 if ((byteOffset % 2 == 0) ? ((_byte & 0x0F) != defaultValue) : (((_byte & 0xF0) >> 4) != defaultValue)) {
                     activeLayers.add(layer);
                 }
-            } else if ((entry.getValue()[x + y * TILE_SIZE] & 0xFF) != defaultValue) {
+            } else if ((entry.getValue()[x | (y << TILE_SIZE_BITS)] & 0xFF) != defaultValue) {
                 activeLayers.add(layer);
             }
         }
@@ -413,7 +413,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
             byte[] layerValues = entry.getValue();
             int value;
             if (layer.getDataSize() == DataSize.NIBBLE) {
-                int byteOffset = x + y * TILE_SIZE;
+                int byteOffset = x | (y << TILE_SIZE_BITS);
                 byte _byte = layerValues[byteOffset / 2];
                 if (byteOffset % 2 == 0) {
                     value = _byte & 0x0F;
@@ -421,7 +421,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
                     value = (_byte & 0xF0) >> 4;
                 }
             } else {
-                value = layerValues[x + y * TILE_SIZE] & 0xFF;
+                value = layerValues[x | (y << TILE_SIZE_BITS)] & 0xFF;
             }
             if (value != layer.getDefaultValue()) {
                 if (layers == null) {
@@ -436,7 +436,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
             BitSet layerValues = entry.getValue();
             int value;
             if (layer.getDataSize() == Layer.DataSize.BIT) {
-                value = layerValues.get(x + y * TILE_SIZE) ? 1 : 0;
+                value = layerValues.get(x | (y << TILE_SIZE_BITS)) ? 1 : 0;
             } else {
                 value = layerValues.get((x >> 4) + (y >> 4) * (TILE_SIZE >> 4)) ? 1 : 0;
             }
@@ -613,7 +613,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
         }
         int bitOffset;
         if (layer.getDataSize() == Layer.DataSize.BIT) {
-            bitOffset = x + y * TILE_SIZE;
+            bitOffset = x | (y << TILE_SIZE_BITS);
         } else {
             bitOffset = (x / 16) + (y / 16) * (TILE_SIZE / 16);
         }
@@ -632,7 +632,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
                 case BIT_PER_CHUNK:
                     throw new IllegalArgumentException("Can't get bits using this method");
                 case NIBBLE:
-                    int byteOffset = x + y * TILE_SIZE;
+                    int byteOffset = x | (y << TILE_SIZE_BITS);
                     byte _byte = layerValues[byteOffset / 2];
                     if (byteOffset % 2 == 0) {
                         return _byte & 0x0F;
@@ -640,7 +640,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
                         return (_byte & 0xF0) >> 4;
                     }
                 case BYTE:
-                    byteOffset = x + y * TILE_SIZE;
+                    byteOffset = x | (y << TILE_SIZE_BITS);
                     return layerValues[byteOffset] & 0xFF;
                 default:
                     throw new InternalError();
@@ -689,7 +689,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
                 if ((value < 0) || (value > 15)) {
                     throw new IllegalArgumentException("Illegal value for nibble sized layer: " + value);
                 }
-                int byteOffset = x + y * TILE_SIZE;
+                int byteOffset = x | (y << TILE_SIZE_BITS);
                 byte _byte = layerValues[byteOffset / 2];
                 if (byteOffset % 2 == 0) {
                     _byte &= 0xF0;
@@ -704,7 +704,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
                 if ((value < 0) || (value > 255)) {
                     throw new IllegalArgumentException("Illegal value for byte sized layer: " + value);
                 }
-                byteOffset = x + y * TILE_SIZE;
+                byteOffset = x | (y << TILE_SIZE_BITS);
                 layerValues[byteOffset] = (byte) value;
                 break;
             default:
@@ -1138,7 +1138,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
     }
 
     private boolean getBitPerBlockLayerValue(BitSet bitSet, int x, int y) {
-        return bitSet.get(x + y * TILE_SIZE);
+        return bitSet.get(x | (y << TILE_SIZE_BITS));
     }
 
     private boolean getBitPerChunkLayerValue(BitSet bitSet, int x, int y) {
