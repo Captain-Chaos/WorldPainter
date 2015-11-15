@@ -80,6 +80,7 @@ public class WorldIO {
      *     world. If metadata was present and could be loaded it will be stored
      *     in the exception.
      */
+    @SuppressWarnings("unchecked") // Guaranteed by WorldPainter
     public void load(InputStream in) throws IOException, UnloadableWorldException {
         Map<String, Object> metadata = null;
         world = null;
