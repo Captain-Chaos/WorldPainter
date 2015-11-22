@@ -1,4 +1,4 @@
--- Version 2.1.0, released ...
+-- Version 2.1.0, released 22-11-2015
 
  * The menu items have been slightly renamed and rearranged. File -> Import is now called "Import new World" to make it clearer that you are creating a new World instead of importing something into the current World. Importing Layers has been moved to Edit -> Import
  * It is now possible to import multiple custom items (layers, terrains and biomes) at once from an existing .world file! Select Edit -> Import -> "Custom items from existing world", select an existing .world file, select the Custom Layers, Custom Terrains and/or Custom Biomes you wish to import from it and hit OK
