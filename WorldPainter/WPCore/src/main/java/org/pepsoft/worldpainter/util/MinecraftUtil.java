@@ -36,16 +36,16 @@ public class MinecraftUtil {
     }
     
     public static File findMinecraftJar(MinecraftJarProvider minecraftJarProvider) {
+        for (int i = 10; i >= 1; i--) {
+            File candidate = minecraftJarProvider.getMinecraftJar(i);
+            if ((candidate != null) && candidate.isFile() && candidate.canRead()) {
+                return candidate;
+            }
+        }
         File minecraftDir = findMinecraftDir();
         if (minecraftDir != null) {
             File candidate = new File(minecraftDir, "bin/minecraft.jar");
             if (candidate.isFile() && candidate.canRead()) {
-                return candidate;
-            }
-        }
-        for (int i = 8; i >= 1; i--) {
-            File candidate = minecraftJarProvider.getMinecraftJar(i);
-            if ((candidate != null) && candidate.isFile() && candidate.canRead()) {
                 return candidate;
             }
         }
