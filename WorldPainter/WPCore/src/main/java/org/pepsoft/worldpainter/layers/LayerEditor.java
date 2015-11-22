@@ -99,7 +99,7 @@ public interface LayerEditor<L extends Layer> {
      * A context from which the layer editor may obtain context information and
      * to which it may report events.
      */
-    interface LayerEditorContext {
+    public interface LayerEditorContext {
         /**
          * Get the current colour scheme.
          * 
