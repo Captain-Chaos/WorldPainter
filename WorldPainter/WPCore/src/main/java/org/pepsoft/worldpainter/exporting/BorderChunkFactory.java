@@ -110,28 +110,21 @@ public class BorderChunkFactory {
             }
         }
 
-        if (border != Border.VOID) {
-            // Apply layers set to be applied everywhere, if any
-            final Set<Layer> minimumLayers = dimension.getMinimumLayers();
-            if (!minimumLayers.isEmpty()) {
-                Tile virtualTile = new Tile(chunkX >> 3, chunkZ >> 3, dimension.getMaxHeight()) {
-                    @Override
-                    public synchronized float getHeight(int x, int y) {
-                        return floor + (noiseGenerator.getPerlinNoise(((getX() << TILE_SIZE_BITS) | x) / MEDIUM_BLOBS, ((getY() << TILE_SIZE_BITS) | y) / MEDIUM_BLOBS) + 0.5f) * variation;
-                    }
-
-                    @Override
-                    public synchronized int getWaterLevel(int x, int y) {
-                        return borderLevel;
-                    }
-
-                    private static final long serialVersionUID = 1L;
-                };
-                for (Layer layer: minimumLayers) {
-                    LayerExporter layerExporter = exporters.get(layer);
-                    if (layerExporter instanceof FirstPassLayerExporter) {
-                        ((FirstPassLayerExporter) layerExporter).render(dimension, virtualTile, result.chunk);
-                    }
+        // Apply layers set to be applied everywhere, if any
+        final Set<Layer> minimumLayers = dimension.getMinimumLayers();
+        if (! minimumLayers.isEmpty()) {
+            Tile virtualTile = new Tile(chunkX >> 3, chunkZ >> 3, dimension.getMaxHeight()) {
+                @Override
+                public synchronized float getHeight(int x, int y) {
+                    return floor + (noiseGenerator.getPerlinNoise(((getX() << TILE_SIZE_BITS) | x) / MEDIUM_BLOBS, ((getY() << TILE_SIZE_BITS) | y) / MEDIUM_BLOBS) + 0.5f) * variation;
+                }
+                
+                private static final long serialVersionUID = 1L;
+            };
+            for (Layer layer: minimumLayers) {
+                LayerExporter layerExporter = exporters.get(layer);
+                if (layerExporter instanceof FirstPassLayerExporter) {
+                    ((FirstPassLayerExporter) layerExporter).render(dimension, virtualTile, result.chunk);
                 }
             }
         }
