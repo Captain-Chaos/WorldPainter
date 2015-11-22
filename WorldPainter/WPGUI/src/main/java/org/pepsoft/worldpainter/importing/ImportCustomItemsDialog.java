@@ -6,18 +6,23 @@
 package org.pepsoft.worldpainter.importing;
 
 import com.jidesoft.swing.CheckBoxTreeCellRenderer;
-import java.awt.Window;
-import javax.swing.JTree;
-import javax.swing.tree.TreePath;
+import com.jidesoft.swing.CheckBoxTreeSelectionModel;
 import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.World2;
 import org.pepsoft.worldpainter.WorldPainterDialog;
+
+import javax.swing.*;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.TreePath;
+import java.awt.*;
+import java.util.List;
 
 /**
  *
  * @author Pepijn Schmitz
  */
-public class ImportCustomItemsDialog extends WorldPainterDialog {
+public class ImportCustomItemsDialog extends WorldPainterDialog implements TreeSelectionListener {
     /**
      * Creates new form ImportCustomItemsDialog
      */
@@ -26,21 +31,38 @@ public class ImportCustomItemsDialog extends WorldPainterDialog {
         
         initComponents();
         ((CheckBoxTreeCellRenderer) treeCustomItems.getCellRenderer()).setActualTreeRenderer(new CustomItemsTreeCellRenderer(colourScheme));
-        CustomItemsTreeModel treeModel = new CustomItemsTreeModel(world);
+        treeModel = new CustomItemsTreeModel(world);
         treeCustomItems.getCheckBoxTreeSelectionModel().setModel(treeModel);
         treeCustomItems.setModel(treeModel);
         expandAll(treeCustomItems);
-        treeCustomItems.getCheckBoxTreeSelectionModel().addSelectionPath(new TreePath(treeModel.getRoot()));
+        CheckBoxTreeSelectionModel checkBoxTreeSelectionModel = treeCustomItems.getCheckBoxTreeSelectionModel();
+        checkBoxTreeSelectionModel.addSelectionPath(new TreePath(treeModel.getRoot()));
+        checkBoxTreeSelectionModel.addTreeSelectionListener(this);
         labelWorld.setText(world.getName());
-        
+
         getRootPane().setDefaultButton(buttonOK);
         setLocationRelativeTo(parent);
+    }
+
+    public List<Object> getSelectedItems() {
+        return treeModel.getSelectedItems(treeCustomItems.getCheckBoxTreeSelectionModel().getSelectionPaths());
+    }
+
+    // TreeSelectionListener
+
+    @Override
+    public void valueChanged(TreeSelectionEvent e) {
+        setControlStates();
     }
 
     private void expandAll(JTree tree) {
         for (int i = 0; i < tree.getRowCount(); i++) {
             tree.expandRow(i);
         }
+    }
+
+    private void setControlStates() {
+        buttonOK.setEnabled(treeCustomItems.getCheckBoxTreeSelectionModel().getSelectionCount() > 0);
     }
     
     /**
@@ -147,4 +169,6 @@ public class ImportCustomItemsDialog extends WorldPainterDialog {
     private javax.swing.JLabel labelWorld;
     private com.jidesoft.swing.CheckBoxTree treeCustomItems;
     // End of variables declaration//GEN-END:variables
+
+    private final CustomItemsTreeModel treeModel;
 }

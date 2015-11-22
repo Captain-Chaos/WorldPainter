@@ -14,6 +14,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Random;
 
 import static org.pepsoft.minecraft.Constants.*;
@@ -1227,6 +1228,14 @@ public enum Terrain {
         throw new IllegalArgumentException("Not a custom terrain");
     }
     
+    public static boolean isCustomMaterialConfigured(int index) {
+        return customMaterials[index] != null;
+    }
+
+    public static int getConfiguredCustomMaterialCount() {
+        return (int) Arrays.stream(customMaterials).filter(Objects::nonNull).count();
+    }
+
     public static MixedMaterial getCustomMaterial(int index) {
         return customMaterials[index];
     }

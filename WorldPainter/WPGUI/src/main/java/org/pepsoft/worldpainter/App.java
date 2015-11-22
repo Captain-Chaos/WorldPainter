@@ -1890,7 +1890,7 @@ public final class App extends JFrame implements RadiusControl,
             showMessageDialog(this, strings.getString("this.world.was.imported.before.the.great.coordinate.shift"), strings.getString("merge.not.allowed"), ERROR_MESSAGE);
             return;
         }
-        if ((world.getImportedFrom() == null) && (showConfirmDialog(this, strings.getString("this.world.was.not.imported"), strings.getString("not.imported"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
+        if ((world.getImportedFrom() == null) && (world.getMergedWith() == null) && (showConfirmDialog(this, strings.getString("this.world.was.not.imported"), strings.getString("not.imported"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
             return;
         }
         if ((world.getDimensions().length > 1) && (showConfirmDialog(this, strings.getString("merging.the.nether.or.end.is.not.yet.supported"), strings.getString("merging.nether.not.supported"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
@@ -5094,6 +5094,55 @@ public final class App extends JFrame implements RadiusControl,
             if (CustomItemsTreeModel.hasCustomItems(selectedWorld)) {
                 ImportCustomItemsDialog dialog = new ImportCustomItemsDialog(this, selectedWorld, selectedColourScheme);
                 dialog.setVisible(true);
+                if (! dialog.isCancelled()) {
+                    StringBuilder errors = new StringBuilder();
+                    Set<CustomLayer> existingCustomLayers = null;
+                    boolean refreshView = false, showError = false;
+                    for (Object selectedItem: dialog.getSelectedItems()) {
+                        if (selectedItem instanceof CustomLayer) {
+                            if (existingCustomLayers == null) {
+                                existingCustomLayers = getCustomLayers();
+                            }
+                            if (existingCustomLayers.contains(selectedItem)) {
+                                errors.append("Custom Layer \"" + ((CustomLayer) selectedItem).getName() + "\" already exists\n");
+                            } else {
+                                registerCustomLayer((CustomLayer) selectedItem, false);
+                            }
+                        } else if (selectedItem instanceof MixedMaterial) {
+                            MixedMaterial customMaterial = (MixedMaterial) selectedItem;
+                            if (getConfiguredCustomMaterialCount() == CUSTOM_TERRAIN_COUNT) {
+                                errors.append("No free slots for Custom Terrain \"" + customMaterial.getName() + "\"\n");
+                                showError = true;
+                                continue;
+                            }
+                            int nextIndex = 0;
+                            while (getCustomMaterial(nextIndex) != null) {
+                                nextIndex++;
+                            }
+                            customMaterial = MixedMaterialManager.getInstance().register(customMaterial);
+                            setCustomMaterial(nextIndex, customMaterial);
+                            customMaterialButtons[nextIndex].setIcon(new ImageIcon(customMaterial.getIcon(selectedColourScheme)));
+                            customMaterialButtons[nextIndex].setToolTipText(MessageFormat.format(strings.getString("customMaterial.0.right.click.to.change"), customMaterial));
+                            refreshView = true;
+                        } else if (selectedItem instanceof CustomBiome) {
+                            CustomBiome customBiome = (CustomBiome) selectedItem;
+                            if (! customBiomeManager.addCustomBiome(null, customBiome)) {
+                                errors.append("ID already in use for Custom Biome " + customBiome.getId() + " (\"" + customBiome + "\")\n");
+                                showError = true;
+                            } else {
+                                refreshView = true;
+                            }
+                        } else {
+                            throw new InternalError("Unsupported custom item type " + selectedItem.getClass() + " encountered");
+                        }
+                    }
+                    if (refreshView) {
+                        view.refreshTiles();
+                    }
+                    if (errors.length() > 0) {
+                        JOptionPane.showMessageDialog(App.this, "Not all items have been imported:\n\n" + errors, "Not All Items Imported", showError ? JOptionPane.ERROR_MESSAGE : JOptionPane.WARNING_MESSAGE);
+                    }
+                }
             } else {
                 showMessageDialog(this, "The selected world has no custom layers, terrains or biomes.", "No Custom Items", WARNING_MESSAGE);
             }
