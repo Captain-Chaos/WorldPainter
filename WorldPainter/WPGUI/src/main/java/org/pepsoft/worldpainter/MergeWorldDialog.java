@@ -62,7 +62,9 @@ public class MergeWorldDialog extends javax.swing.JDialog implements Listener {
         initComponents();
 
         Configuration config = Configuration.getInstance();
-        if (world.getImportedFrom() != null) {
+        if (world.getMergedWith() != null) {
+            fieldLevelDatFile.setText(world.getMergedWith().getAbsolutePath());
+        } else if (world.getImportedFrom() != null) {
             fieldLevelDatFile.setText(world.getImportedFrom().getAbsolutePath());
         } else if ((config != null) && (config.getSavesDirectory() != null)) {
             fieldLevelDatFile.setText(config.getSavesDirectory().getAbsolutePath());

@@ -398,6 +398,19 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         return borderSettings;
     }
 
+    public File getMergedWith() {
+        return mergedWith;
+    }
+
+    public void setMergedWith(File mergedWith) {
+        if ((mergedWith == null) ? (this.mergedWith != null) : (! mergedWith.equals(this.mergedWith))) {
+            File oldMergedWith = this.mergedWith;
+            this.mergedWith = mergedWith;
+            dirty = true;
+            propertyChangeSupport.firePropertyChange("mergedWith", oldMergedWith, mergedWith);
+        }
+    }
+
     /**
      * Transforms all dimensions of this world horizontally. If an undo manager
      * is installed this operation will destroy all undo info.
@@ -640,6 +653,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     private int difficulty = org.pepsoft.minecraft.Constants.DIFFICULTY_NORMAL;
     private List<HistoryEntry> history = new ArrayList<>();
     private BorderSettings borderSettings = new BorderSettings();
+    private File mergedWith;
     private transient Set<Warning> warnings;
     private transient Map<String, Object> metadata;
 
