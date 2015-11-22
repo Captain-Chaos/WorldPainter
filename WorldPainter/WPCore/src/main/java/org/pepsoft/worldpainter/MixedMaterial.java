@@ -212,7 +212,7 @@ public class MixedMaterial implements Serializable, Comparable<MixedMaterial> {
                     if (layerYSlope != 0.0) {
                         z += layerYSlope * y;
                     }
-                    return materials[MathUtils.mod((int) (z + 0.5f), materials.length)];
+                    return materials[Math.floorMod((int) (z + 0.5f), materials.length)];
                 } else {
                     final int iZ = (int) (z + 0.5f);
                     if (iZ < 0) {
@@ -264,7 +264,7 @@ public class MixedMaterial implements Serializable, Comparable<MixedMaterial> {
                     if (layerYSlope != 0.0) {
                         fZ += layerYSlope * y;
                     }
-                    return materials[MathUtils.mod((int) (fZ + 0.5f), materials.length)];
+                    return materials[Math.floorMod((int) (fZ + 0.5f), materials.length)];
                 } else {
                     final int iZ = (int) (fZ + 0.5f);
                     if (iZ < 0) {

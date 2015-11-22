@@ -47,32 +47,6 @@ public final class MathUtils {
      * Calculates x modulo y. This is different than the Java remainder operator
      * (%) in that it always returns a positive value.
      *
-     * <p>Hint, if y is a power of two, it is much faster to do a binary AND
-     * with (y - 1)
-     *
-     * @param x The operand.
-     * @param y The modulus.
-     * @return x modulo y
-     * @deprecated Use {@link Math#floorMod(int, int)}
-     */
-    @Deprecated
-    public static int mod(int x, int y) {
-        if (x >= 0) {
-            return x % y;
-        } else {
-            int mod = x % y;
-            if (mod == 0) {
-                return 0;
-            } else {
-                return y + mod;
-            }
-        }
-    }
-
-    /**
-     * Calculates x modulo y. This is different than the Java remainder operator
-     * (%) in that it always returns a positive value.
-     *
      * @param x The operand.
      * @param y The modulus.
      * @return x modulo y
