@@ -1720,9 +1720,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         public Set<Seed> getSeeds() {
             Set<Seed> allSeeds = new HashSet<>();
             for (Tile tile: tiles.values()) {
-                if (tile.getSeeds() != null) {
-                    allSeeds.addAll(tile.getSeeds());
-                }
+                allSeeds.addAll(tile.getSeeds());
             }
             return allSeeds;
         }
@@ -1739,15 +1737,13 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             for (int tileX = topLeftTileX; tileX <= bottomRightTileX; tileX++) {
                 for (int tileY = topLeftTileY; tileY <= bottomRightTileY; tileY++) {
                     Tile tile = getTile(tileX, tileY);
-                    if ((tile != null) && (tile.getSeeds() != null)) {
-                        tile.getSeeds().stream()
-                            .filter(seed -> seed.getClass() == type)
-                            .forEach(seed -> {
-                                int distance = (int) MathUtils.getDistance(seed.location.x - x, seed.location.y - y);
-                                if (distance <= radius) {
-                                    seedsFound.add((T) seed);
-                                }
-                            });
+                    if (tile != null) {
+                        tile.getSeeds().stream().filter(seed -> seed.getClass() == type).forEach(seed -> {
+                            int distance = (int) MathUtils.getDistance(seed.location.x - x, seed.location.y - y);
+                            if (distance <= radius) {
+                                seedsFound.add((T) seed);
+                            }
+                        });
                     }
                 }
             }
@@ -1812,8 +1808,8 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             // under us
             for (Point tileCoords: (HashSet<Point>) activeTiles.clone()) {
                 Tile tile = getTile(tileCoords.x, tileCoords.y);
-                if ((tile != null) && (tile.getSeeds() != null)) {
-                    ((HashSet<Seed>) tile.getSeeds().clone()).forEach(Seed::tick);
+                if (tile != null) {
+                    ((HashSet<Seed>) tile.getSeeds().clone()).forEach(org.pepsoft.worldpainter.gardenofeden.Seed::tick);
                 }
             }
             // Don't cache active seeds, because they might have changed
@@ -1824,7 +1820,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                 Point tileCoords = i.next();
                 Tile tile = getTile(tileCoords.x, tileCoords.y);
                 boolean tileFinished = true;
-                if ((tile != null) && (tile.getSeeds() != null)) {
+                if (tile != null) {
                     for (Seed seed: tile.getSeeds()) {
                         if (! seed.isFinished()) {
                             tileFinished = false;
@@ -1845,10 +1841,8 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         public void neutralise() {
             for (Point tileCoords: activeTiles) {
                 Tile tile = getTile(tileCoords.x, tileCoords.y);
-                if ((tile != null) && (tile.getSeeds() != null)) {
-                    tile.getSeeds().stream()
-                        .filter(seed -> !seed.isFinished())
-                        .forEach(Seed::neutralise);
+                if (tile != null) {
+                    tile.getSeeds().stream().filter(seed -> !seed.isFinished()).forEach(org.pepsoft.worldpainter.gardenofeden.Seed::neutralise);
                 }
             }
             activeTiles.clear();

@@ -24,14 +24,10 @@ public class GardenExporter {
      */
     public void firstPass(Dimension dimension, Tile tile, MinecraftWorld minecraftWorld, Set<Seed> processedSeeds) {
         // Process the seed. If it has a parent, process it first, etc.,
-        // regardless of whether the ancestors are in this tile.
-        // If the seed is already processed then all its ancestors are also
-        // already processed.
-        if (tile.getSeeds() != null) {
-            tile.getSeeds().stream()
-                .filter(seed -> !processedSeeds.contains(seed))
-                .forEach(seed -> processSeedFirstPass(seed, processedSeeds, dimension, tile, minecraftWorld));
-        }
+// regardless of whether the ancestors are in this tile.
+// If the seed is already processed then all its ancestors are also
+// already processed.
+        tile.getSeeds().stream().filter(seed -> !processedSeeds.contains(seed)).forEach(seed -> processSeedFirstPass(seed, processedSeeds, dimension, tile, minecraftWorld));
     }
 
     /**
@@ -44,14 +40,10 @@ public class GardenExporter {
      */
     public void secondPass(Dimension dimension, Tile tile, MinecraftWorld minecraftWorld, Set<Seed> processedSeeds) {
         // Process the seed. If it has a parent, process it first, etc.,
-        // regardless of whether the ancestors are in this tile.
-        // If the seed is already processed then all its ancestors are also
-        // already processed.
-        if (tile.getSeeds() != null) {
-            tile.getSeeds().stream()
-                .filter(seed -> !processedSeeds.contains(seed))
-                .forEach(seed -> processSeedSecondPass(seed, processedSeeds, dimension, tile, minecraftWorld));
-        }
+// regardless of whether the ancestors are in this tile.
+// If the seed is already processed then all its ancestors are also
+// already processed.
+        tile.getSeeds().stream().filter(seed -> !processedSeeds.contains(seed)).forEach(seed -> processSeedSecondPass(seed, processedSeeds, dimension, tile, minecraftWorld));
     }
     
     private void processSeedFirstPass(Seed seed, Set<Seed> processedSeeds, Dimension dimension, Tile tile, MinecraftWorld world) {
