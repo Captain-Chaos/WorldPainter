@@ -269,10 +269,10 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             borderSettings.setCentreX((Integer) spinnerMcBorderCentreX.getValue());
             borderSettings.setCentreY((Integer) spinnerMcBorderCentreY.getValue());
             borderSettings.setSize((Integer) spinnerMcBorderSize.getValue());
-            borderSettings.setSafeZone((Integer) spinnerMcBorderBuffer.getValue());
-            borderSettings.setDamagePerBlock((Float) spinnerMcBorderDamage.getValue());
-            borderSettings.setWarningTime((Integer) spinnerMcBorderWarningTime.getValue());
-            borderSettings.setWarningBlocks((Integer) spinnerMcBorderWarningDistance.getValue());
+//            borderSettings.setSafeZone((Integer) spinnerMcBorderBuffer.getValue());
+//            borderSettings.setDamagePerBlock((Float) spinnerMcBorderDamage.getValue());
+//            borderSettings.setWarningTime((Integer) spinnerMcBorderWarningTime.getValue());
+//            borderSettings.setWarningBlocks((Integer) spinnerMcBorderWarningDistance.getValue());
         }
         
         // caverns
@@ -492,18 +492,18 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             spinnerMcBorderCentreX.setValue(borderSettings.getCentreX());
             spinnerMcBorderCentreY.setValue(borderSettings.getCentreY());
             spinnerMcBorderSize.setValue(borderSettings.getSize());
-            spinnerMcBorderBuffer.setValue(borderSettings.getSafeZone());
-            spinnerMcBorderDamage.setValue(borderSettings.getDamagePerBlock());
-            spinnerMcBorderWarningTime.setValue(borderSettings.getWarningTime());
-            spinnerMcBorderWarningDistance.setValue(borderSettings.getWarningBlocks());
+//            spinnerMcBorderBuffer.setValue(borderSettings.getSafeZone());
+//            spinnerMcBorderDamage.setValue(borderSettings.getDamagePerBlock());
+//            spinnerMcBorderWarningTime.setValue(borderSettings.getWarningTime());
+//            spinnerMcBorderWarningDistance.setValue(borderSettings.getWarningBlocks());
         } else {
             spinnerMcBorderCentreX.setEnabled(false);
             spinnerMcBorderCentreY.setEnabled(false);
             spinnerMcBorderSize.setEnabled(false);
-            spinnerMcBorderBuffer.setEnabled(false);
-            spinnerMcBorderDamage.setEnabled(false);
-            spinnerMcBorderWarningTime.setEnabled(false);
-            spinnerMcBorderWarningDistance.setEnabled(false);
+//            spinnerMcBorderBuffer.setEnabled(false);
+//            spinnerMcBorderDamage.setEnabled(false);
+//            spinnerMcBorderWarningTime.setEnabled(false);
+//            spinnerMcBorderWarningDistance.setEnabled(false);
         }
         
         List<Terrain> materialList = new ArrayList<>(Arrays.asList(Terrain.VALUES));
@@ -818,21 +818,9 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         spinnerMcBorderCentreY = new javax.swing.JSpinner();
         jLabel81 = new javax.swing.JLabel();
         spinnerMcBorderSize = new javax.swing.JSpinner();
-        jLabel83 = new javax.swing.JLabel();
-        jLabel84 = new javax.swing.JLabel();
         jLabel85 = new javax.swing.JLabel();
         jLabel86 = new javax.swing.JLabel();
-        spinnerMcBorderBuffer = new javax.swing.JSpinner();
-        spinnerMcBorderDamage = new javax.swing.JSpinner();
-        jLabel87 = new javax.swing.JLabel();
-        jLabel88 = new javax.swing.JLabel();
-        jLabel82 = new javax.swing.JLabel();
-        spinnerMcBorderWarningTime = new javax.swing.JSpinner();
-        jLabel89 = new javax.swing.JLabel();
-        spinnerMcBorderWarningDistance = new javax.swing.JSpinner();
         jLabel90 = new javax.swing.JLabel();
-        jLabel91 = new javax.swing.JLabel();
-        jLabel92 = new javax.swing.JLabel();
         jPanel5 = new javax.swing.JPanel();
         themeEditor = new org.pepsoft.worldpainter.themes.impl.simple.SimpleThemeEditor();
         jLabel45 = new javax.swing.JLabel();
@@ -1090,35 +1078,11 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
         spinnerMcBorderSize.setModel(new javax.swing.SpinnerNumberModel(0, 0, 60000000, 1));
 
-        jLabel83.setText("Damage buffer size:");
-
-        jLabel84.setText("Damage amount:");
-
         jLabel85.setText(" blocks");
 
         jLabel86.setText(" blocks");
 
-        spinnerMcBorderBuffer.setModel(new javax.swing.SpinnerNumberModel(0, 0, 128, 1));
-
-        spinnerMcBorderDamage.setModel(new javax.swing.SpinnerNumberModel(Float.valueOf(0.2f), Float.valueOf(0.0f), Float.valueOf(10.0f), Float.valueOf(0.1f)));
-
-        jLabel87.setText(" blocks");
-
-        jLabel88.setText(" per second");
-
-        jLabel82.setText("Warning time:");
-
-        spinnerMcBorderWarningTime.setModel(new javax.swing.SpinnerNumberModel(15, 0, 128, 1));
-
-        jLabel89.setText("Warning distance:");
-
-        spinnerMcBorderWarningDistance.setModel(new javax.swing.SpinnerNumberModel(5, 0, 128, 1));
-
         jLabel90.setText("(Applies to all dimensions)");
-
-        jLabel91.setText(" seconds");
-
-        jLabel92.setText(" blocks");
 
         javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
         jPanel6.setLayout(jPanel6Layout);
@@ -1143,30 +1107,6 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                         .addComponent(spinnerMcBorderSize, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(0, 0, 0)
                         .addComponent(jLabel86))
-                    .addGroup(jPanel6Layout.createSequentialGroup()
-                        .addComponent(jLabel83)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(spinnerMcBorderBuffer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, 0)
-                        .addComponent(jLabel87))
-                    .addGroup(jPanel6Layout.createSequentialGroup()
-                        .addComponent(jLabel84)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(spinnerMcBorderDamage, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, 0)
-                        .addComponent(jLabel88))
-                    .addGroup(jPanel6Layout.createSequentialGroup()
-                        .addComponent(jLabel82)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(spinnerMcBorderWarningTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, 0)
-                        .addComponent(jLabel91))
-                    .addGroup(jPanel6Layout.createSequentialGroup()
-                        .addComponent(jLabel89)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(spinnerMcBorderWarningDistance, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, 0)
-                        .addComponent(jLabel92))
                     .addComponent(jLabel90))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -1187,26 +1127,6 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                     .addComponent(jLabel81)
                     .addComponent(spinnerMcBorderSize, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel86))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel83)
-                    .addComponent(spinnerMcBorderBuffer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel87))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel84)
-                    .addComponent(spinnerMcBorderDamage, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel88))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel82)
-                    .addComponent(spinnerMcBorderWarningTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel91))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel89)
-                    .addComponent(spinnerMcBorderWarningDistance, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel92))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -1310,15 +1230,15 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel8)
                             .addComponent(spinnerBorderSize, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel9))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(checkBoxBedrockWall)
-                        .addGap(18, 18, 18)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel7)
-                            .addComponent(spinnerMinecraftSeed, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(jLabel9)))
                     .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(checkBoxBedrockWall)
+                .addGap(18, 18, 18)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel7)
+                    .addComponent(spinnerMinecraftSeed, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(46, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("General", jPanel1);
@@ -2457,18 +2377,10 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel80;
     private javax.swing.JLabel jLabel81;
-    private javax.swing.JLabel jLabel82;
-    private javax.swing.JLabel jLabel83;
-    private javax.swing.JLabel jLabel84;
     private javax.swing.JLabel jLabel85;
     private javax.swing.JLabel jLabel86;
-    private javax.swing.JLabel jLabel87;
-    private javax.swing.JLabel jLabel88;
-    private javax.swing.JLabel jLabel89;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JLabel jLabel90;
-    private javax.swing.JLabel jLabel91;
-    private javax.swing.JLabel jLabel92;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
@@ -2526,13 +2438,9 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private javax.swing.JSpinner spinnerLavaMaxLevel;
     private javax.swing.JSpinner spinnerLavaMinLevel;
     private javax.swing.JSpinner spinnerMaxSurfaceDepth;
-    private javax.swing.JSpinner spinnerMcBorderBuffer;
     private javax.swing.JSpinner spinnerMcBorderCentreX;
     private javax.swing.JSpinner spinnerMcBorderCentreY;
-    private javax.swing.JSpinner spinnerMcBorderDamage;
     private javax.swing.JSpinner spinnerMcBorderSize;
-    private javax.swing.JSpinner spinnerMcBorderWarningDistance;
-    private javax.swing.JSpinner spinnerMcBorderWarningTime;
     private javax.swing.JSpinner spinnerMinSurfaceDepth;
     private javax.swing.JSpinner spinnerMinecraftSeed;
     private javax.swing.JSpinner spinnerQuartzChance;
