@@ -111,8 +111,20 @@ public class WorldExporter {
             throw new InternalError("Don't know how to encode game type " + world.getGameType());
         }
         level.setGenerator(world.getGenerator());
-        if ((world.getVersion() == SUPPORTED_VERSION_2) && (world.getGenerator() == Generator.FLAT) && (world.getGeneratorOptions() != null)) {
-            level.setGeneratorOptions(world.getGeneratorOptions());
+        if (world.getVersion() == SUPPORTED_VERSION_2) {
+            if ((world.getGenerator() == Generator.FLAT) && (world.getGeneratorOptions() != null)) {
+                level.setGeneratorOptions(world.getGeneratorOptions());
+            }
+            World2.BorderSettings borderSettings = world.getBorderSettings();
+            level.setBorderCenterX(borderSettings.getCentreX());
+            level.setBorderCenterZ(borderSettings.getCentreY());
+            level.setBorderSize(borderSettings.getSize());
+            level.setBorderSafeZone(borderSettings.getSafeZone());
+            level.setBorderWarningBlocks(borderSettings.getWarningBlocks());
+            level.setBorderWarningTime(borderSettings.getWarningTime());
+            level.setBorderSizeLerpTarget(borderSettings.getSizeLerpTarget());
+            level.setBorderSizeLerpTime(borderSettings.getSizeLerpTime());
+            level.setBorderDamagePerBlock(borderSettings.getDamagePerBlock());
         }
         // Save the level.dat file. This will also create a session.lock file, hopefully kicking out any Minecraft
         // instances which may have the map open:

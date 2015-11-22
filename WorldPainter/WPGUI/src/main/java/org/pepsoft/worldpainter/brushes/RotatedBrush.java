@@ -12,8 +12,6 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.*;
 
-import static org.pepsoft.util.MathUtils.mod;
-
 /**
  * A brush which can rotate another brush an arbitrary angle around its center.
  * 
@@ -153,11 +151,11 @@ public final class RotatedBrush extends AbstractBrush {
      * @return The specified brush, rotated as specified.
      */
     public static Brush rotate(Brush brush, int degrees) {
-        degrees = mod(degrees, 360);
+        degrees = Math.floorMod(degrees, 360);
         if (degrees == 0) {
             return brush;
         } else if (brush instanceof RotatedBrush) {
-            int adjustedDegrees = mod(((RotatedBrush) brush).degrees + degrees, 360);
+            int adjustedDegrees = Math.floorMod(((RotatedBrush) brush).degrees + degrees, 360);
             if (adjustedDegrees == 0) {
                 return ((RotatedBrush) brush).brush;
             } else {

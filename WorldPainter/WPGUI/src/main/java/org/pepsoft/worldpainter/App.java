@@ -57,6 +57,7 @@ import org.pepsoft.worldpainter.vo.UsageVO;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.Box;
 import javax.swing.Timer;
 import javax.swing.border.BevelBorder;
 import javax.swing.filechooser.FileFilter;
@@ -85,8 +86,11 @@ import static com.jidesoft.docking.DockContext.DOCK_SIDE_EAST;
 import static com.jidesoft.docking.DockContext.DOCK_SIDE_WEST;
 import static com.jidesoft.docking.DockableFrame.*;
 import static java.awt.event.KeyEvent.*;
+import static javax.swing.JOptionPane.*;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.Terrain.*;
+
 import org.pepsoft.worldpainter.importing.CustomItemsTreeModel;
 import org.pepsoft.worldpainter.importing.ImportCustomItemsDialog;
 
@@ -438,13 +442,13 @@ public final class App extends JFrame implements RadiusControl,
             // neglected to do it automatically)
             if (dimension.isFixOverlayCoords()) {
                 Toolkit.getDefaultToolkit().beep();
-                if (JOptionPane.showConfirmDialog(this,
+                if (showConfirmDialog(this,
                         "This world was created in an older version of WorldPainter\n" +
                         "in which the overlay offsets were not stored correctly.\n" +
                         "Do you want WorldPainter to fix the offsets now?\n" +
                         "\n" +
                         "If you already manually fixed the offsets using version 1.9.0\n"
-                        + "or 1.9.1 of WorldPainter, say no. If you're unsure, say yes.", "Fix Overlay Offset?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) != JOptionPane.NO_OPTION) {
+                        + "or 1.9.1 of WorldPainter, say no. If you're unsure, say yes.", "Fix Overlay Offset?", YES_NO_OPTION, QUESTION_MESSAGE) != NO_OPTION) {
                     dimension.setOverlayOffsetX(dimension.getOverlayOffsetX() + dimension.getLowestX() << TILE_SIZE_BITS);
                     dimension.setOverlayOffsetY(dimension.getOverlayOffsetY() + dimension.getLowestY() << TILE_SIZE_BITS);
                 }
@@ -490,7 +494,7 @@ public final class App extends JFrame implements RadiusControl,
                 if (customLayer instanceof CombinedLayer) {
                     if (((CombinedLayer) customLayer).isMissingTerrainWarning()) {
                         if (! missingTerrainWarningGiven) {
-                            JOptionPane.showMessageDialog(this, "The world contains one or more Combined Layer(s) referring to a Custom Terrain\nwhich is not present in this world. The terrain has been reset.", "Missing Custom Terrain", JOptionPane.WARNING_MESSAGE);
+                            showMessageDialog(this, "The world contains one or more Combined Layer(s) referring to a Custom Terrain\nwhich is not present in this world. The terrain has been reset.", "Missing Custom Terrain", WARNING_MESSAGE);
                             missingTerrainWarningGiven = true;
                         }
                         ((CombinedLayer) customLayer).resetMissingTerrainWarning();
@@ -657,7 +661,7 @@ public final class App extends JFrame implements RadiusControl,
         Terrain terrain = dimension.getTerrainAt(x, y);
         if (terrain.isCustom()) {
             int index = terrain.getCustomTerrainIndex();
-            setTextIfDifferent(materialLabel, MessageFormat.format(strings.getString("material.custom.1.0"), Terrain.getCustomMaterial(index), index + 1));
+            setTextIfDifferent(materialLabel, MessageFormat.format(strings.getString("material.custom.1.0"), getCustomMaterial(index), index + 1));
         } else {
             setTextIfDifferent(materialLabel, MessageFormat.format(strings.getString("material.0"), terrain.getName()));
         }
@@ -737,13 +741,13 @@ public final class App extends JFrame implements RadiusControl,
 
     public void open(File file, boolean askForConfirmation) {
         if (askForConfirmation && (world != null) && world.isDirty()) {
-            int action = JOptionPane.showConfirmDialog(this, strings.getString("there.are.unsaved.changes"));
-            if (action == JOptionPane.YES_OPTION) {
+            int action = showConfirmDialog(this, strings.getString("there.are.unsaved.changes"));
+            if (action == YES_OPTION) {
                 if (! saveAs()) {
                     // User cancelled the save
                     return;
                 }
-            } else if (action != JOptionPane.NO_OPTION) {
+            } else if (action != NO_OPTION) {
                 // User closed the confirmation dialog without making a choice
                 return;
             }
@@ -839,7 +843,7 @@ public final class App extends JFrame implements RadiusControl,
                                 "* The file was created with a newer version of WorldPainter\n" +
                                 "* The file was created using WorldPainter plugins which you do not have";
                     }
-                    SwingUtilities.invokeAndWait(() -> JOptionPane.showMessageDialog(App.this, text, strings.getString("file.damaged"), JOptionPane.ERROR_MESSAGE));
+                    SwingUtilities.invokeAndWait(() -> showMessageDialog(App.this, text, strings.getString("file.damaged"), ERROR_MESSAGE));
                 } catch (InterruptedException e2) {
                     throw new RuntimeException("Thread interrupted while reporting unloadable file " + file, e2);
                 } catch (InvocationTargetException e2) {
@@ -884,7 +888,7 @@ public final class App extends JFrame implements RadiusControl,
             for (World2.Warning warning: warnings) {
                 switch (warning) {
                     case AUTO_BIOMES_DISABLED:
-                        if (JOptionPane.showOptionDialog(this, "Automatic Biomes were previously enabled for this world but have been disabled.\nPress More Info for more information, including how to reenable it.", "Automatic Biomes Disabled", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, new Object[] {"More Info", "OK"}, "OK") == 0) {
+                        if (showOptionDialog(this, "Automatic Biomes were previously enabled for this world but have been disabled.\nPress More Info for more information, including how to reenable it.", "Automatic Biomes Disabled", DEFAULT_OPTION, WARNING_MESSAGE, null, new Object[] {"More Info", "OK"}, "OK") == 0) {
                             try {
                                 DesktopUtils.open(new URL("http://www.worldpainter.net/trac/wiki/NewAutomaticBiomes"));
                             } catch (MalformedURLException e) {
@@ -893,7 +897,7 @@ public final class App extends JFrame implements RadiusControl,
                         }
                         break;
                     case AUTO_BIOMES_ENABLED:
-                        if (JOptionPane.showOptionDialog(this, "Automatic Biomes were previously disabled for this world but have been enabled.\nPress More Info for more information, including how to disable it.", "Automatic Biomes Enabled", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, new Object[] {"More Info", "OK"}, "OK") == 0) {
+                        if (showOptionDialog(this, "Automatic Biomes were previously disabled for this world but have been enabled.\nPress More Info for more information, including how to disable it.", "Automatic Biomes Enabled", DEFAULT_OPTION, WARNING_MESSAGE, null, new Object[] {"More Info", "OK"}, "OK") == 0) {
                             try {
                                 DesktopUtils.open(new URL("http://www.worldpainter.net/trac/wiki/NewAutomaticBiomes"));
                             } catch (MalformedURLException e) {
@@ -906,7 +910,7 @@ public final class App extends JFrame implements RadiusControl,
         }
         
         if (newWorld.isAskToConvertToAnvil() && (newWorld.getMaxHeight() == DEFAULT_MAX_HEIGHT_1) && (newWorld.getImportedFrom() == null)) {
-            if (JOptionPane.showConfirmDialog(this, strings.getString("this.world.is.128.blocks.high"), strings.getString("convert.world.height"), JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+            if (showConfirmDialog(this, strings.getString("this.world.is.128.blocks.high"), strings.getString("convert.world.height"), YES_NO_OPTION) == YES_OPTION) {
                 ChangeHeightDialog.resizeWorld(newWorld, HeightTransform.IDENTITY, DEFAULT_MAX_HEIGHT_2, this);
                 newWorld.addHistoryEntry(HistoryEntry.WORLD_MAX_HEIGHT_CHANGED, DEFAULT_MAX_HEIGHT_2);
                 // Force the version to "Anvil" if it was previously exported
@@ -923,7 +927,7 @@ public final class App extends JFrame implements RadiusControl,
         }
         
         if (newWorld.isAskToRotate() && (newWorld.getUpIs() == Direction.WEST) && (newWorld.getImportedFrom() == null)) {
-            if (JOptionPane.showConfirmDialog(this, strings.getString("this.world.was.created.when.north.was.to.the.right"), strings.getString("rotate.world"), JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+            if (showConfirmDialog(this, strings.getString("this.world.was.created.when.north.was.to.the.right"), strings.getString("rotate.world"), YES_NO_OPTION) == YES_OPTION) {
                 ProgressDialog.executeTask(this, new ProgressTask<java.lang.Void>() {
                     @Override
                     public String getName() {
@@ -970,12 +974,54 @@ public final class App extends JFrame implements RadiusControl,
         newWorld.setDirty(false);
         setWorld(newWorld);
 
+        addRecentlyUsedWorld(file);
+
         if (newWorld.getImportedFrom() != null) {
             enableImportedWorldOperation();
         } else {
             disableImportedWorldOperation();
         }
         setDimensionControlStates();
+    }
+
+    private void addRecentlyUsedWorld(File file) {
+        // For some reason (Java bug? Java 8 bug?) the files passed in are
+        // sometimes Win32ShellFolder2 instances, instead of Files, which causes
+        // problems when serializing/deserializing, so make sure they are Files:
+        file = file.getAbsoluteFile();
+        Configuration config = Configuration.getInstance();
+        List<File> recentFiles = config.getRecentFiles();
+        if (recentFiles == null) {
+            recentFiles = new ArrayList<>();
+            config.setRecentFiles(recentFiles);
+        }
+        recentFiles.remove(file);
+        recentFiles.add(0, file);
+        while (recentFiles.size() > MAX_RECENT_FILES) {
+            recentFiles.remove(recentFiles.size() - 1);
+        }
+        updateRecentMenu();
+    }
+
+    private void updateRecentMenu() {
+        recentMenu.removeAll();
+        for (Iterator<File> i = Configuration.getInstance().getRecentFiles().iterator(); i.hasNext(); ) {
+            File recentFile = i.next();
+            if (recentFile.isFile() && recentFile.canRead()) {
+                JMenuItem menuItem = new JMenuItem(recentFile.getName());
+                menuItem.addActionListener(e -> {
+                    if (recentFile.isFile()) {
+                        open(recentFile, true);
+                    } else {
+                        JOptionPane.showMessageDialog(App.this, "The file " + recentFile.getName() + " no longer exists\nin " + recentFile.getParent(), "File Removed", JOptionPane.ERROR_MESSAGE);
+                    }
+                });
+                recentMenu.add(menuItem);
+            } else {
+                i.remove();
+            }
+        }
+        recentMenu.setEnabled(recentMenu.getMenuComponentCount() > 0);
     }
 
     public static Mode getMode() {
@@ -1096,13 +1142,13 @@ public final class App extends JFrame implements RadiusControl,
      */
     public boolean saveIfNecessary() {
         if ((world != null) && world.isDirty()) {
-            int action = JOptionPane.showConfirmDialog(this, (lastSelectedFile != null) ? (MessageFormat.format(strings.getString("there.are.unsaved.changes.do.you.want.to.save.the.world.to.0"), lastSelectedFile.getName())) : strings.getString("there.are.unsaved.changes"));
-            if (action == JOptionPane.YES_OPTION) {
+            int action = showConfirmDialog(this, (lastSelectedFile != null) ? (MessageFormat.format(strings.getString("there.are.unsaved.changes.do.you.want.to.save.the.world.to.0"), lastSelectedFile.getName())) : strings.getString("there.are.unsaved.changes"));
+            if (action == YES_OPTION) {
                 if (! save()) {
                     // The file was not saved for some reason
                     return false;
                 }
-            } else if (action != JOptionPane.NO_OPTION) {
+            } else if (action != NO_OPTION) {
                 // User closed the confirmation dialog without making a choice
                 return false;
             }
@@ -1111,7 +1157,7 @@ public final class App extends JFrame implements RadiusControl,
     }
     
     public boolean editCustomMaterial(int customMaterialIndex) {
-        MixedMaterial material = Terrain.getCustomMaterial(customMaterialIndex);
+        MixedMaterial material = getCustomMaterial(customMaterialIndex);
         CustomMaterialDialog dialog;
         if (material == null) {
             material = MixedMaterial.create(BLK_DIRT);
@@ -1122,7 +1168,7 @@ public final class App extends JFrame implements RadiusControl,
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             material = MixedMaterialManager.getInstance().register(material);
-            Terrain.setCustomMaterial(customMaterialIndex, material);
+            setCustomMaterial(customMaterialIndex, material);
             customMaterialButtons[customMaterialIndex].setIcon(new ImageIcon(material.getIcon(selectedColourScheme)));
             customMaterialButtons[customMaterialIndex].setToolTipText(MessageFormat.format(strings.getString("customMaterial.0.right.click.to.change"), material));
             view.refreshTiles();
@@ -1204,7 +1250,7 @@ public final class App extends JFrame implements RadiusControl,
     public void showCustomTerrainButtonPopup(final int customMaterialIndex) {
         final JToggleButton button = customMaterialButtons[customMaterialIndex];
         JPopupMenu popupMenu = new JPopupMenu();
-        final MixedMaterial material = Terrain.getCustomMaterial(customMaterialIndex);
+        final MixedMaterial material = getCustomMaterial(customMaterialIndex);
 //        JLabel label = new JLabel(MessageFormat.format(strings.getString("current.material.0"), (material != null) ? material : "none"));
 //        popupMenu.add(label);
 
@@ -1212,9 +1258,9 @@ public final class App extends JFrame implements RadiusControl,
         if (customMaterials.length > 0) {
             JMenu existingMaterialsMenu = new JMenu("Select existing material");
             Set<MixedMaterial> customTerrainMaterials = new HashSet<>();
-            for (int i = 0; i < Terrain.CUSTOM_TERRAIN_COUNT; i++) {
-                if (Terrain.getCustomTerrain(i).isConfigured()) {
-                    customTerrainMaterials.add(Terrain.getCustomMaterial(i));
+            for (int i = 0; i < CUSTOM_TERRAIN_COUNT; i++) {
+                if (getCustomTerrain(i).isConfigured()) {
+                    customTerrainMaterials.add(getCustomMaterial(i));
                 }
             }
             for (final MixedMaterial customMaterial: customMaterials) {
@@ -1224,7 +1270,7 @@ public final class App extends JFrame implements RadiusControl,
                 JMenuItem menuItem = new JMenuItem(customMaterial.getName());
                 menuItem.setIcon(new ImageIcon(customMaterial.getIcon(selectedColourScheme)));
                 menuItem.addActionListener(e -> {
-                    Terrain.setCustomMaterial(customMaterialIndex, customMaterial);
+                    setCustomMaterial(customMaterialIndex, customMaterial);
                     button.setIcon(new ImageIcon(customMaterial.getIcon(selectedColourScheme)));
                     button.setToolTipText(MessageFormat.format(strings.getString("customMaterial.0.right.click.to.change"), customMaterial));
                     view.refreshTiles();
@@ -1241,7 +1287,7 @@ public final class App extends JFrame implements RadiusControl,
             if (editCustomMaterial(customMaterialIndex)) {
                 button.setSelected(true);
                 paintUpdater = () -> {
-                    paint = PaintFactory.createTerrainPaint(Terrain.getCustomTerrain(customMaterialIndex));
+                    paint = PaintFactory.createTerrainPaint(getCustomTerrain(customMaterialIndex));
                     paintChanged();
                 };
                 paintUpdater.updatePaint();
@@ -1254,7 +1300,7 @@ public final class App extends JFrame implements RadiusControl,
             if (importCustomMaterial(customMaterialIndex)) {
                 button.setSelected(true);
                 paintUpdater = () -> {
-                    paint = PaintFactory.createTerrainPaint(Terrain.getCustomTerrain(customMaterialIndex));
+                    paint = PaintFactory.createTerrainPaint(getCustomTerrain(customMaterialIndex));
                     paintChanged();
                 };
                 paintUpdater.updatePaint();
@@ -1433,10 +1479,10 @@ public final class App extends JFrame implements RadiusControl,
     private void maybePing() {
         Configuration config = Configuration.getInstance();
         if (config.getPingAllowed() == null) {
-            int rc = JOptionPane.showConfirmDialog(this, strings.getString("may.we.have.your.permission"), strings.getString("usage.statistics.permission"), JOptionPane.YES_NO_OPTION);
-            if (rc == JOptionPane.YES_OPTION) {
+            int rc = showConfirmDialog(this, strings.getString("may.we.have.your.permission"), strings.getString("usage.statistics.permission"), YES_NO_OPTION);
+            if (rc == YES_OPTION) {
                 config.setPingAllowed(Boolean.TRUE);
-            } else if (rc == JOptionPane.NO_OPTION) {
+            } else if (rc == NO_OPTION) {
                 config.setPingAllowed(Boolean.FALSE);
             } else {
                 // User closed the dialog without making a choice. Ask again
@@ -1541,11 +1587,11 @@ public final class App extends JFrame implements RadiusControl,
                         logger.warn("I/O error while trying to report canonical path of file: \"" + selectedFile + "\"", e);
                     }
                 }
-                JOptionPane.showMessageDialog(this, "The specified path does not exist or is not a file", "File Does Not Exist", JOptionPane.ERROR_MESSAGE);
+                showMessageDialog(this, "The specified path does not exist or is not a file", "File Does Not Exist", ERROR_MESSAGE);
                 return;
             }
             if (! selectedFile.canRead()) {
-                JOptionPane.showMessageDialog(this, "WorldPainter is not authorised to read the selected file", "Access Denied", JOptionPane.ERROR_MESSAGE);
+                showMessageDialog(this, "WorldPainter is not authorised to read the selected file", "Access Denied", ERROR_MESSAGE);
                 return;
             }
             open(selectedFile);
@@ -1604,11 +1650,11 @@ public final class App extends JFrame implements RadiusControl,
             if (! file.getName().toLowerCase().endsWith(".world")) {
                 file = new File(file.getParentFile(), file.getName() + ".world");
             }
-            if (file.exists() && (JOptionPane.showConfirmDialog(App.this, strings.getString("do.you.want.to.overwrite.the.file"), strings.getString("file.exists"), JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION)) {
+            if (file.exists() && (showConfirmDialog(App.this, strings.getString("do.you.want.to.overwrite.the.file"), strings.getString("file.exists"), YES_NO_OPTION) != YES_OPTION)) {
                 return false;
             }
             if (save(file)) {
-                JOptionPane.showMessageDialog(App.this, strings.getString("file.saved"), strings.getString("success"), JOptionPane.INFORMATION_MESSAGE);
+                showMessageDialog(App.this, strings.getString("file.saved"), strings.getString("success"), INFORMATION_MESSAGE);
                 return true;
             }
         }
@@ -1624,11 +1670,11 @@ public final class App extends JFrame implements RadiusControl,
     private boolean save(File file) {
         // Check for write access to directory
         if (! file.getParentFile().isDirectory()) {
-            JOptionPane.showMessageDialog(this, strings.getString("the.selected.path.does.not.exist"), strings.getString("non.existant.path"), JOptionPane.ERROR_MESSAGE);
+            showMessageDialog(this, strings.getString("the.selected.path.does.not.exist"), strings.getString("non.existant.path"), ERROR_MESSAGE);
             return false;
         }
         if (! file.getParentFile().canWrite()) {
-            JOptionPane.showMessageDialog(this, strings.getString("you.do.not.have.write.access"), strings.getString("access.denied"), JOptionPane.ERROR_MESSAGE);
+            showMessageDialog(this, strings.getString("you.do.not.have.write.access"), strings.getString("access.denied"), ERROR_MESSAGE);
             return false;
         }
         
@@ -1765,9 +1811,10 @@ public final class App extends JFrame implements RadiusControl,
         }
         world.setDirty(false);
         lastSelectedFile = file;
+        addRecentlyUsedWorld(file);
 
         Configuration.getInstance().setWorldDirectory(file.getParentFile());
-        
+
         return true;
     }
     
@@ -1810,7 +1857,7 @@ public final class App extends JFrame implements RadiusControl,
             return;
         }
         if (! Configuration.getInstance().isImportWarningDisplayed()) {
-            JOptionPane.showMessageDialog(this, strings.getString("the.import.functionality.only.imports.the.i.landscape"), strings.getString("information"), JOptionPane.INFORMATION_MESSAGE);
+            showMessageDialog(this, strings.getString("the.import.functionality.only.imports.the.i.landscape"), strings.getString("information"), INFORMATION_MESSAGE);
         }
         MapImportDialog dialog = new MapImportDialog(this);
         dialog.setVisible(true);
@@ -1840,17 +1887,17 @@ public final class App extends JFrame implements RadiusControl,
     
     private void merge() {
         if ((world.getImportedFrom() != null) && (! world.isAllowMerging())) {
-            JOptionPane.showMessageDialog(this, strings.getString("this.world.was.imported.before.the.great.coordinate.shift"), strings.getString("merge.not.allowed"), JOptionPane.ERROR_MESSAGE);
+            showMessageDialog(this, strings.getString("this.world.was.imported.before.the.great.coordinate.shift"), strings.getString("merge.not.allowed"), ERROR_MESSAGE);
             return;
         }
-        if ((world.getImportedFrom() == null) && (JOptionPane.showConfirmDialog(this, strings.getString("this.world.was.not.imported"), strings.getString("not.imported"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION)) {
+        if ((world.getImportedFrom() == null) && (showConfirmDialog(this, strings.getString("this.world.was.not.imported"), strings.getString("not.imported"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
             return;
         }
-        if ((world.getDimensions().length > 1) && (JOptionPane.showConfirmDialog(this, strings.getString("merging.the.nether.or.end.is.not.yet.supported"), strings.getString("merging.nether.not.supported"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION)) {
+        if ((world.getDimensions().length > 1) && (showConfirmDialog(this, strings.getString("merging.the.nether.or.end.is.not.yet.supported"), strings.getString("merging.nether.not.supported"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
             return;
         }
         Configuration config = Configuration.getInstance();
-        if (((config == null) || (! config.isMergeWarningDisplayed())) && (JOptionPane.showConfirmDialog(this, strings.getString("this.is.experimental.and.unfinished.functionality"), strings.getString("experimental.functionality"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION)) {
+        if (((config == null) || (! config.isMergeWarningDisplayed())) && (showConfirmDialog(this, strings.getString("this.is.experimental.and.unfinished.functionality"), strings.getString("experimental.functionality"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
             return;
         }
         MergeWorldDialog dialog = new MergeWorldDialog(this, world, autoBiomeScheme, selectedColourScheme, customBiomeManager, hiddenLayers, false, 10, view.getLightOrigin());
@@ -2220,8 +2267,9 @@ public final class App extends JFrame implements RadiusControl,
 
         toolPanel.add(createButtonForOperation(new Flood(view, false), "flood", 'f'));
         toolPanel.add(createButtonForOperation(new Flood(view, true), "flood_with_lava"));
-        toolPanel.add(createButtonForOperation(new RiverPaint(view, this, mapDragControl), "river"));
+//        toolPanel.add(createButtonForOperation(new RiverPaint(view, this, mapDragControl), "river"));
         toolPanel.add(createButtonForOperation(new Sponge(view, this, mapDragControl), "sponge"));
+        toolPanel.add(Box.createGlue());
 
         toolPanel.add(createButtonForOperation(new Height(view, this, mapDragControl), "height", 'h'));
         toolPanel.add(createButtonForOperation(new Flatten(view, this, mapDragControl), "flatten", 'a'));
@@ -2528,67 +2576,67 @@ public final class App extends JFrame implements RadiusControl,
     private JPanel createTerrainPanel() {
         JPanel terrainPanel = new JPanel();
         terrainPanel.setLayout(new GridLayout(0, 4));
-        terrainPanel.add(createTerrainButton(Terrain.GRASS));
-        terrainPanel.add(createTerrainButton(Terrain.PERMADIRT));
-        terrainPanel.add(createTerrainButton(Terrain.SAND));
-        terrainPanel.add(createTerrainButton(Terrain.DESERT));
+        terrainPanel.add(createTerrainButton(GRASS));
+        terrainPanel.add(createTerrainButton(PERMADIRT));
+        terrainPanel.add(createTerrainButton(SAND));
+        terrainPanel.add(createTerrainButton(DESERT));
         
-        terrainPanel.add(createTerrainButton(Terrain.BARE_GRASS));
-        terrainPanel.add(createTerrainButton(Terrain.STONE));
-        terrainPanel.add(createTerrainButton(Terrain.ROCK));
-        terrainPanel.add(createTerrainButton(Terrain.SANDSTONE));
+        terrainPanel.add(createTerrainButton(BARE_GRASS));
+        terrainPanel.add(createTerrainButton(STONE));
+        terrainPanel.add(createTerrainButton(ROCK));
+        terrainPanel.add(createTerrainButton(SANDSTONE));
 
-        terrainPanel.add(createTerrainButton(Terrain.STONE_MIX));
-        terrainPanel.add(createTerrainButton(Terrain.GRANITE));
-        terrainPanel.add(createTerrainButton(Terrain.DIORITE));
-        terrainPanel.add(createTerrainButton(Terrain.ANDESITE));
+        terrainPanel.add(createTerrainButton(STONE_MIX));
+        terrainPanel.add(createTerrainButton(GRANITE));
+        terrainPanel.add(createTerrainButton(DIORITE));
+        terrainPanel.add(createTerrainButton(ANDESITE));
 
-        terrainPanel.add(createTerrainButton(Terrain.PODZOL));
-        terrainPanel.add(createTerrainButton(Terrain.COBBLESTONE));
-        terrainPanel.add(createTerrainButton(Terrain.MOSSY_COBBLESTONE));
-        terrainPanel.add(createTerrainButton(Terrain.GRAVEL));
+        terrainPanel.add(createTerrainButton(PODZOL));
+        terrainPanel.add(createTerrainButton(COBBLESTONE));
+        terrainPanel.add(createTerrainButton(MOSSY_COBBLESTONE));
+        terrainPanel.add(createTerrainButton(GRAVEL));
         
-        terrainPanel.add(createTerrainButton(Terrain.OBSIDIAN));
-        terrainPanel.add(createTerrainButton(Terrain.WATER));
-        terrainPanel.add(createTerrainButton(Terrain.LAVA));
-        terrainPanel.add(createTerrainButton(Terrain.DEEP_SNOW));
+        terrainPanel.add(createTerrainButton(OBSIDIAN));
+        terrainPanel.add(createTerrainButton(WATER));
+        terrainPanel.add(createTerrainButton(LAVA));
+        terrainPanel.add(createTerrainButton(DEEP_SNOW));
         
-        terrainPanel.add(createTerrainButton(Terrain.NETHERRACK));
-        terrainPanel.add(createTerrainButton(Terrain.SOUL_SAND));
-        terrainPanel.add(createTerrainButton(Terrain.NETHERLIKE));
-        terrainPanel.add(createTerrainButton(Terrain.MYCELIUM));
+        terrainPanel.add(createTerrainButton(NETHERRACK));
+        terrainPanel.add(createTerrainButton(SOUL_SAND));
+        terrainPanel.add(createTerrainButton(NETHERLIKE));
+        terrainPanel.add(createTerrainButton(MYCELIUM));
 
-        terrainPanel.add(createTerrainButton(Terrain.END_STONE));
-        terrainPanel.add(createTerrainButton(Terrain.BEDROCK));
-        terrainPanel.add(createTerrainButton(Terrain.CLAY));
-        terrainPanel.add(createTerrainButton(Terrain.BEACHES));
+        terrainPanel.add(createTerrainButton(END_STONE));
+        terrainPanel.add(createTerrainButton(BEDROCK));
+        terrainPanel.add(createTerrainButton(CLAY));
+        terrainPanel.add(createTerrainButton(BEACHES));
         
-        terrainPanel.add(createTerrainButton(Terrain.RED_SAND));
-        terrainPanel.add(createTerrainButton(Terrain.RED_SANDSTONE));
-        terrainPanel.add(createTerrainButton(Terrain.RED_DESERT));
-        terrainPanel.add(createTerrainButton(Terrain.MESA));
+        terrainPanel.add(createTerrainButton(RED_SAND));
+        terrainPanel.add(createTerrainButton(RED_SANDSTONE));
+        terrainPanel.add(createTerrainButton(RED_DESERT));
+        terrainPanel.add(createTerrainButton(MESA));
 
-        terrainPanel.add(createTerrainButton(Terrain.WHITE_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(Terrain.ORANGE_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(Terrain.MAGENTA_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(Terrain.LIGHT_BLUE_STAINED_CLAY));
+        terrainPanel.add(createTerrainButton(WHITE_STAINED_CLAY));
+        terrainPanel.add(createTerrainButton(ORANGE_STAINED_CLAY));
+        terrainPanel.add(createTerrainButton(MAGENTA_STAINED_CLAY));
+        terrainPanel.add(createTerrainButton(LIGHT_BLUE_STAINED_CLAY));
 
-        terrainPanel.add(createTerrainButton(Terrain.YELLOW_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(Terrain.LIME_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(Terrain.PINK_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(Terrain.GREY_STAINED_CLAY));
+        terrainPanel.add(createTerrainButton(YELLOW_STAINED_CLAY));
+        terrainPanel.add(createTerrainButton(LIME_STAINED_CLAY));
+        terrainPanel.add(createTerrainButton(PINK_STAINED_CLAY));
+        terrainPanel.add(createTerrainButton(GREY_STAINED_CLAY));
 
-        terrainPanel.add(createTerrainButton(Terrain.LIGHT_GREY_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(Terrain.CYAN_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(Terrain.PURPLE_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(Terrain.BLUE_STAINED_CLAY));
+        terrainPanel.add(createTerrainButton(LIGHT_GREY_STAINED_CLAY));
+        terrainPanel.add(createTerrainButton(CYAN_STAINED_CLAY));
+        terrainPanel.add(createTerrainButton(PURPLE_STAINED_CLAY));
+        terrainPanel.add(createTerrainButton(BLUE_STAINED_CLAY));
 
-        terrainPanel.add(createTerrainButton(Terrain.BROWN_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(Terrain.GREEN_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(Terrain.RED_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(Terrain.BLACK_STAINED_CLAY));
+        terrainPanel.add(createTerrainButton(BROWN_STAINED_CLAY));
+        terrainPanel.add(createTerrainButton(GREEN_STAINED_CLAY));
+        terrainPanel.add(createTerrainButton(RED_STAINED_CLAY));
+        terrainPanel.add(createTerrainButton(BLACK_STAINED_CLAY));
 
-        terrainPanel.add(createTerrainButton(Terrain.HARDENED_CLAY));
+        terrainPanel.add(createTerrainButton(HARDENED_CLAY));
 
         return terrainPanel;
     }
@@ -2597,8 +2645,8 @@ public final class App extends JFrame implements RadiusControl,
         JPanel customTerrainPanel = new JPanel();
         customTerrainPanel.setLayout(new GridLayout(0, 4));
     
-        for (int i = 0; i < Terrain.CUSTOM_TERRAIN_COUNT; i++) {
-            customMaterialButtons[i] = createTerrainButton(Terrain.getCustomTerrain(i));
+        for (int i = 0; i < CUSTOM_TERRAIN_COUNT; i++) {
+            customMaterialButtons[i] = createTerrainButton(getCustomTerrain(i));
             customMaterialButtons[i].setIcon(ICON_UNKNOWN_PATTERN);
             customMaterialButtons[i].setToolTipText("Custom " + (i + 1) + ": " + strings.getString("not.set.click.to.set"));
             addMaterialSelectionTo(customMaterialButtons[i], i);
@@ -2757,8 +2805,8 @@ public final class App extends JFrame implements RadiusControl,
                 for (Map.Entry<Brush, JToggleButton> entry: brushButtons.entrySet()) {
                     Brush brush = entry.getKey();
                     JToggleButton button = entry.getValue();
-//                    button.setIcon(createBrushIcon(brush, 0));
                     if (button.isSelected() && (activeOperation instanceof BrushOperation)) {
+                        button.setIcon(createBrushIcon(brush, 0));
                         ((BrushOperation) activeOperation).setBrush(brush);
                     }
                 }
@@ -2766,8 +2814,8 @@ public final class App extends JFrame implements RadiusControl,
                 for (Map.Entry<Brush, JToggleButton> entry: brushButtons.entrySet()) {
                     Brush brush = entry.getKey();
                     JToggleButton button = entry.getValue();
-//                    button.setIcon(createBrushIcon(brush, desiredBrushRotation));
                     if (button.isSelected() && (activeOperation instanceof BrushOperation)) {
+                        button.setIcon(createBrushIcon(brush, desiredBrushRotation));
                         Brush rotatedBrush = RotatedBrush.rotate(brush, desiredBrushRotation);
                         ((BrushOperation) activeOperation).setBrush(rotatedBrush);
                     }
@@ -2779,6 +2827,15 @@ public final class App extends JFrame implements RadiusControl,
 //            }
             previousBrushRotation = desiredBrushRotation;
         }
+    }
+
+    /**
+     * Update the image of a single brush button
+     * @param brush
+     * @param button
+     */
+    private void updateBrushRotation(Brush brush, JToggleButton button) {
+        button.setIcon(createBrushIcon(brush, button.isSelected() ? ((activeOperation instanceof PaintOperation) ? brushRotation : toolBrushRotation) : 0));
     }
 
     private void registerCustomLayer(final CustomLayer layer, boolean activate) {
@@ -2928,7 +2985,7 @@ public final class App extends JFrame implements RadiusControl,
             }
 
             private void remove() {
-                if (JOptionPane.showConfirmDialog(App.this, MessageFormat.format(strings.getString("are.you.sure.you.want.to.remove.the.0.layer"), layer.getName()), MessageFormat.format(strings.getString("confirm.0.removal"), layer.getName()), JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+                if (showConfirmDialog(App.this, MessageFormat.format(strings.getString("are.you.sure.you.want.to.remove.the.0.layer"), layer.getName()), MessageFormat.format(strings.getString("confirm.0.removal"), layer.getName()), YES_NO_OPTION) == YES_OPTION) {
                     if ((activeOperation instanceof PaintOperation) && (paint instanceof LayerPaint) && (((LayerPaint) paint).getLayer() == layer)) {
                         deselectPaint();
                     }
@@ -3017,9 +3074,9 @@ public final class App extends JFrame implements RadiusControl,
     
     private void createNewLayerPalette(CustomLayer layer) {
         String name;
-        if ((name = JOptionPane.showInputDialog(this, "Enter a unique name for the new palette:", "New Palette", JOptionPane.QUESTION_MESSAGE)) != null) {
+        if ((name = showInputDialog(this, "Enter a unique name for the new palette:", "New Palette", QUESTION_MESSAGE)) != null) {
             if (paletteManager.getPalette(name) != null) {
-                JOptionPane.showMessageDialog(this, "There is already a palette with that name!", "Duplicate Name", JOptionPane.ERROR_MESSAGE);
+                showMessageDialog(this, "There is already a palette with that name!", "Duplicate Name", ERROR_MESSAGE);
                 return;
             }
             Palette destPalette = paletteManager.create(name);
@@ -3065,10 +3122,18 @@ public final class App extends JFrame implements RadiusControl,
         menu.add(menuItem);
 
         final Configuration config = Configuration.getInstance();
+        recentMenu = new JMenu("Recently used Worlds");
+        if ((config.getRecentFiles() != null) && (! config.getRecentFiles().isEmpty())) {
+            updateRecentMenu();
+        } else {
+            recentMenu.setEnabled(false);
+        }
+        menu.add(recentMenu);
+
         if (! config.isEasyMode()) {
             menuItem = new JMenuItem(ACTION_IMPORT_MAP);
             menuItem.setMnemonic('m');
-            menuItem.setText("Minecraft map...");
+            menuItem.setText("From Minecraft map...");
             JMenu subMenu = new JMenu(strings.getString("import"));
             subMenu.setMnemonic('i');
             subMenu.add(menuItem);
@@ -3078,20 +3143,6 @@ public final class App extends JFrame implements RadiusControl,
             menuItem.setMnemonic('h');
             menuItem.setAccelerator(KeyStroke.getKeyStroke(VK_M, PLATFORM_COMMAND_MASK));
             subMenu.add(menuItem);
-
-            menuItem = new JMenuItem(ACTION_IMPORT_LAYER);
-            menuItem.setMnemonic('l');
-            menuItem.setText("Custom layer(s)...");
-            subMenu.add(menuItem);
-
-//            menuItem = new JMenuItem("Existing Minecraft map into current world...");
-//            menuItem.addActionListener(new ActionListener() {
-//                @Override
-//                public void actionPerformed(ActionEvent e) {
-//                    importMapIntoWorld();
-//                }
-//            });
-//            subMenu.add(menuItem);
 
             menu.add(subMenu);
         } else {
@@ -3302,12 +3353,32 @@ public final class App extends JFrame implements RadiusControl,
         }
 
         JMenu importMenu = new JMenu("Import");
-        menuItem = new JMenuItem("Custom items from existing world");
-        menuItem.setMnemonic('c');
+        menuItem = new JMenuItem("Custom items from existing world...");
+        menuItem.setMnemonic('i');
         menuItem.addActionListener(e -> {
             importCustomItemsFromWorld();
         });
         importMenu.add(menuItem);
+
+        menuItem = new JMenuItem(ACTION_IMPORT_LAYER);
+        menuItem.setMnemonic('l');
+        menuItem.setText("Custom Layer(s) from file(s)...");
+        importMenu.add(menuItem);
+
+        menuItem = new JMenuItem("Custom Terrain(s) from file(s)...");
+        menuItem.setMnemonic('t');
+        menuItem.addActionListener(e -> importCustomMaterials());
+        importMenu.add(menuItem);
+
+//        menuItem = new JMenuItem("Existing Minecraft map into current world...");
+//        menuItem.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                importMapIntoWorld();
+//            }
+//        });
+//        importMenu.add(menuItem);
+
         menu.add(importMenu);
 
         return menu;
@@ -3566,7 +3637,7 @@ public final class App extends JFrame implements RadiusControl,
                     viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_1, App.this, true);
                 }
                 if (viewerScheme == null) {
-                    JOptionPane.showMessageDialog(App.this, strings.getString("you.must.supply.an.original.minecraft.jar"), strings.getString("no.minecraft.jar.supplied"), JOptionPane.ERROR_MESSAGE);
+                    showMessageDialog(App.this, strings.getString("you.must.supply.an.original.minecraft.jar"), strings.getString("no.minecraft.jar.supplied"), ERROR_MESSAGE);
                     return;
                 }
                 logger.info("Opening biomes viewer");
@@ -3670,7 +3741,7 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void removeSurfaceCeiling() {
-        if (JOptionPane.showConfirmDialog(this, "Are you sure you want to completely remove the Surface ceiling?\nThis action cannot be undone!", "Confirm Surface Ceiling Deletion", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+        if (showConfirmDialog(this, "Are you sure you want to completely remove the Surface ceiling?\nThis action cannot be undone!", "Confirm Surface Ceiling Deletion", YES_NO_OPTION) == YES_OPTION) {
             world.removeDimension(DIM_NORMAL_CEILING);
             if ((dimension != null) && (dimension.getDim() == DIM_NORMAL_CEILING)) {
                 viewDimension(DIM_NORMAL);
@@ -3680,7 +3751,7 @@ public final class App extends JFrame implements RadiusControl,
                     view.refreshTiles();
                 }
             }
-            JOptionPane.showMessageDialog(this, "The Surface ceiling was successfully deleted", "Success", JOptionPane.INFORMATION_MESSAGE);
+            showMessageDialog(this, "The Surface ceiling was successfully deleted", "Success", INFORMATION_MESSAGE);
         }
     }
 
@@ -3713,7 +3784,7 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void removeNetherCeiling() {
-        if (JOptionPane.showConfirmDialog(this, "Are you sure you want to completely remove the Nether ceiling?\nThis action cannot be undone!", "Confirm Nether Ceiling Deletion", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+        if (showConfirmDialog(this, "Are you sure you want to completely remove the Nether ceiling?\nThis action cannot be undone!", "Confirm Nether Ceiling Deletion", YES_NO_OPTION) == YES_OPTION) {
             world.removeDimension(DIM_NETHER_CEILING);
             if ((dimension != null) && (dimension.getDim() == DIM_NETHER_CEILING)) {
                 viewDimension(DIM_NETHER);
@@ -3723,7 +3794,7 @@ public final class App extends JFrame implements RadiusControl,
                     view.refreshTiles();
                 }
             }
-            JOptionPane.showMessageDialog(this, "The Nether ceiling was successfully deleted", "Success", JOptionPane.INFORMATION_MESSAGE);
+            showMessageDialog(this, "The Nether ceiling was successfully deleted", "Success", INFORMATION_MESSAGE);
         }
     }
 
@@ -3756,7 +3827,7 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void removeEndCeiling() {
-        if (JOptionPane.showConfirmDialog(this, "Are you sure you want to completely remove the End ceiling?\nThis action cannot be undone!", "Confirm End Ceiling Deletion", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+        if (showConfirmDialog(this, "Are you sure you want to completely remove the End ceiling?\nThis action cannot be undone!", "Confirm End Ceiling Deletion", YES_NO_OPTION) == YES_OPTION) {
             world.removeDimension(DIM_END_CEILING);
             if ((dimension != null) && (dimension.getDim() == DIM_END_CEILING)) {
                 viewDimension(DIM_END);
@@ -3766,7 +3837,7 @@ public final class App extends JFrame implements RadiusControl,
                     view.refreshTiles();
                 }
             }
-            JOptionPane.showMessageDialog(this, "The End ceiling was successfully deleted", "Success", JOptionPane.INFORMATION_MESSAGE);
+            showMessageDialog(this, "The End ceiling was successfully deleted", "Success", INFORMATION_MESSAGE);
         }
     }
 
@@ -3929,7 +4000,7 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void removeNether() {
-        if (JOptionPane.showConfirmDialog(this, "Are you sure you want to completely remove the Nether dimension?\nThis action cannot be undone!", "Confirm Nether Deletion", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+        if (showConfirmDialog(this, "Are you sure you want to completely remove the Nether dimension?\nThis action cannot be undone!", "Confirm Nether Deletion", YES_NO_OPTION) == YES_OPTION) {
             world.removeDimension(DIM_NETHER);
             if (world.getDimension(DIM_NETHER_CEILING) != null) {
                 world.removeDimension(DIM_NETHER_CEILING);
@@ -3939,7 +4010,7 @@ public final class App extends JFrame implements RadiusControl,
             } else {
                 setDimensionControlStates();
             }
-            JOptionPane.showMessageDialog(this, "The Nether dimension was successfully deleted", "Success", JOptionPane.INFORMATION_MESSAGE);
+            showMessageDialog(this, "The Nether dimension was successfully deleted", "Success", INFORMATION_MESSAGE);
         }
     }
     
@@ -3972,7 +4043,7 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void removeEnd() {
-        if (JOptionPane.showConfirmDialog(this, "Are you sure you want to completely remove the End dimension?\nThis action cannot be undone!", "Confirm End Deletion", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+        if (showConfirmDialog(this, "Are you sure you want to completely remove the End dimension?\nThis action cannot be undone!", "Confirm End Deletion", YES_NO_OPTION) == YES_OPTION) {
             world.removeDimension(DIM_END);
             if (world.getDimension(DIM_END_CEILING) != null) {
                 world.removeDimension(DIM_END_CEILING);
@@ -3982,7 +4053,7 @@ public final class App extends JFrame implements RadiusControl,
             } else {
                 setDimensionControlStates();
             }
-            JOptionPane.showMessageDialog(this, "The End dimension was successfully deleted", "Success", JOptionPane.INFORMATION_MESSAGE);
+            showMessageDialog(this, "The End dimension was successfully deleted", "Success", INFORMATION_MESSAGE);
         }
     }
 
@@ -4270,8 +4341,18 @@ public final class App extends JFrame implements RadiusControl,
         glassPane.setSoloLayer(soloLayer);
     }
     
-    private void selectBrushButton(Brush brush) {
-        brushButtons.get(brush).setSelected(true);
+    private void selectBrushButton(Brush selectedBrush) {
+        if (! brushButtons.get(selectedBrush).isSelected()) {
+            for (Map.Entry<Brush, JToggleButton> entry: brushButtons.entrySet()) {
+                JToggleButton button = entry.getValue();
+                if (button.isSelected()) {
+                    button.setSelected(false);
+                    updateBrushRotation(entry.getKey(), button);
+                    break;
+                }
+            }
+            brushButtons.get(selectedBrush).setSelected(true);
+        }
     }
 
     private JComponent createBrushButton(final Brush brush) {
@@ -4279,19 +4360,22 @@ public final class App extends JFrame implements RadiusControl,
         button.setMargin(new Insets(2, 2, 2, 2));
         button.setToolTipText(brush.getName());
         button.addItemListener(e -> {
-            if ((! programmaticChange) && (e.getStateChange() == ItemEvent.SELECTED)) {
-                int effectiveRotation;
-                if (activeOperation instanceof PaintOperation) {
-                    App.this.brush = brush;
-                    effectiveRotation = brushRotation;
-                } else {
-                    toolBrush = brush;
-                    effectiveRotation = toolBrushRotation;
+            if (! programmaticChange) {
+                updateBrushRotation(brush, button);
+                if (e.getStateChange() == ItemEvent.SELECTED) {
+                    int effectiveRotation;
+                    if (activeOperation instanceof PaintOperation) {
+                        App.this.brush = brush;
+                        effectiveRotation = brushRotation;
+                    } else {
+                        toolBrush = brush;
+                        effectiveRotation = toolBrushRotation;
+                    }
+                    if (activeOperation instanceof BrushOperation) {
+                        ((BrushOperation) activeOperation).setBrush((effectiveRotation == 0) ? brush : RotatedBrush.rotate(brush, effectiveRotation));
+                    }
+                    view.setBrushShape(brush.getBrushShape());
                 }
-                if (activeOperation instanceof BrushOperation) {
-                    ((BrushOperation) activeOperation).setBrush((effectiveRotation == 0) ? brush : RotatedBrush.rotate(brush, effectiveRotation));
-                }
-                view.setBrushShape(brush.getBrushShape());
             }
         });
         button.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -4343,10 +4427,10 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void disableImportedWorldOperation() {
+        if ((activeOperation instanceof PaintOperation) && (paint instanceof LayerPaint) && ((LayerPaint) paint).getLayer().equals(Biome.INSTANCE)) {
+            deselectPaint();
+        }
         if (! alwaysEnableReadOnly) {
-            if ((activeOperation instanceof PaintOperation) && (paint instanceof LayerPaint) && ((LayerPaint) paint).getLayer().equals(Biome.INSTANCE)) {
-                deselectPaint();
-            }
             readOnlyCheckBox.setEnabled(false);
             readOnlyToggleButton.setEnabled(false);
             readOnlySoloCheckBox.setEnabled(false);
@@ -4442,7 +4526,7 @@ public final class App extends JFrame implements RadiusControl,
         MixedMaterial customMaterial = MixedMaterialHelper.load(this);
         if (customMaterial != null) {
             customMaterial = MixedMaterialManager.getInstance().register(customMaterial);
-            Terrain.setCustomMaterial(customMaterialIndex, customMaterial);
+            setCustomMaterial(customMaterialIndex, customMaterial);
             customMaterialButtons[customMaterialIndex].setIcon(new ImageIcon(customMaterial.getIcon(selectedColourScheme)));
             customMaterialButtons[customMaterialIndex].setToolTipText(MessageFormat.format(strings.getString("customMaterial.0.right.click.to.change"), customMaterial));
             view.refreshTiles();
@@ -4452,14 +4536,42 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
 
+    private boolean importCustomMaterials() {
+        if (getConfiguredCustomMaterialCount() == CUSTOM_TERRAIN_COUNT) {
+            showMessageDialog(this, "All Custom Terrain slots are already in use.", "No Free Slots", ERROR_MESSAGE);
+            return false;
+        }
+        MixedMaterial[] customMaterials = MixedMaterialHelper.loadMultiple(this);
+        if (customMaterials != null) {
+            if (getConfiguredCustomMaterialCount() + customMaterials.length > CUSTOM_TERRAIN_COUNT) {
+                showMessageDialog(this, "Not enough unused Custom Terrain slots available;\nselect " + (CUSTOM_TERRAIN_COUNT - Terrain.getConfiguredCustomMaterialCount()) + " Custom Terrains or fewer.", "Too Many Custom Terrains", WARNING_MESSAGE);
+                return false;
+            }
+            int nextIndex = 0;
+            for (MixedMaterial customMaterial: customMaterials) {
+                while (getCustomMaterial(nextIndex) != null) {
+                    nextIndex++;
+                }
+                customMaterial = MixedMaterialManager.getInstance().register(customMaterial);
+                setCustomMaterial(nextIndex, customMaterial);
+                customMaterialButtons[nextIndex].setIcon(new ImageIcon(customMaterial.getIcon(selectedColourScheme)));
+                customMaterialButtons[nextIndex].setToolTipText(MessageFormat.format(strings.getString("customMaterial.0.right.click.to.change"), customMaterial));
+            }
+            view.refreshTiles();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     private void exportCustomMaterial(int customMaterialIndex) {
-        MixedMaterialHelper.save(this, Terrain.getCustomMaterial(customMaterialIndex));
+        MixedMaterialHelper.save(this, getCustomMaterial(customMaterialIndex));
     }
 
     private void loadCustomTerrains() {
-        for (int i = 0; i < Terrain.CUSTOM_TERRAIN_COUNT; i++) {
+        for (int i = 0; i < CUSTOM_TERRAIN_COUNT; i++) {
             MixedMaterial material = world.getMixedMaterial(i);
-            Terrain.setCustomMaterial(i, material);
+            setCustomMaterial(i, material);
             if (material != null) {
                 customMaterialButtons[i].setIcon(new ImageIcon(material.getIcon(selectedColourScheme)));
                 customMaterialButtons[i].setToolTipText(MessageFormat.format(strings.getString("customMaterial.0.right.click.to.change"), material));
@@ -4468,15 +4580,15 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void saveCustomMaterials() {
-        for (int i = 0; i < Terrain.CUSTOM_TERRAIN_COUNT; i++) {
-            world.setMixedMaterial(i, Terrain.getCustomMaterial(i));
+        for (int i = 0; i < CUSTOM_TERRAIN_COUNT; i++) {
+            world.setMixedMaterial(i, getCustomMaterial(i));
         }
     }
 
     private void clearCustomTerrains() {
-        for (int i = 0; i < Terrain.CUSTOM_TERRAIN_COUNT; i++) {
-            if (Terrain.getCustomMaterial(i) != null) {
-                Terrain.setCustomMaterial(i, null);
+        for (int i = 0; i < CUSTOM_TERRAIN_COUNT; i++) {
+            if (getCustomMaterial(i) != null) {
+                setCustomMaterial(i, null);
                 customMaterialButtons[i].setIcon(ICON_UNKNOWN_PATTERN);
                 customMaterialButtons[i].setToolTipText(strings.getString("not.set.click.to.set"));
                 if (customMaterialButtons[i].isSelected()) {
@@ -4580,7 +4692,7 @@ public final class App extends JFrame implements RadiusControl,
                 selectedFile = new File(selectedFile.getParentFile(), selectedFile.getName() + ".png");
             }
             if (selectedFile.exists()) {
-                if (JOptionPane.showConfirmDialog(App.this, strings.getString("the.file.already.exists"), strings.getString("overwrite.file"), JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
+                if (showConfirmDialog(App.this, strings.getString("the.file.already.exists"), strings.getString("overwrite.file"), YES_NO_OPTION) != YES_OPTION) {
                     return;
                 }
             }
@@ -4604,7 +4716,7 @@ public final class App extends JFrame implements RadiusControl,
                             }
                         }
                     }, false)) {
-                JOptionPane.showMessageDialog(App.this, MessageFormat.format(strings.getString("format.0.not.supported"), type));
+                showMessageDialog(App.this, MessageFormat.format(strings.getString("format.0.not.supported"), type));
             }
         }
     }
@@ -4657,7 +4769,7 @@ public final class App extends JFrame implements RadiusControl,
                 selectedFile = new File(selectedFile.getParentFile(), selectedFile.getName() + ".png");
             }
             if (selectedFile.exists()) {
-                if (JOptionPane.showConfirmDialog(App.this, strings.getString("the.file.already.exists"), strings.getString("overwrite.file"), JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
+                if (showConfirmDialog(App.this, strings.getString("the.file.already.exists"), strings.getString("overwrite.file"), YES_NO_OPTION) != YES_OPTION) {
                     return;
                 }
             }
@@ -4693,7 +4805,7 @@ public final class App extends JFrame implements RadiusControl,
                             }
                         }
                     }, false)) {
-                JOptionPane.showMessageDialog(App.this, MessageFormat.format(strings.getString("format.0.not.supported"), type));
+                showMessageDialog(App.this, MessageFormat.format(strings.getString("format.0.not.supported"), type));
             }
         }
     }
@@ -4723,7 +4835,7 @@ public final class App extends JFrame implements RadiusControl,
                         CustomLayer layer = (CustomLayer) in.readObject();
                         for (Layer existingLayer : getCustomLayers()) {
                             if (layer.equals(existingLayer)) {
-                                JOptionPane.showMessageDialog(this, "That layer is already present in the dimension.\nThe layer has not been added.", "Layer Already Present", JOptionPane.WARNING_MESSAGE);
+                                showMessageDialog(this, "That layer is already present in the dimension.\nThe layer has not been added.", "Layer Already Present", WARNING_MESSAGE);
                                 return;
                             }
                         }
@@ -4735,7 +4847,7 @@ public final class App extends JFrame implements RadiusControl,
                             CombinedLayer combinedLayer = (CombinedLayer) layer;
                             addLayersFromCombinedLayer(combinedLayer);
                             if (combinedLayer.isMissingTerrainWarning()) {
-                                JOptionPane.showMessageDialog(this, "The layer contained a Custom Terrain which is not present in this world. The terrain has been reset.", "Missing Custom Terrain", JOptionPane.WARNING_MESSAGE);
+                                showMessageDialog(this, "The layer contained a Custom Terrain which is not present in this world. The terrain has been reset.", "Missing Custom Terrain", WARNING_MESSAGE);
                                 combinedLayer.resetMissingTerrainWarning();
                             } else if ((combinedLayer.getTerrain() != null) && combinedLayer.getTerrain().isCustom()) {
                                 updateCustomTerrainButtons = true;
@@ -4744,19 +4856,19 @@ public final class App extends JFrame implements RadiusControl,
                     }
                 } catch (FileNotFoundException e) {
                     logger.error("File not found while loading file " + selectedFile, e);
-                    JOptionPane.showMessageDialog(this, "The specified path does not exist or is not a file", "Nonexistent File", JOptionPane.ERROR_MESSAGE);
+                    showMessageDialog(this, "The specified path does not exist or is not a file", "Nonexistent File", ERROR_MESSAGE);
                     return;
                 } catch (IOException e) {
                     logger.error("I/O error while loading file " + selectedFile, e);
-                    JOptionPane.showMessageDialog(this, "I/O error occurred while reading the specified file,\nor is not a (valid) WorldPainter layer file", "I/O Error Or Invalid File", JOptionPane.ERROR_MESSAGE);
+                    showMessageDialog(this, "I/O error occurred while reading the specified file,\nor is not a (valid) WorldPainter layer file", "I/O Error Or Invalid File", ERROR_MESSAGE);
                     return;
                 } catch (ClassNotFoundException e) {
                     logger.error("Class not found exception while loading file " + selectedFile, e);
-                    JOptionPane.showMessageDialog(this, "The specified file is not a (valid) WorldPainter layer file", "Invalid File", JOptionPane.ERROR_MESSAGE);
+                    showMessageDialog(this, "The specified file is not a (valid) WorldPainter layer file", "Invalid File", ERROR_MESSAGE);
                     return;
                 } catch (ClassCastException e) {
                     logger.error("Class cast exception while loading file " + selectedFile, e);
-                    JOptionPane.showMessageDialog(this, "The specified file is not a (valid) WorldPainter layer file", "Invalid File", JOptionPane.ERROR_MESSAGE);
+                    showMessageDialog(this, "The specified file is not a (valid) WorldPainter layer file", "Invalid File", ERROR_MESSAGE);
                     return;
                 }
             }
@@ -4767,9 +4879,9 @@ public final class App extends JFrame implements RadiusControl,
     }
     
     private void updateCustomTerrainButtons() {
-        for (int i = 0; i < Terrain.CUSTOM_TERRAIN_COUNT; i++) {
-            if (Terrain.getCustomMaterial(i) != null) {
-                MixedMaterial material = Terrain.getCustomMaterial(i);
+        for (int i = 0; i < CUSTOM_TERRAIN_COUNT; i++) {
+            if (getCustomMaterial(i) != null) {
+                MixedMaterial material = getCustomMaterial(i);
                 customMaterialButtons[i].setIcon(new ImageIcon(material.getIcon(selectedColourScheme)));
                 customMaterialButtons[i].setToolTipText(MessageFormat.format(strings.getString("customMaterial.0.right.click.to.change"), material));
             } else {
@@ -4814,7 +4926,7 @@ public final class App extends JFrame implements RadiusControl,
             if (! selectedFile.getName().toLowerCase().endsWith(".layer")) {
                 selectedFile = new File(selectedFile.getPath() + ".layer");
             }
-            if (selectedFile.isFile() && (JOptionPane.showConfirmDialog(this, "The file " + selectedFile.getName() + " already exists.\nDo you want to overwrite it?", "Overwrite File", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION)) {
+            if (selectedFile.isFile() && (showConfirmDialog(this, "The file " + selectedFile.getName() + " already exists.\nDo you want to overwrite it?", "Overwrite File", YES_NO_OPTION) == NO_OPTION)) {
                 return;
             }
             try {
@@ -4825,7 +4937,7 @@ public final class App extends JFrame implements RadiusControl,
                 throw new RuntimeException("I/O error while trying to write " + selectedFile, e);
             }
             config.setLayerDirectory(selectedFile.getParentFile());
-            JOptionPane.showMessageDialog(this, "Layer " + layer.getName() + " exported successfully", "Success", JOptionPane.INFORMATION_MESSAGE);
+            showMessageDialog(this, "Layer " + layer.getName() + " exported successfully", "Success", INFORMATION_MESSAGE);
         }
     }
 
@@ -4885,11 +4997,11 @@ public final class App extends JFrame implements RadiusControl,
                         logger.warn("I/O error while trying to report canonical path of file: \"" + selectedFile + "\"", e);
                     }
                 }
-                JOptionPane.showMessageDialog(this, "The specified path does not exist or is not a file", "File Does Not Exist", JOptionPane.ERROR_MESSAGE);
+                showMessageDialog(this, "The specified path does not exist or is not a file", "File Does Not Exist", ERROR_MESSAGE);
                 return;
             }
             if (! selectedFile.canRead()) {
-                JOptionPane.showMessageDialog(this, "WorldPainter is not authorised to read the selected file", "Access Denied", JOptionPane.ERROR_MESSAGE);
+                showMessageDialog(this, "WorldPainter is not authorised to read the selected file", "Access Denied", ERROR_MESSAGE);
                 return;
             }
             final World2 selectedWorld = ProgressDialog.executeTask(this, new ProgressTask<World2>() {
@@ -4967,7 +5079,7 @@ public final class App extends JFrame implements RadiusControl,
                                     "* The file was created with a newer version of WorldPainter\n" +
                                     "* The file was created using WorldPainter plugins which you do not have";
                         }
-                        SwingUtilities.invokeAndWait(() -> JOptionPane.showMessageDialog(App.this, text, strings.getString("file.damaged"), JOptionPane.ERROR_MESSAGE));
+                        SwingUtilities.invokeAndWait(() -> showMessageDialog(App.this, text, strings.getString("file.damaged"), ERROR_MESSAGE));
                     } catch (InterruptedException e2) {
                         throw new RuntimeException("Thread interrupted while reporting unloadable file " + selectedFile, e2);
                     } catch (InvocationTargetException e2) {
@@ -4983,7 +5095,7 @@ public final class App extends JFrame implements RadiusControl,
                 ImportCustomItemsDialog dialog = new ImportCustomItemsDialog(this, selectedWorld, selectedColourScheme);
                 dialog.setVisible(true);
             } else {
-                JOptionPane.showMessageDialog(this, "The selected world has no custom layers, terrains or biomes.", "No Custom Items", JOptionPane.WARNING_MESSAGE);
+                showMessageDialog(this, "The selected world has no custom layers, terrains or biomes.", "No Custom Items", WARNING_MESSAGE);
             }
         }
     }
@@ -5150,7 +5262,7 @@ public final class App extends JFrame implements RadiusControl,
         public void performAction(ActionEvent e) {
             if (world.getImportedFrom() != null) {
                 Toolkit.getDefaultToolkit().beep();
-                if (JOptionPane.showConfirmDialog(App.this, strings.getString("this.is.an.imported.world"), strings.getString("imported"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION) {
+                if (showConfirmDialog(App.this, strings.getString("this.is.an.imported.world"), strings.getString("imported"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION) {
                     return;
                 }
             }
@@ -5424,7 +5536,7 @@ public final class App extends JFrame implements RadiusControl,
         
         @Override
         public void performAction(ActionEvent e) {
-            if ((world.getImportedFrom() != null) && (JOptionPane.showConfirmDialog(App.this, strings.getString("this.world.was.imported.from.an.existing.map"), strings.getString("imported"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION)) {
+            if ((world.getImportedFrom() != null) && (showConfirmDialog(App.this, strings.getString("this.world.was.imported.from.an.existing.map"), strings.getString("imported"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
                 return;
             }
             RotateWorldDialog dialog = new RotateWorldDialog(App.this, world, dimension.getDim());
@@ -5444,7 +5556,7 @@ public final class App extends JFrame implements RadiusControl,
 
         @Override
         public void performAction(ActionEvent e) {
-            if ((world.getImportedFrom() != null) && (JOptionPane.showConfirmDialog(App.this, "This world was imported from an existing map!\nIf you shift it you will no longer be able to merge it properly.\nAre you sure you want to shift the world?", strings.getString("imported"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION)) {
+            if ((world.getImportedFrom() != null) && (showConfirmDialog(App.this, "This world was imported from an existing map!\nIf you shift it you will no longer be able to merge it properly.\nAre you sure you want to shift the world?", strings.getString("imported"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
                 return;
             }
             ShiftWorldDialog dialog = new ShiftWorldDialog(App.this, world, dimension.getDim());
@@ -5741,7 +5853,7 @@ public final class App extends JFrame implements RadiusControl,
             Configuration config = Configuration.getInstance();
             config.setDefaultJideLayoutData(dockingManager.getLayoutRawData());
             ACTION_LOAD_LAYOUT.setEnabled(true);
-            JOptionPane.showMessageDialog(App.this, "Workspace layout saved", "Workspace layout saved", JOptionPane.INFORMATION_MESSAGE);
+            showMessageDialog(App.this, "Workspace layout saved", "Workspace layout saved", INFORMATION_MESSAGE);
         }
     };
 
@@ -5807,7 +5919,7 @@ public final class App extends JFrame implements RadiusControl,
     private JToggleButton readOnlyToggleButton, setSpawnPointToggleButton;
     private JMenuItem addNetherMenuItem, removeNetherMenuItem, addEndMenuItem, removeEndMenuItem, addSurfaceCeilingMenuItem, removeSurfaceCeilingMenuItem, addNetherCeilingMenuItem, removeNetherCeilingMenuItem, addEndCeilingMenuItem, removeEndCeilingMenuItem;
     private JCheckBoxMenuItem viewSurfaceMenuItem, viewNetherMenuItem, viewEndMenuItem, extendedBlockIdsMenuItem, viewSurfaceCeilingMenuItem, viewNetherCeilingMenuItem, viewEndCeilingMenuItem;
-    private final JToggleButton[] customMaterialButtons = new JToggleButton[Terrain.CUSTOM_TERRAIN_COUNT];
+    private final JToggleButton[] customMaterialButtons = new JToggleButton[CUSTOM_TERRAIN_COUNT];
     private final ColourScheme[] colourSchemes;
     private final ColourScheme defaultColourScheme;
     private ColourScheme selectedColourScheme;
@@ -5820,7 +5932,7 @@ public final class App extends JFrame implements RadiusControl,
     private MapDragControl mapDragControl;
     private DockableFrame biomesPanel;
     private final boolean devMode = "true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.devMode")); // NOI18N
-    private final boolean alwaysEnableReadOnly = "true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.alwaysEnableReadOnly")); // NOI18N
+    private final boolean alwaysEnableReadOnly = ! "false".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.alwaysEnableReadOnly")); // NOI18N
     private final BiomeScheme autoBiomeScheme = new AutoBiomeScheme(null);
 //    private JScrollPane scrollPane = new JScrollPane();
     private Filter filter, toolFilter;
@@ -5837,6 +5949,7 @@ public final class App extends JFrame implements RadiusControl,
         // Do nothing
     };
     private final Map<String, BufferedImage> callouts = new HashMap<>();
+    private JMenu recentMenu;
 
     public static final Image ICON = IconUtils.loadImage("org/pepsoft/worldpainter/icons/shovel-icon.png");
     
@@ -5886,6 +5999,8 @@ public final class App extends JFrame implements RadiusControl,
     private static final int PLATFORM_COMMAND_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
     private static final String CUSTOM_BRUSHES_DEFAULT_TITLE = "Custom Brushes";
+
+    private static final int MAX_RECENT_FILES = 10;
     
     private static final ResourceBundle strings = ResourceBundle.getBundle("org.pepsoft.worldpainter.resources.strings"); // NOI18N
     private static final long serialVersionUID = 1L;

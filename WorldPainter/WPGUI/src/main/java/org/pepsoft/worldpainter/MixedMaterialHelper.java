@@ -55,6 +55,41 @@ public class MixedMaterialHelper {
         }
         return null;
     }
+
+    public static MixedMaterial[] loadMultiple(Component parent) {
+        Configuration config = Configuration.getInstance();
+        File terrainDirectory = config.getTerrainDirectory();
+        if ((terrainDirectory == null) || (! terrainDirectory.isDirectory())) {
+            terrainDirectory = DesktopUtils.getDocumentsFolder();
+        }
+        File[] selectedFiles = FileUtils.selectFilesForOpen(SwingUtilities.getWindowAncestor(parent), "Select WorldPainter custom terrain file(s)", terrainDirectory, new FileFilter() {
+            @Override
+            public boolean accept(File f) {
+                return f.isDirectory() || f.getName().toLowerCase().endsWith(".terrain");
+            }
+
+            @Override
+            public String getDescription() {
+                return "WorldPainter Custom Terrains (*.terrain)";
+            }
+        });
+        if (selectedFiles != null) {
+            MixedMaterial[] materials = new MixedMaterial[selectedFiles.length];
+            for (int i = 0; i < selectedFiles.length; i++) {
+                try {
+                    try (ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new BufferedInputStream(new FileInputStream(selectedFiles[i]))))) {
+                        materials[i] = (MixedMaterial) in.readObject();
+                    }
+                } catch (IOException e) {
+                    throw new RuntimeException("I/O error while reading " + selectedFiles[i], e);
+                } catch (ClassNotFoundException e) {
+                    throw new RuntimeException("Class not found exception while reading " + selectedFiles[i], e);
+                }
+            }
+            return materials;
+        }
+        return null;
+    }
     
     public static void save(Component parent, MixedMaterial material) {
         Configuration config = Configuration.getInstance();

@@ -243,27 +243,15 @@ renderLoop:                 do {
         dynMapPreviewer1.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
         buttonCancel.setText("Cancel");
-        buttonCancel.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonCancelActionPerformed(evt);
-            }
-        });
+        buttonCancel.addActionListener(this::buttonCancelActionPerformed);
 
         buttonOK.setText("OK");
-        buttonOK.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonOKActionPerformed(evt);
-            }
-        });
+        buttonOK.addActionListener(this::buttonOKActionPerformed);
 
         jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-        jComboBox1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jComboBox1ActionPerformed(evt);
-            }
-        });
+        jComboBox1.addActionListener(this::jComboBox1ActionPerformed);
 
-        jLabel1.setText("Preview pattern:");
+        jLabel1.setText("Pattern:");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);

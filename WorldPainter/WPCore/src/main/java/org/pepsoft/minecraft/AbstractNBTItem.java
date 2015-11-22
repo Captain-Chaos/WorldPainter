@@ -44,8 +44,12 @@ public abstract class AbstractNBTItem implements NBTItem, Serializable, Cloneabl
     }
 
     protected final long getLong(String name) {
+        return getLong(name, 0L);
+    }
+
+    protected final long getLong(String name, long defaultValue) {
         LongTag longTag = (LongTag) tag.getTag(name);
-        return (longTag != null) ? longTag.getValue() : 0;
+        return (longTag != null) ? longTag.getValue() : defaultValue;
     }
 
     protected final void setLong(String name, long value) {
@@ -53,8 +57,12 @@ public abstract class AbstractNBTItem implements NBTItem, Serializable, Cloneabl
     }
 
     protected final int getInt(String name) {
+        return getInt(name, 0);
+    }
+
+    protected final int getInt(String name, int defaultValue) {
         IntTag intTag = (IntTag) tag.getTag(name);
-        return (intTag != null) ? intTag.getValue() : 0;
+        return (intTag != null) ? intTag.getValue() : defaultValue;
     }
 
     protected final void setInt(String name, int value) {
@@ -62,8 +70,12 @@ public abstract class AbstractNBTItem implements NBTItem, Serializable, Cloneabl
     }
 
     protected final String getString(String name) {
+        return getString(name, null);
+    }
+
+    protected final String getString(String name, String defaultValue) {
         StringTag stringTag = (StringTag) tag.getTag(name);
-        return (stringTag != null) ? stringTag.getValue() : null;
+        return (stringTag != null) ? stringTag.getValue() : defaultValue;
     }
 
     protected final void setString(String name, String value) {
@@ -75,8 +87,12 @@ public abstract class AbstractNBTItem implements NBTItem, Serializable, Cloneabl
     }
 
     protected final short getShort(String name) {
+        return getShort(name, (short) 0);
+    }
+
+    protected final short getShort(String name, short defaultValue) {
         ShortTag shortTag = (ShortTag) tag.getTag(name);
-        return (shortTag != null) ? shortTag.getValue() : 0;
+        return (shortTag != null) ? shortTag.getValue() : defaultValue;
     }
 
     protected final void setShort(String name, short value) {
@@ -84,8 +100,12 @@ public abstract class AbstractNBTItem implements NBTItem, Serializable, Cloneabl
     }
 
     protected final byte getByte(String name) {
+        return getByte(name, (byte) 0);
+    }
+
+    protected final byte getByte(String name, byte defaultValue) {
         ByteTag byteTag = (ByteTag) tag.getTag(name);
-        return (byteTag != null) ? byteTag.getValue() : 0;
+        return (byteTag != null) ? byteTag.getValue() : defaultValue;
     }
 
     protected final void setByte(String name, byte value) {
@@ -93,12 +113,42 @@ public abstract class AbstractNBTItem implements NBTItem, Serializable, Cloneabl
     }
 
     protected final boolean getBoolean(String name) {
+        return getBoolean(name, false);
+    }
+
+    protected final boolean getBoolean(String name, boolean defaultValue) {
         ByteTag byteTag = (ByteTag) tag.getTag(name);
-        return (byteTag != null) ? (byteTag.getValue() != 0) : false;
+        return (byteTag != null) ? (byteTag.getValue() != 0) : defaultValue;
     }
 
     protected final void setBoolean(String name, boolean value) {
         tag.setTag(name, new ByteTag(name, value ? (byte) 1 : (byte) 0));
+    }
+    
+    protected final float getFloat(String name) {
+        return getFloat(name, 0.0f);
+    }
+
+    protected final float getFloat(String name, float defaultValue) {
+        FloatTag floatTag = (FloatTag) tag.getTag(name);
+        return (floatTag != null) ? floatTag.getValue() : defaultValue;
+    }
+    
+    protected final void setFloat(String name, float value) {
+        tag.setTag(name, new FloatTag(name, value));
+    }
+    
+    protected final double getDouble(String name) {
+        return getDouble(name, 0.0);
+    }
+
+    protected final double getDouble(String name, double defaultValue) {
+        DoubleTag doubleTag = (DoubleTag) tag.getTag(name);
+        return (doubleTag != null) ? doubleTag.getValue() : defaultValue;
+    }
+    
+    protected final void setDouble(String name, double value) {
+        tag.setTag(name, new DoubleTag(name, value));
     }
 
     protected final <T extends Tag> List<T> getList(String name) {

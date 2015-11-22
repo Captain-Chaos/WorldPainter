@@ -82,6 +82,30 @@ public class MapImporter {
         world.setGeneratorOptions(level.getGeneratorOptions());
         world.setVersion(version);
         world.setDifficulty(level.getDifficulty());
+        if ((version == SUPPORTED_VERSION_2) && (level.getBorderSize() > 0.0)) {
+            // If the world is version 0x4abd and actually has border settings,
+            // load them
+            world.getBorderSettings().setCentreX((int) (level.getBorderCenterX() + 0.5));
+            world.getBorderSettings().setCentreY((int) (level.getBorderCenterZ() + 0.5));
+            world.getBorderSettings().setSize((int) (level.getBorderSize() + 0.5));
+            world.getBorderSettings().setSafeZone((int) (level.getBorderSafeZone() + 0.5));
+            world.getBorderSettings().setWarningBlocks((int) (level.getBorderWarningBlocks()+ 0.5));
+            world.getBorderSettings().setWarningTime((int) (level.getBorderWarningTime() + 0.5));
+            world.getBorderSettings().setSizeLerpTarget((int) (level.getBorderSizeLerpTarget() + 0.5));
+            world.getBorderSettings().setSizeLerpTime((int) level.getBorderSizeLerpTime());
+            world.getBorderSettings().setDamagePerBlock((int) (level.getBorderDamagePerBlock() + 0.5));
+        }
+        File worldDir = levelDatFile.getParentFile();
+        File regionDir = new File(worldDir, "region");
+//        File netherDir = new File(worldDir, "DIM-1");
+//        File endDir = new File(worldDir, "DIM1");
+        int dimCount = 1;
+//        if (netherDir.isDirectory()) {
+//            dimCount++;
+//        }
+//        if (endDir.isDirectory()) {
+//            dimCount++;
+//        }
         long minecraftSeed = level.getSeed();
         tileFactory.setSeed(minecraftSeed);
         Dimension dimension = new Dimension(minecraftSeed, tileFactory, DIM_NORMAL, maxHeight);
@@ -100,17 +124,6 @@ public class MapImporter {
             if (version == SUPPORTED_VERSION_1) {
                 resourcesSettings.setChance(BLK_EMERALD_ORE, 0);
             }
-            File worldDir = levelDatFile.getParentFile();
-            File regionDir = new File(worldDir, "region");
-//            File netherDir = new File(worldDir, "DIM-1");
-//            File endDir = new File(worldDir, "DIM1");
-            int dimCount = 1;
-//            if (netherDir.isDirectory()) {
-//                dimCount++;
-//            }
-//            if (endDir.isDirectory()) {
-//                dimCount++;
-//            }
             Configuration config = Configuration.getInstance();
             dimension.setGridEnabled(config.isDefaultGridEnabled());
             dimension.setGridSize(config.getDefaultGridSize());
@@ -131,28 +144,52 @@ public class MapImporter {
 //        int dimNo = 1;
 //        if (netherDir.isDirectory()) {
 //            regionDir = new File(netherDir, "region");
-//            FlatTileFactory netherTileFactory = new FlatTileFactory(Terrain.NETHERLIKE, maxHeight, 127, 32, false, false);
-//            netherTileFactory.getTerrainRanges().clear();
-//            netherTileFactory.getTerrainRanges().put(-1, Terrain.NETHERLIKE);
-//            dimension = new Dimension(seed + 1, netherTileFactory, DIM_NETHER, maxHeight);
+//            HeightMapTileFactory netherTileFactory = TileFactoryFactory.createFlatTileFactory(minecraftSeed, Terrain.NETHERLIKE, maxHeight, 127, 32, true, false);
+//            SimpleTheme theme = (SimpleTheme) netherTileFactory.getTheme();
+//            theme.getTerrainRanges().clear();
+//            theme.getTerrainRanges().put(-1, Terrain.NETHERLIKE);
+//            dimension = new Dimension(minecraftSeed + 1, netherTileFactory, DIM_NETHER, maxHeight);
 //            dimension.setEventsInhibited(true);
-//            ChasmsSettings cavernsSettings = new ChasmsSettings();
-//            cavernsSettings.setChasmsEverywhereLevel(15);
-//            cavernsSettings.setFloodWithLava(true);
-//            cavernsSettings.setSurfaceBreaking(true);
-//            cavernsSettings.setWaterLevel(32);
-//            dimension.setLayerSettings(Caverns.INSTANCE, cavernsSettings);
-//            importDimension(regionDir, dimension, version, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) dimNo++ / dimCount, 1.0f / dimCount) : null);
+//            try {
+//                CavernsExporter.CavernsSettings cavernsSettings = new CavernsExporter.CavernsSettings();
+//                cavernsSettings.setCavernsEverywhereLevel(15);
+//                cavernsSettings.setFloodWithLava(true);
+//                cavernsSettings.setSurfaceBreaking(true);
+//                cavernsSettings.setWaterLevel(32);
+//                dimension.setLayerSettings(Caverns.INSTANCE, cavernsSettings);
+//                String dimWarnings = importDimension(regionDir, dimension, version, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) dimNo++ / dimCount, 1.0f / dimCount) : null);
+//                if (dimWarnings != null) {
+//                    if (warnings == null) {
+//                        warnings = dimWarnings;
+//                    } else {
+//                        warnings = warnings + dimWarnings;
+//                    }
+//                }
+//            } finally {
+//                dimension.setEventsInhibited(false);
+//            }
 //            world.addDimension(dimension);
 //        }
 //        if (endDir.isDirectory()) {
 //            regionDir = new File(endDir, "region");
-//            NoiseTileFactory endTileFactory = new NoiseTileFactory(Terrain.END_STONE, maxHeight, 32, 0, false, false);
-//            endTileFactory.getTerrainRanges().clear();
-//            endTileFactory.getTerrainRanges().put(-1, Terrain.END_STONE);
-//            dimension = new Dimension(seed + 2, endTileFactory, DIM_END, maxHeight);
+//            HeightMapTileFactory endTileFactory = TileFactoryFactory.createNoiseTileFactory(minecraftSeed, Terrain.END_STONE, maxHeight, 32, 0, false, false, 20f, 1.0);
+//            SimpleTheme theme = (SimpleTheme) endTileFactory.getTheme();
+//            theme.getTerrainRanges().clear();
+//            theme.getTerrainRanges().put(-1, Terrain.END_STONE);
+//            dimension = new Dimension(minecraftSeed + 2, endTileFactory, DIM_END, maxHeight);
 //            dimension.setEventsInhibited(true);
-//            importDimension(regionDir, dimension, version, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) dimNo / dimCount, 1.0f / dimCount) : null);
+//            try {
+//                String dimWarnings = importDimension(regionDir, dimension, version, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) dimNo / dimCount, 1.0f / dimCount) : null);
+//                if (dimWarnings != null) {
+//                    if (warnings == null) {
+//                        warnings = dimWarnings;
+//                    } else {
+//                        warnings = warnings + dimWarnings;
+//                    }
+//                }
+//            } finally {
+//                dimension.setEventsInhibited(false);
+//            }
 //            world.addDimension(dimension);
 //        }
         

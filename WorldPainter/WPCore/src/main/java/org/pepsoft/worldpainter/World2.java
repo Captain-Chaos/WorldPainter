@@ -44,7 +44,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     }
     
     public boolean isDirty() {
-        if (dirty) {
+        if (dirty || borderSettings.isDirty()) {
             return true;
         } else {
             for (Dimension dimension: dimensions.values()) {
@@ -59,6 +59,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     public void setDirty(boolean dirty) {
         this.dirty = dirty;
         if (! dirty) {
+            borderSettings.setDirty(false);
             for (Dimension dimension: dimensions.values()) {
                 dimension.setDirty(false);
             }
@@ -393,6 +394,10 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         this.metadata = metadata;
     }
 
+    public BorderSettings getBorderSettings() {
+        return borderSettings;
+    }
+
     /**
      * Transforms all dimensions of this world horizontally. If an undo manager
      * is installed this operation will destroy all undo info.
@@ -574,16 +579,21 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
             history = new ArrayList<>();
             history.add(new HistoryEntry(HistoryEntry.WORLD_LEGACY_PRE_2_0_0));
         }
+        if (wpVersion < 4) {
+            borderSettings = new BorderSettings();
+        }
         wpVersion = CURRENT_WP_VERSION;
         
         // Bug fix: fix the maxHeight of the dimensions, which somehow is not
         // always correctly set (possibly only on imported worlds from
         // non-standard height maps due to a bug which should be fixed).
-        dimensions.values().stream().filter(dimension -> dimension.getMaxHeight() != maxheight).forEach(dimension -> {
-            logger.warn("Fixing maxHeight of dimension " + dimension.getDim() + " (was " + dimension.getMaxHeight() + ", should be " + maxheight + ")");
-            dimension.setMaxHeight(maxheight);
-            dimension.setDirty(false);
-        });
+        dimensions.values().stream()
+            .filter(dimension -> dimension.getMaxHeight() != maxheight)
+            .forEach(dimension -> {
+                logger.warn("Fixing maxHeight of dimension " + dimension.getDim() + " (was " + dimension.getMaxHeight() + ", should be " + maxheight + ")");
+                dimension.setMaxHeight(maxheight);
+                dimension.setDirty(false);
+            });
         
         // The number of custom terrains increases now and again; correct old
         // worlds for it
@@ -629,6 +639,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     private int wpVersion = CURRENT_WP_VERSION;
     private int difficulty = org.pepsoft.minecraft.Constants.DIFFICULTY_NORMAL;
     private List<HistoryEntry> history = new ArrayList<>();
+    private BorderSettings borderSettings = new BorderSettings();
     private transient Set<Warning> warnings;
     private transient Map<String, Object> metadata;
 
@@ -677,10 +688,127 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
      */
     public static final String METADATA_KEY_PLUGINS = "org.pepsoft.worldpainter.plugins";
 
-    private static final int CURRENT_WP_VERSION = 3;
+    private static final int CURRENT_WP_VERSION = 4;
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(World2.class);
     private static final long serialVersionUID = 2011062401L;
 
     enum Warning {AUTO_BIOMES_ENABLED, AUTO_BIOMES_DISABLED}
+    
+    public static class BorderSettings implements Serializable {
+        public int getCentreX() {
+            return centreX;
+        }
+
+        public void setCentreX(int centreX) {
+            if (centreX != this.centreX) {
+                this.centreX = centreX;
+                dirty = true;
+            }
+        }
+
+        public int getCentreY() {
+            return centreY;
+        }
+
+        public void setCentreY(int centreY) {
+            if (centreY != this.centreY) {
+                this.centreY = centreY;
+                dirty = true;
+            }
+        }
+
+        public int getSize() {
+            return size;
+        }
+
+        public void setSize(int size) {
+            if (size != this.size) {
+                this.size = size;
+                dirty = true;
+            }
+        }
+
+        public int getSafeZone() {
+            return safeZone;
+        }
+
+        public void setSafeZone(int safeZone) {
+            if (safeZone != this.safeZone) {
+                this.safeZone = safeZone;
+                dirty = true;
+            }
+        }
+
+        public int getWarningBlocks() {
+            return warningBlocks;
+        }
+
+        public void setWarningBlocks(int warningBlocks) {
+            if (warningBlocks != this.warningBlocks) {
+                this.warningBlocks = warningBlocks;
+                dirty = true;
+            }
+        }
+
+        public int getWarningTime() {
+            return warningTime;
+        }
+
+        public void setWarningTime(int warningTime) {
+            if (warningTime != this.warningTime) {
+                this.warningTime = warningTime;
+                dirty = true;
+            }
+        }
+
+        public int getSizeLerpTarget() {
+            return sizeLerpTarget;
+        }
+
+        public void setSizeLerpTarget(int sizeLerpTarget) {
+            if (sizeLerpTarget != this.sizeLerpTarget) {
+                this.sizeLerpTarget = sizeLerpTarget;
+                dirty = true;
+            }
+        }
+
+        public int getSizeLerpTime() {
+            return sizeLerpTime;
+        }
+
+        public void setSizeLerpTime(int sizeLerpTime) {
+            if (sizeLerpTime != this.sizeLerpTime) {
+                this.sizeLerpTime = sizeLerpTime;
+                dirty = true;
+            }
+            dirty = true;
+        }
+
+        public float getDamagePerBlock() {
+            return damagePerBlock;
+        }
+
+        public void setDamagePerBlock(float damagePerBlock) {
+            if (damagePerBlock != this.damagePerBlock) {
+                this.damagePerBlock = damagePerBlock;
+                dirty = true;
+            }
+            dirty = true;
+        }
+
+        public boolean isDirty() {
+            return dirty;
+        }
+
+        public void setDirty(boolean dirty) {
+            this.dirty = dirty;
+        }
+        
+        private int centreX, centreY, size = 60000000, safeZone = 5, warningBlocks = 5, warningTime = 15, sizeLerpTarget = 60000000, sizeLerpTime;
+        private float damagePerBlock = 0.2f;
+        private boolean dirty;
+        
+        private static final long serialVersionUID = 1L;
+    }
 }
