@@ -61,7 +61,9 @@ public class CustomBiomeManager {
 
     public boolean addCustomBiome(Window parent, CustomBiome customBiome) {
         if (isBiomePresent(customBiome.getId())) {
-            JOptionPane.showMessageDialog(parent, "The specified ID (" + customBiome.getId() + ") is already a regular biome (named " + Minecraft1_7Biomes.BIOME_NAMES[customBiome.getId()] + ")", "ID Already In Use", JOptionPane.ERROR_MESSAGE);
+            if (parent != null) {
+                JOptionPane.showMessageDialog(parent, "The specified ID (" + customBiome.getId() + ") is already a regular biome (named " + Minecraft1_7Biomes.BIOME_NAMES[customBiome.getId()] + ")", "ID Already In Use", JOptionPane.ERROR_MESSAGE);
+            }
             return false;
         }
         if (customBiomes == null) {
@@ -69,7 +71,9 @@ public class CustomBiomeManager {
         }
         for (CustomBiome existingCustomBiome: customBiomes) {
             if (existingCustomBiome.getId() == customBiome.getId()) {
-                JOptionPane.showMessageDialog(parent, "You already configured a custom biome with that ID (named " + existingCustomBiome.getName() + ")", "ID Already In Use", JOptionPane.ERROR_MESSAGE);
+                if (parent != null) {
+                    JOptionPane.showMessageDialog(parent, "You already configured a custom biome with that ID (named " + existingCustomBiome.getName() + ")", "ID Already In Use", JOptionPane.ERROR_MESSAGE);
+                }
                 return false;
             }
         }

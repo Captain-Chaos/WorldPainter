@@ -254,6 +254,9 @@ public class WorldMerger extends WorldExporter {
         } else {
             world.addHistoryEntry(HistoryEntry.WORLD_MERGED_PARTIAL, level.getName(), worldDir, dimension.getName());
         }
+        if (! levelDatFile.equals(world.getMergedWith())) {
+            world.setMergedWith(levelDatFile);
+        }
 
         // Log an event
         Configuration config = Configuration.getInstance();

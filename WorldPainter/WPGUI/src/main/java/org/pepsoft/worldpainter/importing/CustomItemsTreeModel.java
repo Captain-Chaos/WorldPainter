@@ -43,6 +43,29 @@ public class CustomItemsTreeModel implements TreeModel {
             childrenOfRoot.add(BIOMES);
         }
     }
+
+    public List<Object> getSelectedItems(TreePath[] selectedTreePaths) {
+        ArrayList<Object> selectedItems = new ArrayList<>();
+        for (TreePath selectedPath: selectedTreePaths) {
+            Object object = selectedPath.getLastPathComponent();
+            if (object == ROOT) {
+                selectedItems.addAll(customTerrains);
+                selectedItems.addAll(customLayers);
+                selectedItems.addAll(customBiomes);
+            } else if (object == TERRAINS) {
+                selectedItems.addAll(customTerrains);
+            } else if (object == LAYERS) {
+                selectedItems.addAll(customLayers);
+            } else if (object == BIOMES) {
+                selectedItems.addAll(customBiomes);
+            } else if ((object instanceof CustomLayer) || (object instanceof MixedMaterial) || (object instanceof CustomBiome)) {
+                selectedItems.add(object);
+            } else {
+                throw new InternalError("Unknown node type " + object.getClass() + " (\"" + object + "\") encountered");
+            }
+        }
+        return selectedItems;
+    }
     
     public static boolean hasCustomItems(World2 world) {
         for (int i = 0; i < Terrain.CUSTOM_TERRAIN_COUNT; i++) {

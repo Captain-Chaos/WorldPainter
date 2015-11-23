@@ -57,6 +57,7 @@ import org.pepsoft.worldpainter.vo.UsageVO;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.Box;
 import javax.swing.Timer;
 import javax.swing.border.BevelBorder;
 import javax.swing.filechooser.FileFilter;
@@ -1889,7 +1890,7 @@ public final class App extends JFrame implements RadiusControl,
             showMessageDialog(this, strings.getString("this.world.was.imported.before.the.great.coordinate.shift"), strings.getString("merge.not.allowed"), ERROR_MESSAGE);
             return;
         }
-        if ((world.getImportedFrom() == null) && (showConfirmDialog(this, strings.getString("this.world.was.not.imported"), strings.getString("not.imported"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
+        if ((world.getImportedFrom() == null) && (world.getMergedWith() == null) && (showConfirmDialog(this, strings.getString("this.world.was.not.imported"), strings.getString("not.imported"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
             return;
         }
         if ((world.getDimensions().length > 1) && (showConfirmDialog(this, strings.getString("merging.the.nether.or.end.is.not.yet.supported"), strings.getString("merging.nether.not.supported"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
@@ -2266,8 +2267,9 @@ public final class App extends JFrame implements RadiusControl,
 
         toolPanel.add(createButtonForOperation(new Flood(view, false), "flood", 'f'));
         toolPanel.add(createButtonForOperation(new Flood(view, true), "flood_with_lava"));
-        toolPanel.add(createButtonForOperation(new RiverPaint(view, this, mapDragControl), "river"));
+//        toolPanel.add(createButtonForOperation(new RiverPaint(view, this, mapDragControl), "river"));
         toolPanel.add(createButtonForOperation(new Sponge(view, this, mapDragControl), "sponge"));
+        toolPanel.add(Box.createGlue());
 
         toolPanel.add(createButtonForOperation(new Height(view, this, mapDragControl), "height", 'h'));
         toolPanel.add(createButtonForOperation(new Flatten(view, this, mapDragControl), "flatten", 'a'));
@@ -2803,8 +2805,8 @@ public final class App extends JFrame implements RadiusControl,
                 for (Map.Entry<Brush, JToggleButton> entry: brushButtons.entrySet()) {
                     Brush brush = entry.getKey();
                     JToggleButton button = entry.getValue();
-//                    button.setIcon(createBrushIcon(brush, 0));
                     if (button.isSelected() && (activeOperation instanceof BrushOperation)) {
+                        button.setIcon(createBrushIcon(brush, 0));
                         ((BrushOperation) activeOperation).setBrush(brush);
                     }
                 }
@@ -2812,8 +2814,8 @@ public final class App extends JFrame implements RadiusControl,
                 for (Map.Entry<Brush, JToggleButton> entry: brushButtons.entrySet()) {
                     Brush brush = entry.getKey();
                     JToggleButton button = entry.getValue();
-//                    button.setIcon(createBrushIcon(brush, desiredBrushRotation));
                     if (button.isSelected() && (activeOperation instanceof BrushOperation)) {
+                        button.setIcon(createBrushIcon(brush, desiredBrushRotation));
                         Brush rotatedBrush = RotatedBrush.rotate(brush, desiredBrushRotation);
                         ((BrushOperation) activeOperation).setBrush(rotatedBrush);
                     }
@@ -2825,6 +2827,15 @@ public final class App extends JFrame implements RadiusControl,
 //            }
             previousBrushRotation = desiredBrushRotation;
         }
+    }
+
+    /**
+     * Update the image of a single brush button
+     * @param brush
+     * @param button
+     */
+    private void updateBrushRotation(Brush brush, JToggleButton button) {
+        button.setIcon(createBrushIcon(brush, button.isSelected() ? ((activeOperation instanceof PaintOperation) ? brushRotation : toolBrushRotation) : 0));
     }
 
     private void registerCustomLayer(final CustomLayer layer, boolean activate) {
@@ -4330,8 +4341,18 @@ public final class App extends JFrame implements RadiusControl,
         glassPane.setSoloLayer(soloLayer);
     }
     
-    private void selectBrushButton(Brush brush) {
-        brushButtons.get(brush).setSelected(true);
+    private void selectBrushButton(Brush selectedBrush) {
+        if (! brushButtons.get(selectedBrush).isSelected()) {
+            for (Map.Entry<Brush, JToggleButton> entry: brushButtons.entrySet()) {
+                JToggleButton button = entry.getValue();
+                if (button.isSelected()) {
+                    button.setSelected(false);
+                    updateBrushRotation(entry.getKey(), button);
+                    break;
+                }
+            }
+            brushButtons.get(selectedBrush).setSelected(true);
+        }
     }
 
     private JComponent createBrushButton(final Brush brush) {
@@ -4339,19 +4360,22 @@ public final class App extends JFrame implements RadiusControl,
         button.setMargin(new Insets(2, 2, 2, 2));
         button.setToolTipText(brush.getName());
         button.addItemListener(e -> {
-            if ((! programmaticChange) && (e.getStateChange() == ItemEvent.SELECTED)) {
-                int effectiveRotation;
-                if (activeOperation instanceof PaintOperation) {
-                    App.this.brush = brush;
-                    effectiveRotation = brushRotation;
-                } else {
-                    toolBrush = brush;
-                    effectiveRotation = toolBrushRotation;
+            if (! programmaticChange) {
+                updateBrushRotation(brush, button);
+                if (e.getStateChange() == ItemEvent.SELECTED) {
+                    int effectiveRotation;
+                    if (activeOperation instanceof PaintOperation) {
+                        App.this.brush = brush;
+                        effectiveRotation = brushRotation;
+                    } else {
+                        toolBrush = brush;
+                        effectiveRotation = toolBrushRotation;
+                    }
+                    if (activeOperation instanceof BrushOperation) {
+                        ((BrushOperation) activeOperation).setBrush((effectiveRotation == 0) ? brush : RotatedBrush.rotate(brush, effectiveRotation));
+                    }
+                    view.setBrushShape(brush.getBrushShape());
                 }
-                if (activeOperation instanceof BrushOperation) {
-                    ((BrushOperation) activeOperation).setBrush((effectiveRotation == 0) ? brush : RotatedBrush.rotate(brush, effectiveRotation));
-                }
-                view.setBrushShape(brush.getBrushShape());
             }
         });
         button.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -4403,10 +4427,10 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void disableImportedWorldOperation() {
+        if ((activeOperation instanceof PaintOperation) && (paint instanceof LayerPaint) && ((LayerPaint) paint).getLayer().equals(Biome.INSTANCE)) {
+            deselectPaint();
+        }
         if (! alwaysEnableReadOnly) {
-            if ((activeOperation instanceof PaintOperation) && (paint instanceof LayerPaint) && ((LayerPaint) paint).getLayer().equals(Biome.INSTANCE)) {
-                deselectPaint();
-            }
             readOnlyCheckBox.setEnabled(false);
             readOnlyToggleButton.setEnabled(false);
             readOnlySoloCheckBox.setEnabled(false);
@@ -5070,6 +5094,55 @@ public final class App extends JFrame implements RadiusControl,
             if (CustomItemsTreeModel.hasCustomItems(selectedWorld)) {
                 ImportCustomItemsDialog dialog = new ImportCustomItemsDialog(this, selectedWorld, selectedColourScheme);
                 dialog.setVisible(true);
+                if (! dialog.isCancelled()) {
+                    StringBuilder errors = new StringBuilder();
+                    Set<CustomLayer> existingCustomLayers = null;
+                    boolean refreshView = false, showError = false;
+                    for (Object selectedItem: dialog.getSelectedItems()) {
+                        if (selectedItem instanceof CustomLayer) {
+                            if (existingCustomLayers == null) {
+                                existingCustomLayers = getCustomLayers();
+                            }
+                            if (existingCustomLayers.contains(selectedItem)) {
+                                errors.append("Custom Layer \"" + ((CustomLayer) selectedItem).getName() + "\" already exists\n");
+                            } else {
+                                registerCustomLayer((CustomLayer) selectedItem, false);
+                            }
+                        } else if (selectedItem instanceof MixedMaterial) {
+                            MixedMaterial customMaterial = (MixedMaterial) selectedItem;
+                            if (getConfiguredCustomMaterialCount() == CUSTOM_TERRAIN_COUNT) {
+                                errors.append("No free slots for Custom Terrain \"" + customMaterial.getName() + "\"\n");
+                                showError = true;
+                                continue;
+                            }
+                            int nextIndex = 0;
+                            while (getCustomMaterial(nextIndex) != null) {
+                                nextIndex++;
+                            }
+                            customMaterial = MixedMaterialManager.getInstance().register(customMaterial);
+                            setCustomMaterial(nextIndex, customMaterial);
+                            customMaterialButtons[nextIndex].setIcon(new ImageIcon(customMaterial.getIcon(selectedColourScheme)));
+                            customMaterialButtons[nextIndex].setToolTipText(MessageFormat.format(strings.getString("customMaterial.0.right.click.to.change"), customMaterial));
+                            refreshView = true;
+                        } else if (selectedItem instanceof CustomBiome) {
+                            CustomBiome customBiome = (CustomBiome) selectedItem;
+                            if (! customBiomeManager.addCustomBiome(null, customBiome)) {
+                                errors.append("ID already in use for Custom Biome " + customBiome.getId() + " (\"" + customBiome + "\")\n");
+                                showError = true;
+                            } else {
+                                refreshView = true;
+                            }
+                        } else {
+                            throw new InternalError("Unsupported custom item type " + selectedItem.getClass() + " encountered");
+                        }
+                    }
+                    if (refreshView) {
+                        view.refreshTiles();
+                    }
+                    if (errors.length() > 0) {
+                        JOptionPane.showMessageDialog(App.this, "Not all items have been imported:\n\n" + errors, "Not All Items Imported", showError ? JOptionPane.ERROR_MESSAGE : JOptionPane.WARNING_MESSAGE);
+                    }
+                }
             } else {
                 showMessageDialog(this, "The selected world has no custom layers, terrains or biomes.", "No Custom Items", WARNING_MESSAGE);
             }
@@ -5908,7 +5981,7 @@ public final class App extends JFrame implements RadiusControl,
     private MapDragControl mapDragControl;
     private DockableFrame biomesPanel;
     private final boolean devMode = "true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.devMode")); // NOI18N
-    private final boolean alwaysEnableReadOnly = "true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.alwaysEnableReadOnly")); // NOI18N
+    private final boolean alwaysEnableReadOnly = ! "false".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.alwaysEnableReadOnly")); // NOI18N
     private final BiomeScheme autoBiomeScheme = new AutoBiomeScheme(null);
 //    private JScrollPane scrollPane = new JScrollPane();
     private Filter filter, toolFilter;

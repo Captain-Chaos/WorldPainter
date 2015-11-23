@@ -1,3 +1,15 @@
+-- Version 2.1.0, released 22-11-2015
+
+ * The menu items have been slightly renamed and rearranged. File -> Import is now called "Import new World" to make it clearer that you are creating a new World instead of importing something into the current World. Importing Layers has been moved to Edit -> Import
+ * It is now possible to import multiple custom items (layers, terrains and biomes) at once from an existing .world file! Select Edit -> Import -> "Custom items from existing world", select an existing .world file, select the Custom Layers, Custom Terrains and/or Custom Biomes you wish to import from it and hit OK
+ * It is now possible to import multiple custom terrains at once from the Edit -> Import -> "Custom Terrain(s) from File(s)..." menu item. They are automatically assigned to the first available free custom terrain slots. If you select more custom terrain files than there are free slots an error will be given
+ * The Minecraft world border can now be configured from the Dimension Properties and Export screens, next to where the WorldPainter border is configured. A future update will also show the Minecraft border in the editor
+ * The Read Only layer is now always enabled, even for non-imported worlds. This makes it easier to Export a map and then repeatedly Merge changes and additions from the same .world file to the generated map. You can use the Read Only layer in that workflow to mark the areas which have not changes and should not be merged, protecting existing structures and speeding up the Merge
+ * When you select Merge for a world created in WorldPainter (and not imported from Minecraft), the warning that it is not an imported world is now only shown the first time. Once you have Merged it once you are no longer bothered with that warning
+ * WorldPainter now remembers with which map a world was last Merged and preselects that map when you select Merge again
+ * Bug fix: make the wpscript command work again
+ * Bug fix: don't export floating Resources in Void borders
+
 -- Version 2.0.2, released 27-9-2015
 
  * In addition to default terrain types by altitude you can now also configure default layers by altitude. This applies when creating worlds from scratch from the New World screen (there is a new "advanced" surface type setting) or when creating worlds from height maps, and you can edit the default layers afterwards from the Dimension Properties screen (Ctrl+P). This support always existed (this is how a Frost layer was placed on high altitudes), but now there is a user interface for configuring it

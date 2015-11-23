@@ -220,6 +220,42 @@ public final class Level extends AbstractNBTItem {
         return getBoolean(TAG_DIFFICULTY_LOCKED);
     }
     
+    public double getBorderCenterX() {
+        return getDouble(TAG_BORDER_CENTER_X);
+    }
+    
+    public double getBorderCenterZ() {
+        return getDouble(TAG_BORDER_CENTER_Z);
+    }
+    
+    public double getBorderSize() {
+        return getDouble(TAG_BORDER_SIZE);
+    }
+    
+    public double getBorderSafeZone() {
+        return getDouble(TAG_BORDER_SAFE_ZONE);
+    }
+    
+    public double getBorderWarningBlocks() {
+        return getDouble(TAG_BORDER_WARNING_BLOCKS);
+    }
+    
+    public double getBorderWarningTime() {
+        return getDouble(TAG_BORDER_WARNING_TIME);
+    }
+    
+    public double getBorderSizeLerpTarget() {
+        return getDouble(TAG_BORDER_SIZE_LERP_TARGET);
+    }
+    
+    public long getBorderSizeLerpTime() {
+        return getLong(TAG_BORDER_SIZE_LERP_TIME);
+    }
+    
+    public double getBorderDamagePerBlock() {
+        return getDouble(TAG_BORDER_DAMAGE_PER_BLOCK);
+    }
+    
     public void setName(String name) {
         setString(TAG_LEVEL_NAME, name);
     }
@@ -300,6 +336,42 @@ public final class Level extends AbstractNBTItem {
     
     public void setDifficultyLocked(boolean difficultyLocked) {
         setBoolean(TAG_DIFFICULTY_LOCKED, difficultyLocked);
+    }
+    
+    public void setBorderCenterX(double borderCenterX) {
+        setDouble(TAG_BORDER_CENTER_X, borderCenterX);
+    }
+    
+    public void setBorderCenterZ(double borderCenterZ) {
+        setDouble(TAG_BORDER_CENTER_Z, borderCenterZ);
+    }
+    
+    public void setBorderSize(double borderSize) {
+        setDouble(TAG_BORDER_SIZE, borderSize);
+    }
+    
+    public void setBorderSafeZone(double borderSafeZone) {
+        setDouble(TAG_BORDER_SAFE_ZONE, borderSafeZone);
+    }
+    
+    public void setBorderWarningBlocks(double borderWarningBlocks) {
+        setDouble(TAG_BORDER_WARNING_BLOCKS, borderWarningBlocks);
+    }
+    
+    public void setBorderWarningTime(double borderWarningTime) {
+        setDouble(TAG_BORDER_WARNING_TIME, borderWarningTime);
+    }
+    
+    public void setBorderSizeLerpTarget(double borderSizeLerpTarget) {
+        setDouble(TAG_BORDER_SIZE_LERP_TARGET, borderSizeLerpTarget);
+    }
+    
+    public void setBorderSizeLerpTime(long borderSizeLerpTime) {
+        setLong(TAG_BORDER_SIZE_LERP_TIME, borderSizeLerpTime);
+    }
+    
+    public void setBorderDamagePerBlock(double borderDamagePerBlock) {
+        setDouble(TAG_BORDER_DAMAGE_PER_BLOCK, borderDamagePerBlock);
     }
     
     @Override

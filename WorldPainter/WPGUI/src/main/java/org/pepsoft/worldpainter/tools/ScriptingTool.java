@@ -37,7 +37,7 @@ public class ScriptingTool {
             JoranConfigurator configurator = new JoranConfigurator();
             configurator.setContext(logContext);
             logContext.reset();
-            configurator.doConfigure(ClassLoader.getSystemResourceAsStream("/logback-scriptingtool.xml"));
+            configurator.doConfigure(ClassLoader.getSystemResourceAsStream("logback-scriptingtool.xml"));
         } catch (JoranException e) {
             // StatusPrinter will handle this
         }

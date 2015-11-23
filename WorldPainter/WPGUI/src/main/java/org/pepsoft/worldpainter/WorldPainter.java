@@ -567,6 +567,18 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         }
     }
 
+    public boolean isDrawMinecraftBorder() {
+        return drawMinecraftBorder;
+    }
+
+    public void setDrawMinecraftBorder(boolean drawMinecraftBorder) {
+        if (drawMinecraftBorder != this.drawMinecraftBorder) {
+            this.drawMinecraftBorder = drawMinecraftBorder;
+            firePropertyChange("drawMinecraftBorder", ! drawMinecraftBorder, drawMinecraftBorder);
+            repaint();
+        }
+    }
+
     // MouseMotionListener
 
     @Override
@@ -638,7 +650,17 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             final Stroke savedStroke = g2.getStroke();
             final AffineTransform savedTransform = g2.getTransform();
             try {
+                if (drawMinecraftBorder && (dimension.getWorld() != null)) {
+                    World2.BorderSettings borderSettings = dimension.getWorld().getBorderSettings();
+                    final int size = borderSettings.getSize(), radius = size / 2;
+                    Rectangle border = worldToView(borderSettings.getCentreX() - radius, borderSettings.getCentreY() - radius, size, size);
+                    g2.setColor(Color.RED);
+                    g2.setStroke(new BasicStroke(1, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f, new float[] {3, 3}, 0));
+                    // TODO: this is incredibly slow, presumeably due to the size; paint it more efficiently!
+                    g2.drawRect(border.x, border.y, border.width, border.height);
+                }
                 final float scale = transformGraphics(g2);
+                final float strokeWidth = 1 / scale;
                 if (drawOverlay && (overlay != null)) {
                     drawOverlay(g2);
                 }
@@ -647,7 +669,6 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
                     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 }
                 if (drawRadius) {
-                    final float strokeWidth = 1 / scale;
                     g2.setStroke(new BasicStroke(strokeWidth, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f, new float[] {3 * strokeWidth, 3 * strokeWidth}, 0));
                     final int diameter = radius * 2 + 1;
                     switch (brushShape) {
@@ -702,12 +723,10 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
                     }
                 }
                 if (drawViewDistance) {
-                    float strokeWidth = 1 / scale;
                     g2.setStroke(new BasicStroke(strokeWidth, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f, new float[] {10 * strokeWidth, 10 * strokeWidth}, 0));
                     g2.drawOval(mouseX - VIEW_DISTANCE_RADIUS, mouseY - VIEW_DISTANCE_RADIUS, VIEW_DISTANCE_DIAMETER, VIEW_DISTANCE_DIAMETER);
                 }
                 if (drawWalkingDistance) {
-                    float strokeWidth = 1 / scale;
                     g2.setStroke(new BasicStroke(strokeWidth, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f, new float[] {20 * strokeWidth, 20 * strokeWidth}, 0));
                     g2.drawOval(mouseX - DAY_NIGHT_WALK_DISTANCE_RADIUS, mouseY - DAY_NIGHT_WALK_DISTANCE_RADIUS, DAY_NIGHT_WALK_DISTANCE_DIAMETER, DAY_NIGHT_WALK_DISTANCE_DIAMETER);
                     g2.drawOval(mouseX - DAY_WALK_DISTANCE_RADIUS, mouseY - DAY_WALK_DISTANCE_RADIUS, DAY_WALK_DISTANCE_DIAMETER, DAY_WALK_DISTANCE_DIAMETER);
@@ -799,7 +818,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     private final CustomBiomeManager customBiomeManager;
     private Dimension dimension;
     private int mouseX, mouseY, radius, effectiveRadius, overlayOffsetX, overlayOffsetY, contourSeparation, brushRotation;
-    private boolean drawRadius, drawOverlay, drawContours, drawViewDistance, drawWalkingDistance;
+    private boolean drawRadius, drawOverlay, drawContours, drawViewDistance, drawWalkingDistance, drawMinecraftBorder;
     private BrushShape brushShape;
     private float overlayScale = 1.0f;
     private float overlayTransparency = 0.5f;
