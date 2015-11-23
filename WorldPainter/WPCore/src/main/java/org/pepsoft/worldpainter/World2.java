@@ -709,7 +709,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
 
     enum Warning {AUTO_BIOMES_ENABLED, AUTO_BIOMES_DISABLED}
     
-    public static class BorderSettings implements Serializable {
+    public static class BorderSettings implements Serializable, org.pepsoft.util.undo.Cloneable<BorderSettings> {
         public int getCentreX() {
             return centreX;
         }
@@ -818,7 +818,48 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         public void setDirty(boolean dirty) {
             this.dirty = dirty;
         }
-        
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            BorderSettings that = (BorderSettings) o;
+
+            if (centreX != that.centreX) return false;
+            if (centreY != that.centreY) return false;
+            if (size != that.size) return false;
+            if (safeZone != that.safeZone) return false;
+            if (warningBlocks != that.warningBlocks) return false;
+            if (warningTime != that.warningTime) return false;
+            if (sizeLerpTarget != that.sizeLerpTarget) return false;
+            if (sizeLerpTime != that.sizeLerpTime) return false;
+            return Float.compare(that.damagePerBlock, damagePerBlock) == 0;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = centreX;
+            result = 31 * result + centreY;
+            result = 31 * result + size;
+            result = 31 * result + safeZone;
+            result = 31 * result + warningBlocks;
+            result = 31 * result + warningTime;
+            result = 31 * result + sizeLerpTarget;
+            result = 31 * result + sizeLerpTime;
+            result = 31 * result + (damagePerBlock != +0.0f ? Float.floatToIntBits(damagePerBlock) : 0);
+            return result;
+        }
+
+        @Override
+        public BorderSettings clone() {
+            try {
+                return (BorderSettings) super.clone();
+            } catch (CloneNotSupportedException e) {
+                throw new InternalError();
+            }
+        }
+
         private int centreX, centreY, size = 60000000, safeZone = 5, warningBlocks = 5, warningTime = 15, sizeLerpTarget = 60000000, sizeLerpTime;
         private float damagePerBlock = 0.2f;
         private boolean dirty;

@@ -5634,6 +5634,7 @@ public final class App extends JFrame implements RadiusControl,
             long previousMinecraftSeed = dimension.getMinecraftSeed();
             int previousCeilingHeight = dimension.getCeilingHeight();
             boolean previousBedrockWall = dimension.isBedrockWall();
+            World2.BorderSettings previousBorderSettings = (dimension.getWorld() != null) ? dimension.getWorld().getBorderSettings().clone() : null;
             DimensionPropertiesDialog dialog = new DimensionPropertiesDialog(App.this, dimension, selectedColourScheme);
             dialog.setVisible(true);
             if ((dimension.isCoverSteepTerrain() != previousCoverSteepTerrain)
@@ -5649,6 +5650,9 @@ public final class App extends JFrame implements RadiusControl,
                     || (dimension.getCeilingHeight() != previousCeilingHeight)
                     || (dimension.isBedrockWall() != previousBedrockWall)) {
                 view.refreshTiles();
+            }
+            if ((previousBorderSettings != null) && (! previousBorderSettings.equals(dimension.getWorld().getBorderSettings()))) {
+                view.repaint();
             }
         }
 

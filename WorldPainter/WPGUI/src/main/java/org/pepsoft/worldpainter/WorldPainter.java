@@ -651,14 +651,10 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             final AffineTransform savedTransform = g2.getTransform();
             try {
                 if (drawMinecraftBorder && (dimension.getWorld() != null)) {
-                    World2.BorderSettings borderSettings = dimension.getWorld().getBorderSettings();
-                    final int size = borderSettings.getSize(), radius = size / 2;
-                    Rectangle border = worldToView(borderSettings.getCentreX() - radius, borderSettings.getCentreY() - radius, size, size);
-                    g2.setColor(Color.RED);
-                    g2.setStroke(new BasicStroke(1, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f, new float[] {3, 3}, 0));
-                    // TODO: this is incredibly slow, presumeably due to the size; paint it more efficiently!
-                    g2.drawRect(border.x, border.y, border.width, border.height);
+                    drawMinecraftBorderIfNecessary(g2, dimension.getWorld().getBorderSettings());
                 }
+
+                // Switch to world coordinate system
                 final float scale = transformGraphics(g2);
                 final float strokeWidth = 1 / scale;
                 if (drawOverlay && (overlay != null)) {
@@ -743,7 +739,29 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             }
         }
     }
-    
+
+    private void drawMinecraftBorderIfNecessary(Graphics2D g2, World2.BorderSettings borderSettings) {
+        final int size = borderSettings.getSize(), radius = size / 2;
+        final Rectangle border = worldToView(borderSettings.getCentreX() - radius, borderSettings.getCentreY() - radius, size, size);
+        Rectangle clip = g2.getClipBounds();
+        if ((border.x >= clip.x) || (border.y >= clip.y) || ((border.x + border.width) < (clip.x + clip.width)) || ((border.y + border.height) < (clip.y + clip.height))) {
+            g2.setColor(Color.RED);
+            g2.setStroke(new BasicStroke(1, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f, new float[] {3, 3}, 0));
+            if ((border.width < 5000) && (border.height < 5000)) {
+                // If it's small enough performance of drawing it at once is fine
+                g2.drawRect(border.x, border.y, border.width, border.height);
+            } else if (clip.intersects(border)) {
+                // For very large rectangles performance of drawing it as a rect
+                // tanks, so draw each line individually, constraining the
+                // lengths to the clip bounds
+                g2.drawLine(border.x, Math.max(border.y, clip.y), border.x, Math.min(border.y + border.height, clip.y + clip.height));
+                g2.drawLine(Math.max(border.x, clip.x), border.y + border.height, Math.min(border.x + border.width, clip.x + clip.width), border.y + border.height);
+                g2.drawLine(border.x + border.width, Math.min(border.y + border.height, clip.y + clip.height), border.x + border.width, Math.max(border.y, clip.y));
+                g2.drawLine(Math.min(border.x + border.width, clip.x + clip.width), border.y, Math.max(border.x, clip.x), border.y);
+            }
+        }
+    }
+
     /**
      * Repaint an area in world coordinates, plus a few pixels extra to
      * compensate for sloppiness in painting the brush.
@@ -818,7 +836,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     private final CustomBiomeManager customBiomeManager;
     private Dimension dimension;
     private int mouseX, mouseY, radius, effectiveRadius, overlayOffsetX, overlayOffsetY, contourSeparation, brushRotation;
-    private boolean drawRadius, drawOverlay, drawContours, drawViewDistance, drawWalkingDistance, drawMinecraftBorder;
+    private boolean drawRadius, drawOverlay, drawContours, drawViewDistance, drawWalkingDistance, drawMinecraftBorder = true;
     private BrushShape brushShape;
     private float overlayScale = 1.0f;
     private float overlayTransparency = 0.5f;
