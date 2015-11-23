@@ -1,7 +1,7 @@
--- Version 2.1.1, released ...
+-- Version 2.1.1, released 23-11-2015
 
  * WorldPainter now remembers the ten most recently used worlds; you can open them from File -> Recently used Worlds
- * The Minecraft World Border is now displayed in the editor as a red dashed line. By default the border is very far away (thirty million blocks in each direction) and you will never see it, but you can adjust it on the Dimension Properties screen
+ * The Minecraft world border is now displayed in the editor as a red dashed line. By default the border is very far away (thirty million blocks in each direction) and you will never see it, but you can adjust it on the Dimension Properties screen
  * The image on the button of the currently selected brush is now rotated according to the current brush rotation
 
 -- Version 2.1.0, released 22-11-2015
@@ -10,8 +10,8 @@
  * It is now possible to import multiple custom items (layers, terrains and biomes) at once from an existing .world file! Select Edit -> Import -> "Custom items from existing world", select an existing .world file, select the Custom Layers, Custom Terrains and/or Custom Biomes you wish to import from it and hit OK
  * It is now possible to import multiple custom terrains at once from the Edit -> Import -> "Custom Terrain(s) from File(s)..." menu item. They are automatically assigned to the first available free custom terrain slots. If you select more custom terrain files than there are free slots an error will be given
  * The Minecraft world border can now be configured from the Dimension Properties and Export screens, next to where the WorldPainter border is configured. A future update will also show the Minecraft border in the editor
- * The Read Only layer is now always enabled, even for non-imported worlds. This makes it easier to Export a map and then repeatedly Merge changes and additions from the same .world file to the generated map. You can use the Read Only layer in that workflow to mark the areas which have not changes and should not be merged, protecting existing structures and speeding up the Merge
- * When you select Merge for a world created in WorldPainter (and not imported from Minecraft), the warning that it is not an imported world is now only shown the first time. Once you have Merged it once you are no longer bothered with that warning
+ * The Read Only layer is now always enabled, even for non-imported worlds. This makes it easier to Export a map and then repeatedly Merge changes and additions from the same .world file to the generated map. You can use the Read Only layer in that workflow to mark the areas which have not changed and should not be merged, protecting existing structures and speeding up the Merge
+ * When you select Merge for a world created in WorldPainter (instead of imported from Minecraft), the warning that it is not an imported world is now only shown the first time. Once you have Merged it once you are no longer bothered with that warning
  * WorldPainter now remembers with which map a world was last Merged and preselects that map when you select Merge again
  * Bug fix: make the wpscript command work again
  * Bug fix: don't export floating Resources in Void borders
