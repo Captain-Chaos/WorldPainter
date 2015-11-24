@@ -66,7 +66,7 @@ public final class DesktopUtils {
      */
     public static File getDocumentsFolder() {
         if (XDG.XDG_DOCUMENTS_DIR_FILE != null) {
-            // Should covers most Linuxes
+            // Should cover most Linuxes
             return XDG.XDG_DOCUMENTS_DIR_FILE;
         }
         if (SystemUtils.isWindows()) {
