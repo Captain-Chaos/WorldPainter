@@ -15,13 +15,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.pepsoft.worldpainter.tools.scripts;
 
 import org.pepsoft.util.FileUtils;
@@ -35,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static org.pepsoft.minecraft.Constants.*;
+import org.pepsoft.worldpainter.util.MinecraftUtil;
 
 /**
  *
@@ -47,10 +41,16 @@ public class ExportWorldOp extends AbstractOperation<Void> {
             throw new ScriptException("world may not be null");
         }
         this.world = world;
+        File minecraftDir = MinecraftUtil.findMinecraftDir();
+        if (minecraftDir != null) {
+            File savesDir = new File(minecraftDir, "saves");
+            if (savesDir.isDirectory() && savesDir.canWrite()) {
+                directory = savesDir.getAbsolutePath();
+            }
+        }
     }
 
     public ExportWorldOp toDirectory(String directory) {
-        // TODO make optional, default to Minecraft saves dir
         this.directory = directory;
         return this;
     }
