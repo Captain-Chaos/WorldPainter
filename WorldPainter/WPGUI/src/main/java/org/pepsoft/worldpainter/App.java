@@ -1893,9 +1893,6 @@ public final class App extends JFrame implements RadiusControl,
         if ((world.getImportedFrom() == null) && (world.getMergedWith() == null) && (showConfirmDialog(this, strings.getString("this.world.was.not.imported"), strings.getString("not.imported"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
             return;
         }
-        if ((world.getDimensions().length > 1) && (showConfirmDialog(this, strings.getString("merging.the.nether.or.end.is.not.yet.supported"), strings.getString("merging.nether.not.supported"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
-            return;
-        }
         Configuration config = Configuration.getInstance();
         if (((config == null) || (! config.isMergeWarningDisplayed())) && (showConfirmDialog(this, strings.getString("this.is.experimental.and.unfinished.functionality"), strings.getString("experimental.functionality"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
             return;

@@ -275,14 +275,6 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         }
     }
 
-    public int getDimensionToExport() {
-        return dimensionToExport;
-    }
-
-    public void setDimensionToExport(int dimensionToExport) {
-        this.dimensionToExport = dimensionToExport;
-    }
-
     public Set<Point> getTilesToExport() {
         return tilesToExport;
     }
@@ -408,6 +400,19 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
             this.mergedWith = mergedWith;
             dirty = true;
             propertyChangeSupport.firePropertyChange("mergedWith", oldMergedWith, mergedWith);
+        }
+    }
+
+    public Set<Integer> getDimensionsToExport() {
+        return dimensionsToExport;
+    }
+
+    public void setDimensionsToExport(Set<Integer> dimensionsToExport) {
+        if ((dimensionsToExport == null) ? (this.dimensionsToExport != null) : (! dimensionsToExport.equals(this.dimensionsToExport))) {
+            Set<Integer> oldMergedDimensions = this.dimensionsToExport;
+            this.dimensionsToExport = dimensionsToExport;
+            dirty = true;
+            propertyChangeSupport.firePropertyChange("mergedDimensions", oldMergedDimensions, dimensionsToExport);
         }
     }
 
@@ -595,6 +600,14 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         if (wpVersion < 4) {
             borderSettings = new BorderSettings();
         }
+        if (wpVersion < 5) {
+            if (tilesToExport != null) {
+                dimensionsToExport = Collections.singleton(dimensionToExport);
+            } else {
+                dimensionsToExport = null;
+            }
+            dimensionToExport = -1;
+        }
         wpVersion = CURRENT_WP_VERSION;
         
         // Bug fix: fix the maxHeight of the dimensions, which somehow is not
@@ -641,6 +654,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     private Generator generator = Generator.DEFAULT;
     private boolean dontAskToConvertToAnvil = true;
     private boolean customBiomes;
+    @Deprecated
     private int dimensionToExport;
     private Set<Point> tilesToExport;
     private boolean askToRotate, allowMerging = true;
@@ -654,6 +668,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     private List<HistoryEntry> history = new ArrayList<>();
     private BorderSettings borderSettings = new BorderSettings();
     private File mergedWith;
+    private Set<Integer> dimensionsToExport;
     private transient Set<Warning> warnings;
     private transient Map<String, Object> metadata;
 
@@ -702,7 +717,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
      */
     public static final String METADATA_KEY_PLUGINS = "org.pepsoft.worldpainter.plugins";
 
-    private static final int CURRENT_WP_VERSION = 4;
+    private static final int CURRENT_WP_VERSION = 5;
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(World2.class);
     private static final long serialVersionUID = 2011062401L;

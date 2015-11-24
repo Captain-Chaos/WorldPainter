@@ -154,6 +154,31 @@ public class MapImportDialog extends javax.swing.JDialog {
             JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("the.region.folder.contains.no.region.files"), strings.getString("region.files.missing"), JOptionPane.ERROR_MESSAGE);
             return;
         }
+        
+        // Check for Nether and End
+        boolean netherPresent = false, endPresent = false;
+        File netherRegionDir = new File(worldDir, "DIM-1/region");
+        if (netherRegionDir.isDirectory()) {
+            File[] netherRegionFiles = netherRegionDir.listFiles((dir, name) -> {
+                return regionFilePattern.matcher(name).matches();
+            });
+            if ((netherRegionFiles != null) && (netherRegionFiles.length > 0)) {
+                netherPresent = true;
+            }
+        }
+        File endRegionDir = new File(worldDir, "DIM1/region");
+        if (endRegionDir.isDirectory()) {
+            File[] endRegionFiles = endRegionDir.listFiles((dir, name) -> {
+                return regionFilePattern.matcher(name).matches();
+            });
+            if ((endRegionFiles != null) && (endRegionFiles.length > 0)) {
+                endPresent = true;
+            }
+        }
+        checkBoxImportNether.setEnabled(netherPresent);
+        checkBoxImportNether.setSelected(netherPresent);
+        checkBoxImportEnd.setEnabled(endPresent);
+        checkBoxImportEnd.setSelected(endPresent);
 
         mapStatistics = ProgressDialog.executeTask(this, new ProgressTask<MapStatistics>() {
             @Override
@@ -383,7 +408,15 @@ public class MapImportDialog extends javax.swing.JDialog {
                     }
                     int terrainLevel = waterLevel - 4;
                     TileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(0, Terrain.GRASS, maxHeight, terrainLevel, waterLevel, false, true, 20, 1.0);
-                    final MapImporter importer = new MapImporter(tileFactory, levelDatFile, false, chunksToSkip, readOnlyOption);
+                    Set<Integer> dimensionsToImport = new HashSet<>(3);
+                    dimensionsToImport.add(Constants.DIM_NORMAL);
+                    if (checkBoxImportNether.isSelected()) {
+                        dimensionsToImport.add(Constants.DIM_NETHER);
+                    }
+                    if (checkBoxImportEnd.isSelected()) {
+                        dimensionsToImport.add(Constants.DIM_END);
+                    }
+                    final MapImporter importer = new MapImporter(tileFactory, levelDatFile, false, chunksToSkip, readOnlyOption, dimensionsToImport);
                     World2 world = importer.doImport(progressReceiver);
                     if (importer.getWarnings() != null) {
                         try {
@@ -456,6 +489,9 @@ public class MapImportDialog extends javax.swing.JDialog {
         radioButtonReadOnlyManMade = new javax.swing.JRadioButton();
         radioButtonReadOnlyAll = new javax.swing.JRadioButton();
         radioButtonReadOnlyManMadeAboveGround = new javax.swing.JRadioButton();
+        checkBoxImportSurface = new javax.swing.JCheckBox();
+        checkBoxImportNether = new javax.swing.JCheckBox();
+        checkBoxImportEnd = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Import Existing Minecraft Map");
@@ -463,9 +499,13 @@ public class MapImportDialog extends javax.swing.JDialog {
         jLabel1.setText("Select the level.dat file of an existing Minecraft map:");
 
         buttonSelectFile.setText("...");
-        buttonSelectFile.addActionListener(this::buttonSelectFileActionPerformed);
+        buttonSelectFile.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonSelectFileActionPerformed(evt);
+            }
+        });
 
-        jLabel2.setText("Statistics:");
+        jLabel2.setText("Statistics for surface:");
 
         jLabel3.setText("Width:");
 
@@ -495,11 +535,19 @@ public class MapImportDialog extends javax.swing.JDialog {
         labelAreaOutliers.setText("0");
 
         buttonCancel.setText("Cancel");
-        buttonCancel.addActionListener(this::buttonCancelActionPerformed);
+        buttonCancel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonCancelActionPerformed(evt);
+            }
+        });
 
         buttonOK.setText("OK");
         buttonOK.setEnabled(false);
-        buttonOK.addActionListener(this::buttonOKActionPerformed);
+        buttonOK.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonOKActionPerformed(evt);
+            }
+        });
 
         checkBoxImportOutliers.setText("include outlying chunks in import");
 
@@ -517,6 +565,16 @@ public class MapImportDialog extends javax.swing.JDialog {
         buttonGroup1.add(radioButtonReadOnlyManMadeAboveGround);
         radioButtonReadOnlyManMadeAboveGround.setSelected(true);
         radioButtonReadOnlyManMadeAboveGround.setText("<html>mark chunks containing man-made blocks <i>above ground</i> read-only</html>");
+
+        checkBoxImportSurface.setSelected(true);
+        checkBoxImportSurface.setText("Import Surface");
+        checkBoxImportSurface.setEnabled(false);
+
+        checkBoxImportNether.setText("Import Nether");
+        checkBoxImportNether.setEnabled(false);
+
+        checkBoxImportEnd.setText("Import End");
+        checkBoxImportEnd.setEnabled(false);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -551,7 +609,6 @@ public class MapImportDialog extends javax.swing.JDialog {
                                         .addComponent(jLabel3)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(labelWidth))
-                                    .addComponent(jLabel2)
                                     .addGroup(layout.createSequentialGroup()
                                         .addComponent(jLabel7)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -570,10 +627,19 @@ public class MapImportDialog extends javax.swing.JDialog {
                                         .addComponent(labelOutliers3)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(labelLengthWithOutliers))
-                                    .addComponent(labelOutliers1)
                                     .addComponent(checkBoxImportOutliers)))
-                            .addComponent(jLabel5))
-                        .addGap(0, 107, Short.MAX_VALUE)))
+                            .addComponent(jLabel5)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel2)
+                                .addGap(18, 18, 18)
+                                .addComponent(labelOutliers1))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(checkBoxImportSurface)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(checkBoxImportNether)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(checkBoxImportEnd)))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -609,6 +675,11 @@ public class MapImportDialog extends javax.swing.JDialog {
                     .addComponent(labelAreaOutliers))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(checkBoxImportOutliers)
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(checkBoxImportSurface)
+                    .addComponent(checkBoxImportNether)
+                    .addComponent(checkBoxImportEnd))
                 .addGap(18, 18, 18)
                 .addComponent(jLabel5)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -646,7 +717,10 @@ public class MapImportDialog extends javax.swing.JDialog {
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JButton buttonOK;
     private javax.swing.JButton buttonSelectFile;
+    private javax.swing.JCheckBox checkBoxImportEnd;
+    private javax.swing.JCheckBox checkBoxImportNether;
     private javax.swing.JCheckBox checkBoxImportOutliers;
+    private javax.swing.JCheckBox checkBoxImportSurface;
     private javax.swing.JTextField fieldFilename;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;

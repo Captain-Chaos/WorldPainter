@@ -71,7 +71,7 @@ public class MinecraftWorldImpl implements MinecraftWorld {
         this.dimension = dimension;
         this.readOnly = readOnly;
         this.honourReadOnlyChunks = honourReadOnlyChunks;
-        if ((dimension.getWorld().getDimensionToExport() == dimension.getDim()) && (dimension.getWorld().getTilesToExport() != null)) {
+        if ((dimension.getWorld().getTilesToExport() != null) && dimension.getWorld().getDimensionsToExport().contains(dimension.getDim())) {
             lowestX = Integer.MAX_VALUE;
             highestX = Integer.MIN_VALUE;
             lowestZ = Integer.MAX_VALUE;

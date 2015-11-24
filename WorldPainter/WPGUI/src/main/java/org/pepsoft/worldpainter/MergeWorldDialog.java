@@ -35,6 +35,8 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import static org.pepsoft.worldpainter.Constants.*;
@@ -57,7 +59,7 @@ public class MergeWorldDialog extends javax.swing.JDialog implements Listener {
         this.lightOrigin = lightOrigin;
         this.customBiomeManager = customBiomeManager;
         selectedTiles = world.getTilesToExport();
-        selectedDimension = (selectedTiles != null) ? world.getDimensionToExport() : DIM_NORMAL;
+        selectedDimension = (selectedTiles != null) ? world.getDimensionsToExport().iterator().next() : DIM_NORMAL;
         
         initComponents();
 
@@ -80,6 +82,17 @@ public class MergeWorldDialog extends javax.swing.JDialog implements Listener {
         if (selectedTiles != null) {
             radioButtonExportSelection.setText("merge " + selectedTiles.size() + " selected tiles");
             radioButtonExportSelection.setSelected(true);
+            checkBoxSurface.setSelected(selectedDimension == DIM_NORMAL);
+            checkBoxNether.setSelected(selectedDimension == DIM_NETHER);
+            checkBoxEnd.setSelected(selectedDimension == DIM_END);
+        } else if (world.getDimensionsToExport() != null) {
+            checkBoxSurface.setSelected(world.getDimensionsToExport().contains(DIM_NORMAL));
+            checkBoxNether.setSelected(world.getDimensionsToExport().contains(DIM_NETHER));
+            checkBoxEnd.setSelected(world.getDimensionsToExport().contains(DIM_END));
+        } else {
+            checkBoxSurface.setSelected(world.getDimension(DIM_NORMAL) != null);
+            checkBoxNether.setSelected(world.getDimension(DIM_NETHER) != null);
+            checkBoxEnd.setSelected(world.getDimension(DIM_END) != null);
         }
         
         DocumentListener documentListener = new DocumentListener() {
@@ -214,16 +227,36 @@ public class MergeWorldDialog extends javax.swing.JDialog implements Listener {
         spinnerSurfaceThickness.setEnabled(false);
         labelSelectTiles.setForeground(null);
         labelSelectTiles.setCursor(null);
+        checkBoxSurface.setEnabled(false);
+        checkBoxNether.setEnabled(false);
+        checkBoxEnd.setEnabled(false);
 
         Configuration config = Configuration.getInstance();
         config.setSavesDirectory(levelDatFile.getParentFile().getParentFile());
         config.setMergeWarningDisplayed(true);
         world.setImportedFrom(levelDatFile);
         if (radioButtonExportEverything.isSelected()) {
-            world.setDimensionToExport(DIM_NORMAL);
+            Set<Integer> dimensionsToExport = new HashSet<>();
+            if (checkBoxSurface.isSelected()) {
+                dimensionsToExport.add(DIM_NORMAL);
+            }
+            if (checkBoxNether.isSelected()) {
+                dimensionsToExport.add(DIM_NETHER);
+            }
+            if (checkBoxEnd.isSelected()) {
+                dimensionsToExport.add(DIM_END);
+            }
+            boolean allDimensionsSelected = true;
+            for (Dimension dimension: world.getDimensions()) {
+                if (! dimensionsToExport.contains(dimension.getDim())) {
+                    allDimensionsSelected = false;
+                    break;
+                }
+            }
+            world.setDimensionsToExport(allDimensionsSelected ? null : dimensionsToExport);
             world.setTilesToExport(null);
         } else {
-            world.setDimensionToExport(selectedDimension);
+            world.setDimensionsToExport(Collections.singleton(selectedDimension));
             world.setTilesToExport(selectedTiles);
         }
 
@@ -307,6 +340,10 @@ public class MergeWorldDialog extends javax.swing.JDialog implements Listener {
             }
         }
         boolean mergeAll = radioButtonAll.isSelected();
+        boolean mergeEverything = radioButtonExportEverything.isSelected();
+        boolean surfacePresent = world.getDimension(DIM_NORMAL) != null;
+        boolean netherPresent = world.getDimension(DIM_NETHER) != null;
+        boolean endPresent = world.getDimension(DIM_END) != null;
         checkBoxFillCaves.setEnabled(mergeAll);
         checkBoxRemoveManMadeAboveGround.setEnabled(mergeAll);
         checkBoxRemoveManMadeBelowGround.setEnabled(mergeAll);
@@ -314,7 +351,10 @@ public class MergeWorldDialog extends javax.swing.JDialog implements Listener {
         checkBoxRemoveTrees.setEnabled(mergeAll);
         checkBoxRemoveVegetation.setEnabled(mergeAll);
         spinnerSurfaceThickness.setEnabled(mergeAll);
-        buttonMerge.setEnabled(levelDatSelected);
+        checkBoxSurface.setEnabled(mergeEverything && surfacePresent);
+        checkBoxNether.setEnabled(mergeEverything && netherPresent);
+        checkBoxEnd.setEnabled(mergeEverything && endPresent);
+        buttonMerge.setEnabled(levelDatSelected && (checkBoxSurface.isSelected() || checkBoxNether.isSelected() || checkBoxEnd.isSelected()));
         if (radioButtonExportSelection.isSelected()) {
             labelSelectTiles.setForeground(Color.BLUE);
             labelSelectTiles.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -347,6 +387,9 @@ public class MergeWorldDialog extends javax.swing.JDialog implements Listener {
             ExportTileSelectionDialog dialog = new ExportTileSelectionDialog(this, world, selectedDimension, selectedTiles, colourScheme, biomeScheme, customBiomeManager, hiddenLayers, contourLines, contourSeparation, lightOrigin);
             dialog.setVisible(true);
             selectedDimension = dialog.getSelectedDimension();
+            checkBoxSurface.setSelected(selectedDimension == DIM_NORMAL);
+            checkBoxNether.setSelected(selectedDimension == DIM_NETHER);
+            checkBoxEnd.setSelected(selectedDimension == DIM_END);
             selectedTiles = dialog.getSelectedTiles();
             radioButtonExportSelection.setText("merge " + selectedTiles.size() + " selected tiles");
             pack();
@@ -392,6 +435,9 @@ public class MergeWorldDialog extends javax.swing.JDialog implements Listener {
         jLabel8 = new javax.swing.JLabel();
         spinnerSurfaceThickness = new javax.swing.JSpinner();
         jLabel9 = new javax.swing.JLabel();
+        checkBoxSurface = new javax.swing.JCheckBox();
+        checkBoxNether = new javax.swing.JCheckBox();
+        checkBoxEnd = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Merging");
@@ -504,6 +550,27 @@ public class MergeWorldDialog extends javax.swing.JDialog implements Listener {
 
         jLabel9.setText("blocks");
 
+        checkBoxSurface.setText("Surface");
+        checkBoxSurface.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxSurfaceActionPerformed(evt);
+            }
+        });
+
+        checkBoxNether.setText("Nether");
+        checkBoxNether.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxNetherActionPerformed(evt);
+            }
+        });
+
+        checkBoxEnd.setText("End");
+        checkBoxEnd.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxEndActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -557,11 +624,19 @@ public class MergeWorldDialog extends javax.swing.JDialog implements Listener {
                             .addComponent(checkBoxRemoveResources))
                         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel8)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(spinnerSurfaceThickness, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, 0)
-                        .addComponent(jLabel9)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel8)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(spinnerSurfaceThickness, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 0, 0)
+                                .addComponent(jLabel9))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(checkBoxSurface)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(checkBoxNether)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(checkBoxEnd)))
                         .addGap(0, 0, Short.MAX_VALUE))))
         );
         layout.setVerticalGroup(
@@ -580,6 +655,11 @@ public class MergeWorldDialog extends javax.swing.JDialog implements Listener {
                     .addComponent(radioButtonExportEverything)
                     .addComponent(radioButtonExportSelection)
                     .addComponent(labelSelectTiles, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(checkBoxSurface)
+                    .addComponent(checkBoxNether)
+                    .addComponent(checkBoxEnd))
                 .addGap(18, 18, 18)
                 .addComponent(jLabel4)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -658,17 +738,32 @@ public class MergeWorldDialog extends javax.swing.JDialog implements Listener {
         setControlStates();
     }//GEN-LAST:event_radioButtonReplaceChunksActionPerformed
 
+    private void checkBoxSurfaceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxSurfaceActionPerformed
+        setControlStates();
+    }//GEN-LAST:event_checkBoxSurfaceActionPerformed
+
+    private void checkBoxNetherActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxNetherActionPerformed
+        setControlStates();
+    }//GEN-LAST:event_checkBoxNetherActionPerformed
+
+    private void checkBoxEndActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxEndActionPerformed
+        setControlStates();
+    }//GEN-LAST:event_checkBoxEndActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.ButtonGroup buttonGroup2;
     private javax.swing.JButton buttonMerge;
     private javax.swing.JButton buttonSelectDirectory;
+    private javax.swing.JCheckBox checkBoxEnd;
     private javax.swing.JCheckBox checkBoxFillCaves;
+    private javax.swing.JCheckBox checkBoxNether;
     private javax.swing.JCheckBox checkBoxRemoveManMadeAboveGround;
     private javax.swing.JCheckBox checkBoxRemoveManMadeBelowGround;
     private javax.swing.JCheckBox checkBoxRemoveResources;
     private javax.swing.JCheckBox checkBoxRemoveTrees;
     private javax.swing.JCheckBox checkBoxRemoveVegetation;
+    private javax.swing.JCheckBox checkBoxSurface;
     private javax.swing.JTextField fieldLevelDatFile;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;

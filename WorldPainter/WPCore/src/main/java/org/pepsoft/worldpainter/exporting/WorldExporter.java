@@ -47,7 +47,10 @@ public class WorldExporter {
         }
         this.world = world;
         this.selectedTiles = world.getTilesToExport();
-        this.selectedDimension = (selectedTiles != null) ? world.getDimensionToExport() : -1;
+        this.selectedDimensions = world.getDimensionsToExport();
+        if ((selectedTiles != null) && (selectedDimensions.size() != 1)) {
+            throw new IllegalArgumentException("When a tile selection is present exactly one dimension must be selected");
+        }
     }
 
     public World2 getWorld() {
@@ -71,6 +74,9 @@ public class WorldExporter {
         // Sanity checks
         if ((world.getVersion() != SUPPORTED_VERSION_1) && (world.getVersion() != SUPPORTED_VERSION_2)) {
             throw new IllegalArgumentException("Not a supported version: 0x" + Integer.toHexString(world.getVersion()));
+        }
+        if ((selectedTiles == null) && (selectedDimensions != null)) {
+            throw new IllegalArgumentException("Exporting a subset of dimensions not supported");
         }
         
         // Backup existing level
@@ -130,7 +136,9 @@ public class WorldExporter {
         // instances which may have the map open:
         level.save(worldDir);
         Map<Integer, ChunkFactory.Stats> stats = new HashMap<>();
-        if (selectedDimension == -1) {
+        int selectedDimension;
+        if (selectedTiles == null) {
+            selectedDimension = -1;
             boolean first = true;
             for (Dimension dimension: world.getDimensions()) {
                 if (dimension.getDim() < 0) {
@@ -146,6 +154,7 @@ public class WorldExporter {
                 stats.put(dimension.getDim(), exportDimension(worldDir, dimension, world.getVersion(), progressReceiver));
             }
         } else {
+            selectedDimension = selectedDimensions.iterator().next();
             stats.put(selectedDimension, exportDimension(worldDir, world.getDimension(selectedDimension), world.getVersion(), progressReceiver));
         }
         
@@ -157,7 +166,7 @@ public class WorldExporter {
         }
 
         // Record the export in the world history
-        if (selectedDimension == -1) {
+        if (selectedTiles == null) {
             world.addHistoryEntry(HistoryEntry.WORLD_EXPORTED_FULL, name, worldDir);
         } else {
             world.addHistoryEntry(HistoryEntry.WORLD_EXPORTED_PARTIAL, name, worldDir, world.getDimension(selectedDimension).getName());
@@ -620,7 +629,8 @@ public class WorldExporter {
             final boolean tileSelection = selectedTiles != null;
             if (tileSelection) {
                 // Sanity check
-                assert selectedDimension == dimension.getDim();
+                assert selectedDimensions.size() == 1;
+                assert selectedDimensions.contains(dimension.getDim());
                 for (Point tile: selectedTiles) {
                     int regionX = tile.x >> 2;
                     int regionZ = tile.y >> 2;
@@ -978,7 +988,7 @@ public class WorldExporter {
     }
     
     protected final World2 world;
-    protected final int selectedDimension;
+    protected final Set<Integer> selectedDimensions;
     protected final Set<Point> selectedTiles;
     protected final Semaphore performingFixups = new Semaphore(1);
 

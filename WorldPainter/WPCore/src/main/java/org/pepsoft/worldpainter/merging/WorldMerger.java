@@ -29,6 +29,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static org.pepsoft.minecraft.Block.BLOCKS;
 import static org.pepsoft.minecraft.Constants.*;
@@ -186,9 +187,10 @@ public class WorldMerger extends WorldExporter {
         }
         
         // Dimension sanity checks
-        Dimension dimension = world.getDimension(0);
-        if (existingMaxHeight != dimension.getMaxHeight()) {
-            throw new IllegalArgumentException("Dimension " + dimension.getDim() + " has different max height (" + dimension.getMaxHeight() + ") than existing level (" + existingMaxHeight + ")");
+        for (Dimension dimension: world.getDimensions()) {
+            if (existingMaxHeight != dimension.getMaxHeight()) {
+                throw new IllegalArgumentException("Dimension " + dimension.getDim() + " has different max height (" + dimension.getMaxHeight() + ") than existing level (" + existingMaxHeight + ")");
+            }
         }
         File worldDir = levelDatFile.getParentFile();
         
@@ -209,26 +211,30 @@ public class WorldMerger extends WorldExporter {
         world.setVersion(version);
         
         // Modify it if necessary and write it to the the new level
-        level.setSeed(dimension.getMinecraftSeed());
-        Point spawnPoint = world.getSpawnPoint();
-        level.setSpawnX(spawnPoint.x);
-        level.setSpawnY(Math.max(dimension.getIntHeightAt(spawnPoint), dimension.getWaterLevelAt(spawnPoint)));
-        level.setSpawnZ(spawnPoint.y);
-
+        if ((selectedDimensions == null) || selectedDimensions.contains(DIM_NORMAL)) {
+            Dimension surfaceDimension = world.getDimension(DIM_NORMAL);
+            level.setSeed(surfaceDimension.getMinecraftSeed());
+            Point spawnPoint = world.getSpawnPoint();
+            level.setSpawnX(spawnPoint.x);
+            level.setSpawnY(Math.max(surfaceDimension.getIntHeightAt(spawnPoint), surfaceDimension.getWaterLevelAt(spawnPoint)));
+            level.setSpawnZ(spawnPoint.y);
+        }
+ 
         // Save the level.dat file. This will also create a session.lock file, hopefully kicking out any Minecraft
         // instances which may have the map open:
         level.save(worldDir);
 
-        // Copy everything that we are not going to generate (this includes the
-        // Nether and End dimensions)
+        // Copy everything that we are not going to generate
         File[] files = backupDir.listFiles();
         for (File file: files) {
             if ((! file.getName().equalsIgnoreCase("level.dat"))
                     && (! file.getName().equalsIgnoreCase("level.dat_old"))
                     && (! file.getName().equalsIgnoreCase("session.lock"))
-                    && (! file.getName().equalsIgnoreCase("region"))
+                    && (((selectedDimensions != null) && (! selectedDimensions.contains(DIM_NORMAL))) || (! file.getName().equalsIgnoreCase("region")))
                     && (! file.getName().equalsIgnoreCase("maxheight.txt"))
-                    && (! file.getName().equalsIgnoreCase("Height.txt"))) {
+                    && (! file.getName().equalsIgnoreCase("Height.txt"))
+                    && (((selectedDimensions != null) && (! selectedDimensions.contains(DIM_NETHER))) || (! file.getName().equalsIgnoreCase("DIM-1")))
+                    && (((selectedDimensions != null) && (! selectedDimensions.contains(DIM_END))) || (! file.getName().equalsIgnoreCase("DIM1")))) {
                 if (file.isFile()) {
                     FileUtils.copyFileToDir(file, worldDir);
                 } else if (file.isDirectory()) {
@@ -239,7 +245,15 @@ public class WorldMerger extends WorldExporter {
             }
         }
 
-        mergeDimension(worldDir, backupDir, dimension, version, progressReceiver);
+        if ((selectedDimensions == null) ? (world.getDimension(DIM_NORMAL) != null) : selectedDimensions.contains(DIM_NORMAL)) {
+            mergeDimension(worldDir, backupDir, world.getDimension(DIM_NORMAL), version, progressReceiver);
+        }
+        if ((selectedDimensions == null) ? (world.getDimension(DIM_NETHER) != null) : selectedDimensions.contains(DIM_NETHER)) {
+            mergeDimension(worldDir, backupDir, world.getDimension(DIM_NETHER), version, progressReceiver);
+        }
+        if ((selectedDimensions == null) ? (world.getDimension(DIM_END) != null) : selectedDimensions.contains(DIM_END)) {
+            mergeDimension(worldDir, backupDir, world.getDimension(DIM_END), version, progressReceiver);
+        }
 
         // Update the session.lock file, hopefully kicking out any Minecraft instances which may have tried to open the
         // map in the mean time:
@@ -249,10 +263,22 @@ public class WorldMerger extends WorldExporter {
         }
 
         // Record the merge in the world history
-        if (selectedTiles == null) {
+        if (selectedDimensions == null) {
             world.addHistoryEntry(HistoryEntry.WORLD_MERGED_FULL, level.getName(), worldDir);
         } else {
-            world.addHistoryEntry(HistoryEntry.WORLD_MERGED_PARTIAL, level.getName(), worldDir, dimension.getName());
+            String dimNames = selectedDimensions.stream().map(dim -> {
+                    switch (dim) {
+                        case DIM_NORMAL:
+                            return "Surface";
+                        case DIM_NETHER:
+                            return "Nether";
+                        case DIM_END:
+                            return "End";
+                        default:
+                            return Integer.toString(dim);
+                    }
+                }).collect(Collectors.joining(", "));
+            world.addHistoryEntry(HistoryEntry.WORLD_MERGED_PARTIAL, level.getName(), worldDir, dimNames);
         }
         if (! levelDatFile.equals(world.getMergedWith())) {
             world.setMergedWith(levelDatFile);
@@ -272,9 +298,11 @@ public class WorldMerger extends WorldExporter {
             if ((world.getVersion() == SUPPORTED_VERSION_2) && (world.getGenerator() == Generator.FLAT)) {
                 event.setAttribute(ATTRIBUTE_KEY_GENERATOR_OPTIONS, world.getGeneratorOptions());
             }
-            dimension = world.getDimension(0);
-            event.setAttribute(ATTRIBUTE_KEY_TILES, dimension.getTiles().size());
-            logLayers(dimension, event, "");
+            if ((selectedDimensions == null) || selectedDimensions.contains(DIM_NORMAL)) {
+                Dimension surfaceDimension = world.getDimension(0);
+                event.setAttribute(ATTRIBUTE_KEY_TILES, surfaceDimension.getTiles().size());
+                logLayers(surfaceDimension, event, "");
+            }
             if (world.getImportedFrom() == null) {
                 event.setAttribute(ATTRIBUTE_KEY_IMPORTED_WORLD, false);
             }
@@ -356,7 +384,8 @@ public class WorldMerger extends WorldExporter {
             final boolean tileSelection = selectedTiles != null;
             if (tileSelection) {
                 // Sanity check
-                assert selectedDimension == dimension.getDim();
+                assert selectedDimensions.size() == 1;
+                assert selectedDimensions.contains(dimension.getDim());
                 for (Point tileCoords: selectedTiles) {
                     Tile tile = dimension.getTile(tileCoords);
                     boolean nonReadOnlyChunksFound = false;

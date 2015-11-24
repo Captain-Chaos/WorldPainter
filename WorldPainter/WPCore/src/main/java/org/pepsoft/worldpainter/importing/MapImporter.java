@@ -16,6 +16,7 @@ import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.exporters.FrostExporter.FrostSettings;
 import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter.ResourcesExporterSettings;
+import org.pepsoft.worldpainter.themes.SimpleTheme;
 import org.pepsoft.worldpainter.vo.EventVO;
 
 import java.awt.*;
@@ -33,8 +34,8 @@ import static org.pepsoft.worldpainter.Constants.*;
  * @author pepijn
  */
 public class MapImporter {
-    public MapImporter(TileFactory tileFactory, File levelDatFile, boolean populateNewChunks, Set<Point> chunksToSkip, ReadOnlyOption readOnlyOption) {
-        if ((tileFactory == null) || (levelDatFile == null) || (readOnlyOption == null)) {
+    public MapImporter(TileFactory tileFactory, File levelDatFile, boolean populateNewChunks, Set<Point> chunksToSkip, ReadOnlyOption readOnlyOption, Set<Integer> dimensionsToImport) {
+        if ((tileFactory == null) || (levelDatFile == null) || (readOnlyOption == null) || (dimensionsToImport == null)) {
             throw new NullPointerException();
         }
         if (! levelDatFile.isFile()) {
@@ -45,6 +46,7 @@ public class MapImporter {
         this.populateNewChunks = populateNewChunks;
         this.chunksToSkip = chunksToSkip;
         this.readOnlyOption = readOnlyOption;
+        this.dimensionsToImport = dimensionsToImport;
     }
     
     public World2 doImport() throws IOException {
@@ -97,15 +99,15 @@ public class MapImporter {
         }
         File worldDir = levelDatFile.getParentFile();
         File regionDir = new File(worldDir, "region");
-//        File netherDir = new File(worldDir, "DIM-1");
-//        File endDir = new File(worldDir, "DIM1");
+        File netherDir = new File(worldDir, "DIM-1/region");
+        File endDir = new File(worldDir, "DIM1/region");
         int dimCount = 1;
-//        if (netherDir.isDirectory()) {
-//            dimCount++;
-//        }
-//        if (endDir.isDirectory()) {
-//            dimCount++;
-//        }
+        if (netherDir.isDirectory() && dimensionsToImport.contains(DIM_NETHER)) {
+            dimCount++;
+        }
+        if (endDir.isDirectory() && dimensionsToImport.contains(DIM_END)) {
+            dimCount++;
+        }
         long minecraftSeed = level.getSeed();
         tileFactory.setSeed(minecraftSeed);
         Dimension dimension = new Dimension(minecraftSeed, tileFactory, DIM_NORMAL, maxHeight);
@@ -141,57 +143,62 @@ public class MapImporter {
             dimension.setEventsInhibited(false);
         }
         world.addDimension(dimension);
-//        int dimNo = 1;
-//        if (netherDir.isDirectory()) {
-//            regionDir = new File(netherDir, "region");
-//            HeightMapTileFactory netherTileFactory = TileFactoryFactory.createFlatTileFactory(minecraftSeed, Terrain.NETHERLIKE, maxHeight, 127, 32, true, false);
-//            SimpleTheme theme = (SimpleTheme) netherTileFactory.getTheme();
-//            theme.getTerrainRanges().clear();
-//            theme.getTerrainRanges().put(-1, Terrain.NETHERLIKE);
-//            dimension = new Dimension(minecraftSeed + 1, netherTileFactory, DIM_NETHER, maxHeight);
-//            dimension.setEventsInhibited(true);
-//            try {
-//                CavernsExporter.CavernsSettings cavernsSettings = new CavernsExporter.CavernsSettings();
-//                cavernsSettings.setCavernsEverywhereLevel(15);
-//                cavernsSettings.setFloodWithLava(true);
-//                cavernsSettings.setSurfaceBreaking(true);
-//                cavernsSettings.setWaterLevel(32);
-//                dimension.setLayerSettings(Caverns.INSTANCE, cavernsSettings);
-//                String dimWarnings = importDimension(regionDir, dimension, version, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) dimNo++ / dimCount, 1.0f / dimCount) : null);
-//                if (dimWarnings != null) {
-//                    if (warnings == null) {
-//                        warnings = dimWarnings;
-//                    } else {
-//                        warnings = warnings + dimWarnings;
-//                    }
-//                }
-//            } finally {
-//                dimension.setEventsInhibited(false);
-//            }
-//            world.addDimension(dimension);
-//        }
-//        if (endDir.isDirectory()) {
-//            regionDir = new File(endDir, "region");
-//            HeightMapTileFactory endTileFactory = TileFactoryFactory.createNoiseTileFactory(minecraftSeed, Terrain.END_STONE, maxHeight, 32, 0, false, false, 20f, 1.0);
-//            SimpleTheme theme = (SimpleTheme) endTileFactory.getTheme();
-//            theme.getTerrainRanges().clear();
-//            theme.getTerrainRanges().put(-1, Terrain.END_STONE);
-//            dimension = new Dimension(minecraftSeed + 2, endTileFactory, DIM_END, maxHeight);
-//            dimension.setEventsInhibited(true);
-//            try {
-//                String dimWarnings = importDimension(regionDir, dimension, version, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) dimNo / dimCount, 1.0f / dimCount) : null);
-//                if (dimWarnings != null) {
-//                    if (warnings == null) {
-//                        warnings = dimWarnings;
-//                    } else {
-//                        warnings = warnings + dimWarnings;
-//                    }
-//                }
-//            } finally {
-//                dimension.setEventsInhibited(false);
-//            }
-//            world.addDimension(dimension);
-//        }
+        int dimNo = 1;
+        if (netherDir.isDirectory() && dimensionsToImport.contains(DIM_NETHER)) {
+            HeightMapTileFactory netherTileFactory = TileFactoryFactory.createNoiseTileFactory(minecraftSeed + 1, Terrain.NETHERRACK, maxHeight, 188, 192, true, false, 20f, 1.0);
+            SimpleTheme theme = (SimpleTheme) netherTileFactory.getTheme();
+            SortedMap<Integer, Terrain> terrainRanges = theme.getTerrainRanges();
+            terrainRanges.clear();
+            terrainRanges.put(-1, Terrain.NETHERRACK);
+            theme.setTerrainRanges(terrainRanges);
+            theme.setLayerMap(Collections.emptyMap());
+            dimension = new Dimension(minecraftSeed + 1, netherTileFactory, DIM_NETHER, maxHeight);
+            dimension.setEventsInhibited(true);
+            try {
+                dimension.setSubsurfaceMaterial(Terrain.NETHERRACK);
+                ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) dimension.getLayerSettings(Resources.INSTANCE);
+                resourcesSettings.setMinimumLevel(0);
+                if (version == SUPPORTED_VERSION_1) {
+                    resourcesSettings.setChance(BLK_QUARTZ_ORE, 0);
+                }
+                String dimWarnings = importDimension(netherDir, dimension, version, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) dimNo++ / dimCount, 1.0f / dimCount) : null);
+                if (dimWarnings != null) {
+                    if (warnings == null) {
+                        warnings = dimWarnings;
+                    } else {
+                        warnings = warnings + dimWarnings;
+                    }
+                }
+            } finally {
+                dimension.setEventsInhibited(false);
+            }
+            world.addDimension(dimension);
+        }
+        if (endDir.isDirectory() && dimensionsToImport.contains(DIM_END)) {
+            HeightMapTileFactory endTileFactory = TileFactoryFactory.createNoiseTileFactory(minecraftSeed + 2, Terrain.END_STONE, maxHeight, 32, 0, false, false, 20f, 1.0);
+            SimpleTheme theme = (SimpleTheme) endTileFactory.getTheme();
+            SortedMap<Integer, Terrain> terrainRanges = theme.getTerrainRanges();
+            terrainRanges.clear();
+            terrainRanges.put(-1, Terrain.END_STONE);
+            theme.setTerrainRanges(terrainRanges);
+            theme.setLayerMap(Collections.emptyMap());
+            dimension = new Dimension(minecraftSeed + 2, endTileFactory, DIM_END, maxHeight);
+            dimension.setEventsInhibited(true);
+            try {
+                dimension.setSubsurfaceMaterial(Terrain.END_STONE);
+                String dimWarnings = importDimension(endDir, dimension, version, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) dimNo / dimCount, 1.0f / dimCount) : null);
+                if (dimWarnings != null) {
+                    if (warnings == null) {
+                        warnings = dimWarnings;
+                    } else {
+                        warnings = warnings + dimWarnings;
+                    }
+                }
+            } finally {
+                dimension.setEventsInhibited(false);
+            }
+            world.addDimension(dimension);
+        }
         
         // Log an event
         Configuration config = Configuration.getInstance();
@@ -430,6 +437,7 @@ public class MapImporter {
     private final boolean populateNewChunks;
     private final Set<Point> chunksToSkip;
     private final ReadOnlyOption readOnlyOption;
+    private final Set<Integer> dimensionsToImport;
     private String warnings;
     
     public static final Map<Integer, Terrain> TERRAIN_MAPPING = new HashMap<>();

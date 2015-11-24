@@ -183,7 +183,11 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
                 chances.put(BLK_DIRT,             0);
                 chances.put(BLK_GRAVEL,           0);
                 chances.put(BLK_EMERALD_ORE,      0);
-                chances.put(BLK_QUARTZ_ORE,       6);
+                if (maxHeight != DEFAULT_MAX_HEIGHT_2) {
+                    chances.put(BLK_QUARTZ_ORE,       0);
+                } else {
+                    chances.put(BLK_QUARTZ_ORE,       6);
+                }
             } else {
                 chances.put(BLK_GOLD_ORE,          1);
                 chances.put(BLK_IRON_ORE,          6);

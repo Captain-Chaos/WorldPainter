@@ -18,6 +18,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 
 import javax.swing.AbstractAction;
@@ -50,7 +51,7 @@ public class ExportWorldDialog extends javax.swing.JDialog {
         super(parent, true);
         this.world = world;
         selectedTiles = world.getTilesToExport();
-        selectedDimension = (selectedTiles != null) ? world.getDimensionToExport() : DIM_NORMAL;
+        selectedDimension = (selectedTiles != null) ? world.getDimensionsToExport().iterator().next() : DIM_NORMAL;
         generatorOptions = world.getGeneratorOptions();
         this.biomeScheme = biomeScheme;
         this.colourScheme = colourScheme;
@@ -310,10 +311,10 @@ public class ExportWorldDialog extends javax.swing.JDialog {
         }
         world.setVersion(version);
         if (radioButtonExportEverything.isSelected()) {
-            world.setDimensionToExport(DIM_NORMAL);
+            world.setDimensionsToExport(null);
             world.setTilesToExport(null);
         } else {
-            world.setDimensionToExport(selectedDimension);
+            world.setDimensionsToExport(Collections.singleton(selectedDimension));
             world.setTilesToExport(selectedTiles);
         }
         world.setMapFeatures(checkBoxMapFeatures.isSelected());

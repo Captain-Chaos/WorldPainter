@@ -76,9 +76,9 @@ public class HistoryEntry implements Serializable {
     public static final int WORLD_LOADED                         =  7; // arg 0: file as File
     public static final int WORLD_SAVED                          =  8; // arg 0: file as File
     public static final int WORLD_EXPORTED_FULL                  =  9; // arg 0: level name as String, arg 1: directory as File
-    public static final int WORLD_EXPORTED_PARTIAL               = 10; // arg 0: level name as String, arg 1: directory as File, arg 2: name of dimension as String
+    public static final int WORLD_EXPORTED_PARTIAL               = 10; // arg 0: level name as String, arg 1: directory as File, arg 2: name(s) of dimension(s) as String
     public static final int WORLD_MERGED_FULL                    = 11; // arg 0: level name as String, arg 1: directory as File
-    public static final int WORLD_MERGED_PARTIAL                 = 12; // arg 0: level name as String, arg 1: directory as File, arg 2: name of dimension as String
+    public static final int WORLD_MERGED_PARTIAL                 = 12; // arg 0: level name as String, arg 1: directory as File, arg 2: name(s) of dimension(s) as String
     public static final int WORLD_DIMENSION_ADDED                = 13; // arg 0: name of dimension as String
     public static final int WORLD_DIMENSION_REMOVED              = 14; // arg 0: name of dimension as String
     public static final int WORLD_TILES_ADDED                    = 15; // arg 0: name of dimension as String, arg 1: number of tiles added as Integer
