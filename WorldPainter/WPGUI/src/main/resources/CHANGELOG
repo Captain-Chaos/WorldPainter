@@ -1,3 +1,12 @@
+-- Version 2.1.2, released 24-11-2015
+
+ * It is now possible to Import and Merge the Nether and End dimensions!
+   + The Import Minecraft Map screen now has checkboxes, checked by default but only enabled for the dimensions the selected map actually has, indicating whether you want to import the Nether and/or End dimensions. You must always import the Surface dimension
+   + Similarly the Merge screen now has checkboxes indicating which dimensions you want to Merge, also enabled only for the dimensions actually present. Here you are allowed to skip merging the Surface dimension
+   + Any dimensions you chose not to Merge are copied unchanged from the existing map
+   + WorldPainter remembers which dimension(s) you chose to Merge the previous time, in the .world file
+   + If you make a tile selection on the Merge screen you can only merge that dimension
+
 -- Version 2.1.1, released 23-11-2015
 
  * WorldPainter now remembers the ten most recently used worlds; you can open them from File -> Recently used Worlds
