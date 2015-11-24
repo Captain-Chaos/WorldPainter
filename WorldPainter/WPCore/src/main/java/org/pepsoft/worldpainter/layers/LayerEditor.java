@@ -20,10 +20,10 @@ import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
  */
 public interface LayerEditor<L extends Layer> {
     /**
-     * Get the actual layer editor component. Should be backed by the
-     * <code>JavaEditor</code>, in other words it should be possible to reuse
-     * the instance by invoking the other methods on the <code>JavaEditor</code>
-     * to set a layer, etc.
+     * Get the actual layer editor component. Must be a singleton which is
+     * backed by this <code>LayerEditor</code>, in other words it should be
+     * possible to reuse the instance by invoking the other methods on the
+     * <code>LayerEditor</code> to set a layer, etc.
      * 
      * @return The actual layer editor component.
      */
@@ -89,7 +89,8 @@ public interface LayerEditor<L extends Layer> {
     
     /**
      * Set the context from which the layer editor must obtains its context
-     * information and to which it must report events.
+     * information and to which it must report events. This will be invoked with
+     * a suitable context before any of the other methods are invoked.
      *
      * @param context The context to set.
      */
@@ -99,7 +100,7 @@ public interface LayerEditor<L extends Layer> {
      * A context from which the layer editor may obtain context information and
      * to which it may report events.
      */
-    public interface LayerEditorContext {
+    interface LayerEditorContext {
         /**
          * Get the current colour scheme.
          * 
@@ -108,7 +109,10 @@ public interface LayerEditor<L extends Layer> {
         ColourScheme getColourScheme();
 
         /**
-         * Indicates whether to support extended (12-bit) block IDs.
+         * Indicates whether to support extended (12-bit) block IDs. If the
+         * layer editor supports selecting block IDs anywhere and this returns
+         * <code>true</code> then it should allow selection of IDs up to and
+         * including 4095.
          * 
          * @return <code>true</code> if extended block IDs must be supported.
          */
