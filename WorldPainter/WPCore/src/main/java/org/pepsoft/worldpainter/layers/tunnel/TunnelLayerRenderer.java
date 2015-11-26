@@ -36,7 +36,7 @@ public class TunnelLayerRenderer extends TransparentColourRenderer implements Di
                     throw new InternalError();
             }
         } else {
-            return super.getPixelColour(x, y, underlyingColour, value);
+            return super.getPixelColour(x, y, underlyingColour, true);
         }
     }
 
@@ -61,6 +61,9 @@ public class TunnelLayerRenderer extends TransparentColourRenderer implements Di
             default:
                 throw new InternalError();
         }
+        if (floorLevel >= terrainHeight) {
+            return Effect.NONE;
+        }
         final int roofLevel;
         switch (layer.getRoofMode()) {
             case CONSTANT_DEPTH:
@@ -75,7 +78,7 @@ public class TunnelLayerRenderer extends TransparentColourRenderer implements Di
             default:
                 throw new InternalError();
         }
-        if ((floorLevel >= roofLevel) || (floorLevel >= terrainHeight)) {
+        if (floorLevel >= roofLevel) {
             return Effect.NONE;
         } else if (terrainHeight <= roofLevel) {
             return Effect.BREAKS_SURFACE;

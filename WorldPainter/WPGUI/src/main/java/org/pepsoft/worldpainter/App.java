@@ -2445,8 +2445,9 @@ public final class App extends JFrame implements RadiusControl,
 
         JPanel colourGrid = new JPanel(new GridLayout(0, 4));
         for (int i = 1; i < 16; i++) {
-            final int selectedColour = i;
-            JToggleButton button = new JToggleButton(createColourIcon(defaultColourScheme.getColour(BLK_WOOL, i - ((i < 8) ? 1 : 0))));
+            final int selectedColour = i, dataValue = i - ((i < 8) ? 1 : 0);
+            JToggleButton button = new JToggleButton(IconUtils.createColourIcon(defaultColourScheme.getColour(BLK_WOOL, dataValue)));
+            button.setToolTipText(COLOUR_NAMES[dataValue]);
             button.setMargin(new Insets(2, 2, 2, 2));
             if (i == 1) {
                 button.setSelected(true);
@@ -4949,16 +4950,6 @@ public final class App extends JFrame implements RadiusControl,
         if (sb.length() > 0) {
             event.setAttribute(new AttributeKeyVO<>(prefix + "layers"), sb.toString());
         }
-    }
-
-    private Icon createColourIcon(int colour) {
-        BufferedImage image = new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB);
-        for (int x = 0; x < 16; x++) {
-            for (int y = 0; y < 16; y++) {
-                image.setRGB(x, y, colour);
-            }
-        }
-        return new ImageIcon(image);
     }
 
     private void importCustomItemsFromWorld() {

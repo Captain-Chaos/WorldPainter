@@ -367,6 +367,9 @@ public final class Constants {
     public static final int DATA_RED        = 14;
     public static final int DATA_BLACK      = 15;
 
+    public static final String[] COLOUR_NAMES = {"White", "Orange", "Magenta", "Light Blue", "Yellow", "Lime", "Pink",
+        "Grey", "Light Grey", "Cyan", "Purple", "Blue", "Brown", "Green", "Red", "Black"};
+
     public static final int DATA_STONE_STONE             = 0;
     public static final int DATA_STONE_GRANITE           = 1;
     public static final int DATA_STONE_GRANITE_POLISHED  = 2;

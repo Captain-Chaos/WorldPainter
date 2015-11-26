@@ -4,30 +4,22 @@
  */
 package org.pepsoft.worldpainter.panels;
 
-import java.awt.event.ActionEvent;
-import java.util.*;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.InputMap;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
-import javax.swing.JSpinner.NumberEditor;
-import javax.swing.SpinnerNumberModel;
-
+import org.pepsoft.minecraft.Constants;
+import org.pepsoft.util.IconUtils;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.biomeschemes.AutoBiomeScheme;
 import org.pepsoft.worldpainter.biomeschemes.BiomeHelper;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiome;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
-import org.pepsoft.worldpainter.layers.Biome;
-import org.pepsoft.worldpainter.layers.CustomLayer;
-import org.pepsoft.worldpainter.layers.Layer;
-import org.pepsoft.worldpainter.layers.LayerManager;
+import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.operations.Filter;
 import org.pepsoft.worldpainter.panels.FilterImpl.LevelType;
+
+import javax.swing.*;
+import javax.swing.JSpinner.NumberEditor;
+import java.awt.event.ActionEvent;
+import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -89,7 +81,7 @@ public class BrushOptions extends javax.swing.JPanel {
             if (myFilter.onlyOnObjectType != null) {
                 switch (myFilter.onlyOnObjectType) {
                     case BIOME:
-                        int biome = myFilter.onlyOnBiome;
+                        int biome = myFilter.onlyOnValue;
                         BiomeHelper biomeHelper = new BiomeHelper(autoBiomeScheme, app.getColourScheme(), app.getCustomBiomeManager());
                         onlyOn = biome;
                         buttonReplace.setText(biomeHelper.getBiomeName(biome));
@@ -119,12 +111,23 @@ public class BrushOptions extends javax.swing.JPanel {
                         buttonReplace.setText("Land");
                         buttonReplace.setIcon(null);
                         break;
+                    case ANNOTATION:
+                        int selectedColour = myFilter.onlyOnValue, dataValue = selectedColour - ((selectedColour < 8) ? 1 : 0);
+                        onlyOn = new FilterImpl.LayerValue(Annotations.INSTANCE, selectedColour);
+                        buttonReplace.setText(Constants.COLOUR_NAMES[dataValue] + " Annotations");
+                        buttonReplace.setIcon(IconUtils.createColourIcon(app.getColourScheme().getColour(Constants.BLK_WOOL, dataValue)));
+                        break;
+                    case ANNOTATION_ANY:
+                        onlyOn = new FilterImpl.LayerValue(Annotations.INSTANCE);
+                        buttonReplace.setText("All Annotations");
+                        buttonReplace.setIcon(null);
+                        break;
                 }
             }
             if (myFilter.exceptOnObjectType != null) {
                 switch (myFilter.exceptOnObjectType) {
                     case BIOME:
-                        int biome = myFilter.exceptOnBiome;
+                        int biome = myFilter.exceptOnValue;
                         BiomeHelper biomeHelper = new BiomeHelper(autoBiomeScheme, app.getColourScheme(), app.getCustomBiomeManager());
                         exceptOn = biome;
                         buttonExceptOn.setText(biomeHelper.getBiomeName(biome));
@@ -152,6 +155,17 @@ public class BrushOptions extends javax.swing.JPanel {
                     case LAND:
                         exceptOn = FilterImpl.LAND;
                         buttonExceptOn.setText("Land");
+                        buttonExceptOn.setIcon(null);
+                        break;
+                    case ANNOTATION:
+                        int selectedColour = myFilter.exceptOnValue, dataValue = selectedColour - ((selectedColour < 8) ? 1 : 0);
+                        exceptOn = new FilterImpl.LayerValue(Annotations.INSTANCE, selectedColour);
+                        buttonExceptOn.setText(Constants.COLOUR_NAMES[dataValue] + " Annotations");
+                        buttonExceptOn.setIcon(IconUtils.createColourIcon(app.getColourScheme().getColour(Constants.BLK_WOOL, dataValue)));
+                        break;
+                    case ANNOTATION_ANY:
+                        exceptOn = new FilterImpl.LayerValue(Annotations.INSTANCE, myFilter.exceptOnValue);
+                        buttonExceptOn.setText("All Annotations");
                         buttonExceptOn.setIcon(null);
                         break;
                 }
@@ -276,9 +290,7 @@ public class BrushOptions extends javax.swing.JPanel {
                         paletteMenu.add(menuItem);
                     });
                     return paletteMenu;
-                }).forEach((paletteMenu) -> {
-                    layerMenu.add(paletteMenu);
-                });
+                }).forEach(layerMenu::add);
         } else {
             customLayers.forEach(l -> {
                 JMenuItem menuItem = new JMenuItem(l.getName(), new ImageIcon(l.getIcon()));
@@ -287,7 +299,7 @@ public class BrushOptions extends javax.swing.JPanel {
             });
         }
         popupMenu.add(layerMenu);
-        
+
         final JMenu biomeMenu = new JMenu("Biome");
         final CustomBiomeManager customBiomeManager = app.getCustomBiomeManager();
         final BiomeHelper biomeHelper = new BiomeHelper(autoBiomeScheme, colourScheme, customBiomeManager);
@@ -299,7 +311,7 @@ public class BrushOptions extends javax.swing.JPanel {
                 final String name = biomeHelper.getBiomeName(selectedBiome) + " (" + selectedBiome + ")";
                 final Icon icon = biomeHelper.getBiomeIcon(selectedBiome);
                 final JMenuItem menuItem = new JMenuItem(name, icon);
-                menuItem.addActionListener(e -> listener.objectSelected(selectedBiome, name, icon));
+                menuItem.addActionListener(e -> listener.objectSelected(new FilterImpl.LayerValue(Biome.INSTANCE, selectedBiome), name, icon));
                 customBiomeMenu.add(menuItem);
             }
             biomeMenu.add(customBiomeMenu);
@@ -310,7 +322,7 @@ public class BrushOptions extends javax.swing.JPanel {
                 final String name = biomeHelper.getBiomeName(i) + " (" + selectedBiome + ")";
                 final Icon icon = biomeHelper.getBiomeIcon(i);
                 final JMenuItem menuItem = new JMenuItem(name, icon);
-                menuItem.addActionListener(e -> listener.objectSelected(selectedBiome, name, icon));
+                menuItem.addActionListener(e -> listener.objectSelected(new FilterImpl.LayerValue(Biome.INSTANCE, selectedBiome), name, icon));
                 biomeMenu.add(menuItem);
             }
         }
@@ -323,7 +335,7 @@ public class BrushOptions extends javax.swing.JPanel {
             final String name = biomeHelper.getBiomeName(autoBiome);
             final Icon icon = biomeHelper.getBiomeIcon(autoBiome);
             final JMenuItem menuItem = new JMenuItem(name, icon);
-            menuItem.addActionListener(e -> listener.objectSelected(selectedBiome, name, icon));
+            menuItem.addActionListener(e -> listener.objectSelected(new FilterImpl.LayerValue(Biome.INSTANCE, selectedBiome), name, icon));
             autoBiomeSubMenu.add(menuItem);
         }
         biomeMenu.add(autoBiomeSubMenu);
@@ -334,12 +346,26 @@ public class BrushOptions extends javax.swing.JPanel {
                 final String name = biomeHelper.getBiomeName(i) + " (" + selectedBiome + ")";
                 final Icon icon = biomeHelper.getBiomeIcon(i);
                 final JMenuItem menuItem = new JMenuItem(name, icon);
-                menuItem.addActionListener(e -> listener.objectSelected(selectedBiome, name, icon));
+                menuItem.addActionListener(e -> listener.objectSelected(new FilterImpl.LayerValue(Biome.INSTANCE, selectedBiome), name, icon));
                 biomeSubMenu.add(menuItem);
             }
         }
         biomeMenu.add(biomeSubMenu);
         popupMenu.add(biomeMenu);
+
+        JMenu annotationsMenu = new JMenu("Annotations");
+        JMenuItem menuItem = new JMenuItem("All Annotations");
+        menuItem.addActionListener(e -> listener.objectSelected(new FilterImpl.LayerValue(Annotations.INSTANCE), "All Annotations", null));
+        annotationsMenu.add(menuItem);
+        for (int i = 1; i < 16; i++) {
+            final int selectedColour = i, dataValue = selectedColour - ((selectedColour < 8) ? 1 : 0);
+            final Icon icon  = IconUtils.createColourIcon(colourScheme.getColour(Constants.BLK_WOOL, dataValue));
+            menuItem = new JMenuItem(Constants.COLOUR_NAMES[dataValue], icon);
+            menuItem.addActionListener(e -> listener.objectSelected(new FilterImpl.LayerValue(Annotations.INSTANCE, selectedColour), Constants.COLOUR_NAMES[dataValue] + " Annotations", icon));
+            annotationsMenu.add(menuItem);
+        }
+        popupMenu.add(annotationsMenu);
+
         return popupMenu;
     }
     

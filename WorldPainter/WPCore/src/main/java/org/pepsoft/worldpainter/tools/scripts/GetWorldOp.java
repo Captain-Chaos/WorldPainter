@@ -24,13 +24,13 @@
 
 package org.pepsoft.worldpainter.tools.scripts;
 
+import org.pepsoft.worldpainter.UnloadableWorldException;
 import org.pepsoft.worldpainter.World2;
+import org.pepsoft.worldpainter.WorldIO;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.util.zip.GZIPInputStream;
 
 /**
  *
@@ -51,17 +51,15 @@ public class GetWorldOp extends AbstractOperation<World2> {
         goCalled();
 
         File file = sanityCheckFileName(fileName);
+        WorldIO worldIO = new WorldIO();
         try {
-            try (ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new FileInputStream(file)))) {
-                return (World2) in.readObject();
-            }
+            worldIO.load(new FileInputStream(file));
         } catch (IOException e) {
             throw new ScriptException("I/O error while loading world " + fileName, e);
-        } catch (ClassCastException e) {
-            throw new ScriptException(fileName + " is not a WorldPainter world file", e);
-        } catch (ClassNotFoundException e) {
-            throw new ScriptException("Class not found exception while loading world " + fileName + " (not a WorldPainter world?)", e);
+        } catch (UnloadableWorldException e) {
+            throw new ScriptException("Unloadable world " + fileName + " (not a WorldPainter world?)", e);
         }
+        return worldIO.getWorld();
     }
     
     private String fileName;

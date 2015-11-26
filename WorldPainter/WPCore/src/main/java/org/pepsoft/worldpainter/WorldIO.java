@@ -26,6 +26,7 @@ import static org.pepsoft.minecraft.Constants.*;
  */
 public class WorldIO {
     public WorldIO() {
+        // Do nothing
     }
 
     public WorldIO(World2 world) {

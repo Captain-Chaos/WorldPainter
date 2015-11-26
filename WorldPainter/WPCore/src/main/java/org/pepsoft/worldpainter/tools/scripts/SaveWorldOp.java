@@ -26,6 +26,7 @@ package org.pepsoft.worldpainter.tools.scripts;
 
 import org.pepsoft.worldpainter.Configuration;
 import org.pepsoft.worldpainter.World2;
+import org.pepsoft.worldpainter.WorldIO;
 import org.pepsoft.worldpainter.util.BackupUtil;
 
 import java.io.File;
@@ -85,9 +86,8 @@ public class SaveWorldOp extends AbstractOperation<Void> {
                 }
             }
 
-            try (ObjectOutputStream out = new ObjectOutputStream(new GZIPOutputStream(new FileOutputStream(file)))) {
-                out.writeObject(world);
-            }
+            WorldIO worldIO = new WorldIO(world);
+            worldIO.save(new FileOutputStream(file));
         } catch (IOException e) {
             throw new ScriptException("I/O error saving file (message: " + e.getMessage() + ")", e);
         }

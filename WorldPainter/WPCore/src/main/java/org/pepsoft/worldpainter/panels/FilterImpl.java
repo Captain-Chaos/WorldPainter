@@ -6,6 +6,7 @@ package org.pepsoft.worldpainter.panels;
 
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Terrain;
+import org.pepsoft.worldpainter.layers.Annotations;
 import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.layers.FloodWithLava;
 import org.pepsoft.worldpainter.layers.Layer;
@@ -49,7 +50,7 @@ public final class FilterImpl implements Filter {
             onlyOnObjectType = ObjectType.TERRAIN;
             onlyOnTerrain = (Terrain) onlyOn;
             onlyOnLayer = null;
-            onlyOnBiome = -1;
+            onlyOnValue = -1;
         } else if (onlyOn instanceof Layer) {
             this.onlyOn = true;
             if ((((Layer) onlyOn).getDataSize() == DataSize.BIT) || (((Layer) onlyOn).getDataSize() == DataSize.BIT_PER_CHUNK)) {
@@ -59,57 +60,74 @@ public final class FilterImpl implements Filter {
             }
             onlyOnTerrain = null;
             onlyOnLayer = (Layer) onlyOn;
-            onlyOnBiome = -1;
-        } else if (onlyOn instanceof Integer) {
+            onlyOnValue = -1;
+        } else if (onlyOn instanceof LayerValue) {
             this.onlyOn = true;
-            if ((Integer) onlyOn < 0) {
-                onlyOnObjectType = ObjectType.AUTO_BIOME;
-                onlyOnTerrain = null;
-                onlyOnLayer = null;
-                onlyOnBiome = -(Integer) onlyOn;
+            LayerValue layerValue = (LayerValue) onlyOn;
+            if (layerValue.layer.equals(Biome.INSTANCE)) {
+                if (layerValue.value < 0) {
+                    onlyOnObjectType = ObjectType.AUTO_BIOME;
+                    onlyOnTerrain = null;
+                    onlyOnLayer = null;
+                    onlyOnValue = -layerValue.value;
+                } else {
+                    onlyOnObjectType = ObjectType.BIOME;
+                    onlyOnTerrain = null;
+                    onlyOnLayer = null;
+                    onlyOnValue = layerValue.value;
+                }
+            } else if (layerValue.layer.equals(Annotations.INSTANCE)) {
+                if (layerValue.any) {
+                    onlyOnObjectType = ObjectType.ANNOTATION_ANY;
+                    onlyOnTerrain = null;
+                    onlyOnLayer = null;
+                    onlyOnValue = -1;
+                } else {
+                    onlyOnObjectType = ObjectType.ANNOTATION;
+                    onlyOnTerrain = null;
+                    onlyOnLayer = null;
+                    onlyOnValue = layerValue.value;
+                }
             } else {
-                onlyOnObjectType = ObjectType.BIOME;
-                onlyOnTerrain = null;
-                onlyOnLayer = null;
-                onlyOnBiome = (Integer) onlyOn;
+                throw new IllegalArgumentException("Layer value of type " + layerValue.layer.getClass().getSimpleName() + " not supported");
             }
         } else if (WATER.equals(onlyOn)) {
             this.onlyOn = true;
             onlyOnObjectType = ObjectType.WATER;
             onlyOnTerrain = null;
             onlyOnLayer = null;
-            onlyOnBiome = -1;
+            onlyOnValue = -1;
         } else if (LAVA.equals(onlyOn)) {
             this.onlyOn = true;
             onlyOnObjectType = ObjectType.LAVA;
             onlyOnTerrain = null;
             onlyOnLayer = null;
-            onlyOnBiome = -1;
+            onlyOnValue = -1;
         } else if (LAND.equals(onlyOn)) {
             this.onlyOn = true;
             onlyOnObjectType = ObjectType.LAND;
             onlyOnTerrain = null;
             onlyOnLayer = null;
-            onlyOnBiome = -1;
+            onlyOnValue = -1;
         } else if (AUTO_BIOMES.equals(onlyOn)) {
             this.onlyOn = true;
             onlyOnObjectType = ObjectType.BIOME;
             onlyOnTerrain = null;
             onlyOnLayer = null;
-            onlyOnBiome = 255;
+            onlyOnValue = 255;
         } else {
             this.onlyOn = false;
             onlyOnObjectType = null;
             onlyOnTerrain = null;
             onlyOnLayer = null;
-            onlyOnBiome = -1;
+            onlyOnValue = -1;
         }
         if (exceptOn instanceof Terrain) {
             this.exceptOn = true;
             exceptOnObjectType = ObjectType.TERRAIN;
             exceptOnTerrain = (Terrain) exceptOn;
             exceptOnLayer = null;
-            exceptOnBiome = -1;
+            exceptOnValue = -1;
         } else if (exceptOn instanceof Layer) {
             this.exceptOn = true;
             if ((((Layer) exceptOn).getDataSize() == DataSize.BIT) || (((Layer) exceptOn).getDataSize() == DataSize.BIT_PER_CHUNK)) {
@@ -119,50 +137,67 @@ public final class FilterImpl implements Filter {
             }
             exceptOnTerrain = null;
             exceptOnLayer = (Layer) exceptOn;
-            exceptOnBiome = -1;
-        } else if (exceptOn instanceof Integer) {
+            exceptOnValue = -1;
+        } else if (exceptOn instanceof LayerValue) {
             this.exceptOn = true;
-            if ((Integer) exceptOn < 0) {
-                exceptOnObjectType = ObjectType.AUTO_BIOME;
-                exceptOnTerrain = null;
-                exceptOnLayer = null;
-                exceptOnBiome = -(Integer) exceptOn;
+            LayerValue layerValue = (LayerValue) exceptOn;
+            if (layerValue.layer.equals(Biome.INSTANCE)) {
+                if (layerValue.value < 0) {
+                    exceptOnObjectType = ObjectType.AUTO_BIOME;
+                    exceptOnTerrain = null;
+                    exceptOnLayer = null;
+                    exceptOnValue = -layerValue.value;
+                } else {
+                    exceptOnObjectType = ObjectType.BIOME;
+                    exceptOnTerrain = null;
+                    exceptOnLayer = null;
+                    exceptOnValue = layerValue.value;
+                }
+            } else if (layerValue.layer.equals(Annotations.INSTANCE)) {
+                if (layerValue.any) {
+                    exceptOnObjectType = ObjectType.ANNOTATION_ANY;
+                    exceptOnTerrain = null;
+                    exceptOnLayer = null;
+                    exceptOnValue = -1;
+                } else {
+                    exceptOnObjectType = ObjectType.ANNOTATION;
+                    exceptOnTerrain = null;
+                    exceptOnLayer = null;
+                    exceptOnValue = layerValue.value;
+                }
             } else {
-                exceptOnObjectType = ObjectType.BIOME;
-                exceptOnTerrain = null;
-                exceptOnLayer = null;
-                exceptOnBiome = (Integer) exceptOn;
+                throw new IllegalArgumentException("Layer value of type " + layerValue.layer.getClass().getSimpleName() + " not supported");
             }
         } else if (WATER.equals(exceptOn)) {
             this.exceptOn = true;
             exceptOnObjectType = ObjectType.WATER;
             exceptOnTerrain = null;
             exceptOnLayer = null;
-            exceptOnBiome = -1;
+            exceptOnValue = -1;
         } else if (LAVA.equals(exceptOn)) {
             this.exceptOn = true;
             exceptOnObjectType = ObjectType.LAVA;
             exceptOnTerrain = null;
             exceptOnLayer = null;
-            exceptOnBiome = -1;
+            exceptOnValue = -1;
         } else if (LAND.equals(exceptOn)) {
             this.exceptOn = true;
             exceptOnObjectType = ObjectType.LAND;
             exceptOnTerrain = null;
             exceptOnLayer = null;
-            exceptOnBiome = -1;
+            exceptOnValue = -1;
         } else if (AUTO_BIOMES.equals(exceptOn)) {
             this.exceptOn = true;
             exceptOnObjectType = ObjectType.BIOME;
             exceptOnTerrain = null;
             exceptOnLayer = null;
-            exceptOnBiome = 255;
+            exceptOnValue = 255;
         } else {
             this.exceptOn = false;
             exceptOnObjectType = null;
             exceptOnTerrain = null;
             exceptOnLayer = null;
-            exceptOnBiome = -1;
+            exceptOnValue = -1;
         }
         this.degrees = aboveDegrees;
         checkSlope = aboveDegrees >= 0;
@@ -199,12 +234,12 @@ public final class FilterImpl implements Filter {
             if (exceptOn) {
                 switch (exceptOnObjectType) {
                     case BIOME:
-                        if (dimension.getLayerValueAt(Biome.INSTANCE, x, y) == exceptOnBiome) {
+                        if (dimension.getLayerValueAt(Biome.INSTANCE, x, y) == exceptOnValue) {
                             return 0.0f;
                         }
                         break;
                     case AUTO_BIOME:
-                        if (dimension.getAutoBiome(x, y) == exceptOnBiome) {
+                        if (dimension.getAutoBiome(x, y) == exceptOnValue) {
                             return 0.0f;
                         }
                         break;
@@ -238,17 +273,27 @@ public final class FilterImpl implements Filter {
                             return 0.0f;
                         }
                         break;
+                    case ANNOTATION_ANY:
+                        if (dimension.getLayerValueAt(Annotations.INSTANCE, x, y) > 0) {
+                            return 0.0f;
+                        }
+                        break;
+                    case ANNOTATION:
+                        if (dimension.getLayerValueAt(Annotations.INSTANCE, x, y) == exceptOnValue) {
+                            return 0.0f;
+                        }
+                        break;
                 }
             }
             if (onlyOn) {
                 switch (onlyOnObjectType) {
                     case BIOME:
-                        if (dimension.getLayerValueAt(Biome.INSTANCE, x, y) != onlyOnBiome) {
+                        if (dimension.getLayerValueAt(Biome.INSTANCE, x, y) != onlyOnValue) {
                             return 0.0f;
                         }
                         break;
                     case AUTO_BIOME:
-                        if ((dimension.getLayerValueAt(Biome.INSTANCE, x, y) != 255) || (dimension.getAutoBiome(x, y) != onlyOnBiome)) {
+                        if ((dimension.getLayerValueAt(Biome.INSTANCE, x, y) != 255) || (dimension.getAutoBiome(x, y) != onlyOnValue)) {
                             return 0.0f;
                         }
                         break;
@@ -279,6 +324,16 @@ public final class FilterImpl implements Filter {
                         break;
                     case LAND:
                         if (dimension.getWaterLevelAt(x, y) > dimension.getIntHeightAt(x, y)) {
+                            return 0.0f;
+                        }
+                        break;
+                    case ANNOTATION_ANY:
+                        if (dimension.getLayerValueAt(Annotations.INSTANCE, x, y) == 0) {
+                            return 0.0f;
+                        }
+                        break;
+                    case ANNOTATION:
+                        if (dimension.getLayerValueAt(Annotations.INSTANCE, x, y) != onlyOnValue) {
                             return 0.0f;
                         }
                         break;
@@ -328,7 +383,7 @@ public final class FilterImpl implements Filter {
     final ObjectType onlyOnObjectType, exceptOnObjectType;
     final int aboveLevel;
     final int belowLevel;
-    final int onlyOnBiome, exceptOnBiome;
+    final int onlyOnValue, exceptOnValue;
     final Terrain onlyOnTerrain, exceptOnTerrain;
     final Layer onlyOnLayer, exceptOnLayer;
     final float slope;
@@ -347,6 +402,44 @@ public final class FilterImpl implements Filter {
     }
 
     public enum ObjectType {
-        TERRAIN, BIT_LAYER, INT_LAYER, BIOME, WATER, LAND, LAVA, AUTO_BIOME
+        TERRAIN, BIT_LAYER, INT_LAYER, BIOME, WATER, LAND, LAVA, AUTO_BIOME, ANNOTATION_ANY, ANNOTATION
+    }
+
+    public static class LayerValue {
+        public LayerValue(Layer layer) {
+            this.layer = layer;
+            value = -1;
+            any = true;
+        }
+
+        public LayerValue(Layer layer, int value) {
+            switch (layer.getDataSize()) {
+                case BIT_PER_CHUNK:
+                case BIT:
+                    if ((value < -1) || (value > 1)) {
+                        throw new IllegalArgumentException("value " + value);
+                    }
+                    break;
+                case NIBBLE:
+                    if ((value < -15) || (value > 15)) {
+                        throw new IllegalArgumentException("value " + value);
+                    }
+                    break;
+                case BYTE:
+                    if ((value < -255) || (value > 255)) {
+                        throw new IllegalArgumentException("value " + value);
+                    }
+                    break;
+                default:
+                    throw new IllegalArgumentException("Data size " + layer.getDataSize() + " not supported");
+            }
+            this.layer = layer;
+            this.value = value;
+            any = false;
+        }
+
+        public final Layer layer;
+        public final int value;
+        public final boolean any;
     }
 }

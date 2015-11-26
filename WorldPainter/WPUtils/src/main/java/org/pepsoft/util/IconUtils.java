@@ -57,4 +57,14 @@ public final class IconUtils {
             throw new RuntimeException("I/O error loading image " + path, e);
         }
     }
+
+    public static Icon createColourIcon(int colour) {
+        BufferedImage image = new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB);
+        for (int x = 0; x < 16; x++) {
+            for (int y = 0; y < 16; y++) {
+                image.setRGB(x, y, colour);
+            }
+        }
+        return new ImageIcon(image);
+    }
 }
