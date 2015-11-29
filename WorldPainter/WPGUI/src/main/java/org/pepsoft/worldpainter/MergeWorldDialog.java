@@ -340,10 +340,14 @@ public class MergeWorldDialog extends javax.swing.JDialog implements Listener {
             }
         }
         boolean mergeAll = radioButtonAll.isSelected();
+        boolean mergeBiomesOnly = radioButtonBiomes.isSelected();
         boolean mergeEverything = radioButtonExportEverything.isSelected();
         boolean surfacePresent = world.getDimension(DIM_NORMAL) != null;
         boolean netherPresent = world.getDimension(DIM_NETHER) != null;
         boolean endPresent = world.getDimension(DIM_END) != null;
+        boolean oneDimensionPresent = world.getDimensions().length == 1;
+        radioButtonExportEverything.setEnabled(! mergeBiomesOnly);
+        radioButtonExportSelection.setEnabled(! mergeBiomesOnly);
         checkBoxFillCaves.setEnabled(mergeAll);
         checkBoxRemoveManMadeAboveGround.setEnabled(mergeAll);
         checkBoxRemoveManMadeBelowGround.setEnabled(mergeAll);
@@ -351,9 +355,9 @@ public class MergeWorldDialog extends javax.swing.JDialog implements Listener {
         checkBoxRemoveTrees.setEnabled(mergeAll);
         checkBoxRemoveVegetation.setEnabled(mergeAll);
         spinnerSurfaceThickness.setEnabled(mergeAll);
-        checkBoxSurface.setEnabled(mergeEverything && surfacePresent);
-        checkBoxNether.setEnabled(mergeEverything && netherPresent);
-        checkBoxEnd.setEnabled(mergeEverything && endPresent);
+        checkBoxSurface.setEnabled(mergeEverything && (! mergeBiomesOnly) && surfacePresent && (! oneDimensionPresent));
+        checkBoxNether.setEnabled(mergeEverything && (! mergeBiomesOnly) && netherPresent && (! oneDimensionPresent));
+        checkBoxEnd.setEnabled(mergeEverything && (! mergeBiomesOnly) && endPresent && (! oneDimensionPresent));
         buttonMerge.setEnabled(levelDatSelected && (checkBoxSurface.isSelected() || checkBoxNether.isSelected() || checkBoxEnd.isSelected()));
         if (radioButtonExportSelection.isSelected()) {
             labelSelectTiles.setForeground(Color.BLUE);
@@ -383,7 +387,7 @@ public class MergeWorldDialog extends javax.swing.JDialog implements Listener {
     }
 
     private void selectTiles() {
-        if (radioButtonExportSelection.isSelected()) {
+        if (radioButtonExportSelection.isSelected() && (! radioButtonBiomes.isSelected())) {
             ExportTileSelectionDialog dialog = new ExportTileSelectionDialog(this, world, selectedDimension, selectedTiles, colourScheme, biomeScheme, customBiomeManager, hiddenLayers, contourLines, contourSeparation, lightOrigin);
             dialog.setVisible(true);
             selectedDimension = dialog.getSelectedDimension();
@@ -471,7 +475,7 @@ public class MergeWorldDialog extends javax.swing.JDialog implements Listener {
         });
 
         buttonGroup1.add(radioButtonBiomes);
-        radioButtonBiomes.setText("Only change the biomes");
+        radioButtonBiomes.setText("Only change the biomes (for the entire Surface dimension)");
         radioButtonBiomes.setToolTipText("<html>Will merge <i>only</i> biome changes. Ignores the read-only layer. Much quicker than merging everything, and with no side effects.</html>");
         radioButtonBiomes.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -589,13 +593,6 @@ public class MergeWorldDialog extends javax.swing.JDialog implements Listener {
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jLabel2)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(radioButtonExportEverything)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(radioButtonExportSelection)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(labelSelectTiles, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addComponent(jLabel1)
                                     .addComponent(jLabel4)
                                     .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addGroup(layout.createSequentialGroup()
@@ -632,6 +629,13 @@ public class MergeWorldDialog extends javax.swing.JDialog implements Listener {
                                 .addGap(0, 0, 0)
                                 .addComponent(jLabel9))
                             .addGroup(layout.createSequentialGroup()
+                                .addComponent(radioButtonExportEverything)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(radioButtonExportSelection)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(labelSelectTiles, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jLabel1)
+                            .addGroup(layout.createSequentialGroup()
                                 .addComponent(checkBoxSurface)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(checkBoxNether)
@@ -649,6 +653,14 @@ public class MergeWorldDialog extends javax.swing.JDialog implements Listener {
                     .addComponent(fieldLevelDatFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(buttonSelectDirectory))
                 .addGap(18, 18, 18)
+                .addComponent(jLabel4)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(radioButtonAll)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(radioButtonReplaceChunks)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(radioButtonBiomes)
+                .addGap(18, 18, 18)
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -660,14 +672,6 @@ public class MergeWorldDialog extends javax.swing.JDialog implements Listener {
                     .addComponent(checkBoxSurface)
                     .addComponent(checkBoxNether)
                     .addComponent(checkBoxEnd))
-                .addGap(18, 18, 18)
-                .addComponent(jLabel4)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(radioButtonAll)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(radioButtonBiomes)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(radioButtonReplaceChunks)
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel8)
