@@ -696,18 +696,20 @@
             </Component>
             <Component class="javax.swing.JSlider" name="sliderCavernsEverywhereLevel">
               <Properties>
-                <Property name="majorTickSpacing" type="int" value="7"/>
-                <Property name="minimum" type="int" value="2"/>
+                <Property name="majorTickSpacing" type="int" value="1"/>
+                <Property name="maximum" type="int" value="15"/>
+                <Property name="minimum" type="int" value="1"/>
                 <Property name="paintTicks" type="boolean" value="true"/>
-                <Property name="snapToTicks" type="boolean" value="true"/>
+                <Property name="value" type="int" value="8"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JSlider" name="sliderChasmsEverywhereLevel">
               <Properties>
-                <Property name="majorTickSpacing" type="int" value="7"/>
-                <Property name="minimum" type="int" value="2"/>
+                <Property name="majorTickSpacing" type="int" value="1"/>
+                <Property name="maximum" type="int" value="15"/>
+                <Property name="minimum" type="int" value="1"/>
                 <Property name="paintTicks" type="boolean" value="true"/>
-                <Property name="snapToTicks" type="boolean" value="true"/>
+                <Property name="value" type="int" value="8"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JCheckBox" name="checkBoxChasmsEverywhere">
@@ -1234,10 +1236,11 @@
             </Component>
             <Component class="javax.swing.JSlider" name="jSlider4">
               <Properties>
-                <Property name="majorTickSpacing" type="int" value="7"/>
-                <Property name="minimum" type="int" value="2"/>
+                <Property name="majorTickSpacing" type="int" value="1"/>
+                <Property name="maximum" type="int" value="15"/>
+                <Property name="minimum" type="int" value="1"/>
                 <Property name="paintTicks" type="boolean" value="true"/>
-                <Property name="snapToTicks" type="boolean" value="true"/>
+                <Property name="value" type="int" value="8"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JSeparator" name="jSeparator2">
@@ -1928,10 +1931,11 @@
             </Component>
             <Component class="javax.swing.JSlider" name="sliderDeciduousLevel">
               <Properties>
-                <Property name="majorTickSpacing" type="int" value="7"/>
-                <Property name="minimum" type="int" value="2"/>
+                <Property name="majorTickSpacing" type="int" value="1"/>
+                <Property name="maximum" type="int" value="15"/>
+                <Property name="minimum" type="int" value="1"/>
                 <Property name="paintTicks" type="boolean" value="true"/>
-                <Property name="snapToTicks" type="boolean" value="true"/>
+                <Property name="value" type="int" value="8"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JCheckBox" name="checkBoxFrostEverywhere">
@@ -1949,10 +1953,11 @@
             </Component>
             <Component class="javax.swing.JSlider" name="sliderPineLevel">
               <Properties>
-                <Property name="majorTickSpacing" type="int" value="7"/>
-                <Property name="minimum" type="int" value="2"/>
+                <Property name="majorTickSpacing" type="int" value="1"/>
+                <Property name="maximum" type="int" value="15"/>
+                <Property name="minimum" type="int" value="1"/>
                 <Property name="paintTicks" type="boolean" value="true"/>
-                <Property name="snapToTicks" type="boolean" value="true"/>
+                <Property name="value" type="int" value="8"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JCheckBox" name="checkBoxSmoothSnow">
@@ -2005,10 +2010,11 @@
             </Component>
             <Component class="javax.swing.JSlider" name="sliderJungleLevel">
               <Properties>
-                <Property name="majorTickSpacing" type="int" value="7"/>
-                <Property name="minimum" type="int" value="2"/>
+                <Property name="majorTickSpacing" type="int" value="1"/>
+                <Property name="maximum" type="int" value="15"/>
+                <Property name="minimum" type="int" value="1"/>
                 <Property name="paintTicks" type="boolean" value="true"/>
-                <Property name="snapToTicks" type="boolean" value="true"/>
+                <Property name="value" type="int" value="8"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JCheckBox" name="checkBoxSwamplandEverywhere">
@@ -2028,10 +2034,11 @@
             </Component>
             <Component class="javax.swing.JSlider" name="jSlider6">
               <Properties>
-                <Property name="majorTickSpacing" type="int" value="7"/>
-                <Property name="minimum" type="int" value="2"/>
+                <Property name="majorTickSpacing" type="int" value="1"/>
+                <Property name="maximum" type="int" value="15"/>
+                <Property name="minimum" type="int" value="1"/>
                 <Property name="paintTicks" type="boolean" value="true"/>
-                <Property name="snapToTicks" type="boolean" value="true"/>
+                <Property name="value" type="int" value="8"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JCheckBox" name="checkBoxSnowUnderTrees">

@@ -10,35 +10,24 @@
  */
 package org.pepsoft.worldpainter;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JOptionPane;
-import javax.swing.JSpinner;
-import javax.swing.JSpinner.NumberEditor;
-import javax.swing.SpinnerNumberModel;
-
-import org.pepsoft.worldpainter.layers.Caverns;
-import org.pepsoft.worldpainter.layers.Chasms;
-import org.pepsoft.worldpainter.layers.DeciduousForest;
-import org.pepsoft.worldpainter.layers.Frost;
-import org.pepsoft.worldpainter.layers.Jungle;
-import org.pepsoft.worldpainter.layers.PineForest;
-import org.pepsoft.worldpainter.layers.Resources;
-import org.pepsoft.worldpainter.layers.SwampLand;
+import org.pepsoft.worldpainter.layers.*;
+import org.pepsoft.worldpainter.layers.exporters.AnnotationsExporter.AnnotationsSettings;
 import org.pepsoft.worldpainter.layers.exporters.CavernsExporter.CavernsSettings;
 import org.pepsoft.worldpainter.layers.exporters.ChasmsExporter.ChasmsSettings;
 import org.pepsoft.worldpainter.layers.exporters.FrostExporter.FrostSettings;
 import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter.ResourcesExporterSettings;
 import org.pepsoft.worldpainter.layers.exporters.TreesExporter.TreeLayerSettings;
+import org.pepsoft.worldpainter.themes.SimpleTheme;
 import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
 
+import javax.swing.*;
+import javax.swing.JSpinner.NumberEditor;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+
 import static org.pepsoft.minecraft.Constants.*;
-import org.pepsoft.worldpainter.layers.Annotations;
-import org.pepsoft.worldpainter.themes.SimpleTheme;
-import org.pepsoft.worldpainter.layers.exporters.AnnotationsExporter.AnnotationsSettings;
 
 /**
  *
@@ -281,7 +270,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             cavernsSettings = new CavernsSettings();
         }
         if (checkBoxCavernsEverywhere.isSelected()) {
-            int cavernsEverywhereLevel = Math.round((((Integer) sliderCavernsEverywhereLevel.getValue()) + 2) / 6.667f);
+            int cavernsEverywhereLevel = sliderCavernsEverywhereLevel.getValue();
             cavernsSettings.setCavernsEverywhereLevel(cavernsEverywhereLevel);
         } else {
             cavernsSettings.setCavernsEverywhereLevel(0);
@@ -305,7 +294,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             chasmsSettings = new ChasmsSettings();
         }
         if (checkBoxChasmsEverywhere.isSelected()) {
-            int chasmsEverywhereLevel = Math.round((((Integer) sliderChasmsEverywhereLevel.getValue()) + 2) / 6.667f);
+            int chasmsEverywhereLevel = sliderChasmsEverywhereLevel.getValue();
             chasmsSettings.setChasmsEverywhereLevel(chasmsEverywhereLevel);
         } else {
             chasmsSettings.setChasmsEverywhereLevel(0);
@@ -332,7 +321,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             deciduousSettings = new TreeLayerSettings<>(DeciduousForest.INSTANCE);
         }
         if (checkBoxDeciduousEverywhere.isSelected()) {
-            int minimumLevel = Math.round((((Integer) sliderDeciduousLevel.getValue()) + 2) / 6.667f);
+            int minimumLevel = sliderDeciduousLevel.getValue();
             deciduousSettings.setMinimumLevel(minimumLevel);
         } else {
             deciduousSettings.setMinimumLevel(0);
@@ -345,7 +334,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             pineSettings = new TreeLayerSettings<>(PineForest.INSTANCE);
         }
         if (checkBoxPineEverywhere.isSelected()) {
-            int minimumLevel = Math.round((((Integer) sliderPineLevel.getValue()) + 2) / 6.667f);
+            int minimumLevel = sliderPineLevel.getValue();
             pineSettings.setMinimumLevel(minimumLevel);
         } else {
             pineSettings.setMinimumLevel(0);
@@ -358,7 +347,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             jungleSettings = new TreeLayerSettings<>(Jungle.INSTANCE);
         }
         if (checkBoxJungleEverywhere.isSelected()) {
-            int minimumLevel = Math.round((((Integer) sliderJungleLevel.getValue()) + 2) / 6.667f);
+            int minimumLevel = sliderJungleLevel.getValue();
             jungleSettings.setMinimumLevel(minimumLevel);
         } else {
             jungleSettings.setMinimumLevel(0);
@@ -371,7 +360,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             swampLandSettings = new TreeLayerSettings<>(SwampLand.INSTANCE);
         }
         if (checkBoxSwamplandEverywhere.isSelected()) {
-            int minimumLevel = Math.round((((Integer) jSlider6.getValue()) + 2) / 6.667f);
+            int minimumLevel = jSlider6.getValue();
             swampLandSettings.setMinimumLevel(minimumLevel);
         } else {
             swampLandSettings.setMinimumLevel(0);
@@ -396,7 +385,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             resourcesSettings = new ResourcesExporterSettings(dimension.getMaxHeight());
         }
         if (jCheckBox8.isSelected()) {
-            int minimumLevel = Math.round((((Integer) jSlider4.getValue()) + 2) / 6.667f);
+            int minimumLevel = jSlider4.getValue();
             resourcesSettings.setMinimumLevel(minimumLevel);
         } else {
             resourcesSettings.setMinimumLevel(0);
@@ -523,10 +512,10 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         }
         if (cavernsSettings.getCavernsEverywhereLevel() > 0) {
             checkBoxCavernsEverywhere.setSelected(true);
-            sliderCavernsEverywhereLevel.setValue(Math.round(cavernsSettings.getCavernsEverywhereLevel() * 6.667f));
+            sliderCavernsEverywhereLevel.setValue(cavernsSettings.getCavernsEverywhereLevel());
         } else {
             checkBoxCavernsEverywhere.setSelected(false);
-            sliderCavernsEverywhereLevel.setValue(50);
+            sliderCavernsEverywhereLevel.setValue(8);
         }
         ((SpinnerNumberModel) spinnerCavernsFloodLevel.getModel()).setMaximum(maxHeight);
         if (cavernsSettings.getWaterLevel() > 0) {
@@ -551,10 +540,10 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         }
         if (chasmsSettings.getChasmsEverywhereLevel() > 0) {
             checkBoxChasmsEverywhere.setSelected(true);
-            sliderChasmsEverywhereLevel.setValue(Math.round(chasmsSettings.getChasmsEverywhereLevel() * 6.667f));
+            sliderChasmsEverywhereLevel.setValue(chasmsSettings.getChasmsEverywhereLevel());
         } else {
             checkBoxChasmsEverywhere.setSelected(false);
-            sliderChasmsEverywhereLevel.setValue(50);
+            sliderChasmsEverywhereLevel.setValue(8);
         }
         checkBoxChasmsBreakSurface.setSelected(chasmsSettings.isSurfaceBreaking());
         ((SpinnerNumberModel) spinnerChasmsMinLevel.getModel()).setMaximum(maxHeight);
@@ -572,10 +561,10 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         }
         if (deciduousSettings.getMinimumLevel() > 0) {
             checkBoxDeciduousEverywhere.setSelected(true);
-            sliderDeciduousLevel.setValue(Math.round(deciduousSettings.getMinimumLevel() * 6.667f));
+            sliderDeciduousLevel.setValue(deciduousSettings.getMinimumLevel());
         } else {
             checkBoxDeciduousEverywhere.setSelected(false);
-            sliderDeciduousLevel.setValue(50);
+            sliderDeciduousLevel.setValue(8);
         }
         
         // pine
@@ -585,10 +574,10 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         }
         if (pineSettings.getMinimumLevel() > 0) {
             checkBoxPineEverywhere.setSelected(true);
-            sliderPineLevel.setValue(Math.round(pineSettings.getMinimumLevel() * 6.667f));
+            sliderPineLevel.setValue(pineSettings.getMinimumLevel());
         } else {
             checkBoxPineEverywhere.setSelected(false);
-            sliderPineLevel.setValue(50);
+            sliderPineLevel.setValue(8);
         }
         
         // jungle
@@ -598,10 +587,10 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         }
         if (jungleSettings.getMinimumLevel() > 0) {
             checkBoxJungleEverywhere.setSelected(true);
-            sliderJungleLevel.setValue(Math.round(jungleSettings.getMinimumLevel() * 6.667f));
+            sliderJungleLevel.setValue(jungleSettings.getMinimumLevel());
         } else {
             checkBoxJungleEverywhere.setSelected(false);
-            sliderJungleLevel.setValue(50);
+            sliderJungleLevel.setValue(8);
         }
         
         // swamp
@@ -611,10 +600,10 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         }
         if (swampLandSettings.getMinimumLevel() > 0) {
             checkBoxSwamplandEverywhere.setSelected(true);
-            jSlider6.setValue(Math.round(swampLandSettings.getMinimumLevel() * 6.667f));
+            jSlider6.setValue(swampLandSettings.getMinimumLevel());
         } else {
             checkBoxSwamplandEverywhere.setSelected(false);
-            jSlider6.setValue(50);
+            jSlider6.setValue(8);
         }
         
         // frost
@@ -634,9 +623,9 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         }
         jCheckBox8.setSelected(resourcesSettings.isApplyEverywhere());
         if (resourcesSettings.isApplyEverywhere()) {
-            jSlider4.setValue(Math.round(resourcesSettings.getMinimumLevel() * 6.667f));
+            jSlider4.setValue(resourcesSettings.getMinimumLevel());
         } else {
-            jSlider4.setValue(50);
+            jSlider4.setValue(8);
         }
         spinnerGoldChance.setValue(resourcesSettings.getChance(BLK_GOLD_ORE));
         ((SpinnerNumberModel) spinnerGoldMinLevel.getModel()).setMaximum(maxHeight);
@@ -1014,13 +1003,13 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
         jLabel7.setText("Minecraft seed:");
 
-        spinnerMinecraftSeed.setModel(new javax.swing.SpinnerNumberModel(Long.valueOf(-9223372036854775808L), null, null, Long.valueOf(1L)));
+        spinnerMinecraftSeed.setModel(new javax.swing.SpinnerNumberModel(-9223372036854775808L, null, null, 1L));
         spinnerMinecraftSeed.setEditor(new javax.swing.JSpinner.NumberEditor(spinnerMinecraftSeed, "0"));
 
         jLabel8.setLabelFor(spinnerBorderSize);
         jLabel8.setText("Border size:");
 
-        spinnerBorderSize.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(256), Integer.valueOf(128), null, Integer.valueOf(128)));
+        spinnerBorderSize.setModel(new javax.swing.SpinnerNumberModel(256, 128, null, 128));
         spinnerBorderSize.setEnabled(false);
         spinnerBorderSize.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
@@ -1281,15 +1270,17 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             }
         });
 
-        sliderCavernsEverywhereLevel.setMajorTickSpacing(7);
-        sliderCavernsEverywhereLevel.setMinimum(2);
+        sliderCavernsEverywhereLevel.setMajorTickSpacing(1);
+        sliderCavernsEverywhereLevel.setMaximum(15);
+        sliderCavernsEverywhereLevel.setMinimum(1);
         sliderCavernsEverywhereLevel.setPaintTicks(true);
-        sliderCavernsEverywhereLevel.setSnapToTicks(true);
+        sliderCavernsEverywhereLevel.setValue(8);
 
-        sliderChasmsEverywhereLevel.setMajorTickSpacing(7);
-        sliderChasmsEverywhereLevel.setMinimum(2);
+        sliderChasmsEverywhereLevel.setMajorTickSpacing(1);
+        sliderChasmsEverywhereLevel.setMaximum(15);
+        sliderChasmsEverywhereLevel.setMinimum(1);
         sliderChasmsEverywhereLevel.setPaintTicks(true);
-        sliderChasmsEverywhereLevel.setSnapToTicks(true);
+        sliderChasmsEverywhereLevel.setValue(8);
 
         checkBoxChasmsEverywhere.setText("Chasms everywhere");
         checkBoxChasmsEverywhere.addActionListener(new java.awt.event.ActionListener() {
@@ -1455,10 +1446,11 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             }
         });
 
-        jSlider4.setMajorTickSpacing(7);
-        jSlider4.setMinimum(2);
+        jSlider4.setMajorTickSpacing(1);
+        jSlider4.setMaximum(15);
+        jSlider4.setMinimum(1);
         jSlider4.setPaintTicks(true);
-        jSlider4.setSnapToTicks(true);
+        jSlider4.setValue(8);
 
         jLabel10.setText("Settings for the Resources layer at 50% intensity. These also apply to hand-painted Resources:");
 
@@ -1985,10 +1977,11 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             }
         });
 
-        sliderDeciduousLevel.setMajorTickSpacing(7);
-        sliderDeciduousLevel.setMinimum(2);
+        sliderDeciduousLevel.setMajorTickSpacing(1);
+        sliderDeciduousLevel.setMaximum(15);
+        sliderDeciduousLevel.setMinimum(1);
         sliderDeciduousLevel.setPaintTicks(true);
-        sliderDeciduousLevel.setSnapToTicks(true);
+        sliderDeciduousLevel.setValue(8);
 
         checkBoxFrostEverywhere.setText("Frost everywhere");
 
@@ -1999,10 +1992,11 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             }
         });
 
-        sliderPineLevel.setMajorTickSpacing(7);
-        sliderPineLevel.setMinimum(2);
+        sliderPineLevel.setMajorTickSpacing(1);
+        sliderPineLevel.setMaximum(15);
+        sliderPineLevel.setMinimum(1);
         sliderPineLevel.setPaintTicks(true);
-        sliderPineLevel.setSnapToTicks(true);
+        sliderPineLevel.setValue(8);
 
         checkBoxSmoothSnow.setText("Smooth snow (also applies to hand-painted Frost layer)");
 
@@ -2023,10 +2017,11 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
         jLabel68.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/jungle.png"))); // NOI18N
 
-        sliderJungleLevel.setMajorTickSpacing(7);
-        sliderJungleLevel.setMinimum(2);
+        sliderJungleLevel.setMajorTickSpacing(1);
+        sliderJungleLevel.setMaximum(15);
+        sliderJungleLevel.setMinimum(1);
         sliderJungleLevel.setPaintTicks(true);
-        sliderJungleLevel.setSnapToTicks(true);
+        sliderJungleLevel.setValue(8);
 
         checkBoxSwamplandEverywhere.setText("Swampland everywhere");
         checkBoxSwamplandEverywhere.addActionListener(new java.awt.event.ActionListener() {
@@ -2037,10 +2032,11 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
         jLabel69.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/swampland.png"))); // NOI18N
 
-        jSlider6.setMajorTickSpacing(7);
-        jSlider6.setMinimum(2);
+        jSlider6.setMajorTickSpacing(1);
+        jSlider6.setMaximum(15);
+        jSlider6.setMinimum(1);
         jSlider6.setPaintTicks(true);
-        jSlider6.setSnapToTicks(true);
+        jSlider6.setValue(8);
 
         checkBoxSnowUnderTrees.setText("Frost under trees (also applies to hand-painted Frost layer)");
 
