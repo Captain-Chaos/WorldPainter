@@ -1,3 +1,10 @@
+-- Version 2.1.3, released 29-11-2015
+
+ * Annotations have been added to the brush filter "only on" and "except on" settings, in a separate submenu. You can either chose any annotations, or a particular colour. PLEASE NOTE: Annotations are displayed on top of everything else, which will make it seem as though nothing is happening when you paint "only on" an annotation. Hide the annotations using the "show" checkbox on the Annotations panel to see the effects
+ * The Merge world dialog has been slightly rearranged and reworked to make it clearer that "merge biomes only" always merges the entire Surface dimension and disregards any tile selection
+ * Bug fix: the intensity sliders for the "... layer everywhere" settings in the Dimension Properties no longer slowly wander to the right. PLEASE NOTE: check the settings in your worlds if you use those options!
+ * Bug fix: fix wpscript to make loading worlds from before version 2.0 work again
+
 -- Version 2.1.2, released 24-11-2015
 
  * It is now possible to Import and Merge the Nether and End dimensions!
