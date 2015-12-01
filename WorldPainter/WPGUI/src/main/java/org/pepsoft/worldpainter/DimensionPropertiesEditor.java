@@ -1003,13 +1003,13 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
         jLabel7.setText("Minecraft seed:");
 
-        spinnerMinecraftSeed.setModel(new javax.swing.SpinnerNumberModel(-9223372036854775808L, null, null, 1L));
+        spinnerMinecraftSeed.setModel(new javax.swing.SpinnerNumberModel(Long.valueOf(-9223372036854775808L), null, null, Long.valueOf(1L)));
         spinnerMinecraftSeed.setEditor(new javax.swing.JSpinner.NumberEditor(spinnerMinecraftSeed, "0"));
 
         jLabel8.setLabelFor(spinnerBorderSize);
         jLabel8.setText("Border size:");
 
-        spinnerBorderSize.setModel(new javax.swing.SpinnerNumberModel(256, 128, null, 128));
+        spinnerBorderSize.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(256), Integer.valueOf(128), null, Integer.valueOf(128)));
         spinnerBorderSize.setEnabled(false);
         spinnerBorderSize.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
@@ -1274,12 +1274,14 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         sliderCavernsEverywhereLevel.setMaximum(15);
         sliderCavernsEverywhereLevel.setMinimum(1);
         sliderCavernsEverywhereLevel.setPaintTicks(true);
+        sliderCavernsEverywhereLevel.setSnapToTicks(true);
         sliderCavernsEverywhereLevel.setValue(8);
 
         sliderChasmsEverywhereLevel.setMajorTickSpacing(1);
         sliderChasmsEverywhereLevel.setMaximum(15);
         sliderChasmsEverywhereLevel.setMinimum(1);
         sliderChasmsEverywhereLevel.setPaintTicks(true);
+        sliderChasmsEverywhereLevel.setSnapToTicks(true);
         sliderChasmsEverywhereLevel.setValue(8);
 
         checkBoxChasmsEverywhere.setText("Chasms everywhere");
@@ -1450,6 +1452,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         jSlider4.setMaximum(15);
         jSlider4.setMinimum(1);
         jSlider4.setPaintTicks(true);
+        jSlider4.setSnapToTicks(true);
         jSlider4.setValue(8);
 
         jLabel10.setText("Settings for the Resources layer at 50% intensity. These also apply to hand-painted Resources:");
@@ -1981,6 +1984,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         sliderDeciduousLevel.setMaximum(15);
         sliderDeciduousLevel.setMinimum(1);
         sliderDeciduousLevel.setPaintTicks(true);
+        sliderDeciduousLevel.setSnapToTicks(true);
         sliderDeciduousLevel.setValue(8);
 
         checkBoxFrostEverywhere.setText("Frost everywhere");
@@ -1996,6 +2000,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         sliderPineLevel.setMaximum(15);
         sliderPineLevel.setMinimum(1);
         sliderPineLevel.setPaintTicks(true);
+        sliderPineLevel.setSnapToTicks(true);
         sliderPineLevel.setValue(8);
 
         checkBoxSmoothSnow.setText("Smooth snow (also applies to hand-painted Frost layer)");
@@ -2021,6 +2026,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         sliderJungleLevel.setMaximum(15);
         sliderJungleLevel.setMinimum(1);
         sliderJungleLevel.setPaintTicks(true);
+        sliderJungleLevel.setSnapToTicks(true);
         sliderJungleLevel.setValue(8);
 
         checkBoxSwamplandEverywhere.setText("Swampland everywhere");
@@ -2036,6 +2042,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         jSlider6.setMaximum(15);
         jSlider6.setMinimum(1);
         jSlider6.setPaintTicks(true);
+        jSlider6.setSnapToTicks(true);
         jSlider6.setValue(8);
 
         checkBoxSnowUnderTrees.setText("Frost under trees (also applies to hand-painted Frost layer)");
