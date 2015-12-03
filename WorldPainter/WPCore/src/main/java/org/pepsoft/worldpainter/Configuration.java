@@ -586,6 +586,14 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         this.recentFiles = recentFiles;
     }
 
+    public List<File> getRecentScriptFiles() {
+        return recentScriptFiles;
+    }
+
+    public void setRecentScriptFiles(List<File> recentScriptFiles) {
+        this.recentScriptFiles = recentScriptFiles;
+    }
+
     @Override
     public synchronized void logEvent(EventVO event) {
         if (eventLog != null) {
@@ -775,6 +783,26 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         }
     }
 
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        // We keep having difficulties on Windows with Files being Windows-
+        // specific subclasses of File which don't serialise correctly and end
+        // up being null somehow. Work around the problem by making sure all
+        // Files are actually java.io.Files
+        worldDirectory = FileUtils.absolutise(worldDirectory);
+        exportDirectory = FileUtils.absolutise(exportDirectory);
+        savesDirectory = FileUtils.absolutise(savesDirectory);
+        customObjectsDirectory = FileUtils.absolutise(customObjectsDirectory);
+        minecraft1_9_p3Jar = FileUtils.absolutise(minecraft1_9_p3Jar);
+        FileUtils.absolutise(minecraftJars);
+        layerDirectory = FileUtils.absolutise(layerDirectory);
+        terrainDirectory = FileUtils.absolutise(terrainDirectory);
+        heightMapsDirectory = FileUtils.absolutise(heightMapsDirectory);
+        FileUtils.absolutise(recentFiles);
+        FileUtils.absolutise(recentScriptFiles);
+        
+        out.defaultWriteObject();
+    }
+    
     public static synchronized Configuration load() throws IOException, ClassNotFoundException {
         File configFile = getConfigFile();
         if (! configFile.isFile()) {
@@ -889,6 +917,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private OverlayType overlayType = OverlayType.OPTIMISE_ON_LOAD;
     private int showCalloutCount = 3;
     private List<File> recentFiles;
+    private List<File> recentScriptFiles;
 
     private transient AccelerationType accelerationType;
 

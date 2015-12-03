@@ -5,11 +5,22 @@
  */
 package org.pepsoft.worldpainter;
 
-import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
+import javax.swing.ListModel;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
+import org.pepsoft.worldpainter.biomeschemes.BiomeHelper;
+import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
+import org.pepsoft.worldpainter.layers.Annotations;
+import org.pepsoft.worldpainter.layers.Biome;
+import org.pepsoft.worldpainter.layers.GardenCategory;
 import org.pepsoft.worldpainter.layers.Layer;
 
 /**
@@ -20,35 +31,22 @@ public class InfoPanel extends javax.swing.JPanel {
     /**
      * Creates new form InfoPanel
      */
-    public InfoPanel() {
+    public InfoPanel(WorldPainter view, CustomBiomeManager customBiomeManager) {
+        this.view = view;
+        listModel = new LayerListModel(customBiomeManager);
+        
         initComponents();
+        
+        jList1.setModel(listModel);
     }
 
-    public void setView(WorldPainter view) {
-        this.view = view;
-    }
-    
     public void updateInfo(int x, int y) {
-        // Update slope
-        
-        // Update layers
-        Map<Layer, Integer> layerValues = view.getDimension().getLayersAt(x, y);
+        Dimension dim = view.getDimension();
+        Map<Layer, Integer> layerValues = dim.getLayersAt(x, y);
         if (layerValues != null) {
-            for (Map.Entry<Layer, Integer> entry: layerValues.entrySet()) {
-                Layer layer = entry.getKey();
-                int value = entry.getValue();
-                if (layerLabels.containsKey(layer)) {
-                    BufferedImage icon = layer.getIcon();
-                    JLabel label = new JLabel(layer.getName(), (icon != null) ? new ImageIcon(icon) : null, JLabel.LEADING);
-                } else {
-                    
-                }
-            }
+            listModel.update(layerValues);
         } else {
-            if (! layerLabels.isEmpty()) {
-                panelLayers.removeAll();
-                layerLabels.clear();
-            }
+            listModel.clear();
         }
     }
     
@@ -63,24 +61,61 @@ public class InfoPanel extends javax.swing.JPanel {
 
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
-        panelLayers = new javax.swing.JPanel();
-        jLabel3 = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
         labelSlope = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jList1 = new javax.swing.JList();
+        jLabel5 = new javax.swing.JLabel();
+        jLabel6 = new javax.swing.JLabel();
+        jLabel7 = new javax.swing.JLabel();
+        jLabel8 = new javax.swing.JLabel();
+        jLabel9 = new javax.swing.JLabel();
+        jLabel10 = new javax.swing.JLabel();
+        jLabel11 = new javax.swing.JLabel();
+        jLabel12 = new javax.swing.JLabel();
+        jLabel13 = new javax.swing.JLabel();
+        jLabel14 = new javax.swing.JLabel();
+        jLabel15 = new javax.swing.JLabel();
+        jLabel16 = new javax.swing.JLabel();
+        jLabel17 = new javax.swing.JLabel();
 
         jLabel1.setText("Slope:");
 
         jLabel2.setText("Layers:");
 
-        panelLayers.setLayout(new java.awt.GridLayout(0, 1, 0, 2));
-
-        jLabel3.setText("jLabel3");
-        panelLayers.add(jLabel3);
-
-        jLabel4.setText("jLabel4");
-        panelLayers.add(jLabel4);
-
         labelSlope.setText("jLabel5");
+
+        jList1.setModel(new javax.swing.AbstractListModel() {
+            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
+            public int getSize() { return strings.length; }
+            public Object getElementAt(int i) { return strings[i]; }
+        });
+        jScrollPane1.setViewportView(jList1);
+
+        jLabel5.setText("Coordinates:");
+
+        jLabel6.setText("jLabel6");
+
+        jLabel7.setText("Height:");
+
+        jLabel8.setText("jLabel8");
+
+        jLabel9.setText("°");
+
+        jLabel10.setText("m");
+
+        jLabel11.setText("Water");
+
+        jLabel12.setText("level:");
+
+        jLabel13.setText("depth:");
+
+        jLabel14.setText("jLabel14");
+
+        jLabel15.setText("m");
+
+        jLabel16.setText("jLabel16");
+
+        jLabel17.setText("m");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -89,39 +124,237 @@ public class InfoPanel extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel1)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel2)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel5)
+                                    .addComponent(jLabel1)
+                                    .addComponent(jLabel7))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel6)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(labelSlope)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jLabel9))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jLabel8)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jLabel10))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jLabel14)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jLabel15))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jLabel16)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jLabel17)))))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel11)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(labelSlope))
-                    .addComponent(jLabel2)
-                    .addComponent(panelLayers, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(320, Short.MAX_VALUE))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel13)
+                            .addComponent(jLabel12))
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel5)
+                    .addComponent(jLabel6))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel7)
+                    .addComponent(jLabel8)
+                    .addComponent(jLabel10))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel11)
+                    .addComponent(jLabel12)
+                    .addComponent(jLabel14)
+                    .addComponent(jLabel15))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel13)
+                    .addComponent(jLabel16)
+                    .addComponent(jLabel17))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1)
-                    .addComponent(labelSlope))
+                    .addComponent(labelSlope)
+                    .addComponent(jLabel9))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(panelLayers, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(219, Short.MAX_VALUE))
+                .addComponent(jScrollPane1)
+                .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel11;
+    private javax.swing.JLabel jLabel12;
+    private javax.swing.JLabel jLabel13;
+    private javax.swing.JLabel jLabel14;
+    private javax.swing.JLabel jLabel15;
+    private javax.swing.JLabel jLabel16;
+    private javax.swing.JLabel jLabel17;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
+    private javax.swing.JList jList1;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel labelSlope;
-    private javax.swing.JPanel panelLayers;
     // End of variables declaration//GEN-END:variables
 
-    private WorldPainter view;
-    private Map<Layer, JLabel> layerLabels = new HashMap<>();
+    private final WorldPainter view;
+    private final LayerListModel listModel;
+    
+    static class LayerListModel implements ListModel<JLabel> {
+        public LayerListModel(CustomBiomeManager customBiomeManager) {
+            this.biomeHelper = new BiomeHelper(null, null, customBiomeManager);
+        }
+        
+        void update(Map<Layer, Integer> intensities) {
+            if (labels.isEmpty()) {
+                int index = 0;
+                for (Map.Entry<Layer, Integer> entry: intensities.entrySet()) {
+                    Layer layer = entry.getKey();
+                    int intensity = entry.getValue();
+                    JLabel label = new JLabel(layer.getName() + ": "+ getIntensity(layer, intensity), new ImageIcon(layer.getIcon()), JLabel.LEADING);
+                    labels.add(label);
+                    layerIndices.put(layer, index++);
+                    ListDataEvent event = new ListDataEvent(this, ListDataEvent.INTERVAL_ADDED, 0, labels.size() - 1);
+                    for (ListDataListener listener: listeners) {
+                        listener.intervalAdded(event);
+                    }
+                }
+            } else if (! intensities.isEmpty()) {
+                Set<Layer> oldLayers = new HashSet<>(layerIndices.keySet());
+                for (Map.Entry<Layer, Integer> entry: intensities.entrySet()) {
+                    Layer layer = entry.getKey();
+                    int intensity = entry.getValue();
+                    String newText = layer.getName() + ": "+ getIntensity(layer, intensity);
+                    if (layerIndices.containsKey(layer)) {
+                        // Layer is already on the list
+                        int index = layerIndices.get(layer);
+                        JLabel label = labels.get(index);
+                        if (! newText.equals(label.getText())) {
+                            label.setText(newText);
+                            ListDataEvent event = new ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, index, index);
+                            for (ListDataListener listener: listeners) {
+                                listener.contentsChanged(event);
+                            }
+                        }
+                    } else {
+                        // Layer is not on the list; add it (to the end, to
+                        // limit the amount of repainting needed
+                        int index = labels.size();
+                        JLabel label = new JLabel(newText, new ImageIcon(layer.getIcon()), JLabel.LEADING);
+                        labels.add(label);
+                        layerIndices.put(layer, index);
+                        ListDataEvent event = new ListDataEvent(this, ListDataEvent.INTERVAL_ADDED, index, index);
+                        for (ListDataListener listener: listeners) {
+                            listener.intervalAdded(event);
+                        }
+                    }
+                }
+                oldLayers.removeAll(intensities.keySet());
+                for (Layer oldLayer: oldLayers) {
+                    // Layer removed
+                    int index = layerIndices.remove(oldLayer);
+                    for (Map.Entry<Layer, Integer> entry: layerIndices.entrySet()) {
+                        if (entry.getValue() > index) {
+                            entry.setValue(entry.getValue() - 1);
+                        }
+                    }
+                    labels.remove(index);
+                    ListDataEvent event = new ListDataEvent(this, ListDataEvent.INTERVAL_REMOVED, index, index);
+                    for (ListDataListener listener: listeners) {
+                        listener.intervalRemoved(event);
+                    }
+                }
+            }
+        }
+
+        void clear() {
+            if (! labels.isEmpty()) {
+                int oldSize = labels.size();
+                labels.clear();
+                layerIndices.clear();
+                ListDataEvent event = new ListDataEvent(this, ListDataEvent.INTERVAL_REMOVED, 0, oldSize - 1);
+                for (ListDataListener listener: listeners) {
+                    listener.intervalRemoved(event);
+                }
+            }
+        }
+        
+        // ListModel
+        
+        @Override
+        public int getSize() {
+            return labels.size();
+        }
+
+        @Override
+        public JLabel getElementAt(int index) {
+            return labels.get(index);
+        }
+
+        @Override
+        public void addListDataListener(ListDataListener l) {
+            listeners.add(l);
+        }
+
+        @Override
+        public void removeListDataListener(ListDataListener l) {
+            listeners.remove(l);
+        }
+
+        private String getIntensity(Layer layer, int intensity) {
+            if (layer instanceof Biome) {
+                return biomeHelper.getBiomeName(intensity);
+            } else if (layer instanceof Annotations) {
+                return org.pepsoft.minecraft.Constants.COLOUR_NAMES[intensity - ((intensity < 8) ? 1 : 0)];
+            } else if (layer instanceof GardenCategory) {
+                return GardenCategory.getLabel(intensity);
+            } else {
+                switch (layer.getDataSize()) {
+                    case BIT:
+                    case BIT_PER_CHUNK:
+                        return intensity == 0 ? "off" : "on";
+                    case NIBBLE:
+                        int strength = (intensity > 0) ? ((intensity - 1) * 100  / 14 + 1): 0;
+                        if ((strength == 51) || (strength == 101)) {
+                            strength--;
+                        }
+                        return strength + "%";
+                    case BYTE:
+                        return (intensity * 100 / 255) + "%";
+                    case NONE:
+                        return "N/A";
+                    default:
+                        throw new UnsupportedOperationException();
+                }
+            }
+        }
+        
+        private final BiomeHelper biomeHelper;
+        private final List<JLabel> labels = new ArrayList<>();
+        private final Map<Layer, Integer> layerIndices = new HashMap<>();
+        private final List<ListDataListener> listeners = new ArrayList<>();
+    }
 }

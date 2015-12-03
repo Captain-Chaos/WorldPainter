@@ -4,6 +4,8 @@
  */
 package org.pepsoft.worldpainter.layers;
 
+import java.util.ResourceBundle;
+
 /**
  *
  * @author pepijn
@@ -11,6 +13,27 @@ package org.pepsoft.worldpainter.layers;
 public class GardenCategory extends Layer {
     public GardenCategory() {
         super("Category", "Garden category", DataSize.NIBBLE, 80);
+    }
+    
+    public static String getLabel(int category) {
+        switch(category) {
+            case GardenCategory.CATEGORY_BUILDING:
+                return strings.getString("structure.building");
+            case GardenCategory.CATEGORY_FIELD:
+                return strings.getString("structure.field");
+            case GardenCategory.CATEGORY_ROAD:
+                return strings.getString("structure.road");
+            case GardenCategory.CATEGORY_STREET_FURNITURE:
+                return strings.getString("structure.street.furniture");
+            case GardenCategory.CATEGORY_WATER:
+                return strings.getString("structure.water");
+            case GardenCategory.CATEGORY_TREE:
+                return "tree";
+            case GardenCategory.CATEGORY_OBJECT:
+                return "object";
+            default:
+                return "unknown";
+        }
     }
     
     /**
@@ -55,5 +78,6 @@ public class GardenCategory extends Layer {
     
     public static final GardenCategory INSTANCE = new GardenCategory();
 
+    private static final ResourceBundle strings = ResourceBundle.getBundle("org.pepsoft.worldpainter.resources.strings"); // NOI18N
     private static final long serialVersionUID = 1L;
 }

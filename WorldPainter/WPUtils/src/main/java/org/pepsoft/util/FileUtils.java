@@ -9,9 +9,18 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.ListIterator;
+import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import org.jetbrains.annotations.NonNls;
 
 import javax.swing.*;
@@ -272,7 +281,9 @@ public class FileUtils {
                     fileDialog.setDirectory(fileOrDir.getName());
                 }
             }
-            fileDialog.setFilenameFilter((file, s) -> fileFilter.accept(new File(file, s)));
+            if (fileFilter != null) {
+                fileDialog.setFilenameFilter((file, s) -> fileFilter.accept(new File(file, s)));
+            }
             fileDialog.setVisible(true);
             File[] files = fileDialog.getFiles();
             if (files.length == 1) {
@@ -433,7 +444,77 @@ public class FileUtils {
             }
         }
     }
+    
+    public static File absolutise(File file) {
+        return ((file != null) && (file.getClass() != File.class)) ? file.getAbsoluteFile() : file;
+    }
+    
+    public static <T extends Collection<?>> T absolutise(T collection) {
+        if (collection == null) {
+            return null;
+        } else if (collection instanceof List) {
+            for (ListIterator<Object> i = ((java.util.List) collection).listIterator(); i.hasNext(); ) {
+                Object object = i.next();
+                if (object instanceof File) {
+                    i.set(absolutise((File) object));
+                }
+            }
+            return collection;
+        } else {
+            Collection newCollection;
+            if (collection instanceof SortedSet) {
+                newCollection = new TreeSet();
+            } else if (collection instanceof Set) {
+                newCollection = new HashSet(collection.size());
+            } else {
+                newCollection = new ArrayList(collection.size());
+            }
+            for (Object object: collection) {
+                if (object instanceof File) {
+                    newCollection.add(absolutise((File) object));
+                } else {
+                    newCollection.add(object);
+                }
+            }
+            return (T) newCollection;
+        }
+    }
 
+    public static <T extends Map<?, ?>> T absolutise(T map) {
+        if (map == null) {
+            return null;
+        }
+        for (Map.Entry<Object, Object> entry: ((Map<Object, Object>) map).entrySet()) {
+            if ((entry.getKey() instanceof File) && (entry.getKey() != File.class)) {
+                // There is a non-File File key in the map; start over and
+                // create a new map, since we can't replace keys
+                Map<Object, Object> newMap;
+                if (map instanceof SortedMap) {
+                    newMap = new TreeMap<>();
+                } else {
+                    newMap = new HashMap();
+                }
+                for (Map.Entry<?, ?> entry2: map.entrySet()) {
+                    Object key = entry2.getKey();
+                    Object value = entry2.getValue();
+                    if (key instanceof File) {
+                        key = absolutise((File) key);
+                    }
+                    if (value instanceof File) {
+                        value = absolutise((File) value);
+                    }
+                    newMap.put(key, value);
+                }
+                return (T) newMap;
+            }
+            Object value = entry.getValue();
+            if (value instanceof File) {
+                entry.setValue(absolutise((File) value));
+            }
+        }
+        return map;
+    }
+    
     public static void main(String[] args) throws IOException {
         Checksum md5 = getMD5(new File(args[0]));
         System.out.print('{');

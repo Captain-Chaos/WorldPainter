@@ -93,6 +93,7 @@ import static org.pepsoft.worldpainter.Terrain.*;
 
 import org.pepsoft.worldpainter.importing.CustomItemsTreeModel;
 import org.pepsoft.worldpainter.importing.ImportCustomItemsDialog;
+import org.pepsoft.worldpainter.tools.scripts.ScriptRunner;
 
 //import javax.swing.JSeparator;
 
@@ -624,32 +625,7 @@ public final class App extends JFrame implements RadiusControl,
                     break;
             }
         } else if (activeOperation instanceof GardenOfEdenOperation) {
-            switch(dimension.getLayerValueAt(GardenCategory.INSTANCE, x, y)) {
-                case GardenCategory.CATEGORY_BUILDING:
-                    setTextIfDifferent(waterLabel, strings.getString("structure.building"));
-                    break;
-                case GardenCategory.CATEGORY_FIELD:
-                    setTextIfDifferent(waterLabel, strings.getString("structure.field"));
-                    break;
-                case GardenCategory.CATEGORY_ROAD:
-                    setTextIfDifferent(waterLabel, strings.getString("structure.road"));
-                    break;
-                case GardenCategory.CATEGORY_STREET_FURNITURE:
-                    setTextIfDifferent(waterLabel, strings.getString("structure.street.furniture"));
-                    break;
-                case GardenCategory.CATEGORY_WATER:
-                    setTextIfDifferent(waterLabel, strings.getString("structure.water"));
-                    break;
-                case GardenCategory.CATEGORY_TREE:
-                    setTextIfDifferent(waterLabel, "Structure: tree");
-                    break;
-                case GardenCategory.CATEGORY_OBJECT:
-                    setTextIfDifferent(waterLabel, "Structure: object");
-                    break;
-                default:
-                    setTextIfDifferent(waterLabel, " ");
-                    break;
-            }
+            setTextIfDifferent(waterLabel, strings.getString("structure") + ": " + GardenCategory.getLabel(dimension.getLayerValueAt(GardenCategory.INSTANCE, x, y)));
         } else {
             int waterLevel = dimension.getWaterLevelAt(x, y);
             if (waterLevel > height) {
@@ -1360,7 +1336,7 @@ public final class App extends JFrame implements RadiusControl,
                     dimension.armSavePoint();
                     int customBiomeId = customBiome.getId();
                     boolean biomesChanged = false;
-                    for (Tile tile : dimension.getTiles()) {
+                    for (Tile tile: dimension.getTiles()) {
                         if (tile.hasLayer(Biome.INSTANCE)) {
                             tile.inhibitEvents();
                             try {
@@ -3662,9 +3638,7 @@ public final class App extends JFrame implements RadiusControl,
         menu.add(menuItem);
 
 //        menuItem = new JMenuItem("Manage plugins...");
-//        menuItem.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
+//        menuItem.addActionListener(e -> {
 //                StringBuilder url = new StringBuilder("http://bo.worldpainter.net:8081/wp/plugins/overview.jsp");
 //                url.append("?uuid=").append(Configuration.getInstance().getUuid().toString());
 //                boolean first = true;
@@ -3682,10 +3656,15 @@ public final class App extends JFrame implements RadiusControl,
 //                }
 //                SimpleBrowser browser = new SimpleBrowser(App.this, true, "Manage Plugins", url.toString());
 //                browser.setVisible(true);
-//            }
 //        });
 //        menuItem.setMnemonic('p');
 //        menu.add(menuItem);
+
+        menuItem = new JMenuItem("Run script...");
+        menuItem.addActionListener(e -> {
+            new ScriptRunner(this, world, dimension).setVisible(true);
+        });
+        menu.add(menuItem);
         return menu;
     }
 
@@ -5942,7 +5921,7 @@ public final class App extends JFrame implements RadiusControl,
     private Dimension dimension;
     private WorldPainter view;
     private Operation activeOperation;
-    private File lastSelectedFile;
+    private File lastSelectedFile, lastSelectedScriptFile;
     private JLabel heightLabel, locationLabel, waterLabel, materialLabel, radiusLabel, zoomLabel, biomeLabel, levelLabel, brushRotationLabel;
     private int radius = 50;
     private final ButtonGroup toolButtonGroup = new ButtonGroup(), brushButtonGroup = new ButtonGroup(), paintButtonGroup = new ButtonGroup();
