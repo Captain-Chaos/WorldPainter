@@ -444,7 +444,16 @@ public class FileUtils {
             }
         }
     }
-    
+
+    /**
+     * Checks if a <code>File</code> is really a <code>java.io.File</code>, and
+     * if not converts it to one using {@link File#getAbsoluteFile()}.
+     *
+     * @param file The file to absolutise. May be <code>null</code>.
+     * @return A file with the same absolute path as the input and guaranteed to
+     *     be of class <code>java.io.File</code>, or <code>null</code> if the input was
+     *     <code>null</code>.
+     */
     public static File absolutise(File file) {
         return ((file != null) && (file.getClass() != File.class)) ? file.getAbsoluteFile() : file;
     }

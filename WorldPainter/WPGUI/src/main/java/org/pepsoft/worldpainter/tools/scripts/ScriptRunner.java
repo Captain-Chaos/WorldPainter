@@ -5,27 +5,6 @@
  */
 package org.pepsoft.worldpainter.tools.scripts;
 
-import java.awt.*;
-import java.io.*;
-import java.util.*;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import javax.script.Bindings;
-import javax.script.ScriptContext;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
-import javax.swing.filechooser.FileFilter;
-
 import org.jetbrains.annotations.NotNull;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.worldpainter.Configuration;
@@ -34,6 +13,23 @@ import org.pepsoft.worldpainter.World2;
 import org.pepsoft.worldpainter.WorldPainterDialog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.script.Bindings;
+import javax.script.ScriptContext;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
+import java.awt.*;
+import java.io.*;
+import java.text.NumberFormat;
+import java.util.*;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.joining;
 
 /**
  *
@@ -63,7 +59,9 @@ public class ScriptRunner extends WorldPainterDialog {
     }
 
     private void setControlStates() {
-        jButton2.setEnabled((jComboBox1.getSelectedItem() != null) && ((File) jComboBox1.getSelectedItem()).isFile());
+        jButton2.setEnabled((jComboBox1.getSelectedItem() != null)
+                && ((File) jComboBox1.getSelectedItem()).isFile()
+                && ((scriptDescriptor == null) || scriptDescriptor.isValid()));
     }
     
     private void selectFile() {
@@ -89,7 +87,7 @@ public class ScriptRunner extends WorldPainterDialog {
             public String getDescription() {
                 StringBuilder sb = new StringBuilder();
                 sb.append("Script files (");
-                sb.append(extensions.stream().map(extension -> "*." + extension).collect(Collectors.joining(", ")));
+                sb.append(extensions.stream().map(extension -> "*." + extension).collect(joining(", ")));
                 sb.append(')');
                 return sb.toString();
             }
@@ -100,11 +98,12 @@ public class ScriptRunner extends WorldPainterDialog {
             jComboBox1.setModel(new DefaultComboBoxModel<>(recentScriptFiles.toArray(new File[recentScriptFiles.size()])));
             jComboBox1.setSelectedItem(script);
             setupScript(script);
+            setControlStates();
         }
     }
 
     private void setupScript(File script) {
-        ScriptDescriptor descriptor = analyseScript(script);
+        scriptDescriptor = analyseScript(script);
         
         // Remove any previously added fields:
         while (panelDescriptor.getComponentCount() > 2) {
@@ -112,45 +111,49 @@ public class ScriptRunner extends WorldPainterDialog {
         }
         
         // If there is a descriptor, use it to add fields for the parameters:
-        if (descriptor != null) {
-            if (descriptor.name != null) {
+        if (scriptDescriptor != null) {
+            if (scriptDescriptor.name != null) {
                 labelName.setText(script.getName());
             } else {
                 labelName.setText(script.getName());
             }
-            if (descriptor.description != null) {
+            if (scriptDescriptor.description != null) {
                 addRegular(panelDescriptor, new JLabel("Description:"));
-                addlastOnLine(panelDescriptor, new JTextArea(descriptor.description));
+                JTextArea textArea = new JTextArea(scriptDescriptor.description);
+                textArea.setEditable(false);
+                textArea.setOpaque(false);
+                addlastOnLine(panelDescriptor, textArea);
             }
-            for (ParameterDescriptor paramDescriptor: descriptor.parameterDescriptors) {
+            for (ParameterDescriptor paramDescriptor: scriptDescriptor.parameterDescriptors) {
                 JLabel label = new JLabel(paramDescriptor.name + ':');
-                JTextField field = new JTextField();
-                label.setLabelFor(field);
+                JComponent editor = paramDescriptor.getEditor();
+                label.setLabelFor(editor);
                 if (paramDescriptor.description != null) {
                     label.setToolTipText(paramDescriptor.description);
                 }
                 addRegular(panelDescriptor, label);
                 if (paramDescriptor.description != null) {
-                    field.setToolTipText(paramDescriptor.description);
+                    editor.setToolTipText(paramDescriptor.description);
                 }
-                addlastOnLine(panelDescriptor, field);
+                addlastOnLine(panelDescriptor, editor);
             }
         } else {
             labelName.setText(script.getName());
         }
+        pack();
     }
     
     private void addRegular(JPanel panel, JComponent component) {
         GridBagConstraints constraints = new GridBagConstraints();
-        constraints.anchor = GridBagConstraints.FIRST_LINE_START;
-        constraints.insets = new Insets(2, 0, 2, 2);
+        constraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        constraints.insets = new Insets(3, 0, 3, 3);
         panel.add(component, constraints);
     }
 
     private void addlastOnLine(JPanel panel, JComponent component) {
         GridBagConstraints constraints = new GridBagConstraints();
-        constraints.anchor = GridBagConstraints.FIRST_LINE_START;
-        constraints.insets = new Insets(2, 2, 2, 0);
+        constraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        constraints.insets = new Insets(3, 3, 3, 0);
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.weightx = 1.0;
         constraints.gridwidth = GridBagConstraints.REMAINDER;
@@ -202,9 +205,11 @@ public class ScriptRunner extends WorldPainterDialog {
                         descriptor.parameterDescriptors.add(paramDescriptor);
                     }
                     if (parts[2].equals("type")) {
-                        paramDescriptor.type = parts[2];
+                        paramDescriptor.type = ParameterType.valueOf(value.toUpperCase().trim());
                     } else if (parts[2].equals("description")) {
-                        paramDescriptor.description = parts[2].replace("\\n", "\n");
+                        paramDescriptor.description = value.replace("\\n", "\n");
+                    } else if (parts[2].equals("optional")) {
+                        paramDescriptor.optional = value.trim().isEmpty() || Boolean.parseBoolean(value.toLowerCase().trim());
                     } else {
                         logger.warn("Skipping unknown key \"" + key + "\" in script descriptor");
                     }
@@ -223,6 +228,8 @@ public class ScriptRunner extends WorldPainterDialog {
         jButton2.setEnabled(false);
         jButton3.setEnabled(false);
         jTextArea2.setText(null);
+        final List<String> textQueue = new LinkedList<>();
+        final boolean[] textUpdateScheduled = new boolean[] {false};
         new Thread() {
             @Override
             public void run() {
@@ -258,8 +265,23 @@ public class ScriptRunner extends WorldPainterDialog {
                     scriptEngine.getContext().setWriter(new Writer() {
                         @Override
                         public void write(@NotNull char[] cbuf, int off, int len) throws IOException {
-                            String text = new String(cbuf, off, len);
-                            SwingUtilities.invokeLater(() -> jTextArea2.append(text));
+                            synchronized (textQueue) {
+                                textQueue.add(new String(cbuf, off, len));
+                                if (! textUpdateScheduled[0]) {
+                                    SwingUtilities.invokeLater(() -> {
+                                        synchronized (textQueue) {
+                                            System.out.println("Appending " + textQueue.size() + " text fragments");
+                                            // Join the fragments first so that
+                                            // only one string need be appended
+                                            // to the text area's document
+                                            jTextArea2.append(textQueue.stream().collect(joining()));
+                                            textQueue.clear();
+                                            textUpdateScheduled[0] = false;
+                                        }
+                                    });
+                                    textUpdateScheduled[0] = true;
+                                }
+                            }
                         }
 
                         @Override public void flush() throws IOException {}
@@ -508,17 +530,87 @@ public class ScriptRunner extends WorldPainterDialog {
     private final World2 world;
     private final Dimension dimension;
     private final ArrayList<File> recentScriptFiles;
+    private ScriptDescriptor scriptDescriptor;
 
     private static final Pattern DESCRIPTOR_PATTERN = Pattern.compile("script\\.([.a-zA-Z_0-9]+)=(.+)$");
     private static final Logger logger = LoggerFactory.getLogger(ScriptRunner.class);
 
+    @SuppressWarnings("Convert2MethodRef") // This is shorter
     static class ScriptDescriptor {
+        boolean isValid() {
+            return parameterDescriptors.stream().allMatch(p -> p.isEditorValid());
+        }
+
+        Map<String, Object> getValues() {
+            return parameterDescriptors.stream().collect(Collectors.toMap(p -> p.name, p -> p.getValue()));
+        }
+
         String name, description;
         List<ParameterDescriptor> parameterDescriptors = new ArrayList<>();
     }
 
     static class ParameterDescriptor {
-        String name, type, description;
+        JComponent getEditor() {
+            if (editor == null) {
+                switch (type) {
+                    case STRING:
+                        editor = new JTextField();
+                        break;
+                    case INTEGER:
+                        editor = new JSpinner();
+                        break;
+                    case PERCENTAGE:
+                        SpinnerNumberModel spinnerModel = new SpinnerNumberModel(0, 0, 100, 1);
+                        editor = new JSpinner(spinnerModel);
+                        break;
+                    case FLOAT:
+                        editor = new JFormattedTextField(NumberFormat.getNumberInstance());
+                        break;
+                    case FILE:
+                        JPanel panel = new JPanel(new GridBagLayout());
+                        GridBagConstraints constraints = new GridBagConstraints();
+                        constraints.weightx = 1.0;
+                        constraints.fill = GridBagConstraints.HORIZONTAL;
+                        panel.add(new JTextField(), constraints);
+                        constraints.weightx = 0.0;
+                        constraints.gridwidth = GridBagConstraints.REMAINDER;
+                        JButton button = new JButton("...");
+                        button.addActionListener(e -> {});
+                        panel.add(button, constraints);
+                        editor = panel;
+                        break;
+                }
+            }
+            return editor;
+        }
+
+        boolean isEditorValid() {
+            return true;
+        }
+
+        Object getValue() {
+            switch (type) {
+                case STRING:
+                    String text = ((JTextField) editor).getText();
+                    return text.trim().isEmpty() ? null : text;
+                case INTEGER:
+                case PERCENTAGE:
+                    return ((JSpinner) editor).getValue();
+                case FLOAT:
+                    text = ((JTextField) editor).getText();
+                    return text.trim().isEmpty() ? null : Double.parseDouble(text);
+                case FILE:
+                    text = ((JTextField) editor).getText();
+                    return text.trim().isEmpty() ? null : new File(text);
+                default:
+                    throw new InternalError();
+            }
+        }
+
+        String name, description;
+        ParameterType type = ParameterType.STRING;
+        boolean optional;
+        JComponent editor;
     }
 
     enum ParameterType {STRING, INTEGER, PERCENTAGE, FLOAT, FILE}

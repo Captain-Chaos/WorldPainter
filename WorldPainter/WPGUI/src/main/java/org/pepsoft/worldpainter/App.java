@@ -1284,6 +1284,10 @@ public final class App extends JFrame implements RadiusControl,
         });
         popupMenu.add(menuItem);
 
+        menuItem = new JMenuItem("Import from another world...");
+        menuItem.addActionListener(e -> importCustomItemsFromWorld());
+        popupMenu.add(menuItem);
+
         if (material != null) {
             menuItem = new JMenuItem("Export to file...");
             menuItem.addActionListener(e -> exportCustomMaterial(customMaterialIndex));
@@ -1973,7 +1977,7 @@ public final class App extends JFrame implements RadiusControl,
         dockingManager.addFrame(createDockableFrame(createAnnotationsPanel(), "Annotations", DOCK_SIDE_WEST, 3));
 
         dockingManager.addFrame(createDockableFrame(createBrushPanel(), "Brushes", DOCK_SIDE_EAST, 1));
-        
+
         if (customBrushes.containsKey(CUSTOM_BRUSHES_DEFAULT_TITLE)) {
             dockingManager.addFrame(createDockableFrame(createCustomBrushPanel(CUSTOM_BRUSHES_DEFAULT_TITLE, customBrushes.get(CUSTOM_BRUSHES_DEFAULT_TITLE)), "customBrushesDefault", "Custom Brushes", DOCK_SIDE_EAST, 1));
         }
@@ -1985,6 +1989,8 @@ public final class App extends JFrame implements RadiusControl,
         }
         
         dockingManager.addFrame(createDockableFrame(createBrushSettingsPanel(), "brushSettings", "Brush Settings", DOCK_SIDE_EAST, 2));
+
+        dockingManager.addFrame(createDockableFrame(createInfoPanel(), "Info", DOCK_SIDE_EAST, 3));
 
         Configuration config = Configuration.getInstance();
         if (config.getDefaultJideLayoutData() != null) {
@@ -2141,6 +2147,10 @@ public final class App extends JFrame implements RadiusControl,
         } finally {
             programmaticChange = false;
         }
+    }
+
+    private Component createInfoPanel() {
+        return new InfoPanel(view, customBiomeManager);
     }
 
     private BufferedImage loadCallout(String key) {
@@ -2543,7 +2553,11 @@ public final class App extends JFrame implements RadiusControl,
         menuItem = new JMenuItem("Import custom layer(s) from file...");
         menuItem.addActionListener(e -> importLayers(paletteName));
         customLayerMenu.add(menuItem);
-        
+
+        menuItem = new JMenuItem("Import custom layer(s) from another world...");
+        menuItem.addActionListener(e -> importCustomItemsFromWorld());
+        customLayerMenu.add(menuItem);
+
         return customLayerMenu;
     }
 

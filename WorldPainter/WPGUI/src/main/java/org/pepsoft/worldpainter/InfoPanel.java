@@ -5,15 +5,15 @@
  */
 package org.pepsoft.worldpainter;
 
+import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.swing.ImageIcon;
-import javax.swing.JLabel;
-import javax.swing.ListModel;
+import javax.swing.*;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import org.pepsoft.worldpainter.biomeschemes.BiomeHelper;
@@ -22,6 +22,8 @@ import org.pepsoft.worldpainter.layers.Annotations;
 import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.layers.GardenCategory;
 import org.pepsoft.worldpainter.layers.Layer;
+
+import static org.pepsoft.worldpainter.Constants.*;
 
 /**
  *
@@ -36,17 +38,54 @@ public class InfoPanel extends javax.swing.JPanel {
         listModel = new LayerListModel(customBiomeManager);
         
         initComponents();
+
+//        updateTimer = new Timer(100, e -> updateInfo());
+//        updateTimer.setRepeats(false);
+        view.addMouseMotionListener(new MouseAdapter() {
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                worldCoords = view.viewToWorld(e.getX(), e.getY());
+                updateInfo();
+//                if (updateTimer.isRunning()) {
+//                    updateTimer.restart();
+//                } else {
+//                    updateTimer.start();
+//                }
+            }
+        });
+
         
         jList1.setModel(listModel);
     }
 
-    public void updateInfo(int x, int y) {
+    public void updateInfo() {
+        // TODO: alleen slope en layers ergens weergeven; de rest staat al in de status bar
+
         Dimension dim = view.getDimension();
-        Map<Layer, Integer> layerValues = dim.getLayersAt(x, y);
-        if (layerValues != null) {
-            listModel.update(layerValues);
-        } else {
-            listModel.clear();
+        labelCoords.setText(worldCoords.x + "," + worldCoords.y);
+        Tile tile = dim.getTile(worldCoords.x >> TILE_SIZE_BITS, worldCoords.y >> TILE_SIZE_BITS);
+        if (tile != null) {
+            final int x = worldCoords.x & TILE_SIZE_MASK, y = worldCoords.y & TILE_SIZE_MASK;
+            int height = tile.getIntHeight(x, y);
+            labelHeight.setText(Integer.toString(height));
+            int waterLevel = tile.getWaterLevel(x, y);
+            labelWaterLevel.setText(Integer.toString(waterLevel));
+            if (waterLevel > height) {
+                labelWaterDepth.setText(Integer.toString(waterLevel - height));
+            } else {
+                labelWaterDepth.setText(null);
+            }
+            if ((x > 0) && (x < TILE_SIZE - 1) && (y > 0) && (y < TILE_SIZE - 1)) {
+                labelSlope.setText(Float.toString(tile.getSlope(x, y)));
+            } else {
+                labelSlope.setText(Float.toString(dim.getSlope(worldCoords.x, worldCoords.y)));
+            }
+            Map<Layer, Integer> layerValues = tile.getLayersAt(x, y);
+            if (layerValues != null) {
+                listModel.update(layerValues);
+            } else {
+                listModel.clear();
+            }
         }
     }
     
@@ -65,17 +104,16 @@ public class InfoPanel extends javax.swing.JPanel {
         jScrollPane1 = new javax.swing.JScrollPane();
         jList1 = new javax.swing.JList();
         jLabel5 = new javax.swing.JLabel();
-        jLabel6 = new javax.swing.JLabel();
+        labelCoords = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
-        jLabel8 = new javax.swing.JLabel();
-        jLabel9 = new javax.swing.JLabel();
+        labelHeight = new javax.swing.JLabel();
         jLabel10 = new javax.swing.JLabel();
-        jLabel11 = new javax.swing.JLabel();
+        labelFluidType = new javax.swing.JLabel();
         jLabel12 = new javax.swing.JLabel();
         jLabel13 = new javax.swing.JLabel();
-        jLabel14 = new javax.swing.JLabel();
+        labelWaterLevel = new javax.swing.JLabel();
         jLabel15 = new javax.swing.JLabel();
-        jLabel16 = new javax.swing.JLabel();
+        labelWaterDepth = new javax.swing.JLabel();
         jLabel17 = new javax.swing.JLabel();
 
         jLabel1.setText("Slope:");
@@ -93,27 +131,25 @@ public class InfoPanel extends javax.swing.JPanel {
 
         jLabel5.setText("Coordinates:");
 
-        jLabel6.setText("jLabel6");
+        labelCoords.setText("jLabel6");
 
         jLabel7.setText("Height:");
 
-        jLabel8.setText("jLabel8");
-
-        jLabel9.setText("°");
+        labelHeight.setText("jLabel8");
 
         jLabel10.setText("m");
 
-        jLabel11.setText("Water");
+        labelFluidType.setText("Fluid");
 
         jLabel12.setText("level:");
 
         jLabel13.setText("depth:");
 
-        jLabel14.setText("jLabel14");
+        labelWaterLevel.setText("jLabel14");
 
         jLabel15.setText("m");
 
-        jLabel16.setText("jLabel16");
+        labelWaterDepth.setText("jLabel16");
 
         jLabel17.setText("m");
 
@@ -135,30 +171,26 @@ public class InfoPanel extends javax.swing.JPanel {
                                     .addComponent(jLabel7))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel6)
+                                    .addComponent(labelCoords)
+                                    .addComponent(labelSlope)
                                     .addGroup(layout.createSequentialGroup()
-                                        .addComponent(labelSlope)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(jLabel9))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(jLabel8)
+                                        .addComponent(labelHeight)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(jLabel10))
                                     .addGroup(layout.createSequentialGroup()
-                                        .addComponent(jLabel14)
+                                        .addComponent(labelWaterLevel)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(jLabel15))
                                     .addGroup(layout.createSequentialGroup()
-                                        .addComponent(jLabel16)
+                                        .addComponent(labelWaterDepth)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(jLabel17)))))
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel11)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel13)
-                            .addComponent(jLabel12))
+                                        .addComponent(jLabel17))))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(labelFluidType)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel13)
+                                    .addComponent(jLabel12))))
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -168,28 +200,27 @@ public class InfoPanel extends javax.swing.JPanel {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel5)
-                    .addComponent(jLabel6))
+                    .addComponent(labelCoords))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel7)
-                    .addComponent(jLabel8)
+                    .addComponent(labelHeight)
                     .addComponent(jLabel10))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel11)
+                    .addComponent(labelFluidType)
                     .addComponent(jLabel12)
-                    .addComponent(jLabel14)
+                    .addComponent(labelWaterLevel)
                     .addComponent(jLabel15))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel13)
-                    .addComponent(jLabel16)
+                    .addComponent(labelWaterDepth)
                     .addComponent(jLabel17))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1)
-                    .addComponent(labelSlope)
-                    .addComponent(jLabel9))
+                    .addComponent(labelSlope))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -202,26 +233,27 @@ public class InfoPanel extends javax.swing.JPanel {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
-    private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel13;
-    private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel15;
-    private javax.swing.JLabel jLabel16;
     private javax.swing.JLabel jLabel17;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
-    private javax.swing.JLabel jLabel8;
-    private javax.swing.JLabel jLabel9;
     private javax.swing.JList jList1;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JLabel labelCoords;
+    private javax.swing.JLabel labelFluidType;
+    private javax.swing.JLabel labelHeight;
     private javax.swing.JLabel labelSlope;
+    private javax.swing.JLabel labelWaterDepth;
+    private javax.swing.JLabel labelWaterLevel;
     // End of variables declaration//GEN-END:variables
 
     private final WorldPainter view;
     private final LayerListModel listModel;
+//    private final Timer updateTimer;
+    private Point worldCoords;
     
     static class LayerListModel implements ListModel<JLabel> {
         public LayerListModel(CustomBiomeManager customBiomeManager) {
