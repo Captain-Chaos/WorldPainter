@@ -793,12 +793,12 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         savesDirectory = FileUtils.absolutise(savesDirectory);
         customObjectsDirectory = FileUtils.absolutise(customObjectsDirectory);
         minecraft1_9_p3Jar = FileUtils.absolutise(minecraft1_9_p3Jar);
-        FileUtils.absolutise(minecraftJars);
+        minecraftJars = FileUtils.absolutise(minecraftJars);
         layerDirectory = FileUtils.absolutise(layerDirectory);
         terrainDirectory = FileUtils.absolutise(terrainDirectory);
         heightMapsDirectory = FileUtils.absolutise(heightMapsDirectory);
-        FileUtils.absolutise(recentFiles);
-        FileUtils.absolutise(recentScriptFiles);
+        recentFiles = FileUtils.absolutise(recentFiles);
+        recentScriptFiles = FileUtils.absolutise(recentScriptFiles);
         
         out.defaultWriteObject();
     }

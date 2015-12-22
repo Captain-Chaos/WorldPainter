@@ -32,6 +32,7 @@ import org.pepsoft.worldpainter.heightMaps.TransformingHeightMap;
 import org.pepsoft.worldpainter.layers.Annotations;
 import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.operations.Filter;
 import org.pepsoft.worldpainter.panels.FilterImpl;
 
 import java.awt.*;
@@ -265,7 +266,7 @@ public class MappingOp extends AbstractOperation<Void> {
         return this;
     }
     
-    public MappingOp withFilter(FilterImpl filter) {
+    public MappingOp withFilter(Filter filter) {
         this.filter = filter;
         return this;
     }
@@ -378,11 +379,9 @@ public class MappingOp extends AbstractOperation<Void> {
         }
         final int x1 = extent.x, y1 = extent.y;
         final int x2 = extent.x + extent.width, y2 = extent.y + extent.height;
-        final boolean bitLayer = (layer != null)
-                ? ((layer.getDataSize() == Layer.DataSize.BIT) || (layer.getDataSize() == Layer.DataSize.BIT_PER_CHUNK))
-                : false;
-        if (filter != null) {
-            filter.setDimension(dimension);
+        final boolean bitLayer = (layer != null) && ((layer.getDataSize() == Layer.DataSize.BIT) || (layer.getDataSize() == Layer.DataSize.BIT_PER_CHUNK));
+        if (filter instanceof FilterImpl) {
+            ((FilterImpl) filter).setDimension(dimension);
         }
         for (int x = x1; x < x2; x++) {
             for (int y = y1; y < y2; y++) {
@@ -464,7 +463,7 @@ public class MappingOp extends AbstractOperation<Void> {
     private World2 world;
     private int dimIndex, storedLowerFrom, storedUpperFrom, scale = 100, offsetX, offsetY, terrainIndex, layerValue, storedColour = -1;
     private Mode mode = Mode.SET;
-    private FilterImpl filter;
+    private Filter filter;
    
     enum Mode {
         SET, SET_WHEN_LOWER, SET_WHEN_HIGHER, SET_TERRAIN

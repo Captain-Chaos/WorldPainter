@@ -20,13 +20,14 @@ package org.pepsoft.worldpainter.tools.scripts;
 
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.operations.Filter;
 import org.pepsoft.worldpainter.panels.FilterImpl;
 
 /**
  *
  * @author pepijn
  */
-public class CreateFilterOp extends AbstractOperation<FilterImpl> {
+public class CreateFilterOp extends AbstractOperation<Filter> {
     public CreateFilterOp(ScriptingContext context) {
         super(context);
     }
@@ -182,7 +183,7 @@ public class CreateFilterOp extends AbstractOperation<FilterImpl> {
     }
     
     @Override
-    public FilterImpl go() throws ScriptException {
+    public Filter go() throws ScriptException {
         goCalled();
 
         return new FilterImpl(null, aboveLevel, belowLevel, feather, onlyOn, exceptOn, degrees, slopeIsAbove);

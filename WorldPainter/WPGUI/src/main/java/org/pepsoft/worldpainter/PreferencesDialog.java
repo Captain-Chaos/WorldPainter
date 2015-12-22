@@ -10,19 +10,21 @@
  */
 package org.pepsoft.worldpainter;
 
-import java.util.SortedMap;
+import org.pepsoft.worldpainter.TileRenderer.LightOrigin;
+import org.pepsoft.worldpainter.themes.SimpleTheme;
+import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
+
+import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
 import java.io.IOException;
 import java.util.List;
 import java.util.Random;
-import javax.swing.*;
-import static org.pepsoft.worldpainter.Terrain.*;
-import static org.pepsoft.minecraft.Constants.*;
-import static org.pepsoft.worldpainter.Constants.*;
-import org.pepsoft.worldpainter.TileRenderer.LightOrigin;
-import org.pepsoft.worldpainter.themes.SimpleTheme;
+import java.util.SortedMap;
+
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
+import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
+import static org.pepsoft.worldpainter.Terrain.GRASS;
 
 /**
  *
@@ -38,10 +40,7 @@ public class PreferencesDialog extends javax.swing.JDialog {
         
         comboBoxSurfaceMaterial.setModel(new DefaultComboBoxModel(Terrain.PICK_LIST));
         comboBoxSurfaceMaterial.setRenderer(new TerrainListCellRenderer(colourScheme));
-        if (! JAVA_7) {
-            comboBoxLookAndFeel.setModel(new DefaultComboBoxModel(new Object[] {"System", "Metal", "Nimbus", "Dark Metal"}));
-        }
-        
+
         List<AccelerationType> accelTypes = AccelerationType.getForThisOS();
         radioButtonAccelDefault.setEnabled(accelTypes.contains(AccelerationType.DEFAULT));
         radioButtonAccelDirect3D.setEnabled(accelTypes.contains(AccelerationType.DIRECT3D));

@@ -24,6 +24,10 @@ import java.io.IOException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -123,15 +127,39 @@ public class ScriptingTool {
             System.err.println("Executing script \"" + scriptFileName + "\" with no arguments.\n");
         }
 
+        // Parse arguments
+        List<String> argList = new ArrayList<>();
+        Map<String, String> paramMap = new HashMap<>();
+        for (String arg: args) {
+            if (arg.startsWith("--") && (arg.length() > 2) && (arg.charAt(2) != '-')) {
+                p = arg.indexOf('=');
+                if (p != -1) {
+                    String key = arg.substring(2, p);
+                    String value = arg.substring(p + 1);
+                    paramMap.put(key, value);
+                } else {
+                    paramMap.put(arg.substring(2), "true");
+                }
+            } else if (arg.startsWith("-") && (arg.length() > 1) && (arg.charAt(1) != '-')) {
+                for (int i = 1; i < arg.length(); i++) {
+                    paramMap.put(arg.substring(i, i + 1), "true");
+                }
+            } else {
+                argList.add(arg);
+            }
+        }
+
         // Initialise script context
-        ScriptingContext context = new ScriptingContext();
+        ScriptingContext context = new ScriptingContext(true);
         Bindings bindings = scriptEngine.getBindings(ScriptContext.ENGINE_SCOPE);
         bindings.put("wp", context);
-        bindings.put("argc", args.length);
-        bindings.put("argv", args);
-        String[] scriptArgs = new String[args.length - 1];
-        System.arraycopy(args, 1, scriptArgs, 0, scriptArgs.length);
+        String[] argArray = argList.toArray(new String[argList.size()]);
+        bindings.put("argc", argArray.length);
+        bindings.put("argv", argArray);
+        String[] scriptArgs = new String[argArray.length - 1];
+        System.arraycopy(argArray, 1, scriptArgs, 0, scriptArgs.length);
         bindings.put("arguments", scriptArgs);
+        bindings.put("params", paramMap);
         
         // Execute script
         try {

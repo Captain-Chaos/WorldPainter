@@ -47,7 +47,7 @@ public class ScriptRunner extends WorldPainterDialog {
         initComponents();
         
         Configuration config = Configuration.getInstance();
-        recentScriptFiles = (config.getRecentScriptFiles() != null) ? new ArrayList(config.getRecentScriptFiles()) : new ArrayList<>();
+        recentScriptFiles = (config.getRecentScriptFiles() != null) ? new ArrayList<>(config.getRecentScriptFiles()) : new ArrayList<>();
         jComboBox1.setModel(new DefaultComboBoxModel<>(recentScriptFiles.toArray(new File[recentScriptFiles.size()])));
         if (jComboBox1.getSelectedItem() != null) {
             setupScript((File) jComboBox1.getSelectedItem());
@@ -161,7 +161,7 @@ public class ScriptRunner extends WorldPainterDialog {
     }
     
     private ScriptDescriptor analyseScript(File script) {
-        Properties properties = new Properties();
+        Map<String, String> properties = new LinkedHashMap<>();
         try (BufferedReader in = new BufferedReader(new FileReader(script))) {
             String line;
             while ((line = in.readLine()) != null) {
@@ -185,9 +185,8 @@ public class ScriptRunner extends WorldPainterDialog {
             return null;
         } else {
             ScriptDescriptor descriptor = new ScriptDescriptor();
-            Map<String, ParameterDescriptor> paramMap = new HashMap<>();
-            properties.forEach((keyObject, valueObject) -> {
-                String key = (String) keyObject, value = (String) valueObject;
+            Map<String, ParameterDescriptor> paramMap = new LinkedHashMap<>();
+            properties.forEach((key, value) -> {
                 if (key.equals("name")) {
                     descriptor.name = value;
                 } else if (key.equals("description")) {
@@ -204,14 +203,22 @@ public class ScriptRunner extends WorldPainterDialog {
                         paramMap.put(parts[1], paramDescriptor);
                         descriptor.parameterDescriptors.add(paramDescriptor);
                     }
-                    if (parts[2].equals("type")) {
-                        paramDescriptor.type = ParameterType.valueOf(value.toUpperCase().trim());
-                    } else if (parts[2].equals("description")) {
-                        paramDescriptor.description = value.replace("\\n", "\n");
-                    } else if (parts[2].equals("optional")) {
-                        paramDescriptor.optional = value.trim().isEmpty() || Boolean.parseBoolean(value.toLowerCase().trim());
-                    } else {
-                        logger.warn("Skipping unknown key \"" + key + "\" in script descriptor");
+                    switch (parts[2]) {
+                        case "type":
+                            paramDescriptor.type = ParameterType.valueOf(value.toUpperCase().trim());
+                            break;
+                        case "description":
+                            paramDescriptor.description = value.replace("\\n", "\n");
+                            break;
+                        case "optional":
+                            paramDescriptor.optional = value.trim().isEmpty() || Boolean.parseBoolean(value.toLowerCase().trim());
+                            break;
+                        case "default":
+                            paramDescriptor.defaultValue = paramDescriptor.type.toObject(value.trim());
+                            break;
+                        default:
+                            logger.warn("Skipping unknown key \"" + key + "\" in script descriptor");
+                            break;
                     }
                 } else {
                     logger.warn("Skipping unknown key \"" + key + "\" in script descriptor");
@@ -228,15 +235,14 @@ public class ScriptRunner extends WorldPainterDialog {
         jButton2.setEnabled(false);
         jButton3.setEnabled(false);
         jTextArea2.setText(null);
-        final List<String> textQueue = new LinkedList<>();
-        final boolean[] textUpdateScheduled = new boolean[] {false};
-        new Thread() {
+        File scriptFile = (File) jComboBox1.getSelectedItem();
+        String scriptFileName = scriptFile.getName();
+        Map<String, Object> params = scriptDescriptor.getValues();
+        new Thread(scriptFileName) {
             @Override
             public void run() {
                 try {
                     Configuration config = Configuration.getInstance();
-                    File scriptFile = (File) jComboBox1.getSelectedItem();
-                    String scriptFileName = scriptFile.getName();
                     int p = scriptFileName.lastIndexOf('.');
                     String extension = scriptFileName.substring(p + 1);
                     ScriptEngine scriptEngine = scriptEngineManager.getEngineByExtension(extension);
@@ -244,7 +250,7 @@ public class ScriptRunner extends WorldPainterDialog {
                     config.setRecentScriptFiles(new ArrayList<>(recentScriptFiles));
 
                     // Initialise script context
-                    ScriptingContext context = new ScriptingContext();
+                    ScriptingContext context = new ScriptingContext(false);
                     Bindings bindings = scriptEngine.getBindings(ScriptContext.ENGINE_SCOPE);
                     bindings.put("wp", context);
                     bindings.put("argc", 1);
@@ -254,6 +260,7 @@ public class ScriptRunner extends WorldPainterDialog {
                     System.arraycopy(parameters, 0, argv, 1, parameters.length);
                     bindings.put("argv", argv);
                     bindings.put("arguments", parameters);
+                    bindings.put("params", params);
                     if (world != null) {
                         bindings.put("world", world);
                     }
@@ -262,7 +269,9 @@ public class ScriptRunner extends WorldPainterDialog {
                     }
 
                     // Capture output
-                    scriptEngine.getContext().setWriter(new Writer() {
+                    List<String> textQueue = new LinkedList<>();
+                    boolean[] textUpdateScheduled = new boolean[] {false};
+                    Writer writer = new Writer() {
                         @Override
                         public void write(@NotNull char[] cbuf, int off, int len) throws IOException {
                             synchronized (textQueue) {
@@ -270,7 +279,6 @@ public class ScriptRunner extends WorldPainterDialog {
                                 if (! textUpdateScheduled[0]) {
                                     SwingUtilities.invokeLater(() -> {
                                         synchronized (textQueue) {
-                                            System.out.println("Appending " + textQueue.size() + " text fragments");
                                             // Join the fragments first so that
                                             // only one string need be appended
                                             // to the text area's document
@@ -286,7 +294,9 @@ public class ScriptRunner extends WorldPainterDialog {
 
                         @Override public void flush() throws IOException {}
                         @Override public void close() throws IOException {}
-                    });
+                    };
+                    scriptEngine.getContext().setWriter(writer);
+                    scriptEngine.getContext().setErrorWriter(writer);
 
                     // Execute script
                     if (dimension != null) {
@@ -554,7 +564,7 @@ public class ScriptRunner extends WorldPainterDialog {
             if (editor == null) {
                 switch (type) {
                     case STRING:
-                        editor = new JTextField();
+                        editor = new JTextField((String) defaultValue);
                         break;
                     case INTEGER:
                         editor = new JSpinner();
@@ -581,6 +591,9 @@ public class ScriptRunner extends WorldPainterDialog {
                         break;
                 }
             }
+            if (defaultValue != null) {
+                setValue(defaultValue);
+            }
             return editor;
         }
 
@@ -591,17 +604,35 @@ public class ScriptRunner extends WorldPainterDialog {
         Object getValue() {
             switch (type) {
                 case STRING:
-                    String text = ((JTextField) editor).getText();
-                    return text.trim().isEmpty() ? null : text;
+                    return ((JTextField) editor).getText();
                 case INTEGER:
                 case PERCENTAGE:
                     return ((JSpinner) editor).getValue();
                 case FLOAT:
-                    text = ((JTextField) editor).getText();
-                    return text.trim().isEmpty() ? null : Double.parseDouble(text);
+                    return ((JFormattedTextField) editor).getValue();
                 case FILE:
-                    text = ((JTextField) editor).getText();
-                    return text.trim().isEmpty() ? null : new File(text);
+                    String text = ((JTextField) editor.getComponent(1)).getText();
+                    return text.trim().isEmpty() ? null : new File(text.trim());
+                default:
+                    throw new InternalError();
+            }
+        }
+
+        void setValue(Object value) {
+            switch (type) {
+                case STRING:
+                    ((JTextField) editor).setText((String) value);
+                    break;
+                case INTEGER:
+                case PERCENTAGE:
+                    ((JSpinner) editor).setValue(value);
+                    break;
+                case FLOAT:
+                    ((JFormattedTextField) editor).setValue(value);
+                    break;
+                case FILE:
+                    ((JTextField) editor.getComponent(1)).setText(((File) value).getAbsolutePath());
+                    break;
                 default:
                     throw new InternalError();
             }
@@ -611,7 +642,75 @@ public class ScriptRunner extends WorldPainterDialog {
         ParameterType type = ParameterType.STRING;
         boolean optional;
         JComponent editor;
+        Object defaultValue;
     }
 
-    enum ParameterType {STRING, INTEGER, PERCENTAGE, FLOAT, FILE}
+    enum ParameterType {
+        STRING {
+            @Override
+            String toString(Object o) {
+                return (o instanceof String) ? (String) o : o.toString();
+            }
+
+            @Override
+            Object toObject(String str) {
+                return str;
+            }
+        },
+
+        INTEGER {
+            @Override
+            String toString(Object o) {
+                return o.toString();
+            }
+
+            @Override
+            Object toObject(String str) {
+                return Integer.valueOf(str);
+            }
+        },
+
+        PERCENTAGE {
+            @Override
+            String toString(Object o) {
+                return o.toString() + '%';
+            }
+
+            @Override
+            Object toObject(String str) {
+                if (str.endsWith("%")) {
+                    return Integer.valueOf(str.substring(0, str.length() - 1).trim());
+                } else {
+                    return Integer.valueOf(str.trim());
+                }
+            }
+        },
+
+        FLOAT {
+            @Override
+            String toString(Object o) {
+                return Double.toString(((Number) o).doubleValue());
+            }
+
+            @Override
+            Object toObject(String str) {
+                return Double.valueOf(str);
+            }
+        },
+
+        FILE {
+            @Override
+            String toString(Object o) {
+                return ((File) o).getAbsolutePath();
+            }
+
+            @Override
+            Object toObject(String str) {
+                return new File(str);
+            }
+        };
+
+        abstract String toString(Object o);
+        abstract Object toObject(String str);
+    }
 }
