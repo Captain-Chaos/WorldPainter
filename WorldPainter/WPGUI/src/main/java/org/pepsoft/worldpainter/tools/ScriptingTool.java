@@ -54,7 +54,7 @@ public class ScriptingTool {
 
         // Check arguments
         if (args.length < 1) {
-            System.out.println("Usage:\n" +
+            System.err.println("Usage:\n" +
                     "\n" +
                     "    wpscript <scriptfile> [<scriptarg> ...]\n" +
                     "\n" +

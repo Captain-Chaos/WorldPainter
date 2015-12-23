@@ -11,6 +11,7 @@ import org.pepsoft.worldpainter.Configuration;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.World2;
 import org.pepsoft.worldpainter.WorldPainterDialog;
+import org.pepsoft.worldpainter.layers.Layer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -267,6 +268,11 @@ public class ScriptRunner extends WorldPainterDialog {
                     if (dimension != null) {
                         bindings.put("dimension", dimension);
                     }
+                    Map<String, Layer.DataSize> dataSizes = new HashMap<>();
+                    for (Layer.DataSize dataSize: Layer.DataSize.values()) {
+                        dataSizes.put(dataSize.name(), dataSize);
+                    }
+                    bindings.put("DataSize", dataSizes);
 
                     // Capture output
                     List<String> textQueue = new LinkedList<>();
