@@ -145,7 +145,7 @@ public class AboutDialog extends javax.swing.JDialog implements WindowListener {
     
     private void donate() {
         try {
-            DesktopUtils.open(new URL("https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=VZ7WNQVPXDZHY"));
+            DesktopUtils.open(new URL("https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=VZ7WNQVPXDZHY&lc=US"));
             Configuration config = Configuration.getInstance();
             config.setDonationStatus(Configuration.DonationStatus.DONATED);
             JOptionPane.showMessageDialog(this, strings.getString("the.donation.paypal.page.has.been.opened"), strings.getString("thank.you"), JOptionPane.INFORMATION_MESSAGE);
