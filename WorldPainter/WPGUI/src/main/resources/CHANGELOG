@@ -9,6 +9,7 @@
    + The last used script is remembered, as is the list of previously used scripts, for quick access
    + Scripts have full access to the world data, so this is a potentially extremely powerful technique
  * Remember previously used directories better by working around a bug in Java on Windows
+ * Bug fix: allow selection of Roofed Forest M (157) biome
 
 -- Version 2.1.3, released 29-11-2015
 
