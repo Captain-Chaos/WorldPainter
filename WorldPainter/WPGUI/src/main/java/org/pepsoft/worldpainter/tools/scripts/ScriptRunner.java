@@ -7,6 +7,7 @@ package org.pepsoft.worldpainter.tools.scripts;
 
 import org.jetbrains.annotations.NotNull;
 import org.pepsoft.util.FileUtils;
+import org.pepsoft.util.undo.UndoManager;
 import org.pepsoft.worldpainter.Configuration;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.World2;
@@ -40,11 +41,12 @@ public class ScriptRunner extends WorldPainterDialog {
     /**
      * Creates new form ScriptRunner
      */
-    public ScriptRunner(Window parent, World2 world, Dimension dimension) {
+    public ScriptRunner(Window parent, World2 world, Dimension dimension, Collection<UndoManager> undoManagers) {
         super(parent);
         this.world = world;
         this.dimension = dimension;
-        
+        this.undoManagers = undoManagers;
+
         initComponents();
         
         Configuration config = Configuration.getInstance();
@@ -336,7 +338,9 @@ public class ScriptRunner extends WorldPainterDialog {
                     } finally {
                         if (dimension != null) {
                             dimension.setEventsInhibited(false);
-                            dimension.rememberChanges();
+                        }
+                        if (undoManagers != null) {
+                            undoManagers.forEach(UndoManager::armSavePoint);
                         }
                     }
                 } finally {
@@ -546,6 +550,7 @@ public class ScriptRunner extends WorldPainterDialog {
     private final World2 world;
     private final Dimension dimension;
     private final ArrayList<File> recentScriptFiles;
+    private final Collection<UndoManager> undoManagers;
     private ScriptDescriptor scriptDescriptor;
 
     private static final Pattern DESCRIPTOR_PATTERN = Pattern.compile("script\\.([.a-zA-Z_0-9]+)=(.+)$");
