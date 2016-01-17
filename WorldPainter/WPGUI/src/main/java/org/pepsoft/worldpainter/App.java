@@ -1285,7 +1285,7 @@ public final class App extends JFrame implements RadiusControl,
         popupMenu.add(menuItem);
 
         menuItem = new JMenuItem("Import from another world...");
-        menuItem.addActionListener(e -> importCustomItemsFromWorld());
+        menuItem.addActionListener(e -> importCustomItemsFromWorld(CustomItemsTreeModel.ItemType.TERRAIN));
         popupMenu.add(menuItem);
 
         if (material != null) {
@@ -1990,7 +1990,7 @@ public final class App extends JFrame implements RadiusControl,
         
         dockingManager.addFrame(createDockableFrame(createBrushSettingsPanel(), "brushSettings", "Brush Settings", DOCK_SIDE_EAST, 2));
 
-        dockingManager.addFrame(createDockableFrame(createInfoPanel(), "Info", DOCK_SIDE_EAST, 3));
+//        dockingManager.addFrame(createDockableFrame(createInfoPanel(), "Info", DOCK_SIDE_EAST, 3));
 
         Configuration config = Configuration.getInstance();
         if (config.getDefaultJideLayoutData() != null) {
@@ -2555,7 +2555,7 @@ public final class App extends JFrame implements RadiusControl,
         customLayerMenu.add(menuItem);
 
         menuItem = new JMenuItem("Import custom layer(s) from another world...");
-        menuItem.addActionListener(e -> importCustomItemsFromWorld());
+        menuItem.addActionListener(e -> importCustomItemsFromWorld(CustomItemsTreeModel.ItemType.LAYER));
         customLayerMenu.add(menuItem);
 
         return customLayerMenu;
@@ -3344,7 +3344,7 @@ public final class App extends JFrame implements RadiusControl,
         menuItem = new JMenuItem("Custom items from existing world...");
         menuItem.setMnemonic('i');
         menuItem.addActionListener(e -> {
-            importCustomItemsFromWorld();
+            importCustomItemsFromWorld(CustomItemsTreeModel.ItemType.ALL);
         });
         importMenu.add(menuItem);
 
@@ -4945,7 +4945,7 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
 
-    private void importCustomItemsFromWorld() {
+    private void importCustomItemsFromWorld(CustomItemsTreeModel.ItemType itemType) {
         File dir;
         Configuration config = Configuration.getInstance();
         if (lastSelectedFile != null) {
@@ -5072,8 +5072,8 @@ public final class App extends JFrame implements RadiusControl,
                 // The file was damaged
                 return;
             }
-            if (CustomItemsTreeModel.hasCustomItems(selectedWorld)) {
-                ImportCustomItemsDialog dialog = new ImportCustomItemsDialog(this, selectedWorld, selectedColourScheme);
+            if (CustomItemsTreeModel.hasCustomItems(selectedWorld, itemType)) {
+                ImportCustomItemsDialog dialog = new ImportCustomItemsDialog(this, selectedWorld, selectedColourScheme, itemType);
                 dialog.setVisible(true);
                 if (! dialog.isCancelled()) {
                     StringBuilder errors = new StringBuilder();
@@ -5125,7 +5125,24 @@ public final class App extends JFrame implements RadiusControl,
                     }
                 }
             } else {
-                showMessageDialog(this, "The selected world has no custom layers, terrains or biomes.", "No Custom Items", WARNING_MESSAGE);
+                String what;
+                switch (itemType) {
+                    case ALL:
+                        what = "layers, terrains or biomes";
+                        break;
+                    case BIOME:
+                        what = "biomes";
+                        break;
+                    case LAYER:
+                        what = "layers";
+                        break;
+                    case TERRAIN:
+                        what = "terrains";
+                        break;
+                    default:
+                        throw new InternalError();
+                }
+                showMessageDialog(this, "The selected world has no custom " + what + ".", "No Custom Items", WARNING_MESSAGE);
             }
         }
     }

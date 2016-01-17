@@ -26,12 +26,12 @@ public class ImportCustomItemsDialog extends WorldPainterDialog implements TreeS
     /**
      * Creates new form ImportCustomItemsDialog
      */
-    public ImportCustomItemsDialog(Window parent, World2 world, ColourScheme colourScheme) {
+    public ImportCustomItemsDialog(Window parent, World2 world, ColourScheme colourScheme, CustomItemsTreeModel.ItemType itemType) {
         super(parent);
         
         initComponents();
         ((CheckBoxTreeCellRenderer) treeCustomItems.getCellRenderer()).setActualTreeRenderer(new CustomItemsTreeCellRenderer(colourScheme));
-        treeModel = new CustomItemsTreeModel(world);
+        treeModel = new CustomItemsTreeModel(world, itemType);
         treeCustomItems.getCheckBoxTreeSelectionModel().setModel(treeModel);
         treeCustomItems.setModel(treeModel);
         expandAll(treeCustomItems);
