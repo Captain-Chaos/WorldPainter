@@ -11,7 +11,6 @@ import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
 import com.jidesoft.plaf.LookAndFeelFactory;
 import com.jidesoft.utils.Lm;
-import org.pepsoft.util.SystemUtils;
 import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
 import org.pepsoft.worldpainter.browser.WPTrustManager;
 import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
@@ -46,7 +45,6 @@ import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import static org.pepsoft.worldpainter.Constants.ATTRIBUTE_KEY_PLUGINS;
-import static org.pepsoft.worldpainter.Constants.JAVA_7;
 
 /**
  *
@@ -57,11 +55,6 @@ public class Main {
      * @param args the command line arguments
      */
     public static void main(String[] args) throws IOException {
-        if (SystemUtils.isLinux() && (! JAVA_7) && (! "true".equals(System.getProperty("org.pepsoft.worldpainter.devMode")))) {
-            JOptionPane.showMessageDialog(null, "WorldPainter needs Java 7 or later.\nPlease upgrade Java!", "Java Too Old", JOptionPane.ERROR_MESSAGE);
-            System.exit(1);
-        }
-        
         // Force language to English for now. TODO: remove this once the first
         // translations are implemented
         Locale.setDefault(Locale.US);
@@ -308,33 +301,26 @@ public class Main {
                 String laf;
                 switch (lookAndFeel) {
                     case SYSTEM:
-                        // Use Metal on Linux + Java 6 because we're using
-                        // Java 7 versions of JIDE jars which will otherwise
-                        // fail to initialise
-                        laf = (SystemUtils.isLinux() && (! JAVA_7)) ? "javax.swing.plaf.metal.MetalLookAndFeel" : UIManager.getSystemLookAndFeelClassName();
+                        laf = UIManager.getSystemLookAndFeelClassName();
                         break;
                     case METAL:
                         laf = "javax.swing.plaf.metal.MetalLookAndFeel";
                         break;
                     case NIMBUS:
-                        laf = JAVA_7 ? "javax.swing.plaf.nimbus.NimbusLookAndFeel" : "com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel";
+                        laf = "javax.swing.plaf.nimbus.NimbusLookAndFeel";
                         break;
                     case DARK_METAL:
                         laf = "org.netbeans.swing.laf.dark.DarkMetalLookAndFeel";
                         break;
                     case DARK_NIMBUS:
-                        laf = JAVA_7 ? "org.netbeans.swing.laf.dark.DarkNimbusLookAndFeel" : "com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel";
+                        laf = "org.netbeans.swing.laf.dark.DarkNimbusLookAndFeel";
                         break;
                     default:
                         throw new InternalError();
                 }
                 logger.debug("Installing look and feel: " + laf);
                 UIManager.setLookAndFeel(laf);
-                if (JAVA_7 || (! SystemUtils.isLinux())) {
-                    // This would fail on Linux on Java 6 because we're
-                    // using the Java 7 version of the JIDE extensions jar
-                    LookAndFeelFactory.installJideExtension();
-                }
+                LookAndFeelFactory.installJideExtension();
                 if ((lookAndFeel == Configuration.LookAndFeel.DARK_METAL)
                         || (lookAndFeel == Configuration.LookAndFeel.DARK_NIMBUS)) {
                     // Patch some things to make dark themes look better

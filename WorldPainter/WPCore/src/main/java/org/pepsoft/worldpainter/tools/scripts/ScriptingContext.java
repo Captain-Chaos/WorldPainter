@@ -36,6 +36,10 @@ import static org.pepsoft.worldpainter.Version.VERSION;
  * @author SchmitzP
  */
 public class ScriptingContext {
+    public ScriptingContext(boolean commandLine) {
+        this.commandLine = commandLine;
+    }
+
     /**
      * Get the WorldPainter version string.
      * 
@@ -48,7 +52,6 @@ public class ScriptingContext {
     /**
      * Load a WorldPainter .world file from the file system.
      * 
-     * @param filename
      * @return
      * @throws java.io.IOException
      * @throws ClassNotFoundException 
@@ -72,7 +75,6 @@ public class ScriptingContext {
     /**
      * Load a WorldPainter .terrain file from the file system.
      * 
-     * @param filename
      * @return
      * @throws java.io.IOException
      * @throws ClassNotFoundException 
@@ -85,8 +87,7 @@ public class ScriptingContext {
     /**
      * Import a height map as a new WorldPainter world.
      * 
-     * @param args
-     * @return 
+     * @return
      */
     public ImportHeightMapOp createWorld() {
         checkGoCalled("createWorld");
@@ -193,6 +194,8 @@ public class ScriptingContext {
     void goCalled() {
         goCalled = true;
     }
+
+    public final boolean commandLine;
 
     private boolean goCalled = true;
     private String lastCommandName;

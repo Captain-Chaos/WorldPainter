@@ -78,18 +78,6 @@ public final class Constants {
     public static final String EVENT_KEY_DONATION_CLOSED          = "donation.closed";
 
     public static final Version JAVA_VERSION = Version.parse(System.getProperty("java.specification.version"));
-    /**
-     * Java version is 1.6 or higher.
-     */
-    public static final boolean JAVA_6 = JAVA_VERSION.compareTo(new Version(1, 6)) >= 0;
-    /**
-     * Java version is 1.7 or higher.
-     */
-    public static final boolean JAVA_7 = JAVA_VERSION.compareTo(new Version(1, 7)) >= 0;
-    /**
-     * Java version is 1.8 or higher.
-     */
-    public static final boolean JAVA_8 = JAVA_VERSION.compareTo(new Version(1, 8)) >= 0;
 
     public static final int BIOME_ALGORITHM_1_7_3               =  0;
     public static final int BIOME_ALGORITHM_1_9                 =  1;

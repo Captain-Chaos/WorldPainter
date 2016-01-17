@@ -62,30 +62,34 @@ public class InfoPanel extends javax.swing.JPanel {
         // TODO: alleen slope en layers ergens weergeven; de rest staat al in de status bar
 
         Dimension dim = view.getDimension();
+        if (dim == null) {
+            return;
+        }
         labelCoords.setText(worldCoords.x + "," + worldCoords.y);
         Tile tile = dim.getTile(worldCoords.x >> TILE_SIZE_BITS, worldCoords.y >> TILE_SIZE_BITS);
-        if (tile != null) {
-            final int x = worldCoords.x & TILE_SIZE_MASK, y = worldCoords.y & TILE_SIZE_MASK;
-            int height = tile.getIntHeight(x, y);
-            labelHeight.setText(Integer.toString(height));
-            int waterLevel = tile.getWaterLevel(x, y);
-            labelWaterLevel.setText(Integer.toString(waterLevel));
-            if (waterLevel > height) {
-                labelWaterDepth.setText(Integer.toString(waterLevel - height));
-            } else {
-                labelWaterDepth.setText(null);
-            }
-            if ((x > 0) && (x < TILE_SIZE - 1) && (y > 0) && (y < TILE_SIZE - 1)) {
-                labelSlope.setText(Float.toString(tile.getSlope(x, y)));
-            } else {
-                labelSlope.setText(Float.toString(dim.getSlope(worldCoords.x, worldCoords.y)));
-            }
-            Map<Layer, Integer> layerValues = tile.getLayersAt(x, y);
-            if (layerValues != null) {
-                listModel.update(layerValues);
-            } else {
-                listModel.clear();
-            }
+        if (tile == null) {
+            return;
+        }
+        final int x = worldCoords.x & TILE_SIZE_MASK, y = worldCoords.y & TILE_SIZE_MASK;
+        int height = tile.getIntHeight(x, y);
+        labelHeight.setText(Integer.toString(height));
+        int waterLevel = tile.getWaterLevel(x, y);
+        labelWaterLevel.setText(Integer.toString(waterLevel));
+        if (waterLevel > height) {
+            labelWaterDepth.setText(Integer.toString(waterLevel - height));
+        } else {
+            labelWaterDepth.setText(null);
+        }
+        if ((x > 0) && (x < TILE_SIZE - 1) && (y > 0) && (y < TILE_SIZE - 1)) {
+            labelSlope.setText(Float.toString(tile.getSlope(x, y)));
+        } else {
+            labelSlope.setText(Float.toString(dim.getSlope(worldCoords.x, worldCoords.y)));
+        }
+        Map<Layer, Integer> layerValues = tile.getLayersAt(x, y);
+        if (layerValues != null) {
+            listModel.update(layerValues);
+        } else {
+            listModel.clear();
         }
     }
     

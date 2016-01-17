@@ -456,7 +456,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         new BiomeDescriptor("Jungle Edge M", 151, 21, EDGE_PLATEAU, M),
         new BiomeDescriptor("Birch Forest M", 155, 27, M),
         new BiomeDescriptor("Birch Forest Hills M", 156, 27, HILLS_SHORE, M),
-        new BiomeDescriptor("Roofed Forest", 157, 157),
+        new BiomeDescriptor("Roofed Forest M", 157, 29, M),
         new BiomeDescriptor("Cold Taiga M", 158, 30, M),
         new BiomeDescriptor("Mega Spruce Taiga", 160, 160),
         new BiomeDescriptor("Mega Spruce Taiga Hills", 161, 160, HILLS_SHORE),

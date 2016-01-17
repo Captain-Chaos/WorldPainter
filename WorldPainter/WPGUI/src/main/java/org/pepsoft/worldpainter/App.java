@@ -3676,7 +3676,7 @@ public final class App extends JFrame implements RadiusControl,
 
         menuItem = new JMenuItem("Run script...");
         menuItem.addActionListener(e -> {
-            new ScriptRunner(this, world, dimension).setVisible(true);
+            new ScriptRunner(this, world, dimension, undoManagers.values()).setVisible(true);
         });
         menu.add(menuItem);
         return menu;
