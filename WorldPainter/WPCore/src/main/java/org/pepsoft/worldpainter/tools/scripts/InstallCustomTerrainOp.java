@@ -61,12 +61,12 @@ public class InstallCustomTerrainOp extends AbstractOperation<Integer> {
         }
         if (index > 0) {
             world.setMixedMaterial(index - 1, terrain);
-            return (index >= 6) ? Terrain.CUSTOM_6.ordinal() - 6 + index : Terrain.CUSTOM_1.ordinal() + index - 1;
+            return Terrain.getCustomTerrain(index - 1).ordinal();
         } else {
             for (int i = 0; i < Terrain.CUSTOM_TERRAIN_COUNT; i++) {
                 if (world.getMixedMaterial(i) == null) {
-                    world.setMixedMaterial(index, terrain);
-                    return ((i >= 5) ? Terrain.CUSTOM_6.ordinal() + i - 5 : Terrain.CUSTOM_1.ordinal() + i) + 1;
+                    world.setMixedMaterial(i, terrain);
+                    return Terrain.getCustomTerrain(i).ordinal();
                 }
             }
             throw new ScriptException("No free custom terrain slots");
