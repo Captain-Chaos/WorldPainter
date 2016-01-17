@@ -88,9 +88,9 @@ public final class RotatedBrush extends AbstractBrush {
         if ((x < 0) || (x >= effectiveWidth) || (y < 0) || (y >= effectiveHeight)) {
             return 0.0f;
         } else if (level == 1.0f) {
-            return fullStrengthCache.getSample(x, y, 0) / 256f;
+            return fullStrengthCache.getSample(x, y, 0) / 255f;
         } else {
-            return fullStrengthCache.getSample(x, y, 0) / 256f * level;
+            return fullStrengthCache.getSample(x, y, 0) / 255f * level;
         }
     }
 
@@ -100,7 +100,7 @@ public final class RotatedBrush extends AbstractBrush {
         if ((x < 0) || (x >= effectiveWidth) || (y < 0) || (y >= effectiveHeight)) {
             return 0.0f;
         } else {
-            return fullStrengthCache.getSample(x, y, 0) / 256f;
+            return fullStrengthCache.getSample(x, y, 0) / 255f;
         }
     }
 

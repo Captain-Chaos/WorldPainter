@@ -46,7 +46,7 @@ public final class CombinedLayerPaint extends LayerPaint {
                         final int currentValue = tile.getLayerValue(layer, x, y);
                         final float strength = dynamicLevel * getStrength(centreX, centreY, tileXInWorld + x, tileYInWorld + y);
                         if (strength != 0f) {
-                            int targetValue = (int) (strength * 14 + 1);
+                            int targetValue = 1 + (int) (strength * 14 + 0.5f);
                             if (targetValue > currentValue) {
                                 tile.setLayerValue(layer, x, y, targetValue);
                             }
@@ -65,7 +65,7 @@ public final class CombinedLayerPaint extends LayerPaint {
                         final int currentValue = tile.getLayerValue(layer, x, y);
                         final float strength = dynamicLevel * getStrength(centreX, centreY, tileXInWorld + x, tileYInWorld + y);
                         if (strength != 0f) {
-                            int targetValue = (int) (strength * 14 + 1);
+                            int targetValue = 1 + (int) (strength * 14 + 0.5f);
                             if (targetValue > currentValue) {
                                 tile.setLayerValue(layer, x, y, targetValue);
                             }
@@ -89,7 +89,7 @@ public final class CombinedLayerPaint extends LayerPaint {
                         final int currentValue = dimension.getLayerValueAt(layer, x, y);
                         final float strength = dynamicLevel * getStrength(centreX, centreY, x, y);
                         if (strength != 0f) {
-                            int targetValue = (int) (strength * 14 + 1);
+                            int targetValue = 1 + (int) (strength * 14 + 0.5f);
                             if (targetValue > currentValue) {
                                 dimension.setLayerValueAt(layer, x, y, targetValue);
                             }
@@ -108,7 +108,7 @@ public final class CombinedLayerPaint extends LayerPaint {
                         final int currentValue = dimension.getLayerValueAt(layer, x, y);
                         final float strength = dynamicLevel * getStrength(centreX, centreY, x, y);
                         if (strength != 0f) {
-                            int targetValue = (int) (strength * 14 + 1);
+                            int targetValue = 1 + (int) (strength * 14 + 0.5f);
                             if (targetValue > currentValue) {
                                 dimension.setLayerValueAt(layer, x, y, targetValue);
                             }
@@ -154,7 +154,7 @@ public final class CombinedLayerPaint extends LayerPaint {
                         final int currentValue = tile.getLayerValue(layer, x, y);
                         final float strength = dynamicLevel * getFullStrength(centreX, centreY, tileXInWorld + x, tileYInWorld + y);
                         if (strength != 0f) {
-                            int targetValue = 15 - (int) (strength * 14 + 1);
+                            int targetValue = 14 - (int) (strength * 14 + 0.5f);
                             if (targetValue < currentValue) {
                                 tile.setLayerValue(layer, x, y, targetValue);
                             }
@@ -170,7 +170,7 @@ public final class CombinedLayerPaint extends LayerPaint {
                         final int currentValue = tile.getLayerValue(layer, x, y);
                         final float strength = dynamicLevel * getFullStrength(centreX, centreY, tileXInWorld + x, tileYInWorld + y);
                         if (strength != 0f) {
-                            int targetValue = 15 - (int) (strength * 14 + 1);
+                            int targetValue = 14 - (int) (strength * 14 + 0.5f);
                             if (targetValue < currentValue) {
                                 tile.setLayerValue(layer, x, y, targetValue);
                             }
@@ -189,7 +189,7 @@ public final class CombinedLayerPaint extends LayerPaint {
                         final int currentValue = dimension.getLayerValueAt(layer, x, y);
                         final float strength = dynamicLevel * getFullStrength(centreX, centreY, x, y);
                         if (strength != 0f) {
-                            int targetValue = 15 - (int) (strength * 14 + 1);
+                            int targetValue = 14 - (int) (strength * 14 + 0.5f);
                             if (targetValue < currentValue) {
                                 dimension.setLayerValueAt(layer, x, y, targetValue);
                             }
@@ -208,7 +208,7 @@ public final class CombinedLayerPaint extends LayerPaint {
                         final int currentValue = dimension.getLayerValueAt(layer, x, y);
                         final float strength = dynamicLevel * getFullStrength(centreX, centreY, x, y);
                         if (strength != 0f) {
-                            int targetValue = 15 - (int) (strength * 14 + 1);
+                            int targetValue = 14 - (int) (strength * 14 + 0.5f);
                             if (targetValue < currentValue) {
                                 dimension.setLayerValueAt(layer, x, y, targetValue);
                             }
@@ -232,7 +232,7 @@ public final class CombinedLayerPaint extends LayerPaint {
         final Tile tile = dimension.getTileForEditing(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
         if (tile != null) {
             final int xInTile = x & TILE_SIZE_MASK, yInTile = y & TILE_SIZE_MASK;
-            final int value = (int) (brush.getLevel() * 14 + 1);
+            final int value = 1 + (int) (brush.getLevel() * 14 + 0.5f);
             if (tile.getLayerValue(layer, xInTile, yInTile) < value) {
                 tile.setLayerValue(layer, xInTile, yInTile, value);
             }
