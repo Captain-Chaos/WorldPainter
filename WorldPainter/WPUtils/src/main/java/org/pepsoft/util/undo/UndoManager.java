@@ -402,7 +402,9 @@ public class UndoManager {
         // Move all buffers from the previous oldest frame to the new
         // oldest frame, except the ones that already exist
         Map<BufferKey<?>, Object> nextOldestFrame = history.getFirst();
-        oldestFrame.entrySet().stream().filter(entry -> !nextOldestFrame.containsKey(entry.getKey())).forEach(entry -> nextOldestFrame.put(entry.getKey(), entry.getValue()));
+        oldestFrame.entrySet().stream()
+            .filter(entry -> !nextOldestFrame.containsKey(entry.getKey()))
+            .forEach(entry -> nextOldestFrame.put(entry.getKey(), entry.getValue()));
         
         if (currentFrame > 0) {
             currentFrame--;
