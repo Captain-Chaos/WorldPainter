@@ -524,7 +524,8 @@ public class NewWorldDialog extends javax.swing.JDialog {
                 }
             }
             dimension.setBorderLevel(waterHeight);
-            
+            dimension.setCoverSteepTerrain(defaults.isCoverSteepTerrain());
+
             dimension.setGridEnabled(config.isDefaultGridEnabled());
             dimension.setGridSize(config.getDefaultGridSize());
             dimension.setContoursEnabled(config.isDefaultContoursEnabled());

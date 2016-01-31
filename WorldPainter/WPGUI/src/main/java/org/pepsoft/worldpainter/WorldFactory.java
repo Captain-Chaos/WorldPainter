@@ -152,6 +152,7 @@ public final class WorldFactory {
             dim0.setTopLayerMinDepth(defaults.getTopLayerMinDepth());
             dim0.setTopLayerVariation(defaults.getTopLayerVariation());
             dim0.setBottomless(defaults.isBottomless());
+            dim0.setCoverSteepTerrain(defaults.isCoverSteepTerrain());
         } finally {
             dim0.setEventsInhibited(false);
         }
