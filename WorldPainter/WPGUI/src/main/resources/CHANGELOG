@@ -1,6 +1,9 @@
 -- Version ..., released ...
 
+ * It is now possible to change the order in which Custom Layers are exported, as well as to temporarily disable a layer so that it is not exported
  * Slight startup optimisation (no longer hangs while scanning for Minecraft jars)
+ * Bug fix: newly created worlds abide by the default "cover steep terrain" setting set in the Preferences
+ * Bug fix: the Custom Plants layer will now place dead shrubs on sand and hardened clay
 
 -- Version 2.1.4, released 17-1-2016
 
