@@ -23,9 +23,12 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.pepsoft.util.MathUtils;
+import sun.awt.image.IntegerInterleavedRaster;
 
 /**
  *
@@ -70,12 +73,14 @@ public class MapViewer {
                 public void paintTile(Image tileImage, int x, int y, int dx, int dy) {
     //                System.out.println("Painting tile " + x + ", " + y);
                     final BufferedImage image = renderBufferRef.get();
-                    final int chunkX1 = x * 8 * zoom, chunkY1 = y * 8 * zoom;
-                    final int chunkX2 = chunkX1 + 8 * zoom - 1, chunkY2 = chunkY1 + 8 * zoom - 1;
+                    Arrays.fill(((IntegerInterleavedRaster) image.getRaster()).getDataStorage(), 0);
+                    int scale = MathUtils.pow(2, -zoom);
+                    final int chunkX1 = x * 8 * scale, chunkY1 = y * 8 * scale;
+                    final int chunkX2 = chunkX1 + 8 * scale - 1, chunkY2 = chunkY1 + 8 * scale - 1;
     //                System.out.println("Chunk coords: " + chunkX1 + ", " + chunkY1 + " -> " + chunkX2 + ", " + chunkY2);
                     int previousRegionX = Integer.MIN_VALUE, previousRegionY = Integer.MIN_VALUE;
                     RegionFile previousRegion = null;
-                    final int step = Math.max(zoom / 16, 1);
+                    final int step = Math.max(scale / 16, 1);
                     for (int chunkX = chunkX1; chunkX <= chunkX2; chunkX += step) {
                         for (int chunkY = chunkY1; chunkY <= chunkY2; chunkY += step) {
                             try {
@@ -103,9 +108,9 @@ public class MapViewer {
                                                 ? new ChunkImpl2((CompoundTag) in.readTag(), maxHeight)
                                                 : new ChunkImpl((CompoundTag) in.readTag(), maxHeight);
                                     }
-                                    for (int blockX = 0; blockX < 16; blockX += zoom) {
-                                        for (int blockY = 0; blockY < 16; blockY += zoom) {
-                                            image.setRGB((((chunkX - chunkX1) << 4) | blockX) / zoom, (((chunkY - chunkY1) << 4) | blockY) / zoom, getColour(chunk, blockX, blockY));
+                                    for (int blockX = 0; blockX < 16; blockX += scale) {
+                                        for (int blockY = 0; blockY < 16; blockY += scale) {
+                                            image.setRGB((((chunkX - chunkX1) << 4) | blockX) / scale, (((chunkY - chunkY1) << 4) | blockY) / scale, 0xff000000 | getColour(chunk, blockX, blockY));
                                         }
                                     }
     //                            } else {
@@ -157,9 +162,6 @@ public class MapViewer {
                 @Override
                 public void setZoom(int zoom) {
                     if (zoom != this.zoom) {
-                        if (! ((zoom & (zoom - 1)) == 0)) {
-                            throw new IllegalArgumentException("Zoom must be a power of two");
-                        }
                         this.zoom = zoom;
                     }
                 }
@@ -196,7 +198,7 @@ public class MapViewer {
                     return DEFAULT_VOID_COLOUR;
                 }
 
-                private int zoom = 1;
+                private int zoom = 0;
                 private final List<TileListener> listeners = new ArrayList<>();
                 private final Map<Point, RegionFile> regionFileCache = new HashMap<>();
 
@@ -209,8 +211,8 @@ public class MapViewer {
             viewer.setTileProvider(tileProvider);
             viewer.addMouseWheelListener(e -> {
                 int zoom = viewer.getZoom();
-                zoom = (int) Math.max(zoom * Math.pow(2, e.getWheelRotation()), 1);
-                System.out.println("Setting zoom to " + zoom);
+                zoom -= e.getWheelRotation();
+//                System.out.println("Setting zoom to " + zoom);
                 viewer.setZoom(zoom);
             });
             frame.getContentPane().add(viewer, BorderLayout.CENTER);
@@ -225,7 +227,7 @@ public class MapViewer {
     private static final ThreadLocal<BufferedImage> renderBufferRef = new ThreadLocal<BufferedImage>() {
         @Override
         protected BufferedImage initialValue() {
-            return new BufferedImage(TILE_SIZE, TILE_SIZE, BufferedImage.TYPE_INT_RGB);
+            return new BufferedImage(TILE_SIZE, TILE_SIZE, BufferedImage.TYPE_INT_ARGB);
         }
     };
 }
