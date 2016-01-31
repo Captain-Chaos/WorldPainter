@@ -4,6 +4,11 @@
  */
 package org.pepsoft.worldpainter.biomeschemes;
 
+import org.pepsoft.util.Checksum;
+import org.pepsoft.util.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -12,8 +17,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Map;
-import org.pepsoft.util.Checksum;
-import org.pepsoft.util.FileUtils;
 
 /**
  *
@@ -21,6 +24,9 @@ import org.pepsoft.util.FileUtils;
  */
 public abstract class MinecraftJarBiomeScheme extends AbstractMinecraft1_1BiomeScheme {
     public MinecraftJarBiomeScheme(File minecraftJar, Checksum md5Sum, Map<Checksum, String[]> hashesToClassNames, String version) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Creating biome scheme using Minecraft jar {}", minecraftJar);
+        }
         if (md5Sum == null) {
             try {
                 md5Sum = FileUtils.getMD5(minecraftJar);
@@ -75,4 +81,6 @@ public abstract class MinecraftJarBiomeScheme extends AbstractMinecraft1_1BiomeS
     private final Method getLandscapesMethod, getBiomesMethod, clearBuffersMethod;
     private Object landscape;
     private long seed = Long.MIN_VALUE;
+
+    private static final Logger logger = LoggerFactory.getLogger(MinecraftJarBiomeScheme.class);
 }

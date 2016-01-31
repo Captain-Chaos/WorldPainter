@@ -1,3 +1,7 @@
+-- Version ..., released ...
+
+ * Slight startup optimisation (no longer hangs while scanning for Minecraft jars)
+
 -- Version 2.1.4, released 17-1-2016
 
  * 24 additional custom terrain slots have been added, for a total of 48 possible custom terrain types

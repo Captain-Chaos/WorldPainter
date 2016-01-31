@@ -7,6 +7,8 @@ package org.pepsoft.worldpainter.biomeschemes;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.pepsoft.worldpainter.ColourScheme;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -198,6 +200,9 @@ public abstract class AbstractMinecraft1_7BiomeScheme extends AbstractBiomeSchem
                     String libraryVersion = parts[2];
                     File libraryDir = new File(libDir, libraryGroup.replace('.', '/') + '/' + libraryName + '/' + libraryVersion);
                     File libraryFile = new File(libraryDir, libraryName + '-' + libraryVersion + ".jar");
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Adding to biome scheme classpath: {}", libraryFile);
+                    }
                     classpath.add(libraryFile.toURI().toURL());
                 }
             }
@@ -315,4 +320,6 @@ public abstract class AbstractMinecraft1_7BiomeScheme extends AbstractBiomeSchem
         }
         return pattern;
     }
+
+    private static final Logger logger = LoggerFactory.getLogger(AbstractMinecraft1_7BiomeScheme.class);
 }

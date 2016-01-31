@@ -9,12 +9,15 @@ import org.pepsoft.util.swing.TileListener;
 import org.pepsoft.util.swing.TileProvider;
 import org.pepsoft.worldpainter.BiomeScheme;
 import org.pepsoft.worldpainter.ColourScheme;
+import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 
-import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
+import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.*;
 
 /**
@@ -28,16 +31,19 @@ public class BiomesTileProvider implements TileProvider {
 
     public BiomesTileProvider(BiomeScheme biomeScheme, ColourScheme colourScheme, int zoom, boolean fade) {
         this.biomeScheme = biomeScheme;
+        this.colourScheme = colourScheme;
         this.zoom = zoom;
-        int biomeCount = biomeScheme.getBiomeCount();
-        biomeColours = new int[biomeCount];
-        biomePatterns = new boolean[biomeCount][][];
-        for (int i = 0; i < biomeCount; i++) {
-            if (biomeScheme.isBiomePresent(i)) {
-                biomeColours[i] = 0xff000000 | (fade ? ColourUtils.mix(0xffffff, biomeScheme.getColour(i, colourScheme)) : biomeScheme.getColour(i, colourScheme));
-                biomePatterns[i] = biomeScheme.getPattern(i);
-            }
-        }
+        this.fade = fade;
+        patternColour = fade ? 0xff808080 : 0xff000000;
+        init();
+    }
+
+    public BiomesTileProvider(int biomeAlgorithm, long minecraftSeed, ColourScheme colourScheme, int zoom, boolean fade) {
+        this.biomeAlgorithm = biomeAlgorithm;
+        this.colourScheme = colourScheme;
+        this.minecraftSeed = minecraftSeed;
+        this.zoom = zoom;
+        this.fade = fade;
         patternColour = fade ? 0xff808080 : 0xff000000;
     }
     
@@ -69,13 +75,19 @@ public class BiomesTileProvider implements TileProvider {
 
     @Override
     public boolean isTilePresent(int x, int y) {
-        return true;
+        return enabled;
     }
 
     @Override
     public void paintTile(Image image, int tileX, int tileY, int imageX, int imageY) {
+        if (! enabled) {
+            return;
+        }
         try {
-            BufferedImage tile = renderBufferRef.get();
+            BiomeScheme biomeScheme = getBiomeScheme();
+            if (biomeScheme == null) {
+                return;
+            }
             final int scale = 1 << -zoom;
             int[] buffer = bufferRef.get();
             if (buffer == null) {
@@ -83,6 +95,7 @@ public class BiomesTileProvider implements TileProvider {
                 bufferRef.set(buffer);
             }
             biomeScheme.getBiomes(tileX * TILE_SIZE * scale, tileY * TILE_SIZE * scale, TILE_SIZE * scale, TILE_SIZE * scale, buffer);
+            BufferedImage tile = renderBufferRef.get();
             int[][] biomeCounts = biomeCountsRef.get();
             if (biomeCounts == null) {
                 biomeCounts = new int[][] {new int[256], new int[256], new int[256]};
@@ -151,15 +164,64 @@ public class BiomesTileProvider implements TileProvider {
     public void removeTileListener(TileListener tileListener) {
         // Do nothing (tiles never change)
     }
-    
-    private final BiomeScheme biomeScheme;
+
+    private synchronized BiomeScheme getBiomeScheme() {
+        if (biomeScheme == null) {
+            try {
+                biomeScheme = BiomeSchemeManager.getBiomeScheme(biomeAlgorithm, null, false);
+                if (biomeScheme == null) {
+                    switch (biomeAlgorithm) {
+                        case BIOME_ALGORITHM_1_7_DEFAULT:
+                            biomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_2_AND_1_3_DEFAULT, null, false);
+                            break;
+                        case BIOME_ALGORITHM_1_7_LARGE:
+                            biomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_3_LARGE, null, false);
+                            break;
+                    }
+                }
+            } catch (Exception e) {
+                // TODO: this seems to happen with the Minecraft 1.6 jar
+                // Why?
+                logger.error("An exception occurred while trying to load or initialize Minecraft jar; continuing without showing biomes", e);
+            } catch (Error e) {
+                // TODO: this seems to happen with the Minecraft 1.6 jar
+                // Why?
+                logger.error("An error occurred while trying to load or initialize Minecraft jar; continuing without showing biomes", e);
+            }
+            if (biomeScheme != null) {
+                biomeScheme.setSeed(minecraftSeed);
+                init();
+            } else {
+                enabled = false;
+            }
+        }
+        return biomeScheme;
+    }
+
+    private void init() {
+        int biomeCount = biomeScheme.getBiomeCount();
+        biomeColours = new int[biomeCount];
+        biomePatterns = new boolean[biomeCount][][];
+        for (int i = 0; i < biomeCount; i++) {
+            if (biomeScheme.isBiomePresent(i)) {
+                biomeColours[i] = 0xff000000 | (fade ? ColourUtils.mix(0xffffff, biomeScheme.getColour(i, colourScheme)) : biomeScheme.getColour(i, colourScheme));
+                biomePatterns[i] = biomeScheme.getPattern(i);
+            }
+        }
+    }
+
+    private final ColourScheme colourScheme;
+    private int biomeAlgorithm;
+    private long minecraftSeed;
     private final ThreadLocal<int[][]> biomeCountsRef = new ThreadLocal<>();
+    private final int patternColour;
+    private final boolean fade;
+    private BiomeScheme biomeScheme;
     private int zoom;
     private volatile ThreadLocal<int[]> bufferRef = new ThreadLocal<>();
-    
-    private final int[] biomeColours;
-    private final int patternColour;
-    private final boolean[][][] biomePatterns;
+    private int[] biomeColours;
+    private boolean[][][] biomePatterns;
+    private volatile boolean enabled = true;
 
     private static final ThreadLocal<BufferedImage> renderBufferRef = new ThreadLocal<BufferedImage>() {
         @Override
@@ -167,6 +229,7 @@ public class BiomesTileProvider implements TileProvider {
             return new BufferedImage(TILE_SIZE, TILE_SIZE, BufferedImage.TYPE_INT_ARGB);
         }
     };
+    private static final Logger logger = LoggerFactory.getLogger(BiomesTileProvider.class);
     private static final int[] BIOME_PRIORITIES = new int[256];
     static {
         // Every biome should have medium priority except the exceptions below
