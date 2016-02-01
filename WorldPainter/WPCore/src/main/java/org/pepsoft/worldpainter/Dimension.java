@@ -1738,12 +1738,14 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                 for (int tileY = topLeftTileY; tileY <= bottomRightTileY; tileY++) {
                     Tile tile = getTile(tileX, tileY);
                     if (tile != null) {
-                        tile.getSeeds().stream().filter(seed -> seed.getClass() == type).forEach(seed -> {
-                            int distance = (int) MathUtils.getDistance(seed.location.x - x, seed.location.y - y);
-                            if (distance <= radius) {
-                                seedsFound.add((T) seed);
-                            }
-                        });
+                        tile.getSeeds().stream()
+                            .filter(seed -> seed.getClass() == type)
+                            .forEach(seed -> {
+                                int distance = (int) MathUtils.getDistance(seed.location.x - x, seed.location.y - y);
+                                if (distance <= radius) {
+                                    seedsFound.add((T) seed);
+                                }
+                            });
                     }
                 }
             }
@@ -1809,7 +1811,8 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             for (Point tileCoords: (HashSet<Point>) activeTiles.clone()) {
                 Tile tile = getTile(tileCoords.x, tileCoords.y);
                 if (tile != null) {
-                    ((HashSet<Seed>) tile.getSeeds().clone()).forEach(org.pepsoft.worldpainter.gardenofeden.Seed::tick);
+                    ((HashSet<Seed>) tile.getSeeds().clone())
+                        .forEach(Seed::tick);
                 }
             }
             // Don't cache active seeds, because they might have changed
@@ -1842,7 +1845,9 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             for (Point tileCoords: activeTiles) {
                 Tile tile = getTile(tileCoords.x, tileCoords.y);
                 if (tile != null) {
-                    tile.getSeeds().stream().filter(seed -> !seed.isFinished()).forEach(org.pepsoft.worldpainter.gardenofeden.Seed::neutralise);
+                    tile.getSeeds().stream()
+                        .filter(seed -> !seed.isFinished())
+                        .forEach(Seed::neutralise);
                 }
             }
             activeTiles.clear();

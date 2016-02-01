@@ -17,19 +17,19 @@ public class GardenCategory extends Layer {
     
     public static String getLabel(int category) {
         switch(category) {
-            case GardenCategory.CATEGORY_BUILDING:
+            case CATEGORY_BUILDING:
                 return strings.getString("structure.building");
-            case GardenCategory.CATEGORY_FIELD:
+            case CATEGORY_FIELD:
                 return strings.getString("structure.field");
-            case GardenCategory.CATEGORY_ROAD:
+            case CATEGORY_ROAD:
                 return strings.getString("structure.road");
-            case GardenCategory.CATEGORY_STREET_FURNITURE:
+            case CATEGORY_STREET_FURNITURE:
                 return strings.getString("structure.street.furniture");
-            case GardenCategory.CATEGORY_WATER:
+            case CATEGORY_WATER:
                 return strings.getString("structure.water");
-            case GardenCategory.CATEGORY_TREE:
+            case CATEGORY_TREE:
                 return "tree";
-            case GardenCategory.CATEGORY_OBJECT:
+            case CATEGORY_OBJECT:
                 return "object";
             default:
                 return "unknown";

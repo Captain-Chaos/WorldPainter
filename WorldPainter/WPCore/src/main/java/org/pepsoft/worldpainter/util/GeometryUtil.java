@@ -14,7 +14,20 @@ public final class GeometryUtil {
     private GeometryUtil() {
         // Prevent instantiation
     }
-    
+
+    /**
+     * Visit all the points along the outline of a circle in an integer
+     * coordinate space with the centre at 0,0. The order in which the points
+     * are visited is not defined. The visitor may abort the process at any
+     * point by returning <code>false</code>.
+     *
+     * @param radius The radius of the circle to visit.
+     * @param visitor The visitor to invoke for each point.
+     * @return <code>true</code> if the visitor returned true for each point
+     *     (and therefore every point was visited). <code>false</code> if the
+     *     visitor returned <code>false</code> for some point and the process
+     *     was aborted.
+     */
     public static boolean visitCircle(int radius, GeometryVisitor visitor) {
         final float d = radius;
         int dx = radius, dy = 0;
@@ -39,7 +52,20 @@ public final class GeometryUtil {
         }
         return true;
     }
-    
+
+    /**
+     * Visit all the points on the face of a filled circular disk in an integer
+     * coordinate space with the centre at 0,0. The order in which the points
+     * are visited is not defined. The visitor may abort the process at any
+     * point by returning <code>false</code>.
+     *
+     * @param radius The radius of the circle to visit.
+     * @param visitor The visitor to invoke for each point.
+     * @return <code>true</code> if the visitor returned true for each point
+     *     (and therefore every point was visited). <code>false</code> if the
+     *     visitor returned <code>false</code> for some point and the process
+     *     was aborted.
+     */
     public static boolean visitFilledCircle(int radius, GeometryVisitor visitor) {
         int dx = radius, dy = 0;
         int radiusError = 1 - dx;
@@ -75,7 +101,8 @@ public final class GeometryUtil {
         }
         return true;
     }
-    
+
+    @FunctionalInterface
     public interface GeometryVisitor {
         /**
          * Visit the specified location relative to the origin of the geometric
