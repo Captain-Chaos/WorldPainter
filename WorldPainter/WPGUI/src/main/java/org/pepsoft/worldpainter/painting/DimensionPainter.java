@@ -272,7 +272,7 @@ public final class DimensionPainter {
                                     return dimension.getLayerValueAt(layer, x, y) >= targetValue;
                                 }
 
-                                final int targetValue = (int) ((layer.getDataSize() == Layer.DataSize.NIBBLE) ? (paint.getBrush().getLevel() * 14 + 1) : (paint.getBrush().getLevel() * 254 + 1));
+                                final int targetValue = 1 + (int) ((layer.getDataSize() == Layer.DataSize.NIBBLE) ? (paint.getBrush().getLevel() * 14 + 0.5f) : (paint.getBrush().getLevel() * 254 + 0.5f));
                             };
                         }
                     }

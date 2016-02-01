@@ -113,6 +113,7 @@ public class MapImporter {
         Dimension dimension = new Dimension(minecraftSeed, tileFactory, DIM_NORMAL, maxHeight);
         dimension.setEventsInhibited(true);
         try {
+            dimension.setCoverSteepTerrain(false);
             dimension.setSubsurfaceMaterial(Terrain.STONE);
             dimension.setBorderLevel(62);
             
@@ -155,6 +156,7 @@ public class MapImporter {
             dimension = new Dimension(minecraftSeed + 1, netherTileFactory, DIM_NETHER, maxHeight);
             dimension.setEventsInhibited(true);
             try {
+                dimension.setCoverSteepTerrain(false);
                 dimension.setSubsurfaceMaterial(Terrain.NETHERRACK);
                 ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) dimension.getLayerSettings(Resources.INSTANCE);
                 resourcesSettings.setMinimumLevel(0);
@@ -185,6 +187,7 @@ public class MapImporter {
             dimension = new Dimension(minecraftSeed + 2, endTileFactory, DIM_END, maxHeight);
             dimension.setEventsInhibited(true);
             try {
+                dimension.setCoverSteepTerrain(false);
                 dimension.setSubsurfaceMaterial(Terrain.END_STONE);
                 String dimWarnings = importDimension(endDir, dimension, version, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) dimNo / dimCount, 1.0f / dimCount) : null);
                 if (dimWarnings != null) {

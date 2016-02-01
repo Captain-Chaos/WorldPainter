@@ -77,6 +77,22 @@ public abstract class CustomLayer extends Layer {
         this.palette = palette;
     }
 
+    public boolean isExport() {
+        return export;
+    }
+
+    public void setExport(boolean export) {
+        this.export = export;
+    }
+
+    public Integer getIndex() {
+        return index;
+    }
+
+    public void setIndex(Integer index) {
+        this.index = index;
+    }
+
     @Override
     public BufferedImage getIcon() {
         if (icon == null) {
@@ -104,6 +120,19 @@ public abstract class CustomLayer extends Layer {
     public List<Action> getActions() {
         return null;
     }
+
+    @Override
+    public int compareTo(Layer layer) {
+        if ((index != null) && (layer instanceof CustomLayer) && (((CustomLayer) layer).index != null)) {
+            // TODO: is this stable?
+            if (index < ((CustomLayer) layer).index) {
+                return -1;
+            } else if (index > ((CustomLayer) layer).index) {
+                return 1;
+            }
+        }
+        return super.compareTo(layer);
+    }
     
     private BufferedImage createIcon() {
         BufferedImage iconImage = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
@@ -128,6 +157,9 @@ public abstract class CustomLayer extends Layer {
         if (version < 2) {
             palette = "Custom Layers";
         }
+        if (version < 3) {
+            export = true;
+        }
         version = CURRENT_VERSION;
     }
     
@@ -136,14 +168,15 @@ public abstract class CustomLayer extends Layer {
     }
     
     private int colour, biome = -1, version = CURRENT_VERSION;
-    private boolean hide;
+    private boolean hide, export = true;
     private String palette = "Custom Layers";
+    private Integer index = null;
     private transient BufferedImage icon;
     private transient LayerRenderer renderer;
 
     public static final String KEY_DIMENSION = "org.pepsoft.worldpainter.dimension";
     
-    private static final int CURRENT_VERSION = 2;
+    private static final int CURRENT_VERSION = 3;
     private static final Random ID_GENERATOR = new Random();
     private static final long serialVersionUID = 1L;
 }

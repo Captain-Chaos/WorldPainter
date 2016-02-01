@@ -35,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 import static org.pepsoft.minecraft.Block.BLOCKS;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
+import org.pepsoft.worldpainter.layers.CustomLayer;
 
 /**
  *
@@ -286,7 +287,7 @@ public class WorldExporter {
         }
     }
     
-    protected List<Fixup> secondPass(List<Layer> secondaryPassLayers, Set<Layer> mandatoryLayers, Dimension dimension, MinecraftWorld minecraftWorld, Map<Layer, LayerExporter<Layer>> exporters, Collection<Tile> tiles, Point regionCoords, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
+    protected List<Fixup> secondPass(List<Layer> secondaryPassLayers, Dimension dimension, MinecraftWorld minecraftWorld, Map<Layer, LayerExporter<Layer>> exporters, Collection<Tile> tiles, Point regionCoords, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
         // Apply other secondary pass layers
         int layerCount = secondaryPassLayers.size(), counter = 0;
         Rectangle area = new Rectangle((regionCoords.x << 9) - 16, (regionCoords.y << 9) - 16, 544, 544);
@@ -421,6 +422,14 @@ public class WorldExporter {
         Set<Layer> minimumLayers = dimension.getMinimumLayers(), ceilingMinimumLayers = (ceiling != null) ? ceiling.getMinimumLayers() : null;
         allLayers.addAll(minimumLayers);
 
+        // Remove layers which have been excluded for export
+        for (Iterator<Layer> i = allLayers.iterator(); i.hasNext(); ) {
+            Layer layer = i.next();
+            if ((layer instanceof CustomLayer) && (! ((CustomLayer) layer).isExport())) {
+                i.remove();
+            }
+        }
+        
         List<Layer> secondaryPassLayers = new ArrayList<>(), ceilingSecondaryPassLayers = new ArrayList<>();
         for (Layer layer: allLayers) {
             LayerExporter exporter = layer.getExporter();
@@ -437,6 +446,14 @@ public class WorldExporter {
             }
 
             allCeilingLayers.addAll(ceilingMinimumLayers);
+
+            // Remove layers which have been excluded for export
+            for (Iterator<Layer> i = allCeilingLayers.iterator(); i.hasNext(); ) {
+                Layer layer = i.next();
+                if ((layer instanceof CustomLayer) && (! ((CustomLayer) layer).isExport())) {
+                    i.remove();
+                }
+            }
 
             for (Layer layer: allCeilingLayers) {
                 LayerExporter exporter = layer.getExporter();
@@ -463,7 +480,7 @@ public class WorldExporter {
             // Second pass. Apply layers which need information from or apply
             // changes to neighbouring chunks
             long t2 = System.currentTimeMillis();
-            List<Fixup> myFixups = secondPass(secondaryPassLayers, minimumLayers, dimension, minecraftWorld, exporters, tiles.values(), regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.45f, (ceiling != null) ? 0.05f : 0.1f) : null);
+            List<Fixup> myFixups = secondPass(secondaryPassLayers, dimension, minecraftWorld, exporters, tiles.values(), regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.45f, (ceiling != null) ? 0.05f : 0.1f) : null);
             if ((myFixups != null) && (! myFixups.isEmpty())) {
                 exportResults.fixups = myFixups;
             }
@@ -472,7 +489,7 @@ public class WorldExporter {
                 // Second pass for ceiling. Apply layers which need information
                 // from or apply changes to neighbouring chunks. Fixups are not
                 // supported for the ceiling for now. TODO: implement
-                secondPass(ceilingSecondaryPassLayers, ceilingMinimumLayers, ceiling, new InvertedWorld(minecraftWorld, ceiling.getMaxHeight() - ceiling.getCeilingHeight()), ceilingExporters, ceilingTiles.values(), regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.4f, 0.05f) : null);
+                secondPass(ceilingSecondaryPassLayers, ceiling, new InvertedWorld(minecraftWorld, ceiling.getMaxHeight() - ceiling.getCeilingHeight()), ceilingExporters, ceilingTiles.values(), regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.4f, 0.05f) : null);
             }
 
             // Post processing. Fix covered grass blocks, things like that
@@ -886,7 +903,7 @@ public class WorldExporter {
         do {
             done = true;
             for (Layer layer: new HashSet<>(allLayers)) {
-                if (layer instanceof CombinedLayer) {
+                if ((layer instanceof CombinedLayer) && ((CombinedLayer) layer).isExport()) {
                     // Apply the combined layer
                     Set<Layer> addedLayers = ((CombinedLayer) layer).apply(dimension);
                     // Remove the combined layer from the list
@@ -901,6 +918,14 @@ public class WorldExporter {
             }
         } while (! done);
 
+        // Remove layers which have been excluded for export
+        for (Iterator<Layer> i = allLayers.iterator(); i.hasNext(); ) {
+            Layer layer = i.next();
+            if ((layer instanceof CustomLayer) && (! ((CustomLayer) layer).isExport())) {
+                i.remove();
+            }
+        }
+        
         // Load all layer settings into the exporters
         for (Layer layer: allLayers) {
             @SuppressWarnings("unchecked")

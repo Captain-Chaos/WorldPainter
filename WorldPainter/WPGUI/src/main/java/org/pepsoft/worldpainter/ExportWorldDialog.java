@@ -87,39 +87,39 @@ public class ExportWorldDialog extends javax.swing.JDialog {
         fieldName.setText(world.getName());
 
         surfacePropertiesEditor.setColourScheme(colourScheme);
-        surfacePropertiesEditor.setExportMode();
+        surfacePropertiesEditor.setMode(DimensionPropertiesEditor.Mode.EXPORT);
         surfacePropertiesEditor.setDimension(world.getDimension(0));
         if (world.getDimension(DIM_NETHER) != null) {
             netherPropertiesEditor.setColourScheme(colourScheme);
-            netherPropertiesEditor.setExportMode();
+            netherPropertiesEditor.setMode(DimensionPropertiesEditor.Mode.EXPORT);
             netherPropertiesEditor.setDimension(world.getDimension(DIM_NETHER));
         } else {
             jTabbedPane1.setEnabledAt(2, false);
         }
         if (world.getDimension(DIM_END) != null) {
             endPropertiesEditor.setColourScheme(colourScheme);
-            endPropertiesEditor.setExportMode();
+            endPropertiesEditor.setMode(DimensionPropertiesEditor.Mode.EXPORT);
             endPropertiesEditor.setDimension(world.getDimension(DIM_END));
         } else {
             jTabbedPane1.setEnabledAt(4, false);
         }
         if (world.getDimension(DIM_NORMAL_CEILING) != null) {
             surfaceCeilingPropertiesEditor.setColourScheme(colourScheme);
-            surfaceCeilingPropertiesEditor.setExportMode();
+            surfaceCeilingPropertiesEditor.setMode(DimensionPropertiesEditor.Mode.EXPORT);
             surfaceCeilingPropertiesEditor.setDimension(world.getDimension(DIM_NORMAL_CEILING));
         } else {
             jTabbedPane1.setEnabledAt(1, false);
         }
         if (world.getDimension(DIM_NETHER_CEILING) != null) {
             netherCeilingPropertiesEditor.setColourScheme(colourScheme);
-            netherCeilingPropertiesEditor.setExportMode();
+            netherCeilingPropertiesEditor.setMode(DimensionPropertiesEditor.Mode.EXPORT);
             netherCeilingPropertiesEditor.setDimension(world.getDimension(DIM_NETHER_CEILING));
         } else {
             jTabbedPane1.setEnabledAt(3, false);
         }
         if (world.getDimension(DIM_END_CEILING) != null) {
             endCeilingPropertiesEditor.setColourScheme(colourScheme);
-            endCeilingPropertiesEditor.setExportMode();
+            endCeilingPropertiesEditor.setMode(DimensionPropertiesEditor.Mode.EXPORT);
             endCeilingPropertiesEditor.setDimension(world.getDimension(DIM_END_CEILING));
         } else {
             jTabbedPane1.setEnabledAt(5, false);

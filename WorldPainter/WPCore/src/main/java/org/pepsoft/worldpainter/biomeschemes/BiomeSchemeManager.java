@@ -44,6 +44,9 @@ public class BiomeSchemeManager {
     }
 
     public static BiomeScheme getBiomeScheme(final Dimension dimension, final int biomeAlgorithm, final Component parent, final boolean askUser) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Thread {} requesting biome scheme {}", Thread.currentThread().getName(), biomeAlgorithm, new Throwable());
+        }
         if (biomeAlgorithm == BIOME_ALGORITHM_1_7_3) {
             logger.info("Creating biome scheme 1.7.3");
             return new Minecraft1_7_3BiomeScheme();
@@ -245,6 +248,9 @@ public class BiomeSchemeManager {
                     } if (file.isDirectory()) {
                         scanDir(file);
                     } else {
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Scanning file {}", file);
+                        }
                         Checksum hash = FileUtils.getMD5(file);
                         if (DESCRIPTORS.containsKey(hash)) {
                             for (BiomeSchemeDescriptor descriptor: DESCRIPTORS.get(hash)) {
@@ -280,7 +286,9 @@ public class BiomeSchemeManager {
     private static BiomeSchemeDescriptor identify(Checksum checksum, int desiredBiomeScheme) {
         if (DESCRIPTORS.containsKey(checksum)) {
             SortedMap<Version, BiomeSchemeDescriptor> matchingDescriptors = new TreeMap<>();
-            DESCRIPTORS.get(checksum).stream().filter(descriptor -> descriptor.biomeScheme == desiredBiomeScheme).forEach(descriptor -> matchingDescriptors.put(descriptor.minecraftVersion, descriptor));
+            DESCRIPTORS.get(checksum).stream()
+                .filter(descriptor -> descriptor.biomeScheme == desiredBiomeScheme)
+                .forEach(descriptor -> matchingDescriptors.put(descriptor.minecraftVersion, descriptor));
             return (! matchingDescriptors.isEmpty()) ? matchingDescriptors.get(matchingDescriptors.lastKey()) : null;
         } else {
             return null;
@@ -292,6 +300,9 @@ public class BiomeSchemeManager {
             if (initialised) {
                 return;
             } else if (initialising) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Thread {} waiting for another thread to finish initialisation", Thread.currentThread().getName());
+                }
                 // Another thread is initialising us; wait for it to finish
                 while (initialising) {
                     try {
@@ -299,6 +310,9 @@ public class BiomeSchemeManager {
                     } catch (InterruptedException e) {
                         throw new RuntimeException("Thread interrupted while waiting for biome scheme manager initialisation", e);
                     }
+                }
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Thread {} continuing", Thread.currentThread().getName());
                 }
                 return;
             } else {
@@ -309,6 +323,9 @@ public class BiomeSchemeManager {
 
     private static void doInitialisation() {
         synchronized (initialisationLock) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Performing initialisation on thread {}", Thread.currentThread().getName());
+            }
             try {
                 // Scan the Minecraft directory for supported jars
                 minecraftDir = MinecraftUtil.findMinecraftDir();
@@ -381,6 +398,9 @@ public class BiomeSchemeManager {
                 initialised = true;
                 initialising = false;
                 initialisationLock.notifyAll();
+            }
+            if (logger.isDebugEnabled()) {
+                logger.debug("Thread {} finished initialisation", Thread.currentThread().getName());
             }
         }
     }

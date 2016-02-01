@@ -90,10 +90,9 @@ public class GroundCoverLayer extends CustomLayer {
     // Comparable
     @Override
     public int compareTo(Layer layer) {
-        if (priority < layer.priority) {
-            return -1;
-        } else if (priority > layer.priority) {
-            return 1;
+        int superDiff = super.compareTo(layer);
+        if (superDiff != 0) {
+            return superDiff;
         } else if ((layer instanceof GroundCoverLayer) && (Math.abs(((GroundCoverLayer) layer).thickness) != Math.abs(thickness))) {
             return Math.abs(((GroundCoverLayer) layer).thickness) - Math.abs(thickness);
         } else {

@@ -22,19 +22,21 @@ import org.pepsoft.worldpainter.layers.CustomLayer;
  * @author Pepijn Schmitz
  */
 public class CustomItemsTreeModel implements TreeModel {
-    public CustomItemsTreeModel(World2 world) {
+    public CustomItemsTreeModel(World2 world, ItemType itemType) {
         this.world = world;
-        for (int i = 0; i < Terrain.CUSTOM_TERRAIN_COUNT; i++) {
-            MixedMaterial material = world.getMixedMaterial(i);
-            if (material != null) {
-                customTerrains.add(material);
+        if ((itemType == ItemType.ALL) || (itemType == ItemType.TERRAIN)) {
+            for (int i = 0; i < Terrain.CUSTOM_TERRAIN_COUNT; i++) {
+                MixedMaterial material = world.getMixedMaterial(i);
+                if (material != null) {
+                    customTerrains.add(material);
+                }
+            }
+            if (!customTerrains.isEmpty()) {
+                childrenOfRoot.add(TERRAINS);
             }
         }
-        if (! customTerrains.isEmpty()) {
-            childrenOfRoot.add(TERRAINS);
-        }
         for (Dimension dim: world.getDimensions()) {
-            processDimension(dim);
+            processDimension(dim, itemType);
         }
         if (! customLayers.isEmpty()) {
             childrenOfRoot.add(LAYERS);
@@ -67,18 +69,20 @@ public class CustomItemsTreeModel implements TreeModel {
         return selectedItems;
     }
     
-    public static boolean hasCustomItems(World2 world) {
-        for (int i = 0; i < Terrain.CUSTOM_TERRAIN_COUNT; i++) {
-            MixedMaterial material = world.getMixedMaterial(i);
-            if (material != null) {
-                return true;
+    public static boolean hasCustomItems(World2 world, ItemType itemType) {
+        if ((itemType == ItemType.ALL) || (itemType == ItemType.TERRAIN)) {
+            for (int i = 0; i < Terrain.CUSTOM_TERRAIN_COUNT; i++) {
+                MixedMaterial material = world.getMixedMaterial(i);
+                if (material != null) {
+                    return true;
+                }
             }
         }
         for (Dimension dim: world.getDimensions()) {
-            if (! dim.getCustomLayers().isEmpty()) {
+            if (((itemType == ItemType.ALL) || (itemType == ItemType.LAYER)) && (! dim.getCustomLayers().isEmpty())) {
                 return true;
             }
-            if ((dim.getCustomBiomes() != null) && (! dim.getCustomBiomes().isEmpty())) {
+            if (((itemType == ItemType.ALL) || (itemType == ItemType.BIOME)) && ((dim.getCustomBiomes() != null) && (! dim.getCustomBiomes().isEmpty()))) {
                 return true;
             }
         }
@@ -159,10 +163,14 @@ public class CustomItemsTreeModel implements TreeModel {
         // Do nothing
     }
     
-    private void processDimension(Dimension dim) {
-        customLayers.addAll(dim.getCustomLayers());
-        if (dim.getCustomBiomes() != null) {
-            customBiomes.addAll(dim.getCustomBiomes());
+    private void processDimension(Dimension dim, ItemType itemType) {
+        if ((itemType == ItemType.ALL) || (itemType == ItemType.LAYER)) {
+            customLayers.addAll(dim.getCustomLayers());
+        }
+        if ((itemType == ItemType.ALL) || (itemType == ItemType.BIOME)) {
+            if (dim.getCustomBiomes() != null) {
+                customBiomes.addAll(dim.getCustomBiomes());
+            }
         }
     }
     
@@ -174,4 +182,6 @@ public class CustomItemsTreeModel implements TreeModel {
     private final List<String> childrenOfRoot = new ArrayList<>();
     
     private static final String ROOT = "Custom Items", LAYERS = "Custom Layers", TERRAINS = "Custom Terrain", BIOMES = "Custom Biomes";
+
+    public enum ItemType {ALL, LAYER, TERRAIN, BIOME}
 }

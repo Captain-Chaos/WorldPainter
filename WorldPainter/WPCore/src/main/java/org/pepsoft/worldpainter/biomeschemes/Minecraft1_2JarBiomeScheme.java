@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 import org.pepsoft.util.Checksum;
 import org.pepsoft.util.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -23,6 +25,9 @@ import org.pepsoft.util.FileUtils;
  */
 public abstract class Minecraft1_2JarBiomeScheme extends AbstractMinecraft1_2BiomeScheme {
     public Minecraft1_2JarBiomeScheme(File minecraftJar, File libDir, Checksum md5Sum, Map<Checksum, String[]> hashesToClassNames, String version) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Creating biome scheme using Minecraft jar {}", minecraftJar);
+        }
         if (md5Sum == null) {
             try {
                 md5Sum = FileUtils.getMD5(minecraftJar);
@@ -102,4 +107,6 @@ public abstract class Minecraft1_2JarBiomeScheme extends AbstractMinecraft1_2Bio
     final Method getLandscapesMethod, getBiomesMethod, clearBuffersMethod;
     Object landscape;
     long seed = Long.MIN_VALUE;
+
+    private static final Logger logger = LoggerFactory.getLogger(Minecraft1_2JarBiomeScheme.class);
 }

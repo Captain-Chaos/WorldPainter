@@ -10,36 +10,22 @@
  */
 package org.pepsoft.worldpainter;
 
-import java.awt.event.KeyEvent;
-import javax.swing.InputMap;
-import javax.swing.JComponent;
-import javax.swing.KeyStroke;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.event.ActionEvent;
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
-import java.util.HashSet;
-import java.awt.Point;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
-import org.pepsoft.worldpainter.layers.Layer;
-import org.pepsoft.worldpainter.tools.BiomesTileProvider;
-import org.pepsoft.worldpainter.tools.WPTileSelectionViewer;
-import static org.pepsoft.worldpainter.Constants.*;
 import org.pepsoft.worldpainter.TileRenderer.LightOrigin;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
+import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
+import org.pepsoft.worldpainter.tools.BiomesTileProvider;
+import org.pepsoft.worldpainter.tools.WPTileSelectionViewer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.*;
+import java.util.List;
+
+import static org.pepsoft.worldpainter.Constants.*;
 
 /**
  *
@@ -242,41 +228,20 @@ public class TileSelector extends javax.swing.JPanel {
     public void setDimension(Dimension dimension) {
         this.dimension = dimension;
         if (dimension != null) {
-            BiomeScheme mcBiomeScheme = null;
+            int biomeAlgorithm = -1;
             if (dimension.getDim() == DIM_NORMAL) {
                 World2 world = dimension.getWorld();
                 if (world != null) {
-                    try {
-                        if (world.getVersion() == org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_1) {
-                            mcBiomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_1, this, false);
-                        } else if (world.getGenerator() == Generator.DEFAULT) {
-                            mcBiomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_DEFAULT, this, false);
-                            if (mcBiomeScheme == null) {
-                                mcBiomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_2_AND_1_3_DEFAULT, this, false);
-                            }
-                        } else if (world.getGenerator() == Generator.LARGE_BIOMES) {
-                            mcBiomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_LARGE, this, false);
-                            if (mcBiomeScheme == null) {
-                                mcBiomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_3_LARGE, this, false);
-                            }
-                        }
-                        if (mcBiomeScheme != null) {
-                            mcBiomeScheme.setSeed(dimension.getMinecraftSeed());
-                        }
-                    } catch (Exception e) {
-                        // TODO: this seems to happen with the Minecraft 1.6 jar
-                        // Why?
-                        logger.error("An exception occurred while trying to load or initialize Minecraft jar; continuing without showing biomes", e);
-                        mcBiomeScheme = null;
-                    } catch (Error e) {
-                        // TODO: this seems to happen with the Minecraft 1.6 jar
-                        // Why?
-                        logger.error("An error occurred while trying to load or initialize Minecraft jar; continuing without showing biomes", e);
-                        mcBiomeScheme = null;
+                    if (world.getVersion() == org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_1) {
+                        biomeAlgorithm = BIOME_ALGORITHM_1_1;
+                    } else if (world.getGenerator() == Generator.DEFAULT) {
+                        biomeAlgorithm = BIOME_ALGORITHM_1_7_DEFAULT;
+                    } else if (world.getGenerator() == Generator.LARGE_BIOMES) {
+                        biomeAlgorithm = BIOME_ALGORITHM_1_7_LARGE;
                     }
                 }
             }
-            WPTileProvider tileProvider = new WPTileProvider(dimension, colourScheme, biomeScheme, customBiomeManager, hiddenLayers, contourLines, contourSeparation, lightOrigin, true, (mcBiomeScheme != null) ? new BiomesTileProvider(mcBiomeScheme, colourScheme, 0, true) : null);
+            WPTileProvider tileProvider = new WPTileProvider(dimension, colourScheme, biomeScheme, customBiomeManager, hiddenLayers, contourLines, contourSeparation, lightOrigin, true, (biomeAlgorithm != -1) ? new BiomesTileProvider(biomeAlgorithm, dimension.getMinecraftSeed(), colourScheme, 0, true) : null);
 //            tileProvider.setZoom(zoom);
             viewer.setTileProvider(tileProvider);
             viewer.setMarkerCoords(((dimension.getDim() == DIM_NORMAL) || (dimension.getDim() == DIM_NORMAL_CEILING)) ? dimension.getWorld().getSpawnPoint() : null);

@@ -1622,13 +1622,15 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         // are on the custom layer list so they will be added to a palette in
         // the GUI. TODO: fix this properly
         // Make sure customLayers isn't some weird read-only list
-        getAllLayers(false).stream().filter(layer -> (layer instanceof CustomLayer) && (!customLayers.contains(layer))).forEach(layer -> {
-            if ((!(customLayers instanceof ArrayList)) && (!(customLayers instanceof LinkedList))) {
-                // Make sure customLayers isn't some weird read-only list
-                customLayers = new ArrayList<>(customLayers);
-            }
-            customLayers.add((CustomLayer) layer);
-        });
+        getAllLayers(false).stream()
+                .filter(layer -> (layer instanceof CustomLayer) && (! customLayers.contains(layer)))
+                .forEach(layer -> {
+                    if ((! (customLayers instanceof ArrayList)) && (! (customLayers instanceof LinkedList))) {
+                        // Make sure customLayers isn't some weird read-only list
+                        customLayers = new ArrayList<>(customLayers);
+                    }
+                    customLayers.add((CustomLayer) layer);
+                });
     
     }
     

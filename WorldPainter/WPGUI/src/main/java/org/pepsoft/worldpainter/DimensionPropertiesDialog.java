@@ -38,7 +38,9 @@ public class DimensionPropertiesDialog extends javax.swing.JDialog {
         worldPropertiesEditor1.setColourScheme(colourScheme);
         worldPropertiesEditor1.setDimension(dimension);
         if (defaultSettingsMode) {
-            worldPropertiesEditor1.setDefaultSettingsMode();
+            worldPropertiesEditor1.setMode(DimensionPropertiesEditor.Mode.DEFAULT_SETTINGS);
+        } else {
+            worldPropertiesEditor1.setMode(DimensionPropertiesEditor.Mode.EDITOR);
         }
         
         ActionMap actionMap = rootPane.getActionMap();

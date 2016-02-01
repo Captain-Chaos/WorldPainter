@@ -8,11 +8,10 @@ package org.pepsoft.worldpainter;
 import org.pepsoft.util.MemoryUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.TileRenderer.LightOrigin;
-import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
+import org.pepsoft.worldpainter.brushes.BrushShape;
 import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.layers.Layer;
-import org.pepsoft.worldpainter.brushes.BrushShape;
 import org.pepsoft.worldpainter.tools.BiomesTileProvider;
 
 import javax.imageio.ImageIO;
@@ -413,41 +412,20 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
 
     public void refreshTiles() {
         if (dimension != null) {
-            BiomeScheme mcBiomeScheme = null;
+            int biomeAlgorithm = -1;
             if (dimension.getDim() == DIM_NORMAL) {
                 World2 world = dimension.getWorld();
                 if (world != null) {
-                    try {
-                        if (world.getVersion() == org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_1) {
-                            mcBiomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_1, this, false);
-                        } else if (world.getGenerator() == Generator.DEFAULT) {
-                            mcBiomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_DEFAULT, this, false);
-                            if (mcBiomeScheme == null) {
-                                mcBiomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_2_AND_1_3_DEFAULT, this, false);
-                            }
-                        } else if (world.getGenerator() == Generator.LARGE_BIOMES) {
-                            mcBiomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_LARGE, this, false);
-                            if (mcBiomeScheme == null) {
-                                mcBiomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_3_LARGE, this, false);
-                            }
-                        }
-                        if (mcBiomeScheme != null) {
-                            mcBiomeScheme.setSeed(dimension.getMinecraftSeed());
-                        }
-                    } catch (Exception e) {
-                        // TODO: this seems to happen with the Minecraft 1.6 jar
-                        // Why?
-                        logger.error("An exception occurred while trying to load or initialize Minecraft jar; continuing without showing biomes", e);
-                        mcBiomeScheme = null;
-                    } catch (Error e) {
-                        // TODO: this seems to happen with the Minecraft 1.6 jar
-                        // Why?
-                        logger.error("An error occurred while trying to load or initialize Minecraft jar; continuing without showing biomes", e);
-                        mcBiomeScheme = null;
+                    if (world.getVersion() == org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_1) {
+                        biomeAlgorithm = BIOME_ALGORITHM_1_1;
+                    } else if (world.getGenerator() == Generator.DEFAULT) {
+                        biomeAlgorithm = BIOME_ALGORITHM_1_7_DEFAULT;
+                    } else if (world.getGenerator() == Generator.LARGE_BIOMES) {
+                        biomeAlgorithm = BIOME_ALGORITHM_1_7_LARGE;
                     }
                 }
             }
-            tileProvider = new WPTileProvider(dimension, colourScheme, biomeScheme, customBiomeManager, hiddenLayers, drawContours, contourSeparation, lightOrigin, true, (mcBiomeScheme != null) ? new BiomesTileProvider(mcBiomeScheme, colourScheme, 0, true) : null, true);
+            tileProvider = new WPTileProvider(dimension, colourScheme, biomeScheme, customBiomeManager, hiddenLayers, drawContours, contourSeparation, lightOrigin, true, (biomeAlgorithm != -1) ? new BiomesTileProvider(biomeAlgorithm, dimension.getMinecraftSeed(), colourScheme, 0, true) : null, true);
             if (getTileProviderCount() == 0) {
                 addTileProvider(tileProvider);
             } else {

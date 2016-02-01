@@ -22,6 +22,7 @@ import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
 
 import javax.swing.*;
 import javax.swing.JSpinner.NumberEditor;
+import javax.swing.event.ListSelectionEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -113,6 +114,11 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         addListeners(spinnerQuartzMinLevel, spinnerQuartzMaxLevel);
         addListeners(spinnerCavernsMinLevel, spinnerCavernsMaxLevel);
         addListeners(spinnerChasmsMinLevel, spinnerChasmsMaxLevel);
+        
+        tableCustomLayers.setDefaultRenderer(Layer.class, new LayerTableCellRenderer());
+        tableCustomLayers.getSelectionModel().addListSelectionListener((ListSelectionEvent e) -> {
+            setControlStates();
+        });
     }
 
     public void setColourScheme(ColourScheme colourScheme) {
@@ -124,17 +130,24 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         return themeEditor.getColourScheme();
     }
     
-    public void setExportMode() {
-        if (! exportMode) {
-            exportMode = true;
-            jTabbedPane1.remove(1);
+    public void setMode(Mode mode) {
+        if (this.mode != null) {
+            throw new IllegalStateException("Mode already set");
         }
-    }
-    
-    public void setDefaultSettingsMode() {
-        if (! defaultSettingsMode) {
-            defaultSettingsMode = true;
-            spinnerMinecraftSeed.setEnabled(false);
+        this.mode = mode;
+        switch (mode) {
+            case EXPORT:
+                jTabbedPane1.remove(1);
+                break;
+            case DEFAULT_SETTINGS:
+                spinnerMinecraftSeed.setEnabled(false);
+                jTabbedPane1.remove(5);
+                break;
+            case EDITOR:
+                jTabbedPane1.remove(5);
+                break;
+            default:
+                throw new IllegalArgumentException("mode " + mode);
         }
     }
     
@@ -220,7 +233,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         int maxHeight = dimension.getMaxHeight() - 1;
         
         // terrain ranges
-        if ((! exportMode) && (! themeEditor.save())) {
+        if ((mode != Mode.EXPORT) && (! themeEditor.save())) {
             jTabbedPane1.setSelectedIndex(1);
             return false;
         }
@@ -435,6 +448,11 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         }
         annotationsSettings.setExport(checkBoxExportAnnotations.isSelected());
         dimension.setLayerSettings(Annotations.INSTANCE, annotationsSettings);
+        
+        // custom layers
+        if ((mode == Mode.EXPORT) && (! customLayersTableModel.isPristine())) {
+            customLayersTableModel.save();
+        }
         
         return true;
     }
@@ -689,7 +707,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         spinnerQuartzMaxLevel.setValue(clamp(resourcesSettings.getMaxLevel(BLK_QUARTZ_ORE), maxHeight));
         
         // terrain ranges
-        if (! exportMode) {
+        if (mode != Mode.EXPORT) {
             if ((dimension.getTileFactory() instanceof HeightMapTileFactory)
                     && (((HeightMapTileFactory) dimension.getTileFactory()).getTheme() instanceof SimpleTheme)
                     && (((SimpleTheme) ((HeightMapTileFactory) dimension.getTileFactory()).getTheme()).getTerrainRanges() != null)) {
@@ -705,6 +723,12 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             annotationsSettings = new AnnotationsSettings();
         }
         checkBoxExportAnnotations.setSelected(annotationsSettings.isExport());
+        
+        // custom layers
+        if (mode == Mode.EXPORT) {
+            customLayersTableModel = new CustomLayersTableModel(dimension, App.getInstance().getCustomLayers());
+            tableCustomLayers.setModel(customLayersTableModel);
+        }
         
         setControlStates();
     }
@@ -739,10 +763,12 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         sliderJungleLevel.setEnabled(enabled && checkBoxJungleEverywhere.isSelected());
         jSlider6.setEnabled(enabled && checkBoxSwamplandEverywhere.isSelected());
         jSlider4.setEnabled(enabled && jCheckBox8.isSelected());
-        spinnerMinecraftSeed.setEnabled((! defaultSettingsMode) && enabled && dim0);
+        spinnerMinecraftSeed.setEnabled((mode != Mode.DEFAULT_SETTINGS) && enabled && dim0);
         checkBoxPopulate.setEnabled(enabled && dim0);
         checkBoxCavernsRemoveWater.setEnabled(enabled && (checkBoxCavernsBreakSurface.isSelected() || checkBoxChasmsBreakSurface.isSelected()));
         spinnerCeilingHeight.setEnabled(enabled && ceiling);
+        buttonCustomLayerUp.setEnabled(enabled && (tableCustomLayers.getSelectedRow() > 0));
+        buttonCustomLayerDown.setEnabled(enabled && (tableCustomLayers.getSelectedRow() != -1) && (tableCustomLayers.getSelectedRow() < (tableCustomLayers.getRowCount() - 1)));
     }
 
     private void addListeners(final JSpinner minSpinner, final JSpinner maxSpinner) {
@@ -950,6 +976,12 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         jSlider6 = new javax.swing.JSlider();
         checkBoxSnowUnderTrees = new javax.swing.JCheckBox();
         checkBoxExportAnnotations = new javax.swing.JCheckBox();
+        jPanel7 = new javax.swing.JPanel();
+        jLabel82 = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        tableCustomLayers = new javax.swing.JTable();
+        buttonCustomLayerUp = new javax.swing.JButton();
+        buttonCustomLayerDown = new javax.swing.JButton();
 
         buttonGroup1.add(radioButtonWaterBorder);
         radioButtonWaterBorder.setText("Water");
@@ -1003,13 +1035,13 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
         jLabel7.setText("Minecraft seed:");
 
-        spinnerMinecraftSeed.setModel(new javax.swing.SpinnerNumberModel(Long.valueOf(-9223372036854775808L), null, null, Long.valueOf(1L)));
+        spinnerMinecraftSeed.setModel(new javax.swing.SpinnerNumberModel(-9223372036854775808L, null, null, 1L));
         spinnerMinecraftSeed.setEditor(new javax.swing.JSpinner.NumberEditor(spinnerMinecraftSeed, "0"));
 
         jLabel8.setLabelFor(spinnerBorderSize);
         jLabel8.setText("Border size:");
 
-        spinnerBorderSize.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(256), Integer.valueOf(128), null, Integer.valueOf(128)));
+        spinnerBorderSize.setModel(new javax.swing.SpinnerNumberModel(256, 128, null, 128));
         spinnerBorderSize.setEnabled(false);
         spinnerBorderSize.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
@@ -1227,7 +1259,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel7)
                     .addComponent(spinnerMinecraftSeed, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(46, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("General", jPanel1);
@@ -1243,7 +1275,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             .addGroup(jPanel5Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(themeEditor, javax.swing.GroupLayout.DEFAULT_SIZE, 587, Short.MAX_VALUE)
+                    .addComponent(themeEditor, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                         .addComponent(jLabel46, javax.swing.GroupLayout.Alignment.LEADING)
                         .addComponent(jLabel45, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
@@ -1257,7 +1289,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel46)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(themeEditor, javax.swing.GroupLayout.DEFAULT_SIZE, 274, Short.MAX_VALUE)
+                .addComponent(themeEditor, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -1391,7 +1423,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                                 .addComponent(jLabel73)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(spinnerChasmsMinLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))))
-                .addContainerGap(109, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1959,7 +1991,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                                 .addComponent(jLabel77)
                                 .addComponent(spinnerQuartzMaxLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addComponent(jLabel76))))
-                    .addComponent(jSeparator3, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 203, Short.MAX_VALUE))
+                    .addComponent(jSeparator3, javax.swing.GroupLayout.Alignment.TRAILING))
                 .addContainerGap())
         );
 
@@ -2103,7 +2135,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel48))
                     .addComponent(checkBoxExportAnnotations))
-                .addContainerGap(112, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -2152,10 +2184,65 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 .addComponent(checkBoxSnowUnderTrees)
                 .addGap(18, 18, 18)
                 .addComponent(checkBoxExportAnnotations)
-                .addContainerGap(39, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("Other Layers", jPanel2);
+
+        jLabel82.setText("<html>On this page you can configure the export order of your custom layers,<br>as well as prevent certain layers from being exported.</html>");
+
+        tableCustomLayers.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        jScrollPane1.setViewportView(tableCustomLayers);
+
+        buttonCustomLayerUp.setText("Up");
+        buttonCustomLayerUp.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonCustomLayerUpActionPerformed(evt);
+            }
+        });
+
+        buttonCustomLayerDown.setText("Down");
+        buttonCustomLayerDown.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonCustomLayerDownActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
+        jPanel7.setLayout(jPanel7Layout);
+        jPanel7Layout.setHorizontalGroup(
+            jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel7Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel7Layout.createSequentialGroup()
+                        .addComponent(jLabel82, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(jPanel7Layout.createSequentialGroup()
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 618, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(buttonCustomLayerDown, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(buttonCustomLayerUp, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                .addContainerGap())
+        );
+        jPanel7Layout.setVerticalGroup(
+            jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel7Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel82, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                    .addGroup(jPanel7Layout.createSequentialGroup()
+                        .addComponent(buttonCustomLayerUp)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(buttonCustomLayerDown)
+                        .addGap(0, 224, Short.MAX_VALUE)))
+                .addContainerGap())
+        );
+
+        jTabbedPane1.addTab("Custom Layers", jPanel7);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -2167,7 +2254,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jTabbedPane1)
+            .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 362, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -2276,7 +2363,29 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         setControlStates();
     }//GEN-LAST:event_checkBoxExportAnnotationsActionPerformed
 
+    private void buttonCustomLayerUpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCustomLayerUpActionPerformed
+        int rowIndex = tableCustomLayers.getSelectedRow();
+        if (rowIndex > 0) {
+            customLayersTableModel.swap(rowIndex - 1, rowIndex);
+            tableCustomLayers.getSelectionModel().setSelectionInterval(rowIndex - 1, rowIndex - 1);
+            tableCustomLayers.scrollRectToVisible(tableCustomLayers.getCellRect(rowIndex - 1, 0, true));
+            setControlStates();
+        }
+    }//GEN-LAST:event_buttonCustomLayerUpActionPerformed
+
+    private void buttonCustomLayerDownActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCustomLayerDownActionPerformed
+        int rowIndex = tableCustomLayers.getSelectedRow();
+        if (rowIndex < (customLayersTableModel.getRowCount() - 1)) {
+            customLayersTableModel.swap(rowIndex, rowIndex + 1);
+            tableCustomLayers.getSelectionModel().setSelectionInterval(rowIndex + 1, rowIndex + 1);
+            tableCustomLayers.scrollRectToVisible(tableCustomLayers.getCellRect(rowIndex + 1, 0, true));
+            setControlStates();
+        }
+    }//GEN-LAST:event_buttonCustomLayerDownActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton buttonCustomLayerDown;
+    private javax.swing.JButton buttonCustomLayerUp;
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.ButtonGroup buttonGroup2;
     private javax.swing.JCheckBox checkBoxBedrockWall;
@@ -2380,6 +2489,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel80;
     private javax.swing.JLabel jLabel81;
+    private javax.swing.JLabel jLabel82;
     private javax.swing.JLabel jLabel85;
     private javax.swing.JLabel jLabel86;
     private javax.swing.JLabel jLabel9;
@@ -2390,6 +2500,8 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanel6;
+    private javax.swing.JPanel jPanel7;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;
     private javax.swing.JSeparator jSeparator3;
@@ -2455,11 +2567,15 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private javax.swing.JSpinner spinnerWaterChance;
     private javax.swing.JSpinner spinnerWaterMaxLevel;
     private javax.swing.JSpinner spinnerWaterMinLevel;
+    private javax.swing.JTable tableCustomLayers;
     private org.pepsoft.worldpainter.themes.impl.simple.SimpleThemeEditor themeEditor;
     // End of variables declaration//GEN-END:variables
 
     private Dimension dimension;
-    private boolean exportMode, defaultSettingsMode;
+    private CustomLayersTableModel customLayersTableModel;
+    private Mode mode;
     
     private static final long serialVersionUID = 1L;
+    
+    public enum Mode {EXPORT, DEFAULT_SETTINGS, EDITOR}
 }

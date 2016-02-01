@@ -104,6 +104,10 @@ public final class Plant implements WPObject {
                     && (blockType != BLK_GLASS)
                     && (blockType != BLK_ICE);
             case PLANTS_AND_FLOWERS:
+                return (blockType == BLK_GRASS)
+                    || (blockType == BLK_DIRT)
+                    || (blockType == BLK_TILLED_DIRT)
+                    || ((material.equals(Material.DEAD_SHRUBS)) && ((blockType == BLK_SAND) || (blockType == BLK_HARDENED_CLAY)));
             case SAPLINGS:
                 return (blockType == BLK_GRASS)
                     || (blockType == BLK_DIRT)
