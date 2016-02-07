@@ -723,12 +723,12 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         // custom layers
         if (mode == Mode.EXPORT) {
             Set<CustomLayer> customLayers = App.getInstance().getCustomLayers();
-            if (! customLayers.isEmpty()) {
+//            if (! customLayers.isEmpty()) {
                 customLayersTableModel = new CustomLayersTableModel(customLayers);
                 tableCustomLayers.setModel(customLayersTableModel);
-            } else {
-                jTabbedPane1.setEnabledAt(5, false);
-            }
+//            } else {
+//                jTabbedPane1.setEnabledAt(5, false);
+//            }
         }
         
         setControlStates();

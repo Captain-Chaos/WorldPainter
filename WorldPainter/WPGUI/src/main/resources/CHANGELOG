@@ -1,3 +1,7 @@
+-- Version 2.1.6, released 7-2-2016
+
+ * Bug fix: make Export work again. Sorry about that!
+
 -- Version 2.1.5, released 7-2-2016
 
  * It is now possible to change the order in which Custom Layers are exported, as well as to temporarily disable a layer so that it is not exported. You can do this on the new "Custom Layers" tab on the Export screen
