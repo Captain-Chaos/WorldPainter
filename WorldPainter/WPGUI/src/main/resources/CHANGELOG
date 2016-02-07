@@ -1,9 +1,14 @@
--- Version ..., released ...
+-- Version 2.1.5, released 7-2-2016
 
- * It is now possible to change the order in which Custom Layers are exported, as well as to temporarily disable a layer so that it is not exported
+ * It is now possible to change the order in which Custom Layers are exported, as well as to temporarily disable a layer so that it is not exported. You can do this on the new "Custom Layers" tab on the Export screen
+ * A new property has been added to Custom Objects: "extend foundation". When set, any solid blocks on the lowest layer of a Custom Object will be extended downwards towards the ground (or the first solid block) if it ends up floating in the air. This way you can give objects "legs", "roots" or "foundations" which will automatically be extended by WorldPainter to sit on the ground. The new setting is on the individual object settings screen, and by default it is turned off. You can change it for a number of objects at once by selecting multiple objects and pressing the Edit button next to the list
+ * The status bar now shows the slope of the land beneath the cursor in degrees, next to the height
  * Slight startup optimisation (no longer hangs while scanning for Minecraft jars)
+ * Bug fix: the code signing certificate used for version 2.1.4 had expired, causing warnings and errors. From version 2.1.5 the digital signature is once again valid
+ * Bug fix: plant layers no longer obliterate what is already there
  * Bug fix: newly created worlds abide by the default "cover steep terrain" setting set in the Preferences
  * Bug fix: the Custom Plants layer will now place dead shrubs on sand and hardened clay
+ * Bug fix: an error would occur when trying to run a script in WorldPainter which did not have a descriptor comment block at the start. This has been fixed; a descriptor is no longer required for simple scripts without parameters
 
 -- Version 2.1.4, released 17-1-2016
 
