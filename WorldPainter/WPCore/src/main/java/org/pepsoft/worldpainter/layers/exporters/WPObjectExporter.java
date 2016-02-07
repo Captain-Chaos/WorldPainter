@@ -85,6 +85,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
         final boolean bottomless = dimension.isBottomless();
         final int[] replaceBlockIds = object.getAttribute(ATTRIBUTE_REPLACE_WITH_AIR, null);
         final boolean replaceBlocks = replaceBlockIds != null;
+        final boolean extendFoundation = object.getAttribute(ATTRIBUTE_EXTEND_FOUNDATION, false);
         if ((z + offset.z + dim.z - 1) >= world.getMaxHeight()) {
             // Object doesn't fit in the world vertically
             return;
@@ -92,46 +93,51 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
 //        System.out.println("Object dimensions: " + dim + ", origin: " + orig);
         for (int dx = 0; dx < dim.x; dx++) {
             for (int dy = 0; dy < dim.y; dy++) {
-                final int xx = x + dx + offset.x;
-                final int yy = y + dy + offset.y;
-                final int terrainHeight = dimension.getIntHeightAt(xx, yy);
+                final int worldX = x + dx + offset.x;
+                final int worldY = y + dy + offset.y;
+                final int terrainHeight = dimension.getIntHeightAt(worldX, worldY);
                 for (int dz = 0; dz < dim.z; dz++) {
                     if (object.getMask(dx, dy, dz)) {
-                        final int zz = z + dz + offset.z;
-                        if ((bottomless || obliterate) ? (zz < 0) : (zz < 1)) {
+                        final Material objectMaterial = object.getMaterial(dx, dy, dz);
+                        final Material finalMaterial = (replaceBlocks && (objectMaterial.blockType == replaceBlockIds[0]) && (objectMaterial.data == replaceBlockIds[1])) ? Material.AIR : objectMaterial;
+                        final int worldZ = z + dz + offset.z;
+                        if ((bottomless || obliterate) ? (worldZ < 0) : (worldZ < 1)) {
                             continue;
                         } else if (obliterate) {
-                            final Material objectMaterial = object.getMaterial(dx, dy, dz);
-                            final Material finalMaterial = (replaceBlocks && (objectMaterial.blockType == replaceBlockIds[0]) && (objectMaterial.data == replaceBlockIds[1])) ? Material.AIR : objectMaterial;
-                            placeBlock(world, xx, yy, zz, finalMaterial, leafDecayMode);
+                            placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode);
                         } else {
-                            final int existingBlockType = world.getBlockTypeAt(xx, yy, zz);
-                            final Material objectMaterial = object.getMaterial(dx, dy, dz);
-                            final Material finalMaterial = (replaceBlocks && (objectMaterial.blockType == replaceBlockIds[0]) && (objectMaterial.data == replaceBlockIds[1])) ? Material.AIR : objectMaterial;
-                            if (zz <= terrainHeight) {
+                            final int existingBlockType = world.getBlockTypeAt(worldX, worldY, worldZ);
+                            if (worldZ <= terrainHeight) {
                                 switch (undergroundMode) {
                                     case COLLISION_MODE_ALL:
                                         // Replace every block
-                                        placeBlock(world, xx, yy, zz, finalMaterial, leafDecayMode);
+                                        placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode);
                                         break;
                                     case COLLISION_MODE_SOLID:
                                         // Only replace if object block is solid
                                         if (! objectMaterial.block.veryInsubstantial) {
-                                            placeBlock(world, xx, yy, zz, finalMaterial, leafDecayMode);
+                                            placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode);
                                         }
                                         break;
                                     case COLLISION_MODE_NONE:
                                         // Only replace less solid blocks
                                         if (BLOCKS[existingBlockType].veryInsubstantial) {
-                                            placeBlock(world, xx, yy, zz, finalMaterial, leafDecayMode);
+                                            placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode);
                                         }
                                         break;
                                 }
                             } else {
                                 // Above ground only replace less solid blocks
                                 if (BLOCKS[existingBlockType].veryInsubstantial) {
-                                    placeBlock(world, xx, yy, zz, finalMaterial, leafDecayMode);
+                                    placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode);
                                 }
+                            }
+                        }
+                        if (extendFoundation && (dz == 0) && (terrainHeight != -1) && (worldZ > terrainHeight) && (! finalMaterial.block.veryInsubstantial)) {
+                            int legZ = worldZ - 1;
+                            while ((legZ >= 0) && world.getMaterialAt(worldX, worldY, legZ).block.veryInsubstantial) {
+                                placeBlock(world, worldX, worldY, legZ, finalMaterial, leafDecayMode);
+                                legZ--;
                             }
                         }
                     }
@@ -146,12 +152,12 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                         entityY = y + pos[2] + offset.y,
                         entityZ = z + pos[1] + offset.z;
                 if ((entityZ < 0) || (entityY > (world.getMaxHeight() - 1))) {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("NOT adding entity " + entity.getId() + " @ " + entityX + "," + entityY + "," + entityZ + " because z coordinate is out of range!");
+                    if (logger.isTraceEnabled()) {
+                        logger.trace("NOT adding entity " + entity.getId() + " @ " + entityX + "," + entityY + "," + entityZ + " because z coordinate is out of range!");
                     }
                 } else {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Adding entity " + entity.getId() + " @ " + entityX + "," + entityY + "," + entityZ);
+                    if (logger.isTraceEnabled()) {
+                        logger.trace("Adding entity " + entity.getId() + " @ " + entityX + "," + entityY + "," + entityZ);
                     }
                     world.addEntity(entityX, entityY, entityZ, entity);
                 }
@@ -165,19 +171,19 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                     tileEntityZ = z + tileEntity.getY() + offset.z;
                 final String entityId = tileEntity.getId();
                 if ((tileEntityZ < 0) || (tileEntityZ >= world.getMaxHeight())) {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("NOT adding tile entity " + entityId + " @ " + tileEntityX + "," + tileEntityY + "," + tileEntityZ + " because z coordinate is out of range!");
+                    if (logger.isTraceEnabled()) {
+                        logger.trace("NOT adding tile entity " + entityId + " @ " + tileEntityX + "," + tileEntityY + "," + tileEntityZ + " because z coordinate is out of range!");
                     }
                 } else {
                     final int existingBlockType = world.getBlockTypeAt(tileEntityX, tileEntityY, tileEntityZ);
                     if (! TILE_ENTITY_MAP.containsKey(entityId)) {
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("Adding unknown tile entity " + entityId + " @ " + tileEntityX + "," + tileEntityY + "," + tileEntityZ + " (block type: " + BLOCK_TYPE_NAMES[existingBlockType] + "; not able to detect whether the block type is correct; map may cause errors!)");
+                        if (logger.isTraceEnabled()) {
+                            logger.trace("Adding unknown tile entity " + entityId + " @ " + tileEntityX + "," + tileEntityY + "," + tileEntityZ + " (block type: " + BLOCK_TYPE_NAMES[existingBlockType] + "; not able to detect whether the block type is correct; map may cause errors!)");
                         }
                         world.addTileEntity(tileEntityX, tileEntityY, tileEntityZ, tileEntity);
                     } else if (TILE_ENTITY_MAP.get(entityId).contains(existingBlockType)) {
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("Adding tile entity " + entityId + " @ " + tileEntityX + "," + tileEntityY + "," + tileEntityZ + " (block type: " + BLOCK_TYPE_NAMES[existingBlockType] + ")");
+                        if (logger.isTraceEnabled()) {
+                            logger.trace("Adding tile entity " + entityId + " @ " + tileEntityX + "," + tileEntityY + "," + tileEntityZ + " (block type: " + BLOCK_TYPE_NAMES[existingBlockType] + ")");
                         }
                         world.addTileEntity(tileEntityX, tileEntityY, tileEntityZ, tileEntity);
                     } else {
@@ -186,8 +192,8 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                         // happen, for instance if the block was not placed because
                         // it collided with another block, or it was below or above
                         // the world limits)
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("NOT adding tile entity " + entityId + " @ " + tileEntityX + "," + tileEntityY + "," + tileEntityZ + " because the block there is not a (or not the same) tile entity: " + BLOCK_TYPE_NAMES[existingBlockType] + "!");
+                        if (logger.isTraceEnabled()) {
+                            logger.trace("NOT adding tile entity " + entityId + " @ " + tileEntityX + "," + tileEntityY + "," + tileEntityZ + " because the block there is not a (or not the same) tile entity: " + BLOCK_TYPE_NAMES[existingBlockType] + "!");
                         }
                     }
                 }

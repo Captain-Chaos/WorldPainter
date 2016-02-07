@@ -240,7 +240,7 @@ public class ScriptRunner extends WorldPainterDialog {
         jTextArea2.setText(null);
         File scriptFile = (File) jComboBox1.getSelectedItem();
         String scriptFileName = scriptFile.getName();
-        Map<String, Object> params = scriptDescriptor.getValues();
+        Map<String, Object> params = (scriptDescriptor != null) ? scriptDescriptor.getValues() : null;
         new Thread(scriptFileName) {
             @Override
             public void run() {
@@ -263,7 +263,9 @@ public class ScriptRunner extends WorldPainterDialog {
                     System.arraycopy(parameters, 0, argv, 1, parameters.length);
                     bindings.put("argv", argv);
                     bindings.put("arguments", parameters);
-                    bindings.put("params", params);
+                    if (params != null) {
+                        bindings.put("params", params);
+                    }
                     if (world != null) {
                         bindings.put("world", world);
                     }

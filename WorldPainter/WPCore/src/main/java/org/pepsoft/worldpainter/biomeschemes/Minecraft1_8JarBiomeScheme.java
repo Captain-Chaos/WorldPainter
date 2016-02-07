@@ -59,7 +59,7 @@ public abstract class Minecraft1_8JarBiomeScheme extends AbstractMinecraft1_7Bio
 
     @Override
     public void setSeed(long seed) {
-        if ((seed != this.seed) || (landscape == null)) {
+        if ((landscape == null) || (seed != this.seed)) {
             try {
                 landscape = ((Object[]) getLandscapesMethod.invoke(null, seed, null, null))[1];
                 this.seed = seed;

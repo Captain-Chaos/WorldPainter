@@ -19,6 +19,9 @@ import org.pepsoft.worldpainter.layers.*;
 
 import static org.pepsoft.minecraft.Constants.*;
 import org.pepsoft.minecraft.Material;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.*;
 
@@ -205,6 +208,9 @@ public class WorldPainterChunkFactory implements ChunkFactory {
         for (Layer layer: tile.getLayers(minimumLayers)) {
             LayerExporter layerExporter = exporters.get(layer);
             if (layerExporter instanceof FirstPassLayerExporter) {
+                if (logger.isTraceEnabled()) {
+                    logger.trace("Exporting layer {} for chunk {},{}", layer, chunkX, chunkZ);
+                }
                 ((FirstPassLayerExporter) layerExporter).render(dimension, tile, result.chunk);
             }
         }
@@ -230,4 +236,5 @@ public class WorldPainterChunkFactory implements ChunkFactory {
 
     private static final long SUGAR_CANE_SEED_OFFSET = 127411424;
     private static final float SUGAR_CANE_CHANCE = PerlinNoise.getLevelForPromillage(325);
+    private static final Logger logger = LoggerFactory.getLogger(WorldPainterChunkFactory.class);
 }

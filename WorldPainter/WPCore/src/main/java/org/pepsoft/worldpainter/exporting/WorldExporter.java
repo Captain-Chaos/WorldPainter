@@ -214,6 +214,9 @@ public class WorldExporter {
     }
     
     protected ExportResults firstPass(MinecraftWorld minecraftWorld, Dimension dimension, Point regionCoords, Map<Point, Tile> tiles, boolean tileSelection, Map<Layer, LayerExporter<Layer>> exporters, ChunkFactory chunkFactory, boolean ceiling, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled, IOException {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Start of first pass for region {},{}", regionCoords.x, regionCoords.y);
+        }
         int lowestChunkX = (regionCoords.x << 5) - 1;
         int highestChunkX = (regionCoords.x << 5) + 32;
         int lowestChunkY = (regionCoords.y << 5) - 1;
@@ -253,6 +256,9 @@ public class WorldExporter {
                 }
             }
         }
+        if (logger.isDebugEnabled()) {
+            logger.debug("End of first pass for region {},{}", regionCoords.x, regionCoords.y);
+        }
         return exportResults;
     }
 
@@ -289,6 +295,9 @@ public class WorldExporter {
     
     protected List<Fixup> secondPass(List<Layer> secondaryPassLayers, Dimension dimension, MinecraftWorld minecraftWorld, Map<Layer, LayerExporter<Layer>> exporters, Collection<Tile> tiles, Point regionCoords, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
         // Apply other secondary pass layers
+        if (logger.isDebugEnabled()) {
+            logger.debug("Start of second pass for region {},{}", regionCoords.x, regionCoords.y);
+        }
         int layerCount = secondaryPassLayers.size(), counter = 0;
         Rectangle area = new Rectangle((regionCoords.x << 9) - 16, (regionCoords.y << 9) - 16, 544, 544);
         Rectangle exportedArea = new Rectangle((regionCoords.x << 9), (regionCoords.y << 9), 512, 512);
@@ -301,6 +310,9 @@ public class WorldExporter {
 //            }
             @SuppressWarnings("unchecked")
             SecondPassLayerExporter<Layer> exporter = (SecondPassLayerExporter<Layer>) exporters.get(layer);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Exporting layer {} for region {},{}", layer, regionCoords.x, regionCoords.y);
+            }
             List<Fixup> layerFixups = exporter.render(dimension, area, exportedArea, minecraftWorld);
             if (layerFixups != null) {
                 fixups.addAll(layerFixups);
@@ -349,6 +361,9 @@ public class WorldExporter {
             }
         }
 
+        if (logger.isDebugEnabled()) {
+            logger.debug("End of second pass for region {},{}", regionCoords.x, regionCoords.y);
+        }
         return fixups;
     }
 

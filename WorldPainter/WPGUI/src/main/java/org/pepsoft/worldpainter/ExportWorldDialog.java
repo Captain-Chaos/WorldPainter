@@ -33,6 +33,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.pepsoft.util.DesktopUtils;
+import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.Populate;
 import org.pepsoft.worldpainter.util.MinecraftUtil;
@@ -181,6 +182,16 @@ public class ExportWorldDialog extends javax.swing.JDialog {
         fieldDirectory.getDocument().addDocumentListener(documentListener);
         fieldName.getDocument().addDocumentListener(documentListener);
 
+        disableDisabledLayersWarning = true;
+dims:   for (Dimension dim: world.getDimensions()) {
+            for (CustomLayer customLayer: dim.getCustomLayers()) {
+                if (! customLayer.isExport()) {
+                    disableDisabledLayersWarning = false;
+                    break dims;
+                }
+            }
+        }
+
         ActionMap actionMap = rootPane.getActionMap();
         actionMap.put("cancel", new AbstractAction("cancel") {
             @Override
@@ -220,42 +231,39 @@ public class ExportWorldDialog extends javax.swing.JDialog {
                     showWarning = true;
                 }
             }
-            if (! disableWarning) {
-                String dim;
-                switch (selectedDimension) {
-                    case DIM_NORMAL:
-                        dim = "Surface";
-                        break;
-                    case DIM_NETHER:
-                        dim = "Nether";
-                        break;
-                    case DIM_END:
-                        dim = "End";
-                        break;
-                    default:
-                        throw new InternalError();
-                }
-                sb.append("<li>A tile selection is active! Only " + selectedTiles.size() + " tiles of the<br>" + dim + " dimension are going to be exported.");
-                showWarning = showWarning || (! disableWarning);
+            String dim;
+            switch (selectedDimension) {
+                case DIM_NORMAL:
+                    dim = "Surface";
+                    break;
+                case DIM_NETHER:
+                    dim = "Nether";
+                    break;
+                case DIM_END:
+                    dim = "End";
+                    break;
+                default:
+                    throw new InternalError();
             }
+            sb.append("<li>A tile selection is active! Only " + selectedTiles.size() + " tiles of the<br>" + dim + " dimension are going to be exported.");
+            showWarning = showWarning || (! disableTileSelectionWarning);
         }
         Generator generator = Generator.values()[comboBoxGenerator.getSelectedIndex()];
-        Dimension dim0 = world.getDimension(0);
-        int version = (comboBoxMinecraftVersion.getSelectedIndex() == 0) ? SUPPORTED_VERSION_2 : SUPPORTED_VERSION_1;
-        if ((generator == Generator.FLAT) && ((generatorOptions == null) || (! generatorOptions.contains("decoration")))) {
-            boolean populateInUse = dim0.isPopulate();
-            if (! populateInUse) {
-                for (Tile tile: dim0.getTiles()) {
-                    if (tile.getLayers().contains(Populate.INSTANCE)) {
-                        populateInUse = true;
-                        break;
-                    }
+        int disabledLayerCount = 0;
+        for (Dimension dimension: world.getDimensions()) {
+            for (CustomLayer customLayer: dimension.getCustomLayers()) {
+                if (! customLayer.isExport()) {
+                    disabledLayerCount++;
                 }
             }
-            if (populateInUse) {
-                sb.append("<li>This world uses the Populate option or layer,<br>but the \"Superflat mode\" option is selected.<br>This means that Minecraft will ignore the biomes<br>and not populate the chunks!");
-                showWarning = true;
+        }
+        if (disabledLayerCount > 0) {
+            if (disabledLayerCount == 1) {
+                sb.append("<li>There are disabled custom layers!<br>One layer is not going to be exported.");
+            } else {
+                sb.append("<li>There are disabled custom layers!<br>" + disabledLayerCount + " layers are not going to be exported.");
             }
+            showWarning = showWarning || (! disableDisabledLayersWarning);
         }
         sb.append("</ul>Do you want to continue with the export?</html>");
         if (showWarning && (JOptionPane.showConfirmDialog(this, sb.toString(), "Review Warnings", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION)) {
@@ -309,7 +317,7 @@ public class ExportWorldDialog extends javax.swing.JDialog {
         } else {
             world.setGeneratorOptions(null);
         }
-        world.setVersion(version);
+        world.setVersion((comboBoxMinecraftVersion.getSelectedIndex() == 0) ? SUPPORTED_VERSION_2 : SUPPORTED_VERSION_1);
         if (radioButtonExportEverything.isSelected()) {
             world.setDimensionsToExport(null);
             world.setTilesToExport(null);
@@ -399,7 +407,7 @@ public class ExportWorldDialog extends javax.swing.JDialog {
             selectedTiles = dialog.getSelectedTiles();
             radioButtonExportSelection.setText("export " + selectedTiles.size() + " selected tiles");
             setControlStates();
-            disableWarning = true;
+            disableTileSelectionWarning = true;
         }
     }
     
@@ -738,7 +746,7 @@ public class ExportWorldDialog extends javax.swing.JDialog {
     private final WorldPainter view;
     private int selectedDimension;
     private Set<Point> selectedTiles;
-    private boolean disableWarning;
+    private boolean disableTileSelectionWarning, disableDisabledLayersWarning;
     private String generatorOptions;
     
     private static final long serialVersionUID = 1L;

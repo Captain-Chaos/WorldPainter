@@ -23,10 +23,7 @@ import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
 import javax.swing.*;
 import javax.swing.JSpinner.NumberEditor;
 import javax.swing.event.ListSelectionEvent;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import static org.pepsoft.minecraft.Constants.*;
 
@@ -114,11 +111,9 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         addListeners(spinnerQuartzMinLevel, spinnerQuartzMaxLevel);
         addListeners(spinnerCavernsMinLevel, spinnerCavernsMaxLevel);
         addListeners(spinnerChasmsMinLevel, spinnerChasmsMaxLevel);
-        
-        tableCustomLayers.setDefaultRenderer(Layer.class, new LayerTableCellRenderer());
-        tableCustomLayers.getSelectionModel().addListSelectionListener((ListSelectionEvent e) -> {
-            setControlStates();
-        });
+
+        tableCustomLayers.setDefaultRenderer(CustomLayer.class, new CustomLayersTableCellRenderer());
+        tableCustomLayers.getSelectionModel().addListSelectionListener((ListSelectionEvent e) -> setControlStates());
     }
 
     public void setColourScheme(ColourScheme colourScheme) {
@@ -452,6 +447,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         // custom layers
         if ((mode == Mode.EXPORT) && (! customLayersTableModel.isPristine())) {
             customLayersTableModel.save();
+            dimension.setDirty(true);
         }
         
         return true;
@@ -726,8 +722,13 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         
         // custom layers
         if (mode == Mode.EXPORT) {
-            customLayersTableModel = new CustomLayersTableModel(dimension, App.getInstance().getCustomLayers());
-            tableCustomLayers.setModel(customLayersTableModel);
+            Set<CustomLayer> customLayers = App.getInstance().getCustomLayers();
+            if (! customLayers.isEmpty()) {
+                customLayersTableModel = new CustomLayersTableModel(customLayers);
+                tableCustomLayers.setModel(customLayersTableModel);
+            } else {
+                jTabbedPane1.setEnabledAt(5, false);
+            }
         }
         
         setControlStates();
@@ -767,8 +768,9 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         checkBoxPopulate.setEnabled(enabled && dim0);
         checkBoxCavernsRemoveWater.setEnabled(enabled && (checkBoxCavernsBreakSurface.isSelected() || checkBoxChasmsBreakSurface.isSelected()));
         spinnerCeilingHeight.setEnabled(enabled && ceiling);
-        buttonCustomLayerUp.setEnabled(enabled && (tableCustomLayers.getSelectedRow() > 0));
-        buttonCustomLayerDown.setEnabled(enabled && (tableCustomLayers.getSelectedRow() != -1) && (tableCustomLayers.getSelectedRow() < (tableCustomLayers.getRowCount() - 1)));
+        int selectedRow = tableCustomLayers.getSelectedRow();
+        buttonCustomLayerUp.setEnabled(enabled && (selectedRow != -1) && (! customLayersTableModel.isHeaderRow(selectedRow)) && (selectedRow > 0) && (! customLayersTableModel.isHeaderRow(selectedRow - 1)));
+        buttonCustomLayerDown.setEnabled(enabled && (selectedRow != -1) && (! customLayersTableModel.isHeaderRow(selectedRow)) && (selectedRow < (tableCustomLayers.getRowCount() - 1)) && (! customLayersTableModel.isHeaderRow(selectedRow + 1)));
     }
 
     private void addListeners(final JSpinner minSpinner, final JSpinner maxSpinner) {
@@ -2365,22 +2367,18 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
     private void buttonCustomLayerUpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCustomLayerUpActionPerformed
         int rowIndex = tableCustomLayers.getSelectedRow();
-        if (rowIndex > 0) {
-            customLayersTableModel.swap(rowIndex - 1, rowIndex);
-            tableCustomLayers.getSelectionModel().setSelectionInterval(rowIndex - 1, rowIndex - 1);
-            tableCustomLayers.scrollRectToVisible(tableCustomLayers.getCellRect(rowIndex - 1, 0, true));
-            setControlStates();
-        }
+        customLayersTableModel.swap(rowIndex - 1, rowIndex);
+        tableCustomLayers.getSelectionModel().setSelectionInterval(rowIndex - 1, rowIndex - 1);
+        tableCustomLayers.scrollRectToVisible(tableCustomLayers.getCellRect(rowIndex - 1, 0, true));
+        setControlStates();
     }//GEN-LAST:event_buttonCustomLayerUpActionPerformed
 
     private void buttonCustomLayerDownActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCustomLayerDownActionPerformed
         int rowIndex = tableCustomLayers.getSelectedRow();
-        if (rowIndex < (customLayersTableModel.getRowCount() - 1)) {
-            customLayersTableModel.swap(rowIndex, rowIndex + 1);
-            tableCustomLayers.getSelectionModel().setSelectionInterval(rowIndex + 1, rowIndex + 1);
-            tableCustomLayers.scrollRectToVisible(tableCustomLayers.getCellRect(rowIndex + 1, 0, true));
-            setControlStates();
-        }
+        customLayersTableModel.swap(rowIndex, rowIndex + 1);
+        tableCustomLayers.getSelectionModel().setSelectionInterval(rowIndex + 1, rowIndex + 1);
+        tableCustomLayers.scrollRectToVisible(tableCustomLayers.getCellRect(rowIndex + 1, 0, true));
+        setControlStates();
     }//GEN-LAST:event_buttonCustomLayerDownActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
