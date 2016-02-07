@@ -11,9 +11,16 @@
 
 package org.pepsoft.worldpainter;
 
-import java.awt.Color;
-import java.awt.Cursor;
-import java.awt.Point;
+import org.pepsoft.util.DesktopUtils;
+import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
+import org.pepsoft.worldpainter.layers.CustomLayer;
+import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.util.MinecraftUtil;
+
+import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
@@ -21,26 +28,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.InputMap;
-import javax.swing.JComponent;
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
-import javax.swing.KeyStroke;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-
-import org.pepsoft.util.DesktopUtils;
-import org.pepsoft.worldpainter.layers.CustomLayer;
-import org.pepsoft.worldpainter.layers.Layer;
-import org.pepsoft.worldpainter.layers.Populate;
-import org.pepsoft.worldpainter.util.MinecraftUtil;
-
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
-import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 
 /**
  *
