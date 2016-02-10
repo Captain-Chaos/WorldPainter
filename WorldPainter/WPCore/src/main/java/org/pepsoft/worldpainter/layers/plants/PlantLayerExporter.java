@@ -67,13 +67,13 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
                                 } else {
                                     if (tile.getIntHeight(x, y) >= tile.getWaterLevel(x, y)) {
                                         if (plant.isValidFoundation(minecraftWorld, worldX, worldY, height)) {
-                                            renderObject(minecraftWorld, dimension, plant, worldX, worldY, height + 1, true);
+                                            renderObject(minecraftWorld, dimension, plant, worldX, worldY, height + 1, false);
                                         } else if (generateTilledDirt
                                                 && (plant.getCategory() == Plant.Category.CROPS)
                                                 && ((minecraftWorld.getBlockTypeAt(worldX, worldY, height) == Constants.BLK_GRASS)
                                                     || (minecraftWorld.getBlockTypeAt(worldX, worldY, height) == Constants.BLK_DIRT))) {
                                             minecraftWorld.setMaterialAt(worldX, worldY, height, TILLED_DIRT);
-                                            renderObject(minecraftWorld, dimension, plant, worldX, worldY, height + 1, true);
+                                            renderObject(minecraftWorld, dimension, plant, worldX, worldY, height + 1, false);
                                         }
                                     }
                                 }
@@ -105,14 +105,14 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
                     if (plant.getCategory() == Plant.Category.WATER_PLANTS) {
                         possiblyRenderWaterPlant(minecraftWorld, dimension, plant, location.x, location.y, location.z + 1);
                     } else {
-                        renderObject(minecraftWorld, dimension, plant, location.x, location.y, location.z, true);
+                        renderObject(minecraftWorld, dimension, plant, location.x, location.y, location.z, false);
                     }
                 } else if (layer.isGenerateTilledDirt()
                         && (plant.getCategory() == Plant.Category.CROPS)
                         && ((minecraftWorld.getBlockTypeAt(location.x, location.y, location.z - 1) == Constants.BLK_GRASS)
                             || (minecraftWorld.getBlockTypeAt(location.x, location.y, location.z - 1) == Constants.BLK_DIRT))) {
                     minecraftWorld.setMaterialAt(location.x, location.y, location.z - 1, TILLED_DIRT);
-                    renderObject(minecraftWorld, dimension, plant, location.x, location.y, location.z, true);
+                    renderObject(minecraftWorld, dimension, plant, location.x, location.y, location.z, false);
                 }
             }
         }
@@ -129,7 +129,7 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
         if ((z < maxHeight)
                 && BLOCKS[existingBlockType].veryInsubstantial
                 && (! ((existingBlockType == Constants.BLK_LAVA) || (existingBlockType == Constants.BLK_STATIONARY_LAVA)))) {
-            renderObject(world, dimension, plant, x, y, z, true);
+            renderObject(world, dimension, plant, x, y, z, false);
         }
     }
 

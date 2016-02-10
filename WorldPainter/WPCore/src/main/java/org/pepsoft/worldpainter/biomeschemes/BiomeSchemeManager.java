@@ -45,7 +45,7 @@ public class BiomeSchemeManager {
 
     public static BiomeScheme getBiomeScheme(final Dimension dimension, final int biomeAlgorithm, final Component parent, final boolean askUser) {
         if (logger.isDebugEnabled()) {
-            logger.debug("Thread {} requesting biome scheme {}", Thread.currentThread().getName(), biomeAlgorithm, new Throwable());
+            logger.debug("Thread {} requesting biome scheme {}", Thread.currentThread().getName(), biomeAlgorithm, new Throwable("Invoked from"));
         }
         if (biomeAlgorithm == BIOME_ALGORITHM_1_7_3) {
             logger.info("Creating biome scheme 1.7.3");
@@ -330,7 +330,8 @@ public class BiomeSchemeManager {
                 // Scan the Minecraft directory for supported jars
                 minecraftDir = MinecraftUtil.findMinecraftDir();
                 if (minecraftDir != null) {
-                    scanDir(minecraftDir);
+                    scanDir(new File(minecraftDir, "bin"));
+                    scanDir(new File(minecraftDir, "versions"));
                 }
 
                 // Collect the names of the files we already looked at so we can skip

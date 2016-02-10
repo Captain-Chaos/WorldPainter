@@ -162,7 +162,7 @@ public interface WPObject extends Serializable, Cloneable {
      * <tr><td><strong>{@link #COLLISION_MODE_SOLID}</strong></td><td>Will collide with (and therefore not render) any above ground <em>solid</em> block (i.e. not air, grass, water, flowers, leaves, etc.). Default value</td></tr>
      * <tr><td>{@link #COLLISION_MODE_NONE}</td><td>Will not collide with <em>any</em> above ground block (and therefore intersect any other object already there!)</td></tr></table>
      */
-    String ATTRIBUTE_COLLISION_MODE   = "WPObject.collisionMode";   // Type Integer; see COLLISION_MODE_* constants
+    String ATTRIBUTE_COLLISION_MODE   = "WPObject.collisionMode"; // Type Integer; see COLLISION_MODE_* constants
     /**
      * Underground rendering mode. Possible values:
      * 
@@ -180,7 +180,7 @@ public interface WPObject extends Serializable, Cloneable {
      * <tr><td>{@link #LEAF_DECAY_ON}</td><td>All leaf blocks are set to decay regardless of their setting in the custom object</td></tr>
      * <tr><td>{@link #LEAF_DECAY_OFF}</td><td>All leaf blocks are set to <em>not</em> decay regardless of their setting in the custom object</td></tr></table>
      */
-    String ATTRIBUTE_LEAF_DECAY_MODE  = "WPObject.leafDecay";       // Type Integer; see LEAF_DECAY_* constants
+    String ATTRIBUTE_LEAF_DECAY_MODE  = "WPObject.leafDecay"; // Type Integer; see LEAF_DECAY_* constants
     /**
      * When set, describes a block ID (index 0) and data (index 1) combination
      * which will be replaced with air blocks when this object is rendered.
@@ -188,7 +188,14 @@ public interface WPObject extends Serializable, Cloneable {
      * which is otherwise not possible since there is no way to tell whether an
      * air block from a schematic is supposed to be placed or not.
      */
-    String ATTRIBUTE_REPLACE_WITH_AIR = "WPObject.replaceWithAir";  // Type int[]; default: null
+    String ATTRIBUTE_REPLACE_WITH_AIR = "WPObject.replaceWithAir"; // Type int[]; default: null
+    /**
+     * When set, the blocks on the lowest level of the object will be copied
+     * downwards until they meet a solid block, if they end up being placed
+     * floating in the air. This allows objects to have "legs", "roots" or a
+     * "foundation" which will be extended by WorldPainter to meet the ground.
+     */
+    String ATTRIBUTE_EXTEND_FOUNDATION = "WPObject.extendFoundation"; // Type Boolean; default: false
     
     int COLLISION_MODE_ALL   = 1;
     int COLLISION_MODE_SOLID = 2;

@@ -96,6 +96,8 @@ public class EditObjectAttributes extends javax.swing.JDialog {
                 // Magenta wool by default
                 comboBoxReplaceBlockId.setSelectedIndex(35);
             }
+            checkBoxExtendFoundation.setSelected(object.getAttribute(ATTRIBUTE_EXTEND_FOUNDATION, false));
+            checkBoxExtendFoundation.setTristateMode(false);
             WPObjectPreviewer previewer = new WPObjectPreviewer();
             previewer.setObject(object);
             jPanel1.add(previewer, BorderLayout.CENTER);
@@ -138,6 +140,7 @@ public class EditObjectAttributes extends javax.swing.JDialog {
                 spinnerFrequency.setEnabled(false);
             }
             checkBoxReplace.setEnabled(false);
+            checkBoxExtendFoundation.setMixed(true);
         }
         pack();
         
@@ -241,6 +244,9 @@ public class EditObjectAttributes extends javax.swing.JDialog {
                 } else {
                     attributes.remove(ATTRIBUTE_REPLACE_WITH_AIR);
                 }
+            }
+            if (! checkBoxExtendFoundation.isMixed()) {
+                attributes.put(ATTRIBUTE_EXTEND_FOUNDATION, checkBoxExtendFoundation.isSelected());
             }
             if (! attributes.isEmpty()) {
                 object.setAttributes(attributes);
@@ -360,6 +366,7 @@ public class EditObjectAttributes extends javax.swing.JDialog {
         comboBoxReplaceBlockId = new javax.swing.JComboBox();
         jLabel11 = new javax.swing.JLabel();
         spinnerReplaceData = new javax.swing.JSpinner();
+        checkBoxExtendFoundation = new org.pepsoft.worldpainter.util.TristateCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Edit Object Attributes");
@@ -385,17 +392,33 @@ public class EditObjectAttributes extends javax.swing.JDialog {
         buttonOffsetAuto.setText("Auto");
         buttonOffsetAuto.setToolTipText("This will try to set the offset to the base of the object.");
         buttonOffsetAuto.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
-        buttonOffsetAuto.addActionListener(this::buttonOffsetAutoActionPerformed);
+        buttonOffsetAuto.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonOffsetAutoActionPerformed(evt);
+            }
+        });
 
         buttonOffsetReset.setText("Zero");
         buttonOffsetReset.setToolTipText("This will set the offset to all zeroes.");
-        buttonOffsetReset.addActionListener(this::buttonOffsetResetActionPerformed);
+        buttonOffsetReset.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonOffsetResetActionPerformed(evt);
+            }
+        });
 
         buttonCancel.setText("Cancel");
-        buttonCancel.addActionListener(this::buttonCancelActionPerformed);
+        buttonCancel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonCancelActionPerformed(evt);
+            }
+        });
 
         buttonOK.setText("OK");
-        buttonOK.addActionListener(this::buttonOKActionPerformed);
+        buttonOK.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonOKActionPerformed(evt);
+            }
+        });
 
         fieldName.setColumns(20);
         fieldName.setText("jTextField1");
@@ -441,14 +464,22 @@ public class EditObjectAttributes extends javax.swing.JDialog {
         checkBoxFrequencyActive.setSelected(true);
         checkBoxFrequencyActive.setText(" ");
         checkBoxFrequencyActive.setEnabled(false);
-        checkBoxFrequencyActive.addActionListener(this::checkBoxFrequencyActiveActionPerformed);
+        checkBoxFrequencyActive.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxFrequencyActiveActionPerformed(evt);
+            }
+        });
 
         jLabel9.setText("Leaf blocks should:");
 
         comboBoxLeafDecayMode.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "no change", "behave as exported", "decay", "not decay" }));
 
         checkBoxReplace.setText("replace with air:");
-        checkBoxReplace.addActionListener(this::checkBoxReplaceActionPerformed);
+        checkBoxReplace.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxReplaceActionPerformed(evt);
+            }
+        });
 
         jLabel10.setText("block ID:");
 
@@ -460,6 +491,8 @@ public class EditObjectAttributes extends javax.swing.JDialog {
 
         spinnerReplaceData.setModel(new javax.swing.SpinnerNumberModel(2, 0, 15, 1));
         spinnerReplaceData.setEnabled(false);
+
+        checkBoxExtendFoundation.setText("extend foundation to ground");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -514,20 +547,20 @@ public class EditObjectAttributes extends javax.swing.JDialog {
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel9)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(comboBoxLeafDecayMode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addComponent(comboBoxLeafDecayMode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(checkBoxReplace)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel10)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(comboBoxReplaceBlockId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 0, 0)
+                                .addComponent(jLabel11)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(spinnerReplaceData, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(checkBoxExtendFoundation, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(18, 18, 18)
-                        .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 200, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(checkBoxReplace)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel10)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(comboBoxReplaceBlockId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, 0)
-                        .addComponent(jLabel11)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(spinnerReplaceData, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE))
+                        .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 256, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -537,8 +570,8 @@ public class EditObjectAttributes extends javax.swing.JDialog {
                                 .addComponent(labelFile))
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                                 .addComponent(buttonOK)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(buttonCancel)))))
+                                .addGap(77, 77, 77))
+                            .addComponent(buttonCancel, javax.swing.GroupLayout.Alignment.TRAILING))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -549,7 +582,7 @@ public class EditObjectAttributes extends javax.swing.JDialog {
                     .addComponent(jLabel2)
                     .addComponent(labelFile))
                 .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel1)
@@ -592,20 +625,24 @@ public class EditObjectAttributes extends javax.swing.JDialog {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel9)
-                            .addComponent(comboBoxLeafDecayMode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(comboBoxLeafDecayMode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(18, 18, 18)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(checkBoxReplace)
+                            .addComponent(jLabel10)
+                            .addComponent(comboBoxReplaceBlockId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel11)
+                            .addComponent(spinnerReplaceData, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(18, 18, 18)
+                        .addComponent(checkBoxExtendFoundation, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE))
                     .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(checkBoxReplace)
-                    .addComponent(jLabel10)
-                    .addComponent(comboBoxReplaceBlockId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel11)
-                    .addComponent(spinnerReplaceData, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(buttonCancel)
-                    .addComponent(buttonOK))
-                .addContainerGap())
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(buttonOK)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(buttonCancel)
+                        .addContainerGap())))
         );
 
         pack();
@@ -644,6 +681,7 @@ public class EditObjectAttributes extends javax.swing.JDialog {
     private javax.swing.JButton buttonOK;
     private javax.swing.JButton buttonOffsetAuto;
     private javax.swing.JButton buttonOffsetReset;
+    private org.pepsoft.worldpainter.util.TristateCheckBox checkBoxExtendFoundation;
     private javax.swing.JCheckBox checkBoxFrequencyActive;
     private org.pepsoft.worldpainter.util.TristateCheckBox checkBoxOnAir;
     private org.pepsoft.worldpainter.util.TristateCheckBox checkBoxOnLava;

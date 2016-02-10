@@ -577,6 +577,7 @@ public final class App extends JFrame implements RadiusControl,
         if (height == -1) {
             // Not on a tile
             setTextIfDifferent(heightLabel, " ");
+            setTextIfDifferent(slopeLabel, " ");
             setTextIfDifferent(waterLabel, " ");
             if (dimension.isBorderTile(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS)) {
                 setTextIfDifferent(materialLabel, "Border");
@@ -591,6 +592,7 @@ public final class App extends JFrame implements RadiusControl,
         } else {
             setTextIfDifferent(heightLabel, MessageFormat.format(strings.getString("height.0.of.1"), height, dimension.getMaxHeight() - 1));
         }
+        setTextIfDifferent(slopeLabel, MessageFormat.format("Slope: {0}°", (int) (Math.atan(dimension.getSlope(x, y)) * 180 / Math.PI + 0.5)));
         if ((activeOperation instanceof PaintOperation) && (paint instanceof LayerPaint)) {
             Layer layer = ((LayerPaint) paint).getLayer();
             switch (layer.getDataSize()) {
@@ -2190,6 +2192,9 @@ public final class App extends JFrame implements RadiusControl,
         heightLabel = new JLabel(MessageFormat.format(strings.getString("height.0.of.1"), 9999, 9999));
         heightLabel.setBorder(new BevelBorder(BevelBorder.LOWERED));
         statusBar.add(heightLabel);
+        slopeLabel = new JLabel("Slope: 90°");
+        slopeLabel.setBorder(new BevelBorder(BevelBorder.LOWERED));
+        statusBar.add(slopeLabel);
         materialLabel = new JLabel(MessageFormat.format(strings.getString("material.0"), Material.MOSSY_COBBLESTONE.toString()));
         materialLabel.setBorder(new BevelBorder(BevelBorder.LOWERED));
         statusBar.add(materialLabel);
@@ -4062,6 +4067,9 @@ public final class App extends JFrame implements RadiusControl,
         heightLabel.setMinimumSize(heightLabel.getSize());
         heightLabel.setPreferredSize(heightLabel.getSize());
         heightLabel.setMaximumSize(heightLabel.getSize());
+        slopeLabel.setMinimumSize(slopeLabel.getSize());
+        slopeLabel.setPreferredSize(slopeLabel.getSize());
+        slopeLabel.setMaximumSize(slopeLabel.getSize());
         materialLabel.setMinimumSize(materialLabel.getSize());
         materialLabel.setPreferredSize(materialLabel.getSize());
         materialLabel.setMaximumSize(materialLabel.getSize());
@@ -4080,6 +4088,7 @@ public final class App extends JFrame implements RadiusControl,
 
         locationLabel.setText(strings.getString("location-"));
         heightLabel.setText(" ");
+        slopeLabel.setText(" ");
         waterLabel.setText(" ");
         biomeLabel.setText(" ");
         materialLabel.setText(" ");
@@ -5952,8 +5961,8 @@ public final class App extends JFrame implements RadiusControl,
     private Dimension dimension;
     private WorldPainter view;
     private Operation activeOperation;
-    private File lastSelectedFile, lastSelectedScriptFile;
-    private JLabel heightLabel, locationLabel, waterLabel, materialLabel, radiusLabel, zoomLabel, biomeLabel, levelLabel, brushRotationLabel;
+    private File lastSelectedFile;
+    private JLabel heightLabel, slopeLabel, locationLabel, waterLabel, materialLabel, radiusLabel, zoomLabel, biomeLabel, levelLabel, brushRotationLabel;
     private int radius = 50;
     private final ButtonGroup toolButtonGroup = new ButtonGroup(), brushButtonGroup = new ButtonGroup(), paintButtonGroup = new ButtonGroup();
     private Brush brush = SymmetricBrush.PLATEAU_CIRCLE, toolBrush = SymmetricBrush.COSINE_CIRCLE;

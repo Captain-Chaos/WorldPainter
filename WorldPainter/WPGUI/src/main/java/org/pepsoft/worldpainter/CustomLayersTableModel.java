@@ -5,24 +5,47 @@
  */
 package org.pepsoft.worldpainter;
 
+import org.pepsoft.worldpainter.exporting.FirstPassLayerExporter;
+import org.pepsoft.worldpainter.exporting.SecondPassLayerExporter;
+import org.pepsoft.worldpainter.layers.CustomLayer;
+
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.TableModel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
-import javax.swing.table.TableModel;
-import org.pepsoft.worldpainter.layers.CustomLayer;
 
 /**
  *
  * @author pepijn
  */
 public class CustomLayersTableModel implements TableModel {
-    public CustomLayersTableModel(Dimension dimension, Set<CustomLayer> allCustomLayers) {
-        this.dimension = dimension;
+    public CustomLayersTableModel(Set<CustomLayer> allCustomLayers) {
         customLayers = new ArrayList<>(allCustomLayers);
-        Collections.sort(customLayers);
+
+        // Sort the list, with first pass layers first
+        Collections.sort(customLayers, (layer1, layer2) -> {
+            boolean layer1FirstPass = layer1.getExporter() instanceof FirstPassLayerExporter;
+            boolean layer2FirstPass = layer2.getExporter() instanceof FirstPassLayerExporter;
+            if (layer1FirstPass && (! layer2FirstPass)) {
+                return -1;
+            } else if ((! layer1FirstPass) && layer2FirstPass) {
+                return 1;
+            } else {
+                return layer1.compareTo(layer2);
+            }
+        });
+
+        // Insert first and second pass headers
+        customLayers.add(0, FIRST_PASS_HEADER);
+        for (int i = customLayers.size() - 1; i > 1; i--) {
+            if (! (customLayers.get(i).getExporter() instanceof SecondPassLayerExporter)) {
+                customLayers.add(i + 1, SECOND_PASS_HEADER);
+                break;
+            }
+        }
     }
 
     /**
@@ -32,10 +55,13 @@ public class CustomLayersTableModel implements TableModel {
      * @param rowIndex2 The index of the second layer.
      */
     public void swap(int rowIndex1, int rowIndex2) {
+        if (isHeaderRow(rowIndex1) || isHeaderRow(rowIndex2)) {
+            throw new IllegalStateException("Cannot swap with header rows");
+        }
         CustomLayer layer = customLayers.get(rowIndex1);
         customLayers.set(rowIndex1, customLayers.get(rowIndex2));
         customLayers.set(rowIndex2, layer);
-        pristine = false;
+        orderPristine = false;
         TableModelEvent event = new TableModelEvent(this, Math.min(rowIndex1, rowIndex2), Math.max(rowIndex1, rowIndex2));
         for (TableModelListener listener: listeners) {
             listener.tableChanged(event);
@@ -43,19 +69,32 @@ public class CustomLayersTableModel implements TableModel {
     }
 
     public boolean isPristine() {
-        return pristine;
+        return orderPristine && exportsPristine;
+    }
+
+    public boolean isHeaderRow(int rowIndex) {
+        return isHeader(customLayers.get(rowIndex));
+    }
+
+    public boolean isHeader(CustomLayer layer) {
+        return (layer == FIRST_PASS_HEADER) || (layer == SECOND_PASS_HEADER);
     }
 
     /**
      * Save the current order to the indices of the custom layers.
      */
     public void save() {
-        int index = 0;
-        for (CustomLayer layer: customLayers) {
-            layer.setIndex(index++);
+        if (! orderPristine) {
+            int index = 0;
+            for (CustomLayer layer : customLayers) {
+                if (!isHeader(layer)) {
+                    layer.setIndex(index++);
+                }
+            }
         }
+        // The exports have already been set directly on the layers. TODO: fix
     }
-    
+
     // TableModel
     
     @Override
@@ -80,16 +119,17 @@ public class CustomLayersTableModel implements TableModel {
 
     @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-        return columnIndex == COLUMN_EXPORT;
+        return (columnIndex == COLUMN_EXPORT) && (! isHeaderRow(rowIndex));
     }
 
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
+        CustomLayer layer = customLayers.get(rowIndex);
         switch (columnIndex) {
             case COLUMN_LAYER:
-                return customLayers.get(rowIndex);
+                return layer;
             case COLUMN_EXPORT:
-                return customLayers.get(rowIndex).isExport();
+                return isHeader(layer) ? null : layer.isExport();
             default:
                 throw new IndexOutOfBoundsException("columnIndex " + columnIndex);
         }
@@ -97,10 +137,11 @@ public class CustomLayersTableModel implements TableModel {
 
     @Override
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-        if (columnIndex != COLUMN_EXPORT) {
-            throw new IllegalArgumentException("columnIndex " + columnIndex);
+        if ((columnIndex != COLUMN_EXPORT) || isHeaderRow(rowIndex)) {
+            throw new IllegalArgumentException();
         }
         customLayers.get(rowIndex).setExport((Boolean) aValue);
+        exportsPristine = false;
     }
 
     @Override
@@ -113,13 +154,15 @@ public class CustomLayersTableModel implements TableModel {
         listeners.remove(l);
     }
     
-    private final Dimension dimension;
     private final List<CustomLayer> customLayers;
     private final List<TableModelListener> listeners = new ArrayList<>();
-    private boolean pristine = true;
+    private boolean orderPristine = true, exportsPristine = true;
  
-    private static final String[]   COLUMN_NAMES = {"Layer",      "Export"};
-    private static final Class<?>[] COLUMN_TYPES = {String.class, Boolean.class};
+    private static final String[]   COLUMN_NAMES = {"Layer",           "Export"};
+    private static final Class<?>[] COLUMN_TYPES = {CustomLayer.class, Boolean.class};
     private static final int COLUMN_LAYER  = 0;
     private static final int COLUMN_EXPORT = 1;
+
+    public static final CustomLayer FIRST_PASS_HEADER = new CustomLayer("First export pass", null, null, -1, -1) {};
+    public static final CustomLayer SECOND_PASS_HEADER = new CustomLayer("Second export pass", null, null, -1, -1) {};
 }
