@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import static org.pepsoft.minecraft.Material.AIR;
-import static org.pepsoft.minecraft.Material.WOOL_MAGENTA;
 
 /**
  * @author SchmitzP
@@ -83,7 +82,6 @@ public class CustomTerrainHelper {
     private final int index;
     
     private static final BufferedImage UNKNOWN_ICON;
-    private static final Material UNKNOWN_MATERIAL = WOOL_MAGENTA;
     private static final Integer UNKNOWN_COLOUR = 0xff00ff; // Magenta
     
     static {
