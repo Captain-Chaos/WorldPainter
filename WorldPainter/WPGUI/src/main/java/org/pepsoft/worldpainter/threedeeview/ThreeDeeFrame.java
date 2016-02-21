@@ -248,7 +248,7 @@ public class ThreeDeeFrame extends JFrame implements WindowListener {
             sb.append(')');
             final String description = sb.toString();
             String defaultname = dimension.getWorld().getName().replaceAll("\\s", "").toLowerCase() + ((dimension.getDim() == DIM_NORMAL) ? "" : ("_" + dimension.getName().toLowerCase())) + "_3d.png";
-            File selectedFile = FileUtils.selectFileForOpen(ThreeDeeFrame.this, "Export as image file", new File(defaultname), new FileFilter() {
+            File selectedFile = FileUtils.selectFileForSave(ThreeDeeFrame.this, "Export as image file", new File(defaultname), new FileFilter() {
                 @Override
                 public boolean accept(File f) {
                     if (f.isDirectory()) {
