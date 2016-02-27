@@ -1,5 +1,6 @@
 -- Version 2.1.7, released ...
 
+ * Bug fix: correct the default ordering of Custom Ground Cover layers so that thicker layers once again export before thinner layers
  * Bug fix: make exporting the 3D view as an image work again on Mac OS X
 
 -- Version 2.1.6, released 7-2-2016
