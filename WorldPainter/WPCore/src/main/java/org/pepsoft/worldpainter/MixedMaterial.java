@@ -2,7 +2,6 @@ package org.pepsoft.worldpainter;
 
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.IconUtils;
-import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.heightMaps.NoiseHeightMap;
 

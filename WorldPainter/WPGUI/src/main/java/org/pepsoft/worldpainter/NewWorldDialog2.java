@@ -6,23 +6,15 @@
 
 package org.pepsoft.worldpainter;
 
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import org.pepsoft.worldpainter.biomeschemes.AutoBiomeScheme;
-import org.pepsoft.worldpainter.heightMaps.ConstantHeightMap;
-import org.pepsoft.worldpainter.heightMaps.NinePatchHeightMap;
-import org.pepsoft.worldpainter.heightMaps.NoiseHeightMap;
-import org.pepsoft.worldpainter.heightMaps.ProductHeightMap;
-import org.pepsoft.worldpainter.heightMaps.SumHeightMap;
+import org.pepsoft.worldpainter.heightMaps.*;
 import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.themes.SimpleTheme;
 import org.pepsoft.worldpainter.themes.Theme;
+
+import java.awt.*;
+import java.util.*;
 
 /**
  *
@@ -76,7 +68,6 @@ public class NewWorldDialog2 extends javax.swing.JDialog {
         int oceanFloorLevel = (Integer) spinnerOceanFloorLevel.getValue();
         int landLevel = (Integer) spinnerLandLevel.getValue();
         int continentSize = (Integer) spinnerContinentSize.getValue();
-        int oceanSize = (Integer) spinnerContinentSize.getValue();
         HeightMap oceanFloor = new ConstantHeightMap("Ocean Floor", oceanFloorLevel);
         HeightMap hills = new ProductHeightMap(
                 "Hills",

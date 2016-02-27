@@ -22,7 +22,7 @@ public class DamagedWorldFinder {
         for (File file: files) {
             try {
                 try (ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new FileInputStream(file)))) {
-                    Object world = in.readObject();
+                    in.readObject();
                 }
                 System.out.println(file.getName() + " loaded successfully");
             } catch (Throwable t) {

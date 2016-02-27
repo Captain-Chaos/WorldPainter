@@ -2972,7 +2972,6 @@ public final class App extends JFrame implements RadiusControl,
                     }
                     if ((layer instanceof TunnelLayer) && (!viewRefreshed)) {
                         view.refreshTilesForLayer(layer, false);
-                        viewRefreshed = true;
                     }
                 }
             }
