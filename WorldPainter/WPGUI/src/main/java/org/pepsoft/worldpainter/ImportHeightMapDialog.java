@@ -214,24 +214,26 @@ outer:          for (int x = 0; x < width; x++) {
                 }
                 ((SpinnerNumberModel) spinnerImageHigh.getModel()).setMaximum((bitDepth == 16) ? 65535 : 255);
 
-                // Determine maxHeight and whether to default to scaled mode
-                int maxHeight;
-                if (imageHighValue < 256) {
-                    maxHeight = 256;
-                } else if (imageHighValue < 512) {
-                    maxHeight = 512;
-                } else if (imageHighValue < 1024) {
-                    maxHeight = 1024;
-                } else if (imageHighValue < 2048) {
-                    maxHeight = 2048;
-                } else {
-                    maxHeight = 256;
+                if (currentDimension == null) {
+                    // Determine maxHeight and whether to default to scaled mode
+                    int maxHeight;
+                    if (imageHighValue < 256) {
+                        maxHeight = 256;
+                    } else if (imageHighValue < 512) {
+                        maxHeight = 512;
+                    } else if (imageHighValue < 1024) {
+                        maxHeight = 1024;
+                    } else if (imageHighValue < 2048) {
+                        maxHeight = 2048;
+                    } else {
+                        maxHeight = 256;
+                    }
+                    comboBoxHeight.setSelectedItem(Integer.toString(maxHeight));
+                    ((SpinnerNumberModel) spinnerWorldLow.getModel()).setMaximum(maxHeight - 1);
+                    ((SpinnerNumberModel) spinnerWorldMiddle.getModel()).setMaximum(maxHeight - 1);
+                    ((SpinnerNumberModel) spinnerWorldHigh.getModel()).setMaximum(maxHeight - 1);
+                    ((SpinnerNumberModel) spinnerVoidBelow.getModel()).setMaximum(maxHeight - 1);
                 }
-                comboBoxHeight.setSelectedItem(Integer.toString(maxHeight));
-                ((SpinnerNumberModel) spinnerWorldLow.getModel()).setMaximum(maxHeight - 1);
-                ((SpinnerNumberModel) spinnerWorldMiddle.getModel()).setMaximum(maxHeight - 1);
-                ((SpinnerNumberModel) spinnerWorldHigh.getModel()).setMaximum(maxHeight - 1);
-                ((SpinnerNumberModel) spinnerVoidBelow.getModel()).setMaximum(maxHeight - 1);
                 
                 // Set levels to reasonable defaults
                 spinnerImageLow.setValue(imageLowValue);
@@ -251,7 +253,7 @@ outer:          for (int x = 0; x < width; x++) {
         } catch (IOException e) {
             logger.error("I/O error loading image " + selectedFile, e);
             labelImageDimensions.setForeground(Color.RED);
-            labelImageDimensions.setText(String.format("I/O error loading image (message: " + e.getMessage() + ")!"));
+            labelImageDimensions.setText(String.format("I/O error loading image (message: %s)!", e.getMessage()));
             selectedFile = null;
         }
     }

@@ -5,6 +5,8 @@
 package org.pepsoft.util;
 
 
+import java.util.BitSet;
+
 /**
  * A manager of parallel progress receivers, which reports to one parent
  * progress receiver, combining the progress values and managing the reporting
@@ -59,7 +61,7 @@ public class ParallelProgressManager {
         this.taskCount = taskCount;
         taskCountKnown = true;
         taskProgress = new float[taskCount];
-        finished = new boolean[taskCount];
+        running.set(0, taskCount);
         started = true;
     }
     
@@ -78,17 +80,10 @@ public class ParallelProgressManager {
             if (! started) {
                 wait();
             } else {
-                boolean allFinished = true;
-                for (boolean taskFinished: finished) {
-                    if (! taskFinished) {
-                        allFinished = false;
-                        break;
-                    }
-                }
-                if (! allFinished) {
-                    wait();
-                } else {
+                if (running.isEmpty()) {
                     return;
+                } else {
+                    wait();
                 }
             }
         }
@@ -130,7 +125,7 @@ public class ParallelProgressManager {
                 cancelledException = new ProgressReceiver.OperationCancelled("Operation cancelled due to exception on other thread (type: " + exception.getClass().getSimpleName() + ", message: " + exception.getMessage() + ")");
             }
         }
-        finished[index] = true;
+        running.clear(index);
         notifyAll();
         if (! exceptionReported) {
             exceptionReported = true;
@@ -144,17 +139,10 @@ public class ParallelProgressManager {
         if (! started) {
             start();
         }
-        finished[index] = true;
+        running.clear(index);
         notifyAll();
         if (! exceptionReported) {
-            boolean allFinished = true;
-            for (boolean taskFinished: finished) {
-                if (! taskFinished) {
-                    allFinished = false;
-                    break;
-                }
-            }
-            if (allFinished) {
+            if (running.isEmpty()) {
                 progressReceiver.done();
             }
         }
@@ -182,16 +170,16 @@ public class ParallelProgressManager {
     private synchronized void start() {
         taskCount = tasksCreated;
         taskProgress = new float[taskCount];
-        finished = new boolean[taskCount];
+        running.set(0, taskCount);
         started = true;
         notifyAll();
     }
     
     private final ProgressReceiver progressReceiver;
     private final boolean taskCountKnown;
+    private final BitSet running = new BitSet();
     private int taskCount, tasksCreated;
     private float[] taskProgress;
-    private boolean[] finished;
     private ProgressReceiver.OperationCancelled cancelledException;
     private boolean started, exceptionThrown, exceptionReported;
 
