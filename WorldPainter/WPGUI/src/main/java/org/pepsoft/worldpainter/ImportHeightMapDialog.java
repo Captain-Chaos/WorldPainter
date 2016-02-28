@@ -46,9 +46,16 @@ import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
  */
 public class ImportHeightMapDialog extends WorldPainterDialog implements DocumentListener, SimpleThemeEditor.ChangeListener {
     public ImportHeightMapDialog(Window parent, ColourScheme colourScheme) {
+        this(parent, null, colourScheme);
+    }
+    
+    public ImportHeightMapDialog(Window parent, Dimension currentDimension, ColourScheme colourScheme) {
         super(parent);
+        this.currentDimension = currentDimension;
         
-        tileFactory = TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), Terrain.GRASS, DEFAULT_MAX_HEIGHT_2, 58, 62, false, true, 20, 1.0);
+        tileFactory = (currentDimension != null)
+            ? (HeightMapTileFactory) currentDimension.getTileFactory()
+            : TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), Terrain.GRASS, DEFAULT_MAX_HEIGHT_2, 58, 62, false, true, 20, 1.0);
         
         initComponents();
         
@@ -57,6 +64,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         heightMapTileFactoryEditor1.setChangeListener(this);
         spinnerOffsetX.setEditor(new NumberEditor(spinnerOffsetX, "0"));
         spinnerOffsetY.setEditor(new NumberEditor(spinnerOffsetY, "0"));
+        checkBoxCreateTiles.setSelected(true);
         pack();
         labelWarning.setVisible(false);
         
@@ -66,10 +74,24 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         
         rootPane.setDefaultButton(buttonOk);
         
-        loadDefaults();
+        if (currentDimension != null) {
+            comboBoxHeight.setEnabled(false);
+            Theme theme = tileFactory.getTheme();
+            buttonResetDefaults.setEnabled(false);
+            spinnerWorldMiddle.setValue(theme.getWaterHeight());
+            buttonLoadDefaults.setEnabled(true);
+            buttonSaveAsDefaults.setEnabled(true);
+        } else {
+            checkBoxCreateTiles.setEnabled(false);
+            loadDefaults();
+        }
+        setControlStates();
     }
 
     public World2 getImportedWorld() {
+        if (currentDimension != null) {
+            throw new IllegalStateException();
+        }
         final HeightMapImporter importer = new HeightMapImporter();
         importer.setImage(image);
         importer.setImageFile(selectedFile);
@@ -127,13 +149,16 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
     
     @Override
     public void settingsModified(SimpleThemeEditor editor) {
+        if (currentDimension != null) {
+            buttonResetDefaults.setEnabled(true);
+        }
         buttonSaveAsDefaults.setEnabled(true);
         buttonLoadDefaults.setEnabled(true);
     }
 
     private void setControlStates() {
         File file = new File(fieldFilename.getText());
-        if ((file.isFile()) && ((selectedFile == null) || (! file.equals(selectedFile)))) {
+        if (file.isFile() && ((selectedFile == null) || (! file.equals(selectedFile)))) {
             selectedFile = file;
             loadImage();
         }
@@ -258,7 +283,9 @@ outer:          for (int x = 0; x < width; x++) {
         if (defaults == null) {
             HeightMapTileFactory tmpTileFactory = TileFactoryFactory.createNoiseTileFactory(seed, Terrain.GRASS, DEFAULT_MAX_HEIGHT_2, 58, 62, false, true, 20, 1.0);
             defaults = tmpTileFactory.getTheme();
-            buttonResetDefaults.setEnabled(false);
+            if (currentDimension == null) {
+                buttonResetDefaults.setEnabled(false);
+            }
         } else {
             buttonResetDefaults.setEnabled(true);
         }
@@ -281,10 +308,21 @@ outer:          for (int x = 0; x < width; x++) {
     }
 
     private void resetDefaults() {
-        Configuration.getInstance().setHeightMapDefaultTheme(null);
-        loadDefaults();
-        buttonSaveAsDefaults.setEnabled(false);
-        JOptionPane.showMessageDialog(this, "Theme reset to factory defaults.", "Default Theme Reset", JOptionPane.INFORMATION_MESSAGE);
+        if (currentDimension != null) {
+            Theme theme = ((HeightMapTileFactory) currentDimension.getTileFactory()).getTheme();
+            buttonResetDefaults.setEnabled(false);
+            tileFactory.setTheme(theme);
+            spinnerWorldMiddle.setValue(theme.getWaterHeight());
+            updateImageWaterLevel();
+            heightMapTileFactoryEditor1.setTheme((SimpleTheme) theme);
+            buttonLoadDefaults.setEnabled(true);
+            buttonSaveAsDefaults.setEnabled(true);
+        } else {
+            Configuration.getInstance().setHeightMapDefaultTheme(null);
+            loadDefaults();
+            buttonSaveAsDefaults.setEnabled(false);
+            JOptionPane.showMessageDialog(this, "Theme reset to factory defaults.", "Default Theme Reset", JOptionPane.INFORMATION_MESSAGE);
+        }
     }
     
     /** This method is called from within the constructor to
@@ -298,6 +336,7 @@ outer:          for (int x = 0; x < width; x++) {
         java.awt.GridBagConstraints gridBagConstraints;
 
         jLabel14 = new javax.swing.JLabel();
+        buttonGroup1 = new javax.swing.ButtonGroup();
         jLabel1 = new javax.swing.JLabel();
         fieldFilename = new javax.swing.JTextField();
         buttonSelectFile = new javax.swing.JButton();
@@ -338,6 +377,7 @@ outer:          for (int x = 0; x < width; x++) {
         buttonLoadDefaults = new javax.swing.JButton();
         buttonSaveAsDefaults = new javax.swing.JButton();
         buttonResetDefaults = new javax.swing.JButton();
+        checkBoxCreateTiles = new javax.swing.JCheckBox();
 
         jLabel14.setText("jLabel14");
 
@@ -633,7 +673,7 @@ outer:          for (int x = 0; x < width; x++) {
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(heightMapTileFactoryEditor1, javax.swing.GroupLayout.DEFAULT_SIZE, 408, Short.MAX_VALUE)
+                    .addComponent(heightMapTileFactoryEditor1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(buttonResetDefaults)
@@ -647,7 +687,7 @@ outer:          for (int x = 0; x < width; x++) {
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(heightMapTileFactoryEditor1, javax.swing.GroupLayout.PREFERRED_SIZE, 190, Short.MAX_VALUE)
+                .addComponent(heightMapTileFactoryEditor1, javax.swing.GroupLayout.DEFAULT_SIZE, 178, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(buttonLoadDefaults)
@@ -658,6 +698,8 @@ outer:          for (int x = 0; x < width; x++) {
 
         jTabbedPane1.addTab("Terrain and Layers", jPanel3);
 
+        checkBoxCreateTiles.setText("Create new tiles");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -666,17 +708,21 @@ outer:          for (int x = 0; x < width; x++) {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jTabbedPane1)
-                    .addComponent(jLabel1)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(fieldFilename)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buttonSelectFile))
-                    .addComponent(labelImageDimensions)
-                    .addComponent(checkBoxInvert)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(buttonOk)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(buttonCancel)))
+                        .addComponent(buttonCancel))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(checkBoxCreateTiles)
+                            .addComponent(jLabel1)
+                            .addComponent(labelImageDimensions)
+                            .addComponent(checkBoxInvert))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -692,8 +738,10 @@ outer:          for (int x = 0; x < width; x++) {
                 .addComponent(labelImageDimensions)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(checkBoxInvert)
+                .addGap(18, 18, 18)
+                .addComponent(checkBoxCreateTiles)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTabbedPane1)
+                .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 257, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(buttonCancel)
@@ -908,11 +956,13 @@ outer:          for (int x = 0; x < width; x++) {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonCancel;
+    private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JButton buttonLoadDefaults;
     private javax.swing.JButton buttonOk;
     private javax.swing.JButton buttonResetDefaults;
     private javax.swing.JButton buttonSaveAsDefaults;
     private javax.swing.JButton buttonSelectFile;
+    private javax.swing.JCheckBox checkBoxCreateTiles;
     private javax.swing.JCheckBox checkBoxInvert;
     private javax.swing.JCheckBox checkBoxVoid;
     private javax.swing.JComboBox comboBoxHeight;
@@ -952,6 +1002,7 @@ outer:          for (int x = 0; x < width; x++) {
 
     private final HeightMapTileFactory tileFactory;
     private final long seed = new Random().nextLong();
+    private final Dimension currentDimension;
     private File selectedFile, heightMapDir;
     private volatile BufferedImage image;
     private int previousMaxHeight = DEFAULT_MAX_HEIGHT_2, bitDepth = 8, imageLowValue = 32, imageHighValue = 224;

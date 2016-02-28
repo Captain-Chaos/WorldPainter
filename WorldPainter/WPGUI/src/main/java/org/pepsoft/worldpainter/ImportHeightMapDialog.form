@@ -7,6 +7,8 @@
         <Property name="text" type="java.lang.String" value="jLabel14"/>
       </Properties>
     </Component>
+    <Component class="javax.swing.ButtonGroup" name="buttonGroup1">
+    </Component>
   </NonVisualComponents>
   <Properties>
     <Property name="defaultCloseOperation" type="int" value="2"/>
@@ -31,25 +33,31 @@
   <Layout>
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
-          <Group type="102" attributes="0">
-              <EmptySpace min="-2" max="-2" attributes="0"/>
+          <Group type="102" alignment="0" attributes="0">
+              <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Component id="jTabbedPane1" alignment="0" max="32767" attributes="0"/>
-                  <Component id="jLabel1" alignment="0" min="-2" max="-2" attributes="0"/>
                   <Group type="102" alignment="1" attributes="0">
                       <Component id="fieldFilename" max="32767" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="buttonSelectFile" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <Component id="labelImageDimensions" alignment="0" min="-2" max="-2" attributes="0"/>
-                  <Component id="checkBoxInvert" alignment="0" min="-2" max="-2" attributes="0"/>
                   <Group type="102" alignment="1" attributes="0">
                       <Component id="buttonOk" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="buttonCancel" min="-2" max="-2" attributes="0"/>
                   </Group>
+                  <Group type="102" attributes="0">
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="checkBoxCreateTiles" min="-2" max="-2" attributes="0"/>
+                          <Component id="jLabel1" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="labelImageDimensions" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="checkBoxInvert" alignment="0" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                  </Group>
               </Group>
-              <EmptySpace min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -67,8 +75,10 @@
               <Component id="labelImageDimensions" min="-2" max="-2" attributes="0"/>
               <EmptySpace min="-2" max="-2" attributes="0"/>
               <Component id="checkBoxInvert" min="-2" max="-2" attributes="0"/>
-              <EmptySpace min="-2" max="-2" attributes="0"/>
-              <Component id="jTabbedPane1" max="32767" attributes="0"/>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Component id="checkBoxCreateTiles" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="jTabbedPane1" pref="257" max="32767" attributes="0"/>
               <EmptySpace min="-2" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="buttonCancel" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -490,7 +500,7 @@
                   <Group type="102" attributes="0">
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="heightMapTileFactoryEditor1" alignment="0" pref="408" max="32767" attributes="0"/>
+                          <Component id="heightMapTileFactoryEditor1" alignment="0" max="32767" attributes="0"/>
                           <Group type="102" alignment="1" attributes="0">
                               <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                               <Component id="buttonResetDefaults" min="-2" max="-2" attributes="0"/>
@@ -508,7 +518,7 @@
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" alignment="0" attributes="0">
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="heightMapTileFactoryEditor1" pref="190" max="32767" attributes="0"/>
+                      <Component id="heightMapTileFactoryEditor1" pref="178" max="32767" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="3" attributes="0">
                           <Component id="buttonLoadDefaults" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -551,5 +561,10 @@
         </Container>
       </SubComponents>
     </Container>
+    <Component class="javax.swing.JCheckBox" name="checkBoxCreateTiles">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Create new tiles"/>
+      </Properties>
+    </Component>
   </SubComponents>
 </Form>
