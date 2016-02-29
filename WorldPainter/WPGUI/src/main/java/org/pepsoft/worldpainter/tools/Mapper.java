@@ -287,8 +287,8 @@ public class Mapper {
                 }
             }
         }
-        final int lowestChunkX = tmpLowestChunkX, highestChunkX = tmpHighestChunkX;
-        final int lowestChunkZ = tmpLowestChunkZ, highestChunkZ = tmpHighestChunkZ;
+        final int lowestChunkX = tmpLowestChunkX;
+        final int lowestChunkZ = tmpLowestChunkZ;
         int widthChunks = (tmpHighestChunkX - tmpLowestChunkX + 1);
         int heightChunks = (tmpHighestChunkZ - tmpLowestChunkZ + 1);
         System.out.println("Width: " + (widthChunks << 4));

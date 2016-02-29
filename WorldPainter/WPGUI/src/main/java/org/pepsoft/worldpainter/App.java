@@ -1890,6 +1890,14 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
     
+    private void importHeightMapIntoCurrentDimension() {
+        ImportHeightMapDialog dialog = new ImportHeightMapDialog(this, dimension, selectedColourScheme);
+        dialog.setVisible(true);
+        if (! dialog.isCancelled()) {
+            // TODO
+        }
+    }
+    
     private void merge() {
         if ((world.getImportedFrom() != null) && (! world.isAllowMerging())) {
             showMessageDialog(this, strings.getString("this.world.was.imported.before.the.great.coordinate.shift"), strings.getString("merge.not.allowed"), ERROR_MESSAGE);
@@ -2995,7 +3003,6 @@ public final class App extends JFrame implements RadiusControl,
                     }
                     if ((layer instanceof TunnelLayer) && (!viewRefreshed)) {
                         view.refreshTilesForLayer(layer, false);
-                        viewRefreshed = true;
                     }
                 }
             }
@@ -3390,6 +3397,10 @@ public final class App extends JFrame implements RadiusControl,
         menuItem.addActionListener(e -> importCustomMaterials());
         importMenu.add(menuItem);
 
+        menuItem = new JMenuItem("Height map into current dimension...");
+        menuItem.addActionListener(e -> importHeightMapIntoCurrentDimension());
+        importMenu.add(menuItem);
+        
 //        menuItem = new JMenuItem("Existing Minecraft map into current world...");
 //        menuItem.addActionListener(new ActionListener() {
 //            @Override

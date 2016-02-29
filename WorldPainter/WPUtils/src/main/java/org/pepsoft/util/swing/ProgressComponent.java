@@ -24,20 +24,25 @@ import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ProgressReceiver;
 
 /**
+ * A component which can execute a task in the background, reporting its
+ * progress on a progress bar, displaying status messages from the task, and
+ * optionally allowing the user to cancel the task.
  *
  * @author pepijn
  */
 public class ProgressComponent<T> extends javax.swing.JPanel implements ProgressReceiver, ActionListener {
-    /** Creates new form ProgressComponent */
+    /**
+     * Creates a new ProgressComponent
+     */
     public ProgressComponent() {
         initComponents();
     }
 
-    public void setListener(Listener listener) {
+    public void setListener(Listener<T> listener) {
         this.listener = listener;
     }
 
-    public Listener getListener() {
+    public Listener<T> getListener() {
         return listener;
     }
 

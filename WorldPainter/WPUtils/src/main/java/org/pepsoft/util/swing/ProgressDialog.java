@@ -34,6 +34,20 @@ public class ProgressDialog<T> extends javax.swing.JDialog implements ComponentL
     }
 
     /**
+     * When invoked with <code>true</code>, displays the dialog and starts the
+     * configured {@link ProgressTask} in a background thread, then blocks until
+     * the task has completed and the dialog is disposed of. Events are
+     * dispatched while this method is blocked.
+     *
+     * @param b <code>true</code> to show the dialog and start the task in a
+     *          background thread.
+     */
+    @Override
+    public void setVisible(boolean b) {
+        super.setVisible(b);
+    }
+
+    /**
      * Execute a task in the background with progress reporting via a modal
      * dialog with a progress bar. The Cancel button is enabled.
      *
@@ -50,7 +64,10 @@ public class ProgressDialog<T> extends javax.swing.JDialog implements ComponentL
     
     /**
      * Execute a task in the background with progress reporting via a modal
-     * dialog with a progress bar.
+     * dialog with a progress bar. The task is executed on a separate thread.
+     * This method blocks until the task has completed, but events are
+     * dispatched while the method is blocked. If the task throws an exception,
+     * that exception will be rethrown by this method.
      *
      * @param parent The parent window for the modal dialog.
      * @param task The task to execute.
@@ -58,7 +75,9 @@ public class ProgressDialog<T> extends javax.swing.JDialog implements ComponentL
      * @param <T> The return type of the task. Use {@link Void} for tasks which
      *     don't return a value.
      * @return The result of the task, or <code>null</code> if the task does not
-     *     return a result.
+     *     return a result or if it was cancelled.
+     * @throws Error If the task threw an {@link Error}.
+     * @throws RuntimeException If the task threw a {@link RuntimeException}.
      */
     public static <T> T executeTask(Window parent, ProgressTask<T> task, boolean cancelable) {
         ProgressDialog<T> dialog = new ProgressDialog<>(parent, task, cancelable);
