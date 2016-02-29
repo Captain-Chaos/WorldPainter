@@ -276,7 +276,7 @@ public class FileUtils {
             if (fileOrDir != null) {
                 if (fileOrDir.isDirectory()) {
                     fileDialog.setDirectory(fileOrDir.getPath());
-                } else if (fileOrDir.isFile()) {
+                } else {
                     fileDialog.setDirectory(fileOrDir.getParent());
                     fileDialog.setDirectory(fileOrDir.getName());
                 }
@@ -296,11 +296,9 @@ public class FileUtils {
             if (fileOrDir != null) {
                 if (fileOrDir.isDirectory()) {
                     fileChooser = new JFileChooser(fileOrDir);
-                } else if (fileOrDir.isFile()) {
+                } else {
                     fileChooser = new JFileChooser(fileOrDir.getParentFile());
                     fileChooser.setSelectedFile(fileOrDir);
-                } else {
-                    fileChooser = new JFileChooser();
                 }
             } else {
                 fileChooser = new JFileChooser();
@@ -342,7 +340,7 @@ public class FileUtils {
             if (fileOrDir != null) {
                 if (fileOrDir.isDirectory()) {
                     fileDialog.setDirectory(fileOrDir.getPath());
-                } else if (fileOrDir.isFile()) {
+                } else {
                     fileDialog.setDirectory(fileOrDir.getParent());
                     fileDialog.setDirectory(fileOrDir.getName());
                 }
@@ -360,11 +358,9 @@ public class FileUtils {
             if (fileOrDir != null) {
                 if (fileOrDir.isDirectory()) {
                     fileChooser = new JFileChooser(fileOrDir);
-                } else if (fileOrDir.isFile()) {
+                } else {
                     fileChooser = new JFileChooser(fileOrDir.getParentFile());
                     fileChooser.setSelectedFile(fileOrDir);
-                } else {
-                    fileChooser = new JFileChooser();
                 }
             } else {
                 fileChooser = new JFileChooser();
@@ -407,9 +403,9 @@ public class FileUtils {
             if (fileOrDir != null) {
                 if (fileOrDir.isDirectory()) {
                     fileDialog.setDirectory(fileOrDir.getPath());
-                } else if (fileOrDir.isFile()) {
+                } else {
                     fileDialog.setDirectory(fileOrDir.getParent());
-                    fileDialog.setDirectory(fileOrDir.getName());
+                    fileDialog.setFile(fileOrDir.getName());
                 }
             }
             fileDialog.setFilenameFilter((file, s) -> fileFilter.accept(new File(file, s)));
@@ -425,11 +421,9 @@ public class FileUtils {
             if (fileOrDir != null) {
                 if (fileOrDir.isDirectory()) {
                     fileChooser = new JFileChooser(fileOrDir);
-                } else if (fileOrDir.isFile()) {
+                } else {
                     fileChooser = new JFileChooser(fileOrDir.getParentFile());
                     fileChooser.setSelectedFile(fileOrDir);
-                } else {
-                    fileChooser = new JFileChooser();
                 }
             } else {
                 fileChooser = new JFileChooser();
