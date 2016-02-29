@@ -147,15 +147,15 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             image = ImageIO.read(selectedFile);
             if (image == null) {
                 labelImageDimensions.setForeground(Color.RED);
-                labelImageDimensions.setText(String.format("Not an image file, or damaged file!"));
+                labelImageDimensions.setText("Not an image file, or damaged file!");
                 selectedFile = null;
             } else if ((image.getType() == BufferedImage.TYPE_BYTE_BINARY) || (image.getType() == BufferedImage.TYPE_BYTE_INDEXED)) {
                 labelImageDimensions.setForeground(Color.RED);
-                labelImageDimensions.setText(String.format("Indexed image not supported! Please convert to non-indexed."));
+                labelImageDimensions.setText("Indexed image not supported! Please convert to non-indexed.");
                 selectedFile = null;
             } else if (image.isAlphaPremultiplied()) {
                 labelImageDimensions.setForeground(Color.RED);
-                labelImageDimensions.setText(String.format("Premultiplied alpha not supported! Please convert to non-premultiplied."));
+                labelImageDimensions.setText("Premultiplied alpha not supported! Please convert to non-premultiplied.");
                 selectedFile = null;
             } else {
                 if (image.getType() == BufferedImage.TYPE_CUSTOM) {
@@ -209,15 +209,10 @@ outer:          for (int x = 0; x < width; x++) {
                 ((SpinnerNumberModel) spinnerVoidBelow.getModel()).setMaximum(maxHeight - 1);
                 
                 // Set levels to reasonable defaults
-                spinnerImageLow.setValue(imageLowValue);
-                spinnerImageHigh.setValue(imageHighValue);
-                if (imageHighValue >= 2048) {
-                    spinnerWorldLow.setValue(imageLowValue / 256);
-                    spinnerWorldHigh.setValue(imageHighValue / 256);
-                } else {
-                    spinnerWorldLow.setValue(imageLowValue);
-                    spinnerWorldHigh.setValue(imageHighValue);
-                }
+                spinnerImageLow.setValue(0);
+                spinnerImageHigh.setValue(((bitDepth == 16) ? (maxHeight * 256) : maxHeight) - 1);
+                spinnerWorldLow.setValue(0);
+                spinnerWorldHigh.setValue(maxHeight - 1);
 
                 labelImageDimensions.setText(String.format("Image size: %d x %d, %d bits, lowest value: %d, highest value: %d", width, height, bitDepth, imageLowValue, imageHighValue));
                 updateWorldDimensions();
@@ -226,7 +221,7 @@ outer:          for (int x = 0; x < width; x++) {
         } catch (IOException e) {
             logger.error("I/O error loading image " + selectedFile, e);
             labelImageDimensions.setForeground(Color.RED);
-            labelImageDimensions.setText(String.format("I/O error loading image (message: " + e.getMessage() + ")!"));
+            labelImageDimensions.setText("I/O error loading image (message: " + e.getMessage() + ")!");
             selectedFile = null;
         }
     }
