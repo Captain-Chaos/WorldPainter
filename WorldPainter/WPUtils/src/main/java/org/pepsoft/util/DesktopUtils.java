@@ -82,6 +82,23 @@ public final class DesktopUtils {
         return homeDir;
     }
 
+    public static File getImagesFolder() {
+        if (XDG.XDG_PICTURES_DIR_FILE != null) {
+            // Should cover most Linuxes
+            return XDG.XDG_PICTURES_DIR_FILE;
+        }
+        File docsDir = getDocumentsFolder();
+        File candidate = new File(docsDir.getParentFile(), "Pictures");
+        if (candidate.isDirectory() && candidate.canRead()) {
+            return candidate;
+        }
+        candidate = new File(docsDir, "Pictures");
+        if (candidate.isDirectory() && candidate.canRead()) {
+            return candidate;
+        }
+        return docsDir;
+    }
+
     /**
      * Open a URL in the default browser.
      *

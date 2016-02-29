@@ -68,6 +68,7 @@ import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
 import java.awt.image.WritableRaster;
+import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.*;
 import java.lang.Void;
@@ -103,7 +104,7 @@ import org.pepsoft.worldpainter.tools.scripts.ScriptRunner;
  */
 public final class App extends JFrame implements RadiusControl,
         BiomesViewerFrame.SeedListener, Listener, CustomBiomeListener,
-        PaletteManager.ButtonProvider, DockableHolder {
+        PaletteManager.ButtonProvider, DockableHolder, PropertyChangeListener {
     private App() {
         super((mode == Mode.WORLDPAINTER) ? "WorldPainter" : "MinecraftMapEditor"); // NOI18N
         setIconImage(ICON);
@@ -357,6 +358,7 @@ public final class App extends JFrame implements RadiusControl,
     public void setDimension(final Dimension dimension) {
         Configuration config = Configuration.getInstance();
         if (this.dimension != null) {
+            this.dimension.removePropertyChangeListener(this);
             Point viewPosition = view.getViewCentreInWorldCoords();
             if (viewPosition != null) {
                 this.dimension.setLastViewPosition(viewPosition);
@@ -528,6 +530,7 @@ public final class App extends JFrame implements RadiusControl,
             } finally {
                 programmaticChange = false;
             }
+            dimension.addPropertyChangeListener(this);
         } else {
             view.setDimension(null);
             setTitle("WorldPainter"); // NOI18N
@@ -1008,6 +1011,26 @@ public final class App extends JFrame implements RadiusControl,
 
     public static void setMode(Mode mode) {
         App.mode = mode;
+    }
+
+    // PropertyChangeListener
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        Runnable task = null;
+        if (evt.getSource() == dimension) {
+            if (evt.getPropertyName().equals("maxHeight")) {
+                boolean enableHighResHeightMapMenuItem = (Integer) evt.getNewValue() <= 256;
+                task = () -> exportHighResHeightMapMenuItem.setEnabled(enableHighResHeightMapMenuItem);
+            }
+        }
+        if (task != null) {
+            if (SwingUtilities.isEventDispatchThread()) {
+                task.run();
+            } else {
+                SwingUtilities.invokeLater(task);
+            }
+        }
     }
 
     // RadiusControl
@@ -3169,9 +3192,13 @@ public final class App extends JFrame implements RadiusControl,
             exportMenu.add(menuItem);
 
             menuItem = new JMenuItem(strings.getString("export.as.height.map") + "...");
-            menuItem.addActionListener(event -> exportHeightMap());
+            menuItem.addActionListener(event -> exportHeightMap(false));
             menuItem.setMnemonic('h');
             exportMenu.add(menuItem);
+
+            exportHighResHeightMapMenuItem = new JMenuItem("Export as high resolution height map...");
+            exportHighResHeightMapMenuItem.addActionListener(event -> exportHeightMap(true));
+            exportMenu.add(exportHighResHeightMapMenuItem);
 
             menu.add(exportMenu);
         }
@@ -4721,7 +4748,7 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
     
-    private void exportHeightMap() {
+    private void exportHeightMap(boolean highRes) {
         final Set<String> extensions = new HashSet<>(Arrays.asList(ImageIO.getReaderFileSuffixes()));
         StringBuilder sb = new StringBuilder(strings.getString("supported.image.formats"));
         sb.append(" (");
@@ -4737,8 +4764,14 @@ public final class App extends JFrame implements RadiusControl,
         }
         sb.append(')');
         final String description = sb.toString();
-        String defaultname = world.getName().replaceAll("\\s", "").toLowerCase() + ((dimension.getDim() == DIM_NORMAL) ? "" : ("_" + dimension.getName().toLowerCase())) + "_heightmap.png"; // NOI18N
-        File selectedFile = FileUtils.selectFileForSave(App.this, "Export as height map image file", new File(defaultname), new FileFilter() {
+        String defaultname = world.getName().replaceAll("\\s", "").toLowerCase() + ((dimension.getDim() == DIM_NORMAL) ? "" : ("_" + dimension.getName().toLowerCase())) + (highRes ? "_high-res-heightmap.png" : "_heightmap.png"); // NOI18N
+        Configuration config = Configuration.getInstance();
+        File dir = config.getHeightMapsDirectory();
+        if ((dir == null) || (! dir.isDirectory())) {
+            dir = DesktopUtils.getImagesFolder();
+        }
+        File defaultFile = new File(dir, defaultname);
+        File selectedFile = FileUtils.selectFileForSave(App.this, highRes ? "Export as high resolution height map image file" : "Export as height map image file", defaultFile, new FileFilter() {
             @Override
             public boolean accept(File f) {
                 if (f.isDirectory()) {
@@ -4773,6 +4806,7 @@ public final class App extends JFrame implements RadiusControl,
                     return;
                 }
             }
+            config.setHeightMapsDirectory(selectedFile.getParentFile());
             final File file = selectedFile;
             //noinspection ConstantConditions // Can't happen for non-cancelable task
             if (! ProgressDialog.executeTask(App.this, new ProgressTask<Boolean>() {
@@ -4787,15 +4821,22 @@ public final class App extends JFrame implements RadiusControl,
                             // by *far* the most time goes into actually writing
                             // the file, and we can't report progress for that
                             try {
-                                BufferedImage image = new BufferedImage(dimension.getWidth() * TILE_SIZE, dimension.getHeight() * TILE_SIZE, (dimension.getMaxHeight() <= 256) ? BufferedImage.TYPE_BYTE_GRAY : BufferedImage.TYPE_USHORT_GRAY);
+                                BufferedImage image = new BufferedImage(dimension.getWidth() * TILE_SIZE, dimension.getHeight() * TILE_SIZE, ((dimension.getMaxHeight() <= 256) && (! highRes)) ? BufferedImage.TYPE_BYTE_GRAY : BufferedImage.TYPE_USHORT_GRAY);
                                 WritableRaster raster = image.getRaster();
                                 for (Tile tile: dimension.getTiles()) {
                                     int tileOffsetX = (tile.getX() - dimension.getLowestX()) * TILE_SIZE;
                                     int tileOffsetY = (tile.getY() - dimension.getLowestY()) * TILE_SIZE;
-                                    for (int dx = 0; dx < TILE_SIZE; dx++) {
-                                        for (int dy = 0; dy < TILE_SIZE; dy++) {
-                                            int height = tile.getIntHeight(dx, dy);
-                                            raster.setSample(tileOffsetX + dx, tileOffsetY + dy, 0, height);
+                                    if (highRes) {
+                                        for (int dx = 0; dx < TILE_SIZE; dx++) {
+                                            for (int dy = 0; dy < TILE_SIZE; dy++) {
+                                                raster.setSample(tileOffsetX + dx, tileOffsetY + dy, 0, tile.getRawHeight(dx, dy));
+                                            }
+                                        }
+                                    } else {
+                                        for (int dx = 0; dx < TILE_SIZE; dx++) {
+                                            for (int dy = 0; dy < TILE_SIZE; dy++) {
+                                                raster.setSample(tileOffsetX + dx, tileOffsetY + dy, 0, tile.getIntHeight(dx, dy));
+                                            }
                                         }
                                     }
                                 }
@@ -5977,7 +6018,7 @@ public final class App extends JFrame implements RadiusControl,
     private GlassPane glassPane;
     private JCheckBox readOnlyCheckBox, biomesCheckBox, annotationsCheckBox, readOnlySoloCheckBox, biomesSoloCheckBox, annotationsSoloCheckBox;
     private JToggleButton readOnlyToggleButton, setSpawnPointToggleButton;
-    private JMenuItem addNetherMenuItem, removeNetherMenuItem, addEndMenuItem, removeEndMenuItem, addSurfaceCeilingMenuItem, removeSurfaceCeilingMenuItem, addNetherCeilingMenuItem, removeNetherCeilingMenuItem, addEndCeilingMenuItem, removeEndCeilingMenuItem;
+    private JMenuItem addNetherMenuItem, removeNetherMenuItem, addEndMenuItem, removeEndMenuItem, addSurfaceCeilingMenuItem, removeSurfaceCeilingMenuItem, addNetherCeilingMenuItem, removeNetherCeilingMenuItem, addEndCeilingMenuItem, removeEndCeilingMenuItem, exportHighResHeightMapMenuItem;
     private JCheckBoxMenuItem viewSurfaceMenuItem, viewNetherMenuItem, viewEndMenuItem, extendedBlockIdsMenuItem, viewSurfaceCeilingMenuItem, viewNetherCeilingMenuItem, viewEndCeilingMenuItem;
     private final JToggleButton[] customMaterialButtons = new JToggleButton[CUSTOM_TERRAIN_COUNT];
     private final ColourScheme[] colourSchemes;
