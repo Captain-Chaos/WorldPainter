@@ -60,7 +60,9 @@ public final class Constants {
     public static final AttributeKeyVO<Integer> ATTRIBUTE_KEY_EXPORTED_DIMENSION_TILES = new AttributeKeyVO<>("exportedDimension.tiles");
     public static final AttributeKeyVO<Boolean> ATTRIBUTE_KEY_IMPORTED_WORLD = new AttributeKeyVO<>("importedWorld");
     public static final AttributeKeyVO<String> ATTRIBUTE_KEY_PLUGINS = new AttributeKeyVO<>("plugins");
-    
+    public static final AttributeKeyVO<String> ATTRIBUTE_KEY_SCRIPT_FILENAME = new AttributeKeyVO<>("script.fileName");
+    public static final AttributeKeyVO<String> ATTRIBUTE_KEY_SCRIPT_NAME = new AttributeKeyVO<>("script.name");
+
     public static final String EVENT_KEY_ACTION_NEW_WORLD         = "action.newWorld";
     public static final String EVENT_KEY_ACTION_EXPORT_WORLD      = "action.exportWorld";
     public static final String EVENT_KEY_ACTION_IMPORT_MAP        = "action.importMap";

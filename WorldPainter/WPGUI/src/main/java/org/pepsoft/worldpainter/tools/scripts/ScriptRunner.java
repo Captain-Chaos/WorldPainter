@@ -8,11 +8,10 @@ package org.pepsoft.worldpainter.tools.scripts;
 import org.jetbrains.annotations.NotNull;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.undo.UndoManager;
-import org.pepsoft.worldpainter.Configuration;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.World2;
-import org.pepsoft.worldpainter.WorldPainterDialog;
 import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.vo.EventVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +31,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
+import static org.pepsoft.worldpainter.Constants.*;
 
 /**
  *
@@ -239,8 +239,19 @@ public class ScriptRunner extends WorldPainterDialog {
         jButton3.setEnabled(false);
         jTextArea2.setText(null);
         File scriptFile = (File) jComboBox1.getSelectedItem();
-        String scriptFileName = scriptFile.getName();
-        Map<String, Object> params = (scriptDescriptor != null) ? scriptDescriptor.getValues() : null;
+        String scriptFileName = scriptFile.getName(), scriptName;
+        Map<String, Object> params;
+        if (scriptDescriptor != null) {
+            params = scriptDescriptor.getValues();
+            if (scriptDescriptor.name != null) {
+                scriptName = scriptDescriptor.name;
+            } else {
+                scriptName = scriptFileName;
+            }
+        } else {
+            params = null;
+            scriptName = scriptFileName;
+        }
         new Thread(scriptFileName) {
             @Override
             public void run() {
@@ -307,6 +318,11 @@ public class ScriptRunner extends WorldPainterDialog {
                     };
                     scriptEngine.getContext().setWriter(writer);
                     scriptEngine.getContext().setErrorWriter(writer);
+
+                    // Log the execution
+                    config.logEvent(new EventVO("script.execute").addTimestamp()
+                            .setAttribute(ATTRIBUTE_KEY_SCRIPT_NAME, scriptName)
+                            .setAttribute(ATTRIBUTE_KEY_SCRIPT_FILENAME, scriptFileName));
 
                     // Execute script
                     if (dimension != null) {
