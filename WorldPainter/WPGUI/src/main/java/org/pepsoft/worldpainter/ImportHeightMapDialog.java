@@ -75,6 +75,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         rootPane.setDefaultButton(buttonOk);
         
         if (currentDimension != null) {
+            comboBoxHeight.setSelectedItem(Integer.toString(currentDimension.getMaxHeight()));
             comboBoxHeight.setEnabled(false);
             Theme theme = tileFactory.getTheme();
             buttonResetDefaults.setEnabled(false);
@@ -214,9 +215,10 @@ outer:          for (int x = 0; x < width; x++) {
                 }
                 ((SpinnerNumberModel) spinnerImageHigh.getModel()).setMaximum((bitDepth == 16) ? 65535 : 255);
 
+                int maxHeight;
+                boolean highRes = false;
                 if (currentDimension == null) {
                     // Determine maxHeight and whether to default to scaled mode
-                    int maxHeight;
                     if (imageHighValue < 256) {
                         maxHeight = 256;
                     } else if (imageHighValue < 512) {
@@ -227,17 +229,21 @@ outer:          for (int x = 0; x < width; x++) {
                         maxHeight = 2048;
                     } else {
                         maxHeight = 256;
+                        highRes = true;
                     }
                     comboBoxHeight.setSelectedItem(Integer.toString(maxHeight));
                     ((SpinnerNumberModel) spinnerWorldLow.getModel()).setMaximum(maxHeight - 1);
                     ((SpinnerNumberModel) spinnerWorldMiddle.getModel()).setMaximum(maxHeight - 1);
                     ((SpinnerNumberModel) spinnerWorldHigh.getModel()).setMaximum(maxHeight - 1);
                     ((SpinnerNumberModel) spinnerVoidBelow.getModel()).setMaximum(maxHeight - 1);
+                } else {
+                    maxHeight = currentDimension.getMaxHeight();
+                    highRes = imageHighValue > maxHeight;
                 }
                 
                 // Set levels to reasonable defaults
                 spinnerImageLow.setValue(0);
-                spinnerImageHigh.setValue(((bitDepth == 16) ? (maxHeight * 256) : maxHeight) - 1);
+                spinnerImageHigh.setValue((highRes ? (maxHeight * 256) : maxHeight) - 1);
                 spinnerWorldLow.setValue(0);
                 spinnerWorldHigh.setValue(maxHeight - 1);
 
