@@ -43,18 +43,23 @@
                       <Component id="buttonSelectFile" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <Group type="102" alignment="1" attributes="0">
+                      <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                       <Component id="buttonOk" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="buttonCancel" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <Group type="102" attributes="0">
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="checkBoxCreateTiles" min="-2" max="-2" attributes="0"/>
                           <Component id="jLabel1" alignment="0" min="-2" max="-2" attributes="0"/>
                           <Component id="labelImageDimensions" alignment="0" min="-2" max="-2" attributes="0"/>
                           <Component id="checkBoxInvert" alignment="0" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                  </Group>
+                  <Group type="102" alignment="0" attributes="0">
+                      <Component id="checkBoxCreateTiles" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="32767" attributes="0"/>
+                      <Component id="labelNoUndo" min="-2" max="-2" attributes="0"/>
                   </Group>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
@@ -76,9 +81,12 @@
               <EmptySpace min="-2" max="-2" attributes="0"/>
               <Component id="checkBoxInvert" min="-2" max="-2" attributes="0"/>
               <EmptySpace type="separate" max="-2" attributes="0"/>
-              <Component id="checkBoxCreateTiles" min="-2" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="checkBoxCreateTiles" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="labelNoUndo" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="jTabbedPane1" pref="257" max="32767" attributes="0"/>
+              <Component id="jTabbedPane1" max="32767" attributes="0"/>
               <EmptySpace min="-2" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="buttonCancel" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -564,6 +572,11 @@
     <Component class="javax.swing.JCheckBox" name="checkBoxCreateTiles">
       <Properties>
         <Property name="text" type="java.lang.String" value="Create new tiles"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="labelNoUndo">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="&lt;html&gt;&lt;b&gt;Note:&lt;/b&gt; this cannot be undone!&lt;/html&gt;"/>
       </Properties>
     </Component>
   </SubComponents>

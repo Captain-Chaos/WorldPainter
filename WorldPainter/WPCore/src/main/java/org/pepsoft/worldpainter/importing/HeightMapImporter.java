@@ -47,29 +47,9 @@ public class HeightMapImporter {
      *     the specified progress received throws it (when the user cancels the
      *     operation).
      */
-    public World2 doImport(ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
+    public World2 importToNewWorld(ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
         logger.info("Importing world from height map {} (size: {}x{})", name, image.getWidth(), image.getHeight());
 
-        final int widthInBlocks = image.getWidth() * scale / 100;
-        final int heightInBlocks = image.getHeight() * scale / 100;
-        final boolean sixteenBit = bitDepth == 16;
-        final BufferedImage scaledImage;
-        if ((scale == 100) && (image.getColorModel().getColorSpace().getType() == ColorSpace.TYPE_GRAY)) {
-            // No scaling necessary
-            scaledImage = image;
-        } else {
-            scaledImage = new BufferedImage(widthInBlocks, heightInBlocks, sixteenBit ? BufferedImage.TYPE_USHORT_GRAY : BufferedImage.TYPE_BYTE_GRAY);
-            Graphics2D g2 = scaledImage.createGraphics();
-            try {
-                if (scale != 100) {
-                    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-                }
-                g2.drawImage(image, 0, 0, widthInBlocks, heightInBlocks, null);
-            } finally {
-                g2.dispose();
-            }
-        }
-        image = null; // The original image is no longer necessary, so allow it to be garbage collected to make more space available for the import
         final boolean oneOnOne = (worldLowLevel == imageLowLevel) && (worldHighLevel == imageHighLevel);
         final boolean highRes = (bitDepth == 16) && (! oneOnOne) && (worldHighLevel < maxHeight);
         final World2 world = new World2(World2.DEFAULT_OCEAN_SEED, tileFactory, maxHeight);
@@ -106,51 +86,7 @@ public class HeightMapImporter {
             dimension.setLayerSettings(Frost.INSTANCE, frostSettings);
         }
 
-        final boolean useVoidBelow = voidBelowLevel > 0;
-        final int tileX1 = offsetX >> TILE_SIZE_BITS;
-        final int tileY1 = offsetY >> TILE_SIZE_BITS;
-        final int tileX2 = (offsetX + widthInBlocks - 1) >> TILE_SIZE_BITS;
-        final int tileY2 = (offsetY + heightInBlocks - 1) >> TILE_SIZE_BITS;
-        final int widthInTiles = tileX2 - tileX1 + 1;
-        final int heightInTiles = tileY2 - tileY1 + 1;
-        final Raster raster = scaledImage.getRaster();
-        initLevelMappingIfNecessary();
-        final int totalTileCount = widthInTiles * heightInTiles;
-        int tileCount = 0;
-        for (int tileX = tileX1; tileX <= tileX2; tileX++) {
-            for (int tileY = tileY1; tileY <= tileY2; tileY++) {
-                final Tile tile = new Tile(tileX, tileY, maxHeight);
-                final int xOffset = tileX * TILE_SIZE - offsetX;
-                final int yOffset = tileY * TILE_SIZE - offsetY;
-                for (int x = 0; x < TILE_SIZE; x++) {
-                    for (int y = 0; y < TILE_SIZE; y++) {
-                        final int imageX = xOffset + x;
-                        final int imageY = yOffset + y;
-                        final float level;
-                        final boolean void_;
-                        if ((imageX >= 0) && (imageX < widthInBlocks) && (imageY >= 0) && (imageY < heightInBlocks)) {
-                            final int imageLevel = raster.getSample(imageX, imageY, 0);
-                            level = levelMapping[imageLevel];
-                            void_ = useVoidBelow && (imageLevel < voidBelowLevel);
-                        } else {
-                            level = 0.0f;
-                            void_ = useVoidBelow;
-                        }
-                        tile.setHeight(x, y, level);
-                        tile.setWaterLevel(x, y, worldWaterLevel);
-                        if (void_) {
-                            tile.setBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, x, y, true);
-                        }
-                        tileFactory.applyTheme(tile, x, y);
-                    }
-                }
-                dimension.addTile(tile);
-                tileCount++;
-                if (progressReceiver != null) {
-                    progressReceiver.setProgress((float) tileCount / totalTileCount);
-                }
-            }
-        }
+        importToDimension(dimension, true, progressReceiver);
 
         Dimension defaults = config.getDefaultTerrainAndLayerSettings();
         dimension.setBorder(defaults.getBorder());
@@ -170,11 +106,102 @@ public class HeightMapImporter {
         dimension.setGridSize(config.getDefaultGridSize());
         dimension.setContoursEnabled(config.isDefaultContoursEnabled());
         dimension.setContourSeparation(config.getDefaultContourSeparation());
-        world.setSpawnPoint(new Point(offsetX + widthInBlocks / 2, offsetY + heightInBlocks / 2));
+        world.setSpawnPoint(new Point(offsetX + image.getWidth() * scale / 200, offsetY + image.getHeight() * scale / 200));
         dimension.setLastViewPosition(world.getSpawnPoint());
         world.setDirty(false);
         
         return world;
+    }
+
+    public void importToDimension(Dimension dimension, boolean createTiles, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
+        // Sanity checks
+        if (dimension.getMaxHeight() != maxHeight) {
+            throw new IllegalArgumentException(String.format("Dimension has different maxHeight (%d) than configured (%d)", dimension.getMaxHeight(), maxHeight));
+        }
+
+        final int widthInBlocks = image.getWidth() * scale / 100;
+        final int heightInBlocks = image.getHeight() * scale / 100;
+        final boolean sixteenBit = bitDepth == 16;
+        final BufferedImage scaledImage;
+        if ((scale == 100) && (image.getColorModel().getColorSpace().getType() == ColorSpace.TYPE_GRAY)) {
+            // No scaling necessary
+            scaledImage = image;
+        } else {
+            scaledImage = new BufferedImage(widthInBlocks, heightInBlocks, sixteenBit ? BufferedImage.TYPE_USHORT_GRAY : BufferedImage.TYPE_BYTE_GRAY);
+            Graphics2D g2 = scaledImage.createGraphics();
+            try {
+                if (scale != 100) {
+                    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+                }
+                g2.drawImage(image, 0, 0, widthInBlocks, heightInBlocks, null);
+            } finally {
+                g2.dispose();
+            }
+        }
+        image = null; // The original image is no longer necessary, so allow it to be garbage collected to make more space available for the import
+
+        final boolean useVoidBelow = voidBelowLevel > 0;
+        final int tileX1 = offsetX >> TILE_SIZE_BITS;
+        final int tileY1 = offsetY >> TILE_SIZE_BITS;
+        final int tileX2 = (offsetX + widthInBlocks - 1) >> TILE_SIZE_BITS;
+        final int tileY2 = (offsetY + heightInBlocks - 1) >> TILE_SIZE_BITS;
+        final int widthInTiles = tileX2 - tileX1 + 1;
+        final int heightInTiles = tileY2 - tileY1 + 1;
+        final Raster raster = scaledImage.getRaster();
+        initLevelMappingIfNecessary();
+        final int totalTileCount = widthInTiles * heightInTiles;
+        int tileCount = 0;
+        for (int tileX = tileX1; tileX <= tileX2; tileX++) {
+            for (int tileY = tileY1; tileY <= tileY2; tileY++) {
+                boolean tileIsNew;
+                Tile tile = dimension.getTileForEditing(tileX, tileY);
+                if (tile == null) {
+                    if (createTiles) {
+                        tile = tileFactory.createTile(tileX, tileY);
+                        tileIsNew = true;
+                    } else {
+                        tileCount++;
+                        if (progressReceiver != null) {
+                            progressReceiver.setProgress((float) tileCount / totalTileCount);
+                        }
+                        continue;
+                    }
+                } else {
+                    tileIsNew = false;
+                    tile.inhibitEvents();
+                }
+                final int xOffset = tileX * TILE_SIZE - offsetX;
+                final int yOffset = tileY * TILE_SIZE - offsetY;
+                for (int x = 0; x < TILE_SIZE; x++) {
+                    for (int y = 0; y < TILE_SIZE; y++) {
+                        final int imageX = xOffset + x;
+                        final int imageY = yOffset + y;
+                        if ((imageX >= 0) && (imageX < widthInBlocks) && (imageY >= 0) && (imageY < heightInBlocks)) {
+                            final int imageLevel = raster.getSample(imageX, imageY, 0);
+                            tile.setHeight(x, y, levelMapping[imageLevel]);
+                            tile.setWaterLevel(x, y, worldWaterLevel);
+                            if (useVoidBelow && (imageLevel < voidBelowLevel)) {
+                                tile.setBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, x, y, true);
+                            }
+                            tileFactory.applyTheme(tile, x, y);
+                        } else if (tileIsNew) {
+                            tile.setHeight(x, y, 0.0f);
+                            tile.setWaterLevel(x, y, worldWaterLevel);
+                            tileFactory.applyTheme(tile, x, y);
+                        }
+                    }
+                }
+                if (tileIsNew) {
+                    dimension.addTile(tile);
+                } else {
+                    tile.releaseEvents();
+                }
+                tileCount++;
+                if (progressReceiver != null) {
+                    progressReceiver.setProgress((float) tileCount / totalTileCount);
+                }
+            }
+        }
     }
     
     public BufferedImage getPreview() {

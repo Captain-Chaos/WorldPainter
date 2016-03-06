@@ -594,6 +594,14 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         this.recentScriptFiles = recentScriptFiles;
     }
 
+    public File getMasksDirectory() {
+        return masksDirectory;
+    }
+
+    public void setMasksDirectory(File masksDirectory) {
+        this.masksDirectory = masksDirectory;
+    }
+
     @Override
     public synchronized void logEvent(EventVO event) {
         if (eventLog != null) {
@@ -799,6 +807,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         heightMapsDirectory = FileUtils.absolutise(heightMapsDirectory);
         recentFiles = FileUtils.absolutise(recentFiles);
         recentScriptFiles = FileUtils.absolutise(recentScriptFiles);
+        masksDirectory = FileUtils.absolutise(masksDirectory);
         
         out.defaultWriteObject();
     }
@@ -905,7 +914,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private List<MixedMaterial> mixedMaterials = new ArrayList<>();
 //    private boolean easyMode = true;
     private boolean defaultExtendedBlockIds;
-    private File layerDirectory, terrainDirectory, heightMapsDirectory;
+    private File layerDirectory, terrainDirectory, heightMapsDirectory, masksDirectory;
     private Theme heightMapDefaultTheme;
     private boolean defaultCreateGoodiesChest = true, defaultMapFeatures = true, defaultAllowCheats;
     private Generator defaultGenerator = Generator.DEFAULT;

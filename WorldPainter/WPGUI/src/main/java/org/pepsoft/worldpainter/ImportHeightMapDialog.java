@@ -17,6 +17,7 @@ import org.pepsoft.util.swing.ProgressDialog;
 import org.pepsoft.util.swing.ProgressTask;
 import org.pepsoft.worldpainter.heightMaps.HeightMapUtils;
 import org.pepsoft.worldpainter.importing.HeightMapImporter;
+import org.pepsoft.worldpainter.layers.Void;
 import org.pepsoft.worldpainter.themes.SimpleTheme;
 import org.pepsoft.worldpainter.themes.impl.simple.SimpleThemeEditor;
 import org.pepsoft.worldpainter.themes.Theme;
@@ -65,10 +66,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         spinnerOffsetX.setEditor(new NumberEditor(spinnerOffsetX, "0"));
         spinnerOffsetY.setEditor(new NumberEditor(spinnerOffsetY, "0"));
         checkBoxCreateTiles.setSelected(true);
-        pack();
         labelWarning.setVisible(false);
-        
-        setLocationRelativeTo(parent);
         
         fieldFilename.getDocument().addDocumentListener(this);
         
@@ -83,9 +81,14 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             buttonLoadDefaults.setEnabled(true);
             buttonSaveAsDefaults.setEnabled(true);
         } else {
+            labelNoUndo.setText(" ");
             checkBoxCreateTiles.setEnabled(false);
             loadDefaults();
         }
+
+        pack();
+        setLocationRelativeTo(parent);
+
         setControlStates();
     }
 
@@ -122,13 +125,13 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
 
             @Override
             public World2 execute(ProgressReceiver progressReceiver) throws OperationCancelled {
-                return importer.doImport(progressReceiver);
+                return importer.importToNewWorld(progressReceiver);
             }
         }, false);
         Configuration.getInstance().setHeightMapsDirectory(selectedFile.getParentFile());
         return world;
     }
-    
+
     // DocumentListener
     
     @Override
@@ -327,7 +330,57 @@ outer:          for (int x = 0; x < width; x++) {
             JOptionPane.showMessageDialog(this, "Theme reset to factory defaults.", "Default Theme Reset", JOptionPane.INFORMATION_MESSAGE);
         }
     }
-    
+
+    private void exportToDimension() {
+        if (currentDimension == null) {
+            throw new IllegalStateException();
+        }
+        final HeightMapImporter importer = new HeightMapImporter();
+        importer.setImage(image);
+        importer.setImageFile(selectedFile);
+        String name = selectedFile.getName();
+        int p = name.lastIndexOf('.');
+        if (p != -1) {
+            name = name.substring(0, p);
+        }
+        importer.setName(name);
+        importer.setTileFactory(tileFactory);
+        importer.setScale((Integer) spinnerScale.getValue());
+        importer.setInvert(checkBoxInvert.isSelected());
+        importer.setMaxHeight(Integer.parseInt((String) comboBoxHeight.getSelectedItem()));
+        importer.setImageLowLevel((Integer) spinnerImageLow.getValue());
+        importer.setImageHighLevel((Integer) spinnerImageHigh.getValue());
+        importer.setWorldLowLevel((Integer) spinnerWorldLow.getValue());
+        importer.setWorldWaterLevel((Integer) spinnerWorldMiddle.getValue());
+        importer.setWorldHighLevel((Integer) spinnerWorldHigh.getValue());
+        importer.setVoidBelowLevel(checkBoxVoid.isSelected() ? ((Integer) spinnerVoidBelow.getValue()) : 0);
+        importer.setOffsetX((Integer) spinnerOffsetX.getValue());
+        importer.setOffsetY((Integer) spinnerOffsetY.getValue());
+        ProgressDialog.executeTask(this, new ProgressTask<Void>() {
+            @Override
+            public String getName() {
+                return "Importing height map";
+            }
+
+            @Override
+            public Void execute(ProgressReceiver progressReceiver) throws OperationCancelled {
+                importer.importToDimension(currentDimension, checkBoxCreateTiles.isSelected(), progressReceiver);
+                return null;
+            }
+        }, false);
+        Configuration.getInstance().setHeightMapsDirectory(selectedFile.getParentFile());
+        currentDimension.clearUndo();
+        currentDimension.armSavePoint();
+    }
+
+    @Override
+    protected void ok() {
+        if (currentDimension != null) {
+            exportToDimension();
+        }
+        super.ok();
+    }
+
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -381,6 +434,7 @@ outer:          for (int x = 0; x < width; x++) {
         buttonSaveAsDefaults = new javax.swing.JButton();
         buttonResetDefaults = new javax.swing.JButton();
         checkBoxCreateTiles = new javax.swing.JCheckBox();
+        labelNoUndo = new javax.swing.JLabel();
 
         jLabel14.setText("jLabel14");
 
@@ -703,6 +757,8 @@ outer:          for (int x = 0; x < width; x++) {
 
         checkBoxCreateTiles.setText("Create new tiles");
 
+        labelNoUndo.setText("<html><b>Note:</b> this cannot be undone!</html>");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -716,16 +772,20 @@ outer:          for (int x = 0; x < width; x++) {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buttonSelectFile))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(buttonOk)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buttonCancel))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(checkBoxCreateTiles)
                             .addComponent(jLabel1)
                             .addComponent(labelImageDimensions)
                             .addComponent(checkBoxInvert))
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(checkBoxCreateTiles)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(labelNoUndo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -742,9 +802,11 @@ outer:          for (int x = 0; x < width; x++) {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(checkBoxInvert)
                 .addGap(18, 18, 18)
-                .addComponent(checkBoxCreateTiles)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(checkBoxCreateTiles)
+                    .addComponent(labelNoUndo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 257, Short.MAX_VALUE)
+                .addComponent(jTabbedPane1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(buttonCancel)
@@ -824,8 +886,11 @@ outer:          for (int x = 0; x < width; x++) {
 
     private void buttonSelectFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonSelectFileActionPerformed
         File myHeightMapDir = heightMapDir;
-        if (heightMapDir == null) {
+        if (myHeightMapDir == null) {
             myHeightMapDir = Configuration.getInstance().getHeightMapsDirectory();
+        }
+        if (myHeightMapDir == null) {
+            myHeightMapDir = Configuration.getInstance().getMasksDirectory();
         }
         final Set<String> extensions = new HashSet<>(Arrays.asList(ImageIO.getReaderFileSuffixes()));
         StringBuilder sb = new StringBuilder("Supported image formats (");
@@ -990,6 +1055,7 @@ outer:          for (int x = 0; x < width; x++) {
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JLabel labelImageDimensions;
     private javax.swing.JLabel labelImageWaterLevel;
+    private javax.swing.JLabel labelNoUndo;
     private javax.swing.JLabel labelWarning;
     private javax.swing.JLabel labelWorldDimensions;
     private javax.swing.JSpinner spinnerImageHigh;

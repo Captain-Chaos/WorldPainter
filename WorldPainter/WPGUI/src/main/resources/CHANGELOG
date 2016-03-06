@@ -1,5 +1,28 @@
--- Version 2.2, released ...
+-- Version 2.2.0, released ...
 
+ * Height maps can now be imported into existing worlds, and into other dimensions than the surface
+   + Select Edit -> Import -> Height map into current dimension... to do so
+   + You can adjust the scale and offset to import the height map into the desired location in your existing world
+   + The "create new tiles" option, selected by default, causes WorldPainter to create new tiles automatically for the new land, if necessary
+ * Image masks can now be imported to set the terrain type, or any layer of your choosing
+   + Select Edit -> Import -> Mask as terrain or layer... to do so
+   + Select an image, then select the target to apply it to (the terrain or a layer), then select the mapping (the method with which the image values should be translated to terrain or layer values)
+   + WorldPainter will automatically let you select only targets and mappings which make sense for the image type and the selected target
+   + For most layers, and for setting the terrain, you need a (real) grey scale (8 or 16 bit) or black and white (1 bit) image. A colour/RGB image which happens to contain only shades of grey is NOT a grey scale image and won't work!
+   + The available mappings are:
+     - One to one - this sets the layer value to the exact value from the image and can be used for the terrain, for discrete layers such as Biomes, and for continuous layers, allowing you to create masks which will directly set terrain or layer values
+       o Targets for which the image contains values which are too high will not be selectable
+       o For setting the terrain, the value should be an index from this page: http://www.worldpainter.net/trac/wiki/Scripting/TerrainTypeValues
+       o For the Biomes layer, the value should be a Minecraft biome ID from this page: http://minecraft.gamepedia.com/Biome#Biome_IDs, or 255 for Automatic Biomes
+       o Continuous layers support values from 0 (0%) to 15 (100%)
+     - Full range - this maps the full range of the grey scale values (0 to 255 for 8 bit, 0 to 65535 for 16 bit) to the full range of the selected layer (0% to 100%)
+     - Threshold - this sets on/off layers (such as Frost, Cave/Tunnel layers, Custom Ground Cover layers, etc.) only in those places where the image value is equal to or higher than the threshold you select
+     - Dither - this uses the full grey scale range (0 to 255 for 8 bit, 0 to 65535 for 16 bit) to dither on/off layers
+   + The Annotations layer supports importing colour images with an alpha mask
+     - Where the image is transparent the annotation will not be set
+     - Otherwise the annotation will be set to the closest colour
+     - No dithering is applied
+ * Worlds can now be exported as a high res (16-bit) height map. Choose File -> Export -> Export as high resolution height map... to do so. This allows you to scale it outside of WorldPainter and create a new world from the scaled height map without losing WorldPainter's high internal precision which allows smooth editing, Smooth Snow to work, etc.. Note that this is not available if the world is higher than 256 blocks
  * Bug fix: correct the default ordering of Custom Ground Cover layers so that thicker layers once again export before thinner layers
  * Bug fix: make exporting the 3D view as an image work again on Mac OS X
 

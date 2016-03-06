@@ -7,10 +7,7 @@ package org.pepsoft.worldpainter.tools;
 
 import java.awt.Transparency;
 import java.awt.color.ColorSpace;
-import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
-import java.awt.image.DataBuffer;
-import java.awt.image.SampleModel;
+import java.awt.image.*;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
@@ -149,6 +146,17 @@ public class DumpImageInfo {
             System.out.println("    Band " + i + ": " + sampleModel.getSampleSize(i) + " bits");
         }
         ColorModel colorModel = image.getColorModel();
+        if (colorModel instanceof IndexColorModel) {
+            System.out.println("  Color model is indexed");
+            IndexColorModel indexColorModel = (IndexColorModel) colorModel;
+            System.out.println("    Palette size: " + indexColorModel.getMapSize());
+            System.out.println("    Palette:");
+            for (int i = 0; i < indexColorModel.getMapSize(); i++) {
+                System.out.printf("      Index %2d: 0x%8x%n", i, indexColorModel.getRGB(i));
+            }
+        } else {
+            System.out.println("  Color model is not indexed");
+        }
         ColorSpace colorSpace = colorModel.getColorSpace();
         System.out.print("  Color space type: ");
         switch (colorSpace.getType()) {

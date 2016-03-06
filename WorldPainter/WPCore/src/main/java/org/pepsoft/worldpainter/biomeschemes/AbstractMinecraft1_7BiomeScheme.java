@@ -200,8 +200,8 @@ public abstract class AbstractMinecraft1_7BiomeScheme extends AbstractBiomeSchem
                     String libraryVersion = parts[2];
                     File libraryDir = new File(libDir, libraryGroup.replace('.', '/') + '/' + libraryName + '/' + libraryVersion);
                     File libraryFile = new File(libraryDir, libraryName + '-' + libraryVersion + ".jar");
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Adding to biome scheme classpath: {}", libraryFile);
+                    if (logger.isTraceEnabled()) {
+                        logger.trace("Adding to biome scheme classpath: {}", libraryFile);
                     }
                     classpath.add(libraryFile.toURI().toURL());
                 }

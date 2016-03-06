@@ -101,7 +101,7 @@ public class ImportHeightMapOp extends AbstractOperation<World2> {
         }
         importer.setName(name);
         try {
-            return importer.doImport(null);
+            return importer.importToNewWorld(null);
         } catch (ProgressReceiver.OperationCancelled e) {
             // Can never happen since we don't pass a progress receiver in
             throw new InternalError();

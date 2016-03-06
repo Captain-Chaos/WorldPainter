@@ -5,6 +5,7 @@
 
 package org.pepsoft.worldpainter;
 
+import org.pepsoft.worldpainter.importing.ImportMaskDialog;
 import com.jidesoft.docking.*;
 import com.jidesoft.swing.JideLabel;
 import org.jetbrains.annotations.NonNls;
@@ -1894,8 +1895,17 @@ public final class App extends JFrame implements RadiusControl,
         ImportHeightMapDialog dialog = new ImportHeightMapDialog(this, dimension, selectedColourScheme);
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
-            // TODO
+            view.refreshTiles();
         }
+    }
+
+    private void importMask() {
+        List<Layer> allLayers = new ArrayList<>();
+        allLayers.add(Biome.INSTANCE);
+        allLayers.add(Annotations.INSTANCE);
+        allLayers.addAll(getAllLayers());
+        ImportMaskDialog dialog = new ImportMaskDialog(this, dimension, selectedColourScheme, allLayers);
+        dialog.setVisible(true);
     }
     
     private void merge() {
@@ -3400,7 +3410,11 @@ public final class App extends JFrame implements RadiusControl,
         menuItem = new JMenuItem("Height map into current dimension...");
         menuItem.addActionListener(e -> importHeightMapIntoCurrentDimension());
         importMenu.add(menuItem);
-        
+
+        menuItem = new JMenuItem("Mask as terrain or layer...");
+        menuItem.addActionListener(e -> importMask());
+        importMenu.add(menuItem);
+
 //        menuItem = new JMenuItem("Existing Minecraft map into current world...");
 //        menuItem.addActionListener(new ActionListener() {
 //            @Override
@@ -4535,6 +4549,10 @@ public final class App extends JFrame implements RadiusControl,
                     biomesSoloCheckBox.setEnabled(false);
                     break;
             }
+            boolean enableHighResHeightMapMenuItem = dimension.getMaxHeight() <= 256;
+            exportHighResHeightMapMenuItem.setEnabled(enableHighResHeightMapMenuItem);
+        } else {
+            exportHighResHeightMapMenuItem.setEnabled(false);
         }
     }
 

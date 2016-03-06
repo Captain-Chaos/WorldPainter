@@ -44,8 +44,8 @@ public class BiomeSchemeManager {
     }
 
     public static BiomeScheme getBiomeScheme(final Dimension dimension, final int biomeAlgorithm, final Component parent, final boolean askUser) {
-        if (logger.isDebugEnabled()) {
-            logger.debug("Thread {} requesting biome scheme {}", Thread.currentThread().getName(), biomeAlgorithm, new Throwable("Invoked from"));
+        if (logger.isTraceEnabled()) {
+            logger.trace("Thread {} requesting biome scheme {}", Thread.currentThread().getName(), biomeAlgorithm, new Throwable("Invoked from"));
         }
         if (biomeAlgorithm == BIOME_ALGORITHM_1_7_3) {
             logger.info("Creating biome scheme 1.7.3");
@@ -248,8 +248,8 @@ public class BiomeSchemeManager {
                     } if (file.isDirectory()) {
                         scanDir(file);
                     } else {
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("Scanning file {}", file);
+                        if (logger.isTraceEnabled()) {
+                            logger.trace("Scanning file {}", file);
                         }
                         Checksum hash = FileUtils.getMD5(file);
                         if (DESCRIPTORS.containsKey(hash)) {
