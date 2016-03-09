@@ -48,7 +48,8 @@ public class HeightMapImporter {
      *     operation).
      */
     public World2 importToNewWorld(ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
-        logger.info("Importing world from height map {} (size: {}x{})", name, image.getWidth(), image.getHeight());
+        final int imageWidth = image.getWidth(), imageHeight = image.getHeight();
+        logger.info("Importing world from height map {} (size: {}x{})", name, imageWidth, imageHeight);
 
         final boolean oneOnOne = (worldLowLevel == imageLowLevel) && (worldHighLevel == imageHighLevel);
         final boolean highRes = (bitDepth == 16) && (! oneOnOne) && (worldHighLevel < maxHeight);
@@ -86,7 +87,7 @@ public class HeightMapImporter {
             dimension.setLayerSettings(Frost.INSTANCE, frostSettings);
         }
 
-        importToDimension(dimension, true, progressReceiver);
+        importToDimension(dimension, true, progressReceiver); // image not available after this
 
         Dimension defaults = config.getDefaultTerrainAndLayerSettings();
         dimension.setBorder(defaults.getBorder());
@@ -106,7 +107,7 @@ public class HeightMapImporter {
         dimension.setGridSize(config.getDefaultGridSize());
         dimension.setContoursEnabled(config.isDefaultContoursEnabled());
         dimension.setContourSeparation(config.getDefaultContourSeparation());
-        world.setSpawnPoint(new Point(offsetX + image.getWidth() * scale / 200, offsetY + image.getHeight() * scale / 200));
+        world.setSpawnPoint(new Point(offsetX + imageWidth * scale / 200, offsetY + imageHeight * scale / 200));
         dimension.setLastViewPosition(world.getSpawnPoint());
         world.setDirty(false);
         
