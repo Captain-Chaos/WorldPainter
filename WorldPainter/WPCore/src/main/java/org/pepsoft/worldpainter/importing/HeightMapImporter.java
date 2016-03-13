@@ -179,15 +179,25 @@ public class HeightMapImporter {
                         final int imageY = yOffset + y;
                         if ((imageX >= 0) && (imageX < widthInBlocks) && (imageY >= 0) && (imageY < heightInBlocks)) {
                             final int imageLevel = raster.getSample(imageX, imageY, 0);
-                            tile.setHeight(x, y, levelMapping[imageLevel]);
-                            tile.setWaterLevel(x, y, worldWaterLevel);
-                            if (useVoidBelow && (imageLevel < voidBelowLevel)) {
-                                tile.setBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, x, y, true);
+                            if (onlyRaise && (! tileIsNew)) {
+                                if (levelMapping[imageLevel] > tile.getHeight(x, y)) {
+                                    tile.setHeight(x, y, levelMapping[imageLevel]);
+                                    tileFactory.applyTheme(tile, x, y);
+                                }
+                            } else {
+                                tile.setHeight(x, y, levelMapping[imageLevel]);
+                                tile.setWaterLevel(x, y, worldWaterLevel);
+                                if (useVoidBelow && (imageLevel < voidBelowLevel)) {
+                                    tile.setBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, x, y, true);
+                                }
+                                tileFactory.applyTheme(tile, x, y);
                             }
-                            tileFactory.applyTheme(tile, x, y);
                         } else if (tileIsNew) {
                             tile.setHeight(x, y, 0.0f);
                             tile.setWaterLevel(x, y, worldWaterLevel);
+                            if (useVoidBelow) {
+                                tile.setBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, x, y, true);
+                            }
                             tileFactory.applyTheme(tile, x, y);
                         }
                     }
@@ -346,6 +356,14 @@ public class HeightMapImporter {
         this.imageFile = imageFile;
     }
 
+    public boolean isOnlyRaise() {
+        return onlyRaise;
+    }
+
+    public void setOnlyRaise(boolean onlyRaise) {
+        this.onlyRaise = onlyRaise;
+    }
+
     private void initHistogramIfNecessary() {
         if (histogram == null) {
             final int imageWidth = image.getWidth(), imageHeight = image.getHeight();
@@ -403,7 +421,7 @@ public class HeightMapImporter {
     private int scale = 100, worldLowLevel, worldWaterLevel = 62, worldHighLevel = DEFAULT_MAX_HEIGHT_2 - 1, imageLowLevel, imageHighLevel = DEFAULT_MAX_HEIGHT_2 - 1, offsetX, offsetY, maxHeight = DEFAULT_MAX_HEIGHT_2, voidBelowLevel, bitDepth;
     private TileFactory tileFactory;
     private String name;
-    private boolean invert;
+    private boolean invert, onlyRaise;
     private float[] levelMapping;
     private int[] histogram, levelMappingInt;
     private File imageFile;

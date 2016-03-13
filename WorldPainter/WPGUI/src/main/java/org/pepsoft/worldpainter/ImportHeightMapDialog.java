@@ -83,6 +83,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         } else {
             labelNoUndo.setText(" ");
             checkBoxCreateTiles.setEnabled(false);
+            checkBoxOnlyRaise.setEnabled(false);
             loadDefaults();
         }
 
@@ -356,6 +357,7 @@ outer:          for (int x = 0; x < width; x++) {
         importer.setVoidBelowLevel(checkBoxVoid.isSelected() ? ((Integer) spinnerVoidBelow.getValue()) : 0);
         importer.setOffsetX((Integer) spinnerOffsetX.getValue());
         importer.setOffsetY((Integer) spinnerOffsetY.getValue());
+        importer.setOnlyRaise(checkBoxOnlyRaise.isSelected());
         ProgressDialog.executeTask(this, new ProgressTask<Void>() {
             @Override
             public String getName() {
@@ -435,6 +437,7 @@ outer:          for (int x = 0; x < width; x++) {
         buttonResetDefaults = new javax.swing.JButton();
         checkBoxCreateTiles = new javax.swing.JCheckBox();
         labelNoUndo = new javax.swing.JLabel();
+        checkBoxOnlyRaise = new javax.swing.JCheckBox();
 
         jLabel14.setText("jLabel14");
 
@@ -759,6 +762,9 @@ outer:          for (int x = 0; x < width; x++) {
 
         labelNoUndo.setText("<html><b>Note:</b> this cannot be undone!</html>");
 
+        checkBoxOnlyRaise.setText("Only where higher");
+        checkBoxOnlyRaise.setToolTipText("When selected, the height map will only be applied where it is higher than the existing terrain");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -784,6 +790,8 @@ outer:          for (int x = 0; x < width; x++) {
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(checkBoxCreateTiles)
+                        .addGap(18, 18, 18)
+                        .addComponent(checkBoxOnlyRaise)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(labelNoUndo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
@@ -804,7 +812,8 @@ outer:          for (int x = 0; x < width; x++) {
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(checkBoxCreateTiles)
-                    .addComponent(labelNoUndo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(labelNoUndo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(checkBoxOnlyRaise))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jTabbedPane1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -1032,6 +1041,7 @@ outer:          for (int x = 0; x < width; x++) {
     private javax.swing.JButton buttonSelectFile;
     private javax.swing.JCheckBox checkBoxCreateTiles;
     private javax.swing.JCheckBox checkBoxInvert;
+    private javax.swing.JCheckBox checkBoxOnlyRaise;
     private javax.swing.JCheckBox checkBoxVoid;
     private javax.swing.JComboBox comboBoxHeight;
     private javax.swing.JTextField fieldFilename;
