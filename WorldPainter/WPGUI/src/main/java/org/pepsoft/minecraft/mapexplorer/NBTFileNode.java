@@ -45,11 +45,9 @@ public class NBTFileNode extends Node {
 
     @Override
     protected Node[] loadChildren() {
-        try {
-            try (NBTInputStream in = new NBTInputStream(compressed ? new GZIPInputStream(new FileInputStream(file)) : new FileInputStream(file))) {
-                tag = in.readTag();
-                return new Node[] {new TagNode(tag)};
-            }
+        try (NBTInputStream in = new NBTInputStream(compressed ? new GZIPInputStream(new FileInputStream(file)) : new FileInputStream(file))) {
+            tag = in.readTag();
+            return new Node[] {new TagNode(tag)};
         } catch (IOException e) {
             throw new RuntimeException("I/O error while reading level.dat file", e);
         }
