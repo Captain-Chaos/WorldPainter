@@ -19,10 +19,6 @@ import java.util.zip.GZIPInputStream;
  * @author pepijn
  */
 public class NBTFileNode extends Node {
-    NBTFileNode(File file) {
-        this.file = file;
-    }
-    
     NBTFileNode(File file, boolean compressed) {
         this.file = file;
         this.compressed = compressed;
@@ -50,18 +46,9 @@ public class NBTFileNode extends Node {
     @Override
     protected Node[] loadChildren() {
         try {
-            if (compressed == null) {
-                try (FileInputStream in = new FileInputStream(file)) {
-                    byte[] magicNumber = new byte[2];
-                    // TODO: not strictly correct, but will probably always work in
-                    // practice. Famous last words
-                    in.read(magicNumber);
-                    compressed = (magicNumber[0] == (byte) 0x1f) && (magicNumber[1] == (byte) 0x8b);
-                }
-            }
             try (NBTInputStream in = new NBTInputStream(compressed ? new GZIPInputStream(new FileInputStream(file)) : new FileInputStream(file))) {
                 tag = in.readTag();
-                return new Node[]{new TagNode(tag)};
+                return new Node[] {new TagNode(tag)};
             }
         } catch (IOException e) {
             throw new RuntimeException("I/O error while reading level.dat file", e);
@@ -69,6 +56,6 @@ public class NBTFileNode extends Node {
     }
 
     private final File file;
-    private Boolean compressed;
+    private final boolean compressed;
     private Tag tag;
 }
