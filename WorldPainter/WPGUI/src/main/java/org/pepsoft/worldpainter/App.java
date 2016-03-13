@@ -3261,33 +3261,6 @@ public final class App extends JFrame implements RadiusControl,
         menuItem.setMnemonic('p');
         menu.add(menuItem);
 
-        Configuration config = Configuration.getInstance();
-        if (! config.isEasyMode()) {
-            menuItem = new JMenuItem(ACTION_CHANGE_HEIGHT);
-            menuItem.setMnemonic('h');
-            menu.add(menuItem);
-
-            menuItem = new JMenuItem(ACTION_ROTATE_WORLD);
-            menuItem.setMnemonic('o');
-            menu.add(menuItem);
-
-            menuItem = new JMenuItem(ACTION_SHIFT_WORLD);
-            menuItem.setMnemonic('s');
-            menu.add(menuItem);
-
-            menu.addSeparator();
-        }
-
-        menuItem = new JMenuItem(strings.getString("global.operations") + "...");
-        menuItem.addActionListener(event -> showGlobalOperations());
-        menuItem.setMnemonic('g');
-        menuItem.setAccelerator(KeyStroke.getKeyStroke(VK_G, PLATFORM_COMMAND_MASK));
-        menu.add(menuItem);
-        
-        menuItem = new JMenuItem(ACTION_EDIT_TILES);
-        menuItem.setMnemonic('t');
-        menu.add(menuItem);
-
         JMenu dimensionsMenu = new JMenu("Dimensions");
 
         addSurfaceCeilingMenuItem = new JMenuItem("Add Ceiling to Surface...");
@@ -3319,7 +3292,7 @@ public final class App extends JFrame implements RadiusControl,
         addEndMenuItem.addActionListener(e -> addEnd());
         addEndMenuItem.setMnemonic('d');
         dimensionsMenu.add(addEndMenuItem);
-        
+
         removeEndMenuItem = new JMenuItem("Remove End...");
         removeEndMenuItem.addActionListener(e -> removeEnd());
         dimensionsMenu.add(removeEndMenuItem);
@@ -3332,6 +3305,70 @@ public final class App extends JFrame implements RadiusControl,
         removeEndCeilingMenuItem.addActionListener(e -> removeEndCeiling());
         dimensionsMenu.add(removeEndCeilingMenuItem);
         menu.add(dimensionsMenu);
+
+        JMenu importMenu = new JMenu("Import");
+        menuItem = new JMenuItem("Custom items from existing world...");
+        menuItem.setMnemonic('i');
+        menuItem.addActionListener(e -> {
+            importCustomItemsFromWorld(CustomItemsTreeModel.ItemType.ALL);
+        });
+        importMenu.add(menuItem);
+
+        menuItem = new JMenuItem(ACTION_IMPORT_LAYER);
+        menuItem.setMnemonic('l');
+        menuItem.setText("Custom Layer(s) from file(s)...");
+        importMenu.add(menuItem);
+
+        menuItem = new JMenuItem("Custom Terrain(s) from file(s)...");
+        menuItem.setMnemonic('t');
+        menuItem.addActionListener(e -> importCustomMaterials());
+        importMenu.add(menuItem);
+
+        menuItem = new JMenuItem("Height map into current dimension...");
+        menuItem.addActionListener(e -> importHeightMapIntoCurrentDimension());
+        importMenu.add(menuItem);
+
+        menuItem = new JMenuItem("Mask as terrain or layer...");
+        menuItem.addActionListener(e -> importMask());
+        importMenu.add(menuItem);
+
+//        menuItem = new JMenuItem("Existing Minecraft map into current world...");
+//        menuItem.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                importMapIntoWorld();
+//            }
+//        });
+//        importMenu.add(menuItem);
+
+        menu.add(importMenu);
+
+        Configuration config = Configuration.getInstance();
+        if (! config.isEasyMode()) {
+            menuItem = new JMenuItem(ACTION_CHANGE_HEIGHT);
+            menuItem.setMnemonic('h');
+            menu.add(menuItem);
+
+            menuItem = new JMenuItem(ACTION_ROTATE_WORLD);
+            menuItem.setMnemonic('o');
+            menu.add(menuItem);
+
+            menuItem = new JMenuItem(ACTION_SHIFT_WORLD);
+            menuItem.setMnemonic('s');
+            menu.add(menuItem);
+
+            menu.addSeparator();
+        }
+
+        menuItem = new JMenuItem(strings.getString("global.operations") + "...");
+        menuItem.addActionListener(event -> showGlobalOperations());
+        menuItem.setMnemonic('g');
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(VK_G, PLATFORM_COMMAND_MASK));
+        menu.add(menuItem);
+        
+        menuItem = new JMenuItem(ACTION_EDIT_TILES);
+        menuItem.setMnemonic('t');
+        menu.add(menuItem);
 
 //        final JMenuItem easyModeItem = new JCheckBoxMenuItem("Advanced mode");
 //        if (! config.isEasyMode()) {
@@ -3388,43 +3425,6 @@ public final class App extends JFrame implements RadiusControl,
             menuItem.setMnemonic('f');
             menu.add(menuItem);
         }
-
-        JMenu importMenu = new JMenu("Import");
-        menuItem = new JMenuItem("Custom items from existing world...");
-        menuItem.setMnemonic('i');
-        menuItem.addActionListener(e -> {
-            importCustomItemsFromWorld(CustomItemsTreeModel.ItemType.ALL);
-        });
-        importMenu.add(menuItem);
-
-        menuItem = new JMenuItem(ACTION_IMPORT_LAYER);
-        menuItem.setMnemonic('l');
-        menuItem.setText("Custom Layer(s) from file(s)...");
-        importMenu.add(menuItem);
-
-        menuItem = new JMenuItem("Custom Terrain(s) from file(s)...");
-        menuItem.setMnemonic('t');
-        menuItem.addActionListener(e -> importCustomMaterials());
-        importMenu.add(menuItem);
-
-        menuItem = new JMenuItem("Height map into current dimension...");
-        menuItem.addActionListener(e -> importHeightMapIntoCurrentDimension());
-        importMenu.add(menuItem);
-
-        menuItem = new JMenuItem("Mask as terrain or layer...");
-        menuItem.addActionListener(e -> importMask());
-        importMenu.add(menuItem);
-
-//        menuItem = new JMenuItem("Existing Minecraft map into current world...");
-//        menuItem.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                importMapIntoWorld();
-//            }
-//        });
-//        importMenu.add(menuItem);
-
-        menu.add(importMenu);
 
         return menu;
     }
