@@ -87,27 +87,31 @@ public class MapRootNode extends Node {
     private RegionFileNode[] getRegionNodes(File regionDir, int version) {
         final Pattern regionFilenamePattern = (version == SUPPORTED_VERSION_1) ? regionFilenamePatternVersion1 : regionFilenamePatternVersion2;
         File[] files = regionDir.listFiles(pathname -> pathname.isFile() && regionFilenamePattern.matcher(pathname.getName()).matches());
-        RegionFileNode[] nodes = new RegionFileNode[files.length];
-        for (int i = 0; i < files.length; i++) {
-            nodes[i] = new RegionFileNode(files[i]);
-        }
-        // Sort by coordinates, x coordinate first
-        Arrays.sort(nodes, (r1, r2) -> {
-            if (r1.getX() < r2.getX()) {
-                return -1;
-            } else if (r1.getX() > r2.getX()) {
-                return 1;
-            } else {
-                if (r1.getZ() < r2.getZ()) {
+        if (files != null) {
+            RegionFileNode[] nodes = new RegionFileNode[files.length];
+            for (int i = 0; i < files.length; i++) {
+                nodes[i] = new RegionFileNode(files[i]);
+            }
+            // Sort by coordinates, x coordinate first
+            Arrays.sort(nodes, (r1, r2) -> {
+                if (r1.getX() < r2.getX()) {
                     return -1;
-                } else if (r1.getZ() > r2.getZ()) {
+                } else if (r1.getX() > r2.getX()) {
                     return 1;
                 } else {
-                    return 0;
+                    if (r1.getZ() < r2.getZ()) {
+                        return -1;
+                    } else if (r1.getZ() > r2.getZ()) {
+                        return 1;
+                    } else {
+                        return 0;
+                    }
                 }
-            }
-        });
-        return nodes;
+            });
+            return nodes;
+        } else {
+            return new RegionFileNode[0];
+        }
     }
 
     private ExtraDimensionNode[] getDimensionNodes(int version) {

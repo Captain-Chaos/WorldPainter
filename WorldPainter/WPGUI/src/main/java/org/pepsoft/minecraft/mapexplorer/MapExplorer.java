@@ -36,26 +36,17 @@ public class MapExplorer {
             JScrollPane scrollPane = new JScrollPane(tree);
             tree.expandPath(treeModel.getPath(defaultDir));
             tree.scrollPathToVisible(treeModel.getPath(defaultDir));
+            // Automatically expand any nodes if they only have one child
             tree.addTreeExpansionListener(new TreeExpansionListener() {
                 @Override
                 public void treeExpanded(TreeExpansionEvent event) {
-                    if (programmaticChange) {
-                        return;
-                    }
                     Object node = event.getPath().getLastPathComponent();
                     if ((! treeModel.isLeaf(node)) && (treeModel.getChildCount(node) == 1)) {
-                        programmaticChange = true;
-                        try {
-                            tree.expandPath(event.getPath().pathByAddingChild(treeModel.getChild(node, 0)));
-                        } finally {
-                            programmaticChange = false;
-                        }
+                        tree.expandPath(event.getPath().pathByAddingChild(treeModel.getChild(node, 0)));
                     }
                 }
 
                 @Override public void treeCollapsed(TreeExpansionEvent event) {}
-
-                private boolean programmaticChange;
             });
             frame.getContentPane().add(scrollPane, BorderLayout.CENTER);
             frame.setSize(1024, 768);
