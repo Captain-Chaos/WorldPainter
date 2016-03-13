@@ -10,7 +10,6 @@ import org.pepsoft.util.IconUtils;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.util.RandomField;
 
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1688,15 +1687,7 @@ public enum Terrain {
         this.toppingHeight = (topping == AIR) ? 0 : 1;
         this.description = description;
         this.defaultBiome = defaultBiome;
-        BufferedImage largeIcon = IconUtils.loadImage("org/pepsoft/worldpainter/icons/" + name().toLowerCase() + ".png");
-        icon = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2 = icon.createGraphics();
-        try {
-            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-            g2.drawImage(largeIcon, 0, 0, 16, 16, null);
-        } finally {
-            g2.dispose();
-        }
+        icon = IconUtils.scaleIcon(IconUtils.loadImage("org/pepsoft/worldpainter/icons/" + name().toLowerCase() + ".png"), 16);
     }
 
     public String getName() {

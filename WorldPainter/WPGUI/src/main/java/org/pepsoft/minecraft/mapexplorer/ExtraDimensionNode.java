@@ -4,6 +4,7 @@
  */
 package org.pepsoft.minecraft.mapexplorer;
 
+import javax.swing.*;
 import java.io.File;
 import java.util.Arrays;
 import java.util.regex.Pattern;
@@ -13,7 +14,7 @@ import static org.pepsoft.minecraft.Constants.*;
  *
  * @author pepijn
  */
-public class ExtraDimensionNode implements Node {
+public class ExtraDimensionNode extends Node {
     public ExtraDimensionNode(File dimensionDir, int version) {
         this.dimensionDir = dimensionDir;
         this.version = version;
@@ -24,18 +25,31 @@ public class ExtraDimensionNode implements Node {
         return dimensionDir.getName();
     }
 
+    @Override
+    public String getName() {
+        String dim = getDimension();
+        switch (dim) {
+            case "DIM-1":
+                return "Nether";
+            case "DIM1":
+                return "Ender";
+            default:
+                return dim;
+        }
+    }
+
+    @Override
+    public Icon getIcon() {
+        return null;
+    }
+
+    @Override
     public boolean isLeaf() {
         return false;
     }
 
-    public Node[] getChildren() {
-        if (children == null) {
-            loadChildren();
-        }
-        return children;
-    }
- 
-    public RegionFileNode[] getRegionNodes() {
+    @Override
+    protected Node[] loadChildren() {
         final Pattern regionFilenamePattern = (version == SUPPORTED_VERSION_1) ? regionFilenamePatternVersion1 : regionFilenamePatternVersion2;
         File[] files = regionDir.listFiles(pathname -> pathname.isFile() && regionFilenamePattern.matcher(pathname.getName()).matches());
         if (files == null) {
@@ -64,13 +78,8 @@ public class ExtraDimensionNode implements Node {
         return nodes;
     }
     
-    private void loadChildren() {
-        children = getRegionNodes();
-    }
-    
     private final File dimensionDir, regionDir;
     private final int version;
     private final Pattern regionFilenamePatternVersion1 = Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mcr");
     private final Pattern regionFilenamePatternVersion2 = Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mca");
-    private Node[] children;
 }

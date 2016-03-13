@@ -5,11 +5,25 @@
 
 package org.pepsoft.minecraft.mapexplorer;
 
+import javax.swing.*;
+
 /**
  *
  * @author pepijn
  */
-public interface Node {
-    boolean isLeaf();
-    Node[] getChildren();
+public abstract class Node {
+    public abstract String getName();
+    public abstract Icon getIcon();
+    public abstract boolean isLeaf();
+
+    public final Node[] getChildren() {
+        if (children == null) {
+            children = loadChildren();
+        }
+        return children;
+    }
+
+    protected abstract Node[] loadChildren();
+
+    private Node[] children;
 }

@@ -5,12 +5,11 @@
 
 package org.pepsoft.minecraft.mapexplorer;
 
-import org.pepsoft.util.FileUtils;
 import org.pepsoft.worldpainter.util.MinecraftUtil;
 
 import javax.swing.*;
-import javax.swing.filechooser.FileFilter;
-import javax.swing.tree.TreeModel;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeExpansionListener;
 import java.awt.*;
 import java.io.File;
 
@@ -21,29 +20,47 @@ import java.io.File;
 public class MapExplorer {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            File file = FileUtils.selectFileForOpen(null, "Select Minecraft map level.dat file", new File(MinecraftUtil.findMinecraftDir(), "saves"), new FileFilter() {
+            JFrame frame = new JFrame("Minecraft Map Explorer");
+            frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            MapTreeModel treeModel = new MapTreeModel();
+            File minecraftDir = MinecraftUtil.findMinecraftDir();
+            File defaultDir;
+            if (minecraftDir != null) {
+                defaultDir = new File(minecraftDir, "saves");
+            } else {
+                defaultDir = new File(System.getProperty("user.home"));
+            }
+            JTree tree = new JTree(treeModel);
+            tree.setRootVisible(false);
+            tree.setCellRenderer(new MapTreeCellRenderer());
+            JScrollPane scrollPane = new JScrollPane(tree);
+            tree.expandPath(treeModel.getPath(defaultDir));
+            tree.scrollPathToVisible(treeModel.getPath(defaultDir));
+            tree.addTreeExpansionListener(new TreeExpansionListener() {
                 @Override
-                public boolean accept(File f) {
-                    return f.isDirectory() || f.getName().equals("level.dat") || f.getName().toLowerCase().endsWith(".schematic") || f.getName().toLowerCase().endsWith(".nbt");
+                public void treeExpanded(TreeExpansionEvent event) {
+                    if (programmatiChange) {
+                        return;
+                    }
+                    Object node = event.getPath().getLastPathComponent();
+                    if ((! treeModel.isLeaf(node)) && (treeModel.getChildCount(node) == 1)) {
+                        programmatiChange = true;
+                        try {
+                            tree.expandPath(event.getPath().pathByAddingChild(treeModel.getChild(node, 0)));
+                        } finally {
+                            programmatiChange = false;
+                        }
+                    }
                 }
 
-                @Override
-                public String getDescription() {
-                    return "Minecraft level.dat files, MCEdit .schematic files or bo3 .nbt files";
-                }
+                @Override public void treeCollapsed(TreeExpansionEvent event) {}
+
+                private boolean programmatiChange;
             });
-            if (file != null) {
-                JFrame frame = new JFrame("Minecraft Map Explorer");
-                frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-                TreeModel treeModel = new MapTreeModel(file);
-                JTree tree = new JTree(treeModel);
-                tree.setCellRenderer(new MapTreeCellRenderer());
-                JScrollPane scrollPane = new JScrollPane(tree);
-                frame.getContentPane().add(scrollPane, BorderLayout.CENTER);
-                frame.setSize(1024, 768);
-                frame.setLocationRelativeTo(null);
-                frame.setVisible(true);
-            }
+            frame.getContentPane().add(scrollPane, BorderLayout.CENTER);
+            frame.setSize(1024, 768);
+            frame.setLocationRelativeTo(null);
+            frame.setVisible(true);
         });
     }
 }

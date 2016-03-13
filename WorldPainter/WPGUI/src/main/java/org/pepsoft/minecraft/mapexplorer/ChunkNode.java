@@ -10,11 +10,13 @@ import org.jnbt.NBTInputStream;
 import org.jnbt.Tag;
 import org.pepsoft.minecraft.RegionFile;
 
+import javax.swing.*;
+
 /**
  *
  * @author pepijn
  */
-public class ChunkNode implements Node {
+public class ChunkNode extends Node {
     ChunkNode(RegionFile regionFile, int x, int z) {
         this.regionFile = regionFile;
         this.x = x;
@@ -29,22 +31,27 @@ public class ChunkNode implements Node {
         return z;
     }
 
+    @Override
+    public String getName() {
+        return "Chunk " + x + ", " + z;
+    }
+
+    @Override
+    public Icon getIcon() {
+        return null;
+    }
+
+    @Override
     public boolean isLeaf() {
         return false;
     }
 
-    public Node[] getChildren() {
-        if (children == null) {
-            loadChildren();
-        }
-        return children;
-    }
-
-    private void loadChildren() {
+    @Override
+    protected Node[] loadChildren() {
         try {
             try (NBTInputStream in = new NBTInputStream(regionFile.getChunkDataInputStream(x, z))) {
                 Tag tag = in.readTag();
-                children = new Node[]{new TagNode(tag)};
+                return new Node[]{new TagNode(tag)};
             }
         } catch (IOException e) {
             throw new RuntimeException("I/O error reading from region file", e);
@@ -53,5 +60,4 @@ public class ChunkNode implements Node {
 
     private final RegionFile regionFile;
     private final int x, z;
-    private Node[] children;
 }

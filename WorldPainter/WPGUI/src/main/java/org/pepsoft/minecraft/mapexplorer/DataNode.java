@@ -4,34 +4,41 @@
  */
 package org.pepsoft.minecraft.mapexplorer;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Map;
 import org.jnbt.CompoundTag;
 import org.jnbt.ShortTag;
 import org.jnbt.Tag;
+
+import javax.swing.*;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Map;
 
 /**
  *
  * @author pepijn
  */
-public class DataNode implements Node {
+public class DataNode extends Node {
     DataNode(File dataDir) {
         this.dataDir = dataDir;
     }
 
+    @Override
+    public String getName() {
+        return "data";
+    }
+
+    @Override
+    public Icon getIcon() {
+        return null;
+    }
+
+    @Override
     public boolean isLeaf() {
         return false;
     }
 
-    public Node[] getChildren() {
-        if (children == null) {
-            loadChildren();
-        }
-        return children;
-    }
-    
-    private void loadChildren() {
+    @Override
+    protected Node[] loadChildren() {
         ArrayList<Node> myChildren = new ArrayList<>();
         File idcountsDatFile = new File(dataDir, "idcounts.dat");
         if (idcountsDatFile.isFile()) {
@@ -47,9 +54,8 @@ public class DataNode implements Node {
                 }
             }
         }
-        children = myChildren.toArray(new Node[myChildren.size()]);
+        return myChildren.toArray(new Node[myChildren.size()]);
     }
  
     private final File dataDir;
-    private Node[] children;
 }

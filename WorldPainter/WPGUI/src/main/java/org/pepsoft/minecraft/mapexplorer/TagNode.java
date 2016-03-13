@@ -5,52 +5,80 @@
 
 package org.pepsoft.minecraft.mapexplorer;
 
+import org.jnbt.*;
+
+import javax.swing.*;
+import java.text.Collator;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import org.jnbt.CompoundTag;
-import org.jnbt.ListTag;
-import org.jnbt.Tag;
 
 /**
  *
  * @author pepijn
  */
-public class TagNode implements Node {
+public class TagNode extends Node {
     TagNode(Tag tag) {
         this.tag = tag;
     }
 
-    public Tag getTag() {
-        return tag;
+    @Override
+    public String getName() {
+        StringBuilder sb = new StringBuilder();
+        String name = tag.getName();
+        if ((name != null) && (name.trim().length() > 0)) {
+            sb.append(name.trim());
+            sb.append(" (");
+        }
+        sb.append(tag.getClass().getSimpleName());
+        if ((name != null) && (name.trim().length() > 0)) {
+            sb.append(')');
+        }
+        if (tag instanceof StringTag) {
+            sb.append(": \"");
+            sb.append(tag.getValue());
+            sb.append('"');
+        } else if (tag instanceof ByteArrayTag) {
+            sb.append(": ");
+            sb.append(((ByteArrayTag) tag).getValue().length);
+            sb.append(" bytes of data");
+        } else if (tag instanceof IntArrayTag) {
+            sb.append(": ");
+            sb.append(((IntArrayTag) tag).getValue().length * 4);
+            sb.append(" bytes of data");
+        } else if (! ((tag instanceof CompoundTag) || (tag instanceof ListTag))) {
+            sb.append(": ");
+            sb.append(tag.getValue());
+        }
+        return sb.toString();
     }
 
+    @Override
+    public Icon getIcon() {
+        return null;
+    }
+
+    @Override
     public boolean isLeaf() {
         return ! ((tag instanceof CompoundTag) || (tag instanceof ListTag));
     }
 
-    public Node[] getChildren() {
-        if (children == null) {
-            loadChildren();
-        }
-        return children;
-    }
-
-    private void loadChildren() {
+    @Override
+    protected Node[] loadChildren() {
         List<Tag> tagList = new ArrayList<>();
         if (tag instanceof CompoundTag) {
             Map<String, Tag> tags = ((CompoundTag) tag).getValue();
             tagList.addAll(tags.values());
+            Collections.sort(tagList, (tag1, tag2) -> COLLATOR.compare(tag1.getName(), tag2.getName()));
         } else if (tag instanceof ListTag) {
             List<Tag> tags = ((ListTag) tag).getValue();
             tagList.addAll(tags);
         }
-        children = new Node[tagList.size()];
-        for (int i = 0; i < children.length; i++) {
-            children[i] = new TagNode(tagList.get(i));
-        }
+        return tagList.stream().map(TagNode::new).toArray(Node[]::new);
     }
 
     private final Tag tag;
-    private Node[] children;
+
+    private static final Collator COLLATOR = Collator.getInstance();
 }

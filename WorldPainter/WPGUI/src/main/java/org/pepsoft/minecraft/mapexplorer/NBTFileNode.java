@@ -5,18 +5,20 @@
 
 package org.pepsoft.minecraft.mapexplorer;
 
+import org.jnbt.NBTInputStream;
+import org.jnbt.Tag;
+
+import javax.swing.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.zip.GZIPInputStream;
-import org.jnbt.NBTInputStream;
-import org.jnbt.Tag;
 
 /**
  *
  * @author pepijn
  */
-public class NBTFileNode implements Node {
+public class NBTFileNode extends Node {
     NBTFileNode(File file) {
         this.file = file;
     }
@@ -29,11 +31,14 @@ public class NBTFileNode implements Node {
     public String getName() {
         return file.getName();
     }
-    
+
+    @Override
+    public Icon getIcon() {
+        return null;
+    }
+
     public Tag getTag() {
-        if (children == null) {
-            loadChildren();
-        }
+        getChildren(); // Trigger loading of children if necessary
         return tag;
     }
 
@@ -43,14 +48,7 @@ public class NBTFileNode implements Node {
     }
 
     @Override
-    public Node[] getChildren() {
-        if (children == null) {
-            loadChildren();
-        }
-        return children;
-    }
-
-    private void loadChildren() {
+    protected Node[] loadChildren() {
         try {
             if (compressed == null) {
                 try (FileInputStream in = new FileInputStream(file)) {
@@ -63,7 +61,7 @@ public class NBTFileNode implements Node {
             }
             try (NBTInputStream in = new NBTInputStream(compressed ? new GZIPInputStream(new FileInputStream(file)) : new FileInputStream(file))) {
                 tag = in.readTag();
-                children = new Node[]{new TagNode(tag)};
+                return new Node[]{new TagNode(tag)};
             }
         } catch (IOException e) {
             throw new RuntimeException("I/O error while reading level.dat file", e);
@@ -72,6 +70,5 @@ public class NBTFileNode implements Node {
 
     private final File file;
     private Boolean compressed;
-    private Node[] children;
     private Tag tag;
 }

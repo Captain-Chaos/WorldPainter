@@ -5,23 +5,45 @@
 
 package org.pepsoft.minecraft.mapexplorer;
 
-import java.io.File;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
+import java.io.File;
+import java.util.LinkedList;
 
 /**
  *
  * @author pepijn
  */
 public class MapTreeModel implements TreeModel {
-    public MapTreeModel(File file) {
-        rootNode = (file.getName().equalsIgnoreCase("level.dat") && new File(file.getParentFile(), "region").isDirectory() ) ? new MapRootNode(file) : new NBTFileNode(file);
+    public MapTreeModel() {
+        rootNode = new RootNode();
     }
-    
-    public MapTreeModel(File baseDir, String worldName) {
-        rootNode = new MapRootNode(baseDir, worldName);
+
+    public TreePath getPath(File dir) {
+        LinkedList<String> components = new LinkedList<>();
+        while (dir != null) {
+            components.add(0, dir.getName());
+            dir = dir.getParentFile();
+        }
+        // Components now contains the path's components in the correct order
+        Object[] path = new Object[components.size() + 1];
+        path[0] = rootNode;
+        Node node = rootNode;
+        int index = 1;
+        for (String component: components) {
+            for (Node childNode: node.getChildren()) {
+                if (childNode.getName().equals(component)) {
+                    path[index++] = childNode;
+                    node = childNode;
+                    break;
+                }
+            }
+        }
+        return new TreePath(path);
     }
+
+    // TreeModel
 
     @Override
     public Object getRoot() {

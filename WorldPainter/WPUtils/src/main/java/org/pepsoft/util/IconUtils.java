@@ -4,6 +4,7 @@
  */
 package org.pepsoft.util;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
@@ -66,5 +67,21 @@ public final class IconUtils {
             }
         }
         return new ImageIcon(image);
+    }
+
+    public static Icon scaleIcon(Icon icon, int size) {
+        return new ImageIcon(scaleIcon(((ImageIcon) icon).getImage(), size));
+    }
+
+    public static BufferedImage scaleIcon(Image iconImage, int size) {
+        BufferedImage newImage = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = newImage.createGraphics();
+        try {
+            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+            g2.drawImage(iconImage, 0, 0, size, size, null);
+            return newImage;
+        } finally {
+            g2.dispose();
+        }
     }
 }
