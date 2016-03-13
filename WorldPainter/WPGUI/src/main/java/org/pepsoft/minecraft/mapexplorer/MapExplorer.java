@@ -39,23 +39,23 @@ public class MapExplorer {
             tree.addTreeExpansionListener(new TreeExpansionListener() {
                 @Override
                 public void treeExpanded(TreeExpansionEvent event) {
-                    if (programmatiChange) {
+                    if (programmaticChange) {
                         return;
                     }
                     Object node = event.getPath().getLastPathComponent();
                     if ((! treeModel.isLeaf(node)) && (treeModel.getChildCount(node) == 1)) {
-                        programmatiChange = true;
+                        programmaticChange = true;
                         try {
                             tree.expandPath(event.getPath().pathByAddingChild(treeModel.getChild(node, 0)));
                         } finally {
-                            programmatiChange = false;
+                            programmaticChange = false;
                         }
                     }
                 }
 
                 @Override public void treeCollapsed(TreeExpansionEvent event) {}
 
-                private boolean programmatiChange;
+                private boolean programmaticChange;
             });
             frame.getContentPane().add(scrollPane, BorderLayout.CENTER);
             frame.setSize(1024, 768);
