@@ -300,8 +300,23 @@ public final class Constants {
     public static final int BLK_JUNGLE_WOOD_DOOR          = 195;
     public static final int BLK_ACACIA_WOOD_DOOR          = 196;
     public static final int BLK_DARK_OAK_WOOD_DOOR        = 197;
+    public static final int BLK_END_ROD                   = 198;
+    public static final int BLK_CHORUS_PLANT              = 199;
+    public static final int BLK_CHORUS_FLOWER             = 200;
+    public static final int BLK_PURPUR_BLOCK              = 201;
+    public static final int BLK_PURPUR_PILLAR             = 202;
+    public static final int BLK_PURPUR_STAIRS             = 203;
+    public static final int BLK_DOUBLE_PURPUR_SLAB        = 204;
+    public static final int BLK_PURPUR_SLAB               = 205;
+    public static final int BLK_END_BRICKS                = 206;
+    public static final int BLK_BEETROOTS                 = 207;
+    public static final int BLK_GRASS_PATH                = 208;
+    public static final int BLK_END_GATEWAY               = 209;
+    public static final int BLK_REPEATING_COMMAND_BLOCK   = 210;
+    public static final int BLK_CHAIN_COMMAND_BLOCK       = 211;
+    public static final int BLK_FROSTED_ICE               = 212;
 
-    public static final int HIGHEST_KNOWN_BLOCK_ID = BLK_DARK_OAK_WOOD_DOOR;
+    public static final int HIGHEST_KNOWN_BLOCK_ID = BLK_FROSTED_ICE;
 
     public static final int DATA_OAK      = 0;
     public static final int DATA_PINE     = 1;
