@@ -42,6 +42,7 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
         final int tileY1 = exportedArea.y >> TILE_SIZE_BITS, tileY2 = (exportedArea.y + exportedArea.height - 1) >> TILE_SIZE_BITS;
         final int maxY = minecraftWorld.getMaxHeight() - 1;
         final boolean generateTilledDirt = layer.isGenerateTilledDirt();
+        final boolean blockRulesEnforced = ! "false".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.enforceBlockRules"));
         final Bo2ObjectProvider objectProvider = layer.getObjectProvider();
         for (int tileX = tileX1; tileX <= tileX2; tileX++) {
             for (int tileY = tileY1; tileY <= tileY2; tileY++) {
@@ -61,19 +62,29 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
                                 final int worldX = (tileX << TILE_SIZE_BITS) | x, worldY = (tileY << TILE_SIZE_BITS) | y;
                                 final Plant plant = (Plant) objectProvider.getObject();
                                 if (plant.getCategory() == Plant.Category.WATER_PLANTS) {
-                                    if (plant.isValidFoundation(minecraftWorld, worldX, worldY, height)) {
+                                    if ((! blockRulesEnforced) || plant.isValidFoundation(minecraftWorld, worldX, worldY, height)) {
                                         possiblyRenderWaterPlant(minecraftWorld, dimension, plant, worldX, worldY, height + 1);
                                     }
                                 } else {
                                     if (tile.getIntHeight(x, y) >= tile.getWaterLevel(x, y)) {
-                                        if (plant.isValidFoundation(minecraftWorld, worldX, worldY, height)) {
+                                        if (! blockRulesEnforced) {
                                             renderObject(minecraftWorld, dimension, plant, worldX, worldY, height + 1, false);
-                                        } else if (generateTilledDirt
-                                                && (plant.getCategory() == Plant.Category.CROPS)
-                                                && ((minecraftWorld.getBlockTypeAt(worldX, worldY, height) == Constants.BLK_GRASS)
+                                            if (generateTilledDirt
+                                                    && (plant.getCategory() == Plant.Category.CROPS)
+                                                    && ((minecraftWorld.getBlockTypeAt(worldX, worldY, height) == Constants.BLK_GRASS)
                                                     || (minecraftWorld.getBlockTypeAt(worldX, worldY, height) == Constants.BLK_DIRT))) {
-                                            minecraftWorld.setMaterialAt(worldX, worldY, height, TILLED_DIRT);
-                                            renderObject(minecraftWorld, dimension, plant, worldX, worldY, height + 1, false);
+                                                minecraftWorld.setMaterialAt(worldX, worldY, height, TILLED_DIRT);
+                                            }
+                                        } else {
+                                            if (plant.isValidFoundation(minecraftWorld, worldX, worldY, height)) {
+                                                renderObject(minecraftWorld, dimension, plant, worldX, worldY, height + 1, false);
+                                            } else if (generateTilledDirt
+                                                    && (plant.getCategory() == Plant.Category.CROPS)
+                                                    && ((minecraftWorld.getBlockTypeAt(worldX, worldY, height) == Constants.BLK_GRASS)
+                                                    || (minecraftWorld.getBlockTypeAt(worldX, worldY, height) == Constants.BLK_DIRT))) {
+                                                minecraftWorld.setMaterialAt(worldX, worldY, height, TILLED_DIRT);
+                                                renderObject(minecraftWorld, dimension, plant, worldX, worldY, height + 1, false);
+                                            }
                                         }
                                     }
                                 }

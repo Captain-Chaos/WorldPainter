@@ -39,6 +39,9 @@ public class PostProcessor {
      * threw an <code>OperationCancelled</code> exception.
      */
     public static void postProcess(MinecraftWorld minecraftWorld, Rectangle area, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
+        if (! enabled) {
+            return;
+        }
         int x1 = area.x;
         int y1 = area.y;
         int x2 = x1 + area.width - 1, y2 = y1 + area.height - 1;
@@ -198,6 +201,21 @@ public class PostProcessor {
                                 blockType = BLK_AIR;
                             }
                             break;
+                        case BLK_NETHER_WART:
+                            if (blockTypeBelow != BLK_SOUL_SAND) {
+                                // Nether wart blocks can only be on top of soul sand
+                                minecraftWorld.setMaterialAt(x, y, z, Material.AIR);
+                                blockType = BLK_AIR;
+                            }
+                            break;
+                        case BLK_CHORUS_FLOWER:
+                        case BLK_CHORUS_PLANT:
+                            if ((blockTypeBelow != BLK_END_STONE) && (blockTypeBelow != BLK_CHORUS_PLANT)) {
+                                // Chorus flower and plant blocks can only be on top of end stone or other chorus plant blocks
+                                minecraftWorld.setMaterialAt(x, y, z, Material.AIR);
+                                blockType = BLK_AIR;
+                            }
+                            break;
                     }
                     blockTypeBelow = blockType;
                 }
@@ -208,6 +226,13 @@ public class PostProcessor {
         }
     }
 
+    private static final boolean enabled = ! "false".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.enforceBlockRules"));
     private static final boolean supportSand = ! "false".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.supportSand"));
     private static final Logger logger = LoggerFactory.getLogger(PostProcessor.class);
+
+    static {
+        if (! enabled) {
+            logger.warn("Block rule enforcement disabled");
+        }
+    }
 }
