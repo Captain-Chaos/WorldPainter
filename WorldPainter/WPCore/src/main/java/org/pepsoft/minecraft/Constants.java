@@ -500,7 +500,7 @@ public final class Constants {
         TILE_ENTITY_MAP.put(ID_CAULDRON, Collections.singleton(BLK_BREWING_STAND));
         TILE_ENTITY_MAP.put(ID_CHEST, Collections.unmodifiableSet(new HashSet<>(Arrays.asList(BLK_CHEST, BLK_TRAPPED_CHEST))));
         TILE_ENTITY_MAP.put(ID_COMPARATOR, Collections.unmodifiableSet(new HashSet<>(Arrays.asList(BLK_REDSTONE_COMPARATOR_UNPOWERED, BLK_REDSTONE_COMPARATOR_POWERED))));
-        TILE_ENTITY_MAP.put(ID_CONTROL, Collections.singleton(BLK_COMMAND_BLOCK));
+        TILE_ENTITY_MAP.put(ID_CONTROL, Collections.unmodifiableSet(new HashSet<>(Arrays.asList(BLK_COMMAND_BLOCK, BLK_CHAIN_COMMAND_BLOCK, BLK_REPEATING_COMMAND_BLOCK))));
         TILE_ENTITY_MAP.put(ID_DLDETECTOR, Collections.unmodifiableSet(new HashSet<>(Arrays.asList(BLK_DAYLIGHT_SENSOR, BLK_DAYLIGHT_SENSOR_INVERTED))));
         TILE_ENTITY_MAP.put(ID_DROPPER, Collections.singleton(BLK_DROPPER));
         TILE_ENTITY_MAP.put(ID_ENCHANTTABLE, Collections.singleton(BLK_ENCHANTMENT_TABLE));

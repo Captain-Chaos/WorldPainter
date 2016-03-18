@@ -1316,6 +1316,11 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                     if ((newChunk.getBlockType(x, newHeight, z) == BLK_DIRT) && (existingChunk.getBlockType(x, oldHeight, z) == BLK_TILLED_DIRT)) {
                         newChunk.setMaterial(x, newHeight, z, existingChunk.getMaterial(x, oldHeight, z));
                     }
+                    // Frosted ice is imported as water, so make sure to leave
+                    // it intact
+                    if ((newChunk.getBlockType(x, newHeight, z) == BLK_STATIONARY_WATER) && (existingChunk.getBlockType(x, oldHeight, z) == BLK_FROSTED_ICE)) {
+                        newChunk.setMaterial(x, newHeight, z, existingChunk.getMaterial(x, oldHeight, z));
+                    }
                     final int blockX = chunkX + x, blockZ = chunkZ + z;
                     for (Entity entity: existingChunk.getEntities()) {
                         final double[] pos = entity.getPos();

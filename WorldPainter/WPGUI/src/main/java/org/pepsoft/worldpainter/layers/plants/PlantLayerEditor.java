@@ -25,6 +25,7 @@ import java.util.SortedMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import static org.pepsoft.worldpainter.layers.plants.Plant.Category.*;
 import static org.pepsoft.worldpainter.util.I18nHelper.m;
 
 /**
@@ -137,28 +138,43 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
     private void initPlantControls() {
         panelPlantControls.setLayout(new GridBagLayout());
         panelPlantControls2.setLayout(new GridBagLayout());
-        JPanel panel = panelPlantControls;
-        Plant.Category category = Plant.ALL_PLANTS[0].getCategory();
-        startNewCategory(panel, category);
-        for (int i = 0; i < Plant.ALL_PLANTS.length; i++) {
-            Plant plant = Plant.ALL_PLANTS[i];
-            if (plant.getCategory() != category) {
-                category = plant.getCategory();
-                panel = panelPlantControls2;
-                startNewCategory(panel, category);
-            }
-            addPlantRow(panel, plant, i);
-        }
+        addCategory(panelPlantControls, PLANTS_AND_FLOWERS);
+        addCategory(panelPlantControls2, SAPLINGS);
+        addCategory(panelPlantControls2, CROPS);
+        addCategory(panelPlantControls2, "Various", MUSHROOMS, CACTUS, SUGAR_CANE, WATER_PLANTS, NETHER, END);
     }
-    
-    private void startNewCategory(JPanel panel, Plant.Category category) {
+
+    private void addCategory(JPanel panel, Plant.Category category) {
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.gridwidth = GridBagConstraints.REMAINDER;
         constraints.anchor = GridBagConstraints.BASELINE_LEADING;
         constraints.insets = new Insets(4, 0, 4, 0);
         panel.add(new JLabel("<html><b>" + m(category) + "</b></html>"), constraints);
+        for (int i = 0; i < Plant.ALL_PLANTS.length; i++) {
+            Plant plant = Plant.ALL_PLANTS[i];
+            if (plant.getCategory() == category) {
+                addPlantRow(panel, plant, i);
+            }
+        }
     }
-    
+
+
+    private void addCategory(JPanel panel, String title, Plant.Category... categories) {
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
+        constraints.anchor = GridBagConstraints.BASELINE_LEADING;
+        constraints.insets = new Insets(4, 0, 4, 0);
+        panel.add(new JLabel("<html><b>" + title + "</b></html>"), constraints);
+        for (Plant.Category category: categories) {
+            for (int i = 0; i < Plant.ALL_PLANTS.length; i++) {
+                Plant plant = Plant.ALL_PLANTS[i];
+                if (plant.getCategory() == category) {
+                    addPlantRow(panel, plant, i);
+                }
+            }
+        }
+    }
+
     private void addPlantRow(final JPanel panel, final Plant plant, final int index) {
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.anchor = GridBagConstraints.BASELINE_LEADING;
@@ -274,7 +290,7 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
                     percentageLabels[i].setEnabled(true);
                     plantLabels[i].setFont(boldFont);
                 }
-                if (Plant.ALL_PLANTS[i].getCategory() == Plant.Category.CROPS) {
+                if (Plant.ALL_PLANTS[i].getCategory() == CROPS) {
                     cropsSelected = true;
                 }
                 int percentage = value * 100 / totalOccurrence;

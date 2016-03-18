@@ -39,6 +39,8 @@ public final class Plant implements WPObject {
             } else {
                 this.material = Material.get(material.blockType, maxGrowth);
             }
+        } else if (category == Category.NETHER) {
+            this.material = Material.get(BLK_NETHER_WART, maxGrowth + ((maxGrowth > 0) ? 1 : 0));
         } else {
             this.material = material;
         }
@@ -71,6 +73,10 @@ public final class Plant implements WPObject {
                 } else {
                     material = Material.get(plant.material.blockType, growth);
                 }
+                dimensions = plant.dimensions;
+                break;
+            case NETHER:
+                material = Material.get(BLK_NETHER_WART, growth + ((growth > 0) ? 1 : 0));
                 dimensions = plant.dimensions;
                 break;
             default:
@@ -126,6 +132,10 @@ public final class Plant implements WPObject {
                 // the exporter will check for the water surface
                 final int blockAbove = world.getBlockTypeAt(x, y, height + 1);
                 return (blockAbove == BLK_WATER) || (blockAbove == BLK_STATIONARY_WATER);
+            case NETHER:
+                return blockType == BLK_SOUL_SAND;
+            case END:
+                return (blockType == BLK_END_STONE) || (blockType == BLK_CHORUS_PLANT);
             default:
                 throw new InternalError();
         }
@@ -287,13 +297,18 @@ public final class Plant implements WPObject {
     public static final Plant POTATOES      = new Plant("Potatoes",      Material.get(BLK_POTATOES),     1, 3, CROPS, "items/potato.png");
     public static final Plant PUMPKIN_STEMS = new Plant("Pumpkin Stems", Material.get(BLK_PUMPKIN_STEM), 1, 7, CROPS, "blocks/pumpkin_side.png");
     public static final Plant MELON_STEMS   = new Plant("Melon Stems",   Material.get(BLK_MELON_STEM),   1, 7, CROPS, "blocks/melon_side.png");
-    
+    public static final Plant BEETROOTS     = new Plant("Beetroots",     Material.get(BLK_BEETROOTS),    1, 3, CROPS, "items/beetroot.png");
+
     public static final Plant CACTUS = new Plant("Cactus", Material.CACTUS, 3, 2, Category.CACTUS, "blocks/cactus_side.png");
 
     public static final Plant SUGAR_CANE = new Plant("Sugar Cane", Material.SUGAR_CANE, 3, 2, Category.SUGAR_CANE, "items/reeds.png");
 
     public static final Plant LILY_PAD = new Plant("Lily Pad", Material.LILY_PAD, 1, 0, Category.WATER_PLANTS, "blocks/waterlily.png");
-    
+
+    public static final Plant NETHER_WART = new Plant("Nether Wart", Material.get(BLK_NETHER_WART), 1, 2, Category.NETHER, "items/nether_wart.png");
+
+    public static final Plant CHORUS_PLANT = new Plant("Chorus Plant", Material.get(BLK_CHORUS_FLOWER), 1, 0, Category.END, "blocks/chorus_flower.png");
+
     // TODO: nether wart?
     
     // The code which uses this assumes there will never be more than 128
@@ -306,7 +321,8 @@ public final class Plant implements WPObject {
         OXEYE_DAISY, SUNFLOWER, LILAC, ROSE_BUSH, PEONY, SAPLING_OAK,
         SAPLING_DARK_OAK, SAPLING_PINE, SAPLING_BIRCH, SAPLING_JUNGLE,
         SAPLING_ACACIA, MUSHROOM_RED, MUSHROOM_BROWN, WHEAT, CARROTS, POTATOES,
-        PUMPKIN_STEMS, MELON_STEMS, CACTUS, SUGAR_CANE, LILY_PAD};
+        PUMPKIN_STEMS, MELON_STEMS, CACTUS, SUGAR_CANE, LILY_PAD, BEETROOTS,
+        NETHER_WART, CHORUS_PLANT};
     
-    public enum Category {PLANTS_AND_FLOWERS, SAPLINGS, MUSHROOMS, CROPS, SUGAR_CANE, CACTUS, WATER_PLANTS}
+    public enum Category {PLANTS_AND_FLOWERS, SAPLINGS, MUSHROOMS, CROPS, SUGAR_CANE, CACTUS, WATER_PLANTS, NETHER, END}
 }

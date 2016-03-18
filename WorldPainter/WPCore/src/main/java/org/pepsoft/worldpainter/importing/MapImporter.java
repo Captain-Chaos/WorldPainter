@@ -331,7 +331,7 @@ public class MapImporter {
                                                 if ((blockType == BLK_SNOW) || (blockType == BLK_ICE)) {
                                                     frost = true;
                                                 }
-                                                if (((blockType == BLK_ICE) || (((blockType == BLK_STATIONARY_WATER) || (blockType == BLK_WATER) || (blockType == BLK_STATIONARY_LAVA) || (blockType == BLK_LAVA)) && (data == 0))) && (waterLevel == 0)) {
+                                                if (((blockType == BLK_ICE) || (blockType == BLK_FROSTED_ICE) || (((blockType == BLK_STATIONARY_WATER) || (blockType == BLK_WATER) || (blockType == BLK_STATIONARY_LAVA) || (blockType == BLK_LAVA)) && (data == 0))) && (waterLevel == 0)) {
                                                     waterLevel = y;
                                                     if ((blockType == BLK_LAVA) || (blockType == BLK_STATIONARY_LAVA)) {
                                                         floodWithLava = true;
@@ -477,6 +477,7 @@ public class MapImporter {
         TERRAIN_MAPPING.put(BLK_END_STONE, Terrain.END_STONE);
         TERRAIN_MAPPING.put(BLK_HARDENED_CLAY, Terrain.HARDENED_CLAY);
         TERRAIN_MAPPING.put(BLK_RED_SANDSTONE, Terrain.RED_SANDSTONE);
+        TERRAIN_MAPPING.put(BLK_GRASS_PATH, Terrain.GRASS_PATH);
 
         SPECIAL_TERRAIN_MAPPING.put(Material.RED_SAND, Terrain.RED_SAND);
         SPECIAL_TERRAIN_MAPPING.put(Material.PERMADIRT, Terrain.PERMADIRT);

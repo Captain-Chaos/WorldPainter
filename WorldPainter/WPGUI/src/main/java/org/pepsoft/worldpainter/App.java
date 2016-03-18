@@ -2613,8 +2613,8 @@ public final class App extends JFrame implements RadiusControl,
         terrainPanel.add(createTerrainButton(GRASS));
         terrainPanel.add(createTerrainButton(PERMADIRT));
         terrainPanel.add(createTerrainButton(SAND));
-        terrainPanel.add(createTerrainButton(DESERT));
-        
+        terrainPanel.add(createTerrainButton(GRASS_PATH));
+
         terrainPanel.add(createTerrainButton(BARE_GRASS));
         terrainPanel.add(createTerrainButton(STONE));
         terrainPanel.add(createTerrainButton(ROCK));
@@ -2643,8 +2643,8 @@ public final class App extends JFrame implements RadiusControl,
         terrainPanel.add(createTerrainButton(END_STONE));
         terrainPanel.add(createTerrainButton(BEDROCK));
         terrainPanel.add(createTerrainButton(CLAY));
-        terrainPanel.add(createTerrainButton(BEACHES));
-        
+        terrainPanel.add(createTerrainButton(DESERT));
+
         terrainPanel.add(createTerrainButton(RED_SAND));
         terrainPanel.add(createTerrainButton(RED_SANDSTONE));
         terrainPanel.add(createTerrainButton(RED_DESERT));
@@ -2671,6 +2671,7 @@ public final class App extends JFrame implements RadiusControl,
         terrainPanel.add(createTerrainButton(BLACK_STAINED_CLAY));
 
         terrainPanel.add(createTerrainButton(HARDENED_CLAY));
+        terrainPanel.add(createTerrainButton(BEACHES));
 
         return terrainPanel;
     }

@@ -541,7 +541,7 @@ public enum Terrain {
     },
     MYCELIUM("Mycelium", BLK_MYCELIUM, BLK_DIRT,          "mycelium", BIOME_MUSHROOM_ISLAND),
     END_STONE("End Stone", BLK_END_STONE, BLK_END_STONE,  "end stone", BIOME_SKY),
-    BARE_GRASS("Bare Grass", BLK_GRASS, BLK_GRASS,         "bare grass (no flowers, etc.)", BIOME_PLAINS),
+    BARE_GRASS("Bare Grass", BLK_GRASS, BLK_GRASS,        "bare grass (no flowers, etc.)", BIOME_PLAINS),
     CUSTOM_6("Custom 6",                                  "custom material six", BIOME_PLAINS) {
         @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
@@ -1665,7 +1665,8 @@ public enum Terrain {
         @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(47);
-    };
+    },
+    GRASS_PATH("Grass Path", BLK_GRASS_PATH, BLK_GRASS, "grass path", BIOME_PLAINS);
 
     Terrain(String name, String description, int defaultBiome) {
         this(name, Material.STONE, Material.STONE, AIR, description, defaultBiome);
@@ -1956,7 +1957,9 @@ public enum Terrain {
         Terrain.CUSTOM_45,
         Terrain.CUSTOM_46,
         Terrain.CUSTOM_47,
-        Terrain.CUSTOM_48
+        Terrain.CUSTOM_48,
+
+        Terrain.GRASS_PATH
     };
 
     /**
@@ -1967,6 +1970,7 @@ public enum Terrain {
     public static final Terrain[] PICK_LIST = {
         Terrain.GRASS,
         Terrain.BARE_GRASS,
+        Terrain.GRASS_PATH,
         Terrain.DIRT,
         Terrain.PERMADIRT,
         Terrain.PODZOL,
@@ -1974,8 +1978,8 @@ public enum Terrain {
         Terrain.RED_SAND,
         Terrain.DESERT,
         Terrain.RED_DESERT,
-        Terrain.MESA,
 
+        Terrain.MESA,
         Terrain.HARDENED_CLAY,
         Terrain.SANDSTONE,
         Terrain.RED_SANDSTONE,
@@ -1985,8 +1989,8 @@ public enum Terrain {
         Terrain.DIORITE,
         Terrain.ANDESITE,
         Terrain.ROCK,
-        Terrain.COBBLESTONE,
 
+        Terrain.COBBLESTONE,
         Terrain.MOSSY_COBBLESTONE,
         Terrain.OBSIDIAN,
         Terrain.BEDROCK,
@@ -1996,8 +2000,8 @@ public enum Terrain {
         Terrain.WATER,
         Terrain.LAVA,
         Terrain.DEEP_SNOW,
-        Terrain.NETHERRACK,
 
+        Terrain.NETHERRACK,
         Terrain.SOUL_SAND,
         Terrain.NETHERLIKE,
         Terrain.MYCELIUM,
@@ -2007,8 +2011,8 @@ public enum Terrain {
         Terrain.MAGENTA_STAINED_CLAY,
         Terrain.LIGHT_BLUE_STAINED_CLAY,
         Terrain.YELLOW_STAINED_CLAY,
-        Terrain.LIME_STAINED_CLAY,
 
+        Terrain.LIME_STAINED_CLAY,
         Terrain.PINK_STAINED_CLAY,
         Terrain.GREY_STAINED_CLAY,
         Terrain.LIGHT_GREY_STAINED_CLAY,
@@ -2018,6 +2022,7 @@ public enum Terrain {
         Terrain.BROWN_STAINED_CLAY,
         Terrain.GREEN_STAINED_CLAY,
         Terrain.RED_STAINED_CLAY,
+
         Terrain.BLACK_STAINED_CLAY
     };
 }

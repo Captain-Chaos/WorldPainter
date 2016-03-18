@@ -47,6 +47,7 @@ public final class Material implements Serializable, Comparable<Material> {
             case BLK_ACACIA_WOOD_STAIRS:
             case BLK_DARK_OAK_WOOD_STAIRS:
             case BLK_RED_SANDSTONE_STAIRS:
+            case BLK_PURPUR_STAIRS:
                 switch (data & 0x03) {
                     case 0:
                         return Direction.EAST;

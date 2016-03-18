@@ -7,6 +7,8 @@ package org.pepsoft.util;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -95,7 +97,12 @@ public class Version implements Comparable<Version>, Serializable {
         }
         return true;
     }
-    
+
+    @Override
+    public String toString() {
+        return Arrays.stream(parts).mapToObj(Integer::toString).collect(Collectors.joining("."));
+    }
+
     private final int[] parts;
 
     private static final long serialVersionUID = 1L;

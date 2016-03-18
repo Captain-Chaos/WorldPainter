@@ -570,6 +570,10 @@
 196 161 93 58 183 128 74 46 183 80 46 29 183 64 37 23 183
 197 69 47 25 255 55 37 20 255 34 23 12 255 27 18 10 255
 
+# Temporarily use podzol colour for grass path, until an updated version of the
+# colour scheme has been obtained
+208 159 114 98 255 127 91 78 255 79 57 49 255 63 45 39 255
+
 Biome Mapping
 [RAINFOREST]	49	67	21	255	39	54	17	255	25	34	11	255	20	27	8	255
 [SWAMPLAND]	64	128	0	255	51	102	0	255	32	64	0	255	26	51	0	255
