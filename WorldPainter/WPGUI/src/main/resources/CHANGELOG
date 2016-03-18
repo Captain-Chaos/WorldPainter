@@ -1,5 +1,8 @@
--- Version 2.2.0, released ...
+-- Version 2.2.0, released 18-3-2016
 
+ * Added support for the new 1.9 block types
+   + New terrain type: Grass Path
+   + New plant types for Custom Plant layers: Chorus Flower, Beetroots and Nether Wart
  * Height maps can now be imported into existing worlds, and into other dimensions than the surface
    + Select Edit -> Import -> Height map into current dimension... to do so
    + You can adjust the scale and offset to import the height map into the desired location in your existing world
@@ -22,6 +25,7 @@
      - Where the image is transparent the annotation will not be set
      - Otherwise the annotation will be set to the closest colour
      - No dithering is applied
+ * Support the Minecraft 1.9 jar for calculating the Minecraft biomes
  * Worlds can now be exported as a high res (16-bit) height map. Choose File -> Export -> Export as high resolution height map... to do so. This allows you to scale it outside of WorldPainter and create a new world from the scaled height map without losing WorldPainter's high internal precision which allows smooth editing, Smooth Snow to work, etc.. Note that this is not available if the world is higher than 256 blocks
  * Bug fix: correct the default ordering of Custom Ground Cover layers so that thicker layers once again export before thinner layers
  * Bug fix: make exporting the 3D view as an image work again on Mac OS X
