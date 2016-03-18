@@ -7,7 +7,7 @@ import org.dynmap.utils.VisibilityLimit;
 import org.pepsoft.worldpainter.objects.WPObject;
 
 /**
- * Implementation of {@link MapChunkCache} used y {@link WPObjectDynmapWorld}.
+ * Implementation of {@link MapChunkCache} used by {@link WPObjectDynmapWorld}.
  *
  * <p>Created by Pepijn Schmitz on 09-06-15.
  */
