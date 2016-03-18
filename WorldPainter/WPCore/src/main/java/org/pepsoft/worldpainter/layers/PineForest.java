@@ -5,15 +5,16 @@
 
 package org.pepsoft.worldpainter.layers;
 
-import java.util.Random;
 import org.pepsoft.worldpainter.layers.trees.PineTree;
 import org.pepsoft.worldpainter.layers.trees.TreeType;
+
+import java.util.Random;
 
 /**
  *
  * @author pepijn
  */
-public class PineForest extends TreeLayer<PineForest> {
+public class PineForest extends TreeLayer {
     private PineForest() {
         super("Pine", "a pine forest", 41, 'n');
     }

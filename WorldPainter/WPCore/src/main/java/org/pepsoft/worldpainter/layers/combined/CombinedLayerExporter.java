@@ -4,29 +4,18 @@
  */
 package org.pepsoft.worldpainter.layers.combined;
 
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.RODelegatingDimension;
 import org.pepsoft.worldpainter.RODelegatingTile;
 import org.pepsoft.worldpainter.Tile;
-import org.pepsoft.worldpainter.exporting.AbstractLayerExporter;
-import org.pepsoft.worldpainter.exporting.FirstPassLayerExporter;
-import org.pepsoft.worldpainter.exporting.Fixup;
-import org.pepsoft.worldpainter.exporting.LayerExporter;
-import org.pepsoft.worldpainter.exporting.MinecraftWorld;
-import org.pepsoft.worldpainter.exporting.SecondPassLayerExporter;
+import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.layers.CombinedLayer;
 import org.pepsoft.worldpainter.layers.Layer;
+
+import java.awt.*;
+import java.util.*;
+import java.util.List;
 
 // ***************
 // * NOT IN USE! *
@@ -36,28 +25,28 @@ import org.pepsoft.worldpainter.layers.Layer;
  *
  * @author pepijn
  */
-public class CombinedLayerExporter extends AbstractLayerExporter<CombinedLayer> implements FirstPassLayerExporter<CombinedLayer>, SecondPassLayerExporter<CombinedLayer> {
+public class CombinedLayerExporter extends AbstractLayerExporter<CombinedLayer> implements FirstPassLayerExporter, SecondPassLayerExporter {
     public CombinedLayerExporter(CombinedLayer combinedLayer) {
         super(combinedLayer);
-        List<FirstPassLayerExporter<?>> firstPassList = new ArrayList<>();
-        List<SecondPassLayerExporter<?>> secondPassList = new ArrayList<>();
+        List<FirstPassLayerExporter> firstPassList = new ArrayList<>();
+        List<SecondPassLayerExporter> secondPassList = new ArrayList<>();
         for (Layer layer: combinedLayer.getLayers()) {
-            LayerExporter<?> exporter = layer.getExporter();
+            LayerExporter exporter = layer.getExporter();
             if (exporter instanceof FirstPassLayerExporter) {
-                firstPassList.add((FirstPassLayerExporter<?>) exporter);
+                firstPassList.add((FirstPassLayerExporter) exporter);
             }
             if (exporter instanceof SecondPassLayerExporter) {
-                secondPassList.add((SecondPassLayerExporter<?>) exporter);
+                secondPassList.add((SecondPassLayerExporter) exporter);
             }
         }
-        firstPassExporters = firstPassList.toArray(new FirstPassLayerExporter<?>[firstPassList.size()]);
-        secondPassExporters = secondPassList.toArray(new SecondPassLayerExporter<?>[secondPassList.size()]);
+        firstPassExporters = firstPassList.toArray(new FirstPassLayerExporter[firstPassList.size()]);
+        secondPassExporters = secondPassList.toArray(new SecondPassLayerExporter[secondPassList.size()]);
     }
 
     @Override
     public void render(Dimension dimension, Tile tile, Chunk chunk) {
         if (tile.hasLayer(layer)) {
-            for (FirstPassLayerExporter<?> exporter: firstPassExporters) {
+            for (FirstPassLayerExporter exporter: firstPassExporters) {
                 final Layer exporterLayer = exporter.getLayer();
                 float factor = layer.getFactors().get(exporterLayer);
                 exporter.render(new MappingDimension(dimension, layer, exporterLayer, factor), new MappingTile(tile, layer, exporterLayer, factor), chunk);
@@ -68,7 +57,7 @@ public class CombinedLayerExporter extends AbstractLayerExporter<CombinedLayer> 
     @Override
     public List<Fixup> render(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
         final List<Fixup> fixups = new ArrayList<>();
-        for (SecondPassLayerExporter<?> exporter: secondPassExporters) {
+        for (SecondPassLayerExporter exporter: secondPassExporters) {
             final Layer exporterLayer = exporter.getLayer();
             float factor = layer.getFactors().get(exporterLayer);
             List<Fixup> layerFixups = exporter.render(new MappingDimension(dimension, layer, exporterLayer, factor), area, exportedArea, minecraftWorld);
@@ -79,8 +68,8 @@ public class CombinedLayerExporter extends AbstractLayerExporter<CombinedLayer> 
         return fixups.isEmpty() ? null : fixups;
     }
     
-    private final FirstPassLayerExporter<?>[] firstPassExporters;
-    private final SecondPassLayerExporter<?>[] secondPassExporters;
+    private final FirstPassLayerExporter[] firstPassExporters;
+    private final SecondPassLayerExporter[] secondPassExporters;
     
     static class MappingTile extends RODelegatingTile {
         public MappingTile(Tile tile, CombinedLayer from, Layer to, float factor) {

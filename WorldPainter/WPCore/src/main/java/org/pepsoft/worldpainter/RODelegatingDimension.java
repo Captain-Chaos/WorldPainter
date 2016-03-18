@@ -4,15 +4,6 @@
  */
 package org.pepsoft.worldpainter;
 
-import java.awt.Point;
-import java.beans.PropertyChangeListener;
-import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.undo.UndoManager;
@@ -20,6 +11,12 @@ import org.pepsoft.worldpainter.biomeschemes.CustomBiome;
 import org.pepsoft.worldpainter.gardenofeden.Garden;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
+
+import java.awt.*;
+import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.util.*;
+import java.util.List;
 
 /**
  *
@@ -532,7 +529,7 @@ public class RODelegatingDimension extends Dimension {
     }
 
     @Override
-    public <L extends Layer> ExporterSettings<L> getLayerSettings(L layer) {
+    public ExporterSettings getLayerSettings(Layer layer) {
         throw new UnsupportedOperationException();
     }
 

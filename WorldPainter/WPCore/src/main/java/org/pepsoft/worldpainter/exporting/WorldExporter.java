@@ -15,6 +15,7 @@ import org.pepsoft.worldpainter.gardenofeden.GardenExporter;
 import org.pepsoft.worldpainter.gardenofeden.Seed;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.CombinedLayer;
+import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.GardenCategory;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.util.FileInUseException;
@@ -35,7 +36,6 @@ import java.util.concurrent.TimeUnit;
 import static org.pepsoft.minecraft.Block.BLOCKS;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
-import org.pepsoft.worldpainter.layers.CustomLayer;
 
 /**
  *
@@ -213,7 +213,7 @@ public class WorldExporter {
         return stats;
     }
     
-    protected ExportResults firstPass(MinecraftWorld minecraftWorld, Dimension dimension, Point regionCoords, Map<Point, Tile> tiles, boolean tileSelection, Map<Layer, LayerExporter<Layer>> exporters, ChunkFactory chunkFactory, boolean ceiling, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled, IOException {
+    protected ExportResults firstPass(MinecraftWorld minecraftWorld, Dimension dimension, Point regionCoords, Map<Point, Tile> tiles, boolean tileSelection, Map<Layer, LayerExporter> exporters, ChunkFactory chunkFactory, boolean ceiling, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled, IOException {
         if (logger.isDebugEnabled()) {
             logger.debug("Start of first pass for region {},{}", regionCoords.x, regionCoords.y);
         }
@@ -293,7 +293,7 @@ public class WorldExporter {
         }
     }
     
-    protected List<Fixup> secondPass(List<Layer> secondaryPassLayers, Dimension dimension, MinecraftWorld minecraftWorld, Map<Layer, LayerExporter<Layer>> exporters, Collection<Tile> tiles, Point regionCoords, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
+    protected List<Fixup> secondPass(List<Layer> secondaryPassLayers, Dimension dimension, MinecraftWorld minecraftWorld, Map<Layer, LayerExporter> exporters, Collection<Tile> tiles, Point regionCoords, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
         // Apply other secondary pass layers
         if (logger.isDebugEnabled()) {
             logger.debug("Start of second pass for region {},{}", regionCoords.x, regionCoords.y);
@@ -309,7 +309,7 @@ public class WorldExporter {
 //                continue;
 //            }
             @SuppressWarnings("unchecked")
-            SecondPassLayerExporter<Layer> exporter = (SecondPassLayerExporter<Layer>) exporters.get(layer);
+            SecondPassLayerExporter exporter = (SecondPassLayerExporter) exporters.get(layer);
             if (logger.isDebugEnabled()) {
                 logger.debug("Exporting layer {} for region {},{}", layer, regionCoords.x, regionCoords.y);
             }
@@ -406,7 +406,7 @@ public class WorldExporter {
         }
     }
     
-    protected final ExportResults exportRegion(MinecraftWorld minecraftWorld, Dimension dimension, Dimension ceiling, Point regionCoords, boolean tileSelection, Map<Layer, LayerExporter<Layer>> exporters, Map<Layer, LayerExporter<Layer>> ceilingExporters, ChunkFactory chunkFactory, ChunkFactory ceilingChunkFactory, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled, IOException {
+    protected final ExportResults exportRegion(MinecraftWorld minecraftWorld, Dimension dimension, Dimension ceiling, Point regionCoords, boolean tileSelection, Map<Layer, LayerExporter> exporters, Map<Layer, LayerExporter> ceilingExporters, ChunkFactory chunkFactory, ChunkFactory ceilingChunkFactory, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled, IOException {
         int lowestTileX = (regionCoords.x << 2) - 1;
         int highestTileX = lowestTileX + 5;
         int lowestTileY = (regionCoords.y << 2) - 1;
@@ -542,7 +542,7 @@ public class WorldExporter {
         }
     }
     
-    private ChunkFactory.ChunkCreationResult createChunk(Dimension dimension, ChunkFactory chunkFactory, Map<Point, Tile> tiles, int chunkX, int chunkY, boolean tileSelection, Map<Layer, LayerExporter<Layer>> exporters, boolean ceiling) {
+    private ChunkFactory.ChunkCreationResult createChunk(Dimension dimension, ChunkFactory chunkFactory, Map<Point, Tile> tiles, int chunkX, int chunkY, boolean tileSelection, Map<Layer, LayerExporter> exporters, boolean ceiling) {
         final int tileX = chunkX >> 3;
         final int tileY = chunkY >> 3;
         final Point tileCoords = new Point(tileX, tileY);
@@ -652,8 +652,8 @@ public class WorldExporter {
         }
         try {
 
-            final Map<Layer, LayerExporter<Layer>> exporters = setupDimensionForExport(dimension);
-            final Map<Layer, LayerExporter<Layer>> ceilingExporters = (ceiling != null) ? setupDimensionForExport(ceiling) : null;
+            final Map<Layer, LayerExporter> exporters = setupDimensionForExport(dimension);
+            final Map<Layer, LayerExporter> ceilingExporters = (ceiling != null) ? setupDimensionForExport(ceiling) : null;
 
             // Determine regions to export
             int lowestRegionX = Integer.MAX_VALUE, highestRegionX = Integer.MIN_VALUE, lowestRegionZ = Integer.MAX_VALUE, highestRegionZ = Integer.MIN_VALUE;
@@ -907,9 +907,9 @@ public class WorldExporter {
     }
 
     @NotNull
-    private Map<Layer, LayerExporter<Layer>> setupDimensionForExport(Dimension dimension) {
+    private Map<Layer, LayerExporter> setupDimensionForExport(Dimension dimension) {
         // Gather all layers used on the map
-        final Map<Layer, LayerExporter<Layer>> exporters = new HashMap<>();
+        final Map<Layer, LayerExporter> exporters = new HashMap<>();
         Set<Layer> allLayers = dimension.getAllLayers(false);
         allLayers.addAll(dimension.getMinimumLayers());
         // If there are combined layers, apply them and gather any newly
@@ -944,7 +944,7 @@ public class WorldExporter {
         // Load all layer settings into the exporters
         for (Layer layer: allLayers) {
             @SuppressWarnings("unchecked")
-            LayerExporter<Layer> exporter = (LayerExporter<Layer>) layer.getExporter();
+            LayerExporter exporter = layer.getExporter();
             if (exporter != null) {
                 exporter.setSettings(dimension.getLayerSettings(layer));
                 exporters.put(layer, exporter);

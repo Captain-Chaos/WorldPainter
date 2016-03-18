@@ -75,7 +75,7 @@ public interface LayerEditor<L extends Layer> {
      * @throws IllegalStateException If invoked when the settings are incomplete
      *     or invalid, as indicated by {@link #isCommitAvailable()}.
      */
-    ExporterSettings<L> getSettings();
+    ExporterSettings getSettings();
     
     /**
      * Indicates whether the current settings are valid and complete and can

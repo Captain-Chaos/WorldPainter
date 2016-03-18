@@ -4,33 +4,35 @@
  */
 package org.pepsoft.worldpainter.layers.exporters;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
 import org.pepsoft.minecraft.Chunk;
-import static org.pepsoft.minecraft.Constants.*;
 import org.pepsoft.util.PerlinNoise;
-import static org.pepsoft.worldpainter.Constants.*;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.exporting.AbstractLayerExporter;
 import org.pepsoft.worldpainter.exporting.FirstPassLayerExporter;
 import org.pepsoft.worldpainter.layers.Resources;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+
+import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.worldpainter.Constants.*;
+
 /**
  *
  * @author pepijn
  */
-public class ResourcesExporter extends AbstractLayerExporter<Resources> implements FirstPassLayerExporter<Resources> {
+public class ResourcesExporter extends AbstractLayerExporter<Resources> implements FirstPassLayerExporter {
     public ResourcesExporter() {
         super(Resources.INSTANCE);
     }
     
     @Override
-    public void setSettings(ExporterSettings<Resources> settings) {
+    public void setSettings(ExporterSettings settings) {
         super.setSettings(settings);
         ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) getSettings();
         if (resourcesSettings != null) {
@@ -139,7 +141,7 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
     private int activeOreCount;
     private long currentSeed;
     
-    public static class ResourcesExporterSettings implements ExporterSettings<Resources> {
+    public static class ResourcesExporterSettings implements ExporterSettings {
         public ResourcesExporterSettings(int maxHeight) {
             this(maxHeight, false);
         }

@@ -4,30 +4,29 @@
  */
 package org.pepsoft.worldpainter.layers.pockets;
 
-import java.awt.image.BufferedImage;
 import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.util.PerlinNoise;
-import org.pepsoft.worldpainter.ColourScheme;
-import static org.pepsoft.worldpainter.Constants.*;
-import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.MixedMaterial;
-import org.pepsoft.worldpainter.Terrain;
-import org.pepsoft.worldpainter.Tile;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.exporting.AbstractLayerExporter;
 import org.pepsoft.worldpainter.exporting.FirstPassLayerExporter;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
+
+import java.awt.image.BufferedImage;
+
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
+import static org.pepsoft.worldpainter.Constants.TINY_BLOBS;
 
 /**
  *
  * @author pepijn
  */
-public class UndergroundPocketsLayerExporter extends AbstractLayerExporter<UndergroundPocketsLayer> implements FirstPassLayerExporter<UndergroundPocketsLayer> {
+public class UndergroundPocketsLayerExporter extends AbstractLayerExporter<UndergroundPocketsLayer> implements FirstPassLayerExporter {
     public UndergroundPocketsLayerExporter(UndergroundPocketsLayer layer) {
         super(layer);
     }
 
     @Override
-    public void setSettings(ExporterSettings<UndergroundPocketsLayer> settings) {
+    public void setSettings(ExporterSettings settings) {
         super.setSettings(settings);
         init();
     }

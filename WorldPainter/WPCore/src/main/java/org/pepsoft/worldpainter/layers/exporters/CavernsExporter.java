@@ -25,7 +25,7 @@ import static org.pepsoft.worldpainter.Constants.*;
  *
  * @author pepijn
  */
-public class CavernsExporter extends AbstractLayerExporter<Caverns> implements FirstPassLayerExporter<Caverns> {
+public class CavernsExporter extends AbstractLayerExporter<Caverns> implements FirstPassLayerExporter {
     public CavernsExporter() {
         super(Caverns.INSTANCE, new CavernsSettings());
     }
@@ -220,7 +220,7 @@ public class CavernsExporter extends AbstractLayerExporter<Caverns> implements F
     private static final long SEED_OFFSET = 37;
     private static final int MUSHROOM_CHANCE = 250;
     
-    public static class CavernsSettings implements ExporterSettings<Caverns> {
+    public static class CavernsSettings implements ExporterSettings {
         @Override
         public boolean isApplyEverywhere() {
             return cavernsEverywhereLevel > 0;

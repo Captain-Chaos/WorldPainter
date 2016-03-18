@@ -95,7 +95,7 @@ public class UndergroundPocketsLayer extends CustomLayer {
     }
 
     @Override
-    public LayerExporter<? extends Layer> getExporter() {
+    public UndergroundPocketsLayerExporter getExporter() {
         return new UndergroundPocketsLayerExporter(this);
     }
 

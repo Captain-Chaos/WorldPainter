@@ -36,7 +36,7 @@ import static org.pepsoft.minecraft.Constants.BLK_AIR;
  * 
  * @author pepijn
  */
-public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverLayer> implements FirstPassLayerExporter<GroundCoverLayer>, IncidentalLayerExporter<GroundCoverLayer> {
+public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverLayer> implements FirstPassLayerExporter, IncidentalLayerExporter {
     public GroundCoverLayerExporter(GroundCoverLayer layer) {
         super(layer);
         NoiseSettings noiseSettings = layer.getNoiseSettings();

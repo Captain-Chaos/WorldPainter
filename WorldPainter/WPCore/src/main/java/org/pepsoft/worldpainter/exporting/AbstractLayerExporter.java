@@ -13,9 +13,9 @@ import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
  *
  * @author pepijn
  */
-public abstract class AbstractLayerExporter<L extends Layer> implements LayerExporter<L> {
+public abstract class AbstractLayerExporter<L extends Layer> implements LayerExporter {
     @SuppressWarnings("unchecked")
-    public AbstractLayerExporter(L layer, ExporterSettings<L> defaultSettings) {
+    public AbstractLayerExporter(L layer, ExporterSettings defaultSettings) {
         this.layer = layer;
         this.defaultSettings = defaultSettings;
         settings = defaultSettings.clone();
@@ -31,12 +31,12 @@ public abstract class AbstractLayerExporter<L extends Layer> implements LayerExp
         return layer;
     }
     
-    public final ExporterSettings<L> getSettings() {
+    public final ExporterSettings getSettings() {
         return settings;
     }
 
     @Override @SuppressWarnings("unchecked")
-    public void setSettings(ExporterSettings<L> settings) {
+    public void setSettings(ExporterSettings settings) {
         if (settings != null) {
             this.settings = settings;
         } else {
@@ -45,6 +45,6 @@ public abstract class AbstractLayerExporter<L extends Layer> implements LayerExp
     }
     
     protected final L layer;
-    private final ExporterSettings<L> defaultSettings;
-    private ExporterSettings<L> settings;
+    private final ExporterSettings defaultSettings;
+    private ExporterSettings settings;
 }

@@ -5,11 +5,10 @@
 
 package org.pepsoft.worldpainter.exporting;
 
-import java.awt.Rectangle;
-import java.util.List;
-
 import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.layers.Layer;
+
+import java.awt.*;
+import java.util.List;
 
 /**
  * An exporter which will be invoked in a second pass, after all chunks have
@@ -18,7 +17,7 @@ import org.pepsoft.worldpainter.layers.Layer;
  *
  * @author pepijn
  */
-public interface SecondPassLayerExporter<L extends Layer> extends LayerExporter<L> {
+public interface SecondPassLayerExporter extends LayerExporter {
     /**
      * Render a chunk. This is synonymous with invoking
      * <code>render(<em>world</em>, <em>tile</em>, <em>chunkX</em>, <em>chunkY</em>, <em>minecraftWorld</em>, null)</code>.

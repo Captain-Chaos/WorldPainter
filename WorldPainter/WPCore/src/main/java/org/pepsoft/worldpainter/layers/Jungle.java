@@ -15,7 +15,7 @@ import org.pepsoft.worldpainter.layers.trees.TreeType;
  *
  * @author pepijn
  */
-public class Jungle extends TreeLayer<Jungle> {
+public class Jungle extends TreeLayer {
     private Jungle() {
         super("Jungle", "a jungle", 43);
     }

@@ -119,7 +119,7 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
     }
 
     @Override
-    public LayerExporter<CombinedLayer> getExporter() {
+    public CombinedLayerExporter getExporter() {
         return new CombinedLayerExporter(this);
     }
 

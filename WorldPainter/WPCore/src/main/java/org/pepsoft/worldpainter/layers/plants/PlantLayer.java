@@ -8,7 +8,6 @@ package org.pepsoft.worldpainter.layers.plants;
 
 import org.pepsoft.worldpainter.exporting.LayerExporter;
 import org.pepsoft.worldpainter.layers.CustomLayer;
-import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.bo2.Bo2ObjectProvider;
 import org.pepsoft.worldpainter.objects.WPObject;
 
@@ -95,7 +94,7 @@ public class PlantLayer extends CustomLayer {
     // Layer
     
     @Override
-    public LayerExporter<? extends Layer> getExporter() {
+    public PlantLayerExporter getExporter() {
         return new PlantLayerExporter(this);
     }
     

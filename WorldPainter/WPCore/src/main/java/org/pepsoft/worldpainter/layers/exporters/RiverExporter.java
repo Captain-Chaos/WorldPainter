@@ -9,7 +9,6 @@ import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.MixedMaterial;
 import org.pepsoft.worldpainter.MixedMaterial.Row;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_RIVER;
 import org.pepsoft.worldpainter.exporting.AbstractLayerExporter;
 import org.pepsoft.worldpainter.exporting.Fixup;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
@@ -25,12 +24,13 @@ import static org.pepsoft.minecraft.Block.BLOCKS;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.TINY_BLOBS;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_RIVER;
 
 /**
  *
  * @author pepijn
  */
-public class RiverExporter extends AbstractLayerExporter<River> implements SecondPassLayerExporter<River> {
+public class RiverExporter extends AbstractLayerExporter<River> implements SecondPassLayerExporter {
     public RiverExporter() {
         super(River.INSTANCE, new RiverSettings());
     }
@@ -235,7 +235,7 @@ public class RiverExporter extends AbstractLayerExporter<River> implements Secon
     
     private final PerlinNoise floorNoise = new PerlinNoise(0);
 
-    public static class RiverSettings implements ExporterSettings<River> {
+    public static class RiverSettings implements ExporterSettings {
         public RiverSettings() {
             riverBedMaterial = new MixedMaterial(
                 "Riverbed",

@@ -5,28 +5,32 @@
 
 package org.pepsoft.worldpainter.exporting;
 
-import java.util.Map;
-import java.util.Set;
 import org.pepsoft.minecraft.ChunkFactory;
 import org.pepsoft.minecraft.ChunkImpl;
 import org.pepsoft.minecraft.ChunkImpl2;
 import org.pepsoft.util.PerlinNoise;
-import static org.pepsoft.worldpainter.Constants.*;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Dimension.Border;
-import static org.pepsoft.worldpainter.Terrain.*;
-import org.pepsoft.worldpainter.Tile;
-import static org.pepsoft.minecraft.Constants.*;
 import org.pepsoft.worldpainter.Terrain;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.*;
+import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.layers.Layer;
+
+import java.util.Map;
+import java.util.Set;
+
+import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.worldpainter.Constants.MEDIUM_BLOBS;
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
+import static org.pepsoft.worldpainter.Terrain.BEACHES;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_OCEAN;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
 
 /**
  *
  * @author pepijn
  */
 public class BorderChunkFactory {
-    public static ChunkFactory.ChunkCreationResult create(int chunkX, int chunkZ, Dimension dimension, Map<Layer, LayerExporter<Layer>> exporters) {
+    public static ChunkFactory.ChunkCreationResult create(int chunkX, int chunkZ, Dimension dimension, Map<Layer, LayerExporter> exporters) {
         final int maxHeight = dimension.getMaxHeight();
         final int version = dimension.getWorld().getVersion();
         final Border border = dimension.getBorder();

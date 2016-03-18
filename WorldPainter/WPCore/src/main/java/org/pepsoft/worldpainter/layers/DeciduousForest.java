@@ -14,7 +14,7 @@ import org.pepsoft.worldpainter.layers.trees.TreeType;
  *
  * @author pepijn
  */
-public class DeciduousForest extends TreeLayer<DeciduousForest> {
+public class DeciduousForest extends TreeLayer {
     private DeciduousForest() {
         super("Deciduous", "a deciduous forest", 40, 'd');
     }

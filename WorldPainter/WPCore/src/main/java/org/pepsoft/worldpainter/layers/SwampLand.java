@@ -16,7 +16,7 @@ import org.pepsoft.worldpainter.layers.trees.TreeType;
  *
  * @author pepijn
  */
-public class SwampLand extends TreeLayer<SwampLand> {
+public class SwampLand extends TreeLayer {
     private SwampLand() {
         super("Swamp", "swamp land", 42, 'w');
     }

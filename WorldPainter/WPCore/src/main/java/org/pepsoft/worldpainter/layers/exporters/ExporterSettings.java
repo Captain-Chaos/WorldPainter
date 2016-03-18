@@ -4,17 +4,18 @@
  */
 package org.pepsoft.worldpainter.layers.exporters;
 
-import java.io.Serializable;
 import org.pepsoft.worldpainter.layers.Layer;
+
+import java.io.Serializable;
 
 /**
  *
  * @author pepijn
  */
-public interface ExporterSettings<L extends Layer> extends Serializable, Cloneable {
+public interface ExporterSettings extends Serializable, Cloneable {
     boolean isApplyEverywhere();
     
-    L getLayer();
+    Layer getLayer();
     
-    ExporterSettings<L> clone();
+    ExporterSettings clone();
 }

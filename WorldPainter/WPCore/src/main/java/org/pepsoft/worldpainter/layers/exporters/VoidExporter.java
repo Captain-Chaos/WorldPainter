@@ -4,10 +4,7 @@
  */
 package org.pepsoft.worldpainter.layers.exporters;
 
-import java.awt.Rectangle;
-import java.util.List;
-import static org.pepsoft.minecraft.Constants.*;
-
+import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.exporting.AbstractLayerExporter;
@@ -16,9 +13,13 @@ import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import org.pepsoft.worldpainter.exporting.SecondPassLayerExporter;
 import org.pepsoft.worldpainter.layers.Void;
 
-import static org.pepsoft.minecraft.Material.*;
-import org.pepsoft.util.MathUtils;
-import static org.pepsoft.worldpainter.Constants.*;
+import java.awt.*;
+import java.util.List;
+
+import static org.pepsoft.minecraft.Constants.BLK_STATIONARY_LAVA;
+import static org.pepsoft.minecraft.Constants.BLK_STATIONARY_WATER;
+import static org.pepsoft.minecraft.Material.AIR;
+import static org.pepsoft.worldpainter.Constants.SMALL_BLOBS;
 
 /**
  * This exporter does the second half of the void processing. The first half
@@ -29,7 +30,7 @@ import static org.pepsoft.worldpainter.Constants.*;
  * 
  * @author pepijn
  */
-public class VoidExporter extends AbstractLayerExporter<org.pepsoft.worldpainter.layers.Void> implements SecondPassLayerExporter<org.pepsoft.worldpainter.layers.Void> {
+public class VoidExporter extends AbstractLayerExporter<org.pepsoft.worldpainter.layers.Void> implements SecondPassLayerExporter {
     public VoidExporter() {
         super(Void.INSTANCE);
     }

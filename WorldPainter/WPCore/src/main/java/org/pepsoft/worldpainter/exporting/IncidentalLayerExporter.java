@@ -6,10 +6,10 @@
 
 package org.pepsoft.worldpainter.exporting;
 
-import java.awt.Rectangle;
-import javax.vecmath.Point3i;
 import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.layers.Layer;
+
+import javax.vecmath.Point3i;
+import java.awt.*;
 
 /**
  * An exporter which can export a layer block by block at a particular, directed
@@ -17,7 +17,7 @@ import org.pepsoft.worldpainter.layers.Layer;
  * 
  * @author SchmitzP
  */
-public interface IncidentalLayerExporter<L extends Layer> extends LayerExporter<L> {
+public interface IncidentalLayerExporter extends LayerExporter {
     /**
      * Apply the layer at a particular single set of coordinates in the world.
      * This method should be deterministic; i.e. when applied to the same layer

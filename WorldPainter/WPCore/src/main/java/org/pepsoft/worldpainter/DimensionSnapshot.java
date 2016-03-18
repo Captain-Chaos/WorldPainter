@@ -4,14 +4,14 @@
  */
 package org.pepsoft.worldpainter;
 
-import java.awt.Point;
-import java.beans.PropertyChangeListener;
-import java.util.*;
-
 import org.pepsoft.util.undo.Snapshot;
 import org.pepsoft.util.undo.UndoManager;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
+
+import java.awt.*;
+import java.beans.PropertyChangeListener;
+import java.util.*;
 
 /**
  *
@@ -120,7 +120,7 @@ public final class DimensionSnapshot extends Dimension {
     }
 
     @Override
-    public <L extends Layer> ExporterSettings<L> getLayerSettings(L layer) {
+    public ExporterSettings getLayerSettings(Layer layer) {
         throw new UnsupportedOperationException();
     }
 

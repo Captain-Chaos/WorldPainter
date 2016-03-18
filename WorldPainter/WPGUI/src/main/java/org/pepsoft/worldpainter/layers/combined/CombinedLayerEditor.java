@@ -6,20 +6,6 @@
 
 package org.pepsoft.worldpainter.layers.combined;
 
-import org.pepsoft.worldpainter.layers.LayerTableCellRenderer;
-import java.awt.Color;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-import javax.swing.DefaultCellEditor;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JComboBox;
-import javax.swing.SpinnerModel;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.SwingUtilities;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.table.TableColumn;
 import org.pepsoft.worldpainter.BiomeListCellRenderer;
 import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.LayerListCellRenderer;
@@ -30,11 +16,22 @@ import org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes;
 import org.pepsoft.worldpainter.layers.AbstractLayerEditor;
 import org.pepsoft.worldpainter.layers.CombinedLayer;
 import org.pepsoft.worldpainter.layers.Layer;
-import static org.pepsoft.worldpainter.layers.combined.CombinedLayerTableModel.COLUMN_FACTOR;
-import static org.pepsoft.worldpainter.layers.combined.CombinedLayerTableModel.COLUMN_LAYER;
+import org.pepsoft.worldpainter.layers.LayerTableCellRenderer;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.themes.JSpinnerTableCellEditor;
 import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
+
+import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.table.TableColumn;
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.pepsoft.worldpainter.layers.combined.CombinedLayerTableModel.COLUMN_FACTOR;
+import static org.pepsoft.worldpainter.layers.combined.CombinedLayerTableModel.COLUMN_LAYER;
 
 /**
  *
@@ -104,12 +101,12 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> {
     }
 
     @Override
-    public ExporterSettings<CombinedLayer> getSettings() {
+    public ExporterSettings getSettings() {
         if (! isCommitAvailable()) {
             throw new IllegalStateException("Settings invalid or incomplete");
         }
         final CombinedLayer previewLayer = saveSettings(null);
-        return new ExporterSettings<CombinedLayer>() {
+        return new ExporterSettings() {
             @Override
             public boolean isApplyEverywhere() {
                 return false;
@@ -121,7 +118,7 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> {
             }
 
             @Override
-            public ExporterSettings<CombinedLayer> clone() {
+            public ExporterSettings clone() {
                 throw new UnsupportedOperationException("Not supported");
             }
         };

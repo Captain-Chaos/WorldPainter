@@ -11,8 +11,8 @@ import org.pepsoft.minecraft.Constants;
 import org.pepsoft.util.Box;
 import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.ProgressReceiver;
-import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.dynmap.DynMapPreviewer;
 import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
@@ -143,7 +143,7 @@ public class LayerPreviewCreator {
             logger.debug("Applying layer(s) took " + (now - timestamp) + " ms");
         }
 
-        LayerExporter<Layer> exporter = layer.getExporter();
+        LayerExporter exporter = layer.getExporter();
         if (settings != null) {
             exporter.setSettings(settings);
         }
@@ -154,7 +154,7 @@ public class LayerPreviewCreator {
             for (int x = 0; x < 8; x++) {
                 for (int y = 0; y < 8; y++) {
                     Chunk chunk = chunkFactory.createChunk(x, y).chunk;
-                    ((FirstPassLayerExporter<Layer>) exporter).render(dimension, tile, chunk);
+                    ((FirstPassLayerExporter) exporter).render(dimension, tile, chunk);
                     minecraftWorldObject.addChunk(chunk);
                 }
             }
@@ -179,7 +179,7 @@ public class LayerPreviewCreator {
             // Phase four: render the layer
             timestamp = now;
             Rectangle area = new Rectangle(128, 128);
-            ((SecondPassLayerExporter<Layer>) exporter).render(dimension, area, area, minecraftWorldObject);
+            ((SecondPassLayerExporter) exporter).render(dimension, area, area, minecraftWorldObject);
             now = System.currentTimeMillis();
             if (logger.isDebugEnabled()) {
                 logger.debug("Rendering layer took " + (now - timestamp) + " ms");
@@ -220,11 +220,11 @@ public class LayerPreviewCreator {
         this.previewHeight = previewHeight;
     }
 
-    public ExporterSettings<Layer> getSettings() {
+    public ExporterSettings getSettings() {
         return settings;
     }
 
-    public void setSettings(ExporterSettings<Layer> settings) {
+    public void setSettings(ExporterSettings settings) {
         this.settings = settings;
     }
 
@@ -315,7 +315,7 @@ public class LayerPreviewCreator {
     }
     
     private Layer layer;
-    private ExporterSettings<Layer> settings;
+    private ExporterSettings settings;
     private int previewHeight = 128;
     private boolean subterranean;
     private Pattern pattern = CONSTANT_HALF_PLUS_GRADIENT_PLUS_HIGHLIGHT;

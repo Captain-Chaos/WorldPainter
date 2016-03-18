@@ -8,7 +8,6 @@ package org.pepsoft.worldpainter.exporting;
 import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Tile;
-import org.pepsoft.worldpainter.layers.Layer;
 
 /**
  * An exporter which will be invoked when the chunk is first generated. Should
@@ -16,7 +15,7 @@ import org.pepsoft.worldpainter.layers.Layer;
  *
  * @author pepijn
  */
-public interface FirstPassLayerExporter<L extends Layer> extends LayerExporter<L> {
+public interface FirstPassLayerExporter extends LayerExporter {
     /**
      * Render the chunk.
      *

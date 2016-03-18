@@ -30,7 +30,7 @@ import static org.pepsoft.worldpainter.Constants.SMALL_BLOBS;
  *
  * @author pepijn
  */
-public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T> implements SecondPassLayerExporter<T>, IncidentalLayerExporter<T> {
+public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T> implements SecondPassLayerExporter, IncidentalLayerExporter {
     public TreesExporter(T layer) {
         super(layer, new TreeLayerSettings<>(layer));
     }
@@ -163,7 +163,7 @@ public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T>
 
     private static final long SEED_OFFSET = 61380672;
     
-    public static class TreeLayerSettings<T extends TreeLayer> implements ExporterSettings<T> {
+    public static class TreeLayerSettings<T extends TreeLayer> implements ExporterSettings {
         public TreeLayerSettings(T layer) {
             this.layer = layer;
             treeChance = layer.getDefaultTreeChance();
@@ -232,7 +232,7 @@ public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T>
         }
 
         @Override
-        public ExporterSettings<T> clone() {
+        public ExporterSettings clone() {
             TreeLayerSettings<T> clone = new TreeLayerSettings<>(layer);
             clone.minimumLevel = minimumLevel;
             return clone;
@@ -261,7 +261,7 @@ public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T>
     // Legacy
     
     @Deprecated
-    public static class DeciduousSettings implements ExporterSettings<DeciduousForest> {
+    public static class DeciduousSettings implements ExporterSettings {
         @Override
         public boolean isApplyEverywhere() {
             throw new UnsupportedOperationException("Not supported");
@@ -273,7 +273,7 @@ public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T>
         }
 
         @Override
-        public ExporterSettings<DeciduousForest> clone() {
+        public ExporterSettings clone() {
             throw new UnsupportedOperationException("Not supported");
         }
         
@@ -289,7 +289,7 @@ public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T>
     }
     
     @Deprecated
-    public static class PineSettings implements ExporterSettings<PineForest> {
+    public static class PineSettings implements ExporterSettings {
         @Override
         public boolean isApplyEverywhere() {
             throw new UnsupportedOperationException("Not supported");

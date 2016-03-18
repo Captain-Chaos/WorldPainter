@@ -5,10 +5,6 @@
  */
 package org.pepsoft.worldpainter.layers.tunnel;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.Serializable;
-import java.util.Map;
 import org.pepsoft.minecraft.Constants;
 import org.pepsoft.worldpainter.MixedMaterial;
 import org.pepsoft.worldpainter.NoiseSettings;
@@ -16,6 +12,11 @@ import org.pepsoft.worldpainter.exporting.LayerExporter;
 import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.renderers.LayerRenderer;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
+import java.util.Map;
 
 /**
  *
@@ -211,12 +212,12 @@ public class TunnelLayer extends CustomLayer {
     // CustomLayer
     
     @Override
-    public LayerExporter<TunnelLayer> getExporter() {
+    public TunnelLayerExporter getExporter() {
         return new TunnelLayerExporter(this);
     }
 
     @Override
-    public LayerRenderer getRenderer() {
+    public TunnelLayerRenderer getRenderer() {
         return renderer;
     }
     

@@ -26,7 +26,7 @@ import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
  *
  * @author pepijn
  */
-public class ChasmsExporter extends AbstractLayerExporter<Chasms> implements FirstPassLayerExporter<Chasms> {
+public class ChasmsExporter extends AbstractLayerExporter<Chasms> implements FirstPassLayerExporter {
     public ChasmsExporter() {
         super(Chasms.INSTANCE, new ChasmsSettings());
     }
@@ -253,7 +253,7 @@ public class ChasmsExporter extends AbstractLayerExporter<Chasms> implements Fir
     private static final long SEED_OFFSET6 = 51;
     private static final int MUSHROOM_CHANCE = 250;
 
-    public static class ChasmsSettings implements ExporterSettings<Chasms> {
+    public static class ChasmsSettings implements ExporterSettings {
         @Override
         public boolean isApplyEverywhere() {
             return chasmsEverywhereLevel > 0;

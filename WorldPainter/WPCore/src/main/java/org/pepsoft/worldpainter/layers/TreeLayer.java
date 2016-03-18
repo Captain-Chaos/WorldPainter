@@ -5,19 +5,20 @@
 
 package org.pepsoft.worldpainter.layers;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.util.Random;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.exporting.LayerExporter;
 import org.pepsoft.worldpainter.layers.exporters.TreesExporter;
 import org.pepsoft.worldpainter.layers.trees.TreeType;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.util.Random;
+
 /**
  *
  * @author pepijn
  */
-public abstract class TreeLayer<T extends TreeLayer> extends Layer {
+public abstract class TreeLayer extends Layer {
     protected TreeLayer(String treeName, String treeDescription, int priority, char mnemonic) {
         super(treeName, "Generate " + treeDescription, DataSize.NIBBLE, priority, mnemonic);
     }
@@ -27,7 +28,7 @@ public abstract class TreeLayer<T extends TreeLayer> extends Layer {
     }
 
     @Override
-    public LayerExporter<TreeLayer<T>> getExporter() {
+    public TreesExporter<? extends TreeLayer> getExporter() {
         return new TreesExporter<>(this);
     }
     

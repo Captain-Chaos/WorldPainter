@@ -5,8 +5,6 @@
 
 package org.pepsoft.worldpainter.exporting;
 
-import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 
@@ -17,14 +15,13 @@ import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
  *
  * @author pepijn
  */
-public interface LayerExporter<L extends Layer> {
-    L getLayer();
+public interface LayerExporter {
+    Layer getLayer();
 
     /**
-     * Set the exporter settings to use for future invocations of
-     * {@link #render(Dimension, Tile, ChunkImpl)}.
+     * Set the exporter settings to use for exporting the layer.
      *
      * @param settings The settings to use for exporting the layer.
      */
-    void setSettings(ExporterSettings<L> settings);
+    void setSettings(ExporterSettings settings);
 }

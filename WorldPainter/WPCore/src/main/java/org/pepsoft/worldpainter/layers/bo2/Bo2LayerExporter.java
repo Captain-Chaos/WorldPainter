@@ -31,7 +31,7 @@ import static org.pepsoft.worldpainter.objects.WPObject.*;
  *
  * @author pepijn
  */
-public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements SecondPassLayerExporter<Bo2Layer>, IncidentalLayerExporter<Bo2Layer> {
+public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements SecondPassLayerExporter, IncidentalLayerExporter {
     public Bo2LayerExporter(Bo2Layer layer) {
         super(layer);
     }

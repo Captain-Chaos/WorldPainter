@@ -6,11 +6,17 @@
 
 package org.pepsoft.worldpainter.layers.plants;
 
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import org.pepsoft.util.Version;
+import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
+import org.pepsoft.worldpainter.layers.AbstractLayerEditor;
+import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
+
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -18,21 +24,7 @@ import java.io.InputStream;
 import java.util.SortedMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
-import javax.swing.JColorChooser;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JSpinner;
-import javax.swing.SpinnerModel;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import org.pepsoft.util.Version;
-import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
-import org.pepsoft.worldpainter.layers.AbstractLayerEditor;
-import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
+
 import static org.pepsoft.worldpainter.util.I18nHelper.m;
 
 /**
@@ -114,12 +106,12 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
     }
 
     @Override
-    public ExporterSettings<PlantLayer> getSettings() {
+    public ExporterSettings getSettings() {
         if (! isCommitAvailable()) {
             throw new IllegalStateException("Settings invalid or incomplete");
         }
         final PlantLayer previewLayer = saveSettings(null);
-        return new ExporterSettings<PlantLayer>() {
+        return new ExporterSettings() {
             @Override
             public boolean isApplyEverywhere() {
                 return false;
@@ -131,7 +123,7 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
             }
 
             @Override
-            public ExporterSettings<PlantLayer> clone() {
+            public ExporterSettings clone() {
                 throw new UnsupportedOperationException("Not supported");
             }
         };

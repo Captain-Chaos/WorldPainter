@@ -28,7 +28,7 @@ import static org.pepsoft.minecraft.Block.BLOCKS;
  *
  * @author SchmitzP
  */
-public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> implements SecondPassLayerExporter<TunnelLayer> {
+public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> implements SecondPassLayerExporter {
     public TunnelLayerExporter(TunnelLayer layer) {
         super(layer);
         if (layer.getFloorNoise() != null) {

@@ -153,12 +153,12 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
     }
 
     @Override
-    public ExporterSettings<Bo2Layer> getSettings() {
+    public ExporterSettings getSettings() {
         if (! isCommitAvailable()) {
             throw new IllegalStateException("Settings invalid or incomplete");
         }
         final Bo2Layer previewLayer = saveSettings(null);
-        return new ExporterSettings<Bo2Layer>() {
+        return new ExporterSettings() {
             @Override
             public boolean isApplyEverywhere() {
                 return false;
@@ -170,7 +170,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
             }
 
             @Override
-            public ExporterSettings<Bo2Layer> clone() {
+            public ExporterSettings clone() {
                 throw new UnsupportedOperationException("Not supported");
             }
         };

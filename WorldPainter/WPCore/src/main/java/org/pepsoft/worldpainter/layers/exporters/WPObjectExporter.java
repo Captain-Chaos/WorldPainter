@@ -41,7 +41,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
         super(layer);
     }
 
-    public WPObjectExporter(L layer, ExporterSettings<L> defaultSettings) {
+    public WPObjectExporter(L layer, ExporterSettings defaultSettings) {
         super(layer, defaultSettings);
     }
     

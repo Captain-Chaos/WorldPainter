@@ -30,7 +30,7 @@ import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
  *
  * @author pepijn
  */
-public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements SecondPassLayerExporter<PlantLayer>, IncidentalLayerExporter<PlantLayer> {
+public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements SecondPassLayerExporter, IncidentalLayerExporter {
     public PlantLayerExporter(PlantLayer layer) {
         super(layer);
     }

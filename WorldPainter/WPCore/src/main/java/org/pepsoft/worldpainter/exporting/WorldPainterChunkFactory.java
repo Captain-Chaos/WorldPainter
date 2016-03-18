@@ -5,23 +5,23 @@
 
 package org.pepsoft.worldpainter.exporting;
 
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-import org.pepsoft.minecraft.ChunkImpl;
 import org.pepsoft.minecraft.ChunkFactory;
+import org.pepsoft.minecraft.ChunkImpl;
 import org.pepsoft.minecraft.ChunkImpl2;
+import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.layers.*;
-
-import static org.pepsoft.minecraft.Constants.*;
-import org.pepsoft.minecraft.Material;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+
+import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.*;
 
@@ -30,7 +30,7 @@ import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.*;
  * @author pepijn
  */
 public class WorldPainterChunkFactory implements ChunkFactory {
-    public WorldPainterChunkFactory(Dimension dimension, Map<Layer, LayerExporter<Layer>> exporters, int version, int maxHeight) {
+    public WorldPainterChunkFactory(Dimension dimension, Map<Layer, LayerExporter> exporters, int version, int maxHeight) {
         if ((version != SUPPORTED_VERSION_1) && (version != SUPPORTED_VERSION_2)) {
             throw new IllegalArgumentException("Not a supported version: 0x" + Integer.toHexString(version));
         }
@@ -232,7 +232,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
     private final Dimension dimension;
     private final Set<Layer> minimumLayers;
     private final PerlinNoise sugarCaneNoise = new PerlinNoise(0);
-    private final Map<Layer, LayerExporter<Layer>> exporters;
+    private final Map<Layer, LayerExporter> exporters;
 
     private static final long SUGAR_CANE_SEED_OFFSET = 127411424;
     private static final float SUGAR_CANE_CHANCE = PerlinNoise.getLevelForPromillage(325);

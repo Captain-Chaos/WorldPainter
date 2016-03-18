@@ -809,11 +809,11 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
     
     @SuppressWarnings("unchecked")
-    public <L extends Layer> ExporterSettings<L> getLayerSettings(L layer) {
+    public ExporterSettings getLayerSettings(Layer layer) {
         return layerSettings.get(layer);
     }
     
-    public <L extends Layer> void setLayerSettings(L layer, ExporterSettings<L> settings) {
+    public void setLayerSettings(Layer layer, ExporterSettings settings) {
         if ((! layerSettings.containsKey(layer)) || (! settings.equals(layerSettings.get(layer)))) {
             layerSettings.put(layer, settings);
             dirty = true;

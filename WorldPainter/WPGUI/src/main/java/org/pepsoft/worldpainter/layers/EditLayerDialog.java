@@ -6,24 +6,21 @@
 
 package org.pepsoft.worldpainter.layers;
 
-import java.awt.BorderLayout;
-import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.util.ArrayList;
-import java.util.List;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JComponent;
-import javax.swing.SwingUtilities;
-import javax.swing.Timer;
 import org.pepsoft.worldpainter.App;
 import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.WorldPainterDialog;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.objects.MinecraftWorldObject;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -166,7 +163,7 @@ public class EditLayerDialog<L extends Layer> extends WorldPainterDialog impleme
         if (! editor.isCommitAvailable()) {
             return;
         }
-        final ExporterSettings<L> settings = editor.getSettings();
+        final ExporterSettings settings = editor.getSettings();
         synchronized (PREVIEW_STATE_LOCK) {
             switch (previewRenderState) {
                 case IDLE:
@@ -177,7 +174,7 @@ public class EditLayerDialog<L extends Layer> extends WorldPainterDialog impleme
 renderLoop:                 do {
                                 synchronized (PREVIEW_RENDERER_LOCK) {
                                     previewCreator.setLayer(settings.getLayer());
-                                    previewCreator.setSettings((ExporterSettings<Layer>) settings);
+                                    previewCreator.setSettings(settings);
                                     final MinecraftWorldObject preview = previewCreator.renderPreview();
                                     SwingUtilities.invokeLater(() -> dynMapPreviewer1.setObject(preview));
                                 }

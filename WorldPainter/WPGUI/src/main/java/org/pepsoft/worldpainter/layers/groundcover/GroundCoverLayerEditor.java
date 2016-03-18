@@ -107,12 +107,12 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
     }
 
     @Override
-    public ExporterSettings<GroundCoverLayer> getSettings() {
+    public ExporterSettings getSettings() {
         if (! isCommitAvailable()) {
             throw new IllegalStateException("Settings invalid or incomplete");
         }
         final GroundCoverLayer previewLayer = saveSettings(null);
-        return new ExporterSettings<GroundCoverLayer>() {
+        return new ExporterSettings() {
             @Override
             public boolean isApplyEverywhere() {
                 return false;
@@ -124,7 +124,7 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
             }
 
             @Override
-            public ExporterSettings<GroundCoverLayer> clone() {
+            public ExporterSettings clone() {
                 throw new UnsupportedOperationException("Not supported");
             }
         };

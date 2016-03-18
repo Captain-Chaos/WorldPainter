@@ -4,10 +4,6 @@
  */
 package org.pepsoft.worldpainter.layers.trees;
 
-import java.awt.Rectangle;
-import java.util.List;
-import java.util.Random;
-
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.exporting.Fixup;
@@ -16,15 +12,17 @@ import org.pepsoft.worldpainter.layers.SwampLand;
 import org.pepsoft.worldpainter.layers.TreeLayer;
 import org.pepsoft.worldpainter.layers.exporters.TreesExporter;
 
-import static org.pepsoft.minecraft.Constants.BLK_AIR;
-import static org.pepsoft.minecraft.Constants.BLK_STATIONARY_WATER;
-import static org.pepsoft.minecraft.Constants.BLK_WATER;
+import java.awt.*;
+import java.util.List;
+import java.util.Random;
+
+import static org.pepsoft.minecraft.Constants.*;
 
 /**
  *
  * @author pepijn
  */
-public class SwampLandExporter extends TreesExporter<TreeLayer<SwampLand>> {
+public class SwampLandExporter extends TreesExporter<TreeLayer> {
     public SwampLandExporter(SwampLand layer) {
         super(layer);
     }
@@ -34,7 +32,7 @@ public class SwampLandExporter extends TreesExporter<TreeLayer<SwampLand>> {
         List<Fixup> fixups = super.render(dimension, area, exportedArea, world);
         
         // Render lily pads
-        TreeLayerSettings<TreeLayer<SwampLand>> settings = (TreeLayerSettings<TreeLayer<SwampLand>>) getSettings();
+        TreeLayerSettings<TreeLayer> settings = (TreeLayerSettings<TreeLayer>) getSettings();
         int minimumLevel = settings.getMinimumLevel();
         int maxZ = dimension.getMaxHeight() - 1;
         for (int chunkX = area.x; chunkX < area.x + area.width; chunkX += 16) {

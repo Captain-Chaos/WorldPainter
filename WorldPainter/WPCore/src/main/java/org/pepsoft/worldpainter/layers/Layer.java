@@ -5,14 +5,15 @@
 
 package org.pepsoft.worldpainter.layers;
 
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.Serializable;
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.util.PluginManager;
 import org.pepsoft.worldpainter.exporting.LayerExporter;
 import org.pepsoft.worldpainter.layers.renderers.LayerRenderer;
+
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
 
 /**
  *
@@ -74,14 +75,14 @@ public abstract class Layer implements Serializable, Comparable<Layer> {
      *
      * @return A new exporter for this layer.
      */
-    public <L extends Layer> LayerExporter<L> getExporter() {
+    public LayerExporter getExporter() {
         if (exporterClass == null) {
             // Layer has no default exporter
             return null;
         } else {
             try {
                 //noinspection unchecked Responsibility of implementor
-                return (LayerExporter<L>) exporterClass.newInstance();
+                return exporterClass.newInstance();
             } catch (InstantiationException e) {
                 throw new RuntimeException("Instantiation exception while instantiating exporter for layer " + name, e);
             } catch (IllegalAccessException e) {
@@ -163,9 +164,9 @@ public abstract class Layer implements Serializable, Comparable<Layer> {
                 myRenderer = null;
             }
             renderer = myRenderer;
-            Class<LayerExporter<? extends Layer>> myExporterClass;
+            Class<LayerExporter> myExporterClass;
             try {
-                myExporterClass = (Class<LayerExporter<? extends Layer>>) pluginClassLoader.loadClass(clazz.getPackage().getName() + ".exporters." + clazz.getSimpleName() + "Exporter");
+                myExporterClass = (Class<LayerExporter>) pluginClassLoader.loadClass(clazz.getPackage().getName() + ".exporters." + clazz.getSimpleName() + "Exporter");
             } catch (ClassNotFoundException e) {
                 myExporterClass = null;
             }
@@ -192,7 +193,7 @@ public abstract class Layer implements Serializable, Comparable<Layer> {
     public final int priority;
     private String id;
     private transient LayerRenderer renderer;
-    private transient Class<LayerExporter<? extends Layer>> exporterClass;
+    private transient Class<LayerExporter> exporterClass;
     private transient BufferedImage icon;
     private transient char mnemonic;
 

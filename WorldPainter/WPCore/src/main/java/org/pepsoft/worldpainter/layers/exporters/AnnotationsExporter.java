@@ -25,7 +25,7 @@ import static org.pepsoft.minecraft.Block.BLOCKS;
  *
  * @author pepijn
  */
-public class AnnotationsExporter extends AbstractLayerExporter<Annotations> implements SecondPassLayerExporter<Annotations> {
+public class AnnotationsExporter extends AbstractLayerExporter<Annotations> implements SecondPassLayerExporter {
     public AnnotationsExporter() {
         super(Annotations.INSTANCE);
     }
@@ -55,7 +55,7 @@ public class AnnotationsExporter extends AbstractLayerExporter<Annotations> impl
         return null;
     }
     
-    public static class AnnotationsSettings implements ExporterSettings<Annotations> {
+    public static class AnnotationsSettings implements ExporterSettings {
         @Override
         public boolean isApplyEverywhere() {
             return false;
@@ -121,9 +121,9 @@ public class AnnotationsExporter extends AbstractLayerExporter<Annotations> impl
         }
 
         @Override
-        public ExporterSettings<Annotations> clone() {
+        public ExporterSettings clone() {
             try {
-                return (ExporterSettings<Annotations>) super.clone();
+                return (ExporterSettings) super.clone();
             } catch (CloneNotSupportedException e) {
                 throw new InternalError();
             }

@@ -25,7 +25,7 @@ import static org.pepsoft.minecraft.Material.SNOW;
  *
  * @author pepijn
  */
-public class FrostExporter extends AbstractLayerExporter<Frost> implements SecondPassLayerExporter<Frost> {
+public class FrostExporter extends AbstractLayerExporter<Frost> implements SecondPassLayerExporter {
     public FrostExporter() {
         super(Frost.INSTANCE, new FrostSettings());
     }
@@ -148,7 +148,7 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
         BLK_DARK_OAK_WOOD_STAIRS, BLK_CARPET, BLK_LARGE_FLOWERS, BLK_PACKED_ICE);
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(FrostExporter.class);
     
-    public static class FrostSettings implements ExporterSettings<Frost> {
+    public static class FrostSettings implements ExporterSettings {
         @Override
         public boolean isApplyEverywhere() {
             return frostEverywhere;

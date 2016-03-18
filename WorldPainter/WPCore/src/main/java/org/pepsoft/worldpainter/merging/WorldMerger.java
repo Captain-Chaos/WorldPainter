@@ -344,7 +344,7 @@ public class WorldMerger extends WorldExporter {
         try {
             
             // Gather all layers used on the map
-            final Map<Layer, LayerExporter<Layer>> exporters = new HashMap<>();
+            final Map<Layer, LayerExporter> exporters = new HashMap<>();
             Set<Layer> allLayers = dimension.getAllLayers(false);
             allLayers.addAll(dimension.getMinimumLayers());
             // If there are combined layers, apply them and gather any newly
@@ -371,7 +371,7 @@ public class WorldMerger extends WorldExporter {
             // Load all layer settings into the exporters
             for (Layer layer: allLayers) {
                 @SuppressWarnings("unchecked")
-                LayerExporter<Layer> exporter = (LayerExporter<Layer>) layer.getExporter();
+                LayerExporter exporter = layer.getExporter();
                 if (exporter != null) {
                     exporter.setSettings(dimension.getLayerSettings(layer));
                     exporters.put(layer, exporter);
@@ -727,7 +727,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         }
     }
     
-    private String mergeRegion(MinecraftWorld minecraftWorld, File oldRegionDir, Dimension dimension, Point regionCoords, Map<Point, Tile> tiles, boolean tileSelection, Map<Layer, LayerExporter<Layer>> exporters, ChunkFactory chunkFactory, List<Fixup> fixups, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
+    private String mergeRegion(MinecraftWorld minecraftWorld, File oldRegionDir, Dimension dimension, Point regionCoords, Map<Point, Tile> tiles, boolean tileSelection, Map<Layer, LayerExporter> exporters, ChunkFactory chunkFactory, List<Fixup> fixups, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
         Set<Layer> allLayers = new HashSet<>();
         for (Tile tile: tiles.values()) {
             allLayers.addAll(tile.getLayers());
