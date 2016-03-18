@@ -25,20 +25,26 @@ import org.pepsoft.worldpainter.themes.HeightFilter;
 public class LayerRangesTableModel implements TableModel {
     public LayerRangesTableModel(int maxHeight, Map<Filter, Layer> layerMap) {
         this.maxHeight = maxHeight;
-        layerMap.forEach((key, value) -> {
-            filters.add(key);
-            layers.add(value);
-        });
+        if (layerMap != null) {
+            layerMap.forEach((key, value) -> {
+                filters.add(key);
+                layers.add(value);
+            });
+        }
     }
 
     public Map<Filter, Layer> getLayerMap() {
-        Map<Filter, Layer> layerMap = new HashMap<>();
-        Iterator<Filter> filterIterator = filters.iterator();
-        for (Layer layer: layers) {
-            Filter filter = filterIterator.next();
-            layerMap.put(filter, layer);
+        if (! layers.isEmpty()) {
+            Map<Filter, Layer> layerMap = new HashMap<>();
+            Iterator<Filter> filterIterator = filters.iterator();
+            for (Layer layer : layers) {
+                Filter filter = filterIterator.next();
+                layerMap.put(filter, layer);
+            }
+            return layerMap;
+        } else {
+            return null;
         }
-        return layerMap;
     }
 
     public void addRow(Filter filter, Layer layer) {

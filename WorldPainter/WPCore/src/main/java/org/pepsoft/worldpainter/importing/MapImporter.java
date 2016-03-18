@@ -152,7 +152,7 @@ public class MapImporter {
             terrainRanges.clear();
             terrainRanges.put(-1, Terrain.NETHERRACK);
             theme.setTerrainRanges(terrainRanges);
-            theme.setLayerMap(Collections.emptyMap());
+            theme.setLayerMap(null);
             dimension = new Dimension(minecraftSeed + 1, netherTileFactory, DIM_NETHER, maxHeight);
             dimension.setEventsInhibited(true);
             try {

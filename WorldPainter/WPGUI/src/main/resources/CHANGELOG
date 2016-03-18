@@ -1,3 +1,7 @@
+-- Version 2.2.1, release ...
+
+ * Bug fix: fix an error which occurred when trying to import a height map into an old world
+
 -- Version 2.2.0, released 18-3-2016
 
  * Added support for the new 1.9 block types
