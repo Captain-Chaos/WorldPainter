@@ -47,17 +47,51 @@ public final class MathUtils {
      * Calculates x modulo y. This is different than the Java remainder operator
      * (%) in that it always returns a positive value.
      *
-     * @param x The operand.
-     * @param y The modulus.
+     * @param a The operand.
+     * @param b The modulus.
      * @return x modulo y
      */
-    public static double mod(double x, double y) {
-        if (x < 0) {
-            return x + Math.ceil(-x / y) * y;
-        } else if (x >= y) {
-            return x - Math.floor(x / y) * y;
+    public static float mod(float a, float b) {
+        if (a < 0) {
+            return a + (float) Math.ceil(-a / b) * b;
+        } else if (a >= b) {
+            return a - (float) Math.floor(a / b) * b;
         } else {
-            return x;
+            return a;
+        }
+    }
+
+    /**
+     * Calculates x modulo y. This is different than the Java remainder operator
+     * (%) in that it always returns a positive value.
+     *
+     * @param a The operand.
+     * @param b The modulus.
+     * @return x modulo y
+     */
+    public static double mod(double a, double b) {
+        if (a < 0) {
+            return a + Math.ceil(-a / b) * b;
+        } else if (a >= b) {
+            return a - Math.floor(a / b) * b;
+        } else {
+            return a;
+        }
+    }
+
+    /**
+     * Calculates x modulo y. This is different than the Java remainder operator
+     * (%) in that it always returns a positive value.
+     *
+     * @param a The operand.
+     * @param b The modulus.
+     * @return x modulo y
+     */
+    public static int mod(int a, int b) {
+        if (a < 0) {
+            return (a % b + b) % b;
+        } else {
+            return a % b;
         }
     }
 

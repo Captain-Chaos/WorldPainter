@@ -34,6 +34,16 @@ public abstract class CombiningHeightMap extends AbstractHeightMap {
         return heightMap2;
     }
 
+    public void setHeightMap1(HeightMap heightMap1) {
+        this.heightMap1 = heightMap1;
+    }
+
+    public void setHeightMap2(HeightMap heightMap2) {
+        this.heightMap2 = heightMap2;
+    }
+
+    // HeightMap
+
     @Override
     public final long getSeed() {
         return heightMap1.getSeed();
@@ -57,7 +67,7 @@ public abstract class CombiningHeightMap extends AbstractHeightMap {
     @Override
     public abstract CombiningHeightMap clone();
     
-    protected final HeightMap heightMap1, heightMap2;
+    protected HeightMap heightMap1, heightMap2;
 
     private static final long serialVersionUID = 1L;
 }

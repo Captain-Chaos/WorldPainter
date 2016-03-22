@@ -46,9 +46,27 @@ public class SlopeHeightMap extends AbstractHeightMap {
         this.baseHeightMap = baseHeightMap;
         this.verticalScaling = verticalScaling;
     }
-    
+
+    public HeightMap getBaseHeightMap() {
+        return baseHeightMap;
+    }
+
+    public void setBaseHeightMap(HeightMap baseHeightMap) {
+        this.baseHeightMap = baseHeightMap;
+    }
+
+    public float getVerticalScaling() {
+        return verticalScaling;
+    }
+
+    public void setVerticalScaling(float verticalScaling) {
+        this.verticalScaling = verticalScaling;
+    }
+
+    // HeightMap
+
     @Override
-    public float getHeight(int x, int y) {
+    public float getHeight(float x, float y) {
         if (verticalScaling != 1.0f) {
             return (float) (Math.tan(Math.max(Math.max(Math.abs(baseHeightMap.getHeight(x + 1, y) / verticalScaling - baseHeightMap.getHeight(x - 1, y) / verticalScaling) / 2,
                 Math.abs(baseHeightMap.getHeight(x + 1, y + 1) / verticalScaling - baseHeightMap.getHeight(x - 1, y - 1) / verticalScaling) / ROOT_EIGHT),
@@ -87,8 +105,8 @@ public class SlopeHeightMap extends AbstractHeightMap {
         return new SlopeHeightMap(baseHeightMap.clone(), name);
     }
     
-    private final HeightMap baseHeightMap;
-    private final float verticalScaling;
+    private HeightMap baseHeightMap;
+    private float verticalScaling;
 
     private static final double ROOT_EIGHT = Math.sqrt(8.0);
     private static final double RADIANS_TO_DEGREES = 180 / Math.PI;

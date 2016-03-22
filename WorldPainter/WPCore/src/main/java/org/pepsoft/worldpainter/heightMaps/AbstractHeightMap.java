@@ -25,7 +25,11 @@ public abstract class AbstractHeightMap implements HeightMap, Cloneable {
     public String getName() {
         return name;
     }
-    
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     @Override
     public long getSeed() {
         return seed;
@@ -55,8 +59,18 @@ public abstract class AbstractHeightMap implements HeightMap, Cloneable {
         int value = MathUtils.clamp(0, (int) (getHeight(x, y) + 0.5f), 255);
         return (value << 16) | (value << 8) | value;
     }
-    
-    protected final String name;
+
+    @Override
+    public float getHeight(float x, float y) {
+        return getHeight((int) (x + 0.5f), (int) (y + 0.5f));
+    }
+
+    @Override
+    public float getHeight(int x, int y) {
+        return getHeight((float) x, (float) y);
+    }
+
+    protected String name;
     protected long seed;
     
     private static final long serialVersionUID = 1L;

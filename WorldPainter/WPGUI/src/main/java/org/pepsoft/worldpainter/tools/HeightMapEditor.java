@@ -6,17 +6,20 @@
 
 package org.pepsoft.worldpainter.tools;
 
-import java.util.Random;
-import javax.swing.tree.TreeCellRenderer;
-import javax.swing.tree.TreeModel;
-import org.pepsoft.minecraft.Constants;
 import org.pepsoft.util.swing.TileProvider;
 import org.pepsoft.worldpainter.HeightMap;
-import org.pepsoft.worldpainter.Terrain;
-import org.pepsoft.worldpainter.TileFactoryFactory;
+import org.pepsoft.worldpainter.heightMaps.BitmapHeightMap;
+import org.pepsoft.worldpainter.heightMaps.TransformingHeightMap;
 import org.pepsoft.worldpainter.heightMaps.gui.HeightMapTileProvider;
-import org.pepsoft.worldpainter.heightMaps.gui.HeightMapTreeModel;
 import org.pepsoft.worldpainter.heightMaps.gui.HeightMapTreeCellRenderer;
+import org.pepsoft.worldpainter.heightMaps.gui.HeightMapTreeModel;
+
+import javax.imageio.ImageIO;
+import javax.swing.tree.TreeCellRenderer;
+import javax.swing.tree.TreeModel;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 /**
  *
@@ -26,18 +29,22 @@ public class HeightMapEditor extends javax.swing.JFrame {
     /**
      * Creates new form HeightMapEditor
      */
-    public HeightMapEditor() {
+    public HeightMapEditor() throws IOException {
         initComponents();
         createHeightMap();
     }
     
-    private void createHeightMap() {
-        HeightMap heightMap = TileFactoryFactory.createFancyTileFactory(new Random().nextLong(), Terrain.GRASS, Constants.DEFAULT_MAX_HEIGHT_2, 62, 58, false, 20f, 1.0).getHeightMap();
+    private void createHeightMap() throws IOException {
+//        HeightMap heightMap = TileFactoryFactory.createFancyTileFactory(new Random().nextLong(), Terrain.GRASS, Constants.DEFAULT_MAX_HEIGHT_2, 62, 58, false, 20f, 1.0).getHeightMap();
 //        NoiseHeightMap noise = new NoiseHeightMap("Noise", 255f, 5.0, 3);
 //        NoiseHeightMap angleMap = new NoiseHeightMap("Angle", (float) (Math.PI * 2), 2.5f, 1);
 //        NoiseHeightMap distanceMap = new NoiseHeightMap("Distance", 25f, 2.5f, 1);
 //        return new DisplacementHeightMap(noise, angleMap, distanceMap);
-        TileProvider tileProvider = new HeightMapTileProvider(heightMap);
+        File bitmapFile = new File("C:\\Users\\isc21004\\Pictures\\testpat_1k.gif");
+        BufferedImage bitmap = ImageIO.read(bitmapFile);
+        BitmapHeightMap heightMap = BitmapHeightMap.build().withImage(bitmap).withSmoothScaling(true).withRepeat(true).now();
+        TransformingHeightMap scaledHeightMap = TransformingHeightMap.build().withHeightMap(heightMap).withScale(10000).now();
+        TileProvider tileProvider = new HeightMapTileProvider(scaledHeightMap);
         tiledImageViewer1.setTileProvider(tileProvider);
         TreeModel treeModel = new HeightMapTreeModel(heightMap);
         jTree1.setModel(treeModel);
@@ -103,7 +110,11 @@ public class HeightMapEditor extends javax.swing.JFrame {
     }//GEN-LAST:event_jTree1ValueChanged
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        createHeightMap();
+        try {
+            createHeightMap();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
@@ -111,7 +122,13 @@ public class HeightMapEditor extends javax.swing.JFrame {
      */
     public static void main(String args[]) {
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(() -> new HeightMapEditor().setVisible(true));
+        java.awt.EventQueue.invokeLater(() -> {
+            try {
+                new HeightMapEditor().setVisible(true);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

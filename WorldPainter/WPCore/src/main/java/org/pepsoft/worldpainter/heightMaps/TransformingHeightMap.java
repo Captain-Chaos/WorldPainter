@@ -17,11 +17,9 @@
 
 package org.pepsoft.worldpainter.heightMaps;
 
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.image.BufferedImage;
 import org.pepsoft.worldpainter.HeightMap;
+
+import java.awt.*;
 
 /**
  * A height map which scales and/or translates another height map
@@ -29,84 +27,58 @@ import org.pepsoft.worldpainter.HeightMap;
  * @author pepijn
  */
 public class TransformingHeightMap extends AbstractHeightMap {
-    public TransformingHeightMap(HeightMap baseHeightMap) {
-        this(null, baseHeightMap, 100, 0, 0, false);
-    }
-    
-    public TransformingHeightMap(HeightMap baseHeightMap, int scale, boolean smoothScaling) {
-        this(null, baseHeightMap, scale, 0, 0, smoothScaling);
-    }
-
-    public TransformingHeightMap(HeightMap baseHeightMap, int offsetX, int offsetY) {
-        this(null, baseHeightMap, 100, offsetX, offsetY, false);
-    }
-
-    public TransformingHeightMap(HeightMap baseHeightMap, int scale, int offsetX, int offsetY, boolean smoothScaling) {
-        this(null, baseHeightMap, scale, offsetX, offsetY, smoothScaling);
-    }
-
-    public TransformingHeightMap(String name, HeightMap baseHeightMap) {
-        this(name, baseHeightMap, 100, 0, 0, false);
-    }
-    
-    public TransformingHeightMap(String name, HeightMap baseHeightMap, int scale, boolean smoothScaling) {
-        this(name, baseHeightMap, scale, 0, 0, smoothScaling);
-    }
-
-    public TransformingHeightMap(String name, HeightMap baseHeightMap, int offsetX, int offsetY) {
-        this(name, baseHeightMap, 100, offsetX, offsetY, false);
-    }
-
-    public TransformingHeightMap(String name, HeightMap baseHeightMap, int scale, int offsetX, int offsetY, boolean smoothScaling) {
+    public TransformingHeightMap(String name, HeightMap baseHeightMap, int scale, int offsetX, int offsetY) {
         super(name);
-        this.scale = scale / 100.0;
+        this.baseHeightMap = baseHeightMap;
+        this.scale = scale / 100.0f;
         this.offsetX = offsetX;
         this.offsetY = offsetY;
-        if (scale == 100) {
-            this.baseHeightMap = baseHeightMap;
-            baseHeightMapScaled = false;
-        } else {
-            if (baseHeightMap instanceof BitmapHeightMap) {
-                BufferedImage image = ((BitmapHeightMap) baseHeightMap).getImage();
-                if ((image.getType() == BufferedImage.TYPE_BYTE_BINARY) || (image.getType() == BufferedImage.TYPE_BYTE_GRAY)) {
-                    final int widthInBlocks = image.getWidth() * scale / 100;
-                    final int heightInBlocks = image.getHeight() * scale / 100;
-                    final int bitDepth = image.getSampleModel().getSampleSize(0);
-                    final boolean sixteenBit = bitDepth == 16;
-                    final BufferedImage scaledImage = new BufferedImage(widthInBlocks, heightInBlocks, sixteenBit ? BufferedImage.TYPE_USHORT_GRAY : BufferedImage.TYPE_BYTE_GRAY);
-                    final Graphics2D g2 = scaledImage.createGraphics();
-                    try {
-                        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-                        g2.drawImage(image, 0, 0, widthInBlocks, heightInBlocks, null);
-                    } finally {
-                        g2.dispose();
-                    }
-                    this.baseHeightMap = new BitmapHeightMap(baseHeightMap.getName() + " (scaled)", scaledImage, ((BitmapHeightMap) baseHeightMap).getImageFile());
-                    baseHeightMapScaled = true;
-                } else {
-                    throw new UnsupportedOperationException("Scaling of colour height maps not supported yet");
-                }
-            } else if (! smoothScaling) {
-                this.baseHeightMap = baseHeightMap;
-                baseHeightMapScaled = false;
-            } else {
-                throw new UnsupportedOperationException("Smooth scaling of non-image height maps not supported yet");
-            }
-        }
     }
-    
+
+    public HeightMap getBaseHeightMap() {
+        return baseHeightMap;
+    }
+
+    public void setBaseHeightMap(HeightMap baseHeightMap) {
+        this.baseHeightMap = baseHeightMap;
+    }
+
+    public int getOffsetX() {
+        return offsetX;
+    }
+
+    public void setOffsetX(int offsetX) {
+        this.offsetX = offsetX;
+    }
+
+    public int getOffsetY() {
+        return offsetY;
+    }
+
+    public void setOffsetY(int offsetY) {
+        this.offsetY = offsetY;
+    }
+
+    public int getScale() {
+        return (int) (scale * 100 + 0.5f);
+    }
+
+    public void setScale(int scale) {
+        this.scale = scale / 100.0f;
+    }
+
     @Override
-    public float getHeight(int x, int y) {
-        if (baseHeightMapScaled || (scale == 1.0)) {
+    public float getHeight(float x, float y) {
+        if (scale == 1.0) {
             return baseHeightMap.getHeight(x - offsetX, y - offsetY);
         } else {
-            return baseHeightMap.getHeight((int) ((x - offsetX) / scale + 0.5), (int) ((y - offsetY) / scale + 0.5));
+            return baseHeightMap.getHeight((x - offsetX) / scale, (y - offsetY) / scale);
         }
     }
 
     @Override
     public int getColour(int x, int y) {
-        if (baseHeightMapScaled || (scale == 1.0)) {
+        if (scale == 1.0) {
             return baseHeightMap.getColour(x - offsetX, y - offsetY);
         } else {
             return baseHeightMap.getColour((int) ((x - offsetX) / scale + 0.5), (int) ((y - offsetY) / scale + 0.5));
@@ -136,8 +108,43 @@ public class TransformingHeightMap extends AbstractHeightMap {
         }
     }
 
-    private final HeightMap baseHeightMap;
-    private final int offsetX, offsetY;
-    private final double scale;
-    private final boolean baseHeightMapScaled;
+    public static TransformingHeightMapBuilder build() {
+        return new TransformingHeightMapBuilder();
+    }
+
+    private HeightMap baseHeightMap;
+    private int offsetX, offsetY;
+    private float scale;
+
+    public static class TransformingHeightMapBuilder {
+        public TransformingHeightMapBuilder withName(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public TransformingHeightMapBuilder withHeightMap(HeightMap baseHeightMap) {
+            this.baseHeightMap = baseHeightMap;
+            return this;
+        }
+
+        public TransformingHeightMapBuilder withOffset(int offsetX, int offsetY) {
+            this.offsetX = offsetX;
+            this.offsetY = offsetY;
+            return this;
+        }
+
+        public TransformingHeightMapBuilder withScale(int scale) {
+            this.scale = scale;
+            return this;
+        }
+
+        public TransformingHeightMap now() {
+            return new TransformingHeightMap(name, baseHeightMap, scale, offsetX, offsetY);
+        }
+
+        private String name;
+        private HeightMap baseHeightMap;
+        private int offsetX, offsetY;
+        private int scale = 100;
+    }
 }

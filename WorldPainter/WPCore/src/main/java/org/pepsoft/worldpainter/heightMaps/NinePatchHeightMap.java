@@ -47,9 +47,7 @@ public final class NinePatchHeightMap extends AbstractHeightMap {
         this.borderSize = borderSize;
         this.coastSize = coastSize;
         this.height = height;
-        halfHeight = height / 2;
-        borderTotal = innerSize + borderSize;
-        coastTotal = borderTotal + coastSize;
+        sizesChanged();
     }
 
     public int getInnerSize() {
@@ -68,10 +66,30 @@ public final class NinePatchHeightMap extends AbstractHeightMap {
         return height;
     }
 
+    public void setBorderSize(int borderSize) {
+        this.borderSize = borderSize;
+        sizesChanged();
+    }
+
+    public void setCoastSize(int coastSize) {
+        this.coastSize = coastSize;
+        sizesChanged();
+    }
+
+    public void setHeight(float height) {
+        this.height = height;
+        sizesChanged();
+    }
+
+    public void setInnerSize(int innerSize) {
+        this.innerSize = innerSize;
+        sizesChanged();
+    }
+
     // HeightMap
-    
+
     @Override
-    public float getHeight(int x, int y) {
+    public float getHeight(float x, float y) {
         x = Math.abs(x);
         y = Math.abs(y);
         if (x < innerSize) {
@@ -83,7 +101,7 @@ public final class NinePatchHeightMap extends AbstractHeightMap {
                 return height;
             } else if (y < coastTotal) {
                 // Coast
-                return (float) (Math.cos((double) (y - borderTotal) / coastSize * Math.PI) * halfHeight) + halfHeight;
+                return (float) (Math.cos((y - borderTotal) / coastSize * Math.PI) * halfHeight) + halfHeight;
             } else {
                 // Outside the continent
                 return 0;
@@ -99,7 +117,7 @@ public final class NinePatchHeightMap extends AbstractHeightMap {
                     // Border
                     return height;
                 } else if (distanceFromCorner - borderSize < coastSize) {
-                    return (float) (Math.cos((double) (distanceFromCorner - borderSize) / coastSize * Math.PI) * halfHeight) + halfHeight;
+                    return (float) (Math.cos((distanceFromCorner - borderSize) / coastSize * Math.PI) * halfHeight) + halfHeight;
                     // Coast
                 } else {
                     // Outside the continent
@@ -112,7 +130,7 @@ public final class NinePatchHeightMap extends AbstractHeightMap {
         } else if (x < coastTotal) {
             if (y < innerSize) {
                 // Coast
-                return (float) (Math.cos((double) (x - borderTotal) / coastSize * Math.PI) * halfHeight) + halfHeight;
+                return (float) (Math.cos((x - borderTotal) / coastSize * Math.PI) * halfHeight) + halfHeight;
             } else if (y < coastTotal) {
                 // Corner
                 float distanceFromCorner = MathUtils.getDistance(x - innerSize, y - innerSize);
@@ -120,7 +138,7 @@ public final class NinePatchHeightMap extends AbstractHeightMap {
                     // Border
                     return height;
                 } else if (distanceFromCorner - borderSize < coastSize) {
-                    return (float) (Math.cos((double) (distanceFromCorner - borderSize) / coastSize * Math.PI) * halfHeight) + halfHeight;
+                    return (float) (Math.cos((distanceFromCorner - borderSize) / coastSize * Math.PI) * halfHeight) + halfHeight;
                     // Coast
                 } else {
                     // Outside the continent
@@ -140,10 +158,16 @@ public final class NinePatchHeightMap extends AbstractHeightMap {
     public float getBaseHeight() {
         return 0.0f;
     }
-    
-    private final int innerSize, borderSize, coastSize;
-    private final int borderTotal, coastTotal;
-    private final float height, halfHeight;
+
+    private void sizesChanged() {
+        halfHeight = height / 2;
+        borderTotal = innerSize + borderSize;
+        coastTotal = borderTotal + coastSize;
+    }
+
+    private int innerSize, borderSize, coastSize;
+    private int borderTotal, coastTotal;
+    private float height, halfHeight;
     
     private static final long serialVersionUID = 1L;
 }

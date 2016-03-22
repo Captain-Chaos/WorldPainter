@@ -6,8 +6,9 @@
 
 package org.pepsoft.worldpainter.heightMaps;
 
-import java.awt.Rectangle;
 import org.pepsoft.worldpainter.HeightMap;
+
+import java.awt.*;
 
 /**
  *
@@ -39,15 +40,27 @@ public class DisplacementHeightMap extends AbstractHeightMap {
         return distanceMap;
     }
 
+    public void setAngleMap(HeightMap angleMap) {
+        this.angleMap = angleMap;
+    }
+
+    public void setBaseHeightMap(HeightMap baseHeightMap) {
+        this.baseHeightMap = baseHeightMap;
+    }
+
+    public void setDistanceMap(HeightMap distanceMap) {
+        this.distanceMap = distanceMap;
+    }
+
     // HeightMap
     
     @Override
-    public float getHeight(int x, int y) {
+    public float getHeight(float x, float y) {
         float angle = angleMap.getHeight(x, y);
         float distance = distanceMap.getHeight(x, y);
-        double actualX = x + Math.sin(angle) * distance;
-        double actualY = y + Math.cos(angle) * distance;
-        return baseHeightMap.getHeight((int) (actualX + 0.5), (int) (actualY + 0.5));
+        float actualX = (float) (x + Math.sin(angle) * distance);
+        float actualY = (float) (y + Math.cos(angle) * distance);
+        return baseHeightMap.getHeight(actualX, actualY);
     }
 
     @Override
@@ -77,6 +90,6 @@ public class DisplacementHeightMap extends AbstractHeightMap {
         clone.setSeed(getSeed());
         return clone;
     }
-    
-    private final HeightMap baseHeightMap, angleMap, distanceMap;
+
+    private HeightMap baseHeightMap, angleMap, distanceMap;
 }

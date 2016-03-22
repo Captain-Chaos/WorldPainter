@@ -17,9 +17,24 @@ public final class ConstantHeightMap extends AbstractHeightMap {
         super(name);
         this.height = height;
     }
-    
+
+    public float getHeight() {
+        return height;
+    }
+
+    public void setHeight(float height) {
+        this.height = height;
+    }
+
+    // HeightMap
+
     @Override
     public float getHeight(int x, int y) {
+        return height;
+    }
+
+    @Override
+    public float getHeight(float x, float y) {
         return height;
     }
 
@@ -28,7 +43,7 @@ public final class ConstantHeightMap extends AbstractHeightMap {
         return height;
     }
     
-    private final float height;
+    private float height;
     
     private static final long serialVersionUID = 1L;
 }

@@ -37,7 +37,7 @@ public class HeightMapPropertiesPanel extends JPanel {
             addRow("Name:", heightMap.getName());
         }
         if (heightMap instanceof ConstantHeightMap) {
-            addRow("Constant height: ", Float.toString(((ConstantHeightMap) heightMap).getBaseHeight()));
+            addRow("Constant height: ", Float.toString(heightMap.getBaseHeight()));
         } else if (heightMap instanceof NinePatchHeightMap) {
             addRow("Height:", Float.toString(((NinePatchHeightMap) heightMap).getHeight()));
             addRow("Inner size:", Integer.toString(((NinePatchHeightMap) heightMap).getInnerSize()));

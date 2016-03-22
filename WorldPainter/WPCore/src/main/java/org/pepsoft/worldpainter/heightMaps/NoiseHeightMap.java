@@ -74,6 +74,35 @@ public final class NoiseHeightMap implements HeightMap {
         return seedOffset;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setOctaves(int octaves) {
+        this.octaves = octaves;
+    }
+
+    public void setRange(float range) {
+        this.range = range;
+    }
+
+    public void setScale(double scale) {
+        this.scale = scale;
+    }
+
+    public void setSeedOffset(long seedOffset) {
+        if (seedOffset != this.seedOffset) {
+            this.seedOffset = seedOffset;
+            perlinNoise.setSeed(seed + seedOffset);
+        }
+    }
+
+    public void setNoiseSettings(NoiseSettings noiseSettings) {
+        range = noiseSettings.getRange() * 2;
+        scale = noiseSettings.getScale() / 5;
+        octaves = noiseSettings.getRoughness() + 1;
+    }
+
     // HeightMap
     
     @Override
@@ -83,12 +112,13 @@ public final class NoiseHeightMap implements HeightMap {
     
     @Override
     public long getSeed() {
-        return perlinNoise.getSeed() - seedOffset;
+        return seed;
     }
 
     @Override
     public void setSeed(long seed) {
-        if ((perlinNoise.getSeed() - seedOffset) != seed) {
+        if (seed != this.seed) {
+            this.seed = seed;
             perlinNoise.setSeed(seed + seedOffset);
         }
     }
@@ -96,6 +126,11 @@ public final class NoiseHeightMap implements HeightMap {
     @Override
     public float getHeight(int x, int y) {
         return getValue((double) x, (double) y);
+    }
+
+    @Override
+    public float getHeight(float x, float y) {
+        return getValue(x, y);
     }
 
     @Override
@@ -161,18 +196,17 @@ public final class NoiseHeightMap implements HeightMap {
     }
     
     public static void main(String[] args) {
-        System.out.print('{');
         for (int i = 1; i <= 10; i++) {
-            System.out.print(Math.pow(2.0, i - 1));
+            System.out.println(Math.pow(2.0, i - 1));
         }
     }
     
-    private final PerlinNoise perlinNoise;
-    private final float range;
-    private final double scale;
-    private final int octaves;
-    private final long seedOffset;
-    private final String name;
+    private PerlinNoise perlinNoise;
+    private float range;
+    private double scale;
+    private int octaves;
+    private long seed, seedOffset;
+    private String name;
     
     private static final int[] FACTORS = {1, 2, 4, 8, 16, 32, 64, 128, 256, 512};
     private static final long serialVersionUID = 1L;
