@@ -61,6 +61,7 @@ public final class BitmapHeightMap extends AbstractHeightMap {
 
     public void setRepeat(boolean repeat) {
         this.repeat = repeat;
+        extent = repeat ? null : new Rectangle(0, 0, width, height);
     }
 
     public boolean isSmoothScaling() {
@@ -86,10 +87,12 @@ public final class BitmapHeightMap extends AbstractHeightMap {
 
     @Override
     public float getHeight(float x, float y) {
-        if ((! smoothScaling) || ((x == (int) x) && (y == (int) y))) {
+        if (! smoothScaling) {
             return getHeight((int) x, (int) y);
         } else {
             // Bicubic interpolation
+            x -= Math.signum(x) / 2;
+            y -= Math.signum(y) / 2;
             int xFloor = (int) Math.floor(x), yFloor = (int) Math.floor(y);
             float xDelta = x - xFloor, yDelta = y - yFloor;
             float val1 = cubicInterpolate(getHeight(xFloor - 1, yFloor - 1), getHeight(xFloor - 1, yFloor), getHeight(xFloor - 1, yFloor + 1), getHeight(xFloor - 1, yFloor + 2), yDelta);

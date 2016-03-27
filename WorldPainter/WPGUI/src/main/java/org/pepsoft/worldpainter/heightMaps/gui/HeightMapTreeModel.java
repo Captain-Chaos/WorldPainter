@@ -6,12 +6,15 @@
 
 package org.pepsoft.worldpainter.heightMaps.gui;
 
+import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import org.pepsoft.worldpainter.HeightMap;
-import org.pepsoft.worldpainter.heightMaps.CombiningHeightMap;
-import org.pepsoft.worldpainter.heightMaps.DisplacementHeightMap;
+import org.pepsoft.worldpainter.heightMaps.DelegatingHeightMap;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -22,6 +25,15 @@ public class HeightMapTreeModel implements TreeModel {
         this.rootHeightMap = rootHeightMap;
     }
 
+    public void notifyListeners() {
+        TreeModelEvent event = new TreeModelEvent(this, new Object[] {rootHeightMap});
+        for (TreeModelListener listener: listeners) {
+            listener.treeStructureChanged(event);
+        }
+    }
+
+    // TreeModel
+
     @Override
     public Object getRoot() {
         return rootHeightMap;
@@ -29,35 +41,16 @@ public class HeightMapTreeModel implements TreeModel {
 
     @Override
     public Object getChild(Object parent, int index) {
-        if (parent instanceof CombiningHeightMap) {
-            if (index == 0) {
-                return ((CombiningHeightMap) parent).getHeightMap1();
-            } else if (index == 1) {
-                return ((CombiningHeightMap) parent).getHeightMap2();
-            } else {
-                throw new IndexOutOfBoundsException(Integer.toString(index));
-            }
-        } else if (parent instanceof DisplacementHeightMap) {
-            if (index == 0) {
-                return ((DisplacementHeightMap) parent).getBaseHeightMap();
-            } else if (index == 1) {
-                return ((DisplacementHeightMap) parent).getAngleMap();
-            } else if (index == 2) {
-                return ((DisplacementHeightMap) parent).getDistanceMap();
-            } else {
-                throw new IndexOutOfBoundsException(Integer.toString(index));
-            }
-        } else {
-            throw new IndexOutOfBoundsException(Integer.toString(index));
+        if (parent instanceof DelegatingHeightMap) {
+            return ((DelegatingHeightMap) parent).getHeightMap(index);
         }
+        throw new IndexOutOfBoundsException(Integer.toString(index));
     }
 
     @Override
     public int getChildCount(Object parent) {
-        if (parent instanceof CombiningHeightMap) {
-            return 2;
-        } else if (parent instanceof DisplacementHeightMap) {
-            return 3;
+        if (parent instanceof DelegatingHeightMap) {
+            return ((DelegatingHeightMap) parent).getHeightMapCount();
         } else {
             return 0;
         }
@@ -65,7 +58,7 @@ public class HeightMapTreeModel implements TreeModel {
 
     @Override
     public boolean isLeaf(Object node) {
-        return (! (node instanceof CombiningHeightMap)) && (! (node instanceof DisplacementHeightMap));
+        return ! (node instanceof DelegatingHeightMap);
     }
 
     @Override
@@ -75,38 +68,22 @@ public class HeightMapTreeModel implements TreeModel {
 
     @Override
     public int getIndexOfChild(Object parent, Object child) {
-        if (parent instanceof CombiningHeightMap) {
-            if (child == ((CombiningHeightMap) parent).getHeightMap1()) {
-                return 0;
-            } else if (child == ((CombiningHeightMap) parent).getHeightMap2()) {
-                return 1;
-            } else {
-                throw new IllegalArgumentException("Not a child of specified parent");
-            }
-        } else if (parent instanceof DisplacementHeightMap) {
-            if (child == ((DisplacementHeightMap) parent).getBaseHeightMap()) {
-                return 0;
-            } else if (child == ((DisplacementHeightMap) parent).getAngleMap()) {
-                return 1;
-            } else if (child == ((DisplacementHeightMap) parent).getDistanceMap()) {
-                return 2;
-            } else {
-                throw new IllegalArgumentException("Not a child of specified parent");
-            }
-        } else {
-            throw new IllegalArgumentException("Not a child of specified parent");
+        if (parent instanceof DelegatingHeightMap) {
+            return ((DelegatingHeightMap) parent).getIndex((HeightMap) child);
         }
+        throw new IllegalArgumentException("Not a child of specified parent");
     }
 
     @Override
     public void addTreeModelListener(TreeModelListener l) {
-        // Do nothing
+        listeners.add(l);
     }
 
     @Override
     public void removeTreeModelListener(TreeModelListener l) {
-        // Do nothing
+        listeners.remove(l);
     }
     
     private final HeightMap rootHeightMap;
+    private final List<TreeModelListener> listeners = new ArrayList<>();
 }

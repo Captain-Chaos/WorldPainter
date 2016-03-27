@@ -22,18 +22,23 @@ public final class SumHeightMap extends CombiningHeightMap {
     }
 
     @Override
+    public float getHeight(int x, int y) {
+        return children[0].getHeight(x, y) + children[1].getHeight(x, y);
+    }
+
+    @Override
     public float getHeight(float x, float y) {
-        return heightMap1.getHeight(x, y) + heightMap2.getHeight(x, y);
+        return children[0].getHeight(x, y) + children[1].getHeight(x, y);
     }
 
     @Override
     public float getBaseHeight() {
-        return heightMap1.getBaseHeight() + heightMap2.getBaseHeight();
+        return children[0].getBaseHeight() + children[1].getBaseHeight();
     }
     
     @Override
     public SumHeightMap clone() {
-        SumHeightMap clone = new SumHeightMap(name, heightMap1.clone(), heightMap2.clone());
+        SumHeightMap clone = new SumHeightMap(name, children[0].clone(), children[1].clone());
         clone.setSeed(getSeed());
         return clone;
     }
@@ -42,14 +47,14 @@ public final class SumHeightMap extends CombiningHeightMap {
         // There are worlds in the wild where heightMap1 and/or heightMap2 are
         // null. No idea how that could happen, but it will cause errors, so
         // fix it as best we can
-        if (heightMap1 == null) {
-            if (heightMap2 == null) {
+        if (children[0] == null) {
+            if (children[1] == null) {
                 return new SumHeightMap(name, new ConstantHeightMap(62), new ConstantHeightMap(0));
             } else {
-                return new SumHeightMap(name, new ConstantHeightMap(58 - heightMap2.getBaseHeight()), heightMap2);
+                return new SumHeightMap(name, new ConstantHeightMap(58 - children[1].getBaseHeight()), children[1]);
             }
-        } else if (heightMap2 == null) {
-            return new SumHeightMap(heightMap1, new ConstantHeightMap(58 - heightMap1.getBaseHeight()));
+        } else if (children[1] == null) {
+            return new SumHeightMap(children[0], new ConstantHeightMap(58 - children[0].getBaseHeight()));
         }
         return this;
     }

@@ -4,20 +4,20 @@
  */
 package org.pepsoft.worldpainter.heightMaps;
 
-import java.awt.Rectangle;
-import java.util.Random;
 import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.PerlinNoise;
-import org.pepsoft.worldpainter.HeightMap;
 import org.pepsoft.worldpainter.NoiseSettings;
 
-import static org.pepsoft.worldpainter.Constants.*;
+import java.awt.*;
+import java.util.Random;
+
+import static org.pepsoft.worldpainter.Constants.LARGE_BLOBS;
 
 /**
  *
  * @author pepijn
  */
-public final class NoiseHeightMap implements HeightMap {
+public final class NoiseHeightMap extends AbstractHeightMap {
     public NoiseHeightMap(NoiseSettings noiseSettings) {
         this(null, noiseSettings.getRange() * 2, noiseSettings.getScale() / 5, noiseSettings.getRoughness() + 1, new Random().nextLong());
     }
@@ -37,7 +37,7 @@ public final class NoiseHeightMap implements HeightMap {
     public NoiseHeightMap(float range, double scale, int octaves) {
         this(null, range, scale, octaves, new Random().nextLong());
     }
-    
+
     public NoiseHeightMap(float range, double scale, int octaves, long seedOffset) {
         this(null, range, scale, octaves, seedOffset);
     }
@@ -45,8 +45,9 @@ public final class NoiseHeightMap implements HeightMap {
     public NoiseHeightMap(String name, float range, double scale, int octaves) {
         this(name, range, scale, octaves, new Random().nextLong());
     }
-    
+
     public NoiseHeightMap(String name, float range, double scale, int octaves, long seedOffset) {
+        setName(name);
         if (octaves > 10) {
             throw new IllegalArgumentException("More than 10 octaves not supported");
         }
@@ -54,7 +55,6 @@ public final class NoiseHeightMap implements HeightMap {
         this.scale = scale;
         this.octaves = octaves;
         this.seedOffset = seedOffset;
-        this.name = name;
         perlinNoise = new PerlinNoise(seedOffset);
     }
 
@@ -72,10 +72,6 @@ public final class NoiseHeightMap implements HeightMap {
 
     public long getSeedOffset() {
         return seedOffset;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public void setOctaves(int octaves) {
@@ -104,21 +100,11 @@ public final class NoiseHeightMap implements HeightMap {
     }
 
     // HeightMap
-    
-    @Override
-    public String getName() {
-        return name;
-    }
-    
-    @Override
-    public long getSeed() {
-        return seed;
-    }
 
     @Override
     public void setSeed(long seed) {
         if (seed != this.seed) {
-            this.seed = seed;
+            super.setSeed(seed);
             perlinNoise.setSeed(seed + seedOffset);
         }
     }
@@ -156,7 +142,7 @@ public final class NoiseHeightMap implements HeightMap {
             return (noise + 0.5f) * range;
         }
     }
-    
+
     public float getValue(double x, double y) {
         if (octaves == 1) {
             return (perlinNoise.getPerlinNoise(x / LARGE_BLOBS / scale, y / LARGE_BLOBS / scale) + 0.5f) * range;
@@ -182,7 +168,7 @@ public final class NoiseHeightMap implements HeightMap {
             return (noise + 0.5f) * range;
         }
     }
-    
+
     @Override
     public float getBaseHeight() {
         return 0.0f;
@@ -194,20 +180,13 @@ public final class NoiseHeightMap implements HeightMap {
         clone.setSeed(getSeed());
         return clone;
     }
-    
-    public static void main(String[] args) {
-        for (int i = 1; i <= 10; i++) {
-            System.out.println(Math.pow(2.0, i - 1));
-        }
-    }
-    
+
     private PerlinNoise perlinNoise;
     private float range;
     private double scale;
     private int octaves;
-    private long seed, seedOffset;
-    private String name;
-    
+    private long seedOffset;
+
     private static final int[] FACTORS = {1, 2, 4, 8, 16, 32, 64, 128, 256, 512};
     private static final long serialVersionUID = 1L;
 }

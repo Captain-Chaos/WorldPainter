@@ -21,6 +21,10 @@ public abstract class AbstractHeightMap implements HeightMap, Cloneable {
         this.name = name;
     }
 
+    public DelegatingHeightMap getParent() {
+        return parent;
+    }
+
     @Override
     public String getName() {
         return name;
@@ -72,6 +76,7 @@ public abstract class AbstractHeightMap implements HeightMap, Cloneable {
 
     protected String name;
     protected long seed;
+    DelegatingHeightMap parent;
     
     private static final long serialVersionUID = 1L;
 }

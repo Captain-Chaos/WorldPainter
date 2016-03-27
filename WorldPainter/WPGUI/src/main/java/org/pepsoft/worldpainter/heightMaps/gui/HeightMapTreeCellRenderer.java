@@ -6,33 +6,50 @@
 
 package org.pepsoft.worldpainter.heightMaps.gui;
 
-import java.awt.Component;
-import javax.swing.JTree;
-import javax.swing.tree.DefaultTreeCellRenderer;
+import org.pepsoft.util.IconUtils;
 import org.pepsoft.worldpainter.HeightMap;
+import org.pepsoft.worldpainter.heightMaps.*;
+
+import javax.swing.*;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.TreePath;
+import java.awt.*;
 
 /**
  *
  * @author pepijn
  */
 public class HeightMapTreeCellRenderer extends DefaultTreeCellRenderer {
-    public HeightMapTreeCellRenderer(HeightMap rootHeightMap) {
-        this.rootHeightMap = rootHeightMap;
-    }
-    
     @Override
     public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
         super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
         if (value instanceof HeightMap) {
-            String name = ((HeightMap) value).getName();
+            HeightMap heightMap = (HeightMap) value;
+            String role = "output";
+            if (value instanceof AbstractHeightMap) {
+                DelegatingHeightMap parent = ((AbstractHeightMap) value).getParent();
+                if (parent != null) {
+                    role = parent.getRole(parent.getIndex(heightMap));
+                }
+            }
+            String name = (heightMap).getName();
             if (name != null) {
-                setText(name + " (" + value.getClass().getSimpleName() + ")");
+                setText(role + " (" + name + ")");
             } else {
-                setText(value.getClass().getSimpleName());
+                setText(role);
+            }
+            if (value instanceof TransformingHeightMap) {
+                setIcon(ICON_TRANSFORMING_HEIGHTMAP);
+            } else if (value instanceof BitmapHeightMap) {
+                setIcon(ICON_BITMAP_HEIGHTMAP);
+            } else if (value instanceof DisplacementHeightMap) {
+                setIcon(ICON_DISPLACEMENT_HEIGHTMAP);
             }
         }
         return this;
     }
-    
-    private final HeightMap rootHeightMap;
+
+    private static final Icon ICON_DISPLACEMENT_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/arrow_rotate_anticlockwise.png");
+    private static final Icon ICON_TRANSFORMING_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/arrow_cross.png");
+    private static final Icon ICON_BITMAP_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/photo.png");
 }

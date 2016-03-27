@@ -21,18 +21,23 @@ public class ProductHeightMap extends CombiningHeightMap {
     }
 
     @Override
+    public float getHeight(int x, int y) {
+        return children[0].getHeight(x, y) * children[1].getHeight(x, y);
+    }
+
+    @Override
     public float getHeight(float x, float y) {
-        return heightMap1.getHeight(x, y) * heightMap2.getHeight(x, y);
+        return children[0].getHeight(x, y) * children[1].getHeight(x, y);
     }
 
     @Override
     public float getBaseHeight() {
-        return heightMap1.getBaseHeight() * heightMap2.getBaseHeight();
+        return children[0].getBaseHeight() * children[1].getBaseHeight();
     }
     
     @Override
     public ProductHeightMap clone() {
-        ProductHeightMap clone = new ProductHeightMap(name, heightMap1.clone(), heightMap2.clone());
+        ProductHeightMap clone = new ProductHeightMap(name, children[0].clone(), children[1].clone());
         clone.setSeed(getSeed());
         return clone;
     }

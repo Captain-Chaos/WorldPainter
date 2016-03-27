@@ -26,21 +26,22 @@ import java.awt.*;
  *
  * @author pepijn
  */
-public class TransformingHeightMap extends AbstractHeightMap {
+public class TransformingHeightMap extends DelegatingHeightMap {
     public TransformingHeightMap(String name, HeightMap baseHeightMap, int scale, int offsetX, int offsetY) {
-        super(name);
-        this.baseHeightMap = baseHeightMap;
+        super("baseHeightMap");
+        setName(name);
+        setHeightMap(0, baseHeightMap);
         this.scale = scale / 100.0f;
         this.offsetX = offsetX;
         this.offsetY = offsetY;
     }
 
     public HeightMap getBaseHeightMap() {
-        return baseHeightMap;
+        return children[0];
     }
 
     public void setBaseHeightMap(HeightMap baseHeightMap) {
-        this.baseHeightMap = baseHeightMap;
+        replace(0, baseHeightMap);
     }
 
     public int getOffsetX() {
@@ -70,29 +71,24 @@ public class TransformingHeightMap extends AbstractHeightMap {
     @Override
     public float getHeight(float x, float y) {
         if (scale == 1.0) {
-            return baseHeightMap.getHeight(x - offsetX, y - offsetY);
+            return children[0].getHeight(x - offsetX, y - offsetY);
         } else {
-            return baseHeightMap.getHeight((x - offsetX) / scale, (y - offsetY) / scale);
+            return children[0].getHeight((x - offsetX) / scale, (y - offsetY) / scale);
         }
     }
 
     @Override
     public int getColour(int x, int y) {
         if (scale == 1.0) {
-            return baseHeightMap.getColour(x - offsetX, y - offsetY);
+            return children[0].getColour(x - offsetX, y - offsetY);
         } else {
-            return baseHeightMap.getColour((int) ((x - offsetX) / scale + 0.5), (int) ((y - offsetY) / scale + 0.5));
+            return children[0].getColour((int) ((x - offsetX) / scale + 0.5), (int) ((y - offsetY) / scale + 0.5));
         }
     }
     
     @Override
-    public float getBaseHeight() {
-        return baseHeightMap.getBaseHeight();
-    }
-
-    @Override
     public Rectangle getExtent() {
-        Rectangle extent = baseHeightMap.getExtent();
+        Rectangle extent = children[0].getExtent();
         if (extent != null) {
             extent = (Rectangle) extent.clone();
             if ((offsetX != 0) || (offsetY != 0)) {
@@ -112,7 +108,6 @@ public class TransformingHeightMap extends AbstractHeightMap {
         return new TransformingHeightMapBuilder();
     }
 
-    private HeightMap baseHeightMap;
     private int offsetX, offsetY;
     private float scale;
 

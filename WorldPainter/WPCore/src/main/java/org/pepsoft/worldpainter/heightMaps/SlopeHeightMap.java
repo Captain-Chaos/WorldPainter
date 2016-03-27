@@ -26,7 +26,7 @@ import org.pepsoft.worldpainter.HeightMap;
  *
  * @author pepijn
  */
-public class SlopeHeightMap extends AbstractHeightMap {
+public class SlopeHeightMap extends DelegatingHeightMap {
     public SlopeHeightMap(HeightMap baseHeightMap) {
         this(baseHeightMap, 1.0f);
     }
@@ -36,23 +36,25 @@ public class SlopeHeightMap extends AbstractHeightMap {
     }
     
     public SlopeHeightMap(HeightMap baseHeightMap, float verticalScaling) {
-        super(baseHeightMap.getName() != null ? "Slope of " + baseHeightMap.getName() : null);
-        this.baseHeightMap = baseHeightMap;
+        super("baseHeightMap");
+        setName(baseHeightMap.getName() != null ? "Slope of " + baseHeightMap.getName() : null);
+        setHeightMap(0, baseHeightMap);
         this.verticalScaling = verticalScaling;
     }
 
     public SlopeHeightMap(HeightMap baseHeightMap, float verticalScaling, String name) {
-        super(name);
-        this.baseHeightMap = baseHeightMap;
+        super("baseHeightMap");
+        setName(name);
+        setHeightMap(0, baseHeightMap);
         this.verticalScaling = verticalScaling;
     }
 
     public HeightMap getBaseHeightMap() {
-        return baseHeightMap;
+        return children[0];
     }
 
     public void setBaseHeightMap(HeightMap baseHeightMap) {
-        this.baseHeightMap = baseHeightMap;
+        replace(0, baseHeightMap);
     }
 
     public float getVerticalScaling() {
@@ -67,6 +69,7 @@ public class SlopeHeightMap extends AbstractHeightMap {
 
     @Override
     public float getHeight(float x, float y) {
+        HeightMap baseHeightMap = children[0];
         if (verticalScaling != 1.0f) {
             return (float) (Math.tan(Math.max(Math.max(Math.abs(baseHeightMap.getHeight(x + 1, y) / verticalScaling - baseHeightMap.getHeight(x - 1, y) / verticalScaling) / 2,
                 Math.abs(baseHeightMap.getHeight(x + 1, y + 1) / verticalScaling - baseHeightMap.getHeight(x - 1, y - 1) / verticalScaling) / ROOT_EIGHT),
@@ -81,31 +84,15 @@ public class SlopeHeightMap extends AbstractHeightMap {
     }
 
     @Override
-    public float getBaseHeight() {
-        return baseHeightMap.getBaseHeight();
-    }
-
-    @Override
     public Rectangle getExtent() {
-        return baseHeightMap.getExtent();
-    }
-
-    @Override
-    public void setSeed(long seed) {
-        baseHeightMap.setSeed(seed);
-    }
-
-    @Override
-    public long getSeed() {
-        return baseHeightMap.getSeed();
+        return children[0].getExtent();
     }
 
     @Override
     public SlopeHeightMap clone() {
-        return new SlopeHeightMap(baseHeightMap.clone(), name);
+        return new SlopeHeightMap(children[0].clone(), name);
     }
     
-    private HeightMap baseHeightMap;
     private float verticalScaling;
 
     private static final double ROOT_EIGHT = Math.sqrt(8.0);

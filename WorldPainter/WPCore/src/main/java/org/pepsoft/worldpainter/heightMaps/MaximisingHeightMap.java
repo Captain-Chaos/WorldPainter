@@ -22,18 +22,23 @@ public class MaximisingHeightMap extends CombiningHeightMap {
     }
 
     @Override
+    public float getHeight(int x, int y) {
+        return Math.max(children[0].getHeight(x, y), children[1].getHeight(x, y));
+    }
+
+    @Override
     public float getHeight(float x, float y) {
-        return Math.max(heightMap1.getHeight(x, y), heightMap2.getHeight(x, y));
+        return Math.max(children[0].getHeight(x, y), children[1].getHeight(x, y));
     }
 
     @Override
     public float getBaseHeight() {
-        return Math.max(heightMap1.getBaseHeight(), heightMap2.getBaseHeight());
+        return Math.max(children[0].getBaseHeight(), children[1].getBaseHeight());
     }
 
     @Override
     public MaximisingHeightMap clone() {
-        MaximisingHeightMap clone = new MaximisingHeightMap(name, heightMap1.clone(), heightMap2.clone());
+        MaximisingHeightMap clone = new MaximisingHeightMap(name, children[0].clone(), children[1].clone());
         clone.setSeed(getSeed());
         return clone;
     }
