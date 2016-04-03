@@ -4,7 +4,10 @@
  */
 package org.pepsoft.worldpainter.heightMaps;
 
+import org.pepsoft.util.IconUtils;
 import org.pepsoft.worldpainter.HeightMap;
+
+import javax.swing.*;
 
 /**
  * A height map which is the product of two other height maps.
@@ -34,7 +37,7 @@ public class ProductHeightMap extends CombiningHeightMap {
     public float getBaseHeight() {
         return children[0].getBaseHeight() * children[1].getBaseHeight();
     }
-    
+
     @Override
     public ProductHeightMap clone() {
         ProductHeightMap clone = new ProductHeightMap(name, children[0].clone(), children[1].clone());
@@ -42,5 +45,11 @@ public class ProductHeightMap extends CombiningHeightMap {
         return clone;
     }
 
+    @Override
+    public Icon getIcon() {
+        return ICON_PRODUCT_HEIGHTMAP;
+    }
+
     private static final long serialVersionUID = 1L;
+    private static final Icon ICON_PRODUCT_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/times.png");
 }

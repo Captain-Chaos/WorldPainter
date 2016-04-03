@@ -38,7 +38,7 @@ public class HeightMapPropertiesPanel extends JPanel {
         removeAll();
         addField("Name:", heightMap, "name");
         if (heightMap instanceof ConstantHeightMap) {
-            addField("Constant height: ", heightMap, "baseHeight");
+            addField("Height: ", heightMap, "height");
         } else if (heightMap instanceof NinePatchHeightMap) {
             addField("Height:", heightMap, "height");
             addField("Inner size:", heightMap, "innerSize", 0, null);
@@ -49,15 +49,26 @@ public class HeightMapPropertiesPanel extends JPanel {
             addField("Scale:", heightMap, "scale", 0.0, null);
             addField("Octaves:", heightMap, "octaves", 1, 8);
         } else if (heightMap instanceof TransformingHeightMap) {
-            addField("Scale: ", heightMap, "scale", 0, null);
-            addField("X offset: ", heightMap, "offsetX");
-            addField("Y offset: ", heightMap, "offsetY");
+            addField("X scale:", heightMap, "scaleX", 0, null);
+            addField("Y scale:", heightMap, "scaleY", 0, null);
+            addField("X offset:", heightMap, "offsetX");
+            addField("Y offset:", heightMap, "offsetY");
+            addField("Rotation:", heightMap, "rotation");
         } else if (heightMap instanceof BitmapHeightMap) {
             BufferedImage image = ((BitmapHeightMap) heightMap).getImage();
             int noOfChannels = image.getColorModel().getNumComponents();
             addField("Channel:", heightMap, "channel", 0, noOfChannels - 1);
             addField("Repeat:", heightMap, "repeat");
-            addField("Smooth scaling:", heightMap, "smoothScaling");
+            addField("Bicubic scaling:", heightMap, "smoothScaling");
+        } else if (heightMap instanceof BandedHeightMap) {
+            addField("Segment 1 length:", heightMap, "segment1Length");
+            addField("Segment 1 end height:", heightMap, "segment1EndHeight");
+            addField("Segment 2 length:", heightMap, "segment2Length");
+            addField("Segment 2 end height:", heightMap, "segment2EndHeight");
+            addField("Smooth:", heightMap, "smooth");
+        } else if (heightMap instanceof ShelvingHeightMap) {
+            addField("Shelve height:", heightMap, "shelveHeight");
+            addField("Shelve strength:", heightMap, "shelveStrength");
         }
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.weighty = 1.0;

@@ -18,7 +18,11 @@
 package org.pepsoft.worldpainter.heightMaps;
 
 import java.awt.Rectangle;
+
+import org.pepsoft.util.IconUtils;
 import org.pepsoft.worldpainter.HeightMap;
+
+import javax.swing.*;
 
 /**
  * A height map which calculates the slope of an underlying height map, in
@@ -92,9 +96,16 @@ public class SlopeHeightMap extends DelegatingHeightMap {
     public SlopeHeightMap clone() {
         return new SlopeHeightMap(children[0].clone(), name);
     }
-    
+
+    @Override
+    public Icon getIcon() {
+        return ICON_SLOPE_HEIGHTMAP;
+    }
+
     private float verticalScaling;
 
+    private static final long serialVersionUID = 1L;
     private static final double ROOT_EIGHT = Math.sqrt(8.0);
     private static final double RADIANS_TO_DEGREES = 180 / Math.PI;
+    private static final Icon ICON_SLOPE_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/integral.png");
 }
