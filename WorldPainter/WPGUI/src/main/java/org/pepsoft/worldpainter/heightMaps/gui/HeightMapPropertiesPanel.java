@@ -41,7 +41,8 @@ public class HeightMapPropertiesPanel extends JPanel {
             addField("Constant height: ", heightMap, "baseHeight");
         } else if (heightMap instanceof NinePatchHeightMap) {
             addField("Height:", heightMap, "height");
-            addField("Inner size:", heightMap, "innerSize", 0, null);
+            addField("Inner size X:", heightMap, "innerSizeX", 0, null);
+            addField("Inner size Y:", heightMap, "innerSizeY", 0, null);
             addField("Border size:", heightMap, "borderSize", 0, null);
             addField("Coast size:", heightMap, "coastSize", 0, null);
         } else if (heightMap instanceof NoiseHeightMap) {
