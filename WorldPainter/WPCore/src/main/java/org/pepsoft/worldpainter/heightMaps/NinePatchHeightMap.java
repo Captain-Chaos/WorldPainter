@@ -46,15 +46,20 @@ public final class NinePatchHeightMap extends AbstractHeightMap {
         if ((innerSize == 0) && (borderSize == 0) && (coastSize == 0)) {
             throw new IllegalArgumentException();
         }
-        this.innerSize = innerSize;
+        this.innerSizeX = innerSize;
+        this.innerSizeY = innerSize;
         this.borderSize = borderSize;
         this.coastSize = coastSize;
         this.height = height;
         sizesChanged();
     }
 
-    public int getInnerSize() {
-        return innerSize;
+    public int getInnerSizeX() {
+        return innerSizeX;
+    }
+
+    public int getInnerSizeY() {
+        return innerSizeY;
     }
 
     public int getBorderSize() {
@@ -84,8 +89,19 @@ public final class NinePatchHeightMap extends AbstractHeightMap {
         sizesChanged();
     }
 
+    public void setInnerSizeX(int innerSizeX) {
+        this.innerSizeX = innerSizeX;
+        sizesChanged();
+    }
+
+    public void setInnerSizeY(int innerSizeY) {
+        this.innerSizeY = innerSizeY;
+        sizesChanged();
+    }
+
     public void setInnerSize(int innerSize) {
-        this.innerSize = innerSize;
+        this.innerSizeX = innerSize;
+        this.innerSizeY = innerSize;
         sizesChanged();
     }
 
@@ -95,27 +111,27 @@ public final class NinePatchHeightMap extends AbstractHeightMap {
     public float getHeight(float x, float y) {
         x = Math.abs(x);
         y = Math.abs(y);
-        if (x < innerSize) {
-            if (y < innerSize) {
+        if (x < innerSizeX) {
+            if (y < innerSizeY) {
                 // On the continent
                 return height;
-            } else if (y < borderTotal) {
+            } else if (y < borderTotalY) {
                 // Border
                 return height;
-            } else if (y < coastTotal) {
+            } else if (y < coastTotalY) {
                 // Coast
-                return (float) (Math.cos((y - borderTotal) / coastSize * Math.PI) * halfHeight) + halfHeight;
+                return (float) (Math.cos((y - borderTotalY) / coastSize * Math.PI) * halfHeight) + halfHeight;
             } else {
                 // Outside the continent
                 return 0;
             }
-        } else if (x < borderTotal) {
-            if (y < innerSize) {
+        } else if (x < borderTotalX) {
+            if (y < innerSizeY) {
                 // Border
                 return height;
-            } else if (y < coastTotal) {
+            } else if (y < coastTotalY) {
                 // Corner
-                float distanceFromCorner = MathUtils.getDistance(x - innerSize, y - innerSize);
+                float distanceFromCorner = MathUtils.getDistance(x - innerSizeX, y - innerSizeY);
                 if (distanceFromCorner < borderSize) {
                     // Border
                     return height;
@@ -130,13 +146,13 @@ public final class NinePatchHeightMap extends AbstractHeightMap {
                 // Outside the continent
                 return 0;
             }
-        } else if (x < coastTotal) {
-            if (y < innerSize) {
+        } else if (x < coastTotalX) {
+            if (y < innerSizeY) {
                 // Coast
-                return (float) (Math.cos((x - borderTotal) / coastSize * Math.PI) * halfHeight) + halfHeight;
-            } else if (y < coastTotal) {
+                return (float) (Math.cos((x - borderTotalX) / coastSize * Math.PI) * halfHeight) + halfHeight;
+            } else if (y < coastTotalY) {
                 // Corner
-                float distanceFromCorner = MathUtils.getDistance(x - innerSize, y - innerSize);
+                float distanceFromCorner = MathUtils.getDistance(x - innerSizeX, y - innerSizeY);
                 if (distanceFromCorner < borderSize) {
                     // Border
                     return height;
@@ -169,12 +185,14 @@ public final class NinePatchHeightMap extends AbstractHeightMap {
 
     private void sizesChanged() {
         halfHeight = height / 2;
-        borderTotal = innerSize + borderSize;
-        coastTotal = borderTotal + coastSize;
+        borderTotalX = innerSizeX + borderSize;
+        borderTotalY = innerSizeY + borderSize;
+        coastTotalX = borderTotalX + coastSize;
+        coastTotalY = borderTotalY + coastSize;
     }
 
-    private int innerSize, borderSize, coastSize;
-    private int borderTotal, coastTotal;
+    private int innerSizeX, innerSizeY, borderSize, coastSize;
+    private int borderTotalX, borderTotalY, coastTotalX, coastTotalY;
     private float height, halfHeight;
     
     private static final long serialVersionUID = 1L;
