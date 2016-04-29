@@ -19,13 +19,12 @@ import java.util.List;
  */
 public interface SecondPassLayerExporter extends LayerExporter {
     /**
-     * Render a chunk. This is synonymous with invoking
-     * <code>render(<em>world</em>, <em>tile</em>, <em>chunkX</em>, <em>chunkY</em>, <em>minecraftWorld</em>, null)</code>.
+     * Export an area of the map.
      *
-     * @param dimension The dimension that is being rendered.
-     * @param area The area to render.
+     * @param dimension The dimension that is being exported.
+     * @param area The area to process.
      * @param exportedArea The area which will actually be exported. May be smaller than <code>area</code>. May be used to for instance avoid objects getting cut off at area boundaries.
-     * @param minecraftWorld The chunk cache to be used for getting the chunks.
+     * @param minecraftWorld The {@link MinecraftWorld} to which to export the layer.
      * @return An optional list of fixups which should be executed after all regions have been exported.
      */
     List<Fixup> render(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld);

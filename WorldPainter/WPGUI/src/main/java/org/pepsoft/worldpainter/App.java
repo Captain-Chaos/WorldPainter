@@ -46,6 +46,8 @@ import org.pepsoft.worldpainter.painting.Paint;
 import org.pepsoft.worldpainter.painting.PaintFactory;
 import org.pepsoft.worldpainter.panels.BrushOptions;
 import org.pepsoft.worldpainter.panels.BrushOptions.Listener;
+import org.pepsoft.worldpainter.plugins.LayerProvider;
+import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.pepsoft.worldpainter.threedeeview.ThreeDeeFrame;
 import org.pepsoft.worldpainter.tools.BiomesViewerFrame;
 import org.pepsoft.worldpainter.tools.RespawnPlayerDialog;
@@ -2595,7 +2597,34 @@ public final class App extends JFrame implements RadiusControl,
             }
         });
         customLayerMenu.add(menuItem);
-        
+
+        List<Class<? extends CustomLayer>> allPluginLayers = new ArrayList<>();
+        for (LayerProvider layerProvider: WPPluginManager.getInstance().getPlugins(LayerProvider.class)) {
+            allPluginLayers.addAll(layerProvider.getCustomLayers());
+        }
+        if (! allPluginLayers.isEmpty()) {
+            customLayerMenu.addSeparator();
+
+            for (Class<? extends CustomLayer> customLayerClass: allPluginLayers) {
+                menuItem = new JMenuItem("Add a " + customLayerClass.getSimpleName() + " layer...");
+                menuItem.addActionListener(e -> {
+                    EditLayerDialog<CustomLayer> dialog = new EditLayerDialog<>(App.this, (Class<CustomLayer>) customLayerClass);
+                    dialog.setVisible(true);
+                    if (! dialog.isCancelled()) {
+                        // TODO: get saved layer
+                        CustomLayer layer = dialog.getLayer();
+                        if (paletteName != null) {
+                            layer.setPalette(paletteName);
+                        }
+                        registerCustomLayer(layer, true);
+                    }
+                });
+                customLayerMenu.add(menuItem);
+            }
+
+            customLayerMenu.addSeparator();
+        }
+
         menuItem = new JMenuItem("Import custom layer(s) from file...");
         menuItem.addActionListener(e -> importLayers(paletteName));
         customLayerMenu.add(menuItem);

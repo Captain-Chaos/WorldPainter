@@ -5,6 +5,7 @@
 package org.pepsoft.worldpainter;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.plugins.AbstractPlugin;
@@ -27,7 +28,12 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
     public List<Layer> getLayers() {
         return Arrays.asList(Frost.INSTANCE, Caverns.INSTANCE, Chasms.INSTANCE, DeciduousForest.INSTANCE, PineForest.INSTANCE, SwampLand.INSTANCE, Jungle.INSTANCE, org.pepsoft.worldpainter.layers.Void.INSTANCE, Resources.INSTANCE/*, River.INSTANCE*/);
     }
-    
+
+    @Override
+    public List<Class<? extends CustomLayer>> getCustomLayers() {
+        return Collections.emptyList();
+    }
+
     // ContextProvider
 
     @Override
