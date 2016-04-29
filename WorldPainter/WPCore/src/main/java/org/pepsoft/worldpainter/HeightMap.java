@@ -29,4 +29,8 @@ public interface HeightMap extends Serializable {
     Rectangle getExtent();
     
     int getColour(int x, int y);
+
+    boolean isConstant();
+
+    float getConstantValue();
 }

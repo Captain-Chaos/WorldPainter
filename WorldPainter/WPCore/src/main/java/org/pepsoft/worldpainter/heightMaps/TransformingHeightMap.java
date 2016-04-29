@@ -30,10 +30,10 @@ public class TransformingHeightMap extends DelegatingHeightMap {
     public TransformingHeightMap(String name, HeightMap baseHeightMap, int scale, int offsetX, int offsetY) {
         super("baseHeightMap");
         setName(name);
-        setHeightMap(0, baseHeightMap);
         this.scale = scale / 100.0f;
         this.offsetX = offsetX;
         this.offsetY = offsetY;
+        setHeightMap(0, baseHeightMap);
     }
 
     public HeightMap getBaseHeightMap() {
@@ -50,6 +50,7 @@ public class TransformingHeightMap extends DelegatingHeightMap {
 
     public void setOffsetX(int offsetX) {
         this.offsetX = offsetX;
+        determineConstant();
     }
 
     public int getOffsetY() {
@@ -58,6 +59,7 @@ public class TransformingHeightMap extends DelegatingHeightMap {
 
     public void setOffsetY(int offsetY) {
         this.offsetY = offsetY;
+        determineConstant();
     }
 
     public int getScale() {
@@ -66,10 +68,11 @@ public class TransformingHeightMap extends DelegatingHeightMap {
 
     public void setScale(int scale) {
         this.scale = scale / 100.0f;
+        determineConstant();
     }
 
     @Override
-    public float getHeight(float x, float y) {
+    protected float doGetHeight(float x, float y) {
         if (scale == 1.0) {
             return children[0].getHeight(x - offsetX, y - offsetY);
         } else {
@@ -78,7 +81,7 @@ public class TransformingHeightMap extends DelegatingHeightMap {
     }
 
     @Override
-    public int getColour(int x, int y) {
+    protected int doGetColour(int x, int y) {
         if (scale == 1.0) {
             return children[0].getColour(x - offsetX, y - offsetY);
         } else {

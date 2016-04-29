@@ -11,6 +11,7 @@ import org.pepsoft.util.swing.TileProvider;
 import org.pepsoft.worldpainter.Configuration;
 import org.pepsoft.worldpainter.HeightMap;
 import org.pepsoft.worldpainter.MouseAdapter;
+import org.pepsoft.worldpainter.TileFactoryFactory;
 import org.pepsoft.worldpainter.heightMaps.*;
 import org.pepsoft.worldpainter.heightMaps.gui.HeightMapPropertiesPanel;
 import org.pepsoft.worldpainter.heightMaps.gui.HeightMapTileProvider;
@@ -20,7 +21,6 @@ import org.pepsoft.worldpainter.heightMaps.gui.HeightMapTreeModel;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
-import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreePath;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -30,6 +30,9 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
+
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
+import static org.pepsoft.worldpainter.Terrain.GRASS;
 
 /**
  *
@@ -41,7 +44,7 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
      */
     public HeightMapEditor() throws IOException {
         initComponents();
-        TreeCellRenderer cellRenderer = new HeightMapTreeCellRenderer();
+        cellRenderer = new HeightMapTreeCellRenderer();
         jTree1.setCellRenderer(cellRenderer);
         heightMapPropertiesPanel1.setListener(this);
         createHeightMap();
@@ -57,15 +60,16 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
     }
 
     private void createHeightMap() throws IOException {
-//        HeightMap heightMap = TileFactoryFactory.createFancyTileFactory(new Random().nextLong(), Terrain.GRASS, Constants.DEFAULT_MAX_HEIGHT_2, 62, 58, false, 20f, 1.0).getHeightMap();
-        File bitmapFile = new File("/home/pepijn/Pictures/WorldPainter/test-image-8-bit-grayscale.png");
-        BufferedImage bitmap = ImageIO.read(bitmapFile);
-        BitmapHeightMap bitmapHeightMap = BitmapHeightMap.build().withImage(bitmap).withSmoothScaling(false).withRepeat(true).now();
-        TransformingHeightMap scaledHeightMap = TransformingHeightMap.build().withHeightMap(bitmapHeightMap).withScale(300).now();
-        NoiseHeightMap angleMap = new NoiseHeightMap("Angle", (float) (Math.PI * 2), 2.5f, 1);
-        NoiseHeightMap distanceMap = new NoiseHeightMap("Distance", 25f, 2.5f, 1);
-        heightMap = new DisplacementHeightMap(scaledHeightMap, angleMap, distanceMap);
-        installHeightMap();
+        rootHeightMap = TileFactoryFactory.createFancyTileFactory(new Random().nextLong(), GRASS, DEFAULT_MAX_HEIGHT_2, 62, 58, false, 20f, 1.0).getHeightMap();
+//        File bitmapFile = new File("/home/pepijn/Pictures/WorldPainter/test-image-8-bit-grayscale.png");
+//        BufferedImage bitmap = ImageIO.read(bitmapFile);
+//        BitmapHeightMap bitmapHeightMap = BitmapHeightMap.build().withImage(bitmap).withSmoothScaling(false).withRepeat(true).now();
+//        TransformingHeightMap scaledHeightMap = TransformingHeightMap.build().withHeightMap(bitmapHeightMap).withScale(300).now();
+//        NoiseHeightMap angleMap = new NoiseHeightMap("Angle", (float) (Math.PI * 2), 2.5f, 1);
+//        NoiseHeightMap distanceMap = new NoiseHeightMap("Distance", 25f, 2.5f, 1);
+//        heightMap = new DisplacementHeightMap(scaledHeightMap, angleMap, distanceMap);
+        focusOn(rootHeightMap);
+        installHeightMap(true);
         jTree1.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent event) {
@@ -96,8 +100,15 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
                     parent = null;
                 }
                 JPopupMenu menu = new JPopupMenu();
+                JMenuItem menuItem = new JMenuItem("Focus Here");
+                menuItem.addActionListener(actionEvent -> {
+                    focusOn(heightMap);
+                    installHeightMap(false);
+                });
+                menu.add(menuItem);
+
                 JMenu insertMenu = new JMenu("Insert");
-                JMenuItem menuItem = new JMenuItem("Product");
+                menuItem = new JMenuItem("Product");
                 menuItem.addActionListener(actionEvent -> {
                     ProductHeightMap productHeightMap = new ProductHeightMap(heightMap, new ConstantHeightMap(1.0f));
                     replace(parent, heightMap, productHeightMap);
@@ -253,10 +264,14 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
 
             private void replace(DelegatingHeightMap parent, HeightMap oldHeightMap, HeightMap newHeightMap) {
                 if (parent == null) {
-                    HeightMapEditor.this.heightMap = newHeightMap;
-                    installHeightMap();
+                    HeightMapEditor.this.rootHeightMap = newHeightMap;
+                    focusOn(newHeightMap);
+                    installHeightMap(true);
                 } else {
                     parent.replace(oldHeightMap, newHeightMap);
+                    if (oldHeightMap == HeightMapEditor.this.focusHeightMap) {
+                        focusOn(newHeightMap);
+                    }
                     treeModel.notifyListeners();
                     tiledImageViewer1.refresh(true);
                 }
@@ -264,11 +279,19 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
         });
     }
 
-    private void installHeightMap() {
-        TileProvider tileProvider = new HeightMapTileProvider(heightMap);
+    private void focusOn(HeightMap heightMap) {
+        focusHeightMap = heightMap;
+        cellRenderer.setFocusHeightMap(focusHeightMap);
+        jTree1.repaint();
+    }
+
+    private void installHeightMap(boolean updateTreeModel) {
+        TileProvider tileProvider = new HeightMapTileProvider(focusHeightMap);
         tiledImageViewer1.setTileProvider(tileProvider);
-        treeModel = new HeightMapTreeModel(heightMap);
-        jTree1.setModel(treeModel);
+        if (updateTreeModel) {
+            treeModel = new HeightMapTreeModel(rootHeightMap);
+            jTree1.setModel(treeModel);
+        }
     }
 
     /**
@@ -329,7 +352,7 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
     }//GEN-LAST:event_jTree1ValueChanged
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        heightMap.setSeed(new Random().nextLong());
+        rootHeightMap.setSeed(new Random().nextLong());
         tiledImageViewer1.refresh(true);
     }//GEN-LAST:event_jButton1ActionPerformed
 
@@ -347,8 +370,9 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
         });
     }
 
-    private HeightMap heightMap;
+    private HeightMap rootHeightMap, focusHeightMap;
     private HeightMapTreeModel treeModel;
+    private HeightMapTreeCellRenderer cellRenderer;
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private org.pepsoft.worldpainter.heightMaps.gui.HeightMapPropertiesPanel heightMapPropertiesPanel1;

@@ -42,7 +42,17 @@ public final class ConstantHeightMap extends AbstractHeightMap {
     public float getBaseHeight() {
         return height;
     }
-    
+
+    @Override
+    public boolean isConstant() {
+        return true;
+    }
+
+    @Override
+    public float getConstantValue() {
+        return height;
+    }
+
     private float height;
     
     private static final long serialVersionUID = 1L;

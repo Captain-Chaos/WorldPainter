@@ -38,15 +38,15 @@ public class SlopeHeightMap extends DelegatingHeightMap {
     public SlopeHeightMap(HeightMap baseHeightMap, float verticalScaling) {
         super("baseHeightMap");
         setName(baseHeightMap.getName() != null ? "Slope of " + baseHeightMap.getName() : null);
-        setHeightMap(0, baseHeightMap);
         this.verticalScaling = verticalScaling;
+        setHeightMap(0, baseHeightMap);
     }
 
     public SlopeHeightMap(HeightMap baseHeightMap, float verticalScaling, String name) {
         super("baseHeightMap");
         setName(name);
-        setHeightMap(0, baseHeightMap);
         this.verticalScaling = verticalScaling;
+        setHeightMap(0, baseHeightMap);
     }
 
     public HeightMap getBaseHeightMap() {
@@ -63,12 +63,13 @@ public class SlopeHeightMap extends DelegatingHeightMap {
 
     public void setVerticalScaling(float verticalScaling) {
         this.verticalScaling = verticalScaling;
+        determineConstant();
     }
 
     // HeightMap
 
     @Override
-    public float getHeight(float x, float y) {
+    protected float doGetHeight(float x, float y) {
         HeightMap baseHeightMap = children[0];
         if (verticalScaling != 1.0f) {
             return (float) (Math.tan(Math.max(Math.max(Math.abs(baseHeightMap.getHeight(x + 1, y) / verticalScaling - baseHeightMap.getHeight(x - 1, y) / verticalScaling) / 2,

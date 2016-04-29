@@ -74,6 +74,16 @@ public abstract class AbstractHeightMap implements HeightMap, Cloneable {
         return getHeight((float) x, (float) y);
     }
 
+    @Override
+    public boolean isConstant() {
+        return false;
+    }
+
+    @Override
+    public float getConstantValue() {
+        throw new UnsupportedOperationException("Not a constant height map");
+    }
+
     protected String name;
     protected long seed;
     DelegatingHeightMap parent;

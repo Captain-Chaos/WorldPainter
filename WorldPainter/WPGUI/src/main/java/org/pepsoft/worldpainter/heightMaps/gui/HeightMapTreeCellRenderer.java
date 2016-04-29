@@ -11,6 +11,7 @@ import org.pepsoft.worldpainter.HeightMap;
 import org.pepsoft.worldpainter.heightMaps.*;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreePath;
 import java.awt.*;
@@ -45,9 +46,25 @@ public class HeightMapTreeCellRenderer extends DefaultTreeCellRenderer {
             } else if (value instanceof DisplacementHeightMap) {
                 setIcon(ICON_DISPLACEMENT_HEIGHTMAP);
             }
+            if (value == focusHeightMap) {
+                setBorder(focusBorder);
+            } else if (getBorder() != null) {
+                setBorder(null);
+            }
         }
         return this;
     }
+
+    public HeightMap getFocusHeightMap() {
+        return focusHeightMap;
+    }
+
+    public void setFocusHeightMap(HeightMap focusHeightMap) {
+        this.focusHeightMap = focusHeightMap;
+    }
+
+    private final Border focusBorder = BorderFactory.createLineBorder(Color.RED);
+    private HeightMap focusHeightMap;
 
     private static final Icon ICON_DISPLACEMENT_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/arrow_rotate_anticlockwise.png");
     private static final Icon ICON_TRANSFORMING_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/arrow_cross.png");

@@ -22,12 +22,12 @@ public final class SumHeightMap extends CombiningHeightMap {
     }
 
     @Override
-    public float getHeight(int x, int y) {
+    protected float doGetHeight(int x, int y) {
         return children[0].getHeight(x, y) + children[1].getHeight(x, y);
     }
 
     @Override
-    public float getHeight(float x, float y) {
+    protected float doGetHeight(float x, float y) {
         return children[0].getHeight(x, y) + children[1].getHeight(x, y);
     }
 
