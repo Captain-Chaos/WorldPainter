@@ -62,12 +62,6 @@ public class HeightMapTreeCellRenderer extends DefaultTreeCellRenderer {
         this.focusHeightMap = focusHeightMap;
     }
 
-    private final Border focusBorder = BorderFactory.createLineBorder(Color.RED);
-    private HeightMap focusHeightMap;
-
-    private static final Icon ICON_DISPLACEMENT_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/arrow_rotate_anticlockwise.png");
-    private static final Icon ICON_TRANSFORMING_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/arrow_cross.png");
-    private static final Icon ICON_BITMAP_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/photo.png");
     private String getTooltipText(HeightMap heightMap, String role) {
         StringBuilder sb = new StringBuilder("<html>");
         String name = heightMap.getName();
@@ -83,4 +77,7 @@ public class HeightMapTreeCellRenderer extends DefaultTreeCellRenderer {
         sb.append("</html>");
         return sb.toString();
     }
+
+    private final Border focusBorder = BorderFactory.createLineBorder(Color.RED);
+    private HeightMap focusHeightMap;
 }

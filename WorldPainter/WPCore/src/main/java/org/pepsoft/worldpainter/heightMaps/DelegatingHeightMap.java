@@ -1,7 +1,9 @@
 package org.pepsoft.worldpainter.heightMaps;
 
+import org.pepsoft.util.MathUtils;
 import org.pepsoft.worldpainter.HeightMap;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -67,6 +69,7 @@ public abstract class DelegatingHeightMap extends AbstractHeightMap {
         if (child instanceof AbstractHeightMap) {
             ((AbstractHeightMap) child).parent = this;
         }
+        childrenChanged();
     }
 
     public final void setHeightMap(String role, HeightMap child) {
@@ -82,6 +85,7 @@ public abstract class DelegatingHeightMap extends AbstractHeightMap {
         if (newChild instanceof AbstractHeightMap) {
             ((AbstractHeightMap) newChild).parent = this;
         }
+        childrenChanged();
         return oldChild;
     }
 
@@ -94,6 +98,7 @@ public abstract class DelegatingHeightMap extends AbstractHeightMap {
         if (newChild instanceof AbstractHeightMap) {
             ((AbstractHeightMap) newChild).parent = this;
         }
+        childrenChanged();
         return index;
     }
 

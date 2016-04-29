@@ -345,14 +345,14 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
         switch (viewMode) {
             case HEIGHT_MAP:
                 if (tiledImageViewer1.getTileProviderCount() == 0) {
-                    tiledImageViewer1.setTileProvider(new HeightMapTileProvider(heightMap));
+                    tiledImageViewer1.setTileProvider(new HeightMapTileProvider(focusHeightMap));
                 } else {
-                    tiledImageViewer1.replaceTileProvider(0, new HeightMapTileProvider(heightMap));
+                    tiledImageViewer1.replaceTileProvider(0, new HeightMapTileProvider(focusHeightMap));
                 }
                 tiledImageViewer1.setGridColour(Color.GRAY);
                 break;
             case TERRAIN:
-                TileFactory tileFactory = new HeightMapTileFactory(seed, heightMap, Constants.DEFAULT_MAX_HEIGHT_2, false, theme);
+                TileFactory tileFactory = new HeightMapTileFactory(seed, focusHeightMap, Constants.DEFAULT_MAX_HEIGHT_2, false, theme);
                 synchronized (tileCache) {
                     tileCache.clear();
                 }
@@ -406,7 +406,7 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
                 break;
         }
         if (updateTreeModel) {
-            treeModel = new HeightMapTreeModel(heightMap);
+            treeModel = new HeightMapTreeModel(rootHeightMap);
             jTree1.setModel(treeModel);
         }
     }
@@ -611,22 +611,21 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
         });
     }
 
-    private HeightMap rootHeightMap, focusHeightMap;
     private static void configError(Throwable e) {
         logger.error("Exception while loading config file", e);
         JOptionPane.showMessageDialog(null, "Could not read configuration file! Resetting configuration.\n\nException type: " + e.getClass().getSimpleName() + "\nMessage: " + e.getMessage(), "Configuration Error", JOptionPane.ERROR_MESSAGE);
     }
 
+    private HeightMap rootHeightMap, focusHeightMap;
     private final Map<Point, Tile> tileCache = Collections.synchronizedMap(new HashMap<>());
-    private HeightMap heightMap;
     private HeightMapTreeModel treeModel;
     private ViewMode viewMode = ViewMode.HEIGHT_MAP;
     private SimpleTheme theme = SimpleTheme.createDefault(Terrain.GRASS, Constants.DEFAULT_MAX_HEIGHT_2, 62);
     private long seed = new Random().nextLong();
+    private HeightMapTreeCellRenderer cellRenderer;
 
     private static final Tile RENDERING = new Tile(0, 0, 0, false) {};
     private static final Logger logger = LoggerFactory.getLogger(HeightMapEditor.class);
-    private HeightMapTreeCellRenderer cellRenderer;
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroup1;

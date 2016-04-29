@@ -33,7 +33,7 @@ public class ShelvingHeightMap extends DelegatingHeightMap {
     // HeightMap
 
     @Override
-    public float getHeight(float x, float y) {
+    public float doGetHeight(float x, float y) {
         float value = children[0].getHeight(x, y);
         return (float) (value - Math.sin(value * DOUBLE_PI / shelveHeight) * shelveStrength);
     }
