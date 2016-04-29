@@ -28,10 +28,8 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
+import java.util.List;
 
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 
@@ -126,16 +124,29 @@ public class LayerPreviewCreator {
             default:
                 throw new IllegalArgumentException("Unsupported data size " + layer.getDataSize() + " encountered");
         }
-        // If the layer is a combined layers, apply it recursively
+        // If the layer is a combined layer, apply it recursively and collect
+        // the added layers
+        List<Layer> layers;
         if (layer instanceof CombinedLayer) {
-            Set<Layer> addedLayers = ((CombinedLayer) layer).apply(tile);
-            while (! addedLayers.isEmpty()) {
-                Set<Layer> newlyAddedLayers = new HashSet<>();
-                addedLayers.stream()
-                    .filter(layer -> layer instanceof CombinedLayer)
-                    .forEach(layer -> newlyAddedLayers.addAll(((CombinedLayer) layer).apply(tile)));
-                addedLayers = newlyAddedLayers;
+            layers = new ArrayList<>();
+            layers.add(layer);
+            while (true) {
+                List<Layer> addedLayers = new ArrayList<>();
+                for (Iterator<Layer> i = layers.iterator(); i.hasNext(); ) {
+                    Layer tmpLayer = i.next();
+                    if (tmpLayer instanceof CombinedLayer) {
+                        i.remove();
+                        addedLayers.addAll(((CombinedLayer) tmpLayer).apply(tile));
+                    }
+                }
+                if (! addedLayers.isEmpty()) {
+                    layers.addAll(addedLayers);
+                } else {
+                    break;
+                }
             }
+        } else {
+            layers = Collections.singletonList(layer);
         }
         dimension.addTile(tile);
         now = System.currentTimeMillis();
@@ -143,49 +154,48 @@ public class LayerPreviewCreator {
             logger.debug("Applying layer(s) took " + (now - timestamp) + " ms");
         }
 
-        LayerExporter exporter = layer.getExporter();
-        if (settings != null) {
-            exporter.setSettings(settings);
+        // Collect the exporters (could be multiple if the layer was a combined
+        // layer)
+        Map<Layer, LayerExporter> pass1Exporters = new HashMap<>();
+        Map<Layer, SecondPassLayerExporter> pass2Exporters = new HashMap<>();
+        for (Layer tmpLayer: layers) {
+            LayerExporter exporter = tmpLayer.getExporter();
+            if (tmpLayer.equals(layer)) {
+                exporter.setSettings(settings);
+            }
+            if (exporter instanceof FirstPassLayerExporter) {
+                pass1Exporters.put(layer, exporter);
+            }
+            if (exporter instanceof SecondPassLayerExporter) {
+                pass2Exporters.put(layer, (SecondPassLayerExporter) exporter);
+            }
         }
-        if (exporter instanceof FirstPassLayerExporter) {
-            // Phase three: generate terrain and render the layer
-            timestamp = now;
-            WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(dimension, Collections.singletonMap(layer, exporter), Constants.SUPPORTED_VERSION_2, previewHeight);
-            for (int x = 0; x < 8; x++) {
-                for (int y = 0; y < 8; y++) {
-                    Chunk chunk = chunkFactory.createChunk(x, y).chunk;
-                    ((FirstPassLayerExporter) exporter).render(dimension, tile, chunk);
-                    minecraftWorldObject.addChunk(chunk);
-                }
-            }
-            now = System.currentTimeMillis();
-            if (logger.isDebugEnabled()) {
-                logger.debug("Generating terrain and rendering layer took " + (now - timestamp) + " ms");
-            }
-        } else if (exporter instanceof SecondPassLayerExporter) {
-            // Phase three: generate terrain
-            timestamp = now;
-            WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(dimension, Collections.emptyMap(), Constants.SUPPORTED_VERSION_2, previewHeight);
-            for (int x = 0; x < 8; x++) {
-                for (int y = 0; y < 8; y++) {
-                    minecraftWorldObject.addChunk(chunkFactory.createChunk(x, y).chunk);
-                }
-            }
-            now = System.currentTimeMillis();
-            if (logger.isDebugEnabled()) {
-                logger.debug("Generating terrain took " + (now - timestamp) + " ms");
-            }
 
-            // Phase four: render the layer
+        // Phase three: generate terrain and render first pass layers, if any
+        timestamp = now;
+        WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(dimension, pass1Exporters, Constants.SUPPORTED_VERSION_2, previewHeight);
+        for (int x = 0; x < 8; x++) {
+            for (int y = 0; y < 8; y++) {
+                Chunk chunk = chunkFactory.createChunk(x, y).chunk;
+                minecraftWorldObject.addChunk(chunk);
+            }
+        }
+        now = System.currentTimeMillis();
+        if (logger.isDebugEnabled()) {
+            logger.debug("Generating terrain and rendering first pass layer(s) (if any) took " + (now - timestamp) + " ms");
+        }
+
+        if (! pass2Exporters.isEmpty()) {
+            // Phase four: render the second pass layers, if any
             timestamp = now;
             Rectangle area = new Rectangle(128, 128);
-            ((SecondPassLayerExporter) exporter).render(dimension, area, area, minecraftWorldObject);
+            for (SecondPassLayerExporter exporter: pass2Exporters.values()) {
+                exporter.render(dimension, area, area, minecraftWorldObject);
+            }
             now = System.currentTimeMillis();
             if (logger.isDebugEnabled()) {
-                logger.debug("Rendering layer took " + (now - timestamp) + " ms");
+                logger.debug("Rendering second pass layer(s) took " + (now - timestamp) + " ms");
             }
-        } else {
-            throw new IllegalArgumentException("Unknown exporter type " + exporter.getClass() + " encountered");
         }
 
         // Final phase: post processing
