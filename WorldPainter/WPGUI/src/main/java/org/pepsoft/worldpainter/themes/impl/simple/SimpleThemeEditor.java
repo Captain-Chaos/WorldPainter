@@ -49,15 +49,17 @@ public class SimpleThemeEditor extends javax.swing.JPanel implements ButtonPress
         if (terrainTableModel == null) {
             return true;
         }
-        if (tableTerrain.isEditing()) {
-            tableTerrain.getCellEditor().stopCellEditing();
-        }
-        if (! terrainTableModel.isValid()) {
-            JOptionPane.showMessageDialog(this, "You have configured multiple terrain types with the same levels!\nRemove, or change the level of, one of the duplicates.", "Duplicate Levels", JOptionPane.WARNING_MESSAGE);
-            return false;
-        }
-        if (tableLayers.isEditing()) {
-            tableLayers.getCellEditor().stopCellEditing();
+        if (! programmaticChange) {
+            if (tableTerrain.isEditing()) {
+                tableTerrain.getCellEditor().stopCellEditing();
+            }
+            if (! terrainTableModel.isValid()) {
+                JOptionPane.showMessageDialog(this, "You have configured multiple terrain types with the same levels!\nRemove, or change the level of, one of the duplicates.", "Duplicate Levels", JOptionPane.WARNING_MESSAGE);
+                return false;
+            }
+            if (tableLayers.isEditing()) {
+                tableLayers.getCellEditor().stopCellEditing();
+            }
         }
         theme.setTerrainRanges(terrainTableModel.getTerrainRanges());
         theme.setRandomise(checkBoxRandomise.isSelected());
@@ -172,7 +174,12 @@ public class SimpleThemeEditor extends javax.swing.JPanel implements ButtonPress
     
     private void notifyChangeListener() {
         if (changeListener != null) {
-            changeListener.settingsModified(this);
+            programmaticChange = true;
+            try {
+                changeListener.settingsModified(this);
+            } finally {
+                programmaticChange = false;
+            }
         }
     }
 
@@ -349,6 +356,7 @@ public class SimpleThemeEditor extends javax.swing.JPanel implements ButtonPress
     private ColourScheme colourScheme;
     private ChangeListener changeListener;
     private LayerRangesTableModel layerTableModel;
+    private boolean programmaticChange;
     
     private static final long serialVersionUID = 1L;
     

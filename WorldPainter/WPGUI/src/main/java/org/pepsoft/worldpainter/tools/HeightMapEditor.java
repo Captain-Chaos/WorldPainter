@@ -9,6 +9,7 @@ package org.pepsoft.worldpainter.tools;
 import org.pepsoft.minecraft.Constants;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.MouseAdapter;
 import org.pepsoft.worldpainter.biomeschemes.AutoBiomeScheme;
 import org.pepsoft.worldpainter.colourschemes.DynMapColourScheme;
 import org.pepsoft.worldpainter.heightMaps.*;
@@ -19,6 +20,8 @@ import org.pepsoft.worldpainter.heightMaps.gui.HeightMapTreeModel;
 import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.themes.SimpleTheme;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -26,9 +29,7 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreePath;
 import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -64,7 +65,15 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
         jTree1.setCellRenderer(cellRenderer);
         ToolTipManager.sharedInstance().registerComponent(jTree1);
         heightMapPropertiesPanel1.setListener(this);
+        simpleThemeEditor1.setTheme(theme);
+        simpleThemeEditor1.setChangeListener(editor -> themeChanged());
         createHeightMap();
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentShown(ComponentEvent e) {
+                jSplitPane3.setDividerLocation(1.0);
+            }
+        });
     }
 
     // HeightMapListener
@@ -77,6 +86,13 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
                 tileCache.notifyAll();
             }
             tiledImageViewer1.refresh(true);
+        }
+    }
+
+    private void themeChanged() {
+        simpleThemeEditor1.save();
+        if (radioButtonViewAsTerrain.isSelected()) {
+            installHeightMap(false);
         }
     }
 
@@ -313,12 +329,15 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
     private void installHeightMap(boolean updateTreeModel) {
         switch (viewMode) {
             case HEIGHT_MAP:
-                tiledImageViewer1.setTileProvider(new HeightMapTileProvider(heightMap));
+                if (tiledImageViewer1.getTileProviderCount() == 0) {
+                    tiledImageViewer1.setTileProvider(new HeightMapTileProvider(heightMap));
+                } else {
+                    tiledImageViewer1.replaceTileProvider(0, new HeightMapTileProvider(heightMap));
+                }
                 tiledImageViewer1.setGridColour(Color.GRAY);
                 break;
             case TERRAIN:
-                long seed = new Random().nextLong();
-                TileFactory tileFactory = new HeightMapTileFactory(seed, heightMap, Constants.DEFAULT_MAX_HEIGHT_2, false, SimpleTheme.createDefault(Terrain.GRASS, Constants.DEFAULT_MAX_HEIGHT_2, 62));
+                TileFactory tileFactory = new HeightMapTileFactory(seed, heightMap, Constants.DEFAULT_MAX_HEIGHT_2, false, theme);
                 synchronized (tileCache) {
                     tileCache.clear();
                 }
@@ -363,7 +382,11 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
                         return tile;
                     }
                 };
-                tiledImageViewer1.setTileProvider(new WPTileProvider(tileProvider, new DynMapColourScheme("default", true), new AutoBiomeScheme(null), null, Collections.singleton((Layer) Biome.INSTANCE), false, 10, TileRenderer.LightOrigin.NORTHWEST, false, null));
+                if (tiledImageViewer1.getTileProviderCount() == 0) {
+                    tiledImageViewer1.setTileProvider(0, new WPTileProvider(tileProvider, new DynMapColourScheme("default", true), new AutoBiomeScheme(null), null, Collections.singleton((Layer) Biome.INSTANCE), false, 10, TileRenderer.LightOrigin.NORTHWEST, false, null));
+                } else {
+                    tiledImageViewer1.replaceTileProvider(0, new WPTileProvider(tileProvider, new DynMapColourScheme("default", true), new AutoBiomeScheme(null), null, Collections.singleton((Layer) Biome.INSTANCE), false, 10, TileRenderer.LightOrigin.NORTHWEST, false, null));
+                }
                 tiledImageViewer1.setGridColour(Color.BLACK);
                 break;
         }
@@ -407,11 +430,13 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
         radioButtonViewAsTerrain = new javax.swing.JRadioButton();
         checkBoxShowGrid = new javax.swing.JCheckBox();
         jSplitPane1 = new javax.swing.JSplitPane();
-        tiledImageViewer1 = new org.pepsoft.util.swing.TiledImageViewer();
         jSplitPane2 = new javax.swing.JSplitPane();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTree1 = new javax.swing.JTree();
         heightMapPropertiesPanel1 = new org.pepsoft.worldpainter.heightMaps.gui.HeightMapPropertiesPanel();
+        jSplitPane3 = new javax.swing.JSplitPane();
+        tiledImageViewer1 = new org.pepsoft.util.swing.TiledImageViewer();
+        simpleThemeEditor1 = new org.pepsoft.worldpainter.themes.impl.simple.SimpleThemeEditor();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Height Map Editor");
@@ -468,10 +493,11 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
 
         getContentPane().add(jToolBar1, java.awt.BorderLayout.NORTH);
 
-        tiledImageViewer1.setPaintGrid(true);
-        jSplitPane1.setRightComponent(tiledImageViewer1);
+        jSplitPane1.setContinuousLayout(true);
 
         jSplitPane2.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+        jSplitPane2.setResizeWeight(0.1);
+        jSplitPane2.setContinuousLayout(true);
 
         jTree1.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
             public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
@@ -480,10 +506,21 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
         });
         jScrollPane1.setViewportView(jTree1);
 
-        jSplitPane2.setLeftComponent(jScrollPane1);
-        jSplitPane2.setRightComponent(heightMapPropertiesPanel1);
+        jSplitPane2.setTopComponent(jScrollPane1);
+        jSplitPane2.setBottomComponent(heightMapPropertiesPanel1);
 
         jSplitPane1.setLeftComponent(jSplitPane2);
+
+        jSplitPane3.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+        jSplitPane3.setResizeWeight(0.9);
+        jSplitPane3.setContinuousLayout(true);
+        jSplitPane3.setOneTouchExpandable(true);
+
+        tiledImageViewer1.setPaintGrid(true);
+        jSplitPane3.setTopComponent(tiledImageViewer1);
+        jSplitPane3.setBottomComponent(simpleThemeEditor1);
+
+        jSplitPane1.setRightComponent(jSplitPane3);
 
         getContentPane().add(jSplitPane1, java.awt.BorderLayout.CENTER);
 
@@ -499,7 +536,9 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
     }//GEN-LAST:event_jTree1ValueChanged
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        heightMap.setSeed(new Random().nextLong());
+        seed = new Random().nextLong();
+        heightMap.setSeed(seed);
+        theme.setSeed(seed);
         synchronized (tileCache) {
             tileCache.clear();
             tileCache.notifyAll();
@@ -523,6 +562,24 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
      * @param args the command line arguments
      */
     public static void main(String args[]) {
+        // Load or initialise configuration
+        Configuration config = null;
+        try {
+            config = Configuration.load(); // This will migrate the configuration directory if necessary
+        } catch (IOException | Error | RuntimeException | ClassNotFoundException e) {
+            configError(e);
+        }
+        if (config == null) {
+            if (! logger.isDebugEnabled()) {
+                // If debug logging is on, the Configuration constructor will
+                // already log this
+                logger.info("Creating new configuration");
+            }
+            config = new Configuration();
+        }
+        Configuration.setInstance(config);
+        logger.info("Installation ID: " + config.getUuid());
+
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> {
             try {
@@ -533,12 +590,20 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
         });
     }
 
+    private static void configError(Throwable e) {
+        logger.error("Exception while loading config file", e);
+        JOptionPane.showMessageDialog(null, "Could not read configuration file! Resetting configuration.\n\nException type: " + e.getClass().getSimpleName() + "\nMessage: " + e.getMessage(), "Configuration Error", JOptionPane.ERROR_MESSAGE);
+    }
+
     private final Map<Point, Tile> tileCache = Collections.synchronizedMap(new HashMap<>());
     private HeightMap heightMap;
     private HeightMapTreeModel treeModel;
     private ViewMode viewMode = ViewMode.HEIGHT_MAP;
+    private SimpleTheme theme = SimpleTheme.createDefault(Terrain.GRASS, Constants.DEFAULT_MAX_HEIGHT_2, 62);
+    private long seed = new Random().nextLong();
 
     private static final Tile RENDERING = new Tile(0, 0, 0, false) {};
+    private static final Logger logger = LoggerFactory.getLogger(HeightMapEditor.class);
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroup1;
@@ -549,10 +614,12 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JSplitPane jSplitPane2;
+    private javax.swing.JSplitPane jSplitPane3;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JTree jTree1;
     private javax.swing.JRadioButton radioButtonViewAsHeightMap;
     private javax.swing.JRadioButton radioButtonViewAsTerrain;
+    private org.pepsoft.worldpainter.themes.impl.simple.SimpleThemeEditor simpleThemeEditor1;
     private org.pepsoft.util.swing.TiledImageViewer tiledImageViewer1;
     // End of variables declaration//GEN-END:variables
 

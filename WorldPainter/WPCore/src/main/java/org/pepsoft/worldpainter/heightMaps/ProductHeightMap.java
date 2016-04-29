@@ -25,12 +25,14 @@ public class ProductHeightMap extends CombiningHeightMap {
 
     @Override
     public float getHeight(int x, int y) {
-        return children[0].getHeight(x, y) * children[1].getHeight(x, y);
+        float height1 = children[0].getHeight(x, y);
+        return (height1 == 0.0f) ? 0.0f : height1 * children[1].getHeight(x, y);
     }
 
     @Override
     public float getHeight(float x, float y) {
-        return children[0].getHeight(x, y) * children[1].getHeight(x, y);
+        float height1 = children[0].getHeight(x, y);
+        return (height1 == 0.0f) ? 0.0f : height1 * children[1].getHeight(x, y);
     }
 
     @Override
