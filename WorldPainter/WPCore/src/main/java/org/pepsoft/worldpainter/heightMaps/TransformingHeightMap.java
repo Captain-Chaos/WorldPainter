@@ -17,9 +17,13 @@
 
 package org.pepsoft.worldpainter.heightMaps;
 
+import org.pepsoft.util.IconUtils;
 import org.pepsoft.worldpainter.HeightMap;
 
+import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 
 /**
  * A height map which scales and/or translates another height map
@@ -27,13 +31,16 @@ import java.awt.*;
  * @author pepijn
  */
 public class TransformingHeightMap extends DelegatingHeightMap {
-    public TransformingHeightMap(String name, HeightMap baseHeightMap, int scale, int offsetX, int offsetY) {
+    public TransformingHeightMap(String name, HeightMap baseHeightMap, int scaleX, int scaleY, int offsetX, int offsetY, int rotation) {
         super("baseHeightMap");
         setName(name);
-        this.scale = scale / 100.0f;
+        setHeightMap(0, baseHeightMap);
+        this.scaleX = scaleX / 100.0f;
+        this.scaleY = scaleY / 100.0f;
         this.offsetX = offsetX;
         this.offsetY = offsetY;
-        setHeightMap(0, baseHeightMap);
+        this.rotation = rotation;
+        recalculate();
     }
 
     public HeightMap getBaseHeightMap() {
@@ -50,7 +57,7 @@ public class TransformingHeightMap extends DelegatingHeightMap {
 
     public void setOffsetX(int offsetX) {
         this.offsetX = offsetX;
-        determineConstant();
+        recalculate();
     }
 
     public int getOffsetY() {
@@ -59,51 +66,85 @@ public class TransformingHeightMap extends DelegatingHeightMap {
 
     public void setOffsetY(int offsetY) {
         this.offsetY = offsetY;
-        determineConstant();
+        recalculate();
     }
 
-    public int getScale() {
-        return (int) (scale * 100 + 0.5f);
+    public int getScaleX() {
+        return (int) (scaleX * 100 + 0.5f);
     }
 
-    public void setScale(int scale) {
-        this.scale = scale / 100.0f;
-        determineConstant();
+    public void setScaleX(int scaleX) {
+        this.scaleX = scaleX / 100.0f;
+        recalculate();
+    }
+
+    public int getScaleY() {
+        return (int) (scaleY * 100 + 0.5f);
+    }
+
+    public void setScaleY(int scaleY) {
+        this.scaleY = scaleY / 100.0f;
+        recalculate();
+    }
+
+    public int getRotation() {
+        return rotation;
+    }
+
+    public void setRotation(int rotation) {
+        this.rotation = rotation;
+        recalculate();
     }
 
     @Override
-    protected float doGetHeight(float x, float y) {
-        if (scale == 1.0) {
-            return children[0].getHeight(x - offsetX, y - offsetY);
-        } else {
-            return children[0].getHeight((x - offsetX) / scale, (y - offsetY) / scale);
-        }
+    public float doGetHeight(float x, float y) {
+        Point2D.Float destPoint = (Point2D.Float) transform.transform(new Point2D.Float(x, y), null);
+        return children[0].getHeight(destPoint.x, destPoint.y);
     }
 
     @Override
-    protected int doGetColour(int x, int y) {
-        if (scale == 1.0) {
-            return children[0].getColour(x - offsetX, y - offsetY);
-        } else {
-            return children[0].getColour((int) ((x - offsetX) / scale + 0.5), (int) ((y - offsetY) / scale + 0.5));
-        }
+    public int doGetColour(int x, int y) {
+        Point2D.Float destPoint = (Point2D.Float) transform.transform(new Point2D.Float(x, y), null);
+        return children[0].getColour((int) (destPoint.x + 0.5f), (int) (destPoint.y + 0.5f));
     }
     
     @Override
     public Rectangle getExtent() {
         Rectangle extent = children[0].getExtent();
         if (extent != null) {
-            extent = (Rectangle) extent.clone();
-            if ((offsetX != 0) || (offsetY != 0)) {
-                extent.translate(offsetX, offsetY);
-            }
-            if (scale != 1.0) {
-                extent.width = (int) (extent.width * scale + 0.5);
-                extent.height = (int) (extent.height * scale + 0.5);
-            }
-            return extent;
+            Point2D p1 = new Point2D.Double(extent.getMinX(), extent.getMinY());
+            Point2D p2 = new Point2D.Double(extent.getMinX(), extent.getMaxY());
+            Point2D p3 = new Point2D.Double(extent.getMaxX(), extent.getMinY());
+            Point2D p4 = new Point2D.Double(extent.getMaxX(), extent.getMaxY());
+            transform.transform(p1, p1);
+            transform.transform(p2, p2);
+            transform.transform(p3, p3);
+            transform.transform(p4, p4);
+            double minX = Math.min(Math.min(p1.getX(), p2.getX()), Math.min(p3.getX(), p4.getX()));
+            double maxX = Math.max(Math.max(p1.getX(), p2.getX()), Math.max(p3.getX(), p4.getX()));
+            double minY = Math.min(Math.min(p1.getY(), p2.getY()), Math.min(p3.getY(), p4.getY()));
+            double maxY = Math.max(Math.max(p1.getY(), p2.getY()), Math.max(p3.getY(), p4.getY()));
+            return new Rectangle((int) minX, (int) minY, (int) Math.ceil(maxX - minX), (int) Math.ceil(maxY - minY));
         } else {
             return null;
+        }
+    }
+
+    @Override
+    public Icon getIcon() {
+        return ICON_TRANSFORMING_HEIGHTMAP;
+    }
+
+    private void recalculate() {
+        transform = new AffineTransform();
+        if (scaleX != 1.0f) {
+            transform.scale(1.0 / scaleX, 1.0 / scaleY);
+        }
+        if ((offsetX != 0) || (offsetY != 0)) {
+            transform.translate(offsetX, offsetY);
+        }
+        if (rotation != 0) {
+            transform.rotate(rotation / DOUBLE_PI);
         }
     }
 
@@ -111,8 +152,13 @@ public class TransformingHeightMap extends DelegatingHeightMap {
         return new TransformingHeightMapBuilder();
     }
 
-    private int offsetX, offsetY;
-    private float scale;
+    private int offsetX, offsetY, rotation;
+    private float scaleX, scaleY;
+    private AffineTransform transform;
+
+    private static final long serialVersionUID = 1L;
+    private static final double DOUBLE_PI = Math.PI * 2;
+    private static final Icon ICON_TRANSFORMING_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/transform.png");
 
     public static class TransformingHeightMapBuilder {
         public TransformingHeightMapBuilder withName(String name) {
@@ -132,17 +178,30 @@ public class TransformingHeightMap extends DelegatingHeightMap {
         }
 
         public TransformingHeightMapBuilder withScale(int scale) {
-            this.scale = scale;
+            scaleX = scale;
+            scaleY = scale;
+            return this;
+        }
+
+        public TransformingHeightMapBuilder withScale(int scaleX, int scaleY) {
+            this.scaleX = scaleX;
+            this.scaleY = scaleY;
+            return this;
+        }
+
+        public TransformingHeightMapBuilder withRotation(int rotation) {
+            this.rotation = rotation;
             return this;
         }
 
         public TransformingHeightMap now() {
-            return new TransformingHeightMap(name, baseHeightMap, scale, offsetX, offsetY);
+            return new TransformingHeightMap(name, baseHeightMap, scaleX, scaleY, offsetX, offsetY, rotation);
         }
 
         private String name;
         private HeightMap baseHeightMap;
         private int offsetX, offsetY;
-        private int scale = 100;
+        private int scaleX = 100, scaleY = 100;
+        private int rotation;
     }
 }

@@ -1,17 +1,20 @@
 package org.pepsoft.worldpainter.heightMaps;
 
-import org.pepsoft.util.MathUtils;
 import org.pepsoft.worldpainter.HeightMap;
 
-import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * Created by Pepijn Schmitz on 01-04-16.
+ * Created by pepijn on 26-3-16.
  */
 public abstract class DelegatingHeightMap extends AbstractHeightMap {
-    protected DelegatingHeightMap(String... roleNames) {
-        this.roleNames = roleNames;
-        children = new HeightMap[roleNames.length];
+    protected DelegatingHeightMap(String... roles) {
+        this.roles = roles;
+        children = new HeightMap[roles.length];
+        for (int index = 0; index < roles.length; index++) {
+            indices.put(roles[index], index);
+        }
     }
 
     /**
@@ -27,21 +30,90 @@ public abstract class DelegatingHeightMap extends AbstractHeightMap {
         determineConstant();
     }
 
+    public final int getHeightMapCount() {
+        return children.length;
+    }
+
+    public final String getRole(int index) {
+        return roles[index];
+    }
+
+    public final int getIndex(String role) {
+        return indices.get(role);
+    }
+
+    public final int getIndex(HeightMap heightMap) {
+        for (int index = 0; index < children.length; index++)  {
+            if (children[index] == heightMap) {
+                return index;
+            }
+        }
+        throw new IllegalArgumentException();
+    }
+
+    public final HeightMap getHeightMap(int index) {
+        return children[index];
+    }
+
+    public final HeightMap getHeightMap(String role) {
+        return children[indices.get(role)];
+    }
+
+    public final void setHeightMap(int index, HeightMap child) {
+        if (children[index] != null) {
+            throw new IllegalStateException();
+        }
+        children[index] = child;
+        if (child instanceof AbstractHeightMap) {
+            ((AbstractHeightMap) child).parent = this;
+        }
+    }
+
+    public final void setHeightMap(String role, HeightMap child) {
+        setHeightMap(getIndex(role), child);
+    }
+
+    public final HeightMap replace(int index, HeightMap newChild) {
+        HeightMap oldChild = children[index];
+        children[index] = newChild;
+        if (oldChild instanceof AbstractHeightMap) {
+            ((AbstractHeightMap) oldChild).parent = null;
+        }
+        if (newChild instanceof AbstractHeightMap) {
+            ((AbstractHeightMap) newChild).parent = this;
+        }
+        return oldChild;
+    }
+
+    public final int replace(HeightMap oldChild, HeightMap newChild) {
+        int index = getIndex(oldChild);
+        children[index] = newChild;
+        if (oldChild instanceof AbstractHeightMap) {
+            ((AbstractHeightMap) oldChild).parent = null;
+        }
+        if (newChild instanceof AbstractHeightMap) {
+            ((AbstractHeightMap) newChild).parent = this;
+        }
+        return index;
+    }
+
+    // HeightMap
+
     @Override
-    public long getSeed() {
+    public float getBaseHeight() {
+        return children[0].getBaseHeight();
+    }
+
+    @Override
+    public final long getSeed() {
         return children[0].getSeed();
     }
 
     @Override
-    public void setSeed(long seed) {
+    public final void setSeed(long seed) {
         for (HeightMap child: children) {
             child.setSeed(seed);
         }
-    }
-
-    @Override
-    public float getBaseHeight() {
-        return baseHeight;
     }
 
     @Override
@@ -81,52 +153,6 @@ public abstract class DelegatingHeightMap extends AbstractHeightMap {
         }
     }
 
-    public int getIndex(HeightMap heightMap) {
-        for (int index = 0; index < children.length; index++) {
-            if (heightMap.equals(children[index])) {
-                return index;
-            }
-        }
-        throw new IllegalArgumentException();
-    }
-
-    public HeightMap getHeightMap(int index) {
-        return children[index];
-    }
-
-    public String getRole(int index) {
-        return roleNames[index];
-    }
-
-    public int getHeightMapCount() {
-        return children.length;
-    }
-
-    public void replace(HeightMap oldHeightMap, HeightMap newHeightMap) {
-        children[getIndex(oldHeightMap)] = newHeightMap;
-        if (newHeightMap instanceof AbstractHeightMap) {
-            ((AbstractHeightMap) newHeightMap).parent = this;
-        }
-        childrenChanged();
-    }
-
-    protected void setHeightMap(int index, HeightMap heightMap) {
-        children[index] = heightMap;
-        if (heightMap instanceof AbstractHeightMap) {
-            ((AbstractHeightMap) heightMap).parent = this;
-        }
-        childrenChanged();
-    }
-
-    protected void replace(int index, HeightMap heightMap) {
-        children[index] = heightMap;
-        if (heightMap instanceof AbstractHeightMap) {
-            ((AbstractHeightMap) heightMap).parent = this;
-        }
-        childrenChanged();
-    }
-
-
     protected void childrenChanged() {
         determineConstant();
     }
@@ -161,9 +187,12 @@ public abstract class DelegatingHeightMap extends AbstractHeightMap {
         return doGetHeight((float) x, (float) y);
     }
 
-    protected final String[] roleNames;
     protected final HeightMap[] children;
-    protected float baseHeight, constantValue;
+    private final String[] roles;
+    private final Map<String, Integer> indices = new HashMap<>();
+    protected float constantValue;
     protected boolean constant;
     protected int constantColour;
+
+    private static final long serialVersionUID = 1L;
 }

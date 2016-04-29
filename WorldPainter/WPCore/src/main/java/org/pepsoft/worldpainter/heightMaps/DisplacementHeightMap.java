@@ -6,8 +6,10 @@
 
 package org.pepsoft.worldpainter.heightMaps;
 
+import org.pepsoft.util.IconUtils;
 import org.pepsoft.worldpainter.HeightMap;
 
+import javax.swing.*;
 import java.awt.*;
 
 /**
@@ -79,6 +81,11 @@ public class DisplacementHeightMap extends DelegatingHeightMap {
         return children[0].getColour((int) (actualX + 0.5), (int) (actualY + 0.5));
     }
 
+    @Override
+    public Icon getIcon() {
+        return ICON_DISPLACEMENT_HEIGHTMAP;
+    }
+
     // Object
     
     @Override
@@ -87,4 +94,7 @@ public class DisplacementHeightMap extends DelegatingHeightMap {
         clone.setSeed(getSeed());
         return clone;
     }
+
+    private static final long serialVersionUID = 1L;
+    private static final Icon ICON_DISPLACEMENT_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/displacement.png");
 }

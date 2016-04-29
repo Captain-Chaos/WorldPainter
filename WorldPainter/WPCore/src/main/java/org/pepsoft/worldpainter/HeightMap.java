@@ -4,7 +4,8 @@
  */
 package org.pepsoft.worldpainter;
 
-import java.awt.Rectangle;
+import javax.swing.*;
+import java.awt.*;
 import java.io.Serializable;
 
 /**
@@ -33,4 +34,6 @@ public interface HeightMap extends Serializable {
     boolean isConstant();
 
     float getConstantValue();
+
+    Icon getIcon();
 }

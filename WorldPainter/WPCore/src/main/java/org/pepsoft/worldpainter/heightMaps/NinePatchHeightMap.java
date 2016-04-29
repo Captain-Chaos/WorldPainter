@@ -4,7 +4,10 @@
  */
 package org.pepsoft.worldpainter.heightMaps;
 
+import org.pepsoft.util.IconUtils;
 import org.pepsoft.util.MathUtils;
+
+import javax.swing.*;
 
 /**
  * A heightmap creating a square with rounded corners, with a smoothly descending border on the outside.
@@ -175,6 +178,11 @@ public final class NinePatchHeightMap extends AbstractHeightMap {
         return 0.0f;
     }
 
+    @Override
+    public Icon getIcon() {
+        return ICON_NINE_PATCH_HEIGHTMAP;
+    }
+
     private void sizesChanged() {
         halfHeight = height / 2;
         borderTotalX = innerSizeX + borderSize;
@@ -188,4 +196,5 @@ public final class NinePatchHeightMap extends AbstractHeightMap {
     private float height, halfHeight;
     
     private static final long serialVersionUID = 1L;
+    private static final Icon ICON_NINE_PATCH_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/nine_patch.png");
 }

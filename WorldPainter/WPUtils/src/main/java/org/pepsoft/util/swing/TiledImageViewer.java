@@ -614,6 +614,20 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         }
     }
 
+    public Color getGridColour() {
+        return gridColour;
+    }
+
+    public void setGridColour(Color gridColour) {
+        if (gridColour == null) {
+            throw new NullPointerException();
+        }
+        if (! gridColour.equals(this.gridColour)) {
+            this.gridColour = gridColour;
+            repaint();
+        }
+    }
+
     protected final boolean isTileVisible(int x, int y, int effectiveZoom) {
         return new Rectangle(0, 0, getWidth(), getHeight()).intersects(getTileBounds(x, y, effectiveZoom));
     }
@@ -686,7 +700,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
             final int x2 = ((clipInWorld.x + clipInWorld.width) / gridSize + 1) * gridSize;
             final int y1 = ((clipInWorld.y / gridSize) - 1) * gridSize;
             final int y2 = ((clipInWorld.y + clipInWorld.height) / gridSize + 1) * gridSize;
-            g2.setColor(Color.BLACK);
+            g2.setColor(gridColour);
 
             // Determine the exclusion zone for preventing labels from being
             // obscured by grid lines or other labels
@@ -1159,6 +1173,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
     private BlockingQueue<Runnable> queue;
     private ViewListener viewListener;
 //    private boolean firstPaint = true;
+    private Color gridColour = Color.BLACK;
  
     public static final int TILE_SIZE = 128, TILE_SIZE_BITS = 7, TILE_SIZE_MASK = 0x7f;
     

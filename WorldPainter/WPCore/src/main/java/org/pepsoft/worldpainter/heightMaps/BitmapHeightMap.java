@@ -6,8 +6,10 @@
 
 package org.pepsoft.worldpainter.heightMaps;
 
+import org.pepsoft.util.IconUtils;
 import org.pepsoft.util.MathUtils;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
@@ -124,6 +126,11 @@ public final class BitmapHeightMap extends AbstractHeightMap {
         }
     }
 
+    @Override
+    public Icon getIcon() {
+        return ICON_BITMAP_HEIGHTMAP;
+    }
+
     public File getImageFile() {
         return imageFile;
     }
@@ -150,6 +157,9 @@ public final class BitmapHeightMap extends AbstractHeightMap {
     private Rectangle extent;
     private File imageFile;
     private boolean repeat, smoothScaling;
+
+    private static final long serialVersionUID = 1L;
+    private static final Icon ICON_BITMAP_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/height_map.png");
 
     public static class BitmapHeightMapBuilder {
         public BitmapHeightMapBuilder withName(String name) {

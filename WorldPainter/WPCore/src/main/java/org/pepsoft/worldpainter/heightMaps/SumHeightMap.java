@@ -4,8 +4,10 @@
  */
 package org.pepsoft.worldpainter.heightMaps;
 
-import java.io.ObjectStreamException;
+import org.pepsoft.util.IconUtils;
 import org.pepsoft.worldpainter.HeightMap;
+
+import javax.swing.*;
 
 /**
  * A height map which is the sum of two other height maps.
@@ -43,21 +45,11 @@ public final class SumHeightMap extends CombiningHeightMap {
         return clone;
     }
 
-    private Object readResolve() throws ObjectStreamException {
-        // There are worlds in the wild where heightMap1 and/or heightMap2 are
-        // null. No idea how that could happen, but it will cause errors, so
-        // fix it as best we can
-        if (children[0] == null) {
-            if (children[1] == null) {
-                return new SumHeightMap(name, new ConstantHeightMap(62), new ConstantHeightMap(0));
-            } else {
-                return new SumHeightMap(name, new ConstantHeightMap(58 - children[1].getBaseHeight()), children[1]);
-            }
-        } else if (children[1] == null) {
-            return new SumHeightMap(children[0], new ConstantHeightMap(58 - children[0].getBaseHeight()));
-        }
-        return this;
+    @Override
+    public Icon getIcon() {
+        return ICON_SUM_HEIGHTMAP;
     }
-    
+
     private static final long serialVersionUID = 1L;
+    private static final Icon ICON_SUM_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/plus.png");
 }

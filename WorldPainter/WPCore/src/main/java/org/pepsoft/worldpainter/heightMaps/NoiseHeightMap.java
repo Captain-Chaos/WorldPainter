@@ -4,10 +4,12 @@
  */
 package org.pepsoft.worldpainter.heightMaps;
 
+import org.pepsoft.util.IconUtils;
 import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.NoiseSettings;
 
+import javax.swing.*;
 import java.awt.*;
 import java.util.Random;
 
@@ -181,6 +183,11 @@ public final class NoiseHeightMap extends AbstractHeightMap {
         return clone;
     }
 
+    @Override
+    public Icon getIcon() {
+        return ICON_NOISE_HEIGHTMAP;
+    }
+
     private PerlinNoise perlinNoise;
     private float range;
     private double scale;
@@ -189,4 +196,5 @@ public final class NoiseHeightMap extends AbstractHeightMap {
 
     private static final int[] FACTORS = {1, 2, 4, 8, 16, 32, 64, 128, 256, 512};
     private static final long serialVersionUID = 1L;
+    private static final Icon ICON_NOISE_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/noise.png");
 }

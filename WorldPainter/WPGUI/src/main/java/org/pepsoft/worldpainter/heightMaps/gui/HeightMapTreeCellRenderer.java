@@ -6,14 +6,13 @@
 
 package org.pepsoft.worldpainter.heightMaps.gui;
 
-import org.pepsoft.util.IconUtils;
 import org.pepsoft.worldpainter.HeightMap;
-import org.pepsoft.worldpainter.heightMaps.*;
+import org.pepsoft.worldpainter.heightMaps.AbstractHeightMap;
+import org.pepsoft.worldpainter.heightMaps.DelegatingHeightMap;
 
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.tree.DefaultTreeCellRenderer;
-import javax.swing.tree.TreePath;
 import java.awt.*;
 
 /**
@@ -26,31 +25,31 @@ public class HeightMapTreeCellRenderer extends DefaultTreeCellRenderer {
         super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
         if (value instanceof HeightMap) {
             HeightMap heightMap = (HeightMap) value;
-            String role = "output";
+            String name = null;
+            String role = null;
             if (value instanceof AbstractHeightMap) {
                 DelegatingHeightMap parent = ((AbstractHeightMap) value).getParent();
                 if (parent != null) {
                     role = parent.getRole(parent.getIndex(heightMap));
+                    if (parent.getHeightMapCount() > 1) {
+                        name = role;
+                    }
                 }
             }
-            String name = (heightMap).getName();
-            if (name != null) {
-                setText(role + " (" + name + ")");
-            } else {
-                setText(role);
+            if (name == null) {
+                name = heightMap.getName();
             }
-            if (value instanceof TransformingHeightMap) {
-                setIcon(ICON_TRANSFORMING_HEIGHTMAP);
-            } else if (value instanceof BitmapHeightMap) {
-                setIcon(ICON_BITMAP_HEIGHTMAP);
-            } else if (value instanceof DisplacementHeightMap) {
-                setIcon(ICON_DISPLACEMENT_HEIGHTMAP);
+            if (name == null) {
+                name = heightMap.getClass().getSimpleName();
             }
             if (value == focusHeightMap) {
                 setBorder(focusBorder);
             } else if (getBorder() != null) {
                 setBorder(null);
             }
+            setText(name);
+            setIcon(heightMap.getIcon());
+            setToolTipText(getTooltipText(heightMap, role));
         }
         return this;
     }
@@ -69,4 +68,19 @@ public class HeightMapTreeCellRenderer extends DefaultTreeCellRenderer {
     private static final Icon ICON_DISPLACEMENT_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/arrow_rotate_anticlockwise.png");
     private static final Icon ICON_TRANSFORMING_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/arrow_cross.png");
     private static final Icon ICON_BITMAP_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/photo.png");
+    private String getTooltipText(HeightMap heightMap, String role) {
+        StringBuilder sb = new StringBuilder("<html>");
+        String name = heightMap.getName();
+        if (name != null) {
+            sb.append("Name: <strong>").append(name).append("</strong><br>");
+        }
+        String type = heightMap.getClass().getSimpleName();
+        type = type.substring(0, type.length() - 9);
+        sb.append("Type: <strong>").append(type).append("</strong><br>");
+        if (role != null) {
+            sb.append("Role: <strong>").append(role).append("</strong><br>");
+        }
+        sb.append("</html>");
+        return sb.toString();
+    }
 }
