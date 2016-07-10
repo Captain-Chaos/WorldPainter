@@ -21,9 +21,9 @@ public class MapTreeModel implements TreeModel {
     }
 
     public TreePath getPath(File dir) {
-        LinkedList<String> components = new LinkedList<>();
+        LinkedList<File> components = new LinkedList<>();
         while (dir != null) {
-            components.add(0, dir.getName());
+            components.add(0, dir);
             dir = dir.getParentFile();
         }
         // Components now contains the path's components in the correct order
@@ -31,9 +31,10 @@ public class MapTreeModel implements TreeModel {
         path[0] = rootNode;
         Node node = rootNode;
         int index = 1;
-        for (String component: components) {
+        for (File component: components) {
+            String componentName = FileSystemNode.getName(component);
             for (Node childNode: node.getChildren()) {
-                if (childNode.getName().equals(component)) {
+                if (childNode.getName().equals(componentName)) {
                     path[index++] = childNode;
                     node = childNode;
                     break;

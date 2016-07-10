@@ -139,6 +139,8 @@ public final class NBTUtils {
 			return ListTag.class;
 		case NBTConstants.TYPE_COMPOUND:
 			return CompoundTag.class;
+		case NBTConstants.TYPE_INT_ARRAY:
+			return IntArrayTag.class;
 		default:
 			throw new IllegalArgumentException("Invalid tag type : " + type + ".");
 		}
