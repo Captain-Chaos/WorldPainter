@@ -219,7 +219,9 @@ public class Main {
                     EventVO sessionEvent = new EventVO("worldpainter.session").setAttribute(EventVO.ATTRIBUTE_TIMESTAMP, new Date(start)).duration(System.currentTimeMillis() - start);
                     StringBuilder sb = new StringBuilder();
                     List<Plugin> plugins = WPPluginManager.getInstance().getAllPlugins();
-                    plugins.stream().filter(plugin -> !plugin.getName().equals("Default")).forEach(plugin -> {
+                    plugins.stream()
+                            .filter(plugin -> ! (plugin.getName().equals("Default") || plugin.getName().equals("DefaultLayerEditorProvider")))
+                            .forEach(plugin -> {
                         if (sb.length() > 0) {
                             sb.append(',');
                         }
