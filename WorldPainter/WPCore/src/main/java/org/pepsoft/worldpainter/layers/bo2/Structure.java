@@ -1,0 +1,148 @@
+package org.pepsoft.worldpainter.layers.bo2;
+
+import org.jnbt.*;
+import org.pepsoft.minecraft.Entity;
+import org.pepsoft.minecraft.MCInterface;
+import org.pepsoft.minecraft.Material;
+import org.pepsoft.minecraft.TileEntity;
+import org.pepsoft.worldpainter.objects.AbstractObject;
+import org.pepsoft.worldpainter.objects.WPObject;
+
+import javax.vecmath.Point3i;
+import java.io.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.zip.GZIPInputStream;
+
+/**
+ * Created by Pepijn on 26-6-2016.
+ */
+public class Structure extends AbstractObject implements Bo2ObjectProvider {
+    private Structure(CompoundTag root, String name, Map<Point3i, Material> blocks) {
+        this.root = root;
+        this.name = name;
+        this.blocks = blocks;
+    }
+
+    @Override
+    public WPObject getObject() {
+        return this;
+    }
+
+    @Override
+    public List<WPObject> getAllObjects() {
+        return Collections.singletonList(this);
+    }
+
+    @Override
+    public void setSeed(long seed) {
+        // Do nothing
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public Point3i getDimensions() {
+        List size = ((ListTag) root.getTag("size")).getValue();
+        return new Point3i(((IntTag) size.get(0)).getValue(),
+                ((IntTag) size.get(2)).getValue(),
+                ((IntTag) size.get(1)).getValue());
+    }
+
+    @Override
+    public Material getMaterial(int x, int y, int z) {
+        return blocks.get(new Point3i(x, y, z));
+    }
+
+    @Override
+    public boolean getMask(int x, int y, int z) {
+        return blocks.containsKey(new Point3i(x, y, z));
+    }
+
+    @Override
+    public List<Entity> getEntities() {
+        // TODO
+        return null;
+    }
+
+    @Override
+    public List<TileEntity> getTileEntities() {
+        // TODO
+        return null;
+    }
+
+    @Override
+    public Map<String, Serializable> getAttributes() {
+        return attributes;
+    }
+
+    @Override
+    public void setAttributes(Map<String, Serializable> attributes) {
+        this.attributes = attributes;
+    }
+
+    @Override
+    public void setAttribute(String key, Serializable value) {
+        if (value != null) {
+            if (attributes == null) {
+                attributes = new HashMap<>();
+            }
+            attributes.put(key, value);
+        } else if (attributes != null) {
+            attributes.remove(key);
+            if (attributes.isEmpty()) {
+                attributes = null;
+            }
+        }
+    }
+
+    public static Structure load(File file, MCInterface mcInterface) throws IOException {
+        CompoundTag root;
+        try (NBTInputStream in = new NBTInputStream(new GZIPInputStream(new BufferedInputStream(new FileInputStream(file))))) {
+            root = (CompoundTag) in.readTag();
+        }
+        String name = file.getName();
+        if (name.toLowerCase().endsWith(".nbt")) {
+            name = name.substring(0, name.length() - 4).trim();
+        }
+
+        // Load the palette
+        ListTag paletteTag = (ListTag) root.getTag("palette");
+        Material[] palette = new Material[paletteTag.getValue().size()];
+        for (int i = 0; i < palette.length; i++) {
+            palette[i] = mcInterface.decodeStructureMaterial((CompoundTag) paletteTag.getValue().get(i));
+        }
+
+        // Load the blocks
+        Map<Point3i, Material> blocks = new HashMap<>();
+        ListTag blocksTag = (ListTag) root.getTag("blocks");
+        for (Tag tag: blocksTag.getValue()) {
+            CompoundTag blockTag = (CompoundTag) tag;
+            List<Tag> posTags = ((ListTag) blockTag.getTag("pos")).getValue();
+            blocks.put(new Point3i(((IntTag) posTags.get(0)).getValue(), ((IntTag) posTags.get(2)).getValue(),((IntTag) posTags.get(1)).getValue()), palette[((IntTag) blockTag.getTag("state")).getValue()]);
+        }
+
+        // Remove palette and blocks from the tag so we don't waste space
+        root.setTag("palette", null);
+        root.setTag("blocks", null);
+
+        return new Structure(root, name, blocks);
+    }
+
+    private final CompoundTag root;
+    private final Map<Point3i, Material> blocks;
+    private String name;
+    private Map<String, Serializable> attributes;
+
+    private static final long serialVersionUID = 1L;
+}

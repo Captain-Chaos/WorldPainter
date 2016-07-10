@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
  * @author pepijn
  */
 public abstract class Minecraft1_8JarBiomeScheme extends AbstractMinecraft1_7BiomeScheme {
-    public Minecraft1_8JarBiomeScheme(File minecraftJar, File libDir, Checksum md5Sum, Map<Checksum, String[]> hashesToClassNames, String version) {
+    public Minecraft1_8JarBiomeScheme(File minecraftJar, File libDir, Checksum md5Sum, Map<Checksum, String[]> hashesToClassNames) {
         if (logger.isDebugEnabled()) {
             logger.debug("Creating biome scheme using Minecraft jar {}", minecraftJar);
         }
@@ -30,26 +30,10 @@ public abstract class Minecraft1_8JarBiomeScheme extends AbstractMinecraft1_7Bio
                 throw new RuntimeException("I/O error calculating hash for " + minecraftJar, e);
             }
         }
-        String[] classNames = hashesToClassNames.get(md5Sum);
-        String landscapeClassName = classNames[0];
-        String bufferManagerClassName = classNames[1];
-        String worldGeneratorClassName = classNames[2];
-        String initClassName = classNames[3];
         try {
-            ClassLoader classLoader = getClassLoader(minecraftJar, libDir);
-            Class<?> landscapeClass = classLoader.loadClass(landscapeClassName);
-            worldGeneratorClass = classLoader.loadClass(worldGeneratorClassName);
-            getLandscapesMethod = landscapeClass.getMethod("a", long.class, worldGeneratorClass, String.class);
-            getBiomesMethod = landscapeClass.getMethod("a", int.class, int.class, int.class, int.class);
-            Class<?> bufferManagerClass = classLoader.loadClass(bufferManagerClassName);
-            clearBuffersMethod = bufferManagerClass.getMethod("a");
-            
-            // Initialise Minecraft
-            Class<?> initClass = classLoader.loadClass(initClassName);
-            Method initMethod = initClass.getMethod("c");
-            initMethod.invoke(null);
-        } catch (ClassNotFoundException | NoSuchMethodException e) {
-            throw new RuntimeException("Not a valid " + version + " minecraft.jar", e);
+            init(hashesToClassNames.get(md5Sum), getClassLoader(minecraftJar, libDir));
+        } catch (ClassNotFoundException | NoSuchMethodException | NoSuchFieldException e) {
+            throw new RuntimeException("Not a valid minecraft.jar of the correct version", e);
         } catch (IllegalAccessException e) {
             throw new RuntimeException("Access denied while trying to initialise Minecraft", e);
         } catch (InvocationTargetException e) {
@@ -83,9 +67,27 @@ public abstract class Minecraft1_8JarBiomeScheme extends AbstractMinecraft1_7Bio
             throw new RuntimeException("Exception thrown while trying to calculate biomes", e);
         }
     }
+
+    protected void init(String[] classNames, ClassLoader classLoader) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
+        String landscapeClassName = classNames[0];
+        String bufferManagerClassName = classNames[1];
+        String worldGeneratorClassName = classNames[2];
+        String initClassName = classNames[3];
+        Class<?> landscapeClass = classLoader.loadClass(landscapeClassName);
+        worldGeneratorClass = classLoader.loadClass(worldGeneratorClassName);
+        getLandscapesMethod = landscapeClass.getMethod("a", long.class, worldGeneratorClass, String.class);
+        getBiomesMethod = landscapeClass.getMethod("a", int.class, int.class, int.class, int.class);
+        Class<?> bufferManagerClass = classLoader.loadClass(bufferManagerClassName);
+        clearBuffersMethod = bufferManagerClass.getMethod("a");
+
+        // Initialise Minecraft
+        Class<?> initClass = classLoader.loadClass(initClassName);
+        Method initMethod = initClass.getMethod("c");
+        initMethod.invoke(null);
+    }
     
-    final Class<?> worldGeneratorClass;
-    final Method getLandscapesMethod, getBiomesMethod, clearBuffersMethod;
+    Class<?> worldGeneratorClass;
+    Method getLandscapesMethod, getBiomesMethod, clearBuffersMethod;
     Object landscape;
     long seed = Long.MIN_VALUE;
 

@@ -13,11 +13,15 @@ import org.pepsoft.util.Checksum;
  *
  * @author pepijn
  */
-public final class Minecraft1_8BiomeScheme extends Minecraft1_8JarBiomeScheme {
+public class Minecraft1_8BiomeScheme extends Minecraft1_8JarBiomeScheme {
     public Minecraft1_8BiomeScheme(File minecraftJar, File libDir, Checksum md5Sum) {
-        super(minecraftJar, libDir, md5Sum, HASHES_TO_CLASSNAMES, "1.9 Default");
+        super(minecraftJar, libDir, md5Sum, HASHES_TO_CLASSNAMES);
     }
-    
+
+    protected Minecraft1_8BiomeScheme(File minecraftJar, File libDir, Checksum md5Sum, Map<Checksum, String[]> hashesToClassNames) {
+        super(minecraftJar, libDir, md5Sum, hashesToClassNames);
+    }
+
     private static final Map<Checksum, String[]> HASHES_TO_CLASSNAMES = new HashMap<>();
 
 //                                                                                                                                                                                                                                                                       Landscape class

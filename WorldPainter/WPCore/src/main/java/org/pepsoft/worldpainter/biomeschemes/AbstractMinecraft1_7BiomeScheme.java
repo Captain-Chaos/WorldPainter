@@ -27,31 +27,6 @@ import static org.pepsoft.minecraft.Constants.*;
  */
 public abstract class AbstractMinecraft1_7BiomeScheme extends AbstractBiomeScheme implements Minecraft1_7Biomes {
     @Override
-    public final String[] getBiomeNames() {
-        return BIOME_NAMES;
-    }
-
-    @Override
-    public final Set<Integer> getDryBiomes() {
-        return DRY_BIOMES;
-    }
-
-    @Override
-    public final Set<Integer> getColdBiomes() {
-        return COLD_BIOMES;
-    }
-
-    @Override
-    public final Set<Integer> getForestedBiomes() {
-        return FORESTED_BIOMES;
-    }
-
-    @Override
-    public final Set<Integer> getSwampyBiomes() {
-        return SWAMPY_BIOMES;
-    }
-
-    @Override
     public final int getBiomeCount() {
         return BIOME_NAMES.length;
     }

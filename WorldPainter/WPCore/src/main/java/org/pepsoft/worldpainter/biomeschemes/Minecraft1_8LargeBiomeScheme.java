@@ -15,17 +15,15 @@ import org.pepsoft.util.Checksum;
  *
  * @author pepijn
  */
-public final class Minecraft1_8LargeBiomeScheme extends Minecraft1_8JarBiomeScheme {
+public class Minecraft1_8LargeBiomeScheme extends Minecraft1_8JarBiomeScheme {
     public Minecraft1_8LargeBiomeScheme(File minecraftJar, File libDir, Checksum md5Sum) {
-        super(minecraftJar, libDir, md5Sum, HASHES_TO_CLASSNAMES, "1.9 Large Biomes");
-        try {
-            Field field = worldGeneratorClass.getField("d");
-            largeBiomesGenerator = field.get(null);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException("Not a valid 1.9 or 1.8 to 1.8.9 minecraft.jar", e);
-        }
+        super(minecraftJar, libDir, md5Sum, HASHES_TO_CLASSNAMES);
     }
-    
+
+    public Minecraft1_8LargeBiomeScheme(File minecraftJar, File libDir, Checksum md5Sum, Map<Checksum, String[]> hashesToClassNames) {
+        super(minecraftJar, libDir, md5Sum, hashesToClassNames);
+    }
+
     @Override
     public final void setSeed(long seed) {
         if ((seed != this.seed) || (landscape == null)) {
@@ -39,8 +37,16 @@ public final class Minecraft1_8LargeBiomeScheme extends Minecraft1_8JarBiomeSche
             }
         }
     }
-    
-    private final Object largeBiomesGenerator;
+
+    @Override
+    protected void init(String[] classNames, ClassLoader classLoader) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
+        super.init(classNames, classLoader);
+
+        Field field = worldGeneratorClass.getField("d");
+        largeBiomesGenerator = field.get(null);
+    }
+
+    private Object largeBiomesGenerator;
     
     private static final Map<Checksum, String[]> HASHES_TO_CLASSNAMES = new HashMap<>();
 
