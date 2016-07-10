@@ -4,17 +4,26 @@
  */
 package org.pepsoft.worldpainter.tools;
 
+import org.pepsoft.util.PluginManager;
+import org.pepsoft.util.WPCustomObjectInputStream;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
+import org.pepsoft.worldpainter.objects.AbstractObject;
+import org.pepsoft.worldpainter.plugins.WPPluginManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.zip.GZIPOutputStream;
+import java.util.zip.GZIPInputStream;
 
 /**
  *
@@ -23,7 +32,42 @@ import java.util.zip.GZIPOutputStream;
 public class RecoverWorld {
     public static void main(String[] args) throws IOException, ClassNotFoundException {
         int defaultMaxHeight = Integer.parseInt(args[1]);
-        
+
+        // Load or initialise configuration
+        Configuration config;
+        try {
+            config = Configuration.load(); // This will migrate the configuration directory if necessary
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        if (config == null) {
+            if (! logger.isDebugEnabled()) {
+                // If debug logging is on, the Configuration constructor will
+                // already log this
+                logger.info("Creating new configuration");
+            }
+            config = new Configuration();
+        }
+        Configuration.setInstance(config);
+        logger.info("Installation ID: " + config.getUuid());
+
+        // Load and install trusted WorldPainter root certificate
+        X509Certificate trustedCert = null;
+        try {
+            CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+            trustedCert = (X509Certificate) certificateFactory.generateCertificate(RecoverWorld.class.getResourceAsStream("/wproot.pem"));
+        } catch (CertificateException e) {
+            logger.error("Certificate exception while loading trusted root certificate", e);
+        }
+
+        // Load the plugins
+        if (trustedCert != null) {
+            org.pepsoft.util.PluginManager.loadPlugins(new File(Configuration.getConfigDir(), "plugins"), trustedCert.getPublicKey());
+        } else {
+            logger.error("Trusted root certificate not available; not loading plugins");
+        }
+        WPPluginManager.initialise(config.getUuid());
+
         // Read as much data as possible. Use a trick via InstanceKeeper to get
         // hold of the objects as they are created during deserialisation, even
         // if the readObject() method throws an exception and never returns an
@@ -38,11 +82,27 @@ public class RecoverWorld {
             tiles.put(dimension, tileList);
             tileListHolder[0] = tileList;
         });
-        InstanceKeeper.setInstantiationListener(Tile.class, tileListHolder[0]::add);
+        InstanceKeeper.setInstantiationListener(Tile.class, tile -> tileListHolder[0].add(tile));
         File file = new File(args[0]);
         try {
-            try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(file))) {
-                in.readObject();
+            try (WPCustomObjectInputStream wrappedIn = new WPCustomObjectInputStream(new GZIPInputStream(new FileInputStream(file)), PluginManager.getPluginClassLoader(), AbstractObject.class)) {
+                Map<String, Object> metadata = null;
+                World2 world;
+                Object object = wrappedIn.readObject();
+                if (object instanceof Map) {
+                    metadata = (Map<String, Object>) object;
+                    object = wrappedIn.readObject();
+                }
+                if (object instanceof World2) {
+                    world = (World2) object;
+                    if (metadata != null) {
+                        world.setMetadata(metadata);
+                    }
+                } else if (object instanceof World) {
+                    throw new RuntimeException("Old worlds (pre-0.2) not supported");
+                } else {
+                    throw new RuntimeException("Object of unexpected type " + object.getClass() + " encountered");
+                }
             }
         } catch (IOException e) {
             System.err.println("Warning: I/O error while reading world; world most likely corrupted! (Type: " + e.getClass().getSimpleName() + ", message: " + e.getMessage() + ")");
@@ -175,10 +235,13 @@ public class RecoverWorld {
             filename = filename.substring(0, filename.length() - 6);
         }
         filename = filename + ".recovered.world";
+        WorldIO worldIO = new WorldIO(newWorld);
         File outFile = new File(file.getParentFile(), filename);
-        try (ObjectOutputStream out = new ObjectOutputStream(new GZIPOutputStream(new FileOutputStream(outFile)))) {
-            out.writeObject(newWorld);
+        try (OutputStream out = new FileOutputStream(outFile)) {
+            worldIO.save(out);
         }
         System.out.println("Recovered world written to " + outFile);
     }
+
+    private static final Logger logger = LoggerFactory.getLogger(RecoverWorld.class);
 }
