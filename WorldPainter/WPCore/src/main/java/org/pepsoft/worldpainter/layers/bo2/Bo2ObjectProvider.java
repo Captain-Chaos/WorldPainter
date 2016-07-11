@@ -38,7 +38,8 @@ public interface Bo2ObjectProvider extends Serializable {
      *
      * @return A list of <em>all</em> objects which this provider can return.
      * @throws UnsupportedOperationException If this object provider does not
-     *     support this operation.
+     *     support this operation (for example if the objects are dynamically
+     *     generated).
      */
     List<WPObject> getAllObjects();
 

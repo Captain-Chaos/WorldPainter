@@ -39,7 +39,7 @@ import static org.pepsoft.minecraft.Material.AIR;
  *
  * <p>An offset may in fact be specified but it has no effect on the coordinates
  * used by this object; it is purely meant to communicate to a consumer of the
- * <code>WPObject</code> that the object should be shifted when paced.
+ * <code>WPObject</code> that the object should be shifted when placed.
  * 
  * @author SchmitzP
  */
