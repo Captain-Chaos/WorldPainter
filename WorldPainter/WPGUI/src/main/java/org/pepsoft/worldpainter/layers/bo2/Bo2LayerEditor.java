@@ -7,9 +7,12 @@
 package org.pepsoft.worldpainter.layers.bo2;
 
 import org.pepsoft.minecraft.Constants;
+import org.pepsoft.minecraft.MCInterface;
 import org.pepsoft.util.DesktopUtils;
+import org.pepsoft.worldpainter.BiomeScheme;
 import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.Configuration;
+import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
 import org.pepsoft.worldpainter.layers.AbstractLayerEditor;
 import org.pepsoft.worldpainter.layers.Bo2Layer;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
@@ -32,6 +35,7 @@ import java.text.NumberFormat;
 import java.util.*;
 import java.util.List;
 
+import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.objects.WPObject.*;
 
 /**
@@ -269,12 +273,16 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
         fileChooser.setFileFilter(new FileFilter() {
             @Override
             public boolean accept(File f) {
-                return f.isDirectory() || f.getName().toLowerCase().endsWith(".bo2") || f.getName().toLowerCase().endsWith(".bo3") || f.getName().toLowerCase().endsWith(".schematic");
+                return f.isDirectory()
+                        || f.getName().toLowerCase().endsWith(".bo2")
+                        || f.getName().toLowerCase().endsWith(".bo3")
+                        || f.getName().toLowerCase().endsWith(".schematic")
+                        || f.getName().toLowerCase().endsWith(".nbt");
             }
 
             @Override
             public String getDescription() {
-                return "Custom Object Files (*.bo2, *.bo3, *.schematic)";
+                return "Custom Object Files (*.bo2, *.bo3, *.schematic, *.nbt)";
             }
         });
         WPObjectPreviewer previewer = new WPObjectPreviewer();
@@ -293,10 +301,11 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                             }
                             fieldName.setText(name);
                         }
-                        File[] files = selectedFile.listFiles((dir, name) -> name.toLowerCase().endsWith(".bo2") || name.toLowerCase().endsWith(".bo3") || name.toLowerCase().endsWith(".schematic"));
+                        File[] files = selectedFile.listFiles((dir, name) -> name.toLowerCase().endsWith(".bo2") || name.toLowerCase().endsWith(".bo3") || name.toLowerCase().endsWith(".schematic") || name.toLowerCase().endsWith(".nbt"));
                         if (files.length == 0) {
-                            JOptionPane.showMessageDialog(this, "Directory " + selectedFile.getName() + " does not contain any .bo2, .bo3 or .schematic files.", "No Custom Object Files", JOptionPane.ERROR_MESSAGE);
+                            JOptionPane.showMessageDialog(this, "Directory " + selectedFile.getName() + " does not contain any .bo2, .bo3, .schematic or .nbt files.", "No Custom Object Files", JOptionPane.ERROR_MESSAGE);
                         } else {
+                            MCInterface mcInterface = null;
                             for (File file: files) {
                                 try {
                                     WPObject object;
@@ -304,6 +313,16 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                                         object = Bo2Object.load(file);
                                     } else if (file.getName().toLowerCase().endsWith(".bo3")) {
                                         object = Bo3Object.load(file);
+                                    } else if (file.getName().toLowerCase().endsWith(".nbt")) {
+                                        if (mcInterface == null) {
+                                            BiomeScheme biomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_DEFAULT, null, false);
+                                            if (biomeScheme instanceof MCInterface) {
+                                                mcInterface = (MCInterface) biomeScheme;
+                                            } else {
+                                                throw new RuntimeException("WorldPainter requires access to Minecraft 1.10.2 or newer for loading *.nbt files");
+                                            }
+                                        }
+                                        object = Structure.load(file, mcInterface);
                                     } else {
                                         object = Schematic.load(file);
                                     }
@@ -332,6 +351,13 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                                 object = Bo2Object.load(selectedFile);
                             } else if (selectedFile.getName().toLowerCase().endsWith(".bo3")) {
                                 object = Bo3Object.load(selectedFile);
+                            } else if (selectedFile.getName().toLowerCase().endsWith(".nbt")) {
+                                BiomeScheme biomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_DEFAULT, null, false);
+                                if (biomeScheme instanceof MCInterface) {
+                                    object = Structure.load(selectedFile, (MCInterface) biomeScheme);
+                                } else {
+                                    throw new RuntimeException("WorldPainter requires access to Minecraft 1.10.2 or newer for loading *.nbt files");
+                                }
                             } else {
                                 object = Schematic.load(selectedFile);
                             }

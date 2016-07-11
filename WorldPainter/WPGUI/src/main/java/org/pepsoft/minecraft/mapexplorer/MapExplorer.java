@@ -32,6 +32,7 @@ public class MapExplorer {
             }
             JTree tree = new JTree(treeModel);
             tree.setRootVisible(false);
+            tree.setShowsRootHandles(true);
             tree.setCellRenderer(new MapTreeCellRenderer());
             JScrollPane scrollPane = new JScrollPane(tree);
             tree.expandPath(treeModel.getPath(defaultDir));

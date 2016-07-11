@@ -8,36 +8,18 @@ package org.pepsoft.minecraft.mapexplorer;
 import org.jnbt.NBTInputStream;
 import org.jnbt.Tag;
 
-import javax.swing.*;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.zip.GZIPInputStream;
 
 /**
  *
  * @author pepijn
  */
-public class NBTFileNode extends Node {
-    NBTFileNode(File file, boolean compressed) {
-        this.file = file;
-        this.compressed = compressed;
+public class NBTFileNode extends FileSystemNode {
+    NBTFileNode(File file) {
+        super(file);
     }
     
-    public String getName() {
-        return file.getName();
-    }
-
-    @Override
-    public Icon getIcon() {
-        return null;
-    }
-
-    public Tag getTag() {
-        getChildren(); // Trigger loading of children if necessary
-        return tag;
-    }
-
     @Override
     public boolean isLeaf() {
         return false;
@@ -45,15 +27,19 @@ public class NBTFileNode extends Node {
 
     @Override
     protected Node[] loadChildren() {
-        try (NBTInputStream in = new NBTInputStream(compressed ? new GZIPInputStream(new FileInputStream(file)) : new FileInputStream(file))) {
-            tag = in.readTag();
+        try (InputStream in = new BufferedInputStream(new FileInputStream(file))) {
+            in.mark(2);
+            Tag tag;
+            if ((in.read() == 0x1f) && (in.read() == 0x8b)) {
+                // Gzip signature
+                in.reset();
+                tag = new NBTInputStream(new GZIPInputStream(in)).readTag();
+            } else {
+                tag = new NBTInputStream(in).readTag();
+            }
             return new Node[] {new TagNode(tag)};
         } catch (IOException e) {
             throw new RuntimeException("I/O error while reading level.dat file", e);
         }
     }
-
-    private final File file;
-    private final boolean compressed;
-    private Tag tag;
 }

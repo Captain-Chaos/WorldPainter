@@ -4,45 +4,19 @@
  */
 package org.pepsoft.worldpainter.biomeschemes;
 
+import org.pepsoft.worldpainter.ColourScheme;
+
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import javax.imageio.ImageIO;
+
 import static org.pepsoft.minecraft.Constants.*;
-import org.pepsoft.worldpainter.ColourScheme;
 
 /**
  *
  * @author pepijn
  */
 public abstract class AbstractMinecraft1_2BiomeScheme extends AbstractBiomeScheme {
-    @Override
-    public final String[] getBiomeNames() {
-        return BIOME_NAMES;
-    }
-
-    @Override
-    public final Set<Integer> getDryBiomes() {
-        return DRY_BIOMES;
-    }
-
-    @Override
-    public final Set<Integer> getColdBiomes() {
-        return COLD_BIOMES;
-    }
-
-    @Override
-    public final Set<Integer> getForestedBiomes() {
-        return FORESTED_BIOMES;
-    }
-
-    @Override
-    public final Set<Integer> getSwampyBiomes() {
-        return SWAMPY_BIOMES;
-    }
-
     @Override
     public final int getBiomeCount() {
         return BIOME_NAMES.length;
@@ -165,11 +139,7 @@ public abstract class AbstractMinecraft1_2BiomeScheme extends AbstractBiomeSchem
         "Jungle",
         "Jungle Hills"
     };
-    public static final Set<Integer> DRY_BIOMES = new HashSet<>(Arrays.asList(BIOME_DESERT, BIOME_DESERT_HILLS));
-    public static final Set<Integer> COLD_BIOMES = new HashSet<>(Arrays.asList(BIOME_FROZEN_OCEAN, BIOME_FROZEN_RIVER, BIOME_ICE_MOUNTAINS, BIOME_ICE_PLAINS, BIOME_TAIGA, BIOME_TAIGA_HILLS));
-    public static final Set<Integer> FORESTED_BIOMES = new HashSet<>(Arrays.asList(BIOME_FOREST, BIOME_SWAMPLAND, BIOME_TAIGA, BIOME_FOREST_HILLS, BIOME_TAIGA_HILLS, BIOME_JUNGLE, BIOME_JUNGLE_HILLS));
-    public static final Set<Integer> SWAMPY_BIOMES = new HashSet<>(Arrays.asList(BIOME_SWAMPLAND));
-    
+
     private static final boolean[][][] BIOME_PATTERNS = new boolean[23][][];
 
     static {

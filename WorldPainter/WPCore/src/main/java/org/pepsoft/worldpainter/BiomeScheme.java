@@ -4,8 +4,6 @@
  */
 package org.pepsoft.worldpainter;
 
-import java.util.Set;
-
 /**
  *
  * @author pepijn
@@ -53,53 +51,6 @@ public interface BiomeScheme {
      *     indexed first by X and then by Y coordinate.
      */
     void getBiomes(int x, int y, int width, int height, int[] buffer);
-    
-    /**
-     * Get the list of biome names. The numbers returned by
-     * {@link #getBiomes(int[], int, int, int, int)} can be used as index into
-     * this array to find the name of the biome.
-     * 
-     * @return The list of biome names.
-     */
-    String[] getBiomeNames();
-    
-    /**
-     * Get the set of dry biomes (biomes in which no precipitation falls), as
-     * a set of integers, corresponding to the integers returned by the
-     * {@link #getBiomes(int[], int, int, int, int)} method.
-     * 
-     * @return The set of dry biomes.
-     */
-    Set<Integer> getDryBiomes();
-
-    /**
-     * Get the set of cold biomes (biomes in which water will freeze and any
-     * precipitation will fall as snow), as a set of integers, corresponding to
-     * the integers returned by the
-     * {@link #getBiomes(int[], int, int, int, int)} method.
-     * 
-     * @return The set of cold biomes.
-     */
-    Set<Integer> getColdBiomes();
-
-    /**
-     * Get the set of forested biomes (biomes in which many trees grow), as a
-     * set of integers, corresponding to the integers returned by the
-     * {@link #getBiomes(int[], int, int, int, int)} method.
-     * 
-     * @return The set of forested biomes.
-     */
-    Set<Integer> getForestedBiomes();
-
-    /**
-     * Get the set of swampy biomes (biomes in which swamp trees grow and the
-     * water is green), as a set of integers, corresponding to the integers
-     * returned by the {@link #getBiomes(int[], int, int, int, int)} method.
-     * 
-     * @return The set of swampy biomes.
-     */
-    Set<Integer> getSwampyBiomes();
-    
     /**
      * Get the colour of the specified biome. At its option the biome scheme may
      * use the specified colour scheme to determine the colour, but it may also

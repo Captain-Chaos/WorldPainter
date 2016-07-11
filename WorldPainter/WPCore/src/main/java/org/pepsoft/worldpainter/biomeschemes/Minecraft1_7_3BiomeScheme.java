@@ -4,16 +4,14 @@
  */
 package org.pepsoft.worldpainter.biomeschemes;
 
+import net.minecraft.v1_7_3.BiomeGenerator;
+import org.pepsoft.worldpainter.ColourScheme;
+
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import javax.imageio.ImageIO;
-import net.minecraft.v1_7_3.BiomeGenerator;
+
 import static org.pepsoft.minecraft.Constants.*;
-import org.pepsoft.worldpainter.ColourScheme;
 
 /**
  *
@@ -37,26 +35,6 @@ public final class Minecraft1_7_3BiomeScheme extends AbstractBiomeScheme {
     }
     
     @Override
-    public String[] getBiomeNames() {
-        return BIOME_NAMES;
-    }
-
-    @Override
-    public Set<Integer> getDryBiomes() {
-        return DRY_BIOMES;
-    }
-
-    @Override
-    public Set<Integer> getColdBiomes() {
-        return COLD_BIOMES;
-    }
-
-    @Override
-    public Set<Integer> getSwampyBiomes() {
-        return SWAMPY_BIOMES;
-    }
-
-    @Override
     public void setSeed(long seed) {
         if (seed != this.seed) {
             this.seed = seed;
@@ -64,11 +42,6 @@ public final class Minecraft1_7_3BiomeScheme extends AbstractBiomeScheme {
         }
     }
 
-    @Override
-    public Set<Integer> getForestedBiomes() {
-        return FORESTED_BIOMES;
-    }
-    
     @Override
     public final int getColour(int biome, ColourScheme colourScheme) {
         switch (biome) {
@@ -150,11 +123,6 @@ public final class Minecraft1_7_3BiomeScheme extends AbstractBiomeScheme {
         "Sky",
         "Rainforest"
     };
-    
-    public static final Set<Integer> DRY_BIOMES = new HashSet<>(Arrays.asList(BIOME_DESERT));
-    public static final Set<Integer> COLD_BIOMES = new HashSet<>(Arrays.asList(BIOME_ICE_DESERT, BIOME_TAIGA, BIOME_TUNDRA));
-    public static final Set<Integer> FORESTED_BIOMES = new HashSet<>(Arrays.asList(BIOME_FOREST, BIOME_RAINFOREST, BIOME_SEASONAL_FOREST, BIOME_TAIGA));
-    public static final Set<Integer> SWAMPY_BIOMES = Collections.emptySet();
     
     private long seed = Long.MIN_VALUE;
     private BiomeGenerator biomeGenerator;

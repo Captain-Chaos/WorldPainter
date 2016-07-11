@@ -992,10 +992,6 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
             out.println("Bit valued layer data for tile " + x + "," + y + " lost");
             bitLayerData = new HashMap<>();
         }
-        if (seeds == null) {
-            out.println("Seed data for tile " + x + "," + y + " lost");
-            seeds = new HashSet<>();
-        }
         init();
         return true;
     }
