@@ -1696,7 +1696,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         void tilesRemoved(Dimension dimension, Set<Tile> tiles);
     }
 
-    public enum Border {VOID, WATER, LAVA}
+    public enum Border {VOID, WATER, LAVA, ENDLESS_VOID, ENDLESS_WATER, ENDLESS_LAVA}
     
     private class WPGarden implements Garden {
         @Override
