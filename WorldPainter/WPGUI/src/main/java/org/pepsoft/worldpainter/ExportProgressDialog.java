@@ -152,7 +152,7 @@ public class ExportProgressDialog extends javax.swing.JDialog implements Listene
 
         setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
 
-        progressComponent1.setTask(new ProgressTask<Map<Integer, ChunkFactory.Stats>>() {
+        multiProgressComponent1.setTask(new ProgressTask<Map<Integer, ChunkFactory.Stats>>() {
             @Override
             public String getName() {
                 return "Please wait";
@@ -170,9 +170,9 @@ public class ExportProgressDialog extends javax.swing.JDialog implements Listene
                 }
             }
         });
-        progressComponent1.setListener(this);
+        multiProgressComponent1.setListener(this);
         start = System.currentTimeMillis();
-        progressComponent1.start();
+        multiProgressComponent1.start();
     }
 
     private void close() {
@@ -211,7 +211,7 @@ public class ExportProgressDialog extends javax.swing.JDialog implements Listene
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        progressComponent1 = new org.pepsoft.util.swing.ProgressComponent();
+        multiProgressComponent1 = new org.pepsoft.util.swing.MultiProgressComponent();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Exporting");
@@ -220,24 +220,24 @@ public class ExportProgressDialog extends javax.swing.JDialog implements Listene
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(progressComponent1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(multiProgressComponent1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(progressComponent1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(multiProgressComponent1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private org.pepsoft.util.swing.ProgressComponent progressComponent1;
+    private org.pepsoft.util.swing.MultiProgressComponent multiProgressComponent1;
     // End of variables declaration//GEN-END:variables
 
     private final World2 world;

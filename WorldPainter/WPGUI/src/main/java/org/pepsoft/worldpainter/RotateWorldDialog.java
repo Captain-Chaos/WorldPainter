@@ -122,6 +122,11 @@ public class RotateWorldDialog extends javax.swing.JDialog implements ProgressRe
         doOnEventThread(() -> jProgressBar1.setValue(0));
     }
 
+    @Override
+    public void subProgressStarted(SubProgressReceiver subProgressReceiver) throws OperationCancelled {
+        // Do nothing
+    }
+
     private void rotate() {
         buttonRotate.setEnabled(false);
         buttonCancel.setEnabled(false);

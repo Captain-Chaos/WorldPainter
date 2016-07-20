@@ -5,45 +5,127 @@
 
 package org.pepsoft.util;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 /**
  *
  * @author pepijn
  */
 public class SubProgressReceiver implements ProgressReceiver {
-    public SubProgressReceiver(ProgressReceiver progressReceiver, float offset, float extent) {
+    public SubProgressReceiver(ProgressReceiver progressReceiver, float offset, float extent) throws OperationCancelled {
         if ((offset < 0.0f) || (offset > 1.0f) || (extent <= 0.0f)) {
             throw new IllegalArgumentException();
         }
         this.progressReceiver = progressReceiver;
         this.offset = offset;
         this.extent = extent;
+        progressReceiver.subProgressStarted(this);
     }
+    
+    /**
+     * Adds an additional progress receiver, to which the
+     * {@link #setProgress(float)}, {@link #setMessage(java.lang.String)},
+     * {@link #done()} and {@link #exceptionThrown(java.lang.Throwable)} methods
+     * will be forwarded (without remapping the progress). Note that recursive
+     * invocations of <code>setMessage()</code>, </code><code>exceptionThrown()</code>
+     * and <code>done()</code> are not reported.
+     * 
+     * @param listener 
+     */
+    public synchronized void addListener(ProgressReceiver listener) {
+        if (listeners == null) {
+            listeners = new ArrayList<>();
+        }
+        listeners.add(listener);
+    }
+    
+    public synchronized void removeListener(ProgressReceiver listener) {
+        listeners.remove(listener);
+    }
+
+    public ProgressReceiver getParent() {
+        return progressReceiver;
+    }
+
+    public synchronized String getLastMessage() {
+        return lastMessage;
+    }
+
+    // ProgressReceiver
 
     @Override
     public void setProgress(float progress) throws OperationCancelled {
-        progress = offset + progress * extent;
-        if (progress < 0.0f) {
+        float parentProgress = offset + progress * extent;
+        if (parentProgress < 0.0f) {
             progressReceiver.setProgress(0.0f);
-        } else if (progress > 1.0f) {
+        } else if (parentProgress > 1.0f) {
             progressReceiver.setProgress(1.0f);
         } else {
-            progressReceiver.setProgress(progress);
+            progressReceiver.setProgress(parentProgress);
+        }
+        synchronized (this) {
+            if (listeners != null) {
+                for (ProgressReceiver listener: listeners) {
+                    listener.setProgress(progress);
+                }
+            }
         }
     }
 
     @Override
     public void exceptionThrown(Throwable exception) {
-        progressReceiver.exceptionThrown(exception);
+        if (! recursiveCall.get().get()) {
+            recursiveCall.get().set(true);
+            try {
+                progressReceiver.exceptionThrown(exception);
+                synchronized (this) {
+                    if (listeners != null) {
+                        for (ProgressReceiver listener: listeners) {
+                            listener.exceptionThrown(exception);
+                        }
+                    }
+                }
+            } finally {
+                recursiveCall.get().set(false);
+            }
+        } else {
+            progressReceiver.exceptionThrown(exception);
+        }
     }
 
     @Override
-    public void done() {
-        // Do nothing
+    public synchronized void done() {
+        if (listeners != null) {
+            for (ProgressReceiver listener: listeners) {
+                listener.done();
+            }
+        }
     }
 
     @Override
     public void setMessage(String message) throws OperationCancelled {
-        progressReceiver.setMessage(message);
+        if (! recursiveCall.get().get()) {
+            recursiveCall.get().set(true);
+            try {
+                progressReceiver.setMessage(message);
+                synchronized (this) {
+                    if (listeners != null) {
+                        for (ProgressReceiver listener: listeners) {
+                            listener.setMessage(message);
+                        }
+                    }
+                }
+                synchronized (this) {
+                    lastMessage = message;
+                }
+            } finally {
+                recursiveCall.get().set(false);
+            }
+        } else {
+            progressReceiver.setMessage(message);
+        }
     }
 
     @Override
@@ -56,6 +138,20 @@ public class SubProgressReceiver implements ProgressReceiver {
         throw new UnsupportedOperationException("Not supported");
     }
 
+    @Override
+    public void subProgressStarted(SubProgressReceiver subProgressReceiver) throws OperationCancelled {
+        progressReceiver.subProgressStarted(subProgressReceiver);
+    }
+
     private final ProgressReceiver progressReceiver;
     private final float offset, extent;
+    private List<ProgressReceiver> listeners;
+    private String lastMessage;
+
+    private static final ThreadLocal<AtomicBoolean> recursiveCall = new ThreadLocal<AtomicBoolean>() {
+        @Override
+        protected AtomicBoolean initialValue() {
+            return new AtomicBoolean(false);
+        }
+    };
 }

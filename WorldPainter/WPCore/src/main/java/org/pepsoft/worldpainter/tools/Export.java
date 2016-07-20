@@ -17,6 +17,7 @@ import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.PluginManager;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
+import org.pepsoft.util.SubProgressReceiver;
 import org.pepsoft.worldpainter.Configuration;
 import org.pepsoft.worldpainter.MixedMaterial;
 import org.pepsoft.worldpainter.Terrain;
@@ -107,6 +108,7 @@ public class Export {
             @Override public void done() {}
             @Override public void setMessage(String message) throws OperationCancelled {}
             @Override public void checkForCancellation() throws OperationCancelled {}
+            @Override public void subProgressStarted(SubProgressReceiver subProgressReceiver) throws OperationCancelled {}
             
             private int previousProgress = -1;
         });

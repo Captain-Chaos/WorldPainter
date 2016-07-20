@@ -42,6 +42,9 @@ public class PostProcessor {
         if (! enabled) {
             return;
         }
+        if (progressReceiver != null) {
+            progressReceiver.setMessage("Enforcing Minecraft rules on exported blocks");
+        }
         int x1 = area.x;
         int y1 = area.y;
         int x2 = x1 + area.width - 1, y2 = y1 + area.height - 1;
