@@ -960,10 +960,12 @@ public class CustomMaterialDialog extends WorldPainterDialog {
     }//GEN-LAST:event_jLabel12MouseClicked
 
     private void jTabbedPane1StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jTabbedPane1StateChanged
-        setControlStates();
-        updateName();
-        configureTable();
-        schedulePreviewUpdate();
+        if (! programmaticChange) {
+            setControlStates();
+            updateName();
+            configureTable();
+            schedulePreviewUpdate();
+        }
     }//GEN-LAST:event_jTabbedPane1StateChanged
 
     private void updateName() {

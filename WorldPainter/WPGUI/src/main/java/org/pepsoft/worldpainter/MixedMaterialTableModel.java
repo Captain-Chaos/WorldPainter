@@ -23,6 +23,9 @@ public class MixedMaterialTableModel implements TableModel {
     public MixedMaterialTableModel(MixedMaterial material) {
         rows = Arrays.copyOf(material.getRows(), material.getRows().length);
         mode = material.getMode();
+        if (mode == Mode.LAYERED) {
+            COLUMN_NAMES[COLUMN_OCCURRENCE] = "Thickness";
+        }
     }
     
     public MixedMaterialTableModel() {
