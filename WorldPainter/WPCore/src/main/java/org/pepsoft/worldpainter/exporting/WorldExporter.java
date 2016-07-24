@@ -217,6 +217,13 @@ public class WorldExporter {
         if (logger.isDebugEnabled()) {
             logger.debug("Start of first pass for region {},{}", regionCoords.x, regionCoords.y);
         }
+        if (progressReceiver != null) {
+            if (ceiling) {
+                progressReceiver.setMessage("Generating ceiling of region " + regionCoords.x + "," + regionCoords.y);
+            } else {
+                progressReceiver.setMessage("Generating landscape of region " + regionCoords.x + "," + regionCoords.y);
+            }
+        }
         int lowestChunkX = (regionCoords.x << 5) - 1;
         int highestChunkX = (regionCoords.x << 5) + 32;
         int lowestChunkY = (regionCoords.y << 5) - 1;
@@ -313,6 +320,13 @@ public class WorldExporter {
             if (logger.isDebugEnabled()) {
                 logger.debug("Exporting layer {} for region {},{}", layer, regionCoords.x, regionCoords.y);
             }
+            if (progressReceiver != null) {
+                if (minecraftWorld instanceof InvertedWorld) {
+                    progressReceiver.setMessage("Exporting layer " + layer + " for ceiling of region " + regionCoords.x + "," + regionCoords.y);
+                } else {
+                    progressReceiver.setMessage("Exporting layer " + layer + " for region " + regionCoords.x + "," + regionCoords.y);
+                }
+            }
             List<Fixup> layerFixups = exporter.render(dimension, area, exportedArea, minecraftWorld);
             if (layerFixups != null) {
                 fixups.addAll(layerFixups);
@@ -364,10 +378,19 @@ public class WorldExporter {
         if (logger.isDebugEnabled()) {
             logger.debug("End of second pass for region {},{}", regionCoords.x, regionCoords.y);
         }
+        if (progressReceiver != null) {
+            // Be sure to report progress as done, as there might not have been
+            // any layers, in which case there will not have been any progress
+            // reported
+            progressReceiver.done();
+        }
         return fixups;
     }
 
     protected void lightingPass(MinecraftWorld minecraftWorld, Point regionCoords, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
+        if (progressReceiver != null) {
+            progressReceiver.setMessage("Calculating light");
+        }
         LightingCalculator lightingVolume = new LightingCalculator(minecraftWorld);
         
         // Calculate primary light
@@ -407,6 +430,9 @@ public class WorldExporter {
     }
     
     protected final ExportResults exportRegion(MinecraftWorld minecraftWorld, Dimension dimension, Dimension ceiling, Point regionCoords, boolean tileSelection, Map<Layer, LayerExporter> exporters, Map<Layer, LayerExporter> ceilingExporters, ChunkFactory chunkFactory, ChunkFactory ceilingChunkFactory, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled, IOException {
+        if (progressReceiver != null) {
+            progressReceiver.setMessage("Exporting region " + regionCoords.x + "," + regionCoords.y);
+        }
         int lowestTileX = (regionCoords.x << 2) - 1;
         int highestTileX = lowestTileX + 5;
         int lowestTileY = (regionCoords.y << 2) - 1;
@@ -976,6 +1002,9 @@ public class WorldExporter {
         MinecraftWorldImpl minecraftWorld = new MinecraftWorldImpl(worldDir, dimension, version, false, true, 512);
         int count = 0, total = fixups.size();
         for (Map.Entry<Point, List<Fixup>> entry: fixups.entrySet()) {
+            if (progressReceiver != null) {
+                progressReceiver.setMessage("Performing fixups for region " + entry.getKey().x + "," + entry.getKey().y);
+            }
             List<Fixup> regionFixups = entry.getValue();
             if (logger.isDebugEnabled()) {
                 logger.debug("Performing " + regionFixups.size() + " fixups for region " + entry.getKey().x + "," + entry.getKey().y);

@@ -13,6 +13,10 @@ import static org.pepsoft.minecraft.Block.BLOCK_TYPE_NAMES;
 import static org.pepsoft.minecraft.Constants.*;
 
 /**
+ * A representation of a Minecraft block ID and data value, or one possible in-
+ * game block type. Implements the Enumeration pattern, meaning there is only
+ * ever one instance of this class for each block ID and data value combination,
+ * allowing use of the equals operator (==) for comparing instances.
  *
  * @author pepijn
  */
@@ -254,6 +258,7 @@ public final class Material implements Serializable, Comparable<Material> {
                 break;
             case BLK_WOOD:
             case BLK_WOOD2:
+            case BLK_BONE_BLOCK: // TODO: assumption!
                 switch (data & 0xC) {
                     case 0x4:
                         return Direction.EAST;
@@ -305,13 +310,13 @@ public final class Material implements Serializable, Comparable<Material> {
             case BLK_RED_SANDSTONE_STAIRS:
                 switch (direction) {
                     case EAST:
-                        return get(blockType, data & 0x0C);
+                        return MATERIALS[((blockType) << 4) | (data & 0x0C)];
                     case WEST:
-                        return get(blockType, (data & 0x0C) | 1);
+                        return MATERIALS[((blockType) << 4) | ((data & 0x0C) | 1)];
                     case SOUTH:
-                        return get(blockType, (data & 0x0C) | 2);
+                        return MATERIALS[((blockType) << 4) | ((data & 0x0C) | 2)];
                     case NORTH:
-                        return get(blockType, (data & 0x0C) | 3);
+                        return MATERIALS[((blockType) << 4) | ((data & 0x0C) | 3)];
                 }
                 break;
             case BLK_TORCH:
@@ -319,13 +324,13 @@ public final class Material implements Serializable, Comparable<Material> {
             case BLK_REDSTONE_TORCH_ON:
                 switch (direction) {
                     case EAST:
-                        return get(blockType, 1);
+                        return MATERIALS[((blockType) << 4) | (1)];
                     case WEST:
-                        return get(blockType, 2);
+                        return MATERIALS[((blockType) << 4) | (2)];
                     case SOUTH:
-                        return get(blockType, 3);
+                        return MATERIALS[((blockType) << 4) | (3)];
                     case NORTH:
-                        return get(blockType, 4);
+                        return MATERIALS[((blockType) << 4) | (4)];
                 }
                 break;
             case BLK_RAILS:
@@ -334,23 +339,23 @@ public final class Material implements Serializable, Comparable<Material> {
                     switch (direction) {
                         case NORTH:
                         case SOUTH:
-                            return get(blockType, 0);
+                            return MATERIALS[((blockType) << 4) | (0)];
                         case EAST:
                         case WEST:
-                            return get(blockType, 1);
+                            return MATERIALS[((blockType) << 4) | (1)];
                     }
                 } else {
                     // Sloped or round
                     boolean round = data > 5;
                     switch (direction) {
                         case EAST:
-                            return get(blockType, round ? 6 : 2);
+                            return MATERIALS[((blockType) << 4) | (round ? 6 : 2)];
                         case WEST:
-                            return get(blockType, round ? 7 : 3);
+                            return MATERIALS[((blockType) << 4) | (round ? 7 : 3)];
                         case NORTH:
-                            return get(blockType, round ? 8 : 4);
+                            return MATERIALS[((blockType) << 4) | (round ? 8 : 4)];
                         case SOUTH:
-                            return get(blockType, round ? 9 : 5);
+                            return MATERIALS[((blockType) << 4) | (round ? 9 : 5)];
                     }
                 }
                 break;
@@ -361,22 +366,22 @@ public final class Material implements Serializable, Comparable<Material> {
                     switch (direction) {
                         case NORTH:
                         case SOUTH:
-                            return get(blockType, data & 0x08);
+                            return MATERIALS[((blockType) << 4) | (data & 0x08)];
                         case EAST:
                         case WEST:
-                            return get(blockType, (data & 0x08) | 1);
+                            return MATERIALS[((blockType) << 4) | ((data & 0x08) | 1)];
                     }
                 } else {
                     // Sloped
                     switch (direction) {
                         case EAST:
-                            return get(blockType, (data & 0x08) | 2);
+                            return MATERIALS[((blockType) << 4) | ((data & 0x08) | 2)];
                         case WEST:
-                            return get(blockType, (data & 0x08) | 3);
+                            return MATERIALS[((blockType) << 4) | ((data & 0x08) | 3)];
                         case NORTH:
-                            return get(blockType, (data & 0x08) | 4);
+                            return MATERIALS[((blockType) << 4) | ((data & 0x08) | 4)];
                         case SOUTH:
-                            return get(blockType, (data & 0x08) | 5);
+                            return MATERIALS[((blockType) << 4) | ((data & 0x08) | 5)];
                     }
                 }
                 break;
@@ -384,13 +389,13 @@ public final class Material implements Serializable, Comparable<Material> {
                 boolean ground = (data & 0x07) > 4;
                 switch (direction) {
                     case EAST:
-                        return get(blockType, (data & 0x08) | (ground ? 6 : 1));
+                        return MATERIALS[((blockType) << 4) | ((data & 0x08) | (ground ? 6 : 1))];
                     case WEST:
-                        return get(blockType, (data & 0x08) | (ground ? 6 : 2));
+                        return MATERIALS[((blockType) << 4) | ((data & 0x08) | (ground ? 6 : 2))];
                     case SOUTH:
-                        return get(blockType, (data & 0x08) | (ground ? 5 : 3));
+                        return MATERIALS[((blockType) << 4) | ((data & 0x08) | (ground ? 5 : 3))];
                     case NORTH:
-                        return get(blockType, (data & 0x08) | (ground ? 5 : 4));
+                        return MATERIALS[((blockType) << 4) | ((data & 0x08) | (ground ? 5 : 4))];
                 }
                 break;
             case BLK_WOODEN_DOOR:
@@ -405,13 +410,13 @@ public final class Material implements Serializable, Comparable<Material> {
                 } else {
                     switch (direction) {
                         case WEST:
-                            return get(blockType, data & 0xC);
+                            return MATERIALS[((blockType) << 4) | (data & 0xC)];
                         case NORTH:
-                            return get(blockType, (data & 0xC) | 1);
+                            return MATERIALS[((blockType) << 4) | ((data & 0xC) | 1)];
                         case EAST:
-                            return get(blockType, (data & 0xC) | 2);
+                            return MATERIALS[((blockType) << 4) | ((data & 0xC) | 2)];
                         case SOUTH:
-                            return get(blockType, (data & 0xC) | 3);
+                            return MATERIALS[((blockType) << 4) | ((data & 0xC) | 3)];
                     }
                 }
                 break;
@@ -419,26 +424,26 @@ public final class Material implements Serializable, Comparable<Material> {
             case BLK_WOODEN_BUTTON:
                 switch (direction) {
                     case EAST:
-                        return get(blockType, (data & 0x8) | 1);
+                        return MATERIALS[((blockType) << 4) | ((data & 0x8) | 1)];
                     case WEST:
-                        return get(blockType, (data & 0x8) | 2);
+                        return MATERIALS[((blockType) << 4) | ((data & 0x8) | 2)];
                     case SOUTH:
-                        return get(blockType, (data & 0x8) | 3);
+                        return MATERIALS[((blockType) << 4) | ((data & 0x8) | 3)];
                     case NORTH:
-                        return get(blockType, (data & 0x8) | 4);
+                        return MATERIALS[((blockType) << 4) | ((data & 0x8) | 4)];
                 }
                 break;
             case BLK_SIGN:
             case BLK_STANDING_BANNER:
                 switch (direction) {
                     case SOUTH:
-                        return get(blockType, data & 0x03);
+                        return MATERIALS[((blockType) << 4) | (data & 0x03)];
                     case WEST:
-                        return get(blockType, (data & 0x03) | 4);
+                        return MATERIALS[((blockType) << 4) | ((data & 0x03) | 4)];
                     case NORTH:
-                        return get(blockType, (data & 0x03) | 8);
+                        return MATERIALS[((blockType) << 4) | ((data & 0x03) | 8)];
                     case EAST:
-                        return get(blockType, (data & 0x03) | 12);
+                        return MATERIALS[((blockType) << 4) | ((data & 0x03) | 12)];
                 }
                 break;
             case BLK_LADDER:
@@ -449,13 +454,13 @@ public final class Material implements Serializable, Comparable<Material> {
             case BLK_WALL_BANNER:
                 switch (direction) {
                     case NORTH:
-                        return get(blockType, 2);
+                        return MATERIALS[((blockType) << 4) | (2)];
                     case SOUTH:
-                        return get(blockType, 3);
+                        return MATERIALS[((blockType) << 4) | (3)];
                     case WEST:
-                        return get(blockType, 4);
+                        return MATERIALS[((blockType) << 4) | (4)];
                     case EAST:
-                        return get(blockType, 5);
+                        return MATERIALS[((blockType) << 4) | (5)];
                 }
                 break;
             case BLK_PUMPKIN:
@@ -470,13 +475,13 @@ public final class Material implements Serializable, Comparable<Material> {
             case BLK_TRIPWIRE_HOOK:
                 switch (direction) {
                     case SOUTH:
-                        return get(blockType, data & 0x0C);
+                        return MATERIALS[((blockType) << 4) | (data & 0x0C)];
                     case WEST:
-                        return get(blockType, (data & 0x0C) | 1);
+                        return MATERIALS[((blockType) << 4) | ((data & 0x0C) | 1)];
                     case NORTH:
-                        return get(blockType, (data & 0x0C) | 2);
+                        return MATERIALS[((blockType) << 4) | ((data & 0x0C) | 2)];
                     case EAST:
-                        return get(blockType, (data & 0x0C) | 3);
+                        return MATERIALS[((blockType) << 4) | ((data & 0x0C) | 3)];
                 }
                 break;
             case BLK_REDSTONE_REPEATER_OFF:
@@ -484,62 +489,63 @@ public final class Material implements Serializable, Comparable<Material> {
             case BLK_REDSTONE_COMPARATOR_UNPOWERED:
                 switch (direction) {
                     case NORTH:
-                        return get(blockType, data & 0x0C);
+                        return MATERIALS[((blockType) << 4) | (data & 0x0C)];
                     case EAST:
-                        return get(blockType, (data & 0x0C) | 1);
+                        return MATERIALS[((blockType) << 4) | ((data & 0x0C) | 1)];
                     case SOUTH:
-                        return get(blockType, (data & 0x0C) | 2);
+                        return MATERIALS[((blockType) << 4) | ((data & 0x0C) | 2)];
                     case WEST:
-                        return get(blockType, (data & 0x0C) | 3);
+                        return MATERIALS[((blockType) << 4) | ((data & 0x0C) | 3)];
                 }
                 break;
             case BLK_TRAPDOOR:
             case BLK_IRON_TRAPDOOR: // TODO: assumption
                 switch (direction) {
                     case SOUTH:
-                        return get(blockType, data & 0x0C);
+                        return MATERIALS[((blockType) << 4) | (data & 0x0C)];
                     case NORTH:
-                        return get(blockType, (data & 0x0C) | 1);
+                        return MATERIALS[((blockType) << 4) | ((data & 0x0C) | 1)];
                     case EAST:
-                        return get(blockType, (data & 0x0C) | 2);
+                        return MATERIALS[((blockType) << 4) | ((data & 0x0C) | 2)];
                     case WEST:
-                        return get(blockType, (data & 0x0C) | 3);
+                        return MATERIALS[((blockType) << 4) | ((data & 0x0C) | 3)];
                 }
                 break;
             case BLK_PISTON:
             case BLK_PISTON_HEAD:
                 switch (direction) {
                     case NORTH:
-                        return get(blockType, (data & 0x08) | 2);
+                        return MATERIALS[((blockType) << 4) | ((data & 0x08) | 2)];
                     case SOUTH:
-                        return get(blockType, (data & 0x08) | 3);
+                        return MATERIALS[((blockType) << 4) | ((data & 0x08) | 3)];
                     case WEST:
-                        return get(blockType, (data & 0x08) | 4);
+                        return MATERIALS[((blockType) << 4) | ((data & 0x08) | 4)];
                     case EAST:
-                        return get(blockType, (data & 0x08) | 5);
+                        return MATERIALS[((blockType) << 4) | ((data & 0x08) | 5)];
                 }
                 break;
             case BLK_WOOD:
             case BLK_WOOD2:
+            case BLK_BONE_BLOCK: // TODO: assumption!
                 switch (direction) {
                     case NORTH:
                     case SOUTH:
-                        return get(blockType, (data & 0x3) | 0x8);
+                        return MATERIALS[((blockType) << 4) | ((data & 0x3) | 0x8)];
                     case EAST:
                     case WEST:
-                        return get(blockType, (data & 0x3) | 0x4);
+                        return MATERIALS[((blockType) << 4) | ((data & 0x3) | 0x4)];
                 }
                 break;
             case BLK_COCOA_PLANT:
                 switch (direction) {
                     case SOUTH:
-                        return get(blockType, data & 0xC);
+                        return MATERIALS[((blockType) << 4) | (data & 0xC)];
                     case WEST:
-                        return get(blockType, (data & 0xC) | 0x1);
+                        return MATERIALS[((blockType) << 4) | ((data & 0xC) | 0x1)];
                     case NORTH:
-                        return get(blockType, (data & 0xC) | 0x2);
+                        return MATERIALS[((blockType) << 4) | ((data & 0xC) | 0x2)];
                     case EAST:
-                        return get(blockType, (data & 0xC) | 0x3);
+                        return MATERIALS[((blockType) << 4) | ((data & 0xC) | 0x3)];
                 }
                 break;
         }
@@ -561,7 +567,7 @@ public final class Material implements Serializable, Comparable<Material> {
                 int bitMask = (data << 4) | data;
                 steps = steps & 0x3;
                 if (steps > 0) {
-                    return get(blockType, ((bitMask << steps) & 0xF0) >> 4);
+                    return MATERIALS[((blockType) << 4) | (((bitMask << steps) & 0xF0) >> 4)];
                 } else {
                     return this;
                 }
@@ -592,13 +598,13 @@ public final class Material implements Serializable, Comparable<Material> {
                 direction = direction.rotate(steps);
                 switch (direction) {
                     case NORTH:
-                        return get(blockType, corner ? 1 : 2);
+                        return MATERIALS[((blockType) << 4) | (corner ? 1 : 2)];
                     case EAST:
-                        return get(blockType, corner ? 3 : 6);
+                        return MATERIALS[((blockType) << 4) | (corner ? 3 : 6)];
                     case SOUTH:
-                        return get(blockType, corner ? 9 : 8);
+                        return MATERIALS[((blockType) << 4) | (corner ? 9 : 8)];
                     case WEST:
-                        return get(blockType, corner ? 7 : 4);
+                        return MATERIALS[((blockType) << 4) | (corner ? 7 : 4)];
                     default:
                         throw new InternalError();
                 }
@@ -637,44 +643,44 @@ public final class Material implements Serializable, Comparable<Material> {
                 north = south;
                 south = tmp;
             }
-            return get(blockType, (north ? 4 : 0)
-                                | (east  ? 8 : 0)
-                                | (south ? 1 : 0)
-                                | (west  ? 2 : 0));
+            return MATERIALS[((blockType) << 4) | ((north ? 4 : 0)
+                    | (east  ? 8 : 0)
+                    | (south ? 1 : 0)
+                    | (west  ? 2 : 0))];
         } else if ((blockType == BLK_HUGE_BROWN_MUSHROOM) || (blockType == BLK_HUGE_RED_MUSHROOM)) {
             if ((axis == Direction.EAST) || (axis == Direction.WEST)) {
             // TODO: this is wrong. Probably a leftover from the coordinate shift. It should be:
 //            if ((axis == Direction.NORTH) || (axis == Direction.SOUTH)) {
                 switch (data) {
                     case 1:
-                        return get(blockType, 3);
+                        return MATERIALS[((blockType) << 4) | (3)];
                     case 3:
-                        return get(blockType, 1);
+                        return MATERIALS[((blockType) << 4) | (1)];
                     case 4:
-                        return get(blockType, 6);
+                        return MATERIALS[((blockType) << 4) | (6)];
                     case 6:
-                        return get(blockType, 4);
+                        return MATERIALS[((blockType) << 4) | (4)];
                     case 7:
-                        return get(blockType, 9);
+                        return MATERIALS[((blockType) << 4) | (9)];
                     case 9:
-                        return get(blockType, 7);
+                        return MATERIALS[((blockType) << 4) | (7)];
                     default:
                         return this;
                 }
             } else {
                 switch (data) {
                     case 1:
-                        return get(blockType, 7);
+                        return MATERIALS[((blockType) << 4) | (7)];
                     case 2:
-                        return get(blockType, 8);
+                        return MATERIALS[((blockType) << 4) | (8)];
                     case 3:
-                        return get(blockType, 9);
+                        return MATERIALS[((blockType) << 4) | (9)];
                     case 7:
-                        return get(blockType, 1);
+                        return MATERIALS[((blockType) << 4) | (1)];
                     case 8:
-                        return get(blockType, 2);
+                        return MATERIALS[((blockType) << 4) | (2)];
                     case 9:
-                        return get(blockType, 3);
+                        return MATERIALS[((blockType) << 4) | (3)];
                     default:
                         return this;
                 }
@@ -685,66 +691,66 @@ public final class Material implements Serializable, Comparable<Material> {
 //            if ((axis == Direction.NORTH) || (axis == Direction.SOUTH)) {
                 switch (data) {
                     case 1:
-                        return get(blockType, 15);
+                        return MATERIALS[((blockType) << 4) | (15)];
                     case 2:
-                        return get(blockType, 14);
+                        return MATERIALS[((blockType) << 4) | (14)];
                     case 3:
-                        return get(blockType, 13);
+                        return MATERIALS[((blockType) << 4) | (13)];
                     case 4:
-                        return get(blockType, 12);
+                        return MATERIALS[((blockType) << 4) | (12)];
                     case 5:
-                        return get(blockType, 11);
+                        return MATERIALS[((blockType) << 4) | (11)];
                     case 6:
-                        return get(blockType, 10);
+                        return MATERIALS[((blockType) << 4) | (10)];
                     case 7:
-                        return get(blockType, 9);
+                        return MATERIALS[((blockType) << 4) | (9)];
                     case 9:
-                        return get(blockType, 7);
+                        return MATERIALS[((blockType) << 4) | (7)];
                     case 10:
-                        return get(blockType, 6);
+                        return MATERIALS[((blockType) << 4) | (6)];
                     case 11:
-                        return get(blockType, 5);
+                        return MATERIALS[((blockType) << 4) | (5)];
                     case 12:
-                        return get(blockType, 4);
+                        return MATERIALS[((blockType) << 4) | (4)];
                     case 13:
-                        return get(blockType, 3);
+                        return MATERIALS[((blockType) << 4) | (3)];
                     case 14:
-                        return get(blockType, 2);
+                        return MATERIALS[((blockType) << 4) | (2)];
                     case 15:
-                        return get(blockType, 1);
+                        return MATERIALS[((blockType) << 4) | (1)];
                     default:
                         return this;
                 }
             } else {
                 switch (data) {
                     case 0:
-                        return get(blockType, 8);
+                        return MATERIALS[((blockType) << 4) | (8)];
                     case 1:
-                        return get(blockType, 7);
+                        return MATERIALS[((blockType) << 4) | (7)];
                     case 2:
-                        return get(blockType, 6);
+                        return MATERIALS[((blockType) << 4) | (6)];
                     case 3:
-                        return get(blockType, 5);
+                        return MATERIALS[((blockType) << 4) | (5)];
                     case 5:
-                        return get(blockType, 3);
+                        return MATERIALS[((blockType) << 4) | (3)];
                     case 6:
-                        return get(blockType, 2);
+                        return MATERIALS[((blockType) << 4) | (2)];
                     case 7:
-                        return get(blockType, 1);
+                        return MATERIALS[((blockType) << 4) | (1)];
                     case 8:
-                        return get(blockType, 0);
+                        return MATERIALS[((blockType) << 4) | (0)];
                     case 9:
-                        return get(blockType, 15);
+                        return MATERIALS[((blockType) << 4) | (15)];
                     case 10:
-                        return get(blockType, 14);
+                        return MATERIALS[((blockType) << 4) | (14)];
                     case 11:
-                        return get(blockType, 13);
+                        return MATERIALS[((blockType) << 4) | (13)];
                     case 13:
-                        return get(blockType, 11);
+                        return MATERIALS[((blockType) << 4) | (11)];
                     case 14:
-                        return get(blockType, 10);
+                        return MATERIALS[((blockType) << 4) | (10)];
                     case 15:
-                        return get(blockType, 9);
+                        return MATERIALS[((blockType) << 4) | (9)];
                     default:
                         return this;
                 }
@@ -798,11 +804,13 @@ public final class Material implements Serializable, Comparable<Material> {
             case BLK_ACACIA_WOOD_STAIRS:
             case BLK_DARK_OAK_WOOD_STAIRS:
             case BLK_RED_SANDSTONE_STAIRS:
-                return get(blockType, data ^ 0x4);
+            case BLK_PURPUR_STAIRS:
+                return MATERIALS[((blockType) << 4) | (data ^ 0x4)];
             case BLK_SLAB:
             case BLK_RED_SANDSTONE_SLAB:
             case BLK_WOODEN_SLAB:
-                return get(blockType, data ^ 0x8);
+            case BLK_PURPUR_SLAB:
+                return MATERIALS[((blockType) << 4) | (data ^ 0x8)];
             default:
                 return this;
         }
@@ -852,7 +860,7 @@ public final class Material implements Serializable, Comparable<Material> {
     }
     
     public static Material get(int blockType) {
-        return get(blockType, 0);
+        return MATERIALS[(blockType) << 4];
     }
     
     public static Material get(int blockType, int data) {
@@ -860,7 +868,7 @@ public final class Material implements Serializable, Comparable<Material> {
     }
 
     public static Material get(Block blockType) {
-        return get(blockType, 0);
+        return MATERIALS[blockType.id << 4];
     }
 
     public static Material get(Block blockType, int data) {
@@ -921,160 +929,160 @@ public final class Material implements Serializable, Comparable<Material> {
             MATERIALS[i] = new Material(i >> 4, i & 0xF);
         }
     }
-    
-    public static final Material AIR                   = get(BLK_AIR);
-    public static final Material DANDELION             = get(BLK_DANDELION);
-    public static final Material ROSE                  = get(BLK_ROSE);
-    public static final Material GRASS                 = get(BLK_GRASS);
-    public static final Material DIRT                  = get(BLK_DIRT);
-    public static final Material STONE                 = get(BLK_STONE);
-    public static final Material GRANITE               = get(BLK_STONE, DATA_STONE_GRANITE);
-    public static final Material DIORITE               = get(BLK_STONE, DATA_STONE_DIORITE);
-    public static final Material ANDESITE              = get(BLK_STONE, DATA_STONE_ANDESITE);
-    public static final Material COBBLESTONE           = get(BLK_COBBLESTONE);
-    public static final Material SNOW                  = get(BLK_SNOW);
-    public static final Material DEAD_SHRUBS           = get(BLK_DEAD_SHRUBS);
-    public static final Material CACTUS                = get(BLK_CACTUS);
-    public static final Material SAND                  = get(BLK_SAND);
-    public static final Material FIRE                  = get(BLK_FIRE);
-    public static final Material GLOWSTONE             = get(BLK_GLOWSTONE);
-    public static final Material SOUL_SAND             = get(BLK_SOUL_SAND);
-    public static final Material LAVA                  = get(BLK_LAVA);
-    public static final Material NETHERRACK            = get(BLK_NETHERRACK);
-    public static final Material COAL                  = get(BLK_COAL);
-    public static final Material GRAVEL                = get(BLK_GRAVEL);
-    public static final Material REDSTONE_ORE          = get(BLK_REDSTONE_ORE);
-    public static final Material IRON_ORE              = get(BLK_IRON_ORE);
-    public static final Material WATER                 = get(BLK_WATER);
-    public static final Material GOLD_ORE              = get(BLK_GOLD_ORE);
-    public static final Material LAPIS_LAZULI_ORE      = get(BLK_LAPIS_LAZULI_ORE);
-    public static final Material DIAMOND_ORE           = get(BLK_DIAMOND_ORE);
-    public static final Material BEDROCK               = get(BLK_BEDROCK);
-    public static final Material STATIONARY_WATER      = get(BLK_STATIONARY_WATER);
-    public static final Material STATIONARY_LAVA       = get(BLK_STATIONARY_LAVA);
-    public static final Material SNOW_BLOCK            = get(BLK_SNOW_BLOCK);
-    public static final Material SANDSTONE             = get(BLK_SANDSTONE);
-    public static final Material CLAY                  = get(BLK_CLAY);
-    public static final Material MOSSY_COBBLESTONE     = get(BLK_MOSSY_COBBLESTONE);
-    public static final Material OBSIDIAN              = get(BLK_OBSIDIAN);
-    public static final Material FENCE                 = get(BLK_FENCE);
-    public static final Material GLASS_PANE            = get(BLK_GLASS_PANE);
-    public static final Material STONE_BRICKS          = get(BLK_STONE_BRICKS);
-    public static final Material BRICKS                = get(BLK_BRICKS);
-    public static final Material COBWEB                = get(BLK_COBWEB);
-    public static final Material DIAMOND_BLOCK         = get(BLK_DIAMOND_BLOCK);
-    public static final Material GOLD_BLOCK            = get(BLK_GOLD_BLOCK);
-    public static final Material IRON_BLOCK            = get(BLK_IRON_BLOCK);
-    public static final Material LAPIS_LAZULI_BLOCK    = get(BLK_LAPIS_LAZULI_BLOCK);
-    public static final Material MYCELIUM              = get(BLK_MYCELIUM);
-    public static final Material TILLED_DIRT           = get(BLK_TILLED_DIRT);
-    public static final Material ICE                   = get(BLK_ICE);
-    public static final Material TORCH                 = get(BLK_TORCH);
-    public static final Material COBBLESTONE_STAIRS    = get(BLK_COBBLESTONE_STAIRS);
-    public static final Material GLASS                 = get(BLK_GLASS);
-    public static final Material WOODEN_STAIRS         = get(BLK_WOODEN_STAIRS);
-    public static final Material CHEST_NORTH           = get(BLK_CHEST, 2);
-    public static final Material CHEST_SOUTH           = get(BLK_CHEST, 3);
-    public static final Material CHEST_WEST            = get(BLK_CHEST, 4);
-    public static final Material CHEST_EAST            = get(BLK_CHEST, 5);
-    public static final Material WALL_SIGN             = get(BLK_WALL_SIGN);
-    public static final Material BRICK_STAIRS          = get(BLK_BRICK_STAIRS);
-    public static final Material STONE_BRICK_STAIRS    = get(BLK_STONE_BRICK_STAIRS);
-    public static final Material LADDER                = get(BLK_LADDER);
-    public static final Material TRAPDOOR              = get(BLK_TRAPDOOR);
-    public static final Material WHEAT                 = get(BLK_WHEAT);
-    public static final Material LILY_PAD              = get(BLK_LILY_PAD);
-    public static final Material RED_MUSHROOM          = get(BLK_RED_MUSHROOM);
-    public static final Material BROWN_MUSHROOM        = get(BLK_BROWN_MUSHROOM);
-    public static final Material SUGAR_CANE            = get(BLK_SUGAR_CANE);
-    public static final Material EMERALD_ORE           = get(BLK_EMERALD_ORE);
-    public static final Material EMERALD_BLOCK         = get(BLK_EMERALD_BLOCK);
-    public static final Material PERMADIRT             = get(BLK_DIRT, 1);
-    public static final Material PODZOL                = get(BLK_DIRT, 2);
-    public static final Material RED_SAND              = get(BLK_SAND, 1);
-    public static final Material HARDENED_CLAY         = get(BLK_HARDENED_CLAY);
-    public static final Material WHITE_CLAY            = get(BLK_STAINED_CLAY);
-    public static final Material ORANGE_CLAY           = get(BLK_STAINED_CLAY, DATA_ORANGE);
-    public static final Material MAGENTA_CLAY          = get(BLK_STAINED_CLAY, DATA_MAGENTA);
-    public static final Material LIGHT_BLUE_CLAY       = get(BLK_STAINED_CLAY, DATA_LIGHT_BLUE);
-    public static final Material YELLOW_CLAY           = get(BLK_STAINED_CLAY, DATA_YELLOW);
-    public static final Material LIME_CLAY             = get(BLK_STAINED_CLAY, DATA_LIME);
-    public static final Material PINK_CLAY             = get(BLK_STAINED_CLAY, DATA_PINK);
-    public static final Material GREY_CLAY             = get(BLK_STAINED_CLAY, DATA_GREY);
-    public static final Material LIGHT_GREY_CLAY       = get(BLK_STAINED_CLAY, DATA_LIGHT_GREY);
-    public static final Material CYAN_CLAY             = get(BLK_STAINED_CLAY, DATA_CYAN);
-    public static final Material PURPLE_CLAY           = get(BLK_STAINED_CLAY, DATA_PURPLE);
-    public static final Material BLUE_CLAY             = get(BLK_STAINED_CLAY, DATA_BLUE);
-    public static final Material BROWN_CLAY            = get(BLK_STAINED_CLAY, DATA_BROWN);
-    public static final Material GREEN_CLAY            = get(BLK_STAINED_CLAY, DATA_GREEN);
-    public static final Material RED_CLAY              = get(BLK_STAINED_CLAY, DATA_RED);
-    public static final Material BLACK_CLAY            = get(BLK_STAINED_CLAY, DATA_BLACK);
-    public static final Material RED_SANDSTONE         = get(BLK_RED_SANDSTONE);
 
-    public static final Material TALL_GRASS = get(BLK_TALL_GRASS, DATA_TALL_GRASS);
-    public static final Material FERN       = get(BLK_TALL_GRASS, DATA_FERN);
+    public static final Material AIR = MATERIALS[(BLK_AIR) << 4];
+    public static final Material DANDELION = MATERIALS[(BLK_DANDELION) << 4];
+    public static final Material ROSE = MATERIALS[(BLK_ROSE) << 4];
+    public static final Material GRASS = MATERIALS[(BLK_GRASS) << 4];
+    public static final Material DIRT = MATERIALS[(BLK_DIRT) << 4];
+    public static final Material STONE = MATERIALS[(BLK_STONE) << 4];
+    public static final Material GRANITE = MATERIALS[((BLK_STONE) << 4) | (DATA_STONE_GRANITE)];
+    public static final Material DIORITE = MATERIALS[((BLK_STONE) << 4) | (DATA_STONE_DIORITE)];
+    public static final Material ANDESITE = MATERIALS[((BLK_STONE) << 4) | (DATA_STONE_ANDESITE)];
+    public static final Material COBBLESTONE = MATERIALS[(BLK_COBBLESTONE) << 4];
+    public static final Material SNOW = MATERIALS[(BLK_SNOW) << 4];
+    public static final Material DEAD_SHRUBS = MATERIALS[(BLK_DEAD_SHRUBS) << 4];
+    public static final Material CACTUS = MATERIALS[(BLK_CACTUS) << 4];
+    public static final Material SAND = MATERIALS[(BLK_SAND) << 4];
+    public static final Material FIRE = MATERIALS[(BLK_FIRE) << 4];
+    public static final Material GLOWSTONE = MATERIALS[(BLK_GLOWSTONE) << 4];
+    public static final Material SOUL_SAND = MATERIALS[(BLK_SOUL_SAND) << 4];
+    public static final Material LAVA = MATERIALS[(BLK_LAVA) << 4];
+    public static final Material NETHERRACK = MATERIALS[(BLK_NETHERRACK) << 4];
+    public static final Material COAL = MATERIALS[(BLK_COAL) << 4];
+    public static final Material GRAVEL = MATERIALS[(BLK_GRAVEL) << 4];
+    public static final Material REDSTONE_ORE = MATERIALS[(BLK_REDSTONE_ORE) << 4];
+    public static final Material IRON_ORE = MATERIALS[(BLK_IRON_ORE) << 4];
+    public static final Material WATER = MATERIALS[(BLK_WATER) << 4];
+    public static final Material GOLD_ORE = MATERIALS[(BLK_GOLD_ORE) << 4];
+    public static final Material LAPIS_LAZULI_ORE = MATERIALS[(BLK_LAPIS_LAZULI_ORE) << 4];
+    public static final Material DIAMOND_ORE = MATERIALS[(BLK_DIAMOND_ORE) << 4];
+    public static final Material BEDROCK = MATERIALS[(BLK_BEDROCK) << 4];
+    public static final Material STATIONARY_WATER = MATERIALS[(BLK_STATIONARY_WATER) << 4];
+    public static final Material STATIONARY_LAVA = MATERIALS[(BLK_STATIONARY_LAVA) << 4];
+    public static final Material SNOW_BLOCK = MATERIALS[(BLK_SNOW_BLOCK) << 4];
+    public static final Material SANDSTONE = MATERIALS[(BLK_SANDSTONE) << 4];
+    public static final Material CLAY = MATERIALS[(BLK_CLAY) << 4];
+    public static final Material MOSSY_COBBLESTONE = MATERIALS[(BLK_MOSSY_COBBLESTONE) << 4];
+    public static final Material OBSIDIAN = MATERIALS[(BLK_OBSIDIAN) << 4];
+    public static final Material FENCE = MATERIALS[(BLK_FENCE) << 4];
+    public static final Material GLASS_PANE = MATERIALS[(BLK_GLASS_PANE) << 4];
+    public static final Material STONE_BRICKS = MATERIALS[(BLK_STONE_BRICKS) << 4];
+    public static final Material BRICKS = MATERIALS[(BLK_BRICKS) << 4];
+    public static final Material COBWEB = MATERIALS[(BLK_COBWEB) << 4];
+    public static final Material DIAMOND_BLOCK = MATERIALS[(BLK_DIAMOND_BLOCK) << 4];
+    public static final Material GOLD_BLOCK = MATERIALS[(BLK_GOLD_BLOCK) << 4];
+    public static final Material IRON_BLOCK = MATERIALS[(BLK_IRON_BLOCK) << 4];
+    public static final Material LAPIS_LAZULI_BLOCK = MATERIALS[(BLK_LAPIS_LAZULI_BLOCK) << 4];
+    public static final Material MYCELIUM = MATERIALS[(BLK_MYCELIUM) << 4];
+    public static final Material TILLED_DIRT = MATERIALS[(BLK_TILLED_DIRT) << 4];
+    public static final Material ICE = MATERIALS[(BLK_ICE) << 4];
+    public static final Material TORCH = MATERIALS[(BLK_TORCH) << 4];
+    public static final Material COBBLESTONE_STAIRS = MATERIALS[(BLK_COBBLESTONE_STAIRS) << 4];
+    public static final Material GLASS = MATERIALS[(BLK_GLASS) << 4];
+    public static final Material WOODEN_STAIRS = MATERIALS[(BLK_WOODEN_STAIRS) << 4];
+    public static final Material CHEST_NORTH = MATERIALS[((BLK_CHEST) << 4) | (2)];
+    public static final Material CHEST_SOUTH = MATERIALS[((BLK_CHEST) << 4) | (3)];
+    public static final Material CHEST_WEST = MATERIALS[((BLK_CHEST) << 4) | (4)];
+    public static final Material CHEST_EAST = MATERIALS[((BLK_CHEST) << 4) | (5)];
+    public static final Material WALL_SIGN = MATERIALS[(BLK_WALL_SIGN) << 4];
+    public static final Material BRICK_STAIRS = MATERIALS[(BLK_BRICK_STAIRS) << 4];
+    public static final Material STONE_BRICK_STAIRS = MATERIALS[(BLK_STONE_BRICK_STAIRS) << 4];
+    public static final Material LADDER = MATERIALS[(BLK_LADDER) << 4];
+    public static final Material TRAPDOOR = MATERIALS[(BLK_TRAPDOOR) << 4];
+    public static final Material WHEAT = MATERIALS[(BLK_WHEAT) << 4];
+    public static final Material LILY_PAD = MATERIALS[(BLK_LILY_PAD) << 4];
+    public static final Material RED_MUSHROOM = MATERIALS[(BLK_RED_MUSHROOM) << 4];
+    public static final Material BROWN_MUSHROOM = MATERIALS[(BLK_BROWN_MUSHROOM) << 4];
+    public static final Material SUGAR_CANE = MATERIALS[(BLK_SUGAR_CANE) << 4];
+    public static final Material EMERALD_ORE = MATERIALS[(BLK_EMERALD_ORE) << 4];
+    public static final Material EMERALD_BLOCK = MATERIALS[(BLK_EMERALD_BLOCK) << 4];
+    public static final Material PERMADIRT = MATERIALS[((BLK_DIRT) << 4) | (1)];
+    public static final Material PODZOL = MATERIALS[((BLK_DIRT) << 4) | (2)];
+    public static final Material RED_SAND = MATERIALS[((BLK_SAND) << 4) | (1)];
+    public static final Material HARDENED_CLAY = MATERIALS[(BLK_HARDENED_CLAY) << 4];
+    public static final Material WHITE_CLAY = MATERIALS[(BLK_STAINED_CLAY) << 4];
+    public static final Material ORANGE_CLAY = MATERIALS[((BLK_STAINED_CLAY) << 4) | (DATA_ORANGE)];
+    public static final Material MAGENTA_CLAY = MATERIALS[((BLK_STAINED_CLAY) << 4) | (DATA_MAGENTA)];
+    public static final Material LIGHT_BLUE_CLAY = MATERIALS[((BLK_STAINED_CLAY) << 4) | (DATA_LIGHT_BLUE)];
+    public static final Material YELLOW_CLAY = MATERIALS[((BLK_STAINED_CLAY) << 4) | (DATA_YELLOW)];
+    public static final Material LIME_CLAY = MATERIALS[((BLK_STAINED_CLAY) << 4) | (DATA_LIME)];
+    public static final Material PINK_CLAY = MATERIALS[((BLK_STAINED_CLAY) << 4) | (DATA_PINK)];
+    public static final Material GREY_CLAY = MATERIALS[((BLK_STAINED_CLAY) << 4) | (DATA_GREY)];
+    public static final Material LIGHT_GREY_CLAY = MATERIALS[((BLK_STAINED_CLAY) << 4) | (DATA_LIGHT_GREY)];
+    public static final Material CYAN_CLAY = MATERIALS[((BLK_STAINED_CLAY) << 4) | (DATA_CYAN)];
+    public static final Material PURPLE_CLAY = MATERIALS[((BLK_STAINED_CLAY) << 4) | (DATA_PURPLE)];
+    public static final Material BLUE_CLAY = MATERIALS[((BLK_STAINED_CLAY) << 4) | (DATA_BLUE)];
+    public static final Material BROWN_CLAY = MATERIALS[((BLK_STAINED_CLAY) << 4) | (DATA_BROWN)];
+    public static final Material GREEN_CLAY = MATERIALS[((BLK_STAINED_CLAY) << 4) | (DATA_GREEN)];
+    public static final Material RED_CLAY = MATERIALS[((BLK_STAINED_CLAY) << 4) | (DATA_RED)];
+    public static final Material BLACK_CLAY = MATERIALS[((BLK_STAINED_CLAY) << 4) | (DATA_BLACK)];
+    public static final Material RED_SANDSTONE = MATERIALS[(BLK_RED_SANDSTONE) << 4];
 
-    public static final Material WOOD_OAK      = get(BLK_WOOD, DATA_OAK);
-    public static final Material WOOD_BIRCH    = get(BLK_WOOD, DATA_BIRCH);
-    public static final Material WOOD_PINE     = get(BLK_WOOD, DATA_PINE);
-    public static final Material WOOD_JUNGLE   = get(BLK_WOOD, DATA_JUNGLE);
-    public static final Material WOOD_ACACIA   = get(BLK_WOOD2, DATA_ACACIA);
-    public static final Material WOOD_DARK_OAK = get(BLK_WOOD2, DATA_DARK_OAK);
-    
-    public static final Material LEAVES_OAK      = get(BLK_LEAVES, DATA_OAK);
-    public static final Material LEAVES_BIRCH    = get(BLK_LEAVES, DATA_BIRCH);
-    public static final Material LEAVES_PINE     = get(BLK_LEAVES, DATA_PINE);
-    public static final Material LEAVES_JUNGLE   = get(BLK_LEAVES, DATA_JUNGLE);
-    public static final Material LEAVES_ACACIA   = get(BLK_LEAVES2, DATA_ACACIA);
-    public static final Material LEAVES_DARK_OAK = get(BLK_LEAVES2, DATA_DARK_OAK);
-    
-    public static final Material WOODEN_PLANK_OAK       = get(BLK_WOODEN_PLANK, DATA_OAK);
-    public static final Material WOODEN_PLANK_BIRCH     = get(BLK_WOODEN_PLANK, DATA_BIRCH);
-    public static final Material WOODEN_PLANK_PINE      = get(BLK_WOODEN_PLANK, DATA_PINE);
-    public static final Material WOODEN_PLANK_JUNGLE    = get(BLK_WOODEN_PLANK, DATA_JUNGLE);
-    public static final Material WOODEN_PLANK_ACACIA    = get(BLK_WOODEN_PLANK, 4 + DATA_ACACIA);
-    public static final Material WOODEN_PLANK_DARK_WOOD = get(BLK_WOODEN_PLANK, 4 + DATA_DARK_OAK);
-    
-    public static final Material WOOL_WHITE      = get(BLK_WOOL, DATA_WHITE);
-    public static final Material WOOL_ORANGE     = get(BLK_WOOL, DATA_ORANGE);
-    public static final Material WOOL_MAGENTA    = get(BLK_WOOL, DATA_MAGENTA);
-    public static final Material WOOL_LIGHT_BLUE = get(BLK_WOOL, DATA_LIGHT_BLUE);
-    public static final Material WOOL_YELLOW     = get(BLK_WOOL, DATA_YELLOW);
-    public static final Material WOOL_LIME       = get(BLK_WOOL, DATA_LIME);
-    public static final Material WOOL_PINK       = get(BLK_WOOL, DATA_PINK);
-    public static final Material WOOL_GREY       = get(BLK_WOOL, DATA_GREY);
-    public static final Material WOOL_LIGHT_GREY = get(BLK_WOOL, DATA_LIGHT_GREY);
-    public static final Material WOOL_CYAN       = get(BLK_WOOL, DATA_CYAN);
-    public static final Material WOOL_PURPLE     = get(BLK_WOOL, DATA_PURPLE);
-    public static final Material WOOL_BLUE       = get(BLK_WOOL, DATA_BLUE);
-    public static final Material WOOL_BROWN      = get(BLK_WOOL, DATA_BROWN);
-    public static final Material WOOL_GREEN      = get(BLK_WOOL, DATA_GREEN);
-    public static final Material WOOL_RED        = get(BLK_WOOL, DATA_RED);
-    public static final Material WOOL_BLACK      = get(BLK_WOOL, DATA_BLACK);
+    public static final Material TALL_GRASS = MATERIALS[((BLK_TALL_GRASS) << 4) | (DATA_TALL_GRASS)];
+    public static final Material FERN = MATERIALS[((BLK_TALL_GRASS) << 4) | (DATA_FERN)];
 
-    public static final Material COBBLESTONE_SLAB = get(BLK_SLAB, DATA_SLAB_COBBLESTONE);
-    
-    public static final Material DOOR_OPEN_LEFT_BOTTOM    = get(BLK_WOODEN_DOOR, DATA_DOOR_BOTTOM | DATA_DOOR_BOTTOM_OPEN);
-    public static final Material DOOR_OPEN_LEFT_TOP       = get(BLK_WOODEN_DOOR, DATA_DOOR_TOP    | DATA_DOOR_TOP_HINGE_LEFT);
-    public static final Material DOOR_OPEN_RIGHT_BOTTOM   = get(BLK_WOODEN_DOOR, DATA_DOOR_BOTTOM | DATA_DOOR_BOTTOM_OPEN);
-    public static final Material DOOR_OPEN_RIGHT_TOP      = get(BLK_WOODEN_DOOR, DATA_DOOR_TOP    | DATA_DOOR_TOP_HINGE_RIGHT);
-    public static final Material DOOR_CLOSED_LEFT_BOTTOM  = get(BLK_WOODEN_DOOR, DATA_DOOR_BOTTOM | DATA_DOOR_BOTTOM_CLOSED);
-    public static final Material DOOR_CLOSED_LEFT_TOP     = get(BLK_WOODEN_DOOR, DATA_DOOR_TOP    | DATA_DOOR_TOP_HINGE_LEFT);
-    public static final Material DOOR_CLOSED_RIGHT_BOTTOM = get(BLK_WOODEN_DOOR, DATA_DOOR_BOTTOM | DATA_DOOR_BOTTOM_CLOSED);
-    public static final Material DOOR_CLOSED_RIGHT_TOP    = get(BLK_WOODEN_DOOR, DATA_DOOR_TOP    | DATA_DOOR_TOP_HINGE_RIGHT);
-    
-    public static final Material BED_FOOT = get(BLK_BED, DATA_BED_FOOT);
-    public static final Material BED_HEAD = get(BLK_BED, DATA_BED_HEAD);
+    public static final Material WOOD_OAK = MATERIALS[((BLK_WOOD) << 4) | (DATA_OAK)];
+    public static final Material WOOD_BIRCH = MATERIALS[((BLK_WOOD) << 4) | (DATA_BIRCH)];
+    public static final Material WOOD_PINE = MATERIALS[((BLK_WOOD) << 4) | (DATA_PINE)];
+    public static final Material WOOD_JUNGLE = MATERIALS[((BLK_WOOD) << 4) | (DATA_JUNGLE)];
+    public static final Material WOOD_ACACIA = MATERIALS[((BLK_WOOD2) << 4) | (DATA_ACACIA)];
+    public static final Material WOOD_DARK_OAK = MATERIALS[((BLK_WOOD2) << 4) | (DATA_DARK_OAK)];
 
-    public static final Material COCOA_PLANT           = get(BLK_COCOA_PLANT);
-    public static final Material COCOA_PLANT_HALF_RIPE = get(BLK_COCOA_PLANT, 0x4);
-    public static final Material COCOA_PLANT_RIPE      = get(BLK_COCOA_PLANT, 0x8);
+    public static final Material LEAVES_OAK = MATERIALS[((BLK_LEAVES) << 4) | (DATA_OAK)];
+    public static final Material LEAVES_BIRCH = MATERIALS[((BLK_LEAVES) << 4) | (DATA_BIRCH)];
+    public static final Material LEAVES_PINE = MATERIALS[((BLK_LEAVES) << 4) | (DATA_PINE)];
+    public static final Material LEAVES_JUNGLE = MATERIALS[((BLK_LEAVES) << 4) | (DATA_JUNGLE)];
+    public static final Material LEAVES_ACACIA = MATERIALS[((BLK_LEAVES2) << 4) | (DATA_ACACIA)];
+    public static final Material LEAVES_DARK_OAK = MATERIALS[((BLK_LEAVES2) << 4) | (DATA_DARK_OAK)];
 
-    public static final Material PUMPKIN_NO_FACE    = get(BLK_PUMPKIN, DATA_PUMPKIN_NO_FACE);
-    public static final Material PUMPKIN_NORTH_FACE = get(BLK_PUMPKIN, DATA_PUMPKIN_NORTH_FACE);
-    public static final Material PUMPKIN_EAST_FACE  = get(BLK_PUMPKIN, DATA_PUMPKIN_EAST_FACE);
-    public static final Material PUMPKIN_SOUTH_FACE = get(BLK_PUMPKIN, DATA_PUMPKIN_SOUTH_FACE);
-    public static final Material PUMPKIN_WEST_FACE  = get(BLK_PUMPKIN, DATA_PUMPKIN_WEST_FACE);
+    public static final Material WOODEN_PLANK_OAK = MATERIALS[((BLK_WOODEN_PLANK) << 4) | (DATA_OAK)];
+    public static final Material WOODEN_PLANK_BIRCH = MATERIALS[((BLK_WOODEN_PLANK) << 4) | (DATA_BIRCH)];
+    public static final Material WOODEN_PLANK_PINE = MATERIALS[((BLK_WOODEN_PLANK) << 4) | (DATA_PINE)];
+    public static final Material WOODEN_PLANK_JUNGLE = MATERIALS[((BLK_WOODEN_PLANK) << 4) | (DATA_JUNGLE)];
+    public static final Material WOODEN_PLANK_ACACIA = MATERIALS[((BLK_WOODEN_PLANK) << 4) | (4 + DATA_ACACIA)];
+    public static final Material WOODEN_PLANK_DARK_WOOD = MATERIALS[((BLK_WOODEN_PLANK) << 4) | (4 + DATA_DARK_OAK)];
+
+    public static final Material WOOL_WHITE = MATERIALS[((BLK_WOOL) << 4) | (DATA_WHITE)];
+    public static final Material WOOL_ORANGE = MATERIALS[((BLK_WOOL) << 4) | (DATA_ORANGE)];
+    public static final Material WOOL_MAGENTA = MATERIALS[((BLK_WOOL) << 4) | (DATA_MAGENTA)];
+    public static final Material WOOL_LIGHT_BLUE = MATERIALS[((BLK_WOOL) << 4) | (DATA_LIGHT_BLUE)];
+    public static final Material WOOL_YELLOW = MATERIALS[((BLK_WOOL) << 4) | (DATA_YELLOW)];
+    public static final Material WOOL_LIME = MATERIALS[((BLK_WOOL) << 4) | (DATA_LIME)];
+    public static final Material WOOL_PINK = MATERIALS[((BLK_WOOL) << 4) | (DATA_PINK)];
+    public static final Material WOOL_GREY = MATERIALS[((BLK_WOOL) << 4) | (DATA_GREY)];
+    public static final Material WOOL_LIGHT_GREY = MATERIALS[((BLK_WOOL) << 4) | (DATA_LIGHT_GREY)];
+    public static final Material WOOL_CYAN = MATERIALS[((BLK_WOOL) << 4) | (DATA_CYAN)];
+    public static final Material WOOL_PURPLE = MATERIALS[((BLK_WOOL) << 4) | (DATA_PURPLE)];
+    public static final Material WOOL_BLUE = MATERIALS[((BLK_WOOL) << 4) | (DATA_BLUE)];
+    public static final Material WOOL_BROWN = MATERIALS[((BLK_WOOL) << 4) | (DATA_BROWN)];
+    public static final Material WOOL_GREEN = MATERIALS[((BLK_WOOL) << 4) | (DATA_GREEN)];
+    public static final Material WOOL_RED = MATERIALS[((BLK_WOOL) << 4) | (DATA_RED)];
+    public static final Material WOOL_BLACK = MATERIALS[((BLK_WOOL) << 4) | (DATA_BLACK)];
+
+    public static final Material COBBLESTONE_SLAB = MATERIALS[((BLK_SLAB) << 4) | (DATA_SLAB_COBBLESTONE)];
+
+    public static final Material DOOR_OPEN_LEFT_BOTTOM = MATERIALS[((BLK_WOODEN_DOOR) << 4) | (DATA_DOOR_BOTTOM | DATA_DOOR_BOTTOM_OPEN)];
+    public static final Material DOOR_OPEN_LEFT_TOP = MATERIALS[((BLK_WOODEN_DOOR) << 4) | (DATA_DOOR_TOP | DATA_DOOR_TOP_HINGE_LEFT)];
+    public static final Material DOOR_OPEN_RIGHT_BOTTOM = MATERIALS[((BLK_WOODEN_DOOR) << 4) | (DATA_DOOR_BOTTOM | DATA_DOOR_BOTTOM_OPEN)];
+    public static final Material DOOR_OPEN_RIGHT_TOP = MATERIALS[((BLK_WOODEN_DOOR) << 4) | (DATA_DOOR_TOP | DATA_DOOR_TOP_HINGE_RIGHT)];
+    public static final Material DOOR_CLOSED_LEFT_BOTTOM = MATERIALS[((BLK_WOODEN_DOOR) << 4) | (DATA_DOOR_BOTTOM | DATA_DOOR_BOTTOM_CLOSED)];
+    public static final Material DOOR_CLOSED_LEFT_TOP = MATERIALS[((BLK_WOODEN_DOOR) << 4) | (DATA_DOOR_TOP | DATA_DOOR_TOP_HINGE_LEFT)];
+    public static final Material DOOR_CLOSED_RIGHT_BOTTOM = MATERIALS[((BLK_WOODEN_DOOR) << 4) | (DATA_DOOR_BOTTOM | DATA_DOOR_BOTTOM_CLOSED)];
+    public static final Material DOOR_CLOSED_RIGHT_TOP = MATERIALS[((BLK_WOODEN_DOOR) << 4) | (DATA_DOOR_TOP | DATA_DOOR_TOP_HINGE_RIGHT)];
+
+    public static final Material BED_FOOT = MATERIALS[((BLK_BED) << 4) | (DATA_BED_FOOT)];
+    public static final Material BED_HEAD = MATERIALS[((BLK_BED) << 4) | (DATA_BED_HEAD)];
+
+    public static final Material COCOA_PLANT = MATERIALS[(BLK_COCOA_PLANT) << 4];
+    public static final Material COCOA_PLANT_HALF_RIPE = MATERIALS[((BLK_COCOA_PLANT) << 4) | (0x4)];
+    public static final Material COCOA_PLANT_RIPE = MATERIALS[((BLK_COCOA_PLANT) << 4) | (0x8)];
+
+    public static final Material PUMPKIN_NO_FACE = MATERIALS[((BLK_PUMPKIN) << 4) | (DATA_PUMPKIN_NO_FACE)];
+    public static final Material PUMPKIN_NORTH_FACE = MATERIALS[((BLK_PUMPKIN) << 4) | (DATA_PUMPKIN_NORTH_FACE)];
+    public static final Material PUMPKIN_EAST_FACE = MATERIALS[((BLK_PUMPKIN) << 4) | (DATA_PUMPKIN_EAST_FACE)];
+    public static final Material PUMPKIN_SOUTH_FACE = MATERIALS[((BLK_PUMPKIN) << 4) | (DATA_PUMPKIN_SOUTH_FACE)];
+    public static final Material PUMPKIN_WEST_FACE = MATERIALS[((BLK_PUMPKIN) << 4) | (DATA_PUMPKIN_WEST_FACE)];
 
     private static final int[] REVERSE_TEXTURE_OFFSETS = {
         0, BLK_STONE, BLK_DIRT, BLK_GRASS, BLK_WOODEN_PLANK, BLK_DOUBLE_SLAB, 0, BLK_BRICKS, BLK_TNT, 0, 0, BLK_COBWEB, BLK_ROSE, BLK_DANDELION, 0, BLK_SAPLING,

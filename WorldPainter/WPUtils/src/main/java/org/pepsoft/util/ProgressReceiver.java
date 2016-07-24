@@ -57,6 +57,18 @@ public interface ProgressReceiver {
     void reset() throws OperationCancelled;
 
     /**
+     * Invoked when a subordinate {@link SubProgressReceiver} is started,
+     * reporting to this progress receiver.
+     *
+     * @param subProgressReceiver The sub progress receiver which has been
+     *                            started.
+     * @throws org.pepsoft.util.ProgressReceiver.OperationCancelled If the
+     *     operation has been canceled, for instance by the user, or because
+     *     of an exception on another thread.
+     */
+    void subProgressStarted(SubProgressReceiver subProgressReceiver) throws OperationCancelled;
+
+    /**
      * Indicates that the operation should be aborted, for instance because the
      * user has requested that it be cancelled, or because an error has
      * occurred. The message may indicate the reason of the cancellation.

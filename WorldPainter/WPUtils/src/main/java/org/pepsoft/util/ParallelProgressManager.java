@@ -166,7 +166,17 @@ public class ParallelProgressManager {
             throw cancelledException;
         }
     }
-    
+
+    private synchronized void subProgressStarted(org.pepsoft.util.SubProgressReceiver subProgressReceiver) throws ProgressReceiver.OperationCancelled {
+        if (! started) {
+            start();
+        }
+        if (cancelledException != null) {
+            throw cancelledException;
+        }
+        progressReceiver.subProgressStarted(subProgressReceiver);
+    }
+
     private synchronized void start() {
         taskCount = tasksCreated;
         taskProgress = new float[taskCount];
@@ -219,7 +229,12 @@ public class ParallelProgressManager {
         public void reset() {
             throw new UnsupportedOperationException("Not supported");
         }
-        
+
+        @Override
+        public void subProgressStarted(org.pepsoft.util.SubProgressReceiver subProgressReceiver) throws OperationCancelled {
+            ParallelProgressManager.this.subProgressStarted(subProgressReceiver);
+        }
+
         private final int index;
     }
 }

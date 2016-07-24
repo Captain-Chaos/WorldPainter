@@ -10,6 +10,7 @@
  */
 package org.pepsoft.util.swing;
 
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -18,11 +19,12 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import javax.swing.SwingUtilities;
-import javax.swing.Timer;
+import javax.swing.*;
+
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
+import org.pepsoft.util.swing.ProgressComponent.Listener;
 
 /**
  * A component which can execute a task in the background, reporting its
@@ -31,12 +33,14 @@ import org.pepsoft.util.SubProgressReceiver;
  *
  * @author pepijn
  */
-public class ProgressComponent<T> extends javax.swing.JPanel implements ProgressReceiver, ActionListener {
+public class MultiProgressComponent<T> extends javax.swing.JPanel implements ProgressReceiver, ActionListener {
     /**
      * Creates a new ProgressComponent
      */
-    public ProgressComponent() {
+    public MultiProgressComponent() {
         initComponents();
+        scrollablePanel1.setTrackViewportWidth(true);
+        scrollablePanel1.setTrackViewportHeight(false);
     }
 
     public void setListener(Listener<T> listener) {
@@ -49,7 +53,6 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
 
     public void setTask(ProgressTask<T> task) {
         this.task = task;
-        jLabel1.setText(task.getName());
     }
 
     public ProgressTask<?> getTask() {
@@ -74,7 +77,7 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
             @Override
             public void run() {
                 try {
-                    result = task.execute(ProgressComponent.this);
+                    result = task.execute(MultiProgressComponent.this);
                     done();
                 } catch (Throwable t) {
                     exceptionThrown(t);
@@ -142,6 +145,7 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
             jProgressBar1.setValue(100);
             jButton1.setEnabled(false);
             jLabel2.setText("Done");
+            scrollablePanel1.removeAll();
             if (stats != null) {
                 try (PrintWriter out = new PrintWriter(new File("logs/" + FileUtils.sanitiseName(task.getName() + "-" + new Date() + ".csv")))) {
                     int second = 1;
@@ -162,7 +166,6 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
     @Override
     public synchronized void setMessage(final String message) throws OperationCancelled {
         checkForCancellation();
-        doOnEventThread(() -> jLabel1.setText(task.getName() + ((message != null) ? (", " + message) : "")));
     }
 
     @Override
@@ -181,7 +184,7 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
                     try (PrintWriter out = new PrintWriter(new File("logs/" + FileUtils.sanitiseName(task.getName() + "-" + new Date() + ".csv")))) {
                         int second = 1;
                         out.println("second,calculated,displayed");
-                        for (int[] statsRow : stats) {
+                        for (int[] statsRow: stats) {
                             out.println(second++ + "," + statsRow[0] + "," + statsRow[1]);
                         }
                     }
@@ -200,8 +203,82 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
     }
 
     @Override
-    public void subProgressStarted(SubProgressReceiver subProgressReceiver) {
-        // Do nothing
+    public synchronized void subProgressStarted(SubProgressReceiver subProgressReceiver) throws OperationCancelled {
+        checkForCancellation();
+        doOnEventThread(() -> {
+            synchronized (MultiProgressComponent.this) {
+                ProgressViewer progressViewer = new ProgressViewer(subProgressReceiver);
+                JPanel progressPanel = null;
+                ProgressReceiver parent = subProgressReceiver.getParent();
+                if (parent == null) {
+                    // No parent; insert at start
+                    scrollablePanel1.add(progressViewer, 0);
+                    progressPanel = progressViewer;
+                } else {
+                    boolean parentFound = false;
+                    do {
+                        for (int i = 0; i < scrollablePanel1.getComponentCount(); i++) {
+                            Component component = scrollablePanel1.getComponent(i);
+                            ProgressViewer parentViewer;
+                            try {
+                                parentViewer = (ProgressViewer) ((component instanceof ProgressViewer) ? component : ((JPanel) component).getComponent(1));
+                            } catch (ArrayIndexOutOfBoundsException e) {
+                                System.out.println("Component " + i + " is a " + component.getClass());
+                                throw e;
+                            }
+                            if (parentViewer.getSubProgressReceiver() == parent) {
+                                // Progress viewer for parent found; insert below
+                                Integer parentIndentation = (Integer) parentViewer.getClientProperty(CLIENT_PROPERTY_INDENTATION);
+                                int indentation = (parentIndentation != null) ? parentIndentation + 1 : 1;
+                                progressPanel = new JPanel();
+                                progressPanel.setLayout(new BoxLayout(progressPanel, BoxLayout.LINE_AXIS));
+                                progressPanel.add(Box.createHorizontalStrut(indentation * INDENTATION_SIZE));
+                                progressPanel.add(progressViewer);
+                                scrollablePanel1.add(progressPanel, i + 1);
+                                parentFound = true;
+                                break;
+                            }
+                        }
+                        if (parent instanceof SubProgressReceiver) {
+                            parent = ((SubProgressReceiver) parent).getParent();
+                        } else {
+                            parent = null;
+                        }
+                    } while ((! parentFound) && (parent != null));
+                    if (! parentFound) {
+                        // Progress viewer not found for any ancestor; append to end
+                        scrollablePanel1.add(progressViewer);
+                        progressPanel = progressViewer;
+                    }
+                }
+
+                final Component componentToRemove = progressPanel;
+                subProgressReceiver.addListener(new ProgressReceiver() {
+                    @Override
+                    public void setProgress(float progress) throws OperationCancelled {
+                        if (progress >= 1.0) {
+                            doOnEventThread(() -> scrollablePanel1.remove(componentToRemove));
+                        }
+                    }
+
+                    @Override
+                    public void exceptionThrown(Throwable exception) {
+                        doOnEventThread(() -> scrollablePanel1.remove(componentToRemove));
+                    }
+
+                    @Override
+                    public void done() {
+                        doOnEventThread(() -> scrollablePanel1.remove(componentToRemove));
+                    }
+
+                    @Override public void setMessage(String message) throws OperationCancelled {}
+                    @Override public void checkForCancellation() throws OperationCancelled {}
+                    @Override public void reset() throws OperationCancelled {}
+                    @Override public void subProgressStarted(SubProgressReceiver subProgressReceiver) throws OperationCancelled {}
+                });
+            }
+            jScrollPane1.validate();
+        });
     }
 
     // ActionListener
@@ -249,34 +326,43 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jLabel1 = new javax.swing.JLabel();
         jProgressBar1 = new javax.swing.JProgressBar();
         jLabel2 = new javax.swing.JLabel();
         jButton1 = new javax.swing.JButton();
-
-        jLabel1.setText(" ");
+        jScrollPane1 = new javax.swing.JScrollPane();
+        scrollablePanel1 = new org.pepsoft.util.swing.ScrollablePanel();
 
         jLabel2.setText(" ");
 
         jButton1.setText("Cancel");
         jButton1.setEnabled(false);
-        jButton1.addActionListener(this::jButton1ActionPerformed);
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
+        jScrollPane1.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        jScrollPane1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+
+        scrollablePanel1.setLayout(new java.awt.GridLayout(0, 1));
+        jScrollPane1.setViewportView(scrollablePanel1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jProgressBar1, javax.swing.GroupLayout.DEFAULT_SIZE, 376, Short.MAX_VALUE)
-            .addComponent(jLabel1)
+            .addComponent(jProgressBar1, javax.swing.GroupLayout.DEFAULT_SIZE, 383, Short.MAX_VALUE)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 313, Short.MAX_VALUE)
                 .addComponent(jButton1))
+            .addComponent(jScrollPane1)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jLabel1)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 127, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -293,9 +379,10 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JProgressBar jProgressBar1;
+    private javax.swing.JScrollPane jScrollPane1;
+    private org.pepsoft.util.swing.ScrollablePanel scrollablePanel1;
     // End of variables declaration//GEN-END:variables
 
     private ProgressTask<T> task;
@@ -308,15 +395,9 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
     private Listener<T> listener;
     private boolean timeEstimatesActivated, inhibitDone, cancelable = true;
     private List<int[]> stats;
- 
-    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ProgressComponent.class);
+
+    private static final String CLIENT_PROPERTY_INDENTATION = MultiProgressComponent.class.getName() + ".indentation";
+    private static final int INDENTATION_SIZE = 32;
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MultiProgressComponent.class);
     private static final long serialVersionUID = 1L;
-    
-    public interface Listener<T> {
-        void exceptionThrown(Throwable exception);
-        
-        void done(T result);
-        
-        void cancelled();
-    }
 }

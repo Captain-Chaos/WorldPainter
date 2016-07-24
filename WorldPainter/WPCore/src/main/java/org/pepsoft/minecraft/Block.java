@@ -41,7 +41,7 @@ public final class Block implements Serializable {
                 || (insubstantial && (! veryInsubstantial))
                 || (blockLight < 0) || (blockLight > 15)
                 || (treeRelated && vegetation)) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException(Integer.toString(id));
         }
 
         // Determine the category
@@ -60,11 +60,13 @@ public final class Block implements Serializable {
         }
     }
 
-    @Override public boolean equals(Object o) {
-        return (o instanceof Block) && (((Block) o).id == id);
+    @Override
+    public boolean equals(Object o) {
+        return o == this;
     }
 
-    @Override public int hashCode() {
+    @Override
+    public int hashCode() {
         return id;
     }
 
@@ -104,7 +106,9 @@ public final class Block implements Serializable {
     public final transient boolean opaque;
 
     /**
-     * Whether the block is part of Minecraft-generated natural ground.
+     * Whether the block is part of Minecraft-generated natural ground; more
+     * specifically whether the block type should be assigned a terrain type
+     * when importing a Minecraft map.
      */
     public final transient boolean terrain;
 
@@ -221,7 +225,7 @@ public final class Block implements Serializable {
                 new Block( 33,  0,                          "Piston", false, false, false, false, false, false, false,  0, false),
                 new Block( 34,  0,                "Piston Extension", false, false, false, false,  true, false, false,  0, false),
                 new Block( 35, 15,                            "Wool", false, false, false, false, false, false, false,  0, false),
-                new Block( 36, 15,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block( 36,  0,                              null, false, false, false, false, false, false, false,  0, false),
                 new Block( 37,  0,                       "Dandelion", false,  true,  true, false, false, false,  true,  0,  true),
                 new Block( 38,  0,                          "Flower", false,  true,  true, false, false, false,  true,  0,  true),
                 new Block( 39,  0,                  "Brown Mushroom", false,  true,  true, false, false, false,  true,  1,  true),
@@ -400,69 +404,69 @@ public final class Block implements Serializable {
                 new Block(196,  0,                "Acacia Wood Door", false, false, false, false, false, false, false,  0, false),
                 new Block(197,  0,              "Dark Oak Wood Door", false, false, false, false, false, false, false,  0, false),
                 new Block(198,  0,                         "End Rod", false, false, false, false, false, false, false, 14, false),
-                new Block(199,  0,                    "Chorus Plant", false, true,  true,  false, false, false, true,   0,  true),
+                new Block(199,  0,                    "Chorus Plant", false,  true,  true,  false, false, false, true,  0,  true),
 //                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
-                new Block(200,  0,                   "Chorus Flower", false, true,  true,  false, false, false, true,   0,  true),
+                new Block(200,  0,                   "Chorus Flower", false,  true,  true,  false, false, false, true,  0,  true),
                 new Block(201, 15,                    "Purpur Block", false, false, false, false, false, false, false,  0, false),
                 new Block(202, 15,                   "Purpur Pillar", false, false, false, false, false, false, false,  0, false),
                 new Block(203, 15,                   "Purpur Stairs", false, false, false, false, false, false, false,  0, false),
                 new Block(204, 15,              "Double Purpur Slab", false, false, false, false, false, false, false,  0, false),
                 new Block(205, 15,                     "Purpur Slab", false, false, false, false, false, false, false,  0, false),
                 new Block(206, 15,                "End Stone Bricks", false, false, false, false, false, false, false,  0, false),
-                new Block(207,  0,                       "Beetroots", false, true,  true,  false, false, false, true,   0, false),
-                new Block(208, 15,                      "Grass Path", true,  false, false, false, false, false, false,  0, false),
+                new Block(207,  0,                       "Beetroots", false,  true,  true, false, false, false,  true,  0, false),
+                new Block(208, 15,                      "Grass Path",  true, false, false, false, false, false, false,  0, false),
                 new Block(209, 15,                     "End Gateway", false, false, false, false, false, false, false,  0, false),
 //                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
-                new Block(210, 15,         "Repeating Command Block", false, false, false, false, true,  false, false,  0, false),
-                new Block(211, 15,             "Chain Command Block", false, false, false, false, true,  false, false,  0, false),
+                new Block(210, 15,         "Repeating Command Block", false, false, false, false,  true, false, false,  0, false),
+                new Block(211, 15,             "Chain Command Block", false, false, false, false,  true, false, false,  0, false),
                 new Block(212,  3,                     "Frosted Ice", false, false, false, false, false, false, false,  0, false),
-                new Block(213, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(214, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(215, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(216, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(217, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(218, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(219, 15,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(213, 15,                     "Magma Block",  true, false, false, false, false, false, false,  3,  true),
+                new Block(214, 15,               "Nether Wart Block", false, false, false, false, false, false, false,  0, false),
+                new Block(215, 15,                "Red Nether Brick", false, false, false, false, false, false, false,  0, false),
+                new Block(216, 15,                      "Bone Block", false, false, false, false, false, false, false,  0,  true),
+                new Block(217,  0,                  "Structure Void", false,  true,  true, false, false, false, false,  0, false),
+                new Block(218,  0,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(219,  0,                              null, false, false, false, false, false, false, false,  0, false),
 //                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
-                new Block(220, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(221, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(222, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(223, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(224, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(225, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(226, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(227, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(228, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(229, 15,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(220,  0,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(221,  0,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(222,  0,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(223,  0,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(224,  0,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(225,  0,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(226,  0,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(227,  0,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(228,  0,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(229,  0,                              null, false, false, false, false, false, false, false,  0, false),
 //                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
-                new Block(230, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(231, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(232, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(233, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(234, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(235, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(236, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(237, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(238, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(239, 15,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(230,  0,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(231,  0,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(232,  0,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(233,  0,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(234,  0,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(235,  0,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(236,  0,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(237,  0,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(238,  0,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(239,  0,                              null, false, false, false, false, false, false, false,  0, false),
 //                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
-                new Block(240, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(241, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(242, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(243, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(244, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(245, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(246, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(247, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(248, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(249, 15,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(240,  0,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(241,  0,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(242,  0,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(243,  0,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(244,  0,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(245,  0,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(246,  0,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(247,  0,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(248,  0,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(249,  0,                              null, false, false, false, false, false, false, false,  0, false),
 //                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
-                new Block(250, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(251, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(252, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(253, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(254, 15,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(255, 15,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(250,  0,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(251,  0,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(252,  0,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(253,  0,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(254,  0,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(255, 15,                 "Structure Block", false, false, false, false,  true, false, false,  0, false),
 //                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
         }, 0, BLOCKS, 0, 256);
 
@@ -477,9 +481,7 @@ public final class Block implements Serializable {
 
     static {
         for (int i = 0; i < 256; i++) {
-            if (i <= HIGHEST_KNOWN_BLOCK_ID) {
-                BLOCK_TYPE_NAMES[i] = BLOCKS[i].name;
-            }
+            BLOCK_TYPE_NAMES[i] = BLOCKS[i].name;
             BLOCK_TRANSPARENCY[i] = BLOCKS[i].transparency;
             LIGHT_SOURCES[i] = BLOCKS[i].blockLight;
         }

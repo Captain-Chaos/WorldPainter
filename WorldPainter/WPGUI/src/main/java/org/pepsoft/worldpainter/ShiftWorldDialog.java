@@ -126,6 +126,11 @@ public class ShiftWorldDialog extends javax.swing.JDialog implements ProgressRec
         doOnEventThread(() -> jProgressBar1.setValue(0));
     }
 
+    @Override
+    public void subProgressStarted(SubProgressReceiver subProgressReceiver) throws OperationCancelled {
+        // Do nothing
+    }
+
     private void shift() {
         buttonShift.setEnabled(false);
         buttonCancel.setEnabled(false);

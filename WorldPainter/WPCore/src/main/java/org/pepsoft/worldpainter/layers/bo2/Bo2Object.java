@@ -93,7 +93,7 @@ public final class Bo2Object extends AbstractObject implements Bo2ObjectProvider
 
     @Override
     public List<WPObject> getAllObjects() {
-        return Collections.singletonList((WPObject) this);
+        return Collections.singletonList(this);
     }
 
     @Override

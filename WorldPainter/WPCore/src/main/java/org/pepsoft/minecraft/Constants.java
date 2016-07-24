@@ -316,7 +316,11 @@ public final class Constants {
     public static final int BLK_CHAIN_COMMAND_BLOCK       = 211;
     public static final int BLK_FROSTED_ICE               = 212;
 
-    public static final int HIGHEST_KNOWN_BLOCK_ID = BLK_FROSTED_ICE;
+    public static final int BLK_BONE_BLOCK = 216;
+
+    public static final int BLK_STRUCTURE_BLOCK = 255;
+
+    public static final int HIGHEST_KNOWN_BLOCK_ID = BLK_STRUCTURE_BLOCK;
 
     public static final int DATA_OAK      = 0;
     public static final int DATA_PINE     = 1;
@@ -440,6 +444,7 @@ public final class Constants {
     public static final String ID_SKULL        = "Skull";
     public static final String ID_TRAP         = "Trap";
     public static final String ID_BANNER       = "Banner";
+    public static final String ID_STRUCTURE    = "Structure";
 
     public static final int GAME_TYPE_SURVIVAL  = 0;
     public static final int GAME_TYPE_CREATIVE  = 1;
@@ -516,6 +521,7 @@ public final class Constants {
         TILE_ENTITY_MAP.put(ID_SKULL, Collections.singleton(BLK_HEAD));
         TILE_ENTITY_MAP.put(ID_TRAP, Collections.singleton(BLK_DISPENSER));
         TILE_ENTITY_MAP.put(ID_BANNER, Collections.unmodifiableSet(new HashSet<>(Arrays.asList(BLK_STANDING_BANNER, BLK_WALL_BANNER))));
+        TILE_ENTITY_MAP.put(ID_STRUCTURE, Collections.singleton(BLK_STRUCTURE_BLOCK));
 
         // Make sure the tile entity flag in the block database is consistent
         // with the tile entity map:
@@ -534,7 +540,11 @@ public final class Constants {
             }
         }
     }
-    
+
+    public static void main(String[] args) {
+        System.out.println("All checks passed");
+    }
+
     public static final int DEFAULT_MAX_HEIGHT_1 = 128;
     public static final int DEFAULT_MAX_HEIGHT_2 = 256;
     
