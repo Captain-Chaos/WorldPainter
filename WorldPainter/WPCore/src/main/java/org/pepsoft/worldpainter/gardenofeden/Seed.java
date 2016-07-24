@@ -59,7 +59,7 @@ public abstract class Seed implements Serializable, org.pepsoft.util.undo.Clonea
             this.germinationTime = 0;
             sprouted = true;
         } else if (germinationTime < 0) {
-            this.germinationTime = Math.max(1, -germinationTime);
+            this.germinationTime = -germinationTime;
         } else {
             this.germinationTime = Math.max(1, (int) (germinationTime * (staticRandom.nextDouble() + 0.6)));
         }
@@ -112,7 +112,7 @@ public abstract class Seed implements Serializable, org.pepsoft.util.undo.Clonea
                 germinationTime = 0;
                 return;
             }
-        } else {
+        } else if (germinationTime > 0) {
             // We have no parent, or our parent has sprouted
             germinationTime--;
             if (germinationTime == 0) {

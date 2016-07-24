@@ -129,7 +129,7 @@ public class RODelegatingTile extends Tile {
     }
 
     @Override
-    public void plantSeed(Seed seed) {
+    public boolean plantSeed(Seed seed) {
         throw new UnsupportedOperationException();
     }
 

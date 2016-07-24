@@ -1740,14 +1740,17 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                 for (int tileY = topLeftTileY; tileY <= bottomRightTileY; tileY++) {
                     Tile tile = getTile(tileX, tileY);
                     if (tile != null) {
-                        tile.getSeeds().stream()
-                            .filter(seed -> seed.getClass() == type)
-                            .forEach(seed -> {
-                                int distance = (int) MathUtils.getDistance(seed.location.x - x, seed.location.y - y);
-                                if (distance <= radius) {
-                                    seedsFound.add((T) seed);
-                                }
-                            });
+                        Set<Seed> seeds = tile.getSeeds();
+                        if (seeds != null) {
+                            seeds.stream()
+                                    .filter(seed -> seed.getClass() == type)
+                                    .forEach(seed -> {
+                                        int distance = (int) MathUtils.getDistance(seed.location.x - x, seed.location.y - y);
+                                        if (distance <= radius) {
+                                            seedsFound.add((T) seed);
+                                        }
+                                    });
+                        }
                     }
                 }
             }
@@ -1770,15 +1773,17 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         }
 
         @Override
-        public void plantSeed(Seed seed) {
+        public boolean plantSeed(Seed seed) {
             Point3i location = seed.getLocation();
             if ((location.x < lowestX * TILE_SIZE) || (location.x > (highestX + 1) * TILE_SIZE - 1) || (location.y < lowestY * TILE_SIZE) || (location.y > (highestY + 1) * TILE_SIZE - 1)) {
-                return;
+                return false;
             }
             Tile tile = getTileForEditing(location.x >> TILE_SIZE_BITS, location.y >> TILE_SIZE_BITS);
-            if (tile != null) {
-                tile.plantSeed(seed);
+            if ((tile != null) && tile.plantSeed(seed)) {
                 activeTiles.add(new Point(location.x >> TILE_SIZE_BITS, location.y >> TILE_SIZE_BITS));
+                return true;
+            } else {
+                return false;
             }
         }
 

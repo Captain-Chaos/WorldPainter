@@ -742,7 +742,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
         }
     }
 
-    public synchronized void plantSeed(Seed seed) {
+    public synchronized boolean plantSeed(Seed seed) {
         if (seeds == null) {
             seeds = new HashSet<>();
             if (undoManager != null) {
@@ -755,6 +755,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
         }
         seeds.add(seed);
         seedsChanged();
+        return true;
     }
 
     public synchronized void removeSeed(Seed seed) {

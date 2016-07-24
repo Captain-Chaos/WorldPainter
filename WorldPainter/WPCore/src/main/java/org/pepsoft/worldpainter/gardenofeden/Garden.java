@@ -127,8 +127,10 @@ public interface Garden {
      * Plant a seed in the garden.
      *
      * @param seed The seed to plant.
+     * @return <code>true</code> if the seed was planted; <code>false</code> if
+     * it could not be planted for some reason.
      */
-    void plantSeed(Seed seed);
+    boolean plantSeed(Seed seed);
 
     /**
      * Remove a seed from the garden.
