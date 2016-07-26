@@ -36,6 +36,7 @@ import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.*;
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
+@SuppressWarnings("ConstantConditions") // Future-proofing
 public enum Terrain {
     GRASS    ("Grass", "grass with flowers, tall grass and ferns here and there", BIOME_PLAINS) {
         @Override
