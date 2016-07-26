@@ -117,9 +117,37 @@ public class WorldExporter {
         } else {
             throw new InternalError("Don't know how to encode game type " + world.getGameType());
         }
-        level.setGenerator(world.getGenerator());
+        Dimension.Border dim0Border = dim0.getBorder();
+        boolean endlessBorder = (dim0Border != null) && dim0Border.isEndless();
+        if (endlessBorder) {
+            StringBuilder generatorOptions = new StringBuilder("3;");
+            switch (dim0Border) {
+                case ENDLESS_LAVA:
+                case ENDLESS_WATER:
+                    boolean bottomless = dim0.isBottomless();
+                    int borderLevel = dim0.getBorderLevel();
+                    int oceanDepth = Math.min(borderLevel / 2, 20);
+                    int dirtDepth = borderLevel - oceanDepth - (bottomless ? 1 : 0);
+                    if (! bottomless) {
+                        generatorOptions.append("1*minecraft:bedrock,");
+                    }
+                    generatorOptions.append(dirtDepth);
+                    generatorOptions.append("*minecraft:dirt,");
+                    generatorOptions.append(oceanDepth);
+                    generatorOptions.append((dim0Border == Dimension.Border.ENDLESS_WATER) ? "1*minecraft:water;0;" : "1*minecraft:lava;1;");
+                    break;
+                case ENDLESS_VOID:
+                    generatorOptions.append("3;1*minecraft:air;1;");
+                    break;
+            }
+            generatorOptions.append(DEFAULT_GENERATOR_OPTIONS);
+            level.setGenerator(Generator.FLAT);
+            level.setGeneratorOptions(generatorOptions.toString());
+        } else {
+            level.setGenerator(world.getGenerator());
+        }
         if (world.getVersion() == SUPPORTED_VERSION_2) {
-            if ((world.getGenerator() == Generator.FLAT) && (world.getGeneratorOptions() != null)) {
+            if ((! endlessBorder) && (world.getGenerator() == Generator.FLAT) && (world.getGeneratorOptions() != null)) {
                 level.setGeneratorOptions(world.getGeneratorOptions());
             }
             World2.BorderSettings borderSettings = world.getBorderSettings();
@@ -577,7 +605,9 @@ public class WorldExporter {
         final int tileX = chunkX >> 3;
         final int tileY = chunkY >> 3;
         final Point tileCoords = new Point(tileX, tileY);
-        final boolean border = (dimension.getBorder() != null) && (dimension.getBorderSize() > 0);
+        final Dimension.Border borderType = dimension.getBorder();
+        final boolean endlessBorder = (borderType != null) && borderType.isEndless();
+        final boolean border = (borderType != null) && (! endlessBorder) && (dimension.getBorderSize() > 0);
         if (tileSelection) {
             // Tile selection. Don't export bedrock wall or border tiles
             if (tiles.containsKey(tileCoords)) {
@@ -588,9 +618,9 @@ public class WorldExporter {
         } else {
             if (dimension.getTile(tileCoords) != null) {
                 return chunkFactory.createChunk(chunkX, chunkY);
-            } else if (! ceiling) {
+            } else if ((! ceiling) && (! endlessBorder)) {
                 // Might be a border or bedrock wall chunk (but not if this is a
-                // ceiling dimension
+                // ceiling dimension or the border is an endless border)
                 if (border && isBorderChunk(dimension, chunkX, chunkY)) {
                     return BorderChunkFactory.create(chunkX, chunkY, dimension, exporters);
                 } else if (dimension.isBedrockWall()
@@ -606,8 +636,9 @@ public class WorldExporter {
                     return null;
                 }
             } else {
-                // Not a world tile, and we're a ceiling dimension so we don't
-                // export borders and bedrock walls
+                // Not a world tile, and we're a ceiling dimension, or the
+                // border is an endless border, so we don't export borders and
+                // bedrock walls
                 return null;
             }
         }
@@ -715,7 +746,8 @@ public class WorldExporter {
                 for (Tile tile: dimension.getTiles()) {
                     // Also add regions for any bedrock wall and/or border
                     // tiles, if present
-                    int r = ((dimension.getBorder() != null) ? dimension.getBorderSize() : 0) + (dimension.isBedrockWall() ? 1 : 0);
+                    int r = (((dimension.getBorder() != null) && (! dimension.getBorder().isEndless())) ? dimension.getBorderSize() : 0)
+                            + (((dimension.getBorder() == null) || (! dimension.getBorder().isEndless())) && dimension.isBedrockWall() ? 1 : 0);
                     for (int dx = -r; dx <= r; dx++) {
                         for (int dy = -r; dy <= r; dy++) {
                             int regionX = (tile.getX() + dx) >> 2;
@@ -1072,6 +1104,7 @@ public class WorldExporter {
     private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMddHHmmss");
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WorldExporter.class);
     private static final Object TIMING_FILE_LOCK = new Object();
+    private static final String DEFAULT_GENERATOR_OPTIONS = "village,mineshaft(chance=0.01),stronghold(distance=32 count=3 spread=3),biome_1(distance=32),dungeon,decoration,lake,lava_lake,oceanmonument(spacing=32 separation=5)";
     
     public static class ExportResults {
         /**

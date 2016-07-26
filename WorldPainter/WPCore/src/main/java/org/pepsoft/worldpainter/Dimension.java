@@ -1696,7 +1696,19 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         void tilesRemoved(Dimension dimension, Set<Tile> tiles);
     }
 
-    public enum Border {VOID, WATER, LAVA, ENDLESS_VOID, ENDLESS_WATER, ENDLESS_LAVA}
+    public enum Border {
+        VOID(false), WATER(false), LAVA(false), ENDLESS_VOID(true), ENDLESS_WATER(true), ENDLESS_LAVA(true);
+
+        Border(boolean endless) {
+            this.endless = endless;
+        }
+
+        public boolean isEndless() {
+            return endless;
+        }
+
+        private final boolean endless;
+    }
     
     private class WPGarden implements Garden {
         @Override
