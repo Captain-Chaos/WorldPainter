@@ -110,7 +110,7 @@ public final class MathUtils {
     }
 
     /**
-     * Calculates the distance between two points.
+     * Calculates the distance between two points in 2D space.
      *
      * @param dx The difference along the x axis between the two points.
      * @param dy The difference along the y axis between the two points.
@@ -120,6 +120,19 @@ public final class MathUtils {
         return (float) Math.sqrt(dx * dx + dy * dy);
     }
     
+    /**
+     * Calculates the distance between two points in 3D space.
+     *
+     * @param dx The difference along the x axis between the two points.
+     * @param dy The difference along the y axis between the two points.
+     * @param dz The difference along the z axis between the two points.
+     * @return The distance between the two points.
+     */
+    public static float getDistance(float dx, float dy, float dz) {
+        final double d = Math.sqrt(dx * dx + dy * dy);
+        return (float) Math.sqrt(d * d + dz * dz);
+    }
+
     public static float getDistance(int dx, int dy, int dz) {
         dx = Math.abs(dx);
         dy = Math.abs(dy);
