@@ -219,9 +219,9 @@ public class WorldExporter {
         }
         if (progressReceiver != null) {
             if (ceiling) {
-                progressReceiver.setMessage("Generating ceiling of region " + regionCoords.x + "," + regionCoords.y);
+                progressReceiver.setMessage("Generating ceiling");
             } else {
-                progressReceiver.setMessage("Generating landscape of region " + regionCoords.x + "," + regionCoords.y);
+                progressReceiver.setMessage("Generating landscape");
             }
         }
         int lowestChunkX = (regionCoords.x << 5) - 1;
@@ -322,9 +322,9 @@ public class WorldExporter {
             }
             if (progressReceiver != null) {
                 if (minecraftWorld instanceof InvertedWorld) {
-                    progressReceiver.setMessage("Exporting layer " + layer + " for ceiling of region " + regionCoords.x + "," + regionCoords.y);
+                    progressReceiver.setMessage("Exporting layer " + layer + " for ceiling");
                 } else {
-                    progressReceiver.setMessage("Exporting layer " + layer + " for region " + regionCoords.x + "," + regionCoords.y);
+                    progressReceiver.setMessage("Exporting layer " + layer);
                 }
             }
             List<Fixup> layerFixups = exporter.render(dimension, area, exportedArea, minecraftWorld);
@@ -378,18 +378,12 @@ public class WorldExporter {
         if (logger.isDebugEnabled()) {
             logger.debug("End of second pass for region {},{}", regionCoords.x, regionCoords.y);
         }
-        if (progressReceiver != null) {
-            // Be sure to report progress as done, as there might not have been
-            // any layers, in which case there will not have been any progress
-            // reported
-            progressReceiver.done();
-        }
         return fixups;
     }
 
     protected void lightingPass(MinecraftWorld minecraftWorld, Point regionCoords, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
         if (progressReceiver != null) {
-            progressReceiver.setMessage("Calculating light");
+            progressReceiver.setMessage("Calculating primary light");
         }
         LightingCalculator lightingVolume = new LightingCalculator(minecraftWorld);
         
@@ -399,6 +393,7 @@ public class WorldExporter {
         int highestChunkX = (regionCoords.x << 5) + 32;
         int lowestChunkY = (regionCoords.y << 5) - 1;
         int highestChunkY = (regionCoords.y << 5) + 32;
+        int total = highestChunkX - lowestChunkX + 1, count = 0;
         for (int chunkX = lowestChunkX; chunkX <= highestChunkX; chunkX++) {
             for (int chunkY = lowestChunkY; chunkY <= highestChunkY; chunkY++) {
                 Chunk chunk = minecraftWorld.getChunk(chunkX, chunkY);
@@ -412,16 +407,26 @@ public class WorldExporter {
                     }
                 }
             }
+            if (progressReceiver != null) {
+                progressReceiver.setProgress(0.2f * ++count / total);
+            }
         }
 
         if (lightingLowMark != Integer.MAX_VALUE) {
             if (progressReceiver != null) {
-                progressReceiver.setProgress(0.2f);
+                progressReceiver.setMessage("Propagating light");
             }
 
             // Calculate secondary light
-            lightingVolume.setDirtyArea(new Box((regionCoords.x << 9) - 16, ((regionCoords.x + 1) << 9) + 15, lightingLowMark, lightingHighMark, (regionCoords.y << 9) - 16, ((regionCoords.y + 1) << 9) + 15));
-            while (lightingVolume.calculateSecondaryLight());
+            Box originalDirtyArea = new Box((regionCoords.x << 9) - 16, ((regionCoords.x + 1) << 9) + 15, lightingLowMark, lightingHighMark, (regionCoords.y << 9) - 16, ((regionCoords.y + 1) << 9) + 15);
+            int originalVolume = originalDirtyArea.getVolume();
+            Box dirtyArea = originalDirtyArea.clone();
+            lightingVolume.setDirtyArea(dirtyArea);
+            while (lightingVolume.calculateSecondaryLight()) {
+                if (progressReceiver != null) {
+                    progressReceiver.setProgress(0.2f + 0.8f * (originalVolume - dirtyArea.getVolume()) / originalVolume);
+                }
+            }
         }
         
         if (progressReceiver != null) {
@@ -431,7 +436,7 @@ public class WorldExporter {
     
     protected final ExportResults exportRegion(MinecraftWorld minecraftWorld, Dimension dimension, Dimension ceiling, Point regionCoords, boolean tileSelection, Map<Layer, LayerExporter> exporters, Map<Layer, LayerExporter> ceilingExporters, ChunkFactory chunkFactory, ChunkFactory ceilingChunkFactory, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled, IOException {
         if (progressReceiver != null) {
-            progressReceiver.setMessage("Exporting region " + regionCoords.x + "," + regionCoords.y);
+            progressReceiver.setMessage("Exporting region " + regionCoords.x + "," + regionCoords.y + " of " + dimension.getName());
         }
         int lowestTileX = (regionCoords.x << 2) - 1;
         int highestTileX = lowestTileX + 5;
@@ -640,7 +645,7 @@ public class WorldExporter {
 
     private ChunkFactory.Stats exportDimension(final File worldDir, final Dimension dimension, final int version, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled, IOException {
         if (progressReceiver != null) {
-            progressReceiver.setMessage("exporting " + dimension.getName() + " dimension");
+            progressReceiver.setMessage("Exporting " + dimension.getName() + " dimension");
         }
         
         long start = System.currentTimeMillis();
@@ -885,7 +890,7 @@ public class WorldExporter {
             synchronized (fixups) {
                 if (! fixups.isEmpty()) {
                     if (progressReceiver != null) {
-                        progressReceiver.setMessage("doing remaining fixups for " + dimension.getName());
+                        progressReceiver.setMessage("Doing remaining fixups for " + dimension.getName());
                         progressReceiver.reset();
                     }
                     performFixups(worldDir, dimension, version, progressReceiver, fixups);
@@ -1000,7 +1005,10 @@ public class WorldExporter {
         long start = System.currentTimeMillis();
         // Make sure to honour the read-only layer:
         MinecraftWorldImpl minecraftWorld = new MinecraftWorldImpl(worldDir, dimension, version, false, true, 512);
-        int count = 0, total = fixups.size();
+        int count = 0, total = 0;
+        for (Map.Entry<Point, List<Fixup>> entry: fixups.entrySet()) {
+            total += entry.getValue().size();
+        }
         for (Map.Entry<Point, List<Fixup>> entry: fixups.entrySet()) {
             if (progressReceiver != null) {
                 progressReceiver.setMessage("Performing fixups for region " + entry.getKey().x + "," + entry.getKey().y);
@@ -1011,14 +1019,14 @@ public class WorldExporter {
             }
             for (Fixup fixup: regionFixups) {
                 fixup.fixup(minecraftWorld, dimension);
+                if (progressReceiver != null) {
+                    progressReceiver.setProgress((float) ++count / total);
+                }
             }
             if (logger.isDebugEnabled()) {
                 logger.debug("Flushing region files (chunks in cache: " + minecraftWorld.getCacheSize() + ")");
             }
             minecraftWorld.flush(); // Might affect performance of other threads also performing fixups, but should not cause errors
-            if (progressReceiver != null) {
-                progressReceiver.setProgress((float) ++count / total);
-            }
         }
         if (logger.isTraceEnabled()) {
             logger.trace("Fixups for " + fixups.size() + " regions took " + (System.currentTimeMillis() - start) + " ms");

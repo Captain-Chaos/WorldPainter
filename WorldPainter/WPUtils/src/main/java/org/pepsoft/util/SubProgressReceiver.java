@@ -21,7 +21,8 @@ public class SubProgressReceiver implements ProgressReceiver {
         this.progressReceiver = progressReceiver;
         this.offset = offset;
         this.extent = extent;
-        progressReceiver.subProgressStarted(this);
+        Throwable t = new Throwable();
+        lastMessage = t.getStackTrace()[1].getClassName() + '.' + t.getStackTrace()[1].getMethodName() + '#' + t.getStackTrace()[1].getLineNumber();
     }
     
     /**
@@ -57,6 +58,10 @@ public class SubProgressReceiver implements ProgressReceiver {
 
     @Override
     public void setProgress(float progress) throws OperationCancelled {
+        if (! reportedToParent) {
+            progressReceiver.subProgressStarted(this);
+            reportedToParent = true;
+        }
         float parentProgress = offset + progress * extent;
         if (parentProgress < 0.0f) {
             progressReceiver.setProgress(0.0f);
@@ -109,6 +114,10 @@ public class SubProgressReceiver implements ProgressReceiver {
         if (! recursiveCall.get().get()) {
             recursiveCall.get().set(true);
             try {
+                if (! reportedToParent) {
+                    progressReceiver.subProgressStarted(this);
+                    reportedToParent = true;
+                }
                 progressReceiver.setMessage(message);
                 synchronized (this) {
                     if (listeners != null) {
@@ -147,6 +156,7 @@ public class SubProgressReceiver implements ProgressReceiver {
     private final float offset, extent;
     private List<ProgressReceiver> listeners;
     private String lastMessage;
+    private boolean reportedToParent;
 
     private static final ThreadLocal<AtomicBoolean> recursiveCall = new ThreadLocal<AtomicBoolean>() {
         @Override
