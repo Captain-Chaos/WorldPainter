@@ -134,10 +134,10 @@ public class WorldExporter {
                     generatorOptions.append(dirtDepth);
                     generatorOptions.append("*minecraft:dirt,");
                     generatorOptions.append(oceanDepth);
-                    generatorOptions.append((dim0Border == Dimension.Border.ENDLESS_WATER) ? "1*minecraft:water;0;" : "1*minecraft:lava;1;");
+                    generatorOptions.append((dim0Border == Dimension.Border.ENDLESS_WATER) ? "*minecraft:water;0;" : "*minecraft:lava;1;");
                     break;
                 case ENDLESS_VOID:
-                    generatorOptions.append("3;1*minecraft:air;1;");
+                    generatorOptions.append("1*minecraft:air;1;");
                     break;
             }
             generatorOptions.append(DEFAULT_GENERATOR_OPTIONS);
