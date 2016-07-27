@@ -79,14 +79,14 @@ public class BiomesTileProvider implements TileProvider {
     }
 
     @Override
-    public void paintTile(Image image, int tileX, int tileY, int imageX, int imageY) {
+    public boolean paintTile(Image image, int tileX, int tileY, int imageX, int imageY) {
         if (! enabled) {
-            return;
+            return false;
         }
         try {
             BiomeScheme biomeScheme = getBiomeScheme();
             if (biomeScheme == null) {
-                return;
+                return false;
             }
             final int scale = 1 << -zoom;
             int[] buffer = bufferRef.get();
@@ -141,8 +141,9 @@ public class BiomesTileProvider implements TileProvider {
                 g2.dispose();
             }
         } catch (Throwable t) {
-            t.printStackTrace();
+            logger.error("Exception while generating image for tile at {}, {}", tileX, tileY, t);
         }
+        return true;
     }
 
     @Override

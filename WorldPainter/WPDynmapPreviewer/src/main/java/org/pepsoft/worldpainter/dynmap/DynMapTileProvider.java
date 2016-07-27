@@ -28,15 +28,18 @@ public class DynMapTileProvider implements TileProvider {
         refreshMap();
     }
 
+    @Override
     public int getTileSize() {
         return 128;
     }
 
+    @Override
     public boolean isTilePresent(int x, int y) {
         return true;
     }
 
-    public void paintTile(Image image, int x, int y, int dx, int dy) {
+    @Override
+    public boolean paintTile(Image image, int x, int y, int dx, int dy) {
         HDMapTile tile = new HDMapTile(dmWorld, map.getPerspective(), x, -y, 0);
         BufferedImage tileImage = rendererRef.get().render(dmWorld.getChunkCache(null), tile);
         Graphics2D g2 = (Graphics2D) image.getGraphics();
@@ -45,32 +48,40 @@ public class DynMapTileProvider implements TileProvider {
         } finally {
             g2.dispose();
         }
+        return true;
     }
 
+    @Override
     public int getTilePriority(int x, int y) {
         return 0;
     }
 
+    @Override
     public Rectangle getExtent() {
         return null;
     }
 
+    @Override
     public void addTileListener(TileListener tileListener) {
         // Do nothing
     }
 
+    @Override
     public void removeTileListener(TileListener tileListener) {
         // Do nothing
     }
 
+    @Override
     public boolean isZoomSupported() {
         return true;
     }
 
+    @Override
     public int getZoom() {
         return zoom;
     }
 
+    @Override
     public void setZoom(int zoom) {
         if (zoom != this.zoom) {
             this.zoom = zoom;

@@ -37,13 +37,22 @@ public interface TileProvider {
      * tile in a different location on the provided image than the top left
      * corner.
      *
+     * <p>The provided must paint the tile completely. It may not leave gaps or
+     * assume that the provided image supports transparency.
+     *
+     * <p>The provider may fail to paint the tile for some reason, for example
+     * because a dependency is not met, in which case it should return
+     * <code>false</code> and leave the image unaltered.
+     *
      * @param image The image on which to paint the tile
      * @param x The X coordinate (in tiles) of the tile to paint.
      * @param y The Y coordinate (in tiles) of the tile to paint.
      * @param dx The X coordinate at which to paint the tile in the image.
      * @param dy The Y coordinate at which to paint the tile in the image.
+     * @return <code>true</code> if the tile was painted; <code>false</code> if
+     * it could not be painted for some reason.
      */
-    void paintTile(Image image, int x, int y, int dx, int dy);
+    boolean paintTile(Image image, int x, int y, int dx, int dy);
     
     /**
      * Get the priority with which a specific tile should be rendered. A tile
