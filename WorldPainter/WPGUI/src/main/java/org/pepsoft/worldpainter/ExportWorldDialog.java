@@ -76,9 +76,11 @@ public class ExportWorldDialog extends javax.swing.JDialog {
         }
         fieldName.setText(world.getName());
 
+        Dimension dim0 = world.getDimension(0);
         surfacePropertiesEditor.setColourScheme(colourScheme);
         surfacePropertiesEditor.setMode(DimensionPropertiesEditor.Mode.EXPORT);
-        surfacePropertiesEditor.setDimension(world.getDimension(0));
+        surfacePropertiesEditor.setDimension(dim0);
+        surfacePropertiesEditor.addBorderListener(this::borderChanged);
         if (world.getDimension(DIM_NETHER) != null) {
             netherPropertiesEditor.setColourScheme(colourScheme);
             netherPropertiesEditor.setMode(DimensionPropertiesEditor.Mode.EXPORT);
@@ -143,6 +145,7 @@ public class ExportWorldDialog extends javax.swing.JDialog {
             comboBoxGenerator.setModel(new DefaultComboBoxModel(new String[] {"Default", "Superflat", "Large Biomes"}));
         }
         comboBoxGenerator.setSelectedIndex(generator);
+        borderChanged(dim0.getBorder());
         comboBoxGameType.setSelectedIndex(gameType);
         checkBoxAllowCheats.setSelected(world.isAllowCheats());
         if (selectedTiles != null) {
@@ -200,6 +203,20 @@ dims:   for (Dimension dim: world.getDimensions()) {
         
         pack();
         setLocationRelativeTo(parent);
+    }
+
+    private void borderChanged(Dimension.Border border) {
+        endlessBorder = (border != null) && border.isEndless();
+        if (endlessBorder && comboBoxGenerator.isEnabled()) {
+            savedGenerator = comboBoxGenerator.getSelectedIndex();
+            comboBoxGenerator.setSelectedIndex(1);
+            comboBoxGenerator.setEnabled(false);
+//            setControlStates();
+        } else if ((! endlessBorder) && (! comboBoxGenerator.isEnabled())) {
+            comboBoxGenerator.setSelectedIndex(savedGenerator);
+            comboBoxGenerator.setEnabled(true);
+//            setControlStates();
+        }
     }
 
     private void export() {
@@ -373,7 +390,7 @@ dims:   for (Dimension dim: world.getDimensions()) {
             labelSelectTiles.setCursor(null);
         }
         checkBoxAllowCheats.setEnabled((comboBoxMinecraftVersion.getSelectedIndex() == 0) && (comboBoxGameType.getSelectedIndex() != World2.GAME_TYPE_HARDCORE));
-        buttonGeneratorOptions.setEnabled(comboBoxGenerator.getSelectedIndex() == 1);
+        buttonGeneratorOptions.setEnabled((! endlessBorder) && (comboBoxGenerator.getSelectedIndex() == 1));
         comboBoxDifficulty.setEnabled(comboBoxGameType.getSelectedIndex() != World2.GAME_TYPE_HARDCORE);
     }
 
@@ -769,9 +786,9 @@ dims:   for (Dimension dim: world.getDimensions()) {
     private final TileRenderer.LightOrigin lightOrigin;
     private final CustomBiomeManager customBiomeManager;
     private final WorldPainter view;
-    private int selectedDimension;
+    private int selectedDimension, savedGenerator;
     private Set<Point> selectedTiles;
-    private boolean disableTileSelectionWarning, disableDisabledLayersWarning;
+    private boolean disableTileSelectionWarning, disableDisabledLayersWarning, endlessBorder;
     private String generatorOptions;
     
     private static final long serialVersionUID = 1L;

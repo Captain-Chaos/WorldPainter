@@ -14,14 +14,9 @@ package org.pepsoft.worldpainter;
 import org.pepsoft.minecraft.Level;
 import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.util.FileUtils;
-import org.pepsoft.util.ProgressReceiver;
-import org.pepsoft.util.ProgressReceiver.OperationCancelled;
-import org.pepsoft.util.swing.ProgressComponent.Listener;
-import org.pepsoft.util.swing.ProgressTask;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.merging.WorldMerger;
-import org.pepsoft.worldpainter.util.FileInUseException;
 import org.pepsoft.worldpainter.util.MinecraftUtil;
 
 import javax.swing.*;
@@ -33,7 +28,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -46,10 +40,10 @@ import static org.pepsoft.worldpainter.Constants.*;
  * @author pepijn
  */
 // TODO: add support for multiple dimensions
-public class MergeWorldDialog extends javax.swing.JDialog implements Listener {
+public class MergeWorldDialog extends javax.swing.JDialog {
     /** Creates new form ExportWorldDialog */
-    public MergeWorldDialog(java.awt.Frame parent, World2 world, BiomeScheme biomeScheme, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Collection<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin) {
-        super(parent, true);
+    public MergeWorldDialog(Window parent, World2 world, BiomeScheme biomeScheme, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Collection<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin, WorldPainter view) {
+        super(parent, ModalityType.APPLICATION_MODAL);
         this.world = world;
         this.biomeScheme = biomeScheme;
         this.colourScheme = colourScheme;
@@ -58,6 +52,7 @@ public class MergeWorldDialog extends javax.swing.JDialog implements Listener {
         this.contourSeparation = contourSeparation;
         this.lightOrigin = lightOrigin;
         this.customBiomeManager = customBiomeManager;
+        this.view = view;
         selectedTiles = world.getTilesToExport();
         selectedDimension = (selectedTiles != null) ? world.getDimensionsToExport().iterator().next() : DIM_NORMAL;
         
@@ -132,53 +127,6 @@ public class MergeWorldDialog extends javax.swing.JDialog implements Listener {
 
         setControlStates();
         pack();
-    }
-
-    // ProgressComponent.Listener
-
-    @Override
-    public void exceptionThrown(final Throwable exception) {
-        Throwable cause = exception;
-        while (cause.getCause() != null) {
-            cause = cause.getCause();
-        }
-        if (cause instanceof FileInUseException) {
-            JOptionPane.showMessageDialog(MergeWorldDialog.this, "Could not merge the world because the existing map directory is in use.\nPlease close Minecraft and all other windows and try again.", "Map In Use", JOptionPane.ERROR_MESSAGE);
-        } else if (cause instanceof MissingCustomTerrainException) {
-            JOptionPane.showMessageDialog(MergeWorldDialog.this,
-                "Custom Terrain " + ((MissingCustomTerrainException) exception).getIndex() + " not configured!\n" +
-                "Please configure it on the Custom Terrain panel.\n" +
-                "\n" +
-                "The partially exported map is now probably corrupted.\n" +
-                "You should delete it, or export the map again.", "Unconfigured Custom Terrain", JOptionPane.ERROR_MESSAGE);
-        } else {
-            ErrorDialog dialog = new ErrorDialog(MergeWorldDialog.this);
-            dialog.setException(exception);
-            dialog.setVisible(true);
-        }
-        close();
-    }
-
-    @Override
-    public void done(Object result) {
-        long end = System.currentTimeMillis();
-        StringBuilder sb = new StringBuilder();
-        sb.append("World merged with ").append(levelDatFile);
-        long duration = (end - start) / 1000;
-        int hours = (int) (duration / 3600);
-        duration = duration - hours * 3600;
-        int minutes = (int) (duration / 60);
-        int seconds = (int) (duration - minutes * 60);
-        sb.append("\nMerge took ").append(hours).append(":").append((minutes < 10) ? "0" : "").append(minutes).append(":").append((seconds < 10) ? "0" : "").append(seconds);
-        sb.append("\n\nBackup of existing map created in:\n").append(backupDir);
-        JOptionPane.showMessageDialog(MergeWorldDialog.this, sb.toString(), "Success", JOptionPane.INFORMATION_MESSAGE);
-        close();
-    }
-
-    @Override
-    public void cancelled() {
-        JOptionPane.showMessageDialog(MergeWorldDialog.this, "Export cancelled by user.\n\nThe partially merged map is now probably corrupted!\nYou should delete it, and restore it from the backup at:\n" + backupDir, "Merge Cancelled", JOptionPane.WARNING_MESSAGE);
-        close();
     }
 
     private void merge() {
@@ -260,60 +208,52 @@ public class MergeWorldDialog extends javax.swing.JDialog implements Listener {
             world.setTilesToExport(selectedTiles);
         }
 
+        WorldMerger merger = new WorldMerger(world, levelDatFile);
+        synchronized (merger) {
+            try {
+                backupDir = merger.selectBackupDir(levelDatFile.getParentFile());
+            } catch (IOException e) {
+                throw new RuntimeException("I/O error while creating backup directory", e);
+            }
+            if (! biomesOnly) {
+                if (replaceChunks) {
+                    merger.setReplaceChunks(true);
+                } else {
+                    merger.setClearManMadeAboveGround(checkBoxRemoveManMadeAboveGround.isSelected());
+                    merger.setClearManMadeBelowGround(checkBoxRemoveManMadeBelowGround.isSelected());
+                    merger.setClearResources(checkBoxRemoveResources.isSelected());
+                    merger.setClearTrees(checkBoxRemoveTrees.isSelected());
+                    merger.setClearVegetation(checkBoxRemoveVegetation.isSelected());
+                    merger.setFillCaves(checkBoxFillCaves.isSelected());
+                    merger.setSurfaceMergeDepth((Integer) spinnerSurfaceThickness.getValue());
+                }
+            }
+        }
+        
         setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
 
-        start = System.currentTimeMillis();
-        progressComponent1.setTask(new ProgressTask<Void>() {
-            @Override
-            public String getName() {
-                return "Please wait";
-            }
+        MergeProgressDialog dialog = new MergeProgressDialog(this, merger, backupDir, biomesOnly);
+        view.setInhibitUpdates(true);
+        try {
+            dialog.setVisible(true);
+        } finally {
+            view.setInhibitUpdates(false);
+        }
 
-            @Override
-            public Void execute(ProgressReceiver progressReceiver) throws OperationCancelled {
-                final WorldMerger merger = new WorldMerger(world, levelDatFile);
-                try {
-                    backupDir = merger.selectBackupDir(levelDatFile.getParentFile());
-                    if (biomesOnly) {
-                        merger.mergeBiomes(backupDir, progressReceiver);
-                    } else {
-                        if (replaceChunks) {
-                            merger.setReplaceChunks(true);
-                        } else {
-                            merger.setClearManMadeAboveGround(checkBoxRemoveManMadeAboveGround.isSelected());
-                            merger.setClearManMadeBelowGround(checkBoxRemoveManMadeBelowGround.isSelected());
-                            merger.setClearResources(checkBoxRemoveResources.isSelected());
-                            merger.setClearTrees(checkBoxRemoveTrees.isSelected());
-                            merger.setClearVegetation(checkBoxRemoveVegetation.isSelected());
-                            merger.setFillCaves(checkBoxFillCaves.isSelected());
-                            merger.setSurfaceMergeDepth((Integer) spinnerSurfaceThickness.getValue());
-                        }
-                        merger.merge(backupDir, progressReceiver);
-                    }
-                    if (merger.getWarnings() != null) {
-                        try {
-                            SwingUtilities.invokeAndWait(() -> {
-                                Icon warningIcon = UIManager.getIcon("OptionPane.warningIcon");
-                                Toolkit.getDefaultToolkit().beep();
-                                int selectedOption = JOptionPane.showOptionDialog(MergeWorldDialog.this, "The merge process generated warnings! The existing map may have had pre-\nexisting damage or corruption. Not all chunks may have been merged correctly.", "Merge Warnings", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, warningIcon, new Object[] {"Review warnings", "OK"}, null);
-                                if (selectedOption == 0) {
-                                    ImportWarningsDialog warningsDialog = new ImportWarningsDialog(MergeWorldDialog.this, "Merge Warnings");
-                                    warningsDialog.setWarnings(merger.getWarnings());
-                                    warningsDialog.setVisible(true);
-                                }
-                            });
-                        } catch (InterruptedException | InvocationTargetException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                } catch (IOException e) {
-                    throw new RuntimeException("I/O error while merging world", e);
+        synchronized (merger) {
+            if (merger.getWarnings() != null) {
+                Icon warningIcon = UIManager.getIcon("OptionPane.warningIcon");
+                Toolkit.getDefaultToolkit().beep();
+                int selectedOption = JOptionPane.showOptionDialog(MergeWorldDialog.this, "The merge process generated warnings! The existing map may have had pre-\nexisting damage or corruption. Not all chunks may have been merged correctly.", "Merge Warnings", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, warningIcon, new Object[] {"Review warnings", "OK"}, null);
+                if (selectedOption == 0) {
+                    ImportWarningsDialog warningsDialog = new ImportWarningsDialog(MergeWorldDialog.this, "Merge Warnings");
+                    warningsDialog.setWarnings(merger.getWarnings());
+                    warningsDialog.setVisible(true);
                 }
-                return null;
             }
-        });
-        progressComponent1.setListener(this);
-        progressComponent1.start();
+        }
+
+        close();
     }
 
     private void close() {
@@ -420,7 +360,6 @@ public class MergeWorldDialog extends javax.swing.JDialog implements Listener {
         radioButtonAll = new javax.swing.JRadioButton();
         radioButtonBiomes = new javax.swing.JRadioButton();
         radioButtonReplaceChunks = new javax.swing.JRadioButton();
-        progressComponent1 = new org.pepsoft.util.swing.ProgressComponent();
         radioButtonExportEverything = new javax.swing.JRadioButton();
         radioButtonExportSelection = new javax.swing.JRadioButton();
         labelSelectTiles = new javax.swing.JLabel();
@@ -588,7 +527,6 @@ public class MergeWorldDialog extends javax.swing.JDialog implements Listener {
                                 .addComponent(fieldLevelDatFile)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(buttonSelectDirectory))
-                            .addComponent(progressComponent1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(buttonMerge, javax.swing.GroupLayout.Alignment.TRAILING)
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -696,9 +634,7 @@ public class MergeWorldDialog extends javax.swing.JDialog implements Listener {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(checkBoxRemoveManMadeAboveGround)
                     .addComponent(checkBoxRemoveManMadeBelowGround))
-                .addGap(18, 18, 18)
-                .addComponent(progressComponent1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(18, 18, Short.MAX_VALUE)
                 .addComponent(buttonMerge)
                 .addContainerGap())
         );
@@ -779,7 +715,6 @@ public class MergeWorldDialog extends javax.swing.JDialog implements Listener {
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JLabel labelSelectTiles;
-    private org.pepsoft.util.swing.ProgressComponent progressComponent1;
     private javax.swing.JRadioButton radioButtonAll;
     private javax.swing.JRadioButton radioButtonBiomes;
     private javax.swing.JRadioButton radioButtonExportEverything;
@@ -796,9 +731,9 @@ public class MergeWorldDialog extends javax.swing.JDialog implements Listener {
     private final int contourSeparation;
     private final TileRenderer.LightOrigin lightOrigin;
     private final CustomBiomeManager customBiomeManager;
+    private final WorldPainter view;
     private File levelDatFile;
     private volatile File backupDir;
-    private long start;
     private int selectedDimension;
     private Set<Point> selectedTiles;
     private boolean disableWarning;

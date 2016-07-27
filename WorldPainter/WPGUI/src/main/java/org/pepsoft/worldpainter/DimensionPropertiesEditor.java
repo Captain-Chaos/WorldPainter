@@ -238,15 +238,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         dimension.setTopLayerMinDepth(topLayerMinDepth);
         dimension.setTopLayerVariation((Integer) spinnerMaxSurfaceDepth.getValue() - topLayerMinDepth);
         dimension.setSubsurfaceMaterial((Terrain) comboBoxSubsurfaceMaterial.getSelectedItem());
-        if (radioButtonLavaBorder.isSelected()) {
-            dimension.setBorder(Dimension.Border.LAVA);
-        } else if (radioButtonNoBorder.isSelected()) {
-            dimension.setBorder(null);
-        } else if (radioButtonVoidBorder.isSelected()) {
-            dimension.setBorder(Dimension.Border.VOID);
-        } else {
-            dimension.setBorder(Dimension.Border.WATER);
-        }
+        dimension.setBorder(getSelectedBorder());
         dimension.setBorderLevel((Integer) spinnerBorderLevel.getValue());
         dimension.setBorderSize((Integer) spinnerBorderSize.getValue() / 128);
         dimension.setBedrockWall(checkBoxBedrockWall.isSelected());
@@ -452,7 +444,27 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         
         return true;
     }
-    
+
+    public void addBorderListener(BorderListener borderListener) {
+        borderListeners.add(borderListener);
+    }
+
+    public void removeBorderListener(BorderListener borderListener) {
+        borderListeners.remove(borderListener);
+    }
+
+    private Dimension.Border getSelectedBorder() {
+        if (radioButtonLavaBorder.isSelected()) {
+            return radioButtonEndlessBorder.isSelected() ? Dimension.Border.ENDLESS_LAVA : Dimension.Border.LAVA;
+        } else if (radioButtonNoBorder.isSelected()) {
+            return null;
+        } else if (radioButtonVoidBorder.isSelected()) {
+            return radioButtonEndlessBorder.isSelected() ? Dimension.Border.ENDLESS_VOID : Dimension.Border.VOID;
+        } else {
+            return radioButtonEndlessBorder.isSelected() ? Dimension.Border.ENDLESS_WATER : Dimension.Border.WATER;
+        }
+    }
+
     private void loadSettings() {
         int maxHeight = dimension.getMaxHeight() - 1;
         
@@ -465,12 +477,27 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             switch (dimension.getBorder()) {
                 case LAVA:
                     radioButtonLavaBorder.setSelected(true);
+                    radioButtonFixedBorder.setSelected(true);
                     break;
                 case WATER:
                     radioButtonWaterBorder.setSelected(true);
+                    radioButtonFixedBorder.setSelected(true);
                     break;
                 case VOID:
                     radioButtonVoidBorder.setSelected(true);
+                    radioButtonFixedBorder.setSelected(true);
+                    break;
+                case ENDLESS_LAVA:
+                    radioButtonLavaBorder.setSelected(true);
+                    radioButtonEndlessBorder.setSelected(true);
+                    break;
+                case ENDLESS_WATER:
+                    radioButtonWaterBorder.setSelected(true);
+                    radioButtonEndlessBorder.setSelected(true);
+                    break;
+                case ENDLESS_VOID:
+                    radioButtonVoidBorder.setSelected(true);
+                    radioButtonEndlessBorder.setSelected(true);
                     break;
                 default:
                     throw new InternalError();
@@ -752,9 +779,11 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         radioButtonNoBorder.setEnabled(enabled  && (! ceiling));
         radioButtonVoidBorder.setEnabled(enabled  && (! ceiling));
         radioButtonWaterBorder.setEnabled(enabled  && (! ceiling));
-        checkBoxBedrockWall.setEnabled(enabled  && (! ceiling));
         spinnerBorderLevel.setEnabled(enabled && (! ceiling) && (radioButtonLavaBorder.isSelected() || radioButtonWaterBorder.isSelected()));
-        spinnerBorderSize.setEnabled(enabled && (! ceiling) && (! radioButtonNoBorder.isSelected()));
+        radioButtonFixedBorder.setEnabled(enabled && (! ceiling) && (! radioButtonNoBorder.isSelected()));
+        radioButtonEndlessBorder.setEnabled(enabled && dim0 && (! ceiling) && (! radioButtonNoBorder.isSelected()));
+        spinnerBorderSize.setEnabled(enabled && (! ceiling) && (! radioButtonNoBorder.isSelected()) && radioButtonFixedBorder.isSelected());
+        checkBoxBedrockWall.setEnabled(enabled  && (! ceiling) && (radioButtonNoBorder.isSelected() || radioButtonFixedBorder.isSelected()));
         sliderCavernsEverywhereLevel.setEnabled(enabled && checkBoxCavernsEverywhere.isSelected());
         sliderChasmsEverywhereLevel.setEnabled(enabled && checkBoxChasmsEverywhere.isSelected());
         spinnerCavernsFloodLevel.setEnabled(enabled && checkBoxFloodCaverns.isSelected());
@@ -790,6 +819,13 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         });
     }
 
+    private void notifyBorderListeners() {
+        Dimension.Border newBorder = getSelectedBorder();
+        for (BorderListener borderListener: borderListeners) {
+            borderListener.borderChanged(newBorder);
+        }
+    }
+
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -801,6 +837,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
         buttonGroup1 = new javax.swing.ButtonGroup();
         buttonGroup2 = new javax.swing.ButtonGroup();
+        buttonGroup3 = new javax.swing.ButtonGroup();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         jPanel1 = new javax.swing.JPanel();
         radioButtonWaterBorder = new javax.swing.JRadioButton();
@@ -838,6 +875,8 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         jLabel85 = new javax.swing.JLabel();
         jLabel86 = new javax.swing.JLabel();
         jLabel90 = new javax.swing.JLabel();
+        radioButtonFixedBorder = new javax.swing.JRadioButton();
+        radioButtonEndlessBorder = new javax.swing.JRadioButton();
         jPanel5 = new javax.swing.JPanel();
         themeEditor = new org.pepsoft.worldpainter.themes.impl.simple.SimpleThemeEditor();
         jLabel45 = new javax.swing.JLabel();
@@ -1037,13 +1076,13 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
         jLabel7.setText("Minecraft seed:");
 
-        spinnerMinecraftSeed.setModel(new javax.swing.SpinnerNumberModel(-9223372036854775808L, null, null, 1L));
+        spinnerMinecraftSeed.setModel(new javax.swing.SpinnerNumberModel(Long.valueOf(-9223372036854775808L), null, null, Long.valueOf(1L)));
         spinnerMinecraftSeed.setEditor(new javax.swing.JSpinner.NumberEditor(spinnerMinecraftSeed, "0"));
 
         jLabel8.setLabelFor(spinnerBorderSize);
         jLabel8.setText("Border size:");
 
-        spinnerBorderSize.setModel(new javax.swing.SpinnerNumberModel(256, 128, null, 128));
+        spinnerBorderSize.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(256), Integer.valueOf(128), null, Integer.valueOf(128)));
         spinnerBorderSize.setEnabled(false);
         spinnerBorderSize.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
@@ -1153,6 +1192,23 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
+        buttonGroup3.add(radioButtonFixedBorder);
+        radioButtonFixedBorder.setSelected(true);
+        radioButtonFixedBorder.setText("fixed:");
+        radioButtonFixedBorder.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonFixedBorderActionPerformed(evt);
+            }
+        });
+
+        buttonGroup3.add(radioButtonEndlessBorder);
+        radioButtonEndlessBorder.setText("endless");
+        radioButtonEndlessBorder.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonEndlessBorderActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -1184,33 +1240,38 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                         .addComponent(spinnerCeilingHeight, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(checkBoxBedrockWall)
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addComponent(jLabel7)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(spinnerMinecraftSeed, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jLabel4)
+                            .addComponent(radioButtonNoBorder)
+                            .addComponent(radioButtonVoidBorder)
+                            .addComponent(radioButtonLavaBorder)
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(radioButtonWaterBorder)
                                     .addComponent(jLabel8))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(radioButtonEndlessBorder)
                                     .addGroup(jPanel1Layout.createSequentialGroup()
-                                        .addComponent(spinnerBorderSize, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jLabel9))
-                                    .addGroup(jPanel1Layout.createSequentialGroup()
-                                        .addComponent(jLabel5)
+                                        .addComponent(radioButtonFixedBorder)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(spinnerBorderLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addComponent(jLabel44)))
-                            .addComponent(jLabel4)
-                            .addComponent(radioButtonNoBorder)
-                            .addComponent(radioButtonVoidBorder)
-                            .addComponent(radioButtonLavaBorder))
+                                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                                .addComponent(spinnerBorderSize, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addGap(0, 0, 0)
+                                                .addComponent(jLabel9))
+                                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                                .addComponent(jLabel5)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(spinnerBorderLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                            .addComponent(jLabel44))))))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(checkBoxBedrockWall))
+                .addContainerGap(114, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1253,8 +1314,11 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel8)
                             .addComponent(spinnerBorderSize, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel9)))
+                            .addComponent(jLabel9)
+                            .addComponent(radioButtonFixedBorder)))
                     .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(radioButtonEndlessBorder)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(checkBoxBedrockWall)
                 .addGap(18, 18, 18)
@@ -2256,7 +2320,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 362, Short.MAX_VALUE)
+            .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 362, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -2265,10 +2329,12 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         if ((Integer) spinnerBorderLevel.getValue() == (dimension.getMaxHeight() - 1)) {
             spinnerBorderLevel.setValue(dimension.getBorderLevel());
         }
+        notifyBorderListeners();
 }//GEN-LAST:event_radioButtonWaterBorderActionPerformed
 
     private void radioButtonNoBorderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonNoBorderActionPerformed
         setControlStates();
+        notifyBorderListeners();
 }//GEN-LAST:event_radioButtonNoBorderActionPerformed
 
     private void checkBoxPopulateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxPopulateActionPerformed
@@ -2281,6 +2347,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
     private void radioButtonVoidBorderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonVoidBorderActionPerformed
         setControlStates();
+        notifyBorderListeners();
 }//GEN-LAST:event_radioButtonVoidBorderActionPerformed
 
     private void radioButtonLavaBorderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonLavaBorderActionPerformed
@@ -2288,6 +2355,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         if ((Integer) spinnerBorderLevel.getValue() == (dimension.getMaxHeight() - 1)) {
             spinnerBorderLevel.setValue(dimension.getBorderLevel());
         }
+        notifyBorderListeners();
 }//GEN-LAST:event_radioButtonLavaBorderActionPerformed
 
     private void comboBoxSubsurfaceMaterialActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxSubsurfaceMaterialActionPerformed
@@ -2381,11 +2449,22 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         setControlStates();
     }//GEN-LAST:event_buttonCustomLayerDownActionPerformed
 
+    private void radioButtonFixedBorderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonFixedBorderActionPerformed
+        setControlStates();
+        notifyBorderListeners();
+    }//GEN-LAST:event_radioButtonFixedBorderActionPerformed
+
+    private void radioButtonEndlessBorderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonEndlessBorderActionPerformed
+        setControlStates();
+        notifyBorderListeners();
+    }//GEN-LAST:event_radioButtonEndlessBorderActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonCustomLayerDown;
     private javax.swing.JButton buttonCustomLayerUp;
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.ButtonGroup buttonGroup2;
+    private javax.swing.ButtonGroup buttonGroup3;
     private javax.swing.JCheckBox checkBoxBedrockWall;
     private javax.swing.JCheckBox checkBoxBottomless;
     private javax.swing.JCheckBox checkBoxCavernsBreakSurface;
@@ -2506,6 +2585,8 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private javax.swing.JSlider jSlider4;
     private javax.swing.JSlider jSlider6;
     private javax.swing.JTabbedPane jTabbedPane1;
+    private javax.swing.JRadioButton radioButtonEndlessBorder;
+    private javax.swing.JRadioButton radioButtonFixedBorder;
     private javax.swing.JRadioButton radioButtonLavaBorder;
     private javax.swing.JRadioButton radioButtonNoBorder;
     private javax.swing.JRadioButton radioButtonVoidBorder;
@@ -2572,8 +2653,13 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private Dimension dimension;
     private CustomLayersTableModel customLayersTableModel;
     private Mode mode;
+    private List<BorderListener> borderListeners = new ArrayList<>();
     
     private static final long serialVersionUID = 1L;
     
     public enum Mode {EXPORT, DEFAULT_SETTINGS, EDITOR}
+
+    public interface BorderListener {
+        void borderChanged(Dimension.Border newBorder);
+    }
 }

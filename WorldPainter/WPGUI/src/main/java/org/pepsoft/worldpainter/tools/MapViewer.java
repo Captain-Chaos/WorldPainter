@@ -70,7 +70,7 @@ public class MapViewer {
                 }
 
                 @Override
-                public void paintTile(Image tileImage, int x, int y, int dx, int dy) {
+                public boolean paintTile(Image tileImage, int x, int y, int dx, int dy) {
     //                System.out.println("Painting tile " + x + ", " + y);
                     final BufferedImage image = renderBufferRef.get();
                     Arrays.fill(((IntegerInterleavedRaster) image.getRaster()).getDataStorage(), 0);
@@ -127,6 +127,7 @@ public class MapViewer {
                     } finally {
                         g2.dispose();
                     }
+                    return true;
                 }
 
                 @Override

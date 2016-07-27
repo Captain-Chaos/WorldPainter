@@ -43,7 +43,7 @@ public class HeightMapTileProvider implements TileProvider {
     }
 
     @Override
-    public void paintTile(Image tileImage, int x, int y, int imageX, int imageY) {
+    public boolean paintTile(Image tileImage, int x, int y, int imageX, int imageY) {
         final BufferedImage image = renderBufferRef.get();
         final WritableRaster raster = image.getRaster();
         final int xOffset = x << 7, yOffset = y << 7;
@@ -58,6 +58,7 @@ public class HeightMapTileProvider implements TileProvider {
         } finally {
             g2.dispose();
         }
+        return true;
     }
 
     @Override

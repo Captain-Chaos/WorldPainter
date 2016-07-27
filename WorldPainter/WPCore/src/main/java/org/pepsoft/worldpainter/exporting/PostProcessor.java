@@ -224,7 +224,7 @@ public class PostProcessor {
                 }
             }
             if (progressReceiver != null) {
-                progressReceiver.setProgress((x - x1 + 1) / (x2 - x1 + 1));
+                progressReceiver.setProgress((float) (x - x1 + 1) / (x2 - x1 + 1));
             }
         }
     }

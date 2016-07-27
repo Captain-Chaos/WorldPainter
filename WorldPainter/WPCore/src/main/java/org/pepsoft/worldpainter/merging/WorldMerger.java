@@ -169,7 +169,6 @@ public class WorldMerger extends WorldExporter {
         this.clearManMadeBelowGround = clearManMadeBelowGround;
     }
 
-    // TODO: support for extra dimensions!
     public void merge(File backupDir, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
         logger.info("Merging world " + world.getName() + " with map at " + levelDatFile.getParentFile());
         
@@ -623,6 +622,9 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                             // Region only exists in existing world. Copy it to the new
                             // world
                             ProgressReceiver subProgressReceiver = (parallelProgressManager != null) ? parallelProgressManager.createProgressReceiver() : null;
+                            if (subProgressReceiver != null) {
+                                subProgressReceiver.setMessage("Copying region " + regionCoords.x + "," + regionCoords.y + " unchanged");
+                            }
                             FileUtils.copyFileToDir(existingRegions.get(regionCoords), regionDir, subProgressReceiver);
                             synchronized (fixups) {
                                 exportedRegions.add(regionCoords);
@@ -728,6 +730,10 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
     }
     
     private String mergeRegion(MinecraftWorld minecraftWorld, File oldRegionDir, Dimension dimension, Point regionCoords, Map<Point, Tile> tiles, boolean tileSelection, Map<Layer, LayerExporter> exporters, ChunkFactory chunkFactory, List<Fixup> fixups, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
+        if (progressReceiver != null) {
+            progressReceiver.setMessage("Merging region " + regionCoords.x + "," + regionCoords.y + " of " + dimension.getName());
+        }
+
         Set<Layer> allLayers = new HashSet<>();
         for (Tile tile: tiles.values()) {
             allLayers.addAll(tile.getLayers());
@@ -854,7 +860,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         
         // Process all chunks and copy just the biomes
         if (progressReceiver != null) {
-            progressReceiver.setMessage("merging biomes");
+            progressReceiver.setMessage("Merging biomes");
         }
         // Find all the region files of the existing level
         File oldRegionDir = new File(backupDir, "region");
@@ -911,6 +917,10 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
     }
     
     private String thirdPass(MinecraftWorld minecraftWorld, File oldRegionDir, Dimension dimension, Point regionCoords, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
+        if (progressReceiver != null) {
+            progressReceiver.setMessage("Merging existing blocks with new");
+        }
+
         int lowestChunkX = (regionCoords.x << 5) - 1;
         int highestChunkX = (regionCoords.x << 5) + 32;
         int lowestChunkY = (regionCoords.y << 5) - 1;
@@ -1144,6 +1154,10 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
     }
     
     private String copyAllChunks(MinecraftWorld minecraftWorld, File oldRegionDir, Dimension dimension, Point regionCoords, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
+        if (progressReceiver != null) {
+            progressReceiver.setMessage("Copying chunks unchanged");
+        }
+
         int lowestChunkX = regionCoords.x << 5;
         int highestChunkX = (regionCoords.x << 5) + 31;
         int lowestChunkY = regionCoords.y << 5;

@@ -680,12 +680,22 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         final Object savedTextAAHint = g2.getRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING);
 
         try {
+            int effectiveGridSize = gridSize;
+            if (zoom < 0) {
+                // Increase the effective grid size if necessary to prevent the
+                // lines being too close together
+                int minGridSize = Math.min(gridSize, 32);
+                while ((effectiveGridSize >> -zoom) < minGridSize) {
+                    effectiveGridSize *= 2;
+                }
+            }
+
             // Determine which grid lines to draw, in world coordinates
             final Rectangle clipInWorld = viewToWorld(g2.getClipBounds());
-            final int x1 = ((clipInWorld.x / gridSize) - 1) * gridSize;
-            final int x2 = ((clipInWorld.x + clipInWorld.width) / gridSize + 1) * gridSize;
-            final int y1 = ((clipInWorld.y / gridSize) - 1) * gridSize;
-            final int y2 = ((clipInWorld.y + clipInWorld.height) / gridSize + 1) * gridSize;
+            final int x1 = ((clipInWorld.x / effectiveGridSize) - 1) * effectiveGridSize;
+            final int x2 = ((clipInWorld.x + clipInWorld.width) / effectiveGridSize + 1) * effectiveGridSize;
+            final int y1 = ((clipInWorld.y / effectiveGridSize) - 1) * effectiveGridSize;
+            final int y2 = ((clipInWorld.y + clipInWorld.height) / effectiveGridSize + 1) * effectiveGridSize;
             g2.setColor(Color.BLACK);
 
             // Determine the exclusion zone for preventing labels from being
@@ -700,18 +710,19 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
 
             final boolean drawRegionBorders = (gridSize <= 512) && (gridSize & (gridSize - 1)) == 0; // Power of two
             final int width = getWidth(), height = getHeight();
-            int xLabelSkip = gridSize, yLabelSkip = gridSize;
+            int xLabelSkip = effectiveGridSize, yLabelSkip = effectiveGridSize;
             final float scale = (float) Math.pow(2.0, getZoom());
 
             // Determine per how many grid lines minimum a label can be draw
             // so that they don't obscure one another, for the horizontal and
             // vertical direction
             while ((xLabelSkip * scale) < fontWidth) {
-                xLabelSkip += gridSize;
+                xLabelSkip += effectiveGridSize;
             }
             while ((yLabelSkip * scale) < fontHeight) {
-                yLabelSkip += gridSize;
+                yLabelSkip += effectiveGridSize;
             }
+            System.out.println("xLabelSkip: " + xLabelSkip + ", yLabelSkip: " + yLabelSkip);
 
             // Initial setup of the graphics canvas
             g2.setStroke(normalStroke);
@@ -721,7 +732,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
             boolean normalStrokeInstalled = true;
 
             // Draw the vertical grid lines and corresponding labels
-            for (int x = x1; x <= x2; x += gridSize) {
+            for (int x = x1; x <= x2; x += effectiveGridSize) {
                 if ((x == 0) || (drawRegionBorders && ((x % 512) == 0))) {
                     g2.setStroke(regionBorderStroke);
                     normalStrokeInstalled = false;
@@ -730,25 +741,25 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                     normalStrokeInstalled = true;
                 }
                 Point lineStartInView = worldToView(x, 0);
-                if ((x % xLabelSkip) == 0) {
-                    if (lineStartInView.x + 2 >= leftClear) {
+                if (lineStartInView.x + 2 >= leftClear) {
+                    if ((x % xLabelSkip) == 0) {
                         g2.drawLine(lineStartInView.x, 0, lineStartInView.x, height);
+                        if (drawRegionBorders && ((x % 512) == 0)) {
+                            g2.setFont(BOLD_FONT);
+                            normalFontInstalled = false;
+                        } else if (!normalFontInstalled) {
+                            g2.setFont(NORMAL_FONT);
+                            normalFontInstalled = true;
+                        }
+                        g2.drawString(Integer.toString(x), lineStartInView.x + 2, fontHeight + 2);
+                    } else {
+                        g2.drawLine(lineStartInView.x, topClear, lineStartInView.x, height);
                     }
-                    if (drawRegionBorders && ((x % 512) == 0)) {
-                        g2.setFont(BOLD_FONT);
-                        normalFontInstalled = false;
-                    } else if (!normalFontInstalled) {
-                        g2.setFont(NORMAL_FONT);
-                        normalFontInstalled = true;
-                    }
-                    g2.drawString(Integer.toString(x), lineStartInView.x + 2, fontHeight + 2);
-                } else if (lineStartInView.x + 2 >= leftClear) {
-                    g2.drawLine(lineStartInView.x, topClear, lineStartInView.x, height);
                 }
             }
 
             // Draw the horizontal grid lines and corresponding labels
-            for (int y = y1; y <= y2; y += gridSize) {
+            for (int y = y1; y <= y2; y += effectiveGridSize) {
                 if ((y == 0) || (drawRegionBorders && ((y % 512) == 0))) {
                     g2.setStroke(regionBorderStroke);
                     normalStrokeInstalled = false;
@@ -798,6 +809,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
 //            System.out.println("GraphicsConfiguration instance: " + gc);
 //            firstPaint = false;
 //        }
+//        System.out.print('[');
         for (TileProvider tileProvider: tileProviders) {
             final int effectiveZoom = (tileProvider.isZoomSupported() && (zoom < 0)) ? 0 : zoom;
             final Point topLeftTileCoords = viewToWorld(clipBounds.getLocation(), effectiveZoom);
@@ -840,7 +852,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                 }
             }
         }
-//        System.out.println();
+//        System.out.println("]");
 
         paintGridIfApplicable(g2);
 
@@ -1224,15 +1236,27 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
 //                        break;
 //                }
             }
-            tileProvider.paintTile(tile, coords.x, coords.y, 0, 0);
-//            if (tile.validate(gc) != VolatileImage.IMAGE_OK) {
-//                logger.error("Image not OK right after rendering!");
-//            }
-            synchronized (TILE_CACHE_LOCK) {
-                tileCache.put(coords, new SoftReference<Image>(tile));
-                if (dirtyTileCache.containsKey(coords)) {
-                    dirtyTileCache.remove(coords);
+            if (tileProvider.paintTile(tile, coords.x, coords.y, 0, 0)) {
+//                if (tile.validate(gc) != VolatileImage.IMAGE_OK) {
+//                    logger.error("Image not OK right after rendering!");
+//                }
+                synchronized (TILE_CACHE_LOCK) {
+                    tileCache.put(coords, new SoftReference<>(tile));
+                    if (dirtyTileCache.containsKey(coords)) {
+                        dirtyTileCache.remove(coords);
+                    }
                 }
+            } else {
+                // The tile failed to be painted for some reason; treat it as
+                // a permanent condition and register it as "no tile present"
+                synchronized (TILE_CACHE_LOCK) {
+                    tileCache.put(coords, new SoftReference<>(NO_TILE));
+                    if (dirtyTileCache.containsKey(coords)) {
+                        dirtyTileCache.remove(coords);
+                    }
+                }
+                // Repaint still needed, as a dirty tile may have been painted
+                // in its location
             }
             repaint(getTileBounds(coords.x, coords.y, effectiveZoom));
         }
