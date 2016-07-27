@@ -415,8 +415,8 @@ public class NewWorldDialog extends javax.swing.JDialog {
                                     synchronized (tileCount) {
                                         tileCount[0]++;
                                         try {
-                                            System.out.println("Progress: " + tileCount[0] + " of " + approximateTotalTiles + " (" + ((float) tileCount[0] / approximateTotalTiles) + ")");
-                                            progressReceiver.setProgress((float) tileCount[0] / approximateTotalTiles);
+//                                            System.out.println("Progress: " + tileCount[0] + " of " + approximateTotalTiles + " (" + ((float) tileCount[0] / approximateTotalTiles) + ")");
+                                            progressReceiver.setProgress(Math.min((float) tileCount[0] / approximateTotalTiles, 1.0f));
                                         } catch (ProgressReceiver.OperationCancelled e) {
                                             cancelled.set(true);
                                         }
@@ -427,10 +427,9 @@ public class NewWorldDialog extends javax.swing.JDialog {
                     }
                 }
                 
-                // Assume the user will want a void border by default; override
-                // the preferences
-                dimension.setBorder(Border.VOID);
-                dimension.setBorderSize(2);
+                // Assume the user will want an endless void border by default;
+                // override the preferences
+                dimension.setBorder(Border.ENDLESS_VOID);
             } else {
                 int width = ((Integer) spinnerWidth.getValue()) / 128;
                 int height = ((Integer) spinnerLength.getValue()) / 128;
