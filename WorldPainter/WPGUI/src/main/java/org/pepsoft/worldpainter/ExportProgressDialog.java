@@ -11,79 +11,49 @@
 
 package org.pepsoft.worldpainter;
 
+import java.awt.Window;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
-import java.awt.event.ComponentEvent;
 import org.pepsoft.worldpainter.exporting.WorldExporter;
-import java.awt.event.ComponentListener;
 import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Map;
-import javax.swing.JDialog;
-import javax.swing.JOptionPane;
 import org.pepsoft.minecraft.ChunkFactory;
-import org.pepsoft.util.swing.ProgressComponent.Listener;
 import org.pepsoft.util.swing.ProgressTask;
 import static org.pepsoft.minecraft.Constants.*;
 import org.pepsoft.util.FileUtils;
-import org.pepsoft.worldpainter.util.FileInUseException;
 
 /**
  *
  * @author pepijn
  */
-public class ExportProgressDialog extends javax.swing.JDialog implements Listener<Map<Integer, ChunkFactory.Stats>>, ComponentListener {
+public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, ChunkFactory.Stats>> {
     /** Creates new form ExportWorldDialog */
-    public ExportProgressDialog(java.awt.Dialog parent, World2 world, File baseDir, String name) {
-        super(parent, true);
+    public ExportProgressDialog(Window parent, World2 world, File baseDir, String name) {
+        super(parent, "Exporting");
         if ((world.getVersion() != SUPPORTED_VERSION_1) && (world.getVersion() != SUPPORTED_VERSION_2)) {
             throw new IllegalArgumentException("Not a supported version: 0x" + Integer.toHexString(world.getVersion()));
         }
         this.world = world;
         this.baseDir = baseDir;
         this.name = name;
-        initComponents();
-
-        setLocationRelativeTo(parent);
-        
-        addComponentListener(this);
     }
-
-    // ProgressComponent.Listener
     
+    // MultiProgressDialog
+
     @Override
-    public void exceptionThrown(Throwable exception) {
-        Throwable cause = exception;
-        while (cause.getCause() != null) {
-            cause = cause.getCause();
-        }
-        if (cause instanceof FileInUseException) {
-            JOptionPane.showMessageDialog(ExportProgressDialog.this, "Could not export the world because the existing map directory is in use.\nPlease close Minecraft and all other windows and try again.", "Map In Use", JOptionPane.ERROR_MESSAGE);
-        } else if (cause instanceof MissingCustomTerrainException) {
-            JOptionPane.showMessageDialog(ExportProgressDialog.this,
-                "Custom Terrain " + ((MissingCustomTerrainException) exception).getIndex() + " not configured!\n" +
-                "Please configure it on the Custom Terrain panel.\n" +
-                "\n" +
-                "The partially exported map is now probably corrupted.\n" +
-                "You should delete it, or export the map again.", "Unconfigured Custom Terrain", JOptionPane.ERROR_MESSAGE);
-        } else {
-            ErrorDialog dialog = new ErrorDialog(ExportProgressDialog.this);
-            dialog.setException(exception);
-            dialog.setVisible(true);
-        }
-        close();
+    protected String getVerb() {
+        return "Export";
     }
 
     @Override
-    public void done(Map<Integer, ChunkFactory.Stats> result) {
-        long end = System.currentTimeMillis();
+    protected String getResultsReport(Map<Integer, ChunkFactory.Stats> result, long duration) {
         boolean nonStandardHeight = (world.getVersion() == SUPPORTED_VERSION_1)
             ? (world.getMaxHeight() != DEFAULT_MAX_HEIGHT_1)
             : (world.getMaxHeight() != DEFAULT_MAX_HEIGHT_2);
         StringBuilder sb = new StringBuilder();
         sb.append("<html>World exported as ").append(new File(baseDir, FileUtils.sanitiseName(name)));
-        long duration = (end - start) / 1000;
         int hours = (int) (duration / 3600);
         duration = duration - hours * 3600;
         int minutes = (int) (duration / 60);
@@ -121,46 +91,30 @@ public class ExportProgressDialog extends javax.swing.JDialog implements Listene
             sb.append("<br><br>Backup of existing map created in:<br>").append(backupDir);
         }
         sb.append("</html>");
-        JOptionPane.showMessageDialog(this, sb.toString(), "Success", JOptionPane.INFORMATION_MESSAGE);
-        close();
+        return sb.toString();
     }
 
     @Override
-    public void cancelled() {
-        JOptionPane.showMessageDialog(this, "Export cancelled by user.\n\nThe partially exported map is now probably corrupted!\nYou should delete it, or export the map again." + (backupDir.isDirectory() ? ("\n\nBackup of existing map created in:\n" + backupDir) : ""), "Export Cancelled", JOptionPane.WARNING_MESSAGE);
-        close();
+    protected String getCancellationMessage() {
+        return "Export cancelled by user.\n\nThe partially exported map is now probably corrupted!\nYou should delete it, or export the map again." + (backupDir.isDirectory() ? ("\n\nBackup of existing map created in:\n" + backupDir) : "");
     }
 
-    // ComponentListener
-    
     @Override
-    public void componentShown(ComponentEvent e) {
-        export();
-    }
-
-    @Override public void componentResized(ComponentEvent e) {}
-    @Override public void componentMoved(ComponentEvent e) {}
-    @Override public void componentHidden(ComponentEvent e) {}
-
-    // Implementation details
-    
-    private void export() {
+    protected ProgressTask<Map<Integer, ChunkFactory.Stats>> getTask() {
         Configuration config = Configuration.getInstance();
         if (config != null) {
             config.setExportDirectory(baseDir);
         }
-
-        setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-
-        multiProgressComponent1.setTask(new ProgressTask<Map<Integer, ChunkFactory.Stats>>() {
+        
+        return new ProgressTask<Map<Integer, ChunkFactory.Stats>>() {
             @Override
             public String getName() {
-                return "Please wait";
+                return "Exporting world " + name;
             }
 
             @Override
             public Map<Integer, ChunkFactory.Stats> execute(ProgressReceiver progressReceiver) throws OperationCancelled {
-                progressReceiver.setMessage("exporting world");
+                progressReceiver.setMessage("Exporting world " + name);
                 WorldExporter exporter = new WorldExporter(world);
                 try {
                     backupDir = exporter.selectBackupDir(new File(baseDir, FileUtils.sanitiseName(name)));
@@ -169,14 +123,7 @@ public class ExportProgressDialog extends javax.swing.JDialog implements Listene
                     throw new RuntimeException("I/O error while exporting world", e);
                 }
             }
-        });
-        multiProgressComponent1.setListener(this);
-        start = System.currentTimeMillis();
-        multiProgressComponent1.start();
-    }
-
-    private void close() {
-        dispose();
+        };
     }
 
     private void dumpStats(final StringBuilder sb, final ChunkFactory.Stats stats) {
@@ -244,7 +191,6 @@ public class ExportProgressDialog extends javax.swing.JDialog implements Listene
     private final String name;
     private final File baseDir;
     private volatile File backupDir;
-    private long start;
     
     private static final long serialVersionUID = 1L;
 }
