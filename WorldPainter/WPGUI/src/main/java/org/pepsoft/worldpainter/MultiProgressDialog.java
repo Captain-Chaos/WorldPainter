@@ -11,7 +11,7 @@
 
 package org.pepsoft.worldpainter;
 
-import java.awt.Window;
+import java.awt.*;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import javax.swing.JDialog;
@@ -20,6 +20,8 @@ import org.pepsoft.util.swing.ProgressComponent.Listener;
 import org.pepsoft.util.swing.ProgressTask;
 import org.pepsoft.util.SubProgressReceiver;
 import org.pepsoft.worldpainter.util.FileInUseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -48,7 +50,7 @@ public abstract class MultiProgressDialog<T> extends javax.swing.JDialog impleme
     /**
      * Transform the results object into a text describing the results, suitable
      * for inclusion in a {@link JOptionPane}. HTML is allowed, and must be
-     * enclosed in ;lt;html&gt;;lt;/html&gt; tags
+     * enclosed in &lt;html&gt;&lt;/html&gt; tags
      * 
      * @param results The result returned by the task.
      * @param duration The duration in ms.
@@ -110,6 +112,7 @@ public abstract class MultiProgressDialog<T> extends javax.swing.JDialog impleme
 
     @Override
     public void cancelled() {
+        logger.info(getVerb() + " cancelled by user");
         JOptionPane.showMessageDialog(this, getCancellationMessage(), getVerb() + " Cancelled", JOptionPane.WARNING_MESSAGE);
         close();
     }
@@ -173,6 +176,7 @@ public abstract class MultiProgressDialog<T> extends javax.swing.JDialog impleme
     // End of variables declaration//GEN-END:variables
 
     private long start;
-    
+
+    private static final Logger logger = LoggerFactory.getLogger(MultiProgressDialog.class);
     private static final long serialVersionUID = 1L;
 }

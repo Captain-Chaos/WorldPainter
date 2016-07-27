@@ -37,6 +37,11 @@ final class ProgressViewer extends javax.swing.JPanel implements ProgressReceive
         }
     }
 
+    ProgressViewer() {
+        subProgressReceiver = null;
+        initComponents();
+    }
+
     SubProgressReceiver getSubProgressReceiver() {
         return subProgressReceiver;
     }

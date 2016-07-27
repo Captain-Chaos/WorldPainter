@@ -80,4 +80,16 @@ public interface ProgressReceiver {
 
         private static final long serialVersionUID = 1L;
     }
+
+    /**
+     * Indicates that the operation should be aborted because the user has
+     * requested that it be cancelled. The message is "Cancelled by user".
+     */
+    class OperationCancelledByUser extends OperationCancelled {
+        public OperationCancelledByUser() {
+            super("Cancelled by user");
+        }
+
+        private static final long serialVersionUID = 1L;
+    }
 }

@@ -111,25 +111,28 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
 
     @Override
     public synchronized void exceptionThrown(final Throwable exception) {
-        doOnEventThread(() -> {
-            timer.stop();
-            if (jProgressBar1.isIndeterminate()) {
-                jProgressBar1.setIndeterminate(false);
-            }
-            jButton1.setEnabled(false);
-            inhibitDone = true;
-            if (exception instanceof OperationCancelled) {
-                jLabel2.setText("Cancelled");
-                if (listener != null) {
-                    listener.cancelled();
+        if (! exceptionReported) {
+            doOnEventThread(() -> {
+                timer.stop();
+                if (jProgressBar1.isIndeterminate()) {
+                    jProgressBar1.setIndeterminate(false);
                 }
-            } else {
-                jLabel2.setText("Error");
-                if (listener != null) {
-                    listener.exceptionThrown(exception);
+                jButton1.setEnabled(false);
+                inhibitDone = true;
+                if (exception instanceof OperationCancelled) {
+                    jLabel2.setText("Cancelled");
+                    if (listener != null) {
+                        listener.cancelled();
+                    }
+                } else {
+                    jLabel2.setText("Error");
+                    if (listener != null) {
+                        listener.exceptionThrown(exception);
+                    }
                 }
-            }
-        });
+            });
+            exceptionReported = true;
+        }
     }
 
     @Override
@@ -168,7 +171,7 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
     @Override
     public synchronized void checkForCancellation() throws OperationCancelled {
         if (cancelRequested) {
-            throw new OperationCancelled("Cancelled by user");
+            throw new OperationCancelledByUser();
         }
     }
 
@@ -306,7 +309,7 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
     private int progressReports, lastReportedMinutes = Integer.MAX_VALUE;
     private Timer timer;
     private Listener<T> listener;
-    private boolean timeEstimatesActivated, inhibitDone, cancelable = true;
+    private boolean timeEstimatesActivated, inhibitDone, cancelable = true, exceptionReported;
     private List<int[]> stats;
  
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ProgressComponent.class);

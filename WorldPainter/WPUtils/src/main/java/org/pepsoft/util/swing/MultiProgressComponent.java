@@ -39,6 +39,15 @@ public class MultiProgressComponent<T> extends javax.swing.JPanel implements Pro
      */
     public MultiProgressComponent() {
         initComponents();
+
+        // Size the scroll pane so that it can show eight progress viewers
+        Dimension panelPrefdSize = scrollablePanel1.getPreferredSize();
+        ProgressViewer testProgressViewer = new ProgressViewer();
+        scrollablePanel1.add(testProgressViewer);
+        panelPrefdSize.setSize(panelPrefdSize.getWidth(), testProgressViewer.getPreferredSize().getHeight() * 8);
+        scrollablePanel1.remove(testProgressViewer);
+        jScrollPane1.setMinimumSize(panelPrefdSize);
+
         scrollablePanel1.setTrackViewportWidth(true);
         scrollablePanel1.setTrackViewportHeight(false);
     }
@@ -114,25 +123,28 @@ public class MultiProgressComponent<T> extends javax.swing.JPanel implements Pro
 
     @Override
     public synchronized void exceptionThrown(final Throwable exception) {
-        doOnEventThread(() -> {
-            timer.stop();
-            if (jProgressBar1.isIndeterminate()) {
-                jProgressBar1.setIndeterminate(false);
-            }
-            jButton1.setEnabled(false);
-            inhibitDone = true;
-            if (exception instanceof OperationCancelled) {
-                jLabel2.setText("Cancelled");
-                if (listener != null) {
-                    listener.cancelled();
+        if (! exceptionReported) {
+            doOnEventThread(() -> {
+                timer.stop();
+                if (jProgressBar1.isIndeterminate()) {
+                    jProgressBar1.setIndeterminate(false);
                 }
-            } else {
-                jLabel2.setText("Error");
-                if (listener != null) {
-                    listener.exceptionThrown(exception);
+                jButton1.setEnabled(false);
+                inhibitDone = true;
+                if (exception instanceof OperationCancelled) {
+                    jLabel2.setText("Cancelled");
+                    if (listener != null) {
+                        listener.cancelled();
+                    }
+                } else {
+                    jLabel2.setText("Error");
+                    if (listener != null) {
+                        listener.exceptionThrown(exception);
+                    }
                 }
-            }
-        });
+            });
+            exceptionReported = true;
+        }
     }
 
     @Override
@@ -171,7 +183,7 @@ public class MultiProgressComponent<T> extends javax.swing.JPanel implements Pro
     @Override
     public synchronized void checkForCancellation() throws OperationCancelled {
         if (cancelRequested) {
-            throw new OperationCancelled("Cancelled by user");
+            throw new OperationCancelledByUser();
         }
     }
 
@@ -393,7 +405,7 @@ public class MultiProgressComponent<T> extends javax.swing.JPanel implements Pro
     private int progressReports, lastReportedMinutes = Integer.MAX_VALUE;
     private Timer timer;
     private Listener<T> listener;
-    private boolean timeEstimatesActivated, inhibitDone, cancelable = true;
+    private boolean timeEstimatesActivated, inhibitDone, cancelable = true, exceptionReported;
     private List<int[]> stats;
 
     private static final String CLIENT_PROPERTY_INDENTATION = MultiProgressComponent.class.getName() + ".indentation";
