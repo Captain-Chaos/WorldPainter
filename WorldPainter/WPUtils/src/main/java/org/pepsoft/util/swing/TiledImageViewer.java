@@ -722,7 +722,6 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
             while ((yLabelSkip * scale) < fontHeight) {
                 yLabelSkip += effectiveGridSize;
             }
-            System.out.println("xLabelSkip: " + xLabelSkip + ", yLabelSkip: " + yLabelSkip);
 
             // Initial setup of the graphics canvas
             g2.setStroke(normalStroke);
