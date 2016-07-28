@@ -51,8 +51,9 @@ public class ScriptRunner extends WorldPainterDialog {
         
         Configuration config = Configuration.getInstance();
         recentScriptFiles = (config.getRecentScriptFiles() != null) ? new ArrayList<>(config.getRecentScriptFiles()) : new ArrayList<>();
+        recentScriptFiles.removeIf(file -> !file.isFile());
         jComboBox1.setModel(new DefaultComboBoxModel<>(recentScriptFiles.toArray(new File[recentScriptFiles.size()])));
-        if (jComboBox1.getSelectedItem() != null) {
+        if ((jComboBox1.getSelectedItem() != null) && ((File) jComboBox1.getSelectedItem()).isFile()) {
             setupScript((File) jComboBox1.getSelectedItem());
         }
         setControlStates();
@@ -164,6 +165,10 @@ public class ScriptRunner extends WorldPainterDialog {
     }
     
     private ScriptDescriptor analyseScript(File script) {
+        if (! script.isFile()) {
+            return null;
+        }
+
         Map<String, String> properties = new LinkedHashMap<>();
         try (BufferedReader in = new BufferedReader(new FileReader(script))) {
             String line;
@@ -267,8 +272,8 @@ public class ScriptRunner extends WorldPainterDialog {
                     ScriptingContext context = new ScriptingContext(false);
                     Bindings bindings = scriptEngine.getBindings(ScriptContext.ENGINE_SCOPE);
                     bindings.put("wp", context);
-                    bindings.put("argc", 1);
-                    String[] parameters = jTextArea1.getText().split("$");
+                    String[] parameters = jTextArea1.getText().split("\\R");
+                    bindings.put("argc", parameters.length + 1);
                     String[] argv = new String[parameters.length + 1];
                     argv[0] = scriptFileName;
                     System.arraycopy(parameters, 0, argv, 1, parameters.length);

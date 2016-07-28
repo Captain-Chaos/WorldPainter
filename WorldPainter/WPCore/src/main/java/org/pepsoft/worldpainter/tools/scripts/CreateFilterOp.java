@@ -21,7 +21,10 @@ package org.pepsoft.worldpainter.tools.scripts;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.operations.Filter;
-import org.pepsoft.worldpainter.panels.FilterImpl;
+import org.pepsoft.worldpainter.panels.DefaultFilter;
+import org.pepsoft.worldpainter.panels.DefaultFilter.LayerValue;
+
+import static org.pepsoft.worldpainter.panels.DefaultFilter.Condition.*;
 
 /**
  *
@@ -52,6 +55,7 @@ public class CreateFilterOp extends AbstractOperation<Filter> {
             throw new ScriptException("Only one \"only on\" or condition may be specified");
         }
         onlyOn = Terrain.VALUES[terrainIndex];
+        exceptOnLastSet = false;
         return this;
     }
     
@@ -60,14 +64,83 @@ public class CreateFilterOp extends AbstractOperation<Filter> {
             throw new ScriptException("Only one \"only on\" or condition may be specified");
         }
         onlyOn = layer;
+        exceptOnLastSet = false;
+        return this;
+    }
+
+    public CreateFilterOp withValue(int value) throws ScriptException {
+        if (exceptOnLastSet) {
+            if (! (exceptOn instanceof Layer)) {
+                throw new ScriptException("No \"except on\" layer selected for \"with value\", or more than one \"with value\" specified");
+            }
+            if ((((Layer) exceptOn).getDataSize() == Layer.DataSize.BIT)
+                    || (((Layer) exceptOn).getDataSize() == Layer.DataSize.BIT_PER_CHUNK)
+                    || (((Layer) exceptOn).getDataSize() == Layer.DataSize.NONE)) {
+                throw new ScriptException("A value may only be specified for continuous or discrete layer types");
+            }
+            exceptOn = new LayerValue((Layer) exceptOn, value);
+        } else {
+            if (! (onlyOn instanceof Layer)) {
+                throw new ScriptException("No \"only on\" layer selected for \"with value\", or more than one \"with value\" specified");
+            }
+            if ((((Layer) onlyOn).getDataSize() == Layer.DataSize.BIT)
+                    || (((Layer) onlyOn).getDataSize() == Layer.DataSize.BIT_PER_CHUNK)
+                    || (((Layer) onlyOn).getDataSize() == Layer.DataSize.NONE)) {
+                throw new ScriptException("A value may only be specified for continuous or discrete layer types");
+            }
+            onlyOn = new LayerValue((Layer) onlyOn, value);
+        }
         return this;
     }
     
+    public CreateFilterOp orHigher() throws ScriptException {
+        if (exceptOnLastSet) {
+            if (exceptOn instanceof Layer) {
+                throw new ScriptException("No \"except on\" layer value specified for \"or higher\"");
+            } else if (((LayerValue) exceptOn).condition != null) {
+                throw new ScriptException("Only one of \"or lower\" and \"or higher\" may be specified for \"except on\" value");
+            }
+            exceptOn = new LayerValue(((LayerValue) exceptOn).layer, ((LayerValue) exceptOn).value, HIGHER_THAN_OR_EQUAL);
+        } else {
+            if (onlyOn == null) {
+                throw new ScriptException("No \"only on\" layer specified for \"or higher\"");
+            } else if (onlyOn instanceof Layer) {
+                throw new ScriptException("No \"only on\" layer value specified for \"or higher\"");
+            } else if (((LayerValue) onlyOn).condition != null) {
+                throw new ScriptException("Only one of \"or lower\" and \"or higher\" may be specified for \"only on\" value");
+            }
+            onlyOn = new LayerValue(((LayerValue) onlyOn).layer, ((LayerValue) onlyOn).value, HIGHER_THAN_OR_EQUAL);
+        }
+        return this;
+    }
+
+    public CreateFilterOp orLower() throws ScriptException {
+        if (exceptOnLastSet) {
+            if (exceptOn instanceof Layer) {
+                throw new ScriptException("No \"except on\" layer value specified for \"or lower\"");
+            } else if (((LayerValue) exceptOn).condition != null) {
+                throw new ScriptException("Only one of \"or lower\" and \"or higher\" may be specified for \"except on\" value");
+            }
+            exceptOn = new LayerValue(((LayerValue) exceptOn).layer, ((LayerValue) exceptOn).value, LOWER_THAN_OR_EQUAL);
+        } else {
+            if (onlyOn == null) {
+                throw new ScriptException("No \"only on\" layer specified for \"or lower\"");
+            } else if (onlyOn instanceof Layer) {
+                throw new ScriptException("No \"only on\" layer value specified for \"or lower\"");
+            } else if (((LayerValue) onlyOn).condition != null) {
+                throw new ScriptException("Only one of \"or lower\" and \"or higher\" may be specified for \"only on\" value");
+            }
+            onlyOn = new LayerValue(((LayerValue) onlyOn).layer, ((LayerValue) onlyOn).value, LOWER_THAN_OR_EQUAL);
+        }
+        return this;
+    }
+
     public CreateFilterOp onlyOnBiome(int biomeIndex) throws ScriptException {
         if (onlyOn != null) {
             throw new ScriptException("Only one \"only on\" or condition may be specified");
         }
         onlyOn = biomeIndex;
+        exceptOnLastSet = false;
         return this;
     }
     
@@ -76,6 +149,7 @@ public class CreateFilterOp extends AbstractOperation<Filter> {
             throw new ScriptException("Only one \"only on\" or condition may be specified");
         }
         onlyOn = -biomeIndex;
+        exceptOnLastSet = false;
         return this;
     }
     
@@ -83,7 +157,8 @@ public class CreateFilterOp extends AbstractOperation<Filter> {
         if (onlyOn != null) {
             throw new ScriptException("Only one \"only on\" or condition may be specified");
         }
-        onlyOn = FilterImpl.AUTO_BIOMES;
+        onlyOn = DefaultFilter.AUTO_BIOMES;
+        exceptOnLastSet = false;
         return this;
     }
     
@@ -91,7 +166,8 @@ public class CreateFilterOp extends AbstractOperation<Filter> {
         if (onlyOn != null) {
             throw new ScriptException("Only one \"only on\" or condition may be specified");
         }
-        onlyOn = FilterImpl.WATER;
+        onlyOn = DefaultFilter.WATER;
+        exceptOnLastSet = false;
         return this;
     }
     
@@ -99,7 +175,8 @@ public class CreateFilterOp extends AbstractOperation<Filter> {
         if (onlyOn != null) {
             throw new ScriptException("Only one \"only on\" or condition may be specified");
         }
-        onlyOn = FilterImpl.LAND;
+        onlyOn = DefaultFilter.LAND;
+        exceptOnLastSet = false;
         return this;
     }
     
@@ -108,6 +185,7 @@ public class CreateFilterOp extends AbstractOperation<Filter> {
             throw new ScriptException("Only one or \"except on\" condition may be specified");
         }
         exceptOn = Terrain.VALUES[terrainIndex];
+        exceptOnLastSet = true;
         return this;
     }
     
@@ -116,6 +194,7 @@ public class CreateFilterOp extends AbstractOperation<Filter> {
             throw new ScriptException("Only one or \"except on\" condition may be specified");
         }
         exceptOn = layer;
+        exceptOnLastSet = true;
         return this;
     }
     
@@ -124,6 +203,7 @@ public class CreateFilterOp extends AbstractOperation<Filter> {
             throw new ScriptException("Only one or \"except on\" condition may be specified");
         }
         exceptOn = biomeIndex;
+        exceptOnLastSet = true;
         return this;
     }
     
@@ -132,6 +212,7 @@ public class CreateFilterOp extends AbstractOperation<Filter> {
             throw new ScriptException("Only one or \"except on\" condition may be specified");
         }
         exceptOn = -biomeIndex;
+        exceptOnLastSet = true;
         return this;
     }
     
@@ -139,7 +220,8 @@ public class CreateFilterOp extends AbstractOperation<Filter> {
         if (exceptOn != null) {
             throw new ScriptException("Only one or \"except on\" condition may be specified");
         }
-        exceptOn = FilterImpl.AUTO_BIOMES;
+        exceptOn = DefaultFilter.AUTO_BIOMES;
+        exceptOnLastSet = true;
         return this;
     }
     
@@ -147,7 +229,8 @@ public class CreateFilterOp extends AbstractOperation<Filter> {
         if (exceptOn != null) {
             throw new ScriptException("Only one or \"except on\" condition may be specified");
         }
-        exceptOn = FilterImpl.WATER;
+        exceptOn = DefaultFilter.WATER;
+        exceptOnLastSet = true;
         return this;
     }
     
@@ -155,7 +238,8 @@ public class CreateFilterOp extends AbstractOperation<Filter> {
         if (exceptOn != null) {
             throw new ScriptException("Only one or \"except on\" condition may be specified");
         }
-        exceptOn = FilterImpl.LAND;
+        exceptOn = DefaultFilter.LAND;
+        exceptOnLastSet = true;
         return this;
     }
     
@@ -186,10 +270,10 @@ public class CreateFilterOp extends AbstractOperation<Filter> {
     public Filter go() throws ScriptException {
         goCalled();
 
-        return new FilterImpl(null, aboveLevel, belowLevel, feather, onlyOn, exceptOn, degrees, slopeIsAbove);
+        return new DefaultFilter(null, aboveLevel, belowLevel, feather, onlyOn, exceptOn, degrees, slopeIsAbove);
     }
     
     private int aboveLevel = -1, belowLevel = -1, degrees = -1;
-    private boolean feather, slopeIsAbove;
+    private boolean feather, slopeIsAbove, exceptOnLastSet;
     private Object onlyOn, exceptOn;
 }

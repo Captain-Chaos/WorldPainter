@@ -10,15 +10,16 @@ import org.pepsoft.worldpainter.layers.Annotations;
 import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.layers.FloodWithLava;
 import org.pepsoft.worldpainter.layers.Layer;
-import org.pepsoft.worldpainter.layers.Layer.DataSize;
 import org.pepsoft.worldpainter.operations.Filter;
+
+import static org.pepsoft.worldpainter.layers.Layer.DataSize.*;
 
 /**
  *
  * @author pepijn
  */
-public final class FilterImpl implements Filter {
-    public FilterImpl(Dimension dimension, int aboveLevel, int belowLevel, boolean feather, Object onlyOn, Object exceptOn, int aboveDegrees, boolean slopeIsAbove) {
+public final class DefaultFilter implements Filter {
+    public DefaultFilter(Dimension dimension, int aboveLevel, int belowLevel, boolean feather, Object onlyOn, Object exceptOn, int aboveDegrees, boolean slopeIsAbove) {
         this.dimension = dimension;
         this.aboveLevel = aboveLevel;
         this.belowLevel = belowLevel;
@@ -53,10 +54,10 @@ public final class FilterImpl implements Filter {
             onlyOnValue = -1;
         } else if (onlyOn instanceof Layer) {
             this.onlyOn = true;
-            if ((((Layer) onlyOn).getDataSize() == DataSize.BIT) || (((Layer) onlyOn).getDataSize() == DataSize.BIT_PER_CHUNK)) {
+            if ((((Layer) onlyOn).getDataSize() == BIT) || (((Layer) onlyOn).getDataSize() == BIT_PER_CHUNK)) {
                 onlyOnObjectType = ObjectType.BIT_LAYER;
             } else {
-                onlyOnObjectType = ObjectType.INT_LAYER;
+                onlyOnObjectType = ObjectType.INT_LAYER_ANY;
             }
             onlyOnTerrain = null;
             onlyOnLayer = (Layer) onlyOn;
@@ -64,7 +65,7 @@ public final class FilterImpl implements Filter {
         } else if (onlyOn instanceof LayerValue) {
             this.onlyOn = true;
             LayerValue layerValue = (LayerValue) onlyOn;
-            if (layerValue.layer.equals(Biome.INSTANCE)) {
+            if (layerValue.layer instanceof Biome) {
                 if (layerValue.value < 0) {
                     onlyOnObjectType = ObjectType.AUTO_BIOME;
                     onlyOnTerrain = null;
@@ -76,14 +77,38 @@ public final class FilterImpl implements Filter {
                     onlyOnLayer = null;
                     onlyOnValue = layerValue.value;
                 }
-            } else if (layerValue.layer.equals(Annotations.INSTANCE)) {
-                if (layerValue.any) {
+            } else if (layerValue.layer instanceof Annotations) {
+                if (layerValue.condition != null) {
                     onlyOnObjectType = ObjectType.ANNOTATION_ANY;
                     onlyOnTerrain = null;
                     onlyOnLayer = null;
                     onlyOnValue = -1;
                 } else {
                     onlyOnObjectType = ObjectType.ANNOTATION;
+                    onlyOnTerrain = null;
+                    onlyOnLayer = null;
+                    onlyOnValue = layerValue.value;
+                }
+            } else if ((layerValue.layer.getDataSize() != BIT) && (layerValue.layer.getDataSize() != BIT_PER_CHUNK) && (layerValue.layer.getDataSize() != NONE)) {
+                if (layerValue.condition == null) {
+                    onlyOnObjectType = ObjectType.INT_LAYER_ANY;
+                    onlyOnTerrain = null;
+                    onlyOnLayer = null;
+                    onlyOnValue = -1;
+                } else {
+                    switch (layerValue.condition) {
+                        case EQUAL:
+                            onlyOnObjectType = ObjectType.INT_LAYER_EQUAL;
+                            break;
+                        case HIGHER_THAN_OR_EQUAL:
+                            onlyOnObjectType = ObjectType.INT_LAYER_EQUAL_OR_HIGHER;
+                            break;
+                        case LOWER_THAN_OR_EQUAL:
+                            onlyOnObjectType = ObjectType.INT_LAYER_EQUAL_OR_LOWER;
+                            break;
+                        default:
+                            throw new InternalError();
+                    }
                     onlyOnTerrain = null;
                     onlyOnLayer = null;
                     onlyOnValue = layerValue.value;
@@ -130,10 +155,10 @@ public final class FilterImpl implements Filter {
             exceptOnValue = -1;
         } else if (exceptOn instanceof Layer) {
             this.exceptOn = true;
-            if ((((Layer) exceptOn).getDataSize() == DataSize.BIT) || (((Layer) exceptOn).getDataSize() == DataSize.BIT_PER_CHUNK)) {
+            if ((((Layer) exceptOn).getDataSize() == BIT) || (((Layer) exceptOn).getDataSize() == BIT_PER_CHUNK)) {
                 exceptOnObjectType = ObjectType.BIT_LAYER;
             } else {
-                exceptOnObjectType = ObjectType.INT_LAYER;
+                exceptOnObjectType = ObjectType.INT_LAYER_ANY;
             }
             exceptOnTerrain = null;
             exceptOnLayer = (Layer) exceptOn;
@@ -141,7 +166,7 @@ public final class FilterImpl implements Filter {
         } else if (exceptOn instanceof LayerValue) {
             this.exceptOn = true;
             LayerValue layerValue = (LayerValue) exceptOn;
-            if (layerValue.layer.equals(Biome.INSTANCE)) {
+            if (layerValue.layer instanceof Biome) {
                 if (layerValue.value < 0) {
                     exceptOnObjectType = ObjectType.AUTO_BIOME;
                     exceptOnTerrain = null;
@@ -153,14 +178,38 @@ public final class FilterImpl implements Filter {
                     exceptOnLayer = null;
                     exceptOnValue = layerValue.value;
                 }
-            } else if (layerValue.layer.equals(Annotations.INSTANCE)) {
-                if (layerValue.any) {
+            } else if (layerValue.layer instanceof Annotations) {
+                if (layerValue.condition == null) {
                     exceptOnObjectType = ObjectType.ANNOTATION_ANY;
                     exceptOnTerrain = null;
                     exceptOnLayer = null;
                     exceptOnValue = -1;
                 } else {
                     exceptOnObjectType = ObjectType.ANNOTATION;
+                    exceptOnTerrain = null;
+                    exceptOnLayer = null;
+                    exceptOnValue = layerValue.value;
+                }
+            } else if ((layerValue.layer.getDataSize() != BIT) && (layerValue.layer.getDataSize() != BIT_PER_CHUNK) && (layerValue.layer.getDataSize() != NONE)) {
+                if (layerValue.condition == null) {
+                    exceptOnObjectType = ObjectType.INT_LAYER_ANY;
+                    exceptOnTerrain = null;
+                    exceptOnLayer = null;
+                    exceptOnValue = -1;
+                } else {
+                    switch (layerValue.condition) {
+                        case EQUAL:
+                            exceptOnObjectType = ObjectType.INT_LAYER_EQUAL;
+                            break;
+                        case HIGHER_THAN_OR_EQUAL:
+                            exceptOnObjectType = ObjectType.INT_LAYER_EQUAL_OR_HIGHER;
+                            break;
+                        case LOWER_THAN_OR_EQUAL:
+                            exceptOnObjectType = ObjectType.INT_LAYER_EQUAL_OR_LOWER;
+                            break;
+                        default:
+                            throw new InternalError();
+                    }
                     exceptOnTerrain = null;
                     exceptOnLayer = null;
                     exceptOnValue = layerValue.value;
@@ -248,8 +297,23 @@ public final class FilterImpl implements Filter {
                             return 0.0f;
                         }
                         break;
-                    case INT_LAYER:
+                    case INT_LAYER_ANY:
                         if (dimension.getLayerValueAt(exceptOnLayer, x, y) != 0) {
+                            return 0.0f;
+                        }
+                        break;
+                    case INT_LAYER_EQUAL:
+                        if (dimension.getLayerValueAt(exceptOnLayer, x, y) != exceptOnValue) {
+                            return 0.0f;
+                        }
+                        break;
+                    case INT_LAYER_EQUAL_OR_HIGHER:
+                        if (dimension.getLayerValueAt(exceptOnLayer, x, y) < exceptOnValue) {
+                            return 0.0f;
+                        }
+                        break;
+                    case INT_LAYER_EQUAL_OR_LOWER:
+                        if (dimension.getLayerValueAt(exceptOnLayer, x, y) > exceptOnValue) {
                             return 0.0f;
                         }
                         break;
@@ -302,8 +366,23 @@ public final class FilterImpl implements Filter {
                             return 0.0f;
                         }
                         break;
-                    case INT_LAYER:
+                    case INT_LAYER_ANY:
                         if (dimension.getLayerValueAt(onlyOnLayer, x, y) == 0) {
+                            return 0.0f;
+                        }
+                        break;
+                    case INT_LAYER_EQUAL:
+                        if (dimension.getLayerValueAt(onlyOnLayer, x, y) == onlyOnValue) {
+                            return 0.0f;
+                        }
+                        break;
+                    case INT_LAYER_EQUAL_OR_HIGHER:
+                        if (dimension.getLayerValueAt(onlyOnLayer, x, y) >= onlyOnValue) {
+                            return 0.0f;
+                        }
+                        break;
+                    case INT_LAYER_EQUAL_OR_LOWER:
+                        if (dimension.getLayerValueAt(onlyOnLayer, x, y) <= onlyOnValue) {
                             return 0.0f;
                         }
                         break;
@@ -402,17 +481,25 @@ public final class FilterImpl implements Filter {
     }
 
     public enum ObjectType {
-        TERRAIN, BIT_LAYER, INT_LAYER, BIOME, WATER, LAND, LAVA, AUTO_BIOME, ANNOTATION_ANY, ANNOTATION
+        TERRAIN, BIT_LAYER, INT_LAYER_ANY, INT_LAYER_EQUAL, INT_LAYER_EQUAL_OR_HIGHER, INT_LAYER_EQUAL_OR_LOWER, BIOME, WATER, LAND, LAVA, AUTO_BIOME, ANNOTATION_ANY, ANNOTATION
+    }
+
+    public enum Condition {
+        EQUAL, LOWER_THAN_OR_EQUAL, HIGHER_THAN_OR_EQUAL
     }
 
     public static class LayerValue {
         public LayerValue(Layer layer) {
             this.layer = layer;
             value = -1;
-            any = true;
+            condition = null;
         }
 
         public LayerValue(Layer layer, int value) {
+            this(layer, value, Condition.EQUAL);
+        }
+
+        public LayerValue(Layer layer, int value, Condition condition) {
             switch (layer.getDataSize()) {
                 case BIT_PER_CHUNK:
                 case BIT:
@@ -435,11 +522,11 @@ public final class FilterImpl implements Filter {
             }
             this.layer = layer;
             this.value = value;
-            any = false;
+            this.condition = condition;
         }
 
         public final Layer layer;
         public final int value;
-        public final boolean any;
+        public final Condition condition;
     }
 }

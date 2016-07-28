@@ -33,7 +33,7 @@ import org.pepsoft.worldpainter.layers.Annotations;
 import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.operations.Filter;
-import org.pepsoft.worldpainter.panels.FilterImpl;
+import org.pepsoft.worldpainter.panels.DefaultFilter;
 
 import java.awt.*;
 import java.util.Arrays;
@@ -380,8 +380,8 @@ public class MappingOp extends AbstractOperation<Void> {
         final int x1 = extent.x, y1 = extent.y;
         final int x2 = extent.x + extent.width, y2 = extent.y + extent.height;
         final boolean bitLayer = (layer != null) && ((layer.getDataSize() == Layer.DataSize.BIT) || (layer.getDataSize() == Layer.DataSize.BIT_PER_CHUNK));
-        if (filter instanceof FilterImpl) {
-            ((FilterImpl) filter).setDimension(dimension);
+        if (filter instanceof DefaultFilter) {
+            ((DefaultFilter) filter).setDimension(dimension);
         }
         for (int x = x1; x < x2; x++) {
             for (int y = y1; y < y2; y++) {

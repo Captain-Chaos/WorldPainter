@@ -13,7 +13,7 @@ import org.pepsoft.worldpainter.biomeschemes.CustomBiome;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.operations.Filter;
-import org.pepsoft.worldpainter.panels.FilterImpl.LevelType;
+import org.pepsoft.worldpainter.panels.DefaultFilter.LevelType;
 
 import javax.swing.*;
 import javax.swing.JSpinner.NumberEditor;
@@ -39,7 +39,7 @@ public class BrushOptions extends javax.swing.JPanel {
 
     public Filter getFilter() {
         if (checkBoxAbove.isSelected() || checkBoxBelow.isSelected() || checkBoxReplace.isSelected() || checkBoxExceptOn.isSelected() || checkBoxAboveSlope.isSelected() || checkBoxBelowSlope.isSelected()) {
-            return new FilterImpl(App.getInstance().getDimension(),
+            return new DefaultFilter(App.getInstance().getDimension(),
                     checkBoxAbove.isSelected() ? (Integer) spinnerAbove.getValue() : -1,
                     checkBoxBelow.isSelected() ? (Integer) spinnerBelow.getValue() : -1,
                     checkBoxFeather.isSelected(),
@@ -61,7 +61,7 @@ public class BrushOptions extends javax.swing.JPanel {
             checkBoxAboveSlope.setSelected(false);
             checkBoxBelowSlope.setSelected(false);
         } else {
-            FilterImpl myFilter = (FilterImpl) filter;
+            DefaultFilter myFilter = (DefaultFilter) filter;
             checkBoxAbove.setSelected(myFilter.levelType == LevelType.ABOVE || myFilter.levelType == LevelType.BETWEEN || myFilter.levelType == LevelType.OUTSIDE);
             if (myFilter.aboveLevel >= 0) {
                 spinnerAbove.setValue(myFilter.aboveLevel);
@@ -88,7 +88,7 @@ public class BrushOptions extends javax.swing.JPanel {
                         buttonReplace.setIcon(biomeHelper.getBiomeIcon(biome));
                         break;
                     case BIT_LAYER:
-                    case INT_LAYER:
+                    case INT_LAYER_ANY:
                         Layer layer = myFilter.onlyOnLayer;
                         onlyOn = layer;
                         buttonReplace.setText(layer.getName());
@@ -102,23 +102,23 @@ public class BrushOptions extends javax.swing.JPanel {
                         buttonReplace.setIcon(new ImageIcon(terrain.getIcon(colourScheme)));
                         break;
                     case WATER:
-                        onlyOn = FilterImpl.WATER;
+                        onlyOn = DefaultFilter.WATER;
                         buttonReplace.setText("Water");
                         buttonReplace.setIcon(null);
                         break;
                     case LAND:
-                        onlyOn = FilterImpl.LAND;
+                        onlyOn = DefaultFilter.LAND;
                         buttonReplace.setText("Land");
                         buttonReplace.setIcon(null);
                         break;
                     case ANNOTATION:
                         int selectedColour = myFilter.onlyOnValue, dataValue = selectedColour - ((selectedColour < 8) ? 1 : 0);
-                        onlyOn = new FilterImpl.LayerValue(Annotations.INSTANCE, selectedColour);
+                        onlyOn = new DefaultFilter.LayerValue(Annotations.INSTANCE, selectedColour);
                         buttonReplace.setText(Constants.COLOUR_NAMES[dataValue] + " Annotations");
                         buttonReplace.setIcon(IconUtils.createColourIcon(app.getColourScheme().getColour(Constants.BLK_WOOL, dataValue)));
                         break;
                     case ANNOTATION_ANY:
-                        onlyOn = new FilterImpl.LayerValue(Annotations.INSTANCE);
+                        onlyOn = new DefaultFilter.LayerValue(Annotations.INSTANCE);
                         buttonReplace.setText("All Annotations");
                         buttonReplace.setIcon(null);
                         break;
@@ -134,7 +134,7 @@ public class BrushOptions extends javax.swing.JPanel {
                         buttonExceptOn.setIcon(biomeHelper.getBiomeIcon(biome));
                         break;
                     case BIT_LAYER:
-                    case INT_LAYER:
+                    case INT_LAYER_ANY:
                         Layer layer = myFilter.exceptOnLayer;
                         exceptOn = layer;
                         buttonExceptOn.setText(layer.getName());
@@ -148,23 +148,23 @@ public class BrushOptions extends javax.swing.JPanel {
                         buttonExceptOn.setIcon(new ImageIcon(terrain.getIcon(colourScheme)));
                         break;
                     case WATER:
-                        exceptOn = FilterImpl.WATER;
+                        exceptOn = DefaultFilter.WATER;
                         buttonExceptOn.setText("Water");
                         buttonExceptOn.setIcon(null);
                         break;
                     case LAND:
-                        exceptOn = FilterImpl.LAND;
+                        exceptOn = DefaultFilter.LAND;
                         buttonExceptOn.setText("Land");
                         buttonExceptOn.setIcon(null);
                         break;
                     case ANNOTATION:
                         int selectedColour = myFilter.exceptOnValue, dataValue = selectedColour - ((selectedColour < 8) ? 1 : 0);
-                        exceptOn = new FilterImpl.LayerValue(Annotations.INSTANCE, selectedColour);
+                        exceptOn = new DefaultFilter.LayerValue(Annotations.INSTANCE, selectedColour);
                         buttonExceptOn.setText(Constants.COLOUR_NAMES[dataValue] + " Annotations");
                         buttonExceptOn.setIcon(IconUtils.createColourIcon(app.getColourScheme().getColour(Constants.BLK_WOOL, dataValue)));
                         break;
                     case ANNOTATION_ANY:
-                        exceptOn = new FilterImpl.LayerValue(Annotations.INSTANCE, myFilter.exceptOnValue);
+                        exceptOn = new DefaultFilter.LayerValue(Annotations.INSTANCE, myFilter.exceptOnValue);
                         buttonExceptOn.setText("All Annotations");
                         buttonExceptOn.setIcon(null);
                         break;
@@ -230,16 +230,16 @@ public class BrushOptions extends javax.swing.JPanel {
     
     private JPopupMenu createObjectSelectionMenu(final ObjectSelectionListener listener) {
         JMenuItem waterItem = new JMenuItem("Water");
-        waterItem.addActionListener(e -> listener.objectSelected(FilterImpl.WATER, "Water", null));
+        waterItem.addActionListener(e -> listener.objectSelected(DefaultFilter.WATER, "Water", null));
         JPopupMenu popupMenu = new JPopupMenu();
         popupMenu.add(waterItem);
 
         JMenuItem lavaItem = new JMenuItem("Lava");
-        lavaItem.addActionListener(e -> listener.objectSelected(FilterImpl.LAVA, "Lava", null));
+        lavaItem.addActionListener(e -> listener.objectSelected(DefaultFilter.LAVA, "Lava", null));
         popupMenu.add(lavaItem);
 
         JMenuItem landItem = new JMenuItem("Land");
-        landItem.addActionListener(e -> listener.objectSelected(FilterImpl.LAND, "Land", null));
+        landItem.addActionListener(e -> listener.objectSelected(DefaultFilter.LAND, "Land", null));
         popupMenu.add(landItem);
         
         JMenu terrainMenu = new JMenu("Terrain");
@@ -311,7 +311,7 @@ public class BrushOptions extends javax.swing.JPanel {
                 final String name = biomeHelper.getBiomeName(selectedBiome) + " (" + selectedBiome + ")";
                 final Icon icon = biomeHelper.getBiomeIcon(selectedBiome);
                 final JMenuItem menuItem = new JMenuItem(name, icon);
-                menuItem.addActionListener(e -> listener.objectSelected(new FilterImpl.LayerValue(Biome.INSTANCE, selectedBiome), name, icon));
+                menuItem.addActionListener(e -> listener.objectSelected(new DefaultFilter.LayerValue(Biome.INSTANCE, selectedBiome), name, icon));
                 customBiomeMenu.add(menuItem);
             }
             biomeMenu.add(customBiomeMenu);
@@ -322,20 +322,20 @@ public class BrushOptions extends javax.swing.JPanel {
                 final String name = biomeHelper.getBiomeName(i) + " (" + selectedBiome + ")";
                 final Icon icon = biomeHelper.getBiomeIcon(i);
                 final JMenuItem menuItem = new JMenuItem(name, icon);
-                menuItem.addActionListener(e -> listener.objectSelected(new FilterImpl.LayerValue(Biome.INSTANCE, selectedBiome), name, icon));
+                menuItem.addActionListener(e -> listener.objectSelected(new DefaultFilter.LayerValue(Biome.INSTANCE, selectedBiome), name, icon));
                 biomeMenu.add(menuItem);
             }
         }
         JMenu autoBiomeSubMenu = new JMenu("Auto Biomes");
         JMenuItem autoBiomesMenuItem = new JMenuItem("All Auto Biomes");
-        autoBiomesMenuItem.addActionListener(e -> listener.objectSelected(FilterImpl.AUTO_BIOMES, "All Auto Biomes", null));
+        autoBiomesMenuItem.addActionListener(e -> listener.objectSelected(DefaultFilter.AUTO_BIOMES, "All Auto Biomes", null));
         autoBiomeSubMenu.add(autoBiomesMenuItem);
         for (int autoBiome: Dimension.POSSIBLE_AUTO_BIOMES) {
             final int selectedBiome = -autoBiome;
             final String name = biomeHelper.getBiomeName(autoBiome);
             final Icon icon = biomeHelper.getBiomeIcon(autoBiome);
             final JMenuItem menuItem = new JMenuItem(name, icon);
-            menuItem.addActionListener(e -> listener.objectSelected(new FilterImpl.LayerValue(Biome.INSTANCE, selectedBiome), name, icon));
+            menuItem.addActionListener(e -> listener.objectSelected(new DefaultFilter.LayerValue(Biome.INSTANCE, selectedBiome), name, icon));
             autoBiomeSubMenu.add(menuItem);
         }
         biomeMenu.add(autoBiomeSubMenu);
@@ -346,7 +346,7 @@ public class BrushOptions extends javax.swing.JPanel {
                 final String name = biomeHelper.getBiomeName(i) + " (" + selectedBiome + ")";
                 final Icon icon = biomeHelper.getBiomeIcon(i);
                 final JMenuItem menuItem = new JMenuItem(name, icon);
-                menuItem.addActionListener(e -> listener.objectSelected(new FilterImpl.LayerValue(Biome.INSTANCE, selectedBiome), name, icon));
+                menuItem.addActionListener(e -> listener.objectSelected(new DefaultFilter.LayerValue(Biome.INSTANCE, selectedBiome), name, icon));
                 biomeSubMenu.add(menuItem);
             }
         }
@@ -355,13 +355,13 @@ public class BrushOptions extends javax.swing.JPanel {
 
         JMenu annotationsMenu = new JMenu("Annotations");
         JMenuItem menuItem = new JMenuItem("All Annotations");
-        menuItem.addActionListener(e -> listener.objectSelected(new FilterImpl.LayerValue(Annotations.INSTANCE), "All Annotations", null));
+        menuItem.addActionListener(e -> listener.objectSelected(new DefaultFilter.LayerValue(Annotations.INSTANCE), "All Annotations", null));
         annotationsMenu.add(menuItem);
         for (int i = 1; i < 16; i++) {
             final int selectedColour = i, dataValue = selectedColour - ((selectedColour < 8) ? 1 : 0);
             final Icon icon  = IconUtils.createColourIcon(colourScheme.getColour(Constants.BLK_WOOL, dataValue));
             menuItem = new JMenuItem(Constants.COLOUR_NAMES[dataValue], icon);
-            menuItem.addActionListener(e -> listener.objectSelected(new FilterImpl.LayerValue(Annotations.INSTANCE, selectedColour), Constants.COLOUR_NAMES[dataValue] + " Annotations", icon));
+            menuItem.addActionListener(e -> listener.objectSelected(new DefaultFilter.LayerValue(Annotations.INSTANCE, selectedColour), Constants.COLOUR_NAMES[dataValue] + " Annotations", icon));
             annotationsMenu.add(menuItem);
         }
         popupMenu.add(annotationsMenu);

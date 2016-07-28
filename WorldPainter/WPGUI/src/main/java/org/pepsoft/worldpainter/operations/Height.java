@@ -9,7 +9,7 @@ import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.MapDragControl;
 import org.pepsoft.worldpainter.RadiusControl;
 import org.pepsoft.worldpainter.WorldPainter;
-import org.pepsoft.worldpainter.panels.FilterImpl;
+import org.pepsoft.worldpainter.panels.DefaultFilter;
 
 /**
  *
@@ -35,8 +35,8 @@ public class Height extends RadiusOperation {
         float adjustment = (float) Math.pow(dynamicLevel * getLevel() * 2, 2.0);
         Dimension dimension = getDimension();
         final int minHeight, maxHeight;
-        if (getFilter() instanceof FilterImpl) {
-            FilterImpl filter = (FilterImpl) getFilter();
+        if (getFilter() instanceof DefaultFilter) {
+            DefaultFilter filter = (DefaultFilter) getFilter();
             if (filter.getAboveLevel() != -1) {
                 minHeight = filter.getAboveLevel();
             } else {
