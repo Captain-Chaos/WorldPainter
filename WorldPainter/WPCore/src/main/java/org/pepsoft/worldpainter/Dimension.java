@@ -832,9 +832,6 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     public void setMinecraftSeed(long minecraftSeed) {
         if (minecraftSeed != this.minecraftSeed) {
             long oldMinecraftSeed = this.minecraftSeed;
-            if (undoManager != null) {
-                undoManager.clear();
-            }
             this.minecraftSeed = minecraftSeed;
             dirty = true;
             propertyChangeSupport.firePropertyChange("minecraftSeed", oldMinecraftSeed, minecraftSeed);
