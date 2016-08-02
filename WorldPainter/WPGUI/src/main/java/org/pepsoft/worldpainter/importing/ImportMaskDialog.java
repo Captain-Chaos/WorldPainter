@@ -127,7 +127,7 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
             } else {
                 labelImageDimensions.setForeground(null);
                 int width = image.getWidth(), height = image.getHeight();
-                maskImporter = new MaskImporter(dimension, image, allLayers);
+                maskImporter = new MaskImporter(dimension, selectedFile, image, allLayers);
                 MaskImporter.InputType inputType = maskImporter.getInputType();
                 if (inputType == EIGHT_BIT_GREY_SCALE || inputType == SIXTEEN_BIT_GREY_SCALE) {
                     SpinnerNumberModel thresholdModel = (SpinnerNumberModel) spinnerThreshold.getModel();

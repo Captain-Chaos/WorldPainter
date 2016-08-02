@@ -9,6 +9,8 @@ import java.awt.Window;
 import org.pepsoft.worldpainter.World2;
 import org.pepsoft.worldpainter.WorldPainterDialog;
 
+import javax.swing.*;
+
 /**
  *
  * @author Pepijn Schmitz
@@ -23,8 +25,9 @@ public class WorldHistoryDialog extends WorldPainterDialog {
         initComponents();
         tableModel = new WorldHistoryTableModel(world);
         jTable1.setModel(tableModel);
-        jTable1.getColumnModel().getColumn(0).sizeWidthToFit();
-        jTable1.getColumnModel().getColumn(1).sizeWidthToFit();
+        jTable1.getColumnModel().getColumn(0).setPreferredWidth(100);
+        jTable1.getColumnModel().getColumn(1).setPreferredWidth(100);
+        jTable1.getColumnModel().getColumn(2).setPreferredWidth(800);
         getRootPane().setDefaultButton(jButton1);
         setLocationRelativeTo(parent);
     }
@@ -74,6 +77,7 @@ public class WorldHistoryDialog extends WorldPainterDialog {
             }
         });
 
+        jTable1.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_LAST_COLUMN);
         jScrollPane1.setViewportView(jTable1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());

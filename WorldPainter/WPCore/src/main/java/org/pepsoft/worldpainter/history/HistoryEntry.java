@@ -26,7 +26,7 @@ public class HistoryEntry implements Serializable {
             case WORLD_IMPORTED_FROM_MINECRAFT_MAP:
                 return MessageFormat.format("World imported from Minecraft map {0} at {1} with WorldPainter {2}", args[0], args[1], wpVersion);
             case WORLD_IMPORTED_FROM_HEIGHT_MAP:
-                return MessageFormat.format("World imported from height map at {0} with WorldPainter {1}", args[0], wpVersion);
+                return MessageFormat.format("World imported from height map {0} with WorldPainter {1}", args[0], wpVersion);
             case WORLD_RECOVERED:
                 return MessageFormat.format("World recovered from corrupted file with WorldPainter {0}", wpVersion);
             case WORLD_LOADED:
@@ -57,6 +57,10 @@ public class HistoryEntry implements Serializable {
                 return MessageFormat.format("Dimension {0} rotated {1} degrees", args[0], args[1]);
             case WORLD_MAX_HEIGHT_CHANGED:
                 return MessageFormat.format("Maximum height of world changed to {0}", args[0]);
+            case WORLD_HEIGHT_MAP_IMPORTED_TO_DIMENSION:
+                return MessageFormat.format("Height map {1} imported into dimension {0}", args[0], args[1]);
+            case WORLD_MASK_IMPORTED_TO_DIMENSION:
+                return MessageFormat.format("Mask {1} imported into dimension {0} as layer {2}", args[0], args[1], args[2]);
             default:
                 return MessageFormat.format("Unknown event ID {0} by WorldPainter {0} ({1})", key, wpVersion, wpBuild);
         }
@@ -67,26 +71,28 @@ public class HistoryEntry implements Serializable {
     public final String wpVersion = Version.VERSION, wpBuild = Version.BUILD, userId = System.getProperty("user.name");
     public final Serializable[] args;
 
-    public static final int WORLD_LEGACY_PRE_0_2                 =  1;
-    public static final int WORLD_LEGACY_PRE_2_0_0               =  2;
-    public static final int WORLD_CREATED                        =  3;
-    public static final int WORLD_IMPORTED_FROM_MINECRAFT_MAP    =  4; // arg 0: level name as String, arg 1: directory as File
-    public static final int WORLD_IMPORTED_FROM_HEIGHT_MAP       =  5; // arg 0: height map file as File
-    public static final int WORLD_RECOVERED                      =  6;
-    public static final int WORLD_LOADED                         =  7; // arg 0: file as File
-    public static final int WORLD_SAVED                          =  8; // arg 0: file as File
-    public static final int WORLD_EXPORTED_FULL                  =  9; // arg 0: level name as String, arg 1: directory as File
-    public static final int WORLD_EXPORTED_PARTIAL               = 10; // arg 0: level name as String, arg 1: directory as File, arg 2: name(s) of dimension(s) as String
-    public static final int WORLD_MERGED_FULL                    = 11; // arg 0: level name as String, arg 1: directory as File
-    public static final int WORLD_MERGED_PARTIAL                 = 12; // arg 0: level name as String, arg 1: directory as File, arg 2: name(s) of dimension(s) as String
-    public static final int WORLD_DIMENSION_ADDED                = 13; // arg 0: name of dimension as String
-    public static final int WORLD_DIMENSION_REMOVED              = 14; // arg 0: name of dimension as String
-    public static final int WORLD_TILES_ADDED                    = 15; // arg 0: name of dimension as String, arg 1: number of tiles added as Integer
-    public static final int WORLD_TILES_REMOVED                  = 16; // arg 0: name of dimension as String, arg 1: number of tiles removed as Integer
-    public static final int WORLD_DIMENSION_SHIFTED_HORIZONTALLY = 17; // arg 0: name of dimension as String, arg 1: number of blocks shifted east as Integer, arg 2: number of blocks shifted south as Integer
-    public static final int WORLD_DIMENSION_SHIFTED_VERTICALLY   = 18; // arg 0: name of dimension as String, arg 1: number of blocks shifted up as Integer
-    public static final int WORLD_DIMENSION_ROTATED              = 19; // arg 0: name of dimension as String, arg 1: number of degrees rotated clockwise as Integer
-    public static final int WORLD_MAX_HEIGHT_CHANGED             = 20; // arg 0: new maxHeight as Integer
+    public static final int WORLD_LEGACY_PRE_0_2                   =  1;
+    public static final int WORLD_LEGACY_PRE_2_0_0                 =  2;
+    public static final int WORLD_CREATED                          =  3;
+    public static final int WORLD_IMPORTED_FROM_MINECRAFT_MAP      =  4; // arg 0: level name as String, arg 1: directory as File
+    public static final int WORLD_IMPORTED_FROM_HEIGHT_MAP         =  5; // arg 0: height map file as File
+    public static final int WORLD_RECOVERED                        =  6;
+    public static final int WORLD_LOADED                           =  7; // arg 0: file as File
+    public static final int WORLD_SAVED                            =  8; // arg 0: file as File
+    public static final int WORLD_EXPORTED_FULL                    =  9; // arg 0: level name as String, arg 1: directory as File
+    public static final int WORLD_EXPORTED_PARTIAL                 = 10; // arg 0: level name as String, arg 1: directory as File, arg 2: name(s) of dimension(s) as String
+    public static final int WORLD_MERGED_FULL                      = 11; // arg 0: level name as String, arg 1: directory as File
+    public static final int WORLD_MERGED_PARTIAL                   = 12; // arg 0: level name as String, arg 1: directory as File, arg 2: name(s) of dimension(s) as String
+    public static final int WORLD_DIMENSION_ADDED                  = 13; // arg 0: name of dimension as String
+    public static final int WORLD_DIMENSION_REMOVED                = 14; // arg 0: name of dimension as String
+    public static final int WORLD_TILES_ADDED                      = 15; // arg 0: name of dimension as String, arg 1: number of tiles added as Integer
+    public static final int WORLD_TILES_REMOVED                    = 16; // arg 0: name of dimension as String, arg 1: number of tiles removed as Integer
+    public static final int WORLD_DIMENSION_SHIFTED_HORIZONTALLY   = 17; // arg 0: name of dimension as String, arg 1: number of blocks shifted east as Integer, arg 2: number of blocks shifted south as Integer
+    public static final int WORLD_DIMENSION_SHIFTED_VERTICALLY     = 18; // arg 0: name of dimension as String, arg 1: number of blocks shifted up as Integer
+    public static final int WORLD_DIMENSION_ROTATED                = 19; // arg 0: name of dimension as String, arg 1: number of degrees rotated clockwise as Integer
+    public static final int WORLD_MAX_HEIGHT_CHANGED               = 20; // arg 0: new maxHeight as Integer
+    public static final int WORLD_HEIGHT_MAP_IMPORTED_TO_DIMENSION = 21; // arg 0: name of dimension as String, arg 1: height map file as File
+    public static final int WORLD_MASK_IMPORTED_TO_DIMENSION       = 22; // arg 0: name of dimension as String, arg 1: mask file as File, arg 2: name of aspect to which the mask was applied
 
     private static final long serialVersionUID = 1L;
 }

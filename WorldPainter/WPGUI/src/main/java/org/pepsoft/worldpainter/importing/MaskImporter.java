@@ -11,15 +11,19 @@ import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes;
+import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.Annotations;
 import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.layers.Layer;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
 import java.awt.image.IndexColorModel;
 import java.awt.image.Raster;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
@@ -32,8 +36,13 @@ import static org.pepsoft.worldpainter.importing.MaskImporter.InputType.SIXTEEN_
  * @author pepijn
  */
 public class MaskImporter {
-    public MaskImporter(Dimension dimension, BufferedImage image, List<Layer> allLayers) {
+    public MaskImporter(Dimension dimension, File imageFile, List<Layer> allLayers) throws IOException {
+        this(dimension, imageFile, ImageIO.read(imageFile), allLayers);
+    }
+
+    public MaskImporter(Dimension dimension, File imageFile, BufferedImage image, List<Layer> allLayers) {
         this.dimension = dimension;
+        this.imageFile = imageFile;
         this.image = image;
         this.allLayers = allLayers;
         int sampleSize = image.getSampleModel().getSampleSize(0);
@@ -149,6 +158,7 @@ outer:          for (int x = 0; x < width; x++) {
             Tile tile;
         }
         final Applicator applicator;
+        final String aspect;
         switch (inputType) {
             case ONE_BIT_GRAY_SCALE:
                 if (removeExistingLayer) {
@@ -168,6 +178,7 @@ outer:          for (int x = 0; x < width; x++) {
                         }
                     };
                 }
+                aspect = "layer " + applyToLayer.getName();
                 break;
             case EIGHT_BIT_GREY_SCALE:
             case SIXTEEN_BIT_GREY_SCALE:
@@ -180,6 +191,7 @@ outer:          for (int x = 0; x < width; x++) {
                                     tile.setTerrain(x, y, Terrain.VALUES[value]);
                                 }
                             };
+                            aspect = "terrain";
                         } else {
                             final int defaultValue = applyToLayer.getDefaultValue();
                             if (removeExistingLayer) {
@@ -202,6 +214,7 @@ outer:          for (int x = 0; x < width; x++) {
                                     }
                                 };
                             }
+                            aspect = "layer " + applyToLayer.getName();
                         }
                         break;
                     case DITHERING:
@@ -229,6 +242,7 @@ outer:          for (int x = 0; x < width; x++) {
                                 private final int limit = maxValue + 1;
                             };
                         }
+                        aspect = "layer " + applyToLayer.getName();
                         break;
                     case THRESHOLD:
                         if (removeExistingLayer) {
@@ -251,6 +265,7 @@ outer:          for (int x = 0; x < width; x++) {
                                 }
                             };
                         }
+                        aspect = "layer " + applyToLayer.getName();
                         break;
                     case FULL_RANGE:
                         final int layerLimit;
@@ -287,6 +302,7 @@ outer:          for (int x = 0; x < width; x++) {
                                 private final int limit = maxValue + 1;
                             };
                         }
+                        aspect = "layer " + applyToLayer.getName();
                         break;
                     default:
                         throw new IllegalArgumentException("Don't know how to apply this combo");
@@ -314,9 +330,13 @@ outer:          for (int x = 0; x < width; x++) {
                         }
                     };
                 }
+                aspect = "annotations";
                 break;
             default:
                 throw new IllegalArgumentException("Don't know how to apply this combo");
+        }
+        if (dimension.getWorld() != null) {
+            dimension.getWorld().addHistoryEntry(HistoryEntry.WORLD_MASK_IMPORTED_TO_DIMENSION, dimension.getName(), imageFile, aspect);
         }
 
         // Apply the mask tile by tile
@@ -557,6 +577,7 @@ outer:          for (int x = 0; x < width; x++) {
     private final List<Layer> allLayers;
     private final InputType inputType;
     private final int imageLowValue, imageHighValue;
+    private final File imageFile;
     private BufferedImage image;
     private boolean applyToTerrain, removeExistingLayer;
     private Layer applyToLayer;

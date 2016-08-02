@@ -123,6 +123,9 @@ public class HeightMapImporter {
         final int widthInBlocks = image.getWidth() * scale / 100;
         final int heightInBlocks = image.getHeight() * scale / 100;
         final boolean sixteenBit = bitDepth == 16;
+        if (dimension.getWorld() != null) {
+            dimension.getWorld().addHistoryEntry(HistoryEntry.WORLD_HEIGHT_MAP_IMPORTED_TO_DIMENSION, dimension.getName(), imageFile);
+        }
         final BufferedImage scaledImage;
         if ((scale == 100) && (image.getColorModel().getColorSpace().getType() == ColorSpace.TYPE_GRAY)) {
             // No scaling necessary
