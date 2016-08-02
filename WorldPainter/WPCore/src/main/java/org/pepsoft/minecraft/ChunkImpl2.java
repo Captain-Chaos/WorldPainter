@@ -5,16 +5,14 @@
 
 package org.pepsoft.minecraft;
 
-import java.awt.Point;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.jnbt.CompoundTag;
 import org.jnbt.Tag;
+
+import java.awt.*;
+import java.util.*;
+import java.util.List;
+
+import static java.util.stream.Collectors.toList;
 import static org.pepsoft.minecraft.Constants.*;
 
 /**
@@ -70,10 +68,10 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk {
         heightMap = getIntArray(TAG_HEIGHT_MAP);
         List<CompoundTag> entityTags = getList(TAG_ENTITIES);
         entities = new ArrayList<>(entityTags.size());
-        entities.addAll(entityTags.stream().map(Entity::fromNBT).collect(Collectors.toList()));
+        entities.addAll(entityTags.stream().map(Entity::fromNBT).collect(toList()));
         List<CompoundTag> tileEntityTags = getList(TAG_TILE_ENTITIES);
         tileEntities = new ArrayList<>(tileEntityTags.size());
-        tileEntities.addAll(tileEntityTags.stream().map(TileEntity::fromNBT).collect(Collectors.toList()));
+        tileEntities.addAll(tileEntityTags.stream().map(TileEntity::fromNBT).collect(toList()));
         // TODO: last update is ignored, is that correct?
         xPos = getInt(TAG_X_POS);
         zPos = getInt(TAG_Z_POS);
@@ -116,10 +114,10 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk {
         }
         setIntArray(TAG_HEIGHT_MAP, heightMap);
         List<Tag> entityTags = new ArrayList<>(entities.size());
-        entityTags.addAll(entities.stream().map(Entity::toNBT).collect(Collectors.toList()));
+        entityTags.addAll(entities.stream().map(Entity::toNBT).collect(toList()));
         setList(TAG_ENTITIES, CompoundTag.class, entityTags);
         List<Tag> tileEntityTags = new ArrayList<>(entities.size());
-        tileEntityTags.addAll(tileEntities.stream().map(TileEntity::toNBT).collect(Collectors.toList()));
+        tileEntityTags.addAll(tileEntities.stream().map(TileEntity::toNBT).collect(toList()));
         setList(TAG_TILE_ENTITIES, CompoundTag.class, tileEntityTags);
         setLong(TAG_LAST_UPDATE, System.currentTimeMillis());
         setInt(TAG_X_POS, xPos);
