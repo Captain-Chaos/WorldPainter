@@ -224,9 +224,10 @@ public final class Plant implements WPObject {
         return new Point3i(0, 0, 0);
     }
 
+    @SuppressWarnings("CloneDoesntCallSuperClone") // Plants are unmodifiable
     @Override
     public WPObject clone() {
-        return this; // Plants are unmodifiable
+        return this;
     }
 
     @Override
@@ -309,8 +310,6 @@ public final class Plant implements WPObject {
 
     public static final Plant CHORUS_PLANT = new Plant("Chorus Plant", Material.get(BLK_CHORUS_FLOWER), 1, 0, Category.END, "blocks/chorus_flower.png");
 
-    // TODO: nether wart?
-    
     // The code which uses this assumes there will never be more than 128
     // plants. If that ever happens it needs to be overhauled!
     // IMPORTANT: indices into this array are stored in layer settings! New
