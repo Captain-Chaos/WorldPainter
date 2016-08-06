@@ -1,3 +1,8 @@
+-- Version 2.2.2, released 6-8-2016
+
+ * Disable the Structures option on the Export screen for endless borders, to prevent structures from being generated in the borders
+ * Bug fix: make importing Minecraft maps work again
+
 -- Version 2.2.1, released 6-8-2016
 
  * Added preliminary support for using structures saved from Minecraft using structure blocks as custom objects in Custom Object Layers. Note that entities and tile entities are not yet fully supported
