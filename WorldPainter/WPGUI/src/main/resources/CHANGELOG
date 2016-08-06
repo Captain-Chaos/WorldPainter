@@ -1,10 +1,11 @@
--- Version 2.2.1, released ...
+-- Version 2.2.1, released 6-8-2016
 
  * Added preliminary support for using structures saved from Minecraft using structure blocks as custom objects in Custom Object Layers. Note that entities and tile entities are not yet fully supported
  * In addition to fixed size borders you can now also set the border size to "endless" for worlds surrounded by endless water, lava or void. When you do so, WorldPainter will set the world type to Superflat, with the appropriate preset to generate the right border chunks. Because of this you will not be able to select a different world type when the border size is set to "endless". Circular worlds will now have their border set to endless void by default
  * Added preliminary support for the new 1.10 block types
  * The progress of Exports and Merges is reported in more detail, with separate progress bars per parallel operation and per task, so you can better see exactly what WorldPainter is doing and which part might be taking long
  * The number of grid lines is automatically reduced when zooming out so that they are not too close together and obscure the view. They will not be painted closer together than 32 pixels, or the grid size at 100% zoom, whichever is smaller
+ * Support the Minecraft 1.10.2 jar for calculating the Minecraft biomes
  * Scripting: filters can now apply to a single layer value, or any value lower than or higher than a specific value, by adding .withValue(value), .withValue(value).orLower() or .withValue(value).orHigher() after the onlyOnLayer(layer) or exceptOnLayer(layer)
  * Bug fix: fix a bug which would cause the layer thicknesses of layered custom materials to change, every time you tried to edit them
  * Bug fix: make previews of combined layers work
