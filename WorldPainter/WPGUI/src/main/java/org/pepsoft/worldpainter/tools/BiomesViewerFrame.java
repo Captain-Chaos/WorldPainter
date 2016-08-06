@@ -69,7 +69,7 @@ public class BiomesViewerFrame extends JFrame {
                 || (biomeScheme instanceof Minecraft1_7LargeBiomeScheme)
                 || (biomeScheme instanceof Minecraft1_8BiomeScheme)
                 || (biomeScheme instanceof Minecraft1_8LargeBiomeScheme))) {
-            throw new IllegalArgumentException("A Minecraft 1.8 or 1.1 - 1.7 biome scheme must be selected");
+            throw new IllegalArgumentException("A Minecraft 1.10 or 1.1 - 1.9 biome scheme must be selected");
         }
         this.biomeScheme = biomeScheme;
         this.colourScheme = colourScheme;
@@ -105,7 +105,7 @@ public class BiomesViewerFrame extends JFrame {
 
         JToolBar toolBar = new JToolBar();
         toolBar.add(new JLabel("Biome scheme:"));
-        schemeChooser = new JComboBox(new Object[] {"Minecraft 1.7 or 1.8 Default", "Minecraft 1.7 or 1.8 Large Biomes", "Minecraft 1.6 Default (or 1.2 - 1.5)", "Minecraft 1.6 Large Biomes (or 1.3 - 1.5)", "Minecraft 1.1"});
+        schemeChooser = new JComboBox(new Object[] {"Minecraft 1.10 Default (or 1.7 - 1.9)", "Minecraft 1.10 Large Biomes (or 1.7 - 1.9)", "Minecraft 1.6 Default (or 1.2 - 1.5)", "Minecraft 1.6 Large Biomes (or 1.3 - 1.5)", "Minecraft 1.1"});
         seedSpinner = new JSpinner(new SpinnerNumberModel(Long.valueOf(seed), Long.valueOf(Long.MIN_VALUE), Long.valueOf(Long.MAX_VALUE), Long.valueOf(1L)));
         if ((biomeScheme instanceof Minecraft1_7LargeBiomeScheme) || (biomeScheme instanceof Minecraft1_8LargeBiomeScheme)) {
             schemeChooser.setSelectedIndex(1);
