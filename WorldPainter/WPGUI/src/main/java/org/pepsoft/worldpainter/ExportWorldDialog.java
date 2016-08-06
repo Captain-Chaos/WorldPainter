@@ -211,10 +211,13 @@ dims:   for (Dimension dim: world.getDimensions()) {
             savedGenerator = comboBoxGenerator.getSelectedIndex();
             comboBoxGenerator.setSelectedIndex(1);
             comboBoxGenerator.setEnabled(false);
+            savedMapFeatures = checkBoxMapFeatures.isSelected();
+            checkBoxMapFeatures.setSelected(false);
 //            setControlStates();
         } else if ((! endlessBorder) && (! comboBoxGenerator.isEnabled())) {
             comboBoxGenerator.setSelectedIndex(savedGenerator);
             comboBoxGenerator.setEnabled(true);
+            checkBoxMapFeatures.setSelected(savedMapFeatures);
 //            setControlStates();
         }
     }
@@ -317,11 +320,14 @@ dims:   for (Dimension dim: world.getDimensions()) {
         world.setCreateGoodiesChest(checkBoxGoodies.isSelected());
         world.setGameType(comboBoxGameType.getSelectedIndex());
         world.setAllowCheats(checkBoxAllowCheats.isSelected());
-        world.setGenerator(generator);
-        if ((generatorOptions != null) && (! generatorOptions.trim().isEmpty())) {
-            world.setGeneratorOptions(generatorOptions.trim());
-        } else {
-            world.setGeneratorOptions(null);
+        if (! endlessBorder) {
+            world.setGenerator(generator);
+            world.setMapFeatures(checkBoxMapFeatures.isSelected());
+            if ((generatorOptions != null) && (! generatorOptions.trim().isEmpty())) {
+                world.setGeneratorOptions(generatorOptions.trim());
+            } else {
+                world.setGeneratorOptions(null);
+            }
         }
         world.setVersion((comboBoxMinecraftVersion.getSelectedIndex() == 0) ? SUPPORTED_VERSION_2 : SUPPORTED_VERSION_1);
         if (radioButtonExportEverything.isSelected()) {
@@ -331,7 +337,6 @@ dims:   for (Dimension dim: world.getDimensions()) {
             world.setDimensionsToExport(Collections.singleton(selectedDimension));
             world.setTilesToExport(selectedTiles);
         }
-        world.setMapFeatures(checkBoxMapFeatures.isSelected());
         world.setDifficulty(comboBoxDifficulty.getSelectedIndex());
         
         fieldDirectory.setEnabled(false);
@@ -392,6 +397,7 @@ dims:   for (Dimension dim: world.getDimensions()) {
         checkBoxAllowCheats.setEnabled((comboBoxMinecraftVersion.getSelectedIndex() == 0) && (comboBoxGameType.getSelectedIndex() != World2.GAME_TYPE_HARDCORE));
         buttonGeneratorOptions.setEnabled((! endlessBorder) && (comboBoxGenerator.getSelectedIndex() == 1));
         comboBoxDifficulty.setEnabled(comboBoxGameType.getSelectedIndex() != World2.GAME_TYPE_HARDCORE);
+        checkBoxMapFeatures.setEnabled(! endlessBorder);
     }
 
     private void selectDir() {
@@ -788,7 +794,7 @@ dims:   for (Dimension dim: world.getDimensions()) {
     private final WorldPainter view;
     private int selectedDimension, savedGenerator;
     private Set<Point> selectedTiles;
-    private boolean disableTileSelectionWarning, disableDisabledLayersWarning, endlessBorder;
+    private boolean disableTileSelectionWarning, disableDisabledLayersWarning, endlessBorder, savedMapFeatures;
     private String generatorOptions;
     
     private static final long serialVersionUID = 1L;

@@ -315,6 +315,7 @@ public final class Constants {
     public static final int BLK_REPEATING_COMMAND_BLOCK   = 210;
     public static final int BLK_CHAIN_COMMAND_BLOCK       = 211;
     public static final int BLK_FROSTED_ICE               = 212;
+    public static final int BLK_MAGMA                     = 213;
 
     public static final int BLK_BONE_BLOCK = 216;
 

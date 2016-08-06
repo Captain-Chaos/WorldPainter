@@ -137,7 +137,7 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
                                                         null);
                                             }
                                         }
-                                        if (! surroundingTileImageAvailable) {
+                                        if (! Boolean.TRUE.equals(surroundingTileImageAvailable)) {
                                             g2.setColor(voidColour);
                                             g2.fillRect(imageX + dx * subSize, imageY + dy * subSize, subSize, subSize);
                                         }
@@ -197,7 +197,7 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
                                                     null);
                                         }
                                     }
-                                    if (! surroundingTileImageAvailable) {
+                                    if (! Boolean.TRUE.equals(surroundingTileImageAvailable)) {
                                         g2.setColor(voidColour);
                                         g2.fillRect(imageX + dx * subSize, imageY + dy * subSize, subSize, subSize);
                                     }

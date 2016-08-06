@@ -102,7 +102,6 @@ public class WorldExporter {
         level.setSpawnX(spawnPoint.x);
         level.setSpawnY(Math.max(dim0.getIntHeightAt(spawnPoint), dim0.getWaterLevelAt(spawnPoint)));
         level.setSpawnZ(spawnPoint.y);
-        level.setMapFeatures(world.isMapFeatures());
         if (world.getGameType() <= GAME_TYPE_ADVENTURE) {
             level.setGameType(world.getGameType());
             level.setHardcore(false);
@@ -141,9 +140,11 @@ public class WorldExporter {
                     break;
             }
             generatorOptions.append(DEFAULT_GENERATOR_OPTIONS);
+            level.setMapFeatures(false);
             level.setGenerator(Generator.FLAT);
             level.setGeneratorOptions(generatorOptions.toString());
         } else {
+            level.setMapFeatures(world.isMapFeatures());
             level.setGenerator(world.getGenerator());
         }
         if (world.getVersion() == SUPPORTED_VERSION_2) {

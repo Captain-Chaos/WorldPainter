@@ -1667,7 +1667,8 @@ public enum Terrain {
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(47);
     },
-    GRASS_PATH("Grass Path", BLK_GRASS_PATH, BLK_GRASS, "grass path", BIOME_PLAINS);
+    GRASS_PATH("Grass Path", BLK_GRASS_PATH, BLK_GRASS, "grass path", BIOME_PLAINS),
+    MAGMA("Magma", BLK_MAGMA, BLK_MAGMA, "magma", BIOME_PLAINS); // TODO: or should this be mapped to stone and magma added to the Resources layer?
 
     Terrain(String name, String description, int defaultBiome) {
         this(name, Material.STONE, Material.STONE, AIR, description, defaultBiome);
