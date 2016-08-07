@@ -507,7 +507,7 @@ dims:   for (Dimension dim: world.getDimensions()) {
         checkBoxGoodies.setText("Include chest of goodies");
         checkBoxGoodies.setToolTipText("Include a chest with tools and resources near spawn for you as the level designer");
 
-        comboBoxMinecraftVersion.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Minecraft 1.9 (and 1.2 - 1.8; \"Anvil\")", "Minecraft 1.1 (and earlier; \"MCRegion\")" }));
+        comboBoxMinecraftVersion.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Minecraft 1.10 (and 1.2 - 1.9; \"Anvil\")", "Minecraft 1.1 (and earlier; \"MCRegion\")" }));
         comboBoxMinecraftVersion.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 comboBoxMinecraftVersionActionPerformed(evt);
