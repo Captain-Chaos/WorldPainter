@@ -332,9 +332,7 @@ public class Main {
                         UIManager.put("JideTabbedPane.foreground", new Color(222, 222, 222));
                     }
                 }
-            } catch (ClassNotFoundException | InstantiationException e) {
-                logger.warn("Could not install selected look an feel", e);
-            } catch (IllegalAccessException | UnsupportedLookAndFeelException e) {
+            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
                 logger.warn("Could not install selected look and feel", e);
             }
 
