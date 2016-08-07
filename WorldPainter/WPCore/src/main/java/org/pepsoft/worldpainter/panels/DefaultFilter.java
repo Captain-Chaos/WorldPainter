@@ -78,7 +78,7 @@ public final class DefaultFilter implements Filter {
                     onlyOnValue = layerValue.value;
                 }
             } else if (layerValue.layer instanceof Annotations) {
-                if (layerValue.condition != null) {
+                if (layerValue.condition == null) {
                     onlyOnObjectType = ObjectType.ANNOTATION_ANY;
                     onlyOnTerrain = null;
                     onlyOnLayer = null;
