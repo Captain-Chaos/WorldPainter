@@ -41,6 +41,13 @@
                         <target>1.6</target>
                     </configuration>
                 </plugin>
+                <!-- Inhibit regular deploy -->
+                <plugin>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <configuration>
+                        <skip>true</skip>
+                    </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>

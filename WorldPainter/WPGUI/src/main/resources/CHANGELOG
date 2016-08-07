@@ -1,3 +1,8 @@
+-- Version 2.2.3, released 7-8-2016
+
+ * Update the Minecraft version number in the "map format" combobox on the Export screen to 1.10
+ * Bug fix: make limiting the brush to a specific annotation colour work again
+
 -- Version 2.2.2, released 6-8-2016
 
  * Disable the Structures option on the Export screen for endless borders, to prevent structures from being generated in the borders
