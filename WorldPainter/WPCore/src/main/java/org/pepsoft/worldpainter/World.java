@@ -31,11 +31,9 @@ import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
  * @author pepijn
  */
 @Deprecated
-public class World implements TileProvider, Serializable, Tile.Listener {
-    public World(long seed, TileFactory tileFactory) {
-        this.seed = seed;
-        minecraftSeed = seed;
-        this.tileFactory = tileFactory;
+public final class World implements TileProvider, Serializable, Tile.Listener {
+    private World() {
+        // Prevent instantiation
     }
 
     public boolean isDirty() {
@@ -410,9 +408,9 @@ public class World implements TileProvider, Serializable, Tile.Listener {
         }
     }
 
-    private final long seed;
+    private final long seed = 0L;
     private final Map<Point, Tile> tiles = new HashMap<>();
-    private final TileFactory tileFactory;
+    private final TileFactory tileFactory = null;
     private final int lowestX = Integer.MAX_VALUE, highestX = Integer.MIN_VALUE, lowestY = Integer.MAX_VALUE, highestY = Integer.MIN_VALUE;
     private final String name = "Generated World";
     private Terrain subsurfaceMaterial = Terrain.RESOURCES;
