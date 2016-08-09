@@ -647,10 +647,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         }
         if (minecraftJars == null) {
             minecraftJars = new HashMap<>();
-            if (minecraft1_9_p3Jar != null) {
-                minecraftJars.put(Constants.BIOME_ALGORITHM_1_9, minecraft1_9_p3Jar);
-                minecraft1_9_p3Jar = null;
-            }
+            minecraft1_9_p3Jar = null;
         }
         if (uuid == null) {
             uuid = UUID.randomUUID();
