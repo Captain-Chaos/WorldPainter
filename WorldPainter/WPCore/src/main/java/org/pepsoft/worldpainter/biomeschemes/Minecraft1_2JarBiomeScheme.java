@@ -16,10 +16,14 @@ import java.util.List;
 import java.util.Map;
 import org.pepsoft.util.Checksum;
 import org.pepsoft.util.FileUtils;
+import org.pepsoft.worldpainter.BiomeScheme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * An abstract base class for {@link BiomeScheme}s which can invoke Minecraft
+ * code from a Minecraft jar file for version 1.2 through 1.6 to calculate
+ * biomes.
  *
  * @author pepijn
  */

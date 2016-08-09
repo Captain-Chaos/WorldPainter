@@ -8,6 +8,7 @@ import org.pepsoft.worldpainter.BiomeScheme;
 import static org.pepsoft.worldpainter.Constants.*;
 
 /**
+ * An abstract base class for {@link BiomeScheme}s.
  *
  * @author pepijn
  */

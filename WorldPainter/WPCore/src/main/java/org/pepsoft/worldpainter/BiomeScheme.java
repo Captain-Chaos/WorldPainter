@@ -5,6 +5,7 @@
 package org.pepsoft.worldpainter;
 
 /**
+ * A provider of Minecraft biomes information and metadata.
  *
  * @author pepijn
  */
@@ -50,6 +51,7 @@ public interface BiomeScheme {
      * @param buffer The array in which the biome information will be returned,
      *     indexed first by X and then by Y coordinate.
      */
+
     void getBiomes(int x, int y, int width, int height, int[] buffer);
     /**
      * Get the colour of the specified biome. At its option the biome scheme may

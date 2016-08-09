@@ -84,7 +84,7 @@ public class BiomeSchemeManager {
             } else if (askUser) {
                 // We don't have a jar for this biome scheme, but we're allowed to
                 // ask the user for it, so do so
-                final File minecraftJar = FileUtils.selectFileForOpen(SwingUtilities.getWindowAncestor(parent), "Select Minecraft " + version + " minecraft.jar", null, new FileFilter() {
+                final File minecraftJar = FileUtils.selectFileForOpen((parent != null) ? SwingUtilities.getWindowAncestor(parent) : null, "Select Minecraft " + version + " minecraft jar", null, new FileFilter() {
                     @Override
                     public boolean accept(File f) {
                         return f.isDirectory() || f.getName().toLowerCase().endsWith(".jar");

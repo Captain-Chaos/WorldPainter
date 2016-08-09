@@ -4,7 +4,9 @@ import org.jnbt.CompoundTag;
 import org.pepsoft.worldpainter.BiomeScheme;
 
 /**
- * Created by Pepijn on 26-6-2016.
+ * A service provider of various Minecraft related services.
+ *
+ * <p>Created by Pepijn on 26-6-2016.
  */
 public interface MCInterface extends BiomeScheme {
     /**

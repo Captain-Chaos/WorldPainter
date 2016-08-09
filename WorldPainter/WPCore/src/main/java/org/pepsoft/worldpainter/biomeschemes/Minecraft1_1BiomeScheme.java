@@ -8,8 +8,11 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import org.pepsoft.util.Checksum;
+import org.pepsoft.worldpainter.BiomeScheme;
 
 /**
+ * A {@link BiomeScheme} which makes use of Minecraft 1.1 jar files to provide
+ * biomes.
  *
  * @author pepijn
  */

@@ -11,6 +11,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * An {@link MCInterface} which makes use of Minecraft 1.10 jar files to provide
+ * biomes according to the Default world type.
+ *
  * Created by Pepijn on 26-6-2016.
  */
 public final class Minecraft1_10BiomeScheme extends Minecraft1_8BiomeScheme implements MCInterface {

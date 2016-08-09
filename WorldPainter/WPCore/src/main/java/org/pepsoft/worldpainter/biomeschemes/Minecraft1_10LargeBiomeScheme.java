@@ -11,7 +11,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by Pepijn on 26-6-2016.
+ * An {@link MCInterface} which makes use of Minecraft 1.10 jar files to provide
+ * biomes according to the Large Biomes world type.
+ *
+ * <p>Created by Pepijn on 26-6-2016.
  */
 public final class Minecraft1_10LargeBiomeScheme extends Minecraft1_8LargeBiomeScheme implements MCInterface {
     public Minecraft1_10LargeBiomeScheme(File minecraftJar, File libDir, Checksum md5Sum) {

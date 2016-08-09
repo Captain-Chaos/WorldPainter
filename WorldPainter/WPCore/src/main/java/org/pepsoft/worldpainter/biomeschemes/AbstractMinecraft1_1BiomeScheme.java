@@ -4,6 +4,7 @@
  */
 package org.pepsoft.worldpainter.biomeschemes;
 
+import org.pepsoft.worldpainter.BiomeScheme;
 import org.pepsoft.worldpainter.ColourScheme;
 
 import javax.imageio.ImageIO;
@@ -13,6 +14,8 @@ import java.io.IOException;
 import static org.pepsoft.minecraft.Constants.*;
 
 /**
+ * An abstract base class for {@link BiomeScheme}s which provide the biomes as
+ * used in Minecraft 1.1.
  *
  * @author pepijn
  */

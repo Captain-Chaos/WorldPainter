@@ -6,6 +6,7 @@ package org.pepsoft.worldpainter.biomeschemes;
 
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.pepsoft.worldpainter.BiomeScheme;
 import org.pepsoft.worldpainter.ColourScheme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +23,8 @@ import java.util.*;
 import static org.pepsoft.minecraft.Constants.*;
 
 /**
+ * An abstract base class for {@link BiomeScheme}s which provide the biomes as
+ * used in Minecraft 1.7 and later.
  *
  * @author pepijn
  */
