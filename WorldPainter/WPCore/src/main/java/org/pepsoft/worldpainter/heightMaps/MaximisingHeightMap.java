@@ -5,7 +5,10 @@
  */
 package org.pepsoft.worldpainter.heightMaps;
 
+import org.pepsoft.util.IconUtils;
 import org.pepsoft.worldpainter.HeightMap;
+
+import javax.swing.*;
 
 /**
  * A height map which returns the highest of two subordinate height maps.
@@ -22,21 +25,32 @@ public class MaximisingHeightMap extends CombiningHeightMap {
     }
 
     @Override
-    public float getHeight(int x, int y) {
-        return Math.max(heightMap1.getHeight(x, y), heightMap2.getHeight(x, y));
+    protected float doGetHeight(int x, int y) {
+        return Math.max(children[0].getHeight(x, y), children[1].getHeight(x, y));
+    }
+
+    @Override
+    protected float doGetHeight(float x, float y) {
+        return Math.max(children[0].getHeight(x, y), children[1].getHeight(x, y));
     }
 
     @Override
     public float getBaseHeight() {
-        return Math.max(heightMap1.getBaseHeight(), heightMap2.getBaseHeight());
+        return Math.max(children[0].getBaseHeight(), children[1].getBaseHeight());
     }
 
     @Override
     public MaximisingHeightMap clone() {
-        MaximisingHeightMap clone = new MaximisingHeightMap(name, heightMap1.clone(), heightMap2.clone());
+        MaximisingHeightMap clone = new MaximisingHeightMap(name, children[0].clone(), children[1].clone());
         clone.setSeed(getSeed());
         return clone;
     }
 
-    private static final long serialVersionUID = 1L;    
+    @Override
+    public Icon getIcon() {
+        return ICON_MAXIMISING_HEIGHTMAP;
+    }
+
+    private static final long serialVersionUID = 1L;
+    private static final Icon ICON_MAXIMISING_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/max.png");
 }

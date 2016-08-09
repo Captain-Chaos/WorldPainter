@@ -81,10 +81,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
         final ChunkCreationResult result = new ChunkCreationResult();
         result.chunk = (version == SUPPORTED_VERSION_1) ? new ChunkImpl(chunkX, chunkZ, maxHeight) : new ChunkImpl2(chunkX, chunkZ, maxHeight);
         final int maxY = maxHeight - 1;
-        final boolean copyBiomes =
-            (version == SUPPORTED_VERSION_2)
-            && (dimension.getDim() == DIM_NORMAL)
-            && (dimension.getWorld() != null);
+        final boolean copyBiomes = (version == SUPPORTED_VERSION_2) && (dimension.getDim() == DIM_NORMAL);
         final int defaultBiome;
         switch (dimension.getDim()) {
             case DIM_NORMAL:

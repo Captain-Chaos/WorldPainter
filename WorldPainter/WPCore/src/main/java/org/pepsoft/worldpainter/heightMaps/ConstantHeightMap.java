@@ -4,6 +4,10 @@
  */
 package org.pepsoft.worldpainter.heightMaps;
 
+import org.pepsoft.util.IconUtils;
+
+import javax.swing.*;
+
 /**
  *
  * @author pepijn
@@ -17,9 +21,24 @@ public final class ConstantHeightMap extends AbstractHeightMap {
         super(name);
         this.height = height;
     }
-    
+
+    public float getHeight() {
+        return height;
+    }
+
+    public void setHeight(float height) {
+        this.height = height;
+    }
+
+    // HeightMap
+
     @Override
     public float getHeight(int x, int y) {
+        return height;
+    }
+
+    @Override
+    public float getHeight(float x, float y) {
         return height;
     }
 
@@ -27,8 +46,24 @@ public final class ConstantHeightMap extends AbstractHeightMap {
     public float getBaseHeight() {
         return height;
     }
-    
-    private final float height;
+
+    @Override
+    public boolean isConstant() {
+        return true;
+    }
+
+    @Override
+    public float getConstantValue() {
+        return height;
+    }
+
+    @Override
+    public Icon getIcon() {
+        return ICON_CONSTANT_HEIGHTMAP;
+    }
+
+    private float height;
     
     private static final long serialVersionUID = 1L;
+    private static final Icon ICON_CONSTANT_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/x.png");
 }

@@ -6,77 +6,95 @@
 
 package org.pepsoft.worldpainter.heightMaps;
 
-import java.awt.Rectangle;
+import org.pepsoft.util.IconUtils;
 import org.pepsoft.worldpainter.HeightMap;
+
+import javax.swing.*;
+import java.awt.*;
 
 /**
  *
  * @author pepijn
  */
-public class DisplacementHeightMap extends AbstractHeightMap {
+public class DisplacementHeightMap extends DelegatingHeightMap {
     public DisplacementHeightMap(HeightMap baseHeightMap, HeightMap angleMap, HeightMap distanceMap) {
-        this.baseHeightMap = baseHeightMap;
-        this.angleMap = angleMap;
-        this.distanceMap = distanceMap;
+        super("baseHeightMap", "angleMap", "distanceMap");
+        setHeightMap(0, baseHeightMap);
+        setHeightMap(1, angleMap);
+        setHeightMap(2, distanceMap);
     }
     
     public DisplacementHeightMap(String name, HeightMap baseHeightMap, HeightMap angleMap, HeightMap distanceMap) {
-        super(name);
-        this.baseHeightMap = baseHeightMap;
-        this.angleMap = angleMap;
-        this.distanceMap = distanceMap;
+        super("baseHeightMap", "angleMap", "distanceMap");
+        setName(name);
+        setHeightMap(0, baseHeightMap);
+        setHeightMap(1, angleMap);
+        setHeightMap(2, distanceMap);
     }
 
     public HeightMap getBaseHeightMap() {
-        return baseHeightMap;
+        return children[0];
     }
 
     public HeightMap getAngleMap() {
-        return angleMap;
+        return children[1];
     }
 
     public HeightMap getDistanceMap() {
-        return distanceMap;
+        return children[2];
+    }
+
+    public void setAngleMap(HeightMap angleMap) {
+        replace(1, angleMap);
+    }
+
+    public void setBaseHeightMap(HeightMap baseHeightMap) {
+        replace(0, baseHeightMap);
+    }
+
+    public void setDistanceMap(HeightMap distanceMap) {
+        replace(2, distanceMap);
     }
 
     // HeightMap
     
     @Override
-    public float getHeight(int x, int y) {
-        float angle = angleMap.getHeight(x, y);
-        float distance = distanceMap.getHeight(x, y);
-        double actualX = x + Math.sin(angle) * distance;
-        double actualY = y + Math.cos(angle) * distance;
-        return baseHeightMap.getHeight((int) (actualX + 0.5), (int) (actualY + 0.5));
-    }
-
-    @Override
-    public float getBaseHeight() {
-        return baseHeightMap.getBaseHeight();
+    protected float doGetHeight(float x, float y) {
+        float angle = children[1].getHeight(x, y);
+        float distance = children[2].getHeight(x, y);
+        float actualX = (float) (x + Math.sin(angle) * distance);
+        float actualY = (float) (y + Math.cos(angle) * distance);
+        return children[0].getHeight(actualX, actualY);
     }
 
     @Override
     public Rectangle getExtent() {
-        return baseHeightMap.getExtent();
+        return children[0].getExtent();
     }
 
     @Override
-    public int getColour(int x, int y) {
-        float angle = angleMap.getHeight(x, y);
-        float distance = distanceMap.getHeight(x, y);
+    protected int doGetColour(int x, int y) {
+        float angle = children[1].getHeight(x, y);
+        float distance = children[2].getHeight(x, y);
         double actualX = x + Math.sin(angle) * distance;
         double actualY = y + Math.cos(angle) * distance;
-        return baseHeightMap.getColour((int) (actualX + 0.5), (int) (actualY + 0.5));
+        return children[0].getColour((int) (actualX + 0.5), (int) (actualY + 0.5));
     }
-    
+
+    @Override
+    public Icon getIcon() {
+        return ICON_DISPLACEMENT_HEIGHTMAP;
+    }
+
     // Object
     
     @Override
     public DisplacementHeightMap clone() {
-        DisplacementHeightMap clone = new DisplacementHeightMap(name, baseHeightMap.clone(), angleMap.clone(), distanceMap.clone());
+        DisplacementHeightMap clone = new DisplacementHeightMap(name, children[0].clone(), children[1].clone(), children[2].clone());
         clone.setSeed(getSeed());
         return clone;
     }
-    
-    private final HeightMap baseHeightMap, angleMap, distanceMap;
+
+    private static final long serialVersionUID = 1L;
+    private static final Icon ICON_DISPLACEMENT_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/displacement.png");
 }

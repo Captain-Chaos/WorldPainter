@@ -18,7 +18,11 @@
 package org.pepsoft.worldpainter.heightMaps;
 
 import java.awt.Rectangle;
+
+import org.pepsoft.util.IconUtils;
 import org.pepsoft.worldpainter.HeightMap;
+
+import javax.swing.*;
 
 /**
  * A height map which calculates the slope of an underlying height map, in
@@ -26,7 +30,7 @@ import org.pepsoft.worldpainter.HeightMap;
  *
  * @author pepijn
  */
-public class SlopeHeightMap extends AbstractHeightMap {
+public class SlopeHeightMap extends DelegatingHeightMap {
     public SlopeHeightMap(HeightMap baseHeightMap) {
         this(baseHeightMap, 1.0f);
     }
@@ -36,19 +40,41 @@ public class SlopeHeightMap extends AbstractHeightMap {
     }
     
     public SlopeHeightMap(HeightMap baseHeightMap, float verticalScaling) {
-        super(baseHeightMap.getName() != null ? "Slope of " + baseHeightMap.getName() : null);
-        this.baseHeightMap = baseHeightMap;
+        super("baseHeightMap");
+        setName(baseHeightMap.getName() != null ? "Slope of " + baseHeightMap.getName() : null);
         this.verticalScaling = verticalScaling;
+        setHeightMap(0, baseHeightMap);
     }
 
     public SlopeHeightMap(HeightMap baseHeightMap, float verticalScaling, String name) {
-        super(name);
-        this.baseHeightMap = baseHeightMap;
+        super("baseHeightMap");
+        setName(name);
         this.verticalScaling = verticalScaling;
+        setHeightMap(0, baseHeightMap);
     }
-    
+
+    public HeightMap getBaseHeightMap() {
+        return children[0];
+    }
+
+    public void setBaseHeightMap(HeightMap baseHeightMap) {
+        replace(0, baseHeightMap);
+    }
+
+    public float getVerticalScaling() {
+        return verticalScaling;
+    }
+
+    public void setVerticalScaling(float verticalScaling) {
+        this.verticalScaling = verticalScaling;
+        determineConstant();
+    }
+
+    // HeightMap
+
     @Override
-    public float getHeight(int x, int y) {
+    protected float doGetHeight(float x, float y) {
+        HeightMap baseHeightMap = children[0];
         if (verticalScaling != 1.0f) {
             return (float) (Math.tan(Math.max(Math.max(Math.abs(baseHeightMap.getHeight(x + 1, y) / verticalScaling - baseHeightMap.getHeight(x - 1, y) / verticalScaling) / 2,
                 Math.abs(baseHeightMap.getHeight(x + 1, y + 1) / verticalScaling - baseHeightMap.getHeight(x - 1, y - 1) / verticalScaling) / ROOT_EIGHT),
@@ -63,33 +89,24 @@ public class SlopeHeightMap extends AbstractHeightMap {
     }
 
     @Override
-    public float getBaseHeight() {
-        return baseHeightMap.getBaseHeight();
-    }
-
-    @Override
     public Rectangle getExtent() {
-        return baseHeightMap.getExtent();
-    }
-
-    @Override
-    public void setSeed(long seed) {
-        baseHeightMap.setSeed(seed);
-    }
-
-    @Override
-    public long getSeed() {
-        return baseHeightMap.getSeed();
+        return children[0].getExtent();
     }
 
     @Override
     public SlopeHeightMap clone() {
-        return new SlopeHeightMap(baseHeightMap.clone(), name);
+        return new SlopeHeightMap(children[0].clone(), name);
     }
-    
-    private final HeightMap baseHeightMap;
-    private final float verticalScaling;
 
+    @Override
+    public Icon getIcon() {
+        return ICON_SLOPE_HEIGHTMAP;
+    }
+
+    private float verticalScaling;
+
+    private static final long serialVersionUID = 1L;
     private static final double ROOT_EIGHT = Math.sqrt(8.0);
     private static final double RADIANS_TO_DEGREES = 180 / Math.PI;
+    private static final Icon ICON_SLOPE_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/integral.png");
 }

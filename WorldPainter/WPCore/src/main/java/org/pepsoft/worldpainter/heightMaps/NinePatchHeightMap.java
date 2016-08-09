@@ -4,7 +4,10 @@
  */
 package org.pepsoft.worldpainter.heightMaps;
 
+import org.pepsoft.util.IconUtils;
 import org.pepsoft.util.MathUtils;
+
+import javax.swing.*;
 
 /**
  * A heightmap creating a square with rounded corners, with a smoothly descending border on the outside.
@@ -43,17 +46,20 @@ public final class NinePatchHeightMap extends AbstractHeightMap {
         if ((innerSize == 0) && (borderSize == 0) && (coastSize == 0)) {
             throw new IllegalArgumentException();
         }
-        this.innerSize = innerSize;
+        this.innerSizeX = innerSize;
+        this.innerSizeY = innerSize;
         this.borderSize = borderSize;
         this.coastSize = coastSize;
         this.height = height;
-        halfHeight = height / 2;
-        borderTotal = innerSize + borderSize;
-        coastTotal = borderTotal + coastSize;
+        sizesChanged();
     }
 
-    public int getInnerSize() {
-        return innerSize;
+    public int getInnerSizeX() {
+        return innerSizeX;
+    }
+
+    public int getInnerSizeY() {
+        return innerSizeY;
     }
 
     public int getBorderSize() {
@@ -68,38 +74,69 @@ public final class NinePatchHeightMap extends AbstractHeightMap {
         return height;
     }
 
+    public void setBorderSize(int borderSize) {
+        this.borderSize = borderSize;
+        sizesChanged();
+    }
+
+    public void setCoastSize(int coastSize) {
+        this.coastSize = coastSize;
+        sizesChanged();
+    }
+
+    public void setHeight(float height) {
+        this.height = height;
+        sizesChanged();
+    }
+
+    public void setInnerSizeX(int innerSizeX) {
+        this.innerSizeX = innerSizeX;
+        sizesChanged();
+    }
+
+    public void setInnerSizeY(int innerSizeY) {
+        this.innerSizeY = innerSizeY;
+        sizesChanged();
+    }
+
+    public void setInnerSize(int innerSize) {
+        this.innerSizeX = innerSize;
+        this.innerSizeY = innerSize;
+        sizesChanged();
+    }
+
     // HeightMap
-    
+
     @Override
-    public float getHeight(int x, int y) {
+    public float getHeight(float x, float y) {
         x = Math.abs(x);
         y = Math.abs(y);
-        if (x < innerSize) {
-            if (y < innerSize) {
+        if (x < innerSizeX) {
+            if (y < innerSizeY) {
                 // On the continent
                 return height;
-            } else if (y < borderTotal) {
+            } else if (y < borderTotalY) {
                 // Border
                 return height;
-            } else if (y < coastTotal) {
+            } else if (y < coastTotalY) {
                 // Coast
-                return (float) (Math.cos((double) (y - borderTotal) / coastSize * Math.PI) * halfHeight) + halfHeight;
+                return (float) (Math.cos((y - borderTotalY) / coastSize * Math.PI) * halfHeight) + halfHeight;
             } else {
                 // Outside the continent
                 return 0;
             }
-        } else if (x < borderTotal) {
-            if (y < innerSize) {
+        } else if (x < borderTotalX) {
+            if (y < innerSizeY) {
                 // Border
                 return height;
-            } else if (y < coastTotal) {
+            } else if (y < coastTotalY) {
                 // Corner
-                float distanceFromCorner = MathUtils.getDistance(x - innerSize, y - innerSize);
+                float distanceFromCorner = MathUtils.getDistance(x - innerSizeX, y - innerSizeY);
                 if (distanceFromCorner < borderSize) {
                     // Border
                     return height;
                 } else if (distanceFromCorner - borderSize < coastSize) {
-                    return (float) (Math.cos((double) (distanceFromCorner - borderSize) / coastSize * Math.PI) * halfHeight) + halfHeight;
+                    return (float) (Math.cos((distanceFromCorner - borderSize) / coastSize * Math.PI) * halfHeight) + halfHeight;
                     // Coast
                 } else {
                     // Outside the continent
@@ -109,18 +146,18 @@ public final class NinePatchHeightMap extends AbstractHeightMap {
                 // Outside the continent
                 return 0;
             }
-        } else if (x < coastTotal) {
-            if (y < innerSize) {
+        } else if (x < coastTotalX) {
+            if (y < innerSizeY) {
                 // Coast
-                return (float) (Math.cos((double) (x - borderTotal) / coastSize * Math.PI) * halfHeight) + halfHeight;
-            } else if (y < coastTotal) {
+                return (float) (Math.cos((x - borderTotalX) / coastSize * Math.PI) * halfHeight) + halfHeight;
+            } else if (y < coastTotalY) {
                 // Corner
-                float distanceFromCorner = MathUtils.getDistance(x - innerSize, y - innerSize);
+                float distanceFromCorner = MathUtils.getDistance(x - innerSizeX, y - innerSizeY);
                 if (distanceFromCorner < borderSize) {
                     // Border
                     return height;
                 } else if (distanceFromCorner - borderSize < coastSize) {
-                    return (float) (Math.cos((double) (distanceFromCorner - borderSize) / coastSize * Math.PI) * halfHeight) + halfHeight;
+                    return (float) (Math.cos((distanceFromCorner - borderSize) / coastSize * Math.PI) * halfHeight) + halfHeight;
                     // Coast
                 } else {
                     // Outside the continent
@@ -140,10 +177,24 @@ public final class NinePatchHeightMap extends AbstractHeightMap {
     public float getBaseHeight() {
         return 0.0f;
     }
-    
-    private final int innerSize, borderSize, coastSize;
-    private final int borderTotal, coastTotal;
-    private final float height, halfHeight;
+
+    @Override
+    public Icon getIcon() {
+        return ICON_NINE_PATCH_HEIGHTMAP;
+    }
+
+    private void sizesChanged() {
+        halfHeight = height / 2;
+        borderTotalX = innerSizeX + borderSize;
+        borderTotalY = innerSizeY + borderSize;
+        coastTotalX = borderTotalX + coastSize;
+        coastTotalY = borderTotalY + coastSize;
+    }
+
+    private int innerSizeX, innerSizeY, borderSize, coastSize;
+    private int borderTotalX, borderTotalY, coastTotalX, coastTotalY;
+    private float height, halfHeight;
     
     private static final long serialVersionUID = 1L;
+    private static final Icon ICON_NINE_PATCH_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/nine_patch.png");
 }

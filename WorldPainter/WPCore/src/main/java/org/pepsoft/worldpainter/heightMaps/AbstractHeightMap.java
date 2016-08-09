@@ -21,11 +21,19 @@ public abstract class AbstractHeightMap implements HeightMap, Cloneable {
         this.name = name;
     }
 
+    public DelegatingHeightMap getParent() {
+        return parent;
+    }
+
     @Override
     public String getName() {
         return name;
     }
-    
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     @Override
     public long getSeed() {
         return seed;
@@ -55,9 +63,30 @@ public abstract class AbstractHeightMap implements HeightMap, Cloneable {
         int value = MathUtils.clamp(0, (int) (getHeight(x, y) + 0.5f), 255);
         return (value << 16) | (value << 8) | value;
     }
-    
-    protected final String name;
+
+    @Override
+    public float getHeight(float x, float y) {
+        return getHeight((int) (x + 0.5f), (int) (y + 0.5f));
+    }
+
+    @Override
+    public float getHeight(int x, int y) {
+        return getHeight((float) x, (float) y);
+    }
+
+    @Override
+    public boolean isConstant() {
+        return false;
+    }
+
+    @Override
+    public float getConstantValue() {
+        throw new UnsupportedOperationException("Not a constant height map");
+    }
+
+    protected String name;
     protected long seed;
+    DelegatingHeightMap parent;
     
     private static final long serialVersionUID = 1L;
 }

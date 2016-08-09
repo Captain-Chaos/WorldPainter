@@ -46,10 +46,20 @@ public class HeightMapTileProvider implements TileProvider {
     public boolean paintTile(Image tileImage, int x, int y, int imageX, int imageY) {
         final BufferedImage image = renderBufferRef.get();
         final WritableRaster raster = image.getRaster();
-        final int xOffset = x << 7, yOffset = y << 7;
-        for (int dx = 0; dx < 128; dx++) {
-            for (int dy = 0; dy < 128; dy++) {
-                raster.setSample(dx, dy, 0, MathUtils.clamp(0, (int) (heightMap.getHeight(xOffset + dx, yOffset + dy) + 0.5f), 255));
+        if (zoom < 0) {
+            final int scale = -zoom;
+            final int xOffset = x << 7 << scale, yOffset = y << 7 << scale;
+            for (int dx = 0; dx < 128; dx++) {
+                for (int dy = 0; dy < 128; dy++) {
+                    raster.setSample(dx, dy, 0, MathUtils.clamp(0, (int) (heightMap.getHeight(xOffset + (dx << scale), yOffset + (dy << scale)) + 0.5f), 255));
+                }
+            }
+        } else {
+            final int xOffset = x << 7, yOffset = y << 7;
+            for (int dx = 0; dx < 128; dx++) {
+                for (int dy = 0; dy < 128; dy++) {
+                    raster.setSample(dx, dy, 0, MathUtils.clamp(0, (int) (heightMap.getHeight(xOffset + dx, yOffset + dy) + 0.5f), 255));
+                }
             }
         }
         Graphics2D g2 = (Graphics2D) tileImage.getGraphics();
@@ -83,18 +93,21 @@ public class HeightMapTileProvider implements TileProvider {
 
     @Override
     public boolean isZoomSupported() {
-        return false;
+        return true;
     }
 
     @Override
     public int getZoom() {
-        return 0;
+        return zoom;
     }
 
     @Override
     public void setZoom(int zoom) {
-        if (zoom != 0) {
-            throw new UnsupportedOperationException("Not supported");
+        if (zoom != this.zoom) {
+            if (zoom > 0) {
+                throw new UnsupportedOperationException("Zooming in not supported");
+            }
+            this.zoom = zoom;
         }
     }
     
@@ -105,4 +118,5 @@ public class HeightMapTileProvider implements TileProvider {
             return new BufferedImage(128, 128, BufferedImage.TYPE_BYTE_GRAY);
         }
     };
+    private int zoom = 0;
 }

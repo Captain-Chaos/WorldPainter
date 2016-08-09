@@ -7,6 +7,13 @@ package org.pepsoft.minecraft;
 
 import org.jnbt.CompoundTag;
 import org.jnbt.Tag;
+import org.pepsoft.worldpainter.exporting.MinecraftWorld;
+
+import java.awt.*;
+import java.util.*;
+import java.util.List;
+import java.util.stream.Collectors;
+
 
 import java.awt.*;
 import java.util.*;
@@ -20,7 +27,7 @@ import static org.pepsoft.minecraft.Constants.*;
  * 
  * @author pepijn
  */
-public final class ChunkImpl2 extends AbstractNBTItem implements Chunk {
+public final class ChunkImpl2 extends AbstractNBTItem implements Chunk, MinecraftWorld {
     public ChunkImpl2(int xPos, int zPos, int maxHeight) {
         super(new CompoundTag(TAG_LEVEL, new HashMap<>()));
         this.xPos = xPos;
@@ -438,6 +445,89 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk {
         return -1;
     }
 
+    // MinecraftWorld
+
+    @Override
+    public int getBlockTypeAt(int x, int y, int height) {
+        return getBlockType(x, height, y);
+    }
+
+    @Override
+    public int getDataAt(int x, int y, int height) {
+        return getDataValue(x, height, y);
+    }
+
+    @Override
+    public Material getMaterialAt(int x, int y, int height) {
+        return getMaterial(x, height, y);
+    }
+
+    @Override
+    public void setBlockTypeAt(int x, int y, int height, int blockType) {
+        setBlockType(x, height, y, blockType);
+    }
+
+    @Override
+    public void setDataAt(int x, int y, int height, int data) {
+        setDataValue(x, height, y, data);
+    }
+
+    @Override
+    public void setMaterialAt(int x, int y, int height, Material material) {
+        setMaterial(x, height, y, material);
+    }
+
+    @Override
+    public boolean isChunkPresent(int x, int y) {
+        return ((x == xPos) && (y == zPos));
+    }
+
+    @Override
+    public void addChunk(Chunk chunk) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void addEntity(int x, int y, int height, Entity entity) {
+        entity = (Entity) entity.clone();
+        entity.setPos(new double[] {x, height, y});
+        getEntities().add(entity);
+    }
+
+    @Override
+    public void addEntity(double x, double y, double height, Entity entity) {
+        entity = (Entity) entity.clone();
+        entity.setPos(new double[] {x, height, y});
+        getEntities().add(entity);
+    }
+
+    @Override
+    public void addTileEntity(int x, int y, int height, TileEntity tileEntity) {
+        tileEntity = (TileEntity) tileEntity.clone();
+        tileEntity.setX(x);
+        tileEntity.setZ(y);
+        tileEntity.setY(height);
+        getTileEntities().add(tileEntity);
+    }
+
+    // ChunkProvider
+
+    @Override
+    public Chunk getChunk(int x, int z) {
+        if ((x == xPos) && (z == zPos)) {
+            return this;
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public Chunk getChunkForEditing(int x, int z) {
+        return getChunk(x, z);
+    }
+
+    // Object
+
     @Override
     public boolean equals(Object obj) {
         if (obj == null) {
@@ -517,7 +607,7 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk {
     long inhabitedTime;
 
     private static final long serialVersionUID = 1L;
-    
+
     public static class Section extends AbstractNBTItem {
         Section(CompoundTag tag) {
             super(tag);
