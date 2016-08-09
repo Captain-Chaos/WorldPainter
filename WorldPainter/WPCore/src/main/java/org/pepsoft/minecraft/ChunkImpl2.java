@@ -12,12 +12,6 @@ import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
-import java.util.stream.Collectors;
-
-
-import java.awt.*;
-import java.util.*;
-import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 import static org.pepsoft.minecraft.Constants.*;
