@@ -5,15 +5,9 @@
  */
 package org.pepsoft.worldpainter.heightMaps;
 
-import java.awt.Rectangle;
-import java.io.IOException;
-import java.io.InvalidClassException;
-import java.io.ObjectInputStream;
-import java.io.ObjectStreamException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-
 import org.pepsoft.worldpainter.HeightMap;
+
+import java.awt.*;
 
 /**
  * An abstract base class for a height map which somehow combines two
@@ -64,25 +58,6 @@ public abstract class CombiningHeightMap extends DelegatingHeightMap {
 
     @Override
     public abstract CombiningHeightMap clone();
-
-    private Object readResolve() throws ObjectStreamException {
-        if (heightMap1 != null) {
-            try {
-                Constructor<? extends CombiningHeightMap> constructor = getClass().getConstructor(String.class, HeightMap.class, HeightMap.class);
-                return constructor.newInstance(name, heightMap1, heightMap2);
-            } catch (NoSuchMethodException e) {
-                throw new InvalidClassException(getClass().getName(), "Missing (String, HeightMap, HeightMap) constructor");
-            } catch (IllegalAccessException e) {
-                throw new InvalidClassException(getClass().getName(), "(String, HeightMap, HeightMap) constructor not accessible");
-            } catch (InstantiationException e) {
-                throw new InvalidClassException(getClass().getName(), "Abstract class");
-            } catch (InvocationTargetException e) {
-                throw new RuntimeException(e);
-            }
-        } else {
-            return this;
-        }
-    }
 
     @Deprecated
     protected HeightMap heightMap1, heightMap2;

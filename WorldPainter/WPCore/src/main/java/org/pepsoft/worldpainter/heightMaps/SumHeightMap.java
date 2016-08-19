@@ -8,6 +8,7 @@ import org.pepsoft.util.IconUtils;
 import org.pepsoft.worldpainter.HeightMap;
 
 import javax.swing.*;
+import java.io.ObjectStreamException;
 
 /**
  * A height map which is the sum of two other height maps.
@@ -48,6 +49,14 @@ public final class SumHeightMap extends CombiningHeightMap {
     @Override
     public Icon getIcon() {
         return ICON_SUM_HEIGHTMAP;
+    }
+
+    private Object readResolve() throws ObjectStreamException {
+        if (heightMap1 != null) {
+            return new SumHeightMap(heightMap1, heightMap2);
+        } else {
+            return this;
+        }
     }
 
     private static final long serialVersionUID = 1L;
