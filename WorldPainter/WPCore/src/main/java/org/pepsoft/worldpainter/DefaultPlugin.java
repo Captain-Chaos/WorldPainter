@@ -4,14 +4,14 @@
  */
 package org.pepsoft.worldpainter;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.plugins.AbstractPlugin;
 import org.pepsoft.worldpainter.plugins.ContextProvider;
 import org.pepsoft.worldpainter.plugins.LayerProvider;
 import org.pepsoft.worldpainter.util.MinecraftJarProvider;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  *
@@ -27,11 +27,6 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
     @Override
     public List<Layer> getLayers() {
         return Arrays.asList(Frost.INSTANCE, Caverns.INSTANCE, Chasms.INSTANCE, DeciduousForest.INSTANCE, PineForest.INSTANCE, SwampLand.INSTANCE, Jungle.INSTANCE, org.pepsoft.worldpainter.layers.Void.INSTANCE, Resources.INSTANCE/*, River.INSTANCE*/);
-    }
-
-    @Override
-    public List<Class<? extends CustomLayer>> getCustomLayers() {
-        return Collections.emptyList();
     }
 
     // ContextProvider

@@ -5,7 +5,6 @@
 
 package org.pepsoft.worldpainter;
 
-import org.pepsoft.worldpainter.importing.ImportMaskDialog;
 import com.jidesoft.docking.*;
 import com.jidesoft.swing.JideLabel;
 import org.jetbrains.annotations.NonNls;
@@ -30,6 +29,9 @@ import org.pepsoft.worldpainter.colourschemes.DynMapColourScheme;
 import org.pepsoft.worldpainter.gardenofeden.GardenOfEdenOperation;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.history.WorldHistoryDialog;
+import org.pepsoft.worldpainter.importing.CustomItemsTreeModel;
+import org.pepsoft.worldpainter.importing.ImportCustomItemsDialog;
+import org.pepsoft.worldpainter.importing.ImportMaskDialog;
 import org.pepsoft.worldpainter.importing.MapImportDialog;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.groundcover.GroundCoverLayer;
@@ -46,11 +48,12 @@ import org.pepsoft.worldpainter.painting.Paint;
 import org.pepsoft.worldpainter.painting.PaintFactory;
 import org.pepsoft.worldpainter.panels.BrushOptions;
 import org.pepsoft.worldpainter.panels.BrushOptions.Listener;
-import org.pepsoft.worldpainter.plugins.LayerProvider;
+import org.pepsoft.worldpainter.plugins.CustomLayerProvider;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.pepsoft.worldpainter.threedeeview.ThreeDeeFrame;
 import org.pepsoft.worldpainter.tools.BiomesViewerFrame;
 import org.pepsoft.worldpainter.tools.RespawnPlayerDialog;
+import org.pepsoft.worldpainter.tools.scripts.ScriptRunner;
 import org.pepsoft.worldpainter.util.BackupUtil;
 import org.pepsoft.worldpainter.util.BetterAction;
 import org.pepsoft.worldpainter.util.LayoutUtils;
@@ -94,10 +97,6 @@ import static javax.swing.JOptionPane.*;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Terrain.*;
-
-import org.pepsoft.worldpainter.importing.CustomItemsTreeModel;
-import org.pepsoft.worldpainter.importing.ImportCustomItemsDialog;
-import org.pepsoft.worldpainter.tools.scripts.ScriptRunner;
 
 //import javax.swing.JSeparator;
 
@@ -2594,7 +2593,7 @@ public final class App extends JFrame implements RadiusControl,
         customLayerMenu.add(menuItem);
 
         List<Class<? extends CustomLayer>> allPluginLayers = new ArrayList<>();
-        for (LayerProvider layerProvider: WPPluginManager.getInstance().getPlugins(LayerProvider.class)) {
+        for (CustomLayerProvider layerProvider: WPPluginManager.getInstance().getPlugins(CustomLayerProvider.class)) {
             allPluginLayers.addAll(layerProvider.getCustomLayers());
         }
         if (! allPluginLayers.isEmpty()) {

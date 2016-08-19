@@ -4,10 +4,9 @@
  */
 package org.pepsoft.worldpainter.plugins;
 
-import java.util.List;
-
-import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.Layer;
+
+import java.util.List;
 
 /**
  *
@@ -15,5 +14,4 @@ import org.pepsoft.worldpainter.layers.Layer;
  */
 public interface LayerProvider extends Plugin {
     List<Layer> getLayers();
-    List<Class<? extends CustomLayer>> getCustomLayers();
 }
