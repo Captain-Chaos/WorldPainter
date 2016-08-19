@@ -7,6 +7,7 @@ package org.pepsoft.util.swing;
 import java.awt.*;
 
 /**
+ * A provider of image tiles.
  *
  * @author pepijn
  */

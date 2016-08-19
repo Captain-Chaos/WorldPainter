@@ -28,24 +28,30 @@ public final class PluginManager {
     private PluginManager() {
         // Prevent instantiation
     }
-    
+
+    /**
+     * Load plugin jars from a directory, which are signed with a particular
+     * private key.
+     *
+     * <p>This method should be invoked only once. Any discovered and properly
+     * signed plugin jars will be available to be returned by later invocations
+     * of the {@link #findPlugins(Class, String, ClassLoader)} method.
+     *
+     * @param pluginDir The directory from which to load the plugins.
+     * @param publicKey The public key corresponding to the private key with
+     *                  which the plugins must have been signed.
+     */
     public static void loadPlugins(File pluginDir, PublicKey publicKey) {
-        loadPlugins(pluginDir, publicKey, "");
-    }
-    
-    public static void loadPlugins(File pluginDir, PublicKey publicKey, String logPrefix) {
         if (logger.isDebugEnabled()) {
-            logger.debug(logPrefix + "Loading plugins");
+            logger.debug("Loading plugins");
         }
-        File[] pluginFiles = pluginDir.listFiles((dir, name) -> {
-            return name.toLowerCase().endsWith(".jar");
-        });
+        File[] pluginFiles = pluginDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".jar"));
         if (pluginFiles != null) {
             for (File pluginFile: pluginFiles) {
                 try {
                     JarFile jarFile = new JarFile(pluginFile);
                     if (! isSigned(jarFile, publicKey)) {
-                        logger.error(logPrefix + jarFile.getName() + " is not official or has been tampered with; not loading it");
+                        logger.error(jarFile.getName() + " is not official or has been tampered with; not loading it");
                         continue;
                     }
                     ClassLoader pluginClassLoader = new URLClassLoader(new URL[] {pluginFile.toURI().toURL()});
@@ -58,13 +64,27 @@ public final class PluginManager {
             }
         }
     }
-    
+
+    /**
+     * Obtain a list of instances of all plugins available through a particular
+     * classloader, or from plugin jars discovered by a previous invocation of
+     * {@link #loadPlugins(File, PublicKey)}, which implement a particular type.
+     *
+     * @param type The type of plugin to return.
+     * @param filename The resource path of the file containing the plugin
+     *                 implementation classnames.
+     * @param classLoader The classloader from which to discover plugins.
+     * @param <T> The type of plugin to return.
+     * @return A list of newly instantiated plugin objects of the specified
+     * type available from the specified classloader and/or any earlier
+     * discovered plugin jars.
+     */
     public static <T> List<T> findPlugins(Class<T> type, String filename, ClassLoader classLoader) {
         try {
             List<T> plugins = new ArrayList<>();
-            findPlugins(filename, classLoader, plugins);
+            findPlugins(type, filename, classLoader, plugins);
             for (JarFile pluginJar: pluginJars.keySet()) {
-                findPlugins(filename, pluginJar, plugins);
+                findPlugins(type, filename, pluginJar, plugins);
             }
             return plugins;
         } catch (IOException e) {
@@ -82,7 +102,7 @@ public final class PluginManager {
         return classLoader;
     }
     
-    @SuppressWarnings("empty-statement")
+    @SuppressWarnings({"empty-statement", "StatementWithEmptyBody"})
     private static boolean isSigned(JarFile jarFile, PublicKey publicKey) throws IOException {
         for (Enumeration<JarEntry> e = jarFile.entries(); e.hasMoreElements(); ) {
             JarEntry jarEntry = e.nextElement();
@@ -110,7 +130,7 @@ public final class PluginManager {
         return true;
     }
     
-    private static <T> void findPlugins(String filename, JarFile jarFile, List<T> plugins) throws IOException {
+    private static <T> void findPlugins(Class<T> type, String filename, JarFile jarFile, List<T> plugins) throws IOException {
         JarEntry jarEntry = jarFile.getJarEntry(filename);
         try (BufferedReader in = new BufferedReader(new InputStreamReader(jarFile.getInputStream(jarEntry), Charset.forName("UTF-8")))) {
             String line;
@@ -118,7 +138,9 @@ public final class PluginManager {
                 try {
                     @SuppressWarnings("unchecked")
                     Class<T> pluginType = (Class<T>) pluginJars.get(jarFile).loadClass(line);
-                    plugins.add(pluginType.newInstance());
+                    if (type.isAssignableFrom(pluginType)) {
+                        plugins.add(pluginType.newInstance());
+                    }
                 } catch (ClassNotFoundException e) {
                     throw new RuntimeException("Class not found while instantiating plugin " + line, e);
                 } catch (IllegalAccessException e) {
@@ -130,7 +152,7 @@ public final class PluginManager {
         }
     }
     
-    private static <T> void findPlugins(String filename, ClassLoader classLoader, List<T> plugins) throws IOException {
+    private static <T> void findPlugins(Class<T> type, String filename, ClassLoader classLoader, List<T> plugins) throws IOException {
         Enumeration<URL> resources = classLoader.getResources(filename);
         while (resources.hasMoreElements()) {
             URL url = resources.nextElement();
@@ -140,7 +162,9 @@ public final class PluginManager {
                     try {
                         @SuppressWarnings("unchecked")
                         Class<T> pluginType = (Class<T>) classLoader.loadClass(line);
-                        plugins.add(pluginType.newInstance());
+                        if (type.isAssignableFrom(pluginType)) {
+                            plugins.add(pluginType.newInstance());
+                        }
                     } catch (ClassNotFoundException e) {
                         throw new RuntimeException("Class not found while instantiating plugin " + line, e);
                     } catch (IllegalAccessException e) {

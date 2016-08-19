@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
+ * A WorldPainter plugin.
  *
  * @author pepijn
  */
@@ -35,7 +36,7 @@ public interface Plugin {
     
     /**
      * Get the set of UUIDs this plugin is locked to, or <code>null</code> if
-     * the plugin can be used by anone. Convenience method for parsing the
+     * the plugin can be used by anyone. Convenience method for parsing the
      * result of:
      * 
      * <p><code>getPoperties().getProperty(Plugin.PROPERTY_UUIDS)</code>
@@ -65,22 +66,22 @@ public interface Plugin {
     /**
      * The name of the plugin.
      */
-    static String PROPERTY_NAME    = "name";
+    String PROPERTY_NAME    = "name";
     
     /**
      * The version number of the plugin.
      */
-    static String PROPERTY_VERSION = "version";
+    String PROPERTY_VERSION = "version";
     
     /**
      * A comma-separated list of uuids that this plugin is locked to. Optional,
      * when not present the plugin can be used by anyone.
      */
-    static String PROPERTY_UUIDS   = "uuids";
+    String PROPERTY_UUIDS   = "uuids";
     
     /**
      * The minimum supported version of WorldPainter. Optional, when not present
      * the plugin works with any version of WorldPainter.
      */
-    static String PROPERTY_MINIMUM_WORLDPAINTER_VERSION = "minimumWorldPainterVersion";
+    String PROPERTY_MINIMUM_WORLDPAINTER_VERSION = "minimumWorldPainterVersion";
 }

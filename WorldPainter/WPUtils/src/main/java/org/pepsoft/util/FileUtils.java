@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
@@ -123,7 +124,7 @@ public class FileUtils {
      *                  thrown.
      * @throws IOException If there is an I/O error while performing the copy.
      * @throws IllegalStateException If <code>overwrite</code> was
-     * <code>false</code> and <code>destDir</code> already existed.
+     * <code>false</code> and <code>destFile</code> already existed.
      */
     public static void copyFileToFile(File file, File destFile, boolean overwrite) throws IOException {
         if ((! overwrite) && destFile.isFile()) {
@@ -452,37 +453,33 @@ public class FileUtils {
         return ((file != null) && (file.getClass() != File.class)) ? file.getAbsoluteFile() : file;
     }
     
-    public static <T extends Collection<?>> T absolutise(T collection) {
+    @SuppressWarnings("unchecked") // Guaranteed by code
+    public static <T extends Collection<File>> T absolutise(T collection) {
         if (collection == null) {
             return null;
         } else if (collection instanceof List) {
-            for (ListIterator<Object> i = ((java.util.List) collection).listIterator(); i.hasNext(); ) {
+            for (ListIterator<File> i = ((List<File>) collection).listIterator(); i.hasNext(); ) {
                 Object object = i.next();
-                if (object instanceof File) {
-                    i.set(absolutise((File) object));
-                }
+                i.set(absolutise((File) object));
             }
             return collection;
         } else {
-            Collection newCollection;
+            Collection<File> newCollection;
             if (collection instanceof SortedSet) {
-                newCollection = new TreeSet();
+                newCollection = new TreeSet<>();
             } else if (collection instanceof Set) {
-                newCollection = new HashSet(collection.size());
+                newCollection = new HashSet<>(collection.size());
             } else {
-                newCollection = new ArrayList(collection.size());
+                newCollection = new ArrayList<>(collection.size());
             }
             for (Object object: collection) {
-                if (object instanceof File) {
-                    newCollection.add(absolutise((File) object));
-                } else {
-                    newCollection.add(object);
-                }
+                newCollection.add(absolutise((File) object));
             }
             return (T) newCollection;
         }
     }
 
+    @SuppressWarnings("unchecked") // Guaranteed by code
     public static <T extends Map<?, ?>> T absolutise(T map) {
         if (map == null) {
             return null;
@@ -495,7 +492,7 @@ public class FileUtils {
                 if (map instanceof SortedMap) {
                     newMap = new TreeMap<>();
                 } else {
-                    newMap = new HashMap();
+                    newMap = new HashMap<>();
                 }
                 for (Map.Entry<?, ?> entry2: map.entrySet()) {
                     Object key = entry2.getKey();

@@ -25,14 +25,15 @@ public class RiverPaint extends RadiusOperation {
             previousWaterLevel = dim.getWaterLevelAt(centreX, centreY);
             depth = (previousWaterLevel - dim.getHeightAt(centreX, centreY)) / getFullStrength(centreX, centreY, centreX, centreY);
             lava = dim.getBitLayerValueAt(FloodWithLava.INSTANCE, centreX, centreY);
-            System.out.println("previousWaterLevel: " + previousWaterLevel + ", height: " + dim.getHeightAt(centreX, centreY) + ", depth: " + depth + ", brush strength at centre: " + getFullStrength(centreX, centreY, centreX, centreY) + ", lava: " + lava);
+//            System.out.println("previousWaterLevel: " + previousWaterLevel + ", height: " + dim.getHeightAt(centreX, centreY) + ", depth: " + depth + ", brush strength at centre: " + getFullStrength(centreX, centreY, centreX, centreY) + ", lava: " + lava);
         }
         if (depth < 0) {
             return;
         }
         int r = getEffectiveRadius();
 
-        // Step 1: determine the water level
+        // Step 1: determine the water level by finding the lowest block along the edge of the part which should be
+        // flooded (the part where the brush is at 25% intensity or higher)
         int waterLevel = Integer.MAX_VALUE;
         for (int x = centreX - r; x <= centreX + r; x++) {
             for (int y = centreY - r; y <= centreY + r; y++) {
@@ -47,13 +48,14 @@ public class RiverPaint extends RadiusOperation {
                 }
             }
         }
+        // Only lower the water level during each drag, never raise
         if (waterLevel > previousWaterLevel) {
             waterLevel = previousWaterLevel;
         } else {
             previousWaterLevel = waterLevel;
         }
 
-        // Step 2: lower terrain and flood with water or lava
+        // Step 2: lower the terrain and flood with water or lava
         dim.setEventsInhibited(true);
         try {
             for (int x = centreX - r; x <= centreX + r; x++) {

@@ -15,6 +15,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 
 /**
+ * A container for a {@link TiledImageViewer}, which adds scroll bars around it.
  *
  * @author pepijn
  */

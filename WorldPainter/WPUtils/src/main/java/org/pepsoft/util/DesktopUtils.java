@@ -140,8 +140,9 @@ public final class DesktopUtils {
     public static void main(String[] args) throws MalformedURLException {
         copyToClipboard("Testing, testing, one two three testing.");
         open(new URL("http://www.telegraaf.nl/"));
-        open(new File("/"));
-        System.out.println("Documents folder: " + getDocumentsFolder());
+        File documentsFolder = getDocumentsFolder();
+        System.out.println("Documents folder: " + documentsFolder);
+        open(documentsFolder);
     }
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(DesktopUtils.class);

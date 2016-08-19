@@ -8,6 +8,7 @@ package org.pepsoft.worldpainter.operations;
 import jpen.*;
 import jpen.event.PenListener;
 import jpen.owner.multiAwt.AwtPenToolkit;
+import org.pepsoft.util.SystemUtils;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.EventLogger;
 import org.pepsoft.worldpainter.WorldPainterView;
@@ -103,7 +104,7 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
         this.oneShot = oneshot;
         this.statisticsKey = statisticsKey;
         statisticsKeyUndo = statisticsKey + ".undo";
-        legacy = (System.getProperty("os.name").startsWith("Mac OS X") && System.getProperty("os.version").startsWith("10.4.")) || "true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.disableTabletSupport"));
+        legacy = (SystemUtils.isMac() && System.getProperty("os.version").startsWith("10.4.")) || "true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.disableTabletSupport"));
         if (legacy) {
             logger.warn("Tablet support disabled for operation " + name);
         }
@@ -136,7 +137,7 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
         this.level = level;
     }
 
-    // PenListener
+    // PenListener (these methods are invoked in non-legacy mode, even for mouse events)
     
     @Override
     public void penLevelEvent(PLevelEvent ple) {
@@ -167,51 +168,57 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
             return;
         }
         final PButton.Type buttonType = pbe.button.getType();
-        if (buttonType == PButton.Type.ALT) {
-            altDown = pbe.button.value;
-        } else if (buttonType == PButton.Type.CONTROL) {
-            ctrlDown = pbe.button.value;
-        } else if (buttonType == PButton.Type.SHIFT) {
-            shiftDown = pbe.button.value;
-        } else if ((buttonType == PButton.Type.LEFT) || (buttonType == PButton.Type.RIGHT)) {
-            if (pbe.button.value) {
-                // Button pressed
-                first = true;
-                if (! oneShot) {
-                    undo = eraser || (buttonType == PButton.Type.RIGHT);
-                    if (timer == null) {
-                        timer = new Timer(delay, e -> {
-                            Point worldCoords = view.viewToWorld((int) x, (int) y);
-                            tick(worldCoords.x, worldCoords.y, undo, first, (stylus || eraser) ? dynamicLevel : 1.0f);
+        switch (buttonType) {
+            case ALT:
+                altDown = pbe.button.value;
+                break;
+            case CONTROL:
+                ctrlDown = pbe.button.value;
+                break;
+            case SHIFT:
+                shiftDown = pbe.button.value;
+                break;
+            case LEFT:
+            case RIGHT:
+                if (pbe.button.value) {
+                    // Button pressed
+                    first = true;
+                    undo = eraser || (buttonType == PButton.Type.RIGHT) || altDown;
+                    if (!oneShot) {
+                        if (timer == null) {
+                            timer = new Timer(delay, e -> {
+                                Point worldCoords = view.viewToWorld((int) x, (int) y);
+                                tick(worldCoords.x, worldCoords.y, undo, first, (stylus || eraser) ? dynamicLevel : 1.0f);
+                                view.updateStatusBar(worldCoords.x, worldCoords.y);
+                                first = false;
+                            });
+                            timer.setInitialDelay(0);
+                            timer.start();
+                            //                    start = System.currentTimeMillis();
+                        }
+                    } else {
+                        Point worldCoords = view.viewToWorld((int) x, (int) y);
+                        SwingUtilities.invokeLater(() -> {
+                            tick(worldCoords.x, worldCoords.y, undo, true, 1.0f);
                             view.updateStatusBar(worldCoords.x, worldCoords.y);
-                            first = false;
+                            getDimension().armSavePoint();
+                            logOperation(undo ? statisticsKeyUndo : statisticsKey);
                         });
-                        timer.setInitialDelay(0);
-                        timer.start();
-    //                    start = System.currentTimeMillis();
                     }
                 } else {
-                    SwingUtilities.invokeLater(() -> {
-                        Point worldCoords = view.viewToWorld((int) x, (int) y);
-                        tick(worldCoords.x, worldCoords.y, eraser || (buttonType == PButton.Type.RIGHT), true, 1.0f);
-                        view.updateStatusBar(worldCoords.x, worldCoords.y);
-                        getDimension().armSavePoint();
-                        logOperation(undo ? statisticsKeyUndo : statisticsKey);
-                    });
+                    // Button released
+                    if (!oneShot) {
+                        SwingUtilities.invokeLater(() -> {
+                            if (timer != null) {
+                                logOperation(undo ? statisticsKeyUndo : statisticsKey);
+                                timer.stop();
+                                timer = null;
+                            }
+                            getDimension().armSavePoint();
+                        });
+                    }
                 }
-            } else {
-                // Button released
-                if (! oneShot) {
-                    SwingUtilities.invokeLater(() -> {
-                        if (timer != null) {
-                            logOperation(undo ? statisticsKeyUndo : statisticsKey);
-                            timer.stop();
-                            timer = null;
-                        }
-                        getDimension().armSavePoint();
-                    });
-                }
-            }
+                break;
         }
     }
     
@@ -219,14 +226,14 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
     @Override public void penScrollEvent(PScrollEvent pse) {}
     @Override public void penTock(long l) {}
 
-    // MouseListener
+    // MouseListener (these methods are only invoked in legacy mode)
     
     @Override
     public void mousePressed(MouseEvent me) {
         x = me.getX();
         y = me.getY();
-        undo = me.getButton() == MouseEvent.BUTTON3;
         altDown = me.isAltDown() || me.isAltGraphDown();
+        undo = (me.getButton() == MouseEvent.BUTTON3) || altDown;
         ctrlDown = me.isControlDown() || me.isMetaDown();
         shiftDown = me.isShiftDown();
         first = true;
@@ -267,7 +274,7 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
     @Override public void mouseEntered(MouseEvent me) {}
     @Override public void mouseExited(MouseEvent me) {}
     
-    // MouseMotionListener
+    // MouseMotionListener (these methods are only invoked in legacy mode)
     
     @Override
     public void mouseDragged(MouseEvent me) {
@@ -275,7 +282,8 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
         y = me.getY();
     }
 
-    @Override public void mouseMoved(MouseEvent me) {
+    @Override
+    public void mouseMoved(MouseEvent me) {
         altDown = me.isAltDown() || me.isAltGraphDown();
         ctrlDown = me.isControlDown() || me.isMetaDown();
         shiftDown = me.isShiftDown();
@@ -325,15 +333,36 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
      *     <code>1.0f</code>.
      */
     protected abstract void tick(int centreX, int centreY, boolean inverse, boolean first, float dynamicLevel);
-    
+
+    /**
+     * Determine whether the Alt (PC/Mac), AltGr (PC) or Option (Mac) key is
+     * currently depressed. <strong>Warning:</strong> this key is also used to
+     * invert operations! It is probably a bad idea to overload it with anything
+     * else.
+     *
+     * @return <code>true</code> if the Alt, AltGr or Option key is currently
+     * depressed.
+     */
     protected final boolean isAltDown() {
         return altDown;
     }
-    
+
+    /**
+     * Determine whether the Ctrl (PC/Mac), Windows (PC) or Command (Mac) key is
+     * currently depressed.
+     *
+     * @return <code>true</code> if the Ctrl (PC/Mac), Windows (PC) or
+     * Command (Mac) key is currently depressed.
+     */
     protected final boolean isCtrlDown() {
         return ctrlDown;
     }
-    
+
+    /**
+     * Determine whether the Shift key is currently depressed.
+     *
+     * @return <code>true</code> if the Shift key is currently depressed.
+     */
     protected final boolean isShiftDown() {
         return shiftDown;
     }
@@ -364,13 +393,12 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
     private final String statisticsKey, statisticsKeyUndo;
     private WorldPainterView view;
     private volatile Timer timer;
-    private boolean altDown, ctrlDown, shiftDown, first = true;
+    private volatile boolean altDown, ctrlDown, shiftDown, first = true, undo;
     private volatile float dynamicLevel = 1.0f;
     private volatile float x, y;
     private float level = 1.0f;
 //    private long start;
-    private boolean undo;
-    
+
     private static final Map<String, Long> operationCounts = new HashMap<>();
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MouseOrTabletOperation.class);
 }

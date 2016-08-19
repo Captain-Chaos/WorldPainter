@@ -104,13 +104,13 @@ public class ScriptingTool {
         }
         
         // Load the plugins
-        File pluginsDir = new File(Configuration.getConfigDir(), "plugins");
-        if (pluginsDir.isDirectory()) {
-            if (trustedCert != null) {
+        if (trustedCert != null) {
+            File pluginsDir = new File(Configuration.getConfigDir(), "plugins");
+            if (pluginsDir.isDirectory()) {
                 PluginManager.loadPlugins(pluginsDir, trustedCert.getPublicKey());
-            } else {
-                logger.error("Trusted root certificate not available; not loading plugins");
             }
+        } else {
+            logger.error("Trusted root certificate not available; not loading plugins");
         }
         WPPluginManager.initialise(config.getUuid());
 

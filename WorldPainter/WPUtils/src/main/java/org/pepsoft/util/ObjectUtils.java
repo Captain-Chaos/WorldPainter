@@ -30,22 +30,21 @@ public final class ObjectUtils {
 
     /**
      * Make a deep copy of an object. Only a restricted set of types is
-     * supported. <strike>Will automatically throw away redo and/or undo information if
-     * there is not enough memory, until there is no more information to throw
-     * away, in which case it will throw an <code>OutOfMemoryError</code>.</strike>
+     * supported.
      *
      * @param <T> The type of the object.
      * @param object The object to copy.
      * @return A deep copy of the object.
      * @throws OutOfMemoryError If there is not enough memory to copy the
-     *     object, <strike>after throwing away all redo and undo information.</strike>
+     *     object.
      */
     @SuppressWarnings("unchecked")
     public static <T> T copyObject(T object) {
         // Point isn't actually immutable, but it is used as such by WorldPainter, at least in all data structures
         // managed by an undo manager
-        if ((object == null) || (object instanceof Number) || (object instanceof String) || (object instanceof Enum)
-                || (object instanceof Point)) {
+        if ((object == null) || (object instanceof Number) || (object instanceof Character)
+                || (object instanceof Boolean) || (object instanceof String) || (object instanceof Enum)
+                || (object instanceof Point) || (object instanceof Immutable)) {
             // Object is null or immutable; making a copy not necessary
             return object;
         } else {

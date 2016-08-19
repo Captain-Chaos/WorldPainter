@@ -23,12 +23,12 @@ public final class IconUtils {
         // Prevent instantiation
     }
 
-    public static Icon loadIcon(String path) {
+    public static ImageIcon loadIcon(String path) {
         BufferedImage image = loadImage(path);
         return (image != null) ? new ImageIcon(image) : null;
     }
     
-    public static Icon loadIcon(ClassLoader classLoader, String path) {
+    public static ImageIcon loadIcon(ClassLoader classLoader, String path) {
         BufferedImage image = loadImage(classLoader, path);
         return (image != null) ? new ImageIcon(image) : null;
     }
@@ -69,8 +69,8 @@ public final class IconUtils {
         return new ImageIcon(image);
     }
 
-    public static Icon scaleIcon(Icon icon, int size) {
-        return new ImageIcon(scaleIcon(((ImageIcon) icon).getImage(), size));
+    public static ImageIcon scaleIcon(ImageIcon icon, int size) {
+        return new ImageIcon(scaleIcon(icon.getImage(), size));
     }
 
     public static BufferedImage scaleIcon(Image iconImage, int size) {
@@ -79,9 +79,9 @@ public final class IconUtils {
         try {
             g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
             g2.drawImage(iconImage, 0, 0, size, size, null);
-            return newImage;
         } finally {
             g2.dispose();
         }
+        return newImage;
     }
 }

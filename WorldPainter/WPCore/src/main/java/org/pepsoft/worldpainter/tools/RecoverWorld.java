@@ -62,7 +62,7 @@ public class RecoverWorld {
 
         // Load the plugins
         if (trustedCert != null) {
-            org.pepsoft.util.PluginManager.loadPlugins(new File(Configuration.getConfigDir(), "plugins"), trustedCert.getPublicKey());
+            PluginManager.loadPlugins(new File(Configuration.getConfigDir(), "plugins"), trustedCert.getPublicKey());
         } else {
             logger.error("Trusted root certificate not available; not loading plugins");
         }

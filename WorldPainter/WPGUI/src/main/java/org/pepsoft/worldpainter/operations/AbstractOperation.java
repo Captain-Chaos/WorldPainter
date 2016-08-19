@@ -6,6 +6,10 @@
 package org.pepsoft.worldpainter.operations;
 
 /**
+ * An abstract base class for WorldPainter {@link Operation}s which provides
+ * name and description getters and separate {@link #activate()} and
+ * {@link #deactivate()} methods for convenience, and implements
+ * {@link #toString()}.
  *
  * @author pepijn
  */

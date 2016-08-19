@@ -11,6 +11,7 @@ import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
 import com.jidesoft.plaf.LookAndFeelFactory;
 import com.jidesoft.utils.Lm;
+import org.pepsoft.util.PluginManager;
 import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
 import org.pepsoft.worldpainter.browser.WPTrustManager;
 import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
@@ -179,7 +180,7 @@ public class Main {
         
         // Load the plugins
         if (trustedCert != null) {
-            org.pepsoft.util.PluginManager.loadPlugins(new File(configDir, "plugins"), trustedCert.getPublicKey());
+            PluginManager.loadPlugins(new File(configDir, "plugins"), trustedCert.getPublicKey());
         } else {
             logger.error("Trusted root certificate not available; not loading plugins");
         }

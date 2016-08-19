@@ -34,10 +34,12 @@ public abstract class AbstractPaintOperation extends RadiusOperation implements 
         super(name, description, view, radiusControl, mapDragControl, delay, statisticsKey);
     }
 
+    @Override
     public Paint getPaint() {
         return paint;
     }
 
+    @Override
     public void setPaint(Paint paint) {
         this.paint = paint;
         if (getBrush() != null) {
