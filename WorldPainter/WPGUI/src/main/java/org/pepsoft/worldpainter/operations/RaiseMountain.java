@@ -17,7 +17,7 @@ import org.pepsoft.worldpainter.brushes.Brush;
  */
 public class RaiseMountain extends RadiusOperation {
     public RaiseMountain(WorldPainter view, RadiusControl radiusControl, MapDragControl mapDragControl) {
-        super("Raise Mountain", "Raises a mountain out of the ground", view, radiusControl, mapDragControl, 100, "operation.raiseMountain");
+        super("Raise Mountain", "Raises a mountain out of the ground", view, radiusControl, mapDragControl, 100, "operation.raiseMountain", "mountain");
     }
 
     @Override

@@ -15,7 +15,7 @@ import org.pepsoft.worldpainter.WorldPainter;
  */
 public class RaiseRotatedPyramid extends MouseOrTabletOperation {
     public RaiseRotatedPyramid(WorldPainter worldPainter) {
-        super("Raise Rotated Pyramid", "Raises a square, but rotated 45 degrees, pyramid out of the ground", worldPainter, 100, "operation.raiseRotatedPyramid");
+        super("Raise Rotated Pyramid", "Raises a square, but rotated 45 degrees, pyramid out of the ground", worldPainter, 100, "operation.raiseRotatedPyramid", "pyramid");
     }
 
     protected void tick(int centreX, int centreY, boolean inverse, boolean first, float dynamicLevel) {

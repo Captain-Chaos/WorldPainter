@@ -14,7 +14,7 @@ import org.pepsoft.worldpainter.layers.FloodWithLava;
  */
 public class RiverPaint extends RadiusOperation {
     public RiverPaint(WorldPainterView view, RadiusControl radiusControl, MapDragControl mapDragControl) {
-        super("RiverPaint", "Paint a river of water or lava", view, radiusControl, mapDragControl, 100, "operation.riverPaint");
+        super("RiverPaint", "Paint a river of water or lava", view, radiusControl, mapDragControl, 100, "operation.riverPaint", "river");
     }
 
     @Override

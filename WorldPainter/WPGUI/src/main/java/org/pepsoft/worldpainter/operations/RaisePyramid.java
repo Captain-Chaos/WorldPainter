@@ -15,7 +15,7 @@ import org.pepsoft.worldpainter.WorldPainter;
  */
 public class RaisePyramid extends MouseOrTabletOperation {
     public RaisePyramid(WorldPainter worldPainter) {
-        super("Raise Pyramid", "Raises a square pyramid out of the ground", worldPainter, 100, "operation.raisePyramid");
+        super("Raise Pyramid", "Raises a square pyramid out of the ground", worldPainter, 100, "operation.raisePyramid", "pyramid");
     }
 
     @Override

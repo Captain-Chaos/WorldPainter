@@ -7,6 +7,8 @@ package org.pepsoft.worldpainter.operations;
 
 import org.pepsoft.worldpainter.WorldPainterView;
 
+import java.awt.image.BufferedImage;
+
 /**
  * A WorldPainter operation or tool which affects the world in some way,
  * directed by the user.
@@ -67,4 +69,12 @@ public interface Operation {
      *               <code>false</code>).
      */
     void setActive(boolean active);
+
+    /**
+     * Get the icon of the operation. Should be 16x16 and have a transparent
+     * background.
+     *
+     * @return The icon of the operation.
+     */
+    BufferedImage getIcon();
 }

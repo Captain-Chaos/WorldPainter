@@ -17,7 +17,10 @@ import org.pepsoft.worldpainter.layers.FloodWithLava;
  */
 public class Flood extends MouseOrTabletOperation {
     public Flood(WorldPainter view, boolean floodWithLava) {
-        super(floodWithLava ? "Lava" : "Flood", "Flood an area with " + (floodWithLava ? "lava" : "water"), view, "operation.flood." + (floodWithLava ? "lava" : "water"));
+        super(floodWithLava ? "Lava" : "Flood", "Flood an area with " + (floodWithLava ? "lava" : "water"),
+                view,
+                "operation.flood." + (floodWithLava ? "lava" : "water"),
+                floodWithLava ? "flood_with_lava" : "flood");
         this.floodWithLava = floodWithLava;
     }
     

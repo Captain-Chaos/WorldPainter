@@ -5,6 +5,10 @@
 
 package org.pepsoft.worldpainter.operations;
 
+import org.pepsoft.util.IconUtils;
+
+import java.awt.image.BufferedImage;
+
 /**
  * An abstract base class for WorldPainter {@link Operation}s which provides
  * name and description getters and separate {@link #activate()} and
@@ -15,11 +19,16 @@ package org.pepsoft.worldpainter.operations;
  */
 public abstract class AbstractOperation implements Operation {
     protected AbstractOperation(String name, String description) {
+        this(name, description, name.toLowerCase().replaceAll("\\s", ""));
+    }
+
+    protected AbstractOperation(String name, String description, String iconName) {
         if ((name == null) || (description == null)) {
             throw new NullPointerException();
         }
         this.name = name;
         this.description = description;
+        icon = IconUtils.loadImage(getClass().getClassLoader(), "org/pepsoft/worldpainter/icons/" + iconName + ".png");
     }
 
     @Override
@@ -50,6 +59,11 @@ public abstract class AbstractOperation implements Operation {
     }
 
     @Override
+    public final BufferedImage getIcon() {
+        return icon;
+    }
+
+    @Override
     public String toString() {
         return name;
     }
@@ -58,5 +72,6 @@ public abstract class AbstractOperation implements Operation {
     protected abstract void deactivate();
 
     private final String name, description;
+    private final BufferedImage icon;
     private boolean active;
 }

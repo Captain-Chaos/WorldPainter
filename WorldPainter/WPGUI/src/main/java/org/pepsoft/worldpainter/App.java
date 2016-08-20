@@ -2285,35 +2285,35 @@ public final class App extends JFrame implements RadiusControl,
         JPanel toolPanel = new JPanel();
         toolPanel.setLayout(new GridLayout(0, 4));
         // TODO: use function keys as accelerators?
-        toolPanel.add(createButtonForOperation(new SprayPaint(view, this, mapDragControl), "spraypaint", 'r'));
-        toolPanel.add(createButtonForOperation(new Pencil(view, this, mapDragControl), "pencil", 'p'));
-        toolPanel.add(createButtonForOperation(new Fill(view), "fill", 'l'));
-        toolPanel.add(createButtonForOperation(new Text(view), "text", 'x'));
+        toolPanel.add(createButtonForOperation(new SprayPaint(view, this, mapDragControl), 'r'));
+        toolPanel.add(createButtonForOperation(new Pencil(view, this, mapDragControl), 'p'));
+        toolPanel.add(createButtonForOperation(new Fill(view), 'l'));
+        toolPanel.add(createButtonForOperation(new Text(view), 'x'));
 
-        toolPanel.add(createButtonForOperation(new Flood(view, false), "flood", 'f'));
-        toolPanel.add(createButtonForOperation(new Flood(view, true), "flood_with_lava"));
-//        toolPanel.add(createButtonForOperation(new RiverPaint(view, this, mapDragControl), "river"));
-        toolPanel.add(createButtonForOperation(new Sponge(view, this, mapDragControl), "sponge"));
+        toolPanel.add(createButtonForOperation(new Flood(view, false), 'f'));
+        toolPanel.add(createButtonForOperation(new Flood(view, true)));
+//        toolPanel.add(createButtonForOperation(new RiverPaint(view, this, mapDragControl)));
+        toolPanel.add(createButtonForOperation(new Sponge(view, this, mapDragControl)));
         toolPanel.add(Box.createGlue());
 
-        toolPanel.add(createButtonForOperation(new Height(view, this, mapDragControl), "height", 'h'));
-        toolPanel.add(createButtonForOperation(new Flatten(view, this, mapDragControl), "flatten", 'a'));
-        toolPanel.add(createButtonForOperation(new Smooth(view, this, mapDragControl), "smooth", 's'));
-        toolPanel.add(createButtonForOperation(new RaiseMountain(view, this, mapDragControl), "mountain", 'm'));
+        toolPanel.add(createButtonForOperation(new Height(view, this, mapDragControl), 'h'));
+        toolPanel.add(createButtonForOperation(new Flatten(view, this, mapDragControl), 'a'));
+        toolPanel.add(createButtonForOperation(new Smooth(view, this, mapDragControl), 's'));
+        toolPanel.add(createButtonForOperation(new RaiseMountain(view, this, mapDragControl), 'm'));
 
-//        toolPanel.add(createButtonForOperation(new Erode(view, this, mapDragControl), "erode", 'm'));
-        toolPanel.add(createButtonForOperation(new SetSpawnPoint(view), "spawn"));
+//        toolPanel.add(createButtonForOperation(new Erode(view, this, mapDragControl), 'm'));
+        toolPanel.add(createButtonForOperation(new SetSpawnPoint(view)));
         JButton button = new JButton(loadIcon("globals"));
         button.setMargin(new Insets(2, 2, 2, 2));
         button.addActionListener(e -> showGlobalOperations());
         button.setToolTipText(strings.getString("global.operations.fill.or.clear.the.world.with.a.terrain.biome.or.layer"));
         toolPanel.add(button);
-        toolPanel.add(createButtonForOperation(new RaiseRotatedPyramid(view), "pyramid"));
-        toolPanel.add(createButtonForOperation(new RaisePyramid(view), "pyramid"));
+        toolPanel.add(createButtonForOperation(new RaiseRotatedPyramid(view)));
+        toolPanel.add(createButtonForOperation(new RaisePyramid(view)));
 
         for (Operation operation: operations) {
             operation.setView(view);
-            toolPanel.add(createButtonForOperation(operation, operation.getName().replaceAll("\\s", "").toLowerCase()));
+            toolPanel.add(createButtonForOperation(operation));
         }
 
         return toolPanel;
@@ -4172,24 +4172,19 @@ public final class App extends JFrame implements RadiusControl,
         zoomLabel.setText(MessageFormat.format(strings.getString("zoom.0"), 100));
     }
 
-    private JToggleButton createButtonForOperation(Operation operation, @NonNls String iconName) {
-        return createButtonForOperation(operation, iconName, (char) 0);
+    private JToggleButton createButtonForOperation(final Operation operation) {
+        return createButtonForOperation(operation, (char) 0);
     }
 
-    private JToggleButton createButtonForOperation(final Operation operation, @NonNls String iconName, char mnemonic) {
-        Icon icon;
-        if (iconName != null) {
-            icon = loadIcon(operation, iconName);
-        } else {
-            icon = null;
-        }
+    private JToggleButton createButtonForOperation(final Operation operation, char mnemonic) {
+        BufferedImage icon = operation.getIcon();
         JToggleButton button = new JToggleButton();
         if (operation instanceof SetSpawnPoint) {
             setSpawnPointToggleButton = button;
         }
         button.setMargin(new Insets(2, 2, 2, 2));
         if (icon != null) {
-            button.setIcon(icon);
+            button.setIcon(new ImageIcon(icon));
         }
         if (operation.getName().equalsIgnoreCase(operation.getDescription())) {
             button.setToolTipText(operation.getName());
@@ -4488,10 +4483,6 @@ public final class App extends JFrame implements RadiusControl,
 
     private static Icon loadIcon(@NonNls String name) {
         return IconUtils.loadIcon("org/pepsoft/worldpainter/icons/" + name + ".png");
-    }
-    
-    private static Icon loadIcon(Object plugin, String name) {
-        return IconUtils.loadIcon(plugin.getClass().getClassLoader(), "org/pepsoft/worldpainter/icons/" + name + ".png");
     }
     
     private void enableImportedWorldOperation() {
