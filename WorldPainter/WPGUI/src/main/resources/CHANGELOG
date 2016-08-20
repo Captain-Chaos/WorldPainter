@@ -1,3 +1,7 @@
+-- Version 2.2.4, released 20-8-2016
+
+* Bug fix: fix a bug which prevented WorldPainter from starting with the Autumn Forest plugin installed. WorldPainter will now start again, but note that that plugin is very old and does not work anymore with the current version of WorldPainter, so it is better to remove it
+
 -- Version 2.2.3, released 7-8-2016
 
  * Update the Minecraft version number in the "map format" combobox on the Export screen to 1.10
