@@ -145,7 +145,6 @@ public class ExportWorldDialog extends javax.swing.JDialog {
             comboBoxGenerator.setModel(new DefaultComboBoxModel(new String[] {"Default", "Superflat", "Large Biomes"}));
         }
         comboBoxGenerator.setSelectedIndex(generator);
-        borderChanged(dim0.getBorder());
         comboBoxGameType.setSelectedIndex(gameType);
         checkBoxAllowCheats.setSelected(world.isAllowCheats());
         if (selectedTiles != null) {
@@ -154,7 +153,8 @@ public class ExportWorldDialog extends javax.swing.JDialog {
         }
         checkBoxMapFeatures.setSelected(world.isMapFeatures());
         comboBoxDifficulty.setSelectedIndex(world.getDifficulty());
-        
+        borderChanged(dim0.getBorder());
+
         DocumentListener documentListener = new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
