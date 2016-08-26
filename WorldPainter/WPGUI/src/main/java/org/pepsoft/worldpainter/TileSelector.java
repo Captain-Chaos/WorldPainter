@@ -229,7 +229,7 @@ public class TileSelector extends javax.swing.JPanel {
         this.dimension = dimension;
         if (dimension != null) {
             int biomeAlgorithm = -1;
-            if (dimension.getDim() == DIM_NORMAL) {
+            if ((dimension.getDim() == DIM_NORMAL) && ((dimension.getBorder() == null) || (! dimension.getBorder().isEndless()))) {
                 World2 world = dimension.getWorld();
                 if (world != null) {
                     if (world.getVersion() == org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_1) {
