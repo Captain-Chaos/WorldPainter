@@ -48,7 +48,8 @@ public class PostProcessor {
         int x1 = area.x;
         int y1 = area.y;
         int x2 = x1 + area.width - 1, y2 = y1 + area.height - 1;
-        int minZ = 0, maxZ = minecraftWorld.getMaxHeight() - 1;
+        final int maxHeight = minecraftWorld.getMaxHeight();
+        int minZ = 0, maxZ = maxHeight - 1;
         if (minecraftWorld instanceof MinecraftWorldObject) {
             // Special support for MinecraftWorldObjects to constrain the area
             // further
@@ -70,7 +71,7 @@ public class PostProcessor {
                 maxZ = volume.getZ2() - 1;
             }
         }
-        boolean traceEnabled = logger.isTraceEnabled();
+        final boolean traceEnabled = logger.isTraceEnabled();
         for (int x = x1; x <= x2; x ++) {
             for (int y = y1; y <= y2; y++) {
                 int blockTypeBelow = minecraftWorld.getBlockTypeAt(x, y, minZ);
@@ -215,6 +216,20 @@ public class PostProcessor {
                         case BLK_CHORUS_PLANT:
                             if ((blockTypeBelow != BLK_END_STONE) && (blockTypeBelow != BLK_CHORUS_PLANT)) {
                                 // Chorus flower and plant blocks can only be on top of end stone or other chorus plant blocks
+                                minecraftWorld.setMaterialAt(x, y, z, Material.AIR);
+                                blockType = BLK_AIR;
+                            }
+                            break;
+                        case BLK_FIRE:
+                            // We don't know which blocks are flammable, but at
+                            // least check whether the fire is not floating in
+                            // the air
+                            if ((blockTypeBelow == BLK_AIR)
+                                    && (blockTypeAbove == BLK_AIR)
+                                    && (minecraftWorld.getBlockTypeAt(x - 1, y, z) == BLK_AIR)
+                                    && (minecraftWorld.getBlockTypeAt(x + 1, y, z) == BLK_AIR)
+                                    && (minecraftWorld.getBlockTypeAt(x, y - 1, z) == BLK_AIR)
+                                    && (minecraftWorld.getBlockTypeAt(x, y + 1, z) == BLK_AIR)) {
                                 minecraftWorld.setMaterialAt(x, y, z, Material.AIR);
                                 blockType = BLK_AIR;
                             }
