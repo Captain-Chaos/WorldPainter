@@ -3043,43 +3043,7 @@ public final class App extends JFrame implements RadiusControl,
 
             private void remove() {
                 if (showConfirmDialog(App.this, MessageFormat.format(strings.getString("are.you.sure.you.want.to.remove.the.0.layer"), layer.getName()), MessageFormat.format(strings.getString("confirm.0.removal"), layer.getName()), YES_NO_OPTION) == YES_OPTION) {
-                    if ((activeOperation instanceof PaintOperation) && (paint instanceof LayerPaint) && (((LayerPaint) paint).getLayer() == layer)) {
-                        deselectPaint();
-                    }
-                    dimension.setEventsInhibited(true);
-                    try {
-                        dimension.clearLayerData(layer);
-                    } finally {
-                        dimension.setEventsInhibited(false);
-                    }
-                    unregisterCustomLayer(layer);
-
-                    boolean visibleLayersChanged = false;
-                    if (hiddenLayers.contains(layer)) {
-                        hiddenLayers.remove(layer);
-                        visibleLayersChanged = true;
-                    }
-                    if (layer.equals(soloLayer)) {
-                        soloLayer = null;
-                        visibleLayersChanged = true;
-                    }
-                    if (layer instanceof LayerContainer) {
-                        boolean layersUnhidden = false;
-                        for (Layer subLayer : ((LayerContainer) layer).getLayers()) {
-                            if ((subLayer instanceof CustomLayer) && ((CustomLayer) subLayer).isHide()) {
-                                ((CustomLayer) subLayer).setHide(false);
-                                layersUnhidden = true;
-                            }
-                        }
-                        if (layersUnhidden) {
-                            updateHiddenLayers();
-                            visibleLayersChanged = false;
-                        }
-                    }
-                    if (visibleLayersChanged) {
-                        updateLayerVisibility();
-                    }
-
+                    deleteCustomLayer(layer);
                     App.this.validate(); // Doesn't happen automatically for some reason; Swing bug?
                 }
             }
@@ -3087,6 +3051,45 @@ public final class App extends JFrame implements RadiusControl,
         return buttonComponents;
     }
 
+    public void deleteCustomLayer(CustomLayer layer) {
+        if ((activeOperation instanceof PaintOperation) && (paint instanceof LayerPaint) && (((LayerPaint) paint).getLayer() == layer)) {
+            deselectPaint();
+        }
+        dimension.setEventsInhibited(true);
+        try {
+            dimension.clearLayerData(layer);
+        } finally {
+            dimension.setEventsInhibited(false);
+        }
+        unregisterCustomLayer(layer);
+
+        boolean visibleLayersChanged = false;
+        if (hiddenLayers.contains(layer)) {
+            hiddenLayers.remove(layer);
+            visibleLayersChanged = true;
+        }
+        if (layer.equals(soloLayer)) {
+            soloLayer = null;
+            visibleLayersChanged = true;
+        }
+        if (layer instanceof LayerContainer) {
+            boolean layersUnhidden = false;
+            for (Layer subLayer : ((LayerContainer) layer).getLayers()) {
+                if ((subLayer instanceof CustomLayer) && ((CustomLayer) subLayer).isHide()) {
+                    ((CustomLayer) subLayer).setHide(false);
+                    layersUnhidden = true;
+                }
+            }
+            if (layersUnhidden) {
+                updateHiddenLayers();
+                visibleLayersChanged = false;
+            }
+        }
+        if (visibleLayersChanged) {
+            updateLayerVisibility();
+        }
+    }
+    
     @Override
     public List<Component> createPopupMenuButton(String paletteName) {
         final JPopupMenu customLayerMenu = createCustomLayerMenu(paletteName);
@@ -3392,6 +3395,10 @@ public final class App extends JFrame implements RadiusControl,
         
         menuItem = new JMenuItem(ACTION_EDIT_TILES);
         menuItem.setMnemonic('t');
+        menu.add(menuItem);
+
+        menuItem = new JMenuItem("Delete unused layers...");
+        menuItem.addActionListener(e -> deleteUnusedLayers());
         menu.add(menuItem);
 
 //        final JMenuItem easyModeItem = new JCheckBoxMenuItem("Advanced mode");
@@ -5310,6 +5317,21 @@ public final class App extends JFrame implements RadiusControl,
         dockableFrame.setAutohideWhenActive(true);
         dockableFrame.setMaximizable(false);
         return dockableFrame;
+    }
+
+    private void deleteUnusedLayers() {
+        Set<CustomLayer> unusedLayers = getCustomLayers();
+        Set<Layer> layersInUse = dimension.getAllLayers(true);
+        unusedLayers.removeAll(layersInUse);
+        if (unusedLayers.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "There are no unused layers in this dimension.", "No Unused Layers", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            DeleteLayersDialog dialog = new DeleteLayersDialog(this, unusedLayers);
+            dialog.setVisible(true);
+            if (! dialog.isCancelled()) {
+                JOptionPane.showMessageDialog(this, "The selected layers have been deleted.", "Layers Deleted", JOptionPane.INFORMATION_MESSAGE);
+            }
+        }
     }
 
     static Icon findIcon(Container container) {

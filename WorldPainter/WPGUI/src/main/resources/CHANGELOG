@@ -1,3 +1,7 @@
+-- Version 2.2.5, release ...
+
+* A function has been added for deleting layers which are not in use. It is located in the Edit menu as "Delete unused layers...". By default it selects all unused layers, but you can deselect any layers you want to keep before deletion. Note that if you unpaint all traces of a layer from the dimension manually it does not count as unused until you save and load the world, or you use the Global Operations tool to remove the layer (which is easier and more efficient than manually unpainting it).
+
 -- Version 2.2.4, released 20-8-2016
 
 * Bug fix: fix a bug which prevented WorldPainter from starting with the Autumn Forest plugin installed. WorldPainter will now start again, but note that that plugin is very old and does not work anymore with the current version of WorldPainter, so it is better to remove it
