@@ -135,6 +135,11 @@ public class TransformingHeightMap extends DelegatingHeightMap {
         return ICON_TRANSFORMING_HEIGHTMAP;
     }
 
+    @Override
+    public float[] getRange() {
+        return children[0].getRange();
+    }
+
     private void recalculate() {
         transform = new AffineTransform();
         if (scaleX != 1.0f) {

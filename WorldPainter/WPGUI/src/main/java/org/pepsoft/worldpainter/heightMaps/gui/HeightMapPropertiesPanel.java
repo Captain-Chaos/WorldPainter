@@ -36,6 +36,7 @@ public class HeightMapPropertiesPanel extends JPanel {
     public void setHeightMap(HeightMap heightMap) {
         this.heightMap = heightMap;
         removeAll();
+        addField("Type:", heightMap.getClass().getSimpleName());
         addField("Name:", heightMap, "name");
         if (heightMap instanceof ConstantHeightMap) {
             addField("Height: ", heightMap, "height");
@@ -46,7 +47,7 @@ public class HeightMapPropertiesPanel extends JPanel {
             addField("Border size:", heightMap, "borderSize", 0, null);
             addField("Coast size:", heightMap, "coastSize", 0, null);
         } else if (heightMap instanceof NoiseHeightMap) {
-            addField("Range:", heightMap, "range", 0f, null);
+            addField("Height:", heightMap, "height", 0f, null);
             addField("Scale:", heightMap, "scale", 0.0, null);
             addField("Octaves:", heightMap, "octaves", 1, 8);
         } else if (heightMap instanceof TransformingHeightMap) {
@@ -71,6 +72,8 @@ public class HeightMapPropertiesPanel extends JPanel {
             addField("Shelve height:", heightMap, "shelveHeight");
             addField("Shelve strength:", heightMap, "shelveStrength");
         }
+        float[] range = heightMap.getRange();
+        addField("Range:", "[" + range[0] + ", " + range[1] + "]");
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.weighty = 1.0;
         add(Box.createGlue(), constraints);
@@ -86,11 +89,19 @@ public class HeightMapPropertiesPanel extends JPanel {
         this.listener = listener;
     }
 
+    private void addField(String name, String text) {
+        addField(name, null, null, null, null, text);
+    }
+
     private void addField(String name, Object bean, String propertyName) {
-        addField(name, bean, propertyName, null, null);
+        addField(name, bean, propertyName, null, null, null);
     }
 
     private void addField(String name, Object bean, String propertyName, Number min, Number max) {
+        addField(name, bean, propertyName, min, max, null);
+    }
+
+    private void addField(String name, Object bean, String propertyName, Number min, Number max, String text) {
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.anchor = GridBagConstraints.NORTHWEST;
         constraints.insets = new Insets(2, 2, 2, 2);
@@ -98,6 +109,14 @@ public class HeightMapPropertiesPanel extends JPanel {
         constraints.anchor = GridBagConstraints.BASELINE_LEADING;
         JLabel label = new JLabel(name);
         add(label, constraints);
+        if (text != null) {
+            constraints.gridwidth = GridBagConstraints.REMAINDER;
+            constraints.weightx = 1.0;
+            JLabel valueLabel = new JLabel();
+            valueLabel.setText(text);
+            add(valueLabel, constraints);
+            return;
+        }
         try {
             BeanInfo beanInfo = Introspector.getBeanInfo(bean.getClass());
             for (PropertyDescriptor propertyDescriptor: beanInfo.getPropertyDescriptors()) {

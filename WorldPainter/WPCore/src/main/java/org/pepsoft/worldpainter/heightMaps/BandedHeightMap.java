@@ -56,11 +56,6 @@ public class BandedHeightMap extends AbstractHeightMap {
     // HeightMap
 
     @Override
-    public float getBaseHeight() {
-        return 0f;
-    }
-
-    @Override
     public float getHeight(float x0, float y0) {
         final float d = MathUtils.mod(x0, totalLength);
         if (d < segment1Length) {
@@ -83,6 +78,11 @@ public class BandedHeightMap extends AbstractHeightMap {
         return ICON_BANDED_HEIGHTMAP;
     }
 
+    @Override
+    public float[] getRange() {
+        return RANGE;
+    }
+
     private void recalculate() {
         totalLength = segment1Length + segment2Length;
         segment1EndDelta = segment1EndHeight - segment2EndHeight;
@@ -95,4 +95,5 @@ public class BandedHeightMap extends AbstractHeightMap {
 
     private static final long serialVersionUID = 1L;
     private static final Icon ICON_BANDED_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/sawtooth.png");
+    private static final float[] RANGE = {0.0f, 1.0f};
 }

@@ -67,7 +67,6 @@ public class SlopeHeightMap extends DelegatingHeightMap {
 
     public void setVerticalScaling(float verticalScaling) {
         this.verticalScaling = verticalScaling;
-        determineConstant();
     }
 
     // HeightMap
@@ -103,10 +102,16 @@ public class SlopeHeightMap extends DelegatingHeightMap {
         return ICON_SLOPE_HEIGHTMAP;
     }
 
+    @Override
+    public float[] getRange() {
+        return RANGE;
+    }
+
     private float verticalScaling;
 
     private static final long serialVersionUID = 1L;
     private static final double ROOT_EIGHT = Math.sqrt(8.0);
     private static final double RADIANS_TO_DEGREES = 180 / Math.PI;
     private static final Icon ICON_SLOPE_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/integral.png");
+    private static final float[] RANGE = {0.0f, 90.0f};
 }

@@ -9,6 +9,7 @@ package org.pepsoft.worldpainter.heightMaps.gui;
 import org.pepsoft.worldpainter.HeightMap;
 import org.pepsoft.worldpainter.heightMaps.AbstractHeightMap;
 import org.pepsoft.worldpainter.heightMaps.DelegatingHeightMap;
+import org.pepsoft.worldpainter.heightMaps.DisplacementHeightMap;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -25,29 +26,36 @@ public class HeightMapTreeCellRenderer extends DefaultTreeCellRenderer {
         super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
         if (value instanceof HeightMap) {
             HeightMap heightMap = (HeightMap) value;
-            String name = null;
             String role = null;
+            StringBuilder name = new StringBuilder();
             if (value instanceof AbstractHeightMap) {
                 DelegatingHeightMap parent = ((AbstractHeightMap) value).getParent();
-                if (parent != null) {
+                if (parent instanceof DisplacementHeightMap) {
                     role = parent.getRole(parent.getIndex(heightMap));
-                    if (parent.getHeightMapCount() > 1) {
-                        name = role;
+                    if (role.endsWith("HeightMap")) {
+                        name.append(role.substring(0, role.length() - 9));
+                    } else if (role.endsWith("Map")) {
+                        name.append(role.substring(0, role.length() - 3));
+                    } else {
+                        name.append(role);
                     }
                 }
             }
-            if (name == null) {
-                name = heightMap.getName();
+            if (heightMap.getName() != null) {
+                if (name.length() > 0) {
+                    name.append(": ");
+                }
+                name.append(heightMap.getName());
             }
-            if (name == null) {
-                name = heightMap.getClass().getSimpleName();
+            if (name.length() == 0) {
+                name.append(heightMap.getClass().getSimpleName());
             }
             if (value == focusHeightMap) {
                 setBorder(focusBorder);
             } else if (getBorder() != null) {
                 setBorder(null);
             }
-            setText(name);
+            setText(name.toString());
             setIcon(heightMap.getIcon());
             setToolTipText(getTooltipText(heightMap, role));
         }

@@ -36,32 +36,32 @@ public final class NoiseHeightMap extends AbstractHeightMap {
         this(name, noiseSettings.getRange() * 2, noiseSettings.getScale() / 5, noiseSettings.getRoughness() + 1, seedOffset);
     }
 
-    public NoiseHeightMap(float range, double scale, int octaves) {
-        this(null, range, scale, octaves, new Random().nextLong());
+    public NoiseHeightMap(float height, double scale, int octaves) {
+        this(null, height, scale, octaves, new Random().nextLong());
     }
 
-    public NoiseHeightMap(float range, double scale, int octaves, long seedOffset) {
-        this(null, range, scale, octaves, seedOffset);
+    public NoiseHeightMap(float height, double scale, int octaves, long seedOffset) {
+        this(null, height, scale, octaves, seedOffset);
     }
 
-    public NoiseHeightMap(String name, float range, double scale, int octaves) {
-        this(name, range, scale, octaves, new Random().nextLong());
+    public NoiseHeightMap(String name, float height, double scale, int octaves) {
+        this(name, height, scale, octaves, new Random().nextLong());
     }
 
-    public NoiseHeightMap(String name, float range, double scale, int octaves, long seedOffset) {
+    public NoiseHeightMap(String name, float height, double scale, int octaves, long seedOffset) {
         setName(name);
         if (octaves > 10) {
             throw new IllegalArgumentException("More than 10 octaves not supported");
         }
-        this.range = range;
+        this.height = height;
         this.scale = scale;
         this.octaves = octaves;
         this.seedOffset = seedOffset;
         perlinNoise = new PerlinNoise(seedOffset);
     }
 
-    public float getRange() {
-        return range;
+    public float getHeight() {
+        return height;
     }
 
     public double getScale() {
@@ -80,8 +80,8 @@ public final class NoiseHeightMap extends AbstractHeightMap {
         this.octaves = octaves;
     }
 
-    public void setRange(float range) {
-        this.range = range;
+    public void setHeight(float height) {
+        this.height = height;
     }
 
     public void setScale(double scale) {
@@ -96,7 +96,7 @@ public final class NoiseHeightMap extends AbstractHeightMap {
     }
 
     public void setNoiseSettings(NoiseSettings noiseSettings) {
-        range = noiseSettings.getRange() * 2;
+        height = noiseSettings.getRange() * 2;
         scale = noiseSettings.getScale() / 5;
         octaves = noiseSettings.getRoughness() + 1;
     }
@@ -134,51 +134,46 @@ public final class NoiseHeightMap extends AbstractHeightMap {
 
     public float getValue(double x) {
         if (octaves == 1) {
-            return (perlinNoise.getPerlinNoise(x / LARGE_BLOBS / scale) + 0.5f) * range;
+            return (perlinNoise.getPerlinNoise(x / LARGE_BLOBS / scale) + 0.5f) * height;
         } else {
             float noise = 0;
             for (int i = 0; i < octaves; i++) {
                 noise += perlinNoise.getPerlinNoise(x / LARGE_BLOBS / scale * FACTORS[i]);
             }
             noise /= octaves;
-            return (noise + 0.5f) * range;
+            return (noise + 0.5f) * height;
         }
     }
 
     public float getValue(double x, double y) {
         if (octaves == 1) {
-            return (perlinNoise.getPerlinNoise(x / LARGE_BLOBS / scale, y / LARGE_BLOBS / scale) + 0.5f) * range;
+            return (perlinNoise.getPerlinNoise(x / LARGE_BLOBS / scale, y / LARGE_BLOBS / scale) + 0.5f) * height;
         } else {
             float noise = 0;
             for (int i = 0; i < octaves; i++) {
                 noise += perlinNoise.getPerlinNoise(x / LARGE_BLOBS / scale * FACTORS[i], y / LARGE_BLOBS / scale * FACTORS[i]);
             }
             noise /= octaves;
-            return (noise + 0.5f) * range;
+            return (noise + 0.5f) * height;
         }
     }
 
     public float getValue(double x, double y, double z) {
         if (octaves == 1) {
-            return (perlinNoise.getPerlinNoise(x / LARGE_BLOBS / scale, y / LARGE_BLOBS / scale, z / LARGE_BLOBS / scale) + 0.5f) * range;
+            return (perlinNoise.getPerlinNoise(x / LARGE_BLOBS / scale, y / LARGE_BLOBS / scale, z / LARGE_BLOBS / scale) + 0.5f) * height;
         } else {
             float noise = 0;
             for (int i = 0; i < octaves; i++) {
                 noise += perlinNoise.getPerlinNoise(x / LARGE_BLOBS / scale * FACTORS[i], y / LARGE_BLOBS / scale * FACTORS[i], z / LARGE_BLOBS / scale * FACTORS[i]);
             }
             noise /= octaves;
-            return (noise + 0.5f) * range;
+            return (noise + 0.5f) * height;
         }
     }
 
     @Override
-    public float getBaseHeight() {
-        return 0.0f;
-    }
-
-    @Override
     public NoiseHeightMap clone() {
-        NoiseHeightMap clone = new NoiseHeightMap(name, range, scale, octaves, seedOffset);
+        NoiseHeightMap clone = new NoiseHeightMap(name, height, scale, octaves, seedOffset);
         clone.setSeed(getSeed());
         return clone;
     }
@@ -188,8 +183,13 @@ public final class NoiseHeightMap extends AbstractHeightMap {
         return ICON_NOISE_HEIGHTMAP;
     }
 
+    @Override
+    public float[] getRange() {
+        return new float[] {0.0f, height};
+    }
+
     private PerlinNoise perlinNoise;
-    private float range;
+    private float height;
     private double scale;
     private int octaves;
     private long seedOffset;

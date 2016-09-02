@@ -46,19 +46,20 @@ public class HeightMapTileProvider implements TileProvider {
     public boolean paintTile(Image tileImage, int x, int y, int imageX, int imageY) {
         final BufferedImage image = renderBufferRef.get();
         final WritableRaster raster = image.getRaster();
+        final float vertScale = 255 / heightMap.getRange()[1];
         if (zoom < 0) {
             final int scale = -zoom;
             final int xOffset = x << 7 << scale, yOffset = y << 7 << scale;
             for (int dx = 0; dx < 128; dx++) {
                 for (int dy = 0; dy < 128; dy++) {
-                    raster.setSample(dx, dy, 0, MathUtils.clamp(0, (int) (heightMap.getHeight(xOffset + (dx << scale), yOffset + (dy << scale)) + 0.5f), 255));
+                    raster.setSample(dx, dy, 0, MathUtils.clamp(0, (int) (heightMap.getHeight(xOffset + (dx << scale), yOffset + (dy << scale)) * vertScale + 0.5f), 255));
                 }
             }
         } else {
             final int xOffset = x << 7, yOffset = y << 7;
             for (int dx = 0; dx < 128; dx++) {
                 for (int dy = 0; dy < 128; dy++) {
-                    raster.setSample(dx, dy, 0, MathUtils.clamp(0, (int) (heightMap.getHeight(xOffset + dx, yOffset + dy) + 0.5f), 255));
+                    raster.setSample(dx, dy, 0, MathUtils.clamp(0, (int) (heightMap.getHeight(xOffset + dx, yOffset + dy) * vertScale + 0.5f), 255));
                 }
             }
         }

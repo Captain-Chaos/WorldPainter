@@ -192,6 +192,12 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
                 insertMenu.add(menuItem);
                 menu.add(insertMenu);
                 JMenu replaceMenu = new JMenu("Replace");
+                menuItem = new JMenuItem("Mandelbrot");
+                menuItem.addActionListener(actionEvent -> {
+                    MandelbrotHeightMap mandelbrotHeightMap = new MandelbrotHeightMap();
+                    replace(parent, heightMap, mandelbrotHeightMap);
+                });
+                replaceMenu.add(menuItem);
                 menuItem = new JMenuItem("Nine Patch");
                 menuItem.addActionListener(actionEvent -> {
                     NinePatchHeightMap ninePatchHeightMap = new NinePatchHeightMap(100, 25, 1.0f);

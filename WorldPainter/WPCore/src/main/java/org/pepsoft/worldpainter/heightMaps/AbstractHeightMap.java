@@ -84,6 +84,11 @@ public abstract class AbstractHeightMap implements HeightMap, Cloneable {
         throw new UnsupportedOperationException("Not a constant height map");
     }
 
+    @Override
+    public float getBaseHeight() {
+        return getRange()[0];
+    }
+
     protected String name;
     protected long seed;
     DelegatingHeightMap parent;
