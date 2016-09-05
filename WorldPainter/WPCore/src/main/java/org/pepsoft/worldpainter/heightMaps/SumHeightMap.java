@@ -35,11 +35,6 @@ public final class SumHeightMap extends CombiningHeightMap {
     }
 
     @Override
-    public float getBaseHeight() {
-        return children[0].getBaseHeight() + children[1].getBaseHeight();
-    }
-    
-    @Override
     public SumHeightMap clone() {
         SumHeightMap clone = new SumHeightMap(name, children[0].clone(), children[1].clone());
         clone.setSeed(getSeed());
@@ -57,6 +52,13 @@ public final class SumHeightMap extends CombiningHeightMap {
         } else {
             return this;
         }
+    }
+
+    @Override
+    public float[] getRange() {
+        float[] range0 = children[0].getRange();
+        float[] range1 = children[1].getRange();
+        return new float[] {range0[0] + range1[0], range0[1] + range1[1]};
     }
 
     private static final long serialVersionUID = 1L;

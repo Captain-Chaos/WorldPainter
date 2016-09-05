@@ -105,11 +105,6 @@ public abstract class DelegatingHeightMap extends AbstractHeightMap {
     // HeightMap
 
     @Override
-    public float getBaseHeight() {
-        return children[0].getBaseHeight();
-    }
-
-    @Override
     public final long getSeed() {
         return children[0].getSeed();
     }

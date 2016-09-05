@@ -174,13 +174,13 @@ public final class NinePatchHeightMap extends AbstractHeightMap {
     }
 
     @Override
-    public float getBaseHeight() {
-        return 0.0f;
+    public Icon getIcon() {
+        return ICON_NINE_PATCH_HEIGHTMAP;
     }
 
     @Override
-    public Icon getIcon() {
-        return ICON_NINE_PATCH_HEIGHTMAP;
+    public float[] getRange() {
+        return new float[] {0.0f, height};
     }
 
     private void sizesChanged() {

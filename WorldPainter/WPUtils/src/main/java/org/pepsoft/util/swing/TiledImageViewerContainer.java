@@ -15,7 +15,16 @@ import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 
 /**
- * A container for a {@link TiledImageViewer}, which adds scroll bars around it.
+ * A container for a {@link TiledImageViewer}, which adds scrollbars around it.
+ * The scrollbars take the combined {@link TileProvider#getExtent() extents} of
+ * the tile providers into account, in that their sizes by default only allow
+ * scrolling inside the combined extent of the tile providers.
+ *
+ * <p>The image can be scrolled outside the extent by mouse dragging, or
+ * programmatically, and when done so the scrollbars will adjust dynamically.
+ *
+ * <p>If none of the tile providers have an extent, or there are no tile
+ * providers configured, the scrollbars will be disabled.
  *
  * @author pepijn
  */
@@ -70,7 +79,6 @@ public class TiledImageViewerContainer extends JPanel implements TiledImageViewe
                 int dx = e.getValue() - previousHorizontalValue;
                 if (dx != 0) {
                     previousHorizontalValue = e.getValue();
-    //                System.out.println("Moving by " + -dx + ", 0");
                     view.moveBy(dx, 0);
                     if (! e.getValueIsAdjusting()) {
                         updateScrollBars();
@@ -80,7 +88,6 @@ public class TiledImageViewerContainer extends JPanel implements TiledImageViewe
                 int dy = e.getValue() - previousVerticalValue;
                 if (dy != 0) {
                     previousVerticalValue = e.getValue();
-    //                System.out.println("Moving by 0, " + -dy);
                     view.moveBy(0, dy);
                     if (! e.getValueIsAdjusting()) {
                         updateScrollBars();
@@ -93,25 +100,21 @@ public class TiledImageViewerContainer extends JPanel implements TiledImageViewe
     }
 
     private void updateScrollBars() {
-//        System.out.print("Updating scrollbars: ");
         Rectangle viewExtent = view.getExtent();
         if (viewExtent == null) {
             // If there is no extent we can't meaningfully scroll, so disable
             // the scrollbars
             if (scrollingEnabled) {
-//                System.out.println("disabled");
                 horizontalScrollbar.setEnabled(false);
                 verticalScrollbar.setEnabled(false);
                 scrollingEnabled = false;
             }
         } else {
             if (! scrollingEnabled) {
-//                System.out.print("enabled; ");
                 horizontalScrollbar.setEnabled(true);
                 verticalScrollbar.setEnabled(true);
                 scrollingEnabled = true;
             }
-//            System.out.print("view extent: " + viewExtent + "; ");
             // If the extent is smaller than the viewport, add a border to allow
             // scrolling the extent to any edge of the viewport
             int viewWidth = view.getWidth(), viewHeight = view.getHeight();
@@ -123,9 +126,7 @@ public class TiledImageViewerContainer extends JPanel implements TiledImageViewe
                 viewExtent.y -= (viewHeight - viewExtent.height);
                 viewExtent.height += (viewHeight - viewExtent.height) * 2;
             }
-//            System.out.print("view extent with border: " + viewExtent + "; ");
             Rectangle viewBounds = new Rectangle(0, 0, viewWidth, viewHeight);
-//            System.out.print("view bounds: " + viewBounds + "; ");
             // The combined area is the total area which the scrollbars should
             // cover:
             Rectangle combinedArea = viewExtent.union(viewBounds);
@@ -135,14 +136,12 @@ public class TiledImageViewerContainer extends JPanel implements TiledImageViewe
             horizontalScrollbar.setValue(0);
             horizontalScrollbar.setBlockIncrement(viewWidth * 9 / 10);
             previousHorizontalValue = 0;
-//            System.out.print("horizontal: " + combinedArea.x + " -> " + viewWidth + " -> " + (combinedArea.x + combinedArea.width) + "; ");
             verticalScrollbar.setMinimum(combinedArea.y);
             verticalScrollbar.setMaximum(combinedArea.y + combinedArea.height);
             verticalScrollbar.setVisibleAmount(viewHeight);
             verticalScrollbar.setValue(0);
             verticalScrollbar.setBlockIncrement(viewHeight * 9 / 10);
             previousVerticalValue = 0;
-//            System.out.println("vertical: " + combinedArea.y + " -> " + viewHeight + " -> " + (combinedArea.y + combinedArea.height));
         }
     }
     

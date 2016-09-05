@@ -43,6 +43,12 @@ public class ShelvingHeightMap extends DelegatingHeightMap {
         return ICON_SHELVING_HEIGHTMAP;
     }
 
+    @Override
+    public float[] getRange() {
+        float[] range0 = children[0].getRange();
+        return new float[] {(float) (range0[1] - Math.sin(range0[1] * DOUBLE_PI / shelveHeight) * shelveStrength)};
+    }
+
     private int shelveHeight = 32, shelveStrength = 8;
 
     private static final long serialVersionUID = 1L;

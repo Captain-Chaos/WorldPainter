@@ -35,11 +35,6 @@ public class MaximisingHeightMap extends CombiningHeightMap {
     }
 
     @Override
-    public float getBaseHeight() {
-        return Math.max(children[0].getBaseHeight(), children[1].getBaseHeight());
-    }
-
-    @Override
     public MaximisingHeightMap clone() {
         MaximisingHeightMap clone = new MaximisingHeightMap(name, children[0].clone(), children[1].clone());
         clone.setSeed(getSeed());
@@ -49,6 +44,13 @@ public class MaximisingHeightMap extends CombiningHeightMap {
     @Override
     public Icon getIcon() {
         return ICON_MAXIMISING_HEIGHTMAP;
+    }
+
+    @Override
+    public float[] getRange() {
+        float[] range0 = children[0].getRange();
+        float[] range1 = children[1].getRange();
+        return new float[]{Math.max(range0[0], range1[0]), Math.max(range0[1], range1[1])};
     }
 
     private static final long serialVersionUID = 1L;

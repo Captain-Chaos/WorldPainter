@@ -36,11 +36,6 @@ public class ProductHeightMap extends CombiningHeightMap {
     }
 
     @Override
-    public float getBaseHeight() {
-        return children[0].getBaseHeight() * children[1].getBaseHeight();
-    }
-
-    @Override
     public ProductHeightMap clone() {
         ProductHeightMap clone = new ProductHeightMap(name, children[0].clone(), children[1].clone());
         clone.setSeed(getSeed());
@@ -50,6 +45,13 @@ public class ProductHeightMap extends CombiningHeightMap {
     @Override
     public Icon getIcon() {
         return ICON_PRODUCT_HEIGHTMAP;
+    }
+
+    @Override
+    public float[] getRange() {
+        float[] range0 = children[0].getRange();
+        float[] range1 = children[1].getRange();
+        return new float[] {range0[0] * range1[0], range0[1] * range1[1]};
     }
 
     private static final long serialVersionUID = 1L;

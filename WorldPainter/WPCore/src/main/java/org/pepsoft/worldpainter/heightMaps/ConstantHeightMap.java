@@ -43,11 +43,6 @@ public final class ConstantHeightMap extends AbstractHeightMap {
     }
 
     @Override
-    public float getBaseHeight() {
-        return height;
-    }
-
-    @Override
     public boolean isConstant() {
         return true;
     }
@@ -60,6 +55,11 @@ public final class ConstantHeightMap extends AbstractHeightMap {
     @Override
     public Icon getIcon() {
         return ICON_CONSTANT_HEIGHTMAP;
+    }
+
+    @Override
+    public float[] getRange() {
+        return new float[] {height, height};
     }
 
     private float height;

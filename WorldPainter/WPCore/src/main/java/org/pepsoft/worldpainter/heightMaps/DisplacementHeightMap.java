@@ -86,6 +86,11 @@ public class DisplacementHeightMap extends DelegatingHeightMap {
         return ICON_DISPLACEMENT_HEIGHTMAP;
     }
 
+    @Override
+    public float[] getRange() {
+        return children[0].getRange();
+    }
+
     // Object
     
     @Override

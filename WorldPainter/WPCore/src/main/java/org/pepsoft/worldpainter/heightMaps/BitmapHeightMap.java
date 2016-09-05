@@ -27,6 +27,7 @@ public final class BitmapHeightMap extends AbstractHeightMap {
         width = image.getWidth();
         height = image.getHeight();
         extent = repeat ? null : new Rectangle(0, 0, width, height);
+        bits = raster.getSampleModel().getSampleSize(0);
         this.channel = channel;
         this.imageFile = imageFile;
         this.repeat = repeat;
@@ -43,6 +44,7 @@ public final class BitmapHeightMap extends AbstractHeightMap {
         width = image.getWidth();
         height = image.getHeight();
         extent = repeat ? null : new Rectangle(0, 0, width, height);
+        bits = raster.getSampleModel().getSampleSize(0);
     }
 
     public int getChannel() {
@@ -106,11 +108,6 @@ public final class BitmapHeightMap extends AbstractHeightMap {
     }
 
     @Override
-    public float getBaseHeight() {
-        return 0;
-    }
-
-    @Override
     public Rectangle getExtent() {
         return extent;
     }
@@ -129,6 +126,18 @@ public final class BitmapHeightMap extends AbstractHeightMap {
     @Override
     public Icon getIcon() {
         return ICON_BITMAP_HEIGHTMAP;
+    }
+
+    @Override
+    public float[] getRange() {
+        switch (bits) {
+            case 8:
+                return RANGE_8BIT;
+            case 16:
+                return RANGE_16BIT;
+            default:
+                throw new UnsupportedOperationException();
+        }
     }
 
     public File getImageFile() {
@@ -152,7 +161,7 @@ public final class BitmapHeightMap extends AbstractHeightMap {
     }
 
     private BufferedImage image;
-    private int channel, width, height;
+    private int channel, width, height, bits;
     private Raster raster;
     private Rectangle extent;
     private File imageFile;
@@ -160,6 +169,7 @@ public final class BitmapHeightMap extends AbstractHeightMap {
 
     private static final long serialVersionUID = 1L;
     private static final Icon ICON_BITMAP_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/height_map.png");
+    private static final float[] RANGE_8BIT = {0.0f, 255.0f}, RANGE_16BIT = {0.0f, 65535.0f};
 
     public static class BitmapHeightMapBuilder {
         public BitmapHeightMapBuilder withName(String name) {
