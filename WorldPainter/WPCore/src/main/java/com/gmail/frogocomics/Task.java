@@ -19,6 +19,7 @@ public class Task {
 
     private Thread task;
     private String name;
+    private TaskType type;
 
     /**
      * Create a new task.
@@ -26,7 +27,7 @@ public class Task {
      * @param task The task to execute in the {@link TaskManager}.
      */
     public Task(Thread task) {
-        new Task(task, "Unknown Task");
+        new Task(task, "Unknown Task", TaskType.UNKNOWN);
     }
 
     /**
@@ -36,8 +37,20 @@ public class Task {
      * @param name The name of the task to display in the WorldPainter gui.
      */
     public Task(Thread task, String name) {
+        new Task(task, name, TaskType.UNKNOWN);
+    }
+
+    /**
+     * Create a new task.
+     *
+     * @param task The task to execute in the {@link TaskManager}.
+     * @param name The name of the task to display in the WorldPainter gui.
+     * @param type The type of task to be executed.
+     */
+    public Task(Thread task, String name, TaskType type) {
         this.task = task;
         this.name = name;
+        this.type = type;
     }
 
     /**
@@ -67,6 +80,15 @@ public class Task {
      */
     public String getName() {
         return this.name;
+    }
+
+    /**
+     * Get the {@link TaskType} for this task.
+     *
+     * @return Returns the task type for this task.
+     */
+    public TaskType getType() {
+        return this.type;
     }
 
     /**
