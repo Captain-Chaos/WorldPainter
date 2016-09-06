@@ -14,6 +14,9 @@ public class TaskManager {
 
     private static Queue<Task> tasks = new PriorityQueue<>();
 
+    /**
+     * Prevent initialization.
+     */
     private TaskManager() {
     }
 
