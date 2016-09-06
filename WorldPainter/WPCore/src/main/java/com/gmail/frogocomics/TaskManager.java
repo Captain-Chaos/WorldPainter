@@ -102,5 +102,4 @@ public class TaskManager {
     public static int getTaskAmount() {
         return tasks.size();
     }
-
 }

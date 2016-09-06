@@ -18,6 +18,7 @@ public enum TaskTypes {
     BIOME_PERMANENT,
     BIOME_RESET,
     WATER_LAVA_RESET,
+    //Tools
     PAINT,
     PENCIL,
     FLOOD_FILL,
@@ -31,6 +32,7 @@ public enum TaskTypes {
     MOUNTAIN,
     PYRAMID,
     PYRAMID_ROTATED,
+    //Other
     UNKNOWN, //Represents an unknown operations. Should not be used.
     CUSTOM;   //Represents a custom operation from perhaps a plugin
 
