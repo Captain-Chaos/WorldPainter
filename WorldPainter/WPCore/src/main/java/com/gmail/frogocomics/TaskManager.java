@@ -89,8 +89,18 @@ public class TaskManager {
        for(Task t : tasks) {
            t.getThread().run();
            t.getThread().join();
+           tasks.poll();
        }
        tasks.clear();
    }
+
+    /**
+     * Get the amount of tasks.
+     *
+     * @return Returns the amount of tasks.
+     */
+    public static int getTaskAmount() {
+        return tasks.size();
+    }
 
 }

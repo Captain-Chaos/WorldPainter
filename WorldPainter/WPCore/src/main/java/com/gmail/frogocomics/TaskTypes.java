@@ -7,7 +7,7 @@ import java.util.Optional;
  *
  * @author Jeff Chen
  */
-public enum TaskType {
+public enum TaskTypes {
     //From global operations
     TERRAIN_FILL,
     TERRAIN_RESET,
@@ -40,12 +40,12 @@ public enum TaskType {
      *
      * @param type The type of operation to get information about.
      * @param string This can be the name of the terrain or layer involved in the operation, and
-     *               will not be utilized for all possible {@link TaskType}s. If an empty optional
-     *               is specified for a {@link TaskType} that requires a string, "Unknown" will
+     *               will not be utilized for all possible {@link TaskTypes}s. If an empty optional
+     *               is specified for a {@link TaskTypes} that requires a string, "Unknown" will
      *               be used.
      * @return Returns a string to be used in the gui about the current operation being worked on.
      */
-    public static String getStatus(TaskType type, Optional<String> string) {
+    public static String getStatus(TaskTypes type, Optional<String> string) {
         switch(type) {
             case TERRAIN_FILL:
                 return "Filling with terrain " + stringOrUnknown(string);
