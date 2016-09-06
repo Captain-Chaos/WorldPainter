@@ -1,5 +1,8 @@
 package com.gmail.frogocomics;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Optional;
 import java.util.PriorityQueue;
 import java.util.Queue;
@@ -77,7 +80,9 @@ public class TaskManager {
     public static void runOne() throws InterruptedException {
         Task t = tasks.poll();
         t.getThread().start();
-        t.getThread().join();
+        if(t instanceof UserTask) {
+            t.getThread().join();
+        }
     }
 
     /**
@@ -86,11 +91,39 @@ public class TaskManager {
      * @throws InterruptedException When a task thread is interrupted
      */
    public static void runAll() throws InterruptedException {
+       //If the thread is a background task, it will one it all at once, but it will run user tasks
+       //one after the other.
+       Queue<UserTask> userTasks = new PriorityQueue<>();
+       Queue<BackgroundTask> backgroundTasks = new PriorityQueue<>();
        for(Task t : tasks) {
-           t.getThread().run();
-           t.getThread().join();
-           tasks.poll();
+           if(t instanceof UserTask) {
+               userTasks.add((UserTask) t);
+           } else if(t instanceof BackgroundTask) {
+               backgroundTasks.add((BackgroundTask) t);
+           }
        }
+       Thread userTaskRunner = new Thread(() -> {
+           try {
+               for (UserTask ut : userTasks) {
+                   ut.getThread().run();
+                   ut.getThread().join();
+               }
+           } catch(InterruptedException e) {
+               logger.error("A user task process thread was interrupted!"); //TODO: Pepijin, could you somehow make it so that it shows the report dialog?
+           }
+       });
+       userTaskRunner.run();
+       Thread backgroundTaskRunner = new Thread(() -> {
+           try {
+               for (BackgroundTask bt : backgroundTasks) {
+                   bt.getThread().run();
+                   bt.getThread().join();
+               }
+           } catch(InterruptedException e) {
+               logger.error("A background process thread was interrupted!"); //TODO: Pepijin, could you somehow make it so that it shows the report dialog?
+           }
+       });
+       backgroundTaskRunner.run();
        tasks.clear();
    }
 
@@ -102,4 +135,6 @@ public class TaskManager {
     public static int getTaskAmount() {
         return tasks.size();
     }
+
+    private static Logger logger = LoggerFactory.getLogger(TaskManager.class);
 }
