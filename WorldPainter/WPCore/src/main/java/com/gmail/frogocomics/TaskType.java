@@ -98,6 +98,13 @@ public enum TaskType {
         }
     }
 
+    /**
+     * Converts an {@link Optional<String>} to a {@link String} but converts it to "Unknonwn" if
+     * the Optional is empty.
+     *
+     * @param s The Optional to convert.
+     * @return Returns the String in the optional or "Unknown" if the Optional is empty.
+     */
     private static String stringOrUnknown(Optional<String> s) {
         if(s.isPresent()) {
             return s.get();
