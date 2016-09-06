@@ -4,10 +4,11 @@ package com.gmail.frogocomics;
  * Represents a task to be executed in order in the {@link TaskManager}. Tasks consists of a
  * {@link Thread} and a name (To display on the gui), but they do not function like threads as the
  * task manager does not allow them to run at the same time. Tasks can consist of anything, such as
- * (mostly) global operations, or perhaps brush operations.
+ * (mostly) global operations, or perhaps brush operations. A {@link UserTask} executes one after
+ * the other, as most, if not all user operations would require a specific order.
  * <p><code>
  *     <i>//Create a task</i>
- *     Task task = new Thread(() -> {
+ *     UserTask task = new UserTask(new Thread(() -> {
  *         <i>//Do whatever</i>
  *     }).addToQueue();
  *     TaskManager.run();
