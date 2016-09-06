@@ -16,6 +16,11 @@ import java.util.Queue;
 public class TaskManager {
 
     private static Queue<Task> tasks = new PriorityQueue<>();
+    private static Queue<UserTask> userTasks = new PriorityQueue<>();
+    private static Queue<BackgroundTask> backgroundTasks = new PriorityQueue<>();
+
+    private static int initialValue1 = 0;
+    private static int initialValue2 = 0;
 
     /**
      * Prevent initialization.
@@ -93,8 +98,6 @@ public class TaskManager {
    public static void runAll() throws InterruptedException {
        //If the thread is a background task, it will one it all at once, but it will run user tasks
        //one after the other.
-       Queue<UserTask> userTasks = new PriorityQueue<>();
-       Queue<BackgroundTask> backgroundTasks = new PriorityQueue<>();
        for(Task t : tasks) {
            if(t instanceof UserTask) {
                userTasks.add((UserTask) t);
@@ -107,6 +110,7 @@ public class TaskManager {
                for (UserTask ut : userTasks) {
                    ut.getThread().run();
                    ut.getThread().join();
+                   userTasks.poll();
                }
            } catch(InterruptedException e) {
                logger.error("A user task process thread was interrupted!"); //TODO: Pepijin, could you somehow make it so that it shows the report dialog?
@@ -114,26 +118,41 @@ public class TaskManager {
        });
        userTaskRunner.run();
        Thread backgroundTaskRunner = new Thread(() -> {
-           try {
-               for (BackgroundTask bt : backgroundTasks) {
-                   bt.getThread().run();
-                   bt.getThread().join();
-               }
-           } catch(InterruptedException e) {
-               logger.error("A background process thread was interrupted!"); //TODO: Pepijin, could you somehow make it so that it shows the report dialog?
+           for (BackgroundTask bt : backgroundTasks) {
+               bt.getThread().run();
+               backgroundTasks.poll();
            }
        });
        backgroundTaskRunner.run();
        tasks.clear();
+       userTasks.clear();
+       backgroundTasks.clear();
    }
 
     /**
-     * Get the amount of tasks.
+     * Get the initial amount of tasks.
      *
      * @return Returns the amount of tasks.
      */
-    public static int getTaskAmount() {
-        return tasks.size();
+    public static int getTaskInitialAmount(Class<? extends Task> type) {
+       if(type == UserTask.class) {
+           return initialValue1;
+       } else {
+           return initialValue2;
+       }
+    }
+
+    /**
+     * Get the current amount of tasks.
+     *
+     * @return Returns the amount of tasks.
+     */
+    public static int getTaskCurrentAmount(Class<? extends Task> type) {
+        if(type == UserTask.class) {
+            return userTasks.size();
+        } else {
+            return backgroundTasks.size();
+        }
     }
 
     private static Logger logger = LoggerFactory.getLogger(TaskManager.class);
