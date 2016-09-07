@@ -32,6 +32,7 @@ public enum TaskTypes {
     MOUNTAIN,
     PYRAMID,
     PYRAMID_ROTATED,
+    MASK_IMPORT,
     //Other
     UNKNOWN, //Represents an unknown operations. Should not be used.
     CUSTOM;   //Represents a custom operation from perhaps a plugin
@@ -91,6 +92,8 @@ public enum TaskTypes {
                 return "Creating pyramid";
             case PYRAMID_ROTATED:
                 return "Creating rotated pyramid";
+            case MASK_IMPORT:
+                return "Import mask as terrain or layer";
             case UNKNOWN:
                 return "Unknown Operation";
             case CUSTOM:
