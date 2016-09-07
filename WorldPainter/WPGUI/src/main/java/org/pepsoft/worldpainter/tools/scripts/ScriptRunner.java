@@ -392,8 +392,7 @@ public class ScriptRunner extends WorldPainterDialog {
      * @param extensions extension names without the dot in front separated with a space
      * @return absolute path to the selected file or a blank String if canceled
      */
-	public static String getFilePath(String title, String extensionName, String extensions)
-	{
+	public static String getFilePath(String title, String extensionName, String extensions) {
 		FileFilter filter = new FileNameExtensionFilter(extensionName, extensions.split(" "));
 		
 		File file = FileUtils.selectFileForOpen(fileWindow, title, null, filter);
