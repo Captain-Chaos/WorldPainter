@@ -3,6 +3,10 @@ package com.gmail.frogocomics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import sun.misc.Unsafe;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
 import java.util.PriorityQueue;
 import java.util.Queue;
@@ -122,7 +126,13 @@ public class TaskManager {
                    userTasks.poll();
                }
            } catch(InterruptedException e) {
-               //TODO: Open the error dialog. I can't seem to make it work as I do not want to introduce circular dependencies.
+               try {
+                   Constructor<Unsafe> unsafeC = Unsafe.class.getDeclaredConstructor();
+                   unsafeC.setAccessible(true);
+                   Unsafe unsafe = unsafeC.newInstance();
+                   unsafe.throwException(e);
+               } catch(InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException ignored) {
+               }
            }
        });
        userTaskRunner.run();
