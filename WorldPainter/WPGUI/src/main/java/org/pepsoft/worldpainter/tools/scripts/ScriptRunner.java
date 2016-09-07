@@ -397,8 +397,9 @@ public class ScriptRunner extends WorldPainterDialog {
 		
 		File file = FileUtils.selectFileForOpen(fileWindow, title, null, filter);
 
-		if (file != null)
+		if (file != null) {
 			return file.getAbsolutePath();
+		}
 		return "";
 	}
 
