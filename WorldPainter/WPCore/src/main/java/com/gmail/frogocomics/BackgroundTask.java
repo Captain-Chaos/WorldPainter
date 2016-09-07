@@ -1,5 +1,7 @@
 package com.gmail.frogocomics;
 
+import java.util.UUID;
+
 /**
  * Represents a task to be executed in order in the {@link TaskManager}. Tasks consists of a
  * {@link Thread} and a name (To display on the gui), but they do not function like threads as the
@@ -19,14 +21,16 @@ public class BackgroundTask implements Task {
 
     private Thread task;
     private String name;
+    private UUID uuid;
 
     /**
      * Create a new task.
      *
      * @param task The task to execute in the {@link TaskManager}.
+     * @param uuid The unique id of this task.
      */
-    public BackgroundTask(Thread task) {
-        new BackgroundTask(task, "Background Process");
+    public BackgroundTask(Thread task, UUID uuid) {
+        new BackgroundTask(task, "Background Process", uuid);
     }
 
     /**
@@ -34,10 +38,12 @@ public class BackgroundTask implements Task {
      *
      * @param task The task to execute in the {@link TaskManager}.
      * @param name The name of the task to display in the WorldPainter gui.
+     * @param uuid The unique id of this task.
      */
-    public BackgroundTask(Thread task, String name) {
+    public BackgroundTask(Thread task, String name, UUID uuid) {
         this.task = task;
         this.name = name;
+        this.uuid = uuid;
     }
 
     /**
@@ -46,7 +52,7 @@ public class BackgroundTask implements Task {
      * @return Returns this class, for chaining.
      */
     @Override
-    public Task addToQueue() {
+    public Task addToQueue() throws DuplicateTaskException {
         TaskManager.addTask(this);
         return this;
     }
@@ -80,5 +86,15 @@ public class BackgroundTask implements Task {
     @Override
     public Thread getThread() {
         return task;
+    }
+
+    /**
+     * Get the unique id of this task, so that same tasks cannot be run twice.
+     *
+     * @return Returns the unique id (UUID) of this task.
+     */
+    @Override
+    public UUID getUniqueId() {
+        return this.uuid;
     }
 }

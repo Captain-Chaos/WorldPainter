@@ -1,5 +1,7 @@
 package com.gmail.frogocomics;
 
+import java.util.UUID;
+
 /**
  * Represents a task to be executed in order in the {@link TaskManager}. Tasks consists of a
  * {@link Thread} and a name (To display on the gui), but they do not function like threads as the
@@ -21,14 +23,16 @@ public class UserTask implements Task {
     private Thread task;
     private String name;
     private TaskTypes type;
+    private UUID uuid;
 
     /**
      * Create a new task.
      *
      * @param task The task to execute in the {@link TaskManager}.
+     * @param uuid The unique id of this task.
      */
-    public UserTask(Thread task) {
-        new UserTask(task, "Unknown Task", TaskTypes.UNKNOWN);
+    public UserTask(Thread task, UUID uuid) {
+        new UserTask(task, "Unknown Task", TaskTypes.UNKNOWN, uuid);
     }
 
     /**
@@ -36,9 +40,10 @@ public class UserTask implements Task {
      *
      * @param task The task to execute in the {@link TaskManager}.
      * @param name The name of the task to display in the WorldPainter gui.
+     * @param uuid The unique id of this task.
      */
-    public UserTask(Thread task, String name) {
-        new UserTask(task, name, TaskTypes.UNKNOWN);
+    public UserTask(Thread task, String name, UUID uuid) {
+        new UserTask(task, name, TaskTypes.UNKNOWN, uuid);
     }
 
     /**
@@ -47,11 +52,13 @@ public class UserTask implements Task {
      * @param task The task to execute in the {@link TaskManager}.
      * @param name The name of the task to display in the WorldPainter gui.
      * @param type The type of task to be executed.
+     * @param uuid The unique id of this task.
      */
-    public UserTask(Thread task, String name, TaskTypes type) {
+    public UserTask(Thread task, String name, TaskTypes type, UUID uuid) {
         this.task = task;
         this.name = name;
         this.type = type;
+        this.uuid = uuid;
     }
 
     /**
@@ -60,7 +67,7 @@ public class UserTask implements Task {
      * @return Returns this class, for chaining.
      */
     @Override
-    public UserTask addToQueue() {
+    public UserTask addToQueue() throws DuplicateTaskException {
         TaskManager.addTask(this);
         return this;
     }
@@ -103,5 +110,15 @@ public class UserTask implements Task {
     @Override
     public Thread getThread() {
         return task;
+    }
+
+    /**
+     * Get the unique id of this task, so that same tasks cannot be run twice.
+     *
+     * @return Returns the unique id (UUID) of this task.
+     */
+    @Override
+    public UUID getUniqueId() {
+        return this.uuid;
     }
 }

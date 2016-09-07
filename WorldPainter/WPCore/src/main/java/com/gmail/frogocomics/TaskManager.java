@@ -33,7 +33,14 @@ public class TaskManager {
      *
      * @param task The task to add
      */
-    protected static void addTask(Task task) {
+    public static void addTask(Task task) throws DuplicateTaskException {
+        for(Task t : tasks) {
+            if(t.getUniqueId().equals(task.getUniqueId())) {
+                throw new DuplicateTaskException("The unique id of task " + t.getName() + "matches" +
+                        "with that of task " + t.getName() + ". (" + t.getUniqueId().toString() +
+                        ", " + task.getUniqueId().toString());
+            }
+        }
         tasks.add(task);
     }
 
@@ -42,7 +49,7 @@ public class TaskManager {
      *
      * @param task The task to remove, if it exists
      */
-    protected static void removeTask(Task task) {
+    public static void removeTask(Task task) {
         tasks.remove(task);
     }
 
