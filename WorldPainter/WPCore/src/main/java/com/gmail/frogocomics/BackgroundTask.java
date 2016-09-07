@@ -30,7 +30,7 @@ public class BackgroundTask implements Task {
      * @param uuid The unique id of this task.
      */
     public BackgroundTask(Thread task, UUID uuid) {
-        new BackgroundTask(task, "Background Process", uuid);
+        this(task, "Background Process", uuid);
     }
 
     /**

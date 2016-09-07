@@ -32,7 +32,7 @@ public class UserTask implements Task {
      * @param uuid The unique id of this task.
      */
     public UserTask(Thread task, UUID uuid) {
-        new UserTask(task, "Unknown Task", TaskTypes.UNKNOWN, uuid);
+        this(task, "Unknown Task", TaskTypes.UNKNOWN, uuid);
     }
 
     /**
@@ -43,7 +43,7 @@ public class UserTask implements Task {
      * @param uuid The unique id of this task.
      */
     public UserTask(Thread task, String name, UUID uuid) {
-        new UserTask(task, name, TaskTypes.UNKNOWN, uuid);
+        this(task, name, TaskTypes.UNKNOWN, uuid);
     }
 
     /**
