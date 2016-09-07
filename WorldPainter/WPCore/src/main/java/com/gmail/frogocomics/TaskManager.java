@@ -105,6 +105,8 @@ public class TaskManager {
                backgroundTasks.add((BackgroundTask) t);
            }
        }
+       initialValue1 = userTasks.size();
+       initialValue2 = backgroundTasks.size();
        Thread userTaskRunner = new Thread(() -> {
            try {
                for (UserTask ut : userTasks) {
@@ -113,7 +115,7 @@ public class TaskManager {
                    userTasks.poll();
                }
            } catch(InterruptedException e) {
-               logger.error("A user task process thread was interrupted!"); //TODO: Pepijin, could you somehow make it so that it shows the report dialog?
+               //TODO: Open the error dialog. I can't seem to make it work as I do not want to introduce circular dependencies.
            }
        });
        userTaskRunner.run();
@@ -127,6 +129,8 @@ public class TaskManager {
        tasks.clear();
        userTasks.clear();
        backgroundTasks.clear();
+       initialValue1 = 0;
+       initialValue2 = 0;
    }
 
     /**
