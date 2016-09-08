@@ -2446,7 +2446,7 @@ public final class App extends JFrame implements RadiusControl,
         materialLabel = new JLabel(MessageFormat.format(strings.getString("material.0"), Material.MOSSY_COBBLESTONE.toString()));
         materialLabel.setBorder(new BevelBorder(BevelBorder.LOWERED));
         statusBar.add(materialLabel);
-        tasksLabel = new JLabel(); //todo: Idk what to add here
+        tasksLabel = new JLabel("0/0");
         tasksLabel.setBorder(new BevelBorder(BevelBorder.LOWERED));
         statusBar.add(tasksLabel);
         waterLabel = new JLabel(MessageFormat.format(strings.getString("fluid.level.1.depth.2"), 9999, 9999));
