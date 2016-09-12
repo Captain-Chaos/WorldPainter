@@ -118,8 +118,12 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
         Insets insets = labelPreview.getInsets();
         int width = labelPreview.getWidth() - insets.left - insets.right;
         int height = labelPreview.getHeight() - insets.top - insets.bottom;
-        BufferedImage preview = exporter.generatePreview(width, height, waterLevel, baseHeight, Math.min(maxHeight - baseHeight, height - baseHeight));
-        labelPreview.setIcon(new ImageIcon(preview));
+        if ((width > 0) && (height > 0)) {
+            BufferedImage preview = exporter.generatePreview(width, height, waterLevel, baseHeight, Math.min(maxHeight - baseHeight, height - baseHeight));
+            labelPreview.setIcon(new ImageIcon(preview));
+        } else {
+            labelPreview.setIcon(null);
+        }
     }
     
     private void loadSettings() {
