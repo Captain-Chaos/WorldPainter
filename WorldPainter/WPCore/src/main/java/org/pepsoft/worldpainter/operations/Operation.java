@@ -30,12 +30,6 @@ public interface Operation {
      * Get the short name of the operation. Displayed to the user as part of the
      * tooltip for the operation.
      *
-     * <p>Also used to generate the name of the icon to use for the operation.
-     * The icon must be on the classpath, named
-     * <code>org/pepsoft/worldpainter/icons/<em>operation</em>.png</code>, where
-     * <em>operation</em> is the name of the operation in lowercase and with all
-     * whitespace removed. It must be 16x16 image with a transparent background.
-     *
      * @return The short name of the operation.
      */
     String getName();
