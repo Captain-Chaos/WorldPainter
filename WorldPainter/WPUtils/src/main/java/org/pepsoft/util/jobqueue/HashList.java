@@ -19,27 +19,27 @@ import java.util.*;
  */
 public class HashList<E> extends AbstractList<E> implements Set<E> {
     public HashList() {
-        anchor = new Element(null);
+        anchor = new Element<>(null);
         anchor.previous = anchor;
         anchor.next = anchor;
         map = new HashMap<>();
     }
     
     public HashList(int initialCapacity) {
-        anchor = new Element(null);
+        anchor = new Element<>(null);
         anchor.previous = anchor;
         anchor.next = anchor;
         map = new HashMap<>(initialCapacity);
     }
     
     @Override
-    @SuppressWarnings("element-type-mismatch")
+    @SuppressWarnings({"element-type-mismatch", "SuspiciousMethodCalls"})
     public boolean contains(Object o) {
         return map.containsKey(o);
     }
 
     public boolean addToEnd(E e) {
-        Element element = map.get(e);
+        Element<E> element = map.get(e);
         if (element != null) {
             if (anchor.previous == element) {
                 // Object already at the end
@@ -56,7 +56,7 @@ public class HashList<E> extends AbstractList<E> implements Set<E> {
             }
         } else {
             // Object not on the list
-            element = new Element(e);
+            element = new Element<>(e);
             map.put(e, element);
             element.next = anchor;
             element.previous = anchor.previous;
@@ -71,7 +71,7 @@ public class HashList<E> extends AbstractList<E> implements Set<E> {
         if (map.containsKey(e)) {
             return false;
         } else {
-            Element element = new Element(e);
+            Element<E> element = new Element<>(e);
             map.put(e, element);
             element.next = anchor;
             element.previous = anchor.previous;
@@ -82,7 +82,7 @@ public class HashList<E> extends AbstractList<E> implements Set<E> {
     }
 
     @Override
-    @SuppressWarnings("element-type-mismatch")
+    @SuppressWarnings({"element-type-mismatch", "SuspiciousMethodCalls"})
     public boolean remove(Object o) {
         if (map.containsKey(o)) {
             Element element = map.remove(o);
@@ -116,7 +116,7 @@ public class HashList<E> extends AbstractList<E> implements Set<E> {
         if ((index < 0) || (index >= map.size())) {
             throw new IndexOutOfBoundsException(Integer.toString(index));
         }
-        Element element = anchor;
+        Element<E> element = anchor;
         for (int i = 0; i <= index; i++) {
             element = element.next;
         }
@@ -128,7 +128,7 @@ public class HashList<E> extends AbstractList<E> implements Set<E> {
         if ((index < 0) || (index >= map.size())) {
             throw new IndexOutOfBoundsException(Integer.toString(index));
         }
-        Element element = anchor;
+        Element<E> element = anchor;
         for (int i = 0; i <= index; i++) {
             element = element.next;
         }
@@ -143,11 +143,11 @@ public class HashList<E> extends AbstractList<E> implements Set<E> {
         if ((index < 0) || (index > map.size())) {
             throw new IndexOutOfBoundsException(Integer.toString(index));
         }
-        Element element = anchor;
+        Element<E> element = anchor;
         for (int i = 0; i < index; i++) {
             element = element.next;
         }
-        Element newElement = new Element(e);
+        Element<E> newElement = new Element<>(e);
         newElement.previous = element;
         newElement.next = element.next;
         element.next.previous = newElement;
@@ -165,7 +165,7 @@ public class HashList<E> extends AbstractList<E> implements Set<E> {
         if ((index < 0) || (index >= map.size())) {
             throw new IndexOutOfBoundsException(Integer.toString(index));
         }
-        Element element = anchor;
+        Element<E> element = anchor;
         for (int i = 0; i <= index; i++) {
             element = element.next;
         }
@@ -176,7 +176,7 @@ public class HashList<E> extends AbstractList<E> implements Set<E> {
     }
 
     @Override
-    @SuppressWarnings("element-type-mismatch")
+    @SuppressWarnings({"element-type-mismatch", "SuspiciousMethodCalls"})
     public int indexOf(Object o) {
         if (! map.containsKey(o)) {
             return -1;
@@ -201,11 +201,11 @@ public class HashList<E> extends AbstractList<E> implements Set<E> {
         if ((initialIndex < 0) || (initialIndex >= map.size())) {
             throw new IndexOutOfBoundsException(Integer.toString(initialIndex));
         }
-        Element element = anchor;
+        Element<E> element = anchor;
         for (int i = 0; i <= initialIndex; i++) {
             element = element.next;
         }
-        final Element startElement = element;
+        final Element<E> startElement = element;
         return new ListIterator<E>() {
             @Override
             public boolean hasNext() {
@@ -263,7 +263,7 @@ public class HashList<E> extends AbstractList<E> implements Set<E> {
                 throw new UnsupportedOperationException("Not supported");
             }
             
-            private Element element = startElement;
+            private Element<E> element = startElement;
             private int index = initialIndex - 1;
         };
     }
@@ -273,11 +273,11 @@ public class HashList<E> extends AbstractList<E> implements Set<E> {
         return Spliterators.spliterator(this, Spliterator.ORDERED | Spliterator.DISTINCT);
     }
 
-    private final Map<E, Element> map;
-    private final Element anchor;
+    private final Map<E, Element<E>> map;
+    private final Element<E> anchor;
     
-    class Element {
-        Element(E object) {
+    static class Element<T> {
+        Element(T object) {
             this.object = object;
         }
 
@@ -303,7 +303,7 @@ public class HashList<E> extends AbstractList<E> implements Set<E> {
             return hash;
         }
         
-        E object;
-        Element previous, next;
+        T object;
+        Element<T> previous, next;
     }
 }
