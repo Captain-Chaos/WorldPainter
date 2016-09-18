@@ -138,7 +138,7 @@ public class ScriptRunner extends WorldPainterDialog {
             boolean allFieldsOptional = true;
             for (ParameterDescriptor paramDescriptor: scriptDescriptor.parameterDescriptors) {
                 boolean showAsMandatory = (! paramDescriptor.optional) && ((paramDescriptor instanceof FileParameterDescriptor) || (paramDescriptor instanceof FloatParameterDescriptor) || (paramDescriptor instanceof StringParameterDescriptor));
-                JLabel label = new JLabel(paramDescriptor.name + (showAsMandatory ? "*:" : ":"));
+                JLabel label = new JLabel(((paramDescriptor.displayName != null) ? paramDescriptor.displayName : paramDescriptor.name) + (showAsMandatory ? "*:" : ":"));
                 allFieldsOptional &= ! showAsMandatory;
                 JComponent editor = paramDescriptor.getEditor();
                 label.setLabelFor(editor);
@@ -199,9 +199,15 @@ public class ScriptRunner extends WorldPainterDialog {
                 if (line.isEmpty()) {
                     continue;
                 } else if (line.startsWith("#") || line.startsWith("//")) {
-                    Matcher matcher = DESCRIPTOR_PATTERN.matcher(line);
-                    if (matcher.find()) {
-                        properties.put(matcher.group(1), matcher.group(2));
+                    if (((line.startsWith("#")) && (line.substring(1).trim().startsWith("--")))
+                        || ((line.startsWith("//")) && (line.substring(2).trim().startsWith("--")))) {
+                        // Script descriptor comment
+                        continue;
+                    } else {
+                        Matcher matcher = DESCRIPTOR_PATTERN.matcher(line);
+                        if (matcher.find()) {
+                            properties.put(matcher.group(1), matcher.group(2));
+                        }
                     }
                 } else {
                     // Stop after the first non-comment and non-empty line
@@ -267,6 +273,9 @@ public class ScriptRunner extends WorldPainterDialog {
                             break;
                         case "default":
                             paramDescriptor.defaultValue = paramDescriptor.toObject(value.trim());
+                            break;
+                        case "displayName":
+                            paramDescriptor.displayName = value.trim();
                             break;
                         default:
                             throw new IllegalArgumentException("Invalid key \"" + key + "\" in script descriptor");
@@ -683,7 +692,7 @@ public class ScriptRunner extends WorldPainterDialog {
             }
         }
 
-        String name, description;
+        String name, description, displayName;
         boolean optional;
         E editor;
         T defaultValue;
@@ -774,11 +783,14 @@ public class ScriptRunner extends WorldPainterDialog {
             constraints.fill = GridBagConstraints.HORIZONTAL;
             SpinnerNumberModel spinnerModel = new SpinnerNumberModel(0, 0, 100, 1);
             JSpinner spinner = new JSpinner(spinnerModel);
+            spinner.setToolTipText(description);
             spinner.addChangeListener(e -> notifyChangeListener());
             panel.add(spinner, constraints);
             constraints.weightx = 0.0;
             constraints.gridwidth = GridBagConstraints.REMAINDER;
-            panel.add(new JLabel("%"), constraints);
+            JLabel label = new JLabel("%");
+            label.setToolTipText(description);
+            panel.add(label, constraints);
             return panel;
         }
 
@@ -851,6 +863,7 @@ public class ScriptRunner extends WorldPainterDialog {
             constraints.weightx = 1.0;
             constraints.fill = GridBagConstraints.HORIZONTAL;
             JTextField field = new JTextField();
+            field.setToolTipText(description);
             field.getDocument().addDocumentListener(new DocumentListener() {
                 @Override
                 public void insertUpdate(DocumentEvent e) {
@@ -872,6 +885,7 @@ public class ScriptRunner extends WorldPainterDialog {
             constraints.gridwidth = GridBagConstraints.REMAINDER;
             constraints.insets = new Insets(0, 3, 0, 0);
             JButton button = new JButton("...");
+            button.setToolTipText(description);
             button.addActionListener(e -> {
                 JFileChooser fileChooser = new JFileChooser();
                 if (! field.getText().trim().isEmpty()) {
