@@ -1148,6 +1148,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                 }
             }
         }
+
         paintGridIfApplicable(g2);
 
         paintMarkerIfApplicable(g2);
@@ -1173,6 +1174,9 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                 TileRenderJob job = (TileRenderJob) i.next();
                 if (! getTileBounds(job.coords.x, job.coords.y, job.effectiveZoom).intersects(viewBounds)) {
                     i.remove();
+                    // Remove the RENDERING flag for this tile from the cache,
+                    // otherwise it won't be rendered the next time it becomes
+                    // visible:
                     tileCaches.get(job.tileProvider).remove(job.coords);
                 }
             }
@@ -1308,7 +1312,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
      * <p><strong>Please note:</strong> this method must be invoked while
      * holding the lock on {@link #TILE_CACHE_LOCK}.
      *
-     * @param coords The coordindates of the tile to get, in tiles relative to
+     * @param coords The coordinates of the tile to get, in tiles relative to
      *               the image origin.
      * @param dirtyTileCache The cache from which to get the stale tile.
      * @param gc The graphics configuration to use for volatile (accelerated)
