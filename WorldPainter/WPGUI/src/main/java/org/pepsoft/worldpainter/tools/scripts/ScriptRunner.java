@@ -8,8 +8,10 @@ package org.pepsoft.worldpainter.tools.scripts;
 import org.jetbrains.annotations.NotNull;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.undo.UndoManager;
-import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.Configuration;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.World2;
+import org.pepsoft.worldpainter.WorldPainterDialog;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.vo.EventVO;
 import org.slf4j.Logger;
@@ -20,18 +22,23 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.io.*;
 import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
-import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.Constants.ATTRIBUTE_KEY_SCRIPT_FILENAME;
+import static org.pepsoft.worldpainter.Constants.ATTRIBUTE_KEY_SCRIPT_NAME;
 
 /**
  *
@@ -117,7 +124,7 @@ public class ScriptRunner extends WorldPainterDialog {
         // If there is a descriptor, use it to add fields for the parameters:
         if (scriptDescriptor != null) {
             if (scriptDescriptor.name != null) {
-                labelName.setText(script.getName());
+                labelName.setText(scriptDescriptor.name);
             } else {
                 labelName.setText(script.getName());
             }
@@ -128,8 +135,11 @@ public class ScriptRunner extends WorldPainterDialog {
                 textArea.setOpaque(false);
                 addlastOnLine(panelDescriptor, textArea);
             }
+            boolean allFieldsOptional = true;
             for (ParameterDescriptor paramDescriptor: scriptDescriptor.parameterDescriptors) {
-                JLabel label = new JLabel(paramDescriptor.name + ':');
+                boolean showAsMandatory = (! paramDescriptor.optional) && ((paramDescriptor instanceof FileParameterDescriptor) || (paramDescriptor instanceof FloatParameterDescriptor) || (paramDescriptor instanceof StringParameterDescriptor));
+                JLabel label = new JLabel(paramDescriptor.name + (showAsMandatory ? "*:" : ":"));
+                allFieldsOptional &= ! showAsMandatory;
                 JComponent editor = paramDescriptor.getEditor();
                 label.setLabelFor(editor);
                 if (paramDescriptor.description != null) {
@@ -140,10 +150,22 @@ public class ScriptRunner extends WorldPainterDialog {
                     editor.setToolTipText(paramDescriptor.description);
                 }
                 addlastOnLine(panelDescriptor, editor);
+                paramDescriptor.setChangeListener(e -> setControlStates());
             }
+            if (! allFieldsOptional) {
+                addlastOnLine(panelDescriptor, new JLabel("* mandatory parameter"));
+            }
+
+            jLabel2.setVisible(! scriptDescriptor.hideCmdLineParams);
+            jLabel3.setVisible(! scriptDescriptor.hideCmdLineParams);
+            jScrollPane1.setVisible(! scriptDescriptor.hideCmdLineParams);
         } else {
             labelName.setText(script.getName());
+            jLabel2.setVisible(true);
+            jLabel3.setVisible(true);
+            jScrollPane1.setVisible(true);
         }
+
         pack();
     }
     
@@ -196,24 +218,46 @@ public class ScriptRunner extends WorldPainterDialog {
             Map<String, ParameterDescriptor> paramMap = new LinkedHashMap<>();
             properties.forEach((key, value) -> {
                 if (key.equals("name")) {
-                    descriptor.name = value;
+                    descriptor.name = value.trim();
                 } else if (key.equals("description")) {
-                    descriptor.description = value.replace("\\n", "\n");
+                    descriptor.description = value.trim().replace("\\n", "\n");
                 } else if (key.startsWith("param.")) {
                     String[] parts = key.split("\\.");
                     if (parts.length != 3) {
-                        logger.warn("Skipping invalid key \"" + key + "\" in script descriptor");
+                        throw new IllegalArgumentException("Invalid key \"" + key + "\" in script descriptor");
                     }
                     ParameterDescriptor paramDescriptor = paramMap.get(parts[1]);
-                    if (paramDescriptor == null) {
-                        paramDescriptor = new ParameterDescriptor();
-                        paramDescriptor.name = parts[1];
-                        paramMap.put(parts[1], paramDescriptor);
-                        descriptor.parameterDescriptors.add(paramDescriptor);
-                    }
                     switch (parts[2]) {
                         case "type":
-                            paramDescriptor.type = ParameterType.valueOf(value.toUpperCase().trim());
+                            if (paramDescriptor == null) {
+                                switch (value.toLowerCase().trim()) {
+                                    case "string":
+                                        paramDescriptor = new StringParameterDescriptor();
+                                        break;
+                                    case "integer":
+                                        paramDescriptor = new IntegerParameterDescriptor();
+                                        break;
+                                    case "percentage":
+                                        paramDescriptor = new PercentageParameterDescriptor();
+                                        break;
+                                    case "float":
+                                        paramDescriptor = new FloatParameterDescriptor();
+                                        break;
+                                    case "file":
+                                        paramDescriptor = new FileParameterDescriptor();
+                                        break;
+                                    case "boolean":
+                                        paramDescriptor = new BooleanParameterDescriptor();
+                                        break;
+                                    default:
+                                        throw new IllegalArgumentException("Invalid type \"" + value + "\" specified for parameter " + parts[1]);
+                                }
+                                paramDescriptor.name = parts[1];
+                                paramMap.put(parts[1], paramDescriptor);
+                                descriptor.parameterDescriptors.add(paramDescriptor);
+                            } else {
+                                throw new IllegalArgumentException("Type specified more than once for parameter " + parts[1]);
+                            }
                             break;
                         case "description":
                             paramDescriptor.description = value.replace("\\n", "\n");
@@ -222,14 +266,15 @@ public class ScriptRunner extends WorldPainterDialog {
                             paramDescriptor.optional = value.trim().isEmpty() || Boolean.parseBoolean(value.toLowerCase().trim());
                             break;
                         case "default":
-                            paramDescriptor.defaultValue = paramDescriptor.type.toObject(value.trim());
+                            paramDescriptor.defaultValue = paramDescriptor.toObject(value.trim());
                             break;
                         default:
-                            logger.warn("Skipping unknown key \"" + key + "\" in script descriptor");
-                            break;
+                            throw new IllegalArgumentException("Invalid key \"" + key + "\" in script descriptor");
                     }
+                } else if (key.equals("hideCmdLineParams")) {
+                    descriptor.hideCmdLineParams = "true".equalsIgnoreCase(value.trim());
                 } else {
-                    logger.warn("Skipping unknown key \"" + key + "\" in script descriptor");
+                    throw new IllegalArgumentException("Invalid key \"" + key + "\" in script descriptor");
                 }
             });
             return descriptor;
@@ -586,44 +631,25 @@ public class ScriptRunner extends WorldPainterDialog {
         }
 
         Map<String, Object> getValues() {
-            return parameterDescriptors.stream().collect(Collectors.toMap(p -> p.name, p -> p.getValue()));
+            Map<String, Object> values = new HashMap<>();
+            parameterDescriptors.forEach(p -> {
+                Object value = p.getValue();
+                if (value != null) {
+                    values.put(p.name, value);
+                }
+            });
+            return values;
         }
 
         String name, description;
         List<ParameterDescriptor> parameterDescriptors = new ArrayList<>();
+        boolean hideCmdLineParams;
     }
 
-    static class ParameterDescriptor {
-        JComponent getEditor() {
+    abstract static class ParameterDescriptor<T, E extends JComponent> {
+        E getEditor() {
             if (editor == null) {
-                switch (type) {
-                    case STRING:
-                        editor = new JTextField((String) defaultValue);
-                        break;
-                    case INTEGER:
-                        editor = new JSpinner();
-                        break;
-                    case PERCENTAGE:
-                        SpinnerNumberModel spinnerModel = new SpinnerNumberModel(0, 0, 100, 1);
-                        editor = new JSpinner(spinnerModel);
-                        break;
-                    case FLOAT:
-                        editor = new JFormattedTextField(NumberFormat.getNumberInstance());
-                        break;
-                    case FILE:
-                        JPanel panel = new JPanel(new GridBagLayout());
-                        GridBagConstraints constraints = new GridBagConstraints();
-                        constraints.weightx = 1.0;
-                        constraints.fill = GridBagConstraints.HORIZONTAL;
-                        panel.add(new JTextField(), constraints);
-                        constraints.weightx = 0.0;
-                        constraints.gridwidth = GridBagConstraints.REMAINDER;
-                        JButton button = new JButton("...");
-                        button.addActionListener(e -> {});
-                        panel.add(button, constraints);
-                        editor = panel;
-                        break;
-                }
+                editor = createEditor();
             }
             if (defaultValue != null) {
                 setValue(defaultValue);
@@ -635,116 +661,278 @@ public class ScriptRunner extends WorldPainterDialog {
             return true;
         }
 
-        Object getValue() {
-            switch (type) {
-                case STRING:
-                    return ((JTextField) editor).getText();
-                case INTEGER:
-                case PERCENTAGE:
-                    return ((JSpinner) editor).getValue();
-                case FLOAT:
-                    return ((JFormattedTextField) editor).getValue();
-                case FILE:
-                    String text = ((JTextField) editor.getComponent(1)).getText();
-                    return text.trim().isEmpty() ? null : new File(text.trim());
-                default:
-                    throw new InternalError();
-            }
+        abstract T getValue();
+
+        abstract void setValue(T value);
+
+        abstract T toObject(String str);
+
+        ChangeListener getChangeListener() {
+            return changeListener;
         }
 
-        void setValue(Object value) {
-            switch (type) {
-                case STRING:
-                    ((JTextField) editor).setText((String) value);
-                    break;
-                case INTEGER:
-                case PERCENTAGE:
-                    ((JSpinner) editor).setValue(value);
-                    break;
-                case FLOAT:
-                    ((JFormattedTextField) editor).setValue(value);
-                    break;
-                case FILE:
-                    ((JTextField) editor.getComponent(1)).setText(((File) value).getAbsolutePath());
-                    break;
-                default:
-                    throw new InternalError();
+        void setChangeListener(ChangeListener changeListener) {
+            this.changeListener = changeListener;
+        }
+
+        protected abstract E createEditor();
+
+        protected void notifyChangeListener() {
+            if (changeListener != null) {
+                changeListener.stateChanged(new ChangeEvent(this));
             }
         }
 
         String name, description;
-        ParameterType type = ParameterType.STRING;
         boolean optional;
-        JComponent editor;
-        Object defaultValue;
+        E editor;
+        T defaultValue;
+
+        private ChangeListener changeListener;
     }
 
-    enum ParameterType {
-        STRING {
-            @Override
-            String toString(Object o) {
-                return (o instanceof String) ? (String) o : o.toString();
-            }
-
-            @Override
-            Object toObject(String str) {
-                return str;
-            }
-        },
-
-        INTEGER {
-            @Override
-            String toString(Object o) {
-                return o.toString();
-            }
-
-            @Override
-            Object toObject(String str) {
-                return Integer.valueOf(str);
-            }
-        },
-
-        PERCENTAGE {
-            @Override
-            String toString(Object o) {
-                return o.toString() + '%';
-            }
-
-            @Override
-            Object toObject(String str) {
-                if (str.endsWith("%")) {
-                    return Integer.valueOf(str.substring(0, str.length() - 1).trim());
-                } else {
-                    return Integer.valueOf(str.trim());
+    static class StringParameterDescriptor extends ParameterDescriptor<String, JTextField> {
+        @Override
+        protected JTextField createEditor() {
+            JTextField field = new JTextField(defaultValue);
+            field.getDocument().addDocumentListener(new DocumentListener() {
+                @Override
+                public void insertUpdate(DocumentEvent e) {
+                    notifyChangeListener();
                 }
-            }
-        },
 
-        FLOAT {
-            @Override
-            String toString(Object o) {
-                return Double.toString(((Number) o).doubleValue());
-            }
+                @Override
+                public void removeUpdate(DocumentEvent e) {
+                    notifyChangeListener();
+                }
 
-            @Override
-            Object toObject(String str) {
-                return Double.valueOf(str);
-            }
-        },
+                @Override
+                public void changedUpdate(DocumentEvent e) {
+                    notifyChangeListener();
+                }
+            });
+            return field;
+        }
 
-        FILE {
-            @Override
-            String toString(Object o) {
-                return ((File) o).getAbsolutePath();
-            }
+        @Override
+        String toObject(String str) {
+            return str;
+        }
 
-            @Override
-            Object toObject(String str) {
-                return new File(str);
-            }
-        };
+        @Override
+        boolean isEditorValid() {
+            return optional || (! editor.getText().trim().isEmpty());
+        }
 
-        abstract String toString(Object o);
-        abstract Object toObject(String str);
+        @Override
+        String getValue() {
+            String text = editor.getText();
+            return text.trim().isEmpty() ? null : text.trim();
+        }
+
+        @Override
+        void setValue(String value) {
+            editor.setText(value);
+        }
+    }
+
+    static class IntegerParameterDescriptor extends ParameterDescriptor<Integer, JSpinner> {
+        @Override
+        protected JSpinner createEditor() {
+            JSpinner spinner = new JSpinner();
+            spinner.addChangeListener(e -> notifyChangeListener());
+            return spinner;
+        }
+
+        @Override
+        Integer toObject(String str) {
+            return Integer.valueOf(str);
+        }
+
+        @Override
+        Integer getValue() {
+            return (Integer) editor.getValue();
+        }
+
+        @Override
+        void setValue(Integer value) {
+            editor.setValue(value);
+        }
+    }
+
+    static class PercentageParameterDescriptor extends ParameterDescriptor<Integer, JPanel> {
+        @Override
+        protected JPanel createEditor() {
+            JPanel panel = new JPanel(new GridBagLayout()) {
+                @Override
+                public int getBaseline(int width, int height) {
+                    return getComponent(0).getBaseline(width, height);
+                }
+            };
+            GridBagConstraints constraints = new GridBagConstraints();
+            constraints.weightx = 1.0;
+            constraints.fill = GridBagConstraints.HORIZONTAL;
+            SpinnerNumberModel spinnerModel = new SpinnerNumberModel(0, 0, 100, 1);
+            JSpinner spinner = new JSpinner(spinnerModel);
+            spinner.addChangeListener(e -> notifyChangeListener());
+            panel.add(spinner, constraints);
+            constraints.weightx = 0.0;
+            constraints.gridwidth = GridBagConstraints.REMAINDER;
+            panel.add(new JLabel("%"), constraints);
+            return panel;
+        }
+
+        @Override
+        Integer toObject(String str) {
+            if (str.endsWith("%")) {
+                return Integer.valueOf(str.substring(0, str.length() - 1).trim());
+            } else {
+                return Integer.valueOf(str.trim());
+            }
+        }
+
+        @Override
+        Integer getValue() {
+            return (Integer) ((JSpinner) editor.getComponent(0)).getValue();
+        }
+
+        @Override
+        void setValue(Integer value) {
+            ((JSpinner) editor.getComponent(0)).setValue(value);
+        }
+    }
+
+    static class FloatParameterDescriptor extends ParameterDescriptor<Float, JFormattedTextField> {
+        @Override
+        protected JFormattedTextField createEditor() {
+            JFormattedTextField field = new JFormattedTextField(NumberFormat.getNumberInstance());
+            field.setHorizontalAlignment(SwingConstants.TRAILING);
+            field.addPropertyChangeListener("value", e -> notifyChangeListener());
+            return field;
+        }
+
+        @Override
+        Float toObject(String str) {
+            return Float.valueOf(str);
+        }
+
+        @Override
+        boolean isEditorValid() {
+            try {
+                editor.commitEdit();
+                return optional || (editor.getValue() != null);
+            } catch (ParseException e) {
+                return optional;
+            }
+        }
+
+        @Override
+        Float getValue() {
+            Number nr = (Number) editor.getValue();
+            return (nr != null) ? nr.floatValue() : null;
+        }
+
+        @Override
+        void setValue(Float value) {
+            editor.setValue(value);
+        }
+    }
+
+    static class FileParameterDescriptor extends ParameterDescriptor<File, JPanel> {
+        @Override
+        protected JPanel createEditor() {
+            JPanel panel = new JPanel(new GridBagLayout()) {
+                @Override
+                public int getBaseline(int width, int height) {
+                    return getComponent(0).getBaseline(width, height);
+                }
+            };
+            GridBagConstraints constraints = new GridBagConstraints();
+            constraints.weightx = 1.0;
+            constraints.fill = GridBagConstraints.HORIZONTAL;
+            JTextField field = new JTextField();
+            field.getDocument().addDocumentListener(new DocumentListener() {
+                @Override
+                public void insertUpdate(DocumentEvent e) {
+                    notifyChangeListener();
+                }
+
+                @Override
+                public void removeUpdate(DocumentEvent e) {
+                    notifyChangeListener();
+                }
+
+                @Override
+                public void changedUpdate(DocumentEvent e) {
+                    notifyChangeListener();
+                }
+            });
+            panel.add(field, constraints);
+            constraints.weightx = 0.0;
+            constraints.gridwidth = GridBagConstraints.REMAINDER;
+            constraints.insets = new Insets(0, 3, 0, 0);
+            JButton button = new JButton("...");
+            button.addActionListener(e -> {
+                JFileChooser fileChooser = new JFileChooser();
+                if (! field.getText().trim().isEmpty()) {
+                    fileChooser.setSelectedFile(new File(field.getText().trim()));
+                }
+                if (fileChooser.showOpenDialog(panel) == JFileChooser.APPROVE_OPTION) {
+                    field.setText(fileChooser.getSelectedFile().getAbsolutePath());
+                }
+            });
+            panel.add(button, constraints);
+            return panel;
+        }
+
+        @Override
+        File toObject(String str) {
+            return new File(str);
+        }
+
+        @Override
+        boolean isEditorValid() {
+            if (optional) {
+                return true;
+            } else {
+                String text = ((JTextField) editor.getComponent(0)).getText();
+                return (! text.trim().isEmpty()) && new File(text.trim()).isFile();
+            }
+        }
+
+        @Override
+        File getValue() {
+            String text = ((JTextField) editor.getComponent(0)).getText();
+            return text.trim().isEmpty() ? null : new File(text.trim());
+        }
+
+        @Override
+        void setValue(File value) {
+            ((JTextField) editor.getComponent(0)).setText(value.getAbsolutePath());
+        }
+    }
+
+    static class BooleanParameterDescriptor extends ParameterDescriptor<Boolean, JCheckBox> {
+        @Override
+        protected JCheckBox createEditor() {
+            JCheckBox checkBox = new JCheckBox(" ");
+            checkBox.addChangeListener(e -> notifyChangeListener());
+            return checkBox;
+        }
+
+        @Override
+        Boolean toObject(String str) {
+            return Boolean.valueOf(str);
+        }
+
+        @Override
+        Boolean getValue() {
+            return editor.isSelected();
+        }
+
+        @Override
+        void setValue(Boolean value) {
+            editor.setSelected(value);
+        }
     }
 }
