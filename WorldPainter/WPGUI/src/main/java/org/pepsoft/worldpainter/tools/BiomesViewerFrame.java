@@ -4,24 +4,6 @@
  */
 package org.pepsoft.worldpainter.tools;
 
-import java.awt.BorderLayout;
-import java.awt.HeadlessException;
-import java.awt.Point;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.io.File;
-import java.io.IOException;
-import javax.swing.Box;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JSpinner;
-import javax.swing.JToolBar;
-import javax.swing.SpinnerNumberModel;
-
 import org.pepsoft.minecraft.Constants;
 import org.pepsoft.minecraft.Level;
 import org.pepsoft.util.DesktopUtils;
@@ -29,49 +11,33 @@ import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.swing.ProgressDialog;
 import org.pepsoft.util.swing.ProgressTask;
-import org.pepsoft.worldpainter.App;
-import org.pepsoft.worldpainter.BiomeScheme;
-import org.pepsoft.worldpainter.ColourScheme;
-import org.pepsoft.worldpainter.Configuration;
-import org.pepsoft.worldpainter.NewWorldDialog;
-import org.pepsoft.worldpainter.World2;
-import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
-import org.pepsoft.worldpainter.biomeschemes.Minecraft1_1BiomeScheme;
-import org.pepsoft.worldpainter.biomeschemes.Minecraft1_2BiomeScheme;
+import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.biomeschemes.*;
 import org.pepsoft.worldpainter.util.MinecraftUtil;
-import static org.pepsoft.worldpainter.Constants.*;
-import org.pepsoft.worldpainter.Generator;
-import org.pepsoft.worldpainter.biomeschemes.Minecraft1_3LargeBiomeScheme;
-import org.pepsoft.worldpainter.biomeschemes.Minecraft1_6BiomeScheme;
-import org.pepsoft.worldpainter.biomeschemes.Minecraft1_6LargeBiomeScheme;
-import org.pepsoft.worldpainter.biomeschemes.Minecraft1_7BiomeScheme;
-import org.pepsoft.worldpainter.biomeschemes.Minecraft1_7LargeBiomeScheme;
-import org.pepsoft.worldpainter.biomeschemes.Minecraft1_8BiomeScheme;
-import org.pepsoft.worldpainter.biomeschemes.Minecraft1_8LargeBiomeScheme;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+
+import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 
 /**
  *
  * @author pepijn
  */
 public class BiomesViewerFrame extends JFrame {
-    public BiomesViewerFrame(long seed, BiomeScheme biomeScheme, ColourScheme colourScheme, SeedListener seedListener) throws HeadlessException {
-        this(seed, null, biomeScheme, colourScheme, seedListener);
+    public BiomesViewerFrame(long seed, int preferredBiomeAlgorithm, ColourScheme colourScheme, SeedListener seedListener) throws HeadlessException {
+        this(seed, null, preferredBiomeAlgorithm, colourScheme, seedListener);
     }
     
-    public BiomesViewerFrame(long seed, final Point marker, BiomeScheme biomeScheme, ColourScheme colourScheme, SeedListener seedListener) throws HeadlessException {
+    public BiomesViewerFrame(long seed, final Point marker, int preferredBiomeAlgorithm, ColourScheme colourScheme, SeedListener seedListener) throws HeadlessException {
         super("WorldPainter - Biomes Viewer");
-        if (! ((biomeScheme instanceof Minecraft1_1BiomeScheme)
-                || (biomeScheme instanceof Minecraft1_2BiomeScheme)
-                || (biomeScheme instanceof Minecraft1_3LargeBiomeScheme)
-                || (biomeScheme instanceof Minecraft1_6BiomeScheme)
-                || (biomeScheme instanceof Minecraft1_6LargeBiomeScheme)
-                || (biomeScheme instanceof Minecraft1_7BiomeScheme)
-                || (biomeScheme instanceof Minecraft1_7LargeBiomeScheme)
-                || (biomeScheme instanceof Minecraft1_8BiomeScheme)
-                || (biomeScheme instanceof Minecraft1_8LargeBiomeScheme))) {
-            throw new IllegalArgumentException("A Minecraft 1.10 or 1.1 - 1.9 biome scheme must be selected");
-        }
-        this.biomeScheme = biomeScheme;
         this.colourScheme = colourScheme;
         this.seedListener = seedListener;
         standAloneMode = App.getInstanceIfExists() == null;
@@ -105,53 +71,23 @@ public class BiomesViewerFrame extends JFrame {
 
         JToolBar toolBar = new JToolBar();
         toolBar.add(new JLabel("Biome scheme:"));
-        schemeChooser = new JComboBox(new Object[] {"Minecraft 1.10 Default (or 1.7 - 1.9)", "Minecraft 1.10 Large Biomes (or 1.7 - 1.9)", "Minecraft 1.6 Default (or 1.2 - 1.5)", "Minecraft 1.6 Large Biomes (or 1.3 - 1.5)", "Minecraft 1.1"});
+        List<Integer> availableAlgorithms = BiomeSchemeManager.getAvailableBiomeAlgorithms();
+        //noinspection unchecked // NetBeans visual designer
+        schemeChooser = new JComboBox(availableAlgorithms.toArray());
         seedSpinner = new JSpinner(new SpinnerNumberModel(Long.valueOf(seed), Long.valueOf(Long.MIN_VALUE), Long.valueOf(Long.MAX_VALUE), Long.valueOf(1L)));
-        if ((biomeScheme instanceof Minecraft1_7LargeBiomeScheme) || (biomeScheme instanceof Minecraft1_8LargeBiomeScheme)) {
-            schemeChooser.setSelectedIndex(1);
-        } else if (biomeScheme instanceof Minecraft1_6BiomeScheme) {
-            schemeChooser.setSelectedIndex(2);
-        } else if (biomeScheme instanceof Minecraft1_6LargeBiomeScheme) {
-            schemeChooser.setSelectedIndex(3);
-        } else if (biomeScheme instanceof Minecraft1_1BiomeScheme) {
-            schemeChooser.setSelectedIndex(4);
-        }
         schemeChooser.addItemListener(e -> {
-            int selectedIndex = schemeChooser.getSelectedIndex();
-            BiomeScheme biomeScheme1 = null;
-            switch (selectedIndex) {
-                case 0:
-                    if (! (BiomesViewerFrame.this.biomeScheme instanceof Minecraft1_7BiomeScheme)) {
-                        biomeScheme1 = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_DEFAULT, BiomesViewerFrame.this);
-                    }
-                    break;
-                case 1:
-                    if (! (BiomesViewerFrame.this.biomeScheme instanceof Minecraft1_7LargeBiomeScheme)) {
-                        biomeScheme1 = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_LARGE, BiomesViewerFrame.this);
-                    }
-                    break;
-                case 2:
-                    if (! (BiomesViewerFrame.this.biomeScheme instanceof Minecraft1_2BiomeScheme)) {
-                        biomeScheme1 = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_2_AND_1_3_DEFAULT, BiomesViewerFrame.this);
-                    }
-                    break;
-                case 3:
-                    if (! (BiomesViewerFrame.this.biomeScheme instanceof Minecraft1_3LargeBiomeScheme)) {
-                        biomeScheme1 = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_3_LARGE, BiomesViewerFrame.this);
-                    }
-                    break;
-                case 4:
-                    if (! (BiomesViewerFrame.this.biomeScheme instanceof Minecraft1_1BiomeScheme)) {
-                        biomeScheme1 = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_1, BiomesViewerFrame.this);
-                    }
-                    break;
-            }
+            BiomeScheme biomeScheme1 = BiomeSchemeManager.getBiomeScheme((Integer) schemeChooser.getSelectedItem());
             if (biomeScheme1 != null) {
                 BiomesViewerFrame.this.biomeScheme = biomeScheme1;
                 BiomesViewerFrame.this.biomeScheme.setSeed(((Number) seedSpinner.getValue()).longValue());
                 imageViewer.setTileProvider(new BiomesTileProvider(BiomesViewerFrame.this.biomeScheme, BiomesViewerFrame.this.colourScheme, imageViewer.getZoom(), false));
             }
         });
+        if (availableAlgorithms.contains(preferredBiomeAlgorithm)) {
+            schemeChooser.setSelectedItem(preferredBiomeAlgorithm);
+        } else {
+            schemeChooser.setSelectedIndex(0);
+        }
         toolBar.add(schemeChooser);
         toolBar.add(Box.createHorizontalStrut(5));
         toolBar.add(new JLabel("Seed:"));
@@ -192,9 +128,11 @@ public class BiomesViewerFrame extends JFrame {
         toolBar.add(Box.createHorizontalStrut(5));
         button = new JButton("Reset");
         button.addActionListener(e -> {
-            imageViewer.reset();
+            imageViewer.setZoom(-2);
             if (marker != null) {
                 imageViewer.moveToMarker();
+            } else {
+                imageViewer.moveToOrigin();
             }
         });
         toolBar.add(button);
@@ -321,7 +259,7 @@ public class BiomesViewerFrame extends JFrame {
     
     private static final long serialVersionUID = 1L;
     
-    public static interface SeedListener {
+    public interface SeedListener {
         void setSeed(long seed, Generator generator);
     }
     

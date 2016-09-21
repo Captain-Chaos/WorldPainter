@@ -24,9 +24,9 @@ public class LargeContinentFinder {
             config = new Configuration();
         }
         Configuration.setInstance(config);
-        final BiomeScheme biomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_LARGE, null);
+        final BiomeScheme biomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_LARGE);
         if (biomeScheme == null) {
-            System.err.println("Can't continue without a Minecraft 1.7 minecraft.jar");
+            System.err.println("Can't continue without a Minecraft 1.7 - 1.10 minecraft.jar");
             System.exit(1);
         }
         long seed = 0;

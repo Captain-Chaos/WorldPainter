@@ -1,6 +1,7 @@
 -- Version 2.2.5, release ...
 
-* A function has been added for deleting layers which are not in use. It is located in the Edit menu as "Delete unused layers...". By default it selects all unused layers, but you can deselect any layers you want to keep before deletion. Note that if you unpaint all traces of a layer from the dimension manually it does not count as unused until you save and load the world, or you use the Global Operations tool to remove the layer (which is easier and more efficient than manually unpainting it).
+* A function has been added for deleting layers which are not in use. It is located in the Edit menu as "Delete unused layers...". By default it selects all unused layers, but you can deselect any layers you want to keep before deletion. Note that if you unpaint all traces of a layer from the dimension manually it does not count as unused until you save and load the world, or you use the Global Operations tool to remove the layer (which is easier and more efficient than manually unpainting it)
+* It is no longer possible to manually provide Minecraft jars when WorldPainter needs one, for example to calculate biomes for the Biomes Viewer. WorldPainter needs an installed copy of Minecraft, of a supported version, in order to be able to display biomes or load saved structures
 
 -- Version 2.2.4, released 20-8-2016
 

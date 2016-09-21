@@ -315,7 +315,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                                         object = Bo3Object.load(file);
                                     } else if (file.getName().toLowerCase().endsWith(".nbt")) {
                                         if (mcInterface == null) {
-                                            BiomeScheme biomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_DEFAULT, null, false);
+                                            BiomeScheme biomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_DEFAULT);
                                             if (biomeScheme instanceof MCInterface) {
                                                 mcInterface = (MCInterface) biomeScheme;
                                             } else {
@@ -352,7 +352,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                             } else if (selectedFile.getName().toLowerCase().endsWith(".bo3")) {
                                 object = Bo3Object.load(selectedFile);
                             } else if (selectedFile.getName().toLowerCase().endsWith(".nbt")) {
-                                BiomeScheme biomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_DEFAULT, null, false);
+                                BiomeScheme biomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_DEFAULT);
                                 if (biomeScheme instanceof MCInterface) {
                                     object = Structure.load(selectedFile, (MCInterface) biomeScheme);
                                 } else {

@@ -3672,52 +3672,44 @@ public final class App extends JFrame implements RadiusControl,
         menu.add(menuItem);
 
         menuItem = new JMenuItem(strings.getString("biomes.viewer") + "...");
+        // Disable the menu item after the biome scheme manager has been
+        // initialised, if it turns out there are no supported biome algorithms
+        // (because no supported Minecraft installation could be found, for
+        // instance), but without blocking the GUI
+        final JMenuItem biomesViewerMenuItem = menuItem;
+        new Thread("Biomes Viewer Menu Item Initialiser") {
+            @Override
+            public void run() {
+                if (BiomeSchemeManager.getAvailableBiomeAlgorithms().isEmpty()) {
+                    logger.info("No supported Minecraft installation found; disabling biomes preview and Biomes Viewer");
+                    SwingUtilities.invokeLater(() -> {
+                        biomesViewerMenuItem.setEnabled(false);
+                        biomesViewerMenuItem.setToolTipText("No supported Minecraft installation found");
+                    });
+                }
+            }
+        }.start();
         menuItem.addActionListener(event -> {
+            if (BiomeSchemeManager.getAvailableBiomeAlgorithms().isEmpty()) {
+                // This could theoretically happen if the user selects the menu
+                // item before the biome scheme manager has been initialised and
+                // the menu item is still enabled
+                return;
+            }
+
             if (biomesViewerFrame != null) {
                 biomesViewerFrame.requestFocus();
             } else {
-                BiomeScheme viewerScheme = null;
-                boolean askedFor17 = false;
+                int preferredAlgorithm = -1;
                 if ((dimension != null) && (dimension.getDim() == DIM_NORMAL) && (dimension.getMaxHeight() == DEFAULT_MAX_HEIGHT_2)) {
                     if (world.getGenerator() == Generator.LARGE_BIOMES) {
-                        viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_LARGE, null, false);
-                        if (viewerScheme == null) {
-                            askedFor17 = true;
-                            viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_LARGE, App.this, true);
-                        }
+                        preferredAlgorithm = BIOME_ALGORITHM_1_7_LARGE;
                     } else {
-                        viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_DEFAULT, null, false);
-                        if (viewerScheme == null) {
-                            askedFor17 = true;
-                            viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_DEFAULT, App.this, true);
-                        }
+                        preferredAlgorithm = BIOME_ALGORITHM_1_7_DEFAULT;
                     }
                 }
-                if (viewerScheme == null) {
-                    viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_DEFAULT, null, false);
-                }
-                if (viewerScheme == null) {
-                    viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_2_AND_1_3_DEFAULT, null, false);
-                }
-                if (viewerScheme == null) {
-                    viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_1, null, false);
-                }
-                if ((viewerScheme == null) && (! askedFor17)) {
-                    askedFor17 = true;
-                    viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_7_DEFAULT, App.this, true);
-                }
-                if (viewerScheme == null) {
-                    viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_2_AND_1_3_DEFAULT, App.this, true);
-                }
-                if (viewerScheme == null) {
-                    viewerScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_1, App.this, true);
-                }
-                if (viewerScheme == null) {
-                    showMessageDialog(App.this, strings.getString("you.must.supply.an.original.minecraft.jar"), strings.getString("no.minecraft.jar.supplied"), ERROR_MESSAGE);
-                    return;
-                }
                 logger.info("Opening biomes viewer");
-                biomesViewerFrame = new BiomesViewerFrame(dimension.getMinecraftSeed(), world.getSpawnPoint(), viewerScheme, colourSchemes[0], App.this);
+                biomesViewerFrame = new BiomesViewerFrame(dimension.getMinecraftSeed(), world.getSpawnPoint(), preferredAlgorithm, colourSchemes[0], App.this);
                 biomesViewerFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
                 biomesViewerFrame.addWindowListener(new WindowAdapter() {
                     @Override
@@ -4343,7 +4335,7 @@ public final class App extends JFrame implements RadiusControl,
         }
 
         button.setText(layer.getName());
-        return Arrays.asList((Component) checkBox, soloCheckBox, button);
+        return Arrays.asList(checkBox, soloCheckBox, button);
     }
 
     private JToggleButton createTerrainButton(final Terrain terrain) {
@@ -4989,7 +4981,7 @@ public final class App extends JFrame implements RadiusControl,
             if (customLayer.isHide()) {
                 layersWithNoButton.add(customLayer);
             } else {
-                registerCustomLayer((CustomLayer) customLayer, false);
+                registerCustomLayer(customLayer, false);
             }
             if (layer instanceof CombinedLayer) {
                 addLayersFromCombinedLayer((CombinedLayer) customLayer);

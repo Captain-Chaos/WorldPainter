@@ -12,9 +12,6 @@ import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.Configuration;
 import org.pepsoft.worldpainter.util.MinecraftUtil;
 
-import javax.swing.*;
-import javax.swing.filechooser.FileFilter;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -30,11 +27,7 @@ import static org.pepsoft.worldpainter.Constants.*;
  * @author pepijn
  */
 public class BiomeSchemeManager {
-    public static BiomeScheme getBiomeScheme(int biomeAlgorithm, Component parent) {
-        return getBiomeScheme(biomeAlgorithm, parent, true);
-    }
-
-    public static BiomeScheme getBiomeScheme(final int biomeAlgorithm, final Component parent, final boolean askUser) {
+    public static BiomeScheme getBiomeScheme(final int biomeAlgorithm) {
         if (logger.isTraceEnabled()) {
             logger.trace("Thread {} requesting biome scheme {}", Thread.currentThread().getName(), biomeAlgorithm, new Throwable("Invoked from"));
         }
@@ -81,54 +74,8 @@ public class BiomeSchemeManager {
                 BiomeScheme biomeScheme = biomeJar.descriptor.instantiate(biomeJar.file, minecraftDir, biomeJar.checksum);
                 BIOME_SCHEMES.put(biomeAlgorithm, biomeScheme);
                 return biomeScheme;
-            } else if (askUser) {
-                // We don't have a jar for this biome scheme, but we're allowed to
-                // ask the user for it, so do so
-                final File minecraftJar = FileUtils.selectFileForOpen((parent != null) ? SwingUtilities.getWindowAncestor(parent) : null, "Select Minecraft " + version + " minecraft jar", null, new FileFilter() {
-                    @Override
-                    public boolean accept(File f) {
-                        return f.isDirectory() || f.getName().toLowerCase().endsWith(".jar");
-                    }
-
-                    @Override
-                    public String getDescription() {
-                        return "Java archives (*.jar)";
-                    }
-                });
-                if (minecraftJar != null) {
-                    if (! minecraftJar.isFile()) {
-                        logger.info("Could not find compatible jar for biome scheme " + version + " and user selected a directory or a non existent file");
-                        JOptionPane.showMessageDialog(parent, "The selected file is a directory, or is non existent", "No File Selected", JOptionPane.ERROR_MESSAGE);
-                    } else {
-                        try {
-                            final Checksum hash = FileUtils.getMD5(minecraftJar);
-                            final BiomeSchemeDescriptor descriptor = identify(hash, biomeAlgorithm);
-                            if (descriptor != null) {
-                                biomeJars = new TreeMap<>();
-                                biomeJars.put(descriptor.minecraftVersion, new BiomeJar(minecraftJar, hash, descriptor));
-                                BIOME_JARS.put(biomeAlgorithm, biomeJars);
-                                final Configuration config = Configuration.getInstance();
-                                config.setMinecraftJar(biomeAlgorithm, minecraftJar);
-                                logger.info("Creating biome scheme " + version + " from " + minecraftJar.getAbsolutePath());
-                                BiomeScheme biomeScheme = descriptor.instantiate(minecraftJar, minecraftDir, hash);
-                                BIOME_SCHEMES.put(biomeAlgorithm, biomeScheme);
-                                return biomeScheme;
-                            } else {
-                                logger.info("Could not find compatible jar for biome scheme " + version + " and user provided incompatible file " + minecraftJar.getAbsolutePath());
-                                JOptionPane.showMessageDialog(parent, "The selected file is not an original Minecraft " + version + " minecraft.jar!", "Invalid File", JOptionPane.ERROR_MESSAGE);
-                            }
-                        } catch (IOException e) {
-                            throw new RuntimeException("I/O error reading Minecraft jar " + minecraftJar.getAbsolutePath(), e);
-                        }
-                    }
-                } else {
-                    logger.info("Could not find compatible jar for biome scheme " + version + " and user cancelled file selection dialog");
-                }
-                return null;
             } else {
-                // We don't have a jar for this biome scheme, and we're not allowed
-                // to ask the user for it, so give up
-                logger.info("Could not find compatible jar for biome scheme " + version + " and not allowed to ask user");
+                logger.info("Could not find compatible jar for biome scheme " + version);
                 return null;
             }
         }
@@ -163,6 +110,18 @@ public class BiomeSchemeManager {
             }
         }
         return image;
+    }
+
+    public static List<Integer> getAvailableBiomeAlgorithms() {
+        synchronized (initialisationLock) {
+            if (! initialised) {
+                initialise();
+            }
+        }
+
+        List<Integer> availableBiomeAlgorithms = new ArrayList<>(BIOME_JARS.keySet());
+        Collections.sort(availableBiomeAlgorithms, Comparator.reverseOrder());
+        return availableBiomeAlgorithms;
     }
 
     /**
@@ -232,18 +191,6 @@ public class BiomeSchemeManager {
                     logger.error("I/O error while scanning potential Minecraft jar or directory " + file.getAbsolutePath() + "; skipping file", e);
                 }
             }
-        }
-    }
-
-    private static BiomeSchemeDescriptor identify(Checksum checksum, int desiredBiomeScheme) {
-        if (DESCRIPTORS.containsKey(checksum)) {
-            SortedMap<Version, BiomeSchemeDescriptor> matchingDescriptors = new TreeMap<>();
-            DESCRIPTORS.get(checksum).stream()
-                .filter(descriptor -> descriptor.biomeScheme == desiredBiomeScheme)
-                .forEach(descriptor -> matchingDescriptors.put(descriptor.minecraftVersion, descriptor));
-            return (! matchingDescriptors.isEmpty()) ? matchingDescriptors.get(matchingDescriptors.lastKey()) : null;
-        } else {
-            return null;
         }
     }
 

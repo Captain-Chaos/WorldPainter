@@ -51,7 +51,7 @@ public class BiomesViewerMain {
         }
         Configuration.setInstance(config);
         
-        BiomesViewerFrame frame = new BiomesViewerFrame(new Random().nextLong(), BiomeSchemeManager.getBiomeScheme(Constants.BIOME_ALGORITHM_1_7_DEFAULT, null), new DynMapColourScheme("default", true), null);
+        BiomesViewerFrame frame = new BiomesViewerFrame(new Random().nextLong(), Constants.BIOME_ALGORITHM_1_7_DEFAULT, new DynMapColourScheme("default", true), null);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
