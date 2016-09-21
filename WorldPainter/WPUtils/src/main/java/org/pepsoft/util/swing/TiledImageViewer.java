@@ -1633,12 +1633,12 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
             }
             final int tileSize = tileProvider.getTileSize();
             VolatileImage tile;
-            GraphicsConfiguration gc = getGraphicsConfiguration();
             if (image instanceof VolatileImage) {
                 // This image was previously created by us, here, so really it
                 // should still be compatible
                 tile = (VolatileImage) image;
             } else {
+                GraphicsConfiguration gc = getGraphicsConfiguration();
                 tile = gc.createCompatibleVolatileImage(tileSize, tileSize);
                 tile.validate(gc);
             }
