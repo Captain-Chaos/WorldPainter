@@ -1961,7 +1961,8 @@ public enum Terrain {
         Terrain.CUSTOM_47,
         Terrain.CUSTOM_48,
 
-        Terrain.GRASS_PATH
+        Terrain.GRASS_PATH,
+        Terrain.MAGMA
     };
 
     /**
@@ -2001,8 +2002,9 @@ public enum Terrain {
         Terrain.BEACHES,
         Terrain.WATER,
         Terrain.LAVA,
-        Terrain.DEEP_SNOW,
+        Terrain.MAGMA,
 
+        Terrain.DEEP_SNOW,
         Terrain.NETHERRACK,
         Terrain.SOUL_SAND,
         Terrain.NETHERLIKE,
@@ -2012,8 +2014,8 @@ public enum Terrain {
         Terrain.ORANGE_STAINED_CLAY,
         Terrain.MAGENTA_STAINED_CLAY,
         Terrain.LIGHT_BLUE_STAINED_CLAY,
-        Terrain.YELLOW_STAINED_CLAY,
 
+        Terrain.YELLOW_STAINED_CLAY,
         Terrain.LIME_STAINED_CLAY,
         Terrain.PINK_STAINED_CLAY,
         Terrain.GREY_STAINED_CLAY,
@@ -2023,8 +2025,8 @@ public enum Terrain {
         Terrain.BLUE_STAINED_CLAY,
         Terrain.BROWN_STAINED_CLAY,
         Terrain.GREEN_STAINED_CLAY,
-        Terrain.RED_STAINED_CLAY,
 
+        Terrain.RED_STAINED_CLAY,
         Terrain.BLACK_STAINED_CLAY
     };
 }

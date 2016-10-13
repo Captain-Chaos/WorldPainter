@@ -367,9 +367,8 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     public void setInhibitUpdates(boolean inhibitUpdates) {
         if (inhibitUpdates != this.inhibitUpdates) {
             this.inhibitUpdates = inhibitUpdates;
-            if (inhibitUpdates) {
-            } else {
-                refresh();
+            if (! inhibitUpdates) {
+                refresh(true);
             }
             firePropertyChange("inhibitUpdates", ! inhibitUpdates, inhibitUpdates);
         }

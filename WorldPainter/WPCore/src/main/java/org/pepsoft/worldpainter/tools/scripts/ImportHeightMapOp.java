@@ -27,6 +27,7 @@ package org.pepsoft.worldpainter.tools.scripts;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.heightMaps.BitmapHeightMap;
+import org.pepsoft.worldpainter.heightMaps.TransformingHeightMap;
 import org.pepsoft.worldpainter.importing.HeightMapImporter;
 import org.pepsoft.worldpainter.themes.Theme;
 
@@ -49,13 +50,13 @@ public class ImportHeightMapOp extends AbstractOperation<World2> {
     }
 
     public ImportHeightMapOp scale(int scale) {
-        importer.setScale(scale);
+        this.scale = scale;
         return this;
     }
 
     public ImportHeightMapOp shift(int x, int y) {
-        importer.setOffsetX(x);
-        importer.setOffsetY(y);
+        offsetX = x;
+        offsetY = y;
         return this;
     }
     
@@ -86,7 +87,12 @@ public class ImportHeightMapOp extends AbstractOperation<World2> {
         if (heightMap == null) {
             throw new ScriptException("heightMap not set");
         }
-        importer.setImage(heightMap.getImage());
+        HeightMap adjustedHeightMap = heightMap;
+        if ((scale != 100) || (offsetX != 0) || (offsetY != 0)) {
+            heightMap.setSmoothScaling(true);
+            adjustedHeightMap = new TransformingHeightMap(heightMap.getName() + " transformed", heightMap, scale, scale, offsetX, offsetY, 0);
+        }
+        importer.setHeightMap(adjustedHeightMap);
         importer.setImageFile(heightMap.getImageFile());
         HeightMapTileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), Terrain.GRASS, DEFAULT_MAX_HEIGHT_2, 58, 62, false, true, 20, 1.0);
         Theme defaults = Configuration.getInstance().getHeightMapDefaultTheme();
@@ -111,4 +117,5 @@ public class ImportHeightMapOp extends AbstractOperation<World2> {
     private final HeightMapImporter importer = new HeightMapImporter();
     private BitmapHeightMap heightMap;
     private boolean fromLevelsSpecified, toLevelsSpecified;
+    private int scale = 100, offsetX, offsetY;
 }

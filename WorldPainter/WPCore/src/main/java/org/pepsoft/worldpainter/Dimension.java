@@ -1408,6 +1408,15 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         }
     }
 
+    public void forEachTile(TileProcessor tileProcessor) {
+        tiles.values().forEach(tileProcessor::processTile);
+    }
+
+    @FunctionalInterface
+    interface TileProcessor {
+        void processTile(Tile tile);
+    }
+
     // Tile.Listener
 
     @Override

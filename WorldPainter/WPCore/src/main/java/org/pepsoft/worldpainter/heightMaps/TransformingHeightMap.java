@@ -142,7 +142,7 @@ public class TransformingHeightMap extends DelegatingHeightMap {
 
     private void recalculate() {
         transform = new AffineTransform();
-        if (scaleX != 1.0f) {
+        if ((scaleX != 1.0f) || (scaleY != 1.0f)) {
             transform.scale(1.0 / scaleX, 1.0 / scaleY);
         }
         if ((offsetX != 0) || (offsetY != 0)) {
