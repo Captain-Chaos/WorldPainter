@@ -5,23 +5,21 @@
  */
 package org.pepsoft.worldpainter;
 
-import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import javax.swing.*;
-import javax.swing.event.ListDataEvent;
-import javax.swing.event.ListDataListener;
+import org.pepsoft.worldpainter.biomeschemes.AutoBiomeScheme;
 import org.pepsoft.worldpainter.biomeschemes.BiomeHelper;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
-import org.pepsoft.worldpainter.layers.Annotations;
-import org.pepsoft.worldpainter.layers.Biome;
-import org.pepsoft.worldpainter.layers.GardenCategory;
-import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.layers.*;
+
+import javax.swing.*;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableModel;
+import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.text.NumberFormat;
+import java.util.*;
+import java.util.List;
 
 import static org.pepsoft.worldpainter.Constants.*;
 
@@ -35,11 +33,14 @@ public class InfoPanel extends javax.swing.JPanel {
      */
     public InfoPanel(WorldPainter view, CustomBiomeManager customBiomeManager) {
         this.view = view;
-        listModel = new LayerListModel(customBiomeManager);
-        
+        tableModel = new LayerTableModel();
+        biomeHelper = new BiomeHelper(new AutoBiomeScheme(null), view.getColourScheme(), customBiomeManager);
+        heightFormatter = NumberFormat.getInstance();
+        heightFormatter.setMaximumFractionDigits(3);
+
         initComponents();
 
-//        updateTimer = new Timer(100, e -> updateInfo());
+//        updateTimer = new Timer(150, e -> updateInfo());
 //        updateTimer.setRepeats(false);
         view.addMouseMotionListener(new MouseAdapter() {
             @Override
@@ -54,45 +55,103 @@ public class InfoPanel extends javax.swing.JPanel {
             }
         });
 
-        
-        jList1.setModel(listModel);
+        jTable1.setModel(tableModel);
+        jTable1.setDefaultRenderer(Layer.class, new LayerTableCellRenderer());
+        jTable1.setDefaultRenderer(LayerTableModel.InfoRow.class, new InfoRowTableCellRenderer(biomeHelper));
     }
 
-    public void updateInfo() {
-        // TODO: alleen slope en layers ergens weergeven; de rest staat al in de status bar
-
+    void updateInfo() {
+        setTextIfDifferent(labelCoords, worldCoords.x + "," + worldCoords.y);
         Dimension dim = view.getDimension();
         if (dim == null) {
+            clearFields();
             return;
         }
-        labelCoords.setText(worldCoords.x + "," + worldCoords.y);
         Tile tile = dim.getTile(worldCoords.x >> TILE_SIZE_BITS, worldCoords.y >> TILE_SIZE_BITS);
         if (tile == null) {
+            clearFields();
             return;
         }
+        fieldsClear = false;
         final int x = worldCoords.x & TILE_SIZE_MASK, y = worldCoords.y & TILE_SIZE_MASK;
-        int height = tile.getIntHeight(x, y);
-        labelHeight.setText(Integer.toString(height));
+        float height = tile.getHeight(x, y);
+        setTextIfDifferent(labelHeight, heightFormatter.format(height));
+        int intHeight = (int) (height + 0.5f);
         int waterLevel = tile.getWaterLevel(x, y);
-        labelWaterLevel.setText(Integer.toString(waterLevel));
-        if (waterLevel > height) {
-            labelWaterDepth.setText(Integer.toString(waterLevel - height));
+        setTextIfDifferent(labelWaterLevel, Integer.toString(waterLevel));
+        if (waterLevel > intHeight) {
+            setTextIfDifferent(labelWaterDepth, Integer.toString(waterLevel - intHeight));
         } else {
-            labelWaterDepth.setText(null);
+            setTextIfDifferent(labelWaterDepth, null);
         }
+        float slope;
         if ((x > 0) && (x < TILE_SIZE - 1) && (y > 0) && (y < TILE_SIZE - 1)) {
-            labelSlope.setText(Float.toString(tile.getSlope(x, y)));
+            slope = tile.getSlope(x, y);
         } else {
-            labelSlope.setText(Float.toString(dim.getSlope(worldCoords.x, worldCoords.y)));
+            slope = dim.getSlope(worldCoords.x, worldCoords.y);
+        }
+        setTextIfDifferent(labelSlope, ((int) (Math.atan(slope) * 180 / Math.PI + 0.5)) + "°");
+        Terrain terrain = tile.getTerrain(x, y);
+        if (terrain != currentTerrain) {
+            labelTerrain.setText(terrain.getName());
+            labelTerrain.setIcon(new ImageIcon(terrain.getIcon(view.getColourScheme())));
+            currentTerrain = terrain;
+        }
+        int biome = tile.getLayerValue(Biome.INSTANCE, x, y);
+        boolean automaticBiome = false;
+        if (biome == 255) {
+            automaticBiome = true;
+            biome = dim.getAutoBiome(tile, x, y);
+        }
+        if ((automaticBiome != currentAutomaticBiome) || (biome != currentBiome)) {
+            labelBiome.setText(biomeHelper.getBiomeName(biome));
+            labelBiome.setIcon(biomeHelper.getBiomeIcon(biome));
+            checkBoxAutomaticBiome.setSelected(automaticBiome);
+            currentAutomaticBiome = automaticBiome;
+            currentBiome = biome;
         }
         Map<Layer, Integer> layerValues = tile.getLayersAt(x, y);
+        // We display the biome separately
         if (layerValues != null) {
-            listModel.update(layerValues);
+            layerValues.remove(Biome.INSTANCE);
+            if (! layerValues.isEmpty()) {
+                tableModel.update(layerValues);
+            } else {
+                tableModel.clear();
+            }
         } else {
-            listModel.clear();
+            tableModel.clear();
+        }
+    }
+
+    private void clearFields() {
+        if (! fieldsClear) {
+            labelHeight.setText(null);
+            labelWaterLevel.setText(null);
+            labelWaterDepth.setText(null);
+            labelSlope.setText(null);
+            tableModel.clear();
+            fieldsClear = true;
         }
     }
     
+    /**
+     * {@link JLabel#setText(String)} does not check whether the new value is
+     * different. On the other hand {@link JLabel#getText()} is a very simple
+     * method which just returns a field. So if the text will frequently not
+     * have changed, it is cheaper to check with <code>getText()</code> whether
+     * the text is different and only invoke <code>setText()</code> if it is,
+     * which is what this method does.
+     *
+     * @param label The label on which to set the <code>text</code> property.
+     * @param text The text to set.
+     */
+    private void setTextIfDifferent(JLabel label, String text) {
+        if ((text == null) ? (label.getText() != null) : (! text.equals(label.getText()))) {
+            label.setText(text);
+        }
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -105,8 +164,6 @@ public class InfoPanel extends javax.swing.JPanel {
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         labelSlope = new javax.swing.JLabel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jList1 = new javax.swing.JList();
         jLabel5 = new javax.swing.JLabel();
         labelCoords = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
@@ -119,19 +176,20 @@ public class InfoPanel extends javax.swing.JPanel {
         jLabel15 = new javax.swing.JLabel();
         labelWaterDepth = new javax.swing.JLabel();
         jLabel17 = new javax.swing.JLabel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        jTable1 = new javax.swing.JTable();
+        jLabel3 = new javax.swing.JLabel();
+        labelTerrain = new javax.swing.JLabel();
+        jLabel6 = new javax.swing.JLabel();
+        labelBiome = new javax.swing.JLabel();
+        checkBoxAutomaticBiome = new javax.swing.JCheckBox();
+        jLabel9 = new javax.swing.JLabel();
 
         jLabel1.setText("Slope:");
 
         jLabel2.setText("Layers:");
 
         labelSlope.setText("jLabel5");
-
-        jList1.setModel(new javax.swing.AbstractListModel() {
-            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
-            public int getSize() { return strings.length; }
-            public Object getElementAt(int i) { return strings[i]; }
-        });
-        jScrollPane1.setViewportView(jList1);
 
         jLabel5.setText("Coordinates:");
 
@@ -157,24 +215,59 @@ public class InfoPanel extends javax.swing.JPanel {
 
         jLabel17.setText("m");
 
+        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane2.setViewportView(jTable1);
+
+        jLabel3.setText("Terrain:");
+
+        labelTerrain.setText("jLabel4");
+
+        jLabel6.setText("Biome:");
+
+        labelBiome.setText("jLabel8");
+
+        checkBoxAutomaticBiome.setText("automatic");
+        checkBoxAutomaticBiome.setEnabled(false);
+
+        jLabel9.setText(" ");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(0, 0, 0)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel2)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(labelFluidType)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel13)
+                                    .addComponent(jLabel12)))
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jLabel5)
                                     .addComponent(jLabel1)
-                                    .addComponent(jLabel7))
+                                    .addComponent(jLabel7)
+                                    .addComponent(jLabel3)
+                                    .addComponent(jLabel6))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(labelBiome)
+                                    .addComponent(labelTerrain)
                                     .addComponent(labelCoords)
                                     .addComponent(labelSlope)
                                     .addGroup(layout.createSequentialGroup()
@@ -189,19 +282,17 @@ public class InfoPanel extends javax.swing.JPanel {
                                         .addComponent(labelWaterDepth)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(jLabel17))))
+                            .addComponent(jLabel2)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(labelFluidType)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel13)
-                                    .addComponent(jLabel12))))
-                        .addGap(0, 0, Short.MAX_VALUE)))
-                .addContainerGap())
+                                .addComponent(jLabel9)
+                                .addGap(64, 64, 64)
+                                .addComponent(checkBoxAutomaticBiome)))
+                        .addGap(0, 0, Short.MAX_VALUE))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(0, 0, 0)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel5)
                     .addComponent(labelCoords))
@@ -210,6 +301,10 @@ public class InfoPanel extends javax.swing.JPanel {
                     .addComponent(jLabel7)
                     .addComponent(labelHeight)
                     .addComponent(jLabel10))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1)
+                    .addComponent(labelSlope))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(labelFluidType)
@@ -223,18 +318,26 @@ public class InfoPanel extends javax.swing.JPanel {
                     .addComponent(jLabel17))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(labelSlope))
+                    .addComponent(jLabel3)
+                    .addComponent(labelTerrain))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel6)
+                    .addComponent(labelBiome))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(checkBoxAutomaticBiome)
+                    .addComponent(jLabel9))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1)
-                .addContainerGap())
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 26, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JCheckBox checkBoxAutomaticBiome;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel12;
@@ -242,70 +345,75 @@ public class InfoPanel extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel15;
     private javax.swing.JLabel jLabel17;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
-    private javax.swing.JList jList1;
-    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JLabel jLabel9;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JTable jTable1;
+    private javax.swing.JLabel labelBiome;
     private javax.swing.JLabel labelCoords;
     private javax.swing.JLabel labelFluidType;
     private javax.swing.JLabel labelHeight;
     private javax.swing.JLabel labelSlope;
+    private javax.swing.JLabel labelTerrain;
     private javax.swing.JLabel labelWaterDepth;
     private javax.swing.JLabel labelWaterLevel;
     // End of variables declaration//GEN-END:variables
 
     private final WorldPainter view;
-    private final LayerListModel listModel;
+    private final LayerTableModel tableModel;
 //    private final Timer updateTimer;
+    private final BiomeHelper biomeHelper;
+    private final NumberFormat heightFormatter;
     private Point worldCoords;
+    private boolean fieldsClear = true, currentAutomaticBiome;
+    private Terrain currentTerrain;
+    private int currentBiome;
     
-    static class LayerListModel implements ListModel<JLabel> {
-        public LayerListModel(CustomBiomeManager customBiomeManager) {
-            this.biomeHelper = new BiomeHelper(null, null, customBiomeManager);
-        }
-        
-        void update(Map<Layer, Integer> intensities) {
-            if (labels.isEmpty()) {
+    static class LayerTableModel implements TableModel {
+        boolean update(Map<Layer, Integer> intensities) {
+            boolean changed = false;
+            if (rows.isEmpty()) {
                 int index = 0;
                 for (Map.Entry<Layer, Integer> entry: intensities.entrySet()) {
                     Layer layer = entry.getKey();
-                    int intensity = entry.getValue();
-                    JLabel label = new JLabel(layer.getName() + ": "+ getIntensity(layer, intensity), new ImageIcon(layer.getIcon()), JLabel.LEADING);
-                    labels.add(label);
+                    rows.add(new InfoRow(layer, entry.getValue()));
                     layerIndices.put(layer, index++);
-                    ListDataEvent event = new ListDataEvent(this, ListDataEvent.INTERVAL_ADDED, 0, labels.size() - 1);
-                    for (ListDataListener listener: listeners) {
-                        listener.intervalAdded(event);
+                    TableModelEvent event = new TableModelEvent(this);
+                    for (TableModelListener listener: listeners) {
+                        listener.tableChanged(event);
                     }
+                    changed = true;
                 }
             } else if (! intensities.isEmpty()) {
                 Set<Layer> oldLayers = new HashSet<>(layerIndices.keySet());
                 for (Map.Entry<Layer, Integer> entry: intensities.entrySet()) {
                     Layer layer = entry.getKey();
                     int intensity = entry.getValue();
-                    String newText = layer.getName() + ": "+ getIntensity(layer, intensity);
                     if (layerIndices.containsKey(layer)) {
                         // Layer is already on the list
                         int index = layerIndices.get(layer);
-                        JLabel label = labels.get(index);
-                        if (! newText.equals(label.getText())) {
-                            label.setText(newText);
-                            ListDataEvent event = new ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, index, index);
-                            for (ListDataListener listener: listeners) {
-                                listener.contentsChanged(event);
+                        InfoRow row = rows.get(index);
+                        if (intensity != row.intensity) {
+                            row.intensity = intensity;
+                            TableModelEvent event = new TableModelEvent(this, index, index, 1);
+                            for (TableModelListener listener: listeners) {
+                                listener.tableChanged(event);
                             }
                         }
                     } else {
                         // Layer is not on the list; add it (to the end, to
                         // limit the amount of repainting needed
-                        int index = labels.size();
-                        JLabel label = new JLabel(newText, new ImageIcon(layer.getIcon()), JLabel.LEADING);
-                        labels.add(label);
+                        int index = rows.size();
+                        rows.add(new InfoRow(layer, intensity));
                         layerIndices.put(layer, index);
-                        ListDataEvent event = new ListDataEvent(this, ListDataEvent.INTERVAL_ADDED, index, index);
-                        for (ListDataListener listener: listeners) {
-                            listener.intervalAdded(event);
+                        TableModelEvent event = new TableModelEvent(this, index, index, TableModelEvent.ALL_COLUMNS, TableModelEvent.INSERT);
+                        for (TableModelListener listener: listeners) {
+                            listener.tableChanged(event);
                         }
+                        changed = true;
                     }
                 }
                 oldLayers.removeAll(intensities.keySet());
@@ -317,47 +425,121 @@ public class InfoPanel extends javax.swing.JPanel {
                             entry.setValue(entry.getValue() - 1);
                         }
                     }
-                    labels.remove(index);
-                    ListDataEvent event = new ListDataEvent(this, ListDataEvent.INTERVAL_REMOVED, index, index);
-                    for (ListDataListener listener: listeners) {
-                        listener.intervalRemoved(event);
+                    rows.remove(index);
+                    TableModelEvent event = new TableModelEvent(this, index, index, TableModelEvent.ALL_COLUMNS, TableModelEvent.DELETE);
+                    for (TableModelListener listener: listeners) {
+                        listener.tableChanged(event);
                     }
+                    changed = true;
                 }
             }
+            return changed;
         }
 
-        void clear() {
-            if (! labels.isEmpty()) {
-                int oldSize = labels.size();
-                labels.clear();
+        boolean clear() {
+            if (! rows.isEmpty()) {
+                rows.clear();
                 layerIndices.clear();
-                ListDataEvent event = new ListDataEvent(this, ListDataEvent.INTERVAL_REMOVED, 0, oldSize - 1);
-                for (ListDataListener listener: listeners) {
-                    listener.intervalRemoved(event);
+                TableModelEvent event = new TableModelEvent(this);
+                for (TableModelListener listener: listeners) {
+                    listener.tableChanged(event);
                 }
+                return true;
+            } else {
+                return false;
             }
         }
-        
-        // ListModel
-        
+
+        // TableModel
+
         @Override
-        public int getSize() {
-            return labels.size();
+        public int getRowCount() {
+            return rows.size();
         }
 
         @Override
-        public JLabel getElementAt(int index) {
-            return labels.get(index);
+        public int getColumnCount() {
+            return COLUMN_NAMES.length;
         }
 
         @Override
-        public void addListDataListener(ListDataListener l) {
+        public String getColumnName(int columnIndex) {
+            return COLUMN_NAMES[columnIndex];
+        }
+
+        @Override
+        public Class<?> getColumnClass(int columnIndex) {
+            switch (columnIndex) {
+                case 0:
+                    return Layer.class;
+                case 1:
+                    return InfoRow.class;
+                default:
+                    throw new IndexOutOfBoundsException(Integer.toString(columnIndex));
+            }
+        }
+
+        @Override
+        public boolean isCellEditable(int rowIndex, int columnIndex) {
+            return false;
+        }
+
+        @Override
+        public Object getValueAt(int rowIndex, int columnIndex) {
+            InfoRow row = rows.get(rowIndex);
+            switch (columnIndex) {
+                case 0:
+                    return row.layer;
+                case 1:
+                    return row;
+                default:
+                    throw new IndexOutOfBoundsException(Integer.toString(columnIndex));
+            }
+        }
+
+        @Override
+        public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void addTableModelListener(TableModelListener l) {
             listeners.add(l);
         }
 
         @Override
-        public void removeListDataListener(ListDataListener l) {
+        public void removeTableModelListener(TableModelListener l) {
             listeners.remove(l);
+        }
+
+        private final List<InfoRow> rows = new ArrayList<>();
+        private final Map<Layer, Integer> layerIndices = new HashMap<>();
+        private final List<TableModelListener> listeners = new ArrayList<>();
+
+        private static final String[] COLUMN_NAMES = {"Layer", "Intensity"};
+
+        static class InfoRow {
+            InfoRow(Layer layer, int intensity) {
+                this.layer = layer;
+                this.intensity = intensity;
+            }
+
+            Layer layer;
+            int intensity;
+        }
+    }
+
+    static class InfoRowTableCellRenderer extends DefaultTableCellRenderer {
+        InfoRowTableCellRenderer(BiomeHelper biomeHelper) {
+            this.biomeHelper = biomeHelper;
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            LayerTableModel.InfoRow infoRow = (LayerTableModel.InfoRow) value;
+            setText(getIntensity(infoRow.layer, infoRow.intensity));
+            return this;
         }
 
         private String getIntensity(Layer layer, int intensity) {
@@ -387,10 +569,7 @@ public class InfoPanel extends javax.swing.JPanel {
                 }
             }
         }
-        
+
         private final BiomeHelper biomeHelper;
-        private final List<JLabel> labels = new ArrayList<>();
-        private final Map<Layer, Integer> layerIndices = new HashMap<>();
-        private final List<ListDataListener> listeners = new ArrayList<>();
     }
 }

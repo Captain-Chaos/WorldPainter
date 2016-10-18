@@ -56,7 +56,7 @@ public class Palette {
         constraints.weightx = 0.0;
         LayoutUtils.addRowOfComponents(panel, constraints, buttonComponents);
 
-        dockableFrame = App.createDockableFrame(panel, name, DockContext.DOCK_SIDE_WEST, 3);
+        dockableFrame = new App.DockableFrameBuilder(panel, name, DockContext.DOCK_SIDE_WEST, 3).build();
         dockableFrame.setKey("customLayerPalette." + name);
     }
 

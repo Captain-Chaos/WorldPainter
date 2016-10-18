@@ -2002,34 +2002,34 @@ public final class App extends JFrame implements RadiusControl,
             private boolean mapDraggingInhibited;
         };
         
-        dockingManager.addFrame(createDockableFrame(createToolPanel(), "Tools", DOCK_SIDE_WEST, 1));
+        dockingManager.addFrame(new DockableFrameBuilder(createToolPanel(), "Tools", DOCK_SIDE_WEST, 1).build());
 
-        dockingManager.addFrame(createDockableFrame(createLayerPanel(), "Layers", DOCK_SIDE_WEST, 3));
+        dockingManager.addFrame(new DockableFrameBuilder(createLayerPanel(), "Layers", DOCK_SIDE_WEST, 3).build());
 
-        dockingManager.addFrame(createDockableFrame(createTerrainPanel(), "Terrain", DOCK_SIDE_WEST, 3));
+        dockingManager.addFrame(new DockableFrameBuilder(createTerrainPanel(), "Terrain", DOCK_SIDE_WEST, 3).build());
 
-        dockingManager.addFrame(createDockableFrame(createCustomTerrainPanel(), "customTerrain", "Custom Terrain", DOCK_SIDE_WEST, 3));
+        dockingManager.addFrame(new DockableFrameBuilder(createCustomTerrainPanel(), "Custom Terrain", DOCK_SIDE_WEST, 3).withId("customTerrain").build());
 
-        biomesPanel = createDockableFrame(createBiomesPanel(), "Biomes", DOCK_SIDE_WEST, 3);
+        biomesPanel = new DockableFrameBuilder(createBiomesPanel(), "Biomes", DOCK_SIDE_WEST, 3).build();
         dockingManager.addFrame(biomesPanel);
 
-        dockingManager.addFrame(createDockableFrame(createAnnotationsPanel(), "Annotations", DOCK_SIDE_WEST, 3));
+        dockingManager.addFrame(new DockableFrameBuilder(createAnnotationsPanel(), "Annotations", DOCK_SIDE_WEST, 3).build());
 
-        dockingManager.addFrame(createDockableFrame(createBrushPanel(), "Brushes", DOCK_SIDE_EAST, 1));
+        dockingManager.addFrame(new DockableFrameBuilder(createBrushPanel(), "Brushes", DOCK_SIDE_EAST, 1).build());
 
         if (customBrushes.containsKey(CUSTOM_BRUSHES_DEFAULT_TITLE)) {
-            dockingManager.addFrame(createDockableFrame(createCustomBrushPanel(CUSTOM_BRUSHES_DEFAULT_TITLE, customBrushes.get(CUSTOM_BRUSHES_DEFAULT_TITLE)), "customBrushesDefault", "Custom Brushes", DOCK_SIDE_EAST, 1));
+            dockingManager.addFrame(new DockableFrameBuilder(createCustomBrushPanel(CUSTOM_BRUSHES_DEFAULT_TITLE, customBrushes.get(CUSTOM_BRUSHES_DEFAULT_TITLE)), "Custom Brushes", DOCK_SIDE_EAST, 1).withId("customBrushesDefault").build());
         }
         for (Map.Entry<String, List<Brush>> entry: customBrushes.entrySet()) {
             if (entry.getKey().equals(CUSTOM_BRUSHES_DEFAULT_TITLE)) {
                 continue;
             }
-            dockingManager.addFrame(createDockableFrame(createCustomBrushPanel(entry.getKey(), entry.getValue()), "customBrushes." + entry.getKey(), entry.getKey(), DOCK_SIDE_EAST, 1));
+            dockingManager.addFrame(new DockableFrameBuilder(createCustomBrushPanel(entry.getKey(), entry.getValue()), entry.getKey(), DOCK_SIDE_EAST, 1).withId("customBrushes." + entry.getKey()).build());
         }
         
-        dockingManager.addFrame(createDockableFrame(createBrushSettingsPanel(), "brushSettings", "Brush Settings", DOCK_SIDE_EAST, 2));
+        dockingManager.addFrame(new DockableFrameBuilder(createBrushSettingsPanel(), "Brush Settings", DOCK_SIDE_EAST, 2).withId("brushSettings").build());
 
-//        dockingManager.addFrame(createDockableFrame(createInfoPanel(), "Info", DOCK_SIDE_EAST, 3));
+        dockingManager.addFrame(new DockableFrameBuilder(createInfoPanel(), "Info", DOCK_SIDE_EAST, 2).withId("infoPanel").expand().withIcon(loadIcon("information")).build());
 
         Configuration config = Configuration.getInstance();
         if (config.getDefaultJideLayoutData() != null) {
@@ -5240,75 +5240,109 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
 
-    static DockableFrame createDockableFrame(Component component, String title, int side, int index) {
-        String id = Character.toLowerCase(title.charAt(0)) + title.substring(1);
-        return createDockableFrame(component, id, title, side, index);
-    }
-    
-    static DockableFrame createDockableFrame(Component component, String id, String title, int side, int index) {
-        DockableFrame dockableFrame = new DockableFrame(id);
-        
-        JPanel panel = new JPanel(new GridBagLayout());
-        GridBagConstraints constraints = new GridBagConstraints();
-        constraints.gridwidth = GridBagConstraints.REMAINDER;
-        constraints.weightx = 1.0;
-        constraints.fill = GridBagConstraints.HORIZONTAL;
-        panel.add(component, constraints);
-        constraints.weighty = 1.0;
-        panel.add(new JPanel(), constraints);
-        dockableFrame.add(panel, BorderLayout.CENTER);
-        
-        // Use title everywhere
-        dockableFrame.setTitle(title);
-        dockableFrame.setSideTitle(title);
-        dockableFrame.setTabTitle(title);
-        dockableFrame.setToolTipText(title);
-
-        // Try to find an icon to use for the tab
-        if (component instanceof Container) {
-            Icon icon = findIcon((Container) component);
-            if (icon != null) {
-                if (((icon.getIconHeight() > 16) || (icon.getIconWidth() > 16))
-                        && (icon instanceof ImageIcon)
-                        && (((ImageIcon) icon).getImage() instanceof BufferedImage)) {
-                    float s;
-                    if (icon.getIconWidth() > icon.getIconHeight()) {
-                        // Wide icon
-                        s = 16f / icon.getIconWidth();
-                    } else {
-                        // Tall (or square) icon
-                        s = 16f / icon.getIconHeight();
-                    }
-                    BufferedImageOp op = new AffineTransformOp(AffineTransform.getScaleInstance(s, s), AffineTransformOp.TYPE_BICUBIC);
-                    BufferedImage iconImage = op.filter((BufferedImage) ((ImageIcon) icon).getImage(), null);
-                    icon = new ImageIcon(iconImage);
-                }
-                dockableFrame.setFrameIcon(icon);
-            }
+    static class DockableFrameBuilder {
+        DockableFrameBuilder(Component component, String title, int side, int index) {
+            this.component = component;
+            this.title = title;
+            this.side = side;
+            this.index = index;
+            id = Character.toLowerCase(title.charAt(0)) + title.substring(1);
         }
 
-        // Use preferred size of component as much as possible
-        final java.awt.Dimension preferredSize = component.getPreferredSize();
-        dockableFrame.setAutohideWidth(preferredSize.width);
-        dockableFrame.setDockedWidth(preferredSize.width);
-        dockableFrame.setDockedHeight(preferredSize.height);
-        dockableFrame.setUndockedBounds(new Rectangle(-1, -1, preferredSize.width, preferredSize.height));
+        DockableFrameBuilder withId(String id) {
+            this.id = id;
+            return this;
+        }
 
-        // Make hidable, but don't display hide button, so incidental panels can
-        // be hidden on the fly
-        dockableFrame.setHidable(true);
-        dockableFrame.setAvailableButtons(BUTTON_FLOATING | BUTTON_AUTOHIDE | BUTTON_HIDE_AUTOHIDE);
-        dockableFrame.setShowContextMenu(false); // Disable the context menu because it contains the Close option with no way to hide it
+        DockableFrameBuilder expand() {
+            expand = true;
+            return this;
+        }
 
-        // Initial location of panel
-        dockableFrame.setInitMode(DockContext.STATE_FRAMEDOCKED);
-        dockableFrame.setInitSide(side);
-        dockableFrame.setInitIndex(index);
+        DockableFrameBuilder withIcon(Icon icon) {
+            this.icon = icon;
+            return this;
+        }
 
-        // Other flags
-        dockableFrame.setAutohideWhenActive(true);
-        dockableFrame.setMaximizable(false);
-        return dockableFrame;
+        DockableFrame build() {
+            DockableFrame dockableFrame = new DockableFrame(id);
+
+            JPanel panel = new JPanel(new GridBagLayout());
+            GridBagConstraints constraints = new GridBagConstraints();
+            constraints.gridwidth = GridBagConstraints.REMAINDER;
+            constraints.weightx = 1.0;
+            if (expand) {
+                constraints.fill = GridBagConstraints.BOTH;
+                constraints.weighty = 1.0;
+                panel.add(component, constraints);
+            } else {
+                constraints.fill = GridBagConstraints.HORIZONTAL;
+                panel.add(component, constraints);
+                constraints.weighty = 1.0;
+                panel.add(new JPanel(), constraints);
+            }
+            dockableFrame.add(panel, BorderLayout.CENTER);
+
+            // Use title everywhere
+            dockableFrame.setTitle(title);
+            dockableFrame.setSideTitle(title);
+            dockableFrame.setTabTitle(title);
+            dockableFrame.setToolTipText(title);
+
+            // Try to find an icon to use for the tab
+            if ((icon == null) && (component instanceof Container)) {
+                icon = findIcon((Container) component);
+                if (icon != null) {
+                    if (((icon.getIconHeight() > 16) || (icon.getIconWidth() > 16))
+                            && (icon instanceof ImageIcon)
+                            && (((ImageIcon) icon).getImage() instanceof BufferedImage)) {
+                        float s;
+                        if (icon.getIconWidth() > icon.getIconHeight()) {
+                            // Wide icon
+                            s = 16f / icon.getIconWidth();
+                        } else {
+                            // Tall (or square) icon
+                            s = 16f / icon.getIconHeight();
+                        }
+                        BufferedImageOp op = new AffineTransformOp(AffineTransform.getScaleInstance(s, s), AffineTransformOp.TYPE_BICUBIC);
+                        BufferedImage iconImage = op.filter((BufferedImage) ((ImageIcon) icon).getImage(), null);
+                        icon = new ImageIcon(iconImage);
+                    }
+                }
+            }
+            if (icon != null) {
+                dockableFrame.setFrameIcon(icon);
+            }
+
+            // Use preferred size of component as much as possible
+            final java.awt.Dimension preferredSize = component.getPreferredSize();
+            dockableFrame.setAutohideWidth(preferredSize.width);
+            dockableFrame.setDockedWidth(preferredSize.width);
+            dockableFrame.setDockedHeight(preferredSize.height);
+            dockableFrame.setUndockedBounds(new Rectangle(-1, -1, preferredSize.width, preferredSize.height));
+
+            // Make hidable, but don't display hide button, so incidental panels can
+            // be hidden on the fly
+            dockableFrame.setHidable(true);
+            dockableFrame.setAvailableButtons(BUTTON_FLOATING | BUTTON_AUTOHIDE | BUTTON_HIDE_AUTOHIDE);
+            dockableFrame.setShowContextMenu(false); // Disable the context menu because it contains the Close option with no way to hide it
+
+            // Initial location of panel
+            dockableFrame.setInitMode(DockContext.STATE_FRAMEDOCKED);
+            dockableFrame.setInitSide(side);
+            dockableFrame.setInitIndex(index);
+
+            // Other flags
+            dockableFrame.setAutohideWhenActive(true);
+            dockableFrame.setMaximizable(false);
+            return dockableFrame;
+        }
+
+        String id, title;
+        boolean expand;
+        Icon icon;
+        int side, index;
+        Component component;
     }
 
     private void deleteUnusedLayers() {
