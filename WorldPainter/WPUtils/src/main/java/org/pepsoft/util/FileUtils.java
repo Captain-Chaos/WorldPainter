@@ -9,19 +9,9 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.SortedSet;
-import java.util.TreeMap;
-import java.util.TreeSet;
+
 import org.jetbrains.annotations.NonNls;
 
 import javax.swing.*;
@@ -442,7 +432,7 @@ public class FileUtils {
 
     /**
      * Checks if a <code>File</code> is really a <code>java.io.File</code>, and
-     * if not converts it to one using {@link File#getAbsoluteFile()}.
+     * if not converts it to one using {@link File#getAbsolutePath()}.
      *
      * @param file The file to absolutise. May be <code>null</code>.
      * @return A file with the same absolute path as the input and guaranteed to
@@ -450,9 +440,24 @@ public class FileUtils {
      *     <code>null</code>.
      */
     public static File absolutise(File file) {
-        return ((file != null) && (file.getClass() != File.class)) ? file.getAbsoluteFile() : file;
+        return ((file != null) && (file.getClass() != File.class))
+            ? new File(file.getAbsolutePath())
+            : file;
     }
-    
+
+    /**
+     * Ensures that a collection of {@link File}s only contains instances of
+     * <code>java.io.File</code> and not subclasses, by converting subclasses
+     * using {@link #absolutise(File)}. The collection is transformed in-place
+     * if possible; otherwise a new collection with the same basic
+     * characteristics is created.
+     *
+     * @param collection The collection to transform.
+     * @param <T> The type of collection.
+     * @return Either the same collection, transformed in-place, or a new
+     *     collection of the same basic type as the input containing the
+     *     transformed results.
+     */
     @SuppressWarnings("unchecked") // Guaranteed by code
     public static <T extends Collection<File>> T absolutise(T collection) {
         if (collection == null) {
@@ -460,7 +465,20 @@ public class FileUtils {
         } else if (collection instanceof List) {
             for (ListIterator<File> i = ((List<File>) collection).listIterator(); i.hasNext(); ) {
                 Object object = i.next();
-                i.set(absolutise((File) object));
+                try {
+                    i.set(absolutise((File) object));
+                } catch (UnsupportedOperationException e) {
+                    Collection<File> newCollection;
+                    if (collection instanceof RandomAccess) {
+                        newCollection = new ArrayList<>(collection.size());
+                    } else {
+                        newCollection = new LinkedList<>();
+                    }
+                    for (Object object2: collection) {
+                        newCollection.add(absolutise((File) object2));
+                    }
+                    return (T) newCollection;
+                }
             }
             return collection;
         } else {
@@ -479,6 +497,18 @@ public class FileUtils {
         }
     }
 
+    /**
+     * Ensures that a map with {@link File}s as keys and/or values only contains
+     * instances of <code>java.io.File</code> and not subclasses, by converting
+     * subclasses using {@link #absolutise(File)}. The map is transformed
+     * in-place if possible; otherwise a new map with the same basic
+     * characteristics is created.
+     *
+     * @param map The map to transform.
+     * @param <T> The type of map.
+     * @return Either the same map, transformed in-place, or a new map of the
+     *     same basic type as the input containing the transformed results.
+     */
     @SuppressWarnings("unchecked") // Guaranteed by code
     public static <T extends Map<?, ?>> T absolutise(T map) {
         if (map == null) {
