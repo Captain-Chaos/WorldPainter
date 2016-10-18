@@ -409,6 +409,9 @@ outer:          for (int x = 0; x < width; x++) {
             && (imageHighValue < Terrain.VALUES.length);
     }
 
+//    TODO: dithered en threshold ook ondersteunen voor terrain en continue layers - mappen op één waarde
+//            of beter nog: generieke mapping mode bouwen
+
     /**
      * @return The list of layers to which this image type can be mapped. May be
      *     empty.
