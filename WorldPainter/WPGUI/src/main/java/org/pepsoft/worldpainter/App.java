@@ -592,11 +592,7 @@ public final class App extends JFrame implements RadiusControl,
             setTextIfDifferent(biomeLabel, " ");
             return;
         }
-        if (devMode) {
-            setTextIfDifferent(heightLabel, MessageFormat.format("Height: {0} ({1}) of {2}", dimension.getHeightAt(x, y), height, dimension.getMaxHeight() - 1));
-        } else {
-            setTextIfDifferent(heightLabel, MessageFormat.format(strings.getString("height.0.of.1"), height, dimension.getMaxHeight() - 1));
-        }
+        setTextIfDifferent(heightLabel, MessageFormat.format(strings.getString("height.0.of.1"), height, dimension.getMaxHeight() - 1));
         setTextIfDifferent(slopeLabel, MessageFormat.format("Slope: {0}°", (int) (Math.atan(dimension.getSlope(x, y)) * 180 / Math.PI + 0.5)));
         if ((activeOperation instanceof PaintOperation) && (paint instanceof LayerPaint)) {
             Layer layer = ((LayerPaint) paint).getLayer();

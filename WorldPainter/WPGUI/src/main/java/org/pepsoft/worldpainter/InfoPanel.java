@@ -8,6 +8,7 @@ package org.pepsoft.worldpainter;
 import org.pepsoft.worldpainter.biomeschemes.AutoBiomeScheme;
 import org.pepsoft.worldpainter.biomeschemes.BiomeHelper;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
+import org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes;
 import org.pepsoft.worldpainter.layers.*;
 
 import javax.swing.*;
@@ -103,6 +104,9 @@ public class InfoPanel extends javax.swing.JPanel {
             automaticBiome = true;
             biome = dim.getAutoBiome(tile, x, y);
         }
+        if (biome < 0) {
+            biome= Minecraft1_7Biomes.BIOME_PLAINS;
+        }
         if ((automaticBiome != currentAutomaticBiome) || (biome != currentBiome)) {
             labelBiome.setText(biomeHelper.getBiomeName(biome));
             labelBiome.setIcon(biomeHelper.getBiomeIcon(biome));
@@ -131,6 +135,14 @@ public class InfoPanel extends javax.swing.JPanel {
             labelWaterDepth.setText(null);
             labelSlope.setText(null);
             tableModel.clear();
+            labelTerrain.setIcon(null);
+            labelTerrain.setText(null);
+            currentTerrain = null;
+            labelBiome.setIcon(null);
+            labelBiome.setText(null);
+            checkBoxAutomaticBiome.setSelected(false);
+            currentAutomaticBiome = false;
+            currentBiome = -2;
             fieldsClear = true;
         }
     }
