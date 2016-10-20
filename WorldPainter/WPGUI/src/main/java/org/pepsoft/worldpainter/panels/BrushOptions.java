@@ -7,6 +7,7 @@ package org.pepsoft.worldpainter.panels;
 import org.pepsoft.minecraft.Constants;
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.biomeschemes.AutoBiomeScheme;
 import org.pepsoft.worldpainter.biomeschemes.BiomeHelper;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiome;
@@ -17,7 +18,9 @@ import org.pepsoft.worldpainter.panels.DefaultFilter.LevelType;
 
 import javax.swing.*;
 import javax.swing.JSpinner.NumberEditor;
+import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -231,7 +234,7 @@ public class BrushOptions extends javax.swing.JPanel {
     private JPopupMenu createObjectSelectionMenu(final ObjectSelectionListener listener) {
         JMenuItem waterItem = new JMenuItem("Water");
         waterItem.addActionListener(e -> listener.objectSelected(DefaultFilter.WATER, "Water", null));
-        JPopupMenu popupMenu = new JPopupMenu();
+        JMenu popupMenu = new JMenu();
         popupMenu.add(waterItem);
 
         JMenuItem lavaItem = new JMenuItem("Lava");
@@ -317,7 +320,7 @@ public class BrushOptions extends javax.swing.JPanel {
             biomeMenu.add(customBiomeMenu);
         }
         for (int i = 0; i < autoBiomeScheme.getBiomeCount(); i++) {
-            if (autoBiomeScheme.isBiomePresent(i) && (! (autoBiomeScheme.getBiomeName(i).endsWith("+") || autoBiomeScheme.getBiomeName(i).endsWith(" F") || autoBiomeScheme.getBiomeName(i).endsWith(" M") || autoBiomeScheme.getBiomeName(i).endsWith(" F M") || autoBiomeScheme.getBiomeName(i).endsWith(" Edge") || autoBiomeScheme.getBiomeName(i).endsWith(" Shore")))) {
+            if (autoBiomeScheme.isBiomePresent(i)) {
                 final int selectedBiome = i;
                 final String name = biomeHelper.getBiomeName(i) + " (" + selectedBiome + ")";
                 final Icon icon = biomeHelper.getBiomeIcon(i);
@@ -339,18 +342,6 @@ public class BrushOptions extends javax.swing.JPanel {
             autoBiomeSubMenu.add(menuItem);
         }
         biomeMenu.add(autoBiomeSubMenu);
-        JMenu biomeSubMenu = new JMenu("Variants");
-        for (int i = 0; i < autoBiomeScheme.getBiomeCount(); i++) {
-            if (autoBiomeScheme.isBiomePresent(i) && (autoBiomeScheme.getBiomeName(i).endsWith("+") || autoBiomeScheme.getBiomeName(i).endsWith(" F") || autoBiomeScheme.getBiomeName(i).endsWith(" M") || autoBiomeScheme.getBiomeName(i).endsWith(" F M") || autoBiomeScheme.getBiomeName(i).endsWith(" Edge") || autoBiomeScheme.getBiomeName(i).endsWith(" Shore"))) {
-                final int selectedBiome = i;
-                final String name = biomeHelper.getBiomeName(i) + " (" + selectedBiome + ")";
-                final Icon icon = biomeHelper.getBiomeIcon(i);
-                final JMenuItem menuItem = new JMenuItem(name, icon);
-                menuItem.addActionListener(e -> listener.objectSelected(new DefaultFilter.LayerValue(Biome.INSTANCE, selectedBiome), name, icon));
-                biomeSubMenu.add(menuItem);
-            }
-        }
-        biomeMenu.add(biomeSubMenu);
         popupMenu.add(biomeMenu);
 
         JMenu annotationsMenu = new JMenu("Annotations");
@@ -366,9 +357,66 @@ public class BrushOptions extends javax.swing.JPanel {
         }
         popupMenu.add(annotationsMenu);
 
-        return popupMenu;
+        popupMenu = breakUpLongMenus(popupMenu, 25);
+
+        JPopupMenu result = new JPopupMenu();
+        Arrays.stream(popupMenu.getMenuComponents()).forEach(result::add);
+        return result;
     }
-    
+
+    /**
+     * Recursively break up any long menus by moving any excess items to
+     * submenus called "more ->".
+     *
+     * @param menu The menu hierarchy to break up.
+     * @param maxLength The maximum number of items in each submenu.
+     * @return The broken up menu hierarchy.
+     */
+    private JMenu breakUpLongMenus(JMenu menu, int maxLength) {
+        if (menu.getMenuComponentCount() > maxLength) {
+            JMenu replacementMenu = new JMenu(menu.getText());
+            replacementMenu.setToolTipText(menu.getToolTipText());
+
+            // First gather all submenus, which go on the first page, breaking
+            // them up on the go if necessary
+            for (Component menuItem: menu.getMenuComponents()) {
+                if (menuItem instanceof JMenu) {
+                    menu.remove(menuItem);
+                    replacementMenu.add(breakUpLongMenus((JMenu) menuItem, maxLength));
+                }
+            }
+
+            // Then gather the menu items which will still fit on the first page
+            // and insert them before the submenus
+            int index = 0;
+            while ((replacementMenu.getMenuComponentCount() < (maxLength - 1)) && (menu.getMenuComponentCount() > 0)) {
+                Component menuItem = menu.getMenuComponent(0);
+                menu.remove(0);
+                replacementMenu.add(menuItem, index++);
+            }
+
+            // Lastly, if there are still items left, create a "more" submenu
+            // from the rest of the menu items and insert it between the menu
+            // items and the submenus
+            if (menu.getMenuComponentCount() > 0) {
+                menu.setText("More");
+                menu.setToolTipText(null);
+                replacementMenu.add(breakUpLongMenus(menu, maxLength), index);
+            }
+
+            return replacementMenu;
+        } else {
+            for (int i = 0; i < menu.getMenuComponentCount(); i++) {
+                if (menu.getMenuComponent(i) instanceof JMenu) {
+                    JMenu subMenu = (JMenu) menu.getMenuComponent(i);
+                    menu.remove(i);
+                    menu.add(breakUpLongMenus(subMenu, maxLength), i);
+                }
+            }
+            return menu;
+        }
+    }
+
     private void showReplaceMenu() {
         JPopupMenu menu = createReplaceMenu();
         menu.show(this, buttonReplace.getX() + buttonReplace.getWidth(), buttonReplace.getY());
