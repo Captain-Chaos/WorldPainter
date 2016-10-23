@@ -23,6 +23,7 @@ import org.pepsoft.worldpainter.HeightMap;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 
 /**
@@ -116,10 +117,14 @@ public class TransformingHeightMap extends DelegatingHeightMap {
             Point2D p2 = new Point2D.Double(extent.getMinX(), extent.getMaxY());
             Point2D p3 = new Point2D.Double(extent.getMaxX(), extent.getMinY());
             Point2D p4 = new Point2D.Double(extent.getMaxX(), extent.getMaxY());
-            transform.transform(p1, p1);
-            transform.transform(p2, p2);
-            transform.transform(p3, p3);
-            transform.transform(p4, p4);
+            try {
+                transform.inverseTransform(p1, p1);
+                transform.inverseTransform(p2, p2);
+                transform.inverseTransform(p3, p3);
+                transform.inverseTransform(p4, p4);
+            } catch (NoninvertibleTransformException e) {
+                throw new RuntimeException(e);
+            }
             double minX = Math.min(Math.min(p1.getX(), p2.getX()), Math.min(p3.getX(), p4.getX()));
             double maxX = Math.max(Math.max(p1.getX(), p2.getX()), Math.max(p3.getX(), p4.getX()));
             double minY = Math.min(Math.min(p1.getY(), p2.getY()), Math.min(p3.getY(), p4.getY()));
@@ -143,13 +148,13 @@ public class TransformingHeightMap extends DelegatingHeightMap {
     private void recalculate() {
         transform = new AffineTransform();
         if ((scaleX != 1.0f) || (scaleY != 1.0f)) {
-            transform.scale(1.0 / scaleX, 1.0 / scaleY);
+            transform.scale(scaleX, scaleY);
         }
         if ((offsetX != 0) || (offsetY != 0)) {
-            transform.translate(offsetX, offsetY);
+            transform.translate(-offsetX, -offsetY);
         }
         if (rotation != 0) {
-            transform.rotate(rotation / DOUBLE_PI);
+            transform.rotate(-rotation / DOUBLE_PI);
         }
     }
 

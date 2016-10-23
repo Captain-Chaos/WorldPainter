@@ -119,10 +119,14 @@ public class HeightMapImporter {
         }
 
         final boolean useVoidBelow = voidBelowLevel > 0;
-        final int tileX1 = extent.x >> TILE_SIZE_BITS;
-        final int tileY1 = extent.y >> TILE_SIZE_BITS;
-        final int tileX2 = (extent.x + extent.width - 1) >> TILE_SIZE_BITS;
-        final int tileY2 = (extent.y + extent.height - 1) >> TILE_SIZE_BITS;
+        final int x1 = extent.x;
+        final int x2 = extent.x + extent.width - 1;
+        final int y1 = extent.y;
+        final int y2 = extent.y + extent.height - 1;
+        final int tileX1 = x1 >> TILE_SIZE_BITS;
+        final int tileY1 = y1 >> TILE_SIZE_BITS;
+        final int tileX2 = x2 >> TILE_SIZE_BITS;
+        final int tileY2 = y2 >> TILE_SIZE_BITS;
         final int widthInTiles = tileX2 - tileX1 + 1;
         final int heightInTiles = tileY2 - tileY1 + 1;
         final int totalTileCount = widthInTiles * heightInTiles;
@@ -147,13 +151,13 @@ public class HeightMapImporter {
                     tileIsNew = false;
                     tile.inhibitEvents();
                 }
-                final int xOffset = tileX * TILE_SIZE - extent.x;
-                final int yOffset = tileY * TILE_SIZE - extent.y;
+                final int xOffset = tileX << TILE_SIZE_BITS;
+                final int yOffset = tileY << TILE_SIZE_BITS;
                 for (int x = 0; x < TILE_SIZE; x++) {
                     for (int y = 0; y < TILE_SIZE; y++) {
                         final int imageX = xOffset + x;
                         final int imageY = yOffset + y;
-                        if ((imageX >= 0) && (imageX < extent.width) && (imageY >= 0) && (imageY < extent.height)) {
+                        if ((imageX >= x1) && (imageX <= x2) && (imageY >= y1) && (imageY <= y2)) {
                             final float imageLevel = heightMap.getHeight(imageX, imageY);
                             final float height = calculateHeight(imageLevel);
                             if (onlyRaise && (! tileIsNew)) {
