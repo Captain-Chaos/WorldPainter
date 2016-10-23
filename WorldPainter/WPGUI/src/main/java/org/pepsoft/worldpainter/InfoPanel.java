@@ -5,11 +5,14 @@
  */
 package org.pepsoft.worldpainter;
 
+import org.pepsoft.util.IconUtils;
 import org.pepsoft.worldpainter.biomeschemes.AutoBiomeScheme;
 import org.pepsoft.worldpainter.biomeschemes.BiomeHelper;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes;
 import org.pepsoft.worldpainter.layers.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
@@ -18,6 +21,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.List;
@@ -28,7 +32,7 @@ import static org.pepsoft.worldpainter.Constants.*;
  *
  * @author pepijn
  */
-public class InfoPanel extends javax.swing.JPanel {
+public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener {
     /**
      * Creates new form InfoPanel
      */
@@ -41,24 +45,18 @@ public class InfoPanel extends javax.swing.JPanel {
 
         initComponents();
 
-//        updateTimer = new Timer(150, e -> updateInfo());
-//        updateTimer.setRepeats(false);
-        view.addMouseMotionListener(new MouseAdapter() {
-            @Override
-            public void mouseMoved(MouseEvent e) {
-                worldCoords = view.viewToWorld(e.getX(), e.getY());
-                updateInfo();
-//                if (updateTimer.isRunning()) {
-//                    updateTimer.restart();
-//                } else {
-//                    updateTimer.start();
-//                }
-            }
-        });
-
         jTable1.setModel(tableModel);
         jTable1.setDefaultRenderer(Layer.class, new LayerTableCellRenderer());
         jTable1.setDefaultRenderer(LayerTableModel.InfoRow.class, new InfoRowTableCellRenderer(biomeHelper));
+        jTable1.getColumnModel().getColumn(1).setPreferredWidth(25);
+
+        addHierarchyListener(e -> {
+            if (isShowing()) {
+                activate();
+            } else {
+                deactivate();
+            }
+        });
     }
 
     void updateInfo() {
@@ -128,6 +126,28 @@ public class InfoPanel extends javax.swing.JPanel {
         }
     }
 
+    private void activate() {
+        if (! active) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Activating info panel");
+            }
+            //        updateTimer = new Timer(150, e -> updateInfo());
+            //        updateTimer.setRepeats(false);
+            view.addMouseMotionListener(this);
+            active = true;
+        }
+    }
+
+    private void deactivate() {
+        if (active) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Deactivating info panel");
+            }
+            view.removeMouseMotionListener(this);
+            active = false;
+        }
+    }
+
     private void clearFields() {
         if (! fieldsClear) {
             labelHeight.setText(null);
@@ -135,10 +155,10 @@ public class InfoPanel extends javax.swing.JPanel {
             labelWaterDepth.setText(null);
             labelSlope.setText(null);
             tableModel.clear();
-            labelTerrain.setIcon(null);
+            labelTerrain.setIcon(ICON_BLANK);
             labelTerrain.setText(null);
             currentTerrain = null;
-            labelBiome.setIcon(null);
+            labelBiome.setIcon(ICON_BLANK);
             labelBiome.setText(null);
             checkBoxAutomaticBiome.setSelected(false);
             currentAutomaticBiome = false;
@@ -163,6 +183,21 @@ public class InfoPanel extends javax.swing.JPanel {
             label.setText(text);
         }
     }
+
+    // MouseMotionListener
+
+    @Override
+    public void mouseMoved(MouseEvent e) {
+        worldCoords = view.viewToWorld(e.getX(), e.getY());
+        updateInfo();
+//        if (updateTimer.isRunning()) {
+//            updateTimer.restart();
+//        } else {
+//            updateTimer.start();
+//        }
+    }
+
+    @Override public void mouseDragged(MouseEvent e) {}
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -242,10 +277,12 @@ public class InfoPanel extends javax.swing.JPanel {
 
         jLabel3.setText("Terrain:");
 
+        labelTerrain.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/transparent.png"))); // NOI18N
         labelTerrain.setText("jLabel4");
 
         jLabel6.setText("Biome:");
 
+        labelBiome.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/transparent.png"))); // NOI18N
         labelBiome.setText("jLabel8");
 
         checkBoxAutomaticBiome.setText("automatic");
@@ -257,49 +294,46 @@ public class InfoPanel extends javax.swing.JPanel {
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
-                .addGap(0, 0, 0)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(labelFluidType)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel13)
+                            .addComponent(jLabel12)))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel5)
+                            .addComponent(jLabel1)
+                            .addComponent(jLabel7)
+                            .addComponent(jLabel3))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(labelCoords)
+                            .addComponent(labelSlope)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(labelFluidType)
+                                .addComponent(labelHeight)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel13)
-                                    .addComponent(jLabel12)))
+                                .addComponent(jLabel10))
                             .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel5)
-                                    .addComponent(jLabel1)
-                                    .addComponent(jLabel7)
-                                    .addComponent(jLabel3)
-                                    .addComponent(jLabel6))
+                                .addComponent(labelWaterLevel)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(labelBiome)
-                                    .addComponent(labelTerrain)
-                                    .addComponent(labelCoords)
-                                    .addComponent(labelSlope)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(labelHeight)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(jLabel10))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(labelWaterLevel)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(jLabel15))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(labelWaterDepth)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(jLabel17))))
-                            .addComponent(jLabel2)
+                                .addComponent(jLabel15))
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel9)
-                                .addGap(64, 64, 64)
-                                .addComponent(checkBoxAutomaticBiome)))
-                        .addGap(0, 0, Short.MAX_VALUE))))
+                                .addComponent(labelWaterDepth)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel17))))
+                    .addComponent(jLabel2)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 39, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel9))
+                    .addComponent(checkBoxAutomaticBiome)
+                    .addComponent(labelTerrain)
+                    .addComponent(labelBiome))
+                .addGap(0, 9, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -329,21 +363,21 @@ public class InfoPanel extends javax.swing.JPanel {
                     .addComponent(labelWaterDepth)
                     .addComponent(jLabel17))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3)
-                    .addComponent(labelTerrain))
+                .addComponent(jLabel3)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel6)
-                    .addComponent(labelBiome))
+                .addComponent(labelTerrain)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(checkBoxAutomaticBiome)
-                    .addComponent(jLabel9))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jLabel9)
+                    .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(labelBiome)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(checkBoxAutomaticBiome)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 26, Short.MAX_VALUE))
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 149, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -380,10 +414,13 @@ public class InfoPanel extends javax.swing.JPanel {
     private final BiomeHelper biomeHelper;
     private final NumberFormat heightFormatter;
     private Point worldCoords;
-    private boolean fieldsClear = true, currentAutomaticBiome;
+    private boolean fieldsClear = true, currentAutomaticBiome, active;
     private Terrain currentTerrain;
     private int currentBiome;
-    
+
+    private static final Icon ICON_BLANK = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/transparent.png");
+    private static final Logger logger = LoggerFactory.getLogger(InfoPanel.class);
+
     static class LayerTableModel implements TableModel {
         boolean update(Map<Layer, Integer> intensities) {
             boolean changed = false;

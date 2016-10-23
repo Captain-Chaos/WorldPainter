@@ -2184,7 +2184,7 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
 
-    private Component createInfoPanel() {
+    private InfoPanel createInfoPanel() {
         return new InfoPanel(view, customBiomeManager);
     }
 
@@ -6120,7 +6120,6 @@ public final class App extends JFrame implements RadiusControl,
     private BiomesViewerFrame biomesViewerFrame;
     private MapDragControl mapDragControl;
     private DockableFrame biomesPanel;
-    private final boolean devMode = "true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.devMode")); // NOI18N
     private final boolean alwaysEnableReadOnly = ! "false".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.alwaysEnableReadOnly")); // NOI18N
     private final BiomeScheme autoBiomeScheme = new AutoBiomeScheme(null);
 //    private JScrollPane scrollPane = new JScrollPane();
