@@ -27,7 +27,15 @@ import static org.pepsoft.worldpainter.Constants.*;
  * @author pepijn
  */
 public class BiomeSchemeManager {
-    public static BiomeScheme getBiomeScheme(final int biomeAlgorithm) {
+    public static BiomeScheme getNewBiomeScheme(final int biomeAlgorithm) {
+        return getBiomeScheme(biomeAlgorithm, false);
+    }
+
+    public static BiomeScheme getSharedBiomeScheme(final int biomeAlgorithm) {
+        return getBiomeScheme(biomeAlgorithm, true);
+    }
+
+    public static BiomeScheme getBiomeScheme(final int biomeAlgorithm, final boolean shared) {
         if (logger.isTraceEnabled()) {
             logger.trace("Thread {} requesting biome scheme {}", Thread.currentThread().getName(), biomeAlgorithm, new Throwable("Invoked from"));
         }
@@ -38,7 +46,7 @@ public class BiomeSchemeManager {
             }
         }
 
-        if (BIOME_SCHEMES.containsKey(biomeAlgorithm)) {
+        if (shared && BIOME_SCHEMES.containsKey(biomeAlgorithm)) {
             // We already previously found and initialised a biome scheme for
             // this algorithm, so reuse it. Note that this could be a problem
             // if two threads try to use it for different Minecraft seeds, but
@@ -126,7 +134,7 @@ public class BiomeSchemeManager {
 
     /**
      * Starts background initialisation of the biome scheme manager, so that
-     * subsequent invocations of the <code>getBiomeScheme</code> methods won't
+     * subsequent invocations of the <code>getSharedBiomeScheme</code> methods won't
      * have to wait for initialisation.
      */
     public static void initialiseInBackground() {

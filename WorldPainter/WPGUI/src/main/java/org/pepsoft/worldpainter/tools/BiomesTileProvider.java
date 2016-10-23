@@ -169,14 +169,14 @@ public class BiomesTileProvider implements TileProvider {
     private synchronized BiomeScheme getBiomeScheme() {
         if (biomeScheme == null) {
             try {
-                biomeScheme = BiomeSchemeManager.getBiomeScheme(biomeAlgorithm);
+                biomeScheme = BiomeSchemeManager.getSharedBiomeScheme(biomeAlgorithm);
                 if (biomeScheme == null) {
                     switch (biomeAlgorithm) {
                         case BIOME_ALGORITHM_1_7_DEFAULT:
-                            biomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_2_AND_1_3_DEFAULT);
+                            biomeScheme = BiomeSchemeManager.getSharedBiomeScheme(BIOME_ALGORITHM_1_2_AND_1_3_DEFAULT);
                             break;
                         case BIOME_ALGORITHM_1_7_LARGE:
-                            biomeScheme = BiomeSchemeManager.getBiomeScheme(BIOME_ALGORITHM_1_3_LARGE);
+                            biomeScheme = BiomeSchemeManager.getSharedBiomeScheme(BIOME_ALGORITHM_1_3_LARGE);
                             break;
                     }
                 }
