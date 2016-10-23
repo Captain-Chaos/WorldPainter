@@ -1,11 +1,15 @@
--- Version 2.2.5, release ...
+-- Version 2.2.5, released 23-10-2016
 
-* A function has been added for deleting layers which are not in use. It is located in the Edit menu as "Delete unused layers...". By default it selects all unused layers, but you can deselect any layers you want to keep before deletion. Note that if you unpaint all traces of a layer from the dimension manually it does not count as unused until you save and load the world, or you use the Global Operations tool to remove the layer (which is easier and more efficient than manually unpainting it)
-* It is no longer possible to manually provide Minecraft jars when WorldPainter needs one, for example to calculate biomes for the Biomes Viewer. WorldPainter needs an installed copy of Minecraft, of a supported version, in order to be able to display biomes or load saved structures
+ * A new Info panel has been added, which displays more details about the block beneath the cursor than are already displayed on the status bar. Among other things, it shows a list of all the layers present on that block, and their intensities. It also shows the high resolution (16-bit) block height. It is behind the existing Brush Settings panel in the lower right corner of the window by default
+ * A function has been added for deleting layers which are not in use. It is located in the Edit menu as "Delete unused layers...". By default it selects all unused layers, but you can deselect any layers you want to keep before deletion. Note that if you unpaint all traces of a layer from the dimension manually it does not count as unused until you save and load the world, or you use the Global Operations tool to remove the layer (which is easier and more efficient than manually unpainting it)
+ * It is no longer possible to manually provide Minecraft jars when WorldPainter needs one, for example to calculate biomes for the Biomes Viewer. WorldPainter needs an installed copy of Minecraft, of a supported version and in the default location, in order to be able to display biomes or load saved structures
+ * The long terrain and biomes selection menus in the brush filter settings have been broken up into multiple submenus with no more than 25 entries each, to make sure they fit on small screens
+ * Bug fix: post processing to apply Minecraft block placement rules is now also applied to fixups (e.g. objects placed around region borders, after the regions involved have been generated)
+ * Bug fix: 16-bit (high resolution) height maps are now properly scaled, instead of being downgraded to 8 bits whenever they were imported at a scale other than 100%. The height maps process is now also more efficient, especially for large height maps
 
 -- Version 2.2.4, released 20-8-2016
 
-* Bug fix: fix a bug which prevented WorldPainter from starting with the Autumn Forest plugin installed. WorldPainter will now start again, but note that that plugin is very old and does not work anymore with the current version of WorldPainter, so it is better to remove it
+ * Bug fix: fix a bug which prevented WorldPainter from starting with the Autumn Forest plugin installed. WorldPainter will now start again, but note that that plugin is very old and does not work anymore with the current version of WorldPainter, so it is better to remove it
 
 -- Version 2.2.3, released 7-8-2016
 
