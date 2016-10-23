@@ -5,7 +5,12 @@
 
 package org.pepsoft.util;
 
+import java.awt.*;
+
 /**
+ * A rectangular three dimensional volume, defined by two corners, the corner
+ * with the lowest x, y and z coordinates being inclusive and the opposite
+ * corner being exclusive.
  *
  * @author pepijn
  */
@@ -72,22 +77,47 @@ public final class Box implements Cloneable {
         this.z2 = z2;
     }
 
+    /**
+     * Get the size of the box along the X axis.
+     *
+     * @return The size of the box along the X axis.
+     */
     public int getWidth() {
         return Math.abs(x2 - x1);
     }
 
+    /**
+     * Get the size of the box along the Y axis.
+     *
+     * @return The size of the box along the Y axis.
+     */
     public int getLength() {
         return Math.abs(y2 - y1);
     }
 
+    /**
+     * Get the size of the box along the Z axis.
+     *
+     * @return The size of the box along the Z axis.
+     */
     public int getHeight() {
         return Math.abs(z2 - z1);
     }
 
+    /**
+     * Get the volume of the box.
+     *
+     * @return The volume of the box.
+     */
     public int getVolume() {
         return getWidth() * getLength() * getHeight();
     }
 
+    /**
+     * Get the total surface area of the box.
+     *
+     * @return The total surface area of the box.
+     */
     public int getSurface() {
         int width = getWidth(), length = getLength(), height = getHeight();
         return width * height * 2
@@ -182,6 +212,26 @@ public final class Box implements Cloneable {
 
     public boolean containsXY(int x, int y) {
         return (x >= x1) && (x < x2) && (y >= y1) && (y < y2);
+    }
+
+    public Rectangle getFootPrint() {
+        normalise();
+        return new Rectangle(x1, y1, x2 - x1, y2 - y1);
+    }
+
+    /**
+     * Expand the box by a particular amount in every direction.
+     *
+     * @param delta The delta by which to move every face of the box outwards.
+     */
+    public void expand(int delta) {
+        normalise();
+        x1 -= delta;
+        x2 += delta;
+        y1 -= delta;
+        y2 += delta;
+        z1 -= delta;
+        z2 += delta;
     }
 
     @Override
