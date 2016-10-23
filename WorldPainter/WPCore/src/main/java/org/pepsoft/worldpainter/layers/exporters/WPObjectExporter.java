@@ -10,11 +10,9 @@ import org.pepsoft.minecraft.Material;
 import org.pepsoft.minecraft.TileEntity;
 import org.pepsoft.util.Box;
 import org.pepsoft.util.MathUtils;
+import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.exporting.AbstractLayerExporter;
-import org.pepsoft.worldpainter.exporting.Fixup;
-import org.pepsoft.worldpainter.exporting.LightingCalculator;
-import org.pepsoft.worldpainter.exporting.MinecraftWorld;
+import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.layers.Frost;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.objects.WPObject;
@@ -466,10 +464,24 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                 Point3i dim = object.getDimensions();
                 Rectangle area = new Rectangle(x + offset.x, y + offset.y, dim.x, dim.y);
                 frostExporter.render(dimension, area, null, world);
+
+                // Fixups are done *after* post processing, so post process
+                // again
+                Box bounds = getBounds(object, x, y, z);
+                // Include the layer below and above the object for post
+                // processing, as those blocks may also haev been affected
+                bounds.setZ1(Math.max(bounds.getZ1() - 1, 0));
+                bounds.setZ2(Math.min(bounds.getZ2() + 1, world.getMaxHeight() - 1));
+                try {
+                    PostProcessor.postProcess(world, bounds, null);
+                } catch (ProgressReceiver.OperationCancelled e) {
+                    // Can't happen since we don't pass in a progress receiver
+                    throw new InternalError();
+                }
                 
-                // Fixups are done *after* lighting,
-                // so we have to relight the area
-                recalculateLight(world, getBounds(object, x, y, z));
+                // Fixups are done *after* lighting, so we have to relight the
+                // area
+                recalculateLight(world, bounds);
             } else if (logger.isTraceEnabled()) {
                 logger.trace("No room for custom object " + object.getName() + " @ " + x + "," + y + "," + z + " in fixup");
             }
@@ -480,7 +492,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
             // Transpose coordinates from WP to MC coordinate system. Also
             // expand the box to light around it and try to account for uneven
             // terrain underneath the object
-            Box dirtyArea = new Box(lightBox.getX1() - 1, lightBox.getX2() + 1, MathUtils.clamp(0, lightBox.getZ1() - 5, world.getMaxHeight() - 1), MathUtils.clamp(0, lightBox.getZ2() + 1, world.getMaxHeight() - 1), lightBox.getY1() - 1, lightBox.getY2() + 1);
+            Box dirtyArea = new Box(lightBox.getX1() - 1, lightBox.getX2() + 1, MathUtils.clamp(0, lightBox.getZ1() - 4, world.getMaxHeight() - 1), lightBox.getZ2(), lightBox.getY1() - 1, lightBox.getY2() + 1);
             if (dirtyArea.getVolume() == 0) {
                 if (logger.isTraceEnabled()) {
                     logger.trace("Dirty area for lighting calculation is empty; skipping lighting calculation");

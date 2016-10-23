@@ -32,57 +32,78 @@ public class PostProcessor {
      * </ul>
      *
      * @param minecraftWorld The <code>MinecraftWorld</code> to post process.
-     * @param area The area of the world to post process.
+     * @param area The area of the world to post process from top to bottom.
      * @param progressReceiver The optional progress receiver to which to report
      *                         progress. May be <code>null</code>.
      * @throws ProgressReceiver.OperationCancelled If the progress receiver
      * threw an <code>OperationCancelled</code> exception.
      */
     public static void postProcess(MinecraftWorld minecraftWorld, Rectangle area, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
+        postProcess(minecraftWorld, new Box(area.x, area.x + area.width, area.y, area.y + area.height, 0, minecraftWorld.getMaxHeight()), progressReceiver);
+    }
+
+    /**
+     * Post process (part of) a {@link MinecraftWorld} to make sure it conforms
+     * to Minecraft's rules. For instance:
+     *
+     * <ul><li>Remove plants that are on the wrong underground or floating
+     * in air.
+     * <li>Change the lowest block of a column of Sand to Sandstone.
+     * <li>Remove snow on top of blocks which don't support snow, or floating in
+     * air.
+     * <li>Change covered grass and mycelium blocks to dirt.
+     * </ul>
+     *
+     * @param minecraftWorld The <code>MinecraftWorld</code> to post process.
+     * @param volume The three dimensional area of the world to post process.
+     * @param progressReceiver The optional progress receiver to which to report
+     *                         progress. May be <code>null</code>.
+     * @throws ProgressReceiver.OperationCancelled If the progress receiver
+     * threw an <code>OperationCancelled</code> exception.
+     */
+    public static void postProcess(MinecraftWorld minecraftWorld, Box volume, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
         if (! enabled) {
             return;
         }
         if (progressReceiver != null) {
             progressReceiver.setMessage("Enforcing Minecraft rules on exported blocks");
         }
-        int x1 = area.x;
-        int y1 = area.y;
-        int x2 = x1 + area.width - 1, y2 = y1 + area.height - 1;
-        final int maxHeight = minecraftWorld.getMaxHeight();
-        int minZ = 0, maxZ = maxHeight - 1;
+        final int worldMaxZ = minecraftWorld.getMaxHeight() - 1;
+        final int x1, y1, x2, y2, minZ, maxZ;
         if (minecraftWorld instanceof MinecraftWorldObject) {
             // Special support for MinecraftWorldObjects to constrain the area
             // further
-            Box volume = ((MinecraftWorldObject) minecraftWorld).getVolume();
-            // In a Box the second coordinate is exclusive, so add one (and
-            // subtract it later)
-            volume.intersect(new Box(x1, x2 + 1, y1, y2 + 1, minZ, maxZ + 1));
-            if (volume.isEmpty()) {
+            Box objectVolume = ((MinecraftWorldObject) minecraftWorld).getVolume();
+            objectVolume.intersect(volume);
+            if (objectVolume.isEmpty()) {
                 // The specified area does not intersect the volume encompassed
                 // by the minecraftWorld. Weird, but it means we have nothing to
                 // do
                 return;
             } else {
-                x1 = volume.getX1();
-                x2 = volume.getX2() - 1;
-                y1 = volume.getY1();
-                y2 = volume.getY2() - 1;
-                minZ = volume.getZ1();
-                maxZ = volume.getZ2() - 1;
+                x1 = objectVolume.getX1();
+                x2 = objectVolume.getX2() - 1;
+                y1 = objectVolume.getY1();
+                y2 = objectVolume.getY2() - 1;
+                minZ = objectVolume.getZ1();
+                maxZ = objectVolume.getZ2() - 1;
             }
+        } else {
+            x1 = volume.getX1();
+            y1 = volume.getY1();
+            x2 = volume.getX2() - 1;
+            y2 = volume.getY2() - 1;
+            minZ = volume.getZ1();
+            maxZ = volume.getZ2() - 1;
         }
         final boolean traceEnabled = logger.isTraceEnabled();
         for (int x = x1; x <= x2; x ++) {
             for (int y = y1; y <= y2; y++) {
-                int blockTypeBelow = minecraftWorld.getBlockTypeAt(x, y, minZ);
-                int blockTypeAbove = minecraftWorld.getBlockTypeAt(x, y, minZ + 1);
-                if (supportSand && (blockTypeBelow == BLK_SAND)) {
-                    minecraftWorld.setMaterialAt(x, y, minZ, (minecraftWorld.getDataAt(x, y, minZ) == 1) ? Material.RED_SANDSTONE : Material.SANDSTONE);
-                    blockTypeBelow = minecraftWorld.getBlockTypeAt(x, y, minZ);
-                }
-                for (int z = minZ + 1; z <= maxZ; z++) {
+                int blockTypeBelow = BLK_AIR;
+                int blockTypeAbove = minecraftWorld.getBlockTypeAt(x, y, minZ);
+                for (int z = minZ; z <= maxZ; z++) {
                     int blockType = blockTypeAbove;
-                    blockTypeAbove = (z < maxZ) ? minecraftWorld.getBlockTypeAt(x, y, z + 1) : BLK_AIR;
+                    blockTypeAbove = (z < worldMaxZ) ? minecraftWorld.getBlockTypeAt(x, y, z + 1) : BLK_AIR;
                     if (((blockTypeBelow == BLK_GRASS) || (blockTypeBelow == BLK_MYCELIUM) || (blockTypeBelow == BLK_TILLED_DIRT)) && ((blockType == BLK_WATER) || (blockType == BLK_STATIONARY_WATER) || (blockType == BLK_ICE) || ((blockType <= HIGHEST_KNOWN_BLOCK_ID) && (BLOCK_TRANSPARENCY[blockType] == 15)))) {
                         // Covered grass, mycelium or tilled earth block, should
                         // be dirt. Note that unknown blocks are treated as
