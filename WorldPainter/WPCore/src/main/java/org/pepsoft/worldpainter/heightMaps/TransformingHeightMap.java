@@ -148,7 +148,7 @@ public class TransformingHeightMap extends DelegatingHeightMap {
     private void recalculate() {
         transform = new AffineTransform();
         if ((scaleX != 1.0f) || (scaleY != 1.0f)) {
-            transform.scale(scaleX, scaleY);
+            transform.scale(1 / scaleX, 1 / scaleY);
         }
         if ((offsetX != 0) || (offsetY != 0)) {
             transform.translate(-offsetX, -offsetY);
