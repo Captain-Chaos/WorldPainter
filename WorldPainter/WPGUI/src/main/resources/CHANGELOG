@@ -1,3 +1,8 @@
+-- Version 2.2.6, released 25-10-2016
+
+ * Bug fix: the scaling of height maps was reversed; this has now been fixed
+ * Some other fixes and improvements have been applied to the height map import process
+
 -- Version 2.2.5, released 23-10-2016
 
  * A new Info panel has been added, which displays more details about the block beneath the cursor than are already displayed on the status bar. Among other things, it shows a list of all the layers present on that block, and their intensities. It also shows the high resolution (16-bit) block height. It is behind the existing Brush Settings panel in the lower right corner of the window by default
