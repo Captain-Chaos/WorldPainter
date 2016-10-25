@@ -99,11 +99,57 @@ public final class BitmapHeightMap extends AbstractHeightMap {
             y -= Math.signum(y) / 2;
             int xFloor = (int) Math.floor(x), yFloor = (int) Math.floor(y);
             float xDelta = x - xFloor, yDelta = y - yFloor;
-            float val1 = cubicInterpolate(getHeight(xFloor - 1, yFloor - 1), getHeight(xFloor - 1, yFloor), getHeight(xFloor - 1, yFloor + 1), getHeight(xFloor - 1, yFloor + 2), yDelta);
-            float val2 = cubicInterpolate(getHeight(xFloor,     yFloor - 1), getHeight(xFloor,     yFloor), getHeight(xFloor,     yFloor + 1), getHeight(xFloor,     yFloor + 2), yDelta);
-            float val3 = cubicInterpolate(getHeight(xFloor + 1, yFloor - 1), getHeight(xFloor + 1, yFloor), getHeight(xFloor + 1, yFloor + 1), getHeight(xFloor + 1, yFloor + 2), yDelta);
-            float val4 = cubicInterpolate(getHeight(xFloor + 2, yFloor - 1), getHeight(xFloor + 2, yFloor), getHeight(xFloor + 2, yFloor + 1), getHeight(xFloor + 2, yFloor + 2), yDelta);
+            float val1 = cubicInterpolate(getExtHeight(xFloor - 1, yFloor - 1), getExtHeight(xFloor - 1, yFloor), getExtHeight(xFloor - 1, yFloor + 1), getExtHeight(xFloor - 1, yFloor + 2), yDelta);
+            float val2 = cubicInterpolate(getExtHeight(xFloor,     yFloor - 1), getExtHeight(xFloor,     yFloor), getExtHeight(xFloor,     yFloor + 1), getExtHeight(xFloor,     yFloor + 2), yDelta);
+            float val3 = cubicInterpolate(getExtHeight(xFloor + 1, yFloor - 1), getExtHeight(xFloor + 1, yFloor), getExtHeight(xFloor + 1, yFloor + 1), getExtHeight(xFloor + 1, yFloor + 2), yDelta);
+            float val4 = cubicInterpolate(getExtHeight(xFloor + 2, yFloor - 1), getExtHeight(xFloor + 2, yFloor), getExtHeight(xFloor + 2, yFloor + 1), getExtHeight(xFloor + 2, yFloor + 2), yDelta);
             return cubicInterpolate(val1, val2, val3, val4, xDelta);
+        }
+    }
+
+    /**
+     * Private version of {@link #getHeight(float, float)}} which extends the
+     * edge pixels of the image if it is non-repeating, to make the bicubic
+     * interpolation work correctly around the edges.
+     */
+    private float getExtHeight(int x, int y) {
+        if (repeat) {
+            return raster.getSample(MathUtils.mod(x, width), MathUtils.mod(y, height), channel);
+        } else if (extent.contains(x, y)) {
+            return raster.getSample(x, y, channel);
+        } else if (x < 0) {
+            // West of the extent
+            if (y < 0) {
+                // Northwest of the extent
+                return raster.getSample(0, 0, channel);
+            } else if (y < height) {
+                // Due west of the extent
+                return raster.getSample(0, y, channel);
+            } else {
+                // Southwest of the extent
+                return raster.getSample(0, height - 1, channel);
+            }
+        } else if (x < width) {
+            // North or south of the extent
+            if (y < 0) {
+                // Due north of the extent
+                return raster.getSample(x, 0, channel);
+            } else {
+                // Due south of the extent
+                return raster.getSample(x, height - 1, channel);
+            }
+        } else {
+            // East of the extent
+            if (y < 0) {
+                // Northeast of the extent
+                return raster.getSample(width - 1, 0, channel);
+            } else if (y < height) {
+                // Due east of the extent
+                return raster.getSample(width - 1, y, channel);
+            } else {
+                // Southeast of the extent
+                return raster.getSample(width - 1, height - 1, channel);
+            }
         }
     }
 
