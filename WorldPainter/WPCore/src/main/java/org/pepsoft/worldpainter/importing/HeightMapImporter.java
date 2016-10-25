@@ -7,9 +7,12 @@
 package org.pepsoft.worldpainter.importing;
 
 import org.pepsoft.util.MathUtils;
+import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.heightMaps.BitmapHeightMap;
+import org.pepsoft.worldpainter.heightMaps.TransformingHeightMap;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.Frost;
 import org.pepsoft.worldpainter.layers.Layer;
@@ -22,6 +25,7 @@ import java.io.File;
 import java.util.Map;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
+import static org.pepsoft.worldpainter.Constants.MEDIUM_BLOBS;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 
@@ -130,6 +134,10 @@ public class HeightMapImporter {
         final int widthInTiles = tileX2 - tileX1 + 1;
         final int heightInTiles = tileY2 - tileY1 + 1;
         final int totalTileCount = widthInTiles * heightInTiles;
+        final int floor = Math.max(worldWaterLevel - 20, 0);
+        final int variation = Math.min(15, (worldWaterLevel - floor) / 2);
+        final PerlinNoise noiseGenerator = new PerlinNoise(0);
+        noiseGenerator.setSeed(dimension.getSeed());
         int tileCount = 0;
         calculateFlags();
         for (int tileX = tileX1; tileX <= tileX2; tileX++) {
@@ -174,12 +182,12 @@ public class HeightMapImporter {
                                 tileFactory.applyTheme(tile, x, y);
                             }
                         } else if (tileIsNew) {
-                            tile.setHeight(x, y, 0.0f);
+                            tile.setHeight(x, y, floor + (noiseGenerator.getPerlinNoise(imageX / MEDIUM_BLOBS, imageY / MEDIUM_BLOBS) + 0.5f) * variation);
+                            tile.setTerrain(x, y, Terrain.BEACHES);
                             tile.setWaterLevel(x, y, worldWaterLevel);
                             if (useVoidBelow) {
                                 tile.setBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, x, y, true);
                             }
-                            tileFactory.applyTheme(tile, x, y);
                         }
                     }
                 }
@@ -314,6 +322,14 @@ public class HeightMapImporter {
     }
 
     private void calculateFlags() {
+        // If the height map is a bitmap height map, or a transforming height map with a scale of 100% and based on a
+        // bitmap height map, then it is definitely unscaled, meaning we can apply a delta to the bitmap values to make
+        // each block height 1/8 higher, in order to make smooth snow work less surprisingly
+        mayBeScaled = ! ((heightMap instanceof BitmapHeightMap)
+                || ((heightMap instanceof TransformingHeightMap)
+                    && (((TransformingHeightMap) heightMap).getScaleX() == 100)
+                    && (((TransformingHeightMap) heightMap).getScaleY() == 100)
+                    && (((TransformingHeightMap) heightMap).getBaseHeightMap() instanceof BitmapHeightMap)));
         oneOnOne = (worldLowLevel == imageLowLevel) && (worldHighLevel == imageHighLevel);
         highRes = (imageHighLevel > 2047) && (! oneOnOne);
         levelScale = (float) (worldHighLevel - worldLowLevel) / (imageHighLevel - imageLowLevel);
@@ -325,8 +341,8 @@ public class HeightMapImporter {
             return MathUtils.clamp(0.0f, (imageLevel - imageLowLevel) * levelScale + worldLowLevel, maxZ);
         } else {
             return MathUtils.clamp(0.0f, oneOnOne
-                ? imageLevel - 0.4375f
-                : (int) ((imageLevel - imageLowLevel) * levelScale + worldLowLevel) - 0.4375f, maxZ);
+                ? (mayBeScaled ? imageLevel : (imageLevel - 0.4375f))
+                : ((imageLevel - imageLowLevel) * levelScale + worldLowLevel), maxZ);
         }
     }
     
@@ -334,7 +350,7 @@ public class HeightMapImporter {
     private int worldLowLevel, worldWaterLevel = 62, worldHighLevel = DEFAULT_MAX_HEIGHT_2 - 1, imageLowLevel, imageHighLevel = DEFAULT_MAX_HEIGHT_2 - 1, maxHeight = DEFAULT_MAX_HEIGHT_2, voidBelowLevel, maxZ;
     private TileFactory tileFactory;
     private String name;
-    private boolean onlyRaise, oneOnOne, highRes;
+    private boolean onlyRaise, oneOnOne, highRes, mayBeScaled;
     private File imageFile;
     private float levelScale;
 
