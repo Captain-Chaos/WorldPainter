@@ -153,6 +153,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
     public void replaceTileProvider(int index, TileProvider newTileProvider) {
         synchronized (TILE_CACHE_LOCK) {
             TileProvider tileProvider = tileProviders.remove(index);
+            Point offset = offsets.remove(tileProvider);
             tileProvider.removeTileListener(this);
             Map<Point, Reference<? extends Image>> dirtyTileCache = dirtyTileCaches.remove(tileProvider);
             Map<Point, Reference<? extends Image>> tileCache = tileCaches.remove(tileProvider);
@@ -184,6 +185,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
             }
             newTileProvider.addTileListener(this);
             tileProviders.add(index, newTileProvider);
+            offsets.put(tileProvider, offset);
             tileCaches.put(newTileProvider, new HashMap<>());
             dirtyTileCaches.put(newTileProvider, dirtyTileCache);
 
@@ -213,6 +215,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
     public void removeTileProvider(int index) {
         synchronized (TILE_CACHE_LOCK) {
             TileProvider tileProvider = tileProviders.remove(index);
+            offsets.remove(tileProvider);
             tileProvider.removeTileListener(this);
             tileCaches.remove(tileProvider);
             dirtyTileCaches.remove(tileProvider);
@@ -235,6 +238,8 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
             for (TileProvider tileProvider: tileProviders) {
                 tileProvider.removeTileListener(this);
             }
+            tileProviders.clear();
+            offsets.clear();
             if (queue != null) {
                 queue.clear();
             }
@@ -256,6 +261,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
             throw new NullPointerException();
         }
         tileProviders.add(index, tileProvider);
+        offsets.put(tileProvider, new Point());
         synchronized (TILE_CACHE_LOCK) {
             if (tileProvider.isZoomSupported()) {
                 tileProvider.setZoom((zoom <= 0) ? zoom : 0);
@@ -313,7 +319,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         for (TileProvider tileProvider: tileProviders) {
             Rectangle providerExtent = tileProvider.getExtent();
             if (providerExtent != null) {
-                providerExtent = getTileBounds(providerExtent.x, providerExtent.y, providerExtent.width, providerExtent.height, (tileProvider.isZoomSupported() && (zoom < 0)) ? 0 : zoom);
+                providerExtent = getTileBounds(tileProvider, providerExtent.x, providerExtent.y, providerExtent.width, providerExtent.height, (tileProvider.isZoomSupported() && (zoom < 0)) ? 0 : zoom);
                 if (extent == null) {
                     extent = providerExtent;
                 } else {
@@ -705,7 +711,8 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
     /**
      * Transform coordinates from component (pixels relative to the top left
      * corner) coordinates to image (world) coordinates, taking the current zoom
-     * level into account.
+     * level into account. This version does not take tile-provider-specific
+     * offset into acount.
      */
     public final Point viewToWorld(int x, int y) {
         return viewToWorld(x, y, zoom);
@@ -713,8 +720,17 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
     
     /**
      * Transform coordinates from component (pixels relative to the top left
+     * corner) coordinates to image (world) coordinates, taking the current zoom
+     * level into account and for the specified tile provider.
+     */
+    public final Point viewToWorld(TileProvider tileProvider, int x, int y) {
+        return viewToWorld(tileProvider, x, y, zoom);
+    }
+
+    /**
+     * Transform coordinates from component (pixels relative to the top left
      * corner) coordinates to image (world) coordinates, using a specific zoom
-     * level.
+     * level. This version does not take per-tile-provider offsets into account.
      */
     public final Point viewToWorld(Point coords, int effectiveZoom) {
         return viewToWorld(coords.x, coords.y, effectiveZoom);
@@ -723,7 +739,16 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
     /**
      * Transform coordinates from component (pixels relative to the top left
      * corner) coordinates to image (world) coordinates, using a specific zoom
-     * level.
+     * level and for a specific tile provider.
+     */
+    public final Point viewToWorld(TileProvider tileProvider, Point coords, int effectiveZoom) {
+        return viewToWorld(tileProvider, coords.x, coords.y, effectiveZoom);
+    }
+
+    /**
+     * Transform coordinates from component (pixels relative to the top left
+     * corner) coordinates to image (world) coordinates, using a specific zoom
+     * level. This version does not take per-tile-provider offsets into account.
      */
     public final Point viewToWorld(int x, int y, int effectiveZoom) {
         return (effectiveZoom == 0)
@@ -733,6 +758,20 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                 : new Point((x + viewX - xOffset) >> effectiveZoom, (y + viewY - yOffset) >> effectiveZoom));
     }
     
+    /**
+     * Transform coordinates from component (pixels relative to the top left
+     * corner) coordinates to image (world) coordinates, using a specific zoom
+     * level and for a specific tile provider.
+     */
+    public final Point viewToWorld(TileProvider tileProvider, int x, int y, int effectiveZoom) {
+        Point myOffset = offsets.get(tileProvider);
+        return (effectiveZoom == 0)
+            ? new Point(x + viewX - xOffset - myOffset.x, y + viewY - yOffset - myOffset.y)
+            : ((effectiveZoom < 0)
+                ? new Point(((x + viewX - xOffset) << -effectiveZoom) - myOffset.x, ((y + viewY - yOffset) << -effectiveZoom) - myOffset.y)
+                : new Point(((x + viewX - xOffset) >> effectiveZoom) - myOffset.x, ((y + viewY - yOffset) >> effectiveZoom) - myOffset.y));
+    }
+
     /**
      * Transform coordinates from image (world) coordinates to component (pixels
      * relative to the top left corner) coordinates, taking the current zoom
@@ -763,7 +802,8 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
     /**
      * Transform coordinates from image (world) coordinates to component (pixels
      * relative to the top left corner) coordinates, using a specific zoom
-     * level.
+     * level. This version does not take tile-provider-specific offsets into
+     * account.
      */
     public final Rectangle worldToView(int x, int y, int width, int height, int effectiveZoom) {
         return (effectiveZoom == 0)
@@ -773,6 +813,20 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                 : new Rectangle((x << effectiveZoom) - viewX + xOffset, (y << effectiveZoom) - viewY + yOffset, width << effectiveZoom, height << effectiveZoom));
     }
     
+    /**
+     * Transform coordinates from image (world) coordinates to component (pixels
+     * relative to the top left corner) coordinates, using a specific zoom
+     * level and for a specific tile provider.
+     */
+    public final Rectangle worldToView(TileProvider tileProvider, int x, int y, int width, int height, int effectiveZoom) {
+        Point myOffset = offsets.get(tileProvider);
+        return (effectiveZoom == 0)
+            ? new Rectangle(x - viewX + xOffset + myOffset.x, y - viewY + yOffset + myOffset.y, width, height)
+            : ((effectiveZoom < 0)
+                ? new Rectangle(((x + myOffset.x) >> -effectiveZoom) - viewX + xOffset, ((y + myOffset.y) >> -effectiveZoom) - viewY + yOffset, width >> -effectiveZoom, height >> -effectiveZoom)
+                : new Rectangle(((x + myOffset.x) << effectiveZoom) - viewX + xOffset, ((y + myOffset.y) << effectiveZoom) - viewY + yOffset, width << effectiveZoom, height << effectiveZoom));
+    }
+
     /**
      * Transform coordinates from component (pixels relative to the top left
      * corner) coordinates to image (world) coordinates, taking the current zoom
@@ -852,6 +906,27 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         return gridColour;
     }
 
+    public void setTileProviderOffset(TileProvider tileProvider, Point offset) {
+        if (! offset.equals(offsets.get(tileProvider))) {
+            System.out.println("Offset -> " + offset);
+            offsets.put(tileProvider, offset);
+            fireViewChangedEvent();
+            repaint();
+        }
+    }
+
+    public Point getTileProviderOffset(TileProvider tileProvider) {
+        return offsets.get(tileProvider);
+    }
+
+    public void moveTileProviderBy(TileProvider tileProvider, int dx, int dy) {
+        Point offset = offsets.get(tileProvider);
+        offset.x += dx;
+        offset.y += dy;
+        fireViewChangedEvent();
+        repaint();
+    }
+
     /**
      * Set the colour in which to paint the grid.
      *
@@ -894,7 +969,8 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
 
     /**
      * Get the bounds of a tile in component coordinates, taking a specific
-     * zoom level into account.
+     * zoom level into account. This version does not take per-tile-provider
+     * offsets into account.
      *
      * @param x The X coordinate of the tile for which to determine the bounds.
      * @param y The X coordinate of the tile for which to determine the bounds.
@@ -906,8 +982,22 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
     }
     
     /**
+     * Get the bounds of a tile in component coordinates, taking a specific
+     * zoom level into account and for a specific tile provider.
+     *
+     * @param x The X coordinate of the tile for which to determine the bounds.
+     * @param y The X coordinate of the tile for which to determine the bounds.
+     * @param effectiveZoom The zoom level to take into account.
+     * @return The area in component coordinates taken up by the specified tile.
+     */
+    protected final Rectangle getTileBounds(TileProvider tileProvider, int x, int y, int effectiveZoom) {
+        return worldToView(tileProvider, x << TILE_SIZE_BITS, y << TILE_SIZE_BITS, TILE_SIZE, TILE_SIZE, effectiveZoom);
+    }
+
+    /**
      * Get the bounds of a rectangular area of tiles in component coordinates,
-     * taking a specific zoom level into account.
+     * taking a specific zoom level into account. This version does not take
+     * tile-provider-specific offsets into account.
      *
      * @param x The X coordinate of the top left tile of the area for which to
      *          determine the bounds.
@@ -923,6 +1013,27 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
      */
     protected final Rectangle getTileBounds(int x, int y, int width, int height, int effectiveZoom) {
         return worldToView(x << TILE_SIZE_BITS, y << TILE_SIZE_BITS, TILE_SIZE * width, TILE_SIZE * height, effectiveZoom);
+    }
+
+    /**
+     * Get the bounds of a rectangular area of tiles in component coordinates,
+     * taking a specific zoom level into account and for a specific tile
+     * provider.
+     *
+     * @param x The X coordinate of the top left tile of the area for which to
+     *          determine the bounds.
+     * @param y The X coordinate of the top left tile of the area for which to
+     *          determine the bounds.
+     * @param width The width in tiles of the area for which to determine the
+     *              bounds.
+     * @param height The height in tiles of the area for which to determine the
+     *               bounds.
+     * @param effectiveZoom The zoom level to take into account.
+     * @return The area in component coordinates taken up by the specified
+     * rectangle of tiles.
+     */
+    protected final Rectangle getTileBounds(TileProvider tileProvider, int x, int y, int width, int height, int effectiveZoom) {
+        return worldToView(tileProvider, x << TILE_SIZE_BITS, y << TILE_SIZE_BITS, TILE_SIZE * width, TILE_SIZE * height, effectiveZoom);
     }
 
     /**
@@ -1101,18 +1212,18 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         final Graphics2D g2 = (Graphics2D) g;
         g2.setColor(getBackground());
         Rectangle clipBounds = g2.getClipBounds();
+        g2.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
         if (tileProviders.isEmpty()) {
-            g2.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
             return;
         }
         
         GraphicsConfiguration gc = getGraphicsConfiguration();
         for (TileProvider tileProvider: tileProviders) {
             final int effectiveZoom = (tileProvider.isZoomSupported() && (zoom < 0)) ? 0 : zoom;
-            final Point topLeftTileCoords = viewToWorld(clipBounds.getLocation(), effectiveZoom);
+            final Point topLeftTileCoords = viewToWorld(tileProvider, clipBounds.getLocation(), effectiveZoom);
             final int leftTile = topLeftTileCoords.x >> TILE_SIZE_BITS;
             final int topTile = topLeftTileCoords.y >> TILE_SIZE_BITS;
-            final Point bottomRightTileCoords = viewToWorld(new Point(clipBounds.x + clipBounds.width - 1, clipBounds.y + clipBounds.height - 1), effectiveZoom);
+            final Point bottomRightTileCoords = viewToWorld(tileProvider, new Point(clipBounds.x + clipBounds.width - 1, clipBounds.y + clipBounds.height - 1), effectiveZoom);
             final int rightTile = bottomRightTileCoords.x >> TILE_SIZE_BITS;
             final int bottomTile = bottomRightTileCoords.y >> TILE_SIZE_BITS;
 
@@ -1172,7 +1283,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         synchronized (TILE_CACHE_LOCK) {
             for (Iterator<Runnable> i = queue.iterator(); i.hasNext(); ) {
                 TileRenderJob job = (TileRenderJob) i.next();
-                if (! getTileBounds(job.coords.x, job.coords.y, job.effectiveZoom).intersects(viewBounds)) {
+                if (! getTileBounds(job.tileProvider, job.coords.x, job.coords.y, job.effectiveZoom).intersects(viewBounds)) {
                     i.remove();
                     // Remove the RENDERING flag for this tile from the cache,
                     // otherwise it won't be rendered the next time it becomes
@@ -1210,7 +1321,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
      * @param effectiveZoom The zoom level to apply.
      */
     private void paintTile(Graphics2D g2, GraphicsConfiguration gc, TileProvider tileProvider, int x, int y, int effectiveZoom) {
-        Rectangle tileBounds = getTileBounds(x, y, effectiveZoom);
+        Rectangle tileBounds = getTileBounds(tileProvider, x, y, effectiveZoom);
         Image tile = getTile(tileProvider, x, y, effectiveZoom, gc);
         if (tile != null) {
             if (zoom > 0) {
@@ -1218,8 +1329,6 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
             } else {
                 g2.drawImage(tile, tileBounds.x, tileBounds.y, this);
             }
-        } else {
-            g2.fillRect(tileBounds.x, tileBounds.y, tileBounds.width, tileBounds.height);
         }
     }
 
@@ -1382,7 +1491,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                 if (dirtyTileCache.containsKey(coords)) {
                     dirtyTileCache.remove(coords);
                 }
-                repaint(getTileBounds(coords.x, coords.y, effectiveZoom));
+                repaint(getTileBounds(tileProvider, coords.x, coords.y, effectiveZoom));
             }
         }
     }
@@ -1529,6 +1638,10 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
     private final Map<TileProvider, Map<Point, Reference<? extends Image>>> tileCaches = new HashMap<>(),
             dirtyTileCaches = new HashMap<>();
     /**
+     * Per-tile-provider offsets.
+     */
+    private final Map<TileProvider, Point> offsets = new HashMap<>();
+    /**
      * The currently configured overlays.
      */
     private final Map<String, Overlay> overlays = new HashMap<>();
@@ -1639,7 +1752,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                 tile = (VolatileImage) image;
             } else {
                 GraphicsConfiguration gc = getGraphicsConfiguration();
-                tile = gc.createCompatibleVolatileImage(tileSize, tileSize);
+                tile = gc.createCompatibleVolatileImage(tileSize, tileSize, Transparency.TRANSLUCENT);
                 tile.validate(gc);
             }
             if (tileProvider.paintTile(tile, coords.x, coords.y, 0, 0)) {
@@ -1661,7 +1774,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                 // Repaint still needed, as a dirty tile may have been painted
                 // in its location
             }
-            repaint(getTileBounds(coords.x, coords.y, effectiveZoom));
+            repaint(getTileBounds(tileProvider, coords.x, coords.y, effectiveZoom));
         }
 
         @Override
@@ -1690,6 +1803,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
          * <ul><li>The location has changed
          * <li>The zoom level has changed
          * <li>A {@link TileProvider} has been added, replaced or removed
+         * <li>The offset of a tile provider has changed
          * </ul>
          * @param source The tiled image viewer which has changed.
          */

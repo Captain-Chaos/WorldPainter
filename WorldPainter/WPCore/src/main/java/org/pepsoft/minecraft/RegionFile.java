@@ -78,6 +78,7 @@ public final class RegionFile {
     private final int offsets[];
     private final int chunkTimestamps[];
     private final ArrayList<Boolean> sectorFree;
+    private final boolean readOnly;
     private int sizeDelta;
     private long lastModified = 0;
     private final int x, z;
@@ -90,9 +91,15 @@ public final class RegionFile {
         sectorFree = null;
         x = 0;
         z = 0;
+        readOnly = true;
     }
     
     public RegionFile(File path) throws IOException {
+        this(path, false);
+    }
+
+    public RegionFile(File path, boolean readOnly) throws IOException {
+        this.readOnly = readOnly;
         offsets = new int[SECTOR_INTS];
         chunkTimestamps = new int[SECTOR_INTS];
 
@@ -109,25 +116,27 @@ public final class RegionFile {
             lastModified = path.lastModified();
         }
 
-        file = new RandomAccessFile(path, "rw");
+        file = readOnly ? new RandomAccessFile(path, "r") : new RandomAccessFile(path, "rw");
 
-        if (file.length() < SECTOR_BYTES) {
-            /* we need to write the chunk offset table */
-            for (int i = 0; i < SECTOR_INTS; ++i) {
-                file.writeInt(0);
+        if (! readOnly) {
+            if (file.length() < SECTOR_BYTES) {
+                /* we need to write the chunk offset table */
+                for (int i = 0; i < SECTOR_INTS; ++i) {
+                    file.writeInt(0);
+                }
+                // write another sector for the timestamp info
+                for (int i = 0; i < SECTOR_INTS; ++i) {
+                    file.writeInt(0);
+                }
+
+                sizeDelta += SECTOR_BYTES * 2;
             }
-            // write another sector for the timestamp info
-            for (int i = 0; i < SECTOR_INTS; ++i) {
-                file.writeInt(0);
-            }
 
-            sizeDelta += SECTOR_BYTES * 2;
-        }
-
-        if ((file.length() & 0xfff) != 0) {
-            /* the file size is not a multiple of 4KB, grow it */
-            for (int i = 0; i < (file.length() & 0xfff); ++i) {
-                file.write((byte) 0);
+            if ((file.length() & 0xfff) != 0) {
+                /* the file size is not a multiple of 4KB, grow it */
+                for (int i = 0; i < (file.length() & 0xfff); ++i) {
+                    file.write((byte) 0);
+                }
             }
         }
 
@@ -176,27 +185,6 @@ public final class RegionFile {
         int ret = sizeDelta;
         sizeDelta = 0;
         return ret;
-    }
-
-    // various small debug printing helpers
-    private void debug(String in) {
-//        System.out.print(in);
-    }
-
-    private void debugln(String in) {
-        debug(in + "\n");
-    }
-
-    private void debug(String mode, int x, int z, String in) {
-        debug("REGION " + mode + " " + fileName.getName() + "[" + x + "," + z + "] = " + in);
-    }
-
-    private void debug(String mode, int x, int z, int count, String in) {
-        debug("REGION " + mode + " " + fileName.getName() + "[" + x + "," + z + "] " + count + "B = " + in);
-    }
-
-    private void debugln(String mode, int x, int z, String in) {
-        debug(mode, x, z, in + "\n");
     }
 
     /*
@@ -256,7 +244,12 @@ public final class RegionFile {
     }
 
     public DataOutputStream getChunkDataOutputStream(int x, int z) {
-        if (outOfBounds(x, z)) return null;
+        if (readOnly) {
+            throw new IllegalStateException("Read only mode");
+        }
+        if (outOfBounds(x, z)) {
+            return null;
+        }
 
         return new DataOutputStream(new DeflaterOutputStream(new ChunkBuffer(x, z)));
     }
@@ -278,28 +271,13 @@ public final class RegionFile {
         file.close();
     }
 
+    public boolean isReadOnly() {
+        return readOnly;
+    }
+
     @Override
     public String toString() {
         return fileName.getPath();
-    }
-    
-    /*
-     * lets chunk writing be multithreaded by not locking the whole file as a
-     * chunk is serializing -- only writes when serialization is over
-     */
-    class ChunkBuffer extends ByteArrayOutputStream {
-        private int x, z;
-
-        public ChunkBuffer(int x, int z) {
-            super(8096); // initialize to 8KB
-            this.x = x;
-            this.z = z;
-        }
-
-        @Override
-        public void close() throws IOException {
-            RegionFile.this.write(x, z, buf, count);
-        }
     }
 
     /* write a chunk at (x,z) with length bytes of data to disk */
@@ -374,6 +352,27 @@ public final class RegionFile {
         setTimestamp(x, z, (int) (System.currentTimeMillis() / 1000L));
     }
 
+    // various small debug printing helpers
+    private void debug(String in) {
+//        System.out.print(in);
+    }
+
+    private void debugln(String in) {
+        debug(in + "\n");
+    }
+
+    private void debug(String mode, int x, int z, String in) {
+        debug("REGION " + mode + " " + fileName.getName() + "[" + x + "," + z + "] = " + in);
+    }
+
+    private void debug(String mode, int x, int z, int count, String in) {
+        debug("REGION " + mode + " " + fileName.getName() + "[" + x + "," + z + "] " + count + "B = " + in);
+    }
+
+    private void debugln(String mode, int x, int z, String in) {
+        debug(mode, x, z, in + "\n");
+    }
+
     /* write a chunk data to the region file at specified sector number */
     private void write(int sectorNumber, byte[] data, int length) throws IOException {
         debugln(" " + sectorNumber);
@@ -402,5 +401,24 @@ public final class RegionFile {
         chunkTimestamps[x + z * 32] = value;
         file.seek(SECTOR_BYTES + (x + z * 32) * 4);
         file.writeInt(value);
+    }
+
+    /*
+     * lets chunk writing be multithreaded by not locking the whole file as a
+     * chunk is serializing -- only writes when serialization is over
+     */
+    class ChunkBuffer extends ByteArrayOutputStream {
+        private int x, z;
+
+        public ChunkBuffer(int x, int z) {
+            super(8096); // initialize to 8KB
+            this.x = x;
+            this.z = z;
+        }
+
+        @Override
+        public void close() throws IOException {
+            RegionFile.this.write(x, z, buf, count);
+        }
     }
 }

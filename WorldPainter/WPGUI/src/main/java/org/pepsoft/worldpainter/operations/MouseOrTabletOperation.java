@@ -240,7 +240,10 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
                         SwingUtilities.invokeLater(() -> {
                             tick(worldCoords.x, worldCoords.y, undo, true, 1.0f);
                             view.updateStatusBar(worldCoords.x, worldCoords.y);
-                            getDimension().armSavePoint();
+                            Dimension dimension = getDimension();
+                            if (dimension != null) {
+                                dimension.armSavePoint();
+                            }
                             logOperation(undo ? statisticsKeyUndo : statisticsKey);
                         });
                     }
@@ -253,7 +256,11 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
                                 timer.stop();
                                 timer = null;
                             }
-                            getDimension().armSavePoint();
+                            finished();
+                            Dimension dimension = getDimension();
+                            if (dimension != null) {
+                                dimension.armSavePoint();
+                            }
                         });
                     }
                 }
@@ -292,7 +299,10 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
             Point worldCoords = view.viewToWorld((int) x, (int) y);
             tick(worldCoords.x, worldCoords.y, undo, true, 1.0f);
             view.updateStatusBar(worldCoords.x, worldCoords.y);
-            getDimension().armSavePoint();
+            Dimension dimension = getDimension();
+            if (dimension != null) {
+                dimension.armSavePoint();
+            }
             logOperation(undo ? statisticsKeyUndo : statisticsKey);
         }
     }
@@ -305,7 +315,11 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
                 timer.stop();
                 timer = null;
             }
-            getDimension().armSavePoint();
+            finished();
+            Dimension dimension = getDimension();
+            if (dimension != null) {
+                dimension.armSavePoint();
+            }
         }
     }
 
@@ -372,6 +386,15 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
      *     <code>1.0f</code>.
      */
     protected abstract void tick(int centreX, int centreY, boolean inverse, boolean first, float dynamicLevel);
+
+    /**
+     * Invoked after the last {@link #tick(int, int, boolean, boolean, float)}
+     * when the user ceases to apply the operation (except for one shot
+     * operations).
+     */
+    protected void finished() {
+        // Do nothing
+    }
 
     /**
      * Determine whether the Alt (PC/Mac), AltGr (PC) or Option (Mac) key is

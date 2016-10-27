@@ -38,8 +38,9 @@ public interface TileProvider {
      * tile in a different location on the provided image than the top left
      * corner.
      *
-     * <p>The provided must paint the tile completely. It may not leave gaps or
-     * assume that the provided image supports transparency.
+     * <p>The provider must paint the tile completely. The image is guaranteed
+     * to support transparency and the provider may make parts or all of the
+     * tile transparent.
      *
      * <p>The provider may fail to paint the tile for some reason, for example
      * because a dependency is not met, in which case it should return

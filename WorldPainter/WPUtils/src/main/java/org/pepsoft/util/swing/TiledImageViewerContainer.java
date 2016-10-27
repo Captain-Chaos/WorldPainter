@@ -52,11 +52,31 @@ public class TiledImageViewerContainer extends JPanel implements TiledImageViewe
         view.setViewListener(this);
     }
 
+    /**
+     * When set to true, prevents the scrollbars from updating on view changed
+     * events. When set to false, updates the scrollbars immediately.
+     *
+     * @param inhibitUpdates Whether scrollbar updates should be inhibited.
+     */
+    public void setInhibitUpdates(boolean inhibitUpdates) {
+        if (inhibitUpdates != this.inhibitUpdates) {
+            this.inhibitUpdates = inhibitUpdates;
+            if (! inhibitUpdates) {
+                programmaticChange = true;
+                try {
+                    updateScrollBars();
+                } finally {
+                    programmaticChange = false;
+                }
+            }
+        }
+    }
+
     // ViewListener
     
     @Override
     public void viewChanged(TiledImageViewer source) {
-        if (! programmaticChange) {
+        if ((! programmaticChange) && (! inhibitUpdates)) {
             programmaticChange = true;
             try {
                 updateScrollBars();
@@ -148,5 +168,5 @@ public class TiledImageViewerContainer extends JPanel implements TiledImageViewe
     private final TiledImageViewer view;
     private final JScrollBar horizontalScrollbar = new JScrollBar(JScrollBar.HORIZONTAL), verticalScrollbar = new JScrollBar();
     private int previousHorizontalValue, previousVerticalValue;
-    private boolean scrollingEnabled = true, programmaticChange;
+    private boolean scrollingEnabled = true, programmaticChange, inhibitUpdates;
 }
