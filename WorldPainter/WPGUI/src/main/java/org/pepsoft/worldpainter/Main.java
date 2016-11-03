@@ -361,6 +361,8 @@ public class Main {
                 DonationDialog.maybeShowDonationDialog(app);
             });
         });
+
+        // If a background image was configured
     }
 
     private static void configError(Throwable e) {

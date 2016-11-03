@@ -58,6 +58,16 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
         spinnerYOffset.setValue(view.getOverlayOffsetY());
         checkBoxContours.setSelected(view.isDrawContours());
         spinnerContourSeparation.setValue(view.getContourSeparation());
+        checkBoxBackgroundImage.setSelected(view.getBackgroundImage() != null);
+
+        Configuration config = Configuration.getInstance();
+        if (config.getBackgroundImage() != null) {
+            fieldBackgroundImage.setText(config.getBackgroundImage().getAbsolutePath());
+        }
+        comboBoxBackgroundImageMode.setSelectedItem(config.getBackgroundImageMode());
+        checkBoxShowBiomes.setSelected(config.isShowBiomes());
+        checkBoxShowBorders.setSelected(config.isShowBorders());
+
         fieldImage.getDocument().addDocumentListener(this);
         setControlStates();
         setLocationRelativeTo(parent);
@@ -123,6 +133,11 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
         spinnerXOffset.setEnabled(imageOverlayEnabled);
         spinnerYOffset.setEnabled(imageOverlayEnabled);
         spinnerContourSeparation.setEnabled(checkBoxContours.isSelected());
+        boolean backgroundImageEnabled = checkBoxBackgroundImage.isSelected();
+        fieldBackgroundImage.setEnabled(backgroundImageEnabled);
+        buttonSelectBackgroundImage.setEnabled(backgroundImageEnabled);
+        comboBoxBackgroundImageMode.setEnabled(backgroundImageEnabled);
+        checkBoxShowBiomes.setEnabled(checkBoxShowBorders.isSelected());
     }
     
     private void updateImageFile() {
@@ -298,21 +313,43 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
         jLabel10 = new javax.swing.JLabel();
         spinnerContourSeparation = new javax.swing.JSpinner();
         jLabel11 = new javax.swing.JLabel();
+        jLabel12 = new javax.swing.JLabel();
+        colourEditor1 = new org.pepsoft.worldpainter.ColourEditor();
+        checkBoxBackgroundImage = new javax.swing.JCheckBox();
+        jLabel13 = new javax.swing.JLabel();
+        fieldBackgroundImage = new javax.swing.JTextField();
+        buttonSelectBackgroundImage = new javax.swing.JButton();
+        jLabel14 = new javax.swing.JLabel();
+        comboBoxBackgroundImageMode = new javax.swing.JComboBox();
+        checkBoxShowBiomes = new javax.swing.JCheckBox();
+        checkBoxShowBorders = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Configure View");
 
         checkBoxGrid.setText("Grid");
-        checkBoxGrid.addActionListener(this::checkBoxGridActionPerformed);
+        checkBoxGrid.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxGridActionPerformed(evt);
+            }
+        });
 
         spinnerGridSize.setModel(new javax.swing.SpinnerNumberModel(128, 2, 9999, 1));
         spinnerGridSize.setEnabled(false);
-        spinnerGridSize.addChangeListener(this::spinnerGridSizeStateChanged);
+        spinnerGridSize.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerGridSizeStateChanged(evt);
+            }
+        });
 
         jLabel1.setText("Grid size:");
 
         checkBoxImageOverlay.setText("Image overlay");
-        checkBoxImageOverlay.addActionListener(this::checkBoxImageOverlayActionPerformed);
+        checkBoxImageOverlay.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxImageOverlayActionPerformed(evt);
+            }
+        });
 
         jLabel2.setText("Image:");
 
@@ -320,13 +357,21 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
 
         buttonSelectImage.setText("...");
         buttonSelectImage.setEnabled(false);
-        buttonSelectImage.addActionListener(this::buttonSelectImageActionPerformed);
+        buttonSelectImage.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonSelectImageActionPerformed(evt);
+            }
+        });
 
         jLabel3.setText("Scale:");
 
         spinnerScale.setModel(new javax.swing.SpinnerNumberModel(100, 1, 9999, 1));
         spinnerScale.setEnabled(false);
-        spinnerScale.addChangeListener(this::spinnerScaleStateChanged);
+        spinnerScale.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerScaleStateChanged(evt);
+            }
+        });
 
         jLabel4.setText("%");
 
@@ -334,7 +379,11 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
 
         spinnerTransparency.setModel(new javax.swing.SpinnerNumberModel(50, 0, 99, 1));
         spinnerTransparency.setEnabled(false);
-        spinnerTransparency.addChangeListener(this::spinnerTransparencyStateChanged);
+        spinnerTransparency.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerTransparencyStateChanged(evt);
+            }
+        });
 
         jLabel6.setText("%");
 
@@ -342,82 +391,155 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
 
         spinnerXOffset.setModel(new javax.swing.SpinnerNumberModel(0, -999999, 999999, 1));
         spinnerXOffset.setEnabled(false);
-        spinnerXOffset.addChangeListener(this::spinnerXOffsetStateChanged);
+        spinnerXOffset.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerXOffsetStateChanged(evt);
+            }
+        });
 
         jLabel8.setText(", Y offset:");
 
         spinnerYOffset.setModel(new javax.swing.SpinnerNumberModel(0, -999999, 999999, 1));
         spinnerYOffset.setEnabled(false);
-        spinnerYOffset.addChangeListener(this::spinnerYOffsetStateChanged);
+        spinnerYOffset.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerYOffsetStateChanged(evt);
+            }
+        });
 
         buttonClose.setText("Close");
-        buttonClose.addActionListener(this::buttonCloseActionPerformed);
+        buttonClose.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonCloseActionPerformed(evt);
+            }
+        });
 
         jLabel9.setText("blocks");
 
         checkBoxContours.setSelected(true);
         checkBoxContours.setText("Contour lines");
-        checkBoxContours.addActionListener(this::checkBoxContoursActionPerformed);
+        checkBoxContours.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxContoursActionPerformed(evt);
+            }
+        });
 
         jLabel10.setText("Separation:");
 
         spinnerContourSeparation.setModel(new javax.swing.SpinnerNumberModel(10, 2, 999, 1));
-        spinnerContourSeparation.addChangeListener(this::spinnerContourSeparationStateChanged);
+        spinnerContourSeparation.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerContourSeparationStateChanged(evt);
+            }
+        });
 
         jLabel11.setText("blocks");
+
+        jLabel12.setText("Background colour:");
+
+        checkBoxBackgroundImage.setText("Background image");
+
+        jLabel13.setText("Image:");
+
+        fieldBackgroundImage.setText("jTextField1");
+        fieldBackgroundImage.setEnabled(false);
+
+        buttonSelectBackgroundImage.setText("...");
+        buttonSelectBackgroundImage.setEnabled(false);
+
+        jLabel14.setText("Layout:");
+
+        comboBoxBackgroundImageMode.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Repeat", "Centered", "Centered Repeat", "Fit", "Fit Repeat", "Stretch" }));
+        comboBoxBackgroundImageMode.setEnabled(false);
+
+        checkBoxShowBiomes.setText("Show Minecraft biomes");
+        checkBoxShowBiomes.setEnabled(false);
+
+        checkBoxShowBorders.setText("Show borders");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(checkBoxGrid)
-                    .addComponent(checkBoxImageOverlay)
-                    .addComponent(buttonClose, javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(checkBoxContours)
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(checkBoxGrid)
+                            .addComponent(checkBoxContours)
+                            .addComponent(checkBoxImageOverlay)
+                            .addComponent(checkBoxBackgroundImage)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(21, 21, 21)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jLabel1)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(spinnerGridSize, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jLabel10)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(spinnerContourSeparation, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addComponent(jLabel2)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jLabel3)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(spinnerScale, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jLabel5)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(spinnerTransparency, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jLabel7)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(spinnerXOffset, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jLabel8)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(spinnerYOffset, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jLabel13)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(fieldBackgroundImage))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jLabel14)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(comboBoxBackgroundImageMode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                            .addComponent(checkBoxShowBorders)
+                            .addComponent(checkBoxShowBiomes))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(buttonSelectBackgroundImage))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(12, 12, 12)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel10)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(spinnerContourSeparation, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 0, 0)
-                                .addComponent(jLabel11))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel1)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(spinnerGridSize, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 0, 0)
-                                .addComponent(jLabel9))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel3)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(spinnerScale, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(2, 2, 2)
-                                .addComponent(jLabel4))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel2)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGap(59, 59, 59)
                                 .addComponent(fieldImage)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(buttonSelectImage))
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel5)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(spinnerTransparency, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(2, 2, 2)
-                                .addComponent(jLabel6))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel7)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(spinnerXOffset, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 0, 0)
-                                .addComponent(jLabel8)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(spinnerYOffset, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGap(123, 123, 123)
+                                        .addComponent(jLabel11))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGap(130, 130, 130)
+                                        .addComponent(jLabel9))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGap(116, 116, 116)
+                                        .addComponent(jLabel4))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGap(133, 133, 133)
+                                        .addComponent(jLabel6))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jLabel12)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(colourEditor1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addGap(0, 0, Short.MAX_VALUE))))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(buttonClose)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -460,6 +582,25 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
                     .addComponent(spinnerXOffset, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel8)
                     .addComponent(spinnerYOffset, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel12)
+                    .addComponent(colourEditor1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addComponent(checkBoxBackgroundImage)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel13)
+                    .addComponent(fieldBackgroundImage, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(buttonSelectBackgroundImage))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel14)
+                    .addComponent(comboBoxBackgroundImageMode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addComponent(checkBoxShowBorders)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(checkBoxShowBiomes)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(buttonClose)
                 .addContainerGap())
@@ -548,14 +689,24 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonClose;
+    private javax.swing.JButton buttonSelectBackgroundImage;
     private javax.swing.JButton buttonSelectImage;
+    private javax.swing.JCheckBox checkBoxBackgroundImage;
     private javax.swing.JCheckBox checkBoxContours;
     private javax.swing.JCheckBox checkBoxGrid;
     private javax.swing.JCheckBox checkBoxImageOverlay;
+    private javax.swing.JCheckBox checkBoxShowBiomes;
+    private javax.swing.JCheckBox checkBoxShowBorders;
+    private org.pepsoft.worldpainter.ColourEditor colourEditor1;
+    private javax.swing.JComboBox comboBoxBackgroundImageMode;
+    private javax.swing.JTextField fieldBackgroundImage;
     private javax.swing.JTextField fieldImage;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
+    private javax.swing.JLabel jLabel12;
+    private javax.swing.JLabel jLabel13;
+    private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
