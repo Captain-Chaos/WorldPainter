@@ -70,10 +70,10 @@ public interface TileProvider {
     
     /**
      * Get the coordinates of the "main area of interest" of this tile provider,
-     * if any. The tile provider may provide tiles outside this area, but the
-     * scrollbars will not extend to them. If the tile provider has no
-     * distinguishable area of interest (because it is endless, for instance),
-     * it may return null.
+     * if any, without taking zoom into account. The tile provider may provide
+     * tiles outside this area, but the scrollbars will not extend to them. If
+     * the tile provider has no distinguishable area of interest (because it is
+     * endless, for instance), it may return null.
      * 
      * @return The coordinates of the main area of interest of this tile
      *     provider.
