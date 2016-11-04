@@ -185,7 +185,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
             }
             newTileProvider.addTileListener(this);
             tileProviders.add(index, newTileProvider);
-            offsets.put(tileProvider, offset);
+            offsets.put(newTileProvider, offset);
             tileCaches.put(newTileProvider, new HashMap<>());
             dirtyTileCaches.put(newTileProvider, dirtyTileCache);
 
@@ -319,7 +319,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         for (TileProvider tileProvider: tileProviders) {
             Rectangle providerExtent = tileProvider.getExtent();
             if (providerExtent != null) {
-                providerExtent = getTileBounds(tileProvider, providerExtent.x, providerExtent.y, providerExtent.width, providerExtent.height, (tileProvider.isZoomSupported() && (zoom < 0)) ? 0 : zoom);
+                providerExtent = getTileBounds(tileProvider, providerExtent.x, providerExtent.y, providerExtent.width, providerExtent.height, zoom);
                 if (extent == null) {
                     extent = providerExtent;
                 } else {
