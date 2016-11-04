@@ -15,6 +15,11 @@ import java.util.Random;
 
 import static org.pepsoft.worldpainter.Constants.*;
 
+// TODO: copy more than just height and terrain type
+// TODO: make the copied items configurable
+// TODO: allow new tiles to be filled with void
+// TODO: add clear selection operation
+
 /**
  * A helper class for maintaining a selection as an optimised combination of
  * per-chunk and per-block layers, and working with said selections.
@@ -22,15 +27,19 @@ import static org.pepsoft.worldpainter.Constants.*;
  * <p>Created by Pepijn Schmitz on 03-11-16.
  */
 public class SelectionHelper {
-    public static void addToSelection(Dimension dimension, Brush brush, int x, int y) {
-        editSelection(dimension, brush, x, y, true);
+    public SelectionHelper(Dimension dimension) {
+        this.dimension = dimension;
     }
 
-    public static void removeFromSelection(Dimension dimension, Brush brush, int x, int y) {
-        editSelection(dimension, brush, x, y, false);
+    public void addToSelection(Brush brush, int x, int y) {
+        editSelection(brush, x, y, true);
     }
 
-    public static void copySelection(Dimension dimension, int targetX, int targetY) {
+    public void removeFromSelection(Brush brush, int x, int y) {
+        editSelection(brush, x, y, false);
+    }
+
+    public void copySelection(int targetX, int targetY) {
         // Determine the bounding box of the selection
         final int[] lowestX = {Integer.MAX_VALUE};
         final int[] highestX = {Integer.MIN_VALUE};
@@ -94,7 +103,6 @@ public class SelectionHelper {
         final int tileX2 = highestX[0] >> TILE_SIZE_BITS;
         final int tileY1 = lowestY[0] >> TILE_SIZE_BITS;
         final int tileY2 = highestY[0] >> TILE_SIZE_BITS;
-        final boolean doBlending = true;
 
         // Make sure to copy in the right direction to avoid problems if the
         // destination overlaps the selection
@@ -108,7 +116,7 @@ public class SelectionHelper {
                         if (tile != null) {
                             for (int xInTile = TILE_SIZE - 1; xInTile >= 0; xInTile--) {
                                 for (int yInTile = TILE_SIZE - 1; yInTile >= 0; yInTile--) {
-                                    processColumn(tile, xInTile, yInTile, dimension, dx, dy, doBlending);
+                                    processColumn(tile, xInTile, yInTile, dx, dy);
                                 }
                             }
                         }
@@ -122,7 +130,7 @@ public class SelectionHelper {
                         if (tile != null) {
                             for (int xInTile = TILE_SIZE - 1; xInTile >= 0; xInTile--) {
                                 for (int yInTile = 0; yInTile < TILE_SIZE; yInTile++) {
-                                    processColumn(tile, xInTile, yInTile, dimension, dx, dy, doBlending);
+                                    processColumn(tile, xInTile, yInTile, dx, dy);
                                 }
                             }
                         }
@@ -139,7 +147,7 @@ public class SelectionHelper {
                         if (tile != null) {
                             for (int xInTile = 0; xInTile < TILE_SIZE; xInTile++) {
                                 for (int yInTile = TILE_SIZE - 1; yInTile >= 0; yInTile--) {
-                                    processColumn(tile, xInTile, yInTile, dimension, dx, dy, doBlending);
+                                    processColumn(tile, xInTile, yInTile,  dx, dy);
                                 }
                             }
                         }
@@ -153,7 +161,7 @@ public class SelectionHelper {
                         if (tile != null) {
                             for (int xInTile = 0; xInTile < TILE_SIZE; xInTile++) {
                                 for (int yInTile = 0; yInTile < TILE_SIZE; yInTile++) {
-                                    processColumn(tile, xInTile, yInTile, dimension, dx, dy, doBlending);
+                                    processColumn(tile, xInTile, yInTile, dx, dy);
                                 }
                             }
                         }
@@ -163,36 +171,53 @@ public class SelectionHelper {
         }
     }
 
-    private static void processColumn(Tile tile, int xInTile, int yInTile, Dimension dimension, int dx, int dy, boolean doBlending) {
+    public boolean isDoBlending() {
+        return doBlending;
+    }
+
+    public void setDoBlending(boolean doBlending) {
+        this.doBlending = doBlending;
+    }
+
+    public boolean isCreateNewTiles() {
+        return createNewTiles;
+    }
+
+    public void setCreateNewTiles(boolean createNewTiles) {
+        this.createNewTiles = createNewTiles;
+    }
+
+    private void processColumn(Tile tile, int xInTile, int yInTile, int dx, int dy) {
         if (tile.getBitLayerValue(SelectionChunk.INSTANCE, xInTile, yInTile)
                 || tile.getBitLayerValue(SelectionBlock.INSTANCE, xInTile, yInTile)) {
+            int dstX = ((tile.getX() << TILE_SIZE_BITS) | xInTile) + dx;
+            int dstY = ((tile.getY() << TILE_SIZE_BITS) | yInTile) + dy;
+            if (createNewTiles && (! dimension.isTilePresent(dstX >> TILE_SIZE_BITS, dstY >> TILE_SIZE_BITS))) {
+                dimension.addTile(dimension.getTileFactory().createTile(dstX >> TILE_SIZE_BITS, dstY >> TILE_SIZE_BITS));
+            }
             if (doBlending) {
-                float distanceFromEdge = distanceToSelectionEdge(dimension, (tile.getX() << TILE_SIZE_BITS) | xInTile, (tile.getY() << TILE_SIZE_BITS) | yInTile);
+                float distanceFromEdge = distanceToSelectionEdge(dstX, dstY);
                 if (distanceFromEdge < 16.0f) {
                     float blend = (float) (-Math.cos(distanceFromEdge / DISTANCE_TO_BLEND) / 2 + 0.5);
-                    copyColumn(tile, xInTile, yInTile, dimension, dx, dy, blend);
+                    copyColumn(tile, xInTile, yInTile, dstX, dstY, blend);
                 } else {
-                    copyColumn(tile, xInTile, yInTile, dimension, dx, dy);
+                    copyColumn(tile, xInTile, yInTile, dstX, dstY);
                 }
             } else {
-                copyColumn(tile, xInTile, yInTile, dimension, dx, dy);
+                copyColumn(tile, xInTile, yInTile, dstX, dstY);
             }
         }
     }
 
-    private static void copyColumn(Tile srcTile, int srcXInTile, int srcYInTile, Dimension dstDimension, int dx, int dy) {
-        final int dstX = ((srcTile.getX() << TILE_SIZE_BITS) | srcXInTile) + dx;
-        final int dstY = ((srcTile.getY() << TILE_SIZE_BITS) | srcYInTile) + dy;
-        dstDimension.setRawHeightAt(dstX, dstY, srcTile.getRawHeight(srcXInTile, srcYInTile));
-        dstDimension.setTerrainAt(dstX, dstY, srcTile.getTerrain(srcXInTile, srcYInTile));
+    private void copyColumn(Tile srcTile, int srcXInTile, int srcYInTile, int dstX, int dstY) {
+        dimension.setRawHeightAt(dstX, dstY, srcTile.getRawHeight(srcXInTile, srcYInTile));
+        dimension.setTerrainAt(dstX, dstY, srcTile.getTerrain(srcXInTile, srcYInTile));
     }
 
-    private static void copyColumn(Tile srcTile, int srcXInTile, int srcYInTile, Dimension dstDimension, int dx, int dy, float blend) {
-        final int dstX = ((srcTile.getX() << TILE_SIZE_BITS) | srcXInTile) + dx;
-        final int dstY = ((srcTile.getY() << TILE_SIZE_BITS) | srcYInTile) + dy;
-        dstDimension.setRawHeightAt(dstX, dstY, (int) (blend * srcTile.getRawHeight(srcXInTile, srcYInTile) + (1 - blend) * dstDimension.getRawHeightAt(dstX, dstY) + 0.5f));
+    private void copyColumn(Tile srcTile, int srcXInTile, int srcYInTile, int dstX, int dstY, float blend) {
+        dimension.setRawHeightAt(dstX, dstY, (int) (blend * srcTile.getRawHeight(srcXInTile, srcYInTile) + (1 - blend) * dimension.getRawHeightAt(dstX, dstY) + 0.5f));
         if (RANDOM.nextFloat() <= blend) {
-            dstDimension.setTerrainAt(dstX, dstY, srcTile.getTerrain(srcXInTile, srcYInTile));
+            dimension.setTerrainAt(dstX, dstY, srcTile.getTerrain(srcXInTile, srcYInTile));
         }
     }
 
@@ -200,14 +225,13 @@ public class SelectionHelper {
      * Calculate the distance to the edge of the selected area, to a maximum of
      * 16 blocks.
      *
-     * @param dimension The dimension containing the selection to test against.
      * @param x The X coordinate to test.
      * @param y The Y coordinate to test.
      * @return The distance to the edge of the selection if less than 16, or 16
      *     if the distance is 16 or greater, or 0 if the specified coordinates
      *     are not in the selection.
      */
-    private static float distanceToSelectionEdge(Dimension dimension, int x, int y) {
+    private float distanceToSelectionEdge(int x, int y) {
         // First check if the chunk and all surrounding chunks are selected, in
         // which case the distance cannot be less than 16 and we're done
         final int chunkX = x >> 4, chunkY = y >> 4;
@@ -236,24 +260,24 @@ outer:  for (int dx = -1; dx <= 1; dx++) {
         // a non selected block is found
         float distance = 16.0f;
         for (int i = 1; i <= 16; i++) {
-            if (((! isSelected(dimension, x - i, y))
-                        || (! isSelected(dimension, x + i, y))
-                        || (! isSelected(dimension, x, y - i))
-                        || (! isSelected(dimension, x, y + i)))
+            if (((! isSelected(x - i, y))
+                        || (! isSelected(x + i, y))
+                        || (! isSelected(x, y - i))
+                        || (! isSelected(x, y + i)))
                     && (i < distance)) {
                 // If we get here there's no possible way a shorter
                 // distance could be found later, so return immediately
                 return i;
             }
             for (int d = 1; d <= i; d++) {
-                if ((! isSelected(dimension, x - i, y - d))
-                        || (! isSelected(dimension, x + d, y - i))
-                        || (! isSelected(dimension, x + i, y + d))
-                        || (! isSelected(dimension, x - d, y + i))
-                        || ((d < i) && ((! isSelected(dimension, x - i, y + d))
-                            || (! isSelected(dimension, x - d, y - i))
-                            || (! isSelected(dimension, x + i, y - d))
-                            || (! isSelected(dimension, x + d, y + i))))) {
+                if ((! isSelected(x - i, y - d))
+                        || (! isSelected(x + d, y - i))
+                        || (! isSelected(x + i, y + d))
+                        || (! isSelected(x - d, y + i))
+                        || ((d < i) && ((! isSelected(x - i, y + d))
+                            || (! isSelected(x - d, y - i))
+                            || (! isSelected(x + i, y - d))
+                            || (! isSelected(x + d, y + i))))) {
                     float tDistance = MathUtils.getDistance(i, d);
                     if (tDistance < distance) {
                         distance = tDistance;
@@ -267,11 +291,11 @@ outer:  for (int dx = -1; dx <= 1; dx++) {
         return distance;
     }
 
-    private static boolean isSelected(Dimension dimension, int x, int y) {
+    private boolean isSelected(int x, int y) {
         return dimension.getBitLayerValueAt(SelectionChunk.INSTANCE, x, y) || dimension.getBitLayerValueAt(SelectionBlock.INSTANCE, x, y);
     }
 
-    private static void editSelection(Dimension dimension, Brush brush, int x, int y, boolean add) {
+    private void editSelection(Brush brush, int x, int y, boolean add) {
         // Create a geometric shape corresponding to the brush size, shape and
         // rotation
         Shape shape;
@@ -379,7 +403,7 @@ outer:  for (int dx = -1; dx <= 1; dx++) {
         }
     }
 
-    private static void fillTile(Tile tile, Layer layer) {
+    private void fillTile(Tile tile, Layer layer) {
         switch(layer.getDataSize()) {
             case BIT_PER_CHUNK:
                 for (int x = 0; x < TILE_SIZE; x++) {
@@ -393,7 +417,7 @@ outer:  for (int dx = -1; dx <= 1; dx++) {
         }
     }
 
-    private static void clearTile(Tile tile, Layer layer, int x, int y, int w, int h) {
+    private void clearTile(Tile tile, Layer layer, int x, int y, int w, int h) {
         switch(layer.getDataSize()) {
             case BIT:
                 for (int dx = 0; dx < w; dx++) {
@@ -406,6 +430,9 @@ outer:  for (int dx = -1; dx <= 1; dx++) {
                 throw new UnsupportedOperationException("Data size " + layer.getDataSize() + " not supported");
         }
     }
+
+    private final Dimension dimension;
+    private boolean doBlending, createNewTiles = false; // TODO: when new tiles are added the undo information has to be thrown away; avoid that somehow
 
     private static final double DEGREES_TO_RADIANS = 360 / (Math.PI * 2);
     private static final double DISTANCE_TO_BLEND = 16.0 / Math.PI;

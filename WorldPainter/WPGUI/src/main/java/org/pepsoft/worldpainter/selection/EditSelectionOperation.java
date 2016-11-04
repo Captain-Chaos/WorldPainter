@@ -11,7 +11,7 @@ import org.pepsoft.worldpainter.operations.RadiusOperation;
  */
 public class EditSelectionOperation extends RadiusOperation {
     public EditSelectionOperation(WorldPainterView view, RadiusControl radiusControl, MapDragControl mapDragControl) {
-        super("EditSelectionOperation", "Expand or shrink the selection", view, radiusControl, mapDragControl, "operation.selection.edit");
+        super("Edit Selection", "Expand or shrink the selection", view, radiusControl, mapDragControl, "operation.selection.edit", "edit_selection");
     }
 
     @Override
@@ -19,10 +19,11 @@ public class EditSelectionOperation extends RadiusOperation {
         Dimension dimension = getDimension();
         dimension.setEventsInhibited(true);
         try {
+            SelectionHelper selectionHelper = new SelectionHelper(dimension);
             if (inverse) {
-                SelectionHelper.removeFromSelection(dimension, getBrush(), centreX, centreY);
+                selectionHelper.removeFromSelection(getBrush(), centreX, centreY);
             } else {
-                SelectionHelper.addToSelection(dimension, getBrush(), centreX, centreY);
+                selectionHelper.addToSelection(getBrush(), centreX, centreY);
             }
         } finally {
             dimension.setEventsInhibited(false);

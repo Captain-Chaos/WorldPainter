@@ -412,7 +412,9 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     public void refreshTiles() {
         if (dimension != null) {
             int biomeAlgorithm = -1;
-            if ((dimension.getDim() == DIM_NORMAL) && ((dimension.getBorder() == null) || (! dimension.getBorder().isEndless()))) {
+            if (drawBiomes
+                    && (dimension.getDim() == DIM_NORMAL)
+                    && ((dimension.getBorder() == null) || (! dimension.getBorder().isEndless()))) {
                 World2 world = dimension.getWorld();
                 if (world != null) {
                     if (world.getVersion() == org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_1) {
@@ -424,7 +426,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
                     }
                 }
             }
-            tileProvider = new WPTileProvider(dimension, colourScheme, biomeScheme, customBiomeManager, hiddenLayers, drawContours, contourSeparation, lightOrigin, true, (biomeAlgorithm != -1) ? new BiomesTileProvider(biomeAlgorithm, dimension.getMinecraftSeed(), colourScheme, 0, true) : null, true);
+            tileProvider = new WPTileProvider(dimension, colourScheme, biomeScheme, customBiomeManager, hiddenLayers, drawContours, contourSeparation, lightOrigin, drawBorders, (biomeAlgorithm != -1) ? new BiomesTileProvider(biomeAlgorithm, dimension.getMinecraftSeed(), colourScheme, 0, true) : null, true);
             if (getTileProviderCount() == 0) {
                 addTileProvider(tileProvider);
             } else {
@@ -553,6 +555,32 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             this.drawMinecraftBorder = drawMinecraftBorder;
             firePropertyChange("drawMinecraftBorder", ! drawMinecraftBorder, drawMinecraftBorder);
             repaint();
+        }
+    }
+
+    public boolean isDrawBorders() {
+        return drawBorders;
+    }
+
+    public void setDrawBorders(boolean drawBorders) {
+        if (drawBorders != this.drawBorders) {
+            this.drawBorders = drawBorders;
+            firePropertyChange("drawBorders", ! drawBorders, drawBorders);
+            refreshTiles();
+        }
+    }
+
+    public boolean isDrawBiomes() {
+        return drawBiomes;
+    }
+
+    public void setDrawBiomes(boolean drawBiomes) {
+        if (drawBiomes != this.drawBiomes) {
+            this.drawBiomes = drawBiomes;
+            if ((dimension != null) && (dimension.getDim() == DIM_NORMAL)) {
+                refreshTiles();
+            }
+            firePropertyChange("drawBiomes", ! drawBiomes, drawBiomes);
         }
     }
 
@@ -813,7 +841,8 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     private final CustomBiomeManager customBiomeManager;
     private Dimension dimension;
     private int mouseX, mouseY, radius, effectiveRadius, overlayOffsetX, overlayOffsetY, contourSeparation, brushRotation;
-    private boolean drawRadius, drawOverlay, drawContours, drawViewDistance, drawWalkingDistance, drawMinecraftBorder = true;
+    private boolean drawRadius, drawOverlay, drawContours, drawViewDistance, drawWalkingDistance, drawMinecraftBorder = true,
+        drawBorders = true, drawBiomes = true;
     private BrushShape brushShape;
     private float overlayScale = 1.0f;
     private float overlayTransparency = 0.5f;

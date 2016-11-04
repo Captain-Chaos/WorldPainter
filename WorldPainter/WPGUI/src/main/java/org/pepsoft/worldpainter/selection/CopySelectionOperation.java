@@ -9,7 +9,7 @@ import org.pepsoft.worldpainter.operations.MouseOrTabletOperation;
  */
 public class CopySelectionOperation extends MouseOrTabletOperation {
     public CopySelectionOperation(WorldPainterView view) {
-        super("CopySelectionOperation", "Copy the selection to another location", view, "operation.selection.copy");
+        super("Copy Selection", "Copy the selection to another location", view, "operation.selection.copy", "copy_selection");
     }
 
     @Override
@@ -17,7 +17,7 @@ public class CopySelectionOperation extends MouseOrTabletOperation {
         Dimension dimension = getDimension();
         dimension.setEventsInhibited(true);
         try {
-            SelectionHelper.copySelection(dimension, centreX, centreY);
+            new SelectionHelper(dimension).copySelection(centreX, centreY);
         } finally {
             dimension.setEventsInhibited(false);
         }

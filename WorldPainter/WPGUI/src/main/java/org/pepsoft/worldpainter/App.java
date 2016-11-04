@@ -580,8 +580,8 @@ public final class App extends JFrame implements RadiusControl,
             setTextIfDifferent(biomeLabel, " ");
             return;
         }
-        int height = dimension.getIntHeightAt(x, y);
-        if (height == -1) {
+        Tile tile = dimension.getTile(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
+        if (tile == null) {
             // Not on a tile
             setTextIfDifferent(heightLabel, " ");
             setTextIfDifferent(slopeLabel, " ");
@@ -594,6 +594,17 @@ public final class App extends JFrame implements RadiusControl,
             setTextIfDifferent(biomeLabel, " ");
             return;
         }
+        final int xInTile = x & TILE_SIZE_MASK, yInTile = y & TILE_SIZE_MASK;
+        if (tile.getBitLayerValue(NotPresent.INSTANCE, xInTile, yInTile)) {
+            // Marked as not present
+            setTextIfDifferent(heightLabel, " ");
+            setTextIfDifferent(slopeLabel, " ");
+            setTextIfDifferent(waterLabel, " ");
+            setTextIfDifferent(materialLabel, "Minecraft Generated");
+            setTextIfDifferent(biomeLabel, " ");
+            return;
+        }
+        int height = tile.getIntHeight(xInTile, yInTile);
         setTextIfDifferent(heightLabel, MessageFormat.format(strings.getString("height.0.of.1"), height, dimension.getMaxHeight() - 1));
         setTextIfDifferent(slopeLabel, MessageFormat.format("Slope: {0}°", (int) (Math.atan(dimension.getSlope(x, y)) * 180 / Math.PI + 0.5)));
         if ((activeOperation instanceof PaintOperation) && (paint instanceof LayerPaint)) {
@@ -601,12 +612,12 @@ public final class App extends JFrame implements RadiusControl,
             switch (layer.getDataSize()) {
                 case BIT:
                 case BIT_PER_CHUNK:
-                    setTextIfDifferent(waterLabel, MessageFormat.format(strings.getString("layer.0.on.off"), layer.getName(), (dimension.getBitLayerValueAt(layer, x, y) ? 1 : 0)));
+                    setTextIfDifferent(waterLabel, MessageFormat.format(strings.getString("layer.0.on.off"), layer.getName(), (tile.getBitLayerValue(layer, xInTile, yInTile) ? 1 : 0)));
                     break;
                 case NIBBLE:
                     int value, strength;
                     if (! layer.equals(Annotations.INSTANCE)) {
-                        value = dimension.getLayerValueAt(layer, x, y);
+                        value = tile.getLayerValue(layer, xInTile, yInTile);
                         strength = (value > 0) ? ((value - 1) * 100  / 14 + 1): 0;
                         if ((strength == 51) || (strength == 101)) {
                             strength--;
@@ -618,7 +629,7 @@ public final class App extends JFrame implements RadiusControl,
                     break;
                 case BYTE:
                     if (! layer.equals(Biome.INSTANCE)) {
-                        value = dimension.getLayerValueAt(layer, x, y);
+                        value = tile.getLayerValue(layer, xInTile, yInTile);
                         strength = (value > 0) ? ((value - 1) * 100  / 254 + 1): 0;
                         setTextIfDifferent(waterLabel, MessageFormat.format(strings.getString("layer.0.level.1"), layer.getName(), strength));
                     } else {
@@ -630,16 +641,16 @@ public final class App extends JFrame implements RadiusControl,
                     break;
             }
         } else if (activeOperation instanceof GardenOfEdenOperation) {
-            setTextIfDifferent(waterLabel, strings.getString("structure") + ": " + GardenCategory.getLabel(dimension.getLayerValueAt(GardenCategory.INSTANCE, x, y)));
+            setTextIfDifferent(waterLabel, strings.getString("structure") + ": " + GardenCategory.getLabel(tile.getLayerValue(GardenCategory.INSTANCE, xInTile, yInTile)));
         } else {
-            int waterLevel = dimension.getWaterLevelAt(x, y);
+            int waterLevel = tile.getWaterLevel(xInTile, yInTile);
             if (waterLevel > height) {
-                setTextIfDifferent(waterLabel, MessageFormat.format(strings.getString("fluid.level.1.depth.2"), dimension.getBitLayerValueAt(FloodWithLava.INSTANCE, x, y) ? 1 : 0, waterLevel, waterLevel - height));
+                setTextIfDifferent(waterLabel, MessageFormat.format(strings.getString("fluid.level.1.depth.2"), tile.getBitLayerValue(FloodWithLava.INSTANCE, xInTile, yInTile) ? 1 : 0, waterLevel, waterLevel - height));
             } else {
                 setTextIfDifferent(waterLabel, " ");
             }
         }
-        Terrain terrain = dimension.getTerrainAt(x, y);
+        Terrain terrain = tile.getTerrain(xInTile, yInTile);
         if (terrain.isCustom()) {
             int index = terrain.getCustomTerrainIndex();
             setTextIfDifferent(materialLabel, MessageFormat.format(strings.getString("material.custom.1.0"), getCustomMaterial(index), index + 1));
@@ -649,7 +660,7 @@ public final class App extends JFrame implements RadiusControl,
         // TODO: apparently this was sometimes invoked at or soon after startup,
         // with biomeNames being null, causing a NPE. How is this possible?
         if (dimension.getDim() == 0) {
-            int biome = dimension.getLayerValueAt(Biome.INSTANCE, x, y);
+            int biome = tile.getLayerValue(Biome.INSTANCE, xInTile, yInTile);
             // TODO: is this too slow?
             if (biome == 255) {
                 biome = dimension.getAutoBiome(x, y);
@@ -1932,7 +1943,28 @@ public final class App extends JFrame implements RadiusControl,
 
     private void initComponents() {
         view = new WorldPainter(selectedColourScheme, autoBiomeScheme, customBiomeManager);
-        view.setBackground(new Color(VoidRenderer.getColour()));
+        Configuration config = Configuration.getInstance();
+        if (config.getBackgroundColour() == -1) {
+            view.setBackground(new Color(VoidRenderer.getColour()));
+        } else {
+            view.setBackground(new Color(config.getBackgroundColour()));
+        }
+        view.setDrawBorders(config.isShowBorders());
+        view.setDrawBiomes(config.isShowBiomes());
+        view.setBackgroundImageMode(config.getBackgroundImageMode());
+        if (config.getBackgroundImage() != null) {
+            new Thread("Background Image Loader") {
+                @Override
+                public void run() {
+                    try {
+                        BufferedImage image = ImageIO.read(config.getBackgroundImage());
+                        SwingUtilities.invokeLater(() -> view.setBackgroundImage(image));
+                    } catch (IOException e) {
+                        logger.error("I/O error loading background image; disabling background image", e);
+                    }
+                }
+            }.start();
+        }
         view.setRadius(radius);
         view.setBrushShape(brush.getBrushShape());
         final Cursor cursor = Toolkit.getDefaultToolkit().createCustomCursor(IconUtils.loadImage("org/pepsoft/worldpainter/cursor.png"), new Point(15, 15), "Custom Crosshair");
@@ -2029,7 +2061,6 @@ public final class App extends JFrame implements RadiusControl,
 
         dockingManager.addFrame(new DockableFrameBuilder(createInfoPanel(), "Info", DOCK_SIDE_EAST, 2).withId("infoPanel").expand().withIcon(loadIcon("information")).build());
 
-        Configuration config = Configuration.getInstance();
         if (config.getDefaultJideLayoutData() != null) {
             dockingManager.loadLayoutFrom(new ByteArrayInputStream(config.getDefaultJideLayoutData()));
         } else {

@@ -1266,13 +1266,14 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                     }
                     imageX = (myWidth - imageWidth) / 2;
                     imageY = (myHeight - imageHeight) / 2;
+                    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
                     if (backgroundImageMode == BackgroundImageMode.FIT) {
                         g2.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
                         if (clipBounds.intersects(imageX, imageY, imageWidth, imageHeight)) {
-                            g2.drawImage(backgroundImage, imageX, imageY, null);
+                            g2.drawImage(backgroundImage, imageX, imageY, imageWidth, imageHeight, null);
                         }
                     } else {
-                        repeatImage(g2, clipBounds, backgroundImage, imageX, imageY, backgroundImage.getWidth(), backgroundImage.getHeight());
+                        repeatImage(g2, clipBounds, backgroundImage, imageX, imageY, imageWidth, imageHeight);
                     }
                     break;
                 case REPEAT:
@@ -1289,7 +1290,8 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         if (tileProviders.isEmpty()) {
             return;
         }
-        
+
+        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
         GraphicsConfiguration gc = getGraphicsConfiguration();
         for (TileProvider tileProvider: tileProviders) {
             final int effectiveZoom = (tileProvider.isZoomSupported() && (zoom < 0)) ? 0 : zoom;
@@ -1373,7 +1375,6 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
             while (x > 0) x -= width;
             do {
                 if (clipBounds.intersects(x, y, width, height)) {
-                    System.out.println("g2.drawImage(image, " + x + ", " + y + ", " + width + ", " + height + ", null)");
                     g2.drawImage(image, x, y, width, height, null);
                 }
                 x += width;

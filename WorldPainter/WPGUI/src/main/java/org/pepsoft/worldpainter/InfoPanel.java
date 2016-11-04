@@ -11,6 +11,8 @@ import org.pepsoft.worldpainter.biomeschemes.BiomeHelper;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes;
 import org.pepsoft.worldpainter.layers.*;
+import org.pepsoft.worldpainter.selection.SelectionBlock;
+import org.pepsoft.worldpainter.selection.SelectionChunk;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,8 +73,12 @@ public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener
             clearFields();
             return;
         }
-        fieldsClear = false;
         final int x = worldCoords.x & TILE_SIZE_MASK, y = worldCoords.y & TILE_SIZE_MASK;
+        if (tile.getBitLayerValue(NotPresent.INSTANCE, x, y)) {
+            clearFields();
+            return;
+        }
+        fieldsClear = false;
         float height = tile.getHeight(x, y);
         setTextIfDifferent(labelHeight, heightFormatter.format(height));
         int intHeight = (int) (height + 0.5f);
@@ -115,13 +121,15 @@ public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener
         Map<Layer, Integer> layerValues = tile.getLayersAt(x, y);
         // We display the biome separately
         if (layerValues != null) {
-            layerValues.remove(Biome.INSTANCE);
+            checkBoxInSelection.setSelected(layerValues.containsKey(SelectionChunk.INSTANCE) || layerValues.containsKey(SelectionBlock.INSTANCE));
+            layerValues.keySet().removeAll(HIDDEN_LAYERS);
             if (! layerValues.isEmpty()) {
                 tableModel.update(layerValues);
             } else {
                 tableModel.clear();
             }
         } else {
+            checkBoxInSelection.setSelected(false);
             tableModel.clear();
         }
     }
@@ -231,20 +239,23 @@ public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener
         labelBiome = new javax.swing.JLabel();
         checkBoxAutomaticBiome = new javax.swing.JCheckBox();
         jLabel9 = new javax.swing.JLabel();
+        checkBoxInSelection = new javax.swing.JCheckBox();
+        jLabel4 = new javax.swing.JLabel();
+        jLabel8 = new javax.swing.JLabel();
 
         jLabel1.setText("Slope:");
 
         jLabel2.setText("Layers:");
 
-        labelSlope.setText("jLabel5");
+        labelSlope.setText(" ");
 
         jLabel5.setText("Coordinates:");
 
-        labelCoords.setText("jLabel6");
+        labelCoords.setText(" ");
 
         jLabel7.setText("Height:");
 
-        labelHeight.setText("jLabel8");
+        labelHeight.setText(" ");
 
         jLabel10.setText("m");
 
@@ -254,11 +265,11 @@ public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener
 
         jLabel13.setText("depth:");
 
-        labelWaterLevel.setText("jLabel14");
+        labelWaterLevel.setText(" ");
 
         jLabel15.setText("m");
 
-        labelWaterDepth.setText("jLabel16");
+        labelWaterDepth.setText(" ");
 
         jLabel17.setText("m");
 
@@ -278,17 +289,25 @@ public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener
         jLabel3.setText("Terrain:");
 
         labelTerrain.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/transparent.png"))); // NOI18N
-        labelTerrain.setText("jLabel4");
+        labelTerrain.setText(" ");
 
         jLabel6.setText("Biome:");
 
         labelBiome.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/transparent.png"))); // NOI18N
-        labelBiome.setText("jLabel8");
+        labelBiome.setText(" ");
 
-        checkBoxAutomaticBiome.setText("automatic");
+        checkBoxAutomaticBiome.setText(" ");
         checkBoxAutomaticBiome.setEnabled(false);
 
         jLabel9.setText(" ");
+
+        checkBoxInSelection.setText(" ");
+        checkBoxInSelection.setEnabled(false);
+        checkBoxInSelection.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
+
+        jLabel4.setText("In selection:");
+
+        jLabel8.setText("automatic");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -330,10 +349,17 @@ public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener
                         .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 39, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel9))
-                    .addComponent(checkBoxAutomaticBiome)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(checkBoxAutomaticBiome)
+                        .addGap(0, 0, 0)
+                        .addComponent(jLabel8))
                     .addComponent(labelTerrain)
-                    .addComponent(labelBiome))
-                .addGap(0, 9, Short.MAX_VALUE))
+                    .addComponent(labelBiome)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel4)
+                        .addGap(0, 0, 0)
+                        .addComponent(checkBoxInSelection)))
+                .addGap(0, 53, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -373,17 +399,24 @@ public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(labelBiome)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(checkBoxAutomaticBiome)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(checkBoxAutomaticBiome)
+                    .addComponent(jLabel8))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(checkBoxInSelection)
+                    .addComponent(jLabel4))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 149, Short.MAX_VALUE))
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 119, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox checkBoxAutomaticBiome;
+    private javax.swing.JCheckBox checkBoxInSelection;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel12;
@@ -392,9 +425,11 @@ public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener
     private javax.swing.JLabel jLabel17;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTable jTable1;
@@ -418,6 +453,8 @@ public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener
     private Terrain currentTerrain;
     private int currentBiome;
 
+    private static final Set<Layer> HIDDEN_LAYERS = new HashSet<>(Arrays.asList(Biome.INSTANCE, SelectionChunk.INSTANCE,
+            SelectionBlock.INSTANCE, FloodWithLava.INSTANCE));
     private static final Icon ICON_BLANK = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/transparent.png");
     private static final Logger logger = LoggerFactory.getLogger(InfoPanel.class);
 

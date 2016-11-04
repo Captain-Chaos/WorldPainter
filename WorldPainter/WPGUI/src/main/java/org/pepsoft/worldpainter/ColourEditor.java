@@ -42,12 +42,12 @@ public class ColourEditor extends javax.swing.JPanel implements MouseListener {
     public int getBaseline(int width, int height) {
         return labelColour.getBaseline(width, height);
     }
-    
+
     // MouseListener
     
     @Override
     public void mouseClicked(MouseEvent e) {
-        if (enabled) {
+        if (isEnabled()) {
             pickColour();
         }
     }
@@ -64,8 +64,13 @@ public class ColourEditor extends javax.swing.JPanel implements MouseListener {
     private void pickColour() {
         Color pick = JColorChooser.showDialog(this, "Select Colour", new Color(colour));
         if (pick != null) {
-            colour = pick.getRGB();
-            labelColour.setBackground(new Color(colour));
+            int newColour = pick.getRGB();
+            if (newColour != colour) {
+                int oldColour = colour;
+                colour = pick.getRGB();
+                setLabelColour();
+                firePropertyChange("colour", oldColour, newColour);
+            }
         }
     }
 
@@ -114,8 +119,7 @@ public class ColourEditor extends javax.swing.JPanel implements MouseListener {
     }//GEN-LAST:event_buttonSelectColourActionPerformed
 
     private int colour = Color.ORANGE.getRGB();
-    private boolean enabled;
-    
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonSelectColour;
     private javax.swing.JLabel labelColour;

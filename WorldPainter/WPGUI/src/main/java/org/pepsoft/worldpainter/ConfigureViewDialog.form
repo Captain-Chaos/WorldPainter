@@ -27,12 +27,8 @@
           <Group type="102" attributes="0">
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" attributes="0">
-                      <EmptySpace min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="checkBoxGrid" min="-2" max="-2" attributes="0"/>
-                          <Component id="checkBoxContours" alignment="0" min="-2" max="-2" attributes="0"/>
-                          <Component id="checkBoxImageOverlay" alignment="0" min="-2" max="-2" attributes="0"/>
-                          <Component id="checkBoxBackgroundImage" alignment="0" min="-2" max="-2" attributes="0"/>
                           <Group type="102" attributes="0">
                               <EmptySpace min="-2" pref="21" max="-2" attributes="0"/>
                               <Group type="103" groupAlignment="0" attributes="0">
@@ -78,8 +74,17 @@
                                   </Group>
                               </Group>
                           </Group>
-                          <Component id="checkBoxShowBorders" alignment="0" min="-2" max="-2" attributes="0"/>
-                          <Component id="checkBoxShowBiomes" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Group type="102" attributes="0">
+                              <Group type="103" groupAlignment="0" attributes="0">
+                                  <Component id="checkBoxGrid" min="-2" max="-2" attributes="0"/>
+                                  <Component id="checkBoxContours" alignment="0" min="-2" max="-2" attributes="0"/>
+                                  <Component id="checkBoxImageOverlay" alignment="0" min="-2" max="-2" attributes="0"/>
+                                  <Component id="checkBoxBackgroundImage" alignment="0" min="-2" max="-2" attributes="0"/>
+                                  <Component id="checkBoxShowBorders" alignment="0" min="-2" max="-2" attributes="0"/>
+                                  <Component id="checkBoxShowBiomes" alignment="0" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                              <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                          </Group>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="buttonSelectBackgroundImage" min="-2" max="-2" attributes="0"/>
@@ -111,10 +116,12 @@
                                       <EmptySpace min="-2" pref="133" max="-2" attributes="0"/>
                                       <Component id="jLabel6" min="-2" max="-2" attributes="0"/>
                                   </Group>
-                                  <Group type="102" attributes="0">
+                                  <Group type="102" alignment="0" attributes="0">
                                       <Component id="jLabel12" min="-2" max="-2" attributes="0"/>
                                       <EmptySpace max="-2" attributes="0"/>
                                       <Component id="colourEditor1" min="-2" max="-2" attributes="0"/>
+                                      <EmptySpace max="-2" attributes="0"/>
+                                      <Component id="buttonResetBackgroundColour" min="-2" max="-2" attributes="0"/>
                                   </Group>
                               </Group>
                               <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
@@ -177,11 +184,16 @@
                   <Component id="spinnerYOffset" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Component id="checkBoxShowBorders" min="-2" max="-2" attributes="0"/>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Component id="checkBoxShowBiomes" min="-2" max="-2" attributes="0"/>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="jLabel12" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="colourEditor1" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="buttonResetBackgroundColour" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
               <Component id="checkBoxBackgroundImage" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
@@ -194,10 +206,6 @@
                   <Component id="jLabel14" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="comboBoxBackgroundImageMode" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace type="separate" max="-2" attributes="0"/>
-              <Component id="checkBoxShowBorders" min="-2" max="-2" attributes="0"/>
-              <EmptySpace max="-2" attributes="0"/>
-              <Component id="checkBoxShowBiomes" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="32767" attributes="0"/>
               <Component id="buttonClose" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
@@ -384,6 +392,9 @@
       <Properties>
         <Property name="text" type="java.lang.String" value="Background image"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="checkBoxBackgroundImageActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel13">
       <Properties>
@@ -392,7 +403,6 @@
     </Component>
     <Component class="javax.swing.JTextField" name="fieldBackgroundImage">
       <Properties>
-        <Property name="text" type="java.lang.String" value="jTextField1"/>
         <Property name="enabled" type="boolean" value="false"/>
       </Properties>
     </Component>
@@ -401,6 +411,9 @@
         <Property name="text" type="java.lang.String" value="..."/>
         <Property name="enabled" type="boolean" value="false"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonSelectBackgroundImageActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel14">
       <Properties>
@@ -409,29 +422,38 @@
     </Component>
     <Component class="javax.swing.JComboBox" name="comboBoxBackgroundImageMode">
       <Properties>
-        <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
-          <StringArray count="6">
-            <StringItem index="0" value="Repeat"/>
-            <StringItem index="1" value="Centered"/>
-            <StringItem index="2" value="Centered Repeat"/>
-            <StringItem index="3" value="Fit"/>
-            <StringItem index="4" value="Fit Repeat"/>
-            <StringItem index="5" value="Stretch"/>
-          </StringArray>
-        </Property>
         <Property name="enabled" type="boolean" value="false"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="comboBoxBackgroundImageModeActionPerformed"/>
+      </Events>
+      <AuxValues>
+        <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;TiledImageViewer.BackgroundImageMode&gt;"/>
+      </AuxValues>
     </Component>
     <Component class="javax.swing.JCheckBox" name="checkBoxShowBiomes">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Show Minecraft biomes"/>
-        <Property name="enabled" type="boolean" value="false"/>
+        <Property name="text" type="java.lang.String" value="Show Minecraft biomes (when available and applicable)"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="checkBoxShowBiomesActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JCheckBox" name="checkBoxShowBorders">
       <Properties>
         <Property name="text" type="java.lang.String" value="Show borders"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="checkBoxShowBordersActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JButton" name="buttonResetBackgroundColour">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Reset"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonResetBackgroundColourActionPerformed"/>
+      </Events>
     </Component>
   </SubComponents>
 </Form>

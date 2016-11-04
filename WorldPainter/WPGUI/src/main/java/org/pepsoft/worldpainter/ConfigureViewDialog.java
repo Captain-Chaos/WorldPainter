@@ -11,6 +11,8 @@
 package org.pepsoft.worldpainter;
 
 import org.pepsoft.util.FileUtils;
+import org.pepsoft.util.swing.TiledImageViewer;
+import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -33,7 +35,7 @@ import java.util.Set;
  *
  * @author pepijn
  */
-public class ConfigureViewDialog extends javax.swing.JDialog implements DocumentListener, WindowListener {
+public class ConfigureViewDialog extends javax.swing.JDialog implements WindowListener {
     /** Creates new form ConfigureViewDialog */
     public ConfigureViewDialog(Frame parent, Dimension dimension, WorldPainter view) {
         this(parent, dimension, view, false);
@@ -64,11 +66,60 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
         if (config.getBackgroundImage() != null) {
             fieldBackgroundImage.setText(config.getBackgroundImage().getAbsolutePath());
         }
+        comboBoxBackgroundImageMode.setModel(new DefaultComboBoxModel<>(TiledImageViewer.BackgroundImageMode.values()));
+        comboBoxBackgroundImageMode.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof TiledImageViewer.BackgroundImageMode) {
+                    switch ((TiledImageViewer.BackgroundImageMode) value) {
+                        case CENTRE:
+                            setText("Centre");
+                            break;
+                        case CENTRE_REPEAT:
+                            setText("Centre (repeat)");
+                            break;
+                        case FIT:
+                            setText("Fit");
+                            break;
+                        case FIT_REPEAT:
+                            setText("Fit (repeat)");
+                            break;
+                        case REPEAT:
+                            setText("Repeat");
+                            break;
+                        case STRETCH:
+                            setText("Stretch");
+                            break;
+                    }
+                }
+                return this;
+            }
+        });
         comboBoxBackgroundImageMode.setSelectedItem(config.getBackgroundImageMode());
         checkBoxShowBiomes.setSelected(config.isShowBiomes());
         checkBoxShowBorders.setSelected(config.isShowBorders());
 
-        fieldImage.getDocument().addDocumentListener(this);
+        fieldImage.getDocument().addDocumentListener(new DocumentListener() {
+            @Override public void insertUpdate(DocumentEvent e) { updateImageFile(); }
+            @Override public void removeUpdate(DocumentEvent e) { updateImageFile(); }
+            @Override public void changedUpdate(DocumentEvent e) { updateImageFile(); }
+        });
+        fieldBackgroundImage.getDocument().addDocumentListener(new DocumentListener() {
+            @Override public void insertUpdate(DocumentEvent e) { updateBackgroundImageFile(); }
+            @Override public void removeUpdate(DocumentEvent e) { updateBackgroundImageFile(); }
+            @Override public void changedUpdate(DocumentEvent e) { updateBackgroundImageFile(); }
+        });
+        colourEditor1.setColour(view.getBackground().getRGB());
+        colourEditor1.addPropertyChangeListener("colour", event -> {
+            int newColour = (Integer) event.getNewValue();
+            if (newColour == VoidRenderer.getColour()) {
+                config.setBackgroundColour(-1);
+            } else {
+                config.setBackgroundColour(newColour);
+            }
+            view.setBackground(new Color(newColour));
+        });
         setControlStates();
         setLocationRelativeTo(parent);
         
@@ -90,23 +141,6 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
         }
     }
 
-    // DocumentListener
-    
-    @Override
-    public void insertUpdate(DocumentEvent e) {
-        updateImageFile();
-    }
-
-    @Override
-    public void removeUpdate(DocumentEvent e) {
-        updateImageFile();
-    }
-
-    @Override
-    public void changedUpdate(DocumentEvent e) {
-        updateImageFile();
-    }
-    
     // WindowListener
 
     @Override
@@ -137,25 +171,13 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
         fieldBackgroundImage.setEnabled(backgroundImageEnabled);
         buttonSelectBackgroundImage.setEnabled(backgroundImageEnabled);
         comboBoxBackgroundImageMode.setEnabled(backgroundImageEnabled);
-        checkBoxShowBiomes.setEnabled(checkBoxShowBorders.isSelected());
     }
     
     private void updateImageFile() {
         File file = new File(fieldImage.getText());
-        if (file.isFile() && file.canRead()) {
-            logger.info("Loading image");
-            BufferedImage image;
-            try {
-                image = ImageIO.read(file);
-            } catch (IOException e) {
-                logger.error("I/O error while loading image " + file ,e);
-                JOptionPane.showMessageDialog(this, "An error occurred while loading the overlay image.\nIt may not be a valid or supported image file, or the file may be corrupted.", "Error Loading Image", JOptionPane.ERROR_MESSAGE);
-                return;
-            } catch (RuntimeException | Error e) {
-                logger.error(e.getClass().getSimpleName() + " while loading image " + file ,e);
-                JOptionPane.showMessageDialog(this, "An error occurred while loading the overlay image.\nThere may not be enough available memory, or the image may be too large.", "Error Loading Image", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
+        BufferedImage image = loadImage(file);
+        if (image != null) {
+            // The loading succeeded
             switch (Configuration.getInstance().getOverlayType()) {
                 case OPTIMISE_ON_LOAD:
                     image = scaleImage(image, getGraphicsConfiguration(), 100);
@@ -170,6 +192,32 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
                 view.setOverlay(image);
             }
         }
+    }
+
+    private void updateBackgroundImageFile() {
+        File file = new File(fieldBackgroundImage.getText());
+        BufferedImage image = loadImage(file);
+        if (image != null) {
+            // The loading succeeded
+            Configuration.getInstance().setBackgroundImage(file);
+            view.setBackgroundImage(image);
+        }
+    }
+
+    private BufferedImage loadImage(File file) {
+        if (file.isFile() && file.canRead()) {
+            logger.info("Loading image");
+            try {
+                return ImageIO.read(file);
+            } catch (IOException e) {
+                logger.error("I/O error while loading image " + file ,e);
+                JOptionPane.showMessageDialog(this, "An error occurred while loading the image.\nIt may not be a valid or supported image file, or the file may be corrupted.", "Error Loading Image", JOptionPane.ERROR_MESSAGE);
+            } catch (RuntimeException | Error e) {
+                logger.error(e.getClass().getSimpleName() + " while loading image " + file ,e);
+                JOptionPane.showMessageDialog(this, "An error occurred while loading the image.\nThere may not be enough available memory, or the image may be too large.", "Error Loading Image", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+        return null;
     }
     
     static BufferedImage scaleImage(BufferedImage image, GraphicsConfiguration graphicsConfiguration, int scale) {
@@ -211,6 +259,14 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
     }
     
     private void selectImage() {
+        doSelectImage(fieldImage, "an overlay image file");
+    }
+
+    private void selectBackgroundImage() {
+        doSelectImage(fieldBackgroundImage, "a background image file");
+    }
+
+    private void doSelectImage(JTextField targetField, String imageType) {
         final Set<String> extensions = new HashSet<>(Arrays.asList(ImageIO.getReaderFileSuffixes()));
         StringBuilder sb = new StringBuilder("Supported image formats (");
         boolean first = true;
@@ -225,8 +281,8 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
         }
         sb.append(')');
         final String description = sb.toString();
-        File selectedFile = new File(fieldImage.getText());
-        selectedFile = FileUtils.selectFileForOpen(this, "Select an overlay image file", (selectedFile.isFile()) ? selectedFile : null, new FileFilter() {
+        File selectedFile = new File(targetField.getText());
+        selectedFile = FileUtils.selectFileForOpen(this, "Select " + imageType, (selectedFile.isFile()) ? selectedFile : null, new FileFilter() {
             @Override
             public boolean accept(File f) {
                 if (f.isDirectory()) {
@@ -248,7 +304,7 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
             }
         });
         if (selectedFile != null) {
-            fieldImage.setText(selectedFile.getAbsolutePath());
+            targetField.setText(selectedFile.getAbsolutePath());
         }
     }
     
@@ -320,9 +376,10 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
         fieldBackgroundImage = new javax.swing.JTextField();
         buttonSelectBackgroundImage = new javax.swing.JButton();
         jLabel14 = new javax.swing.JLabel();
-        comboBoxBackgroundImageMode = new javax.swing.JComboBox();
+        comboBoxBackgroundImageMode = new javax.swing.JComboBox<>();
         checkBoxShowBiomes = new javax.swing.JCheckBox();
         checkBoxShowBorders = new javax.swing.JCheckBox();
+        buttonResetBackgroundColour = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Configure View");
@@ -438,24 +495,53 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
         jLabel12.setText("Background colour:");
 
         checkBoxBackgroundImage.setText("Background image");
+        checkBoxBackgroundImage.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxBackgroundImageActionPerformed(evt);
+            }
+        });
 
         jLabel13.setText("Image:");
 
-        fieldBackgroundImage.setText("jTextField1");
         fieldBackgroundImage.setEnabled(false);
 
         buttonSelectBackgroundImage.setText("...");
         buttonSelectBackgroundImage.setEnabled(false);
+        buttonSelectBackgroundImage.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonSelectBackgroundImageActionPerformed(evt);
+            }
+        });
 
         jLabel14.setText("Layout:");
 
-        comboBoxBackgroundImageMode.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Repeat", "Centered", "Centered Repeat", "Fit", "Fit Repeat", "Stretch" }));
         comboBoxBackgroundImageMode.setEnabled(false);
+        comboBoxBackgroundImageMode.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboBoxBackgroundImageModeActionPerformed(evt);
+            }
+        });
 
-        checkBoxShowBiomes.setText("Show Minecraft biomes");
-        checkBoxShowBiomes.setEnabled(false);
+        checkBoxShowBiomes.setText("Show Minecraft biomes (when available and applicable)");
+        checkBoxShowBiomes.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxShowBiomesActionPerformed(evt);
+            }
+        });
 
         checkBoxShowBorders.setText("Show borders");
+        checkBoxShowBorders.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxShowBordersActionPerformed(evt);
+            }
+        });
+
+        buttonResetBackgroundColour.setText("Reset");
+        buttonResetBackgroundColour.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonResetBackgroundColourActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -466,10 +552,6 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(checkBoxGrid)
-                            .addComponent(checkBoxContours)
-                            .addComponent(checkBoxImageOverlay)
-                            .addComponent(checkBoxBackgroundImage)
                             .addGroup(layout.createSequentialGroup()
                                 .addGap(21, 21, 21)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -506,8 +588,15 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
                                         .addComponent(jLabel14)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(comboBoxBackgroundImageMode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                            .addComponent(checkBoxShowBorders)
-                            .addComponent(checkBoxShowBiomes))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(checkBoxGrid)
+                                    .addComponent(checkBoxContours)
+                                    .addComponent(checkBoxImageOverlay)
+                                    .addComponent(checkBoxBackgroundImage)
+                                    .addComponent(checkBoxShowBorders)
+                                    .addComponent(checkBoxShowBiomes))
+                                .addGap(0, 0, Short.MAX_VALUE)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buttonSelectBackgroundImage))
                     .addGroup(layout.createSequentialGroup()
@@ -535,7 +624,9 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
                                     .addGroup(layout.createSequentialGroup()
                                         .addComponent(jLabel12)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(colourEditor1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                        .addComponent(colourEditor1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(buttonResetBackgroundColour)))
                                 .addGap(0, 0, Short.MAX_VALUE))))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -583,10 +674,15 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
                     .addComponent(jLabel8)
                     .addComponent(spinnerYOffset, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
+                .addComponent(checkBoxShowBorders)
+                .addGap(18, 18, 18)
+                .addComponent(checkBoxShowBiomes)
+                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel12)
-                    .addComponent(colourEditor1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
+                    .addComponent(colourEditor1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(buttonResetBackgroundColour))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(checkBoxBackgroundImage)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -597,10 +693,6 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel14)
                     .addComponent(comboBoxBackgroundImageMode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addComponent(checkBoxShowBorders)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(checkBoxShowBiomes)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(buttonClose)
                 .addContainerGap())
@@ -687,8 +779,51 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
         dimension.setContourSeparation(contourSeparation);
     }//GEN-LAST:event_spinnerContourSeparationStateChanged
 
+    private void checkBoxBackgroundImageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxBackgroundImageActionPerformed
+        if (checkBoxBackgroundImage.isSelected()) {
+            if (fieldBackgroundImage.getText().trim().isEmpty()) {
+                selectBackgroundImage();
+            } else {
+                updateBackgroundImageFile();
+            }
+        } else {
+            Configuration.getInstance().setBackgroundImage(null);
+            view.setBackgroundImage(null);
+        }
+        setControlStates();
+    }//GEN-LAST:event_checkBoxBackgroundImageActionPerformed
+
+    private void buttonSelectBackgroundImageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonSelectBackgroundImageActionPerformed
+        selectBackgroundImage();
+    }//GEN-LAST:event_buttonSelectBackgroundImageActionPerformed
+
+    private void checkBoxShowBordersActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxShowBordersActionPerformed
+        boolean showBorders = checkBoxShowBorders.isSelected();
+        Configuration.getInstance().setShowBorders(showBorders);
+        view.setDrawBorders(showBorders);
+    }//GEN-LAST:event_checkBoxShowBordersActionPerformed
+
+    private void checkBoxShowBiomesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxShowBiomesActionPerformed
+        boolean showBiomes = checkBoxShowBiomes.isSelected();
+        Configuration.getInstance().setShowBiomes(showBiomes);
+        view.setDrawBiomes(showBiomes);
+    }//GEN-LAST:event_checkBoxShowBiomesActionPerformed
+
+    private void comboBoxBackgroundImageModeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxBackgroundImageModeActionPerformed
+        TiledImageViewer.BackgroundImageMode mode = (TiledImageViewer.BackgroundImageMode) comboBoxBackgroundImageMode.getSelectedItem();
+        Configuration.getInstance().setBackgroundImageMode(mode);
+        view.setBackgroundImageMode(mode);
+    }//GEN-LAST:event_comboBoxBackgroundImageModeActionPerformed
+
+    private void buttonResetBackgroundColourActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonResetBackgroundColourActionPerformed
+        colourEditor1.setColour(VoidRenderer.getColour());
+        view.setBackground(new Color(VoidRenderer.getColour()));
+        Configuration.getInstance().setBackgroundColour(-1);
+    }//GEN-LAST:event_buttonResetBackgroundColourActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonClose;
+    private javax.swing.JButton buttonResetBackgroundColour;
     private javax.swing.JButton buttonSelectBackgroundImage;
     private javax.swing.JButton buttonSelectImage;
     private javax.swing.JCheckBox checkBoxBackgroundImage;
@@ -698,7 +833,7 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements Document
     private javax.swing.JCheckBox checkBoxShowBiomes;
     private javax.swing.JCheckBox checkBoxShowBorders;
     private org.pepsoft.worldpainter.ColourEditor colourEditor1;
-    private javax.swing.JComboBox comboBoxBackgroundImageMode;
+    private javax.swing.JComboBox<TiledImageViewer.BackgroundImageMode> comboBoxBackgroundImageMode;
     private javax.swing.JTextField fieldBackgroundImage;
     private javax.swing.JTextField fieldImage;
     private javax.swing.JLabel jLabel1;

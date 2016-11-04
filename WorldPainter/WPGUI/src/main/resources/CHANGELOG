@@ -1,3 +1,11 @@
+-- Version 2.2.7, released ...
+
+ * More view options have been added to the Configure View screen (Ctrl+V or View -> Configure view...):
+   + The painting of the Minecraft biomes surrounding the world can be turned off
+   + The painting of the border can be turned off
+   + You can now set a background image with various repeat and stretch options, which will be shown in the background of the editor wherever it is not obscured by tiles, biomes or border, and wherever the Void layer is painted
+   + The background colour (visible wherever not obscured by tiles, biomes, border and/or background image) can be changed
+
 -- Version 2.2.6, released 25-10-2016
 
  * Bug fix: the scaling of height maps was reversed; this has now been fixed

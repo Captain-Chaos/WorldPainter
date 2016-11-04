@@ -137,55 +137,63 @@ public class ErrorDialog extends javax.swing.JDialog {
         sb.append("Free memory: " + runtime.freeMemory() + " bytes" + eol);
         sb.append("Total memory size: " + runtime.totalMemory() + " bytes" + eol);
         sb.append("Max memory size: " + runtime.maxMemory() + " bytes" + eol);
-        App app = App.getInstanceIfExists();
-        World2 world = (app != null) ? app.getWorld() : null;
-        Dimension dimension = (app != null) ? app.getDimension() : null;
-        if ((world != null) && (dimension != null)) {
-            sb.append(eol);
-            sb.append("World name: " + world.getName() + eol);
-            sb.append("Seed: " + dimension.getSeed() + eol);
-            sb.append("Bounds: " + dimension.getLowestX() + ", " + dimension.getLowestY() + " => " + dimension.getHighestX() + ", " + dimension.getHighestY() + eol);
-            sb.append("Height: " + world.getMaxHeight() + eol);
-            sb.append("Number of tiles: " + dimension.getTiles().size() + eol);
-            Set<Layer> layers = new HashSet<>();
-            for (Tile tile: dimension.getTiles()) {
-                layers.addAll(tile.getLayers());
-            }
-            sb.append("Layers in use: ");
-            boolean first = true;
-            for (Layer layer: layers) {
-                if (first) {
-                    first = false;
-                } else {
-                    sb.append(", ");
+
+        // The app may be in an unstable state, so if an exception occurs while
+        // interrogating it, swallow it to prevent endless loops
+        try {
+            App app = App.getInstanceIfExists();
+            World2 world = (app != null) ? app.getWorld() : null;
+            Dimension dimension = (app != null) ? app.getDimension() : null;
+            if ((world != null) && (dimension != null)) {
+                sb.append(eol);
+                sb.append("World name: " + world.getName() + eol);
+                sb.append("Seed: " + dimension.getSeed() + eol);
+                sb.append("Bounds: " + dimension.getLowestX() + ", " + dimension.getLowestY() + " => " + dimension.getHighestX() + ", " + dimension.getHighestY() + eol);
+                sb.append("Height: " + world.getMaxHeight() + eol);
+                sb.append("Number of tiles: " + dimension.getTiles().size() + eol);
+                Set<Layer> layers = new HashSet<>();
+                for (Tile tile : dimension.getTiles()) {
+                    layers.addAll(tile.getLayers());
                 }
-                sb.append(layer.getName());
+                sb.append("Layers in use: ");
+                boolean first = true;
+                for (Layer layer : layers) {
+                    if (first) {
+                        first = false;
+                    } else {
+                        sb.append(", ");
+                    }
+                    sb.append(layer.getName());
+                }
+                sb.append(eol);
+                sb.append("Border: " + dimension.getBorder() + " @ " + dimension.getBorderLevel() + eol);
+                sb.append("Sub surface material: " + dimension.getSubsurfaceMaterial() + eol);
+                TileFactory tileFactory = dimension.getTileFactory();
+                if (tileFactory instanceof HeightMapTileFactory) {
+                    HeightMapTileFactory heightMapTileFactory = (HeightMapTileFactory) tileFactory;
+                    sb.append("Water height: " + heightMapTileFactory.getWaterHeight() + eol);
+                }
+                if (world.getImportedFrom() != null) {
+                    sb.append("World imported from " + world.getImportedFrom() + eol);
+                }
+                if (!world.isAllowMerging()) {
+                    sb.append("World created in old coordinate system" + eol);
+                }
             }
-            sb.append(eol);
-            sb.append("Border: " + dimension.getBorder() + " @ " + dimension.getBorderLevel() + eol);
-            sb.append("Sub surface material: " + dimension.getSubsurfaceMaterial() + eol);
-            TileFactory tileFactory = dimension.getTileFactory();
-            if (tileFactory instanceof HeightMapTileFactory) {
-                HeightMapTileFactory heightMapTileFactory = (HeightMapTileFactory) tileFactory;
-                sb.append("Water height: " + heightMapTileFactory.getWaterHeight() + eol);
+            if (app != null) {
+                sb.append(eol);
+                sb.append("Operation: " + app.getActiveOperation() + eol);
+                sb.append("Radius: " + app.getRadius() + eol);
+                //        sb.append("Brush shape: " + app.getBrushShape() + "/" + app.getToolBrushShape() + eol);
+                sb.append("Brush: " + app.getBrush() + "/" + app.getToolBrush() + eol);
+                sb.append("Level: " + app.getLevel() + "/" + app.getToolLevel() + eol);
+                sb.append("Zoom: " + app.getZoom() + eol);
+                sb.append("Hidden layers: " + app.getHiddenLayers());
             }
-            if (world.getImportedFrom() != null) {
-                sb.append("World imported from " + world.getImportedFrom() + eol);
-            }
-            if (! world.isAllowMerging()) {
-                sb.append("World created in old coordinate system" + eol);
-            }
+        } catch (Throwable t) {
+            logger.error("Secondary exception occurred while interrogating app for exception report", t);
         }
-        if (app != null) {
-            sb.append(eol);
-            sb.append("Operation: " + app.getActiveOperation() + eol);
-            sb.append("Radius: " + app.getRadius() + eol);
-    //        sb.append("Brush shape: " + app.getBrushShape() + "/" + app.getToolBrushShape() + eol);
-            sb.append("Brush: " + app.getBrush() + "/" + app.getToolBrush() + eol);
-            sb.append("Level: " + app.getLevel() + "/" + app.getToolLevel() + eol);
-            sb.append("Zoom: " + app.getZoom() + eol);
-            sb.append("Hidden layers: " + app.getHiddenLayers());
-        }
+
         body = sb.toString();
 
         if (! "true".equals(System.getProperty("org.pepsoft.worldpainter.devMode"))) {
