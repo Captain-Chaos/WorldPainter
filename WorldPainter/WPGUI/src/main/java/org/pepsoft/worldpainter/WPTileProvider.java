@@ -104,6 +104,7 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
                 return paintUnzoomedTile(tileImage, x, y, imageX, imageY);
             } else {
                 Graphics2D g2 = (Graphics2D) tileImage.getGraphics();
+                g2.setComposite(AlphaComposite.Src);
                 try {
                     Boolean surroundingTileImageAvailable = null;
                     BufferedImage surroundingTileImage = null;
@@ -404,6 +405,7 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
                     if (! surroundingTileProvider.paintTile(tileImage, x, y, dx, dy)) {
                         Graphics2D g2 = (Graphics2D) tileImage.getGraphics();
                         try {
+                            g2.setComposite(AlphaComposite.Src);
                             g2.setColor(new Color(VoidRenderer.getColour()));
                             g2.fillRect(dx, dy, TILE_SIZE, TILE_SIZE);
                         } finally {

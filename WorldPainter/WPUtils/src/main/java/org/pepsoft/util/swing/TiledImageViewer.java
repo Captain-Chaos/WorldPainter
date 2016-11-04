@@ -942,6 +942,28 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         }
     }
 
+    public BufferedImage getBackgroundImage() {
+        return backgroundImage;
+    }
+
+    public void setBackgroundImage(BufferedImage backgroundImage) {
+        this.backgroundImage = backgroundImage;
+        repaint();
+    }
+
+    public BackgroundImageMode getBackgroundImageMode() {
+        return backgroundImageMode;
+    }
+
+    public void setBackgroundImageMode(BackgroundImageMode backgroundImageMode) {
+        if (backgroundImageMode != this.backgroundImageMode) {
+            this.backgroundImageMode = backgroundImageMode;
+            if (backgroundImage != null) {
+                repaint();
+            }
+        }
+    }
+
     /**
      * Determine whether a tile is currently visible in the viewport.
      *
@@ -1210,9 +1232,60 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
     @Override
     protected void paintComponent(Graphics g) {
         final Graphics2D g2 = (Graphics2D) g;
-        g2.setColor(getBackground());
         Rectangle clipBounds = g2.getClipBounds();
-        g2.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
+        g2.setColor(getBackground());
+        int myWidth = getWidth();
+        int myHeight = getHeight();
+        if (backgroundImage != null) {
+            switch (backgroundImageMode) {
+                case CENTRE:
+                    g2.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
+                    int imageWidth = backgroundImage.getWidth();
+                    int imageHeight = backgroundImage.getHeight();
+                    int imageX = (myWidth - imageWidth) / 2;
+                    int imageY = (myHeight - imageHeight) / 2;
+                    if (clipBounds.intersects(imageX, imageY, imageWidth, imageHeight)) {
+                        g2.drawImage(backgroundImage, imageX, imageY, null);
+                    }
+                    break;
+                case CENTRE_REPEAT:
+                    repeatImage(g2, clipBounds, backgroundImage, (myWidth - backgroundImage.getWidth()) / 2, (myHeight - backgroundImage.getHeight()) / 2, backgroundImage.getWidth(), backgroundImage.getHeight());
+                    break;
+                case FIT:
+                case FIT_REPEAT:
+                    imageWidth = backgroundImage.getWidth();
+                    imageHeight = backgroundImage.getHeight();
+                    float myRatio = (float) myWidth / myHeight;
+                    float imageRatio = (float) imageWidth / imageHeight;
+                    if (imageRatio > myRatio) {
+                        imageWidth = myWidth;
+                        imageHeight = (int) (imageWidth / imageRatio);
+                    } else {
+                        imageHeight = myHeight;
+                        imageWidth = (int) (imageHeight * imageRatio);
+                    }
+                    imageX = (myWidth - imageWidth) / 2;
+                    imageY = (myHeight - imageHeight) / 2;
+                    if (backgroundImageMode == BackgroundImageMode.FIT) {
+                        g2.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
+                        if (clipBounds.intersects(imageX, imageY, imageWidth, imageHeight)) {
+                            g2.drawImage(backgroundImage, imageX, imageY, null);
+                        }
+                    } else {
+                        repeatImage(g2, clipBounds, backgroundImage, imageX, imageY, backgroundImage.getWidth(), backgroundImage.getHeight());
+                    }
+                    break;
+                case REPEAT:
+                    repeatImage(g2, clipBounds, backgroundImage, 0, 0, backgroundImage.getWidth(), backgroundImage.getHeight());
+                    break;
+                case STRETCH:
+                    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+                    g2.drawImage(backgroundImage, 0, 0, myWidth, myHeight, null);
+                    break;
+            }
+        } else {
+            g2.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
+        }
         if (tileProviders.isEmpty()) {
             return;
         }
@@ -1265,8 +1338,8 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         paintMarkerIfApplicable(g2);
         
         if (paintCentre) {
-            final int middleX = getWidth() / 2;
-            final int middleY = getHeight() / 2;
+            final int middleX = myWidth / 2;
+            final int middleY = myHeight / 2;
             g2.setColor(Color.BLACK);
             g2.drawLine(middleX - 4, middleY + 1, middleX + 6, middleY + 1);
             g2.drawLine(middleX + 1, middleY - 4, middleX + 1, middleY + 6);
@@ -1279,7 +1352,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
 
         // Unschedule tiles which were scheduled to be rendered but are no
         // longer visible
-        final Rectangle viewBounds = new Rectangle(0, 0, getWidth(), getHeight());
+        final Rectangle viewBounds = new Rectangle(0, 0, myWidth, myHeight);
         synchronized (TILE_CACHE_LOCK) {
             for (Iterator<Runnable> i = queue.iterator(); i.hasNext(); ) {
                 TileRenderJob job = (TileRenderJob) i.next();
@@ -1292,6 +1365,21 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                 }
             }
         }
+    }
+
+    private void repeatImage(final Graphics2D g2, Rectangle clipBounds, final BufferedImage image, int x, int y, final int width, final int height) {
+        while (y > 0) y-= height;
+        do {
+            while (x > 0) x -= width;
+            do {
+                if (clipBounds.intersects(x, y, width, height)) {
+                    System.out.println("g2.drawImage(image, " + x + ", " + y + ", " + width + ", " + height + ", null)");
+                    g2.drawImage(image, x, y, width, height, null);
+                }
+                x += width;
+            } while (x < getWidth());
+            y += height;
+        } while (y < getHeight());
     }
 
     private void paintOverlays(Graphics2D g2) {
@@ -1704,6 +1792,8 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
      * The colour in which to paint the grid.
      */
     private Color gridColour = Color.BLACK;
+    private BufferedImage backgroundImage;
+    private BackgroundImageMode backgroundImageMode = BackgroundImageMode.CENTRE_REPEAT;
 
     public static final int TILE_SIZE = 128, TILE_SIZE_BITS = 7, TILE_SIZE_MASK = 0x7f;
     
@@ -1823,4 +1913,6 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         final Component componentToTrack;
         final BufferedImage image;
     }
+
+    public enum BackgroundImageMode {CENTRE, STRETCH, FIT, REPEAT, CENTRE_REPEAT, FIT_REPEAT}
 }

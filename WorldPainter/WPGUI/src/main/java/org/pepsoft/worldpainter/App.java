@@ -50,6 +50,8 @@ import org.pepsoft.worldpainter.panels.BrushOptions;
 import org.pepsoft.worldpainter.panels.BrushOptions.Listener;
 import org.pepsoft.worldpainter.plugins.CustomLayerProvider;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
+import org.pepsoft.worldpainter.selection.CopySelectionOperation;
+import org.pepsoft.worldpainter.selection.EditSelectionOperation;
 import org.pepsoft.worldpainter.threedeeview.ThreeDeeFrame;
 import org.pepsoft.worldpainter.tools.BiomesViewerFrame;
 import org.pepsoft.worldpainter.tools.RespawnPlayerDialog;
@@ -2306,6 +2308,9 @@ public final class App extends JFrame implements RadiusControl,
         toolPanel.add(button);
         toolPanel.add(createButtonForOperation(new RaiseRotatedPyramid(view)));
         toolPanel.add(createButtonForOperation(new RaisePyramid(view)));
+
+        toolPanel.add(createButtonForOperation(new EditSelectionOperation(view, this, mapDragControl)));
+        toolPanel.add(createButtonForOperation(new CopySelectionOperation(view)));
 
         for (Operation operation: operations) {
             operation.setView(view);

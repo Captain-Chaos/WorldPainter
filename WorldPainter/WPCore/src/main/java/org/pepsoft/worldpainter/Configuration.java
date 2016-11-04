@@ -5,9 +5,11 @@
 
 package org.pepsoft.worldpainter;
 
+import javafx.scene.layout.BackgroundImage;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.SystemUtils;
+import org.pepsoft.util.swing.TiledImageViewer;
 import org.pepsoft.worldpainter.Dimension.Border;
 import org.pepsoft.worldpainter.TileRenderer.LightOrigin;
 import org.pepsoft.worldpainter.layers.CustomLayer;
@@ -602,6 +604,46 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         this.masksDirectory = masksDirectory;
     }
 
+    public File getBackgroundImage() {
+        return backgroundImage;
+    }
+
+    public void setBackgroundImage(File backgroundImage) {
+        this.backgroundImage = backgroundImage;
+    }
+
+    public TiledImageViewer.BackgroundImageMode getBackgroundImageMode() {
+        return backgroundImageMode;
+    }
+
+    public void setBackgroundImageMode(TiledImageViewer.BackgroundImageMode backgroundImageMode) {
+        this.backgroundImageMode = backgroundImageMode;
+    }
+
+    public int getBackgroundColour() {
+        return backgroundColour;
+    }
+
+    public void setBackgroundColour(int backgroundColour) {
+        this.backgroundColour = backgroundColour;
+    }
+
+    public boolean isShowBorders() {
+        return showBorders;
+    }
+
+    public void setShowBorders(boolean showBorders) {
+        this.showBorders = showBorders;
+    }
+
+    public boolean isShowBiomes() {
+        return showBiomes;
+    }
+
+    public void setShowBiomes(boolean showBiomes) {
+        this.showBiomes = showBiomes;
+    }
+
     @Override
     public synchronized void logEvent(EventVO event) {
         if (eventLog != null) {
@@ -774,6 +816,11 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
             jideLayoutData = null;
             showCalloutCount = 3;
         }
+        if (version < 13) {
+            backgroundImageMode = TiledImageViewer.BackgroundImageMode.REPEAT;
+            backgroundColour = -1;
+            showBiomes = showBorders = true;
+        }
         version = CURRENT_VERSION;
         
         // Bug fix: make sure terrain ranges map conforms to surface material setting
@@ -805,6 +852,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         recentFiles = FileUtils.absolutise(recentFiles);
         recentScriptFiles = FileUtils.absolutise(recentScriptFiles);
         masksDirectory = FileUtils.absolutise(masksDirectory);
+        backgroundImage = FileUtils.absolutise(backgroundImage);
         
         out.defaultWriteObject();
     }
@@ -911,7 +959,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private List<MixedMaterial> mixedMaterials = new ArrayList<>();
 //    private boolean easyMode = true;
     private boolean defaultExtendedBlockIds;
-    private File layerDirectory, terrainDirectory, heightMapsDirectory, masksDirectory;
+    private File layerDirectory, terrainDirectory, heightMapsDirectory, masksDirectory, backgroundImage;
     private Theme heightMapDefaultTheme;
     private boolean defaultCreateGoodiesChest = true, defaultMapFeatures = true, defaultAllowCheats;
     private Generator defaultGenerator = Generator.DEFAULT;
@@ -924,6 +972,9 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private int showCalloutCount = 3;
     private List<File> recentFiles;
     private List<File> recentScriptFiles;
+    private TiledImageViewer.BackgroundImageMode backgroundImageMode = TiledImageViewer.BackgroundImageMode.REPEAT;
+    private int backgroundColour = -1;
+    private boolean showBorders = true, showBiomes = true;
 
     private transient AccelerationType accelerationType;
 
@@ -931,7 +982,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Configuration.class);
     private static final long serialVersionUID = 2011041801L;
     private static final int CIRCULAR_WORLD = -1;
-    private static final int CURRENT_VERSION = 12;
+    private static final int CURRENT_VERSION = 13;
     
     public enum DonationStatus {DONATED, NO_THANK_YOU}
     

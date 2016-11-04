@@ -35,12 +35,16 @@ public final class RegionFileCache {
     private static final int MAX_CACHE_SIZE = 256;
 
 
-    private static final Map<File, Reference<RegionFile>> cache = new HashMap<>();
+    private static final Map<File, Reference<RegionFile>> cache = new HashMap<>(), readOnlyCache = new HashMap<>();
 
     private RegionFileCache() {
     }
 
     public static synchronized RegionFile getRegionFileIfExists(File basePath, int chunkX, int chunkZ, int version) throws IOException {
+        return getRegionFileIfExists(basePath, chunkX, chunkZ, version, false);
+    }
+
+    public static synchronized RegionFile getRegionFileIfExists(File basePath, int chunkX, int chunkZ, int version, boolean readOnly) throws IOException {
         if ((version != SUPPORTED_VERSION_1) && (version != SUPPORTED_VERSION_2)) {
             throw new IllegalArgumentException("Not a supported version: 0x" + Integer.toHexString(version));
         }
@@ -51,7 +55,7 @@ public final class RegionFileCache {
         }
         File file = new File(regionDir, "r." + (chunkX >> 5) + "." + (chunkZ >> 5) + ((version == SUPPORTED_VERSION_1) ? ".mcr" : ".mca"));
 
-        Reference<RegionFile> ref = cache.get(file);
+        Reference<RegionFile> ref = readOnly ? readOnlyCache.get(file) : cache.get(file);
 
         RegionFile regionFile = (ref != null) ? ref.get() : null;
         if (regionFile != null) {
@@ -62,12 +66,12 @@ public final class RegionFileCache {
             return null;
         }
 
-        if (cache.size() >= MAX_CACHE_SIZE) {
+        if ((readOnly ? readOnlyCache.size() : cache.size()) >= MAX_CACHE_SIZE) {
             RegionFileCache.clear();
         }
 
-        regionFile = new RegionFile(file);
-        cache.put(file, new SoftReference<>(regionFile));
+        regionFile = new RegionFile(file, readOnly);
+        (readOnly ? readOnlyCache : cache).put(file, new SoftReference<>(regionFile));
         return regionFile;
     }
     

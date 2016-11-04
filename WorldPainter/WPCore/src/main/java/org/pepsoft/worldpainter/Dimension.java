@@ -33,6 +33,7 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
@@ -1408,13 +1409,8 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         }
     }
 
-    public void forEachTile(TileProcessor tileProcessor) {
-        tiles.values().forEach(tileProcessor::processTile);
-    }
-
-    @FunctionalInterface
-    interface TileProcessor {
-        void processTile(Tile tile);
+    public Stream<Tile> streamTiles() {
+        return tiles.values().stream();
     }
 
     // Tile.Listener
