@@ -803,7 +803,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
                     int height = Math.round(overlay.getHeight() * overlayScale);
                     Object savedInterpolation = g2.getRenderingHint(RenderingHints.KEY_INTERPOLATION);
                     try {
-                        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+                        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
                         g2.drawImage(overlay, overlayOffsetX, overlayOffsetY, width, height, null);
                     } finally {
                         if (savedInterpolation != null) {

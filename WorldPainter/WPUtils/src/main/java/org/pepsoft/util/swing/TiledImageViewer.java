@@ -1266,7 +1266,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                     }
                     imageX = (myWidth - imageWidth) / 2;
                     imageY = (myHeight - imageHeight) / 2;
-                    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+                    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
                     if (backgroundImageMode == BackgroundImageMode.FIT) {
                         g2.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
                         if (clipBounds.intersects(imageX, imageY, imageWidth, imageHeight)) {
@@ -1280,7 +1280,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                     repeatImage(g2, clipBounds, backgroundImage, 0, 0, backgroundImage.getWidth(), backgroundImage.getHeight());
                     break;
                 case STRETCH:
-                    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+                    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
                     g2.drawImage(backgroundImage, 0, 0, myWidth, myHeight, null);
                     break;
             }
