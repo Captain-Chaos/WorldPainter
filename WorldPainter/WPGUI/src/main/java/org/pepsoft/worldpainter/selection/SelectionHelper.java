@@ -6,12 +6,13 @@ import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.brushes.Brush;
 import org.pepsoft.worldpainter.brushes.RotatedBrush;
 import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.layers.NotPresent;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Arc2D;
 import java.awt.geom.Path2D;
-import java.util.Random;
+import java.util.*;
 
 import static org.pepsoft.worldpainter.Constants.*;
 
@@ -39,70 +40,85 @@ public class SelectionHelper {
         editSelection(brush, x, y, false);
     }
 
-    public void copySelection(int targetX, int targetY) {
-        // Determine the bounding box of the selection
+    /**
+     * Calculate the bounding rectangle of the current selection.
+     *
+     * @return The bounding rectangle of the current selection, or
+     * <code>null</code> if there is no active selection.
+     */
+    public Rectangle getSelectionBounds() {
         final int[] lowestX = {Integer.MAX_VALUE};
         final int[] highestX = {Integer.MIN_VALUE};
         final int[] lowestY = {Integer.MAX_VALUE};
         final int[] highestY = {Integer.MIN_VALUE};
         dimension.streamTiles()
-            .filter(tile -> (tile.hasLayer(SelectionChunk.INSTANCE) || tile.hasLayer(SelectionBlock.INSTANCE)))
-            .forEach(tile -> {
-                final boolean tileHasChunkSelection = tile.hasLayer(SelectionChunk.INSTANCE);
-                final boolean tileHasBlockSelection = tile.hasLayer(SelectionBlock.INSTANCE);
-                for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
-                    for (int chunkY = 0; chunkY < TILE_SIZE; chunkY += 16) {
-                        if (tileHasChunkSelection && tile.getBitLayerValue(SelectionChunk.INSTANCE, chunkX, chunkY)) {
-                            final int x1 = (tile.getX() << TILE_SIZE_BITS) | chunkX;
-                            final int x2 = x1 + 15;
-                            final int y1 = (tile.getY() << TILE_SIZE_BITS) | chunkY;
-                            final int y2 = y1 + 15;
-                            if (x1 < lowestX[0]) {
-                                lowestX[0] = x1;
-                            }
-                            if (x2 > highestX[0]) {
-                                highestX[0] = x2;
-                            }
-                            if (y1 < lowestY[0]) {
-                                lowestY[0] = y1;
-                            }
-                            if (y2 > highestY[0]) {
-                                highestY[0] = y2;
-                            }
-                        } else if (tileHasBlockSelection) {
-                            for (int dx = 0; dx < 16; dx++) {
-                                for (int dy = 0; dy < 16; dy++) {
-                                    if (tile.getBitLayerValue(SelectionBlock.INSTANCE, chunkX + dx, chunkY + dy)) {
-                                        final int x = ((tile.getX() << TILE_SIZE_BITS) | chunkX) + dx;
-                                        final int y = ((tile.getY() << TILE_SIZE_BITS) | chunkY) + dy;
-                                        if (x < lowestX[0]) {
-                                            lowestX[0] = x;
-                                        }
-                                        if (x > highestX[0]) {
-                                            highestX[0] = x;
-                                        }
-                                        if (y < lowestY[0]) {
-                                            lowestY[0] = y;
-                                        }
-                                        if (y > highestY[0]) {
-                                            highestY[0] = y;
+                .filter(tile -> (tile.hasLayer(SelectionChunk.INSTANCE) || tile.hasLayer(SelectionBlock.INSTANCE)))
+                .forEach(tile -> {
+                    final boolean tileHasChunkSelection = tile.hasLayer(SelectionChunk.INSTANCE);
+                    final boolean tileHasBlockSelection = tile.hasLayer(SelectionBlock.INSTANCE);
+                    for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
+                        for (int chunkY = 0; chunkY < TILE_SIZE; chunkY += 16) {
+                            if (tileHasChunkSelection && tile.getBitLayerValue(SelectionChunk.INSTANCE, chunkX, chunkY)) {
+                                final int x1 = (tile.getX() << TILE_SIZE_BITS) | chunkX;
+                                final int x2 = x1 + 15;
+                                final int y1 = (tile.getY() << TILE_SIZE_BITS) | chunkY;
+                                final int y2 = y1 + 15;
+                                if (x1 < lowestX[0]) {
+                                    lowestX[0] = x1;
+                                }
+                                if (x2 > highestX[0]) {
+                                    highestX[0] = x2;
+                                }
+                                if (y1 < lowestY[0]) {
+                                    lowestY[0] = y1;
+                                }
+                                if (y2 > highestY[0]) {
+                                    highestY[0] = y2;
+                                }
+                            } else if (tileHasBlockSelection) {
+                                for (int dx = 0; dx < 16; dx++) {
+                                    for (int dy = 0; dy < 16; dy++) {
+                                        if (tile.getBitLayerValue(SelectionBlock.INSTANCE, chunkX + dx, chunkY + dy)) {
+                                            final int x = ((tile.getX() << TILE_SIZE_BITS) | chunkX) + dx;
+                                            final int y = ((tile.getY() << TILE_SIZE_BITS) | chunkY) + dy;
+                                            if (x < lowestX[0]) {
+                                                lowestX[0] = x;
+                                            }
+                                            if (x > highestX[0]) {
+                                                highestX[0] = x;
+                                            }
+                                            if (y < lowestY[0]) {
+                                                lowestY[0] = y;
+                                            }
+                                            if (y > highestY[0]) {
+                                                highestY[0] = y;
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                }
-            });
-        final int dx = targetX - lowestX[0];
-        final int dy = targetY - lowestY[0];
-        if ((dx == 0) && (dy == 0)) {
+                });
+        return new Rectangle(lowestX[0], lowestY[0], highestX[0] - lowestX[0] + 1, highestY[0] - lowestY[0] + 1);
+    }
+
+    public void copySelection(int targetX, int targetY) {
+        Rectangle bounds = getSelectionBounds();
+        if (bounds == null) {
+            // No selection
             return;
         }
-        final int tileX1 = lowestX[0] >> TILE_SIZE_BITS;
-        final int tileX2 = highestX[0] >> TILE_SIZE_BITS;
-        final int tileY1 = lowestY[0] >> TILE_SIZE_BITS;
-        final int tileY2 = highestY[0] >> TILE_SIZE_BITS;
+        final int dx = targetX - bounds.x;
+        final int dy = targetY - bounds.y;
+        if ((dx == 0) && (dy == 0)) {
+            // Target is at the same location as the selection
+            return;
+        }
+        final int tileX1 = bounds.x >> TILE_SIZE_BITS;
+        final int tileX2 = (bounds.x + bounds.width - 1) >> TILE_SIZE_BITS;
+        final int tileY1 = bounds.y >> TILE_SIZE_BITS;
+        final int tileY2 = (bounds.y + bounds.height - 1) >> TILE_SIZE_BITS;
 
         // Make sure to copy in the right direction to avoid problems if the
         // destination overlaps the selection
@@ -138,7 +154,7 @@ public class SelectionHelper {
                 }
             }
         } else {
-            // Shifting left or straight up/down
+            // Shifting left or not horizontally
             if (dy > 0) {
                 // Shifting down or left and down
                 for (int tileX = tileX1; tileX <= tileX2; tileX++) {
@@ -171,6 +187,11 @@ public class SelectionHelper {
         }
     }
 
+    public void clearSelection() {
+        dimension.clearLayerData(SelectionChunk.INSTANCE);
+        dimension.clearLayerData(SelectionBlock.INSTANCE);
+    }
+
     public boolean isDoBlending() {
         return doBlending;
     }
@@ -190,13 +211,15 @@ public class SelectionHelper {
     private void processColumn(Tile tile, int xInTile, int yInTile, int dx, int dy) {
         if (tile.getBitLayerValue(SelectionChunk.INSTANCE, xInTile, yInTile)
                 || tile.getBitLayerValue(SelectionBlock.INSTANCE, xInTile, yInTile)) {
-            int dstX = ((tile.getX() << TILE_SIZE_BITS) | xInTile) + dx;
-            int dstY = ((tile.getY() << TILE_SIZE_BITS) | yInTile) + dy;
+            final int srcX = (tile.getX() << TILE_SIZE_BITS) | xInTile;
+            final int srcY = (tile.getY() << TILE_SIZE_BITS) | yInTile;
+            final int dstX = srcX + dx;
+            final int dstY = srcY + dy;
             if (createNewTiles && (! dimension.isTilePresent(dstX >> TILE_SIZE_BITS, dstY >> TILE_SIZE_BITS))) {
                 dimension.addTile(dimension.getTileFactory().createTile(dstX >> TILE_SIZE_BITS, dstY >> TILE_SIZE_BITS));
             }
             if (doBlending) {
-                float distanceFromEdge = distanceToSelectionEdge(dstX, dstY);
+                float distanceFromEdge = distanceToSelectionEdge(srcX, srcY);
                 if (distanceFromEdge < 16.0f) {
                     float blend = (float) (-Math.cos(distanceFromEdge / DISTANCE_TO_BLEND) / 2 + 0.5);
                     copyColumn(tile, xInTile, yInTile, dstX, dstY, blend);
@@ -212,6 +235,24 @@ public class SelectionHelper {
     private void copyColumn(Tile srcTile, int srcXInTile, int srcYInTile, int dstX, int dstY) {
         dimension.setRawHeightAt(dstX, dstY, srcTile.getRawHeight(srcXInTile, srcYInTile));
         dimension.setTerrainAt(dstX, dstY, srcTile.getTerrain(srcXInTile, srcYInTile));
+        Map<Layer, Integer> layerValues = srcTile.getLayersAt(srcXInTile, srcYInTile);
+        layerValues.forEach((layer, value) -> {
+            if (SKIP_LAYERS.contains(layer)) {
+                return;
+            }
+            switch (layer.getDataSize()) {
+                case BIT:
+                case BIT_PER_CHUNK:
+                    dimension.setBitLayerValueAt(layer, dstX, dstY, value != 0);
+                    break;
+                case BYTE:
+                case NIBBLE:
+                    dimension.setLayerValueAt(layer, dstX, dstY, value);
+                    break;
+                case NONE:
+                    throw new UnsupportedOperationException("Don't know how to copy layer " + layer);
+            }
+        });
     }
 
     private void copyColumn(Tile srcTile, int srcXInTile, int srcYInTile, int dstX, int dstY, float blend) {
@@ -219,6 +260,26 @@ public class SelectionHelper {
         if (RANDOM.nextFloat() <= blend) {
             dimension.setTerrainAt(dstX, dstY, srcTile.getTerrain(srcXInTile, srcYInTile));
         }
+        Map<Layer, Integer> layerValues = srcTile.getLayersAt(srcXInTile, srcYInTile);
+        layerValues.forEach((layer, value) -> {
+            if (SKIP_LAYERS.contains(layer)) {
+                return;
+            }
+            switch (layer.getDataSize()) {
+                case BIT:
+                case BIT_PER_CHUNK:
+                    if (RANDOM.nextFloat() <= blend) {
+                        dimension.setBitLayerValueAt(layer, dstX, dstY, value != 0);
+                    }
+                    break;
+                case BYTE:
+                case NIBBLE:
+                    dimension.setLayerValueAt(layer, dstX, dstY, (int) (blend * value + (1 - blend) * dimension.getLayerValueAt(layer, dstX, dstY) + 0.5f));
+                    break;
+                case NONE:
+                    throw new UnsupportedOperationException("Don't know how to copy layer " + layer);
+            }
+        });
     }
 
     /**
@@ -437,4 +498,5 @@ outer:  for (int dx = -1; dx <= 1; dx++) {
     private static final double DEGREES_TO_RADIANS = 360 / (Math.PI * 2);
     private static final double DISTANCE_TO_BLEND = 16.0 / Math.PI;
     private static final Random RANDOM = new Random();
+    private static final Set<Layer> SKIP_LAYERS = new HashSet<>(Arrays.asList(SelectionChunk.INSTANCE, SelectionBlock.INSTANCE, NotPresent.INSTANCE));
 }

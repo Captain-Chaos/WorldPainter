@@ -112,16 +112,14 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         }
     }
 
-    @Override
-    public boolean isDrawRadius() {
-        return drawRadius;
+    public boolean isDrawBrush() {
+        return drawBrush;
     }
 
-    @Override
-    public void setDrawRadius(boolean drawRadius) {
-        if (drawRadius != this.drawRadius) {
-            this.drawRadius = drawRadius;
-            firePropertyChange("drawRadius", ! drawRadius, drawRadius);
+    public void setDrawBrush(boolean drawBrush) {
+        if (drawBrush != this.drawBrush) {
+            this.drawBrush = drawBrush;
+            firePropertyChange("drawBrush", !drawBrush, drawBrush);
             int diameter = radius * 2 + 1;
             repaintWorld(mouseX - radius, mouseY - radius, diameter, diameter);
         }
@@ -166,7 +164,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             effectiveRadius = (int) Math.ceil(Math.abs(Math.sin(a)) * radius + Math.abs(Math.cos(a)) * radius);
         }
         firePropertyChange("radius", oldRadius, radius);
-        if (drawRadius) {
+        if (drawBrush && (brushShape != BrushShape.CUSTOM)) {
             int largestRadius = Math.max(oldEffectiveRadius, effectiveRadius);
             int diameter = largestRadius * 2 + 1;
             repaintWorld(mouseX - largestRadius, mouseY - largestRadius, diameter, diameter);
@@ -182,17 +180,22 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             BrushShape oldBrushShape = this.brushShape;
             int oldEffectiveRadius = effectiveRadius;
             this.brushShape = brushShape;
-            if ((brushShape == BrushShape.CIRCLE) || ((brushRotation % 90) == 0)) {
+            if ((brushShape == BrushShape.CIRCLE) || (brushShape == BrushShape.CUSTOM) || ((brushRotation % 90) == 0)) {
                 effectiveRadius = radius;
             } else {
                 double a = brushRotation / 180.0 * Math.PI;
                 effectiveRadius = (int) Math.ceil(Math.abs(Math.sin(a)) * radius + Math.abs(Math.cos(a)) * radius);
             }
             firePropertyChange("brushShape", oldBrushShape, brushShape);
-            if (drawRadius) {
-                int largestRadius = Math.max(oldEffectiveRadius, effectiveRadius);
-                int diameter = largestRadius * 2 + 1;
-                repaintWorld(mouseX - largestRadius, mouseY - largestRadius, diameter, diameter);
+            if (drawBrush) {
+                if (brushShape == BrushShape.CUSTOM) {
+                    Rectangle bounds = customBrushShape.getBounds();
+                    repaintWorld(mouseX - bounds.x, mouseY - bounds.y, bounds.width, bounds.height);
+                } else {
+                    int largestRadius = Math.max(oldEffectiveRadius, effectiveRadius);
+                    int diameter = largestRadius * 2 + 1;
+                    repaintWorld(mouseX - largestRadius, mouseY - largestRadius, diameter, diameter);
+                }
             }
         }
     }
@@ -289,7 +292,21 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             }
         }
     }
-    
+
+    public Shape getCustomBrushShape() {
+        return customBrushShape;
+    }
+
+    public void setCustomBrushShape(Shape customBrushShape) {
+        Shape oldCustomBrushShape = this.customBrushShape;
+        this.customBrushShape = customBrushShape;
+        if ((drawBrush) && (brushShape == BrushShape.CUSTOM)) {
+            Rectangle bounds = customBrushShape.getBounds();
+            repaintWorld(mouseX - bounds.x, mouseY - bounds.y, bounds.width, bounds.height);
+        }
+        firePropertyChange("customBrushShape", oldCustomBrushShape, customBrushShape);
+    }
+
     private void loadOverlay() {
         File file = dimension.getOverlay();
         if (file.isFile()) {
@@ -533,7 +550,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             effectiveRadius = (int) Math.ceil(Math.abs(Math.sin(a)) * radius + Math.abs(Math.cos(a)) * radius);
         }
         firePropertyChange("brushRotation", oldBrushRotation, brushRotation);
-        if (drawRadius && (brushShape != BrushShape.CIRCLE)) {
+        if (drawBrush && (brushShape != BrushShape.CIRCLE)) {
             int largestRadius = Math.max(oldEffectiveRadius, effectiveRadius);
             int diameter = largestRadius * 2 + 1;
             repaintWorld(mouseX - largestRadius, mouseY - largestRadius, diameter, diameter);
@@ -596,20 +613,33 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         if ((mouseX == oldMouseX) && (mouseY == oldMouseY)) {
             return;
         }
-        int repaintRadius = -1;
-        if (drawRadius) {
-            repaintRadius = effectiveRadius;
+        Rectangle repaintArea = null; // The repaint area in world coordinates relative to the mouse position
+        if (drawBrush) {
+            if (brushShape != BrushShape.CUSTOM) {
+                repaintArea = new Rectangle(-effectiveRadius, -effectiveRadius, effectiveRadius * 2 + 1, effectiveRadius * 2 + 1);
+            } else {
+                repaintArea = customBrushShape.getBounds();
+            }
         }
-        if (drawViewDistance && (VIEW_DISTANCE_RADIUS > repaintRadius)) {
-            repaintRadius = VIEW_DISTANCE_RADIUS;
+        if (drawViewDistance) {
+            Rectangle viewDistanceArea = new Rectangle(-VIEW_DISTANCE_RADIUS, -VIEW_DISTANCE_RADIUS, VIEW_DISTANCE_DIAMETER, VIEW_DISTANCE_DIAMETER);
+            if (repaintArea != null) {
+                repaintArea = repaintArea.union(viewDistanceArea);
+            } else {
+                repaintArea = viewDistanceArea;
+            }
         }
-        if (drawWalkingDistance && (DAY_NIGHT_WALK_DISTANCE_RADIUS > repaintRadius)) {
-            repaintRadius = DAY_NIGHT_WALK_DISTANCE_RADIUS;
+        if (drawWalkingDistance) {
+            Rectangle walkingDistanceArea = new Rectangle(-DAY_NIGHT_WALK_DISTANCE_RADIUS, -DAY_NIGHT_WALK_DISTANCE_RADIUS, DAY_NIGHT_WALK_DISTANCE_DIAMETER, DAY_NIGHT_WALK_DISTANCE_DIAMETER);
+            if (repaintArea != null) {
+                repaintArea = repaintArea.union(walkingDistanceArea);
+            } else {
+                repaintArea = walkingDistanceArea;
+            }
         }
-        if (repaintRadius != -1) {
-            int diameter = repaintRadius * 2 + 1;
-            Rectangle oldRectangle = new Rectangle(oldMouseX - repaintRadius, oldMouseY - repaintRadius, diameter, diameter);
-            final Rectangle newRectangle = new Rectangle(mouseX - repaintRadius, mouseY - repaintRadius, diameter, diameter);
+        if (repaintArea != null) {
+            Rectangle oldRectangle = new Rectangle(oldMouseX + repaintArea.x, oldMouseY + repaintArea.y, repaintArea.width, repaintArea.height);
+            Rectangle newRectangle = new Rectangle(mouseX + repaintArea.x, mouseY + repaintArea.y, repaintArea.width, repaintArea.height);
             if (oldRectangle.intersects(newRectangle)) {
                 Rectangle unionRectangle = oldRectangle.union(newRectangle);
                 repaintWorld(unionRectangle.x, unionRectangle.y, unionRectangle.width, unionRectangle.height);
@@ -654,6 +684,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
 //            final Object savedInterpolationValue = g2.getRenderingHint(RenderingHints.KEY_INTERPOLATION);
             final Stroke savedStroke = g2.getStroke();
             final AffineTransform savedTransform = g2.getTransform();
+            final Font savedFont = g2.getFont();
             try {
                 if (drawMinecraftBorder && (dimension.getWorld() != null)) {
                     drawMinecraftBorderIfNecessary(g2, dimension.getWorld().getBorderSettings());
@@ -661,16 +692,16 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
 
                 // Switch to world coordinate system
                 final float scale = transformGraphics(g2);
-                final float strokeWidth = 1 / scale;
+                final float onePixel = 1 / scale;
                 if (drawOverlay && (overlay != null)) {
                     drawOverlay(g2);
                 }
-                if (drawRadius || drawViewDistance || drawWalkingDistance) {
+                if (drawBrush || drawViewDistance || drawWalkingDistance) {
                     g2.setColor(Color.BLACK);
                     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 }
-                if (drawRadius) {
-                    g2.setStroke(new BasicStroke(strokeWidth, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f, new float[] {3 * strokeWidth, 3 * strokeWidth}, 0));
+                if (drawBrush) {
+                    g2.setStroke(new BasicStroke(onePixel, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f, new float[] {3 * onePixel, 3 * onePixel}, 0));
                     final int diameter = radius * 2 + 1;
                     switch (brushShape) {
                         case CIRCLE:
@@ -721,17 +752,29 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
                                 }
                             }
                             break;
+                        case CUSTOM:
+                            AffineTransform existingTransform = g2.getTransform();
+                            try {
+                                g2.translate(mouseX, mouseY);
+                                g2.draw(customBrushShape);
+                            } finally {
+                                g2.setTransform(existingTransform);
+                            }
                     }
                 }
                 if (drawViewDistance) {
-                    g2.setStroke(new BasicStroke(strokeWidth, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f, new float[] {10 * strokeWidth, 10 * strokeWidth}, 0));
+                    g2.setStroke(new BasicStroke(onePixel, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f, new float[] {10 * onePixel, 10 * onePixel}, 0));
                     g2.drawOval(mouseX - VIEW_DISTANCE_RADIUS, mouseY - VIEW_DISTANCE_RADIUS, VIEW_DISTANCE_DIAMETER, VIEW_DISTANCE_DIAMETER);
                 }
                 if (drawWalkingDistance) {
-                    g2.setStroke(new BasicStroke(strokeWidth, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f, new float[] {20 * strokeWidth, 20 * strokeWidth}, 0));
+                    g2.setStroke(new BasicStroke(onePixel, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f, new float[] {20 * onePixel, 20 * onePixel}, 0));
                     g2.drawOval(mouseX - DAY_NIGHT_WALK_DISTANCE_RADIUS, mouseY - DAY_NIGHT_WALK_DISTANCE_RADIUS, DAY_NIGHT_WALK_DISTANCE_DIAMETER, DAY_NIGHT_WALK_DISTANCE_DIAMETER);
+                    setFont(NORMAL_FONT.deriveFont(10 * onePixel));
+                    g2.drawString("day + night", mouseX - DAY_NIGHT_WALK_DISTANCE_RADIUS + onePixel * 3, mouseY);
                     g2.drawOval(mouseX - DAY_WALK_DISTANCE_RADIUS, mouseY - DAY_WALK_DISTANCE_RADIUS, DAY_WALK_DISTANCE_DIAMETER, DAY_WALK_DISTANCE_DIAMETER);
+                    g2.drawString("1 day", mouseX - DAY_WALK_DISTANCE_RADIUS + onePixel * 3, mouseY);
                     g2.drawOval(mouseX - FIVE_MINUTE_WALK_DISTANCE_RADIUS, mouseY - FIVE_MINUTE_WALK_DISTANCE_RADIUS, FIVE_MINUTE_WALK_DISTANCE_DIAMETER, FIVE_MINUTE_WALK_DISTANCE_DIAMETER);
+                    g2.drawString("5 min.", mouseX - FIVE_MINUTE_WALK_DISTANCE_RADIUS + onePixel * 3, mouseY);
                 }
             } finally {
                 g2.setColor(savedColour);
@@ -741,6 +784,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
 //                }
                 g2.setStroke(savedStroke);
                 g2.setTransform(savedTransform);
+                g2.setFont(savedFont);
             }
         }
     }
@@ -841,7 +885,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     private final CustomBiomeManager customBiomeManager;
     private Dimension dimension;
     private int mouseX, mouseY, radius, effectiveRadius, overlayOffsetX, overlayOffsetY, contourSeparation, brushRotation;
-    private boolean drawRadius, drawOverlay, drawContours, drawViewDistance, drawWalkingDistance, drawMinecraftBorder = true,
+    private boolean drawBrush, drawOverlay, drawContours, drawViewDistance, drawWalkingDistance, drawMinecraftBorder = true,
         drawBorders = true, drawBiomes = true;
     private BrushShape brushShape;
     private float overlayScale = 1.0f;
@@ -852,6 +896,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     private LightOrigin lightOrigin = LightOrigin.NORTHWEST;
     private WPTileProvider tileProvider;
     private volatile boolean inhibitUpdates;
+    private Shape customBrushShape;
     
     private static final int VIEW_DISTANCE_RADIUS = 256;
     private static final int VIEW_DISTANCE_DIAMETER = 2 * VIEW_DISTANCE_RADIUS;
@@ -861,6 +906,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     private static final int DAY_WALK_DISTANCE_DIAMETER = 2 * DAY_WALK_DISTANCE_RADIUS;
     private static final int DAY_NIGHT_WALK_DISTANCE_RADIUS = 5120;
     private static final int DAY_NIGHT_WALK_DISTANCE_DIAMETER = 2 * DAY_NIGHT_WALK_DISTANCE_RADIUS;
+    private static final Font NORMAL_FONT = new Font("SansSerif", Font.PLAIN, 10);
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WorldPainter.class);
     private static final long serialVersionUID = 1L;
 }

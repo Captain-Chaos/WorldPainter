@@ -52,6 +52,7 @@ import org.pepsoft.worldpainter.plugins.CustomLayerProvider;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.pepsoft.worldpainter.selection.CopySelectionOperation;
 import org.pepsoft.worldpainter.selection.EditSelectionOperation;
+import org.pepsoft.worldpainter.selection.SelectionHelper;
 import org.pepsoft.worldpainter.threedeeview.ThreeDeeFrame;
 import org.pepsoft.worldpainter.tools.BiomesViewerFrame;
 import org.pepsoft.worldpainter.tools.RespawnPlayerDialog;
@@ -2342,6 +2343,22 @@ public final class App extends JFrame implements RadiusControl,
 
         toolPanel.add(createButtonForOperation(new EditSelectionOperation(view, this, mapDragControl)));
         toolPanel.add(createButtonForOperation(new CopySelectionOperation(view)));
+        button = new JButton(loadIcon("edit_selection"));
+        button.setMargin(new Insets(2, 2, 2, 2));
+        button.addActionListener(e -> {
+            dimension.setEventsInhibited(true);
+            try {
+                new SelectionHelper(dimension).clearSelection();
+                dimension.armSavePoint();
+            } finally {
+                dimension.setEventsInhibited(false);
+            }
+            if (activeOperation instanceof CopySelectionOperation) {
+                deselectTool();
+            }
+        });
+        button.setToolTipText("Clear the selection");
+        toolPanel.add(button);
 
         for (Operation operation: operations) {
             operation.setView(view);
@@ -4228,7 +4245,7 @@ public final class App extends JFrame implements RadiusControl,
         button.addItemListener(event -> {
             if (event.getStateChange() == ItemEvent.DESELECTED) {
                 if (operation instanceof RadiusOperation) {
-                    view.setDrawRadius(false);
+                    view.setDrawBrush(false);
                 }
                 operation.setActive(false);
                 activeOperation = null;
@@ -4278,7 +4295,7 @@ public final class App extends JFrame implements RadiusControl,
                     brushOptions.setFilter(toolFilter);
                 }
                 if (operation instanceof RadiusOperation) {
-                    view.setDrawRadius(true);
+                    view.setDrawBrush(true);
                     view.setRadius(radius);
                     ((RadiusOperation) operation).setRadius(radius);
                 }
