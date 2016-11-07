@@ -7,6 +7,7 @@ package org.pepsoft.worldpainter.operations;
 
 import org.pepsoft.util.IconUtils;
 
+import javax.swing.*;
 import java.awt.image.BufferedImage;
 
 /**
@@ -61,6 +62,11 @@ public abstract class AbstractOperation implements Operation {
     @Override
     public final BufferedImage getIcon() {
         return icon;
+    }
+
+    @Override
+    public JPanel getOptionsPanel() {
+        return null;
     }
 
     @Override

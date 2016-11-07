@@ -17,6 +17,14 @@ public class CopySelectionOperationOptionsPanel extends javax.swing.JPanel {
         initComponents();
     }
 
+    /**
+     * Creates new form CopySelectionOperationOptionsPanel
+     */
+    public CopySelectionOperationOptionsPanel(CopySelectionOperationOptions options) {
+        this();
+        setOptions(options);
+    }
+
     public CopySelectionOperationOptions getOptions() {
         return options;
     }
@@ -27,10 +35,18 @@ public class CopySelectionOperationOptionsPanel extends javax.swing.JPanel {
         checkBoxTerrain.setSelected(options.isCopyTerrain());
         checkBoxFluids.setSelected(options.isCopyFluids());
         checkBoxLayers.setSelected(options.isCopyLayers());
+        checkBoxRemoveExistingLayers.setSelected(options.isRemoveExistingLayers());
         checkBoxBiomes.setSelected(options.isCopyBiomes());
         checkBoxAnnotations.setSelected(options.isCopyAnnotations());
+        checkBoxFeather.setSelected(options.isDoBlending());
+        checkBoxCreateNewTiles.setSelected(options.isCreateNewTiles());
+        setControlStates();
     }
 
+    private void setControlStates() {
+        checkBoxRemoveExistingLayers.setEnabled(checkBoxLayers.isSelected());
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -47,6 +63,11 @@ public class CopySelectionOperationOptionsPanel extends javax.swing.JPanel {
         checkBoxLayers = new javax.swing.JCheckBox();
         checkBoxBiomes = new javax.swing.JCheckBox();
         checkBoxAnnotations = new javax.swing.JCheckBox();
+        jLabel2 = new javax.swing.JLabel();
+        checkBoxFeather = new javax.swing.JCheckBox();
+        checkBoxCreateNewTiles = new javax.swing.JCheckBox();
+        jLabel3 = new javax.swing.JLabel();
+        checkBoxRemoveExistingLayers = new javax.swing.JCheckBox();
 
         checkBoxHeight.setText("terrain height");
         checkBoxHeight.addActionListener(new java.awt.event.ActionListener() {
@@ -92,20 +113,51 @@ public class CopySelectionOperationOptionsPanel extends javax.swing.JPanel {
             }
         });
 
+        jLabel2.setText("Options:");
+
+        checkBoxFeather.setText("blend edges (slow!)");
+        checkBoxFeather.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxFeatherActionPerformed(evt);
+            }
+        });
+
+        checkBoxCreateNewTiles.setText("create new tiles");
+        checkBoxCreateNewTiles.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxCreateNewTilesActionPerformed(evt);
+            }
+        });
+
+        jLabel3.setText("(no undo!)");
+
+        checkBoxRemoveExistingLayers.setText("remove existing");
+        checkBoxRemoveExistingLayers.setEnabled(false);
+        checkBoxRemoveExistingLayers.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxRemoveExistingLayersActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jLabel1)
+            .addComponent(checkBoxHeight)
+            .addComponent(checkBoxTerrain)
+            .addComponent(checkBoxFluids)
+            .addComponent(checkBoxLayers)
+            .addComponent(checkBoxBiomes)
+            .addComponent(checkBoxAnnotations)
+            .addComponent(jLabel2)
+            .addComponent(checkBoxFeather)
+            .addComponent(checkBoxCreateNewTiles)
             .addGroup(layout.createSequentialGroup()
+                .addGap(21, 21, 21)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel1)
-                    .addComponent(checkBoxHeight)
-                    .addComponent(checkBoxTerrain)
-                    .addComponent(checkBoxFluids)
-                    .addComponent(checkBoxLayers)
-                    .addComponent(checkBoxBiomes)
-                    .addComponent(checkBoxAnnotations))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jLabel3)
+                    .addComponent(checkBoxRemoveExistingLayers)))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -120,9 +172,20 @@ public class CopySelectionOperationOptionsPanel extends javax.swing.JPanel {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(checkBoxLayers)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(checkBoxRemoveExistingLayers)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(checkBoxBiomes)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(checkBoxAnnotations))
+                .addComponent(checkBoxAnnotations)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(checkBoxFeather)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(checkBoxCreateNewTiles)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel3)
+                .addGap(0, 0, 0))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -143,6 +206,7 @@ public class CopySelectionOperationOptionsPanel extends javax.swing.JPanel {
 
     private void checkBoxLayersActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxLayersActionPerformed
         options.setCopyLayers(checkBoxLayers.isSelected());
+        setControlStates();
         firePropertyChange("options", null, options);
     }//GEN-LAST:event_checkBoxLayersActionPerformed
 
@@ -156,15 +220,35 @@ public class CopySelectionOperationOptionsPanel extends javax.swing.JPanel {
         firePropertyChange("options", null, options);
     }//GEN-LAST:event_checkBoxAnnotationsActionPerformed
 
+    private void checkBoxFeatherActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxFeatherActionPerformed
+        options.setDoBlending(checkBoxFeather.isSelected());
+        firePropertyChange("options", null, options);
+    }//GEN-LAST:event_checkBoxFeatherActionPerformed
+
+    private void checkBoxCreateNewTilesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxCreateNewTilesActionPerformed
+        options.setCreateNewTiles(checkBoxCreateNewTiles.isSelected());
+        firePropertyChange("options", null, options);
+    }//GEN-LAST:event_checkBoxCreateNewTilesActionPerformed
+
+    private void checkBoxRemoveExistingLayersActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxRemoveExistingLayersActionPerformed
+        options.setRemoveExistingLayers(checkBoxRemoveExistingLayers.isSelected());
+        firePropertyChange("options", null, options);
+    }//GEN-LAST:event_checkBoxRemoveExistingLayersActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox checkBoxAnnotations;
     private javax.swing.JCheckBox checkBoxBiomes;
+    private javax.swing.JCheckBox checkBoxCreateNewTiles;
+    private javax.swing.JCheckBox checkBoxFeather;
     private javax.swing.JCheckBox checkBoxFluids;
     private javax.swing.JCheckBox checkBoxHeight;
     private javax.swing.JCheckBox checkBoxLayers;
+    private javax.swing.JCheckBox checkBoxRemoveExistingLayers;
     private javax.swing.JCheckBox checkBoxTerrain;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     // End of variables declaration//GEN-END:variables
 
     private CopySelectionOperationOptions options = new CopySelectionOperationOptions();

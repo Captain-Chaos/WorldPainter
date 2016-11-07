@@ -7,6 +7,7 @@ package org.pepsoft.worldpainter.operations;
 
 import org.pepsoft.worldpainter.WorldPainterView;
 
+import javax.swing.*;
 import java.awt.image.BufferedImage;
 
 /**
@@ -71,4 +72,11 @@ public interface Operation {
      * @return The icon of the operation.
      */
     BufferedImage getIcon();
+
+    /**
+     * Get the options panel of the operation, if any. Should be a live and
+     * modifiable view of the current options of the operation. May be
+     * <code>null</code> if the operation has no options.
+     */
+    JPanel getOptionsPanel();
 }

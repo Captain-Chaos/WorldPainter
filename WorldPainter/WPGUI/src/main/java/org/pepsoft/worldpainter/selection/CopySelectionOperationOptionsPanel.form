@@ -16,17 +16,22 @@
   <Layout>
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
+          <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
+          <Component id="checkBoxHeight" min="-2" max="-2" attributes="0"/>
+          <Component id="checkBoxTerrain" min="-2" max="-2" attributes="0"/>
+          <Component id="checkBoxFluids" min="-2" max="-2" attributes="0"/>
+          <Component id="checkBoxLayers" min="-2" max="-2" attributes="0"/>
+          <Component id="checkBoxBiomes" min="-2" max="-2" attributes="0"/>
+          <Component id="checkBoxAnnotations" min="-2" max="-2" attributes="0"/>
+          <Component id="jLabel2" alignment="0" min="-2" max="-2" attributes="0"/>
+          <Component id="checkBoxFeather" alignment="0" min="-2" max="-2" attributes="0"/>
+          <Component id="checkBoxCreateNewTiles" min="-2" max="-2" attributes="0"/>
           <Group type="102" attributes="0">
+              <EmptySpace min="21" pref="21" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
-                  <Component id="checkBoxHeight" min="-2" max="-2" attributes="0"/>
-                  <Component id="checkBoxTerrain" min="-2" max="-2" attributes="0"/>
-                  <Component id="checkBoxFluids" min="-2" max="-2" attributes="0"/>
-                  <Component id="checkBoxLayers" min="-2" max="-2" attributes="0"/>
-                  <Component id="checkBoxBiomes" min="-2" max="-2" attributes="0"/>
-                  <Component id="checkBoxAnnotations" min="-2" max="-2" attributes="0"/>
+                  <Component id="jLabel3" min="-2" max="-2" attributes="0"/>
+                  <Component id="checkBoxRemoveExistingLayers" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -43,9 +48,20 @@
               <EmptySpace max="-2" attributes="0"/>
               <Component id="checkBoxLayers" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
+              <Component id="checkBoxRemoveExistingLayers" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
               <Component id="checkBoxBiomes" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="checkBoxAnnotations" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="checkBoxFeather" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="checkBoxCreateNewTiles" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="jLabel3" min="-2" max="-2" attributes="0"/>
+              <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -102,6 +118,41 @@
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="checkBoxAnnotationsActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JLabel" name="jLabel2">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Options:"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="checkBoxFeather">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="blend edges (slow!)"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="checkBoxFeatherActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="checkBoxCreateNewTiles">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="create new tiles"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="checkBoxCreateNewTilesActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JLabel" name="jLabel3">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="(no undo!)"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="checkBoxRemoveExistingLayers">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="remove existing"/>
+        <Property name="enabled" type="boolean" value="false"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="checkBoxRemoveExistingLayersActionPerformed"/>
       </Events>
     </Component>
   </SubComponents>

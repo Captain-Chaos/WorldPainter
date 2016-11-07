@@ -69,6 +69,7 @@ import javax.swing.*;
 import javax.swing.Box;
 import javax.swing.Timer;
 import javax.swing.border.BevelBorder;
+import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.awt.event.*;
@@ -2035,6 +2036,8 @@ public final class App extends JFrame implements RadiusControl,
         
         dockingManager.addFrame(new DockableFrameBuilder(createToolPanel(), "Tools", DOCK_SIDE_WEST, 1).build());
 
+        dockingManager.addFrame(new DockableFrameBuilder(createToolSettingsPanel(), "Tool Settings", DOCK_SIDE_WEST, 2).build());
+
         dockingManager.addFrame(new DockableFrameBuilder(createLayerPanel(), "Layers", DOCK_SIDE_WEST, 3).build());
 
         dockingManager.addFrame(new DockableFrameBuilder(createTerrainPanel(), "Terrain", DOCK_SIDE_WEST, 3).build());
@@ -2343,7 +2346,7 @@ public final class App extends JFrame implements RadiusControl,
 
         toolPanel.add(createButtonForOperation(new EditSelectionOperation(view, this, mapDragControl)));
         toolPanel.add(createButtonForOperation(new CopySelectionOperation(view)));
-        button = new JButton(loadIcon("edit_selection"));
+        button = new JButton(loadIcon("clear_selection"));
         button.setMargin(new Insets(2, 2, 2, 2));
         button.addActionListener(e -> {
             dimension.setEventsInhibited(true);
@@ -2366,6 +2369,11 @@ public final class App extends JFrame implements RadiusControl,
         }
 
         return toolPanel;
+    }
+
+    private JPanel createToolSettingsPanel() {
+        toolSettingsPanel = new JPanel(new BorderLayout());
+        return toolSettingsPanel;
     }
     
     private JPanel createLayerPanel() {
@@ -4249,6 +4257,10 @@ public final class App extends JFrame implements RadiusControl,
                 }
                 operation.setActive(false);
                 activeOperation = null;
+                if (toolSettingsPanel.getComponentCount() > 0) {
+                    toolSettingsPanel.removeAll();
+                    validate();
+                }
             } else {
                 if (operation instanceof PaintOperation) {
                     programmaticChange = true;
@@ -4314,6 +4326,11 @@ public final class App extends JFrame implements RadiusControl,
                     if (! (operation instanceof PaintOperation)) {
                         closeCallout("callout_3");
                     }
+                }
+                JPanel optionsPanel = operation.getOptionsPanel();
+                if (optionsPanel != null) {
+                    toolSettingsPanel.add(optionsPanel, BorderLayout.CENTER);
+                    dockingManager.resetLayout();
                 }
             }
         });
@@ -5313,10 +5330,18 @@ public final class App extends JFrame implements RadiusControl,
             return this;
         }
 
+        DockableFrameBuilder withMargin(int margin) {
+            this.margin = margin;
+            return this;
+        }
+
         DockableFrame build() {
             DockableFrame dockableFrame = new DockableFrame(id);
 
             JPanel panel = new JPanel(new GridBagLayout());
+            if (margin > 0) {
+                panel.setBorder(new EmptyBorder(margin, margin, margin, margin));
+            }
             GridBagConstraints constraints = new GridBagConstraints();
             constraints.gridwidth = GridBagConstraints.REMAINDER;
             constraints.weightx = 1.0;
@@ -5390,7 +5415,7 @@ public final class App extends JFrame implements RadiusControl,
         String id, title;
         boolean expand;
         Icon icon;
-        int side, index;
+        int side, index, margin = 2;
         Component component;
     }
 
@@ -6191,6 +6216,7 @@ public final class App extends JFrame implements RadiusControl,
     };
     private final Map<String, BufferedImage> callouts = new HashMap<>();
     private JMenu recentMenu;
+    private JPanel toolSettingsPanel;
 
     public static final Image ICON = IconUtils.loadImage("org/pepsoft/worldpainter/icons/shovel-icon.png");
     

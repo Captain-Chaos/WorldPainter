@@ -790,6 +790,22 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         });
     }
 
+    /**
+     * Clear all layer data at a particular location (by resetting to the
+     * layer's default value), possibly with the exception of certain layers.
+     *
+     * @param x The X coordinate of the location to clear of layer data.
+     * @param y The Y coordinate of the location to clear of layer data.
+     * @param excludedLayers The layers to exclude, if any. May be
+     *                       <code>null</code>.
+     */
+    public void clearLayerData(int x, int y, Set<Layer> excludedLayers) {
+        Tile tile = getTileForEditing(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
+        if (tile != null) {
+            tile.clearLayerData(x & TILE_SIZE_MASK, y & TILE_SIZE_MASK, excludedLayers);
+        }
+    }
+
     public void setEventsInhibited(boolean eventsInhibited) {
         if (eventsInhibited != this.eventsInhibited) {
             this.eventsInhibited = eventsInhibited;

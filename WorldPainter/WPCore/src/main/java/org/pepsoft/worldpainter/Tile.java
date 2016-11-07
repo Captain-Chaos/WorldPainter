@@ -733,6 +733,62 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
         }
     }
 
+    /**
+     * Clear all layer data at a particular location (by resetting to the
+     * layer's default value), possibly with the exception of certain layers.
+     *
+     * @param x The X coordinate of the location to clear of layer data.
+     * @param y The Y coordinate of the location to clear of layer data.
+     * @param excludedLayers The layers to exclude, if any. May be
+     *                       <code>null</code>.
+     */
+    public void clearLayerData(int x, int y, Set<Layer> excludedLayers) {
+        ensureWriteable(BIT_LAYER_DATA);
+        for (Map.Entry<Layer, BitSet> entry: bitLayerData.entrySet()) {
+            Layer layer = entry.getKey();
+            if ((excludedLayers != null) && excludedLayers.contains(layer)) {
+                continue;
+            }
+            int bitOffset;
+            if (layer.getDataSize() == Layer.DataSize.BIT) {
+                bitOffset = x | (y << TILE_SIZE_BITS);
+            } else {
+                bitOffset = (x / 16) + (y / 16) * (TILE_SIZE / 16);
+            }
+            entry.getValue().set(bitOffset, layer.getDefaultValue() != 0);
+            layerDataChanged(layer);
+        }
+        ensureWriteable(LAYER_DATA);
+        for (Map.Entry<Layer, byte[]> entry: layerData.entrySet()) {
+            Layer layer = entry.getKey();
+            if ((excludedLayers != null) && excludedLayers.contains(layer)) {
+                continue;
+            }
+            byte[] layerValues = entry.getValue();
+            switch (layer.getDataSize()) {
+                case NIBBLE:
+                    int byteOffset = x | (y << TILE_SIZE_BITS);
+                    byte _byte = layerValues[byteOffset / 2];
+                    if (byteOffset % 2 == 0) {
+                        _byte &= 0xF0;
+                        _byte |= layer.getDefaultValue();
+                    } else {
+                        _byte &= 0x0F;
+                        _byte |= (layer.getDefaultValue() << 4);
+                    }
+                    layerValues[byteOffset / 2] = _byte;
+                    break;
+                case BYTE:
+                    byteOffset = x | (y << TILE_SIZE_BITS);
+                    layerValues[byteOffset] = (byte) layer.getDefaultValue();
+                    break;
+                default:
+                    throw new InternalError();
+            }
+            layerDataChanged(layer);
+        }
+    }
+
     public synchronized HashSet<Seed> getSeeds() {
         if (seeds != null) {
             ensureReadable(SEEDS);
@@ -1419,7 +1475,7 @@ layerLoop: for (Iterator<Map.Entry<Layer, byte[]>> i = layerData.entrySet().iter
             seeds = null;
         }
     }
-    
+
     private final int x, y;
     private int maxHeight;
     private boolean tall;

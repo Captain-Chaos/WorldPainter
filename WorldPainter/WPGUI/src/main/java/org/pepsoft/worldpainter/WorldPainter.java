@@ -120,8 +120,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         if (drawBrush != this.drawBrush) {
             this.drawBrush = drawBrush;
             firePropertyChange("drawBrush", !drawBrush, drawBrush);
-            int diameter = radius * 2 + 1;
-            repaintWorld(mouseX - radius, mouseY - radius, diameter, diameter);
+            repaintWorld(getBrushBounds());
         }
     }
 
@@ -178,7 +177,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     public void setBrushShape(BrushShape brushShape) {
         if (brushShape != this.brushShape) {
             BrushShape oldBrushShape = this.brushShape;
-            int oldEffectiveRadius = effectiveRadius;
+            Rectangle oldBounds = getBrushBounds();
             this.brushShape = brushShape;
             if ((brushShape == BrushShape.CIRCLE) || (brushShape == BrushShape.CUSTOM) || ((brushRotation % 90) == 0)) {
                 effectiveRadius = radius;
@@ -188,14 +187,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             }
             firePropertyChange("brushShape", oldBrushShape, brushShape);
             if (drawBrush) {
-                if (brushShape == BrushShape.CUSTOM) {
-                    Rectangle bounds = customBrushShape.getBounds();
-                    repaintWorld(mouseX - bounds.x, mouseY - bounds.y, bounds.width, bounds.height);
-                } else {
-                    int largestRadius = Math.max(oldEffectiveRadius, effectiveRadius);
-                    int diameter = largestRadius * 2 + 1;
-                    repaintWorld(mouseX - largestRadius, mouseY - largestRadius, diameter, diameter);
-                }
+                repaintWorld(getBrushBounds().union(oldBounds));
             }
         }
     }
@@ -301,53 +293,9 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         Shape oldCustomBrushShape = this.customBrushShape;
         this.customBrushShape = customBrushShape;
         if ((drawBrush) && (brushShape == BrushShape.CUSTOM)) {
-            Rectangle bounds = customBrushShape.getBounds();
-            repaintWorld(mouseX - bounds.x, mouseY - bounds.y, bounds.width, bounds.height);
+            repaintWorld(customBrushShape.getBounds());
         }
         firePropertyChange("customBrushShape", oldCustomBrushShape, customBrushShape);
-    }
-
-    private void loadOverlay() {
-        File file = dimension.getOverlay();
-        if (file.isFile()) {
-            if (file.canRead()) {
-                logger.info("Loading image");
-                BufferedImage myOverlay;
-                try {
-                    myOverlay = ImageIO.read(file);
-                } catch (IOException e) {
-                    logger.error("I/O error while loading image " + file ,e);
-                    JOptionPane.showMessageDialog(this, "An error occurred while loading the overlay image.\nIt may not be a valid or supported image file, or the file may be corrupted.", "Error Loading Image", JOptionPane.ERROR_MESSAGE);
-                    this.drawOverlay = false;
-                    return;
-                } catch (RuntimeException | Error e) {
-                    logger.error(e.getClass().getSimpleName() + " while loading image " + file ,e);
-                    JOptionPane.showMessageDialog(this, "An error occurred while loading the overlay image.\nThere may not be enough available memory, or the image may be too large.", "Error Loading Image", JOptionPane.ERROR_MESSAGE);
-                    this.drawOverlay = false;
-                    return;
-                }
-                switch (Configuration.getInstance().getOverlayType()) {
-                    case OPTIMISE_ON_LOAD:
-                        myOverlay = ConfigureViewDialog.scaleImage(myOverlay, getGraphicsConfiguration(), 100);
-                        break;
-                    case SCALE_ON_LOAD:
-                        myOverlay = ConfigureViewDialog.scaleImage(myOverlay, getGraphicsConfiguration(), (int) (dimension.getOverlayScale() * 100));
-                        break;
-                }
-                if (myOverlay != null) {
-                    setOverlay(myOverlay);
-                } else {
-                    // The scaling or optimisation failed
-                    this.drawOverlay = false;
-                }
-            } else {
-                JOptionPane.showMessageDialog(this, "Access denied to overlay image\n" + file, "Error Enabling Overlay", JOptionPane.ERROR_MESSAGE);
-                this.drawOverlay = false;
-            }
-        } else {
-            JOptionPane.showMessageDialog(this, "Overlay image file not found\n" + file, "Error Enabling Overlay", JOptionPane.ERROR_MESSAGE);
-            this.drawOverlay = false;
-        }
     }
 
     public int getContourSeparation() {
@@ -641,14 +589,13 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             Rectangle oldRectangle = new Rectangle(oldMouseX + repaintArea.x, oldMouseY + repaintArea.y, repaintArea.width, repaintArea.height);
             Rectangle newRectangle = new Rectangle(mouseX + repaintArea.x, mouseY + repaintArea.y, repaintArea.width, repaintArea.height);
             if (oldRectangle.intersects(newRectangle)) {
-                Rectangle unionRectangle = oldRectangle.union(newRectangle);
-                repaintWorld(unionRectangle.x, unionRectangle.y, unionRectangle.width, unionRectangle.height);
+                repaintWorld(oldRectangle.union(newRectangle));
             } else {
                 // Two separate repaints to avoid having to repaint a huge area
                 // just because the cursor jumps a large distance for some
                 // reason
-                repaintWorld(oldRectangle.x, oldRectangle.y, oldRectangle.width, oldRectangle.height);
-                SwingUtilities.invokeLater(() -> repaintWorld(newRectangle.x, newRectangle.y, newRectangle.width, newRectangle.height));
+                repaintWorld(oldRectangle);
+                SwingUtilities.invokeLater(() -> repaintWorld(newRectangle));
             }
         }
     }
@@ -789,6 +736,64 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         }
     }
 
+    /**
+     * Get the rectangular bounds of the current brush shape.
+     *
+     * @return The bounds of the brush.
+     */
+    private Rectangle getBrushBounds() {
+        if (brushShape == BrushShape.CUSTOM) {
+            Rectangle bounds = customBrushShape.getBounds();
+            bounds.translate(mouseX, mouseY);
+            return bounds;
+        } else {
+            return new Rectangle(mouseX - effectiveRadius, mouseY - effectiveRadius, effectiveRadius * 2 + 1, effectiveRadius * 2 + 1);
+        }
+    }
+
+    private void loadOverlay() {
+        File file = dimension.getOverlay();
+        if (file.isFile()) {
+            if (file.canRead()) {
+                logger.info("Loading image");
+                BufferedImage myOverlay;
+                try {
+                    myOverlay = ImageIO.read(file);
+                } catch (IOException e) {
+                    logger.error("I/O error while loading image " + file ,e);
+                    JOptionPane.showMessageDialog(this, "An error occurred while loading the overlay image.\nIt may not be a valid or supported image file, or the file may be corrupted.", "Error Loading Image", JOptionPane.ERROR_MESSAGE);
+                    this.drawOverlay = false;
+                    return;
+                } catch (RuntimeException | Error e) {
+                    logger.error(e.getClass().getSimpleName() + " while loading image " + file ,e);
+                    JOptionPane.showMessageDialog(this, "An error occurred while loading the overlay image.\nThere may not be enough available memory, or the image may be too large.", "Error Loading Image", JOptionPane.ERROR_MESSAGE);
+                    this.drawOverlay = false;
+                    return;
+                }
+                switch (Configuration.getInstance().getOverlayType()) {
+                    case OPTIMISE_ON_LOAD:
+                        myOverlay = ConfigureViewDialog.scaleImage(myOverlay, getGraphicsConfiguration(), 100);
+                        break;
+                    case SCALE_ON_LOAD:
+                        myOverlay = ConfigureViewDialog.scaleImage(myOverlay, getGraphicsConfiguration(), (int) (dimension.getOverlayScale() * 100));
+                        break;
+                }
+                if (myOverlay != null) {
+                    setOverlay(myOverlay);
+                } else {
+                    // The scaling or optimisation failed
+                    this.drawOverlay = false;
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Access denied to overlay image\n" + file, "Error Enabling Overlay", JOptionPane.ERROR_MESSAGE);
+                this.drawOverlay = false;
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Overlay image file not found\n" + file, "Error Enabling Overlay", JOptionPane.ERROR_MESSAGE);
+            this.drawOverlay = false;
+        }
+    }
+
     private void drawMinecraftBorderIfNecessary(Graphics2D g2, World2.BorderSettings borderSettings) {
         final int size = borderSettings.getSize(), radius = size / 2;
         final Rectangle border = worldToView(borderSettings.getCentreX() - radius, borderSettings.getCentreY() - radius, size, size);
@@ -821,9 +826,18 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
      * @param height The height of the area to repaint, in world coordinates.
      */
     private void repaintWorld(int x, int y, int width, int height) {
-//        System.out.print("Repainting " + x + "," + y + "->" + width + "," + height + " => ");
         Rectangle area = worldToView(x, y, width, height);
-//        System.out.println(area.x + "-2," + area.y + "-2->" + area.width + "+4," + area.height + "+4");
+        repaint(area.x - 2, area.y - 2, area.width + 4, area.height + 4);
+    }
+
+    /**
+     * Repaint an area in world coordinates, plus a few pixels extra to
+     * compensate for sloppiness in painting the brush.
+     *
+     * @param area The the area to repaint, in world coordinates.
+     */
+    private void repaintWorld(Rectangle area) {
+        area = worldToView(area);
         repaint(area.x - 2, area.y - 2, area.width + 4, area.height + 4);
     }
 
