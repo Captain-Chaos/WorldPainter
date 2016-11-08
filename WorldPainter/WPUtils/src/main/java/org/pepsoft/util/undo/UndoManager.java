@@ -15,6 +15,11 @@ import java.util.*;
 import static org.pepsoft.util.ObjectUtils.copyObject;
 
 /**
+ * A data buffer oriented (rather than edit list or operations oriented) manager
+ * of undo and redo data. Uses a copy on write mechanism to maintain a list of
+ * historical versions of a set of data buffers, copying them automatically when
+ * needed after a save point has been executed, and notifying clients when
+ * buffers need to be updated because an undo or redo has been performed.
  *
  * @author pepijn
  */
@@ -63,7 +68,7 @@ public class UndoManager {
     public void armSavePoint() {
         if ((! savePointArmed) /*&& ((currentFrame < (history.size() - 1)) || isDirty())*/) {
             savePointArmed = true;
-            listeners.forEach(org.pepsoft.util.undo.UndoListener::savePointArmed);
+            listeners.forEach(UndoListener::savePointArmed);
             if (logger.isDebugEnabled()) {
                 logger.debug("Save point armed");
             }
@@ -90,7 +95,7 @@ public class UndoManager {
 
         savePointArmed = false;
 
-        listeners.forEach(org.pepsoft.util.undo.UndoListener::savePointCreated);
+        listeners.forEach(UndoListener::savePointCreated);
         
         updateActions();
 
@@ -138,7 +143,7 @@ public class UndoManager {
             currentFrame--;
             readOnlyBufferCache.clear();
             writeableBufferCache.clear();
-            listeners.forEach(org.pepsoft.util.undo.UndoListener::undoPerformed);
+            listeners.forEach(UndoListener::undoPerformed);
             Map<BufferKey<?>, Object> previousHistoryFrame = history.get(currentFrame + 1);
             for (BufferKey<?> key: previousHistoryFrame.keySet()) {
                 UndoListener listener = keyListeners.get(key);
@@ -173,7 +178,7 @@ public class UndoManager {
             currentFrame++;
             readOnlyBufferCache.clear();
             writeableBufferCache.clear();
-            listeners.forEach(org.pepsoft.util.undo.UndoListener::redoPerformed);
+            listeners.forEach(UndoListener::redoPerformed);
             Map<BufferKey<?>, Object> currentHistoryFrame = history.get(currentFrame);
             for (BufferKey<?> key: currentHistoryFrame.keySet()) {
                 UndoListener listener = keyListeners.get(key);

@@ -76,8 +76,6 @@ public class SelectionOptions {
         this.removeExistingLayers = removeExistingLayers;
     }
 
-    boolean copyHeights = true, copyTerrain = true, copyFluids = true,
-            copyLayers = true, copyBiomes = true, copyAnnotations, doBlending,
-            createNewTiles = false, // TODO: when new tiles are added the undo information has to be thrown away; avoid that somehow
-            removeExistingLayers = true;
+    boolean copyHeights = true, copyTerrain = true, copyFluids = true, copyLayers = true, copyBiomes = true,
+        copyAnnotations, doBlending, createNewTiles = false, removeExistingLayers = true;
 }
