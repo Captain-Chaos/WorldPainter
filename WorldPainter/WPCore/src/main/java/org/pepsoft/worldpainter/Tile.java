@@ -40,9 +40,9 @@ import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_MASK;
 import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.layers.FloodWithLava;
-import static org.pepsoft.worldpainter.layers.Layer.DataSize.BYTE;
-import static org.pepsoft.worldpainter.layers.Layer.DataSize.NIBBLE;
+
 import static org.pepsoft.worldpainter.Tile.TileBuffer.*;
+import static org.pepsoft.worldpainter.layers.Layer.DataSize.*;
 
 /**
  *
@@ -1051,6 +1051,37 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
         }
         init();
         return true;
+    }
+
+    public boolean containsOneOf(Layer... layers) {
+        boolean bitLayersAvailable = false, nonBitLayersAvailable = false;
+        for (Layer layer: layers) {
+            switch (layer.getDataSize()) {
+                case BIT:
+                case BIT_PER_CHUNK:
+                    if (! bitLayersAvailable) {
+                        ensureReadable(BIT_LAYER_DATA);
+                        bitLayersAvailable = true;
+                    }
+                    if (bitLayerData.containsKey(layer)) {
+                        return true;
+                    }
+                    break;
+                case BYTE:
+                case NIBBLE:
+                    if (! nonBitLayersAvailable) {
+                        ensureReadable(LAYER_DATA);
+                        nonBitLayersAvailable = true;
+                    }
+                    if (layerData.containsKey(layer)) {
+                        return true;
+                    }
+                    break;
+                default:
+                    throw new IllegalArgumentException("Data size " + layer.getDataSize() + " not supported");
+            }
+        }
+        return false;
     }
 
     // UndoListener

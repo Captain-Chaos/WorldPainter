@@ -93,6 +93,19 @@ public class CombinedLayerExporter extends AbstractLayerExporter<CombinedLayer> 
         }
 
         @Override
+        public boolean containsOneOf(Layer... layers) {
+            List<Layer> convLayers = new ArrayList<>(layers.length);
+            for (Layer layer: layers) {
+                if (layer.equals(to)) {
+                    convLayers.add(from);
+                } else {
+                    convLayers.add(layer);
+                }
+            }
+            return super.containsOneOf(convLayers.toArray(new Layer[convLayers.size()]));
+        }
+
+        @Override
         public boolean hasLayer(Layer layer) {
             if (layer.equals(to)) {
                 return super.hasLayer(from);
@@ -258,6 +271,19 @@ public class CombinedLayerExporter extends AbstractLayerExporter<CombinedLayer> 
                 }
             }
             return layers;
+        }
+
+        @Override
+        public boolean containsOneOf(Layer... layers) {
+            List<Layer> convLayers = new ArrayList<>(layers.length);
+            for (Layer layer: layers) {
+                if (layer.equals(to)) {
+                    convLayers.add(from);
+                } else {
+                    convLayers.add(layer);
+                }
+            }
+            return super.containsOneOf(convLayers.toArray(new Layer[convLayers.size()]));
         }
 
         @Override
