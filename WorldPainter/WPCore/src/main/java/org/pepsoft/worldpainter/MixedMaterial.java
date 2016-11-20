@@ -166,7 +166,7 @@ public class MixedMaterial implements Serializable, Comparable<MixedMaterial> {
             } else {
                 for (int x = 1; x < 15; x++) {
                     for (int y = 1; y < 15; y++) {
-                        icon.setRGB(x, y, colourScheme.getColour(getMaterial(0, x, 0, y)));
+                        icon.setRGB(x, y, colourScheme.getColour(getMaterial(0, x, 0, 15 - y)));
                     }
                 }
             }

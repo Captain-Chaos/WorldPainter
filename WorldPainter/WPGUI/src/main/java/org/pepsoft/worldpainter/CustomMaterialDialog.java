@@ -151,6 +151,7 @@ public class CustomMaterialDialog extends WorldPainterDialog {
                             false);
                 } else {
                     NoiseSettings variation = noiseSettingsEditorLayeredVariation.getNoiseSettings();
+                    boolean repeat = checkBoxLayeredRepeat.isSelected();
                     material.edit(
                             fieldName.getText(),
                             rows,
@@ -159,9 +160,9 @@ public class CustomMaterialDialog extends WorldPainterDialog {
                             ((Integer) spinnerScale.getValue()) / 100.0f,
                             checkBoxColour.isSelected() ? selectedColour : null,
                             (variation.getRange() != 0) ? variation : null,
-                            Math.tan((-(Integer) spinnerLayeredXAngle.getValue()) / DEGREES_TO_RADIANS),
-                            Math.tan((-(Integer) spinnerLayeredYAngle.getValue()) / DEGREES_TO_RADIANS),
-                            checkBoxLayeredRepeat.isSelected());
+                            repeat ? Math.tan((-(Integer) spinnerLayeredXAngle.getValue()) / DEGREES_TO_RADIANS) : 0.0,
+                            repeat ? Math.tan((-(Integer) spinnerLayeredYAngle.getValue()) / DEGREES_TO_RADIANS) : 0.0,
+                            repeat);
                 }
                 break;
         }
@@ -200,15 +201,16 @@ public class CustomMaterialDialog extends WorldPainterDialog {
                             ((Integer) spinnerScale.getValue()) / 100.0f);
                 } else {
                     NoiseSettings variation = noiseSettingsEditorLayeredVariation.getNoiseSettings().clone();
+                    boolean repeat = checkBoxLayeredRepeat.isSelected();
                     return new MixedMaterial(
                             fieldName.getText(),
                             rows,
                             biome,
                             checkBoxColour.isSelected() ? selectedColour : null,
                             (variation.getRange() != 0) ? variation : null,
-                            Math.tan((-(Integer) spinnerLayeredXAngle.getValue()) / DEGREES_TO_RADIANS),
-                            Math.tan((-(Integer) spinnerLayeredYAngle.getValue()) / DEGREES_TO_RADIANS),
-                            checkBoxLayeredRepeat.isSelected());
+                            repeat ? Math.tan((-(Integer) spinnerLayeredXAngle.getValue()) / DEGREES_TO_RADIANS) : 0.0,
+                            repeat ? Math.tan((-(Integer) spinnerLayeredYAngle.getValue()) / DEGREES_TO_RADIANS) : 0.0,
+                            repeat);
                 }
             default:
                 throw new InternalError();
@@ -252,8 +254,8 @@ public class CustomMaterialDialog extends WorldPainterDialog {
                 if (mixedMaterial.getVariation() != null) {
                     noiseSettingsEditorLayeredVariation.setNoiseSettings(mixedMaterial.getVariation());
                 }
-                spinnerLayeredXAngle.setValue((int) (Math.atan(mixedMaterial.getLayerXSlope()) * DEGREES_TO_RADIANS + 0.5));
-                spinnerLayeredYAngle.setValue((int) (Math.atan(mixedMaterial.getLayerYSlope()) * DEGREES_TO_RADIANS + 0.5));
+                spinnerLayeredXAngle.setValue(-(int) Math.round(Math.atan(mixedMaterial.getLayerXSlope()) * DEGREES_TO_RADIANS));
+                spinnerLayeredYAngle.setValue(-(int) Math.round(Math.atan(mixedMaterial.getLayerYSlope()) * DEGREES_TO_RADIANS));
                 break;
             }
             tableMaterialRows.setModel(tableModel);
