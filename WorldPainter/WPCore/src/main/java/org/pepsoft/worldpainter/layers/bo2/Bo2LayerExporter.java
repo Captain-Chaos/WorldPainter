@@ -52,7 +52,7 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
                 final Random random = new Random(seed);
                 objectProvider.setSeed(seed);
                 for (int x = chunkX; x < chunkX + 16; x++) {
-objectLoop:         for (int y = chunkY; y < chunkY + 16; y++) {
+                    for (int y = chunkY; y < chunkY + 16; y++) {
                         final int height = dimension.getIntHeightAt(x, y);
                         if ((height == -1) || (height >= maxZ)) {
                             // height == -1 means no tile present
@@ -65,18 +65,6 @@ objectLoop:         for (int y = chunkY; y < chunkY + 16; y++) {
                             if (placement == Placement.NONE) {
                                 continue;
                             }
-//                            if (height < (maxHeight - 1)) {
-//                                // Check that there is space around the stem (just assuming
-//                                // the object is a tree with a one block trunk)
-//                                for (int dx = -1; dx <= 1; dx++) {
-//                                    for (int dy = -1; dy <= 1; dy++) {
-//                                        int blockTypeAroundObject = minecraftWorld.getBlockTypeAt(x + dx, y + dy, height + 2);
-//                                        if ((blockTypeAroundObject != BLK_AIR) && (! INSUBSTANTIAL_BLOCKS.contains(blockTypeAroundObject)) && (blockTypeAroundObject != BLK_LEAVES)) {
-//                                            continue objectLoop;
-//                                        }
-//                                    }
-//                                }
-//                            }
                             if (object.getAttribute(ATTRIBUTE_RANDOM_ROTATION, true)) {
                                 if (random.nextBoolean()) {
                                     object = new MirroredObject(object, false);
@@ -118,37 +106,34 @@ objectLoop:         for (int y = chunkY; y < chunkY + 16; y++) {
             final Bo2ObjectProvider objectProvider = layer.getObjectProvider();
             objectProvider.setSeed(seed);
             WPObject object = objectProvider.getObject();
-            final boolean spawnUnderWater = object.getAttribute(ATTRIBUTE_SPAWN_IN_WATER, false), spawnUnderLava = object.getAttribute(ATTRIBUTE_SPAWN_IN_LAVA, false);
-            final boolean spawnOnLand = object.getAttribute(ATTRIBUTE_SPAWN_ON_LAND, false);
             int existingBlockType = minecraftWorld.getBlockTypeAt(location.x, location.y, location.z);
             int blockBelow = minecraftWorld.getBlockTypeAt(location.x, location.y, location.z - 1);
-            if ((! BLOCKS[blockBelow].veryInsubstantial)
-                    && ((spawnUnderLava && ((existingBlockType == BLK_LAVA) || (existingBlockType == BLK_STATIONARY_LAVA)))
-                        || (spawnUnderWater && ((existingBlockType == BLK_WATER) || (existingBlockType == BLK_STATIONARY_WATER)))
-                        || (spawnOnLand && ((existingBlockType != BLK_LAVA) && (existingBlockType != BLK_STATIONARY_LAVA) && (existingBlockType != BLK_WATER) && (existingBlockType != BLK_STATIONARY_WATER))))) {
-                return null;
-            }
-            if (object.getAttribute(ATTRIBUTE_RANDOM_ROTATION, true)) {
-                if (random.nextBoolean()) {
-                    object = new MirroredObject(object, false);
+            if ((object.getAttribute(ATTRIBUTE_SPAWN_IN_LAVA, false) && ((existingBlockType == BLK_LAVA) || (existingBlockType == BLK_STATIONARY_LAVA)))
+                    || (object.getAttribute(ATTRIBUTE_SPAWN_IN_WATER, false) && ((existingBlockType == BLK_WATER) || (existingBlockType == BLK_STATIONARY_WATER)))
+                    || (object.getAttribute(ATTRIBUTE_SPAWN_ON_LAND, true) && (! BLOCKS[blockBelow].veryInsubstantial))
+                    || (! object.getAttribute(ATTRIBUTE_NEEDS_FOUNDATION, true) && BLOCKS[blockBelow].veryInsubstantial)) {
+                if (object.getAttribute(ATTRIBUTE_RANDOM_ROTATION, true)) {
+                    if (random.nextBoolean()) {
+                        object = new MirroredObject(object, false);
+                    }
+                    int rotateSteps = random.nextInt(4);
+                    if (rotateSteps > 0) {
+                        object = new RotatedObject(object, rotateSteps);
+                    }
                 }
-                int rotateSteps = random.nextInt(4);
-                if (rotateSteps > 0) {
-                    object = new RotatedObject(object, rotateSteps);
+                if ((!isSane(object, location.x, location.y, location.z, minecraftWorld.getMaxHeight())) || (!isRoom(minecraftWorld, dimension, object, location.x, location.y, location.z, Placement.ON_LAND))) {
+                    return null;
                 }
+                if (!fitsInExportedArea(exportedArea, object, location.x, location.y)) {
+                    // There is room on our side of the border, but the object
+                    // extends outside the exported area, so it might clash with an
+                    // object from another area. Schedule a fixup to retest whether
+                    // there is room after all the objects have been placed on both
+                    // sides of the border
+                    return new WPObjectFixup(object, location.x, location.y, location.z, Placement.ON_LAND);
+                }
+                renderObject(minecraftWorld, dimension, object, location.x, location.y, location.z);
             }
-            if ((! isSane(object, location.x, location.y, location.z, minecraftWorld.getMaxHeight())) || (! isRoom(minecraftWorld, dimension, object, location.x, location.y, location.z, Placement.ON_LAND))) {
-                return null;
-            }
-            if (! fitsInExportedArea(exportedArea, object, location.x, location.y)) {
-                // There is room on our side of the border, but the object
-                // extends outside the exported area, so it might clash with an
-                // object from another area. Schedule a fixup to retest whether
-                // there is room after all the objects have been placed on both
-                // sides of the border
-                return new WPObjectFixup(object, location.x, location.y, location.z, Placement.ON_LAND);
-            }
-            renderObject(minecraftWorld, dimension, object, location.x, location.y, location.z);
         }
         return null;
     }

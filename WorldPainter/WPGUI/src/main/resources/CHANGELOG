@@ -20,6 +20,7 @@
  * When trying to Export a world using the Populate layer, or the "allow Minecraft to populate the entire terrain" option, and the Superflat world type (including endless borders), display a warning that Minecraft won't populate chunks for Superflat worlds
  * Custom objects which would extend below the bottom, or above the top of the map, are no longer exported
  * Bug fix: fix an error in the logic for supporting sand with sandstone which would result in the wrong kind of sandstone, and occasionally cause errors
+ * Bug fix: custom objects from Custom Object Layers added as floor layers to a Custom Caves/Tunnels Layer were not being placed on the solid floor of tunnels; this has been fixed
 
 -- Version 2.2.6, released 25-10-2016
 
