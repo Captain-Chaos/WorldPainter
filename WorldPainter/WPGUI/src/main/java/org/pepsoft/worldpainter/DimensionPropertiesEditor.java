@@ -453,6 +453,10 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         borderListeners.remove(borderListener);
     }
 
+    public boolean isPopulateSelected() {
+        return checkBoxPopulate.isSelected();
+    }
+
     private Dimension.Border getSelectedBorder() {
         if (radioButtonLavaBorder.isSelected()) {
             return radioButtonEndlessBorder.isSelected() ? Dimension.Border.ENDLESS_LAVA : Dimension.Border.LAVA;

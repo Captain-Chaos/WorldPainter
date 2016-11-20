@@ -15,6 +15,7 @@ import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.layers.Populate;
 import org.pepsoft.worldpainter.util.MinecraftUtil;
 
 import javax.swing.*;
@@ -225,6 +226,14 @@ dims:   for (Dimension dim: world.getDimensions()) {
     private void export() {
         StringBuilder sb = new StringBuilder("<html>Please confirm that you want to export the world<br>notwithstanding the following warnings:<br><ul>");
         boolean showWarning = false;
+        Generator generator = Generator.values()[comboBoxGenerator.getSelectedIndex()];
+        if ((! radioButtonExportSelection.isSelected()) || (selectedDimension == DIM_NORMAL)) {
+            // The surface dimension is going to be exported
+            if ((generator == Generator.FLAT) && (surfacePropertiesEditor.isPopulateSelected() || world.getDimension(DIM_NORMAL).getAllLayers(true).contains(Populate.INSTANCE))) {
+                sb.append("<li>The Superflat world type is selected and Populate is in use.<br>Minecraft will <em>not</em> populate any chunks for Superflat maps.");
+                showWarning = true;
+            }
+        }
         if (radioButtonExportSelection.isSelected()) {
             if (selectedDimension == DIM_NORMAL) {
                 boolean spawnInSelection = false;
@@ -236,7 +245,7 @@ dims:   for (Dimension dim: world.getDimensions()) {
                     }
                 }
                 if (! spawnInSelection) {
-                    sb.append("<li>The spawn point is not inside the selected area!");
+                    sb.append("<li>The spawn point is not inside the selected area.");
                     showWarning = true;
                 }
             }
@@ -257,7 +266,6 @@ dims:   for (Dimension dim: world.getDimensions()) {
             sb.append("<li>A tile selection is active! Only " + selectedTiles.size() + " tiles of the<br>" + dim + " dimension are going to be exported.");
             showWarning = showWarning || (! disableTileSelectionWarning);
         }
-        Generator generator = Generator.values()[comboBoxGenerator.getSelectedIndex()];
         int disabledLayerCount = 0;
         for (Dimension dimension: world.getDimensions()) {
             for (CustomLayer customLayer: dimension.getCustomLayers()) {
@@ -286,7 +294,7 @@ dims:   for (Dimension dim: world.getDimensions()) {
             jTabbedPane1.setSelectedIndex(0);
             return;
         }
-        
+
         if (world.getDimension(DIM_NETHER) != null) {
             if (! netherPropertiesEditor.saveSettings()) {
                 jTabbedPane1.setSelectedIndex(2);
