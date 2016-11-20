@@ -976,6 +976,10 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private int backgroundColour = -1;
     private boolean showBorders = true, showBiomes = true;
 
+    /**
+     * The acceleration type is only stored here at runtime. It is saved to disk
+     * using the Preferences API.
+     */
     private transient AccelerationType accelerationType;
 
     private static Configuration instance;

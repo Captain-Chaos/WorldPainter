@@ -202,8 +202,6 @@ public class BrushOptions extends javax.swing.JPanel {
         this.listener = listener;
     }
 
-//    * also add to global operations tool
-    
     private void setControlStates() {
         spinnerAbove.setEnabled(checkBoxAbove.isSelected());
         spinnerBelow.setEnabled(checkBoxBelow.isSelected());
@@ -701,11 +699,11 @@ public class BrushOptions extends javax.swing.JPanel {
     
     private static final long serialVersionUID = 1L;
     
-    public static interface Listener {
+    public interface Listener {
         void filterChanged(Filter newFilter);
     }
     
-    public static interface ObjectSelectionListener {
+    public interface ObjectSelectionListener {
         void objectSelected(Object object, String name, Icon icon);
     }
 }

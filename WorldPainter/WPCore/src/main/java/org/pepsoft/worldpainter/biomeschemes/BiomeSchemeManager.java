@@ -48,9 +48,7 @@ public class BiomeSchemeManager {
 
         if (shared && BIOME_SCHEMES.containsKey(biomeAlgorithm)) {
             // We already previously found and initialised a biome scheme for
-            // this algorithm, so reuse it. Note that this could be a problem
-            // if two threads try to use it for different Minecraft seeds, but
-            // that should never happen the way WorldPainter is currently set up
+            // this algorithm, so reuse it
             return BIOME_SCHEMES.get(biomeAlgorithm);
         } else {
             final String version;

@@ -172,7 +172,6 @@ public abstract class AbstractMinecraft1_7BiomeScheme extends AbstractBiomeSchem
                     String libraryGroup = parts[0];
                     String libraryName = parts[1];
                     if (IGNORED_LIBRARY_NAMES.contains(libraryName)) {
-                        // We want all logging to be redirected to the slf4j API
                         continue;
                     }
                     String libraryVersion = parts[2];
@@ -195,6 +194,7 @@ public abstract class AbstractMinecraft1_7BiomeScheme extends AbstractBiomeSchem
     }
 
     private static final boolean[][][] BIOME_PATTERNS = new boolean[168][][];
+    // We want all logging to be redirected to the slf4j API
     private static final Set<String> IGNORED_LIBRARY_NAMES = new HashSet<>(Arrays.asList("log4j-api", "log4j-core", "commons-logging"));
 
     static {
