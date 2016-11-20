@@ -1,5 +1,17 @@
 -- Version 2.2.7, released ...
 
+ * Selection and duplication tools have been added:
+   + The new Edit Selection tool allows you to add the brush shape to the selection (by left clicking) or remove it from the selection (by right clicking)
+     - The selection is efficiently stored and quite large areas can be selected (although note that large areas will take a long time to copy). Note that the selection is saved in the world file
+   + The new Copy Selection tool will copy the selection to a target location. The brush shape will change to the bounding rectangle of the selected area so you can accurately judge where it will be copied
+     - There is NO CLIPBOARD! The copy is a live copy of what is currently in the selected area. Note that the target area of a copy may overlap the selected area and WorldPainter will do the right thing, but a subsequent copy will also include the changes to the area under selection
+     - There is a new Tool Settings panel, which will show options for the Copy Selection tool when it is selected, allowing you to configure various options:
+       o Exactly which aspects of the selected area to copy (terrain height, type, layers, etc.)
+       o Whether new tiles should be created if the target area of the copy extends outside the existing tiles (*please note* that this will clear all undo information!)
+       o Whether the edges of the selected area should be smoothly blended into the surroundings, over a distance of sixteen blocks (two chunks) on the inside of the selection edge. *Please note* that this will make the copy operation much slower!
+     - This panel may show options for other tools in the future
+   + The new Clear Selection button will instantly remove the selected area
+   + Note that all selection, copy and deselection operations can be undone like any other operation, except if new tiles had to be created for a copy operation
  * More view options have been added to the Configure View screen (Ctrl+V or View -> Configure view...):
    + The painting of the Minecraft biomes surrounding the world can be turned off
    + The painting of the border can be turned off

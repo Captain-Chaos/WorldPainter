@@ -414,7 +414,7 @@ outer:  for (int dx = -1; dx <= 1; dx++) {
                 if (brush instanceof RotatedBrush) {
                     int rotation = ((RotatedBrush) brush).getDegrees();
                     if (rotation != 0) {
-                        shape = new Path2D.Float(shape, AffineTransform.getRotateInstance(rotation / DEGREES_TO_RADIANS));
+                        shape = new Path2D.Float(shape, AffineTransform.getRotateInstance(rotation / DEGREES_TO_RADIANS, x, y));
                     }
                 }
                 break;

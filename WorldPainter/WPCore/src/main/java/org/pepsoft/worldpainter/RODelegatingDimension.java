@@ -374,6 +374,11 @@ public class RODelegatingDimension extends Dimension {
     }
 
     @Override
+    public boolean containsOneOf(Layer... layers) {
+        return dimension.containsOneOf(layers);
+    }
+
+    @Override
     public Set<Layer> getMinimumLayers() {
         return dimension.getMinimumLayers();
     }

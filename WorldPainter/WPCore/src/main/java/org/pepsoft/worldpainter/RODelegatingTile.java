@@ -89,6 +89,11 @@ public class RODelegatingTile extends Tile {
     }
 
     @Override
+    public boolean containsOneOf(Layer... layers) {
+        return tile.containsOneOf(layers);
+    }
+
+    @Override
     public boolean hasLayer(Layer layer) {
         return tile.hasLayer(layer);
     }

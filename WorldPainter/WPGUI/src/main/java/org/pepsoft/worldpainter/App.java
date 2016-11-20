@@ -50,9 +50,7 @@ import org.pepsoft.worldpainter.panels.BrushOptions;
 import org.pepsoft.worldpainter.panels.BrushOptions.Listener;
 import org.pepsoft.worldpainter.plugins.CustomLayerProvider;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
-import org.pepsoft.worldpainter.selection.CopySelectionOperation;
-import org.pepsoft.worldpainter.selection.EditSelectionOperation;
-import org.pepsoft.worldpainter.selection.SelectionHelper;
+import org.pepsoft.worldpainter.selection.*;
 import org.pepsoft.worldpainter.threedeeview.ThreeDeeFrame;
 import org.pepsoft.worldpainter.tools.BiomesViewerFrame;
 import org.pepsoft.worldpainter.tools.RespawnPlayerDialog;
@@ -515,6 +513,16 @@ public final class App extends JFrame implements RadiusControl,
             ACTION_GRID.setSelected(view.isPaintGrid());
             ACTION_CONTOURS.setSelected(view.isDrawContours());
             ACTION_OVERLAY.setSelected(view.isDrawOverlay());
+
+            // Set operation states
+            if (dimension.containsOneOf(SelectionChunk.INSTANCE, SelectionBlock.INSTANCE)) {
+                copySelectionButton.setEnabled(true);
+            } else {
+                if (activeOperation instanceof CopySelectionOperation) {
+                    deselectTool();
+                }
+                copySelectionButton.setEnabled(false);
+            }
             
             // Load custom biomes. But first remove any that are now regular
             // biomes
@@ -563,6 +571,9 @@ public final class App extends JFrame implements RadiusControl,
             if (activeOperation != null) {
                 deselectTool();
             }
+
+            // Disable copy selection operation
+            copySelectionButton.setEnabled(false);
             
             programmaticChange = true;
             try {
@@ -2344,8 +2355,10 @@ public final class App extends JFrame implements RadiusControl,
         toolPanel.add(createButtonForOperation(new RaiseRotatedPyramid(view)));
         toolPanel.add(createButtonForOperation(new RaisePyramid(view)));
 
-        toolPanel.add(createButtonForOperation(new EditSelectionOperation(view, this, mapDragControl)));
-        toolPanel.add(createButtonForOperation(new CopySelectionOperation(view)));
+        copySelectionButton = createButtonForOperation(new CopySelectionOperation(view));
+        copySelectionButton.setEnabled(false);
+        toolPanel.add(createButtonForOperation(new EditSelectionOperation(view, this, mapDragControl, copySelectionButton)));
+        toolPanel.add(copySelectionButton);
         button = new JButton(loadIcon("clear_selection"));
         button.setMargin(new Insets(2, 2, 2, 2));
         button.addActionListener(e -> {
@@ -2359,6 +2372,7 @@ public final class App extends JFrame implements RadiusControl,
             if (activeOperation instanceof CopySelectionOperation) {
                 deselectTool();
             }
+            copySelectionButton.setEnabled(false);
         });
         button.setToolTipText("Clear the selection");
         toolPanel.add(button);
@@ -6183,7 +6197,7 @@ public final class App extends JFrame implements RadiusControl,
     private int zoom = 0, maxRadius = DEFAULT_MAX_RADIUS, brushRotation = 0, toolBrushRotation = 0, previousBrushRotation = 0;
     private GlassPane glassPane;
     private JCheckBox readOnlyCheckBox, biomesCheckBox, annotationsCheckBox, readOnlySoloCheckBox, biomesSoloCheckBox, annotationsSoloCheckBox;
-    private JToggleButton readOnlyToggleButton, setSpawnPointToggleButton;
+    private JToggleButton readOnlyToggleButton, setSpawnPointToggleButton, copySelectionButton;
     private JMenuItem addNetherMenuItem, removeNetherMenuItem, addEndMenuItem, removeEndMenuItem, addSurfaceCeilingMenuItem, removeSurfaceCeilingMenuItem, addNetherCeilingMenuItem, removeNetherCeilingMenuItem, addEndCeilingMenuItem, removeEndCeilingMenuItem, exportHighResHeightMapMenuItem;
     private JCheckBoxMenuItem viewSurfaceMenuItem, viewNetherMenuItem, viewEndMenuItem, extendedBlockIdsMenuItem, viewSurfaceCeilingMenuItem, viewNetherCeilingMenuItem, viewEndCeilingMenuItem;
     private final JToggleButton[] customMaterialButtons = new JToggleButton[CUSTOM_TERRAIN_COUNT];

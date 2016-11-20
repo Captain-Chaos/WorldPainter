@@ -1429,6 +1429,15 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         return tiles.values().stream();
     }
 
+    public boolean containsOneOf(Layer... layers) {
+        for (Tile tile: tiles.values()) {
+            if (tile.containsOneOf(layers)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     // Tile.Listener
 
     @Override
