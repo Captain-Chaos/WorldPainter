@@ -17,6 +17,7 @@
    + The painting of the border can be turned off
    + You can now set a background image with various repeat and stretch options, which will be shown in the background of the editor wherever it is not obscured by tiles, biomes or border, and wherever the Void layer is painted
    + The background colour (visible wherever not obscured by tiles, biomes, border and/or background image) can be changed
+ * When trying to Export a world using the Populate layer, or the "allow Minecraft to populate the entire terrain" option, and the Superflat world type (including endless borders), display a warning that Minecraft won't populate chunks for Superflat worlds
  * Custom objects which would extend below the bottom, or above the top of the map, are no longer exported
  * Bug fix: fix an error in the logic for supporting sand with sandstone which would result in the wrong kind of sandstone, and occasionally cause errors
 
