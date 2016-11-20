@@ -964,6 +964,19 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         }
     }
 
+    public boolean isInhibitUpdates() {
+        return inhibitUpdates;
+    }
+
+    public void setInhibitUpdates(boolean inhibitUpdates) {
+        if (inhibitUpdates != this.inhibitUpdates) {
+            this.inhibitUpdates = inhibitUpdates;
+            if (! inhibitUpdates) {
+                refresh(true);
+            }
+        }
+    }
+
     /**
      * Determine whether a tile is currently visible in the viewport.
      *
@@ -1609,19 +1622,23 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
 
     @Override
     public void tileChanged(final TileProvider source, final int x, final int y) {
-        if (SwingUtilities.isEventDispatchThread()) {
-            refresh(source, x, y);
-        } else {
-            SwingUtilities.invokeLater(() -> refresh(source, x, y));
+        if (! inhibitUpdates) {
+            if (SwingUtilities.isEventDispatchThread()) {
+                refresh(source, x, y);
+            } else {
+                SwingUtilities.invokeLater(() -> refresh(source, x, y));
+            }
         }
     }
 
     @Override
     public void tilesChanged(final TileProvider source, final Set<Point> tiles) {
-        if (SwingUtilities.isEventDispatchThread()) {
-            refresh(source, tiles);
-        } else {
-            SwingUtilities.invokeLater(() -> refresh(source, tiles));
+        if (! inhibitUpdates) {
+            if (SwingUtilities.isEventDispatchThread()) {
+                refresh(source, tiles);
+            } else {
+                SwingUtilities.invokeLater(() -> refresh(source, tiles));
+            }
         }
     }
 
@@ -1795,6 +1812,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
     private Color gridColour = Color.BLACK;
     private BufferedImage backgroundImage;
     private BackgroundImageMode backgroundImageMode = BackgroundImageMode.CENTRE_REPEAT;
+    private volatile boolean inhibitUpdates;
 
     public static final int TILE_SIZE = 128, TILE_SIZE_BITS = 7, TILE_SIZE_MASK = 0x7f;
     

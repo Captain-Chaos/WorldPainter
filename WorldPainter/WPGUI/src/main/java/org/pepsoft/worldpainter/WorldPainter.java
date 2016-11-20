@@ -323,22 +323,6 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         }
     }
 
-    @Override
-    public boolean isInhibitUpdates() {
-        return inhibitUpdates;
-    }
-
-    @Override
-    public void setInhibitUpdates(boolean inhibitUpdates) {
-        if (inhibitUpdates != this.inhibitUpdates) {
-            this.inhibitUpdates = inhibitUpdates;
-            if (! inhibitUpdates) {
-                refresh(true);
-            }
-            firePropertyChange("inhibitUpdates", ! inhibitUpdates, inhibitUpdates);
-        }
-    }
-
     public void refreshBrush() {
         Point mousePos = getMousePosition();
         if (mousePos != null) {
@@ -506,7 +490,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     }
     
     public void minecraftSeedChanged(Dimension dimension, long newSeed) {
-        if ((! inhibitUpdates) && (! hiddenLayers.contains(Biome.INSTANCE))) {
+        if ((! isInhibitUpdates()) && (! hiddenLayers.contains(Biome.INSTANCE))) {
             refreshTiles();
         }
     }
@@ -909,7 +893,6 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     private BufferedImage overlay;
     private LightOrigin lightOrigin = LightOrigin.NORTHWEST;
     private WPTileProvider tileProvider;
-    private volatile boolean inhibitUpdates;
     private Shape customBrushShape;
     
     private static final int VIEW_DISTANCE_RADIUS = 256;

@@ -59,25 +59,4 @@ public abstract class WorldPainterView extends TiledImageViewer {
      * @param drawBrush Whether the brush radius should be displayed.
      */
     public abstract void setDrawBrush(boolean drawBrush);
-
-    /**
-     * Determine whether view updates are currently inhibited, meaning that
-     * changes to the dimension are not reflected on the screen.
-     *
-     * @return Whether view updates are currently inhibited.
-     */
-    public abstract boolean isInhibitUpdates();
-
-    /**
-     * Set whether view updates should be inhibited, meaning the changes to the
-     * dimension are not reflected on the screen. This may provide improved
-     * performance while a dimension is being changed intensively.
-     *
-     * <p>It is the responsibility of the view to make sure that the current
-     * state of the dimension is reflected on the screen again after this is set
-     * to <code>false</code>.
-     *
-     * @param inhibitUpdates Whether view updates should be inhibited.
-     */
-    public abstract void setInhibitUpdates(boolean inhibitUpdates);
 }
