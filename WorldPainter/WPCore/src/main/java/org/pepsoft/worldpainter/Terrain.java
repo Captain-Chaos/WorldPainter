@@ -1747,11 +1747,19 @@ public enum Terrain {
     }
 
     public int getColour(final long seed, final int x, final int y, final float z, final int height, final ColourScheme colourScheme) {
-        return colourScheme.getColour(getMaterial(seed, x, y, z, height));
+        try {
+            return colourScheme.getColour(getMaterial(seed, x, y, z, height));
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getClass().getSimpleName() + " while getting colour of material " + getMaterial(seed, x, y, z, height) + " @ " + x + "," + y + "," + z + "," + height + " for terrain " + this, e);
+        }
     }
     
     public int getColour(final long seed, final int x, final int y, final int z, final int height, final ColourScheme colourScheme) {
-        return colourScheme.getColour(getMaterial(seed, x, y, z, height));
+        try {
+            return colourScheme.getColour(getMaterial(seed, x, y, z, height));
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getClass().getSimpleName() + " while getting colour of material " + getMaterial(seed, x, y, z, height) + " @ " + x + "," + y + "," + z + "," + height + " for terrain " + this, e);
+        }
     }
 
     public int getDefaultBiome() {
