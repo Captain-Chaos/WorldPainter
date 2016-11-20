@@ -264,23 +264,51 @@ public class MultiProgressComponent<T> extends javax.swing.JPanel implements Pro
                     }
                 }
 
-                final Component componentToRemove = progressPanel;
                 subProgressReceiver.addListener(new ProgressReceiver() {
                     @Override
                     public void setProgress(float progress) throws OperationCancelled {
-                        if (progress >= 1.0) {
-                            doOnEventThread(() -> scrollablePanel1.remove(componentToRemove));
+                        if (progress >= 1.0f) {
+                            doOnEventThread(() -> removeViewerHierarchy(subProgressReceiver));
                         }
                     }
 
                     @Override
                     public void exceptionThrown(Throwable exception) {
-                        doOnEventThread(() -> scrollablePanel1.remove(componentToRemove));
+                        doOnEventThread(() -> removeViewerHierarchy(subProgressReceiver));
                     }
 
                     @Override
                     public void done() {
-                        doOnEventThread(() -> scrollablePanel1.remove(componentToRemove));
+                        doOnEventThread(() -> removeViewerHierarchy(subProgressReceiver));
+                    }
+
+                    /**
+                     * Remove a particular viewer, and any children which may
+                     * still exist (this happens in the wild; not entirely clear
+                     * why; may be because they never started any progress;
+                     * perhaps some kind of race condition).
+                     */
+                    private void removeViewerHierarchy(SubProgressReceiver subProgressReceiver) {
+                        // Remove any children
+                        for (Component component: scrollablePanel1.getComponents()) {
+                            ProgressViewer viewer = (ProgressViewer) ((component instanceof ProgressViewer) ? component : ((JPanel) component).getComponent(1));
+                            if (viewer.getSubProgressReceiver().getParent() == subProgressReceiver) {
+                                if (logger.isTraceEnabled()) {
+                                    logger.trace("Progress receiver still has child; removing child. Stack trace is of child creation", viewer.getSubProgressReceiver().getCreationTrace());
+                                }
+                                removeViewerHierarchy(viewer.getSubProgressReceiver());
+                            }
+                        }
+
+                        // Remove the viewer for this sub progress receiver
+                        // itself
+                        for (Component component: scrollablePanel1.getComponents()) {
+                            ProgressViewer viewer = (ProgressViewer) ((component instanceof ProgressViewer) ? component : ((JPanel) component).getComponent(1));
+                            if (viewer.getSubProgressReceiver() == subProgressReceiver) {
+                                scrollablePanel1.remove(component);
+                                break;
+                            }
+                        }
                     }
 
                     @Override public void setMessage(String message) throws OperationCancelled {}

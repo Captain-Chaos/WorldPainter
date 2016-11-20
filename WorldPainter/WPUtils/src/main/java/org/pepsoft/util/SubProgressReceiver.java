@@ -21,8 +21,8 @@ public class SubProgressReceiver implements ProgressReceiver {
         this.progressReceiver = progressReceiver;
         this.offset = offset;
         this.extent = extent;
-        Throwable t = new Throwable();
-        lastMessage = t.getStackTrace()[1].getClassName() + '.' + t.getStackTrace()[1].getMethodName() + '#' + t.getStackTrace()[1].getLineNumber();
+        creationTrace = new Throwable("Creation");
+        lastMessage = creationTrace.getStackTrace()[1].getClassName() + '.' + creationTrace.getStackTrace()[1].getMethodName() + '#' + creationTrace.getStackTrace()[1].getLineNumber();
     }
     
     /**
@@ -52,6 +52,10 @@ public class SubProgressReceiver implements ProgressReceiver {
 
     public synchronized String getLastMessage() {
         return lastMessage;
+    }
+
+    public Throwable getCreationTrace() {
+        return creationTrace;
     }
 
     // ProgressReceiver
@@ -154,6 +158,7 @@ public class SubProgressReceiver implements ProgressReceiver {
 
     private final ProgressReceiver progressReceiver;
     private final float offset, extent;
+    private final Throwable creationTrace;
     private List<ProgressReceiver> listeners;
     private String lastMessage;
     private boolean reportedToParent;
