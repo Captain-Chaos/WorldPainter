@@ -252,8 +252,8 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
     public static boolean isRoom(final MinecraftWorld world, final Dimension dimension, final WPObject object, final int x, final int y, final int z, final Placement placement) {
         final Point3i dimensions = object.getDimensions();
         final Point3i offset = object.getAttribute(ATTRIBUTE_OFFSET, new Point3i());
-        final int collisionMode = object.getAttribute(ATTRIBUTE_COLLISION_MODE, COLLISION_MODE_SOLID);
-        final boolean allowConnectingBlocks = false;
+        final int collisionMode = object.getAttribute(ATTRIBUTE_COLLISION_MODE, COLLISION_MODE_SOLID), maxHeight = world.getMaxHeight();
+        final boolean allowConnectingBlocks = false, bottomlessWorld = dimension.isBottomless();
         // Check if the object fits vertically
         if (((long) z + dimensions.z - 1 + offset.z) >= world.getMaxHeight()) {
             if (logger.isTraceEnabled()) {
@@ -272,30 +272,39 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
             for (int dx = 0; dx < dimensions.x; dx++) {
                 for (int dy = 0; dy < dimensions.y; dy++) {
                     final int worldX = x + dx + offset.x, worldY = y + dy + offset.y;
-                    final int terrainHeight = dimension.getIntHeightAt(worldX, worldY);
-                    final int minZ = Math.max(terrainHeight - (z + offset.z) + 1, 0);
-                    for (int dz = minZ; dz < dimensions.z; dz++) {
+                    for (int dz = 0; dz < dimensions.z; dz++) {
                         if (object.getMask(dx, dy, dz)) {
                             final Block objectBlock = object.getMaterial(dx, dy, dz).block;
                             if (! objectBlock.veryInsubstantial) {
                                 final int worldZ = z + dz + offset.z;
-                                if ((collisionMode == COLLISION_MODE_ALL)
-                                        ? (! AIR_AND_FLUIDS.contains(world.getBlockTypeAt(worldX, worldY, worldZ)))
-                                        : (! BLOCKS[world.getBlockTypeAt(worldX, worldY, worldZ)].veryInsubstantial)) {
-                                    // The block is above ground, it is present in the
-                                    // custom object, is substantial, and there is already a
-                                    // substantial block at the same location in the world;
-                                    // there is no room for this object
+                                if (worldZ < (bottomlessWorld ? 0 : 1)) {
                                     if (logger.isTraceEnabled()) {
-                                        logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " due to collision with existing above ground block of type " + BLOCKS[world.getBlockTypeAt(worldX, worldY, worldZ)]);
+                                        logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " because it extends below the bottom of the map");
                                     }
                                     return false;
-                                }
-                                if ((! allowConnectingBlocks) && wouldConnect(world, worldX, worldY, worldZ, objectBlock.id)) {
+                                } else if (worldZ >= maxHeight) {
                                     if (logger.isTraceEnabled()) {
-                                        logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " because it would cause a connecting block");
+                                        logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " because it extends above the top of the map");
                                     }
                                     return false;
+                                } else if (worldZ > dimension.getIntHeightAt(worldX, worldY)) {
+                                    if ((collisionMode == COLLISION_MODE_ALL)
+                                            ? (!AIR_AND_FLUIDS.contains(world.getBlockTypeAt(worldX, worldY, worldZ)))
+                                            : (!BLOCKS[world.getBlockTypeAt(worldX, worldY, worldZ)].veryInsubstantial)) {
+                                        // The block is above ground, it is present in the
+                                        // custom object, is substantial, and there is already a
+                                        // substantial block at the same location in the world;
+                                        // there is no room for this object
+                                        if (logger.isTraceEnabled()) {
+                                            logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " due to collision with existing above ground block of type " + BLOCKS[world.getBlockTypeAt(worldX, worldY, worldZ)]);
+                                        }
+                                        return false;
+                                    } else if ((!allowConnectingBlocks) && wouldConnect(world, worldX, worldY, worldZ, objectBlock.id)) {
+                                        if (logger.isTraceEnabled()) {
+                                            logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " because it would cause a connecting block");
+                                        }
+                                        return false;
+                                    }
                                 }
                             }
                         }
@@ -311,20 +320,30 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                     final int terrainHeight = dimension.getIntHeightAt(worldX, worldY);
                     for (int dz = 0; dz < dimensions.z; dz++) {
                         if (object.getMask(dx, dy, dz)) {
-                            final int worldZ = z + dz + offset.z;
-                            if ((worldZ <= terrainHeight) && (! object.getMaterial(dx, dy, dz).block.veryInsubstantial)) {
-                                // A solid block in the object collides with
-                                // the floor
-                                if (logger.isTraceEnabled()) {
-                                    logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " due to collision with floor");
-                                }
-                                return false;
-                            } else if ((worldZ > terrainHeight) && (collisionMode != COLLISION_MODE_NONE)) {
-                                final Block objectBlock = object.getMaterial(dx, dy, dz).block;
-                                if (! objectBlock.veryInsubstantial) {
+                            final Block objectBlock = object.getMaterial(dx, dy, dz).block;
+                            if (! objectBlock.veryInsubstantial) {
+                                final int worldZ = z + dz + offset.z;
+                                if (worldZ < (bottomlessWorld ? 0 : 1)) {
+                                    if (logger.isTraceEnabled()) {
+                                        logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " because it extends below the bottom of the map");
+                                    }
+                                    return false;
+                                } else if (worldZ >= maxHeight) {
+                                    if (logger.isTraceEnabled()) {
+                                        logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " because it extends above the top of the map");
+                                    }
+                                    return false;
+                                } else if (worldZ <= terrainHeight) {
+                                    // A solid block in the object collides with
+                                    // the floor
+                                    if (logger.isTraceEnabled()) {
+                                        logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " due to collision with floor");
+                                    }
+                                    return false;
+                                } else if (collisionMode != COLLISION_MODE_NONE) {
                                     if ((collisionMode == COLLISION_MODE_ALL)
-                                            ? (! AIR_AND_FLUIDS.contains(world.getBlockTypeAt(worldX, worldY, worldZ)))
-                                            : (! BLOCKS[world.getBlockTypeAt(worldX, worldY, worldZ)].veryInsubstantial)) {
+                                            ? (!AIR_AND_FLUIDS.contains(world.getBlockTypeAt(worldX, worldY, worldZ)))
+                                            : (!BLOCKS[world.getBlockTypeAt(worldX, worldY, worldZ)].veryInsubstantial)) {
                                         // The block is present in the custom object, is
                                         // substantial, and there is already a
                                         // substantial block at the same location in the
@@ -333,8 +352,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                                             logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " due to collision with existing above ground block of type " + BLOCK_TYPE_NAMES[world.getBlockTypeAt(worldX, worldY, worldZ)]);
                                         }
                                         return false;
-                                    }
-                                    if ((! allowConnectingBlocks) && wouldConnect(world, worldX, worldY, worldZ, objectBlock.id)) {
+                                    } else if ((!allowConnectingBlocks) && wouldConnect(world, worldX, worldY, worldZ, objectBlock.id)) {
                                         if (logger.isTraceEnabled()) {
                                             logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " because it would cause a connecting block");
                                         }

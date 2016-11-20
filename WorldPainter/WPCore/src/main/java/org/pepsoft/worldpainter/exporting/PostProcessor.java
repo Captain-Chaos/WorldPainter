@@ -101,6 +101,9 @@ public class PostProcessor {
             for (int y = y1; y <= y2; y++) {
                 int blockTypeBelow = BLK_AIR;
                 int blockTypeAbove = minecraftWorld.getBlockTypeAt(x, y, minZ);
+                if ((minZ == 0) && (blockTypeAbove != BLK_BEDROCK) && (blockTypeAbove != BLK_AIR)) {
+                    logger.warn("Non-bedrock block @ " + x + "," + y + ",0: " + BLOCKS[blockTypeAbove].name);
+                }
                 for (int z = minZ; z <= maxZ; z++) {
                     int blockType = blockTypeAbove;
                     blockTypeAbove = (z < worldMaxZ) ? minecraftWorld.getBlockTypeAt(x, y, z + 1) : BLK_AIR;
@@ -116,7 +119,7 @@ public class PostProcessor {
                         case BLK_SAND:
                             if (supportSand && BLOCKS[blockTypeBelow].veryInsubstantial) {
                                 // All unsupported sand should be supported by sandstone
-                                minecraftWorld.setMaterialAt(x, y, z, (minecraftWorld.getDataAt(x, y, z - 1) == 1) ? Material.RED_SANDSTONE : Material.SANDSTONE);
+                                minecraftWorld.setMaterialAt(x, y, z, (minecraftWorld.getDataAt(x, y, z) == 1) ? Material.RED_SANDSTONE : Material.SANDSTONE);
                                 blockType = minecraftWorld.getBlockTypeAt(x, y, z);
                             }
                             break;
