@@ -94,7 +94,7 @@ public class SkewedObject extends AbstractObject {
     }
 
     @Override
-    public void setAttribute(String key, Serializable value) {
+    public <T extends Serializable> void setAttribute(AttributeKey<T> key, T value) {
         throw new UnsupportedOperationException("Not supported");
     }
 

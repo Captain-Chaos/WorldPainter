@@ -36,11 +36,11 @@ public final class Bo3Object extends AbstractObject implements Bo2ObjectProvider
         this.dimensions = dimensions;
         if ((origin.x != 0) || (origin.y != 0) || (origin.z != 0)) {
             if (attributes == null) attributes = new HashMap<>();
-            attributes.put(ATTRIBUTE_OFFSET, new Point3i(-origin.x, -origin.y, -origin.z));
+            attributes.put(ATTRIBUTE_OFFSET.key, new Point3i(-origin.x, -origin.y, -origin.z));
         }
         if ((! properties.containsKey(KEY_RANDOM_ROTATION)) || (! Boolean.valueOf(properties.get(KEY_RANDOM_ROTATION)))) {
             if (attributes == null) attributes = new HashMap<>();
-            attributes.put(WPObject.ATTRIBUTE_RANDOM_ROTATION, false);
+            attributes.put(ATTRIBUTE_RANDOM_ROTATION.key, false);
         }
         this.attributes = attributes;
     }
@@ -102,7 +102,7 @@ public final class Bo3Object extends AbstractObject implements Bo2ObjectProvider
 
     @Override
     public List<WPObject> getAllObjects() {
-        return Collections.singletonList((WPObject) this);
+        return Collections.singletonList(this);
     }
 
     @Override
@@ -116,14 +116,14 @@ public final class Bo3Object extends AbstractObject implements Bo2ObjectProvider
     }
 
     @Override
-    public void setAttribute(String key, Serializable value) {
+    public <T extends Serializable> void setAttribute(AttributeKey<T> key, T value) {
         if (value != null) {
             if (attributes == null) {
                 attributes = new HashMap<>();
             }
-            attributes.put(key, value);
+            attributes.put(key.key, value);
         } else if (attributes != null) {
-            attributes.remove(key);
+            attributes.remove(key.key);
             if (attributes.isEmpty()) {
                 attributes = null;
             }
@@ -246,7 +246,7 @@ public final class Bo3Object extends AbstractObject implements Bo2ObjectProvider
             if (blocks.isEmpty()) {
                 throw new IOException("No blocks found in the file; is this a bo3 object?");
             }
-            Map<String, Serializable> attributes = new HashMap<>(Collections.singletonMap(WPObject.ATTRIBUTE_FILE, file));
+            Map<String, Serializable> attributes = new HashMap<>(Collections.singletonMap(ATTRIBUTE_FILE.key, file));
             return new Bo3Object(objectName, properties, blocks, new Point3i(-lowestX, -lowestY, -lowestZ), new Point3i(highestX - lowestX + 1, highestY - lowestY + 1, highestZ - lowestZ + 1), attributes);
         }
     }

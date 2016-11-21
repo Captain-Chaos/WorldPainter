@@ -65,7 +65,7 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
                             if (placement == Placement.NONE) {
                                 continue;
                             }
-                            if (object.getAttribute(ATTRIBUTE_RANDOM_ROTATION, true)) {
+                            if (object.getAttribute(ATTRIBUTE_RANDOM_ROTATION)) {
                                 if (random.nextBoolean()) {
                                     object = new MirroredObject(object, false);
                                 }
@@ -108,11 +108,11 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
             WPObject object = objectProvider.getObject();
             int existingBlockType = minecraftWorld.getBlockTypeAt(location.x, location.y, location.z);
             int blockBelow = minecraftWorld.getBlockTypeAt(location.x, location.y, location.z - 1);
-            if ((object.getAttribute(ATTRIBUTE_SPAWN_IN_LAVA, false) && ((existingBlockType == BLK_LAVA) || (existingBlockType == BLK_STATIONARY_LAVA)))
-                    || (object.getAttribute(ATTRIBUTE_SPAWN_IN_WATER, false) && ((existingBlockType == BLK_WATER) || (existingBlockType == BLK_STATIONARY_WATER)))
-                    || (object.getAttribute(ATTRIBUTE_SPAWN_ON_LAND, true) && (! BLOCKS[blockBelow].veryInsubstantial))
-                    || (! object.getAttribute(ATTRIBUTE_NEEDS_FOUNDATION, true) && BLOCKS[blockBelow].veryInsubstantial)) {
-                if (object.getAttribute(ATTRIBUTE_RANDOM_ROTATION, true)) {
+            if ((object.getAttribute(ATTRIBUTE_SPAWN_IN_LAVA) && ((existingBlockType == BLK_LAVA) || (existingBlockType == BLK_STATIONARY_LAVA)))
+                    || (object.getAttribute(ATTRIBUTE_SPAWN_IN_WATER) && ((existingBlockType == BLK_WATER) || (existingBlockType == BLK_STATIONARY_WATER)))
+                    || (object.getAttribute(ATTRIBUTE_SPAWN_ON_LAND) && (! BLOCKS[blockBelow].veryInsubstantial))
+                    || (! object.getAttribute(ATTRIBUTE_NEEDS_FOUNDATION) && BLOCKS[blockBelow].veryInsubstantial)) {
+                if (object.getAttribute(ATTRIBUTE_RANDOM_ROTATION)) {
                     if (random.nextBoolean()) {
                         object = new MirroredObject(object, false);
                     }
@@ -146,7 +146,7 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
      */
     private boolean fitsInExportedArea(final Rectangle exportedArea, final WPObject object, final int x, final int y) {
         final Point3i dimensions = object.getDimensions();
-        final Point3i offset = object.getAttribute(ATTRIBUTE_OFFSET, new Point3i());
+        final Point3i offset = object.getOffset();
         // Check whether the objects fits completely inside the exported area.
         // This is to avoid objects getting cut off at area boundaries
         return ! ((x + offset.x < exportedArea.x) || (x + offset.x + dimensions.x > exportedArea.x + exportedArea.width)
@@ -162,8 +162,8 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
      *     placed at all.
      */
     private Placement getPlacement(final MinecraftWorld minecraftWorld, final Dimension dimension, final int x, final int y, final int z, final WPObject object, final Random random) {
-        final boolean spawnUnderWater = object.getAttribute(ATTRIBUTE_SPAWN_IN_WATER, false), spawnUnderLava = object.getAttribute(ATTRIBUTE_SPAWN_IN_LAVA, false);
-        final boolean spawnOnWater = object.getAttribute(ATTRIBUTE_SPAWN_ON_WATER, false), spawnOnLava = object.getAttribute(ATTRIBUTE_SPAWN_ON_LAVA, false);
+        final boolean spawnUnderWater = object.getAttribute(ATTRIBUTE_SPAWN_IN_WATER), spawnUnderLava = object.getAttribute(ATTRIBUTE_SPAWN_IN_LAVA);
+        final boolean spawnOnWater = object.getAttribute(ATTRIBUTE_SPAWN_ON_WATER), spawnOnLava = object.getAttribute(ATTRIBUTE_SPAWN_ON_LAVA);
         final int waterLevel = dimension.getWaterLevelAt(x, y);
         final boolean flooded = waterLevel >= z;
         if (flooded && (spawnUnderWater || spawnUnderLava || spawnOnWater || spawnOnLava)) {
@@ -186,12 +186,12 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
             }
         } else if (! flooded) {
             int blockTypeUnderCoords = (z > 0) ? minecraftWorld.getBlockTypeAt(x, y, z - 1) : BLK_AIR;
-            if (object.getAttribute(ATTRIBUTE_SPAWN_ON_LAND, true) && (! BLOCKS[blockTypeUnderCoords].veryInsubstantial)) {
+            if (object.getAttribute(ATTRIBUTE_SPAWN_ON_LAND) && (! BLOCKS[blockTypeUnderCoords].veryInsubstantial)) {
                 if (logger.isTraceEnabled()) {
                     logger.trace("Object " + object.getName() + " @ " + x + "," + y + "," + z + " potentially placeable on land");
                 }
                 return Placement.ON_LAND;
-            } else if ((! object.getAttribute(ATTRIBUTE_NEEDS_FOUNDATION, true)) && BLOCKS[blockTypeUnderCoords].veryInsubstantial) {
+            } else if ((! object.getAttribute(ATTRIBUTE_NEEDS_FOUNDATION)) && BLOCKS[blockTypeUnderCoords].veryInsubstantial) {
                 if (logger.isTraceEnabled()) {
                     logger.trace("Object " + object.getName() + " @ " + x + "," + y + "," + z + " potentially placeable in the air");
                 }

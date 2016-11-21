@@ -309,12 +309,12 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
     }
 
     @Override
-    public <T extends Serializable> T getAttribute(String key, T _default) {
+    public <T extends Serializable> T getAttribute(AttributeKey<T> key) {
         if (key.equals(ATTRIBUTE_OFFSET)) {
             //noinspection unchecked // Responsibility of caller
             return (T) offset;
         } else {
-            return _default;
+            return key.defaultValue;
         }
     }
 
@@ -324,13 +324,13 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
     }
 
     @Override
-    public void setAttribute(String key, Serializable value) {
+    public <T extends Serializable> void setAttribute(AttributeKey<T> key, T value) {
         throw new UnsupportedOperationException("Not supported");
     }
 
     @Override
     public Point3i getOffset() {
-        return getAttribute(ATTRIBUTE_OFFSET, null);
+        return getAttribute(ATTRIBUTE_OFFSET);
     }
 
     @Override

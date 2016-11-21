@@ -4,29 +4,21 @@
  */
 package org.pepsoft.worldpainter.layers.bo2;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.zip.GZIPInputStream;
-import javax.vecmath.Point3i;
 import org.jnbt.CompoundTag;
 import org.jnbt.NBTInputStream;
 import org.pepsoft.minecraft.AbstractNBTItem;
-import static org.pepsoft.minecraft.Constants.*;
 import org.pepsoft.minecraft.Entity;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.minecraft.TileEntity;
 import org.pepsoft.worldpainter.objects.WPObject;
+
+import javax.vecmath.Point3i;
+import java.io.*;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.zip.GZIPInputStream;
+
+import static org.pepsoft.minecraft.Constants.BLK_AIR;
 
 /**
  *
@@ -108,7 +100,7 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
             if (attributes == null) {
                 attributes = new HashMap<>();
             }
-            attributes.put(ATTRIBUTE_OFFSET, offset);
+            attributes.put(ATTRIBUTE_OFFSET.key, offset);
         }
         if (containsTag("WEOriginX")) {
             weOriginX = getInt("WEOriginX");
@@ -178,7 +170,7 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
     
     @Override
     public List<WPObject> getAllObjects() {
-        return Collections.singletonList((WPObject) this);
+        return Collections.singletonList(this);
     }
 
     @Override
@@ -188,12 +180,8 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
 
     @Override
     @SuppressWarnings("unchecked") // Responsibility of caller
-    public <T extends Serializable> T getAttribute(String key, T _default) {
-        if ((attributes != null) && attributes.containsKey(key)) {
-            return (T) attributes.get(key);
-        } else {
-            return _default;
-        }
+    public <T extends Serializable> T getAttribute(AttributeKey<T> key) {
+        return key.get(attributes);
     }
 
     @Override
@@ -202,14 +190,14 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
     }
     
     @Override
-    public void setAttribute(String key, Serializable value) {
+    public <T extends Serializable> void setAttribute(AttributeKey<T> key, T value) {
         if (value != null) {
             if (attributes == null) {
                 attributes = new HashMap<>();
             }
-            attributes.put(key, value);
+            attributes.put(key.key, value);
         } else if (attributes != null) {
-            attributes.remove(key);
+            attributes.remove(key.key);
             if (attributes.isEmpty()) {
                 attributes = null;
             }
@@ -223,7 +211,7 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
 
     @Override
     public Point3i getOffset() {
-        return getAttribute(ATTRIBUTE_OFFSET, new Point3i(0, 0, 0));
+        return getAttribute(ATTRIBUTE_OFFSET);
     }
 
     @Override
@@ -321,12 +309,12 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
             if (attributes == null) {
                 attributes = new HashMap<>();
             }
-            attributes.put(WPObject.ATTRIBUTE_OFFSET, new Point3i(-origin.x, -origin.y, -origin.z));
+            attributes.put(ATTRIBUTE_OFFSET.key, new Point3i(-origin.x, -origin.y, -origin.z));
             origin = null;
         }
         if (version == 0) {
-            if (! attributes.containsKey(ATTRIBUTE_LEAF_DECAY_MODE)) {
-                attributes.put(ATTRIBUTE_LEAF_DECAY_MODE, LEAF_DECAY_ON);
+            if (! attributes.containsKey(ATTRIBUTE_LEAF_DECAY_MODE.key)) {
+                attributes.put(ATTRIBUTE_LEAF_DECAY_MODE.key, LEAF_DECAY_ON);
             }
             version = 1;
         }

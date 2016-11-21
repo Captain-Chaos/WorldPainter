@@ -50,45 +50,41 @@ public class EditObjectAttributes extends javax.swing.JDialog {
         if (objects.size() == 1) {
             WPObject object = objects.iterator().next();
             fieldName.setText(object.getName());
-            file = object.getAttribute(ATTRIBUTE_FILE, (File) null);
+            file = object.getAttribute(ATTRIBUTE_FILE);
             if (file != null) {
                 labelFile.setText(file.getAbsolutePath());
                 if (! file.exists()) {
                     labelFile.setForeground(Color.RED);
                 }
             }
-            Point3i offset = object.getAttribute(ATTRIBUTE_OFFSET, (Point3i) null);
-            if (offset != null) {
-                offsets.put(object, offset);
-                String offsetStr = "<html><u>" + offset.x + ", " + offset.y + ", " + offset.z + "</u></html>";
-                labelOffset.setText(offsetStr);
-            } else {
-                labelOffset.setText("<html><u>0, 0, 0</u></html>");
-            }
-            checkBoxRandomRotation.setSelected(object.getAttribute(ATTRIBUTE_RANDOM_ROTATION, true));
+            Point3i offset = object.getOffset();
+            offsets.put(object, offset);
+            String offsetStr = "<html><u>" + offset.x + ", " + offset.y + ", " + offset.z + "</u></html>";
+            labelOffset.setText(offsetStr);
+            checkBoxRandomRotation.setSelected(object.getAttribute(ATTRIBUTE_RANDOM_ROTATION));
             checkBoxRandomRotation.setTristateMode(false);
-            checkBoxOnAir.setSelected(! object.getAttribute(ATTRIBUTE_NEEDS_FOUNDATION, true));
+            checkBoxOnAir.setSelected(! object.getAttribute(ATTRIBUTE_NEEDS_FOUNDATION));
             checkBoxOnAir.setTristateMode(false);
-            checkBoxUnderLava.setSelected(object.getAttribute(ATTRIBUTE_SPAWN_IN_LAVA, false));
+            checkBoxUnderLava.setSelected(object.getAttribute(ATTRIBUTE_SPAWN_IN_LAVA));
             checkBoxUnderLava.setTristateMode(false);
-            checkBoxUnderWater.setSelected(object.getAttribute(ATTRIBUTE_SPAWN_IN_WATER, false));
+            checkBoxUnderWater.setSelected(object.getAttribute(ATTRIBUTE_SPAWN_IN_WATER));
             checkBoxUnderWater.setTristateMode(false);
-            checkBoxOnSolidLand.setSelected(object.getAttribute(ATTRIBUTE_SPAWN_ON_LAND, true));
+            checkBoxOnSolidLand.setSelected(object.getAttribute(ATTRIBUTE_SPAWN_ON_LAND));
             checkBoxOnSolidLand.setTristateMode(false);
-            checkBoxOnWater.setSelected(object.getAttribute(ATTRIBUTE_SPAWN_ON_WATER, false));
+            checkBoxOnWater.setSelected(object.getAttribute(ATTRIBUTE_SPAWN_ON_WATER));
             checkBoxOnWater.setTristateMode(false);
-            checkBoxOnLava.setSelected(object.getAttribute(ATTRIBUTE_SPAWN_ON_LAVA, false));
+            checkBoxOnLava.setSelected(object.getAttribute(ATTRIBUTE_SPAWN_ON_LAVA));
             checkBoxOnLava.setTristateMode(false);
             // Remove "no change" choices
             ((DefaultComboBoxModel) comboBoxCollisionMode.getModel()).removeElementAt(0);
             ((DefaultComboBoxModel) comboBoxUndergroundMode.getModel()).removeElementAt(0);
             ((DefaultComboBoxModel) comboBoxLeafDecayMode.getModel()).removeElementAt(0);
-            comboBoxCollisionMode.setSelectedIndex(object.getAttribute(ATTRIBUTE_COLLISION_MODE, COLLISION_MODE_SOLID) - 1);
-            comboBoxUndergroundMode.setSelectedIndex(object.getAttribute(ATTRIBUTE_UNDERGROUND_MODE, COLLISION_MODE_ALL) - 1);
-            comboBoxLeafDecayMode.setSelectedIndex(object.getAttribute(ATTRIBUTE_LEAF_DECAY_MODE, LEAF_DECAY_NO_CHANGE) - 1);
-            spinnerFrequency.setValue(object.getAttribute(ATTRIBUTE_FREQUENCY, 100));
-            if (object.getAttribute(ATTRIBUTE_REPLACE_WITH_AIR, null) != null) {
-                int[] replaceWithBlock = object.getAttribute(ATTRIBUTE_REPLACE_WITH_AIR, null);
+            comboBoxCollisionMode.setSelectedIndex(object.getAttribute(ATTRIBUTE_COLLISION_MODE) - 1);
+            comboBoxUndergroundMode.setSelectedIndex(object.getAttribute(ATTRIBUTE_UNDERGROUND_MODE) - 1);
+            comboBoxLeafDecayMode.setSelectedIndex(object.getAttribute(ATTRIBUTE_LEAF_DECAY_MODE) - 1);
+            spinnerFrequency.setValue(object.getAttribute(ATTRIBUTE_FREQUENCY));
+            if (object.getAttribute(ATTRIBUTE_REPLACE_WITH_AIR) != null) {
+                int[] replaceWithBlock = object.getAttribute(ATTRIBUTE_REPLACE_WITH_AIR);
                 checkBoxReplace.setSelected(true);
                 comboBoxReplaceBlockId.setSelectedIndex(replaceWithBlock[0]);
                 spinnerReplaceData.setValue(replaceWithBlock[1]);
@@ -96,7 +92,7 @@ public class EditObjectAttributes extends javax.swing.JDialog {
                 // Magenta wool by default
                 comboBoxReplaceBlockId.setSelectedIndex(35);
             }
-            checkBoxExtendFoundation.setSelected(object.getAttribute(ATTRIBUTE_EXTEND_FOUNDATION, false));
+            checkBoxExtendFoundation.setSelected(object.getAttribute(ATTRIBUTE_EXTEND_FOUNDATION));
             checkBoxExtendFoundation.setTristateMode(false);
             WPObjectPreviewer previewer = new WPObjectPreviewer();
             previewer.setObject(object);
@@ -109,11 +105,12 @@ public class EditObjectAttributes extends javax.swing.JDialog {
             long frequencyTotal = 0;
             int firstFrequency = -1;
             boolean allFrequenciesIdentical = true;
+            Point3i origin = new Point3i();
             for (WPObject object: objects) {
-                if (object.getAttribute(ATTRIBUTE_OFFSET, null) != null) {
-                    offsets.put(object, object.getAttribute(ATTRIBUTE_OFFSET, (Point3i) null));
+                if (object.getOffset().equals(origin)) {
+                    offsets.put(object, object.getOffset());
                 }
-                int frequency = object.getAttribute(ATTRIBUTE_FREQUENCY, 100);
+                int frequency = object.getAttribute(ATTRIBUTE_FREQUENCY);
                 frequencyTotal += frequency;
                 if (firstFrequency == -1) {
                     firstFrequency = frequency;
@@ -197,56 +194,56 @@ public class EditObjectAttributes extends javax.swing.JDialog {
             if (checkBoxFrequencyActive.isSelected()) {
                 int frequency = (Integer) spinnerFrequency.getValue();
                 if (frequency != 100) {
-                    attributes.put(ATTRIBUTE_FREQUENCY, frequency);
+                    attributes.put(ATTRIBUTE_FREQUENCY.key, frequency);
                 } else {
-                    attributes.remove(ATTRIBUTE_FREQUENCY);
+                    attributes.remove(ATTRIBUTE_FREQUENCY.key);
                 }
             }
             Point3i offset = offsets.get(object);
             if ((offset != null) && ((offset.x != 0) || (offset.y != 0) || (offset.z != 0))) {
-                attributes.put(ATTRIBUTE_OFFSET, offset);
+                attributes.put(ATTRIBUTE_OFFSET.key, offset);
             } else {
-                attributes.remove(ATTRIBUTE_OFFSET);
+                attributes.remove(ATTRIBUTE_OFFSET.key);
             }
             if (! checkBoxRandomRotation.isMixed()) {
-                attributes.put(ATTRIBUTE_RANDOM_ROTATION, checkBoxRandomRotation.isSelected());
+                attributes.put(ATTRIBUTE_RANDOM_ROTATION.key, checkBoxRandomRotation.isSelected());
             }
             if (! checkBoxOnAir.isMixed()) {
-                attributes.put(ATTRIBUTE_NEEDS_FOUNDATION, ! checkBoxOnAir.isSelected());
+                attributes.put(ATTRIBUTE_NEEDS_FOUNDATION.key, ! checkBoxOnAir.isSelected());
             }
             if (! checkBoxUnderLava.isMixed()) {
-                attributes.put(ATTRIBUTE_SPAWN_IN_LAVA, checkBoxUnderLava.isSelected());
+                attributes.put(ATTRIBUTE_SPAWN_IN_LAVA.key, checkBoxUnderLava.isSelected());
             }
             if (! checkBoxUnderWater.isMixed()) {
-                attributes.put(ATTRIBUTE_SPAWN_IN_WATER, checkBoxUnderWater.isSelected());
+                attributes.put(ATTRIBUTE_SPAWN_IN_WATER.key, checkBoxUnderWater.isSelected());
             }
             if (! checkBoxOnSolidLand.isMixed()) {
-                attributes.put(ATTRIBUTE_SPAWN_ON_LAND, checkBoxOnSolidLand.isSelected());
+                attributes.put(ATTRIBUTE_SPAWN_ON_LAND.key, checkBoxOnSolidLand.isSelected());
             }
             if (! checkBoxOnWater.isMixed()) {
-                attributes.put(ATTRIBUTE_SPAWN_ON_WATER, checkBoxOnWater.isSelected());
+                attributes.put(ATTRIBUTE_SPAWN_ON_WATER.key, checkBoxOnWater.isSelected());
             }
             if (! checkBoxOnLava.isMixed()) {
-                attributes.put(ATTRIBUTE_SPAWN_ON_LAVA, checkBoxOnLava.isSelected());
+                attributes.put(ATTRIBUTE_SPAWN_ON_LAVA.key, checkBoxOnLava.isSelected());
             }
             if (singleSelection || comboBoxCollisionMode.getSelectedIndex() > 0) {
-                attributes.put(ATTRIBUTE_COLLISION_MODE, comboBoxCollisionMode.getSelectedIndex() + (singleSelection ? 1 : 0));
+                attributes.put(ATTRIBUTE_COLLISION_MODE.key, comboBoxCollisionMode.getSelectedIndex() + (singleSelection ? 1 : 0));
             }
             if (singleSelection || comboBoxUndergroundMode.getSelectedIndex() > 0) {
-                attributes.put(ATTRIBUTE_UNDERGROUND_MODE, comboBoxUndergroundMode.getSelectedIndex() + (singleSelection ? 1 : 0));
+                attributes.put(ATTRIBUTE_UNDERGROUND_MODE.key, comboBoxUndergroundMode.getSelectedIndex() + (singleSelection ? 1 : 0));
             }
             if (singleSelection || comboBoxLeafDecayMode.getSelectedIndex() > 0) {
-                attributes.put(ATTRIBUTE_LEAF_DECAY_MODE, comboBoxLeafDecayMode.getSelectedIndex() + (singleSelection ? 1 : 0));
+                attributes.put(ATTRIBUTE_LEAF_DECAY_MODE.key, comboBoxLeafDecayMode.getSelectedIndex() + (singleSelection ? 1 : 0));
             }
             if (singleSelection) {
                 if (checkBoxReplace.isSelected()) {
-                    attributes.put(ATTRIBUTE_REPLACE_WITH_AIR, new int[] {comboBoxReplaceBlockId.getSelectedIndex(), (Integer) spinnerReplaceData.getValue()});
+                    attributes.put(ATTRIBUTE_REPLACE_WITH_AIR.key, new int[] {comboBoxReplaceBlockId.getSelectedIndex(), (Integer) spinnerReplaceData.getValue()});
                 } else {
-                    attributes.remove(ATTRIBUTE_REPLACE_WITH_AIR);
+                    attributes.remove(ATTRIBUTE_REPLACE_WITH_AIR.key);
                 }
             }
             if (! checkBoxExtendFoundation.isMixed()) {
-                attributes.put(ATTRIBUTE_EXTEND_FOUNDATION, checkBoxExtendFoundation.isSelected());
+                attributes.put(ATTRIBUTE_EXTEND_FOUNDATION.key, checkBoxExtendFoundation.isSelected());
             }
             if (! attributes.isEmpty()) {
                 object.setAttributes(attributes);

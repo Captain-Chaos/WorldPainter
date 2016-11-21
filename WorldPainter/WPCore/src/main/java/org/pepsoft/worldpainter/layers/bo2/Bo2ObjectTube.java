@@ -47,7 +47,7 @@ public class Bo2ObjectTube implements Bo2ObjectProvider {
             weightedObjects = new TreeMap<>();
             totalObjectWeight = 0;
             for (WPObject object: objects) {
-                int frequency = object.getAttribute(ATTRIBUTE_FREQUENCY, 100);
+                int frequency = object.getAttribute(ATTRIBUTE_FREQUENCY);
                 totalObjectWeight += frequency;
                 weightedObjects.put(totalObjectWeight, object);
             }

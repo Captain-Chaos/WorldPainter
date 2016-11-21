@@ -4,18 +4,19 @@
  */
 package org.pepsoft.worldpainter.layers.bo2;
 
+import org.pepsoft.minecraft.Entity;
+import org.pepsoft.minecraft.Material;
+import org.pepsoft.minecraft.TileEntity;
+import org.pepsoft.worldpainter.objects.AbstractObject;
+import org.pepsoft.worldpainter.objects.WPObject;
+
+import javax.vecmath.Point3i;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.vecmath.Point3i;
-import org.pepsoft.minecraft.Entity;
-import org.pepsoft.minecraft.Material;
-import org.pepsoft.minecraft.TileEntity;
-import org.pepsoft.worldpainter.objects.AbstractObject;
-import org.pepsoft.worldpainter.objects.WPObject;
 
 /**
  *
@@ -30,23 +31,23 @@ public final class Bo2Object extends AbstractObject implements Bo2ObjectProvider
         this.dimensions = dimensions;
         if ((origin.x != 0) || (origin.y != 0) || (origin.z != 0)) {
             if (attributes == null) attributes = new HashMap<>();
-            attributes.put(ATTRIBUTE_OFFSET, new Point3i(-origin.x, -origin.y, -origin.z));
+            attributes.put(ATTRIBUTE_OFFSET.key, new Point3i(-origin.x, -origin.y, -origin.z));
         }
         if (properties.containsKey(KEY_RANDOM_ROTATION) && (! Boolean.valueOf(properties.get(KEY_RANDOM_ROTATION)))) {
             if (attributes == null) attributes = new HashMap<>();
-            attributes.put(WPObject.ATTRIBUTE_RANDOM_ROTATION, false);
+            attributes.put(ATTRIBUTE_RANDOM_ROTATION.key, false);
         }
         if (properties.containsKey(KEY_NEEDS_FOUNDATION) && ! Boolean.valueOf(properties.get(KEY_NEEDS_FOUNDATION))) {
             if (attributes == null) attributes = new HashMap<>();
-            attributes.put(WPObject.ATTRIBUTE_NEEDS_FOUNDATION, false);
+            attributes.put(ATTRIBUTE_NEEDS_FOUNDATION.key, false);
         }
         if (properties.containsKey(KEY_SPAWN_LAVA) && Boolean.valueOf(properties.get(KEY_SPAWN_LAVA))) {
             if (attributes == null) attributes = new HashMap<>();
-            attributes.put(WPObject.ATTRIBUTE_SPAWN_IN_LAVA, true);
+            attributes.put(ATTRIBUTE_SPAWN_IN_LAVA.key, true);
         }
         if (properties.containsKey(KEY_SPAWN_WATER) && Boolean.valueOf(properties.get(KEY_SPAWN_WATER))) {
             if (attributes == null) attributes = new HashMap<>();
-            attributes.put(WPObject.ATTRIBUTE_SPAWN_IN_WATER, true);
+            attributes.put(ATTRIBUTE_SPAWN_IN_WATER.key, true);
         }
         this.attributes = attributes;
     }
@@ -107,14 +108,14 @@ public final class Bo2Object extends AbstractObject implements Bo2ObjectProvider
     }
 
     @Override
-    public void setAttribute(String key, Serializable value) {
+    public <T extends Serializable> void setAttribute(AttributeKey<T> key, T value) {
         if (value != null) {
             if (attributes == null) {
                 attributes = new HashMap<>();
             }
-            attributes.put(key, value);
+            attributes.put(key.key, value);
         } else if (attributes != null) {
-            attributes.remove(key);
+            attributes.remove(key.key);
             if (attributes.isEmpty()) {
                 attributes = null;
             }
@@ -161,29 +162,29 @@ public final class Bo2Object extends AbstractObject implements Bo2ObjectProvider
         if (version == 0) {
             if ((origin.x != 0) || (origin.y != 0) || (origin.z != 0)) {
                 if (attributes == null) attributes = new HashMap<>();
-                attributes.put(ATTRIBUTE_OFFSET, new Point3i(-origin.x, -origin.y, -origin.z));
+                attributes.put(ATTRIBUTE_OFFSET.key, new Point3i(-origin.x, -origin.y, -origin.z));
             }
             if (properties.containsKey(KEY_RANDOM_ROTATION) && (! Boolean.valueOf(properties.get(KEY_RANDOM_ROTATION)))) {
                 if (attributes == null) attributes = new HashMap<>();
-                attributes.put(WPObject.ATTRIBUTE_RANDOM_ROTATION, false);
+                attributes.put(ATTRIBUTE_RANDOM_ROTATION.key, false);
             }
             if (properties.containsKey(KEY_NEEDS_FOUNDATION) && ! Boolean.valueOf(properties.get(KEY_NEEDS_FOUNDATION))) {
                 if (attributes == null) attributes = new HashMap<>();
-                attributes.put(WPObject.ATTRIBUTE_NEEDS_FOUNDATION, false);
+                attributes.put(ATTRIBUTE_NEEDS_FOUNDATION.key, false);
             }
             if (properties.containsKey(KEY_SPAWN_LAVA) && Boolean.valueOf(properties.get(KEY_SPAWN_LAVA))) {
                 if (attributes == null) attributes = new HashMap<>();
-                attributes.put(WPObject.ATTRIBUTE_SPAWN_IN_LAVA, true);
+                attributes.put(ATTRIBUTE_SPAWN_IN_LAVA.key, true);
             }
             if (properties.containsKey(KEY_SPAWN_WATER) && Boolean.valueOf(properties.get(KEY_SPAWN_WATER))) {
                 if (attributes == null) attributes = new HashMap<>();
-                attributes.put(WPObject.ATTRIBUTE_SPAWN_IN_WATER, true);
+                attributes.put(ATTRIBUTE_SPAWN_IN_WATER.key, true);
             }
             version = 1;
         }
         if (version == 1) {
-            if (! attributes.containsKey(ATTRIBUTE_LEAF_DECAY_MODE)) {
-                attributes.put(ATTRIBUTE_LEAF_DECAY_MODE, LEAF_DECAY_ON);
+            if (! attributes.containsKey(ATTRIBUTE_LEAF_DECAY_MODE.key)) {
+                attributes.put(ATTRIBUTE_LEAF_DECAY_MODE.key, LEAF_DECAY_ON);
             }
             version = 2;
         }
@@ -200,7 +201,7 @@ public final class Bo2Object extends AbstractObject implements Bo2ObjectProvider
      */
     public static Bo2Object load(String objectName, File file) throws IOException {
         Bo2Object object = load(objectName, new FileInputStream(file));
-        object.setAttribute(WPObject.ATTRIBUTE_FILE, file);
+        object.setAttribute(ATTRIBUTE_FILE, file);
         return object;
     }
 
@@ -302,10 +303,10 @@ public final class Bo2Object extends AbstractObject implements Bo2ObjectProvider
     private Map<String, Serializable> attributes;
     private int version = 2;
     
-    public static final String KEY_SPAWN_WATER              = "spawnWater";
-    public static final String KEY_SPAWN_LAVA               = "spawnLava";
-    public static final String KEY_NEEDS_FOUNDATION         = "needsFoundation";
-    public static final String KEY_RANDOM_ROTATION          = "randomRotation";
+    public static final String KEY_SPAWN_WATER       = "spawnWater";
+    public static final String KEY_SPAWN_LAVA        = "spawnLava";
+    public static final String KEY_NEEDS_FOUNDATION  = "needsFoundation";
+    public static final String KEY_RANDOM_ROTATION   = "randomRotation";
     
     private static final long serialVersionUID = 1L;
 }

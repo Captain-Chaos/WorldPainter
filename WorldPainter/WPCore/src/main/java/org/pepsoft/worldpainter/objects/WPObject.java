@@ -4,6 +4,7 @@
  */
 package org.pepsoft.worldpainter.objects;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
@@ -47,8 +48,7 @@ public interface WPObject extends Serializable, Cloneable {
      *
      * <p>This is a convenience method which must return the same as invoking
      * <code>getAttribute(ATTRIBUTE_OFFSET)</code>. See
-     * {@link #getAttribute(String, Serializable)} and
-     * {@link #ATTRIBUTE_OFFSET}.
+     * {@link #getAttribute(AttributeKey)} and {@link #ATTRIBUTE_OFFSET}.
      *
      * @return The offset to apply to this object when placing it.
      */
@@ -105,15 +105,15 @@ public interface WPObject extends Serializable, Cloneable {
     /**
      * Convencience method for getting the value of an attribute stored in the
      * external metadata, if any. Should return the value of the attribute if it
-     * is present, or the specified default value if it is not.
+     * is present, or a default value (which may be <code>null</code>) if it is
+     * not.
      * 
      * @param <T> The type of the attribute.
      * @param key The key of the attribute.
-     * @param _default The value to return if the attribute is not set.
      * @return The value of the specified attribute, or the specified default
      *     value if the attribute is not set.
      */
-    <T extends Serializable> T getAttribute(String key, T _default);
+    <T extends Serializable> T getAttribute(AttributeKey<T> key);
     
     /**
      * Store external metadata about the object.
@@ -128,11 +128,12 @@ public interface WPObject extends Serializable, Cloneable {
      * delete the attribute from the store. If the store becomes empty it is
      * deleted entirely.
      * 
+     * @param <T> The type of the attribute.
      * @param key The key of the attribute to set or delete.
      * @param value The value of the attribute to set, or <code>null</code> to
      *     delete it.
      */
-    void setAttribute(String key, Serializable value);
+    <T extends Serializable> void setAttribute(AttributeKey<T> key, T value);
     
     /**
      * Create a clone of the object. The block data is immutable so may be
@@ -142,18 +143,27 @@ public interface WPObject extends Serializable, Cloneable {
      * @return A clone of the object.
      */
     WPObject clone();
-    
+
+    // Standard attribute values
+    int COLLISION_MODE_ALL   = 1;
+    int COLLISION_MODE_SOLID = 2;
+    int COLLISION_MODE_NONE  = 3;
+
+    int LEAF_DECAY_NO_CHANGE = 1;
+    int LEAF_DECAY_ON        = 2;
+    int LEAF_DECAY_OFF       = 3;
+
     // Standard attribute keys
-    String ATTRIBUTE_FILE             = "WPObject.file";            // Type String
-    String ATTRIBUTE_OFFSET           = "WPObject.offset";          // Type Point3i
-    String ATTRIBUTE_RANDOM_ROTATION  = "WPObject.randomRotation";  // Type Boolean
-    String ATTRIBUTE_NEEDS_FOUNDATION = "WPObject.needsFoundation"; // Type Boolean; default: true
-    String ATTRIBUTE_SPAWN_IN_WATER   = "WPObject.spawnInWater";    // Type Boolean; default: false
-    String ATTRIBUTE_SPAWN_IN_LAVA    = "WPObject.spawnInLava";     // Type Boolean; default: false
-    String ATTRIBUTE_SPAWN_ON_LAND    = "WPObject.spawnOnLand";     // Type Boolean; default: true
-    String ATTRIBUTE_SPAWN_ON_WATER   = "WPObject.spawnOnWater";    // Type Boolean; default: false
-    String ATTRIBUTE_SPAWN_ON_LAVA    = "WPObject.spawnOnLava";     // Type Boolean; default: false
-    String ATTRIBUTE_FREQUENCY        = "WPObject.frequency";       // Type Integer
+    AttributeKey<File>    ATTRIBUTE_FILE             = new AttributeKey<>("WPObject.file");
+    AttributeKey<Point3i> ATTRIBUTE_OFFSET           = new AttributeKey<>("WPObject.offset", new Point3i());
+    AttributeKey<Boolean> ATTRIBUTE_RANDOM_ROTATION  = new AttributeKey<>("WPObject.randomRotation", true);
+    AttributeKey<Boolean> ATTRIBUTE_NEEDS_FOUNDATION = new AttributeKey<>("WPObject.needsFoundation", true);
+    AttributeKey<Boolean> ATTRIBUTE_SPAWN_IN_WATER   = new AttributeKey<>("WPObject.spawnInWater", false);
+    AttributeKey<Boolean> ATTRIBUTE_SPAWN_IN_LAVA    = new AttributeKey<>("WPObject.spawnInLava", false);
+    AttributeKey<Boolean> ATTRIBUTE_SPAWN_ON_LAND    = new AttributeKey<>("WPObject.spawnOnLand", true);
+    AttributeKey<Boolean> ATTRIBUTE_SPAWN_ON_WATER   = new AttributeKey<>("WPObject.spawnOnWater", false);
+    AttributeKey<Boolean> ATTRIBUTE_SPAWN_ON_LAVA    = new AttributeKey<>("WPObject.spawnOnLava", false);
+    AttributeKey<Integer> ATTRIBUTE_FREQUENCY        = new AttributeKey<>("WPObject.frequency", 100);
     /**
      * Collision mode. Possible values:
      * 
@@ -162,7 +172,7 @@ public interface WPObject extends Serializable, Cloneable {
      * <tr><td><strong>{@link #COLLISION_MODE_SOLID}</strong></td><td>Will collide with (and therefore not render) any above ground <em>solid</em> block (i.e. not air, grass, water, flowers, leaves, etc.). Default value</td></tr>
      * <tr><td>{@link #COLLISION_MODE_NONE}</td><td>Will not collide with <em>any</em> above ground block (and therefore intersect any other object already there!)</td></tr></table>
      */
-    String ATTRIBUTE_COLLISION_MODE   = "WPObject.collisionMode"; // Type Integer; see COLLISION_MODE_* constants
+    AttributeKey<Integer> ATTRIBUTE_COLLISION_MODE   = new AttributeKey<>("WPObject.collisionMode", COLLISION_MODE_SOLID); // See COLLISION_MODE_* constants
     /**
      * Underground rendering mode. Possible values:
      * 
@@ -171,7 +181,7 @@ public interface WPObject extends Serializable, Cloneable {
      * <tr><td>{@link #COLLISION_MODE_SOLID}</td><td>Every <em>solid</em> (i.e. not air, grass, water, flowers, leaves, etc.) underground block belonging to the object will be rendered regardless of what is already there. Non-solid blocks will be rendered only if the existing block is air</td></tr>
      * <tr><td>{@link #COLLISION_MODE_NONE}</td><td>Underground blocks belonging to the object will only be rendered if the existing block is air</td></tr></table>
      */
-    String ATTRIBUTE_UNDERGROUND_MODE = "WPObject.undergroundMode"; // Type Integer; see COLLISION_MODE_* constants
+    AttributeKey<Integer> ATTRIBUTE_UNDERGROUND_MODE = new AttributeKey<>("WPObject.undergroundMode", COLLISION_MODE_ALL); // See COLLISION_MODE_* constants
     /**
      * Whether to change leaf blocks so that they do or do not decay. Possible values:
      * 
@@ -180,7 +190,7 @@ public interface WPObject extends Serializable, Cloneable {
      * <tr><td>{@link #LEAF_DECAY_ON}</td><td>All leaf blocks are set to decay regardless of their setting in the custom object</td></tr>
      * <tr><td>{@link #LEAF_DECAY_OFF}</td><td>All leaf blocks are set to <em>not</em> decay regardless of their setting in the custom object</td></tr></table>
      */
-    String ATTRIBUTE_LEAF_DECAY_MODE  = "WPObject.leafDecay"; // Type Integer; see LEAF_DECAY_* constants
+    AttributeKey<Integer> ATTRIBUTE_LEAF_DECAY_MODE  = new AttributeKey<>("WPObject.leafDecay", LEAF_DECAY_NO_CHANGE); // See LEAF_DECAY_* constants
     /**
      * When set, describes a block ID (index 0) and data (index 1) combination
      * which will be replaced with air blocks when this object is rendered.
@@ -188,20 +198,57 @@ public interface WPObject extends Serializable, Cloneable {
      * which is otherwise not possible since there is no way to tell whether an
      * air block from a schematic is supposed to be placed or not.
      */
-    String ATTRIBUTE_REPLACE_WITH_AIR = "WPObject.replaceWithAir"; // Type int[]; default: null
+    AttributeKey<int[]> ATTRIBUTE_REPLACE_WITH_AIR = new AttributeKey<>("WPObject.replaceWithAir");
     /**
      * When set, the blocks on the lowest level of the object will be copied
      * downwards until they meet a solid block, if they end up being placed
      * floating in the air. This allows objects to have "legs", "roots" or a
      * "foundation" which will be extended by WorldPainter to meet the ground.
      */
-    String ATTRIBUTE_EXTEND_FOUNDATION = "WPObject.extendFoundation"; // Type Boolean; default: false
-    
-    int COLLISION_MODE_ALL   = 1;
-    int COLLISION_MODE_SOLID = 2;
-    int COLLISION_MODE_NONE  = 3;
-    
-    int LEAF_DECAY_NO_CHANGE = 1;
-    int LEAF_DECAY_ON        = 2;
-    int LEAF_DECAY_OFF       = 3;
+    AttributeKey<Boolean> ATTRIBUTE_EXTEND_FOUNDATION = new AttributeKey<>("WPObject.extendFoundation", false);
+
+    /**
+     * A utility class for getting a typed attribute value with a default
+     * conveniently.
+     *
+     * @param <T> The value type of the attribute.
+     */
+    final class AttributeKey<T extends Serializable> {
+        public AttributeKey(String key) {
+            this(key, null);
+        }
+
+        public AttributeKey(String key, T defaultValue) {
+            if (key == null) {
+                throw new NullPointerException("key");
+            }
+            this.key = key;
+            this.defaultValue = defaultValue;
+        }
+
+        @SuppressWarnings("unchecked") // Responsibility of client
+        public T get(Map<String, Serializable> values) {
+            return ((values != null) && values.containsKey(key)) ? (T) values.get(key) : defaultValue;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            AttributeKey<?> that = (AttributeKey<?>) o;
+
+            if (!key.equals(that.key)) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            return key.hashCode();
+        }
+
+        public final String key;
+        public final T defaultValue;
+    }
 }

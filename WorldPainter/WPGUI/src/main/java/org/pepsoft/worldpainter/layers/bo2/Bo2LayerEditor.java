@@ -398,7 +398,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
         }
         for (int indice : indices) {
             WPObject object = (WPObject) listModel.getElementAt(indice);
-            File file = object.getAttribute(ATTRIBUTE_FILE, (File) null);
+            File file = object.getAttribute(ATTRIBUTE_FILE);
             if (file != null) {
                 if (file.isFile() && file.canRead()) {
                     try {
@@ -475,7 +475,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
         boolean nonDecayingLeavesFound = false;
 outer:  for (Enumeration<WPObject> e = (Enumeration<WPObject>) listModel.elements(); e.hasMoreElements(); ) {
             WPObject object = e.nextElement();
-            int leafDecayMode = object.getAttribute(ATTRIBUTE_LEAF_DECAY_MODE, LEAF_DECAY_NO_CHANGE);
+            int leafDecayMode = object.getAttribute(ATTRIBUTE_LEAF_DECAY_MODE);
             switch (leafDecayMode) {
                 case LEAF_DECAY_NO_CHANGE:
                     // Leaf decay attribute not set (or set to "no change");

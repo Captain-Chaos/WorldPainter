@@ -205,8 +205,8 @@ public final class Plant implements WPObject {
     }
 
     @Override
-    public <T extends Serializable> T getAttribute(String key, T _default) {
-        return _default;
+    public <T extends Serializable> T getAttribute(AttributeKey<T> key) {
+        return key.defaultValue;
     }
 
     @Override
@@ -215,7 +215,7 @@ public final class Plant implements WPObject {
     }
 
     @Override
-    public void setAttribute(String key, Serializable value) {
+    public <T extends Serializable> void setAttribute(AttributeKey<T> key, T value) {
         throw new UnsupportedOperationException("Plant is unmodifiable");
     }
 

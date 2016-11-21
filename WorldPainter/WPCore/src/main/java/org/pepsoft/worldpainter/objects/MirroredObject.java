@@ -25,14 +25,14 @@ public class MirroredObject extends AbstractObject {
         this.mirrorYAxis = mirrorYAxis;
         dimensions = object.getDimensions();
         Map<String, Serializable> attributes = (object.getAttributes() != null) ? new HashMap<>(object.getAttributes()) : new HashMap<>();
-        Point3i offset = attributes.containsKey(WPObject.ATTRIBUTE_OFFSET) ? (Point3i) attributes.get(WPObject.ATTRIBUTE_OFFSET) : new Point3i();
+        Point3i offset = object.getOffset();
         offset = mirrorYAxis
             ? new Point3i(offset.x, -(dimensions.y - (-offset.y) - 1), offset.z)
             : new Point3i(-(dimensions.x - (-offset.x) - 1), offset.y, offset.z);
         if ((offset.x != 0) || (offset.y != 0) || (offset.z != 0)) {
-            attributes.put(ATTRIBUTE_OFFSET, offset);
+            attributes.put(ATTRIBUTE_OFFSET.key, offset);
         } else {
-            attributes.remove(ATTRIBUTE_OFFSET);
+            attributes.remove(ATTRIBUTE_OFFSET.key);
         }
         if (! attributes.isEmpty()) {
             this.attributes = attributes;
@@ -123,7 +123,7 @@ public class MirroredObject extends AbstractObject {
     }
 
     @Override
-    public void setAttribute(String key, Serializable value) {
+    public <T extends Serializable> void setAttribute(AttributeKey<T> key, T value) {
         throw new UnsupportedOperationException("Not supported");
     }
     

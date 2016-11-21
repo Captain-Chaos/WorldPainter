@@ -77,13 +77,13 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
      */
     public static void renderObject(MinecraftWorld world, Dimension dimension, WPObject object, int x, int y, int z, boolean obliterate) {
         final Point3i dim = object.getDimensions();
-        final Point3i offset = object.getAttribute(ATTRIBUTE_OFFSET, new Point3i());
-        final int undergroundMode = object.getAttribute(ATTRIBUTE_UNDERGROUND_MODE, COLLISION_MODE_ALL);
-        final int leafDecayMode = object.getAttribute(ATTRIBUTE_LEAF_DECAY_MODE, LEAF_DECAY_NO_CHANGE);
+        final Point3i offset = object.getOffset();
+        final int undergroundMode = object.getAttribute(ATTRIBUTE_UNDERGROUND_MODE);
+        final int leafDecayMode = object.getAttribute(ATTRIBUTE_LEAF_DECAY_MODE);
         final boolean bottomless = dimension.isBottomless();
-        final int[] replaceBlockIds = object.getAttribute(ATTRIBUTE_REPLACE_WITH_AIR, null);
+        final int[] replaceBlockIds = object.getAttribute(ATTRIBUTE_REPLACE_WITH_AIR);
         final boolean replaceBlocks = replaceBlockIds != null;
-        final boolean extendFoundation = object.getAttribute(ATTRIBUTE_EXTEND_FOUNDATION, false);
+        final boolean extendFoundation = object.getAttribute(ATTRIBUTE_EXTEND_FOUNDATION);
         if ((z + offset.z + dim.z - 1) >= world.getMaxHeight()) {
             // Object doesn't fit in the world vertically
             return;
@@ -209,7 +209,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
      */
     public static boolean isSane(WPObject object, int x, int y, int z, int maxHeight) {
         final Point3i dimensions = object.getDimensions();
-        final Point3i offset = object.getAttribute(ATTRIBUTE_OFFSET, new Point3i());
+        final Point3i offset = object.getOffset();
         if ((((long) x + offset.x) < Integer.MIN_VALUE) || (((long) x + offset.x) > Integer.MAX_VALUE)) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Object {0}@{1},{2},{3} extends beyond the limits of a 32 bit signed integer in the X dimension", object.getName(), x, y, z);
@@ -251,8 +251,8 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
      */
     public static boolean isRoom(final MinecraftWorld world, final Dimension dimension, final WPObject object, final int x, final int y, final int z, final Placement placement) {
         final Point3i dimensions = object.getDimensions();
-        final Point3i offset = object.getAttribute(ATTRIBUTE_OFFSET, new Point3i());
-        final int collisionMode = object.getAttribute(ATTRIBUTE_COLLISION_MODE, COLLISION_MODE_SOLID), maxHeight = world.getMaxHeight();
+        final Point3i offset = object.getOffset();
+        final int collisionMode = object.getAttribute(ATTRIBUTE_COLLISION_MODE), maxHeight = world.getMaxHeight();
         final boolean allowConnectingBlocks = false, bottomlessWorld = dimension.isBottomless();
         // Check if the object fits vertically
         if (((long) z + dimensions.z - 1 + offset.z) >= world.getMaxHeight()) {
@@ -436,7 +436,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
     
     private static Box getBounds(WPObject object, int x, int y, int z) {
         Point3i dimensions = object.getDimensions();
-        Point3i offset = object.getAttribute(ATTRIBUTE_OFFSET, new Point3i());
+        Point3i offset = object.getOffset();
         return new Box(x + offset.x, x + offset.x + dimensions.x - 1,
                 y + offset.y, y + offset.y + dimensions.y - 1,
                 z + offset.z, z + offset.z + dimensions.z - 1);
@@ -478,7 +478,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                 
                 // Reapply the Frost layer to the area, if necessary
                 frostExporter.setSettings(dimension.getLayerSettings(Frost.INSTANCE));
-                Point3i offset = object.getAttribute(WPObject.ATTRIBUTE_OFFSET, new Point3i());
+                Point3i offset = object.getOffset();
                 Point3i dim = object.getDimensions();
                 Rectangle area = new Rectangle(x + offset.x, y + offset.y, dim.x, dim.y);
                 frostExporter.render(dimension, area, null, world);

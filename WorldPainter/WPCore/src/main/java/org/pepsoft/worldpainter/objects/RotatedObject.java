@@ -4,15 +4,16 @@
  */
 package org.pepsoft.worldpainter.objects;
 
+import org.pepsoft.minecraft.Entity;
+import org.pepsoft.minecraft.Material;
+import org.pepsoft.minecraft.TileEntity;
+
+import javax.vecmath.Point3i;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.vecmath.Point3i;
-import org.pepsoft.minecraft.Entity;
-import org.pepsoft.minecraft.Material;
-import org.pepsoft.minecraft.TileEntity;
 
 /**
  *
@@ -34,7 +35,7 @@ public class RotatedObject extends AbstractObject {
         this.steps = steps;
         Point3i origDim = object.getDimensions();
         Map<String, Serializable> attributes = (object.getAttributes() != null) ? new HashMap<>(object.getAttributes()) : new HashMap<>();
-        Point3i offset = attributes.containsKey(WPObject.ATTRIBUTE_OFFSET) ? (Point3i) attributes.get(WPObject.ATTRIBUTE_OFFSET) : new Point3i();
+        Point3i offset = object.getOffset();
         switch (steps) {
             case 0:
                 dimensions = origDim;
@@ -55,9 +56,9 @@ public class RotatedObject extends AbstractObject {
                 throw new InternalError();
         }
         if ((offset.x != 0) || (offset.y != 0) || (offset.z != 0)) {
-            attributes.put(ATTRIBUTE_OFFSET, offset);
+            attributes.put(ATTRIBUTE_OFFSET.key, offset);
         } else {
-            attributes.remove(ATTRIBUTE_OFFSET);
+            attributes.remove(ATTRIBUTE_OFFSET.key);
         }
         if (! attributes.isEmpty()) {
             this.attributes = attributes;
@@ -195,7 +196,7 @@ public class RotatedObject extends AbstractObject {
     }
 
     @Override
-    public void setAttribute(String key, Serializable value) {
+    public <T extends Serializable> void setAttribute(AttributeKey<T> key, T value) {
         throw new UnsupportedOperationException("Not supported");
     }
 

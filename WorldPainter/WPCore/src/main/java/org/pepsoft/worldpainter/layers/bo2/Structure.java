@@ -92,14 +92,14 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
     }
 
     @Override
-    public void setAttribute(String key, Serializable value) {
+    public <T extends Serializable> void setAttribute(AttributeKey<T> key, T value) {
         if (value != null) {
             if (attributes == null) {
                 attributes = new HashMap<>();
             }
-            attributes.put(key, value);
+            attributes.put(key.key, value);
         } else if (attributes != null) {
-            attributes.remove(key);
+            attributes.remove(key.key);
             if (attributes.isEmpty()) {
                 attributes = null;
             }
