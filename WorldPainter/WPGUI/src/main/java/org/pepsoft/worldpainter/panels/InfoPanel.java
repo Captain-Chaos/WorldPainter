@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.pepsoft.worldpainter;
+package org.pepsoft.worldpainter.panels;
 
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.worldpainter.biomeschemes.AutoBiomeScheme;
@@ -27,6 +27,10 @@ import java.awt.event.MouseMotionListener;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.List;
+import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.Terrain;
+import org.pepsoft.worldpainter.Tile;
+import org.pepsoft.worldpainter.WorldPainter;
 
 import static org.pepsoft.worldpainter.Constants.*;
 

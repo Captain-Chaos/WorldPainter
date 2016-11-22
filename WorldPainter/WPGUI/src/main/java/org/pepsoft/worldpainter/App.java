@@ -5,6 +5,7 @@
 
 package org.pepsoft.worldpainter;
 
+import org.pepsoft.worldpainter.panels.InfoPanel;
 import com.jidesoft.docking.*;
 import com.jidesoft.swing.JideLabel;
 import org.jetbrains.annotations.NonNls;
