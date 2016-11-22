@@ -1274,11 +1274,27 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     public void showCustomTerrainButtonPopup(final int customMaterialIndex) {
-        final JToggleButton button = customMaterialButtons[customMaterialIndex];
+        final JToggleButton button = (customMaterialIndex >= 0) ? customMaterialButtons[customMaterialIndex] : null;
         JPopupMenu popupMenu = new JPopupMenu();
-        final MixedMaterial material = getCustomMaterial(customMaterialIndex);
+        final MixedMaterial material = (customMaterialIndex >= 0) ? getCustomMaterial(customMaterialIndex) : null;
 //        JLabel label = new JLabel(MessageFormat.format(strings.getString("current.material.0"), (material != null) ? material : "none"));
 //        popupMenu.add(label);
+
+        JMenuItem menuItem;
+        if (button == null) {
+            menuItem = new JMenuItem(strings.getString("select.custom.material") + "...");
+            menuItem.addActionListener(e -> {
+                MixedMaterial newMaterial = MixedMaterial.create(BLK_DIRT);
+                CustomMaterialDialog dialog = new CustomMaterialDialog(App.this, newMaterial, world.isExtendedBlockIds(), selectedColourScheme);
+                dialog.setVisible(true);
+                if (! dialog.isCancelled()) {
+                    newMaterial = MixedMaterialManager.getInstance().register(newMaterial);
+                    int index = findNextCustomTerrainIndex();
+                    addButtonForNewCustomTerrain(index, newMaterial);
+                }
+            });
+            popupMenu.add(menuItem);
+        }
 
         MixedMaterial[] customMaterials = MixedMaterialManager.getInstance().getMaterials();
         if (customMaterials.length > 0) {
@@ -1293,13 +1309,17 @@ public final class App extends JFrame implements RadiusControl,
                 if (customTerrainMaterials.contains(customMaterial)) {
                     continue;
                 }
-                JMenuItem menuItem = new JMenuItem(customMaterial.getName());
+                menuItem = new JMenuItem(customMaterial.getName());
                 menuItem.setIcon(new ImageIcon(customMaterial.getIcon(selectedColourScheme)));
                 menuItem.addActionListener(e -> {
-                    setCustomMaterial(customMaterialIndex, customMaterial);
-                    button.setIcon(new ImageIcon(customMaterial.getIcon(selectedColourScheme)));
-                    button.setToolTipText(MessageFormat.format(strings.getString("customMaterial.0.right.click.to.change"), customMaterial));
-                    view.refreshTiles();
+                    if (button != null) {
+                        setCustomMaterial(customMaterialIndex, customMaterial);
+                        button.setIcon(new ImageIcon(customMaterial.getIcon(selectedColourScheme)));
+                        button.setToolTipText(MessageFormat.format(strings.getString("customMaterial.0.right.click.to.change"), customMaterial));
+                        view.refreshTiles();
+                    } else {
+                        addButtonForNewCustomTerrain(findNextCustomTerrainIndex(), customMaterial);
+                    }
                 });
                 existingMaterialsMenu.add(menuItem);
             }
@@ -1308,43 +1328,85 @@ public final class App extends JFrame implements RadiusControl,
             }
         }
 
-        JMenuItem menuItem = new JMenuItem(((material != null) ? "Edit custom material" : strings.getString("select.custom.material")) + "...");
-        menuItem.addActionListener(e -> {
-            if (editCustomMaterial(customMaterialIndex)) {
-                button.setSelected(true);
-                paintUpdater = () -> {
-                    paint = PaintFactory.createTerrainPaint(getCustomTerrain(customMaterialIndex));
-                    paintChanged();
-                };
-                paintUpdater.updatePaint();
-            }
-        });
-        popupMenu.add(menuItem);
-
-        menuItem = new JMenuItem("Import from file...");
-        menuItem.addActionListener(e -> {
-            if (importCustomMaterial(customMaterialIndex)) {
-                button.setSelected(true);
-                paintUpdater = () -> {
-                    paint = PaintFactory.createTerrainPaint(getCustomTerrain(customMaterialIndex));
-                    paintChanged();
-                };
-                paintUpdater.updatePaint();
-            }
-        });
-        popupMenu.add(menuItem);
-
-        menuItem = new JMenuItem("Import from another world...");
-        menuItem.addActionListener(e -> importCustomItemsFromWorld(CustomItemsTreeModel.ItemType.TERRAIN));
-        popupMenu.add(menuItem);
-
-        if (material != null) {
-            menuItem = new JMenuItem("Export to file...");
-            menuItem.addActionListener(e -> exportCustomMaterial(customMaterialIndex));
+        if (button != null) {
+            menuItem = new JMenuItem(((material != null) ? "Edit custom material" : strings.getString("select.custom.material")) + "...");
+            menuItem.addActionListener(e -> {
+                if (editCustomMaterial(customMaterialIndex)) {
+                    button.setSelected(true);
+                    paintUpdater = () -> {
+                        paint = PaintFactory.createTerrainPaint(getCustomTerrain(customMaterialIndex));
+                        paintChanged();
+                    };
+                    paintUpdater.updatePaint();
+                }
+            });
             popupMenu.add(menuItem);
         }
 
-        popupMenu.show(button, button.getWidth(), 0);
+        menuItem = new JMenuItem("Import from file...");
+        menuItem.addActionListener(e -> {
+            if (button != null) {
+                if (importCustomMaterial(customMaterialIndex)) {
+                    button.setSelected(true);
+                    paintUpdater = () -> {
+                        paint = PaintFactory.createTerrainPaint(getCustomTerrain(customMaterialIndex));
+                        paintChanged();
+                    };
+                    paintUpdater.updatePaint();
+                }
+            } else {
+                MixedMaterial customMaterial = MixedMaterialHelper.load(this);
+                if (customMaterial != null) {
+                    addButtonForNewCustomTerrain(findNextCustomTerrainIndex(), customMaterial);
+                }
+            }
+        });
+        popupMenu.add(menuItem);
+
+        if (button != null) { // TODO make this work for + button
+            menuItem = new JMenuItem("Import from another world...");
+            menuItem.addActionListener(e -> importCustomItemsFromWorld(CustomItemsTreeModel.ItemType.TERRAIN));
+            popupMenu.add(menuItem);
+
+            if (material != null) {
+                menuItem = new JMenuItem("Export to file...");
+                menuItem.addActionListener(e -> exportCustomMaterial(customMaterialIndex));
+                popupMenu.add(menuItem);
+            }
+
+            popupMenu.show(button, button.getWidth(), 0);
+        } else {
+            popupMenu.show(addCustomTerrainButton, addCustomTerrainButton.getWidth(), 0);
+        }
+    }
+
+    private int findNextCustomTerrainIndex() {
+        int index = -1;
+        for (int i = 0; i < CUSTOM_TERRAIN_COUNT; i++) {
+            if (! Terrain.isCustomMaterialConfigured(i)) {
+                return i;
+            }
+        }
+        throw new IllegalStateException("No available custom terrain slots");
+    }
+
+    private void addButtonForNewCustomTerrain(int index, MixedMaterial customMaterial) {
+        setCustomMaterial(index, customMaterial);
+        JToggleButton newButton = createTerrainButton(Terrain.getCustomTerrain(index));
+        customMaterialButtons[index] = newButton;
+        newButton.setToolTipText(MessageFormat.format(strings.getString("customMaterial.0.right.click.to.change"), customMaterial));
+        addMaterialSelectionTo(newButton, index);
+        customTerrainPanel.add(newButton, customTerrainPanel.getComponentCount() - 1);
+        newButton.setSelected(true);
+        paintUpdater = () -> {
+            paint = PaintFactory.createTerrainPaint(getCustomTerrain(index));
+            paintChanged();
+        };
+        paintUpdater.updatePaint();
+        customTerrainPanel.validate();
+        if (Terrain.getConfiguredCustomMaterialCount() == CUSTOM_TERRAIN_COUNT) {
+            addCustomTerrainButton.setEnabled(false);
+        }
     }
 
     // BrushOptions.Listener
@@ -2772,16 +2834,22 @@ public final class App extends JFrame implements RadiusControl,
     }
     
     private JPanel createCustomTerrainPanel() {
-        JPanel customTerrainPanel = new JPanel();
+        customTerrainPanel = new JPanel();
         customTerrainPanel.setLayout(new GridLayout(0, 4));
-    
-        for (int i = 0; i < CUSTOM_TERRAIN_COUNT; i++) {
-            customMaterialButtons[i] = createTerrainButton(getCustomTerrain(i));
-            customMaterialButtons[i].setIcon(ICON_UNKNOWN_PATTERN);
-            customMaterialButtons[i].setToolTipText("Custom " + (i + 1) + ": " + strings.getString("not.set.click.to.set"));
-            addMaterialSelectionTo(customMaterialButtons[i], i);
-            customTerrainPanel.add(customMaterialButtons[i]);
-        }
+
+        addCustomTerrainButton = new JButton(loadIcon("plus"));
+        addCustomTerrainButton.setMargin(new Insets(2, 2, 2, 2));
+        addCustomTerrainButton.addActionListener(e -> showCustomTerrainButtonPopup(-1));
+        addCustomTerrainButton.setToolTipText("Click to add a new Custom Terrain");
+        customTerrainPanel.add(addCustomTerrainButton);
+
+//        for (int i = 0; i < CUSTOM_TERRAIN_COUNT; i++) {
+//            customMaterialButtons[i] = createTerrainButton(getCustomTerrain(i));
+//            customMaterialButtons[i].setIcon(ICON_UNKNOWN_PATTERN);
+//            customMaterialButtons[i].setToolTipText("Custom " + (i + 1) + ": " + strings.getString("not.set.click.to.set"));
+//            addMaterialSelectionTo(customMaterialButtons[i], i);
+//            customTerrainPanel.add(customMaterialButtons[i]);
+//        }
 
         return customTerrainPanel;
     }
@@ -6231,7 +6299,8 @@ public final class App extends JFrame implements RadiusControl,
     };
     private final Map<String, BufferedImage> callouts = new HashMap<>();
     private JMenu recentMenu;
-    private JPanel toolSettingsPanel;
+    private JPanel toolSettingsPanel, customTerrainPanel;
+    private JButton addCustomTerrainButton;
 
     public static final Image ICON = IconUtils.loadImage("org/pepsoft/worldpainter/icons/shovel-icon.png");
     
