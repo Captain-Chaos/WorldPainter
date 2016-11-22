@@ -4,6 +4,7 @@
  */
 package org.pepsoft.worldpainter.panels;
 
+import org.pepsoft.minecraft.Constants;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.layers.Annotations;
@@ -454,7 +455,96 @@ public final class DefaultFilter implements Filter {
             return 0.0f;
         }
     }
-    
+
+    // Object
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("DefaultFilter{");
+        if (onlyOn) {
+            sb.append("only on ");
+            append(sb, onlyOnObjectType, onlyOnValue, onlyOnLayer, onlyOnTerrain);
+        }
+        if (exceptOn) {
+            if (onlyOn) {
+                sb.append(' ');
+            }
+            sb.append("except on ");
+            append(sb, exceptOnObjectType, exceptOnValue, exceptOnLayer, exceptOnTerrain);
+        }
+        if (checkLevel) {
+            if (onlyOn || exceptOn) {
+                sb.append(" and ");
+            }
+            sb.append("height ");
+            switch (levelType) {
+                case ABOVE:
+                    sb.append("at or above ").append(aboveLevel);
+                    break;
+                case BELOW:
+                    sb.append("at or below ").append(belowLevel);
+                    break;
+                case BETWEEN:
+                    sb.append("between ").append(aboveLevel).append(" and ").append(belowLevel);
+                    break;
+                case OUTSIDE:
+                    sb.append("not between ").append(aboveLevel).append(" and ").append(belowLevel);
+                    break;
+            }
+        }
+        if (checkSlope) {
+            if (onlyOn || exceptOn || checkLevel) {
+                sb.append(" and ");
+            }
+            sb.append("gradient ").append(slopeIsAbove ? "above " : "below ").append(slope);
+        }
+        sb.append('}');
+        return sb.toString();
+    }
+
+    private void append(StringBuilder sb, ObjectType objectType, int value, Layer layer, Terrain terrain) {
+        switch (objectType) {
+            case BIOME:
+                sb.append("biome ").append(value);
+                break;
+            case AUTO_BIOME:
+                sb.append("auto biome ").append(value);
+                break;
+            case BIT_LAYER:
+            case INT_LAYER_ANY:
+                sb.append("layer ").append(layer.getName().toLowerCase());
+                break;
+            case INT_LAYER_EQUAL:
+                sb.append("layer ").append(layer).append(" is ").append(value);
+                break;
+            case INT_LAYER_EQUAL_OR_HIGHER:
+                sb.append("layer ").append(layer).append(" >= ").append(value);
+                break;
+            case INT_LAYER_EQUAL_OR_LOWER:
+                sb.append("layer ").append(layer).append(" <= ").append(value);
+                break;
+            case TERRAIN:
+                sb.append("terrain ").append(terrain.name().toLowerCase());
+                break;
+            case WATER:
+                sb.append("water");
+                break;
+            case LAVA:
+                sb.append("lava");
+                break;
+            case LAND:
+                sb.append("land");
+                break;
+            case ANNOTATION_ANY:
+                sb.append("annotations");
+                break;
+            case ANNOTATION:
+                sb.append(Constants.COLOUR_NAMES[value].toLowerCase()).append(" annotations");
+                break;
+        }
+    }
+
     final boolean checkLevel;
     final boolean onlyOn, exceptOn;
     final boolean feather;
