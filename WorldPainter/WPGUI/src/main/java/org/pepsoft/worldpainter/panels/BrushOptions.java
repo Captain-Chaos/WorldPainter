@@ -15,6 +15,8 @@ import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.operations.Filter;
 import org.pepsoft.worldpainter.panels.DefaultFilter.LevelType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.JSpinner.NumberEditor;
@@ -167,7 +169,7 @@ public class BrushOptions extends javax.swing.JPanel {
                         buttonExceptOn.setIcon(IconUtils.createColourIcon(app.getColourScheme().getColour(Constants.BLK_WOOL, dataValue)));
                         break;
                     case ANNOTATION_ANY:
-                        exceptOn = new DefaultFilter.LayerValue(Annotations.INSTANCE, myFilter.exceptOnValue);
+                        exceptOn = new DefaultFilter.LayerValue(Annotations.INSTANCE);
                         buttonExceptOn.setText("All Annotations");
                         buttonExceptOn.setIcon(null);
                         break;
@@ -427,7 +429,11 @@ public class BrushOptions extends javax.swing.JPanel {
     
     private void filterChanged() {
         if (listener != null) {
-            listener.filterChanged(getFilter());
+            Filter filter = getFilter();
+            if (logger.isTraceEnabled()) {
+                logger.trace("Reporting new filter " + filter + " to listener " + listener);
+            }
+            listener.filterChanged(filter);
         }
     }
     
@@ -696,7 +702,8 @@ public class BrushOptions extends javax.swing.JPanel {
     private BiomeScheme autoBiomeScheme;
     private Listener listener;
     private boolean initialised;
-    
+
+    private static final Logger logger = LoggerFactory.getLogger(BrushOptions.class);
     private static final long serialVersionUID = 1L;
     
     public interface Listener {
