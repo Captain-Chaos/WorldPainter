@@ -1290,7 +1290,7 @@ public final class App extends JFrame implements RadiusControl,
                 if (! dialog.isCancelled()) {
                     newMaterial = MixedMaterialManager.getInstance().register(newMaterial);
                     int index = findNextCustomTerrainIndex();
-                    addButtonForNewCustomTerrain(index, newMaterial);
+                    addButtonForNewCustomTerrain(index, newMaterial, true);
                 }
             });
             popupMenu.add(menuItem);
@@ -1318,7 +1318,7 @@ public final class App extends JFrame implements RadiusControl,
                         button.setToolTipText(MessageFormat.format(strings.getString("customMaterial.0.right.click.to.change"), customMaterial));
                         view.refreshTiles();
                     } else {
-                        addButtonForNewCustomTerrain(findNextCustomTerrainIndex(), customMaterial);
+                        addButtonForNewCustomTerrain(findNextCustomTerrainIndex(), customMaterial, true);
                     }
                 });
                 existingMaterialsMenu.add(menuItem);
@@ -1357,17 +1357,17 @@ public final class App extends JFrame implements RadiusControl,
             } else {
                 MixedMaterial customMaterial = MixedMaterialHelper.load(this);
                 if (customMaterial != null) {
-                    addButtonForNewCustomTerrain(findNextCustomTerrainIndex(), customMaterial);
+                    addButtonForNewCustomTerrain(findNextCustomTerrainIndex(), customMaterial, true);
                 }
             }
         });
         popupMenu.add(menuItem);
 
-        if (button != null) { // TODO make this work for + button
-            menuItem = new JMenuItem("Import from another world...");
-            menuItem.addActionListener(e -> importCustomItemsFromWorld(CustomItemsTreeModel.ItemType.TERRAIN));
-            popupMenu.add(menuItem);
+        menuItem = new JMenuItem("Import from another world...");
+        menuItem.addActionListener(e -> importCustomItemsFromWorld(CustomItemsTreeModel.ItemType.TERRAIN));
+        popupMenu.add(menuItem);
 
+        if (button != null) {
             if (material != null) {
                 menuItem = new JMenuItem("Export to file...");
                 menuItem.addActionListener(e -> exportCustomMaterial(customMaterialIndex));
@@ -1381,31 +1381,32 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private int findNextCustomTerrainIndex() {
-        int index = -1;
         for (int i = 0; i < CUSTOM_TERRAIN_COUNT; i++) {
             if (! Terrain.isCustomMaterialConfigured(i)) {
                 return i;
             }
         }
-        throw new IllegalStateException("No available custom terrain slots");
+        return -1;
     }
 
-    private void addButtonForNewCustomTerrain(int index, MixedMaterial customMaterial) {
+    private void addButtonForNewCustomTerrain(int index, MixedMaterial customMaterial, boolean select) {
         setCustomMaterial(index, customMaterial);
         JToggleButton newButton = createTerrainButton(Terrain.getCustomTerrain(index));
         customMaterialButtons[index] = newButton;
         newButton.setToolTipText(MessageFormat.format(strings.getString("customMaterial.0.right.click.to.change"), customMaterial));
         addMaterialSelectionTo(newButton, index);
         customTerrainPanel.add(newButton, customTerrainPanel.getComponentCount() - 1);
-        newButton.setSelected(true);
-        paintUpdater = () -> {
-            paint = PaintFactory.createTerrainPaint(getCustomTerrain(index));
-            paintChanged();
-        };
-        paintUpdater.updatePaint();
         customTerrainPanel.validate();
         if (Terrain.getConfiguredCustomMaterialCount() == CUSTOM_TERRAIN_COUNT) {
             addCustomTerrainButton.setEnabled(false);
+        }
+        if (select) {
+            newButton.setSelected(true);
+            paintUpdater = () -> {
+                paint = PaintFactory.createTerrainPaint(getCustomTerrain(index));
+                paintChanged();
+            };
+            paintUpdater.updatePaint();
         }
     }
 
@@ -4787,33 +4788,44 @@ public final class App extends JFrame implements RadiusControl,
         MixedMaterialHelper.save(this, getCustomMaterial(customMaterialIndex));
     }
 
+    private void clearCustomTerrains() {
+        for (int i = 0; i < CUSTOM_TERRAIN_COUNT; i++) {
+            if (getCustomMaterial(i) != null) {
+                setCustomMaterial(i, null);
+                if (customMaterialButtons[i].isSelected()) {
+                    deselectPaint();
+                }
+            }
+        }
+        if (customTerrainPanel.getComponentCount() > 1) {
+            do {
+                customTerrainPanel.remove(0);
+            } while (customTerrainPanel.getComponentCount() > 1);
+            customTerrainPanel.validate();
+        }
+    }
+
     private void loadCustomTerrains() {
+        clearCustomTerrains();
+        boolean customTerrainsChanged = false;
         for (int i = 0; i < CUSTOM_TERRAIN_COUNT; i++) {
             MixedMaterial material = world.getMixedMaterial(i);
             setCustomMaterial(i, material);
             if (material != null) {
-                customMaterialButtons[i].setIcon(new ImageIcon(material.getIcon(selectedColourScheme)));
-                customMaterialButtons[i].setToolTipText(MessageFormat.format(strings.getString("customMaterial.0.right.click.to.change"), material));
+                // TODO: this doesn't preserve the original order of the buttons
+                // is that a problem?
+                addButtonForNewCustomTerrain(i, material, false);
+                customTerrainsChanged = true;
             }
+        }
+        if (customTerrainsChanged) {
+            customTerrainPanel.validate();
         }
     }
 
     private void saveCustomMaterials() {
         for (int i = 0; i < CUSTOM_TERRAIN_COUNT; i++) {
             world.setMixedMaterial(i, getCustomMaterial(i));
-        }
-    }
-
-    private void clearCustomTerrains() {
-        for (int i = 0; i < CUSTOM_TERRAIN_COUNT; i++) {
-            if (getCustomMaterial(i) != null) {
-                setCustomMaterial(i, null);
-                customMaterialButtons[i].setIcon(ICON_UNKNOWN_PATTERN);
-                customMaterialButtons[i].setToolTipText(strings.getString("not.set.click.to.set"));
-                if (customMaterialButtons[i].isSelected()) {
-                    toolButtonGroup.clearSelection();
-                }
-            }
         }
     }
 
@@ -5333,20 +5345,14 @@ public final class App extends JFrame implements RadiusControl,
                             }
                         } else if (selectedItem instanceof MixedMaterial) {
                             MixedMaterial customMaterial = (MixedMaterial) selectedItem;
-                            if (getConfiguredCustomMaterialCount() == CUSTOM_TERRAIN_COUNT) {
+                            int index = findNextCustomTerrainIndex();
+                            if (index == -1) {
                                 errors.append("No free slots for Custom Terrain \"" + customMaterial.getName() + "\"\n");
                                 showError = true;
                                 continue;
                             }
-                            int nextIndex = 0;
-                            while (getCustomMaterial(nextIndex) != null) {
-                                nextIndex++;
-                            }
                             customMaterial = MixedMaterialManager.getInstance().register(customMaterial);
-                            setCustomMaterial(nextIndex, customMaterial);
-                            customMaterialButtons[nextIndex].setIcon(new ImageIcon(customMaterial.getIcon(selectedColourScheme)));
-                            customMaterialButtons[nextIndex].setToolTipText(MessageFormat.format(strings.getString("customMaterial.0.right.click.to.change"), customMaterial));
-                            refreshView = true;
+                            addButtonForNewCustomTerrain(index, customMaterial, false);
                         } else if (selectedItem instanceof CustomBiome) {
                             CustomBiome customBiome = (CustomBiome) selectedItem;
                             if (! customBiomeManager.addCustomBiome(null, customBiome)) {
