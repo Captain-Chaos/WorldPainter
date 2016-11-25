@@ -114,25 +114,34 @@ public class Main {
                     System.setProperty("sun.java2d.opengl", "false");
                     System.setProperty("sun.java2d.xrender", "false");
                     System.setProperty("apple.awt.graphics.UseQuartz", "false");
+                    logger.info("Hardware acceleration method: unaccelerated");
                     break;
                 case DIRECT3D:
                     // Direct3D should already be the default on Windows, but
                     // enable a few things which are off by default:
                     System.setProperty("sun.java2d.translaccel", "true");
                     System.setProperty("sun.java2d.ddscale", "true");
+                    logger.info("Hardware acceleration method: Direct3D");
                     break;
                 case OPENGL:
                     System.setProperty("sun.java2d.opengl", "True");
+                    logger.info("Hardware acceleration method: OpenGL");
                     break;
                 case XRENDER:
                     System.setProperty("sun.java2d.xrender", "True");
+                    logger.info("Hardware acceleration method: XRender");
                     break;
                 case QUARTZ:
                     System.setProperty("apple.awt.graphics.UseQuartz", "true");
+                    logger.info("Hardware acceleration method: Quartz");
+                    break;
+                default:
+                    logger.info("Hardware acceleration method: default");
                     break;
             }
         } else {
             accelerationType = AccelerationType.DEFAULT;
+            logger.info("Hardware acceleration method: default");
         }
 
         // Load or initialise configuration
