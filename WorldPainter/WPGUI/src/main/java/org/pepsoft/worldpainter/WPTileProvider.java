@@ -110,7 +110,7 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
                     BufferedImage surroundingTileImage = null;
                     final Color waterColour = new Color(colourScheme.getColour(BLK_WATER));
                     final Color lavaColour = new Color(colourScheme.getColour(BLK_LAVA));
-                    final Color voidColour = new Color(VoidRenderer.getColour());
+                    final Color voidColour = new Color(0x00ffffff & VoidRenderer.getColour(), true);
                     final Color bedrockColour = new Color(colourScheme.getColour(BLK_BEDROCK));
                     final int scale = 1 << -zoom;
                     final int subSize = TILE_SIZE / scale;
@@ -422,22 +422,23 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
                 switch (((Dimension) tileProvider).getBorder()) {
                     case WATER:
                     case ENDLESS_WATER:
-                        colour = colourScheme.getColour(BLK_WATER);
+                        colour = 0xff000000 | colourScheme.getColour(BLK_WATER);
                         break;
                     case LAVA:
                     case ENDLESS_LAVA:
-                        colour = colourScheme.getColour(BLK_LAVA);
+                        colour = 0xff000000 | colourScheme.getColour(BLK_LAVA);
                         break;
                     case VOID:
                     case ENDLESS_VOID:
-                        colour = VoidRenderer.getColour();
+                        colour = 0x00ffffff & VoidRenderer.getColour();
                         break;
                     default:
                         throw new InternalError();
                 }
                 Graphics2D g2 = (Graphics2D) tileImage.getGraphics();
                 try {
-                    g2.setColor(new Color(colour));
+                    g2.setColor(new Color(colour, true));
+                    g2.setComposite(AlphaComposite.Src);
                     g2.fillRect(dx, dy, TILE_SIZE, TILE_SIZE);
                     
                     // Draw border lines
@@ -470,7 +471,8 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
                         // A surrounding tile provider would have completely
                         // filled the image, but if there isn't one or it didn't
                         // work we have to make sure of that ourselves
-                        g2.setColor(new Color(VoidRenderer.getColour()));
+                        g2.setColor(new Color(0x00ffffff & VoidRenderer.getColour(), true));
+                        g2.setComposite(AlphaComposite.Src);
                         g2.fillRect(dx, dy, TILE_SIZE, TILE_SIZE);
                     }
                     g2.setColor(new Color(colourScheme.getColour(BLK_BEDROCK)));
