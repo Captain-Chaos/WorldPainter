@@ -1668,7 +1668,1111 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(47);
     },
     GRASS_PATH("Grass Path", BLK_GRASS_PATH, BLK_GRASS, "grass path", BIOME_PLAINS),
-    MAGMA("Magma", BLK_MAGMA, BLK_MAGMA, "magma", BIOME_PLAINS); // TODO: or should this be mapped to stone and magma added to the Resources layer?
+    MAGMA("Magma", BLK_MAGMA, BLK_MAGMA, "magma", BIOME_PLAINS), // TODO: or should this be mapped to stone and magma added to the Resources layer?
+    CUSTOM_49("Custom 49", "custom material forty-nine", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(48);
+    },
+    CUSTOM_50("Custom 50", "custom material fifty", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(49);
+    },
+    CUSTOM_51("Custom 51", "custom material fifty-one", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(50);
+    },
+    CUSTOM_52("Custom 52", "custom material fifty-two", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(51);
+    },
+    CUSTOM_53("Custom 53", "custom material fifty-three", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(52);
+    },
+    CUSTOM_54("Custom 54", "custom material fifty-four", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(53);
+    },
+    CUSTOM_55("Custom 55", "custom material fifty-five", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(54);
+    },
+    CUSTOM_56("Custom 56", "custom material fifty-six", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(55);
+    },
+    CUSTOM_57("Custom 57", "custom material fifty-seven", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(56);
+    },
+    CUSTOM_58("Custom 58", "custom material fifty-eight", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(57);
+    },
+    CUSTOM_59("Custom 59", "custom material fifty-nine", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(58);
+    },
+    CUSTOM_60("Custom 60", "custom material sixty", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(59);
+    },
+    CUSTOM_61("Custom 61", "custom material sixty-one", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(60);
+    },
+    CUSTOM_62("Custom 62", "custom material sixty-two", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(61);
+    },
+    CUSTOM_63("Custom 63", "custom material sixty-three", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(62);
+    },
+    CUSTOM_64("Custom 64", "custom material sixty-four", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(63);
+    },
+    CUSTOM_65("Custom 65", "custom material sixty-five", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(64);
+    },
+    CUSTOM_66("Custom 66", "custom material sixty-six", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(65);
+    },
+    CUSTOM_67("Custom 67", "custom material sixty-seven", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(66);
+    },
+    CUSTOM_68("Custom 68", "custom material sixty-eight", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(67);
+    },
+    CUSTOM_69("Custom 69", "custom material sixty-nine", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(68);
+    },
+    CUSTOM_70("Custom 70", "custom material seventy", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(69);
+    },
+    CUSTOM_71("Custom 71", "custom material seventy-one", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(70);
+    },
+    CUSTOM_72("Custom 72", "custom material seventy-two", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(71);
+    },
+    CUSTOM_73("Custom 73", "custom material seventy-three", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(72);
+    },
+    CUSTOM_74("Custom 74", "custom material seventy-four", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(73);
+    },
+    CUSTOM_75("Custom 75", "custom material seventy-five", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(74);
+    },
+    CUSTOM_76("Custom 76", "custom material seventy-six", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(75);
+    },
+    CUSTOM_77("Custom 77", "custom material seventy-seven", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(76);
+    },
+    CUSTOM_78("Custom 78", "custom material seventy-eight", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(77);
+    },
+    CUSTOM_79("Custom 79", "custom material seventy-nine", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(78);
+    },
+    CUSTOM_80("Custom 80", "custom material eighty", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(79);
+    },
+    CUSTOM_81("Custom 81", "custom material eighty-one", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(80);
+    },
+    CUSTOM_82("Custom 82", "custom material eighty-two", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(81);
+    },
+    CUSTOM_83("Custom 83", "custom material eighty-three", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(82);
+    },
+    CUSTOM_84("Custom 84", "custom material eighty-four", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(83);
+    },
+    CUSTOM_85("Custom 85", "custom material eighty-five", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(84);
+    },
+    CUSTOM_86("Custom 86", "custom material eighty-six", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(85);
+    },
+    CUSTOM_87("Custom 87", "custom material eighty-seven", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(86);
+    },
+    CUSTOM_88("Custom 88", "custom material eighty-eight", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(87);
+    },
+    CUSTOM_89("Custom 89", "custom material eighty-nine", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(88);
+    },
+    CUSTOM_90("Custom 90", "custom material ninety", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(89);
+    },
+    CUSTOM_91("Custom 91", "custom material ninety-one", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(90);
+    },
+    CUSTOM_92("Custom 92", "custom material ninety-two", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(91);
+    },
+    CUSTOM_93("Custom 93", "custom material ninety-three", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(92);
+    },
+    CUSTOM_94("Custom 94", "custom material ninety-four", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(93);
+    },
+    CUSTOM_95("Custom 95", "custom material ninety-five", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(94);
+    },
+    CUSTOM_96("Custom 96", "custom material ninety-six", BIOME_PLAINS) {
+        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+
+        @Override public String getName() {return helper.getName();}
+
+        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
+
+        @Override public boolean isCustom() {return true;}
+
+        @Override public boolean isConfigured() {return helper.isConfigured();}
+
+        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
+
+        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
+
+        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+
+        private final CustomTerrainHelper helper = new CustomTerrainHelper(95);
+    };
 
     Terrain(String name, String description, int defaultBiome) {
         this(name, Material.STONE, Material.STONE, AIR, description, defaultBiome);
@@ -1795,7 +2899,11 @@ public enum Terrain {
     }
     
     public static Terrain getCustomTerrain(int index) {
-        return (index < 24) ? VALUES[index + 47] : VALUES[index + 52];
+        return (index < 48)
+                ? ((index < 24)
+                    ? VALUES[index + 47]
+                    : VALUES[index + 52])
+                : VALUES[index + 54];
     }
     
     public static Terrain[] getConfiguredValues() {
@@ -1814,7 +2922,7 @@ public enum Terrain {
     private final BufferedImage icon;
     private final int defaultBiome;
     
-    public static final int CUSTOM_TERRAIN_COUNT = 48;
+    public static final int CUSTOM_TERRAIN_COUNT = 96;
 
     static final MixedMaterial[] customMaterials = new MixedMaterial[CUSTOM_TERRAIN_COUNT];
 
@@ -1970,7 +3078,59 @@ public enum Terrain {
         Terrain.CUSTOM_48,
 
         Terrain.GRASS_PATH,
-        Terrain.MAGMA
+        Terrain.MAGMA,
+        Terrain.CUSTOM_49,
+        Terrain.CUSTOM_50,
+        Terrain.CUSTOM_51,
+        Terrain.CUSTOM_52,
+        Terrain.CUSTOM_53,
+        Terrain.CUSTOM_54,
+        Terrain.CUSTOM_55,
+        Terrain.CUSTOM_56,
+
+        Terrain.CUSTOM_57,
+        Terrain.CUSTOM_58,
+        Terrain.CUSTOM_59,
+        Terrain.CUSTOM_60,
+        Terrain.CUSTOM_61,
+        Terrain.CUSTOM_62,
+        Terrain.CUSTOM_63,
+        Terrain.CUSTOM_64,
+        Terrain.CUSTOM_65,
+        Terrain.CUSTOM_66,
+
+        Terrain.CUSTOM_67,
+        Terrain.CUSTOM_68,
+        Terrain.CUSTOM_69,
+        Terrain.CUSTOM_70,
+        Terrain.CUSTOM_71,
+        Terrain.CUSTOM_72,
+        Terrain.CUSTOM_73,
+        Terrain.CUSTOM_74,
+        Terrain.CUSTOM_75,
+        Terrain.CUSTOM_76,
+
+        Terrain.CUSTOM_77,
+        Terrain.CUSTOM_78,
+        Terrain.CUSTOM_79,
+        Terrain.CUSTOM_80,
+        Terrain.CUSTOM_81,
+        Terrain.CUSTOM_82,
+        Terrain.CUSTOM_83,
+        Terrain.CUSTOM_84,
+        Terrain.CUSTOM_85,
+        Terrain.CUSTOM_86,
+
+        Terrain.CUSTOM_87,
+        Terrain.CUSTOM_88,
+        Terrain.CUSTOM_89,
+        Terrain.CUSTOM_90,
+        Terrain.CUSTOM_91,
+        Terrain.CUSTOM_92,
+        Terrain.CUSTOM_93,
+        Terrain.CUSTOM_94,
+        Terrain.CUSTOM_95,
+        Terrain.CUSTOM_96
     };
 
     /**
@@ -2037,4 +3197,45 @@ public enum Terrain {
         Terrain.RED_STAINED_CLAY,
         Terrain.BLACK_STAINED_CLAY
     };
+
+    /*
+     * A helper method for generating additional custom terrain types. Should be
+     * edited before use.
+     */
+    public static void main(String[] args) {
+        String[] tens = {"forty", "fifty", "sixty", "seventy", "eighty", "ninety"};
+        String[] ones = {"", "-one", "-two", "-three", "-four", "-five", "-six", "-seven", "-eight", "-nine"};
+        for (int i = 49; i <= 96; i++) {
+            System.out.printf("    CUSTOM_%1$d(\"Custom %1$d\", \"custom material %3$s%4$s\", BIOME_PLAINS) {%n" +
+                            "        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}%n" +
+                            "%n" +
+                            "        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}%n" +
+                            "%n" +
+                            "        @Override public String getName() {return helper.getName();}%n" +
+                            "%n" +
+                            "        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}%n" +
+                            "%n" +
+                            "        @Override public boolean isCustom() {return true;}%n" +
+                            "%n" +
+                            "        @Override public boolean isConfigured() {return helper.isConfigured();}%n" +
+                            "%n" +
+                            "        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}%n" +
+                            "%n" +
+                            "        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}%n" +
+                            "%n" +
+                            "        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}%n" +
+                            "%n" +
+                            "        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}%n" +
+                            "%n" +
+                            "        private final CustomTerrainHelper helper = new CustomTerrainHelper(%2$d);%n" +
+                            "    },%n",
+                    i,
+                    i - 1,
+                    tens[(i / 10) - 4],
+                    ones[i % 10]);
+        }
+        for (int i = 49; i <= 96; i++) {
+            System.out.println("       Terrain.CUSTOM_" + i);
+        }
+    }
 }
