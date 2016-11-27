@@ -575,9 +575,10 @@
 196 77 45 28 184 61 36 22 184 38 22 14 184 30 18 11 184
 197 63 58 49 255 50 46 39 255 31 29 24 255 25 23 19 255
 
-# Temporarily use podzol colour for grass path, until an updated version of the
-# colour scheme has been obtained
-208 169 93 57 255 135 74 45 255 84 46 28 255 67 37 22 255
+# Temporarily use podzol (3:2) colour for grass path and lava (10) for magma,
+# until an updated version of the colour scheme has been obtained
+208 123 84 34 255 98 67 27 255 61 42 17 255 49 33 13 255
+213 129 31 15 255 103 24 12 255 64 15 7 255 51 12 6 255
 
 Biome Mapping
 [RAINFOREST]	49	67	21	255	39	54	17	255	25	34	11	255	20	27	8	255
