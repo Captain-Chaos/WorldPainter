@@ -148,15 +148,18 @@ public final class DesktopUtils {
     }
 
     public static void setProgress(Window window, int percentage) {
-        doOnEventThread(() -> ProgressHelper.setProgress(window, percentage));
+        if (SystemUtils.isWindows()) {doOnEventThread(() ->
+            ProgressHelper .setProgress(window, percentage));}
     }
 
     public static void setProgressDone(Window window) {
-        doOnEventThread(() -> ProgressHelper.setProgressDone(window));
+        if (SystemUtils.isWindows()) {doOnEventThread(() ->
+            ProgressHelper .setProgressDone(window));}
     }
 
     public static void setProgressError(Window window) {
-        doOnEventThread(() -> ProgressHelper.setProgressError(window));
+        if (SystemUtils.isWindows()) {doOnEventThread(() ->
+            ProgressHelper .setProgressError(window));}
     }
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(DesktopUtils.class);
