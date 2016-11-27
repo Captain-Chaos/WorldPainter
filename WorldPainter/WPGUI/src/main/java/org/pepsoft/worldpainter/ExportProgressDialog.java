@@ -20,6 +20,7 @@ import org.pepsoft.util.TaskbarProgressReceiver;
 import org.pepsoft.util.swing.ProgressTask;
 import org.pepsoft.worldpainter.exporting.WorldExporter;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
@@ -45,6 +46,10 @@ public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, Chunk
         this.baseDir = baseDir;
         this.name = name;
         addWindowListener(this);
+
+        JButton minimiseButton = new JButton("Minimize");
+        minimiseButton.addActionListener(e -> App.getInstance().setState(Frame.ICONIFIED));
+        addButton(minimiseButton);
     }
 
     // WindowListener

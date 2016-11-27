@@ -5,7 +5,7 @@
  */
 package org.pepsoft.worldpainter;
 
-import java.awt.Window;
+import java.awt.*;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
@@ -16,6 +16,8 @@ import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.TaskbarProgressReceiver;
 import org.pepsoft.util.swing.ProgressTask;
 import org.pepsoft.worldpainter.merging.WorldMerger;
+
+import javax.swing.*;
 
 /**
  *
@@ -28,6 +30,10 @@ public class MergeProgressDialog extends MultiProgressDialog<Void> implements Wi
         this.backupDir = backupDir;
         this.biomesOnly = biomesOnly;
         addWindowListener(this);
+
+        JButton minimiseButton = new JButton("Minimize");
+        minimiseButton.addActionListener(e -> App.getInstance().setState(Frame.ICONIFIED));
+        addButton(minimiseButton);
     }
 
     // WindowListener

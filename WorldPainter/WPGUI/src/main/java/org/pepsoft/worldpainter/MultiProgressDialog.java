@@ -14,8 +14,8 @@ package org.pepsoft.worldpainter;
 import java.awt.*;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
-import javax.swing.JDialog;
-import javax.swing.JOptionPane;
+import javax.swing.*;
+
 import org.pepsoft.util.swing.ProgressComponent.Listener;
 import org.pepsoft.util.swing.ProgressTask;
 import org.pepsoft.util.SubProgressReceiver;
@@ -75,7 +75,16 @@ public abstract class MultiProgressDialog<T> extends javax.swing.JDialog impleme
      * @return The task to perform.
      */
     protected abstract ProgressTask<T> getTask();
-    
+
+    /**
+     * Add a {@link JButton} to the panel, to the left of the Cancel button.
+     *
+     * @param button The button to add.
+     */
+    protected void addButton(JButton button) {
+        multiProgressComponent1.addButton(button);
+    }
+
     // ProgressComponent.Listener
     
     @Override

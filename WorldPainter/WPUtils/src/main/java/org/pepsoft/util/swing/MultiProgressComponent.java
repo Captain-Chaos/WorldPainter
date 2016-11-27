@@ -101,6 +101,16 @@ public class MultiProgressComponent<T> extends javax.swing.JPanel implements Pro
         timer.start();
     }
 
+    /**
+     * Add a {@link JButton} to the panel, to the left of the Cancel button.
+     *
+     * @param button The button to add.
+     */
+    public void addButton(JButton button) {
+        jPanel1.add(button, 0);
+        jPanel1.add(Box.createHorizontalStrut(5), 1);
+    }
+    
     // ProgressReceiver
     
     @Override
@@ -362,11 +372,20 @@ public class MultiProgressComponent<T> extends javax.swing.JPanel implements Pro
 
         jProgressBar1 = new javax.swing.JProgressBar();
         jLabel2 = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         scrollablePanel1 = new org.pepsoft.util.swing.ScrollablePanel();
+        jPanel1 = new javax.swing.JPanel();
+        jButton1 = new javax.swing.JButton();
 
         jLabel2.setText(" ");
+
+        jScrollPane1.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        jScrollPane1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+
+        scrollablePanel1.setLayout(new java.awt.GridLayout(0, 1));
+        jScrollPane1.setViewportView(scrollablePanel1);
+
+        jPanel1.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.TRAILING, 0, 0));
 
         jButton1.setText("Cancel");
         jButton1.setEnabled(false);
@@ -375,23 +394,19 @@ public class MultiProgressComponent<T> extends javax.swing.JPanel implements Pro
                 jButton1ActionPerformed(evt);
             }
         });
-
-        jScrollPane1.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-        jScrollPane1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-
-        scrollablePanel1.setLayout(new java.awt.GridLayout(0, 1));
-        jScrollPane1.setViewportView(scrollablePanel1);
+        jPanel1.add(jButton1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jProgressBar1, javax.swing.GroupLayout.DEFAULT_SIZE, 383, Short.MAX_VALUE)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addComponent(jLabel2)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 313, Short.MAX_VALUE)
-                .addComponent(jButton1))
             .addComponent(jScrollPane1)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jLabel2)
+                .addGap(0, 0, 0)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jProgressBar1, javax.swing.GroupLayout.DEFAULT_SIZE, 382, Short.MAX_VALUE)))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -400,9 +415,9 @@ public class MultiProgressComponent<T> extends javax.swing.JPanel implements Pro
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton1)
-                    .addComponent(jLabel2)))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel2)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -414,6 +429,7 @@ public class MultiProgressComponent<T> extends javax.swing.JPanel implements Pro
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JProgressBar jProgressBar1;
     private javax.swing.JScrollPane jScrollPane1;
     private org.pepsoft.util.swing.ScrollablePanel scrollablePanel1;
