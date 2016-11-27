@@ -26,6 +26,8 @@ import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
 import org.pepsoft.util.swing.ProgressComponent.Listener;
 
+import static org.pepsoft.util.AwtUtils.doOnEventThread;
+
 /**
  * A component which can execute a task in the background, reporting its
  * progress on a progress bar, displaying status messages from the task, and
@@ -346,14 +348,6 @@ public class MultiProgressComponent<T> extends javax.swing.JPanel implements Pro
             }
         } else if (stats != null) {
             stats.add(new int[] {-1, -1});
-        }
-    }
-    
-    private void doOnEventThread(Runnable action) {
-        if (SwingUtilities.isEventDispatchThread()) {
-            action.run();
-        } else {
-            SwingUtilities.invokeLater(action);
         }
     }
     

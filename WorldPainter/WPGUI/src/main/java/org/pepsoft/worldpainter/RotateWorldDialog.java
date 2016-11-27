@@ -11,13 +11,14 @@
 package org.pepsoft.worldpainter;
 
 import org.pepsoft.util.ProgressReceiver;
+import org.pepsoft.util.SubProgressReceiver;
+import org.pepsoft.worldpainter.history.HistoryEntry;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import org.pepsoft.util.SubProgressReceiver;
-import org.pepsoft.worldpainter.history.HistoryEntry;
 
+import static org.pepsoft.util.AwtUtils.doOnEventThread;
 import static org.pepsoft.worldpainter.Constants.*;
 
 /**
@@ -161,14 +162,6 @@ public class RotateWorldDialog extends javax.swing.JDialog implements ProgressRe
                 }
             }
         }.start();
-    }
-    
-    private void doOnEventThread(Runnable task) {
-        if (SwingUtilities.isEventDispatchThread()) {
-            task.run();
-        } else {
-            SwingUtilities.invokeLater(task);
-        }
     }
     
     /** This method is called from within the constructor to

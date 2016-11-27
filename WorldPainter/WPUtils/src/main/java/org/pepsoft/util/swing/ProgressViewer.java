@@ -15,6 +15,8 @@ import org.pepsoft.util.SubProgressReceiver;
 
 import javax.swing.*;
 
+import static org.pepsoft.util.AwtUtils.doOnEventThread;
+
 /**
  * A component which can show the progress of a {@link SubProgressReceiver} by
  * attaching to it as a listener.
@@ -95,14 +97,6 @@ final class ProgressViewer extends javax.swing.JPanel implements ProgressReceive
     @Override
     public void subProgressStarted(SubProgressReceiver subProgressReceiver) {
         // Do nothing
-    }
-
-    private void doOnEventThread(Runnable action) {
-        if (SwingUtilities.isEventDispatchThread()) {
-            action.run();
-        } else {
-            SwingUtilities.invokeLater(action);
-        }
     }
 
     /** This method is called from within the constructor to

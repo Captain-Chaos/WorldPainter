@@ -717,6 +717,10 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                     performFixups(worldDir, dimension, version, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.9f, 0.1f) : null, fixups);
                 }
             }
+
+            if (progressReceiver != null) {
+                progressReceiver.setProgress(1.0f);
+            }
         } finally {
             
             // Undo any changes we made (such as applying any combined layers)

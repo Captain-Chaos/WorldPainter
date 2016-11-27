@@ -6,9 +6,14 @@
 package org.pepsoft.worldpainter;
 
 import java.awt.Window;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
+
+import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.util.ProgressReceiver;
+import org.pepsoft.util.TaskbarProgressReceiver;
 import org.pepsoft.util.swing.ProgressTask;
 import org.pepsoft.worldpainter.merging.WorldMerger;
 
@@ -16,13 +21,31 @@ import org.pepsoft.worldpainter.merging.WorldMerger;
  *
  * @author Pepijn Schmitz
  */
-public class MergeProgressDialog extends MultiProgressDialog<Void> {
+public class MergeProgressDialog extends MultiProgressDialog<Void> implements WindowListener {
     public MergeProgressDialog(Window parent, WorldMerger merger, File backupDir, boolean biomesOnly) {
         super(parent, "Merging");
         this.merger = merger;
         this.backupDir = backupDir;
         this.biomesOnly = biomesOnly;
+        addWindowListener(this);
     }
+
+    // WindowListener
+
+    @Override
+    public void windowClosed(WindowEvent e) {
+        // Make sure to clean up any progress that is still showing
+        DesktopUtils.setProgressDone(App.getInstance());
+    }
+
+    @Override public void windowClosing(WindowEvent e) {}
+    @Override public void windowOpened(WindowEvent e) {}
+    @Override public void windowIconified(WindowEvent e) {}
+    @Override public void windowDeiconified(WindowEvent e) {}
+    @Override public void windowActivated(WindowEvent e) {}
+    @Override public void windowDeactivated(WindowEvent e) {}
+
+    // MultiProgressDialog
 
     @Override
     protected String getVerb() {
@@ -57,6 +80,7 @@ public class MergeProgressDialog extends MultiProgressDialog<Void> {
 
             @Override
             public Void execute(ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
+                progressReceiver = new TaskbarProgressReceiver(App.getInstance(), progressReceiver);
                 try {
                     if (biomesOnly) {
                         merger.mergeBiomes(backupDir, progressReceiver);

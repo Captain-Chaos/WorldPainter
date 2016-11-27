@@ -11,24 +11,30 @@
 
 package org.pepsoft.worldpainter;
 
-import java.awt.Window;
+import org.pepsoft.minecraft.ChunkFactory;
+import org.pepsoft.util.DesktopUtils;
+import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
+import org.pepsoft.util.TaskbarProgressReceiver;
+import org.pepsoft.util.swing.ProgressTask;
 import org.pepsoft.worldpainter.exporting.WorldExporter;
+
+import java.awt.*;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Map;
-import org.pepsoft.minecraft.ChunkFactory;
-import org.pepsoft.util.swing.ProgressTask;
+
 import static org.pepsoft.minecraft.Constants.*;
-import org.pepsoft.util.FileUtils;
 
 /**
  *
  * @author pepijn
  */
-public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, ChunkFactory.Stats>> {
+public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, ChunkFactory.Stats>> implements WindowListener {
     /** Creates new form ExportWorldDialog */
     public ExportProgressDialog(Window parent, World2 world, File baseDir, String name) {
         super(parent, "Exporting");
@@ -38,8 +44,24 @@ public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, Chunk
         this.world = world;
         this.baseDir = baseDir;
         this.name = name;
+        addWindowListener(this);
     }
-    
+
+    // WindowListener
+
+    @Override
+    public void windowClosed(WindowEvent e) {
+        // Make sure to clean up any progress that is still showing
+        DesktopUtils.setProgressDone(App.getInstance());
+    }
+
+    @Override public void windowClosing(WindowEvent e) {}
+    @Override public void windowOpened(WindowEvent e) {}
+    @Override public void windowIconified(WindowEvent e) {}
+    @Override public void windowDeiconified(WindowEvent e) {}
+    @Override public void windowActivated(WindowEvent e) {}
+    @Override public void windowDeactivated(WindowEvent e) {}
+
     // MultiProgressDialog
 
     @Override
@@ -114,6 +136,7 @@ public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, Chunk
 
             @Override
             public Map<Integer, ChunkFactory.Stats> execute(ProgressReceiver progressReceiver) throws OperationCancelled {
+                progressReceiver = new TaskbarProgressReceiver(App.getInstance(), progressReceiver);
                 progressReceiver.setMessage("Exporting world " + name);
                 WorldExporter exporter = new WorldExporter(world);
                 try {

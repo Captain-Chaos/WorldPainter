@@ -22,6 +22,7 @@ import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 
+import static org.pepsoft.util.AwtUtils.doOnEventThread;
 import static org.pepsoft.worldpainter.Constants.*;
 
 /**
@@ -155,14 +156,6 @@ public class ShiftWorldDialog extends javax.swing.JDialog implements ProgressRec
                 }
             }
         }.start();
-    }
-    
-    private void doOnEventThread(Runnable task) {
-        if (SwingUtilities.isEventDispatchThread()) {
-            task.run();
-        } else {
-            SwingUtilities.invokeLater(task);
-        }
     }
     
     private void setControlStates() {
