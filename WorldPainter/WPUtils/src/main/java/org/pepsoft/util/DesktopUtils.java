@@ -5,11 +5,6 @@
 
 package org.pepsoft.util;
 
-import org.bridj.Pointer;
-import org.bridj.cpp.com.COMRuntime;
-import org.bridj.cpp.com.shell.ITaskbarList3;
-import org.bridj.jawt.JAWTUtils;
-
 import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
@@ -18,8 +13,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Map;
-import java.util.WeakHashMap;
 
 import static org.pepsoft.util.AwtUtils.doOnEventThread;
 
@@ -155,56 +148,16 @@ public final class DesktopUtils {
     }
 
     public static void setProgress(Window window, int percentage) {
-        doOnEventThread(() -> {
-            ProgressHelper progressHelper = progressHelpers.get(window);
-            if (progressHelper == null) {
-                progressHelper = new ProgressHelper(window);
-                progressHelpers.put(window, progressHelper);
-                progressHelper.taskbarList.SetProgressState(progressHelper.hwnd, ITaskbarList3.TbpFlag.TBPF_NORMAL);
-            }
-            if (! progressHelper.errorReported) {
-                progressHelper.taskbarList.SetProgressValue(progressHelper.hwnd, percentage, 100);
-            }
-        });
+        doOnEventThread(() -> ProgressHelper.setProgress(window, percentage));
     }
 
     public static void setProgressDone(Window window) {
-        doOnEventThread(() -> {
-            ProgressHelper progressHelper = progressHelpers.get(window);
-            if (progressHelper != null) {
-                progressHelper.taskbarList.SetProgressState(progressHelper.hwnd, ITaskbarList3.TbpFlag.TBPF_NOPROGRESS);
-                progressHelpers.remove(window);
-            }
-        });
+        doOnEventThread(() -> ProgressHelper.setProgressDone(window));
     }
 
     public static void setProgressError(Window window) {
-        doOnEventThread(() -> {
-            ProgressHelper progressHelper = progressHelpers.get(window);
-            if (progressHelper != null) {
-                progressHelper.taskbarList.SetProgressState(progressHelper.hwnd, ITaskbarList3.TbpFlag.TBPF_ERROR);
-                progressHelper.errorReported = true;
-            }
-        });
+        doOnEventThread(() -> ProgressHelper.setProgressError(window));
     }
 
-    private static final Map<Window, ProgressHelper> progressHelpers = new WeakHashMap<>();
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(DesktopUtils.class);
-
-    static class ProgressHelper {
-        @SuppressWarnings("unchecked") // Guaranteed by BridJ
-        ProgressHelper(Window window) {
-            try {
-                taskbarList = COMRuntime.newInstance(ITaskbarList3.class);
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-            long hwndVal = JAWTUtils.getNativePeerHandle(window);
-            hwnd = (Pointer<Integer>) Pointer.pointerToAddress(hwndVal);
-        }
-
-        final ITaskbarList3 taskbarList;
-        final Pointer<Integer> hwnd;
-        boolean errorReported;
-    }
 }
