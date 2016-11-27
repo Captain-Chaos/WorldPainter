@@ -1,4 +1,4 @@
--- Version 2.3.0, released ...
+-- Version 2.3.0, released 27-11-2016
 
  * Selection and duplication tools have been added:
    + The new Edit Selection tool allows you to add the brush shape to the selection (by left clicking) or remove it from the selection (by right clicking)
@@ -11,6 +11,8 @@
        o This panel may show options for other tools in the future
    + The new Clear Selection button will instantly remove the selected area
    + Note that all selection, copy and deselection operations can be undone like any other operation, except if new tiles had to be created for a copy operation
+ * The way Custom Terrains are configured has changed: instead of displaying buttons for all of them, buttons are created only when you configure a new Custom Terrain, similar to how custom layers work. To configure a new Custom Terrain, click on the + button on the Terrain or Custom Terrain panels. The Custom Terrain panel is now only displayed once at least one Custom Terrain is configured, again similar to custom layers
+ * In addition, the maximum number of Custom Terrains that can be created has been doubled, from 48 to 96
  * More view options have been added to the Configure View screen (Ctrl+V or View -> Configure view...):
    + The painting of the Minecraft biomes surrounding the world can be turned off
    + The painting of the border can be turned off
@@ -18,6 +20,8 @@
    + The background colour (visible wherever not obscured by tiles, biomes, border and/or background image) can be changed
  * When trying to Export a world using the Populate layer, or the "allow Minecraft to populate the entire terrain" option, and the Superflat world type (including endless borders), display a warning that Minecraft won't populate chunks for Superflat worlds
  * Custom objects which would extend below the bottom, or above the top of the map, are no longer exported
+ * The progress and error state of Export and Merge operations is now displayed on the WorldPainter icon on the task bar for Windows 7 and later
+ * In addition, there is now a Minimize button on the Export and Merge progress screens so you can stow the program away while it is working
  * Bug fix: fix an error in the logic for supporting sand with sandstone which would result in the wrong kind of sandstone, and occasionally cause errors
  * Bug fix: custom objects from Custom Object Layers added as floor layers to a Custom Caves/Tunnels Layer were not being placed on the solid floor of tunnels; this has been fixed
  * Bug fix: the slope angles of repeating layered custom materials are no longer inverted every time the material is edited
