@@ -5,8 +5,8 @@
 
 package org.pepsoft.worldpainter;
 
-import org.pepsoft.worldpainter.panels.InfoPanel;
 import com.jidesoft.docking.*;
+import com.jidesoft.docking.DockableFrame;
 import com.jidesoft.swing.JideLabel;
 import org.jetbrains.annotations.NonNls;
 import org.pepsoft.minecraft.Direction;
@@ -49,6 +49,7 @@ import org.pepsoft.worldpainter.painting.Paint;
 import org.pepsoft.worldpainter.painting.PaintFactory;
 import org.pepsoft.worldpainter.panels.BrushOptions;
 import org.pepsoft.worldpainter.panels.BrushOptions.Listener;
+import org.pepsoft.worldpainter.panels.InfoPanel;
 import org.pepsoft.worldpainter.plugins.CustomLayerProvider;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.pepsoft.worldpainter.selection.*;
@@ -72,6 +73,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.event.KeyEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
@@ -1273,7 +1275,7 @@ public final class App extends JFrame implements RadiusControl,
         return customBiomeManager;
     }
 
-    public void showCustomTerrainButtonPopup(final int customMaterialIndex) {
+    public void showCustomTerrainButtonPopup(final AWTEvent event, final int customMaterialIndex) {
         final JToggleButton button = (customMaterialIndex >= 0) ? customMaterialButtons[customMaterialIndex] : null;
         JPopupMenu popupMenu = new JPopupMenu();
         final MixedMaterial material = (customMaterialIndex >= 0) ? getCustomMaterial(customMaterialIndex) : null;
@@ -1376,7 +1378,8 @@ public final class App extends JFrame implements RadiusControl,
 
             popupMenu.show(button, button.getWidth(), 0);
         } else {
-            popupMenu.show(addCustomTerrainButton, addCustomTerrainButton.getWidth(), 0);
+            Component invoker = (Component) event.getSource();
+            popupMenu.show(invoker, invoker.getWidth(), 0);
         }
     }
 
@@ -1391,6 +1394,11 @@ public final class App extends JFrame implements RadiusControl,
 
     private void addButtonForNewCustomTerrain(int index, MixedMaterial customMaterial, boolean select) {
         setCustomMaterial(index, customMaterial);
+
+        if (customTerrainPanel == null) {
+            dockingManager.addFrame(new DockableFrameBuilder(createCustomTerrainPanel(), "Custom Terrain", DOCK_SIDE_WEST, 3).withId("customTerrain").build());
+        }
+
         JToggleButton newButton = createTerrainButton(Terrain.getCustomTerrain(index));
         customMaterialButtons[index] = newButton;
         newButton.setToolTipText(MessageFormat.format(strings.getString("customMaterial.0.right.click.to.change"), customMaterial));
@@ -1398,8 +1406,9 @@ public final class App extends JFrame implements RadiusControl,
         customTerrainPanel.add(newButton, customTerrainPanel.getComponentCount() - 1);
         customTerrainPanel.validate();
         if (Terrain.getConfiguredCustomMaterialCount() == CUSTOM_TERRAIN_COUNT) {
-            addCustomTerrainButton.setEnabled(false);
+            ACTION_SHOW_CUSTOM_TERRAIN_POPUP.setEnabled(false);
         }
+
         if (select) {
             newButton.setSelected(true);
             paintUpdater = () -> {
@@ -1407,6 +1416,7 @@ public final class App extends JFrame implements RadiusControl,
                 paintChanged();
             };
             paintUpdater.updatePaint();
+            dockingManager.activateFrame("customTerrain");
         }
     }
 
@@ -2117,8 +2127,6 @@ public final class App extends JFrame implements RadiusControl,
 
         dockingManager.addFrame(new DockableFrameBuilder(createTerrainPanel(), "Terrain", DOCK_SIDE_WEST, 3).build());
 
-        dockingManager.addFrame(new DockableFrameBuilder(createCustomTerrainPanel(), "Custom Terrain", DOCK_SIDE_WEST, 3).withId("customTerrain").build());
-
         biomesPanel = new DockableFrameBuilder(createBiomesPanel(), "Biomes", DOCK_SIDE_WEST, 3).build();
         dockingManager.addFrame(biomesPanel);
 
@@ -2791,7 +2799,7 @@ public final class App extends JFrame implements RadiusControl,
         terrainPanel.add(createTerrainButton(OBSIDIAN));
         terrainPanel.add(createTerrainButton(WATER));
         terrainPanel.add(createTerrainButton(LAVA));
-        terrainPanel.add(createTerrainButton(DEEP_SNOW));
+        terrainPanel.add(createTerrainButton(MAGMA));
         
         terrainPanel.add(createTerrainButton(NETHERRACK));
         terrainPanel.add(createTerrainButton(SOUL_SAND));
@@ -2830,6 +2838,10 @@ public final class App extends JFrame implements RadiusControl,
 
         terrainPanel.add(createTerrainButton(HARDENED_CLAY));
         terrainPanel.add(createTerrainButton(BEACHES));
+        terrainPanel.add(createTerrainButton(DEEP_SNOW));
+        JButton addCustomTerrainButton = new JButton(ACTION_SHOW_CUSTOM_TERRAIN_POPUP);
+        addCustomTerrainButton.setMargin(new Insets(2, 2, 2, 2));
+        terrainPanel.add(addCustomTerrainButton);
 
         return terrainPanel;
     }
@@ -2838,19 +2850,9 @@ public final class App extends JFrame implements RadiusControl,
         customTerrainPanel = new JPanel();
         customTerrainPanel.setLayout(new GridLayout(0, 4));
 
-        addCustomTerrainButton = new JButton(loadIcon("plus"));
+        JButton addCustomTerrainButton = new JButton(ACTION_SHOW_CUSTOM_TERRAIN_POPUP);
         addCustomTerrainButton.setMargin(new Insets(2, 2, 2, 2));
-        addCustomTerrainButton.addActionListener(e -> showCustomTerrainButtonPopup(-1));
-        addCustomTerrainButton.setToolTipText("Click to add a new Custom Terrain");
         customTerrainPanel.add(addCustomTerrainButton);
-
-//        for (int i = 0; i < CUSTOM_TERRAIN_COUNT; i++) {
-//            customMaterialButtons[i] = createTerrainButton(getCustomTerrain(i));
-//            customMaterialButtons[i].setIcon(ICON_UNKNOWN_PATTERN);
-//            customMaterialButtons[i].setToolTipText("Custom " + (i + 1) + ": " + strings.getString("not.set.click.to.set"));
-//            addMaterialSelectionTo(customMaterialButtons[i], i);
-//            customTerrainPanel.add(customMaterialButtons[i]);
-//        }
 
         return customTerrainPanel;
     }
@@ -4509,7 +4511,7 @@ public final class App extends JFrame implements RadiusControl,
                 @Override
                 public void mouseClicked(MouseEvent e) {
                     if (!terrain.isConfigured()) {
-                        showCustomTerrainButtonPopup(terrain.getCustomTerrainIndex());
+                        showCustomTerrainButtonPopup(e, terrain.getCustomTerrainIndex());
                     }
                 }
             });
@@ -4725,19 +4727,19 @@ public final class App extends JFrame implements RadiusControl,
             @Override
             public void mousePressed(MouseEvent e) {
                 if (e.isPopupTrigger()) {
-                    showPopup();
+                    showPopup(e);
                 }
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
                 if (e.isPopupTrigger()) {
-                    showPopup();
+                    showPopup(e);
                 }
             }
 
-            private void showPopup() {
-                showCustomTerrainButtonPopup(customMaterialIndex);
+            private void showPopup(AWTEvent event) {
+                showCustomTerrainButtonPopup(event, customMaterialIndex);
             }
         });
     }
@@ -4797,7 +4799,7 @@ public final class App extends JFrame implements RadiusControl,
                 }
             }
         }
-        if (customTerrainPanel.getComponentCount() > 1) {
+        if ((customTerrainPanel != null) && (customTerrainPanel.getComponentCount() > 1)) {
             do {
                 customTerrainPanel.remove(0);
             } while (customTerrainPanel.getComponentCount() > 1);
@@ -6253,6 +6255,17 @@ public final class App extends JFrame implements RadiusControl,
         private static final long serialVersionUID = 1L;
     };
 
+    private final BetterAction ACTION_SHOW_CUSTOM_TERRAIN_POPUP = new BetterAction("showCustomTerrainMenu", null, loadIcon("plus")) {
+        {
+            setShortDescription("Add a new Custom Terrain");
+        }
+
+        @Override
+        protected void performAction(ActionEvent e) {
+            showCustomTerrainButtonPopup(e, -1);
+        }
+    };
+
     private World2 world;
     private Dimension dimension;
     private WorldPainter view;
@@ -6306,7 +6319,6 @@ public final class App extends JFrame implements RadiusControl,
     private final Map<String, BufferedImage> callouts = new HashMap<>();
     private JMenu recentMenu;
     private JPanel toolSettingsPanel, customTerrainPanel;
-    private JButton addCustomTerrainButton;
 
     public static final Image ICON = IconUtils.loadImage("org/pepsoft/worldpainter/icons/shovel-icon.png");
     
