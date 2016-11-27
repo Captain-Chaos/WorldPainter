@@ -155,37 +155,43 @@ public final class DesktopUtils {
     }
 
     public static void setProgress(Window window, int percentage) {
-        doOnEventThread(() -> {
-            ProgressHelper progressHelper = progressHelpers.get(window);
-            if (progressHelper == null) {
-                progressHelper = new ProgressHelper(window);
-                progressHelpers.put(window, progressHelper);
-                progressHelper.taskbarList.SetProgressState(progressHelper.hwnd, ITaskbarList3.TbpFlag.TBPF_NORMAL);
-            }
-            if (! progressHelper.errorReported) {
-                progressHelper.taskbarList.SetProgressValue(progressHelper.hwnd, percentage, 100);
-            }
-        });
+        if (SystemUtils.isWindows()) {
+            doOnEventThread(() -> {
+                ProgressHelper progressHelper = progressHelpers.get(window);
+                if (progressHelper == null) {
+                    progressHelper = new ProgressHelper(window);
+                    progressHelpers.put(window, progressHelper);
+                    progressHelper.taskbarList.SetProgressState(progressHelper.hwnd, ITaskbarList3.TbpFlag.TBPF_NORMAL);
+                }
+                if (!progressHelper.errorReported) {
+                    progressHelper.taskbarList.SetProgressValue(progressHelper.hwnd, percentage, 100);
+                }
+            });
+        }
     }
 
     public static void setProgressDone(Window window) {
-        doOnEventThread(() -> {
-            ProgressHelper progressHelper = progressHelpers.get(window);
-            if (progressHelper != null) {
-                progressHelper.taskbarList.SetProgressState(progressHelper.hwnd, ITaskbarList3.TbpFlag.TBPF_NOPROGRESS);
-                progressHelpers.remove(window);
-            }
-        });
+        if (SystemUtils.isWindows()) {
+            doOnEventThread(() -> {
+                ProgressHelper progressHelper = progressHelpers.get(window);
+                if (progressHelper != null) {
+                    progressHelper.taskbarList.SetProgressState(progressHelper.hwnd, ITaskbarList3.TbpFlag.TBPF_NOPROGRESS);
+                    progressHelpers.remove(window);
+                }
+            });
+        }
     }
 
     public static void setProgressError(Window window) {
-        doOnEventThread(() -> {
-            ProgressHelper progressHelper = progressHelpers.get(window);
-            if (progressHelper != null) {
-                progressHelper.taskbarList.SetProgressState(progressHelper.hwnd, ITaskbarList3.TbpFlag.TBPF_ERROR);
-                progressHelper.errorReported = true;
-            }
-        });
+        if (SystemUtils.isWindows()) {
+            doOnEventThread(() -> {
+                ProgressHelper progressHelper = progressHelpers.get(window);
+                if (progressHelper != null) {
+                    progressHelper.taskbarList.SetProgressState(progressHelper.hwnd, ITaskbarList3.TbpFlag.TBPF_ERROR);
+                    progressHelper.errorReported = true;
+                }
+            });
+        }
     }
 
     private static final Map<Window, ProgressHelper> progressHelpers = new WeakHashMap<>();
