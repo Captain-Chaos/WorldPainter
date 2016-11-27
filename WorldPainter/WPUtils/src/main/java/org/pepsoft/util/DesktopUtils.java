@@ -84,6 +84,12 @@ public final class DesktopUtils {
         return homeDir;
     }
 
+    /**
+     * Get the default images folder of the current user.
+     *
+     * @return The default images folder of the current user, or the user's
+     *     documents folder if an images folder could not be determined.
+     */
     public static File getImagesFolder() {
         if (XDG.XDG_PICTURES_DIR_FILE != null) {
             // Should cover most Linuxes
@@ -139,30 +145,59 @@ public final class DesktopUtils {
         Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(text), null);
     }
 
-    public static void main(String[] args) throws MalformedURLException {
-        copyToClipboard("Testing, testing, one two three testing.");
-        open(new URL("http://www.telegraaf.nl/"));
-        File documentsFolder = getDocumentsFolder();
-        System.out.println("Documents folder: " + documentsFolder);
-        open(documentsFolder);
-    }
-
+    /**
+     * Indicates the progress of an operation in the form of a progress bar on
+     * the task bar for supported systems; does nothing on unsupported systems.
+     *
+     * <p>Once the operation has finished {@link #setProgressDone(Window)} must
+     * always be invoked to clear the progress display from the task bar.
+     *
+     * @param window The window of which to use the task bar icon to display the
+     *               progress.
+     * @param percentage The progress to display out of 100.
+     */
     public static void setProgress(Window window, int percentage) {
         if (SystemUtils.isWindows()) {
             doOnEventThread(() -> ProgressHelper.setProgress(window, percentage));
         }
     }
 
+    /**
+     * Indicates that progress should no longer be displayed on the task bar for
+     * supported systems; does nothing on unsupported systems.
+     *
+     * @param window The window of which the task bar icon was being used to
+     *               display progress.
+     */
     public static void setProgressDone(Window window) {
         if (SystemUtils.isWindows()) {
             doOnEventThread(() -> ProgressHelper.setProgressDone(window));
         }
     }
 
+    /**
+     * Indicates that an operation for which progress was being displayed on the
+     * task bar for supported systems has failed, for example by turning the
+     * progress bar red; does nothing on unsupported systems.
+     *
+     * <p>Once the operation has finished {@link #setProgressDone(Window)} must
+     * always be invoked to clear the progress error state from the task bar.
+     *
+     * @param window The window of which the task bar icon was being used to
+     *               display progress.
+     */
     public static void setProgressError(Window window) {
         if (SystemUtils.isWindows()) {
             doOnEventThread(() -> ProgressHelper.setProgressError(window));
         }
+    }
+
+    public static void main(String[] args) throws MalformedURLException {
+        copyToClipboard("Testing, testing, one two three testing.");
+        open(new URL("http://www.telegraaf.nl/"));
+        File documentsFolder = getDocumentsFolder();
+        System.out.println("Documents folder: " + documentsFolder);
+        open(documentsFolder);
     }
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(DesktopUtils.class);
