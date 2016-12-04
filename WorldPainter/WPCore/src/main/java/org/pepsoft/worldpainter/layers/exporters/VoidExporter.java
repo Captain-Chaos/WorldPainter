@@ -60,6 +60,9 @@ public class VoidExporter extends AbstractLayerExporter<org.pepsoft.worldpainter
             for (int dy = -r; dy <= r; dy++) {
                 if ((dx != 0) || (dy != 0)) {
                     final int x2 = x + dx, y2 = y + dy;
+                    if (dimension.getBitLayerValueAt(Void.INSTANCE, x2, y2)) {
+                        continue;
+                    }
                     final float distance = MathUtils.getDistance(dx, dy);
                     final float height = dimension.getHeightAt(x2, y2);
                     final int depth = (int) (height / Math.pow(2, distance + noise.getPerlinNoise(x2 / SMALL_BLOBS, y2 / SMALL_BLOBS)) + 0.5f);
@@ -74,10 +77,14 @@ public class VoidExporter extends AbstractLayerExporter<org.pepsoft.worldpainter
         // (but not for ceiling dimensions)
         if (dimension.getDim() >= 0) {
             for (int z = maxHeight - 1; z >= 0; z--) {
-                if ((minecraftWorld.getBlockTypeAt(x - 1, y, z) == BLK_STATIONARY_WATER)
-                        || (minecraftWorld.getBlockTypeAt(x, y - 1, z) == BLK_STATIONARY_WATER)
-                        || (minecraftWorld.getBlockTypeAt(x + 1, y, z) == BLK_STATIONARY_WATER)
-                        || (minecraftWorld.getBlockTypeAt(x, y + 1, z) == BLK_STATIONARY_WATER)) {
+                if ((minecraftWorld.getBlockTypeAt(x, y, z) == BLK_STATIONARY_WATER)
+                        || (minecraftWorld.getBlockTypeAt(x, y, z) == BLK_STATIONARY_LAVA)) {
+                    // A previous iteration already placed fluid here
+                    break;
+                } else if (isWaterAndNotVoid(dimension, minecraftWorld, x - 1, y, z)
+                        || isWaterAndNotVoid(dimension, minecraftWorld, x, y - 1, z)
+                        || isWaterAndNotVoid(dimension, minecraftWorld, x + 1, y, z)
+                        || isWaterAndNotVoid(dimension, minecraftWorld, x, y + 1, z)) {
                     minecraftWorld.setBlockTypeAt(x, y, z, BLK_STATIONARY_WATER);
                     minecraftWorld.setDataAt(x, y, z, 1);
                     for (z--; z >= 0; z--) {
@@ -85,10 +92,10 @@ public class VoidExporter extends AbstractLayerExporter<org.pepsoft.worldpainter
                         minecraftWorld.setDataAt(x, y, z, 9);
                     }
                     break;
-                } else if ((minecraftWorld.getBlockTypeAt(x - 1, y, z) == BLK_STATIONARY_LAVA)
-                        || (minecraftWorld.getBlockTypeAt(x, y - 1, z) == BLK_STATIONARY_LAVA)
-                        || (minecraftWorld.getBlockTypeAt(x + 1, y, z) == BLK_STATIONARY_LAVA)
-                        || (minecraftWorld.getBlockTypeAt(x, y + 1, z) == BLK_STATIONARY_LAVA)) {
+                } else if (isLavaAndNotVoid(dimension, minecraftWorld, x - 1, y, z)
+                        || isLavaAndNotVoid(dimension, minecraftWorld, x, y - 1, z)
+                        || isLavaAndNotVoid(dimension, minecraftWorld, x + 1, y, z)
+                        || isLavaAndNotVoid(dimension, minecraftWorld, x, y + 1, z)) {
                     minecraftWorld.setBlockTypeAt(x, y, z, BLK_STATIONARY_LAVA);
                     minecraftWorld.setDataAt(x, y, z, 2);
                     for (z--; z >= 0; z--) {
@@ -100,7 +107,15 @@ public class VoidExporter extends AbstractLayerExporter<org.pepsoft.worldpainter
             }
         }
     }
-    
+
+    private boolean isWaterAndNotVoid(Dimension dimension, MinecraftWorld minecraftWorld, int x, int y, int z) {
+        return (! dimension.getBitLayerValueAt(Void.INSTANCE, x, y)) && (minecraftWorld.getBlockTypeAt(x, y, z) == BLK_STATIONARY_WATER);
+    }
+
+    private boolean isLavaAndNotVoid(Dimension dimension, MinecraftWorld minecraftWorld, int x, int y, int z) {
+        return (! dimension.getBitLayerValueAt(Void.INSTANCE, x, y)) && (minecraftWorld.getBlockTypeAt(x, y, z) == BLK_STATIONARY_LAVA);
+    }
+
     private final PerlinNoise noise = new PerlinNoise(0);
     
     private static final long SEED_OFFSET = 142644289;

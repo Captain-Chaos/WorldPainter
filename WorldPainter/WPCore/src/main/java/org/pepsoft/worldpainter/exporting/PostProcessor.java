@@ -101,7 +101,7 @@ public class PostProcessor {
             for (int y = y1; y <= y2; y++) {
                 int blockTypeBelow = BLK_AIR;
                 int blockTypeAbove = minecraftWorld.getBlockTypeAt(x, y, minZ);
-                if ((minZ == 0) && (blockTypeAbove != BLK_BEDROCK) && (blockTypeAbove != BLK_AIR)) {
+                if ((minZ == 0) && (blockTypeAbove != BLK_BEDROCK) && (blockTypeAbove != BLK_AIR) && (blockTypeAbove != BLK_STATIONARY_WATER) && (blockTypeAbove != BLK_STATIONARY_LAVA)) {
                     logger.warn("Non-bedrock block @ " + x + "," + y + ",0: " + BLOCKS[blockTypeAbove].name);
                 }
                 for (int z = minZ; z <= maxZ; z++) {
