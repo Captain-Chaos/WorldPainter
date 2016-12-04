@@ -1,3 +1,8 @@
+-- Version 2.3.1, released 4-12-2016
+
+ * Bug fix: fix an error that occurred when background tile painting was overwhelmed by rapid changes, such as when changing values by holding down buttons
+ * Bug fix: don't place superfluous columns of falling water or lava on the edges of the Void layer
+
 -- Version 2.3.0, released 27-11-2016
 
  * Selection and duplication tools have been added:
