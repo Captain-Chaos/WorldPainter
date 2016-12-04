@@ -319,7 +319,13 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         for (TileProvider tileProvider: tileProviders) {
             Rectangle providerExtent = tileProvider.getExtent();
             if (providerExtent != null) {
-                providerExtent = getTileBounds(tileProvider, providerExtent.x, providerExtent.y, providerExtent.width, providerExtent.height, zoom);
+                try {
+                    providerExtent = getTileBounds(tileProvider, providerExtent.x, providerExtent.y, providerExtent.width, providerExtent.height, zoom);
+                } catch (UnknownTileProviderException e) {
+                    // This can only happen from other threads than the event
+                    // dispatch thread
+                    throw new RuntimeException(e);
+                }
                 if (extent == null) {
                     extent = providerExtent;
                 } else {
@@ -722,8 +728,11 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
      * Transform coordinates from component (pixels relative to the top left
      * corner) coordinates to image (world) coordinates, taking the current zoom
      * level into account and for the specified tile provider.
+     *
+     * @throws UnknownTileProviderException If the specified tile provider is
+     *     not configured on this image viewer.
      */
-    public final Point viewToWorld(TileProvider tileProvider, int x, int y) {
+    public final Point viewToWorld(TileProvider tileProvider, int x, int y) throws UnknownTileProviderException {
         return viewToWorld(tileProvider, x, y, zoom);
     }
 
@@ -740,8 +749,11 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
      * Transform coordinates from component (pixels relative to the top left
      * corner) coordinates to image (world) coordinates, using a specific zoom
      * level and for a specific tile provider.
+     *
+     * @throws UnknownTileProviderException If the specified tile provider is
+     *     not configured on this image viewer.
      */
-    public final Point viewToWorld(TileProvider tileProvider, Point coords, int effectiveZoom) {
+    public final Point viewToWorld(TileProvider tileProvider, Point coords, int effectiveZoom) throws UnknownTileProviderException {
         return viewToWorld(tileProvider, coords.x, coords.y, effectiveZoom);
     }
 
@@ -762,14 +774,21 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
      * Transform coordinates from component (pixels relative to the top left
      * corner) coordinates to image (world) coordinates, using a specific zoom
      * level and for a specific tile provider.
+     *
+     * @throws UnknownTileProviderException If the specified tile provider is
+     *     not configured on this image viewer.
      */
-    public final Point viewToWorld(TileProvider tileProvider, int x, int y, int effectiveZoom) {
-        Point myOffset = offsets.get(tileProvider);
-        return (effectiveZoom == 0)
-            ? new Point(x + viewX - xOffset - myOffset.x, y + viewY - yOffset - myOffset.y)
-            : ((effectiveZoom < 0)
-                ? new Point(((x + viewX - xOffset) << -effectiveZoom) - myOffset.x, ((y + viewY - yOffset) << -effectiveZoom) - myOffset.y)
-                : new Point(((x + viewX - xOffset) >> effectiveZoom) - myOffset.x, ((y + viewY - yOffset) >> effectiveZoom) - myOffset.y));
+    public final Point viewToWorld(TileProvider tileProvider, int x, int y, int effectiveZoom) throws UnknownTileProviderException {
+        try {
+            Point myOffset = offsets.get(tileProvider);
+            return (effectiveZoom == 0)
+                    ? new Point(x + viewX - xOffset - myOffset.x, y + viewY - yOffset - myOffset.y)
+                    : ((effectiveZoom < 0)
+                    ? new Point(((x + viewX - xOffset) << -effectiveZoom) - myOffset.x, ((y + viewY - yOffset) << -effectiveZoom) - myOffset.y)
+                    : new Point(((x + viewX - xOffset) >> effectiveZoom) - myOffset.x, ((y + viewY - yOffset) >> effectiveZoom) - myOffset.y));
+        } catch (NullPointerException e) {
+            throw new UnknownTileProviderException(tileProvider);
+        }
     }
 
     /**
@@ -817,14 +836,21 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
      * Transform coordinates from image (world) coordinates to component (pixels
      * relative to the top left corner) coordinates, using a specific zoom
      * level and for a specific tile provider.
+     *
+     * @throws UnknownTileProviderException If the specified tile provider is
+     *     not configured on this image viewer.
      */
-    public final Rectangle worldToView(TileProvider tileProvider, int x, int y, int width, int height, int effectiveZoom) {
-        Point myOffset = offsets.get(tileProvider);
-        return (effectiveZoom == 0)
-            ? new Rectangle(x - viewX + xOffset + myOffset.x, y - viewY + yOffset + myOffset.y, width, height)
-            : ((effectiveZoom < 0)
-                ? new Rectangle(((x + myOffset.x) >> -effectiveZoom) - viewX + xOffset, ((y + myOffset.y) >> -effectiveZoom) - viewY + yOffset, width >> -effectiveZoom, height >> -effectiveZoom)
-                : new Rectangle(((x + myOffset.x) << effectiveZoom) - viewX + xOffset, ((y + myOffset.y) << effectiveZoom) - viewY + yOffset, width << effectiveZoom, height << effectiveZoom));
+    public final Rectangle worldToView(TileProvider tileProvider, int x, int y, int width, int height, int effectiveZoom) throws UnknownTileProviderException {
+        try {
+            Point myOffset = offsets.get(tileProvider);
+            return (effectiveZoom == 0)
+                    ? new Rectangle(x - viewX + xOffset + myOffset.x, y - viewY + yOffset + myOffset.y, width, height)
+                    : ((effectiveZoom < 0)
+                    ? new Rectangle(((x + myOffset.x) >> -effectiveZoom) - viewX + xOffset, ((y + myOffset.y) >> -effectiveZoom) - viewY + yOffset, width >> -effectiveZoom, height >> -effectiveZoom)
+                    : new Rectangle(((x + myOffset.x) << effectiveZoom) - viewX + xOffset, ((y + myOffset.y) << effectiveZoom) - viewY + yOffset, width << effectiveZoom, height << effectiveZoom));
+        } catch (NullPointerException e) {
+            throw new UnknownTileProviderException(tileProvider);
+        }
     }
 
     /**
@@ -1024,8 +1050,10 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
      * @param y The X coordinate of the tile for which to determine the bounds.
      * @param effectiveZoom The zoom level to take into account.
      * @return The area in component coordinates taken up by the specified tile.
+     * @throws UnknownTileProviderException If the specified tile provider is
+     *     not configured on this image viewer.
      */
-    protected final Rectangle getTileBounds(TileProvider tileProvider, int x, int y, int effectiveZoom) {
+    protected final Rectangle getTileBounds(TileProvider tileProvider, int x, int y, int effectiveZoom) throws UnknownTileProviderException {
         return worldToView(tileProvider, x << TILE_SIZE_BITS, y << TILE_SIZE_BITS, TILE_SIZE, TILE_SIZE, effectiveZoom);
     }
 
@@ -1066,8 +1094,10 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
      * @param effectiveZoom The zoom level to take into account.
      * @return The area in component coordinates taken up by the specified
      * rectangle of tiles.
+     * @throws UnknownTileProviderException If the specified tile provider is
+     *     not configured on this image viewer.
      */
-    protected final Rectangle getTileBounds(TileProvider tileProvider, int x, int y, int width, int height, int effectiveZoom) {
+    protected final Rectangle getTileBounds(TileProvider tileProvider, int x, int y, int width, int height, int effectiveZoom) throws UnknownTileProviderException {
         return worldToView(tileProvider, x << TILE_SIZE_BITS, y << TILE_SIZE_BITS, TILE_SIZE * width, TILE_SIZE * height, effectiveZoom);
     }
 
@@ -1306,79 +1336,85 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
 
         g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
         GraphicsConfiguration gc = getGraphicsConfiguration();
-        for (TileProvider tileProvider: tileProviders) {
-            final int effectiveZoom = (tileProvider.isZoomSupported() && (zoom < 0)) ? 0 : zoom;
-            final Point topLeftTileCoords = viewToWorld(tileProvider, clipBounds.getLocation(), effectiveZoom);
-            final int leftTile = topLeftTileCoords.x >> TILE_SIZE_BITS;
-            final int topTile = topLeftTileCoords.y >> TILE_SIZE_BITS;
-            final Point bottomRightTileCoords = viewToWorld(tileProvider, new Point(clipBounds.x + clipBounds.width - 1, clipBounds.y + clipBounds.height - 1), effectiveZoom);
-            final int rightTile = bottomRightTileCoords.x >> TILE_SIZE_BITS;
-            final int bottomTile = bottomRightTileCoords.y >> TILE_SIZE_BITS;
+        try {
+            for (TileProvider tileProvider : tileProviders) {
+                final int effectiveZoom = (tileProvider.isZoomSupported() && (zoom < 0)) ? 0 : zoom;
+                final Point topLeftTileCoords = viewToWorld(tileProvider, clipBounds.getLocation(), effectiveZoom);
+                final int leftTile = topLeftTileCoords.x >> TILE_SIZE_BITS;
+                final int topTile = topLeftTileCoords.y >> TILE_SIZE_BITS;
+                final Point bottomRightTileCoords = viewToWorld(tileProvider, new Point(clipBounds.x + clipBounds.width - 1, clipBounds.y + clipBounds.height - 1), effectiveZoom);
+                final int rightTile = bottomRightTileCoords.x >> TILE_SIZE_BITS;
+                final int bottomTile = bottomRightTileCoords.y >> TILE_SIZE_BITS;
 
-            final int middleTileX = (leftTile + rightTile) / 2;
-            final int middleTileY = (topTile + bottomTile) / 2;
-            final int radius = Math.max(
-                Math.max(middleTileX - leftTile, rightTile - middleTileX),
-                Math.max(middleTileY - topTile, bottomTile - middleTileY));
+                final int middleTileX = (leftTile + rightTile) / 2;
+                final int middleTileY = (topTile + bottomTile) / 2;
+                final int radius = Math.max(
+                        Math.max(middleTileX - leftTile, rightTile - middleTileX),
+                        Math.max(middleTileY - topTile, bottomTile - middleTileY));
 
-            // Paint the tiles in a spiralish fashion, so that missing tiles are generated in that order
-            paintTile(g2, gc, tileProvider, middleTileX, middleTileY, effectiveZoom);
-            for (int r = 1; r <= radius; r++) {
-                for (int i = 0; i < (r * 2); i++) {
-                    int tileX = middleTileX + i - r, tileY = middleTileY - r;
-                    if ((tileX >= leftTile) && (tileX <= rightTile) && (tileY >= topTile) && (tileY <= bottomTile)) {
-                        paintTile(g2, gc, tileProvider, tileX, tileY, effectiveZoom);
-                    }
-                    tileX = middleTileX + r;
-                    tileY = middleTileY + i - r;
-                    if ((tileX >= leftTile) && (tileX <= rightTile) && (tileY >= topTile) && (tileY <= bottomTile)) {
-                        paintTile(g2, gc, tileProvider, tileX, tileY, effectiveZoom);
-                    }
-                    tileX = middleTileX + r - i;
-                    tileY = middleTileY + r;
-                    if ((tileX >= leftTile) && (tileX <= rightTile) && (tileY >= topTile) && (tileY <= bottomTile)) {
-                        paintTile(g2, gc, tileProvider, tileX, tileY, effectiveZoom);
-                    }
-                    tileX = middleTileX - r;
-                    tileY = middleTileY - i + r;
-                    if ((tileX >= leftTile) && (tileX <= rightTile) && (tileY >= topTile) && (tileY <= bottomTile)) {
-                        paintTile(g2, gc, tileProvider, tileX, tileY, effectiveZoom);
+                // Paint the tiles in a spiralish fashion, so that missing tiles are generated in that order
+                paintTile(g2, gc, tileProvider, middleTileX, middleTileY, effectiveZoom);
+                for (int r = 1; r <= radius; r++) {
+                    for (int i = 0; i < (r * 2); i++) {
+                        int tileX = middleTileX + i - r, tileY = middleTileY - r;
+                        if ((tileX >= leftTile) && (tileX <= rightTile) && (tileY >= topTile) && (tileY <= bottomTile)) {
+                            paintTile(g2, gc, tileProvider, tileX, tileY, effectiveZoom);
+                        }
+                        tileX = middleTileX + r;
+                        tileY = middleTileY + i - r;
+                        if ((tileX >= leftTile) && (tileX <= rightTile) && (tileY >= topTile) && (tileY <= bottomTile)) {
+                            paintTile(g2, gc, tileProvider, tileX, tileY, effectiveZoom);
+                        }
+                        tileX = middleTileX + r - i;
+                        tileY = middleTileY + r;
+                        if ((tileX >= leftTile) && (tileX <= rightTile) && (tileY >= topTile) && (tileY <= bottomTile)) {
+                            paintTile(g2, gc, tileProvider, tileX, tileY, effectiveZoom);
+                        }
+                        tileX = middleTileX - r;
+                        tileY = middleTileY - i + r;
+                        if ((tileX >= leftTile) && (tileX <= rightTile) && (tileY >= topTile) && (tileY <= bottomTile)) {
+                            paintTile(g2, gc, tileProvider, tileX, tileY, effectiveZoom);
+                        }
                     }
                 }
             }
-        }
 
-        paintGridIfApplicable(g2);
+            paintGridIfApplicable(g2);
 
-        paintMarkerIfApplicable(g2);
-        
-        if (paintCentre) {
-            final int middleX = myWidth / 2;
-            final int middleY = myHeight / 2;
-            g2.setColor(Color.BLACK);
-            g2.drawLine(middleX - 4, middleY + 1, middleX + 6, middleY + 1);
-            g2.drawLine(middleX + 1, middleY - 4, middleX + 1, middleY + 6);
-            g2.setColor(Color.WHITE);
-            g2.drawLine(middleX - 5, middleY, middleX + 5, middleY);
-            g2.drawLine(middleX, middleY - 5, middleX, middleY + 5);
-        }
+            paintMarkerIfApplicable(g2);
 
-        paintOverlays(g2);
+            if (paintCentre) {
+                final int middleX = myWidth / 2;
+                final int middleY = myHeight / 2;
+                g2.setColor(Color.BLACK);
+                g2.drawLine(middleX - 4, middleY + 1, middleX + 6, middleY + 1);
+                g2.drawLine(middleX + 1, middleY - 4, middleX + 1, middleY + 6);
+                g2.setColor(Color.WHITE);
+                g2.drawLine(middleX - 5, middleY, middleX + 5, middleY);
+                g2.drawLine(middleX, middleY - 5, middleX, middleY + 5);
+            }
 
-        // Unschedule tiles which were scheduled to be rendered but are no
-        // longer visible
-        final Rectangle viewBounds = new Rectangle(0, 0, myWidth, myHeight);
-        synchronized (TILE_CACHE_LOCK) {
-            for (Iterator<Runnable> i = queue.iterator(); i.hasNext(); ) {
-                TileRenderJob job = (TileRenderJob) i.next();
-                if (! getTileBounds(job.tileProvider, job.coords.x, job.coords.y, job.effectiveZoom).intersects(viewBounds)) {
-                    i.remove();
-                    // Remove the RENDERING flag for this tile from the cache,
-                    // otherwise it won't be rendered the next time it becomes
-                    // visible:
-                    tileCaches.get(job.tileProvider).remove(job.coords);
+            paintOverlays(g2);
+
+            // Unschedule tiles which were scheduled to be rendered but are no
+            // longer visible
+            final Rectangle viewBounds = new Rectangle(0, 0, myWidth, myHeight);
+            synchronized (TILE_CACHE_LOCK) {
+                for (Iterator<Runnable> i = queue.iterator(); i.hasNext(); ) {
+                    TileRenderJob job = (TileRenderJob) i.next();
+                    if (! getTileBounds(job.tileProvider, job.coords.x, job.coords.y, job.effectiveZoom).intersects(viewBounds)) {
+                        i.remove();
+                        // Remove the RENDERING flag for this tile from the cache,
+                        // otherwise it won't be rendered the next time it becomes
+                        // visible:
+                        tileCaches.get(job.tileProvider).remove(job.coords);
+                    }
                 }
             }
+        } catch (UnknownTileProviderException e) {
+            // This can only happen on other threads than the event dispatch
+            // thread
+            throw new RuntimeException(e);
         }
     }
 
@@ -1421,8 +1457,10 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
      * @param y The Y coordinate of the tile to paint, in tiles relative to the
      *          image origin.
      * @param effectiveZoom The zoom level to apply.
+     * @throws UnknownTileProviderException If the specified tile provider is
+     *     not configured on this image viewer.
      */
-    private void paintTile(Graphics2D g2, GraphicsConfiguration gc, TileProvider tileProvider, int x, int y, int effectiveZoom) {
+    private void paintTile(Graphics2D g2, GraphicsConfiguration gc, TileProvider tileProvider, int x, int y, int effectiveZoom) throws UnknownTileProviderException {
         Rectangle tileBounds = getTileBounds(tileProvider, x, y, effectiveZoom);
         Image tile = getTile(tileProvider, x, y, effectiveZoom, gc);
         if (tile != null) {
@@ -1593,7 +1631,13 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                 if (dirtyTileCache.containsKey(coords)) {
                     dirtyTileCache.remove(coords);
                 }
-                repaint(getTileBounds(tileProvider, coords.x, coords.y, effectiveZoom));
+                try {
+                    repaint(getTileBounds(tileProvider, coords.x, coords.y, effectiveZoom));
+                } catch (UnknownTileProviderException e) {
+                    // This means the tile provider is no longer configured on
+                    // this image viewer, meaning there's not much point in us
+                    // trying to paint it, so give up silently
+                }
             }
         }
     }
@@ -1883,7 +1927,13 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                 // Repaint still needed, as a dirty tile may have been painted
                 // in its location
             }
-            repaint(getTileBounds(tileProvider, coords.x, coords.y, effectiveZoom));
+            try {
+                repaint(getTileBounds(tileProvider, coords.x, coords.y, effectiveZoom));
+            } catch (UnknownTileProviderException e) {
+                // This means the tile provider is no longer configured on the
+                // viewer, meaning there's not much point in us painting the
+                // tile, so just give up silently
+            }
         }
 
         @Override
