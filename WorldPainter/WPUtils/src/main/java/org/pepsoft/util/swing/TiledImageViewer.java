@@ -1292,6 +1292,9 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                     }
                     break;
                 case CENTRE_REPEAT:
+                    if (backgroundImage.getTransparency() != Transparency.OPAQUE) {
+                        g2.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
+                    }
                     repeatImage(g2, clipBounds, backgroundImage, (myWidth - backgroundImage.getWidth()) / 2, (myHeight - backgroundImage.getHeight()) / 2, backgroundImage.getWidth(), backgroundImage.getHeight());
                     break;
                 case FIT:
@@ -1316,13 +1319,22 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                             g2.drawImage(backgroundImage, imageX, imageY, imageWidth, imageHeight, null);
                         }
                     } else {
+                        if (backgroundImage.getTransparency() != Transparency.OPAQUE) {
+                            g2.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
+                        }
                         repeatImage(g2, clipBounds, backgroundImage, imageX, imageY, imageWidth, imageHeight);
                     }
                     break;
                 case REPEAT:
+                    if (backgroundImage.getTransparency() != Transparency.OPAQUE) {
+                        g2.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
+                    }
                     repeatImage(g2, clipBounds, backgroundImage, 0, 0, backgroundImage.getWidth(), backgroundImage.getHeight());
                     break;
                 case STRETCH:
+                    if (backgroundImage.getTransparency() != Transparency.OPAQUE) {
+                        g2.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
+                    }
                     g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
                     g2.drawImage(backgroundImage, 0, 0, myWidth, myHeight, null);
                     break;
