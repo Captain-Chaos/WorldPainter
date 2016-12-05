@@ -12,6 +12,7 @@ package org.pepsoft.worldpainter;
 
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.swing.TiledImageViewer;
+import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
 import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
 
 import javax.imageio.ImageIO;
@@ -120,6 +121,10 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements WindowLi
             }
             view.setBackground(new Color(newColour));
         });
+        if (BiomeSchemeManager.getAvailableBiomeAlgorithms().isEmpty()) {
+            checkBoxShowBiomes.setSelected(false);
+            checkBoxShowBiomes.setEnabled(false);
+        }
         setControlStates();
         setLocationRelativeTo(parent);
         
