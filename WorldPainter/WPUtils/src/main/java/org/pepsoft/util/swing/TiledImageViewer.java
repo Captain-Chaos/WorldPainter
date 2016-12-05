@@ -1277,71 +1277,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         final Graphics2D g2 = (Graphics2D) g;
         Rectangle clipBounds = g2.getClipBounds();
         g2.setColor(getBackground());
-        int myWidth = getWidth();
-        int myHeight = getHeight();
-        if (backgroundImage != null) {
-            switch (backgroundImageMode) {
-                case CENTRE:
-                    g2.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
-                    int imageWidth = backgroundImage.getWidth();
-                    int imageHeight = backgroundImage.getHeight();
-                    int imageX = (myWidth - imageWidth) / 2;
-                    int imageY = (myHeight - imageHeight) / 2;
-                    if (clipBounds.intersects(imageX, imageY, imageWidth, imageHeight)) {
-                        g2.drawImage(backgroundImage, imageX, imageY, null);
-                    }
-                    break;
-                case CENTRE_REPEAT:
-                    if (backgroundImage.getTransparency() != Transparency.OPAQUE) {
-                        g2.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
-                    }
-                    repeatImage(g2, clipBounds, backgroundImage, (myWidth - backgroundImage.getWidth()) / 2, (myHeight - backgroundImage.getHeight()) / 2, backgroundImage.getWidth(), backgroundImage.getHeight());
-                    break;
-                case FIT:
-                case FIT_REPEAT:
-                    imageWidth = backgroundImage.getWidth();
-                    imageHeight = backgroundImage.getHeight();
-                    float myRatio = (float) myWidth / myHeight;
-                    float imageRatio = (float) imageWidth / imageHeight;
-                    if (imageRatio > myRatio) {
-                        imageWidth = myWidth;
-                        imageHeight = (int) (imageWidth / imageRatio);
-                    } else {
-                        imageHeight = myHeight;
-                        imageWidth = (int) (imageHeight * imageRatio);
-                    }
-                    imageX = (myWidth - imageWidth) / 2;
-                    imageY = (myHeight - imageHeight) / 2;
-                    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-                    if (backgroundImageMode == BackgroundImageMode.FIT) {
-                        g2.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
-                        if (clipBounds.intersects(imageX, imageY, imageWidth, imageHeight)) {
-                            g2.drawImage(backgroundImage, imageX, imageY, imageWidth, imageHeight, null);
-                        }
-                    } else {
-                        if (backgroundImage.getTransparency() != Transparency.OPAQUE) {
-                            g2.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
-                        }
-                        repeatImage(g2, clipBounds, backgroundImage, imageX, imageY, imageWidth, imageHeight);
-                    }
-                    break;
-                case REPEAT:
-                    if (backgroundImage.getTransparency() != Transparency.OPAQUE) {
-                        g2.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
-                    }
-                    repeatImage(g2, clipBounds, backgroundImage, 0, 0, backgroundImage.getWidth(), backgroundImage.getHeight());
-                    break;
-                case STRETCH:
-                    if (backgroundImage.getTransparency() != Transparency.OPAQUE) {
-                        g2.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
-                    }
-                    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-                    g2.drawImage(backgroundImage, 0, 0, myWidth, myHeight, null);
-                    break;
-            }
-        } else {
-            g2.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
-        }
+        paintBackground(g2, clipBounds);
         if (tileProviders.isEmpty()) {
             return;
         }
@@ -1395,6 +1331,8 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
 
             paintMarkerIfApplicable(g2);
 
+            int myWidth = getWidth();
+            int myHeight = getHeight();
             if (paintCentre) {
                 final int middleX = myWidth / 2;
                 final int middleY = myHeight / 2;
@@ -1427,6 +1365,73 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
             // This can only happen on other threads than the event dispatch
             // thread
             throw new RuntimeException(e);
+        }
+    }
+
+    private void paintBackground(Graphics2D g2, Rectangle clipBounds) {
+        if (backgroundImage != null) {
+            int width = getWidth(), height = getHeight();
+            switch (backgroundImageMode) {
+                case CENTRE:
+                    g2.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
+                    int imageWidth = backgroundImage.getWidth();
+                    int imageHeight = backgroundImage.getHeight();
+                    int imageX = (width - imageWidth) / 2;
+                    int imageY = (height - imageHeight) / 2;
+                    if (clipBounds.intersects(imageX, imageY, imageWidth, imageHeight)) {
+                        g2.drawImage(backgroundImage, imageX, imageY, null);
+                    }
+                    break;
+                case CENTRE_REPEAT:
+                    if (backgroundImage.getTransparency() != Transparency.OPAQUE) {
+                        g2.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
+                    }
+                    repeatImage(g2, clipBounds, backgroundImage, (width - backgroundImage.getWidth()) / 2, (height - backgroundImage.getHeight()) / 2, backgroundImage.getWidth(), backgroundImage.getHeight());
+                    break;
+                case FIT:
+                case FIT_REPEAT:
+                    imageWidth = backgroundImage.getWidth();
+                    imageHeight = backgroundImage.getHeight();
+                    float myRatio = (float) width / height;
+                    float imageRatio = (float) imageWidth / imageHeight;
+                    if (imageRatio > myRatio) {
+                        imageWidth = width;
+                        imageHeight = (int) (imageWidth / imageRatio);
+                    } else {
+                        imageHeight = height;
+                        imageWidth = (int) (imageHeight * imageRatio);
+                    }
+                    imageX = (width - imageWidth) / 2;
+                    imageY = (height - imageHeight) / 2;
+                    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                    if (backgroundImageMode == TiledImageViewer.BackgroundImageMode.FIT) {
+                        g2.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
+                        if (clipBounds.intersects(imageX, imageY, imageWidth, imageHeight)) {
+                            g2.drawImage(backgroundImage, imageX, imageY, imageWidth, imageHeight, null);
+                        }
+                    } else {
+                        if (backgroundImage.getTransparency() != Transparency.OPAQUE) {
+                            g2.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
+                        }
+                        repeatImage(g2, clipBounds, backgroundImage, imageX, imageY, imageWidth, imageHeight);
+                    }
+                    break;
+                case REPEAT:
+                    if (backgroundImage.getTransparency() != Transparency.OPAQUE) {
+                        g2.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
+                    }
+                    repeatImage(g2, clipBounds, backgroundImage, 0, 0, backgroundImage.getWidth(), backgroundImage.getHeight());
+                    break;
+                case STRETCH:
+                    if (backgroundImage.getTransparency() != Transparency.OPAQUE) {
+                        g2.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
+                    }
+                    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                    g2.drawImage(backgroundImage, 0, 0, width, height, null);
+                    break;
+            }
+        } else {
+            g2.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
         }
     }
 
