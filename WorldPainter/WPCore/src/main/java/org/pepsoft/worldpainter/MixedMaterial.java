@@ -11,6 +11,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.Callable;
 
 /**
  * @author SchmitzP
@@ -381,6 +382,29 @@ public class MixedMaterial implements Serializable, Comparable<MixedMaterial> {
     public static MixedMaterial create(final Material material) {
         return new MixedMaterial(material.toString(), new Row(material, 1000, 1.0f), -1, null);
     }
+
+    /**
+     * Perform a task during which any new materials deserialised <em>on the
+     * same thread</em> will be duplicated and given new identities, instead of
+     * being replaced with existing instances with the same identity if
+     * available.
+     *
+     * @param task The task to perform.
+     * @param <V> The return type of the task. May be {@link Void} for tasks
+     *           which do not return a value.
+     * @return The return value of the task or <code>null</code> if it does not
+     *     return a value.
+     */
+    public static <V> V duplicateNewMaterialsWhile(Callable<V> task) {
+        DUPLICATE_MATERIALS.set(true);
+        try {
+            return task.call();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            DUPLICATE_MATERIALS.set(false);
+        }
+    }
     
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
@@ -400,7 +424,7 @@ public class MixedMaterial implements Serializable, Comparable<MixedMaterial> {
     }
     
     private Object readResolve() throws ObjectStreamException {
-        return MixedMaterialManager.getInstance().register(this);
+        return DUPLICATE_MATERIALS.get() ? MixedMaterialManager.getInstance().registerAsNew(this) : MixedMaterialManager.getInstance().register(this);
     }
     
     private void init() {
@@ -540,5 +564,6 @@ public class MixedMaterial implements Serializable, Comparable<MixedMaterial> {
 
     private static final BufferedImage UNKNOWN_ICON = IconUtils.loadImage("org/pepsoft/worldpainter/icons/unknown_pattern.png");
     private static final long NOISE_SEED_OFFSET = 55904327L;
+    private static final ThreadLocal<Boolean> DUPLICATE_MATERIALS = ThreadLocal.withInitial(() -> false);
     private static final long serialVersionUID = 1L;
 }

@@ -46,10 +46,7 @@ public class MixedMaterialManager {
                 // A material with the same settings already exists
                 return materialsById.get(id);
             } else {
-                material = new MixedMaterial(material.getName(), material.getRows(), material.getBiome(), material.getMode(), material.getScale(), material.getColour(), material.getVariation(), material.getLayerXSlope(), material.getLayerYSlope(), material.isRepeat());
-                materialsById.put(material.getId(), material);
-                idsByMaterial.put(material, material.getId());
-                return material;
+                return registerAsNew(material);
             }
         } else if (materialsById.containsKey(id)) {
             return materialsById.get(id);
@@ -59,7 +56,21 @@ public class MixedMaterialManager {
             return material;
         }
     }
-    
+
+    /**
+     * Register a new material. This version always generates a new ID and
+     * therefore gives the material a new identity.
+     *
+     * @param material The material to register.
+     * @return The actual material to use instead of the specified one.
+     */
+    public synchronized MixedMaterial registerAsNew(MixedMaterial material) {
+        material = new MixedMaterial(material.getName(), material.getRows(), material.getBiome(), material.getMode(), material.getScale(), material.getColour(), material.getVariation(), material.getLayerXSlope(), material.getLayerYSlope(), material.isRepeat());
+        materialsById.put(material.getId(), material);
+        idsByMaterial.put(material, material.getId());
+        return material;
+    }
+
     public static MixedMaterialManager getInstance() {
         return INSTANCE;
     }

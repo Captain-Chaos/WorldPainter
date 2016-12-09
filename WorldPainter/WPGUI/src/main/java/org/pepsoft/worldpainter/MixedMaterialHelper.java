@@ -45,12 +45,10 @@ public class MixedMaterialHelper {
         if (selectedFile != null) {
             try {
                 try (ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new BufferedInputStream(new FileInputStream(selectedFile))))) {
-                    return (MixedMaterial) in.readObject();
+                    return MixedMaterial.duplicateNewMaterialsWhile(() -> (MixedMaterial) in.readObject());
                 }
             } catch (IOException e) {
                 throw new RuntimeException("I/O error while reading " + selectedFile, e);
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException("Class not found exception while reading " + selectedFile, e);
             }
         }
         return null;
@@ -74,19 +72,21 @@ public class MixedMaterialHelper {
             }
         });
         if (selectedFiles != null) {
-            MixedMaterial[] materials = new MixedMaterial[selectedFiles.length];
-            for (int i = 0; i < selectedFiles.length; i++) {
-                try {
-                    try (ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new BufferedInputStream(new FileInputStream(selectedFiles[i]))))) {
-                        materials[i] = (MixedMaterial) in.readObject();
+            return MixedMaterial.duplicateNewMaterialsWhile(() -> {
+                MixedMaterial[] materials = new MixedMaterial[selectedFiles.length];
+                for (int i = 0; i < selectedFiles.length; i++) {
+                    try {
+                        try (ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new BufferedInputStream(new FileInputStream(selectedFiles[i]))))) {
+                            materials[i] = (MixedMaterial) in.readObject();
+                        }
+                    } catch (IOException e) {
+                        throw new RuntimeException("I/O error while reading " + selectedFiles[i], e);
+                    } catch (ClassNotFoundException e) {
+                        throw new RuntimeException("Class not found exception while reading " + selectedFiles[i], e);
                     }
-                } catch (IOException e) {
-                    throw new RuntimeException("I/O error while reading " + selectedFiles[i], e);
-                } catch (ClassNotFoundException e) {
-                    throw new RuntimeException("Class not found exception while reading " + selectedFiles[i], e);
                 }
-            }
-            return materials;
+                return materials;
+            });
         }
         return null;
     }
