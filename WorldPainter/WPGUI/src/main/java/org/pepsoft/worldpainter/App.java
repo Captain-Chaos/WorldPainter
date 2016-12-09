@@ -502,12 +502,18 @@ public final class App extends JFrame implements RadiusControl,
                     registerCustomLayer(customLayer, false);
                 }
                 if (customLayer instanceof CombinedLayer) {
-                    if (((CombinedLayer) customLayer).isMissingTerrainWarning()) {
+                    if (! ((CombinedLayer) customLayer).restoreCustomTerrain()) {
                         if (! missingTerrainWarningGiven) {
                             showMessageDialog(this, "The world contains one or more Combined Layer(s) referring to a Custom Terrain\nwhich is not present in this world. The terrain has been reset.", "Missing Custom Terrain", WARNING_MESSAGE);
                             missingTerrainWarningGiven = true;
                         }
-                        ((CombinedLayer) customLayer).resetMissingTerrainWarning();
+                    } else {
+                        // Check for a custom terrain type and if necessary make
+                        // sure it has a button
+                        Terrain terrain = ((CombinedLayer) customLayer).getTerrain();
+                        if ((terrain != null) && terrain.isCustom() && (customMaterialButtons[terrain.getCustomTerrainIndex()] == null)) {
+                            addButtonForNewCustomTerrain(terrain.getCustomTerrainIndex(), Terrain.getCustomMaterial(terrain.getCustomTerrainIndex()), false);
+                        }
                     }
                 }
             }
@@ -4808,7 +4814,6 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void loadCustomTerrains() {
-        clearCustomTerrains();
         boolean customTerrainsChanged = false;
         for (int i = 0; i < CUSTOM_TERRAIN_COUNT; i++) {
             MixedMaterial material = world.getMixedMaterial(i);
@@ -5093,11 +5098,18 @@ public final class App extends JFrame implements RadiusControl,
                         if (layer instanceof CombinedLayer) {
                             CombinedLayer combinedLayer = (CombinedLayer) layer;
                             addLayersFromCombinedLayer(combinedLayer);
-                            if (combinedLayer.isMissingTerrainWarning()) {
+                            if (! combinedLayer.restoreCustomTerrain()) {
                                 showMessageDialog(this, "The layer contained a Custom Terrain which is not present in this world. The terrain has been reset.", "Missing Custom Terrain", WARNING_MESSAGE);
-                                combinedLayer.resetMissingTerrainWarning();
-                            } else if ((combinedLayer.getTerrain() != null) && combinedLayer.getTerrain().isCustom()) {
-                                updateCustomTerrainButtons = true;
+                            } else {
+                                // Check for a custom terrain type and if necessary make
+                                // sure it has a button
+                                Terrain terrain = combinedLayer.getTerrain();
+                                if ((terrain != null) && terrain.isCustom()) {
+                                    updateCustomTerrainButtons = true;
+                                    if (customMaterialButtons[terrain.getCustomTerrainIndex()] == null) {
+                                        addButtonForNewCustomTerrain(terrain.getCustomTerrainIndex(), Terrain.getCustomMaterial(terrain.getCustomTerrainIndex()), false);
+                                    }
+                                }
                             }
                         }
                     }
