@@ -1,3 +1,7 @@
+-- Version 2.3.3, released ...
+
+ * Bug fix: don't crash when trying to Export or Merge on Windows versions older than Windows 7
+
 -- Version 2.3.2, released 9-12-2016
 
  * Custom materials have a persistent identity which was causing confusion when exporting custom terrains and then importing them into the same world, which would result in them both being linked to the same material. To lessen confusion, custom terrain materials are now always duplicated when explicitly loading a custom terrain type from a file

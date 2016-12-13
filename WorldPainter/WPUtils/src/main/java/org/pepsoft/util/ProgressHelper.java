@@ -15,13 +15,19 @@ import java.util.WeakHashMap;
 class ProgressHelper {
     @SuppressWarnings("unchecked") // Guaranteed by BridJ
     private ProgressHelper(Window window) {
+        ITaskbarList3 taskbarList;
+        Pointer<Integer> hwnd;
         try {
             taskbarList = COMRuntime.newInstance(ITaskbarList3.class);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
+            long hwndVal = JAWTUtils.getNativePeerHandle(window);
+            hwnd = (Pointer<Integer>) Pointer.pointerToAddress(hwndVal);
+        } catch (ClassNotFoundException | RuntimeException e) {
+            // Probably too old a Windows version
+            taskbarList = null;
+            hwnd = null;
         }
-        long hwndVal = JAWTUtils.getNativePeerHandle(window);
-        hwnd = (Pointer<Integer>) Pointer.pointerToAddress(hwndVal);
+        this.taskbarList = taskbarList;
+        this.hwnd = hwnd;
     }
 
     static void setProgress(Window window, int percentage) {
@@ -29,9 +35,11 @@ class ProgressHelper {
         if (progressHelper == null) {
             progressHelper = new ProgressHelper(window);
             progressHelpers.put(window, progressHelper);
-            progressHelper.taskbarList.SetProgressState(progressHelper.hwnd, ITaskbarList3.TbpFlag.TBPF_NORMAL);
+            if (progressHelper.taskbarList != null) {
+                progressHelper.taskbarList.SetProgressState(progressHelper.hwnd, ITaskbarList3.TbpFlag.TBPF_NORMAL);
+            }
         }
-        if (! progressHelper.errorReported) {
+        if ((progressHelper.taskbarList != null) && (! progressHelper.errorReported)) {
             progressHelper.taskbarList.SetProgressValue(progressHelper.hwnd, percentage, 100);
         }
     }
@@ -39,14 +47,16 @@ class ProgressHelper {
     static void setProgressDone(Window window) {
         ProgressHelper progressHelper = progressHelpers.get(window);
         if (progressHelper != null) {
-            progressHelper.taskbarList.SetProgressState(progressHelper.hwnd, ITaskbarList3.TbpFlag.TBPF_NOPROGRESS);
+            if (progressHelper.taskbarList != null) {
+                progressHelper.taskbarList.SetProgressState(progressHelper.hwnd, ITaskbarList3.TbpFlag.TBPF_NOPROGRESS);
+            }
             progressHelpers.remove(window);
         }
     }
 
     static void setProgressError(Window window) {
         ProgressHelper progressHelper = progressHelpers.get(window);
-        if (progressHelper != null) {
+        if ((progressHelper != null) && (progressHelper.taskbarList != null)) {
             progressHelper.taskbarList.SetProgressState(progressHelper.hwnd, ITaskbarList3.TbpFlag.TBPF_ERROR);
             progressHelper.errorReported = true;
         }
