@@ -21,14 +21,14 @@ public class DumpWorld {
         }
         System.out.println("History:");
         world.getHistory().forEach(entry -> System.out.println("    " + entry.getText()));
-        if (world.getVersion() != 0) {
-            System.out.printf("Last exported as version: 0x%04x%n", world.getVersion());
+        if (world.getPlatform() != null) {
+            System.out.printf("Last exported for platform: %s%n", world.getPlatform().getDisplayName());
         }
         System.out.println("Generator: " + world.getGenerator());
         if (world.getGeneratorOptions() != null) {
             System.out.println("Generator options: " + world.getGeneratorOptions());
         }
-        System.out.println("Game type: " + GAME_TYPES[world.getGameType()]);
+        System.out.println("Game type: " + world.getGameType());
         System.out.println("Difficulty: " + DIFFICULTIES[world.getDifficulty()]);
         if (world.getImportedFrom() != null) {
             System.out.println("Imported from: " + world.getImportedFrom());

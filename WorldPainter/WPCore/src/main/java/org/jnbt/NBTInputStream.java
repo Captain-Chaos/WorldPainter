@@ -32,10 +32,9 @@ package org.jnbt;
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE. 
  */
-import java.io.Closeable;
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import com.google.common.io.LittleEndianDataInputStream;
+
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -57,17 +56,28 @@ public final class NBTInputStream implements Closeable {
     /**
      * The data input stream.
      */
-    private final DataInputStream is;
+    private final DataInput is;
+
+    /**
+     * Creates a new <code>NBTInputStream</code>, which will source its data
+     * from the specified input stream, which is assumed to contain big
+     * endian data.
+     * @param is The input stream.
+     * @throws IOException if an I/O error occurs.
+     */
+    public NBTInputStream(InputStream is) throws IOException {
+        this(is, false);
+    }
 
     /**
      * Creates a new <code>NBTInputStream</code>, which will source its data
      * from the specified input stream.
      * @param is The input stream.
+     * @param littleEndian Whether the stream contains little endian data.
      * @throws IOException if an I/O error occurs.
      */
-    public NBTInputStream(InputStream is) throws IOException {
-//		this.is = new DataInputStream(new GZIPInputStream(is));
-        this.is = new DataInputStream(is);
+    public NBTInputStream(InputStream is, boolean littleEndian) throws IOException {
+        this.is = littleEndian ? new LittleEndianDataInputStream(is) : new DataInputStream(is);
     }
 
     /**
@@ -112,11 +122,11 @@ public final class NBTInputStream implements Closeable {
     private Tag readTagPayload(int type, String name, int depth) throws IOException {
         switch (type) {
             case NBTConstants.TYPE_END:
-                if (depth == 0) {
-                    throw new IOException("TAG_End found without a TAG_Compound/TAG_List tag preceding it.");
-                } else {
+//                if (depth == 0) {
+//                    throw new IOException("TAG_End found without a TAG_Compound/TAG_List tag preceding it.");
+//                } else {
                     return new EndTag();
-                }
+//                }
             case NBTConstants.TYPE_BYTE:
                 return new ByteTag(name, is.readByte());
             case NBTConstants.TYPE_SHORT:
@@ -178,6 +188,6 @@ public final class NBTInputStream implements Closeable {
     }
 
     public void close() throws IOException {
-        is.close();
+        ((InputStream) is).close();
     }
 }

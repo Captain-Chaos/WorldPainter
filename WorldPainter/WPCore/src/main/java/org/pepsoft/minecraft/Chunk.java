@@ -12,7 +12,7 @@ import java.util.List;
  *
  * @author pepijn
  */
-public interface Chunk extends NBTItem {
+public interface Chunk {
     int getBlockLightLevel(int x, int y, int z);
 
     void setBlockLightLevel(int x, int y, int z, int blockLightLevel);

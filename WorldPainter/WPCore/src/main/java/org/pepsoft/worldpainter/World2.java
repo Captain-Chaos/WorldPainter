@@ -7,6 +7,7 @@ package org.pepsoft.worldpainter;
 
 import org.pepsoft.minecraft.Direction;
 import org.pepsoft.minecraft.Material;
+import org.pepsoft.minecraft.Platform;
 import org.pepsoft.util.MemoryUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
@@ -138,14 +139,14 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         }
     }
 
-    public int getGameType() {
-        return gameType;
+    public GameType getGameType() {
+        return gameTypeObj;
     }
 
-    public void setGameType(int gameType) {
-        if (gameType != this.gameType) {
-            int oldGameType = this.gameType;
-            this.gameType = gameType;
+    public void setGameType(GameType gameType) {
+        if (gameType != gameTypeObj) {
+            GameType oldGameType = gameTypeObj;
+            gameTypeObj = gameType;
             dirty = true;
             propertyChangeSupport.firePropertyChange("gameType", oldGameType, gameType);
         }
@@ -248,16 +249,16 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         }
     }
 
-    public int getVersion() {
-        return version;
+    public Platform getPlatform() {
+        return platform;
     }
 
-    public void setVersion(int version) {
-        if (version != this.version) {
-            int oldVersion = this.version;
-            this.version = version;
+    public void setPlatform(Platform platform) {
+        if (platform != this.platform) {
+            Platform oldPlatform = this.platform;
+            this.platform = platform;
             dirty = true;
-            propertyChangeSupport.firePropertyChange("version", oldVersion, version);
+            propertyChangeSupport.firePropertyChange("platform", oldPlatform, platform);
         }
     }
 
@@ -587,7 +588,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
             }
         }
         if (wpVersion < 2) {
-            if (gameType == GAME_TYPE_HARDCORE) {
+            if (gameType == 3) {
                 difficulty = org.pepsoft.minecraft.Constants.DIFFICULTY_HARD;
             } else {
                 difficulty = org.pepsoft.minecraft.Constants.DIFFICULTY_NORMAL;
@@ -607,6 +608,21 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
                 dimensionsToExport = null;
             }
             dimensionToExport = -1;
+        }
+        if (wpVersion < 6) {
+            switch (version) {
+                case org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_1:
+                    platform = Platform.JAVA_MCREGION;
+                    break;
+                case org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_2:
+                    platform = Platform.JAVA_ANVIL;
+                    break;
+                default:
+                    platform = (maxheight == org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2) ? Platform.JAVA_ANVIL : Platform.JAVA_MCREGION;
+            }
+            version = -1;
+            gameTypeObj = GameType.values()[gameType];
+            gameType = -1;
         }
         wpVersion = CURRENT_WP_VERSION;
         
@@ -634,7 +650,8 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     private File importedFrom;
     private final SortedMap<Integer, Dimension> dimensions = new TreeMap<>();
     private boolean mapFeatures = true;
-    private int gameType = GAME_TYPE_SURVIVAL;
+    @Deprecated
+    private int gameType;
     @Deprecated
     private Material[] customMaterials;
     @Deprecated
@@ -644,9 +661,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     private transient PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
     @Deprecated
     private String generatorName;
-    /**
-     * The map format version number with which this world was last exported.
-     */
+    @Deprecated
     private int version;
     /**
      * The type of terrain generator to choose.
@@ -669,6 +684,8 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     private BorderSettings borderSettings = new BorderSettings();
     private File mergedWith;
     private Set<Integer> dimensionsToExport;
+    private Platform platform;
+    private GameType gameTypeObj = GameType.SURVIVAL;
     private transient Set<Warning> warnings;
     private transient Map<String, Object> metadata;
 
@@ -683,13 +700,6 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     public static final long DEFAULT_OCEAN_SEED = 27594263L; // A seed with a large ocean around the origin, and not many mushroom islands nearby. Should be used with Large Biomes
     public static final long DEFAULT_LAND_SEED = 227290L; // A seed with a huge continent around the origin. Should be used with Large Biomes
     
-    // These do NOT correspond to actual Minecraft game types, since hardcore
-    // is encoded as survival
-    public static final int GAME_TYPE_SURVIVAL  = 0;
-    public static final int GAME_TYPE_CREATIVE  = 1;
-    public static final int GAME_TYPE_ADVENTURE = 2;
-    public static final int GAME_TYPE_HARDCORE  = 3;
-
     /**
      * A {@link String} containing the WorldPainter version with which this file
      * was saved.
@@ -717,7 +727,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
      */
     public static final String METADATA_KEY_PLUGINS = "org.pepsoft.worldpainter.plugins";
 
-    private static final int CURRENT_WP_VERSION = 5;
+    private static final int CURRENT_WP_VERSION = 6;
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(World2.class);
     private static final long serialVersionUID = 2011062401L;

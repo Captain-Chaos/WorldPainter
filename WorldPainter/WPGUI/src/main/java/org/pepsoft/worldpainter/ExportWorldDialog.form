@@ -246,17 +246,12 @@
       </Properties>
     </Component>
     <Component class="javax.swing.JComboBox" name="comboBoxMinecraftVersion">
-      <Properties>
-        <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
-          <StringArray count="2">
-            <StringItem index="0" value="Minecraft 1.10 (and 1.2 - 1.9; &quot;Anvil&quot;)"/>
-            <StringItem index="1" value="Minecraft 1.1 (and earlier; &quot;MCRegion&quot;)"/>
-          </StringArray>
-        </Property>
-      </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="comboBoxMinecraftVersionActionPerformed"/>
       </Events>
+      <AuxValues>
+        <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;Platform&gt;"/>
+      </AuxValues>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel1">
       <Properties>
@@ -313,6 +308,9 @@
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="comboBoxGeneratorActionPerformed"/>
       </Events>
+      <AuxValues>
+        <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;Generator&gt;"/>
+      </AuxValues>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel5">
       <Properties>
@@ -320,19 +318,12 @@
       </Properties>
     </Component>
     <Component class="javax.swing.JComboBox" name="comboBoxGameType">
-      <Properties>
-        <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
-          <StringArray count="4">
-            <StringItem index="0" value="Survival"/>
-            <StringItem index="1" value="Creative"/>
-            <StringItem index="2" value="Adventure"/>
-            <StringItem index="3" value="Hardcore"/>
-          </StringArray>
-        </Property>
-      </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="comboBoxGameTypeActionPerformed"/>
       </Events>
+      <AuxValues>
+        <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;GameType&gt;"/>
+      </AuxValues>
     </Component>
     <Component class="javax.swing.JButton" name="buttonGeneratorOptions">
       <Properties>

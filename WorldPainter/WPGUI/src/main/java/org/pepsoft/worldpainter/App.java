@@ -11,6 +11,7 @@ import com.jidesoft.swing.JideLabel;
 import org.jetbrains.annotations.NonNls;
 import org.pepsoft.minecraft.Direction;
 import org.pepsoft.minecraft.Material;
+import org.pepsoft.minecraft.Platform;
 import org.pepsoft.util.*;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.swing.ProgressDialog;
@@ -929,8 +930,8 @@ public final class App extends JFrame implements RadiusControl,
                 newWorld.addHistoryEntry(HistoryEntry.WORLD_MAX_HEIGHT_CHANGED, DEFAULT_MAX_HEIGHT_2);
                 // Force the version to "Anvil" if it was previously exported
                 // with the old format
-                if (newWorld.getVersion() != 0) {
-                    newWorld.setVersion(SUPPORTED_VERSION_2);
+                if (newWorld.getPlatform() != null) {
+                    newWorld.setPlatform(Platform.JAVA_ANVIL);
                 }
                 
                 // Log event

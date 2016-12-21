@@ -228,7 +228,6 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
      *
      * @param chunk The chunk to copy.
      */
-    @Override
     public void addChunk(Chunk chunk) {
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
@@ -240,6 +239,15 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
                 }
             }
         }
+    }
+
+    /**
+     * @throws UnsupportedOperationException Always, as this class does not
+     * store chunks persistently and therefore does not support flushing.
+     */
+    @Override
+    public void flush() {
+        throw new UnsupportedOperationException();
     }
 
     @Override

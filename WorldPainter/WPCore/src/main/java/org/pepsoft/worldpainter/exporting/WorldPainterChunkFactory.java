@@ -5,10 +5,7 @@
 
 package org.pepsoft.worldpainter.exporting;
 
-import org.pepsoft.minecraft.ChunkFactory;
-import org.pepsoft.minecraft.ChunkImpl;
-import org.pepsoft.minecraft.ChunkImpl2;
-import org.pepsoft.minecraft.Material;
+import org.pepsoft.minecraft.*;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Terrain;
@@ -30,13 +27,10 @@ import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.*;
  * @author pepijn
  */
 public class WorldPainterChunkFactory implements ChunkFactory {
-    public WorldPainterChunkFactory(Dimension dimension, Map<Layer, LayerExporter> exporters, int version, int maxHeight) {
-        if ((version != SUPPORTED_VERSION_1) && (version != SUPPORTED_VERSION_2)) {
-            throw new IllegalArgumentException("Not a supported version: 0x" + Integer.toHexString(version));
-        }
+    public WorldPainterChunkFactory(Dimension dimension, Map<Layer, LayerExporter> exporters, Platform platform, int maxHeight) {
         this.dimension = dimension;
         this.exporters = exporters;
-        this.version = version;
+        this.platform  = platform;
         this.maxHeight = maxHeight;
         minimumLayers = dimension.getMinimumLayers();
     }
@@ -79,9 +73,9 @@ public class WorldPainterChunkFactory implements ChunkFactory {
         final Random random = new Random(seed + xOffsetInTile * 3 + yOffsetInTile * 5);
         final boolean populate = dimension.isPopulate() || tile.getBitLayerValue(Populate.INSTANCE, xOffsetInTile, yOffsetInTile);
         final ChunkCreationResult result = new ChunkCreationResult();
-        result.chunk = (version == SUPPORTED_VERSION_1) ? new ChunkImpl(chunkX, chunkZ, maxHeight) : new ChunkImpl2(chunkX, chunkZ, maxHeight);
+        result.chunk = platform.createChunk(chunkX, chunkZ, maxHeight);
         final int maxY = maxHeight - 1;
-        final boolean copyBiomes = (version == SUPPORTED_VERSION_2) && (dimension.getDim() == DIM_NORMAL);
+        final boolean copyBiomes = (platform.supportsBiomes()) && (dimension.getDim() == DIM_NORMAL);
         final int defaultBiome;
         switch (dimension.getDim()) {
             case DIM_NORMAL:
@@ -225,7 +219,8 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                 && (tile.getIntHeight(x, y) < height);
     }
 
-    private final int version, maxHeight;
+    private final Platform platform;
+    private final int maxHeight;
     private final Dimension dimension;
     private final Set<Layer> minimumLayers;
     private final PerlinNoise sugarCaneNoise = new PerlinNoise(0);

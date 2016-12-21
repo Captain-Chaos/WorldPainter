@@ -13,6 +13,7 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.zip.GZIPInputStream;
 import org.pepsoft.minecraft.Constants;
+import org.pepsoft.minecraft.Platform;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.PluginManager;
 import org.pepsoft.util.ProgressReceiver;
@@ -22,7 +23,7 @@ import org.pepsoft.worldpainter.Configuration;
 import org.pepsoft.worldpainter.MixedMaterial;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.World2;
-import org.pepsoft.worldpainter.exporting.WorldExporter;
+import org.pepsoft.worldpainter.exporting.JavaWorldExporter;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.pepsoft.worldpainter.util.MinecraftUtil;
 
@@ -66,11 +67,11 @@ public class Export {
             MixedMaterial material = world.getMixedMaterial(i);
             Terrain.setCustomMaterial(i, material);
         }
-        if (world.getVersion() == 0) {
+        if (world.getPlatform() == null) {
             if (world.getMaxHeight() == Constants.DEFAULT_MAX_HEIGHT_2) {
-                world.setVersion(Constants.SUPPORTED_VERSION_2);
+                world.setPlatform(Platform.JAVA_ANVIL);
             } else {
-                world.setVersion(Constants.SUPPORTED_VERSION_1);
+                world.setPlatform(Platform.JAVA_MCREGION);
             }
         }
         
@@ -83,7 +84,7 @@ public class Export {
         }
         System.out.println("Exporting to " + exportDir);
         System.out.println("+---------+---------+---------+---------+---------+");
-        WorldExporter exporter = new WorldExporter(world);
+        JavaWorldExporter exporter = new JavaWorldExporter(world);
         exporter.export(exportDir, world.getName(), exporter.selectBackupDir(new File(exportDir, FileUtils.sanitiseName(world.getName()))), new ProgressReceiver() {
             @Override
             public void setProgress(float progressFraction) throws OperationCancelled {

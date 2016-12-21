@@ -18,16 +18,11 @@
 
 package org.pepsoft.worldpainter.exporting;
 
-import org.jnbt.Tag;
-import org.pepsoft.minecraft.Chunk;
-import org.pepsoft.minecraft.Entity;
-import org.pepsoft.minecraft.Material;
-import org.pepsoft.minecraft.TileEntity;
+import org.pepsoft.minecraft.*;
 
 import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
-import org.pepsoft.minecraft.Constants;
 
 /**
  * A chunk wrapper which inverts the wrapped chunk vertically. Does not support
@@ -261,11 +256,6 @@ public class InvertedChunk implements Chunk {
             }
         }
         return -1;
-    }
-
-    @Override
-    public Tag toNBT() {
-        throw new UnsupportedOperationException();
     }
 
     private final Chunk chunk;

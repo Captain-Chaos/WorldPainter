@@ -17,12 +17,13 @@
  */
 package org.pepsoft.worldpainter.tools.scripts;
 
+import org.pepsoft.minecraft.Platform;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.MixedMaterial;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.World2;
-import org.pepsoft.worldpainter.exporting.WorldExporter;
+import org.pepsoft.worldpainter.exporting.JavaWorldExporter;
 
 import java.io.File;
 import java.io.IOException;
@@ -61,8 +62,8 @@ public class ExportWorldOp extends AbstractOperation<Void> {
 
         // Set the file format if it was not set yet (because this world was
         // not exported before)
-        if (world.getVersion() == 0) {
-            world.setVersion((world.getMaxHeight() == DEFAULT_MAX_HEIGHT_2) ? SUPPORTED_VERSION_2 : SUPPORTED_VERSION_1);
+        if (world.getPlatform() == null) {
+            world.setPlatform((world.getMaxHeight() == DEFAULT_MAX_HEIGHT_2) ? Platform.JAVA_ANVIL : Platform.JAVA_MCREGION);
         }
 
         // Load any custom materials defined in the world
@@ -77,7 +78,7 @@ public class ExportWorldOp extends AbstractOperation<Void> {
             throw new ScriptException("Directory " + directory + " does not exist or is not a directory");
         }
         File worldDir = new File(baseDir, FileUtils.sanitiseName(world.getName()));
-        WorldExporter exporter = new WorldExporter(world);
+        JavaWorldExporter exporter = new JavaWorldExporter(world);
         try {
             File backupDir = exporter.selectBackupDir(worldDir);
         

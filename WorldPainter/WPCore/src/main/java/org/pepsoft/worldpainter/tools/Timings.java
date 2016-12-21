@@ -13,10 +13,11 @@ import java.security.SecureRandom;
 import java.util.Random;
 import java.util.zip.GZIPInputStream;
 import org.pepsoft.minecraft.Constants;
+import org.pepsoft.minecraft.Platform;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.World2;
-import org.pepsoft.worldpainter.exporting.WorldExporter;
+import org.pepsoft.worldpainter.exporting.JavaWorldExporter;
 
 /**
  *
@@ -34,14 +35,14 @@ public class Timings {
         for (int i = 0; i < 5; i++) {
 //            final World2 world = WorldFactory.createDefaultWorld(defaultConfig, random.nextLong());
             world.getDimension(0).getTileFactory().setSeed(random.nextLong());
-            if (world.getVersion() == 0) {
+            if (world.getPlatform() == null) {
                 if (world.getMaxHeight() == Constants.DEFAULT_MAX_HEIGHT_2) {
-                    world.setVersion(Constants.SUPPORTED_VERSION_2);
+                    world.setPlatform(Platform.JAVA_ANVIL);
                 } else {
-                    world.setVersion(Constants.SUPPORTED_VERSION_1);
+                    world.setPlatform(Platform.JAVA_MCREGION);
                 }
             }
-            final WorldExporter exporter = new WorldExporter(world);
+            final JavaWorldExporter exporter = new JavaWorldExporter(world);
             System.out.println("Starting export of world " + world.getName() + " " + i + " (seed: " + world.getDimension(0).getSeed() + ")");
             File baseDir = new File(System.getProperty("user.dir"));
             String name = world.getName() + ' ' + i;

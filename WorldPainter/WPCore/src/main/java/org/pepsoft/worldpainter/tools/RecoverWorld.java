@@ -158,7 +158,7 @@ public class RecoverWorld {
                     } else {
                         System.err.println("North direction setting lost; resetting to north is up");
                     }
-                    newWorld.setVersion(world.getVersion());
+                    newWorld.setPlatform(world.getPlatform());
                 } else {
                     System.err.println("No world recovered; all world settings lost");
                 }

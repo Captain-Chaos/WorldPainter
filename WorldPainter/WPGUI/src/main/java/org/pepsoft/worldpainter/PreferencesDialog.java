@@ -40,6 +40,8 @@ public class PreferencesDialog extends javax.swing.JDialog {
         
         comboBoxSurfaceMaterial.setModel(new DefaultComboBoxModel(Terrain.PICK_LIST));
         comboBoxSurfaceMaterial.setRenderer(new TerrainListCellRenderer(colourScheme));
+        comboBoxMode.setModel(new DefaultComboBoxModel<>(GameType.values()));
+        comboBoxWorldType.setModel(new DefaultComboBoxModel<>(Generator.values()));
 
         List<AccelerationType> accelTypes = AccelerationType.getForThisOS();
         radioButtonAccelDefault.setEnabled(accelTypes.contains(AccelerationType.DEFAULT));
@@ -147,7 +149,7 @@ public class PreferencesDialog extends javax.swing.JDialog {
         comboBoxWorldType.setSelectedIndex(config.getDefaultGenerator().ordinal());
         generatorOptions = config.getDefaultGeneratorOptions();
         checkBoxStructures.setSelected(config.isDefaultMapFeatures());
-        comboBoxMode.setSelectedIndex(config.getDefaultGameType());
+        comboBoxMode.setSelectedItem(config.getDefaultGameType());
         checkBoxCheats.setSelected(config.isDefaultAllowCheats());
 
         previousExp = (int) Math.round(Math.log(config.getDefaultMaxHeight()) / Math.log(2.0));
@@ -232,7 +234,7 @@ public class PreferencesDialog extends javax.swing.JDialog {
         config.setDefaultGenerator(Generator.values()[comboBoxWorldType.getSelectedIndex()]);
         config.setDefaultGeneratorOptions(generatorOptions);
         config.setDefaultMapFeatures(checkBoxStructures.isSelected());
-        config.setDefaultGameType(comboBoxMode.getSelectedIndex());
+        config.setDefaultGameType((GameType) comboBoxMode.getSelectedItem());
         config.setDefaultAllowCheats(checkBoxCheats.isSelected());
         
         config.setLookAndFeel(Configuration.LookAndFeel.values()[comboBoxLookAndFeel.getSelectedIndex()]);
@@ -371,11 +373,11 @@ public class PreferencesDialog extends javax.swing.JDialog {
         jSeparator5 = new javax.swing.JSeparator();
         checkBoxChestOfGoodies = new javax.swing.JCheckBox();
         jLabel28 = new javax.swing.JLabel();
-        comboBoxWorldType = new javax.swing.JComboBox();
+        comboBoxWorldType = new javax.swing.JComboBox<>();
         buttonModePreset = new javax.swing.JButton();
         checkBoxStructures = new javax.swing.JCheckBox();
         jLabel29 = new javax.swing.JLabel();
-        comboBoxMode = new javax.swing.JComboBox();
+        comboBoxMode = new javax.swing.JComboBox<>();
         checkBoxCheats = new javax.swing.JCheckBox();
         jLabel30 = new javax.swing.JLabel();
         comboBoxLookAndFeel = new javax.swing.JComboBox();
@@ -423,7 +425,11 @@ public class PreferencesDialog extends javax.swing.JDialog {
 
         checkBoxPing.setSelected(true);
         checkBoxPing.setText("Send usage information to the developer");
-        checkBoxPing.addActionListener(this::checkBoxPingActionPerformed);
+        checkBoxPing.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxPingActionPerformed(evt);
+            }
+        });
 
         jLabel3.setFont(jLabel3.getFont().deriveFont((jLabel3.getFont().getStyle() | java.awt.Font.ITALIC)));
         jLabel3.setText("Note that the information does not include personally identifiable ");
@@ -461,31 +467,51 @@ public class PreferencesDialog extends javax.swing.JDialog {
         jLabel10.setLabelFor(spinnerWidth);
         jLabel10.setText("Dimensions:");
 
-        spinnerWidth.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(640), Integer.valueOf(128), null, Integer.valueOf(128)));
-        spinnerWidth.addChangeListener(this::spinnerWidthStateChanged);
+        spinnerWidth.setModel(new javax.swing.SpinnerNumberModel(640, 128, null, 128));
+        spinnerWidth.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerWidthStateChanged(evt);
+            }
+        });
 
         jLabel11.setText("x");
 
-        spinnerHeight.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(640), Integer.valueOf(128), null, Integer.valueOf(128)));
-        spinnerHeight.addChangeListener(this::spinnerHeightStateChanged);
+        spinnerHeight.setModel(new javax.swing.SpinnerNumberModel(640, 128, null, 128));
+        spinnerHeight.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerHeightStateChanged(evt);
+            }
+        });
 
         jLabel12.setLabelFor(comboBoxHeight);
         jLabel12.setText("Height:");
 
         comboBoxHeight.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "32", "64", "128", "256", "512", "1024", "2048" }));
         comboBoxHeight.setSelectedIndex(3);
-        comboBoxHeight.addActionListener(this::comboBoxHeightActionPerformed);
+        comboBoxHeight.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboBoxHeightActionPerformed(evt);
+            }
+        });
 
         jLabel13.setText("Topography:");
 
         buttonGroup1.add(radioButtonHilly);
         radioButtonHilly.setSelected(true);
         radioButtonHilly.setText("Hilly");
-        radioButtonHilly.addActionListener(this::radioButtonHillyActionPerformed);
+        radioButtonHilly.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonHillyActionPerformed(evt);
+            }
+        });
 
         buttonGroup1.add(radioButtonFlat);
         radioButtonFlat.setText("Flat");
-        radioButtonFlat.addActionListener(this::radioButtonFlatActionPerformed);
+        radioButtonFlat.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonFlatActionPerformed(evt);
+            }
+        });
 
         jLabel14.setLabelFor(spinnerGroundLevel);
         jLabel14.setText("Level:");
@@ -495,18 +521,30 @@ public class PreferencesDialog extends javax.swing.JDialog {
         jLabel15.setText("Water level:");
 
         spinnerWaterLevel.setModel(new javax.swing.SpinnerNumberModel(62, 0, 255, 1));
-        spinnerWaterLevel.addChangeListener(this::spinnerWaterLevelStateChanged);
+        spinnerWaterLevel.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerWaterLevelStateChanged(evt);
+            }
+        });
 
         checkBoxLava.setText("Lava instead of water");
 
         checkBoxBeaches.setSelected(true);
         checkBoxBeaches.setText("Beaches");
-        checkBoxBeaches.addActionListener(this::checkBoxBeachesActionPerformed);
+        checkBoxBeaches.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxBeachesActionPerformed(evt);
+            }
+        });
 
         jLabel16.setText("Surface material:");
 
         comboBoxSurfaceMaterial.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-        comboBoxSurfaceMaterial.addActionListener(this::comboBoxSurfaceMaterialActionPerformed);
+        comboBoxSurfaceMaterial.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboBoxSurfaceMaterialActionPerformed(evt);
+            }
+        });
 
         labelTerrainAndLayerSettings.setForeground(java.awt.Color.blue);
         labelTerrainAndLayerSettings.setText("<html><u>Configure default border, terrain and layer settings</u></html>");
@@ -523,13 +561,17 @@ public class PreferencesDialog extends javax.swing.JDialog {
         jLabel18.setText("(Note that changes to these settings will only take effect for the next world you load or create.) ");
 
         buttonReset.setText("Reset...");
-        buttonReset.addActionListener(this::buttonResetActionPerformed);
+        buttonReset.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonResetActionPerformed(evt);
+            }
+        });
 
         jSeparator4.setOrientation(javax.swing.SwingConstants.VERTICAL);
 
         jLabel20.setText("No. of backups of .world files to keep:");
 
-        spinnerWorldBackups.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(3), Integer.valueOf(0), null, Integer.valueOf(1)));
+        spinnerWorldBackups.setModel(new javax.swing.SpinnerNumberModel(3, 0, null, 1));
 
         jLabel21.setText(" ");
 
@@ -549,13 +591,17 @@ public class PreferencesDialog extends javax.swing.JDialog {
 
         jLabel26.setText("Maximum brush size:");
 
-        spinnerBrushSize.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(300), Integer.valueOf(100), null, Integer.valueOf(10)));
+        spinnerBrushSize.setModel(new javax.swing.SpinnerNumberModel(300, 100, null, 10));
 
         jLabel27.setFont(jLabel27.getFont().deriveFont((jLabel27.getFont().getStyle() | java.awt.Font.ITALIC)));
         jLabel27.setText("Warning: large brush sizes could slow your computer to a crawl! ");
 
         checkBoxCircular.setText("Circular world");
-        checkBoxCircular.addActionListener(this::checkBoxCircularActionPerformed);
+        checkBoxCircular.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxCircularActionPerformed(evt);
+            }
+        });
 
         checkBoxExtendedBlockIds.setText("Extended block ID's");
 
@@ -566,18 +612,28 @@ public class PreferencesDialog extends javax.swing.JDialog {
 
         jLabel28.setText("World type:");
 
-        comboBoxWorldType.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Default", "Superflat", "Large Biomes" }));
-        comboBoxWorldType.addActionListener(this::comboBoxWorldTypeActionPerformed);
+        comboBoxWorldType.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboBoxWorldTypeActionPerformed(evt);
+            }
+        });
 
         buttonModePreset.setText("...");
-        buttonModePreset.addActionListener(this::buttonModePresetActionPerformed);
+        buttonModePreset.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonModePresetActionPerformed(evt);
+            }
+        });
 
         checkBoxStructures.setText("Structures");
 
         jLabel29.setText("Mode:");
 
-        comboBoxMode.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Survival", "Creative", "Adventure" }));
-        comboBoxMode.addActionListener(this::comboBoxModeActionPerformed);
+        comboBoxMode.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboBoxModeActionPerformed(evt);
+            }
+        });
 
         checkBoxCheats.setText("Allow Cheats");
 
@@ -594,21 +650,18 @@ public class PreferencesDialog extends javax.swing.JDialog {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel1)
-                            .addComponent(jLabel18))
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jSeparator3)
+                    .addComponent(jSeparator2)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(labelTerrainAndLayerSettings, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(buttonReset))
+                    .addComponent(jSeparator1)
+                    .addComponent(jSeparator5)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jSeparator3)
-                            .addComponent(jSeparator2)
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(labelTerrainAndLayerSettings, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(buttonReset))
-                            .addComponent(jSeparator1)
-                            .addComponent(jSeparator5)
+                            .addComponent(jLabel1)
+                            .addComponent(jLabel18)
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addComponent(checkBoxChestOfGoodies)
                                 .addGap(18, 18, 18)
@@ -735,7 +788,8 @@ public class PreferencesDialog extends javax.swing.JDialog {
                                             .addComponent(jLabel32, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                             .addComponent(comboBoxLookAndFeel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))))
                             .addComponent(jLabel17))
-                        .addContainerGap())))
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -853,7 +907,11 @@ public class PreferencesDialog extends javax.swing.JDialog {
 
         checkBoxUndo.setSelected(true);
         checkBoxUndo.setText("Enable undo");
-        checkBoxUndo.addActionListener(this::checkBoxUndoActionPerformed);
+        checkBoxUndo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxUndoActionPerformed(evt);
+            }
+        });
 
         jLabel5.setLabelFor(spinnerUndoLevels);
         jLabel5.setText("Undo levels:");
@@ -1028,15 +1086,12 @@ public class PreferencesDialog extends javax.swing.JDialog {
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(checkBoxUndo)
                     .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(checkBoxUndo)
-                            .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addGap(12, 12, 12)
-                                .addComponent(jLabel5)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(spinnerUndoLevels, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(12, 12, 12)
+                        .addComponent(jLabel5)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(spinnerUndoLevels, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
@@ -1059,10 +1114,18 @@ public class PreferencesDialog extends javax.swing.JDialog {
         jTabbedPane1.addTab("Performance", jPanel2);
 
         buttonCancel.setText("Cancel");
-        buttonCancel.addActionListener(this::buttonCancelActionPerformed);
+        buttonCancel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonCancelActionPerformed(evt);
+            }
+        });
 
         buttonOK.setText("OK");
-        buttonOK.addActionListener(this::buttonOKActionPerformed);
+        buttonOK.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonOKActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -1233,7 +1296,7 @@ public class PreferencesDialog extends javax.swing.JDialog {
     }//GEN-LAST:event_comboBoxWorldTypeActionPerformed
 
     private void comboBoxModeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxModeActionPerformed
-        if (comboBoxMode.getSelectedIndex() > 0) {
+        if (comboBoxMode.getSelectedItem() == GameType.CREATIVE) {
             checkBoxCheats.setSelected(true);
         }
     }//GEN-LAST:event_comboBoxModeActionPerformed
@@ -1263,9 +1326,9 @@ public class PreferencesDialog extends javax.swing.JDialog {
     private javax.swing.JComboBox comboBoxHeight;
     private javax.swing.JComboBox comboBoxLightDirection;
     private javax.swing.JComboBox comboBoxLookAndFeel;
-    private javax.swing.JComboBox comboBoxMode;
+    private javax.swing.JComboBox<GameType> comboBoxMode;
     private javax.swing.JComboBox comboBoxSurfaceMaterial;
-    private javax.swing.JComboBox comboBoxWorldType;
+    private javax.swing.JComboBox<Generator> comboBoxWorldType;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;

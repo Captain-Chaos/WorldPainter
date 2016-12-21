@@ -33,8 +33,8 @@ import static org.pepsoft.worldpainter.Constants.*;
  *
  * @author pepijn
  */
-public class MapImporter {
-    public MapImporter(TileFactory tileFactory, File levelDatFile, boolean populateNewChunks, Set<Point> chunksToSkip, ReadOnlyOption readOnlyOption, Set<Integer> dimensionsToImport) {
+public class JavaMapImporter {
+    public JavaMapImporter(TileFactory tileFactory, File levelDatFile, boolean populateNewChunks, Set<Point> chunksToSkip, ReadOnlyOption readOnlyOption, Set<Integer> dimensionsToImport) {
         if ((tileFactory == null) || (levelDatFile == null) || (readOnlyOption == null) || (dimensionsToImport == null)) {
             throw new NullPointerException();
         }
@@ -76,13 +76,13 @@ public class MapImporter {
         world.setImportedFrom(levelDatFile);
         world.setMapFeatures(level.isMapFeatures());
         if (level.isHardcore()) {
-            world.setGameType(World2.GAME_TYPE_HARDCORE);
+            world.setGameType(GameType.HARDCORE);
         } else {
-            world.setGameType(level.getGameType());
+            world.setGameType(GameType.values()[level.getGameType()]);
         }
         world.setGenerator(level.getGenerator());
         world.setGeneratorOptions(level.getGeneratorOptions());
-        world.setVersion(version);
+        world.setPlatform((version == SUPPORTED_VERSION_1) ? Platform.JAVA_MCREGION : Platform.JAVA_ANVIL);
         world.setDifficulty(level.getDifficulty());
         if ((version == SUPPORTED_VERSION_2) && (level.getBorderSize() > 0.0)) {
             // If the world is version 0x4abd and actually has border settings,
@@ -209,12 +209,12 @@ public class MapImporter {
             EventVO event = new EventVO(EVENT_KEY_ACTION_IMPORT_MAP).duration(System.currentTimeMillis() - start);
             event.setAttribute(EventVO.ATTRIBUTE_TIMESTAMP, new Date(start));
             event.setAttribute(ATTRIBUTE_KEY_MAX_HEIGHT, world.getMaxHeight());
-            event.setAttribute(ATTRIBUTE_KEY_VERSION, world.getVersion());
+            event.setAttribute(ATTRIBUTE_KEY_PLATFORM, world.getPlatform().name());
             event.setAttribute(ATTRIBUTE_KEY_MAP_FEATURES, world.isMapFeatures());
-            event.setAttribute(ATTRIBUTE_KEY_GAME_TYPE, world.getGameType());
+            event.setAttribute(ATTRIBUTE_KEY_GAME_TYPE_NAME, world.getGameType().name());
             event.setAttribute(ATTRIBUTE_KEY_ALLOW_CHEATS, world.isAllowCheats());
             event.setAttribute(ATTRIBUTE_KEY_GENERATOR, world.getGenerator().name());
-            if ((world.getVersion() == SUPPORTED_VERSION_2) && (world.getGenerator() == Generator.FLAT)) {
+            if ((world.getPlatform() == Platform.JAVA_ANVIL) && (world.getGenerator() == Generator.FLAT)) {
                 event.setAttribute(ATTRIBUTE_KEY_GENERATOR_OPTIONS, world.getGeneratorOptions());
             }
             event.setAttribute(ATTRIBUTE_KEY_TILES, dimension.getTiles().size());
@@ -447,7 +447,7 @@ public class MapImporter {
     public static final Map<Material, Terrain> SPECIAL_TERRAIN_MAPPING = new HashMap<>();
     public static final BitSet NATURAL_BLOCKS = new BitSet();
 
-    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MapImporter.class);
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(JavaMapImporter.class);
     private static final String EOL = System.getProperty("line.separator");
     
     static {

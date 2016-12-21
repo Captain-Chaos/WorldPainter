@@ -24,8 +24,6 @@ import org.pepsoft.worldpainter.vo.EventVO;
 
 import java.awt.*;
 import java.io.*;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -41,41 +39,17 @@ import static org.pepsoft.worldpainter.Constants.*;
  *
  * @author pepijn
  */
-public class WorldExporter {
-    public WorldExporter(World2 world) {
-        if (world == null) {
-            throw new NullPointerException();
-        }
-        this.world = world;
-        this.selectedTiles = world.getTilesToExport();
-        this.selectedDimensions = world.getDimensionsToExport();
-        if ((selectedTiles != null) && (selectedDimensions.size() != 1)) {
-            throw new IllegalArgumentException("When a tile selection is present exactly one dimension must be selected");
+public class JavaWorldExporter extends AbstractWorldExporter {
+    public JavaWorldExporter(World2 world) {
+        super(world);
+        if ((world.getPlatform() != Platform.JAVA_ANVIL) && (world.getPlatform() != Platform.JAVA_MCREGION)) {
+            throw new IllegalArgumentException("Unsupported platform " + world.getPlatform());
         }
     }
 
-    public World2 getWorld() {
-        return world;
-    }
-    
-    public File selectBackupDir(File worldDir) throws IOException {
-        File baseDir = worldDir.getParentFile();
-        File minecraftDir = baseDir.getParentFile();
-        File backupsDir = new File(minecraftDir, "backups");
-        if ((! backupsDir.isDirectory()) &&  (! backupsDir.mkdirs())) {
-            backupsDir = new File(System.getProperty("user.home"), "WorldPainter Backups");
-            if ((! backupsDir.isDirectory()) && (! backupsDir.mkdirs())) {
-                throw new IOException("Could not create " + backupsDir);
-            }
-        }
-        return new File(backupsDir, worldDir.getName() + "." + DATE_FORMAT.format(new Date()));
-    }
-
+    @Override
     public Map<Integer, ChunkFactory.Stats> export(File baseDir, String name, File backupDir, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
         // Sanity checks
-        if ((world.getVersion() != SUPPORTED_VERSION_1) && (world.getVersion() != SUPPORTED_VERSION_2)) {
-            throw new IllegalArgumentException("Not a supported version: 0x" + Integer.toHexString(world.getVersion()));
-        }
         if ((selectedTiles == null) && (selectedDimensions != null)) {
             throw new IllegalArgumentException("Exporting a subset of dimensions not supported");
         }
@@ -95,26 +69,24 @@ public class WorldExporter {
         
         // Export dimensions
         Dimension dim0 = world.getDimension(0);
-        Level level = new Level(world.getMaxHeight(), world.getVersion());
+        Level level = new Level(world.getMaxHeight(), world.getPlatform());
         level.setSeed(dim0.getMinecraftSeed());
         level.setName(name);
         Point spawnPoint = world.getSpawnPoint();
         level.setSpawnX(spawnPoint.x);
         level.setSpawnY(Math.max(dim0.getIntHeightAt(spawnPoint), dim0.getWaterLevelAt(spawnPoint)));
         level.setSpawnZ(spawnPoint.y);
-        if (world.getGameType() <= GAME_TYPE_ADVENTURE) {
-            level.setGameType(world.getGameType());
-            level.setHardcore(false);
-            level.setDifficulty(world.getDifficulty());
-            level.setAllowCommands(world.isAllowCheats());
-        } else if (world.getGameType() == World2.GAME_TYPE_HARDCORE) {
+        if (world.getGameType() == GameType.HARDCORE) {
             level.setGameType(GAME_TYPE_SURVIVAL);
             level.setHardcore(true);
             level.setDifficulty(DIFFICULTY_HARD);
             level.setDifficultyLocked(true);
             level.setAllowCommands(false);
         } else {
-            throw new InternalError("Don't know how to encode game type " + world.getGameType());
+            level.setGameType(world.getGameType().ordinal());
+            level.setHardcore(false);
+            level.setDifficulty(world.getDifficulty());
+            level.setAllowCommands(world.isAllowCheats());
         }
         Dimension.Border dim0Border = dim0.getBorder();
         boolean endlessBorder = (dim0Border != null) && dim0Border.isEndless();
@@ -147,7 +119,7 @@ public class WorldExporter {
             level.setMapFeatures(world.isMapFeatures());
             level.setGenerator(world.getGenerator());
         }
-        if (world.getVersion() == SUPPORTED_VERSION_2) {
+        if (world.getPlatform() == Platform.JAVA_ANVIL) {
             if ((! endlessBorder) && (world.getGenerator() == Generator.FLAT) && (world.getGeneratorOptions() != null)) {
                 level.setGeneratorOptions(world.getGeneratorOptions());
             }
@@ -181,11 +153,11 @@ public class WorldExporter {
                 } else {
                     progressReceiver.reset();
                 }
-                stats.put(dimension.getDim(), exportDimension(worldDir, dimension, world.getVersion(), progressReceiver));
+                stats.put(dimension.getDim(), exportDimension(worldDir, dimension, world.getPlatform(), progressReceiver));
             }
         } else {
             selectedDimension = selectedDimensions.iterator().next();
-            stats.put(selectedDimension, exportDimension(worldDir, world.getDimension(selectedDimension), world.getVersion(), progressReceiver));
+            stats.put(selectedDimension, exportDimension(worldDir, world.getDimension(selectedDimension), world.getPlatform(), progressReceiver));
         }
         
         // Update the session.lock file, hopefully kicking out any Minecraft instances which may have tried to open the
@@ -208,12 +180,12 @@ public class WorldExporter {
             EventVO event = new EventVO(EVENT_KEY_ACTION_EXPORT_WORLD).duration(System.currentTimeMillis() - start);
             event.setAttribute(EventVO.ATTRIBUTE_TIMESTAMP, new Date(start));
             event.setAttribute(ATTRIBUTE_KEY_MAX_HEIGHT, world.getMaxHeight());
-            event.setAttribute(ATTRIBUTE_KEY_VERSION, world.getVersion());
+            event.setAttribute(ATTRIBUTE_KEY_PLATFORM, world.getPlatform().name());
             event.setAttribute(ATTRIBUTE_KEY_MAP_FEATURES, world.isMapFeatures());
-            event.setAttribute(ATTRIBUTE_KEY_GAME_TYPE, world.getGameType());
+            event.setAttribute(ATTRIBUTE_KEY_GAME_TYPE_NAME, world.getGameType().name());
             event.setAttribute(ATTRIBUTE_KEY_ALLOW_CHEATS, world.isAllowCheats());
             event.setAttribute(ATTRIBUTE_KEY_GENERATOR, world.getGenerator().name());
-            if ((world.getVersion() == SUPPORTED_VERSION_2) && (world.getGenerator() == Generator.FLAT)) {
+            if ((world.getPlatform() == Platform.JAVA_ANVIL) && (world.getGenerator() == Generator.FLAT)) {
                 event.setAttribute(ATTRIBUTE_KEY_GENERATOR_OPTIONS, world.getGeneratorOptions());
             }
             Dimension dimension = world.getDimension(0);
@@ -278,7 +250,7 @@ public class WorldExporter {
                         Chunk invertedChunk = new InvertedChunk(chunkCreationResult.chunk, ceilingDelta);
                         Chunk existingChunk = minecraftWorld.getChunkForEditing(chunkX, chunkY);
                         if (existingChunk == null) {
-                            existingChunk = (world.getVersion() == SUPPORTED_VERSION_1) ? new ChunkImpl(chunkX, chunkY, world.getMaxHeight()) : new ChunkImpl2(chunkX, chunkY, world.getMaxHeight());
+                            existingChunk = world.getPlatform().createChunk(chunkX, chunkY, world.getMaxHeight());
                             minecraftWorld.addChunk(existingChunk);
                         }
                         mergeChunks(invertedChunk, existingChunk);
@@ -675,7 +647,7 @@ public class WorldExporter {
         }
     }
 
-    private ChunkFactory.Stats exportDimension(final File worldDir, final Dimension dimension, final int version, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled, IOException {
+    private ChunkFactory.Stats exportDimension(final File worldDir, final Dimension dimension, final Platform platform, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled, IOException {
         if (progressReceiver != null) {
             progressReceiver.setMessage("Exporting " + dimension.getName() + " dimension");
         }
@@ -814,9 +786,9 @@ public class WorldExporter {
                     }
                 }
             }
-            
-            final WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(dimension, exporters, world.getVersion(), world.getMaxHeight());
-            final WorldPainterChunkFactory ceilingChunkFactory = (ceiling != null) ? new WorldPainterChunkFactory(ceiling, ceilingExporters, world.getVersion(), world.getMaxHeight()) : null;
+
+            final WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(dimension, exporters, platform, world.getMaxHeight());
+            final WorldPainterChunkFactory ceilingChunkFactory = (ceiling != null) ? new WorldPainterChunkFactory(ceiling, ceilingExporters, platform, world.getMaxHeight()) : null;
 
             Runtime runtime = Runtime.getRuntime();
             runtime.gc();
@@ -851,7 +823,7 @@ public class WorldExporter {
                             }
                         }
                         try {
-                            WorldRegion minecraftWorld = new WorldRegion(regionCoords.x, regionCoords.y, dimension.getMaxHeight(), version);
+                            WorldRegion minecraftWorld = new WorldRegion(regionCoords.x, regionCoords.y, dimension.getMaxHeight(), platform);
                             ExportResults exportResults = null;
                             try {
                                 exportResults = exportRegion(minecraftWorld, dimension, ceiling, regionCoords, tileSelection, exporters, ceilingExporters, chunkFactory, ceilingChunkFactory, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.0f, 0.9f) : null);
@@ -894,7 +866,7 @@ public class WorldExporter {
                                         }
                                     }
                                     if (! myFixups.isEmpty()) {
-                                        performFixups(worldDir, dimension, version, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.9f, 0.1f) : null, myFixups);
+                                        performFixups(worldDir, dimension, platform, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.9f, 0.1f) : null, myFixups);
                                     }
                                 } finally {
                                     performingFixups.release();
@@ -926,13 +898,13 @@ public class WorldExporter {
                         progressReceiver.setMessage("Doing remaining fixups for " + dimension.getName());
                         progressReceiver.reset();
                     }
-                    performFixups(worldDir, dimension, version, progressReceiver, fixups);
+                    performFixups(worldDir, dimension, platform, progressReceiver, fixups);
                 }
             }
             
             // Calculate total size of dimension
             for (Point region: regions) {
-                File file = new File(dimensionDir, "region/r." + region.x + "." + region.y + ((version == SUPPORTED_VERSION_2) ? ".mca" : ".mcr"));
+                File file = new File(dimensionDir, "region/r." + region.x + "." + region.y + ((platform == Platform.JAVA_ANVIL) ? ".mca" : ".mcr"));
                 collectedStats.size += file.length();
             }
             collectedStats.time = System.currentTimeMillis() - start;
@@ -998,12 +970,7 @@ public class WorldExporter {
         } while (! done);
 
         // Remove layers which have been excluded for export
-        for (Iterator<Layer> i = allLayers.iterator(); i.hasNext(); ) {
-            Layer layer = i.next();
-            if ((layer instanceof CustomLayer) && (! ((CustomLayer) layer).isExport())) {
-                i.remove();
-            }
-        }
+        allLayers.removeIf(layer -> (layer instanceof CustomLayer) && (!((CustomLayer) layer).isExport()));
         
         // Load all layer settings into the exporters
         for (Layer layer: allLayers) {
@@ -1034,10 +1001,10 @@ public class WorldExporter {
         return true;
     }
 
-    protected void performFixups(final File worldDir, final Dimension dimension, final int version, final ProgressReceiver progressReceiver, final Map<Point, List<Fixup>> fixups) throws OperationCancelled {
+    protected void performFixups(final File worldDir, final Dimension dimension, final Platform platform, final ProgressReceiver progressReceiver, final Map<Point, List<Fixup>> fixups) throws OperationCancelled {
         long start = System.currentTimeMillis();
         // Make sure to honour the read-only layer:
-        MinecraftWorldImpl minecraftWorld = new MinecraftWorldImpl(worldDir, dimension, version, false, true, 512);
+        JavaMinecraftWorld minecraftWorld = new JavaMinecraftWorld(worldDir, dimension, platform, false, true, 512);
         int count = 0, total = 0;
         for (Map.Entry<Point, List<Fixup>> entry: fixups.entrySet()) {
             total += entry.getValue().size();
@@ -1097,13 +1064,9 @@ public class WorldExporter {
         return chest;
     }
     
-    protected final World2 world;
-    protected final Set<Integer> selectedDimensions;
-    protected final Set<Point> selectedTiles;
     protected final Semaphore performingFixups = new Semaphore(1);
 
-    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMddHHmmss");
-    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WorldExporter.class);
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(JavaWorldExporter.class);
     private static final Object TIMING_FILE_LOCK = new Object();
     private static final String DEFAULT_GENERATOR_OPTIONS = "village,mineshaft(chance=0.01),stronghold(distance=32 count=3 spread=3),biome_1(distance=32),dungeon,decoration,lake,lava_lake,oceanmonument(spacing=32 separation=5)";
     

@@ -24,6 +24,7 @@
 
 package org.pepsoft.worldpainter.tools.scripts;
 
+import org.pepsoft.minecraft.Platform;
 import org.pepsoft.worldpainter.MixedMaterial;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.World2;
@@ -47,8 +48,8 @@ public class MergeWorldOp extends AbstractOperation<Void> {
 
         // Set the file format if it was not set yet (because this world was
         // not exported before)
-        if (world.getVersion() == 0) {
-            world.setVersion((world.getMaxHeight() == DEFAULT_MAX_HEIGHT_2) ? SUPPORTED_VERSION_2 : SUPPORTED_VERSION_1);
+        if (world.getPlatform() == null) {
+            world.setPlatform((world.getMaxHeight() == DEFAULT_MAX_HEIGHT_2) ? Platform.JAVA_ANVIL : Platform.JAVA_MCREGION);
         }
 
         // Load any custom materials defined in the world

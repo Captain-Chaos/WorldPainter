@@ -1,9 +1,8 @@
 package org.jnbt;
 
-import java.io.Closeable;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import com.google.common.io.LittleEndianDataOutputStream;
+
+import java.io.*;
 import java.util.List;
 
 /*
@@ -54,17 +53,30 @@ public final class NBTOutputStream implements Closeable {
     /**
      * The output stream.
      */
-    private final DataOutputStream os;
+    private final DataOutput os;
 
     /**
      * Creates a new <code>NBTOutputStream</code>, which will write data to the
-     * specified underlying output stream.
+     * specified underlying output stream in big endian byte order.
+     *
      * @param os The output stream.
      * @throws IOException if an I/O error occurs.
      */
     public NBTOutputStream(OutputStream os) throws IOException {
-//		this.os = new DataOutputStream(new GZIPOutputStream(os));
-        this.os = new DataOutputStream(os);
+        this(os, false);
+    }
+
+    /**
+     * Creates a new <code>NBTOutputStream</code>, which will write data to the
+     * specified underlying output stream.
+     *
+     * @param os The output stream.
+     * @param littleEndian Whether the data should be written in little endian
+     *                     byte order.
+     * @throws IOException if an I/O error occurs.
+     */
+    public NBTOutputStream(OutputStream os, boolean littleEndian) throws IOException {
+        this.os = littleEndian ? new LittleEndianDataOutputStream(os) : new DataOutputStream(os);
     }
 
     /**
@@ -80,10 +92,6 @@ public final class NBTOutputStream implements Closeable {
         os.writeByte(type);
         os.writeShort(nameBytes.length);
         os.write(nameBytes);
-
-        if (type == NBTConstants.TYPE_END) {
-            throw new IOException("Named TAG_End not permitted.");
-        }
 
         writeTagPayload(tag);
     }
@@ -265,6 +273,6 @@ public final class NBTOutputStream implements Closeable {
     }
 
     public void close() throws IOException {
-        os.close();
+        ((OutputStream) os).close();
     }
 }

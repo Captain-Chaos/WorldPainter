@@ -516,12 +516,12 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         this.defaultGenerator = defaultGenerator;
     }
 
-    public synchronized int getDefaultGameType() {
-        return defaultGameType;
+    public synchronized GameType getDefaultGameType() {
+        return defaultGameTypeObj;
     }
 
-    public synchronized void setDefaultGameType(int defaultGameType) {
-        this.defaultGameType = defaultGameType;
+    public synchronized void setDefaultGameType(GameType defaultGameType) {
+        defaultGameTypeObj = defaultGameType;
     }
 
     public synchronized String getDefaultGeneratorOptions() {
@@ -786,7 +786,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
             defaultCreateGoodiesChest = true;
             defaultGenerator = Generator.DEFAULT;
             defaultMapFeatures = true;
-            defaultGameType = World2.GAME_TYPE_SURVIVAL;
+            defaultGameType = 0;
         }
         if (version < 10) {
             if (defaultTerrainAndLayerSettings.getSubsurfaceMaterial() == Terrain.STONE) {
@@ -820,6 +820,10 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
             backgroundImageMode = TiledImageViewer.BackgroundImageMode.REPEAT;
             backgroundColour = -1;
             showBiomes = showBorders = true;
+        }
+        if (version < 14) {
+            defaultGameTypeObj = GameType.values()[defaultGameType];
+            defaultGameType = -1;
         }
         version = CURRENT_VERSION;
         
@@ -917,7 +921,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         });
         for (File oldFile: oldContents) {
             if (oldFile.isDirectory()) {
-                FileUtils.copyDir(oldFile, newConfigDir);
+                FileUtils.copyDir(oldFile, new File(newConfigDir, oldFile.getName()));
             } else if (oldFile.isFile()) {
                 FileUtils.copyFileToDir(oldFile, newConfigDir);
             } else {
@@ -963,7 +967,8 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private Theme heightMapDefaultTheme;
     private boolean defaultCreateGoodiesChest = true, defaultMapFeatures = true, defaultAllowCheats;
     private Generator defaultGenerator = Generator.DEFAULT;
-    private int defaultGameType = World2.GAME_TYPE_SURVIVAL;
+    @Deprecated
+    private int defaultGameType;
     private String defaultGeneratorOptions;
     private byte[] defaultJideLayoutData;
     private Map<String, byte[]> jideLayoutData;
@@ -975,6 +980,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private TiledImageViewer.BackgroundImageMode backgroundImageMode = TiledImageViewer.BackgroundImageMode.REPEAT;
     private int backgroundColour = -1;
     private boolean showBorders = true, showBiomes = true;
+    private GameType defaultGameTypeObj = GameType.SURVIVAL;
 
     /**
      * The acceleration type is only stored here at runtime. It is saved to disk
@@ -986,7 +992,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Configuration.class);
     private static final long serialVersionUID = 2011041801L;
     private static final int CIRCULAR_WORLD = -1;
-    private static final int CURRENT_VERSION = 13;
+    private static final int CURRENT_VERSION = 14;
     
     public enum DonationStatus {DONATED, NO_THANK_YOU}
     

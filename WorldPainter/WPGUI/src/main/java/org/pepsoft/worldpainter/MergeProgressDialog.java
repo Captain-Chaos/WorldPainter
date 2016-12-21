@@ -15,7 +15,7 @@ import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.TaskbarProgressReceiver;
 import org.pepsoft.util.swing.ProgressTask;
-import org.pepsoft.worldpainter.merging.WorldMerger;
+import org.pepsoft.worldpainter.merging.JavaWorldMerger;
 
 import javax.swing.*;
 
@@ -24,7 +24,7 @@ import javax.swing.*;
  * @author Pepijn Schmitz
  */
 public class MergeProgressDialog extends MultiProgressDialog<Void> implements WindowListener {
-    public MergeProgressDialog(Window parent, WorldMerger merger, File backupDir, boolean biomesOnly) {
+    public MergeProgressDialog(Window parent, JavaWorldMerger merger, File backupDir, boolean biomesOnly) {
         super(parent, "Merging");
         this.merger = merger;
         this.backupDir = backupDir;
@@ -102,6 +102,6 @@ public class MergeProgressDialog extends MultiProgressDialog<Void> implements Wi
     }
 
     private final File backupDir;
-    private final WorldMerger merger;
+    private final JavaWorldMerger merger;
     private final boolean biomesOnly;
 }

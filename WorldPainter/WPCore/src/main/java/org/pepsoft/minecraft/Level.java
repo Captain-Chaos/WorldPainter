@@ -31,20 +31,20 @@ import org.pepsoft.worldpainter.Generator;
  * @author pepijn
  */
 public final class Level extends AbstractNBTItem {
-    public Level(int mapHeight, int version) {
+    public Level(int mapHeight, Platform platform) {
         super(new CompoundTag(TAG_DATA, new HashMap<>()));
-        if ((version != SUPPORTED_VERSION_1) && (version != SUPPORTED_VERSION_2)) {
-            throw new IllegalArgumentException("Not a supported version: 0x" + Integer.toHexString(version));
+        if ((platform != Platform.JAVA_ANVIL) && (platform != Platform.JAVA_MCREGION)) {
+            throw new IllegalArgumentException("Not a supported platform: " + platform);
         }
         if ((mapHeight & (mapHeight - 1)) != 0) {
             throw new IllegalArgumentException("mapHeight " + mapHeight + " not a power of two");
         }
-        if (mapHeight != ((version == SUPPORTED_VERSION_1) ? DEFAULT_MAX_HEIGHT_1 : DEFAULT_MAX_HEIGHT_2)) {
+        if (mapHeight != ((platform == Platform.JAVA_MCREGION) ? DEFAULT_MAX_HEIGHT_1 : DEFAULT_MAX_HEIGHT_2)) {
             setInt(TAG_MAP_HEIGHT, mapHeight);
         }
         this.maxHeight = mapHeight;
         extraTags = null;
-        setInt(TAG_VERSION, version);
+        setInt(TAG_VERSION, (platform == Platform.JAVA_MCREGION) ? SUPPORTED_VERSION_1 : SUPPORTED_VERSION_2);
         addDimension(0);
     }
 

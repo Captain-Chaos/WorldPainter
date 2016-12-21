@@ -18,25 +18,24 @@ import java.util.*;
 
 import static org.pepsoft.minecraft.Block.BLOCK_TYPE_NAMES;
 import static org.pepsoft.minecraft.Constants.BLK_AIR;
-import static org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_2;
 
 /**
  *
  * @author pepijn
  */
 public class WorldRegion implements MinecraftWorld {
-    public WorldRegion(int regionX, int regionZ, int maxHeight, int version) {
+    public WorldRegion(int regionX, int regionZ, int maxHeight, Platform platform) {
         this.regionX = regionX;
         this.regionZ = regionZ;
         this.maxHeight = maxHeight;
-        this.version = version;
+        this.platform = platform;
     }
     
-    public WorldRegion(File regionDir, int regionX, int regionZ, int maxHeight, int version) throws IOException {
+    public WorldRegion(File regionDir, int regionX, int regionZ, int maxHeight, Platform platform) throws IOException {
         this.regionX = regionX;
         this.regionZ = regionZ;
         this.maxHeight = maxHeight;
-        this.version = version;
+        this.platform = platform;
         int lowestX = (regionX << 5) - 1;
         int highestX = lowestX + 33;
         int lowestZ = (regionZ << 5) - 1;
@@ -49,7 +48,7 @@ public class WorldRegion implements MinecraftWorld {
                         Point regionCoords = new Point(x >> 5, z >> 5);
                         RegionFile regionFile = regionFiles.get(regionCoords);
                         if (regionFile == null) {
-                            File file = new File(regionDir, "r." + regionCoords.x + "." + regionCoords.y + ((version == SUPPORTED_VERSION_2) ? ".mca" : ".mcr"));
+                            File file = new File(regionDir, "r." + regionCoords.x + "." + regionCoords.y + ((platform == Platform.JAVA_ANVIL) ? ".mca" : ".mcr"));
                             if (file.isFile()) {
                                 regionFile = new RegionFile(file);
                                 regionFiles.put(regionCoords, regionFile);
@@ -62,7 +61,7 @@ public class WorldRegion implements MinecraftWorld {
                                 try (NBTInputStream in = new NBTInputStream(chunkIn)) {
                                     tag = (CompoundTag) in.readTag();
                                 }
-                                Chunk chunk = (version == SUPPORTED_VERSION_2) ? new ChunkImpl2(tag, maxHeight) : new ChunkImpl(tag, maxHeight);
+                                Chunk chunk = (platform == Platform.JAVA_ANVIL) ? new ChunkImpl2(tag, maxHeight) : new ChunkImpl(tag, maxHeight);
                                 chunks[x - (regionX << 5) + 1][z - (regionZ << 5) + 1] = chunk;
                             }
                         }
@@ -262,7 +261,7 @@ public class WorldRegion implements MinecraftWorld {
             int localX = x - (regionX << 5);
             int localZ = z - (regionZ << 5);
             if ((localX >= 0) && (localX < CHUNKS_PER_SIDE) && (localZ >= 0) && (localZ < CHUNKS_PER_SIDE)) {
-                chunk = (version == SUPPORTED_VERSION_2) ? new ChunkImpl2(x, z, maxHeight) : new ChunkImpl(x, z, maxHeight);
+                chunk = platform.createChunk(x, z, maxHeight);
                 chunks[x + 1][z + 1] = chunk;
             }
         }
@@ -278,6 +277,15 @@ public class WorldRegion implements MinecraftWorld {
         }
     }
 
+    /**
+     * @throws UnsupportedOperationException Always, as this class does not
+     * itself store chunks persistently and therefore does not support flushing.
+     */
+    @Override
+    public void flush() {
+        throw new UnsupportedOperationException();
+    }
+
     @Override
     public int getHighestNonAirBlock(int x, int y) {
         Chunk chunk = getChunk(x >> 4, y >> 4);
@@ -289,7 +297,7 @@ public class WorldRegion implements MinecraftWorld {
     }
 
     public void save(File dimensionDir) throws IOException {
-        File file = new File(dimensionDir, "region/r." + regionX + "." + regionZ + ((version == SUPPORTED_VERSION_2) ? ".mca" : ".mcr"));
+        File file = new File(dimensionDir, "region/r." + regionX + "." + regionZ + ((platform == Platform.JAVA_ANVIL) ? ".mca" : ".mcr"));
 //        synchronized (DISK_ACCESS_MONITOR) {
             RegionFile regionFile = new RegionFile(file);
             try {
@@ -335,7 +343,7 @@ public class WorldRegion implements MinecraftWorld {
                             }
 
                             try (NBTOutputStream out = new NBTOutputStream(regionFile.getChunkDataOutputStream(x, z))) {
-                                out.writeTag(chunk.toNBT());
+                                out.writeTag(((NBTItem) chunk).toNBT());
                             }
                         }
                     }
@@ -354,7 +362,8 @@ public class WorldRegion implements MinecraftWorld {
         this.chunkCreationMode = chunkCreationMode;
     }
  
-    private final int maxHeight, version;
+    private final int maxHeight;
+    private final Platform platform;
     private final Chunk[][] chunks = new Chunk[CHUNKS_PER_SIDE + 2][CHUNKS_PER_SIDE + 2];
     private final int regionX, regionZ;
     private boolean chunkCreationMode;

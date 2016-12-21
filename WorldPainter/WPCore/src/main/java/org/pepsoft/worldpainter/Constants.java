@@ -47,9 +47,8 @@ public final class Constants {
     public static final int DIM_END            =  2;
 
     public static final AttributeKeyVO<Integer> ATTRIBUTE_KEY_MAX_HEIGHT = new AttributeKeyVO<>("maxHeight");
-    public static final AttributeKeyVO<Integer> ATTRIBUTE_KEY_VERSION = new AttributeKeyVO<>("version");
     public static final AttributeKeyVO<Boolean> ATTRIBUTE_KEY_MAP_FEATURES = new AttributeKeyVO<>("mapFeatures");
-    public static final AttributeKeyVO<Integer> ATTRIBUTE_KEY_GAME_TYPE = new AttributeKeyVO<>("gameType");
+    public static final AttributeKeyVO<String> ATTRIBUTE_KEY_GAME_TYPE_NAME = new AttributeKeyVO<>("gameTypeName");
     public static final AttributeKeyVO<Boolean> ATTRIBUTE_KEY_ALLOW_CHEATS = new AttributeKeyVO<>("allowCheats");
     public static final AttributeKeyVO<String> ATTRIBUTE_KEY_GENERATOR = new AttributeKeyVO<>("generator");
     public static final AttributeKeyVO<String> ATTRIBUTE_KEY_GENERATOR_OPTIONS = new AttributeKeyVO<>("generatorOptions");
@@ -62,6 +61,7 @@ public final class Constants {
     public static final AttributeKeyVO<String> ATTRIBUTE_KEY_PLUGINS = new AttributeKeyVO<>("plugins");
     public static final AttributeKeyVO<String> ATTRIBUTE_KEY_SCRIPT_FILENAME = new AttributeKeyVO<>("script.fileName");
     public static final AttributeKeyVO<String> ATTRIBUTE_KEY_SCRIPT_NAME = new AttributeKeyVO<>("script.name");
+    public static final AttributeKeyVO<String> ATTRIBUTE_KEY_PLATFORM = new AttributeKeyVO<>("platform");
 
     public static final String EVENT_KEY_ACTION_NEW_WORLD         = "action.newWorld";
     public static final String EVENT_KEY_ACTION_EXPORT_WORLD      = "action.exportWorld";

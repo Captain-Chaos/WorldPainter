@@ -4,12 +4,7 @@
  */
 package org.pepsoft.worldpainter.exporting;
 
-import org.pepsoft.minecraft.Chunk;
-import org.pepsoft.minecraft.ChunkProvider;
-import org.pepsoft.minecraft.Constants;
-import org.pepsoft.minecraft.Entity;
-import org.pepsoft.minecraft.Material;
-import org.pepsoft.minecraft.TileEntity;
+import org.pepsoft.minecraft.*;
 
 /**
  *
@@ -83,8 +78,6 @@ public interface MinecraftWorld extends ChunkProvider {
      * @return <code>true</code> if data is present for the specified chunk.
      */
     boolean isChunkPresent(int x, int y);
-
-    void addChunk(Chunk chunk);
 
     /**
      * Get the Z coordinate of the highest non-air (block ID zero, any data

@@ -6,8 +6,7 @@
 package org.pepsoft.worldpainter.exporting;
 
 import org.pepsoft.minecraft.ChunkFactory;
-import org.pepsoft.minecraft.ChunkImpl;
-import org.pepsoft.minecraft.ChunkImpl2;
+import org.pepsoft.minecraft.Platform;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Dimension.Border;
@@ -32,7 +31,7 @@ import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLA
 public class BorderChunkFactory {
     public static ChunkFactory.ChunkCreationResult create(int chunkX, int chunkZ, Dimension dimension, Map<Layer, LayerExporter> exporters) {
         final int maxHeight = dimension.getMaxHeight();
-        final int version = dimension.getWorld().getVersion();
+        final Platform platform = dimension.getWorld().getPlatform();
         final Border border = dimension.getBorder();
         final int borderLevel = dimension.getBorderLevel();
         final boolean dark = dimension.isDarkLevel();
@@ -53,9 +52,9 @@ public class BorderChunkFactory {
         final int variation = Math.min(15, (borderLevel - floor) / 2);
 
         final ChunkFactory.ChunkCreationResult result = new ChunkFactory.ChunkCreationResult();
-        result.chunk = (version == SUPPORTED_VERSION_1) ? new ChunkImpl(chunkX, chunkZ, maxHeight) : new ChunkImpl2(chunkX, chunkZ, maxHeight);
+        result.chunk = platform.createChunk(chunkX, chunkZ, maxHeight);
         final int maxY = maxHeight - 1;
-        if (version == SUPPORTED_VERSION_2) {
+        if (platform.supportsBiomes()) {
             switch(border) {
                 case VOID:
                 case LAVA:

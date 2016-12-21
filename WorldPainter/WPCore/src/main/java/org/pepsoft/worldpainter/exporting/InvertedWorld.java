@@ -18,11 +18,7 @@
 
 package org.pepsoft.worldpainter.exporting;
 
-import org.pepsoft.minecraft.Chunk;
-import org.pepsoft.minecraft.Constants;
-import org.pepsoft.minecraft.Entity;
-import org.pepsoft.minecraft.Material;
-import org.pepsoft.minecraft.TileEntity;
+import org.pepsoft.minecraft.*;
 
 /**
  * A Minecraft world wrapper which inverts the wrapped world vertically. Does
@@ -153,11 +149,6 @@ public class InvertedWorld implements MinecraftWorld {
     @Override
     public boolean isChunkPresent(int x, int y) {
         return world.isChunkPresent(x, y);
-    }
-
-    @Override
-    public void addChunk(Chunk chunk) {
-        throw new UnsupportedOperationException();
     }
 
     @Override

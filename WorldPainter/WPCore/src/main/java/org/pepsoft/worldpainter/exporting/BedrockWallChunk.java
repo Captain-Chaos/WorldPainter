@@ -6,10 +6,8 @@
 package org.pepsoft.worldpainter.exporting;
 
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
-import org.pepsoft.minecraft.ChunkFactory;
-import org.pepsoft.minecraft.ChunkImpl;
-import org.pepsoft.minecraft.ChunkImpl2;
-import org.pepsoft.minecraft.Constants;
+
+import org.pepsoft.minecraft.*;
 import org.pepsoft.worldpainter.Dimension;
 import static org.pepsoft.minecraft.Constants.*;
 
@@ -20,13 +18,13 @@ import static org.pepsoft.minecraft.Constants.*;
 public class BedrockWallChunk {
     public static ChunkFactory.ChunkCreationResult create(int chunkX, int chunkZ, Dimension dimension) {
         final int maxHeight = dimension.getMaxHeight();
-        final int version = dimension.getWorld().getVersion();
+        final Platform platform = dimension.getWorld().getPlatform();
         final ChunkFactory.ChunkCreationResult result = new ChunkFactory.ChunkCreationResult();
-        result.chunk = (version == Constants.SUPPORTED_VERSION_1) ? new ChunkImpl(chunkX, chunkZ, maxHeight) : new ChunkImpl2(chunkX, chunkZ, maxHeight);
+        result.chunk = platform.createChunk(chunkX, chunkZ, maxHeight);
         final int maxY = maxHeight - 1;
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
-                if (version == SUPPORTED_VERSION_2) {
+                if (platform.supportsBiomes()) {
                     result.chunk.setBiome(x, z, BIOME_PLAINS);
                 }
                 for (int y = 0; y <= maxY; y++) {

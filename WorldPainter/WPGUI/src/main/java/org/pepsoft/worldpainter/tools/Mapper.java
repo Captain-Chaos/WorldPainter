@@ -18,6 +18,7 @@ import javax.imageio.ImageIO;
 import static org.pepsoft.minecraft.Constants.*;
 import org.pepsoft.minecraft.Level;
 import org.pepsoft.minecraft.Material;
+import org.pepsoft.minecraft.Platform;
 import org.pepsoft.minecraft.RegionFile;
 import org.pepsoft.util.ColourUtils;
 import org.pepsoft.worldpainter.ColourScheme;
@@ -107,7 +108,7 @@ public class Mapper {
     private static void map(final File worldDir, final int dim, final ColourScheme colourScheme, File output) throws IOException, InterruptedException {
         File levelDatFile = new File(worldDir, "level.dat");
         Level level = Level.load(levelDatFile);
-        final int version = level.getVersion();
+        final Platform platform = level.getVersion() == SUPPORTED_VERSION_1 ? Platform.JAVA_MCREGION : Platform.JAVA_ANVIL;
         maxHeight = level.getMaxHeight();
         File dimensionDir;
         switch (dim) {
@@ -134,10 +135,10 @@ public class Mapper {
             System.out.println("Generator: " + level.getGeneratorName() + " (version " + level.getGeneratorVersion() + ")");
         }
         System.out.println("Map height: " + maxHeight);
-        System.out.println("Storage format: " + ((version == SUPPORTED_VERSION_1) ? "McRegion (Minecraft 1.1 or earlier)" : "Anvil (Minecraft 1.2 or later)"));
+        System.out.println("Storage format: " + ((platform == Platform.JAVA_MCREGION) ? "McRegion (Minecraft 1.1 or earlier)" : "Anvil (Minecraft 1.2 or later)"));
 
         // Determine size
-        File[] regionFiles = regionDir.listFiles((version == SUPPORTED_VERSION_1)
+        File[] regionFiles = regionDir.listFiles((platform == Platform.JAVA_MCREGION)
             ? (dir, name) -> name.toLowerCase().endsWith(".mcr")
                 : (FilenameFilter) (dir, name) -> name.toLowerCase().endsWith(".mca"));
         int tmpLowestRegionX = Integer.MAX_VALUE, tmpHighestRegionX = Integer.MIN_VALUE;
@@ -164,7 +165,7 @@ public class Mapper {
         int tmpLowestChunkX = Integer.MAX_VALUE, tmpHighestChunkX = Integer.MIN_VALUE;
         int tmpLowestChunkZ = Integer.MAX_VALUE, tmpHighestChunkZ = Integer.MIN_VALUE;
         for (int regionX = lowestRegionX; regionX <= highestRegionX; regionX++) {
-            File file = new File(regionDir, "r." + regionX + "." + lowestRegionZ + ((version == SUPPORTED_VERSION_1) ? ".mcr" : ".mca"));
+            File file = new File(regionDir, "r." + regionX + "." + lowestRegionZ + ((platform == Platform.JAVA_MCREGION) ? ".mcr" : ".mca"));
             if (file.exists()) {
                 int regionChunkX = regionX << 5;
                 int regionChunkZ = lowestRegionZ << 5;
@@ -194,7 +195,7 @@ public class Mapper {
                     region.close();
                 }
             }
-            file = new File(regionDir, "r." + regionX + "." + highestRegionZ + ((version == SUPPORTED_VERSION_1) ? ".mcr" : ".mca"));
+            file = new File(regionDir, "r." + regionX + "." + highestRegionZ + ((platform == Platform.JAVA_MCREGION) ? ".mcr" : ".mca"));
             if (file.exists()) {
                 int regionChunkX = regionX << 5;
                 int regionChunkZ = highestRegionZ << 5;
@@ -226,7 +227,7 @@ public class Mapper {
             }
         }
         for (int regionZ = lowestRegionZ + 1; regionZ <= highestRegionZ - 1; regionZ++) {
-            File file = new File(regionDir, "r." + lowestRegionX + "." + regionZ + ((version == SUPPORTED_VERSION_1) ? ".mcr" : ".mca"));
+            File file = new File(regionDir, "r." + lowestRegionX + "." + regionZ + ((platform == Platform.JAVA_MCREGION) ? ".mcr" : ".mca"));
             if (file.exists()) {
                 int regionChunkX = lowestRegionX << 5;
                 int regionChunkZ = regionZ << 5;
@@ -256,7 +257,7 @@ public class Mapper {
                     region.close();
                 }
             }
-            file = new File(regionDir, "r." + highestRegionX + "." + regionZ + ((version == SUPPORTED_VERSION_1) ? ".mcr" : ".mca"));
+            file = new File(regionDir, "r." + highestRegionX + "." + regionZ + ((platform == Platform.JAVA_MCREGION) ? ".mcr" : ".mca"));
             if (file.exists()) {
                 int regionChunkX = highestRegionX << 5;
                 int regionChunkZ = regionZ << 5;
@@ -310,7 +311,7 @@ public class Mapper {
                     String[] parts = finalFile.getName().split("\\.");
                     int regionX = Integer.parseInt(parts[1]);
                     int regionY = Integer.parseInt(parts[2]);
-                    WorldRegion world = new WorldRegion(regionDir, regionX, regionY, maxHeight, version);
+                    WorldRegion world = new WorldRegion(regionDir, regionX, regionY, maxHeight, platform);
                     int[][] heightCache = new int[544][544];
                     for (int i = 0; i < 544; i++) {
                         Arrays.fill(heightCache[i], -1);
@@ -429,7 +430,7 @@ public class Mapper {
         return heightCache[x][y];
     }
     
-//    private static MinecraftWorldImpl world;
+//    private static JavaMinecraftWorld world;
     private static int maxHeight;
     private static final Set<Integer> TERRAIN_BLOCKS = new HashSet<>();
     

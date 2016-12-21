@@ -10,6 +10,7 @@ package org.pepsoft.minecraft;
  * @author pepijn
  */
 public interface ChunkProvider {
+    boolean isChunkPresent(int x, int z);
     Chunk getChunk(int x, int z);
     Chunk getChunkForEditing(int x, int z);
 }

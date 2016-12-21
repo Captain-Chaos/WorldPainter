@@ -378,15 +378,15 @@ public class MapImportDialog extends javax.swing.JDialog {
     private void importWorld() {
         final File levelDatFile = new File(fieldFilename.getText());
         final Set<Point> chunksToSkip = checkBoxImportOutliers.isSelected() ? null : mapStatistics.outlyingChunks;
-        final MapImporter.ReadOnlyOption readOnlyOption;
+        final JavaMapImporter.ReadOnlyOption readOnlyOption;
         if (radioButtonReadOnlyAll.isSelected()) {
-            readOnlyOption = MapImporter.ReadOnlyOption.ALL;
+            readOnlyOption = JavaMapImporter.ReadOnlyOption.ALL;
         } else if (radioButtonReadOnlyManMade.isSelected()) {
-            readOnlyOption = MapImporter.ReadOnlyOption.MAN_MADE;
+            readOnlyOption = JavaMapImporter.ReadOnlyOption.MAN_MADE;
         } else if (radioButtonReadOnlyManMadeAboveGround.isSelected()) {
-            readOnlyOption = MapImporter.ReadOnlyOption.MAN_MADE_ABOVE_GROUND;
+            readOnlyOption = JavaMapImporter.ReadOnlyOption.MAN_MADE_ABOVE_GROUND;
         } else {
-            readOnlyOption = MapImporter.ReadOnlyOption.NONE;
+            readOnlyOption = JavaMapImporter.ReadOnlyOption.NONE;
         }
         app.setWorld(null);
         importedWorld = ProgressDialog.executeTask(this, new ProgressTask<World2>() {
@@ -416,7 +416,7 @@ public class MapImportDialog extends javax.swing.JDialog {
                     if (checkBoxImportEnd.isSelected()) {
                         dimensionsToImport.add(Constants.DIM_END);
                     }
-                    final MapImporter importer = new MapImporter(tileFactory, levelDatFile, false, chunksToSkip, readOnlyOption, dimensionsToImport);
+                    final JavaMapImporter importer = new JavaMapImporter(tileFactory, levelDatFile, false, chunksToSkip, readOnlyOption, dimensionsToImport);
                     World2 world = importer.doImport(progressReceiver);
                     if (importer.getWarnings() != null) {
                         try {

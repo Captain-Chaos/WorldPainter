@@ -18,7 +18,9 @@ import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.TaskbarProgressReceiver;
 import org.pepsoft.util.swing.ProgressTask;
-import org.pepsoft.worldpainter.exporting.WorldExporter;
+import org.pepsoft.worldpainter.exporting.AbstractWorldExporter;
+import org.pepsoft.worldpainter.exporting.JavaWorldExporter;
+import org.pepsoft.worldpainter.exporting.MCPEWorldExporter;
 
 import javax.swing.*;
 import java.awt.*;
@@ -29,8 +31,6 @@ import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Map;
 
-import static org.pepsoft.minecraft.Constants.*;
-
 /**
  *
  * @author pepijn
@@ -39,9 +39,6 @@ public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, Chunk
     /** Creates new form ExportWorldDialog */
     public ExportProgressDialog(Window parent, World2 world, File baseDir, String name) {
         super(parent, "Exporting");
-        if ((world.getVersion() != SUPPORTED_VERSION_1) && (world.getVersion() != SUPPORTED_VERSION_2)) {
-            throw new IllegalArgumentException("Not a supported version: 0x" + Integer.toHexString(world.getVersion()));
-        }
         this.world = world;
         this.baseDir = baseDir;
         this.name = name;
@@ -76,9 +73,7 @@ public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, Chunk
 
     @Override
     protected String getResultsReport(Map<Integer, ChunkFactory.Stats> result, long duration) {
-        boolean nonStandardHeight = (world.getVersion() == SUPPORTED_VERSION_1)
-            ? (world.getMaxHeight() != DEFAULT_MAX_HEIGHT_1)
-            : (world.getMaxHeight() != DEFAULT_MAX_HEIGHT_2);
+        boolean nonStandardHeight = world.getMaxHeight() != world.getPlatform().getStandardMaxHeight();
         StringBuilder sb = new StringBuilder();
         sb.append("<html>World exported as ").append(new File(baseDir, FileUtils.sanitiseName(name)));
         int hours = (int) (duration / 3600);
@@ -143,7 +138,18 @@ public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, Chunk
             public Map<Integer, ChunkFactory.Stats> execute(ProgressReceiver progressReceiver) throws OperationCancelled {
                 progressReceiver = new TaskbarProgressReceiver(App.getInstance(), progressReceiver);
                 progressReceiver.setMessage("Exporting world " + name);
-                WorldExporter exporter = new WorldExporter(world);
+                AbstractWorldExporter exporter;
+                switch (world.getPlatform()) {
+                    case JAVA_MCREGION:
+                    case JAVA_ANVIL:
+                        exporter = new JavaWorldExporter(world);
+                        break;
+                    case MCPE:
+                        exporter = new MCPEWorldExporter(world);
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Unsupported platform: " + world.getPlatform());
+                }
                 try {
                     backupDir = exporter.selectBackupDir(new File(baseDir, FileUtils.sanitiseName(name)));
                     return exporter.export(baseDir, name, backupDir, progressReceiver);

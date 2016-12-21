@@ -6,6 +6,7 @@ package org.pepsoft.worldpainter.tools;
 
 import org.pepsoft.minecraft.Constants;
 import org.pepsoft.minecraft.Level;
+import org.pepsoft.minecraft.Platform;
 import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
@@ -221,14 +222,14 @@ public class BiomesViewerFrame extends JFrame {
             throw new RuntimeException("Could not create " + worldDir);
         }
         BiomeScheme biomeScheme1 = BiomesViewerFrame.this.biomeScheme;
-        Level level = new Level(Constants.DEFAULT_MAX_HEIGHT_1, (biomeScheme1 instanceof Minecraft1_1BiomeScheme) ? Constants.SUPPORTED_VERSION_1 : Constants.SUPPORTED_VERSION_2);
+        Level level = new Level(Constants.DEFAULT_MAX_HEIGHT_1, (biomeScheme1 instanceof Minecraft1_1BiomeScheme) ? Platform.JAVA_MCREGION : Platform.JAVA_ANVIL);
         if (! (biomeScheme1 instanceof Minecraft1_1BiomeScheme)) {
             level.setGenerator(((biomeScheme1 instanceof Minecraft1_3LargeBiomeScheme) || (biomeScheme1 instanceof Minecraft1_7LargeBiomeScheme) || (biomeScheme1 instanceof Minecraft1_8LargeBiomeScheme)) ? Generator.LARGE_BIOMES : Generator.DEFAULT);
         }
         if (creativeMode) {
-            level.setGameType(World2.GAME_TYPE_CREATIVE);
+            level.setGameType(Constants.GAME_TYPE_CREATIVE);
         } else {
-            level.setGameType(World2.GAME_TYPE_SURVIVAL);
+            level.setGameType(Constants.GAME_TYPE_SURVIVAL);
         }
         level.setMapFeatures(true);
         level.setName(name);

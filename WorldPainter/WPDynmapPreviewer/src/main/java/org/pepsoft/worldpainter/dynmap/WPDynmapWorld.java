@@ -4,11 +4,12 @@ import org.dynmap.DynmapChunk;
 import org.dynmap.DynmapLocation;
 import org.dynmap.DynmapWorld;
 import org.dynmap.utils.MapChunkCache;
-import org.pepsoft.minecraft.Level;
+import org.pepsoft.minecraft.*;
 import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.Constants;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.exporting.JavaMinecraftWorld;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
-import org.pepsoft.worldpainter.exporting.MinecraftWorldImpl;
 
 import javax.vecmath.Point3i;
 import java.awt.*;
@@ -125,7 +126,7 @@ public class WPDynmapWorld extends DynmapWorld {
     public static WPDynmapWorld forMinecraftMap(File worldDir, int dim) throws IOException {
         File levelDatFile = new File(worldDir, "level.dat");
         Level level = Level.load(levelDatFile);
-        return forMinecraftWorld(new MinecraftWorldImpl(worldDir, dim, level.getMaxHeight(), level.getVersion(), true, 256), level.getName(), dim, 62, new Point3i(level.getSpawnX(), level.getSpawnZ(), level.getSpawnY()));
+        return forMinecraftWorld(new JavaMinecraftWorld(worldDir, dim, level.getMaxHeight(), level.getVersion() == org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_1 ? Platform.JAVA_MCREGION : Platform.JAVA_ANVIL, true, 256), level.getName(), dim, 62, new Point3i(level.getSpawnX(), level.getSpawnZ(), level.getSpawnY()));
     }
 
     public static WPDynmapWorld forMinecraftWorld(MinecraftWorld minecraftWorld, String name, int dim, int waterLevel, Point3i spawnPoint) {

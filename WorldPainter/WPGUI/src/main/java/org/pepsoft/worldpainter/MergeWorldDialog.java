@@ -16,7 +16,7 @@ import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.Layer;
-import org.pepsoft.worldpainter.merging.WorldMerger;
+import org.pepsoft.worldpainter.merging.JavaWorldMerger;
 import org.pepsoft.worldpainter.util.MinecraftUtil;
 
 import javax.swing.*;
@@ -208,7 +208,7 @@ public class MergeWorldDialog extends javax.swing.JDialog {
             world.setTilesToExport(selectedTiles);
         }
 
-        WorldMerger merger = new WorldMerger(world, levelDatFile);
+        JavaWorldMerger merger = new JavaWorldMerger(world, levelDatFile);
         synchronized (merger) {
             try {
                 backupDir = merger.selectBackupDir(levelDatFile.getParentFile());

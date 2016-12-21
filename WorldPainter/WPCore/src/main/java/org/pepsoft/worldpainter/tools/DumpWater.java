@@ -5,14 +5,16 @@
 package org.pepsoft.worldpainter.tools;
 
 import org.pepsoft.minecraft.Level;
+import org.pepsoft.minecraft.Platform;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
-import org.pepsoft.worldpainter.exporting.MinecraftWorldImpl;
+import org.pepsoft.worldpainter.exporting.JavaMinecraftWorld;
 
 import java.io.File;
 import java.io.IOException;
 
 import static org.pepsoft.minecraft.Block.BLOCK_TYPE_NAMES;
 import static org.pepsoft.minecraft.Constants.BLK_AIR;
+import static org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_1;
 
 /**
  *
@@ -25,7 +27,7 @@ public class DumpWater {
         int y = Integer.parseInt(args[2]);
         int z = Integer.parseInt(args[3]);
         Level level = Level.load(levelDatFile);
-        MinecraftWorld world = new MinecraftWorldImpl(levelDatFile.getParentFile(), 0, level.getMaxHeight(), level.getVersion(), true, CACHE_SIZE);
+        MinecraftWorld world = new JavaMinecraftWorld(levelDatFile.getParentFile(), 0, level.getMaxHeight(), level.getVersion() == SUPPORTED_VERSION_1 ? Platform.JAVA_MCREGION : Platform.JAVA_ANVIL, true, CACHE_SIZE);
         for (int dy = 16; dy >= -16; dy--) {
             for (int dx = -16; dx <= 16; dx++) {
                 int blockX = x + dx, blockZ = z;
