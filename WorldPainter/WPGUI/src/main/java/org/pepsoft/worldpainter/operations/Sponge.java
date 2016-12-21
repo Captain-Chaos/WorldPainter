@@ -30,11 +30,9 @@ public class Sponge extends RadiusOperation {
         if (tileFactory instanceof HeightMapTileFactory) {
             waterHeight = ((HeightMapTileFactory) tileFactory).getWaterHeight();
         } else {
-            if (dimension.getWorld().getVersion() == Constants.SUPPORTED_VERSION_2) {
-                waterHeight = 62;
-            } else {
-                waterHeight = tileFactory.getMaxHeight() / 2 - 2;
-            }
+            // If we can't determine the water height disable the inverse
+            // functionality, which resets to the default water height
+            waterHeight = -1;
         }
         dimension.setEventsInhibited(true);
         try {
@@ -43,8 +41,10 @@ public class Sponge extends RadiusOperation {
                 for (int dy = -radius; dy <= radius; dy++) {
                     if (getStrength(centreX, centreY, centreX + dx, centreY + dy) != 0f) {
                         if (inverse) {
-                            dimension.setWaterLevelAt(centreX + dx, centreY + dy, waterHeight);
-                            dimension.setBitLayerValueAt(FloodWithLava.INSTANCE, centreX + dx, centreY + dy, false);
+                            if (waterHeight != -1) {
+                                dimension.setWaterLevelAt(centreX + dx, centreY + dy, waterHeight);
+                                dimension.setBitLayerValueAt(FloodWithLava.INSTANCE, centreX + dx, centreY + dy, false);
+                            }
                         } else {
                             dimension.setWaterLevelAt(centreX + dx, centreY + dy, 0);
                         }
