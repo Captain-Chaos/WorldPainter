@@ -69,37 +69,6 @@ public interface Brush {
     float getFullStrength(int dx, int dy);
     
     /**
-     * Get the brush strength at a specific location, adding some random
-     * variation.
-     * 
-     * @param seed The seed to use for calculating the random variation.
-     * @param centerX The absolute X coordinate of the center of the brush.
-     * @param centerY The absolute Y coordinate of the center of the brush.
-     * @param x The absolute X coordinate for which to get the brush strength.
-     * @param y The absolute Y coordinate for which to get the brush strength.
-     * @return The brush strength at the specified location plus some random
-     *     variation, from 0.0f (no effect) to 1.0f (maximum effect)
-     *     (inclusive).
-     */
-    float getNoisyStrength(long seed, int centerX, int centerY, int x, int y);
-
-    /**
-     * Get the brush strength at a specific location, adding some random
-     * variation, based on the maximum brush strenght, in other words the
-     * strength if the level was set to 1.0f.
-     * 
-     * @param seed The seed to use for calculating the random variation.
-     * @param centerX The absolute X coordinate of the center of the brush.
-     * @param centerY The absolute Y coordinate of the center of the brush.
-     * @param x The absolute X coordinate for which to get the brush strength.
-     * @param y The absolute Y coordinate for which to get the brush strength.
-     * @return The maximum brush strength at the specified location plus some
-     *     random variation, from 0.0f (no effect) to 1.0f (maximum effect)
-     *     (inclusive).
-     */
-    float getNoisyFullStrength(long seed, int centerX, int centerY, int x, int y);
-    
-    /**
      * Get the current radius of the brush.
      * 
      * @return The current radius of the brush in pixels.
