@@ -54,16 +54,18 @@ public class WorldIO {
             metadata.put(World2.METADATA_KEY_WP_VERSION, Version.VERSION);
             metadata.put(World2.METADATA_KEY_WP_BUILD, Version.BUILD);
             metadata.put(World2.METADATA_KEY_TIMESTAMP, new Date());
-            List<String[]> pluginArray = new ArrayList<>();
-            for (Plugin plugin: WPPluginManager.getInstance().getAllPlugins()) {
-                if (plugin.getName().equals("Default") || plugin.getName().equals("DefaultLayerEditorProvider")) {
-                    // Don't include the system plugins
-                    continue;
+            if (WPPluginManager.getInstance() != null) {
+                List<String[]> pluginArray = new ArrayList<>();
+                for (Plugin plugin : WPPluginManager.getInstance().getAllPlugins()) {
+                    if (plugin.getName().equals("Default") || plugin.getName().equals("DefaultLayerEditorProvider")) {
+                        // Don't include the system plugins
+                        continue;
+                    }
+                    pluginArray.add(new String[]{plugin.getName(), plugin.getVersion()});
                 }
-                pluginArray.add(new String[] {plugin.getName(), plugin.getVersion()});
-            }
-            if (! pluginArray.isEmpty()) {
-                metadata.put(World2.METADATA_KEY_PLUGINS, pluginArray.toArray(new String[pluginArray.size()][]));
+                if (! pluginArray.isEmpty()) {
+                    metadata.put(World2.METADATA_KEY_PLUGINS, pluginArray.toArray(new String[pluginArray.size()][]));
+                }
             }
             wrappedOut.writeObject(metadata);
             wrappedOut.writeObject(world);

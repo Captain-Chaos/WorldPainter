@@ -71,17 +71,16 @@ public class FileUtils {
         }
         return sb.toString();
     }
-    
+
     /**
      * Recursively copy a directory including all contents.
      * 
      * @param dir The directory to copy.
-     * @param destParent The parent directory to copy the directory into using
-     *     the same name as the source directory.
+     * @param destDir The directory into which to copy the contents of
+     *                <code>dir</code>. Must not exist yet and will be created.
      * @throws IOException If there is an I/O error while performing the copy.
      */
-    public static void copyDir(File dir, File destParent) throws IOException {
-        File destDir = new File(destParent, dir.getName());
+    public static void copyDir(File dir, File destDir) throws IOException {
         if (destDir.isDirectory()) {
             throw new IllegalStateException("Destination directory " + destDir + " already exists");
         }
@@ -91,7 +90,7 @@ public class FileUtils {
         File[] files = dir.listFiles();
         for (File file: files) {
             if (file.isDirectory()) {
-                copyDir(file, destDir);
+                copyDir(file, new File(destDir, file.getName()));
             } else if (file.isFile()) {
                 copyFileToDir(file, destDir);
             } else {

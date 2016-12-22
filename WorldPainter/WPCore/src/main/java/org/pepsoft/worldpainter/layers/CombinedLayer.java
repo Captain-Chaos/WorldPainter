@@ -144,46 +144,61 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
         });
         return actions;
     }
-    
-    public boolean isMissingTerrainWarning() {
-        return missingTerrainWarning;
-    }
-    
-    public void resetMissingTerrainWarning() {
-        missingTerrainWarning = false;
-    }
-    
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
+
+    /**
+     * If this combined layer contains a custom terrain, make sure that it is
+     * installed. If the original material is available as a custom terrain
+     * type, use that, otherwise install the material as a new custom terrain
+     * type, assuming a slot is available. Should be invoked once, after a
+     * combined layer has been loaded.
+     *
+     * <p>Returns <code>false</code> if a custom terrain was present
+     * but it could not be restored because all custom terrain slots are in use,
+     * <code>true</code> in all other circumstances.
+     *
+     * <p><strong>Please note:</strong> if this returns <code>true</code> a new
+     * custom terrain <em>may</em> have been installed, so in that case the
+     * invoker MUST check whether a button already exists for the custom terrain
+     * used by this combined layer, and add one if not.
+     *
+     * @return <code>false</code> if a custom terrain was present but it could
+     *     not be restored because all custom terrain slots are in use,
+     *     <code>true</code> otherwise.
+     */
+    public boolean restoreCustomTerrain() {
         if (customTerrainPresent) {
-            MixedMaterial customTerrain = (MixedMaterial) in.readObject();
-            if (customTerrain.equals(Terrain.getCustomMaterial(terrain.getCustomTerrainIndex()))) {
+            if (customTerrainMaterial.equals(Terrain.getCustomMaterial(terrain.getCustomTerrainIndex()))) {
                 // The exact same custom terrain is present, in the same slot.
                 // Keep using it
+                return true;
             } else if (Terrain.getCustomMaterial(terrain.getCustomTerrainIndex()) == null) {
                 // The slot that was previously used is empty, store the custom
                 // terrain in it
-                Terrain.setCustomMaterial(terrain.getCustomTerrainIndex(), customTerrain);
+                Terrain.setCustomMaterial(terrain.getCustomTerrainIndex(), customTerrainMaterial);
+                return true;
             } else {
                 // The slot that was previously used contains a different mixed
                 // material. Find another empty slot
                 for (int i = 0; i < Terrain.CUSTOM_TERRAIN_COUNT; i++) {
                     if (Terrain.getCustomMaterial(i) == null) {
-                        Terrain.setCustomMaterial(i, customTerrain);
+                        Terrain.setCustomMaterial(i, customTerrainMaterial);
                         terrain = Terrain.getCustomTerrain(i);
-                        return;
+                        return true;
                     }
                 }
                 // No more slots available. Not much we can do
                 terrain = null;
-                missingTerrainWarning = true;
+                return false;
             }
-        } else if ((terrain != null) && terrain.isCustom()) {
-            // This is an old layer, saved when WorldPainter did not yet store
-            // the actual custom terrain settings with the layer. Not much we
-            // can do
-            terrain = null;
-            missingTerrainWarning = true;
+        } else {
+            return (terrain == null) || (! terrain.isCustom());
+        }
+    }
+    
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        if (customTerrainPresent) {
+            customTerrainMaterial = (MixedMaterial) in.readObject();
         }
     }
     
@@ -201,5 +216,6 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
     private Terrain terrain;
     private List<Layer> layers = Collections.emptyList();
     private Map<Layer, Float> factors = Collections.emptyMap();
-    private boolean customTerrainPresent, missingTerrainWarning;
+    private boolean customTerrainPresent;
+    private transient MixedMaterial customTerrainMaterial;
 }
