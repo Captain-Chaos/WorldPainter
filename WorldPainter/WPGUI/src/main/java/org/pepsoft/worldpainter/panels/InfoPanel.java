@@ -113,17 +113,16 @@ public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener
             biome = dim.getAutoBiome(tile, x, y);
         }
         if (biome < 0) {
-            biome= Minecraft1_7Biomes.BIOME_PLAINS;
+            biome = Minecraft1_7Biomes.BIOME_PLAINS;
         }
         if ((automaticBiome != currentAutomaticBiome) || (biome != currentBiome)) {
-            labelBiome.setText(biomeHelper.getBiomeName(biome));
+            labelBiome.setText(biomeHelper.getBiomeName(biome) + " (" + biome + ")");
             labelBiome.setIcon(biomeHelper.getBiomeIcon(biome));
             checkBoxAutomaticBiome.setSelected(automaticBiome);
             currentAutomaticBiome = automaticBiome;
             currentBiome = biome;
         }
         Map<Layer, Integer> layerValues = tile.getLayersAt(x, y);
-        // We display the biome separately
         if (layerValues != null) {
             checkBoxInSelection.setSelected(layerValues.containsKey(SelectionChunk.INSTANCE) || layerValues.containsKey(SelectionBlock.INSTANCE));
             layerValues.keySet().removeAll(HIDDEN_LAYERS);
@@ -458,7 +457,7 @@ public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener
     private int currentBiome;
 
     private static final Set<Layer> HIDDEN_LAYERS = new HashSet<>(Arrays.asList(Biome.INSTANCE, SelectionChunk.INSTANCE,
-            SelectionBlock.INSTANCE, FloodWithLava.INSTANCE));
+            SelectionBlock.INSTANCE, FloodWithLava.INSTANCE, NotPresent.INSTANCE));
     private static final Icon ICON_BLANK = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/transparent.png");
     private static final Logger logger = LoggerFactory.getLogger(InfoPanel.class);
 
