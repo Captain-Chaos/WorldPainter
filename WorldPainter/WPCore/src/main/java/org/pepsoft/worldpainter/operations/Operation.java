@@ -9,6 +9,7 @@ import org.pepsoft.worldpainter.WorldPainterView;
 
 import javax.swing.*;
 import java.awt.image.BufferedImage;
+import java.beans.PropertyVetoException;
 
 /**
  * A WorldPainter operation or tool which affects the world in some way,
@@ -62,8 +63,11 @@ public interface Operation {
      * @param active Whether the operation should activatate itself (when
      *               <code>true</code>) or deactivate itself (when
      *               <code>false</code>).
+     * @throws PropertyVetoException If the operation failed to activate for
+     * some reason, for instance because some dependency is not met, or some
+     * state is inappropriate.
      */
-    void setActive(boolean active);
+    void setActive(boolean active) throws PropertyVetoException;
 
     /**
      * Get the icon of the operation. Should be 16x16 and have a transparent

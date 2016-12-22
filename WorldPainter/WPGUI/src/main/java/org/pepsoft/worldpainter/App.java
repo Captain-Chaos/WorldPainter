@@ -49,6 +49,7 @@ import org.pepsoft.worldpainter.painting.Paint;
 import org.pepsoft.worldpainter.painting.PaintFactory;
 import org.pepsoft.worldpainter.panels.BrushOptions;
 import org.pepsoft.worldpainter.panels.BrushOptions.Listener;
+import org.pepsoft.worldpainter.panels.DefaultFilter;
 import org.pepsoft.worldpainter.panels.InfoPanel;
 import org.pepsoft.worldpainter.plugins.CustomLayerProvider;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
@@ -81,6 +82,7 @@ import java.awt.image.BufferedImageOp;
 import java.awt.image.WritableRaster;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.beans.PropertyVetoException;
 import java.io.*;
 import java.lang.Void;
 import java.lang.reflect.InvocationTargetException;
@@ -137,6 +139,7 @@ public final class App extends JFrame implements RadiusControl,
         
         brushOptions = new BrushOptions();
         brushOptions.setListener(this);
+        brushOptions.setSelectionState(selectionState);
 
         if (SystemUtils.isMac()) {
             installMacCustomisations();
@@ -523,15 +526,16 @@ public final class App extends JFrame implements RadiusControl,
             ACTION_CONTOURS.setSelected(view.isDrawContours());
             ACTION_OVERLAY.setSelected(view.isDrawOverlay());
 
+            // TODO: make this work correctly with undo/redo, and make "inside selection" ineffective when there is no selection, to avoid confusion
             // Set operation states
-            if (dimension.containsOneOf(SelectionChunk.INSTANCE, SelectionBlock.INSTANCE)) {
-                copySelectionButton.setEnabled(true);
-            } else {
-                if (activeOperation instanceof CopySelectionOperation) {
-                    deselectTool();
-                }
-                copySelectionButton.setEnabled(false);
-            }
+//            if (dimension.containsOneOf(SelectionChunk.INSTANCE, SelectionBlock.INSTANCE)) {
+//                selectionState.setValue(true);
+//            } else {
+//                if (activeOperation instanceof CopySelectionOperation) {
+//                    deselectTool();
+//                }
+//                selectionState.setValue(false);
+//            }
             
             // Load custom biomes. But first remove any that are now regular
             // biomes
@@ -581,8 +585,9 @@ public final class App extends JFrame implements RadiusControl,
                 deselectTool();
             }
 
+            // TODO: make this work correctly with undo/redo, and make "inside selection" ineffective when there is no selection, to avoid confusion
             // Disable copy selection operation
-            copySelectionButton.setEnabled(false);
+//            selectionState.setValue(false);
             
             programmaticChange = true;
             try {
@@ -2433,27 +2438,37 @@ public final class App extends JFrame implements RadiusControl,
         toolPanel.add(createButtonForOperation(new RaiseRotatedPyramid(view)));
         toolPanel.add(createButtonForOperation(new RaisePyramid(view)));
 
-        copySelectionButton = createButtonForOperation(new CopySelectionOperation(view));
-        copySelectionButton.setEnabled(false);
-        toolPanel.add(createButtonForOperation(new EditSelectionOperation(view, this, mapDragControl, copySelectionButton)));
+        JToggleButton copySelectionButton = createButtonForOperation(new CopySelectionOperation(view));
+        copySelectionButton.setEnabled(selectionState.getValue());
+        toolPanel.add(createButtonForOperation(new EditSelectionOperation(view, this, mapDragControl, selectionState)));
         toolPanel.add(copySelectionButton);
-        button = new JButton(loadIcon("clear_selection"));
-        button.setMargin(new Insets(2, 2, 2, 2));
-        button.addActionListener(e -> {
-            dimension.setEventsInhibited(true);
-            try {
-                new SelectionHelper(dimension).clearSelection();
-                dimension.armSavePoint();
-            } finally {
-                dimension.setEventsInhibited(false);
+        JButton clearSelectionButton = new JButton(loadIcon("clear_selection"));
+        clearSelectionButton.setEnabled(selectionState.getValue());
+        clearSelectionButton.setMargin(new Insets(2, 2, 2, 2));
+        clearSelectionButton.addActionListener(e -> {
+            if (dimension.containsOneOf(SelectionChunk.INSTANCE, SelectionBlock.INSTANCE)) {
+                dimension.setEventsInhibited(true);
+                try {
+                    new SelectionHelper(dimension).clearSelection();
+                    dimension.armSavePoint();
+                } finally {
+                    dimension.setEventsInhibited(false);
+                }
+            } else {
+                Toolkit.getDefaultToolkit().beep();
             }
             if (activeOperation instanceof CopySelectionOperation) {
                 deselectTool();
             }
-            copySelectionButton.setEnabled(false);
+            // TODO: make this work correctly with undo/redo, and make "inside selection" ineffective when there is no selection, to avoid confusion
+//            selectionState.setValue(false);
         });
-        button.setToolTipText("Clear the selection");
-        toolPanel.add(button);
+        clearSelectionButton.setToolTipText("Clear the selection");
+        selectionState.addObserver((o, selectionMayBePresent) -> {
+            copySelectionButton.setEnabled((boolean) selectionMayBePresent);
+            clearSelectionButton.setEnabled((boolean) selectionMayBePresent);
+        });
+        toolPanel.add(clearSelectionButton);
 
         for (Operation operation: operations) {
             operation.setView(view);
@@ -4347,7 +4362,11 @@ public final class App extends JFrame implements RadiusControl,
                 if (operation instanceof RadiusOperation) {
                     view.setDrawBrush(false);
                 }
-                operation.setActive(false);
+                try {
+                    operation.setActive(false);
+                } catch (PropertyVetoException e) {
+                    logger.error("Property veto exception while deactivating operation " + operation, e);
+                }
                 activeOperation = null;
                 if (toolSettingsPanel.getComponentCount() > 0) {
                     toolSettingsPanel.removeAll();
@@ -4374,7 +4393,11 @@ public final class App extends JFrame implements RadiusControl,
                     } finally {
                         programmaticChange = false;
                     }
-                    brushOptions.setFilter(filter);
+                    if (filter instanceof DefaultFilter) {
+                        brushOptions.setFilter((DefaultFilter) filter);
+                    } else {
+                        brushOptions.setFilter(null);
+                    }
                     ((PaintOperation) operation).setPaint(paint);
                 } else {
                     programmaticChange = true;
@@ -4396,7 +4419,11 @@ public final class App extends JFrame implements RadiusControl,
                     } finally {
                         programmaticChange = false;
                     }
-                    brushOptions.setFilter(toolFilter);
+                    if (toolFilter instanceof DefaultFilter) {
+                        brushOptions.setFilter((DefaultFilter) toolFilter);
+                    } else {
+                        brushOptions.setFilter(null);
+                    }
                 }
                 if (operation instanceof RadiusOperation) {
                     view.setDrawBrush(true);
@@ -4406,7 +4433,13 @@ public final class App extends JFrame implements RadiusControl,
                 activeOperation = operation;
                 updateLayerVisibility();
                 updateBrushRotation();
-                operation.setActive(true);
+                try {
+                    operation.setActive(true);
+                } catch (PropertyVetoException e) {
+                    deselectTool();
+                    Toolkit.getDefaultToolkit().beep();
+                    return;
+                }
                 if (closeCallout("callout_1")) {
                     // If the user picked an operation which doesn't need a
                     // brush, close the "select brush" callout too
@@ -4878,7 +4911,7 @@ public final class App extends JFrame implements RadiusControl,
         if (customBiomeManager.getCustomBiomes() != null) {
             allBiomes.addAll(customBiomeManager.getCustomBiomes().stream().map(CustomBiome::getId).collect(Collectors.toList()));
         }
-        FillDialog dialog = new FillDialog(App.this, dimension, allLayers.toArray(new Layer[allLayers.size()]), selectedColourScheme, allBiomes.toArray(new Integer[allBiomes.size()]), customBiomeManager, view);
+        FillDialog dialog = new FillDialog(App.this, dimension, allLayers.toArray(new Layer[allLayers.size()]), selectedColourScheme, allBiomes.toArray(new Integer[allBiomes.size()]), customBiomeManager, view, selectionState);
         dialog.setVisible(true);
     }
 
@@ -6297,7 +6330,7 @@ public final class App extends JFrame implements RadiusControl,
     private int zoom = 0, maxRadius = DEFAULT_MAX_RADIUS, brushRotation = 0, toolBrushRotation = 0, previousBrushRotation = 0;
     private GlassPane glassPane;
     private JCheckBox readOnlyCheckBox, biomesCheckBox, annotationsCheckBox, readOnlySoloCheckBox, biomesSoloCheckBox, annotationsSoloCheckBox;
-    private JToggleButton readOnlyToggleButton, setSpawnPointToggleButton, copySelectionButton;
+    private JToggleButton readOnlyToggleButton, setSpawnPointToggleButton;
     private JMenuItem addNetherMenuItem, removeNetherMenuItem, addEndMenuItem, removeEndMenuItem, addSurfaceCeilingMenuItem, removeSurfaceCeilingMenuItem, addNetherCeilingMenuItem, removeNetherCeilingMenuItem, addEndCeilingMenuItem, removeEndCeilingMenuItem, exportHighResHeightMapMenuItem;
     private JCheckBoxMenuItem viewSurfaceMenuItem, viewNetherMenuItem, viewEndMenuItem, extendedBlockIdsMenuItem, viewSurfaceCeilingMenuItem, viewNetherCeilingMenuItem, viewEndCeilingMenuItem;
     private final JToggleButton[] customMaterialButtons = new JToggleButton[CUSTOM_TERRAIN_COUNT];
@@ -6331,6 +6364,7 @@ public final class App extends JFrame implements RadiusControl,
     private final Map<String, BufferedImage> callouts = new HashMap<>();
     private JMenu recentMenu;
     private JPanel toolSettingsPanel, customTerrainPanel;
+    private final ObservableBoolean selectionState = new ObservableBoolean(true);
 
     public static final Image ICON = IconUtils.loadImage("org/pepsoft/worldpainter/icons/shovel-icon.png");
     

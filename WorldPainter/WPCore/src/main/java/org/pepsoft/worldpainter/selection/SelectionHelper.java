@@ -4,17 +4,13 @@ import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Tile;
-import org.pepsoft.worldpainter.brushes.Brush;
-import org.pepsoft.worldpainter.brushes.RotatedBrush;
 import org.pepsoft.worldpainter.layers.*;
 
 import java.awt.*;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Arc2D;
-import java.awt.geom.Path2D;
 import java.util.*;
 
-import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 
 // TODO: allow new tiles to be filled with void
 
@@ -31,12 +27,12 @@ public class SelectionHelper {
         this.dimension = dimension;
     }
 
-    public void addToSelection(Brush brush, int x, int y) {
-        editSelection(brush, x, y, true);
+    public void addToSelection(Shape shape) {
+        editSelection(shape, true);
     }
 
-    public void removeFromSelection(Brush brush, int x, int y) {
-        editSelection(brush, x, y, false);
+    public void removeFromSelection(Shape shape) {
+        editSelection(shape, false);
     }
 
     /**
@@ -99,7 +95,11 @@ public class SelectionHelper {
                         }
                     }
                 });
-        return new Rectangle(lowestX[0], lowestY[0], highestX[0] - lowestX[0] + 1, highestY[0] - lowestY[0] + 1);
+        if (lowestX[0] != Integer.MAX_VALUE) {
+            return new Rectangle(lowestX[0], lowestY[0], highestX[0] - lowestX[0] + 1, highestY[0] - lowestY[0] + 1);
+        } else {
+            return null;
+        }
     }
 
     public void copySelection(int targetX, int targetY, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
@@ -402,29 +402,7 @@ outer:  for (int dx = -1; dx <= 1; dx++) {
         return dimension.getBitLayerValueAt(SelectionChunk.INSTANCE, x, y) || dimension.getBitLayerValueAt(SelectionBlock.INSTANCE, x, y);
     }
 
-    private void editSelection(Brush brush, int x, int y, boolean add) {
-        // Create a geometric shape corresponding to the brush size, shape and
-        // rotation
-        Shape shape;
-        final int brushRadius = brush.getRadius();
-        switch (brush.getBrushShape()) {
-            case BITMAP:
-            case SQUARE:
-                shape = new Rectangle(x - brushRadius, y - brushRadius, brushRadius * 2 + 1, brushRadius * 2 + 1);
-                if (brush instanceof RotatedBrush) {
-                    int rotation = ((RotatedBrush) brush).getDegrees();
-                    if (rotation != 0) {
-                        shape = new Path2D.Float(shape, AffineTransform.getRotateInstance(rotation / DEGREES_TO_RADIANS, x, y));
-                    }
-                }
-                break;
-            case CIRCLE:
-                shape = new Arc2D.Float(x - brushRadius, y - brushRadius, brushRadius * 2 + 1, brushRadius * 2 + 1, 0.0f, 360.0f, Arc2D.CHORD);
-                break;
-            default:
-                throw new InternalError();
-        }
-
+    private void editSelection(Shape shape, boolean add) {
         // Determine the bounding box of the selection in tile coordinates
         final Rectangle shapeBounds = shape.getBounds();
         final int tileX1 = shapeBounds.x >> TILE_SIZE_BITS;
@@ -542,7 +520,6 @@ outer:  for (int dx = -1; dx <= 1; dx++) {
     private SelectionOptions options;
     private boolean clearUndoOnNewTileCreation;
 
-    private static final double DEGREES_TO_RADIANS = 360 / (Math.PI * 2);
     private static final double DISTANCE_TO_BLEND = 16.0 / Math.PI;
     private static final Random RANDOM = new Random();
     private static final Set<Layer> SKIP_LAYERS = new HashSet<>(Arrays.asList(Biome.INSTANCE, SelectionChunk.INSTANCE,

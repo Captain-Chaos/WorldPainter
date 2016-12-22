@@ -9,6 +9,7 @@ import org.pepsoft.util.IconUtils;
 
 import javax.swing.*;
 import java.awt.image.BufferedImage;
+import java.beans.PropertyVetoException;
 
 /**
  * An abstract base class for WorldPainter {@link Operation}s which provides
@@ -48,11 +49,16 @@ public abstract class AbstractOperation implements Operation {
     }
 
     @Override
-    public final void setActive(boolean active) {
+    public final void setActive(boolean active) throws PropertyVetoException {
         if (active != this.active) {
             this.active = active;
             if (active) {
-                activate();
+                try {
+                    activate();
+                } catch (PropertyVetoException e) {
+                    this.active = false;
+                    throw e;
+                }
             } else {
                 deactivate();
             }
@@ -74,7 +80,7 @@ public abstract class AbstractOperation implements Operation {
         return name;
     }
 
-    protected abstract void activate();
+    protected abstract void activate() throws PropertyVetoException;
     protected abstract void deactivate();
 
     private final String name, description;

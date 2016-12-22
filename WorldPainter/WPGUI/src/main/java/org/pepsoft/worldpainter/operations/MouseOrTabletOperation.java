@@ -17,6 +17,7 @@ import org.pepsoft.worldpainter.vo.EventVO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.beans.PropertyVetoException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -343,7 +344,7 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
     }
     
     @Override
-    protected void activate() {
+    protected void activate() throws PropertyVetoException {
         if (legacy) {
             view.addMouseListener(this);
             view.addMouseMotionListener(this);

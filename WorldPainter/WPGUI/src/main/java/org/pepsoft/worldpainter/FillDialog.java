@@ -10,6 +10,7 @@
  */
 package org.pepsoft.worldpainter;
 
+import org.pepsoft.util.ObservableBoolean;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.swing.ProgressDialog;
@@ -22,11 +23,14 @@ import org.pepsoft.worldpainter.layers.FloodWithLava;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.operations.Filter;
 import org.pepsoft.worldpainter.panels.BrushOptions.Listener;
+import org.pepsoft.worldpainter.panels.DefaultFilter;
 import org.pepsoft.worldpainter.selection.SelectionBlock;
 import org.pepsoft.worldpainter.selection.SelectionChunk;
+import org.pepsoft.worldpainter.selection.SelectionHelper;
 import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
@@ -41,7 +45,7 @@ import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
  */
 public class FillDialog extends javax.swing.JDialog implements Listener {
     /** Creates new form FillDialog */
-    public FillDialog(java.awt.Frame parent, Dimension dimension, Layer[] layers, ColourScheme colourScheme, Integer[] biomes, CustomBiomeManager customBiomeManager, WorldPainterView view) {
+    public FillDialog(java.awt.Frame parent, Dimension dimension, Layer[] layers, ColourScheme colourScheme, Integer[] biomes, CustomBiomeManager customBiomeManager, WorldPainterView view, ObservableBoolean selectionState) {
         super(parent, true);
         this.dimension = dimension;
         this.colourScheme = colourScheme;
@@ -49,6 +53,7 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
         biomeHelper = new BiomeHelper(new AutoBiomeScheme(null), colourScheme, customBiomeManager);
         
         initComponents();
+        brushOptions1.setSelectionState(selectionState);
         
         comboBoxBiome.setModel(new DefaultComboBoxModel(biomes));
         comboBoxBiome.setRenderer(new BiomeListCellRenderer(colourScheme, customBiomeManager));
@@ -185,13 +190,52 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
     }
 
     private void fillWithTerrain(ProgressReceiver progressReceiver) throws OperationCancelled {
-        Terrain terrain = (Terrain) comboBoxTerrain.getSelectedItem();
-        int totalTiles = dimension.getTileCount(), tileCount = 0;
-        for (Tile tile: dimension.getTiles()) {
+        final Terrain terrain = (Terrain) comboBoxTerrain.getSelectedItem();
+        visitTiles(tile -> {
             final int worldTileX = tile.getX() << TILE_SIZE_BITS;
             final int worldTileY = tile.getY() << TILE_SIZE_BITS;
-            tile.inhibitEvents();
-            try {
+            for (int x = 0; x < TILE_SIZE; x++) {
+                for (int y = 0; y < TILE_SIZE; y++) {
+                    boolean set;
+                    if (filter == null) {
+                        set = true;
+                    } else {
+                        float strength = filter.modifyStrength(worldTileX | x, worldTileY | y, 1.0f);
+                        set = (strength > 0.95f) || (Math.random() < strength);
+                    }
+                    if (set && (tile.getTerrain(x, y) != terrain)) {
+                        tile.setTerrain(x, y, terrain);
+                    }
+                }
+            }
+        }, progressReceiver);
+    }
+
+    private void fillWithLayer(ProgressReceiver progressReceiver) throws UnsupportedOperationException, OperationCancelled {
+        Layer layer = (Layer) comboBoxSetLayer.getSelectedItem();
+        if (layer.getDataSize() == Layer.DataSize.NIBBLE) {
+            int baseLayerValue = Math.round((sliderLayerValue.getValue() + 2) / 6.667f);
+            visitTiles(tile -> {
+                final int worldTileX = tile.getX() << TILE_SIZE_BITS;
+                final int worldTileY = tile.getY() << TILE_SIZE_BITS;
+                for (int x = 0; x < TILE_SIZE; x++) {
+                    for (int y = 0; y < TILE_SIZE; y++) {
+                        int layerValue;
+                        if (filter == null) {
+                            layerValue = baseLayerValue;
+                        } else {
+                            layerValue = (int) (filter.modifyStrength(worldTileX | x, worldTileY | y, 1.0f) * baseLayerValue);
+                        }
+                        if (tile.getLayerValue(layer, x, y) < layerValue) {
+                            tile.setLayerValue(layer, x, y, layerValue);
+                        }
+                    }
+                }
+            }, progressReceiver);
+        } else if (layer.getDataSize() == Layer.DataSize.BIT) {
+            visitTiles(tile -> {
+                final int worldTileX = tile.getX() << TILE_SIZE_BITS;
+                final int worldTileY = tile.getY() << TILE_SIZE_BITS;
                 for (int x = 0; x < TILE_SIZE; x++) {
                     for (int y = 0; y < TILE_SIZE; y++) {
                         boolean set;
@@ -201,102 +245,31 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
                             float strength = filter.modifyStrength(worldTileX | x, worldTileY | y, 1.0f);
                             set = (strength > 0.95f) || (Math.random() < strength);
                         }
-                        if (set && (tile.getTerrain(x, y) != terrain)) {
-                            tile.setTerrain(x, y, terrain);
+                        if (set && (! tile.getBitLayerValue(layer, x, y))) {
+                            tile.setBitLayerValue(layer, x, y, true);
                         }
                     }
                 }
-            } finally {
-                tile.releaseEvents();
-            }
-            tileCount++;
-            progressReceiver.setProgress((float) tileCount / totalTiles);
-        }
-    }
-
-    private void fillWithLayer(ProgressReceiver progressReceiver) throws UnsupportedOperationException, OperationCancelled {
-        Layer layer = (Layer) comboBoxSetLayer.getSelectedItem();
-        if (layer.getDataSize() == Layer.DataSize.NIBBLE) {
-            int baseLayerValue = Math.round((sliderLayerValue.getValue() + 2) / 6.667f);
-            int totalTiles = dimension.getTileCount(), tileCount = 0;
-            for (Tile tile: dimension.getTiles()) {
-                final int worldTileX = tile.getX() << TILE_SIZE_BITS;
-                final int worldTileY = tile.getY() << TILE_SIZE_BITS;
-                tile.inhibitEvents();
-                try {
-                    for (int x = 0; x < TILE_SIZE; x++) {
-                        for (int y = 0; y < TILE_SIZE; y++) {
-                            int layerValue;
-                            if (filter == null) {
-                                layerValue = baseLayerValue;
-                            } else {
-                                layerValue = (int) (filter.modifyStrength(worldTileX | x, worldTileY | y, 1.0f) * baseLayerValue);
-                            }
-                            if (tile.getLayerValue(layer, x, y) < layerValue) {
-                                tile.setLayerValue(layer, x, y, layerValue);
-                            }
-                        }
-                    }
-                } finally {
-                    tile.releaseEvents();
-                }
-                tileCount++;
-                progressReceiver.setProgress((float) tileCount / totalTiles);
-            }
-        } else if (layer.getDataSize() == Layer.DataSize.BIT) {
-            int totalTiles = dimension.getTileCount(), tileCount = 0;
-            for (Tile tile: dimension.getTiles()) {
-                final int worldTileX = tile.getX() << TILE_SIZE_BITS;
-                final int worldTileY = tile.getY() << TILE_SIZE_BITS;
-                tile.inhibitEvents();
-                try {
-                    for (int x = 0; x < TILE_SIZE; x++) {
-                        for (int y = 0; y < TILE_SIZE; y++) {
-                            boolean set;
-                            if (filter == null) {
-                                set = true;
-                            } else {
-                                float strength = filter.modifyStrength(worldTileX | x, worldTileY | y, 1.0f);
-                                set = (strength > 0.95f) || (Math.random() < strength);
-                            }
-                            if (set && (! tile.getBitLayerValue(layer, x, y))) {
-                                tile.setBitLayerValue(layer, x, y, true);
-                            }
-                        }
-                    }
-                } finally {
-                    tile.releaseEvents();
-                }
-                tileCount++;
-                progressReceiver.setProgress((float) tileCount / totalTiles);
-            }
+            }, progressReceiver);
         } else if (layer.getDataSize() == Layer.DataSize.BIT_PER_CHUNK) {
-            int totalTiles = dimension.getTileCount(), tileCount = 0;
-            for (Tile tile: dimension.getTiles()) {
+            visitTiles(tile -> {
                 final int worldTileX = tile.getX() << TILE_SIZE_BITS;
                 final int worldTileY = tile.getY() << TILE_SIZE_BITS;
-                tile.inhibitEvents();
-                try {
-                    for (int x = 0; x < TILE_SIZE; x += 16) {
-                        for (int y = 0; y < TILE_SIZE; y += 16) {
-                            boolean set;
-                            if (filter == null) {
-                                set = true;
-                            } else {
-                                float strength = filter.modifyStrength(worldTileX | x, worldTileY | y, 1.0f);
-                                set = (strength > 0.95f) || (Math.random() < strength);
-                            }
-                            if (set && (! tile.getBitLayerValue(layer, x, y))) {
-                                tile.setBitLayerValue(layer, x, y, true);
-                            }
+                for (int x = 0; x < TILE_SIZE; x += 16) {
+                    for (int y = 0; y < TILE_SIZE; y += 16) {
+                        boolean set;
+                        if (filter == null) {
+                            set = true;
+                        } else {
+                            float strength = filter.modifyStrength(worldTileX | x, worldTileY | y, 1.0f);
+                            set = (strength > 0.95f) || (Math.random() < strength);
+                        }
+                        if (set && (! tile.getBitLayerValue(layer, x, y))) {
+                            tile.setBitLayerValue(layer, x, y, true);
                         }
                     }
-                } finally {
-                    tile.releaseEvents();
                 }
-                tileCount++;
-                progressReceiver.setProgress((float) tileCount / totalTiles);
-            }
+            }, progressReceiver);
         } else {
             throw new UnsupportedOperationException();
         }
@@ -308,155 +281,47 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
             dimension.clearLayerData(layer);
         } else {
             if (layer.getDataSize() == Layer.DataSize.NIBBLE) {
-                int totalTiles = dimension.getTileCount(), tileCount = 0;
-                for (Tile tile: dimension.getTiles()) {
+                visitTiles(tile -> {
                     final int worldTileX = tile.getX() << TILE_SIZE_BITS;
                     final int worldTileY = tile.getY() << TILE_SIZE_BITS;
-                    tile.inhibitEvents();
-                    try {
-                        for (int x = 0; x < TILE_SIZE; x++) {
-                            for (int y = 0; y < TILE_SIZE; y++) {
-                                int oldLayervalue = tile.getLayerValue(layer, x, y);
-                                int layerValue;
-                                if (filter == null) {
-                                    layerValue = 0;
-                                } else {
-                                    layerValue = Math.min(oldLayervalue, 15 - (int) (filter.modifyStrength(worldTileX | x, worldTileY | y, 1.0f) * 15));
-                                }
-                                if (oldLayervalue != layerValue) {
-                                    tile.setLayerValue(layer, x, y, layerValue);
-                                }
+                    for (int x = 0; x < TILE_SIZE; x++) {
+                        for (int y = 0; y < TILE_SIZE; y++) {
+                            int oldLayervalue = tile.getLayerValue(layer, x, y);
+                            int layerValue;
+                            if (filter == null) {
+                                layerValue = 0;
+                            } else {
+                                layerValue = Math.min(oldLayervalue, 15 - (int) (filter.modifyStrength(worldTileX | x, worldTileY | y, 1.0f) * 15));
+                            }
+                            if (oldLayervalue != layerValue) {
+                                tile.setLayerValue(layer, x, y, layerValue);
                             }
                         }
-                    } finally {
-                        tile.releaseEvents();
                     }
-                    tileCount++;
-                    progressReceiver.setProgress((float) tileCount / totalTiles);
-                }
+                }, progressReceiver);
             } else if (layer.getDataSize() == Layer.DataSize.BIT) {
-                int totalTiles = dimension.getTileCount(), tileCount = 0;
-                for (Tile tile: dimension.getTiles()) {
+                visitTiles(tile -> {
                     final int worldTileX = tile.getX() << TILE_SIZE_BITS;
                     final int worldTileY = tile.getY() << TILE_SIZE_BITS;
-                    tile.inhibitEvents();
-                    try {
-                        for (int x = 0; x < TILE_SIZE; x++) {
-                            for (int y = 0; y < TILE_SIZE; y++) {
-                                boolean set;
-                                if (filter == null) {
-                                    set = true;
-                                } else {
-                                    float strength = filter.modifyStrength(worldTileX | x, worldTileY | y, 1.0f);
-                                    set = (strength > 0.95f) || (Math.random() < strength);
-                                }
-                                if (set && tile.getBitLayerValue(layer, x, y)) {
-                                    tile.setBitLayerValue(layer, x, y, false);
-                                }
+                    for (int x = 0; x < TILE_SIZE; x++) {
+                        for (int y = 0; y < TILE_SIZE; y++) {
+                            boolean set;
+                            if (filter == null) {
+                                set = true;
+                            } else {
+                                float strength = filter.modifyStrength(worldTileX | x, worldTileY | y, 1.0f);
+                                set = (strength > 0.95f) || (Math.random() < strength);
+                            }
+                            if (set && tile.getBitLayerValue(layer, x, y)) {
+                                tile.setBitLayerValue(layer, x, y, false);
                             }
                         }
-                    } finally {
-                        tile.releaseEvents();
                     }
-                    tileCount++;
-                    progressReceiver.setProgress((float) tileCount / totalTiles);
-                }
+                }, progressReceiver);
             } else if (layer.getDataSize() == Layer.DataSize.BIT_PER_CHUNK) {
-                int totalTiles = dimension.getTileCount(), tileCount = 0;
-                for (Tile tile: dimension.getTiles()) {
+                visitTiles(tile -> {
                     final int worldTileX = tile.getX() << TILE_SIZE_BITS;
                     final int worldTileY = tile.getY() << TILE_SIZE_BITS;
-                    tile.inhibitEvents();
-                    try {
-                        for (int x = 0; x < TILE_SIZE; x += 16) {
-                            for (int y = 0; y < TILE_SIZE; y += 16) {
-                                boolean set;
-                                if (filter == null) {
-                                    set = true;
-                                } else {
-                                    float strength = filter.modifyStrength(worldTileX | x, worldTileY | y, 1.0f);
-                                    set = (strength > 0.95f) || (Math.random() < strength);
-                                }
-                                if (set && tile.getBitLayerValue(layer, x, y)) {
-                                    tile.setBitLayerValue(layer, x, y, false);
-                                }
-                            }
-                        }
-                    } finally {
-                        tile.releaseEvents();
-                    }
-                    tileCount++;
-                    progressReceiver.setProgress((float) tileCount / totalTiles);
-                }
-            } else {
-                throw new UnsupportedOperationException();
-            }
-        }
-    }
-
-    private void invertLayer(ProgressReceiver progressReceiver) throws UnsupportedOperationException, OperationCancelled {
-        Layer layer = (Layer) comboBoxInvertLayer.getSelectedItem();
-        if (layer.getDataSize() == Layer.DataSize.NIBBLE) {
-            int totalTiles = dimension.getTileCount(), tileCount = 0;
-            for (Tile tile: dimension.getTiles()) {
-                final int worldTileX = tile.getX() << TILE_SIZE_BITS;
-                final int worldTileY = tile.getY() << TILE_SIZE_BITS;
-                tile.inhibitEvents();
-                try {
-                    for (int x = 0; x < TILE_SIZE; x++) {
-                        for (int y = 0; y < TILE_SIZE; y++) {
-                            boolean set;
-                            if (filter == null) {
-                                set = true;
-                            } else {
-                                float strength = filter.modifyStrength(worldTileX | x, worldTileY | y, 1.0f);
-                                set = (strength > 0.95f) || (Math.random() < strength);
-                            }
-                            if (set) {
-                                tile.setLayerValue(layer, x, y, 15 - tile.getLayerValue(layer, x, y));
-                            }
-                        }
-                    }
-                } finally {
-                    tile.releaseEvents();
-                }
-                tileCount++;
-                progressReceiver.setProgress((float) tileCount / totalTiles);
-            }
-        } else if (layer.getDataSize() == Layer.DataSize.BIT) {
-            int totalTiles = dimension.getTileCount(), tileCount = 0;
-            for (Tile tile: dimension.getTiles()) {
-                final int worldTileX = tile.getX() << TILE_SIZE_BITS;
-                final int worldTileY = tile.getY() << TILE_SIZE_BITS;
-                tile.inhibitEvents();
-                try {
-                    for (int x = 0; x < TILE_SIZE; x++) {
-                        for (int y = 0; y < TILE_SIZE; y++) {
-                            boolean set;
-                            if (filter == null) {
-                                set = true;
-                            } else {
-                                float strength = filter.modifyStrength(worldTileX | x, worldTileY | y, 1.0f);
-                                set = (strength > 0.95f) || (Math.random() < strength);
-                            }
-                            if (set) {
-                                tile.setBitLayerValue(layer, x, y, ! tile.getBitLayerValue(layer, x, y));
-                            }
-                        }
-                    }
-                } finally {
-                    tile.releaseEvents();
-                }
-                tileCount++;
-                progressReceiver.setProgress((float) tileCount / totalTiles);
-            }
-        } else if (layer.getDataSize() == Layer.DataSize.BIT_PER_CHUNK) {
-            int totalTiles = dimension.getTileCount(), tileCount = 0;
-            for (Tile tile: dimension.getTiles()) {
-                final int worldTileX = tile.getX() << TILE_SIZE_BITS;
-                final int worldTileY = tile.getY() << TILE_SIZE_BITS;
-                tile.inhibitEvents();
-                try {
                     for (int x = 0; x < TILE_SIZE; x += 16) {
                         for (int y = 0; y < TILE_SIZE; y += 16) {
                             boolean set;
@@ -466,30 +331,24 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
                                 float strength = filter.modifyStrength(worldTileX | x, worldTileY | y, 1.0f);
                                 set = (strength > 0.95f) || (Math.random() < strength);
                             }
-                            if (set) {
-                                tile.setBitLayerValue(layer, x, y, ! tile.getBitLayerValue(layer, x, y));
+                            if (set && tile.getBitLayerValue(layer, x, y)) {
+                                tile.setBitLayerValue(layer, x, y, false);
                             }
                         }
                     }
-                } finally {
-                    tile.releaseEvents();
-                }
-                tileCount++;
-                progressReceiver.setProgress((float) tileCount / totalTiles);
+                }, progressReceiver);
+            } else {
+                throw new UnsupportedOperationException();
             }
-        } else {
-            throw new UnsupportedOperationException();
         }
     }
 
-    private void fillWithBiome(ProgressReceiver progressReceiver) throws OperationCancelled {
-        int biome = (Integer) comboBoxBiome.getSelectedItem();
-        int totalTiles = dimension.getTileCount(), tileCount = 0;
-        for (Tile tile: dimension.getTiles()) {
-            final int worldTileX = tile.getX() << TILE_SIZE_BITS;
-            final int worldTileY = tile.getY() << TILE_SIZE_BITS;
-            tile.inhibitEvents();
-            try {
+    private void invertLayer(ProgressReceiver progressReceiver) throws UnsupportedOperationException, OperationCancelled {
+        Layer layer = (Layer) comboBoxInvertLayer.getSelectedItem();
+        if (layer.getDataSize() == Layer.DataSize.NIBBLE) {
+            visitTiles(tile -> {
+                final int worldTileX = tile.getX() << TILE_SIZE_BITS;
+                final int worldTileY = tile.getY() << TILE_SIZE_BITS;
                 for (int x = 0; x < TILE_SIZE; x++) {
                     for (int y = 0; y < TILE_SIZE; y++) {
                         boolean set;
@@ -500,76 +359,118 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
                             set = (strength > 0.95f) || (Math.random() < strength);
                         }
                         if (set) {
-                            tile.setLayerValue(Biome.INSTANCE, x, y, biome);
+                            tile.setLayerValue(layer, x, y, 15 - tile.getLayerValue(layer, x, y));
                         }
                     }
                 }
-            } finally {
-                tile.releaseEvents();
-            }
-            tileCount++;
-            progressReceiver.setProgress((float) tileCount / totalTiles);
+            }, progressReceiver);
+        } else if (layer.getDataSize() == Layer.DataSize.BIT) {
+            visitTiles(tile -> {
+                final int worldTileX = tile.getX() << TILE_SIZE_BITS;
+                final int worldTileY = tile.getY() << TILE_SIZE_BITS;
+                for (int x = 0; x < TILE_SIZE; x++) {
+                    for (int y = 0; y < TILE_SIZE; y++) {
+                        boolean set;
+                        if (filter == null) {
+                            set = true;
+                        } else {
+                            float strength = filter.modifyStrength(worldTileX | x, worldTileY | y, 1.0f);
+                            set = (strength > 0.95f) || (Math.random() < strength);
+                        }
+                        if (set) {
+                            tile.setBitLayerValue(layer, x, y, ! tile.getBitLayerValue(layer, x, y));
+                        }
+                    }
+                }
+            }, progressReceiver);
+        } else if (layer.getDataSize() == Layer.DataSize.BIT_PER_CHUNK) {
+            visitTiles(tile -> {
+                final int worldTileX = tile.getX() << TILE_SIZE_BITS;
+                final int worldTileY = tile.getY() << TILE_SIZE_BITS;
+                for (int x = 0; x < TILE_SIZE; x += 16) {
+                    for (int y = 0; y < TILE_SIZE; y += 16) {
+                        boolean set;
+                        if (filter == null) {
+                            set = true;
+                        } else {
+                            float strength = filter.modifyStrength(worldTileX | x, worldTileY | y, 1.0f);
+                            set = (strength > 0.95f) || (Math.random() < strength);
+                        }
+                        if (set) {
+                            tile.setBitLayerValue(layer, x, y, ! tile.getBitLayerValue(layer, x, y));
+                        }
+                    }
+                }
+            }, progressReceiver);
+        } else {
+            throw new UnsupportedOperationException();
         }
+    }
+
+    private void fillWithBiome(ProgressReceiver progressReceiver) throws OperationCancelled {
+        int biome = (Integer) comboBoxBiome.getSelectedItem();
+        visitTiles(tile -> {
+            final int worldTileX = tile.getX() << TILE_SIZE_BITS;
+            final int worldTileY = tile.getY() << TILE_SIZE_BITS;
+            for (int x = 0; x < TILE_SIZE; x++) {
+                for (int y = 0; y < TILE_SIZE; y++) {
+                    boolean set;
+                    if (filter == null) {
+                        set = true;
+                    } else {
+                        float strength = filter.modifyStrength(worldTileX | x, worldTileY | y, 1.0f);
+                        set = (strength > 0.95f) || (Math.random() < strength);
+                    }
+                    if (set) {
+                        tile.setLayerValue(Biome.INSTANCE, x, y, biome);
+                    }
+                }
+            }
+        }, progressReceiver);
     }
     
     private void resetBiomes(ProgressReceiver progressReceiver) throws OperationCancelled {
         if (filter == null) {
             dimension.clearLayerData(Biome.INSTANCE);
         } else {
-            int totalTiles = dimension.getTileCount(), tileCount = 0;
-            for (Tile tile: dimension.getTiles()) {
+            visitTiles(tile -> {
                 final int worldTileX = tile.getX() << TILE_SIZE_BITS;
                 final int worldTileY = tile.getY() << TILE_SIZE_BITS;
-                tile.inhibitEvents();
-                try {
-                    for (int x = 0; x < TILE_SIZE; x++) {
-                        for (int y = 0; y < TILE_SIZE; y++) {
-                            final float strength = filter.modifyStrength(worldTileX | x, worldTileY | y, 1.0f);
-                            if ((strength > 0.95f) || (Math.random() < strength)) {
-                                tile.setLayerValue(Biome.INSTANCE, x, y, 255);
-                            }
+                for (int x = 0; x < TILE_SIZE; x++) {
+                    for (int y = 0; y < TILE_SIZE; y++) {
+                        final float strength = filter.modifyStrength(worldTileX | x, worldTileY | y, 1.0f);
+                        if ((strength > 0.95f) || (Math.random() < strength)) {
+                            tile.setLayerValue(Biome.INSTANCE, x, y, 255);
                         }
                     }
-                } finally {
-                    tile.releaseEvents();
                 }
-                tileCount++;
-                progressReceiver.setProgress((float) tileCount / totalTiles);
-            }
+            }, progressReceiver);
         }
     }
 
     private void makeAutoBiomesPermanent(ProgressReceiver progressReceiver) throws OperationCancelled {
-        int totalTiles = dimension.getTileCount(), tileCount = 0;
-        for (Tile tile: dimension.getTiles()) {
-            final int worldTileX = tile.getX() << TILE_SIZE_BITS;
-            final int worldTileY = tile.getY() << TILE_SIZE_BITS;
-            tile.inhibitEvents();
-            try {
-                if (filter == null) {
-                    for (int x = 0; x < TILE_SIZE; x++) {
-                        for (int y = 0; y < TILE_SIZE; y++) {
-                            if (tile.getLayerValue(Biome.INSTANCE, x, y) == 255) {
-                                tile.setLayerValue(Biome.INSTANCE, x, y, dimension.getAutoBiome(tile, x, y));
-                            }
-                        }
-                    }
-                } else {
-                    for (int x = 0; x < TILE_SIZE; x++) {
-                        for (int y = 0; y < TILE_SIZE; y++) {
-                            final float strength = filter.modifyStrength(worldTileX | x, worldTileY | y, 1.0f);
-                            if (((strength > 0.95f) || (Math.random() < strength)) && (tile.getLayerValue(Biome.INSTANCE, x, y) == 255)) {
-                                tile.setLayerValue(Biome.INSTANCE, x, y, dimension.getAutoBiome(tile, x, y));
-                            }
+        visitTiles(tile -> {
+            if (filter == null) {
+                for (int x = 0; x < TILE_SIZE; x++) {
+                    for (int y = 0; y < TILE_SIZE; y++) {
+                        if (tile.getLayerValue(Biome.INSTANCE, x, y) == 255) {
+                            tile.setLayerValue(Biome.INSTANCE, x, y, dimension.getAutoBiome(tile, x, y));
                         }
                     }
                 }
-            } finally {
-                tile.releaseEvents();
+            } else {
+                final int worldTileX = tile.getX() << TILE_SIZE_BITS;
+                final int worldTileY = tile.getY() << TILE_SIZE_BITS;
+                for (int x = 0; x < TILE_SIZE; x++) {
+                    for (int y = 0; y < TILE_SIZE; y++) {
+                        final float strength = filter.modifyStrength(worldTileX | x, worldTileY | y, 1.0f);
+                        if (((strength > 0.95f) || (Math.random() < strength)) && (tile.getLayerValue(Biome.INSTANCE, x, y) == 255)) {
+                            tile.setLayerValue(Biome.INSTANCE, x, y, dimension.getAutoBiome(tile, x, y));
+                        }
+                    }
+                }
             }
-            tileCount++;
-            progressReceiver.setProgress((float) tileCount / totalTiles);
-        }
+        }, progressReceiver);
     }
     
     private void resetWater(ProgressReceiver progressReceiver) throws OperationCancelled, UnsupportedOperationException {
@@ -577,64 +478,55 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
         if (tileFactory instanceof HeightMapTileFactory) {
             int waterLevel = ((HeightMapTileFactory) tileFactory).getWaterHeight();
             boolean floodWithLava = ((HeightMapTileFactory) tileFactory).isFloodWithLava();
-            int totalTiles = dimension.getTileCount(), tileCount = 0;
-            for (Tile tile: dimension.getTiles()) {
+            visitTiles(tile -> {
                 final int worldTileX = tile.getX() << TILE_SIZE_BITS;
                 final int worldTileY = tile.getY() << TILE_SIZE_BITS;
-                tile.inhibitEvents();
-                try {
-                    if (floodWithLava) {
-                        for (int x = 0; x < TILE_SIZE; x++) {
-                            for (int y = 0; y < TILE_SIZE; y++) {
-                                boolean set;
-                                if (filter == null) {
-                                    set = true;
-                                } else {
-                                    float strength = filter.modifyStrength(worldTileX | x, worldTileY | y, 1.0f);
-                                    set = (strength > 0.95f) || (Math.random() < strength);
-                                }
-                                if (set) {
-                                    tile.setWaterLevel(x, y, waterLevel);
-                                    tile.setBitLayerValue(FloodWithLava.INSTANCE, x, y, true);
-                                }
+                if (floodWithLava) {
+                    for (int x = 0; x < TILE_SIZE; x++) {
+                        for (int y = 0; y < TILE_SIZE; y++) {
+                            boolean set;
+                            if (filter == null) {
+                                set = true;
+                            } else {
+                                float strength = filter.modifyStrength(worldTileX | x, worldTileY | y, 1.0f);
+                                set = (strength > 0.95f) || (Math.random() < strength);
+                            }
+                            if (set) {
+                                tile.setWaterLevel(x, y, waterLevel);
+                                tile.setBitLayerValue(FloodWithLava.INSTANCE, x, y, true);
                             }
                         }
-                    } else {
-                        if (filter == null) {
-                            tile.clearLayerData(FloodWithLava.INSTANCE);
-                        }
-                        for (int x = 0; x < TILE_SIZE; x++) {
-                            for (int y = 0; y < TILE_SIZE; y++) {
-                                boolean set;
-                                if (filter == null) {
-                                    set = true;
-                                } else {
-                                    float strength = filter.modifyStrength(worldTileX | x, worldTileY | y, 1.0f);
-                                    set = (strength > 0.95f) || (Math.random() < strength);
-                                }
-                                if (set) {
-                                    tile.setWaterLevel(x, y, waterLevel);
-                                    if (filter != null) {
-                                        tile.setBitLayerValue(FloodWithLava.INSTANCE, x, y, false);
-                                    }
+                    }
+                } else {
+                    if (filter == null) {
+                        tile.clearLayerData(FloodWithLava.INSTANCE);
+                    }
+                    for (int x = 0; x < TILE_SIZE; x++) {
+                        for (int y = 0; y < TILE_SIZE; y++) {
+                            boolean set;
+                            if (filter == null) {
+                                set = true;
+                            } else {
+                                float strength = filter.modifyStrength(worldTileX | x, worldTileY | y, 1.0f);
+                                set = (strength > 0.95f) || (Math.random() < strength);
+                            }
+                            if (set) {
+                                tile.setWaterLevel(x, y, waterLevel);
+                                if (filter != null) {
+                                    tile.setBitLayerValue(FloodWithLava.INSTANCE, x, y, false);
                                 }
                             }
                         }
                     }
-                } finally {
-                    tile.releaseEvents();
                 }
-                tileCount++;
-                progressReceiver.setProgress((float) tileCount / totalTiles);
-            }
+            }, progressReceiver);
         } else {
             throw new UnsupportedOperationException("Tile factory type " + tileFactory.getClass() + " not supported");
         }
     }
 
     private void resetTerrain(ProgressReceiver progressReceiver) throws OperationCancelled {
-        int totalTiles = dimension.getTileCount(), tileCount = 0;
-        for (Tile tile: dimension.getTiles()) {
+        visitTiles(tile -> {
             final int worldTileX = tile.getX() << TILE_SIZE_BITS;
             final int worldTileY = tile.getY() << TILE_SIZE_BITS;
             for (int x = 0; x < TILE_SIZE; x++) {
@@ -651,9 +543,51 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
                     }
                 }
             }
+        }, progressReceiver);
+    }
+
+    private void visitTiles(TileVisitor visitor, ProgressReceiver progressReceiver) throws OperationCancelled {
+        int totalTiles = dimension.getTileCount(), tileCount = 0;
+        Rectangle area = getAreaToProcess();
+        for (Tile tile: dimension.getTiles()) {
+            if ((area != null) && (! area.contains(tile.getX(), tile.getY()))) {
+                tileCount++;
+                progressReceiver.setProgress((float) tileCount / totalTiles);
+                continue;
+            }
+            tile.inhibitEvents();
+            try {
+                visitor.visit(tile);
+            } finally {
+                tile.releaseEvents();
+            }
             tileCount++;
             progressReceiver.setProgress((float) tileCount / totalTiles);
         }
+    }
+
+    /**
+     * Determine the area, in tile coordinates, to process, if not all tiles
+     * need to be processed for some reason.
+     *
+     * @return The area to process, in tile coordinates, or <code>null</code> if
+     * all tiles must be processed.
+     */
+    private Rectangle getAreaToProcess() {
+        if ((filter instanceof DefaultFilter) && ((DefaultFilter) filter).isInSelection()) {
+            // The filter is set to "in selection", so we only need to process
+            // the tiles which intersect with the bounding box of the selection
+            SelectionHelper selectionHelper = new SelectionHelper(dimension);
+            Rectangle selectionBounds = selectionHelper.getSelectionBounds();
+            if (selectionBounds != null) {
+                int x1 = selectionBounds.x, x2 = selectionBounds.x + selectionBounds.width - 1;
+                int y1 = selectionBounds.y, y2 = selectionBounds.y + selectionBounds.height - 1;
+                int tile1X = x1 >> TILE_SIZE_BITS, tile1Y = y1 >> TILE_SIZE_BITS;
+                int tile2X = x2 >> TILE_SIZE_BITS, tile2Y = y2 >> TILE_SIZE_BITS;
+                return new Rectangle(tile1X, tile1Y, tile2X - tile1X + 1, tile2Y - tile1Y + 1);
+            }
+        }
+        return null;
     }
 
     /** This method is called from within the constructor to
@@ -937,4 +871,8 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
     private Filter filter;
     
     private static final long serialVersionUID = 1L;
+
+    interface TileVisitor {
+        void visit(Tile tile);
+    }
 }
