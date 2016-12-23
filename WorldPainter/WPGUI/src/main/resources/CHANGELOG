@@ -1,6 +1,8 @@
--- Version 2.3.3, released ...
+-- Version 2.3.3, released 23-12-2016
 
+ * The Brush Settings panel now has "in selection" and "outside selection" options to apply operations only inside or outside the selection. This also applies to the Global Operations tool
  * Bug fix: don't crash when trying to Export or Merge on Windows versions older than Windows 7
+ * Bug fix: don't allow the Copy Selection tool to be selected when there is no selection
 
 -- Version 2.3.2, released 9-12-2016
 
