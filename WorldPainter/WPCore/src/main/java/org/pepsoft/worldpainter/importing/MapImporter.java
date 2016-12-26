@@ -237,9 +237,7 @@ public class MapImporter {
         final Pattern regionFilePattern = (version == SUPPORTED_VERSION_1)
             ? Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mcr")
             : Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mca");
-        final File[] regionFiles = regionDir.listFiles((dir, name) -> {
-            return regionFilePattern.matcher(name).matches();
-        });
+        final File[] regionFiles = regionDir.listFiles((dir, name) -> regionFilePattern.matcher(name).matches());
         if ((regionFiles == null) || (regionFiles.length == 0)) {
             throw new RuntimeException("The " + dimension.getName() + " dimension of this map has no region files!");
         }

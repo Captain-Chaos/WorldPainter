@@ -22,6 +22,7 @@ public class MinecraftDirectoryNode extends DirectoryNode {
     @Override
     protected Node[] loadChildren() {
         File[] contents = file.listFiles();
+        @SuppressWarnings("ConstantConditions") // Can't happen since this node is only created for existing directories
         List<Node> children = new ArrayList<>(contents.length);
         for (File file: contents) {
             if (file.isDirectory()) {
@@ -41,7 +42,7 @@ public class MinecraftDirectoryNode extends DirectoryNode {
                 }
             }
         }
-        Collections.sort(children, (node1, node2) -> COLLATOR.compare(node1.getName(), node2.getName()));
+        children.sort((node1, node2) -> COLLATOR.compare(node1.getName(), node2.getName()));
         return children.toArray(new Node[children.size()]);
     }
 

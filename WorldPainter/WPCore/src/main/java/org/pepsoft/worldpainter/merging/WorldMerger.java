@@ -225,6 +225,7 @@ public class WorldMerger extends WorldExporter {
 
         // Copy everything that we are not going to generate
         File[] files = backupDir.listFiles();
+        //noinspection ConstantConditions // Cannot happen because we previously loaded level.dat from it
         for (File file: files) {
             if ((! file.getName().equalsIgnoreCase("level.dat"))
                     && (! file.getName().equalsIgnoreCase("level.dat_old"))
@@ -237,7 +238,7 @@ public class WorldMerger extends WorldExporter {
                 if (file.isFile()) {
                     FileUtils.copyFileToDir(file, worldDir);
                 } else if (file.isDirectory()) {
-                    FileUtils.copyDir(file, worldDir);
+                    FileUtils.copyDir(file, new File(worldDir, file.getName()));
                 } else {
                     logger.warn("Not copying " + file + "; not a regular file or directory");
                 }
@@ -472,9 +473,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
             final Pattern regionFilePattern = (version == SUPPORTED_VERSION_2)
                 ? Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mca")
                 : Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mcr");
-            File[] existingRegionFiles = backupRegionDir.listFiles((dir, name) -> {
-                return regionFilePattern.matcher(name).matches();
-            });
+            File[] existingRegionFiles = backupRegionDir.listFiles((dir, name) -> regionFilePattern.matcher(name).matches());
             Map<Point, File> existingRegions = new HashMap<>();
             for (File file: existingRegionFiles) {
                 String[] parts = file.getName().split("\\.");
@@ -843,6 +842,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         // Copy everything that we are not going to generate (this includes the
         // Nether and End dimensions)
         File[] files = backupDir.listFiles();
+        //noinspection ConstantConditions // Cannot happen because we previously loaded level.dat from it
         for (File file: files) {
             if ((! file.getName().equalsIgnoreCase("level.dat"))
                     && (! file.getName().equalsIgnoreCase("level.dat_old"))
@@ -853,7 +853,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                 if (file.isFile()) {
                     FileUtils.copyFileToDir(file, worldDir);
                 } else if (file.isDirectory()) {
-                    FileUtils.copyDir(file, worldDir);
+                    FileUtils.copyDir(file, new File(worldDir, file.getName()));
                 } else {
                     logger.warn("Not copying " + file + "; not a regular file or directory");
                 }
@@ -869,12 +869,11 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         // Find all the region files of the existing level
         File oldRegionDir = new File(backupDir, "region");
         final Pattern regionFilePattern = Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mca");
-        File[] oldRegionFiles = oldRegionDir.listFiles((dir, name) -> {
-            return regionFilePattern.matcher(name).matches();
-        });
+        File[] oldRegionFiles = oldRegionDir.listFiles((dir, name) -> regionFilePattern.matcher(name).matches());
 
         // Process each region file, copying every chunk unmodified, except
         // for the biomes
+        @SuppressWarnings("ConstantConditions") // Can only happen for corrupted maps
         int totalChunkCount = oldRegionFiles.length * 32 * 32, chunkCount = 0;
         File newRegionDir = new File(worldDir, "region");
         newRegionDir.mkdirs();

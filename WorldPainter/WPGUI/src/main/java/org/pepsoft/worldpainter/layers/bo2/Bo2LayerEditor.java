@@ -99,6 +99,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                 if ((files.size() == 1) && files.get(0).isDirectory()) {
                     logger.info("Existing custom object layer contains old style directory; migrating to new style");
                     File[] filesInDir = files.get(0).listFiles((dir, name) -> name.toLowerCase().endsWith(".bo2") || name.toLowerCase().endsWith(".schematic"));
+                    //noinspection ConstantConditions // Cannot happen as we already checked that files.get(0) is an extant directory
                     for (File file: filesInDir) {
                         try {
                             WPObject object;
@@ -302,6 +303,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                             fieldName.setText(name);
                         }
                         File[] files = selectedFile.listFiles((dir, name) -> name.toLowerCase().endsWith(".bo2") || name.toLowerCase().endsWith(".bo3") || name.toLowerCase().endsWith(".schematic") || name.toLowerCase().endsWith(".nbt"));
+                        //noinspection ConstantConditions // Cannot happen as we already checked selectedFile is an extant directory
                         if (files.length == 0) {
                             JOptionPane.showMessageDialog(this, "Directory " + selectedFile.getName() + " does not contain any .bo2, .bo3, .schematic or .nbt files.", "No Custom Object Files", JOptionPane.ERROR_MESSAGE);
                         } else {

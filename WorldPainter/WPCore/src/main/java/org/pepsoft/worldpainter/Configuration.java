@@ -915,9 +915,10 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
             // new location
             return ! name.startsWith("logfile");
         });
+        //noinspection ConstantConditions // This method is only invoked when oldContents in fact exists
         for (File oldFile: oldContents) {
             if (oldFile.isDirectory()) {
-                FileUtils.copyDir(oldFile, newConfigDir);
+                FileUtils.copyDir(oldFile, new File(newConfigDir, oldFile.getName()));
             } else if (oldFile.isFile()) {
                 FileUtils.copyFileToDir(oldFile, newConfigDir);
             } else {

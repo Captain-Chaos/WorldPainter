@@ -146,9 +146,7 @@ public class MapImportDialog extends javax.swing.JDialog {
         final Pattern regionFilePattern = (version == SUPPORTED_VERSION_1)
             ? Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mcr")
             : Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mca");
-        final File[] regionFiles = regionDir.listFiles((dir, name) -> {
-            return regionFilePattern.matcher(name).matches();
-        });
+        final File[] regionFiles = regionDir.listFiles((dir, name) -> regionFilePattern.matcher(name).matches());
         if ((regionFiles == null) || (regionFiles.length == 0)) {
             logger.error("Region files missing while analysing map " + levelDatFile);
             JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("the.region.folder.contains.no.region.files"), strings.getString("region.files.missing"), JOptionPane.ERROR_MESSAGE);
@@ -159,18 +157,14 @@ public class MapImportDialog extends javax.swing.JDialog {
         boolean netherPresent = false, endPresent = false;
         File netherRegionDir = new File(worldDir, "DIM-1/region");
         if (netherRegionDir.isDirectory()) {
-            File[] netherRegionFiles = netherRegionDir.listFiles((dir, name) -> {
-                return regionFilePattern.matcher(name).matches();
-            });
+            File[] netherRegionFiles = netherRegionDir.listFiles((dir, name) -> regionFilePattern.matcher(name).matches());
             if ((netherRegionFiles != null) && (netherRegionFiles.length > 0)) {
                 netherPresent = true;
             }
         }
         File endRegionDir = new File(worldDir, "DIM1/region");
         if (endRegionDir.isDirectory()) {
-            File[] endRegionFiles = endRegionDir.listFiles((dir, name) -> {
-                return regionFilePattern.matcher(name).matches();
-            });
+            File[] endRegionFiles = endRegionDir.listFiles((dir, name) -> regionFilePattern.matcher(name).matches());
             if ((endRegionFiles != null) && (endRegionFiles.length > 0)) {
                 endPresent = true;
             }

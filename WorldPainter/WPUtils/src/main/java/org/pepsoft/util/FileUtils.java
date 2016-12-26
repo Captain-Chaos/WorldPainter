@@ -75,12 +75,15 @@ public class FileUtils {
     /**
      * Recursively copy a directory including all contents.
      * 
-     * @param dir The directory to copy.
+     * @param dir The directory to copy. Must exist.
      * @param destDir The directory into which to copy the contents of
      *                <code>dir</code>. Must not exist yet and will be created.
      * @throws IOException If there is an I/O error while performing the copy.
      */
     public static void copyDir(File dir, File destDir) throws IOException {
+        if (! dir.isDirectory()) {
+            throw new IllegalArgumentException("Source directory " + dir + " does not exist or is not a directory");
+        }
         if (destDir.isDirectory()) {
             throw new IllegalStateException("Destination directory " + destDir + " already exists");
         }
@@ -88,6 +91,7 @@ public class FileUtils {
             throw new IOException("Could not create " + destDir);
         }
         File[] files = dir.listFiles();
+        //noinspection ConstantConditions // Guaranteed by precondition check at start
         for (File file: files) {
             if (file.isDirectory()) {
                 copyDir(file, new File(destDir, file.getName()));
@@ -190,6 +194,7 @@ public class FileUtils {
             throw new IllegalArgumentException(dir + " does not exist or is not a directory");
         }
         File[] contents = dir.listFiles();
+        //noinspection ConstantConditions // Guaranteed by precondition check at start
         for (File file: contents) {
             if (file.isDirectory()) {
                 deleteDir(file);
