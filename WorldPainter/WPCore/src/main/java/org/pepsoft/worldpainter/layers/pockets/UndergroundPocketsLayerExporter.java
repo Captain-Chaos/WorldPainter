@@ -5,6 +5,7 @@
 package org.pepsoft.worldpainter.layers.pockets;
 
 import org.pepsoft.minecraft.Chunk;
+import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.exporting.AbstractLayerExporter;
@@ -56,8 +57,7 @@ public class UndergroundPocketsLayerExporter extends AbstractLayerExporter<Under
                 }
                 final int value = tile.getLayerValue(layer, localX, localY);
                 if (value > 0) {
-                    final float bias = (float) Math.pow(0.9, value - 8);
-                    final float biasedChance = bias * chance;
+                    final float biasedThreshold = biasedThresholds[value - 1];
                     final int terrainheight = tile.getIntHeight(localX, localY);
                     // Coordinates in world
                     final int worldX = tile.getX() << TILE_SIZE_BITS | localX, worldY = tile.getY() << TILE_SIZE_BITS | localY;
@@ -70,7 +70,7 @@ public class UndergroundPocketsLayerExporter extends AbstractLayerExporter<Under
                             Math.min(dimension.getIntHeightAt(worldX, worldY - 1, Integer.MAX_VALUE),
                             dimension.getIntHeightAt(worldX, worldY + 1, Integer.MAX_VALUE))));
                     }
-                    if (biasedChance <= -0.5f) {
+                    if (biasedThreshold <= -0.5f) {
                         // Special case: replace every block
                         for (int y = maxY; y >= minY; y--) {
                             if (useMaterial) {
@@ -82,7 +82,7 @@ public class UndergroundPocketsLayerExporter extends AbstractLayerExporter<Under
                     } else {
                         for (int y = maxY; y >= minY; y--) {
                             double dx = worldX / scale, dy = worldY / scale, dz = y / scale;
-                            if (noiseGenerator.getPerlinNoise(dx, dy, dz) >= biasedChance) {
+                            if (noiseGenerator.getPerlinNoise(dx, dy, dz) >= biasedThreshold) {
                                 if (useMaterial) {
                                     chunk.setMaterial(x, y, z, material.getMaterial(seed, worldX, worldY, y));
                                 } else {
@@ -102,13 +102,13 @@ public class UndergroundPocketsLayerExporter extends AbstractLayerExporter<Under
     public BufferedImage createPreview(int width, int height) {
         init();
         final BufferedImage preview = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
-        // For chance <= -0.5 the image would be all-black, which it is by
+        // For threshold <= -0.5 the image would be all-black, which it is by
         // default anyway
-        if (chance > -0.5f) {
+        if (threshold > -0.5f) {
             for (int x = 0; x < width; x++) {
                 for (int z = 0; z < height; z++) {
                     double dx = x / scale, dz = z / scale;
-                    if (noiseGenerator.getPerlinNoise(dx, 0.0, dz) < chance) {
+                    if (noiseGenerator.getPerlinNoise(dx, 0.0, dz) < threshold) {
                         preview.setRGB(x, height - z - 1, 0xffffff);
                     }
                 }
@@ -127,7 +127,7 @@ public class UndergroundPocketsLayerExporter extends AbstractLayerExporter<Under
         final MixedMaterial material = layer.getMaterial();
         final Terrain terrain = layer.getTerrain();
         final boolean useMaterial = material != null;
-        if (chance <= -0.5f) {
+        if (threshold <= -0.5f) {
             // Special case: replace every block
             for (int x = 0; x < width; x++) {
                 for (int z = 0; z < height; z++) {
@@ -142,7 +142,7 @@ public class UndergroundPocketsLayerExporter extends AbstractLayerExporter<Under
             for (int x = 0; x < width; x++) {
                 for (int z = 0; z < height; z++) {
                     double dx = x / scale, dz = z / scale;
-                    if (noiseGenerator.getPerlinNoise(dx, 0.0, dz) >= chance) {
+                    if (noiseGenerator.getPerlinNoise(dx, 0.0, dz) >= threshold) {
                         if (useMaterial) {
                             preview.setRGB(x, height - z - 1, colourScheme.getColour(material.getMaterial(0L, x, 0, z)));
                         } else {
@@ -160,7 +160,10 @@ public class UndergroundPocketsLayerExporter extends AbstractLayerExporter<Under
     
     private void init() {
         seedOffset = (layer.getMaterial() != null) ? layer.getMaterial().hashCode() : layer.getTerrain().hashCode();
-        chance = PerlinNoise.getLevelForPromillage(layer.getFrequency());
+        for (int i = 1; i <= 15; i++) {
+            biasedThresholds[i - 1] = PerlinNoise.getLevelForPromillage(MathUtils.clamp(0f, (float) (layer.getFrequency() * Math.pow(0.9, 8 - i)), 1000f));
+        }
+        threshold = biasedThresholds[8];
         scale = TINY_BLOBS * (layer.getScale() / 100.0);
     }
 
@@ -194,7 +197,14 @@ public class UndergroundPocketsLayerExporter extends AbstractLayerExporter<Under
 //    }
     
     private final PerlinNoise noiseGenerator = new PerlinNoise(0);
+    /**
+     * The thresholds for all possible layer values
+     */
+    private final float[] biasedThresholds = new float[15];
     private long seedOffset;
-    private float chance;
+    /**
+     * The threshold for value 8 (50% intensity)
+     */
+    private float threshold;
     private double scale;
 }
