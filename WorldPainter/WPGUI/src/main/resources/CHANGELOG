@@ -1,3 +1,8 @@
+-- Version 2.3.4, released 26-12-2016
+
+ * Bug fix: make Merge work once again, by fixing a bug in the directory moving logic.
+   PLEASE NOTE: if you have tried to Merge maps with version 2.3.3 and run into this error you will first have to restore that map from the backup made by WorldPainter before you can Merge with it again! If the map is in <minecraft dir>\saves\<MapName> then the backup will be in <minecraft dir>\backups\<MapName>.<timestamp>. You can just copy all files and directories from the backup directory over those in the map directory
+
 -- Version 2.3.3, released 23-12-2016
 
  * The Brush Settings panel now has "in selection" and "outside selection" options to apply operations only inside or outside the selection. This also applies to the Global Operations tool
