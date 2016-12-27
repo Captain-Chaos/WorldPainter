@@ -9,7 +9,6 @@ import org.pepsoft.worldpainter.MixedMaterial;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.exporting.LayerExporter;
-import org.pepsoft.worldpainter.layers.combined.CombinedLayerExporter;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -118,9 +117,17 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
         this.factors = factors;
     }
 
+    /**
+     * Always throws an <code>UnsupportedOperationException</code>, as combined
+     * layers don't have their own exporter; instead they should be
+     * {@link #apply(Dimension) applied} before exporting.
+     *
+     * @return Nothing.
+     * @throws UnsupportedOperationException Always.
+     */
     @Override
-    public CombinedLayerExporter getExporter() {
-        return new CombinedLayerExporter(this);
+    public LayerExporter getExporter() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -167,7 +174,13 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
      */
     public boolean restoreCustomTerrain() {
         if (customTerrainPresent) {
-            if (customTerrainMaterial.equals(Terrain.getCustomMaterial(terrain.getCustomTerrainIndex()))) {
+            if (customTerrainMaterial == null) {
+                // This should not be possible, but due to earlier bugs there
+                // are worlds in the wild with a custom terrain without a stored
+                // custom material. Not much we can do
+                terrain = null;
+                return false;
+            } else if (customTerrainMaterial.equals(Terrain.getCustomMaterial(terrain.getCustomTerrainIndex()))) {
                 // The exact same custom terrain is present, in the same slot.
                 // Keep using it
                 return true;

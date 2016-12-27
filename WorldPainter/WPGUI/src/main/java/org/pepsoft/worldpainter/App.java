@@ -497,7 +497,7 @@ public final class App extends JFrame implements RadiusControl,
             }
                 
             // Add the custom object layers from the world
-            boolean missingTerrainWarningGiven = false;
+            StringBuilder warnings = new StringBuilder();
             for (CustomLayer customLayer: dimension.getCustomLayers()) {
                 if (customLayer.isHide()) {
                     layersWithNoButton.add(customLayer);
@@ -506,10 +506,10 @@ public final class App extends JFrame implements RadiusControl,
                 }
                 if (customLayer instanceof CombinedLayer) {
                     if (! ((CombinedLayer) customLayer).restoreCustomTerrain()) {
-                        if (! missingTerrainWarningGiven) {
-                            showMessageDialog(this, "The world contains one or more Combined Layer(s) referring to a Custom Terrain\nwhich is not present in this world. The terrain has been reset.", "Missing Custom Terrain", WARNING_MESSAGE);
-                            missingTerrainWarningGiven = true;
+                        if (warnings.length() == 0) {
+                            warnings.append("The Custom Terrain for one or more Combined Layer could not be restored:\n\n");
                         }
+                        warnings.append(customLayer.getName()).append('\n');
                     } else {
                         // Check for a custom terrain type and if necessary make
                         // sure it has a button
@@ -519,6 +519,10 @@ public final class App extends JFrame implements RadiusControl,
                         }
                     }
                 }
+            }
+            if (warnings.length() > 0) {
+                warnings.append("\nThe Custom Terrain has been removed from the layer(s).");
+                showMessageDialog(this, warnings.toString(), "Custom Terrain(s) Not Restored", ERROR_MESSAGE);
             }
             
             // Set action states
@@ -5132,7 +5136,7 @@ public final class App extends JFrame implements RadiusControl,
                             CombinedLayer combinedLayer = (CombinedLayer) layer;
                             addLayersFromCombinedLayer(combinedLayer);
                             if (! combinedLayer.restoreCustomTerrain()) {
-                                showMessageDialog(this, "The layer contained a Custom Terrain which is not present in this world. The terrain has been reset.", "Missing Custom Terrain", WARNING_MESSAGE);
+                                showMessageDialog(this, "The layer contained a Custom Terrain which could not be restored. The terrain has been reset.", "Custom Terrain Not Restored", ERROR_MESSAGE);
                             } else {
                                 // Check for a custom terrain type and if necessary make
                                 // sure it has a button
