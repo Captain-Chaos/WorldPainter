@@ -394,11 +394,15 @@ public class MixedMaterial implements Serializable, Comparable<MixedMaterial> {
      *           which do not return a value.
      * @return The return value of the task or <code>null</code> if it does not
      *     return a value.
+     * @throws RuntimeException If the task throws a checked exception it will
+     * be wrapped in a <code>RuntimeException</code>.
      */
     public static <V> V duplicateNewMaterialsWhile(Callable<V> task) {
         DUPLICATE_MATERIALS.set(true);
         try {
             return task.call();
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
