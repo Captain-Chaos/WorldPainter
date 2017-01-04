@@ -1,5 +1,6 @@
--- Version 2.3.5, released ...
+-- Version 2.3.5, released 4-1-2017
 
+ * Should be more robust at loading combined layers that had previously been affected by a custom terrain related bug. Such layers, and worlds containing them, should now load without crashing WorldPainter, but the custom terrains from them might be lost. WorldPainter will inform you if that happens
  * Bug fix: correctly interpret the layer intensities for Custom Underground Pockets layers
    PLEASE NOTE: check your maps in which you use Custom Underground Pockets layers! They have been incorrectly mapping layer intensity to block frequency. The intention, and how they now work, is: at 50% intensity the blocks are as frequent as you specified in the layer settings; at 1% intensity they are half as frequent and at 100% they are twice as frequent. If you set the frequency to 1000‰ it will be completely solid anywhere it is painted at 50% intensity (the default) or higher
 
