@@ -1,3 +1,8 @@
+-- Version 2.3.6, released 5-1-2017
+
+ * Bug fix: make working with Combined Layers work again without crashing WorldPainter
+ * Bug fix: since version 2.3.0, when editing multiple Custom Objects at once, WorldPainter has been resetting the offsets to zero. This has now been fixed
+
 -- Version 2.3.5, released 4-1-2017
 
  * Should be more robust at loading combined layers that had previously been affected by a custom terrain related bug. Such layers, and worlds containing them, should now load without crashing WorldPainter, but the custom terrains from them might be lost. WorldPainter will inform you if that happens
