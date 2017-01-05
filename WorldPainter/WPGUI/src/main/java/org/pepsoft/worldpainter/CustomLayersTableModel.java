@@ -13,7 +13,6 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -26,7 +25,7 @@ public class CustomLayersTableModel implements TableModel {
         customLayers = new ArrayList<>(allCustomLayers);
 
         // Sort the list, with first pass layers first
-        Collections.sort(customLayers, (layer1, layer2) -> {
+        customLayers.sort((layer1, layer2) -> {
             boolean layer1FirstPass = layer1.getExporter() instanceof FirstPassLayerExporter;
             boolean layer2FirstPass = layer2.getExporter() instanceof FirstPassLayerExporter;
             if (layer1FirstPass && (! layer2FirstPass)) {
@@ -39,11 +38,13 @@ public class CustomLayersTableModel implements TableModel {
         });
 
         // Insert first and second pass headers
-        customLayers.add(0, FIRST_PASS_HEADER);
-        for (int i = customLayers.size() - 1; i > 1; i--) {
-            if (! (customLayers.get(i).getExporter() instanceof SecondPassLayerExporter)) {
-                customLayers.add(i + 1, SECOND_PASS_HEADER);
-                break;
+        if (! customLayers.isEmpty()) {
+            customLayers.add(0, FIRST_PASS_HEADER);
+            for (int i = customLayers.size() - 1; i > 1; i--) {
+                if (! (customLayers.get(i).getExporter() instanceof SecondPassLayerExporter)) {
+                    customLayers.add(i + 1, SECOND_PASS_HEADER);
+                    break;
+                }
             }
         }
     }
