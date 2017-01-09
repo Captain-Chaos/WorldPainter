@@ -637,7 +637,7 @@ public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener
             } else if (layer instanceof Annotations) {
                 return org.pepsoft.minecraft.Constants.COLOUR_NAMES[intensity - ((intensity < 8) ? 1 : 0)];
             } else if (layer instanceof GardenCategory) {
-                return GardenCategory.getLabel(intensity);
+                return GardenCategory.getLabel(strings, intensity);
             } else {
                 switch (layer.getDataSize()) {
                     case BIT:
@@ -660,5 +660,7 @@ public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener
         }
 
         private final BiomeHelper biomeHelper;
+
+        private static final ResourceBundle strings = ResourceBundle.getBundle("org.pepsoft.worldpainter.resources.strings"); // NOI18N
     }
 }

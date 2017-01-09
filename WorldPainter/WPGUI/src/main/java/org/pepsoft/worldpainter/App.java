@@ -672,7 +672,7 @@ public final class App extends JFrame implements RadiusControl,
                     break;
             }
         } else if (activeOperation instanceof GardenOfEdenOperation) {
-            setTextIfDifferent(waterLabel, strings.getString("structure") + ": " + GardenCategory.getLabel(tile.getLayerValue(GardenCategory.INSTANCE, xInTile, yInTile)));
+            setTextIfDifferent(waterLabel, strings.getString("structure") + ": " + GardenCategory.getLabel(strings, tile.getLayerValue(GardenCategory.INSTANCE, xInTile, yInTile)));
         } else {
             int waterLevel = tile.getWaterLevel(xInTile, yInTile);
             if (waterLevel > height) {
