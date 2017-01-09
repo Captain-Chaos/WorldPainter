@@ -178,7 +178,7 @@ public class WorldExporter {
                 }
                 if (first) {
                     first = false;
-                } else {
+                } else if (progressReceiver != null) {
                     progressReceiver.reset();
                 }
                 stats.put(dimension.getDim(), exportDimension(worldDir, dimension, world.getVersion(), progressReceiver));
