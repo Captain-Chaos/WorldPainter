@@ -1,4 +1,4 @@
-println('WorldPainter version: ' + wp.version);
+print('WorldPainter version: ' + wp.version);
 
 var world = wp.getWorld()
     .fromFile('src/test/resources/Generated World.world')
