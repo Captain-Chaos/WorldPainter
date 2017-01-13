@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
+import static org.pepsoft.util.GUIUtils.UI_SCALE;
+
 /**
  * A generic visual component which can display one or more layers of large or
  * even endless tile-based images, with support for scrolling and scaling the
@@ -405,6 +407,10 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
             fireViewChangedEvent();
             repaint();
         }
+    }
+
+    public void resetZoom() {
+        setZoom((UI_SCALE == 1) ? 0 : 1);
     }
 
     /**
@@ -1823,8 +1829,11 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
      * The zoom level in the form of an exponent of 2. I.e. the scale is 2^n,
      * meaning that 0 represents no zoom, -1 means half size (so zooming out),
      * 1 means double size (so zooming in), etc.
+     *
+     * <p>The default zoom is 1 (200%) for HiDPI displays and 0 (100%) for
+     * regular displays.
      */
-    private int zoom = 0;
+    private int zoom = (UI_SCALE == 1) ? 0 : 1;
     /**
      * The size in image coordinates of the grid to paint, if any.
      */
@@ -1880,11 +1889,11 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         @Override public int getHeight(ImageObserver observer) {return 0;}
         @Override public Object getProperty(String name, ImageObserver observer) {return null;}
     };
-    private static final Font NORMAL_FONT = new Font("SansSerif", Font.PLAIN, 10);
-    private static final Font BOLD_FONT = new Font("SansSerif", Font.BOLD, 10);
+    private static final Font NORMAL_FONT = new Font("SansSerif", Font.PLAIN, 10 * UI_SCALE);
+    private static final Font BOLD_FONT = new Font("SansSerif", Font.BOLD, 10 * UI_SCALE);
     private static final long serialVersionUID = 1L;
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(TiledImageViewer.class);
-    
+
     class TileRenderJob implements Runnable, Comparable<TileRenderJob> {
         TileRenderJob(Map<Point, Reference<? extends Image>> tileCache, Map<Point, Reference<? extends Image>> dirtyTileCache, Point coords, TileProvider tileProvider, int effectiveZoom, Image image) {
             this.tileCache = tileCache;

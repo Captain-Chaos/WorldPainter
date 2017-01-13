@@ -214,7 +214,7 @@ public final class BitmapHeightMap extends AbstractHeightMap {
     private boolean repeat, smoothScaling;
 
     private static final long serialVersionUID = 1L;
-    private static final Icon ICON_BITMAP_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/height_map.png");
+    private static final Icon ICON_BITMAP_HEIGHTMAP = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/height_map.png");
     private static final float[] RANGE_8BIT = {0.0f, 255.0f}, RANGE_16BIT = {0.0f, 65535.0f};
 
     public static class BitmapHeightMapBuilder {

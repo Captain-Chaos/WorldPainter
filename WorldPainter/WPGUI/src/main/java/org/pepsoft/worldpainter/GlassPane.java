@@ -10,23 +10,22 @@
  */
 package org.pepsoft.worldpainter;
 
-import java.awt.Graphics2D;
-import java.awt.GraphicsEnvironment;
-import java.awt.Transparency;
-import java.awt.image.BufferedImage;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import javax.swing.ImageIcon;
-import javax.swing.JLabel;
-import javax.swing.border.EmptyBorder;
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.Layer;
+
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+import static org.pepsoft.util.GUIUtils.UI_SCALE;
 
 /**
  *
@@ -36,6 +35,10 @@ public class GlassPane extends javax.swing.JPanel {
     /** Creates new form GlassPane */
     public GlassPane() {
         initComponents();
+        if (UI_SCALE > 1) {
+            jLabel1.setIcon(IconUtils.loadScaledIcon("org/pepsoft/worldpainter/scale_bar.png")); // NOI18N
+            jLabel2.setIcon(IconUtils.loadScaledIcon("org/pepsoft/worldpainter/north_arrow_up.png")); // NOI18N
+        }
 //        jPanel2.add(miniMap, BorderLayout.CENTER);
     }
     
@@ -50,11 +53,7 @@ public class GlassPane extends javax.swing.JPanel {
             JLabel label = createLabel(layer);
             this.hiddenLayers.put(layer, label);
         });
-        for (Iterator<Map.Entry<Layer, JLabel>> i = this.hiddenLayers.entrySet().iterator(); i.hasNext(); ) {
-            if (! hiddenLayers.contains(i.next().getKey())) {
-                i.remove();
-            }
-        }
+        this.hiddenLayers.entrySet().removeIf(entry -> !hiddenLayers.contains(entry.getKey()));
         updateIcons();
     }
     
@@ -78,11 +77,11 @@ public class GlassPane extends javax.swing.JPanel {
     }
     
     private JLabel createLabel(Layer layer) {
-        BufferedImage image = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(20, 20, Transparency.TRANSLUCENT);
+        BufferedImage image = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(20 * UI_SCALE, 20 * UI_SCALE, Transparency.TRANSLUCENT);
         Graphics2D g2 = image.createGraphics();
         try {
             g2.drawImage(PROHIBITED_SIGN_BACKGROUND, 0, 0, null);
-            g2.drawImage((layer instanceof CustomLayer) ? layer.getIcon() : invertImage(layer.getIcon()), 2, 2, null);
+            g2.drawImage((layer instanceof CustomLayer) ? layer.getIcon() : invertImage(layer.getIcon()), 2 * UI_SCALE, 2 * UI_SCALE, null);
             g2.drawImage(PROHIBITED_SIGN_FOREGROUND, 0, 0, null);
         } finally {
             g2.dispose();
@@ -186,7 +185,7 @@ public class GlassPane extends javax.swing.JPanel {
     private JLabel soloLayerLabel;
     
     private static final NumberFormat SCALE_FORMAT = new DecimalFormat("0.# blocks");
-    private static final BufferedImage PROHIBITED_SIGN_BACKGROUND = IconUtils.loadImage("org/pepsoft/worldpainter/icons/prohibited_sign_background.png");
-    private static final BufferedImage PROHIBITED_SIGN_FOREGROUND = IconUtils.loadImage("org/pepsoft/worldpainter/icons/prohibited_sign_foreground.png");
+    private static final BufferedImage PROHIBITED_SIGN_BACKGROUND = IconUtils.loadScaledImage("org/pepsoft/worldpainter/icons/prohibited_sign_background.png");
+    private static final BufferedImage PROHIBITED_SIGN_FOREGROUND = IconUtils.loadScaledImage("org/pepsoft/worldpainter/icons/prohibited_sign_foreground.png");
     private static final long serialVersionUID = 1L;
 }

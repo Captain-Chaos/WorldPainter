@@ -174,7 +174,7 @@ public abstract class Layer implements Serializable, Comparable<Layer> {
         } catch (IllegalAccessException e) {
             throw new RuntimeException("Access denied while creating renderer for layer " + name, e);
         }
-        icon = IconUtils.loadImage(clazz.getClassLoader(), "org/pepsoft/worldpainter/icons/" + getClass().getSimpleName().toLowerCase() + ".png");
+        icon = IconUtils.loadScaledImage(clazz.getClassLoader(), "org/pepsoft/worldpainter/icons/" + getClass().getSimpleName().toLowerCase() + ".png");
     }
     
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {

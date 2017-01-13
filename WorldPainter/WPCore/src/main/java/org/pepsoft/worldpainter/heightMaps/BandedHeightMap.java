@@ -94,6 +94,6 @@ public class BandedHeightMap extends AbstractHeightMap {
     private boolean smooth;
 
     private static final long serialVersionUID = 1L;
-    private static final Icon ICON_BANDED_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/sawtooth.png");
+    private static final Icon ICON_BANDED_HEIGHTMAP = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/sawtooth.png");
     private static final float[] RANGE = {0.0f, 1.0f};
 }

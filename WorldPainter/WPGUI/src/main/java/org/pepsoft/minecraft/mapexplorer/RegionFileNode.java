@@ -72,5 +72,5 @@ public class RegionFileNode extends Node {
     private final File file;
     private final int x, z;
 
-    private static final Icon ICON = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/plugin.png");
+    private static final Icon ICON = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/plugin.png");
 }

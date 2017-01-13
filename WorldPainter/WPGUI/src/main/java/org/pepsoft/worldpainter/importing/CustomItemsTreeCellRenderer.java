@@ -5,18 +5,17 @@
  */
 package org.pepsoft.worldpainter.importing;
 
-import java.awt.Component;
-import java.util.IdentityHashMap;
-import java.util.Map;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JTree;
-import javax.swing.tree.DefaultTreeCellRenderer;
+import org.pepsoft.util.IconUtils;
 import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.MixedMaterial;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiome;
-import org.pepsoft.worldpainter.layers.BiomesPanel;
 import org.pepsoft.worldpainter.layers.CustomLayer;
+
+import javax.swing.*;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import java.awt.*;
+import java.util.IdentityHashMap;
+import java.util.Map;
 
 /**
  *
@@ -41,7 +40,7 @@ public class CustomItemsTreeCellRenderer extends DefaultTreeCellRenderer {
                     icon = new ImageIcon(((MixedMaterial) value).getIcon(colourScheme));
                     label = ((MixedMaterial) value).getName();
                 } else if (value instanceof CustomBiome) {
-                    icon = new ImageIcon(BiomesPanel.createIcon(((CustomBiome) value).getColour()));
+                    icon = IconUtils.createScaledColourIcon(((CustomBiome) value).getColour());
                     label = ((CustomBiome) value).getName();
                 }
                 icons.put(value, icon);

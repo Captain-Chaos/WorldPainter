@@ -102,6 +102,7 @@ import static com.jidesoft.docking.DockableFrame.*;
 import static java.awt.event.KeyEvent.*;
 import static javax.swing.JOptionPane.*;
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.util.GUIUtils.UI_SCALE;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Terrain.*;
 
@@ -743,7 +744,7 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     public int getZoom() {
-        return zoom;
+        return view.getZoom();
     }
 
     public final int getMaxRadius() {
@@ -2037,7 +2038,7 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void updateZoomLabel() {
-        double factor = Math.pow(2.0, zoom);
+        double factor = Math.pow(2.0, view.getZoom());
         int zoomPercentage = (int) (100 * factor);
         zoomLabel.setText(MessageFormat.format(strings.getString("zoom.0"), zoomPercentage));
         glassPane.setScale((float) factor);
@@ -2069,7 +2070,7 @@ public final class App extends JFrame implements RadiusControl,
         }
         view.setRadius(radius);
         view.setBrushShape(brush.getBrushShape());
-        final Cursor cursor = Toolkit.getDefaultToolkit().createCustomCursor(IconUtils.loadImage("org/pepsoft/worldpainter/cursor.png"), new Point(15, 15), "Custom Crosshair");
+        final Cursor cursor = Toolkit.getDefaultToolkit().createCustomCursor(IconUtils.loadScaledImage("org/pepsoft/worldpainter/cursor.png"), new Point(15 * UI_SCALE, 15 * UI_SCALE), "Custom Crosshair");
         view.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
@@ -2161,7 +2162,7 @@ public final class App extends JFrame implements RadiusControl,
         
         dockingManager.addFrame(new DockableFrameBuilder(createBrushSettingsPanel(), "Brush Settings", DOCK_SIDE_EAST, 2).withId("brushSettings").build());
 
-        dockingManager.addFrame(new DockableFrameBuilder(createInfoPanel(), "Info", DOCK_SIDE_EAST, 2).withId("infoPanel").expand().withIcon(loadIcon("information")).build());
+        dockingManager.addFrame(new DockableFrameBuilder(createInfoPanel(), "Info", DOCK_SIDE_EAST, 2).withId("infoPanel").expand().withIcon(loadScaledIcon("information")).build());
 
         if (config.getDefaultJideLayoutData() != null) {
             dockingManager.loadLayoutFrom(new ByteArrayInputStream(config.getDefaultJideLayoutData()));
@@ -2188,11 +2189,11 @@ public final class App extends JFrame implements RadiusControl,
             @Override
             public void mouseWheelMoved(MouseWheelEvent e) {
                 if (e.isControlDown()) {
-                    int oldZoom = zoom;
+                    int oldZoom = view.getZoom(), zoom;
                     if (e.getWheelRotation() < 0) {
-                        zoom = Math.min(zoom - e.getWheelRotation(), 6);
+                        zoom = Math.min(oldZoom - e.getWheelRotation(), 6);
                     } else {
-                        zoom = Math.max(zoom - e.getWheelRotation(), -4);
+                        zoom = Math.max(oldZoom - e.getWheelRotation(), -4);
                     }
                     if (zoom != oldZoom) {
                         view.setZoom(zoom, e.getX(), e.getY());
@@ -2434,7 +2435,7 @@ public final class App extends JFrame implements RadiusControl,
 
 //        toolPanel.add(createButtonForOperation(new Erode(view, this, mapDragControl), 'm'));
         toolPanel.add(createButtonForOperation(new SetSpawnPoint(view)));
-        JButton button = new JButton(loadIcon("globals"));
+        JButton button = new JButton(loadScaledIcon("globals"));
         button.setMargin(new Insets(2, 2, 2, 2));
         button.addActionListener(e -> showGlobalOperations());
         button.setToolTipText(strings.getString("global.operations.fill.or.clear.the.world.with.a.terrain.biome.or.layer"));
@@ -2446,7 +2447,7 @@ public final class App extends JFrame implements RadiusControl,
         copySelectionButton.setEnabled(selectionState.getValue());
         toolPanel.add(createButtonForOperation(new EditSelectionOperation(view, this, mapDragControl, selectionState)));
         toolPanel.add(copySelectionButton);
-        JButton clearSelectionButton = new JButton(loadIcon("clear_selection"));
+        JButton clearSelectionButton = new JButton(loadScaledIcon("clear_selection"));
         clearSelectionButton.setEnabled(selectionState.getValue());
         clearSelectionButton.setMargin(new Insets(2, 2, 2, 2));
         clearSelectionButton.addActionListener(e -> {
@@ -2522,7 +2523,7 @@ public final class App extends JFrame implements RadiusControl,
 
         final JPopupMenu customLayerMenu = createCustomLayerMenu(null);
 
-        final JButton addLayerButton = new JButton(loadIcon("plus"));
+        final JButton addLayerButton = new JButton(loadScaledIcon("plus"));
         addLayerButton.setToolTipText(strings.getString("add.a.custom.layer"));
         addLayerButton.setMargin(new Insets(2, 2, 2, 2));
         addLayerButton.addActionListener(e -> customLayerMenu.show(layerPanel, addLayerButton.getX() + addLayerButton.getWidth(), addLayerButton.getY()));
@@ -2642,7 +2643,7 @@ public final class App extends JFrame implements RadiusControl,
         JPanel colourGrid = new JPanel(new GridLayout(0, 4));
         for (int i = 1; i < 16; i++) {
             final int selectedColour = i, dataValue = i - ((i < 8) ? 1 : 0);
-            JToggleButton button = new JToggleButton(IconUtils.createColourIcon(defaultColourScheme.getColour(BLK_WOOL, dataValue)));
+            JToggleButton button = new JToggleButton(IconUtils.createScaledColourIcon(defaultColourScheme.getColour(BLK_WOOL, dataValue)));
             button.setToolTipText(COLOUR_NAMES[dataValue]);
             button.setMargin(new Insets(2, 2, 2, 2));
             if (i == 1) {
@@ -3262,7 +3263,7 @@ public final class App extends JFrame implements RadiusControl,
     public List<Component> createPopupMenuButton(String paletteName) {
         final JPopupMenu customLayerMenu = createCustomLayerMenu(paletteName);
         
-        final JButton addLayerButton = new JButton(loadIcon("plus"));
+        final JButton addLayerButton = new JButton(loadScaledIcon("plus"));
         final List<Component> addLayerButtonPanel = new ArrayList<>(3);
         addLayerButton.setToolTipText(strings.getString("add.a.custom.layer"));
         addLayerButton.setMargin(new Insets(2, 2, 2, 2));
@@ -4336,7 +4337,7 @@ public final class App extends JFrame implements RadiusControl,
         biomeLabel.setText(" ");
         materialLabel.setText(" ");
         radiusLabel.setText(MessageFormat.format(strings.getString("radius.0"), radius));
-        zoomLabel.setText(MessageFormat.format(strings.getString("zoom.0"), 100));
+        updateZoomLabel();
     }
 
     private JToggleButton createButtonForOperation(final Operation operation) {
@@ -4656,7 +4657,7 @@ public final class App extends JFrame implements RadiusControl,
     
     private Icon createBrushIcon(Brush brush, int degrees) {
         brush = brush.clone();
-        brush.setRadius(15);
+        brush.setRadius(16 * UI_SCALE - 1);
         if (degrees != 0) {
             brush = RotatedBrush.rotate(brush, degrees);
         }
@@ -4664,19 +4665,19 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private BufferedImage createBrushImage(Brush brush) {
-        BufferedImage image = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(32, 32, Transparency.TRANSLUCENT);
-        for (int dx = -15; dx <= 15; dx++) {
-            for (int dy = -15; dy <= 15; dy++) {
+        BufferedImage image = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(32 * UI_SCALE, 32 * UI_SCALE, Transparency.TRANSLUCENT);
+        for (int dx = -16 * UI_SCALE + 1; dx < 16 * UI_SCALE; dx++) {
+            for (int dy = -16 * UI_SCALE + 1; dy < 16 * UI_SCALE; dy++) {
                 float strength = brush.getFullStrength(dx, dy);
                 int alpha = (int) (strength * 255f + 0.5f);
-                image.setRGB(dx + 15, dy + 15, alpha << 24);
+                image.setRGB(dx + 16 * UI_SCALE - 1, dy + 16 * UI_SCALE - 1, alpha << 24);
             }
         }
         return image;
     }
 
-    private static Icon loadIcon(@NonNls String name) {
-        return IconUtils.loadIcon("org/pepsoft/worldpainter/icons/" + name + ".png");
+    private static Icon loadScaledIcon(@NonNls String name) {
+        return IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/" + name + ".png");
     }
     
     private void enableImportedWorldOperation() {
@@ -5507,16 +5508,16 @@ public final class App extends JFrame implements RadiusControl,
             if ((icon == null) && (component instanceof Container)) {
                 icon = findIcon((Container) component);
                 if (icon != null) {
-                    if (((icon.getIconHeight() > 16) || (icon.getIconWidth() > 16))
+                    if (((icon.getIconHeight() > 16 * UI_SCALE) || (icon.getIconWidth() > 16 * UI_SCALE))
                             && (icon instanceof ImageIcon)
                             && (((ImageIcon) icon).getImage() instanceof BufferedImage)) {
                         float s;
                         if (icon.getIconWidth() > icon.getIconHeight()) {
                             // Wide icon
-                            s = 16f / icon.getIconWidth();
+                            s = 16f * UI_SCALE / icon.getIconWidth();
                         } else {
                             // Tall (or square) icon
-                            s = 16f / icon.getIconHeight();
+                            s = 16f * UI_SCALE / icon.getIconHeight();
                         }
                         BufferedImageOp op = new AffineTransformOp(AffineTransform.getScaleInstance(s, s), AffineTransformOp.TYPE_BICUBIC);
                         BufferedImage iconImage = op.filter((BufferedImage) ((ImageIcon) icon).getImage(), null);
@@ -5524,9 +5525,7 @@ public final class App extends JFrame implements RadiusControl,
                     }
                 }
             }
-            if (icon != null) {
-                dockableFrame.setFrameIcon(icon);
-            }
+            dockableFrame.setFrameIcon(icon);
 
             // Use preferred size of component as much as possible
             final java.awt.Dimension preferredSize = component.getPreferredSize();
@@ -5726,7 +5725,7 @@ public final class App extends JFrame implements RadiusControl,
         @Override
         public void performAction(ActionEvent e) {
 //            Point location = view.getViewCentreInWorldCoords();
-            zoom++;
+            int zoom = view.getZoom() + 1;
             view.setZoom(zoom);
             updateZoomLabel();
 //            view.moveTo(location);
@@ -5750,8 +5749,7 @@ public final class App extends JFrame implements RadiusControl,
         @Override
         public void performAction(ActionEvent e) {
 //            int oldZoom = zoom;
-            zoom = 0;
-            view.setZoom(zoom);
+            view.resetZoom();
             updateZoomLabel();
 //            Point mousePosition = view.getMousePosition();
 //            if (mousePosition != null) {
@@ -5790,7 +5788,7 @@ public final class App extends JFrame implements RadiusControl,
         @Override
         public void performAction(ActionEvent e) {
 //            Point location = view.getViewCentreInWorldCoords();
-            zoom--;
+            int zoom = view.getZoom() - 1;
             view.setZoom(zoom);
             updateZoomLabel();
 //            view.moveTo(location);
@@ -6304,7 +6302,7 @@ public final class App extends JFrame implements RadiusControl,
         private static final long serialVersionUID = 1L;
     };
 
-    private final BetterAction ACTION_SHOW_CUSTOM_TERRAIN_POPUP = new BetterAction("showCustomTerrainMenu", null, loadIcon("plus")) {
+    private final BetterAction ACTION_SHOW_CUSTOM_TERRAIN_POPUP = new BetterAction("showCustomTerrainMenu", null, loadScaledIcon("plus")) {
         {
             setShortDescription("Add a new Custom Terrain");
         }
@@ -6331,7 +6329,7 @@ public final class App extends JFrame implements RadiusControl,
     private JSlider levelSlider, brushRotationSlider;
     private float level = 0.51f, toolLevel = 0.51f;
     private Set<Layer> hiddenLayers = new HashSet<>();
-    private int zoom = 0, maxRadius = DEFAULT_MAX_RADIUS, brushRotation = 0, toolBrushRotation = 0, previousBrushRotation = 0;
+    private int maxRadius = DEFAULT_MAX_RADIUS, brushRotation = 0, toolBrushRotation = 0, previousBrushRotation = 0;
     private GlassPane glassPane;
     private JCheckBox readOnlyCheckBox, biomesCheckBox, annotationsCheckBox, readOnlySoloCheckBox, biomesSoloCheckBox, annotationsSoloCheckBox;
     private JToggleButton readOnlyToggleButton, setSpawnPointToggleButton;
@@ -6370,7 +6368,7 @@ public final class App extends JFrame implements RadiusControl,
     private JPanel toolSettingsPanel, customTerrainPanel;
     private final ObservableBoolean selectionState = new ObservableBoolean(true);
 
-    public static final Image ICON = IconUtils.loadImage("org/pepsoft/worldpainter/icons/shovel-icon.png");
+    public static final Image ICON = IconUtils.loadScaledImage("org/pepsoft/worldpainter/icons/shovel-icon.png");
     
     public static final int DEFAULT_MAX_RADIUS = 300;
 
@@ -6389,31 +6387,31 @@ public final class App extends JFrame implements RadiusControl,
     
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(App.class);
 
-    private static final Icon ICON_NEW_WORLD            = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/page_white.png");
-    private static final Icon ICON_OPEN_WORLD           = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/folder_page_white.png");
-    private static final Icon ICON_SAVE_WORLD           = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/disk.png");
-    private static final Icon ICON_EXPORT_WORLD         = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/map_go.png");
-    private static final Icon ICON_EXIT                 = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/door_in.png");
-    private static final Icon ICON_ZOOM_IN              = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/magnifier_zoom_in.png");
-    private static final Icon ICON_ZOOM_RESET           = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/magnifier.png");
-    private static final Icon ICON_ZOOM_OUT             = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/magnifier_zoom_out.png");
-    private static final Icon ICON_GRID                 = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/grid.png");
-    private static final Icon ICON_CONTOURS             = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/contours.png");
-    private static final Icon ICON_OVERLAY              = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/photo.png");
-    private static final Icon ICON_UNDO                 = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/arrow_undo.png");
-    private static final Icon ICON_REDO                 = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/arrow_redo.png");
-    private static final Icon ICON_EDIT_TILES           = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/plugin.png");
-    private static final Icon ICON_CHANGE_HEIGHT        = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/arrow_up_down.png");
-    private static final Icon ICON_ROTATE_WORLD         = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/arrow_rotate_anticlockwise.png");
-    private static final Icon ICON_DIMENSION_PROPERTIES = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/application_form.png");
-    private static final Icon ICON_VIEW_DISTANCE        = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/eye.png");
-    private static final Icon ICON_WALKING_DISTANCE     = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/user_go.png");
-    private static final Icon ICON_ROTATE_LIGHT_RIGHT   = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/arrow_rotate_lightbulb_clockwise.png");
-    private static final Icon ICON_ROTATE_LIGHT_LEFT    = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/arrow_rotate_lightbulb_anticlockwise.png");
-    private static final Icon ICON_MOVE_TO_SPAWN        = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/spawn_red.png");
-    private static final Icon ICON_MOVE_TO_ORIGIN       = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/arrow_in.png");
-    private static final Icon ICON_UNKNOWN_PATTERN      = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/unknown_pattern.png");
-    private static final Icon ICON_SHIFT_WORLD          = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/arrow_cross.png");
+    private static final Icon ICON_NEW_WORLD            = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/page_white.png");
+    private static final Icon ICON_OPEN_WORLD           = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/folder_page_white.png");
+    private static final Icon ICON_SAVE_WORLD           = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/disk.png");
+    private static final Icon ICON_EXPORT_WORLD         = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/map_go.png");
+    private static final Icon ICON_EXIT                 = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/door_in.png");
+    private static final Icon ICON_ZOOM_IN              = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/magnifier_zoom_in.png");
+    private static final Icon ICON_ZOOM_RESET           = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/magnifier.png");
+    private static final Icon ICON_ZOOM_OUT             = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/magnifier_zoom_out.png");
+    private static final Icon ICON_GRID                 = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/grid.png");
+    private static final Icon ICON_CONTOURS             = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/contours.png");
+    private static final Icon ICON_OVERLAY              = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/photo.png");
+    private static final Icon ICON_UNDO                 = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_undo.png");
+    private static final Icon ICON_REDO                 = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_redo.png");
+    private static final Icon ICON_EDIT_TILES           = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/plugin.png");
+    private static final Icon ICON_CHANGE_HEIGHT        = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_up_down.png");
+    private static final Icon ICON_ROTATE_WORLD         = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_rotate_anticlockwise.png");
+    private static final Icon ICON_DIMENSION_PROPERTIES = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/application_form.png");
+    private static final Icon ICON_VIEW_DISTANCE        = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/eye.png");
+    private static final Icon ICON_WALKING_DISTANCE     = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/user_go.png");
+    private static final Icon ICON_ROTATE_LIGHT_RIGHT   = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_rotate_lightbulb_clockwise.png");
+    private static final Icon ICON_ROTATE_LIGHT_LEFT    = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_rotate_lightbulb_anticlockwise.png");
+    private static final Icon ICON_MOVE_TO_SPAWN        = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/spawn_red.png");
+    private static final Icon ICON_MOVE_TO_ORIGIN       = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_in.png");
+    private static final Icon ICON_UNKNOWN_PATTERN      = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/unknown_pattern.png");
+    private static final Icon ICON_SHIFT_WORLD          = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_cross.png");
     
     private static final int PLATFORM_COMMAND_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 

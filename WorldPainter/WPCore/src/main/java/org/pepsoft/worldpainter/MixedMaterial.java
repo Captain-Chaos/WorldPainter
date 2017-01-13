@@ -1,6 +1,7 @@
 package org.pepsoft.worldpainter;
 
 import org.pepsoft.minecraft.Material;
+import org.pepsoft.util.GUIUtils;
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.heightMaps.NoiseHeightMap;
@@ -12,6 +13,8 @@ import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.Callable;
+
+import static org.pepsoft.util.GUIUtils.*;
 
 /**
  * @author SchmitzP
@@ -149,25 +152,18 @@ public class MixedMaterial implements Serializable, Comparable<MixedMaterial> {
 
     public BufferedImage getIcon(ColourScheme colourScheme) {
         if (colourScheme != null) {
-            final BufferedImage icon = new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB);
-            // Draw the border
-            for (int i = 0; i < 15; i++) {
-                icon.setRGB(i, 0, 0);
-                icon.setRGB(15, i, 0);
-                icon.setRGB(15 - i, 15, 0);
-                icon.setRGB(0, 15 - i, 0);
-            }
+            final BufferedImage icon = new BufferedImage(16 * UI_SCALE, 16 * UI_SCALE, BufferedImage.TYPE_INT_RGB);
             // Draw the terrain
             if (colour != null) {
-                for (int x = 1; x < 15; x++) {
-                    for (int y = 1; y < 15; y++) {
+                for (int x = 1; x < 16 * UI_SCALE - 1; x++) {
+                    for (int y = 1; y < 16 * UI_SCALE - 1; y++) {
                         icon.setRGB(x, y, colour);
                     }
                 }
             } else {
-                for (int x = 1; x < 15; x++) {
-                    for (int y = 1; y < 15; y++) {
-                        icon.setRGB(x, y, colourScheme.getColour(getMaterial(0, x, 0, 15 - y)));
+                for (int x = 1; x < 16 * UI_SCALE - 1; x++) {
+                    for (int y = 1; y < 16 * UI_SCALE - 1; y++) {
+                        icon.setRGB(x, y, colourScheme.getColour(getMaterial(0, x / 2, 0, 15 - y / 2f)));
                     }
                 }
             }
@@ -566,7 +562,7 @@ public class MixedMaterial implements Serializable, Comparable<MixedMaterial> {
     
     public enum Mode {SIMPLE, BLOBS, NOISE, LAYERED}
 
-    private static final BufferedImage UNKNOWN_ICON = IconUtils.loadImage("org/pepsoft/worldpainter/icons/unknown_pattern.png");
+    private static final BufferedImage UNKNOWN_ICON = IconUtils.loadScaledImage("org/pepsoft/worldpainter/icons/unknown_pattern.png");
     private static final long NOISE_SEED_OFFSET = 55904327L;
     private static final ThreadLocal<Boolean> DUPLICATE_MATERIALS = ThreadLocal.withInitial(() -> false);
     private static final long serialVersionUID = 1L;

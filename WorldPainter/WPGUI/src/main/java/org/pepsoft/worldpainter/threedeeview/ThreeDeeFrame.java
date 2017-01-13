@@ -457,15 +457,15 @@ public class ThreeDeeFrame extends JFrame implements WindowListener {
     
     private static final Direction[] DIRECTIONS = {Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.NORTH};
     
-    private static final Icon ICON_ROTATE_LEFT    = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/arrow_rotate_anticlockwise.png");
-    private static final Icon ICON_ROTATE_RIGHT   = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/arrow_rotate_clockwise.png");
-    private static final Icon ICON_EXPORT_IMAGE   = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/picture_save.png");
-    private static final Icon ICON_MOVE_TO_SPAWN  = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/spawn_red.png");
-    private static final Icon ICON_MOVE_TO_ORIGIN = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/arrow_in.png");
-    private static final Icon ICON_ALWAYS_ON_TOP  = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/lock.png");
-    private static final Icon ICON_ZOOM_IN        = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/magnifier_zoom_in.png");
-    private static final Icon ICON_RESET_ZOOM     = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/magnifier.png");
-    private static final Icon ICON_ZOOM_OUT       = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/magnifier_zoom_out.png");
+    private static final Icon ICON_ROTATE_LEFT    = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_rotate_anticlockwise.png");
+    private static final Icon ICON_ROTATE_RIGHT   = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_rotate_clockwise.png");
+    private static final Icon ICON_EXPORT_IMAGE   = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/picture_save.png");
+    private static final Icon ICON_MOVE_TO_SPAWN  = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/spawn_red.png");
+    private static final Icon ICON_MOVE_TO_ORIGIN = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_in.png");
+    private static final Icon ICON_ALWAYS_ON_TOP  = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/lock.png");
+    private static final Icon ICON_ZOOM_IN        = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/magnifier_zoom_in.png");
+    private static final Icon ICON_RESET_ZOOM     = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/magnifier.png");
+    private static final Icon ICON_ZOOM_OUT       = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/magnifier_zoom_out.png");
     
     private static final int MIN_ZOOM = -2;
     private static final int MAX_ZOOM = 4;

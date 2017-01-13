@@ -30,7 +30,7 @@ public abstract class AbstractOperation implements Operation {
         }
         this.name = name;
         this.description = description;
-        icon = IconUtils.loadImage(getClass().getClassLoader(), "org/pepsoft/worldpainter/icons/" + iconName + ".png");
+        icon = IconUtils.loadScaledImage(getClass().getClassLoader(), "org/pepsoft/worldpainter/icons/" + iconName + ".png");
     }
 
     @Override

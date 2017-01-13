@@ -125,7 +125,7 @@ public class SimpleBrowser extends javax.swing.JDialog implements HyperlinkListe
         }
     }//GEN-LAST:event_jEditorPane1HyperlinkUpdate
 
-    private final Action backAction = new AbstractAction("back", IconUtils.loadIcon("org/pepsoft/worldpainter/icons/resultset_previous.png")) {
+    private final Action backAction = new AbstractAction("back", IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/resultset_previous.png")) {
         {
             setEnabled(false);
         }
@@ -150,7 +150,7 @@ public class SimpleBrowser extends javax.swing.JDialog implements HyperlinkListe
         private static final long serialVersionUID = 1L;
     };
     
-    private final Action forwardAction = new AbstractAction("forward", IconUtils.loadIcon("org/pepsoft/worldpainter/icons/resultset_next.png")) {
+    private final Action forwardAction = new AbstractAction("forward", IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/resultset_next.png")) {
         {
             setEnabled(false);
         }

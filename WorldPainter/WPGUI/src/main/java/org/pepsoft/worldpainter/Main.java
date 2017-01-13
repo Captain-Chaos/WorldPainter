@@ -370,11 +370,10 @@ public class Main {
                 DonationDialog.maybeShowDonationDialog(app);
             });
         });
-
-        // If a background image was configured
     }
 
     private static void configError(Throwable e) {
+        logger.error("Exception while initialising configuration", e);
         JOptionPane.showMessageDialog(null, "Could not read configuration file! Resetting configuration.\n\nException type: " + e.getClass().getSimpleName() + "\nMessage: " + e.getMessage(), "Configuration Error", JOptionPane.ERROR_MESSAGE);
     }
     
