@@ -28,19 +28,18 @@ public final class GeometryUtil {
      *     visitor returned <code>false</code> for some point and the process
      *     was aborted.
      */
-    public static boolean visitCircle(int radius, GeometryVisitor visitor) {
-        final float d = radius;
+    public static boolean visitCircle(int radius, PlaneVisitor visitor) {
         int dx = radius, dy = 0;
         int radiusError = 1 - dx;
         while (dx >= dy) {
-            if (! visitor.visit( dx,  dy, d)) {return false;}
-            if (! visitor.visit( dy,  dx, d)) {return false;}
-            if (! visitor.visit(-dx,  dy, d)) {return false;}
-            if (! visitor.visit(-dy,  dx, d)) {return false;}
-            if (! visitor.visit(-dx, -dy, d)) {return false;}
-            if (! visitor.visit(-dy, -dx, d)) {return false;}
-            if (! visitor.visit( dx, -dy, d)) {return false;}
-            if (! visitor.visit( dy, -dx, d)) {return false;}
+            if (! visitor.visit( dx,  dy, radius)) {return false;}
+            if (! visitor.visit( dy,  dx, radius)) {return false;}
+            if (! visitor.visit(-dx,  dy, radius)) {return false;}
+            if (! visitor.visit(-dy,  dx, radius)) {return false;}
+            if (! visitor.visit(-dx, -dy, radius)) {return false;}
+            if (! visitor.visit(-dy, -dx, radius)) {return false;}
+            if (! visitor.visit( dx, -dy, radius)) {return false;}
+            if (! visitor.visit( dy, -dx, radius)) {return false;}
 
             dy++;
             if (radiusError < 0) {
@@ -66,7 +65,7 @@ public final class GeometryUtil {
      *     visitor returned <code>false</code> for some point and the process
      *     was aborted.
      */
-    public static boolean visitFilledCircle(int radius, GeometryVisitor visitor) {
+    public static boolean visitFilledCircle(int radius, PlaneVisitor visitor) {
         int dx = radius, dy = 0;
         int radiusError = 1 - dx;
         while (dx >= dy) {
@@ -102,8 +101,36 @@ public final class GeometryUtil {
         return true;
     }
 
+
+    /**
+     * Visit all the points inside spherical volume in an integer coordinate
+     * space with the centre at 0,0,0. The order in which the points are visited
+     * is not defined. The visitor may abort the process at any point by
+     * returning <code>false</code>.
+     *
+     * @param radius The radius of the sphere to visit.
+     * @param visitor The visitor to invoke for each point.
+     * @return <code>true</code> if the visitor returned true for each point
+     *     (and therefore every point was visited). <code>false</code> if the
+     *     visitor returned <code>false</code> for some point and the process
+     *     was aborted.
+     */
+    public static boolean visitFilledSphere(int radius, VolumeVisitor visitor) {
+        for (int dz = 0; dz <= radius; dz++) {
+            int r = (int) (Math.sqrt(radius * radius - dz * dz) + 0.5);
+            final int finalDz = dz;
+            if (! visitFilledCircle(r, ((dx, dy, d) -> visitor.visit(dx, dy, finalDz, MathUtils.getDistance(dx, dy, finalDz))))) {
+                return false;
+            }
+            if ((dz > 0) && (! visitFilledCircle(r, ((dx, dy, d) -> visitor.visit(dx, dy, -finalDz, MathUtils.getDistance(dx, dy, -finalDz)))))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     @FunctionalInterface
-    public interface GeometryVisitor {
+    public interface PlaneVisitor {
         /**
          * Visit the specified location relative to the origin of the geometric
          * shape.
@@ -117,5 +144,24 @@ public final class GeometryUtil {
          * <code>false</code> if no more points should be visited on the shape.
          */
         boolean visit(int dx, int dy, float d);
+    }
+
+    @FunctionalInterface
+    public interface VolumeVisitor {
+        /**
+         * Visit the specified location relative to the origin of the geometric
+         * shape.
+         *
+         * @param dx The x coordinate to visit relative to the origin of the
+         *     geometric shape.
+         * @param dy The y coordinate to visit relative to the origin of the
+         *     geometric shape.
+         * @param dz The z coordinate to visit relative to the origin of the
+         *     geometric shape.
+         * @param d The distance from the origin.
+         * @return <code>true</code> if the process should continue;
+         * <code>false</code> if no more points should be visited on the shape.
+         */
+        boolean visit(int dx, int dy, int dz, float d);
     }
 }

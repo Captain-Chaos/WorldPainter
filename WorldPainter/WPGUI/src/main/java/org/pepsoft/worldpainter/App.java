@@ -4475,7 +4475,9 @@ public final class App extends JFrame implements RadiusControl,
             readOnlyToggleButton = button;
         }
         button.setMargin(new Insets(2, 2, 2, 2));
-        button.setIcon(new ImageIcon(layer.getIcon()));
+        if (layer.getIcon() != null) {
+            button.setIcon(new ImageIcon(layer.getIcon()));
+        }
         button.setToolTipText(layer.getName() + ": " + layer.getDescription());
         // TODO: make this work again, but with Ctrl + Alt or something
 //        if (mnemonic != 0) {
