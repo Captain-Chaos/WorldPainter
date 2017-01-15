@@ -361,7 +361,7 @@ public class CavernsExporter extends AbstractLayerExporter<Caverns> implements F
             if (maximumLevel == 0) {
                 maximumLevel = Integer.MAX_VALUE;
             }
-            }
+        }
         
         private int waterLevel, cavernsEverywhereLevel;
         private boolean floodWithLava, glassCeiling, surfaceBreaking, leaveWater = true;
