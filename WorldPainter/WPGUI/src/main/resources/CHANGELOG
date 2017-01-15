@@ -1,3 +1,7 @@
+-- Version 2.3.7, released ...
+
+ * High resolution display support. WorldPainter now should use the full resolution of your high resolution (more than 120 dpi) display instead of scaling everything up two times. It's not perfect yet, so please let us know of any visual problems on high resolution displays
+
 -- Version 2.3.6, released 5-1-2017
 
  * Bug fix: make working with Combined Layers work again without crashing WorldPainter
