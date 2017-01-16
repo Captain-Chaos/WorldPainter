@@ -30,10 +30,10 @@ import org.pepsoft.worldpainter.selection.SelectionHelper;
 import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Set;
 
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
@@ -117,7 +117,7 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
         comboBoxClearLayer.setEnabled(radioButtonClearLayer.isSelected());
         comboBoxInvertLayer.setEnabled(radioButtonInvertLayer.isSelected());
         comboBoxBiome.setEnabled(radioButtonBiome.isSelected());
-        buttonFill.setEnabled(radioButtonTerrain.isSelected() || radioButtonSetLayer.isSelected() || radioButtonClearLayer.isSelected() || radioButtonInvertLayer.isSelected() || radioButtonBiome.isSelected() || radioButtonResetBiomes.isSelected() || radioButtonResetWater.isSelected() || radioButtonResetTerrain.isSelected() || radioButtonMakeBiomesPermanent.isSelected());
+        buttonFill.setEnabled(radioButtonTerrain.isSelected() || radioButtonSetLayer.isSelected() || radioButtonClearLayer.isSelected() || radioButtonInvertLayer.isSelected() || radioButtonBiome.isSelected() || radioButtonResetBiomes.isSelected() || radioButtonResetWater.isSelected() || radioButtonResetTerrain.isSelected() || radioButtonMakeBiomesPermanent.isSelected() || radioButtonAddToSelection.isSelected() || radioButtonRemoveFromSelection.isSelected());
     }
     
     private void fill() {
@@ -146,6 +146,10 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
                         return "Resetting terrain types";
                     } else if (radioButtonMakeBiomesPermanent.isSelected()) {
                         return "Making automatic biomes permanent";
+                    } else if (radioButtonAddToSelection.isSelected()) {
+                        return "Adding to selection";
+                    } else if (radioButtonRemoveFromSelection.isSelected()) {
+                        return "Removing from selection";
                     } else {
                         throw new InternalError();
                     }
@@ -171,6 +175,10 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
                         resetTerrain(progressReceiver);
                     } else if (radioButtonMakeBiomesPermanent.isSelected()) {
                         makeAutoBiomesPermanent(progressReceiver);
+                    } else if (radioButtonAddToSelection.isSelected()) {
+                        addToSelection(progressReceiver);
+                    } else if (radioButtonRemoveFromSelection.isSelected()) {
+                        removeFromSelection(progressReceiver);
                     }
                     return dimension;
                 }
@@ -546,15 +554,174 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
         }, progressReceiver);
     }
 
-    private void visitTiles(TileVisitor visitor, ProgressReceiver progressReceiver) throws OperationCancelled {
-        int totalTiles = dimension.getTileCount(), tileCount = 0;
-        Rectangle area = getAreaToProcess();
-        for (Tile tile: dimension.getTiles()) {
-            if ((area != null) && (! area.contains(tile.getX(), tile.getY()))) {
-                tileCount++;
-                progressReceiver.setProgress((float) tileCount / totalTiles);
-                continue;
+    private void addToSelection(ProgressReceiver progressReceiver) throws OperationCancelled {
+        final boolean[][] blocksSet = new boolean[16][16];
+        visitTiles(tile -> {
+            final boolean tileHasChunkSelection = tile.hasLayer(SelectionChunk.INSTANCE);
+            if (filter == null) {
+                // This is slightly odd, but whatever. Just add all chunks to
+                // the selection
+                tile.clearLayerData(SelectionBlock.INSTANCE);
+                for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
+                    for (int chunkY = 0; chunkY < TILE_SIZE; chunkY += 16) {
+                        if ((! tileHasChunkSelection) || (! tile.getBitLayerValue(SelectionChunk.INSTANCE, chunkX, chunkY))) {
+                            tile.setBitLayerValue(SelectionChunk.INSTANCE, chunkX, chunkY, true);
+                        }
+                    }
+                }
+            } else {
+                final int worldTileX = tile.getX() << TILE_SIZE_BITS;
+                final int worldTileY = tile.getY() << TILE_SIZE_BITS;
+                final boolean tileHasBlockSelection = tile.hasLayer(SelectionBlock.INSTANCE);
+                // Check per chunk whether the entire chunk would be selected, so
+                // we can use the more efficient per-chunk selection layer
+chunks:         for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
+                    for (int chunkY = 0; chunkY < TILE_SIZE; chunkY += 16) {
+                        if (tileHasChunkSelection && tile.getBitLayerValue(SelectionChunk.INSTANCE, chunkX, chunkY)) {
+                            // The chunk is already entirely selected, so we can
+                            // just skip it
+                            continue chunks;
+                        }
+                        boolean chunkEntirelySelected = true;
+                        boolean noSelection = true;
+                        for (int xInChunk = 0; xInChunk < 16; xInChunk++) {
+                            for (int yInChunk = 0; yInChunk < 16; yInChunk++) {
+                                float strength = filter.modifyStrength(worldTileX | chunkX | xInChunk, worldTileY | chunkY | yInChunk, 1.0f);
+                                boolean select = (strength > 0.95f) || (Math.random() < strength);
+                                blocksSet[xInChunk][yInChunk] = select;
+                                if (! select) {
+                                    chunkEntirelySelected = false;
+                                } else {
+                                    noSelection = false;
+                                }
+                            }
+                        }
+
+                        if (noSelection) {
+                            // Nothing has to be selected; we don't have to
+                            // make any changes to the chunk
+                        } else if (chunkEntirelySelected) {
+                            // The chunk is entirely selected; optimise by using
+                            // the per-chunk selection layer, and remove any
+                            // existing per-block selection layer
+                            tile.setBitLayerValue(SelectionChunk.INSTANCE, chunkX, chunkY, true);
+                            if (tileHasBlockSelection) {
+                                for (int xInChunk = 0; xInChunk < 16; xInChunk++) {
+                                    for (int yInChunk = 0; yInChunk < 16; yInChunk++) {
+                                        tile.setBitLayerValue(SelectionBlock.INSTANCE, chunkX | xInChunk, chunkY | yInChunk, false);
+                                    }
+                                }
+                            }
+                        } else {
+                            // The chunk is not entirely selected, so apply the
+                            // selection per-block. TODO: recognise when the chunk becomes entirely selected so we should use the per-block layer
+                            for (int xInChunk = 0; xInChunk < 16; xInChunk++) {
+                                for (int yInChunk = 0; yInChunk < 16; yInChunk++) {
+                                    if (blocksSet[xInChunk][yInChunk]) {
+                                        tile.setBitLayerValue(SelectionBlock.INSTANCE, chunkX | xInChunk, chunkY | yInChunk, true);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
+        }, progressReceiver);
+    }
+
+    private void removeFromSelection(ProgressReceiver progressReceiver) throws OperationCancelled {
+        final boolean[][] blocksDeselected = new boolean[16][16];
+        if (filter == null) {
+            dimension.clearLayerData(SelectionChunk.INSTANCE);
+            dimension.clearLayerData(SelectionBlock.INSTANCE);
+        } else {
+            visitTiles(tile -> {
+                final boolean tileHasChunkSelection = tile.hasLayer(SelectionChunk.INSTANCE);
+                final boolean tileHasBlockSelection = tile.hasLayer(SelectionBlock.INSTANCE);
+                if ((! tileHasChunkSelection) && (! tileHasBlockSelection)) {
+                    // There is no selection in this tile so we can just skip it
+                    return;
+                }
+                final int worldTileX = tile.getX() << TILE_SIZE_BITS;
+                final int worldTileY = tile.getY() << TILE_SIZE_BITS;
+                // Check per chunk whether the entire chunk would be deselected,
+                // so we can use the more efficient per-chunk selection layer
+                for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
+                    for (int chunkY = 0; chunkY < TILE_SIZE; chunkY += 16) {
+                        boolean chunkEntirelyDeselected = true;
+                        boolean noDeselection = true;
+                        for (int xInChunk = 0; xInChunk < 16; xInChunk++) {
+                            for (int yInChunk = 0; yInChunk < 16; yInChunk++) {
+                                float strength = filter.modifyStrength(worldTileX | chunkX | xInChunk, worldTileY | chunkY | yInChunk, 1.0f);
+                                boolean deselect = (strength > 0.95f) || (Math.random() < strength);
+                                blocksDeselected[xInChunk][yInChunk] = deselect;
+                                if (! deselect) {
+                                    chunkEntirelyDeselected = false;
+                                } else {
+                                    noDeselection = false;
+                                }
+                            }
+                        }
+
+                        if (noDeselection) {
+                            // Nothing has to be deselected; we don't have to
+                            // make any changes to the chunk
+                        } else if (chunkEntirelyDeselected) {
+                            // The chunk should be entirely deselected; just
+                            // remove the layers
+                            if (tileHasChunkSelection) {
+                                tile.setBitLayerValue(SelectionChunk.INSTANCE, chunkX, chunkY, false);
+                            }
+                            if (tileHasBlockSelection) {
+                                for (int xInChunk = 0; xInChunk < 16; xInChunk++) {
+                                    for (int yInChunk = 0; yInChunk < 16; yInChunk++) {
+                                        tile.setBitLayerValue(SelectionBlock.INSTANCE, chunkX | xInChunk, chunkY | yInChunk, false);
+                                    }
+                                }
+                            }
+                        } else {
+                            // The chunk should not be entirely deselected
+                            if (tileHasChunkSelection && tile.getBitLayerValue(SelectionChunk.INSTANCE, chunkX, chunkY)) {
+                                // The chunk is currently entirely selected;
+                                // commute it to per-block
+                                tile.setBitLayerValue(SelectionChunk.INSTANCE, chunkX, chunkY, false);
+                                for (int xInChunk = 0; xInChunk < 16; xInChunk++) {
+                                    for (int yInChunk = 0; yInChunk < 16; yInChunk++) {
+                                        if (! blocksDeselected[xInChunk][yInChunk]) {
+                                            tile.setBitLayerValue(SelectionBlock.INSTANCE, chunkX | xInChunk, chunkY | yInChunk, true);
+                                        }
+                                    }
+                                }
+                            } else {
+                                // The chunk is already using per-block
+                                // selection; just remove the blocks to deselect
+                                for (int xInChunk = 0; xInChunk < 16; xInChunk++) {
+                                    for (int yInChunk = 0; yInChunk < 16; yInChunk++) {
+                                        if (blocksDeselected[xInChunk][yInChunk]) {
+                                            tile.setBitLayerValue(SelectionBlock.INSTANCE, chunkX | xInChunk, chunkY | yInChunk, false);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }, progressReceiver);
+        }
+    }
+
+    private void visitTiles(TileVisitor visitor, ProgressReceiver progressReceiver) throws OperationCancelled {
+        Collection<? extends Tile> tilesToProcess;
+        if ((filter instanceof DefaultFilter) && ((DefaultFilter) filter).isInSelection()) {
+            // The filter is set to "in selection", so we only need to process
+            // the tiles intersecting the selection
+            SelectionHelper selectionHelper = new SelectionHelper(dimension);
+            tilesToProcess = selectionHelper.getTilesInSelection();
+        } else {
+            tilesToProcess = dimension.getTiles();
+        }
+        int totalTiles = tilesToProcess.size(), tileCount = 0;
+        for (Tile tile: tilesToProcess) {
             tile.inhibitEvents();
             try {
                 visitor.visit(tile);
@@ -564,30 +731,6 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
             tileCount++;
             progressReceiver.setProgress((float) tileCount / totalTiles);
         }
-    }
-
-    /**
-     * Determine the area, in tile coordinates, to process, if not all tiles
-     * need to be processed for some reason.
-     *
-     * @return The area to process, in tile coordinates, or <code>null</code> if
-     * all tiles must be processed.
-     */
-    private Rectangle getAreaToProcess() {
-        if ((filter instanceof DefaultFilter) && ((DefaultFilter) filter).isInSelection()) {
-            // The filter is set to "in selection", so we only need to process
-            // the tiles which intersect with the bounding box of the selection
-            SelectionHelper selectionHelper = new SelectionHelper(dimension);
-            Rectangle selectionBounds = selectionHelper.getSelectionBounds();
-            if (selectionBounds != null) {
-                int x1 = selectionBounds.x, x2 = selectionBounds.x + selectionBounds.width - 1;
-                int y1 = selectionBounds.y, y2 = selectionBounds.y + selectionBounds.height - 1;
-                int tile1X = x1 >> TILE_SIZE_BITS, tile1Y = y1 >> TILE_SIZE_BITS;
-                int tile2X = x2 >> TILE_SIZE_BITS, tile2Y = y2 >> TILE_SIZE_BITS;
-                return new Rectangle(tile1X, tile1Y, tile2X - tile1X + 1, tile2Y - tile1Y + 1);
-            }
-        }
-        return null;
     }
 
     /** This method is called from within the constructor to
@@ -601,64 +744,50 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
 
         buttonGroup1 = new javax.swing.ButtonGroup();
         jLabel1 = new javax.swing.JLabel();
-        radioButtonTerrain = new javax.swing.JRadioButton();
-        comboBoxTerrain = new javax.swing.JComboBox();
-        radioButtonBiome = new javax.swing.JRadioButton();
-        comboBoxBiome = new javax.swing.JComboBox();
         buttonCancel = new javax.swing.JButton();
         buttonFill = new javax.swing.JButton();
-        radioButtonClearLayer = new javax.swing.JRadioButton();
-        comboBoxClearLayer = new javax.swing.JComboBox();
-        radioButtonSetLayer = new javax.swing.JRadioButton();
-        comboBoxSetLayer = new javax.swing.JComboBox();
-        sliderLayerValue = new javax.swing.JSlider();
-        radioButtonInvertLayer = new javax.swing.JRadioButton();
-        comboBoxInvertLayer = new javax.swing.JComboBox();
-        radioButtonResetWater = new javax.swing.JRadioButton();
-        radioButtonResetTerrain = new javax.swing.JRadioButton();
         jSeparator1 = new javax.swing.JSeparator();
         brushOptions1 = new org.pepsoft.worldpainter.panels.BrushOptions();
+        jPanel1 = new javax.swing.JPanel();
+        sliderLayerValue = new javax.swing.JSlider();
+        comboBoxBiome = new javax.swing.JComboBox();
+        radioButtonSetLayer = new javax.swing.JRadioButton();
         radioButtonResetBiomes = new javax.swing.JRadioButton();
+        radioButtonClearLayer = new javax.swing.JRadioButton();
+        radioButtonResetTerrain = new javax.swing.JRadioButton();
+        radioButtonTerrain = new javax.swing.JRadioButton();
+        comboBoxClearLayer = new javax.swing.JComboBox();
+        radioButtonResetWater = new javax.swing.JRadioButton();
+        comboBoxSetLayer = new javax.swing.JComboBox();
+        comboBoxInvertLayer = new javax.swing.JComboBox();
+        comboBoxTerrain = new javax.swing.JComboBox();
+        radioButtonInvertLayer = new javax.swing.JRadioButton();
+        radioButtonBiome = new javax.swing.JRadioButton();
         radioButtonMakeBiomesPermanent = new javax.swing.JRadioButton();
+        radioButtonAddToSelection = new javax.swing.JRadioButton();
+        radioButtonRemoveFromSelection = new javax.swing.JRadioButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Global Operations");
 
         jLabel1.setText("Perform a global operation:");
 
-        buttonGroup1.add(radioButtonTerrain);
-        radioButtonTerrain.setText("fill with terrain type:");
-        radioButtonTerrain.addActionListener(this::radioButtonTerrainActionPerformed);
-
-        comboBoxTerrain.setModel(new DefaultComboBoxModel(Terrain.getConfiguredValues()));
-        comboBoxTerrain.setEnabled(false);
-        comboBoxTerrain.setRenderer(new TerrainListCellRenderer(colourScheme));
-
-        buttonGroup1.add(radioButtonBiome);
-        radioButtonBiome.setText("fill with biome:");
-        radioButtonBiome.addActionListener(this::radioButtonBiomeActionPerformed);
-
-        comboBoxBiome.setEnabled(false);
-
         buttonCancel.setText("Cancel");
-        buttonCancel.addActionListener(this::buttonCancelActionPerformed);
+        buttonCancel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonCancelActionPerformed(evt);
+            }
+        });
 
         buttonFill.setText("Go");
         buttonFill.setEnabled(false);
-        buttonFill.addActionListener(this::buttonFillActionPerformed);
+        buttonFill.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonFillActionPerformed(evt);
+            }
+        });
 
-        buttonGroup1.add(radioButtonClearLayer);
-        radioButtonClearLayer.setText("remove a layer:");
-        radioButtonClearLayer.addActionListener(this::radioButtonClearLayerActionPerformed);
-
-        comboBoxClearLayer.setEnabled(false);
-
-        buttonGroup1.add(radioButtonSetLayer);
-        radioButtonSetLayer.setText("fill with layer:");
-        radioButtonSetLayer.addActionListener(this::radioButtonSetLayerActionPerformed);
-
-        comboBoxSetLayer.setEnabled(false);
-        comboBoxSetLayer.addActionListener(this::comboBoxSetLayerActionPerformed);
+        jSeparator1.setOrientation(javax.swing.SwingConstants.VERTICAL);
 
         sliderLayerValue.setMajorTickSpacing(7);
         sliderLayerValue.setMinimum(2);
@@ -666,31 +795,189 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
         sliderLayerValue.setSnapToTicks(true);
         sliderLayerValue.setEnabled(false);
 
-        buttonGroup1.add(radioButtonInvertLayer);
-        radioButtonInvertLayer.setText("invert a layer:");
-        radioButtonInvertLayer.addActionListener(this::radioButtonInvertLayerActionPerformed);
+        comboBoxBiome.setEnabled(false);
 
-        comboBoxInvertLayer.setEnabled(false);
+        buttonGroup1.add(radioButtonSetLayer);
+        radioButtonSetLayer.setText("fill with layer:");
+        radioButtonSetLayer.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonSetLayerActionPerformed(evt);
+            }
+        });
 
-        buttonGroup1.add(radioButtonResetWater);
-        radioButtonResetWater.setText("reset all water or lava");
-        radioButtonResetWater.setToolTipText("This resets the fluid level and type (water or lava) to the default everywhere");
-        radioButtonResetWater.addActionListener(this::radioButtonResetWaterActionPerformed);
+        buttonGroup1.add(radioButtonResetBiomes);
+        radioButtonResetBiomes.setText("reset biomes to automatic");
+        radioButtonResetBiomes.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonResetBiomesActionPerformed(evt);
+            }
+        });
+
+        buttonGroup1.add(radioButtonClearLayer);
+        radioButtonClearLayer.setText("remove a layer:");
+        radioButtonClearLayer.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonClearLayerActionPerformed(evt);
+            }
+        });
 
         buttonGroup1.add(radioButtonResetTerrain);
         radioButtonResetTerrain.setText("reset terrain type to default");
         radioButtonResetTerrain.setToolTipText("Reset the terrain type of the entire map to the altitude-dependent default");
-        radioButtonResetTerrain.addActionListener(this::radioButtonResetTerrainActionPerformed);
+        radioButtonResetTerrain.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonResetTerrainActionPerformed(evt);
+            }
+        });
 
-        jSeparator1.setOrientation(javax.swing.SwingConstants.VERTICAL);
+        buttonGroup1.add(radioButtonTerrain);
+        radioButtonTerrain.setText("fill with terrain type:");
+        radioButtonTerrain.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonTerrainActionPerformed(evt);
+            }
+        });
 
-        buttonGroup1.add(radioButtonResetBiomes);
-        radioButtonResetBiomes.setText("reset biomes to automatic");
-        radioButtonResetBiomes.addActionListener(this::radioButtonResetBiomesActionPerformed);
+        comboBoxClearLayer.setEnabled(false);
+
+        buttonGroup1.add(radioButtonResetWater);
+        radioButtonResetWater.setText("reset all water or lava");
+        radioButtonResetWater.setToolTipText("This resets the fluid level and type (water or lava) to the default everywhere");
+        radioButtonResetWater.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonResetWaterActionPerformed(evt);
+            }
+        });
+
+        comboBoxSetLayer.setEnabled(false);
+        comboBoxSetLayer.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboBoxSetLayerActionPerformed(evt);
+            }
+        });
+
+        comboBoxInvertLayer.setEnabled(false);
+
+        comboBoxTerrain.setModel(new DefaultComboBoxModel(Terrain.getConfiguredValues()));
+        comboBoxTerrain.setEnabled(false);
+        comboBoxTerrain.setRenderer(new TerrainListCellRenderer(colourScheme));
+
+        buttonGroup1.add(radioButtonInvertLayer);
+        radioButtonInvertLayer.setText("invert a layer:");
+        radioButtonInvertLayer.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonInvertLayerActionPerformed(evt);
+            }
+        });
+
+        buttonGroup1.add(radioButtonBiome);
+        radioButtonBiome.setText("fill with biome:");
+        radioButtonBiome.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonBiomeActionPerformed(evt);
+            }
+        });
 
         buttonGroup1.add(radioButtonMakeBiomesPermanent);
         radioButtonMakeBiomesPermanent.setText("make automatic biomes permanent");
-        radioButtonMakeBiomesPermanent.addActionListener(this::radioButtonMakeBiomesPermanentActionPerformed);
+        radioButtonMakeBiomesPermanent.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonMakeBiomesPermanentActionPerformed(evt);
+            }
+        });
+
+        buttonGroup1.add(radioButtonAddToSelection);
+        radioButtonAddToSelection.setText("add to selection");
+        radioButtonAddToSelection.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonAddToSelectionActionPerformed(evt);
+            }
+        });
+
+        buttonGroup1.add(radioButtonRemoveFromSelection);
+        radioButtonRemoveFromSelection.setText("remove from selection");
+        radioButtonRemoveFromSelection.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonRemoveFromSelectionActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(0, 0, 0)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(radioButtonSetLayer)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(comboBoxSetLayer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(12, 12, 12)
+                        .addComponent(sliderLayerValue, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(radioButtonClearLayer)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(comboBoxClearLayer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(radioButtonBiome)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(comboBoxBiome, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(radioButtonInvertLayer)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(comboBoxInvertLayer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(radioButtonResetWater)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(radioButtonTerrain)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(comboBoxTerrain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(radioButtonResetTerrain)
+                    .addComponent(radioButtonResetBiomes)
+                    .addComponent(radioButtonMakeBiomesPermanent)
+                    .addComponent(radioButtonAddToSelection)
+                    .addComponent(radioButtonRemoveFromSelection))
+                .addContainerGap())
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(radioButtonTerrain)
+                    .addComponent(comboBoxTerrain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(radioButtonResetTerrain)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(radioButtonSetLayer)
+                    .addComponent(comboBoxSetLayer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(sliderLayerValue, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(radioButtonClearLayer)
+                    .addComponent(comboBoxClearLayer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(radioButtonInvertLayer)
+                    .addComponent(comboBoxInvertLayer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(radioButtonBiome)
+                    .addComponent(comboBoxBiome, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(radioButtonMakeBiomesPermanent)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(radioButtonResetBiomes)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(radioButtonResetWater)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(radioButtonAddToSelection)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(radioButtonRemoveFromSelection))
+        );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -701,36 +988,8 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel1)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(12, 12, 12)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(radioButtonSetLayer)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(comboBoxSetLayer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(12, 12, 12)
-                                .addComponent(sliderLayerValue, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(radioButtonClearLayer)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(comboBoxClearLayer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(radioButtonBiome)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(comboBoxBiome, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(radioButtonInvertLayer)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(comboBoxInvertLayer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(radioButtonResetWater)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(radioButtonTerrain)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(comboBoxTerrain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(radioButtonResetTerrain)
-                            .addComponent(radioButtonResetBiomes)
-                            .addComponent(radioButtonMakeBiomesPermanent))
-                        .addGap(18, 18, 18)
+                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, 0)
                         .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(brushOptions1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
@@ -747,42 +1006,12 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGap(0, 0, 0)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addGroup(layout.createSequentialGroup()
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(radioButtonTerrain)
-                                .addComponent(comboBoxTerrain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(radioButtonResetTerrain)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(radioButtonSetLayer)
-                                .addComponent(comboBoxSetLayer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(sliderLayerValue, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(radioButtonClearLayer)
-                                .addComponent(comboBoxClearLayer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(radioButtonInvertLayer)
-                                .addComponent(comboBoxInvertLayer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(radioButtonBiome)
-                                .addComponent(comboBoxBiome, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(radioButtonMakeBiomesPermanent)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(radioButtonResetBiomes)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(radioButtonResetWater))
-                        .addComponent(jSeparator1))
-                    .addComponent(brushOptions1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jSeparator1)
+                    .addComponent(brushOptions1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(buttonCancel)
                     .addComponent(buttonFill))
@@ -796,49 +1025,57 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
         fill();
     }//GEN-LAST:event_buttonFillActionPerformed
 
-    private void radioButtonTerrainActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonTerrainActionPerformed
+    private void buttonCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCancelActionPerformed
+        dispose();
+    }//GEN-LAST:event_buttonCancelActionPerformed
+
+    private void radioButtonMakeBiomesPermanentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonMakeBiomesPermanentActionPerformed
         setControlStates();
-    }//GEN-LAST:event_radioButtonTerrainActionPerformed
+    }//GEN-LAST:event_radioButtonMakeBiomesPermanentActionPerformed
 
     private void radioButtonBiomeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonBiomeActionPerformed
         setControlStates();
     }//GEN-LAST:event_radioButtonBiomeActionPerformed
 
-    private void buttonCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCancelActionPerformed
-        dispose();
-    }//GEN-LAST:event_buttonCancelActionPerformed
-
-    private void radioButtonSetLayerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonSetLayerActionPerformed
+    private void radioButtonInvertLayerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonInvertLayerActionPerformed
         setControlStates();
-    }//GEN-LAST:event_radioButtonSetLayerActionPerformed
-
-    private void radioButtonClearLayerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonClearLayerActionPerformed
-        setControlStates();
-    }//GEN-LAST:event_radioButtonClearLayerActionPerformed
+    }//GEN-LAST:event_radioButtonInvertLayerActionPerformed
 
     private void comboBoxSetLayerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxSetLayerActionPerformed
         setControlStates();
     }//GEN-LAST:event_comboBoxSetLayerActionPerformed
 
-    private void radioButtonInvertLayerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonInvertLayerActionPerformed
-        setControlStates();
-    }//GEN-LAST:event_radioButtonInvertLayerActionPerformed
-
     private void radioButtonResetWaterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonResetWaterActionPerformed
         setControlStates();
     }//GEN-LAST:event_radioButtonResetWaterActionPerformed
+
+    private void radioButtonTerrainActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonTerrainActionPerformed
+        setControlStates();
+    }//GEN-LAST:event_radioButtonTerrainActionPerformed
 
     private void radioButtonResetTerrainActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonResetTerrainActionPerformed
         setControlStates();
     }//GEN-LAST:event_radioButtonResetTerrainActionPerformed
 
+    private void radioButtonClearLayerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonClearLayerActionPerformed
+        setControlStates();
+    }//GEN-LAST:event_radioButtonClearLayerActionPerformed
+
     private void radioButtonResetBiomesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonResetBiomesActionPerformed
         setControlStates();
     }//GEN-LAST:event_radioButtonResetBiomesActionPerformed
 
-    private void radioButtonMakeBiomesPermanentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonMakeBiomesPermanentActionPerformed
+    private void radioButtonSetLayerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonSetLayerActionPerformed
         setControlStates();
-    }//GEN-LAST:event_radioButtonMakeBiomesPermanentActionPerformed
+    }//GEN-LAST:event_radioButtonSetLayerActionPerformed
+
+    private void radioButtonAddToSelectionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonAddToSelectionActionPerformed
+        setControlStates();
+    }//GEN-LAST:event_radioButtonAddToSelectionActionPerformed
+
+    private void radioButtonRemoveFromSelectionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonRemoveFromSelectionActionPerformed
+        setControlStates();
+    }//GEN-LAST:event_radioButtonRemoveFromSelectionActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private org.pepsoft.worldpainter.panels.BrushOptions brushOptions1;
@@ -851,11 +1088,14 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
     private javax.swing.JComboBox comboBoxSetLayer;
     private javax.swing.JComboBox comboBoxTerrain;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JSeparator jSeparator1;
+    private javax.swing.JRadioButton radioButtonAddToSelection;
     private javax.swing.JRadioButton radioButtonBiome;
     private javax.swing.JRadioButton radioButtonClearLayer;
     private javax.swing.JRadioButton radioButtonInvertLayer;
     private javax.swing.JRadioButton radioButtonMakeBiomesPermanent;
+    private javax.swing.JRadioButton radioButtonRemoveFromSelection;
     private javax.swing.JRadioButton radioButtonResetBiomes;
     private javax.swing.JRadioButton radioButtonResetTerrain;
     private javax.swing.JRadioButton radioButtonResetWater;

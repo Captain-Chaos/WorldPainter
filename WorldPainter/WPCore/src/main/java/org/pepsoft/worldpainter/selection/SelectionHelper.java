@@ -102,6 +102,46 @@ public class SelectionHelper {
         }
     }
 
+    public Collection<? extends Tile> getTilesInSelection() {
+        Set<Tile> tiles = new HashSet<>();
+        visitTilesInSelection(tiles::add);
+        return tiles;
+    }
+
+    /**
+     * Visit every tile in the dimension which intersects the current selection.
+     * The order in which the tiles are visited is undefined.
+     *
+     * @param tileVisitor The visitor to invoke for each tile that intersects
+     *                    the current selection.
+     */
+    public void visitTilesInSelection(TileVisitor tileVisitor) {
+tiles:  for (Tile tile: dimension.getTiles()) {
+            final boolean tileHasChunkSelection = tile.hasLayer(SelectionChunk.INSTANCE);
+            final boolean tileHasBlockSelection = tile.hasLayer(SelectionBlock.INSTANCE);
+            if (tileHasChunkSelection || tileHasBlockSelection) {
+                for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
+                    for (int chunkY = 0; chunkY < TILE_SIZE; chunkY += 16) {
+                        if (tileHasChunkSelection && tile.getBitLayerValue(SelectionChunk.INSTANCE, chunkX, chunkY)) {
+                            tileVisitor.visit(tile);
+                            continue tiles;
+                        } else if (tileHasBlockSelection) {
+                            for (int dx = 0; dx < 16; dx++) {
+                                for (int dy = 0; dy < 16; dy++) {
+                                    if (tile.getBitLayerValue(SelectionBlock.INSTANCE, chunkX + dx, chunkY + dy)) {
+                                        tileVisitor.visit(tile);
+                                        continue tiles;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+            }
+        }
+    }
+
     public void copySelection(int targetX, int targetY, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
         Rectangle bounds = getSelectionBounds();
         if (bounds == null) {
@@ -524,4 +564,8 @@ outer:  for (int dx = -1; dx <= 1; dx++) {
     private static final Random RANDOM = new Random();
     private static final Set<Layer> SKIP_LAYERS = new HashSet<>(Arrays.asList(Biome.INSTANCE, SelectionChunk.INSTANCE,
             SelectionBlock.INSTANCE, NotPresent.INSTANCE, Annotations.INSTANCE, FloodWithLava.INSTANCE));
+
+    interface TileVisitor {
+        void visit(Tile tile);
+    }
 }
