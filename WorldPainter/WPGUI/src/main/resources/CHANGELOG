@@ -1,5 +1,8 @@
 -- Version 2.3.7, released ...
 
+ * There are two new selection modification operations on the Global Operations tool screen: "add to selection" and "remove from selection" which together with the filter settings allows you to sculpt complex and intricate selections based on the contents of the world
+ * It is now possible to hide the terrain type and the fluids (water and lava), or show *just* the terrain, hiding all layers. This is done with the new checkboxes on the Terrain panel. Deselecting "Show Terrain" will turn the surface entirely grey, hiding the terrain type and making layers easier to see. Selecting "Solo Terrain" will hide all layers. And deselecting "Show Water/Lava" will remove all water and lava from view, making it easier to see river, lake and ocean beds. Just as with the other "show" checkboxes: whenever the corresponding tool or paint is selected the layer *will* be shown, regardless of the checkbox setting. In other words: when you have the Flood or Lava tools selected the fluids will always be shown, and whenever you have any terrain type selected the terrain will always be shown
+ * Directional lighting can now be turned off. This has been implemented by adding a fifth direction: "from above", which you can select by pressing "rotate left" once when "north west" (the default) is selected, or "rotate right" when "south west" is selected
  * High resolution display support. WorldPainter now should use the full resolution of your high resolution (more than 120 dpi) display instead of scaling everything up two times. It's not perfect yet, so please let us know of any visual problems on high resolution displays
 
 -- Version 2.3.6, released 5-1-2017
