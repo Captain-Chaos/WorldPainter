@@ -3557,8 +3557,6 @@ public final class App extends JFrame implements RadiusControl,
             menuItem = new JMenuItem(ACTION_SHIFT_WORLD);
             menuItem.setMnemonic('s');
             menu.add(menuItem);
-
-            menu.addSeparator();
         }
 
         menuItem = new JMenuItem(strings.getString("global.operations") + "...");
@@ -3619,6 +3617,8 @@ public final class App extends JFrame implements RadiusControl,
 //        menu.add(easyModeItem);
 
         if ((! config.isEasyMode()) && (! hidePreferences)) {
+            menu.addSeparator();
+
             menuItem = new JMenuItem(strings.getString("preferences") + "...");
             menuItem.addActionListener(e -> {
                 PreferencesDialog dialog = new PreferencesDialog(App.this, selectedColourScheme);
