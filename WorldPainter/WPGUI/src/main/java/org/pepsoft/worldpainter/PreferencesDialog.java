@@ -10,6 +10,7 @@
  */
 package org.pepsoft.worldpainter;
 
+import org.pepsoft.util.GUIUtils;
 import org.pepsoft.worldpainter.TileRenderer.LightOrigin;
 import org.pepsoft.worldpainter.themes.SimpleTheme;
 import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
@@ -37,6 +38,10 @@ public class PreferencesDialog extends javax.swing.JDialog {
         this.colourScheme = colourScheme;
         
         initComponents();
+        if (GUIUtils.UI_SCALE > 1) {
+            comboBoxLookAndFeel.setEnabled(false);
+            jLabel32.setText("<html><em>Visual themes not available for high resolution displays</em></html>");
+        }
         
         comboBoxSurfaceMaterial.setModel(new DefaultComboBoxModel(Terrain.PICK_LIST));
         comboBoxSurfaceMaterial.setRenderer(new TerrainListCellRenderer(colourScheme));
@@ -151,8 +156,10 @@ public class PreferencesDialog extends javax.swing.JDialog {
         checkBoxCheats.setSelected(config.isDefaultAllowCheats());
 
         previousExp = (int) Math.round(Math.log(config.getDefaultMaxHeight()) / Math.log(2.0));
-        
-        comboBoxLookAndFeel.setSelectedIndex(config.getLookAndFeel() != null ? config.getLookAndFeel().ordinal() : 0);
+
+        if (GUIUtils.UI_SCALE == 1) {
+            comboBoxLookAndFeel.setSelectedIndex(config.getLookAndFeel() != null ? config.getLookAndFeel().ordinal() : 0);
+        }
         
         switch (config.getAccelerationType()) {
             case DEFAULT:
@@ -234,8 +241,10 @@ public class PreferencesDialog extends javax.swing.JDialog {
         config.setDefaultMapFeatures(checkBoxStructures.isSelected());
         config.setDefaultGameType(comboBoxMode.getSelectedIndex());
         config.setDefaultAllowCheats(checkBoxCheats.isSelected());
-        
-        config.setLookAndFeel(Configuration.LookAndFeel.values()[comboBoxLookAndFeel.getSelectedIndex()]);
+
+        if (GUIUtils.UI_SCALE == 1) {
+            config.setLookAndFeel(Configuration.LookAndFeel.values()[comboBoxLookAndFeel.getSelectedIndex()]);
+        }
         
         if (radioButtonAccelDefault.isSelected()) {
             config.setAccelerationType(AccelerationType.DEFAULT);
