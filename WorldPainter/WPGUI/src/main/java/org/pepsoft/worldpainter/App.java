@@ -43,10 +43,8 @@ import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayer;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayerDialog;
 import org.pepsoft.worldpainter.operations.*;
-import org.pepsoft.worldpainter.painting.DiscreteLayerPaint;
-import org.pepsoft.worldpainter.painting.LayerPaint;
+import org.pepsoft.worldpainter.painting.*;
 import org.pepsoft.worldpainter.painting.Paint;
-import org.pepsoft.worldpainter.painting.PaintFactory;
 import org.pepsoft.worldpainter.panels.BrushOptions;
 import org.pepsoft.worldpainter.panels.BrushOptions.Listener;
 import org.pepsoft.worldpainter.panels.DefaultFilter;
@@ -105,6 +103,8 @@ import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.util.GUIUtils.UI_SCALE;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Terrain.*;
+import static org.pepsoft.worldpainter.TileRenderer.FLUIDS_AS_LAYER;
+import static org.pepsoft.worldpainter.TileRenderer.TERRAIN_AS_LAYER;
 
 //import javax.swing.JSeparator;
 
@@ -276,6 +276,9 @@ public final class App extends JFrame implements RadiusControl,
         DisplayMode displayMode = graphicsDevice.getDisplayMode();
         ImageCapabilities imageCapabilities = graphicsDevice.getDefaultConfiguration().getImageCapabilities();
         logger.info("Default graphics device, ID string: " + graphicsDevice.getIDstring() + ", available accelerated memory: " + graphicsDevice.getAvailableAcceleratedMemory() + ", display mode: " + displayMode.getWidth() + "x" + displayMode.getHeight() + ", bit depth: " + ((displayMode.getBitDepth() == DisplayMode.BIT_DEPTH_MULTI) ? "multi" : displayMode.getBitDepth()) + ", refresh rate: " + ((displayMode.getRefreshRate() == DisplayMode.REFRESH_RATE_UNKNOWN) ? "unknown" : displayMode.getRefreshRate()) + ", reported dpi: " + Toolkit.getDefaultToolkit().getScreenResolution() + ", accelerated: " + (imageCapabilities.isAccelerated() ? "yes" : "no") + ", true volatile: " + (imageCapabilities.isTrueVolatile() ? "yes" : "no"));
+        if (GUIUtils.UI_SCALE > 1) {
+            logger.info("High resolution display support enabled");
+        }
     }
 
     public World2 getWorld() {
@@ -2510,15 +2513,17 @@ public final class App extends JFrame implements RadiusControl,
         layerPanel.add(new JLabel(), constraints);
         
         Configuration config = Configuration.getInstance();
-        constraints.anchor = GridBagConstraints.FIRST_LINE_START;
+        constraints.anchor = GridBagConstraints.WEST;
         constraints.weightx = 0.0;
+        LayoutUtils.addRowOfComponents(layerPanel, constraints, createLayerButton(TERRAIN_AS_LAYER, (char) 0, true, false));
+        LayoutUtils.addRowOfComponents(layerPanel, constraints, createLayerButton(FLUIDS_AS_LAYER, (char) 0, false, false));
         for (Layer layer: layers) {
-            LayoutUtils.addRowOfComponents(layerPanel, constraints, createLayerButton(layer, layer.getMnemonic(), true));
+            LayoutUtils.addRowOfComponents(layerPanel, constraints, createLayerButton(layer, layer.getMnemonic()));
         }
         if (! config.isEasyMode()) {
-            LayoutUtils.addRowOfComponents(layerPanel, constraints, createLayerButton(Populate.INSTANCE, 'p', true));
+            LayoutUtils.addRowOfComponents(layerPanel, constraints, createLayerButton(Populate.INSTANCE, 'p'));
         }
-        LayoutUtils.addRowOfComponents(layerPanel, constraints, createLayerButton(ReadOnly.INSTANCE, 'o', true));
+        LayoutUtils.addRowOfComponents(layerPanel, constraints, createLayerButton(ReadOnly.INSTANCE, 'o'));
         disableImportedWorldOperation();
 
         final JPopupMenu customLayerMenu = createCustomLayerMenu(null);
@@ -3103,7 +3108,7 @@ public final class App extends JFrame implements RadiusControl,
     
     @Override
     public List<Component> createCustomLayerButton(final CustomLayer layer) {
-        final List<Component> buttonComponents = createLayerButton(layer, '\0', true);
+        final List<Component> buttonComponents = createLayerButton(layer, '\0');
         final JToggleButton button = (JToggleButton) buttonComponents.get(2);
         button.setToolTipText(button.getToolTipText() + "; right-click for options");
         button.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -4468,57 +4473,37 @@ public final class App extends JFrame implements RadiusControl,
         return button;
     }
 
-    private List<Component> createLayerButton(final Layer layer, char mnemonic, boolean checkboxEnabled) {
+    private List<Component> createLayerButton(final Layer layer, char mnemonic) {
+        return createLayerButton(layer, mnemonic, true, true);
+    }
+
+    private List<Component> createLayerButton(final Layer layer, char mnemonic, boolean createSoloCheckbox, boolean createButton) {
         boolean readOnlyOperation = layer.equals(ReadOnly.INSTANCE);
-        final JToggleButton button = new JToggleButton();
-        if (readOnlyOperation) {
-            readOnlyToggleButton = button;
-        }
-        button.setMargin(new Insets(2, 2, 2, 2));
-        if (layer.getIcon() != null) {
-            button.setIcon(new ImageIcon(layer.getIcon()));
-        }
-        button.setToolTipText(layer.getName() + ": " + layer.getDescription());
-        // TODO: make this work again, but with Ctrl + Alt or something
-//        if (mnemonic != 0) {
-//            button.setMnemonic(mnemonic);
-//        }
-        button.addItemListener(event -> {
-            if (event.getStateChange() == ItemEvent.SELECTED) {
-                paintUpdater = () -> {
-                    paint = PaintFactory.createLayerPaint(layer);
-                    paintChanged();
-                };
-                paintUpdater.updatePaint();
-            }
-        });
-        paintButtonGroup.add(button);
+        List<Component> components = new ArrayList<>(3);
+
         final JCheckBox checkBox = new JCheckBox();
         if (readOnlyOperation) {
             readOnlyCheckBox = checkBox;
         }
         checkBox.setToolTipText(strings.getString("whether.or.not.to.display.this.layer"));
         checkBox.setSelected(true);
-        if (checkboxEnabled) {
-            checkBox.addActionListener(e -> {
-                if (checkBox.isSelected()) {
-                    hiddenLayers.remove(layer);
-                } else {
-                    hiddenLayers.add(layer);
-                }
-                updateLayerVisibility();
-            });
-        } else {
-            checkBox.setEnabled(false);
-        }
+        checkBox.addActionListener(e -> {
+            if (checkBox.isSelected()) {
+                hiddenLayers.remove(layer);
+            } else {
+                hiddenLayers.add(layer);
+            }
+            updateLayerVisibility();
+        });
+        components.add(checkBox);
 
-        final JCheckBox soloCheckBox = new JCheckBox();
-        if (readOnlyOperation) {
-            readOnlySoloCheckBox = soloCheckBox;
-        }
-        layerSoloCheckBoxes.put(layer, soloCheckBox);
-        soloCheckBox.setToolTipText("<html>Check to show <em>only</em> this layer (the other layers are still exported)</html>");
-        if (checkboxEnabled) {
+        if (createSoloCheckbox) {
+            final JCheckBox soloCheckBox = new JCheckBox();
+            if (readOnlyOperation) {
+                readOnlySoloCheckBox = soloCheckBox;
+            }
+            layerSoloCheckBoxes.put(layer, soloCheckBox);
+            soloCheckBox.setToolTipText("<html>Check to show <em>only</em> this layer (the other layers are still exported)</html>");
             soloCheckBox.addActionListener(e -> {
                 if (soloCheckBox.isSelected()) {
                     layerSoloCheckBoxes.values().stream().filter(otherSoloCheckBox -> otherSoloCheckBox != soloCheckBox).forEach(otherSoloCheckBox -> otherSoloCheckBox.setSelected(false));
@@ -4528,12 +4513,42 @@ public final class App extends JFrame implements RadiusControl,
                 }
                 updateLayerVisibility();
             });
+            components.add(soloCheckBox);
         } else {
-            soloCheckBox.setEnabled(false);
+            components.add(Box.createGlue());
         }
 
-        button.setText(layer.getName());
-        return Arrays.asList(checkBox, soloCheckBox, button);
+        if (createButton) {
+            final JToggleButton button = new JToggleButton();
+            if (readOnlyOperation) {
+                readOnlyToggleButton = button;
+            }
+            button.setMargin(new Insets(2, 2, 2, 2));
+            if (layer.getIcon() != null) {
+                button.setIcon(new ImageIcon(layer.getIcon()));
+            }
+            button.setToolTipText(layer.getName() + ": " + layer.getDescription());
+            // TODO: make this work again, but with Ctrl + Alt or something
+    //        if (mnemonic != 0) {
+    //            button.setMnemonic(mnemonic);
+    //        }
+            button.addItemListener(event -> {
+                if (event.getStateChange() == ItemEvent.SELECTED) {
+                    paintUpdater = () -> {
+                        paint = PaintFactory.createLayerPaint(layer);
+                        paintChanged();
+                    };
+                    paintUpdater.updatePaint();
+                }
+            });
+            paintButtonGroup.add(button);
+            button.setText(layer.getName());
+            components.add(button);
+        } else {
+            components.add(new JLabel(layer.getName(), new ImageIcon(layer.getIcon()), JLabel.LEADING));
+        }
+
+        return components;
     }
 
     private JToggleButton createTerrainButton(final Terrain terrain) {
@@ -4589,6 +4604,9 @@ public final class App extends JFrame implements RadiusControl,
             // Only the solo layer and the active layer (if there is one and it
             // is different than the solo layer) should be visible
             targetHiddenLayers.addAll((dimension != null) ? dimension.getAllLayers(true) : new HashSet<>(layers));
+            // Put in the currently hidden layers as well, as some of them might
+            // be synthetic and not returned by the dimension
+            targetHiddenLayers.addAll(hiddenLayers);
             targetHiddenLayers.remove(soloLayer);
         } else {
             // The layers marked as hidden should be invisible, except the
@@ -4596,13 +4614,26 @@ public final class App extends JFrame implements RadiusControl,
             targetHiddenLayers.addAll(hiddenLayers);
         }
         // The currently active layer, if any, should always be visible
-        if ((activeOperation instanceof PaintOperation) && (paint instanceof LayerPaint)) {
-            targetHiddenLayers.remove(((LayerPaint) paint).getLayer());
+        if (activeOperation instanceof PaintOperation) {
+            if (paint instanceof LayerPaint) {
+                targetHiddenLayers.remove(((LayerPaint) paint).getLayer());
+            } else if (paint instanceof TerrainPaint) {
+                targetHiddenLayers.remove(TERRAIN_AS_LAYER);
+            }
+        } else if ((activeOperation instanceof Flood) || (activeOperation instanceof FloodWithLava)) {
+            targetHiddenLayers.remove(FLUIDS_AS_LAYER);
         }
+        // The Selection layers should *never* be hidden
+        targetHiddenLayers.remove(SelectionBlock.INSTANCE);
+        targetHiddenLayers.remove(SelectionChunk.INSTANCE);
         
         // Hide the selected layers
-        targetHiddenLayers.stream().filter(hiddenLayer -> !viewHiddenLayers.contains(hiddenLayer)).forEach(view::addHiddenLayer);
-        viewHiddenLayers.stream().filter(hiddenLayer -> !targetHiddenLayers.contains(hiddenLayer)).forEach(view::removeHiddenLayer);
+        targetHiddenLayers.stream()
+                .filter(hiddenLayer -> ! viewHiddenLayers.contains(hiddenLayer))
+                .forEach(view::addHiddenLayer);
+        viewHiddenLayers.stream()
+                .filter(hiddenLayer -> ! targetHiddenLayers.contains(hiddenLayer))
+                .forEach(view::removeHiddenLayer);
         
         // Configure the glass pane to show the right icons
         glassPane.setHiddenLayers(hiddenLayers);

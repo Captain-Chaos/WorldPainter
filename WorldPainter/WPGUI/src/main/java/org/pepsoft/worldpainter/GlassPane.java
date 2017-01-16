@@ -12,7 +12,6 @@ package org.pepsoft.worldpainter;
 
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.worldpainter.layers.Biome;
-import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.Layer;
 
 import javax.swing.*;
@@ -81,7 +80,7 @@ public class GlassPane extends javax.swing.JPanel {
         Graphics2D g2 = image.createGraphics();
         try {
             g2.drawImage(PROHIBITED_SIGN_BACKGROUND, 0, 0, null);
-            g2.drawImage((layer instanceof CustomLayer) ? layer.getIcon() : invertImage(layer.getIcon()), 2 * UI_SCALE, 2 * UI_SCALE, null);
+            g2.drawImage(layer.getIcon(), 2 * UI_SCALE, 2 * UI_SCALE, null);
             g2.drawImage(PROHIBITED_SIGN_FOREGROUND, 0, 0, null);
         } finally {
             g2.dispose();
@@ -96,7 +95,7 @@ public class GlassPane extends javax.swing.JPanel {
         BufferedImage image = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(20, 20, Transparency.TRANSLUCENT);
         Graphics2D g2 = image.createGraphics();
         try {
-            g2.drawImage((layer instanceof CustomLayer) ? layer.getIcon() : invertImage(layer.getIcon()), 2, 2, null);
+            g2.drawImage(layer.getIcon(), 2, 2, null);
         } finally {
             g2.dispose();
         }
@@ -105,22 +104,7 @@ public class GlassPane extends javax.swing.JPanel {
         label.setToolTipText("Showing only " + layer.getName() + " layer");
         return label;
     }
-    
-    private BufferedImage invertImage(BufferedImage in) {
-        BufferedImage out = new BufferedImage(in.getWidth(), in.getHeight(), BufferedImage.TYPE_INT_ARGB);
-        for (int x = 0; x < in.getWidth(); x++) {
-            for (int y = 0; y < in.getHeight(); y++) {
-                int colour = in.getRGB(x, y);
-                colour = (colour & 0xff000000)
-                    | (0xff0000 - (colour & 0xff0000))
-                    | (0xff00 - (colour & 0xff00))
-                    | (0xff - (colour & 0xff));
-                out.setRGB(x, y, colour);
-            }
-        }
-        return out;
-    }
-    
+
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is

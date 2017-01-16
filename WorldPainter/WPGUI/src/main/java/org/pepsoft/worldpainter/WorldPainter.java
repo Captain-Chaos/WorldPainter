@@ -336,7 +336,11 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             hiddenLayers.add(hiddenLayer);
             if (dimension != null) {
                 tileProvider.addHiddenLayer(hiddenLayer);
-                refreshTilesForLayer(hiddenLayer, true);
+                if ((hiddenLayer == TileRenderer.TERRAIN_AS_LAYER) || (hiddenLayer == TileRenderer.FLUIDS_AS_LAYER)) {
+                    refreshTiles();
+                } else {
+                    refreshTilesForLayer(hiddenLayer, true);
+                }
             }
             firePropertyChange("hiddenLayers", oldHiddenLayers, hiddenLayers);
         }
@@ -348,7 +352,11 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             hiddenLayers.remove(hiddenLayer);
             if (dimension != null) {
                 tileProvider.removeHiddenLayer(hiddenLayer);
-                refreshTilesForLayer(hiddenLayer, true);
+                if ((hiddenLayer == TileRenderer.TERRAIN_AS_LAYER) || (hiddenLayer == TileRenderer.FLUIDS_AS_LAYER)) {
+                    refreshTiles();
+                } else {
+                    refreshTilesForLayer(hiddenLayer, true);
+                }
             }
             firePropertyChange("hiddenLayers", oldHiddenLayers, hiddenLayers);
         }
@@ -894,7 +902,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     private LightOrigin lightOrigin = LightOrigin.NORTHWEST;
     private WPTileProvider tileProvider;
     private Shape customBrushShape;
-    
+
     private static final int VIEW_DISTANCE_RADIUS = 256;
     private static final int VIEW_DISTANCE_DIAMETER = 2 * VIEW_DISTANCE_RADIUS;
     private static final int FIVE_MINUTE_WALK_DISTANCE_RADIUS = 1280;
