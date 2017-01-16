@@ -1,7 +1,10 @@
 package org.pepsoft.util;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
+import java.awt.image.BufferedImageOp;
 
 import static java.awt.RenderingHints.*;
 import static java.awt.Transparency.*;
@@ -23,15 +26,8 @@ public class GUIUtils {
         if (UI_SCALE == 1) {
             return image;
         } else {
-            BufferedImage scaledImage = new BufferedImage(image.getWidth() * UI_SCALE, image.getHeight() * UI_SCALE, (image.getTransparency() != OPAQUE) ? TYPE_INT_ARGB : TYPE_INT_RGB);
-            Graphics2D g2 = scaledImage.createGraphics();
-            try {
-                g2.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-                g2.drawImage(image, 0, 0, image.getWidth() * UI_SCALE, image.getHeight() * UI_SCALE, null);
-            } finally {
-                g2.dispose();
-            }
-            return scaledImage;
+            BufferedImageOp op = new AffineTransformOp(AffineTransform.getScaleInstance(UI_SCALE, UI_SCALE), AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+            return op.filter(image, null);
         }
     }
 
