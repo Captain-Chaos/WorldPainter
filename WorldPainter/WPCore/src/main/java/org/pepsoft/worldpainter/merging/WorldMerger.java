@@ -408,11 +408,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                     int regionX = tileCoords.x >> 2;
                     int regionZ = tileCoords.y >> 2;
                     Point regionCoords = new Point(regionX, regionZ);
-                    Map<Point, Tile> tilesForRegion = tilesByRegion.get(regionCoords);
-                    if (tilesForRegion == null) {
-                        tilesForRegion = new HashMap<>();
-                        tilesByRegion.put(regionCoords, tilesForRegion);
-                    }
+                    Map<Point, Tile> tilesForRegion = tilesByRegion.computeIfAbsent(regionCoords, k -> new HashMap<>());
                     tilesForRegion.put(tileCoords, tile);
                     if (regionX < lowestRegionX) {
                         lowestRegionX = regionX;
@@ -448,11 +444,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                     int regionX = tile.getX() >> 2;
                     int regionZ = tile.getY() >> 2;
                     Point regionCoords = new Point(regionX, regionZ);
-                    Map<Point, Tile> tilesForRegion = tilesByRegion.get(regionCoords);
-                    if (tilesForRegion == null) {
-                        tilesForRegion = new HashMap<>();
-                        tilesByRegion.put(regionCoords, tilesForRegion);
-                    }
+                    Map<Point, Tile> tilesForRegion = tilesByRegion.computeIfAbsent(regionCoords, k -> new HashMap<>());
                     tilesForRegion.put(new Point(tile.getX(), tile.getY()), tile);
                     if (regionX < lowestRegionX) {
                         lowestRegionX = regionX;
@@ -889,14 +881,12 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         File newRegionDir = new File(worldDir, "region");
         newRegionDir.mkdirs();
         for (File file: oldRegionFiles) {
-            RegionFile oldRegion = new RegionFile(file);
-            try {
+            try (RegionFile oldRegion = new RegionFile(file)) {
                 String[] parts = file.getName().split("\\.");
                 int regionX = Integer.parseInt(parts[1]);
                 int regionZ = Integer.parseInt(parts[2]);
                 File newRegionFile = new File(newRegionDir, "r." + regionX + "." + regionZ + ".mca");
-                RegionFile newRegion = new RegionFile(newRegionFile);
-                try {
+                try (RegionFile newRegion = new RegionFile(newRegionFile)) {
                     for (int x = 0; x < 32; x++) {
                         for (int z = 0; z < 32; z++) {
                             if (oldRegion.containsChunk(x, z)) {
@@ -921,11 +911,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                             }
                         }
                     }
-                } finally {
-                    newRegion.close();
                 }
-            } finally {
-                oldRegion.close();
             }
         }
     }
@@ -1510,12 +1496,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
     }
     
     private final File levelDatFile;
-    private final ThreadLocal<byte[]> histogramRef = new ThreadLocal<byte[]>() {
-        @Override
-        protected byte[] initialValue() {
-            return new byte[65536];
-        }
-    };
+    private final ThreadLocal<byte[]> histogramRef = ThreadLocal.withInitial(() -> new byte[65536]);
     private boolean replaceChunks, mergeOverworld, mergeUnderworld, clearTrees,
         clearResources, fillCaves, clearVegetation,
         clearManMadeAboveGround, clearManMadeBelowGround;

@@ -495,12 +495,7 @@ public class WorldExporter {
         allLayers.addAll(minimumLayers);
 
         // Remove layers which have been excluded for export
-        for (Iterator<Layer> i = allLayers.iterator(); i.hasNext(); ) {
-            Layer layer = i.next();
-            if ((layer instanceof CustomLayer) && (! ((CustomLayer) layer).isExport())) {
-                i.remove();
-            }
-        }
+        allLayers.removeIf(layer -> (layer instanceof CustomLayer) && (!((CustomLayer) layer).isExport()));
         
         List<Layer> secondaryPassLayers = new ArrayList<>(), ceilingSecondaryPassLayers = new ArrayList<>();
         for (Layer layer: allLayers) {
@@ -520,12 +515,7 @@ public class WorldExporter {
             allCeilingLayers.addAll(ceilingMinimumLayers);
 
             // Remove layers which have been excluded for export
-            for (Iterator<Layer> i = allCeilingLayers.iterator(); i.hasNext(); ) {
-                Layer layer = i.next();
-                if ((layer instanceof CustomLayer) && (! ((CustomLayer) layer).isExport())) {
-                    i.remove();
-                }
-            }
+            allCeilingLayers.removeIf(layer -> (layer instanceof CustomLayer) && (!((CustomLayer) layer).isExport()));
 
             for (Layer layer: allCeilingLayers) {
                 LayerExporter exporter = layer.getExporter();
@@ -1005,12 +995,7 @@ public class WorldExporter {
         } while (! done);
 
         // Remove layers which have been excluded for export
-        for (Iterator<Layer> i = allLayers.iterator(); i.hasNext(); ) {
-            Layer layer = i.next();
-            if ((layer instanceof CustomLayer) && (! ((CustomLayer) layer).isExport())) {
-                i.remove();
-            }
-        }
+        allLayers.removeIf(layer -> (layer instanceof CustomLayer) && (!((CustomLayer) layer).isExport()));
         
         // Load all layer settings into the exporters
         for (Layer layer: allLayers) {
