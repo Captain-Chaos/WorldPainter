@@ -36,7 +36,7 @@ public class RegressionIT {
         try {
             File worldDir = exportWorld(world, tmpBaseDir);
             verifyJavaWorld(worldDir, SUPPORTED_VERSION_2);
-            verifyJavaDimension(worldDir, world.getDimension(DIM_NORMAL), new int[] {
+            verifyJavaDimension(worldDir, world.getDimension(DIM_NORMAL),
                 // Bedrock
                 BLK_BEDROCK,
 
@@ -74,13 +74,13 @@ public class RegressionIT {
                 BLK_LARGE_FLOWERS, BLK_WHEAT, BLK_CARROTS, BLK_POTATOES, BLK_PUMPKIN_STEM, BLK_MELON_STEM,
 
                 // Deep Snow layer
-                BLK_SNOW_BLOCK});
-            verifyJavaDimension(worldDir, world.getDimension(DIM_NETHER), new int[] {
+                BLK_SNOW_BLOCK);
+            verifyJavaDimension(worldDir, world.getDimension(DIM_NETHER),
                 // Nether
-                BLK_NETHERRACK, BLK_SOUL_SAND, BLK_GLOWSTONE, BLK_FIRE, BLK_LAVA, BLK_AIR});
-            verifyJavaDimension(worldDir, world.getDimension(DIM_END), new int[] {
+                BLK_NETHERRACK, BLK_SOUL_SAND, BLK_GLOWSTONE, BLK_FIRE, BLK_LAVA, BLK_AIR);
+            verifyJavaDimension(worldDir, world.getDimension(DIM_END),
                 // End
-                BLK_END_STONE, BLK_AIR});
+                BLK_END_STONE, BLK_AIR);
         } finally {
             FileUtils.deleteDir(tmpBaseDir);
         }
@@ -124,7 +124,7 @@ public class RegressionIT {
         assertEquals(expectedVersion, level.getVersion());
     }
 
-    private void verifyJavaDimension(File worldDir, Dimension dimension, int[] expectedBlocks) throws IOException {
+    private void verifyJavaDimension(File worldDir, Dimension dimension, int... expectedBlocks) throws IOException {
         World2 world = dimension.getWorld();
         logger.info("Verifying dimension {} of map {}", dimension.getName(), world.getName());
 
@@ -154,44 +154,45 @@ public class RegressionIT {
         int lowestChunkX = Integer.MAX_VALUE, highestChunkX = Integer.MIN_VALUE;
         int lowestChunkZ = Integer.MAX_VALUE, highestChunkZ = Integer.MIN_VALUE;
         BitSet blockTypes = new BitSet(256);
-        for (File file: regionDir.listFiles((dir, name) -> regionFilePattern.matcher(name).matches())) {
+        for (File file: regionDir.listFiles()) {
             Matcher matcher = regionFilePattern.matcher(file.getName());
-            matcher.find();
-            int regionX = Integer.parseInt(matcher.group(1));
-            int regionZ = Integer.parseInt(matcher.group(2));
-            try (RegionFile regionFile = new RegionFile(file, true)) {
-                for (int chunkX = 0; chunkX < 32; chunkX++) {
-                    for (int chunkZ = 0; chunkZ < 32; chunkZ++) {
-                        if (regionFile.containsChunk(chunkX, chunkZ)) {
-                            int absChunkX = (regionX << 5) + chunkX;
-                            int absChunkZ = (regionZ << 5) + chunkZ;
-                            if (absChunkX < lowestChunkX) {
-                                lowestChunkX = absChunkX;
-                            }
-                            if (absChunkX > highestChunkX) {
-                                highestChunkX = absChunkX;
-                            }
-                            if (absChunkZ < lowestChunkZ) {
-                                lowestChunkZ = absChunkZ;
-                            }
-                            if (absChunkZ > highestChunkZ) {
-                                highestChunkZ = absChunkZ;
-                            }
-                            Chunk chunk;
-                            try (NBTInputStream in = new NBTInputStream(regionFile.getChunkDataInputStream(chunkX, chunkZ))) {
-                                Tag tag = in.readTag();
-                                chunk = (version == SUPPORTED_VERSION_1)
-                                        ? new ChunkImpl((CompoundTag) tag, maxHeight, true)
-                                        : new ChunkImpl2((CompoundTag) tag, maxHeight, true);
-                            }
+            if (matcher.matches()) {
+                int regionX = Integer.parseInt(matcher.group(1));
+                int regionZ = Integer.parseInt(matcher.group(2));
+                try (RegionFile regionFile = new RegionFile(file, true)) {
+                    for (int chunkX = 0; chunkX < 32; chunkX++) {
+                        for (int chunkZ = 0; chunkZ < 32; chunkZ++) {
+                            if (regionFile.containsChunk(chunkX, chunkZ)) {
+                                int absChunkX = (regionX << 5) + chunkX;
+                                int absChunkZ = (regionZ << 5) + chunkZ;
+                                if (absChunkX < lowestChunkX) {
+                                    lowestChunkX = absChunkX;
+                                }
+                                if (absChunkX > highestChunkX) {
+                                    highestChunkX = absChunkX;
+                                }
+                                if (absChunkZ < lowestChunkZ) {
+                                    lowestChunkZ = absChunkZ;
+                                }
+                                if (absChunkZ > highestChunkZ) {
+                                    highestChunkZ = absChunkZ;
+                                }
+                                Chunk chunk;
+                                try (NBTInputStream in = new NBTInputStream(regionFile.getChunkDataInputStream(chunkX, chunkZ))) {
+                                    Tag tag = in.readTag();
+                                    chunk = (version == SUPPORTED_VERSION_1)
+                                            ? new ChunkImpl((CompoundTag) tag, maxHeight, true)
+                                            : new ChunkImpl2((CompoundTag) tag, maxHeight, true);
+                                }
 
-                            // Iterate over all blocks to check whether the
-                            // basic data structure are present, and inventory
-                            // all block types present
-                            for (int x = 0; x < 16; x++) {
-                                for (int y = 0; y < maxHeight; y++) {
-                                    for (int z = 0; z < 16; z++) {
-                                        blockTypes.set(chunk.getBlockType(x, y, z));
+                                // Iterate over all blocks to check whether the
+                                // basic data structure are present, and inventory
+                                // all block types present
+                                for (int x = 0; x < 16; x++) {
+                                    for (int y = 0; y < maxHeight; y++) {
+                                        for (int z = 0; z < 16; z++) {
+                                            blockTypes.set(chunk.getBlockType(x, y, z));
+                                        }
                                     }
                                 }
                             }
