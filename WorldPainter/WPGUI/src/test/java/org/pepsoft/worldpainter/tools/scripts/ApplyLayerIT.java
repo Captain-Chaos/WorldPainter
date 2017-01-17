@@ -24,9 +24,9 @@ import org.junit.Test;
  *
  * @author pepijn
  */
-public class ColourMappingTest extends AbstractScriptTest {
+public class ApplyLayerIT extends AbstractScriptTest {
     @Test
-    public void testColourMapping() throws IOException, ClassNotFoundException, javax.script.ScriptException {
-        testScript("colourmappingtest.js");
+    public void testApplyLayer() throws IOException, ClassNotFoundException, javax.script.ScriptException {
+        testScript("applylayertest.js");
     }
 }

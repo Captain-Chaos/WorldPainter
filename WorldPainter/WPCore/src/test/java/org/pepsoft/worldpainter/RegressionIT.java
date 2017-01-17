@@ -28,7 +28,7 @@ import static org.pepsoft.worldpainter.Constants.*;
  * Created by Pepijn Schmitz on 09-01-17.
  */
 @SuppressWarnings({"ResultOfMethodCallIgnored", "SameParameterValue"})
-public class RegressionTest {
+public class RegressionIT {
     @Test
     public void test2_3_6World() throws IOException, UnloadableWorldException, ProgressReceiver.OperationCancelled {
         World2 world = loadWorld("/testset/test-v2.3.6-1.world");
@@ -90,7 +90,7 @@ public class RegressionTest {
         // Load the world
         logger.info("Loading world {}", worldName);
         WorldIO worldIO = new WorldIO();
-        worldIO.load(RegressionTest.class.getResourceAsStream(worldName));
+        worldIO.load(RegressionIT.class.getResourceAsStream(worldName));
         return worldIO.getWorld();
     }
 
@@ -209,5 +209,5 @@ public class RegressionTest {
         }
     }
 
-    private static final Logger logger = LoggerFactory.getLogger(RegressionTest.class);
+    private static final Logger logger = LoggerFactory.getLogger(RegressionIT.class);
 }
