@@ -27,6 +27,7 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -543,7 +544,17 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
 
             final Map<Point, List<Fixup> >fixups = new HashMap<>();
             final Set<Point> exportedRegions = new HashSet<>();
-            ExecutorService executor = Executors.newFixedThreadPool(threads);
+            ExecutorService executor = Executors.newFixedThreadPool(threads, new ThreadFactory() {
+                @Override
+                public synchronized Thread newThread(Runnable r) {
+                    Thread thread = new Thread(threadGroup, r, "Merger-" + nextID++);
+                    thread.setPriority(Thread.MIN_PRIORITY);
+                    return thread;
+                }
+
+                private final ThreadGroup threadGroup = new ThreadGroup("Mergers");
+                private int nextID = 1;
+            });
             final ParallelProgressManager parallelProgressManager = (progressReceiver != null) ? new ParallelProgressManager(progressReceiver, allRegionCoords.size()) : null;
             try {
                 // Merge each individual region

@@ -28,10 +28,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 import static org.pepsoft.minecraft.Block.BLOCKS;
 import static org.pepsoft.minecraft.Constants.*;
@@ -835,7 +832,17 @@ public class WorldExporter {
             logger.info("Using " + threads + " thread(s) for export (cores: " + runtime.availableProcessors() + ", available memory: " + (maxMemoryAvailable / 1048576L) + " MB)");
 
             final Map<Point, List<Fixup>> fixups = new HashMap<>();
-            ExecutorService executor = Executors.newFixedThreadPool(threads);
+            ExecutorService executor = Executors.newFixedThreadPool(threads, new ThreadFactory() {
+                @Override
+                public synchronized Thread newThread(Runnable r) {
+                    Thread thread = new Thread(threadGroup, r, "Exporter-" + nextID++);
+                    thread.setPriority(Thread.MIN_PRIORITY);
+                    return thread;
+                }
+
+                private final ThreadGroup threadGroup = new ThreadGroup("Exporters");
+                private int nextID = 1;
+            });
             final ParallelProgressManager parallelProgressManager = (progressReceiver != null) ? new ParallelProgressManager(progressReceiver, regions.size()) : null;
             try {
                 // Export each individual region
