@@ -35,7 +35,7 @@
                   <Group type="102" alignment="0" attributes="0">
                       <Component id="jPanel1" min="-2" max="-2" attributes="0"/>
                       <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
-                      <Component id="jSeparator1" min="-2" max="-2" attributes="0"/>
+                      <Component id="jSeparator1" min="-2" pref="2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="brushOptions1" min="-2" max="-2" attributes="0"/>
                   </Group>
@@ -57,12 +57,12 @@
               <EmptySpace max="-2" attributes="0"/>
               <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
               <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="0" attributes="0">
+              <Group type="103" groupAlignment="0" max="-2" attributes="0">
                   <Component id="jSeparator1" max="32767" attributes="0"/>
                   <Component id="brushOptions1" min="-2" max="-2" attributes="0"/>
-                  <Component id="jPanel1" alignment="0" min="-2" max="-2" attributes="0"/>
+                  <Component id="jPanel1" max="32767" attributes="0"/>
               </Group>
-              <EmptySpace max="-2" attributes="0"/>
+              <EmptySpace max="32767" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="buttonCancel" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="buttonFill" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -108,7 +108,6 @@
         <DimensionLayout dim="0">
           <Group type="103" groupAlignment="0" attributes="0">
               <Group type="102" attributes="0">
-                  <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
                       <Group type="102" alignment="0" attributes="0">
                           <Component id="radioButtonSetLayer" min="-2" max="-2" attributes="0"/>
@@ -134,7 +133,6 @@
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="comboBoxInvertLayer" min="-2" max="-2" attributes="0"/>
                       </Group>
-                      <Component id="radioButtonResetWater" alignment="0" min="-2" max="-2" attributes="0"/>
                       <Group type="102" alignment="0" attributes="0">
                           <Component id="radioButtonTerrain" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
@@ -145,6 +143,7 @@
                       <Component id="radioButtonMakeBiomesPermanent" min="-2" max="-2" attributes="0"/>
                       <Component id="radioButtonAddToSelection" alignment="0" min="-2" max="-2" attributes="0"/>
                       <Component id="radioButtonRemoveFromSelection" alignment="0" min="-2" max="-2" attributes="0"/>
+                      <Component id="radioButtonResetWater" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
               </Group>
@@ -160,6 +159,8 @@
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="radioButtonResetTerrain" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="radioButtonResetWater" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
                       <Component id="radioButtonSetLayer" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -186,8 +187,6 @@
                   <Component id="radioButtonMakeBiomesPermanent" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="radioButtonResetBiomes" min="-2" max="-2" attributes="0"/>
-                  <EmptySpace max="-2" attributes="0"/>
-                  <Component id="radioButtonResetWater" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="radioButtonAddToSelection" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
@@ -249,7 +248,7 @@
             <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
               <ComponentRef name="buttonGroup1"/>
             </Property>
-            <Property name="text" type="java.lang.String" value="reset terrain type to default"/>
+            <Property name="text" type="java.lang.String" value="reset terrain and layers to theme"/>
             <Property name="toolTipText" type="java.lang.String" value="Reset the terrain type of the entire map to the altitude-dependent default"/>
           </Properties>
           <Events>

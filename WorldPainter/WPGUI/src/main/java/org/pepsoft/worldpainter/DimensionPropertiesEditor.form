@@ -32,7 +32,7 @@
     </DimensionLayout>
     <DimensionLayout dim="1">
       <Group type="103" groupAlignment="0" attributes="0">
-          <Component id="jTabbedPane1" pref="362" max="32767" attributes="0"/>
+          <Component id="jTabbedPane1" min="-2" max="-2" attributes="0"/>
       </Group>
     </DimensionLayout>
   </Layout>
@@ -535,8 +535,8 @@
         <Container class="javax.swing.JPanel" name="jPanel5">
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
-              <JTabbedPaneConstraints tabName="Default Terrain and Layers">
-                <Property name="tabTitle" type="java.lang.String" value="Default Terrain and Layers"/>
+              <JTabbedPaneConstraints tabName="Theme">
+                <Property name="tabTitle" type="java.lang.String" value="Theme"/>
               </JTabbedPaneConstraints>
             </Constraint>
           </Constraints>
@@ -2142,7 +2142,7 @@
                               <Component id="buttonCustomLayerUp" min="-2" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
                               <Component id="buttonCustomLayerDown" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace min="0" pref="224" max="32767" attributes="0"/>
+                              <EmptySpace min="0" pref="226" max="32767" attributes="0"/>
                           </Group>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>

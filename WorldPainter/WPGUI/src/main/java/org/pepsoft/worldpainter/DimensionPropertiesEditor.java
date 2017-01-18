@@ -1363,7 +1363,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 .addContainerGap())
         );
 
-        jTabbedPane1.addTab("Default Terrain and Layers", jPanel5);
+        jTabbedPane1.addTab("Theme", jPanel5);
 
         checkBoxCavernsEverywhere.setText("Caverns everywhere");
         checkBoxCavernsEverywhere.addActionListener(new java.awt.event.ActionListener() {
@@ -2308,7 +2308,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                         .addComponent(buttonCustomLayerUp)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buttonCustomLayerDown)
-                        .addGap(0, 224, Short.MAX_VALUE)))
+                        .addGap(0, 226, Short.MAX_VALUE)))
                 .addContainerGap())
         );
 
@@ -2324,7 +2324,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 362, Short.MAX_VALUE)
+            .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
     }// </editor-fold>//GEN-END:initComponents
 

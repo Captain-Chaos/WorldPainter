@@ -61,17 +61,18 @@ public class SimpleTheme implements Theme, Cloneable {
         }
         if (layerCache != null) {
             for (int i = 0; i < layerCache.length; i++) {
-                final int level = layerLevelCache[i][height];
-                if (level > 0) {
+                int level = layerLevelCache[i][height];
+                if (level != tile.getLayerValue(layerCache[i], x, y)) {
                     tile.setLayerValue(layerCache[i], x, y, level);
                 }
             }
         }
         if (bitLayerCache != null) {
             for (int i = 0; i < bitLayerCache.length; i++) {
-                final int level = bitLayerLevelCache[i][height];
-                if ((level > 0) && ((level == 15) || (random.nextInt(15) < level))) {
-                    tile.setBitLayerValue(bitLayerCache[i], x, y, true);
+                int level = bitLayerLevelCache[i][height];
+                boolean set = (level > 0) && ((level == 15) || (random.nextInt(15) < level));
+                if (set != tile.getBitLayerValue(bitLayerCache[i], x, y)) {
+                    tile.setBitLayerValue(bitLayerCache[i], x, y, set);
                 }
             }
         }
