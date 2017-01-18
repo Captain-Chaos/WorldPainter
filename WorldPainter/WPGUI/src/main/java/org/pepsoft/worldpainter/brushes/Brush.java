@@ -17,18 +17,6 @@ public interface Brush {
     String getName();
     
     /**
-     * Get the brush strength at a specific location.
-     * 
-     * @param centerX The absolute X coordinate of the center of the brush.
-     * @param centerY The absolute Y coordinate of the center of the brush.
-     * @param x The absolute X coordinate for which to get the brush strength.
-     * @param y The absolute Y coordinate for which to get the brush strength.
-     * @return The brush strength at the specified location, from 0.0f (no
-     *     effect) to 1.0f (maximum effect) (inclusive).
-     */
-    float getStrength(int centerX, int centerY, int x, int y);
-
-    /**
      * Get the brush strength at a specific point on the brush.
      * 
      * @param dx The X coordinate relative to the center of the brush.
@@ -37,22 +25,6 @@ public interface Brush {
      *     effect) to 1.0f (maximum effect) (inclusive).
      */
     float getStrength(int dx, int dy);
-    
-    /**
-     * Get the maximum brush strength at a specific location, in other words the
-     * strength if the level was set to 1.0f. Synonymous with invoking
-     * <code>setLevel(1.0f); getStrength(centerX, centerY, x, y)</code>, but
-     * possibly more efficient and without actually changing the value of the
-     * <code>level</code> property.
-     * 
-     * @param centerX The absolute X coordinate of the center of the brush.
-     * @param centerY The absolute Y coordinate of the center of the brush.
-     * @param x The absolute X coordinate for which to get the brush strength.
-     * @param y The absolute Y coordinate for which to get the brush strength.
-     * @return The maxiumum brush strength at the specified location, from 0.0f
-     *     (no effect) to 1.0f (maximum effect) (inclusive).
-     */
-    float getFullStrength(int centerX, int centerY, int x, int y);
     
     /**
      * Get the maximum brush strength at a specific point on the brush, in other

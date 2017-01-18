@@ -19,16 +19,6 @@ public abstract class AbstractBrush implements Brush, Cloneable {
     }
 
     @Override
-    public float getStrength(int centerX, int centerY, int x, int y) {
-        return getStrength(x - centerX, y - centerY);
-    }
-    
-    @Override
-    public float getFullStrength(int centerX, int centerY, int x, int y) {
-        return getFullStrength(x - centerX, y - centerY);
-    }
-
-    @Override
     public int getEffectiveRadius() {
         return getRadius();
     }

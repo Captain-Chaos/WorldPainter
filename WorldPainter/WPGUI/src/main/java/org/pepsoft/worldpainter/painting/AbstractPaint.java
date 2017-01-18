@@ -60,14 +60,14 @@ public abstract class AbstractPaint implements Paint {
 
     protected final float getStrength(int centerX, int centerY, int x, int y) {
         return filterEnabled
-            ? filter.modifyStrength(x, y, brush.getStrength(centerX, centerY, x, y))
-            : brush.getStrength(centerX, centerY, x, y);
+            ? filter.modifyStrength(x, y, brush.getStrength(x - centerX, y - centerY))
+            : brush.getStrength(x - centerX, y - centerY);
     }
 
     protected final float getFullStrength(int centerX, int centerY, int x, int y) {
         return filterEnabled
-            ? filter.modifyStrength(x, y, brush.getFullStrength(centerX, centerY, x, y))
-            : brush.getFullStrength(centerX, centerY, x, y);
+            ? filter.modifyStrength(x, y, brush.getFullStrength(x - centerX, y - centerY))
+            : brush.getFullStrength(x - centerX, y - centerY);
     }
 
     protected Filter filter;
