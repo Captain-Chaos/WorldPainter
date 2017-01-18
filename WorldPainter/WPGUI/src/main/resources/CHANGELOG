@@ -5,7 +5,7 @@
  * Export and Merge operations are now done with low priority threads, reducing the impact on the responsiveness of the rest of the system
    PLEASE NOTE: this does mean that if you start other resource intensive programs while WorldPainter is Exporting or Merging, those programs will take precedence and delay the Export or Merge operation
  * Directional lighting can now be turned off. This has been implemented by adding a fifth direction: "from above", which you can select by pressing "rotate left" once when "north west" (the default) is selected, or "rotate right" when "south west" is selected
- * High resolution display support on Windows. WorldPainter now should use the full resolution of your high resolution (more than 120 dpi) display instead of scaling everything up two times on Windows. It's not perfect yet, so please let us know of any visual problems on high resolution displays. Note that visual themes are not supported for high resolution displays
+ * High resolution display support on Windows. WorldPainter now should use the full resolution of your high resolution (more than 120 dpi) display instead of scaling everything up two times on Windows. It's not perfect yet, so please let us know of any visual problems on high resolution displays. Note that as a result, visual themes are unfortunately no longer supported for high resolution displays on Windows
 
 -- Version 2.3.6, released 5-1-2017
 
