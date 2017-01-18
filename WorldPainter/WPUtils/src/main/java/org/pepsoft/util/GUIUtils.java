@@ -38,6 +38,9 @@ public class GUIUtils {
      *
      * <p>Currently this is set to 2 for reported dpis higher than 120, 1
      * otherwise.
+     *
+     * <p><strong>Note:</strong> for now UI scaling is only activated on
+     * Windows, until the current support on Mac and Linux can be investigated.
      */
-    public static final int UI_SCALE = Toolkit.getDefaultToolkit().getScreenResolution() > 120 ? 2 : 1;
+    public static final int UI_SCALE = (SystemUtils.isWindows() && Toolkit.getDefaultToolkit().getScreenResolution() > 120) ? 2 : 1;
 }
