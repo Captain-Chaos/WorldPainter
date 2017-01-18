@@ -9,6 +9,7 @@ import org.pepsoft.worldpainter.operations.MouseOrTabletOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.*;
 import java.awt.*;
 import java.beans.PropertyVetoException;
 
@@ -21,7 +22,7 @@ public class CopySelectionOperation extends MouseOrTabletOperation {
     }
 
     @Override
-    public CopySelectionOperationOptionsPanel getOptionsPanel() {
+    public JPanel getOptionsPanel() {
         return optionsPanel;
     }
 

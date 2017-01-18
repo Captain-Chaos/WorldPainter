@@ -13,6 +13,8 @@ import org.pepsoft.worldpainter.RadiusControl;
 import org.pepsoft.worldpainter.WorldPainter;
 import org.pepsoft.worldpainter.brushes.Brush;
 
+import javax.swing.*;
+
 /**
  *
  * @author pepijn
@@ -20,6 +22,14 @@ import org.pepsoft.worldpainter.brushes.Brush;
 public class RaiseMountain extends RadiusOperation {
     public RaiseMountain(WorldPainter view, RadiusControl radiusControl, MapDragControl mapDragControl) {
         super("Raise Mountain", "Raises a mountain out of the ground", view, radiusControl, mapDragControl, 100, "operation.raiseMountain", "mountain");
+        options = new TerrainShapingOptions<>();
+        options.setApplyTheme(true); // This has historically been the default for this operation
+        optionsPanel = new TerrainShapingOptionsPanel(options);
+    }
+
+    @Override
+    public JPanel getOptionsPanel() {
+        return optionsPanel;
     }
 
     @Override
@@ -33,10 +43,11 @@ public class RaiseMountain extends RadiusOperation {
             peakHeight = dimension.getMaxHeight() - 1;
         }
         dimension.setEventsInhibited(true);
-        int maxZ = dimension.getMaxHeight() - 1;
         try {
+            int maxZ = dimension.getMaxHeight() - 1;
             int radius = getEffectiveRadius();
             long seed = dimension.getSeed();
+            boolean applyTheme = options.isApplyTheme();
             for (int x = centreX - radius; x <= centreX + radius; x++) {
                 for (int y = centreY - radius; y <= centreY + radius; y++) {
                     float currentHeight = dimension.getHeightAt(x, y);
@@ -45,7 +56,9 @@ public class RaiseMountain extends RadiusOperation {
 //                        float strength = calcStrength(centerX, centerY, x, y);
 //                        float newHeight = strength * targetHeight  + (1f - strength) * currentHeight;
                         dimension.setHeightAt(x, y, targetHeight);
-                        dimension.applyTheme(x, y);
+                        if (applyTheme) {
+                            dimension.applyTheme(x, y);
+                        }
                     }
                 }
             }
@@ -125,8 +138,8 @@ public class RaiseMountain extends RadiusOperation {
     
     private float getTargetHeight(long seed, int maxZ, int centerX, int centerY, int x, int y, float peakHeight, boolean undo) {
         return undo
-            ? Math.max(maxZ - (maxZ - peakHeight) * peakFactor * getNoisyStrength(x, y, getBrush().getFullStrength(centerX, centerY, x, y)), 0)
-            : Math.min(peakHeight * peakFactor * getNoisyStrength(x, y, getBrush().getFullStrength(centerX, centerY, x, y)), maxZ);
+            ? Math.max(maxZ - (maxZ - peakHeight) * peakFactor * getNoisyStrength(x, y, getBrush().getFullStrength(x - centerX, y - centerY)), 0)
+            : Math.min(peakHeight * peakFactor * getNoisyStrength(x, y, getBrush().getFullStrength(x - centerX, y - centerY)), maxZ);
     }
     
     private float getNoisyStrength(int x, int y, float strength) {
@@ -143,6 +156,8 @@ public class RaiseMountain extends RadiusOperation {
     }
     
     private final PerlinNoise perlinNoise = new PerlinNoise(67);
+    private final TerrainShapingOptions<RaiseMountain> options;
+    private final TerrainShapingOptionsPanel optionsPanel;
     private int peakDX, peakDY;
     private float peakFactor;
 }

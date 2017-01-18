@@ -10,6 +10,8 @@ import org.pepsoft.worldpainter.MapDragControl;
 import org.pepsoft.worldpainter.RadiusControl;
 import org.pepsoft.worldpainter.WorldPainter;
 
+import javax.swing.*;
+
 /**
  *
  * @author pepijn
@@ -20,24 +22,31 @@ public class Flatten extends RadiusOperation {
     }
 
     @Override
+    public JPanel getOptionsPanel() {
+        return optionsPanel;
+    }
+
+    @Override
     protected void tick(final int centreX, final int centreY, final boolean inverse, final boolean first, final float dynamicLevel) {
-        final Dimension dimension = getDimension();
+        Dimension dimension = getDimension();
         if (first) {
             targetHeight = dimension.getHeightAt(centreX, centreY);
         }
-//        System.out.println("targetHeight: " + targetHeight);
         dimension.setEventsInhibited(true);
         try {
-            final int radius = getEffectiveRadius();
+            int radius = getEffectiveRadius();
+            boolean applyTheme = options.isApplyTheme();
             for (int x = centreX - radius; x <= centreX + radius; x++) {
                 for (int y = centreY - radius; y <= centreY + radius; y++) {
-                    final float currentHeight = dimension.getHeightAt(x, y);
-                    final float strength = dynamicLevel * getStrength(centreX, centreY, x, y);
-                    final float newHeight = strength * targetHeight  + (1f - strength) * currentHeight;
-                    dimension.setHeightAt(x, y, newHeight);
-//                    if (y == centerY) {
-//                        System.out.printf("[%5d] [%7.5f] [%5d]\n", currentHeight, strength, newHeight);
-//                    }
+                    float currentHeight = dimension.getHeightAt(x, y);
+                    float strength = dynamicLevel * getStrength(centreX, centreY, x, y);
+                    if (strength > 0.0f) {
+                        float newHeight = strength * targetHeight  + (1f - strength) * currentHeight;
+                        dimension.setHeightAt(x, y, newHeight);
+                        if (applyTheme) {
+                            dimension.applyTheme(x, y);
+                        }
+                    }
                 }
             }
         } finally {
@@ -45,5 +54,7 @@ public class Flatten extends RadiusOperation {
         }
     }
     
+    private final TerrainShapingOptions<Flatten> options = new TerrainShapingOptions<>();
+    private final TerrainShapingOptionsPanel optionsPanel = new TerrainShapingOptionsPanel(options);
     private float targetHeight;
 }
