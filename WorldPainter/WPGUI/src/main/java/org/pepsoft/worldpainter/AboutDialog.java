@@ -10,8 +10,7 @@
  */
 package org.pepsoft.worldpainter;
 
-import java.awt.Font;
-import java.awt.Window;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
@@ -102,7 +101,17 @@ public class AboutDialog extends javax.swing.JDialog implements WindowListener {
 
     private String loadCredits() {
         Font defaultTextPaneFont = jTextPane2.getFont();
-        String style = "font-family: " + defaultTextPaneFont.getFamily() + "; font-size: " + defaultTextPaneFont.getSize() + "pt";
+        Color textColour = jTextPane2.getForeground();
+        Color linkColour;
+        if (textColour.getRed() + textColour.getGreen() + textColour.getBlue() > 384) {
+            // Light text colour; use light link colour
+            linkColour = Color.CYAN;
+        } else {
+            linkColour = Color.BLUE;
+        }
+        String style = String.format("body {font-family: %s; font-size: %dpt; color: #%06x; background-color: #%06x;} a {color: #%06x;}",
+            defaultTextPaneFont.getFamily(), defaultTextPaneFont.getSize(), textColour.getRGB() & 0xffffff,
+            jTextPane2.getBackground().getRGB() & 0xffffff, linkColour.getRGB() & 0xffffff);
         InputStreamReader in = new InputStreamReader(AboutDialog.class.getResourceAsStream("resources/credits.html"), Charset.forName("UTF-8"));
         try {
             StringBuilder sb = new StringBuilder();
