@@ -15,6 +15,7 @@ import org.pepsoft.util.*;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.swing.ProgressDialog;
 import org.pepsoft.util.swing.ProgressTask;
+import org.pepsoft.util.swing.RemoteJCheckBox;
 import org.pepsoft.util.swing.TiledImageViewerContainer;
 import org.pepsoft.util.undo.UndoManager;
 import org.pepsoft.worldpainter.biomeschemes.AutoBiomeScheme;
@@ -2515,7 +2516,10 @@ public final class App extends JFrame implements RadiusControl,
         Configuration config = Configuration.getInstance();
         constraints.anchor = GridBagConstraints.WEST;
         constraints.weightx = 0.0;
-        LayoutUtils.addRowOfComponents(layerPanel, constraints, createLayerButton(TERRAIN_AS_LAYER, (char) 0, true, false));
+        List<Component> terrainComponents = createLayerButton(TERRAIN_AS_LAYER, (char) 0, true, false);
+        terrainCheckBox = (JCheckBox) terrainComponents.get(0);
+        terrainSoloCheckBox = (JCheckBox) terrainComponents.get(1);
+        LayoutUtils.addRowOfComponents(layerPanel, constraints, terrainComponents);
         LayoutUtils.addRowOfComponents(layerPanel, constraints, createLayerButton(FLUIDS_AS_LAYER, (char) 0, false, false));
         for (Layer layer: layers) {
             LayoutUtils.addRowOfComponents(layerPanel, constraints, createLayerButton(layer, layer.getMnemonic()));
@@ -2806,73 +2810,83 @@ public final class App extends JFrame implements RadiusControl,
 
     private JPanel createTerrainPanel() {
         JPanel terrainPanel = new JPanel();
-        terrainPanel.setLayout(new GridLayout(0, 4));
-        terrainPanel.add(createTerrainButton(GRASS));
-        terrainPanel.add(createTerrainButton(PERMADIRT));
-        terrainPanel.add(createTerrainButton(SAND));
-        terrainPanel.add(createTerrainButton(GRASS_PATH));
+        terrainPanel.setLayout(new GridBagLayout());
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.insets = new Insets(1, 1, 1, 1);
 
-        terrainPanel.add(createTerrainButton(BARE_GRASS));
-        terrainPanel.add(createTerrainButton(STONE));
-        terrainPanel.add(createTerrainButton(ROCK));
-        terrainPanel.add(createTerrainButton(SANDSTONE));
+        Configuration config = Configuration.getInstance();
+        constraints.anchor = GridBagConstraints.FIRST_LINE_START;
+        constraints.weightx = 0.0;
+        JCheckBox checkBoxShowTerrain = new RemoteJCheckBox(terrainCheckBox, "Show:");
+        checkBoxShowTerrain.setHorizontalTextPosition(SwingConstants.LEADING);
+        checkBoxShowTerrain.setToolTipText("Uncheck to hide biomes from view (it will still be exported)");
+        if (! config.isEasyMode()) {
+            constraints.gridwidth = 1;
+            constraints.weightx = 0.0;
+            terrainPanel.add(checkBoxShowTerrain, constraints);
+        }
 
-        terrainPanel.add(createTerrainButton(STONE_MIX));
-        terrainPanel.add(createTerrainButton(GRANITE));
-        terrainPanel.add(createTerrainButton(DIORITE));
-        terrainPanel.add(createTerrainButton(ANDESITE));
+        JCheckBox checkBoxSoloTerrain = new RemoteJCheckBox(terrainSoloCheckBox, "Solo:");
+        checkBoxSoloTerrain.setHorizontalTextPosition(SwingConstants.LEADING);
+        checkBoxSoloTerrain.setToolTipText("<html>Check to show <em>only</em> the biomes (the other layers are still exported)</html>");
+        if (! config.isEasyMode()) {
+            constraints.gridwidth = GridBagConstraints.REMAINDER;
+            terrainPanel.add(checkBoxSoloTerrain, constraints);
+        }
 
-        terrainPanel.add(createTerrainButton(PODZOL));
-        terrainPanel.add(createTerrainButton(COBBLESTONE));
-        terrainPanel.add(createTerrainButton(MOSSY_COBBLESTONE));
-        terrainPanel.add(createTerrainButton(GRAVEL));
+        JPanel buttonPanel = new JPanel(new GridLayout(0, 4));
+        buttonPanel.add(createTerrainButton(PODZOL));
+        buttonPanel.add(createTerrainButton(COBBLESTONE));
+        buttonPanel.add(createTerrainButton(MOSSY_COBBLESTONE));
+        buttonPanel.add(createTerrainButton(GRAVEL));
         
-        terrainPanel.add(createTerrainButton(OBSIDIAN));
-        terrainPanel.add(createTerrainButton(WATER));
-        terrainPanel.add(createTerrainButton(LAVA));
-        terrainPanel.add(createTerrainButton(MAGMA));
+        buttonPanel.add(createTerrainButton(OBSIDIAN));
+        buttonPanel.add(createTerrainButton(WATER));
+        buttonPanel.add(createTerrainButton(LAVA));
+        buttonPanel.add(createTerrainButton(MAGMA));
         
-        terrainPanel.add(createTerrainButton(NETHERRACK));
-        terrainPanel.add(createTerrainButton(SOUL_SAND));
-        terrainPanel.add(createTerrainButton(NETHERLIKE));
-        terrainPanel.add(createTerrainButton(MYCELIUM));
+        buttonPanel.add(createTerrainButton(NETHERRACK));
+        buttonPanel.add(createTerrainButton(SOUL_SAND));
+        buttonPanel.add(createTerrainButton(NETHERLIKE));
+        buttonPanel.add(createTerrainButton(MYCELIUM));
 
-        terrainPanel.add(createTerrainButton(END_STONE));
-        terrainPanel.add(createTerrainButton(BEDROCK));
-        terrainPanel.add(createTerrainButton(CLAY));
-        terrainPanel.add(createTerrainButton(DESERT));
+        buttonPanel.add(createTerrainButton(END_STONE));
+        buttonPanel.add(createTerrainButton(BEDROCK));
+        buttonPanel.add(createTerrainButton(CLAY));
+        buttonPanel.add(createTerrainButton(DESERT));
 
-        terrainPanel.add(createTerrainButton(RED_SAND));
-        terrainPanel.add(createTerrainButton(RED_SANDSTONE));
-        terrainPanel.add(createTerrainButton(RED_DESERT));
-        terrainPanel.add(createTerrainButton(MESA));
+        buttonPanel.add(createTerrainButton(RED_SAND));
+        buttonPanel.add(createTerrainButton(RED_SANDSTONE));
+        buttonPanel.add(createTerrainButton(RED_DESERT));
+        buttonPanel.add(createTerrainButton(MESA));
 
-        terrainPanel.add(createTerrainButton(WHITE_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(ORANGE_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(MAGENTA_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(LIGHT_BLUE_STAINED_CLAY));
+        buttonPanel.add(createTerrainButton(WHITE_STAINED_CLAY));
+        buttonPanel.add(createTerrainButton(ORANGE_STAINED_CLAY));
+        buttonPanel.add(createTerrainButton(MAGENTA_STAINED_CLAY));
+        buttonPanel.add(createTerrainButton(LIGHT_BLUE_STAINED_CLAY));
 
-        terrainPanel.add(createTerrainButton(YELLOW_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(LIME_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(PINK_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(GREY_STAINED_CLAY));
+        buttonPanel.add(createTerrainButton(YELLOW_STAINED_CLAY));
+        buttonPanel.add(createTerrainButton(LIME_STAINED_CLAY));
+        buttonPanel.add(createTerrainButton(PINK_STAINED_CLAY));
+        buttonPanel.add(createTerrainButton(GREY_STAINED_CLAY));
 
-        terrainPanel.add(createTerrainButton(LIGHT_GREY_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(CYAN_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(PURPLE_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(BLUE_STAINED_CLAY));
+        buttonPanel.add(createTerrainButton(LIGHT_GREY_STAINED_CLAY));
+        buttonPanel.add(createTerrainButton(CYAN_STAINED_CLAY));
+        buttonPanel.add(createTerrainButton(PURPLE_STAINED_CLAY));
+        buttonPanel.add(createTerrainButton(BLUE_STAINED_CLAY));
 
-        terrainPanel.add(createTerrainButton(BROWN_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(GREEN_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(RED_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(BLACK_STAINED_CLAY));
+        buttonPanel.add(createTerrainButton(BROWN_STAINED_CLAY));
+        buttonPanel.add(createTerrainButton(GREEN_STAINED_CLAY));
+        buttonPanel.add(createTerrainButton(RED_STAINED_CLAY));
+        buttonPanel.add(createTerrainButton(BLACK_STAINED_CLAY));
 
-        terrainPanel.add(createTerrainButton(HARDENED_CLAY));
-        terrainPanel.add(createTerrainButton(BEACHES));
-        terrainPanel.add(createTerrainButton(DEEP_SNOW));
+        buttonPanel.add(createTerrainButton(HARDENED_CLAY));
+        buttonPanel.add(createTerrainButton(BEACHES));
+        buttonPanel.add(createTerrainButton(DEEP_SNOW));
         JButton addCustomTerrainButton = new JButton(ACTION_SHOW_CUSTOM_TERRAIN_POPUP);
         addCustomTerrainButton.setMargin(new Insets(2, 2, 2, 2));
-        terrainPanel.add(addCustomTerrainButton);
+        buttonPanel.add(addCustomTerrainButton);
+        terrainPanel.add(buttonPanel, constraints);
 
         return terrainPanel;
     }
@@ -4487,7 +4501,7 @@ public final class App extends JFrame implements RadiusControl,
         }
         checkBox.setToolTipText(strings.getString("whether.or.not.to.display.this.layer"));
         checkBox.setSelected(true);
-        checkBox.addActionListener(e -> {
+        checkBox.addChangeListener(e -> {
             if (checkBox.isSelected()) {
                 hiddenLayers.remove(layer);
             } else {
@@ -4504,7 +4518,7 @@ public final class App extends JFrame implements RadiusControl,
             }
             layerSoloCheckBoxes.put(layer, soloCheckBox);
             soloCheckBox.setToolTipText("<html>Check to show <em>only</em> this layer (the other layers are still exported)</html>");
-            soloCheckBox.addActionListener(e -> {
+            soloCheckBox.addChangeListener(e -> {
                 if (soloCheckBox.isSelected()) {
                     layerSoloCheckBoxes.values().stream().filter(otherSoloCheckBox -> otherSoloCheckBox != soloCheckBox).forEach(otherSoloCheckBox -> otherSoloCheckBox.setSelected(false));
                     soloLayer = layer;
@@ -6364,7 +6378,7 @@ public final class App extends JFrame implements RadiusControl,
     private Set<Layer> hiddenLayers = new HashSet<>();
     private int maxRadius = DEFAULT_MAX_RADIUS, brushRotation = 0, toolBrushRotation = 0, previousBrushRotation = 0;
     private GlassPane glassPane;
-    private JCheckBox readOnlyCheckBox, biomesCheckBox, annotationsCheckBox, readOnlySoloCheckBox, biomesSoloCheckBox, annotationsSoloCheckBox;
+    private JCheckBox readOnlyCheckBox, biomesCheckBox, annotationsCheckBox, readOnlySoloCheckBox, biomesSoloCheckBox, annotationsSoloCheckBox, terrainCheckBox, terrainSoloCheckBox;
     private JToggleButton readOnlyToggleButton, setSpawnPointToggleButton;
     private JMenuItem addNetherMenuItem, removeNetherMenuItem, addEndMenuItem, removeEndMenuItem, addSurfaceCeilingMenuItem, removeSurfaceCeilingMenuItem, addNetherCeilingMenuItem, removeNetherCeilingMenuItem, addEndCeilingMenuItem, removeEndCeilingMenuItem, exportHighResHeightMapMenuItem;
     private JCheckBoxMenuItem viewSurfaceMenuItem, viewNetherMenuItem, viewEndMenuItem, extendedBlockIdsMenuItem, viewSurfaceCeilingMenuItem, viewNetherCeilingMenuItem, viewEndCeilingMenuItem;
