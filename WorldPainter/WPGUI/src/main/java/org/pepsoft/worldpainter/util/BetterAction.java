@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NonNls;
+import org.pepsoft.worldpainter.App;
 import org.pepsoft.worldpainter.EventLogger;
 import org.pepsoft.worldpainter.vo.EventVO;
 
@@ -29,12 +30,14 @@ public abstract class BetterAction extends org.pepsoft.util.swing.BetterAction {
         super(name, icon);
         statisticsKey = createStatisticsKey(id);
         this.logEvent = logEvent;
+        putValue(App.HELP_KEY_KEY, "Action/" + id);
     }
 
     public BetterAction(String id, String name, boolean logEvent) {
         super(name);
         statisticsKey = createStatisticsKey(id);
         this.logEvent = logEvent;
+        putValue(App.HELP_KEY_KEY, "Action/" + id);
     }
 
     public final String getStatisticsKey() {
@@ -71,7 +74,7 @@ public abstract class BetterAction extends org.pepsoft.util.swing.BetterAction {
     }
     
     private static String createStatisticsKey(String id) {
-        return "action." + id.replaceAll("[ \\t\\n\\x0B\\f\\r\\.]", "");
+        return "action." + id.replaceAll("[ \\t\\n\\x0B\\f\\r.]", "");
     }
     
     private final String statisticsKey;

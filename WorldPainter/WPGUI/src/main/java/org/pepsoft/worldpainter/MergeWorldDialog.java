@@ -40,10 +40,10 @@ import static org.pepsoft.worldpainter.Constants.*;
  * @author pepijn
  */
 // TODO: add support for multiple dimensions
-public class MergeWorldDialog extends javax.swing.JDialog {
+public class MergeWorldDialog extends WorldPainterDialog {
     /** Creates new form ExportWorldDialog */
     public MergeWorldDialog(Window parent, World2 world, BiomeScheme biomeScheme, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Collection<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin, WorldPainter view) {
-        super(parent, ModalityType.APPLICATION_MODAL);
+        super(parent);
         this.world = world;
         this.biomeScheme = biomeScheme;
         this.colourScheme = colourScheme;
@@ -109,19 +109,6 @@ public class MergeWorldDialog extends javax.swing.JDialog {
         fieldLevelDatFile.getDocument().addDocumentListener(documentListener);
 
         setLocationRelativeTo(parent);
-
-        ActionMap actionMap = rootPane.getActionMap();
-        actionMap.put("cancel", new AbstractAction("cancel") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-            }
-            
-            private static final long serialVersionUID = 1L;
-        });
-
-        InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "cancel");
 
         rootPane.setDefaultButton(buttonMerge);
 
@@ -253,11 +240,7 @@ public class MergeWorldDialog extends javax.swing.JDialog {
             }
         }
 
-        close();
-    }
-
-    private void close() {
-        dispose();
+        ok();
     }
 
     private void setControlStates() {

@@ -36,12 +36,12 @@ import static org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_2;
  *
  * @author SchmitzP
  */
-public class MapImportDialog extends javax.swing.JDialog {
+public class MapImportDialog extends WorldPainterDialog {
     /**
      * Creates new form MapImportDialog
      */
     public MapImportDialog(App app) {
-        super(app, ModalityType.APPLICATION_MODAL);
+        super(app);
         this.app = app;
         
         initComponents();
@@ -68,26 +68,9 @@ public class MapImportDialog extends javax.swing.JDialog {
             }
         });
         
-        ActionMap actionMap = rootPane.getActionMap();
-        actionMap.put("cancel", new AbstractAction("cancel") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-            }
-            
-            private static final long serialVersionUID = 1L;
-        });
-
-        InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "cancel");
-        
         getRootPane().setDefaultButton(buttonOK);
         
         setLocationRelativeTo(app);
-    }
-
-    public boolean isCancelled() {
-        return cancelled;
     }
 
     public World2 getImportedWorld() {

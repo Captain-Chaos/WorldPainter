@@ -87,6 +87,7 @@ import java.lang.Void;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -148,7 +149,9 @@ public final class App extends JFrame implements RadiusControl,
         }
 
         initComponents();
-        
+
+        getRootPane().putClientProperty(HELP_KEY_KEY, "Main");
+
         hiddenLayers.add(Biome.INSTANCE);
         view.addHiddenLayer(Biome.INSTANCE);
         
@@ -1403,6 +1406,40 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
 
+    public void showHelp(Component component) {
+        String helpKey = null;
+        do {
+            if ((component instanceof AbstractButton) && (((AbstractButton) component).getAction() != null) && (((AbstractButton) component).getAction().getValue(HELP_KEY_KEY) != null)) {
+                helpKey = (String) ((AbstractButton) component).getAction().getValue(HELP_KEY_KEY);
+            } else if (component instanceof JComponent) {
+                helpKey = (String) ((JComponent) component).getClientProperty(HELP_KEY_KEY);
+            } else if (component instanceof RootPaneContainer) {
+                helpKey = (String) ((RootPaneContainer) component).getRootPane().getClientProperty(HELP_KEY_KEY);
+            }
+            component = component.getParent();
+        } while ((helpKey == null) && (component != null));
+        if (helpKey == null) {
+            throw new IllegalArgumentException("No help key found in hierarchy");
+        }
+        try {
+            DesktopUtils.open(new URL(HELP_ROOT_URL + encodeForURL(helpKey) + "?lang=" + Locale.getDefault().getLanguage()));
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("Malformed help URL: " + HELP_ROOT_URL + encodeForURL(helpKey), e);
+        }
+    }
+
+    private String encodeForURL(String str) {
+        String[] parts = str.split("/");
+        try {
+            for (int i = 0; i < parts.length; i++) {
+                    parts[i] = URLEncoder.encode(parts[i], "UTF-8");
+            }
+        } catch (UnsupportedEncodingException e) {
+            throw new InternalError("VM does not support mandatory encoding UTF-8");
+        }
+        return String.join("/", parts);
+    }
+
     private int findNextCustomTerrainIndex() {
         for (int i = 0; i < CUSTOM_TERRAIN_COUNT; i++) {
             if (! Terrain.isCustomMaterialConfigured(i)) {
@@ -2090,6 +2127,7 @@ public final class App extends JFrame implements RadiusControl,
 
         glassPane = new GlassPane();
         JRootPane privateRootPane = new JRootPane();
+        privateRootPane.putClientProperty(HELP_KEY_KEY, "Editor");
         privateRootPane.setContentPane(viewContainer);
         privateRootPane.setGlassPane(glassPane);
         glassPane.setVisible(true);
@@ -2443,6 +2481,7 @@ public final class App extends JFrame implements RadiusControl,
         button.setMargin(new Insets(2, 2, 2, 2));
         button.addActionListener(e -> showGlobalOperations());
         button.setToolTipText(strings.getString("global.operations.fill.or.clear.the.world.with.a.terrain.biome.or.layer"));
+        button.putClientProperty(HELP_KEY_KEY, "Operation/GlobalOperations");
         toolPanel.add(button);
         toolPanel.add(createButtonForOperation(new RaiseRotatedPyramid(view)));
         toolPanel.add(createButtonForOperation(new RaisePyramid(view)));
@@ -2477,6 +2516,7 @@ public final class App extends JFrame implements RadiusControl,
             copySelectionButton.setEnabled((boolean) selectionMayBePresent);
             clearSelectionButton.setEnabled((boolean) selectionMayBePresent);
         });
+        clearSelectionButton.putClientProperty(HELP_KEY_KEY, "Operation/ClearSelection");
         toolPanel.add(clearSelectionButton);
 
         for (Operation operation: operations) {
@@ -2835,6 +2875,21 @@ public final class App extends JFrame implements RadiusControl,
         }
 
         JPanel buttonPanel = new JPanel(new GridLayout(0, 4));
+        buttonPanel.add(createTerrainButton(GRASS));
+        buttonPanel.add(createTerrainButton(PERMADIRT));
+        buttonPanel.add(createTerrainButton(SAND));
+        buttonPanel.add(createTerrainButton(GRASS_PATH));
+
+        buttonPanel.add(createTerrainButton(BARE_GRASS));
+        buttonPanel.add(createTerrainButton(STONE));
+        buttonPanel.add(createTerrainButton(ROCK));
+        buttonPanel.add(createTerrainButton(SANDSTONE));
+
+        buttonPanel.add(createTerrainButton(STONE_MIX));
+        buttonPanel.add(createTerrainButton(GRANITE));
+        buttonPanel.add(createTerrainButton(DIORITE));
+        buttonPanel.add(createTerrainButton(ANDESITE));
+
         buttonPanel.add(createTerrainButton(PODZOL));
         buttonPanel.add(createTerrainButton(COBBLESTONE));
         buttonPanel.add(createTerrainButton(MOSSY_COBBLESTONE));
@@ -3446,6 +3501,7 @@ public final class App extends JFrame implements RadiusControl,
             menuItem.setMnemonic('x');
             menu.add(menuItem);
         }
+        menu.putClientProperty(HELP_KEY_KEY, "Menu/File");
         return menu;
     }
     
@@ -3645,6 +3701,7 @@ public final class App extends JFrame implements RadiusControl,
             menu.add(menuItem);
         }
 
+        menu.putClientProperty(HELP_KEY_KEY, "Menu/Edit");
         return menu;
     }
 
@@ -3817,6 +3874,7 @@ public final class App extends JFrame implements RadiusControl,
         });
         menu.add(menuItem);
 
+        menu.putClientProperty(HELP_KEY_KEY, "Menu/View");
         return menu;
     }
 
@@ -3947,6 +4005,7 @@ public final class App extends JFrame implements RadiusControl,
             new ScriptRunner(this, world, dimension, undoManagers.values()).setVisible(true);
         });
         menu.add(menuItem);
+        menu.putClientProperty(HELP_KEY_KEY, "Menu/Tools");
         return menu;
     }
 
@@ -3956,6 +4015,8 @@ public final class App extends JFrame implements RadiusControl,
         JMenu menu = new JMenu(strings.getString("help"));
 //        menu.setMnemonic('h');
         menu.add(menuItem);
+
+        menu.add(ACTION_SHOW_HELP_PICKER);
 
         if (! hideAbout) {
             menu.addSeparator();
@@ -3968,6 +4029,7 @@ public final class App extends JFrame implements RadiusControl,
             });
             menu.add(menuItem);
         }
+        menu.putClientProperty(HELP_KEY_KEY, "Menu/Help");
         return menu;
     }
 
@@ -4207,6 +4269,8 @@ public final class App extends JFrame implements RadiusControl,
         toolBar.add(button);
         toolBar.add(ACTION_ROTATE_LIGHT_LEFT);
         toolBar.add(ACTION_ROTATE_LIGHT_RIGHT);
+        toolBar.add(Box.createHorizontalGlue());
+        toolBar.add(ACTION_SHOW_HELP_PICKER);
         return toolBar;
     }
     
@@ -4483,6 +4547,7 @@ public final class App extends JFrame implements RadiusControl,
                 }
             }
         });
+        button.putClientProperty(HELP_KEY_KEY, "Operation/" + operation.getClass().getSimpleName());
         toolButtonGroup.add(button);
         return button;
     }
@@ -4557,9 +4622,12 @@ public final class App extends JFrame implements RadiusControl,
             });
             paintButtonGroup.add(button);
             button.setText(layer.getName());
+            button.putClientProperty(HELP_KEY_KEY, "Layer/" + layer.getId());
             components.add(button);
         } else {
-            components.add(new JLabel(layer.getName(), new ImageIcon(layer.getIcon()), JLabel.LEADING));
+            JLabel label = new JLabel(layer.getName(), new ImageIcon(layer.getIcon()), JLabel.LEADING);
+            label.putClientProperty(HELP_KEY_KEY, "Layer/" + layer.getId());
+            components.add(label);
         }
 
         return components;
@@ -5500,7 +5568,7 @@ public final class App extends JFrame implements RadiusControl,
             this.title = title;
             this.side = side;
             this.index = index;
-            id = Character.toLowerCase(title.charAt(0)) + title.substring(1);
+            id = (Character.toLowerCase(title.charAt(0)) + title.substring(1)).replaceAll("\\s", "");
         }
 
         DockableFrameBuilder withId(String id) {
@@ -5595,6 +5663,9 @@ public final class App extends JFrame implements RadiusControl,
             // Other flags
             dockableFrame.setAutohideWhenActive(true);
             dockableFrame.setMaximizable(false);
+
+            //Help key
+            dockableFrame.putClientProperty(HELP_KEY_KEY, "Panel/" + id);
             return dockableFrame;
         }
 
@@ -5618,6 +5689,22 @@ public final class App extends JFrame implements RadiusControl,
                 JOptionPane.showMessageDialog(this, "The selected layers have been deleted.", "Layers Deleted", JOptionPane.INFORMATION_MESSAGE);
             }
         }
+    }
+
+    private void showHelpPicker() {
+        Component glassPane = getGlassPane();
+        MouseListener mouseListener = new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                glassPane.setVisible(false);
+                glassPane.removeMouseListener(this);
+                glassPane.setCursor(null);
+                showHelp(SwingUtilities.getDeepestComponentAt(getRootPane(), e.getX(), e.getY()));
+            }
+        };
+        glassPane.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        glassPane.addMouseListener(mouseListener);
+        glassPane.setVisible(true);
     }
 
     static Icon findIcon(Container container) {
@@ -6360,6 +6447,17 @@ public final class App extends JFrame implements RadiusControl,
         }
     };
 
+    private final BetterAction ACTION_SHOW_HELP_PICKER = new BetterAction("showHelpPicker", "Help for control", loadScaledIcon("information")) {
+        {
+            setShortDescription("Show help information for a specific control");
+        }
+
+        @Override
+        protected void performAction(ActionEvent e) {
+            showHelpPicker();
+        }
+    };
+
     private World2 world;
     private Dimension dimension;
     private WorldPainter view;
@@ -6419,6 +6517,8 @@ public final class App extends JFrame implements RadiusControl,
     
     public static final int DEFAULT_MAX_RADIUS = 300;
 
+    public static final String HELP_KEY_KEY = "org.pepsoft.worldpainter.helpKey";
+
     private static App instance;
     private static Mode mode = Mode.WORLDPAINTER;
 
@@ -6466,6 +6566,8 @@ public final class App extends JFrame implements RadiusControl,
 
     private static final int MAX_RECENT_FILES = 10;
     
+    private static final String HELP_ROOT_URL = "http://www.worldpainter.net/trac/wiki/Help/";
+
     private static final ResourceBundle strings = ResourceBundle.getBundle("org.pepsoft.worldpainter.resources.strings"); // NOI18N
     private static final long serialVersionUID = 1L;
     
