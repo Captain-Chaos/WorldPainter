@@ -1422,7 +1422,7 @@ public final class App extends JFrame implements RadiusControl,
             throw new IllegalArgumentException("No help key found in hierarchy");
         }
         try {
-            DesktopUtils.open(new URL(HELP_ROOT_URL + encodeForURL(helpKey) + "?lang=" + Locale.getDefault().getLanguage()));
+            DesktopUtils.open(new URL(HELP_ROOT_URL + encodeForURL(helpKey)));
         } catch (MalformedURLException e) {
             throw new RuntimeException("Malformed help URL: " + HELP_ROOT_URL + encodeForURL(helpKey), e);
         }
