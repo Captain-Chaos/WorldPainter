@@ -34,10 +34,10 @@ import static org.pepsoft.minecraft.Constants.*;
  *
  * @author pepijn
  */
-public class ChangeHeightDialog extends javax.swing.JDialog {
+public class ChangeHeightDialog extends WorldPainterDialog {
     /** Creates new form ChangeHeightDialog */
     public ChangeHeightDialog(java.awt.Frame parent, World2 world) {
-        super(parent, true);
+        super(parent);
         this.world = world;
         
         initComponents();
@@ -45,19 +45,6 @@ public class ChangeHeightDialog extends javax.swing.JDialog {
         int maxHeight = world.getMaxHeight();
         labelCurrentHeight.setText(Integer.toString(maxHeight));
         comboBoxNewHeight.setSelectedItem(Integer.toString(maxHeight));
-        
-        ActionMap actionMap = rootPane.getActionMap();
-        actionMap.put("cancel", new AbstractAction("cancel") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-            }
-
-            private static final long serialVersionUID = 1L;
-        });
-
-        InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "cancel");
         
         getRootPane().setDefaultButton(buttonOK);
         
@@ -350,7 +337,7 @@ public class ChangeHeightDialog extends javax.swing.JDialog {
     }//GEN-LAST:event_comboBoxNewHeightActionPerformed
 
     private void buttonCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCancelActionPerformed
-        dispose();
+        cancel();
     }//GEN-LAST:event_buttonCancelActionPerformed
 
     private void checkBoxScaleStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_checkBoxScaleStateChanged
@@ -363,7 +350,7 @@ public class ChangeHeightDialog extends javax.swing.JDialog {
 
     private void buttonOKActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonOKActionPerformed
         doResize();
-        dispose();
+        ok();
     }//GEN-LAST:event_buttonOKActionPerformed
 
     private void spinnerScaleAmountStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerScaleAmountStateChanged

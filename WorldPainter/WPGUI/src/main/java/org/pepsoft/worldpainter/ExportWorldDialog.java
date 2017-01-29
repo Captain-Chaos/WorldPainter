@@ -36,10 +36,10 @@ import static org.pepsoft.worldpainter.Constants.*;
  *
  * @author pepijn
  */
-public class ExportWorldDialog extends javax.swing.JDialog {
+public class ExportWorldDialog extends WorldPainterDialog {
     /** Creates new form ExportWorldDialog */
     public ExportWorldDialog(java.awt.Frame parent, World2 world, BiomeScheme biomeScheme, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Collection<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin, WorldPainter view) {
-        super(parent, true);
+        super(parent);
         this.world = world;
         selectedTiles = world.getTilesToExport();
         selectedDimension = (selectedTiles != null) ? world.getDimensionsToExport().iterator().next() : DIM_NORMAL;
@@ -184,19 +184,6 @@ dims:   for (Dimension dim: world.getDimensions()) {
                 }
             }
         }
-
-        ActionMap actionMap = rootPane.getActionMap();
-        actionMap.put("cancel", new AbstractAction("cancel") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                cancel();
-            }
-
-            private static final long serialVersionUID = 1L;
-        });
-
-        InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "cancel");
 
         rootPane.setDefaultButton(buttonExport);
 
@@ -379,15 +366,7 @@ dims:   for (Dimension dim: world.getDimensions()) {
         } finally {
             view.setInhibitUpdates(false);
         }
-        close();
-    }
-
-    private void close() {
-        dispose();
-    }
-
-    private void cancel() {
-        dispose();
+        ok();
     }
 
     private void setControlStates() {

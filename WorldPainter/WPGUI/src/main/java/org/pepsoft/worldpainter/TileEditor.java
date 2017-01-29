@@ -38,10 +38,10 @@ import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
  *
  * @author pepijn
  */
-public class TileEditor extends javax.swing.JDialog implements TileSelector.Listener {
+public class TileEditor extends WorldPainterDialog implements TileSelector.Listener {
     /** Creates new form TileEditor */
     public TileEditor(java.awt.Frame parent, Dimension dimension, ColourScheme colourScheme, BiomeScheme biomeScheme, CustomBiomeManager customBiomeManager, Collection<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin) {
-        super(parent, true);
+        super(parent);
         this.dimension = dimension;
         initComponents();
         
@@ -49,16 +49,6 @@ public class TileEditor extends javax.swing.JDialog implements TileSelector.List
         Font font = UIManager.getFont("Label.font");
         String bodyRule = "body { font-family: " + font.getFamily() + "; font-size: " + font.getSize() + "pt; }";
         ((HTMLDocument) jTextPane1.getDocument()).getStyleSheet().addRule(bodyRule);
-        
-        ActionMap actionMap = rootPane.getActionMap();
-        actionMap.put("cancel", new AbstractAction("cancel") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-            }
-            
-            private static final long serialVersionUID = 1L;
-        });
         
         tileSelector1.setColourScheme(colourScheme);
         tileSelector1.setBiomeScheme(biomeScheme);
@@ -70,9 +60,6 @@ public class TileEditor extends javax.swing.JDialog implements TileSelector.List
         tileSelector1.setCustomBiomeManager(customBiomeManager);
         tileSelector1.addListener(this);
 
-        InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "cancel");
-        
         getRootPane().setDefaultButton(buttonClose);
         
         setLocationRelativeTo(parent);

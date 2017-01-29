@@ -31,10 +31,10 @@ import static org.pepsoft.worldpainter.Terrain.GRASS;
  *
  * @author pepijn
  */
-public class PreferencesDialog extends javax.swing.JDialog {
+public class PreferencesDialog extends WorldPainterDialog {
     /** Creates new form PreferencesDialog */
     public PreferencesDialog(java.awt.Frame parent, ColourScheme colourScheme) {
-        super(parent, true);
+        super(parent);
         this.colourScheme = colourScheme;
         
         initComponents();
@@ -56,19 +56,6 @@ public class PreferencesDialog extends javax.swing.JDialog {
         
         loadSettings();
         
-        ActionMap actionMap = rootPane.getActionMap();
-        actionMap.put("cancel", new AbstractAction("cancel") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                cancel();
-            }
-            
-            private static final long serialVersionUID = 1L;
-        });
-
-        InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "cancel");
-
         rootPane.setDefaultButton(buttonOK);
         pack();
         setLocationRelativeTo(parent);
@@ -76,16 +63,7 @@ public class PreferencesDialog extends javax.swing.JDialog {
     
     public void ok() {
         saveSettings();
-        cancelled = false;
-        dispose();
-    }
-    
-    public void cancel() {
-        dispose();
-    }
-    
-    public boolean isCancelled() {
-        return cancelled;
+        super.ok();
     }
     
     private void loadSettings() {
@@ -1356,7 +1334,7 @@ public class PreferencesDialog extends javax.swing.JDialog {
     // End of variables declaration//GEN-END:variables
 
     private final ColourScheme colourScheme;
-    private boolean pingNotSet, cancelled = true;
+    private boolean pingNotSet;
     private int previousExp;
     private String generatorOptions;
     

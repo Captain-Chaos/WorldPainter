@@ -43,10 +43,10 @@ import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
  *
  * @author pepijn
  */
-public class FillDialog extends javax.swing.JDialog implements Listener {
+public class FillDialog extends WorldPainterDialog implements Listener {
     /** Creates new form FillDialog */
     public FillDialog(java.awt.Frame parent, Dimension dimension, Layer[] layers, ColourScheme colourScheme, Integer[] biomes, CustomBiomeManager customBiomeManager, WorldPainterView view, ObservableBoolean selectionState) {
-        super(parent, true);
+        super(parent);
         this.dimension = dimension;
         this.colourScheme = colourScheme;
         this.view = view;
@@ -76,19 +76,6 @@ public class FillDialog extends javax.swing.JDialog implements Listener {
 
         brushOptions1.setListener(this);
         
-        ActionMap actionMap = rootPane.getActionMap();
-        actionMap.put("cancel", new AbstractAction("cancel") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-            }
-            
-            private static final long serialVersionUID = 1L;
-        });
-
-        InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "cancel");
-
         getRootPane().setDefaultButton(buttonFill);
         
         pack(); // The comboboxes' preferred sizes have changed because the
@@ -1025,7 +1012,7 @@ chunks:         for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
     }//GEN-LAST:event_buttonFillActionPerformed
 
     private void buttonCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCancelActionPerformed
-        dispose();
+        cancel();
     }//GEN-LAST:event_buttonCancelActionPerformed
 
     private void radioButtonMakeBiomesPermanentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonMakeBiomesPermanentActionPerformed
