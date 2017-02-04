@@ -26,7 +26,7 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
     
     @Override
     public List<Layer> getLayers() {
-        return Arrays.asList(Frost.INSTANCE, Caves.INSTANCE, Caverns.INSTANCE, Chasms.INSTANCE, DeciduousForest.INSTANCE, PineForest.INSTANCE, SwampLand.INSTANCE, Jungle.INSTANCE, org.pepsoft.worldpainter.layers.Void.INSTANCE, Resources.INSTANCE/*, River.INSTANCE*/);
+        return Arrays.asList(Frost.INSTANCE, /*Caves.INSTANCE,*/ Caverns.INSTANCE, Chasms.INSTANCE, DeciduousForest.INSTANCE, PineForest.INSTANCE, SwampLand.INSTANCE, Jungle.INSTANCE, org.pepsoft.worldpainter.layers.Void.INSTANCE, Resources.INSTANCE/*, River.INSTANCE*/);
     }
 
     // ContextProvider
