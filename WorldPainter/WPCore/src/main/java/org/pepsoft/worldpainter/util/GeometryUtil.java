@@ -33,13 +33,15 @@ public final class GeometryUtil {
         int radiusError = 1 - dx;
         while (dx >= dy) {
             if (! visitor.visit( dx,  dy, radius)) {return false;}
-            if (! visitor.visit( dy,  dx, radius)) {return false;}
             if (! visitor.visit(-dx,  dy, radius)) {return false;}
-            if (! visitor.visit(-dy,  dx, radius)) {return false;}
             if (! visitor.visit(-dx, -dy, radius)) {return false;}
-            if (! visitor.visit(-dy, -dx, radius)) {return false;}
             if (! visitor.visit( dx, -dy, radius)) {return false;}
-            if (! visitor.visit( dy, -dx, radius)) {return false;}
+            if (dx != dy) {
+                if (! visitor.visit( dy,  dx, radius)) {return false;}
+                if (! visitor.visit(-dy,  dx, radius)) {return false;}
+                if (! visitor.visit(-dy, -dx, radius)) {return false;}
+                if (! visitor.visit( dy, -dx, radius)) {return false;}
+            }
 
             dy++;
             if (radiusError < 0) {
@@ -103,7 +105,7 @@ public final class GeometryUtil {
 
 
     /**
-     * Visit all the points inside spherical volume in an integer coordinate
+     * Visit all the points inside a spherical volume in an integer coordinate
      * space with the centre at 0,0,0. The order in which the points are visited
      * is not defined. The visitor may abort the process at any point by
      * returning <code>false</code>.
@@ -132,16 +134,15 @@ public final class GeometryUtil {
     @FunctionalInterface
     public interface PlaneVisitor {
         /**
-         * Visit the specified location relative to the origin of the geometric
-         * shape.
+         * Visit the specified location relative to the origin of the plane.
          * 
          * @param dx The x coordinate to visit relative to the origin of the
-         *     geometric shape.
+         *     plane.
          * @param dy The y coordinate to visit relative to the origin of the
-         *     geometric shape.
+         *     plane.
          * @param d The distance from the origin.
          * @return <code>true</code> if the process should continue;
-         * <code>false</code> if no more points should be visited on the shape.
+         * <code>false</code> if no more points should be visited on the plane.
          */
         boolean visit(int dx, int dy, float d);
     }
@@ -149,18 +150,17 @@ public final class GeometryUtil {
     @FunctionalInterface
     public interface VolumeVisitor {
         /**
-         * Visit the specified location relative to the origin of the geometric
-         * shape.
+         * Visit the specified location relative to the origin of the volume.
          *
          * @param dx The x coordinate to visit relative to the origin of the
-         *     geometric shape.
+         *     volume.
          * @param dy The y coordinate to visit relative to the origin of the
-         *     geometric shape.
+         *     volume.
          * @param dz The z coordinate to visit relative to the origin of the
-         *     geometric shape.
+         *     volume.
          * @param d The distance from the origin.
          * @return <code>true</code> if the process should continue;
-         * <code>false</code> if no more points should be visited on the shape.
+         * <code>false</code> if no more points should be visited in the volume.
          */
         boolean visit(int dx, int dy, int dz, float d);
     }
