@@ -10,25 +10,19 @@
  */
 package org.pepsoft.worldpainter;
 
-import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import org.pepsoft.util.swing.ProgressTask;
-import org.pepsoft.util.swing.ProgressDialog;
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
-import javax.swing.InputMap;
-import javax.swing.JComponent;
-import javax.swing.JOptionPane;
-import javax.swing.KeyStroke;
-import javax.swing.SpinnerNumberModel;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
+import org.pepsoft.util.swing.ProgressDialog;
+import org.pepsoft.util.swing.ProgressTask;
 import org.pepsoft.worldpainter.heightMaps.HeightMapUtils;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.Resources;
 import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter.ResourcesExporterSettings;
-import static org.pepsoft.minecraft.Constants.*;
+
+import javax.swing.*;
+import java.awt.*;
+
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
 
 /**
  *

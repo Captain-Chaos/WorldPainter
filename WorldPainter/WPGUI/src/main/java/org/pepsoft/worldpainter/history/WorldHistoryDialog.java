@@ -5,11 +5,10 @@
  */
 package org.pepsoft.worldpainter.history;
 
-import java.awt.Window;
 import org.pepsoft.worldpainter.World2;
 import org.pepsoft.worldpainter.WorldPainterDialog;
 
-import javax.swing.*;
+import java.awt.*;
 
 /**
  *
@@ -124,7 +123,7 @@ public class WorldHistoryDialog extends WorldPainterDialog {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        dispose();
+        cancel();
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jCheckBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox1ActionPerformed

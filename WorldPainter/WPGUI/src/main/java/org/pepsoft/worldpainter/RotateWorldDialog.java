@@ -14,10 +14,6 @@ import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 
-import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-
 import static org.pepsoft.util.AwtUtils.doOnEventThread;
 import static org.pepsoft.worldpainter.Constants.*;
 
@@ -79,7 +75,7 @@ public class RotateWorldDialog extends WorldPainterDialog implements ProgressRec
             ErrorDialog errorDialog = new ErrorDialog(RotateWorldDialog.this);
             errorDialog.setException(exception);
             errorDialog.setVisible(true);
-            dispose();
+            cancel();
         });
     }
 

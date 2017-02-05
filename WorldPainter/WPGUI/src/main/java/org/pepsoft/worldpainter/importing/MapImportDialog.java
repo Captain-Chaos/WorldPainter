@@ -19,8 +19,6 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileFilter;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -420,15 +418,14 @@ public class MapImportDialog extends WorldPainterDialog {
         }, true);
         if (importedWorld == null) {
             // The import was cancelled
-            dispose();
+            cancel();
             return;
         }
         
         importedWorld.setDirty(false);
         Configuration config = Configuration.getInstance();
         config.setSavesDirectory(levelDatFile.getParentFile().getParentFile());
-        cancelled = false;
-        dispose();
+        ok();
     }
     
     /**
@@ -686,7 +683,7 @@ public class MapImportDialog extends WorldPainterDialog {
     }//GEN-LAST:event_buttonOKActionPerformed
 
     private void buttonCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCancelActionPerformed
-        dispose();
+        cancel();
     }//GEN-LAST:event_buttonCancelActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -724,7 +721,6 @@ public class MapImportDialog extends WorldPainterDialog {
     private final App app;
     private File previouslySelectedFile;
     private MapStatistics mapStatistics;
-    private boolean cancelled = true;
     private World2 importedWorld;
     
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MapImportDialog.class);

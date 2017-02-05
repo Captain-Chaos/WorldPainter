@@ -10,29 +10,19 @@
  */
 package org.pepsoft.worldpainter;
 
-import java.awt.Font;
-import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
+import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
+import org.pepsoft.worldpainter.history.HistoryEntry;
+import org.pepsoft.worldpainter.layers.Layer;
+
+import javax.swing.*;
+import javax.swing.text.html.HTMLDocument;
+import java.awt.*;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
-import javax.swing.InputMap;
-import javax.swing.JComponent;
-import javax.swing.JOptionPane;
-import javax.swing.KeyStroke;
-import javax.swing.UIManager;
-import javax.swing.text.html.HTMLDocument;
-
-import org.pepsoft.worldpainter.history.HistoryEntry;
-import org.pepsoft.worldpainter.layers.Layer;
-
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
-import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 
 /**
  *
@@ -273,7 +263,7 @@ public class TileEditor extends WorldPainterDialog implements TileSelector.Liste
     }// </editor-fold>//GEN-END:initComponents
 
     private void buttonCloseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCloseActionPerformed
-        dispose();
+        cancel();
     }//GEN-LAST:event_buttonCloseActionPerformed
 
     private void buttonAddTilesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonAddTilesActionPerformed

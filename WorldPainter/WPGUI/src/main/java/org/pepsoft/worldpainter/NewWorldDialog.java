@@ -27,12 +27,11 @@ import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter;
 import org.pepsoft.worldpainter.themes.SimpleTheme;
 import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
+import org.pepsoft.worldpainter.themes.impl.simple.EditSimpleThemeDialog;
 
 import javax.swing.*;
 import javax.swing.JSpinner.DefaultEditor;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -42,7 +41,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Terrain.*;
-import org.pepsoft.worldpainter.themes.impl.simple.EditSimpleThemeDialog;
 
 /**
  *

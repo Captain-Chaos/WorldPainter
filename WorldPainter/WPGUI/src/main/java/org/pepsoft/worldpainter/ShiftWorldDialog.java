@@ -10,14 +10,6 @@
  */
 package org.pepsoft.worldpainter;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
-import javax.swing.InputMap;
-import javax.swing.JComponent;
-import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
 import org.pepsoft.worldpainter.history.HistoryEntry;
@@ -83,7 +75,7 @@ public class ShiftWorldDialog extends WorldPainterDialog implements ProgressRece
             ErrorDialog errorDialog = new ErrorDialog(ShiftWorldDialog.this);
             errorDialog.setException(exception);
             errorDialog.setVisible(true);
-            dispose();
+            cancel();
         });
     }
 

@@ -30,8 +30,6 @@ import org.pepsoft.worldpainter.selection.SelectionHelper;
 import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
@@ -175,13 +173,15 @@ public class FillDialog extends WorldPainterDialog implements Listener {
                 if (dimension.undoChanges()) {
                     dimension.clearRedo();
                 }
+                cancel();
+            } else {
+                dimension.armSavePoint();
+                ok();
             }
-            dimension.armSavePoint();
         } finally {
             view.setInhibitUpdates(false);
             dimension.setEventsInhibited(false);
         }
-        dispose();
     }
 
     private void fillWithTerrain(ProgressReceiver progressReceiver) throws OperationCancelled {

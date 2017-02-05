@@ -751,7 +751,7 @@ public class ConfigureViewDialog extends WorldPainterDialog implements WindowLis
             imageUpdateTimer = null;
             updateImageFile();
         }
-        dispose();
+        ok();
     }//GEN-LAST:event_buttonCloseActionPerformed
 
     private void checkBoxContoursActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxContoursActionPerformed
