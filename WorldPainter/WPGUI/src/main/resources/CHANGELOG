@@ -1,3 +1,7 @@
+-- Version 2.4.1, released 5-2-2017
+
+ * Bug fix: make Importing existing Minecraft maps work again
+
 -- Version 2.4.0, released 4-2-2017
 
  * There are two new selection modification operations on the Global Operations tool screen: "add to selection" and "remove from selection" which together with the filter settings allows you to sculpt complex and intricate selections based on the contents of the world
