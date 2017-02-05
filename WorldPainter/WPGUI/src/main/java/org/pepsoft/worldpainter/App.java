@@ -4016,7 +4016,7 @@ public final class App extends JFrame implements RadiusControl,
 //        menu.setMnemonic('h');
         menu.add(menuItem);
 
-//        menu.add(ACTION_SHOW_HELP_PICKER);
+        menu.add(ACTION_SHOW_HELP_PICKER);
 
         if (! hideAbout) {
             menu.addSeparator();
@@ -4269,8 +4269,8 @@ public final class App extends JFrame implements RadiusControl,
         toolBar.add(button);
         toolBar.add(ACTION_ROTATE_LIGHT_LEFT);
         toolBar.add(ACTION_ROTATE_LIGHT_RIGHT);
-//        toolBar.add(Box.createHorizontalGlue());
-//        toolBar.add(ACTION_SHOW_HELP_PICKER);
+        toolBar.add(Box.createHorizontalGlue());
+        toolBar.add(ACTION_SHOW_HELP_PICKER);
         return toolBar;
     }
     
