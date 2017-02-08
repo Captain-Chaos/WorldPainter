@@ -39,7 +39,7 @@ public class SelectionHelper {
         boolean brushSpecified = brush != null;
         boolean filterSpecified = filter != null;
         boolean[][] blocksSet = new boolean[16][16];
-        visitTiles(tile -> {
+        dimension.visitTiles().forFilter(filter).forBrush(brush, x, y).andDo(tile -> {
             boolean tileHasChunkSelection = tile.hasLayer(SelectionChunk.INSTANCE);
             if (! (brushSpecified || filterSpecified)) {
                 // This is slightly odd, but whatever. Just add all chunks to
@@ -113,7 +113,7 @@ chunks:         for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                     }
                 }
             }
-        }, filter, x, y, brush, progressReceiver);
+        }, progressReceiver);
     }
 
     public void removeFromSelection(Shape shape) {
@@ -128,13 +128,9 @@ chunks:         for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
             dimension.clearLayerData(SelectionChunk.INSTANCE);
             dimension.clearLayerData(SelectionBlock.INSTANCE);
         } else {
-            visitTiles(tile -> {
+            dimension.visitTiles().forSelection().forFilter(filter).forBrush(brush, x, y).andDo(tile -> {
                 boolean tileHasChunkSelection = tile.hasLayer(SelectionChunk.INSTANCE);
                 boolean tileHasBlockSelection = tile.hasLayer(SelectionBlock.INSTANCE);
-                if ((! tileHasChunkSelection) && (! tileHasBlockSelection)) {
-                    // There is no selection in this tile so we can just skip it
-                    return;
-                }
                 int worldTileX = tile.getX() << TILE_SIZE_BITS;
                 int worldTileY = tile.getY() << TILE_SIZE_BITS;
                 // Check per chunk whether the entire chunk would be deselected,
@@ -203,7 +199,7 @@ chunks:         for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                         }
                     }
                 }
-            }, filter, x, y, brush, progressReceiver);
+            }, progressReceiver);
         }
     }
 
@@ -214,22 +210,28 @@ chunks:         for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
      * <code>null</code> if there is no active selection.
      */
     public Rectangle getSelectionBounds() {
-        final int[] lowestX = {Integer.MAX_VALUE};
-        final int[] highestX = {Integer.MIN_VALUE};
-        final int[] lowestY = {Integer.MAX_VALUE};
-        final int[] highestY = {Integer.MIN_VALUE};
-        dimension.streamTiles()
-                .filter(tile -> (tile.hasLayer(SelectionChunk.INSTANCE) || tile.hasLayer(SelectionBlock.INSTANCE)))
-                .forEach(tile -> {
-                    final boolean tileHasChunkSelection = tile.hasLayer(SelectionChunk.INSTANCE);
-                    final boolean tileHasBlockSelection = tile.hasLayer(SelectionBlock.INSTANCE);
+        int[] lowestX = {Integer.MAX_VALUE};
+        int[] highestX = {Integer.MIN_VALUE};
+        int[] lowestY = {Integer.MAX_VALUE};
+        int[] highestY = {Integer.MIN_VALUE};
+        dimension.visitTiles().forSelection().andDo(tile -> {
+                    int tileX = tile.getX(), tileY = tile.getY();
+                    if (((tileX << TILE_SIZE_BITS) >= lowestX[0])
+                            && (((tileX + 1) << TILE_SIZE_BITS) < highestX[0])
+                            && (((tileY) << TILE_SIZE_BITS) >= lowestY[0])
+                            && (((tileY + 1) << TILE_SIZE_BITS) < highestY[0])) {
+                        // Tiles which lie within the already established bounds can be safely skipped
+                        return;
+                    }
+                    boolean tileHasChunkSelection = tile.hasLayer(SelectionChunk.INSTANCE);
+                    boolean tileHasBlockSelection = tile.hasLayer(SelectionBlock.INSTANCE);
                     for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                         for (int chunkY = 0; chunkY < TILE_SIZE; chunkY += 16) {
                             if (tileHasChunkSelection && tile.getBitLayerValue(SelectionChunk.INSTANCE, chunkX, chunkY)) {
-                                final int x1 = (tile.getX() << TILE_SIZE_BITS) | chunkX;
-                                final int x2 = x1 + 15;
-                                final int y1 = (tile.getY() << TILE_SIZE_BITS) | chunkY;
-                                final int y2 = y1 + 15;
+                                int x1 = (tileX << TILE_SIZE_BITS) | chunkX;
+                                int x2 = x1 + 15;
+                                int y1 = (tileY << TILE_SIZE_BITS) | chunkY;
+                                int y2 = y1 + 15;
                                 if (x1 < lowestX[0]) {
                                     lowestX[0] = x1;
                                 }
@@ -246,8 +248,8 @@ chunks:         for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                                 for (int dx = 0; dx < 16; dx++) {
                                     for (int dy = 0; dy < 16; dy++) {
                                         if (tile.getBitLayerValue(SelectionBlock.INSTANCE, chunkX + dx, chunkY + dy)) {
-                                            final int x = ((tile.getX() << TILE_SIZE_BITS) | chunkX) + dx;
-                                            final int y = ((tile.getY() << TILE_SIZE_BITS) | chunkY) + dy;
+                                            final int x = ((tileX << TILE_SIZE_BITS) | chunkX) + dx;
+                                            final int y = ((tileY << TILE_SIZE_BITS) | chunkY) + dy;
                                             if (x < lowestX[0]) {
                                                 lowestX[0] = x;
                                             }
@@ -271,46 +273,6 @@ chunks:         for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
             return new Rectangle(lowestX[0], lowestY[0], highestX[0] - lowestX[0] + 1, highestY[0] - lowestY[0] + 1);
         } else {
             return null;
-        }
-    }
-
-    public Collection<? extends Tile> getTilesInSelection() {
-        Set<Tile> tiles = new HashSet<>();
-        visitTilesInSelection(tiles::add);
-        return tiles;
-    }
-
-    /**
-     * Visit every tile in the dimension which intersects the current selection.
-     * The order in which the tiles are visited is undefined.
-     *
-     * @param tileVisitor The visitor to invoke for each tile that intersects
-     *                    the current selection.
-     */
-    public void visitTilesInSelection(TileVisitor tileVisitor) {
-tiles:  for (Tile tile: dimension.getTiles()) {
-            final boolean tileHasChunkSelection = tile.hasLayer(SelectionChunk.INSTANCE);
-            final boolean tileHasBlockSelection = tile.hasLayer(SelectionBlock.INSTANCE);
-            if (tileHasChunkSelection || tileHasBlockSelection) {
-                for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
-                    for (int chunkY = 0; chunkY < TILE_SIZE; chunkY += 16) {
-                        if (tileHasChunkSelection && tile.getBitLayerValue(SelectionChunk.INSTANCE, chunkX, chunkY)) {
-                            tileVisitor.visit(tile);
-                            continue tiles;
-                        } else if (tileHasBlockSelection) {
-                            for (int dx = 0; dx < 16; dx++) {
-                                for (int dy = 0; dy < 16; dy++) {
-                                    if (tile.getBitLayerValue(SelectionBlock.INSTANCE, chunkX + dx, chunkY + dy)) {
-                                        tileVisitor.visit(tile);
-                                        continue tiles;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-            }
         }
     }
 
@@ -728,64 +690,6 @@ outer:  for (int dx = -1; dx <= 1; dx++) {
         }
     }
 
-    /**
-     * Visit the most economical subset of tiles for a particular filter setting
-     * and/or brush.
-     *
-     * @param visitor The visitor to invoke for each tile.
-     * @param filter The filter to take into account. May be <code>null</code>.
-     *               This may skip tiles on which no location could possibly
-     *               match the filter.
-     * @param x The X coordinate of the location to take into account. Value is
-     *          ignored if <code>brush</code> is not specified.
-     * @param y The Y coordinate of the location to take into account. Value is
-     *          ignored if <code>brush</code> is not specified.
-     * @param brush The brush to take into account. May be <code>null</code>.
-     *              This constrains the visited tiles to those which intersect
-     *              the brush's bounding box.
-     * @param progressReceiver The progress receiver to notify of the progress,
-     *                         if any. May be <code>null</code>.
-     * @throws ProgressReceiver.OperationCancelled If the progress receiver
-     * throws an <code>OperationCancelled</code> exception.
-     */
-    private void visitTiles(TileVisitor visitor, Filter filter, int x, int y, Brush brush, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
-        Collection<? extends Tile> tilesToProcess;
-        if ((filter instanceof DefaultFilter) && ((DefaultFilter) filter).isInSelection()) {
-            // The filter is set to "in selection", so we only need to process
-            // the tiles intersecting the selection
-            tilesToProcess = getTilesInSelection();
-        } else {
-            tilesToProcess = dimension.getTiles();
-        }
-        int totalTiles = tilesToProcess.size(), tileCount = 0;
-        int tileX1 = Integer.MIN_VALUE, tileX2 = Integer.MAX_VALUE;
-        int tileY1 = Integer.MIN_VALUE, tileY2 = Integer.MAX_VALUE;
-        if (brush != null) {
-            int effectiveRadius = brush.getEffectiveRadius();
-            int x1 = x - effectiveRadius, x2 = x + effectiveRadius;
-            int y1 = y - effectiveRadius, y2 = y + effectiveRadius;
-            tileX1 = x1 >> TILE_SIZE_BITS;
-            tileX2 = x2 >> TILE_SIZE_BITS;
-            tileY1 = y1 >> TILE_SIZE_BITS;
-            tileY2 = y2 >> TILE_SIZE_BITS;
-        }
-        for (Tile tile: tilesToProcess) {
-            int tileX = tile.getX(), tileY = tile.getY();
-            if ((tileX >= tileX1) && (tileX <= tileX2) && (tileY >= tileY1) && (tileY <= tileY2)) {
-                tile.inhibitEvents();
-                try {
-                    visitor.visit(tile);
-                } finally {
-                    tile.releaseEvents();
-                }
-            }
-            tileCount++;
-            if (progressReceiver != null) {
-                progressReceiver.setProgress((float) tileCount / totalTiles);
-            }
-        }
-    }
-
     private final Dimension dimension;
     private SelectionOptions options;
     private boolean clearUndoOnNewTileCreation;
@@ -794,8 +698,4 @@ outer:  for (int dx = -1; dx <= 1; dx++) {
     private static final Random RANDOM = new Random();
     private static final Set<Layer> SKIP_LAYERS = new HashSet<>(Arrays.asList(Biome.INSTANCE, SelectionChunk.INSTANCE,
             SelectionBlock.INSTANCE, NotPresent.INSTANCE, Annotations.INSTANCE, FloodWithLava.INSTANCE));
-
-    interface TileVisitor {
-        void visit(Tile tile);
-    }
 }
