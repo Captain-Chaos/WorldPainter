@@ -82,7 +82,9 @@ public class BiomeSchemeManager {
                 BIOME_SCHEMES.put(biomeAlgorithm, biomeScheme);
                 return biomeScheme;
             } else {
-                logger.info("Could not find compatible jar for biome scheme " + version);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Could not find compatible jar for biome scheme " + version);
+                }
                 return null;
             }
         }
