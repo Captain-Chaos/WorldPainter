@@ -184,6 +184,23 @@ public final class Material implements Serializable, Comparable<Material> {
             case BLK_DISPENSER:
             case BLK_CHEST:
             case BLK_WALL_BANNER:
+            case BLK_OBSERVER:
+            case BLK_WHITE_SHULKER_BOX: // TODO: check assumption!
+            case BLK_ORANGE_SHULKER_BOX: // TODO: check assumption!
+            case BLK_MAGENTA_SHULKER_BOX: // TODO: check assumption!
+            case BLK_LIGHT_BLUE_SHULKER_BOX: // TODO: check assumption!
+            case BLK_YELLOW_SHULKER_BOX: // TODO: check assumption!
+            case BLK_LIME_SHULKER_BOX: // TODO: check assumption!
+            case BLK_PINK_SHULKER_BOX: // TODO: check assumption!
+            case BLK_GREY_SHULKER_BOX: // TODO: check assumption!
+            case BLK_LIGHT_GREY_SHULKER_BOX: // TODO: check assumption!
+            case BLK_CYAN_SHULKER_BOX: // TODO: check assumption!
+            case BLK_PURPLE_SHULKER_BOX: // TODO: check assumption!
+            case BLK_BLUE_SHULKER_BOX: // TODO: check assumption!
+            case BLK_BROWN_SHULKER_BOX: // TODO: check assumption!
+            case BLK_GREEN_SHULKER_BOX: // TODO: check assumption!
+            case BLK_RED_SHULKER_BOX: // TODO: check assumption!
+            case BLK_BLACK_SHULKER_BOX: // TODO: check assumption!
                 switch (data) {
                     case 2:
                         return Direction.NORTH;
@@ -452,15 +469,32 @@ public final class Material implements Serializable, Comparable<Material> {
             case BLK_DISPENSER:
             case BLK_CHEST:
             case BLK_WALL_BANNER:
+            case BLK_OBSERVER:
+            case BLK_WHITE_SHULKER_BOX: // TODO: check assumption!
+            case BLK_ORANGE_SHULKER_BOX: // TODO: check assumption!
+            case BLK_MAGENTA_SHULKER_BOX: // TODO: check assumption!
+            case BLK_LIGHT_BLUE_SHULKER_BOX: // TODO: check assumption!
+            case BLK_YELLOW_SHULKER_BOX: // TODO: check assumption!
+            case BLK_LIME_SHULKER_BOX: // TODO: check assumption!
+            case BLK_PINK_SHULKER_BOX: // TODO: check assumption!
+            case BLK_GREY_SHULKER_BOX: // TODO: check assumption!
+            case BLK_LIGHT_GREY_SHULKER_BOX: // TODO: check assumption!
+            case BLK_CYAN_SHULKER_BOX: // TODO: check assumption!
+            case BLK_PURPLE_SHULKER_BOX: // TODO: check assumption!
+            case BLK_BLUE_SHULKER_BOX: // TODO: check assumption!
+            case BLK_BROWN_SHULKER_BOX: // TODO: check assumption!
+            case BLK_GREEN_SHULKER_BOX: // TODO: check assumption!
+            case BLK_RED_SHULKER_BOX: // TODO: check assumption!
+            case BLK_BLACK_SHULKER_BOX: // TODO: check assumption!
                 switch (direction) {
                     case NORTH:
-                        return MATERIALS[((blockType) << 4) | (2)];
+                        return MATERIALS[((blockType) << 4) | 2];
                     case SOUTH:
-                        return MATERIALS[((blockType) << 4) | (3)];
+                        return MATERIALS[((blockType) << 4) | 3];
                     case WEST:
-                        return MATERIALS[((blockType) << 4) | (4)];
+                        return MATERIALS[((blockType) << 4) | 4];
                     case EAST:
-                        return MATERIALS[((blockType) << 4) | (5)];
+                        return MATERIALS[((blockType) << 4) | 5];
                 }
                 break;
             case BLK_PUMPKIN:

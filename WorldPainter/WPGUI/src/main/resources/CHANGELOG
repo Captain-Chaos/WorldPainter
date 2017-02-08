@@ -1,3 +1,7 @@
+-- Version 2.4.2, released ...
+
+ * Added support for new blocks in Minecraft 1.11
+
 -- Version 2.4.1, released 5-2-2017
 
  * Bug fix: make Importing existing Minecraft maps work again

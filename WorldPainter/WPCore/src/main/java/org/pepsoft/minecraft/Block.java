@@ -183,6 +183,8 @@ public final class Block implements Serializable {
 
     public static final Block[] BLOCKS = new Block[4096];
 
+    // Tr == Transparency, meaning in this case how much light is *blocked* by the block, 0 being fully transparent and
+    // 15 being fully opaque
     static {
         System.arraycopy(new Block[] {
 //                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
@@ -425,25 +427,25 @@ public final class Block implements Serializable {
                 new Block(215, 15,                "Red Nether Brick", false, false, false, false, false, false, false,  0, false),
                 new Block(216, 15,                      "Bone Block", false, false, false, false, false, false, false,  0,  true),
                 new Block(217,  0,                  "Structure Void", false,  true,  true, false, false, false, false,  0, false),
-                new Block(218,  0,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(219,  0,                              null, false, false, false, false, false, false, false,  0, false),
-//                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
-                new Block(220,  0,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(221,  0,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(222,  0,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(223,  0,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(224,  0,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(225,  0,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(226,  0,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(227,  0,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(228,  0,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(229,  0,                              null, false, false, false, false, false, false, false,  0, false),
-//                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
-                new Block(230,  0,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(231,  0,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(232,  0,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(233,  0,                              null, false, false, false, false, false, false, false,  0, false),
-                new Block(234,  0,                              null, false, false, false, false, false, false, false,  0, false),
+                new Block(218,  0,                        "Observer", false, false, false, false, false, false, false,  0, false),
+                new Block(219,  0,               "White Shulker Box", false, false, false, false, true,  false, false,  0, false),
+//                         ID,  0,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
+                new Block(220,  0,              "Orange Shulker Box", false, false, false, false, true,  false, false,  0, false),
+                new Block(221,  0,             "Magenta Shulker Box", false, false, false, false, true,  false, false,  0, false),
+                new Block(222,  0,          "Light Blue Shulker Box", false, false, false, false, true,  false, false,  0, false),
+                new Block(223,  0,              "Yellow Shulker Box", false, false, false, false, true,  false, false,  0, false),
+                new Block(224,  0,                "Lime Shulker Box", false, false, false, false, true,  false, false,  0, false),
+                new Block(225,  0,                "Pink Shulker Box", false, false, false, false, true,  false, false,  0, false),
+                new Block(226,  0,                "Grey Shulker Box", false, false, false, false, true,  false, false,  0, false),
+                new Block(227,  0,          "Light Grey Shulker Box", false, false, false, false, true,  false, false,  0, false),
+                new Block(228,  0,                "Cyan Shulker Box", false, false, false, false, true,  false, false,  0, false),
+                new Block(229,  0,              "Purple Shulker Box", false, false, false, false, true,  false, false,  0, false),
+//                         ID,  0,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
+                new Block(230,  0,                "Blue Shulker Box", false, false, false, false, true,  false, false,  0, false),
+                new Block(231,  0,               "Brown Shulker Box", false, false, false, false, true,  false, false,  0, false),
+                new Block(232,  0,               "Green Shulker Box", false, false, false, false, true,  false, false,  0, false),
+                new Block(233,  0,                 "Red Shulker Box", false, false, false, false, true,  false, false,  0, false),
+                new Block(234,  0,               "Black Shulker Box", false, false, false, false, true,  false, false,  0, false),
                 new Block(235,  0,                              null, false, false, false, false, false, false, false,  0, false),
                 new Block(236,  0,                              null, false, false, false, false, false, false, false,  0, false),
                 new Block(237,  0,                              null, false, false, false, false, false, false, false,  0, false),
