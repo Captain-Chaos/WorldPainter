@@ -79,7 +79,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
             if (biome != -1) {
                 final JToggleButton button = new JToggleButton(new ImageIcon(BiomeSchemeManager.createImage(BIOME_SCHEME, biome, colourScheme)));
                 button.putClientProperty(KEY_BIOME, biome);
-                button.setMargin(new Insets(2, 2, 2, 2));
+                button.setMargin(new Insets(2, 4, 2, 4));
                 StringBuilder tooltip = new StringBuilder();
                 tooltip.append(AutoBiomeScheme.BIOME_NAMES[biome]);
                 tooltip.append(" (");

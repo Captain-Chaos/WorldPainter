@@ -2694,7 +2694,7 @@ public final class App extends JFrame implements RadiusControl,
             final int selectedColour = i, dataValue = i - ((i < 8) ? 1 : 0);
             JToggleButton button = new JToggleButton(IconUtils.createScaledColourIcon(defaultColourScheme.getColour(BLK_WOOL, dataValue)));
             button.setToolTipText(COLOUR_NAMES[dataValue]);
-            button.setMargin(new Insets(2, 2, 2, 2));
+            button.setMargin(new Insets(2, 4, 2, 4));
             if (i == 1) {
                 button.setSelected(true);
             }
@@ -4635,7 +4635,7 @@ public final class App extends JFrame implements RadiusControl,
 
     private JToggleButton createTerrainButton(final Terrain terrain) {
         final JToggleButton button = new JToggleButton();
-        button.setMargin(new Insets(2, 2, 2, 2));
+        button.setMargin(new Insets(2, 4, 2, 4));
         button.setIcon(new ImageIcon(terrain.getIcon(defaultColourScheme)));
         button.setToolTipText(terrain.getName() + ": " + terrain.getDescription());
         button.addItemListener(event -> {
