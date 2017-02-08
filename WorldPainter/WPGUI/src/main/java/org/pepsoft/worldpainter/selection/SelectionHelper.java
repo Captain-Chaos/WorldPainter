@@ -4,8 +4,12 @@ import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Tile;
+import org.pepsoft.worldpainter.brushes.Brush;
 import org.pepsoft.worldpainter.layers.*;
+import org.pepsoft.worldpainter.operations.Filter;
+import org.pepsoft.worldpainter.panels.DefaultFilter;
 
+import javax.vecmath.Point3i;
 import java.awt.*;
 import java.util.*;
 
@@ -31,8 +35,176 @@ public class SelectionHelper {
         editSelection(shape, true);
     }
 
+    public void addToSelection(int x, int y, Brush brush, Filter filter, float dynamicLevel, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
+        boolean brushSpecified = brush != null;
+        boolean filterSpecified = filter != null;
+        boolean[][] blocksSet = new boolean[16][16];
+        visitTiles(tile -> {
+            boolean tileHasChunkSelection = tile.hasLayer(SelectionChunk.INSTANCE);
+            if (! (brushSpecified || filterSpecified)) {
+                // This is slightly odd, but whatever. Just add all chunks to
+                // the selection
+                tile.clearLayerData(SelectionBlock.INSTANCE);
+                for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
+                    for (int chunkY = 0; chunkY < TILE_SIZE; chunkY += 16) {
+                        if ((! tileHasChunkSelection) || (! tile.getBitLayerValue(SelectionChunk.INSTANCE, chunkX, chunkY))) {
+                            tile.setBitLayerValue(SelectionChunk.INSTANCE, chunkX, chunkY, true);
+                        }
+                    }
+                }
+            } else {
+                int worldTileX = tile.getX() << TILE_SIZE_BITS;
+                int worldTileY = tile.getY() << TILE_SIZE_BITS;
+                boolean tileHasBlockSelection = tile.hasLayer(SelectionBlock.INSTANCE);
+                // Check per chunk whether the entire chunk would be selected, so
+                // we can use the more efficient per-chunk selection layer
+chunks:         for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
+                    for (int chunkY = 0; chunkY < TILE_SIZE; chunkY += 16) {
+                        if (tileHasChunkSelection && tile.getBitLayerValue(SelectionChunk.INSTANCE, chunkX, chunkY)) {
+                            // The chunk is already entirely selected, so we can
+                            // just skip it
+                            continue chunks;
+                        }
+                        boolean chunkEntirelySelected = true;
+                        boolean noSelection = true;
+                        for (int xInChunk = 0; xInChunk < 16; xInChunk++) {
+                            for (int yInChunk = 0; yInChunk < 16; yInChunk++) {
+                                int worldX = worldTileX | chunkX | xInChunk, worldY = worldTileY | chunkY | yInChunk;
+                                float strength = brushSpecified ? brush.getStrength(x - worldX, y - worldY) * dynamicLevel : dynamicLevel;
+                                if (filterSpecified) {
+                                    strength = filter.modifyStrength(worldX, worldY, strength);
+                                }
+                                boolean select = (strength > 0.95f) || (Math.random() < strength);
+                                blocksSet[xInChunk][yInChunk] = select;
+                                if (! select) {
+                                    chunkEntirelySelected = false;
+                                } else {
+                                    noSelection = false;
+                                }
+                            }
+                        }
+
+                        if (noSelection) {
+                            // Nothing has to be selected; we don't have to
+                            // make any changes to the chunk
+                        } else if (chunkEntirelySelected) {
+                            // The chunk is entirely selected; optimise by using
+                            // the per-chunk selection layer, and remove any
+                            // existing per-block selection layer
+                            tile.setBitLayerValue(SelectionChunk.INSTANCE, chunkX, chunkY, true);
+                            if (tileHasBlockSelection) {
+                                for (int xInChunk = 0; xInChunk < 16; xInChunk++) {
+                                    for (int yInChunk = 0; yInChunk < 16; yInChunk++) {
+                                        tile.setBitLayerValue(SelectionBlock.INSTANCE, chunkX | xInChunk, chunkY | yInChunk, false);
+                                    }
+                                }
+                            }
+                        } else {
+                            // The chunk is not entirely selected, so apply the
+                            // selection per-block. TODO: recognise when the chunk becomes entirely selected so we should use the per-block layer
+                            for (int xInChunk = 0; xInChunk < 16; xInChunk++) {
+                                for (int yInChunk = 0; yInChunk < 16; yInChunk++) {
+                                    if (blocksSet[xInChunk][yInChunk]) {
+                                        tile.setBitLayerValue(SelectionBlock.INSTANCE, chunkX | xInChunk, chunkY | yInChunk, true);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }, filter, x, y, brush, progressReceiver);
+    }
+
     public void removeFromSelection(Shape shape) {
         editSelection(shape, false);
+    }
+
+    public void removeFromSelection(int x, int y, Brush brush, Filter filter, float dynamicLevel, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
+        boolean brushSpecified = brush != null;
+        boolean filterSpecified = filter != null;
+        boolean[][] blocksDeselected = new boolean[16][16];
+        if (! (brushSpecified || filterSpecified)) {
+            dimension.clearLayerData(SelectionChunk.INSTANCE);
+            dimension.clearLayerData(SelectionBlock.INSTANCE);
+        } else {
+            visitTiles(tile -> {
+                boolean tileHasChunkSelection = tile.hasLayer(SelectionChunk.INSTANCE);
+                boolean tileHasBlockSelection = tile.hasLayer(SelectionBlock.INSTANCE);
+                if ((! tileHasChunkSelection) && (! tileHasBlockSelection)) {
+                    // There is no selection in this tile so we can just skip it
+                    return;
+                }
+                int worldTileX = tile.getX() << TILE_SIZE_BITS;
+                int worldTileY = tile.getY() << TILE_SIZE_BITS;
+                // Check per chunk whether the entire chunk would be deselected,
+                // so we can use the more efficient per-chunk selection layer
+                for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
+                    for (int chunkY = 0; chunkY < TILE_SIZE; chunkY += 16) {
+                        boolean chunkEntirelyDeselected = true;
+                        boolean noDeselection = true;
+                        for (int xInChunk = 0; xInChunk < 16; xInChunk++) {
+                            for (int yInChunk = 0; yInChunk < 16; yInChunk++) {
+                                int worldX = worldTileX | chunkX | xInChunk, worldY = worldTileY | chunkY | yInChunk;
+                                float strength = brushSpecified ? brush.getStrength(x - worldX, y - worldY) * dynamicLevel : dynamicLevel;
+                                if (filterSpecified) {
+                                    strength = filter.modifyStrength(worldX, worldY, strength);
+                                }
+                                boolean deselect = (strength > 0.95f) || (Math.random() < strength);
+                                blocksDeselected[xInChunk][yInChunk] = deselect;
+                                if (! deselect) {
+                                    chunkEntirelyDeselected = false;
+                                } else {
+                                    noDeselection = false;
+                                }
+                            }
+                        }
+
+                        if (noDeselection) {
+                            // Nothing has to be deselected; we don't have to
+                            // make any changes to the chunk
+                        } else if (chunkEntirelyDeselected) {
+                            // The chunk should be entirely deselected; just
+                            // remove the layers
+                            if (tileHasChunkSelection) {
+                                tile.setBitLayerValue(SelectionChunk.INSTANCE, chunkX, chunkY, false);
+                            }
+                            if (tileHasBlockSelection) {
+                                for (int xInChunk = 0; xInChunk < 16; xInChunk++) {
+                                    for (int yInChunk = 0; yInChunk < 16; yInChunk++) {
+                                        tile.setBitLayerValue(SelectionBlock.INSTANCE, chunkX | xInChunk, chunkY | yInChunk, false);
+                                    }
+                                }
+                            }
+                        } else {
+                            // The chunk should not be entirely deselected
+                            if (tileHasChunkSelection && tile.getBitLayerValue(SelectionChunk.INSTANCE, chunkX, chunkY)) {
+                                // The chunk is currently entirely selected;
+                                // commute it to per-block
+                                tile.setBitLayerValue(SelectionChunk.INSTANCE, chunkX, chunkY, false);
+                                for (int xInChunk = 0; xInChunk < 16; xInChunk++) {
+                                    for (int yInChunk = 0; yInChunk < 16; yInChunk++) {
+                                        if (! blocksDeselected[xInChunk][yInChunk]) {
+                                            tile.setBitLayerValue(SelectionBlock.INSTANCE, chunkX | xInChunk, chunkY | yInChunk, true);
+                                        }
+                                    }
+                                }
+                            } else {
+                                // The chunk is already using per-block
+                                // selection; just remove the blocks to deselect
+                                for (int xInChunk = 0; xInChunk < 16; xInChunk++) {
+                                    for (int yInChunk = 0; yInChunk < 16; yInChunk++) {
+                                        if (blocksDeselected[xInChunk][yInChunk]) {
+                                            tile.setBitLayerValue(SelectionBlock.INSTANCE, chunkX | xInChunk, chunkY | yInChunk, false);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }, filter, x, y, brush, progressReceiver);
+        }
     }
 
     /**
@@ -553,6 +725,64 @@ outer:  for (int dx = -1; dx <= 1; dx++) {
                 break;
             default:
                 throw new UnsupportedOperationException("Data size " + layer.getDataSize() + " not supported");
+        }
+    }
+
+    /**
+     * Visit the most economical subset of tiles for a particular filter setting
+     * and/or brush.
+     *
+     * @param visitor The visitor to invoke for each tile.
+     * @param filter The filter to take into account. May be <code>null</code>.
+     *               This may skip tiles on which no location could possibly
+     *               match the filter.
+     * @param x The X coordinate of the location to take into account. Value is
+     *          ignored if <code>brush</code> is not specified.
+     * @param y The Y coordinate of the location to take into account. Value is
+     *          ignored if <code>brush</code> is not specified.
+     * @param brush The brush to take into account. May be <code>null</code>.
+     *              This constrains the visited tiles to those which intersect
+     *              the brush's bounding box.
+     * @param progressReceiver The progress receiver to notify of the progress,
+     *                         if any. May be <code>null</code>.
+     * @throws ProgressReceiver.OperationCancelled If the progress receiver
+     * throws an <code>OperationCancelled</code> exception.
+     */
+    private void visitTiles(TileVisitor visitor, Filter filter, int x, int y, Brush brush, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
+        Collection<? extends Tile> tilesToProcess;
+        if ((filter instanceof DefaultFilter) && ((DefaultFilter) filter).isInSelection()) {
+            // The filter is set to "in selection", so we only need to process
+            // the tiles intersecting the selection
+            tilesToProcess = getTilesInSelection();
+        } else {
+            tilesToProcess = dimension.getTiles();
+        }
+        int totalTiles = tilesToProcess.size(), tileCount = 0;
+        int tileX1 = Integer.MIN_VALUE, tileX2 = Integer.MAX_VALUE;
+        int tileY1 = Integer.MIN_VALUE, tileY2 = Integer.MAX_VALUE;
+        if (brush != null) {
+            int effectiveRadius = brush.getEffectiveRadius();
+            int x1 = x - effectiveRadius, x2 = x + effectiveRadius;
+            int y1 = y - effectiveRadius, y2 = y + effectiveRadius;
+            tileX1 = x1 >> TILE_SIZE_BITS;
+            tileX2 = x2 >> TILE_SIZE_BITS;
+            tileY1 = y1 >> TILE_SIZE_BITS;
+            tileY2 = y2 >> TILE_SIZE_BITS;
+        }
+        for (Tile tile: tilesToProcess) {
+            int tileX = tile.getX(), tileY = tile.getY();
+            if ((tileX >= tileX1) && (tileX <= tileX2) && (tileY >= tileY1) && (tileY <= tileY2)) {
+                tile.inhibitEvents();
+                try {
+                    visitor.visit(tile);
+                } finally {
+                    tile.releaseEvents();
+                }
+            }
+            tileCount++;
+            if (progressReceiver != null) {
+                progressReceiver.setProgress((float) tileCount / totalTiles);
+            }
         }
     }
 
