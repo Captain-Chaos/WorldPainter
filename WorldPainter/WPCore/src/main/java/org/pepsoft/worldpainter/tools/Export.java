@@ -4,6 +4,17 @@
  */
 package org.pepsoft.worldpainter.tools;
 
+import org.pepsoft.minecraft.Constants;
+import org.pepsoft.util.FileUtils;
+import org.pepsoft.util.PluginManager;
+import org.pepsoft.util.ProgressReceiver;
+import org.pepsoft.util.ProgressReceiver.OperationCancelled;
+import org.pepsoft.util.SubProgressReceiver;
+import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.exporting.JavaWorldExporter;
+import org.pepsoft.worldpainter.plugins.WPPluginManager;
+import org.pepsoft.worldpainter.util.MinecraftUtil;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -12,20 +23,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.zip.GZIPInputStream;
-import org.pepsoft.minecraft.Constants;
-import org.pepsoft.minecraft.Platform;
-import org.pepsoft.util.FileUtils;
-import org.pepsoft.util.PluginManager;
-import org.pepsoft.util.ProgressReceiver;
-import org.pepsoft.util.ProgressReceiver.OperationCancelled;
-import org.pepsoft.util.SubProgressReceiver;
-import org.pepsoft.worldpainter.Configuration;
-import org.pepsoft.worldpainter.MixedMaterial;
-import org.pepsoft.worldpainter.Terrain;
-import org.pepsoft.worldpainter.World2;
-import org.pepsoft.worldpainter.exporting.JavaWorldExporter;
-import org.pepsoft.worldpainter.plugins.WPPluginManager;
-import org.pepsoft.worldpainter.util.MinecraftUtil;
 
 /**
  *
@@ -69,9 +66,9 @@ public class Export {
         }
         if (world.getPlatform() == null) {
             if (world.getMaxHeight() == Constants.DEFAULT_MAX_HEIGHT_2) {
-                world.setPlatform(Platform.JAVA_ANVIL);
+                world.setPlatform(DefaultPlugin.JAVA_ANVIL);
             } else {
-                world.setPlatform(Platform.JAVA_MCREGION);
+                world.setPlatform(DefaultPlugin.JAVA_MCREGION);
             }
         }
         

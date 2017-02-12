@@ -4,17 +4,18 @@
  */
 package org.pepsoft.worldpainter.tools;
 
-import java.awt.Point;
+import org.pepsoft.util.ProgressReceiver.OperationCancelled;
+import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.exporting.JavaWorldExporter;
+import org.pepsoft.worldpainter.gardenofeden.Garden;
+
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.Random;
-import static org.pepsoft.minecraft.Constants.*;
 
-import org.pepsoft.minecraft.Platform;
-import org.pepsoft.util.ProgressReceiver.OperationCancelled;
-import org.pepsoft.worldpainter.*;
-import org.pepsoft.worldpainter.exporting.JavaWorldExporter;
-import org.pepsoft.worldpainter.gardenofeden.Garden;
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
 //import org.pepsoft.worldpainter.gardenofeden.Inn;
 
 /**
@@ -28,7 +29,7 @@ public class TestTool {
 //        TileFactory tileFactory = new NoiseTileFactory(Terrain.GRASS, DEFAULT_MAX_HEIGHT_2, 58, 62, false, false);
         TileFactory tileFactory = TileFactoryFactory.createFlatTileFactory(seed, Terrain.GRASS, DEFAULT_MAX_HEIGHT_2, 62, 0, false, false);
         World2 world = new World2(seed, tileFactory, DEFAULT_MAX_HEIGHT_2);
-        world.setPlatform(Platform.JAVA_ANVIL);
+        world.setPlatform(DefaultPlugin.JAVA_ANVIL);
         world.setName("TestWorld");
         world.setSpawnPoint(new Point(64, 64));
         world.setGameType(GameType.CREATIVE);

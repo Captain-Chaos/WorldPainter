@@ -4,14 +4,12 @@
  */
 package org.pepsoft.worldpainter.exporting;
 
-import org.jnbt.CompoundTag;
-import org.jnbt.NBTInputStream;
-import org.jnbt.NBTOutputStream;
 import org.pepsoft.minecraft.*;
+import org.pepsoft.worldpainter.plugins.PlatformManager;
+import org.pepsoft.worldpainter.plugins.PlatformProvider;
 
 import javax.vecmath.Point3i;
 import java.awt.*;
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -31,7 +29,7 @@ public class WorldRegion implements MinecraftWorld {
         this.platform = platform;
     }
     
-    public WorldRegion(File regionDir, int regionX, int regionZ, int maxHeight, Platform platform) throws IOException {
+    public WorldRegion(File worldDir, int dimension, int regionX, int regionZ, int maxHeight, Platform platform) throws IOException {
         this.regionX = regionX;
         this.regionZ = regionZ;
         this.maxHeight = maxHeight;
@@ -40,39 +38,19 @@ public class WorldRegion implements MinecraftWorld {
         int highestX = lowestX + 33;
         int lowestZ = (regionZ << 5) - 1;
         int highestZ = lowestZ + 33;
+        ChunkStore chunkStore = PlatformManager.getInstance().getChunkStore(platform, worldDir, dimension);
         Map<Point, RegionFile> regionFiles = new HashMap<>();
-//        synchronized (DISK_ACCESS_MONITOR) {
-            try {
-                for (int x = lowestX; x <= highestX; x++) {
-                    for (int z = lowestZ; z <= highestZ; z++) {
-                        Point regionCoords = new Point(x >> 5, z >> 5);
-                        RegionFile regionFile = regionFiles.get(regionCoords);
-                        if (regionFile == null) {
-                            File file = new File(regionDir, "r." + regionCoords.x + "." + regionCoords.y + ((platform == Platform.JAVA_ANVIL) ? ".mca" : ".mcr"));
-                            if (file.isFile()) {
-                                regionFile = new RegionFile(file);
-                                regionFiles.put(regionCoords, regionFile);
-                            }
-                        }
-                        if (regionFile != null) {
-                            DataInputStream chunkIn = regionFile.getChunkDataInputStream((x - (regionX << 5)) & 0x1f, (z - (regionZ << 5)) & 0x1f);
-                            if (chunkIn != null) {
-                                CompoundTag tag;
-                                try (NBTInputStream in = new NBTInputStream(chunkIn)) {
-                                    tag = (CompoundTag) in.readTag();
-                                }
-                                Chunk chunk = (platform == Platform.JAVA_ANVIL) ? new ChunkImpl2(tag, maxHeight) : new ChunkImpl(tag, maxHeight);
-                                chunks[x - (regionX << 5) + 1][z - (regionZ << 5) + 1] = chunk;
-                            }
-                        }
-                    }
-                }
-            } finally {
-                for (RegionFile regionFile: regionFiles.values()) {
-                    regionFile.close();
+        try {
+            for (int x = lowestX; x <= highestX; x++) {
+                for (int z = lowestZ; z <= highestZ; z++) {
+                    chunks[x - (regionX << 5) + 1][z - (regionZ << 5) + 1] = chunkStore.getChunkForEditing(x, z);
                 }
             }
-//        }
+        } finally {
+            for (RegionFile regionFile: regionFiles.values()) {
+                regionFile.close();
+            }
+        }
     }
     
     @Override
@@ -261,7 +239,7 @@ public class WorldRegion implements MinecraftWorld {
             int localX = x - (regionX << 5);
             int localZ = z - (regionZ << 5);
             if ((localX >= 0) && (localX < CHUNKS_PER_SIDE) && (localZ >= 0) && (localZ < CHUNKS_PER_SIDE)) {
-                chunk = platform.createChunk(x, z, maxHeight);
+                chunk = platformProvider.createChunk(platform, x, z, maxHeight);
                 chunks[x + 1][z + 1] = chunk;
             }
         }
@@ -277,15 +255,6 @@ public class WorldRegion implements MinecraftWorld {
         }
     }
 
-    /**
-     * @throws UnsupportedOperationException Always, as this class does not
-     * itself store chunks persistently and therefore does not support flushing.
-     */
-    @Override
-    public void flush() {
-        throw new UnsupportedOperationException();
-    }
-
     @Override
     public int getHighestNonAirBlock(int x, int y) {
         Chunk chunk = getChunk(x >> 4, y >> 4);
@@ -296,62 +265,57 @@ public class WorldRegion implements MinecraftWorld {
         }
     }
 
-    public void save(File dimensionDir) throws IOException {
-        File file = new File(dimensionDir, "region/r." + regionX + "." + regionZ + ((platform == Platform.JAVA_ANVIL) ? ".mca" : ".mcr"));
-//        synchronized (DISK_ACCESS_MONITOR) {
-            RegionFile regionFile = new RegionFile(file);
-            try {
-                for (int x = 0; x < CHUNKS_PER_SIDE; x++) {
-                    for (int z = 0; z < CHUNKS_PER_SIDE; z++) {
-                        final Chunk chunk = chunks[x + 1][z + 1];
-                        if (chunk != null) {
-                            // Do some sanity checks first
-                            // Check that all tile entities for which the chunk
-                            // contains data are actually there
-                            for (Iterator<TileEntity> i = chunk.getTileEntities().iterator(); i.hasNext(); ) {
-                                final TileEntity tileEntity = i.next();
-                                final Set<Integer> blockIds = Constants.TILE_ENTITY_MAP.get(tileEntity.getId());
-                                if (blockIds == null) {
-                                    logger.warn("Unknown tile entity ID \"" + tileEntity.getId() + "\" encountered @ " + tileEntity.getX() + "," + tileEntity.getZ() + "," + tileEntity.getY() + "; can't check whether the corresponding block is there!");
-                                } else {
-                                    final int existingBlockId = chunk.getBlockType(tileEntity.getX() & 0xf, tileEntity.getY(), tileEntity.getZ() & 0xf);
-                                    if (! blockIds.contains(existingBlockId)) {
-                                        // The block at the specified location
-                                        // is not a tile entity, or a different
-                                        // tile entity. Remove the data
-                                        i.remove();
-                                        if (logger.isDebugEnabled()) {
-                                            logger.debug("Removing tile entity " + tileEntity.getId() + " @ " + tileEntity.getX() + "," + tileEntity.getZ() + "," + tileEntity.getY() + " because the block at that location is a " + BLOCK_TYPE_NAMES[existingBlockId]);
-                                        }
+    public void save(File worldDir, int dimension) throws IOException {
+        ChunkStore chunkStore = PlatformManager.getInstance().getChunkStore(platform, worldDir, dimension);
+        try {
+            for (int x = 0; x < CHUNKS_PER_SIDE; x++) {
+                for (int z = 0; z < CHUNKS_PER_SIDE; z++) {
+                    final Chunk chunk = chunks[x + 1][z + 1];
+                    if (chunk != null) {
+                        // Do some sanity checks first
+                        // Check that all tile entities for which the chunk
+                        // contains data are actually there
+                        for (Iterator<TileEntity> i = chunk.getTileEntities().iterator(); i.hasNext(); ) {
+                            final TileEntity tileEntity = i.next();
+                            final Set<Integer> blockIds = Constants.TILE_ENTITY_MAP.get(tileEntity.getId());
+                            if (blockIds == null) {
+                                logger.warn("Unknown tile entity ID \"" + tileEntity.getId() + "\" encountered @ " + tileEntity.getX() + "," + tileEntity.getZ() + "," + tileEntity.getY() + "; can't check whether the corresponding block is there!");
+                            } else {
+                                final int existingBlockId = chunk.getBlockType(tileEntity.getX() & 0xf, tileEntity.getY(), tileEntity.getZ() & 0xf);
+                                if (! blockIds.contains(existingBlockId)) {
+                                    // The block at the specified location
+                                    // is not a tile entity, or a different
+                                    // tile entity. Remove the data
+                                    i.remove();
+                                    if (logger.isDebugEnabled()) {
+                                        logger.debug("Removing tile entity " + tileEntity.getId() + " @ " + tileEntity.getX() + "," + tileEntity.getZ() + "," + tileEntity.getY() + " because the block at that location is a " + BLOCK_TYPE_NAMES[existingBlockId]);
                                     }
                                 }
                             }
-                            // Check that there aren't multiple tile entities (of the same type,
-                            // otherwise they would have been removed above) in the same location
-                            Set<Point3i> occupiedCoords = new HashSet<>();
-                            for (Iterator<TileEntity> i = chunk.getTileEntities().iterator(); i.hasNext(); ) {
-                                TileEntity tileEntity = i.next();
-                                Point3i coords = new Point3i(tileEntity.getX(), tileEntity.getZ(), tileEntity.getY());
-                                if (occupiedCoords.contains(coords)) {
-                                    // There is already tile data for that location in the chunk;
-                                    // remove this copy
-                                    i.remove();
-                                    logger.warn("Removing tile entity " + tileEntity.getId() + " @ " + tileEntity.getX() + "," + tileEntity.getZ() + "," + tileEntity.getY() + " because there is already a tile entity of the same type at that location");
-                                } else {
-                                    occupiedCoords.add(coords);
-                                }
-                            }
-
-                            try (NBTOutputStream out = new NBTOutputStream(regionFile.getChunkDataOutputStream(x, z))) {
-                                out.writeTag(((NBTItem) chunk).toNBT());
+                        }
+                        // Check that there aren't multiple tile entities (of the same type,
+                        // otherwise they would have been removed above) in the same location
+                        Set<Point3i> occupiedCoords = new HashSet<>();
+                        for (Iterator<TileEntity> i = chunk.getTileEntities().iterator(); i.hasNext(); ) {
+                            TileEntity tileEntity = i.next();
+                            Point3i coords = new Point3i(tileEntity.getX(), tileEntity.getZ(), tileEntity.getY());
+                            if (occupiedCoords.contains(coords)) {
+                                // There is already tile data for that location in the chunk;
+                                // remove this copy
+                                i.remove();
+                                logger.warn("Removing tile entity " + tileEntity.getId() + " @ " + tileEntity.getX() + "," + tileEntity.getZ() + "," + tileEntity.getY() + " because there is already a tile entity of the same type at that location");
+                            } else {
+                                occupiedCoords.add(coords);
                             }
                         }
+
+                        chunkStore.saveChunk(chunk);
                     }
                 }
-            } finally {
-                regionFile.close();
             }
-//        }
+        } finally {
+            chunkStore.flush();
+        }
     }
 
     public boolean isChunkCreationMode() {
@@ -367,6 +331,7 @@ public class WorldRegion implements MinecraftWorld {
     private final Chunk[][] chunks = new Chunk[CHUNKS_PER_SIDE + 2][CHUNKS_PER_SIDE + 2];
     private final int regionX, regionZ;
     private boolean chunkCreationMode;
+    private PlatformProvider platformProvider;
     
 //    private static final Object DISK_ACCESS_MONITOR = new Object();
     

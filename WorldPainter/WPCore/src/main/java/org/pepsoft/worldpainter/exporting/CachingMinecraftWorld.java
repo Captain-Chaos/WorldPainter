@@ -2,6 +2,7 @@ package org.pepsoft.worldpainter.exporting;
 
 import org.pepsoft.minecraft.*;
 import org.pepsoft.util.jobqueue.HashList;
+import org.pepsoft.worldpainter.plugins.PlatformManager;
 
 import java.awt.*;
 import java.io.File;
@@ -23,7 +24,7 @@ public abstract class CachingMinecraftWorld implements MinecraftWorld {
         cache = new HashMap<>(cacheSize);
         lruList = new HashList<>(cacheSize);
         dirtyChunks = new HashSet<>(cacheSize);
-        chunkStore = platform.getChunkStore(worldDir, dimension);
+        chunkStore = PlatformManager.getInstance().getChunkStore(platform, worldDir, dimension);
     }
 
     @Override

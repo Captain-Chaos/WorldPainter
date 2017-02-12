@@ -1,232 +1,82 @@
 package org.pepsoft.minecraft;
 
-import org.pepsoft.minecraft.mcpe.MCPEChunk;
-import org.pepsoft.minecraft.mcpe.MCPEConstants;
 import org.pepsoft.worldpainter.GameType;
 import org.pepsoft.worldpainter.Generator;
-import org.pepsoft.worldpainter.exporting.JavaChunkStore;
-import org.pepsoft.worldpainter.exporting.MCPEChunkStore;
 
-import java.io.File;
-import java.util.Arrays;
+import java.io.Serializable;
 import java.util.List;
 
-import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.GameType.*;
-import static org.pepsoft.worldpainter.Generator.*;
-
 /**
- * A Minecraft platform.
+ * A WorldPainter-supported block-based game platform.
  *
  * <p>Created by Pepijn on 11-12-2016.
  */
-public enum Platform {
-    JAVA_MCREGION("Java/MCRegion") {
-        @Override
-        public Chunk createChunk(int x, int z, int maxHeight) {
-            return new ChunkImpl(x, z, maxHeight);
-        }
-
-        @Override
-        public boolean supportsBiomes() {
-            return false;
-        }
-
-        @Override
-        public int getStandardMaxHeight() {
-            return Constants.DEFAULT_MAX_HEIGHT_1;
-        }
-
-        @Override
-        public boolean supportsNonStandardHeights() {
-            return true;
-        }
-
-        @Override
-        public List<GameType> getGameTypes() {
-            return Arrays.asList(SURVIVAL, CREATIVE);
-        }
-
-        @Override
-        public List<Generator> getGenerators() {
-            return Arrays.asList(DEFAULT, FLAT);
-        }
-
-        @Override
-        public ChunkStore getChunkStore(File worldDir, int dimension) {
-            File regionDir;
-            switch (dimension) {
-                case DIM_NORMAL:
-                    regionDir = new File(worldDir, "regions");
-                    break;
-                case DIM_NETHER:
-                    regionDir = new File(worldDir, "DIM-1/regions");
-                    break;
-                case DIM_END:
-                    regionDir = new File(worldDir, "DIM1/regions");
-                    break;
-                default:
-                    throw new IllegalArgumentException("Dimension " + dimension + " not supported");
-            }
-            return new JavaChunkStore(JAVA_MCREGION, regionDir, false, null, getStandardMaxHeight());
-        }
-    },
-
-    JAVA_ANVIL("Java/Anvil") {
-        @Override
-        public Chunk createChunk(int x, int z, int maxHeight) {
-            return new ChunkImpl2(x, z, maxHeight);
-        }
-
-        @Override
-        public boolean supportsBiomes() {
-            return true;
-        }
-
-        @Override
-        public int getStandardMaxHeight() {
-            return Constants.DEFAULT_MAX_HEIGHT_2;
-        }
-
-        @Override
-        public boolean supportsNonStandardHeights() {
-            return false;
-        }
-
-        @Override
-        public List<GameType> getGameTypes() {
-            return Arrays.asList(SURVIVAL, CREATIVE, ADVENTURE, HARDCORE);
-        }
-
-        @Override
-        public List<Generator> getGenerators() {
-            return Arrays.asList(DEFAULT, FLAT, LARGE_BIOMES);
-        }
-
-        @Override
-        public ChunkStore getChunkStore(File worldDir, int dimension) {
-            File regionDir;
-            switch (dimension) {
-                case DIM_NORMAL:
-                    regionDir = new File(worldDir, "regions");
-                    break;
-                case DIM_NETHER:
-                    regionDir = new File(worldDir, "DIM-1/regions");
-                    break;
-                case DIM_END:
-                    regionDir = new File(worldDir, "DIM1/regions");
-                    break;
-                default:
-                    throw new IllegalArgumentException("Dimension " + dimension + " not supported");
-            }
-            return new JavaChunkStore(JAVA_ANVIL, regionDir, false, null, getStandardMaxHeight());
-        }
-    },
-
-    MCPE("MCPE") {
-        @Override
-        public Chunk createChunk(int x, int z, int maxHeight) {
-            if (maxHeight != MCPEConstants.MAX_HEIGHT) {
-                throw new IllegalArgumentException("maxHeight " + maxHeight);
-            }
-            return new MCPEChunk(x, z);
-        }
-
-        @Override
-        public boolean supportsBiomes() {
-            return true;
-        }
-
-        @Override
-        public int getStandardMaxHeight() {
-            return MCPEConstants.MAX_HEIGHT;
-        }
-
-        @Override
-        public boolean supportsNonStandardHeights() {
-            return false;
-        }
-
-        @Override
-        public List<GameType> getGameTypes() {
-            return Arrays.asList(SURVIVAL, CREATIVE);
-        }
-
-        @Override
-        public List<Generator> getGenerators() {
-            return Arrays.asList(DEFAULT, FLAT);
-        }
-
-        @Override
-        public ChunkStore getChunkStore(File worldDir, int dimension) {
-            return new MCPEChunkStore(worldDir, dimension);
-        }
-    };
-
-    Platform(String displayName) {
+public final class Platform implements Serializable {
+    public Platform(String id, String displayName, boolean supportsBiomes, int minMaxHeight, int standardMaxHeight,
+                    int maxMaxHeight, List<GameType> supportedGameTypes, List<Generator> supportedGenerators) {
+        this.id = id;
         this.displayName = displayName;
+        this.supportsBiomes = supportsBiomes;
+        this.minMaxHeight = minMaxHeight;
+        this.standardMaxHeight = standardMaxHeight;
+        this.maxMaxHeight = maxMaxHeight;
+        this.supportedGameTypes = supportedGameTypes;
+        this.supportedGenerators = supportedGenerators;
     }
-
-    /**
-     * Create a new, empty chunk.
-     *
-     * @param x The X coordinate (in chunks) of the chunk to create.
-     * @param z The Z coordinate (in chunks) of the chunk to create.
-     * @param maxHeight The height (in blocks) of the chunk to create.
-     * @return The newly created chunk.
-     */
-    public abstract Chunk createChunk(int x, int z, int maxHeight);
 
     /**
      * Indicates whether this platform supports storing biome IDs.
      *
      * @return <code>true</code> iff the platform supports storing biome IDs.
      */
-    public abstract boolean supportsBiomes();
+    public boolean supportsBiomes() {
+        return supportsBiomes;
+    }
 
     /**
-     * Indicates whether this platform supports heights other than
-     * {@link #getStandardMaxHeight()}.
+     * Get the lowest map height supported by this platform.
      *
-     * @return <code>true</code> iff the platform supports heights other than
-     *     {@link #getStandardMaxHeight()}.
+     * @return The lowest map height supported by this platform.
      */
-    public abstract boolean supportsNonStandardHeights();
+    public int getMinMaxHeight() {
+        return minMaxHeight;
+    }
 
     /**
-     * Get the default height of maps for this platform. If
-     * {@link #supportsNonStandardHeights()} returns <code>false</code> this is
-     * the <em>only</em> height supported.
+     * Get the default height of maps for this platform.
      *
      * @return The default height of maps for this platform.
      */
-    public abstract int getStandardMaxHeight();
+    public int getStandardMaxHeight() {
+        return standardMaxHeight;
+    }
+
+    /**
+     * Get the highest map height supported by this platform.
+     *
+     * @return The highest map height supported by this platform.
+     */
+    public int getMaxMaxHeight() {
+        return maxMaxHeight;
+    }
 
     /**
      * Get the list of game types supported by this platform.
      *
      * @return The list of game types supported by this platform.
      */
-    public abstract List<GameType> getGameTypes();
+    public List<GameType> getGameTypes() {
+        return supportedGameTypes;
+    }
 
     /**
      * Get the list of generators supported by this platform.
      *
      * @return The list of generators supported by this platform.
      */
-    public abstract List<Generator> getGenerators();
-
-    /**
-     * Obtain a {@link ChunkStore} which will save chunks in the format of the
-     * platform, for a specific map base directory and dimension number.
-     *
-     * @param worldDir The map base directory for which to provide a chunk
-     *                 store.
-     * @param dimension The dimension number for which to provide a chunk store.
-     * @return A chunk store which will write chunks in the appropriate format
-     *     for the specified dimension under the specified base directory.
-     */
-    public abstract ChunkStore getChunkStore(File worldDir, int dimension);
+    public List<Generator> getGenerators() {
+        return supportedGenerators;
+    }
 
     /**
      * Get the human-friendly display name of this platform.
@@ -237,5 +87,23 @@ public enum Platform {
         return displayName;
     }
 
-    private final String displayName;
+    // Object
+
+    @Override
+    public boolean equals(Object o) {
+        return (o instanceof Platform) && id.equals(((Platform) o).id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
+
+    private final String id, displayName;
+    private final boolean supportsBiomes;
+    private final int minMaxHeight, standardMaxHeight, maxMaxHeight;
+    private final List<GameType> supportedGameTypes;
+    private final List<Generator> supportedGenerators;
+
+    private static final long serialVersionUID = 1L;
 }

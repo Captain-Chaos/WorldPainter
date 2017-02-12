@@ -41,12 +41,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.tinfoiled.mcpe.leveldb</groupId>
-            <artifactId>leveldb</artifactId>
-            <version>0.8-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
             <groupId>java3d</groupId>
             <artifactId>vecmath</artifactId>
             <version>1.3.1</version>

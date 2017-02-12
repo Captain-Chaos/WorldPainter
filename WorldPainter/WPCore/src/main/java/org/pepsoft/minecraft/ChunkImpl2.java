@@ -477,6 +477,11 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk, Minecraf
     }
 
     @Override
+    public void addChunk(Chunk chunk) {
+        throw new UnsupportedOperationException("Not supported");
+    }
+
+    @Override
     public void addEntity(int x, int y, int height, Entity entity) {
         entity = (Entity) entity.clone();
         entity.setPos(new double[] {x, height, y});

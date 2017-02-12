@@ -16,6 +16,7 @@ import org.pepsoft.minecraft.Constants;
 import org.pepsoft.minecraft.Platform;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ProgressReceiver;
+import org.pepsoft.worldpainter.DefaultPlugin;
 import org.pepsoft.worldpainter.World2;
 import org.pepsoft.worldpainter.exporting.JavaWorldExporter;
 
@@ -37,9 +38,9 @@ public class Timings {
             world.getDimension(0).getTileFactory().setSeed(random.nextLong());
             if (world.getPlatform() == null) {
                 if (world.getMaxHeight() == Constants.DEFAULT_MAX_HEIGHT_2) {
-                    world.setPlatform(Platform.JAVA_ANVIL);
+                    world.setPlatform(DefaultPlugin.JAVA_ANVIL);
                 } else {
-                    world.setPlatform(Platform.JAVA_MCREGION);
+                    world.setPlatform(DefaultPlugin.JAVA_MCREGION);
                 }
             }
             final JavaWorldExporter exporter = new JavaWorldExporter(world);

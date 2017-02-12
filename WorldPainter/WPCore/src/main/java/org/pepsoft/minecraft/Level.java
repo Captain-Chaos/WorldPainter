@@ -7,6 +7,7 @@ package org.pepsoft.minecraft;
 
 import org.jnbt.*;
 import org.pepsoft.worldpainter.AccessDeniedException;
+import org.pepsoft.worldpainter.DefaultPlugin;
 import org.pepsoft.worldpainter.Generator;
 
 import java.io.*;
@@ -23,18 +24,18 @@ import static org.pepsoft.minecraft.Constants.*;
 public final class Level extends AbstractNBTItem {
     public Level(int mapHeight, Platform platform) {
         super(new CompoundTag(TAG_DATA, new HashMap<>()));
-        if ((platform != Platform.JAVA_ANVIL) && (platform != Platform.JAVA_MCREGION)) {
+        if ((! platform.equals(DefaultPlugin.JAVA_ANVIL)) && (! platform.equals(DefaultPlugin.JAVA_MCREGION))) {
             throw new IllegalArgumentException("Not a supported platform: " + platform);
         }
         if ((mapHeight & (mapHeight - 1)) != 0) {
             throw new IllegalArgumentException("mapHeight " + mapHeight + " not a power of two");
         }
-        if (mapHeight != ((platform == Platform.JAVA_MCREGION) ? DEFAULT_MAX_HEIGHT_1 : DEFAULT_MAX_HEIGHT_2)) {
+        if (mapHeight != (platform.equals(DefaultPlugin.JAVA_MCREGION) ? DEFAULT_MAX_HEIGHT_1 : DEFAULT_MAX_HEIGHT_2)) {
             setInt(TAG_MAP_HEIGHT, mapHeight);
         }
         this.maxHeight = mapHeight;
         extraTags = null;
-        setInt(TAG_VERSION, (platform == Platform.JAVA_MCREGION) ? SUPPORTED_VERSION_1 : SUPPORTED_VERSION_2);
+        setInt(TAG_VERSION, platform.equals(DefaultPlugin.JAVA_MCREGION) ? SUPPORTED_VERSION_1 : SUPPORTED_VERSION_2);
         addDimension(0);
     }
 

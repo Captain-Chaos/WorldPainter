@@ -7,7 +7,6 @@
 package org.pepsoft.worldpainter.layers;
 
 import org.pepsoft.minecraft.Chunk;
-import org.pepsoft.minecraft.Platform;
 import org.pepsoft.util.Box;
 import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.ProgressReceiver;
@@ -173,7 +172,7 @@ public class LayerPreviewCreator {
 
         // Phase three: generate terrain and render first pass layers, if any
         timestamp = now;
-        WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(dimension, pass1Exporters, Platform.JAVA_ANVIL, previewHeight);
+        WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(dimension, pass1Exporters, DefaultPlugin.JAVA_ANVIL, previewHeight);
         for (int x = 0; x < 8; x++) {
             for (int y = 0; y < 8; y++) {
                 Chunk chunk = chunkFactory.createChunk(x, y).chunk;

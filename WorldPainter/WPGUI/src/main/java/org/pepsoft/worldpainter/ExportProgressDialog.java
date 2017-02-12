@@ -18,9 +18,8 @@ import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.TaskbarProgressReceiver;
 import org.pepsoft.util.swing.ProgressTask;
-import org.pepsoft.worldpainter.exporting.AbstractWorldExporter;
-import org.pepsoft.worldpainter.exporting.JavaWorldExporter;
-import org.pepsoft.worldpainter.exporting.MCPEWorldExporter;
+import org.pepsoft.worldpainter.exporting.WorldExporter;
+import org.pepsoft.worldpainter.plugins.PlatformManager;
 
 import javax.swing.*;
 import java.awt.*;
@@ -138,18 +137,7 @@ public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, Chunk
             public Map<Integer, ChunkFactory.Stats> execute(ProgressReceiver progressReceiver) throws OperationCancelled {
                 progressReceiver = new TaskbarProgressReceiver(App.getInstance(), progressReceiver);
                 progressReceiver.setMessage("Exporting world " + name);
-                AbstractWorldExporter exporter;
-                switch (world.getPlatform()) {
-                    case JAVA_MCREGION:
-                    case JAVA_ANVIL:
-                        exporter = new JavaWorldExporter(world);
-                        break;
-                    case MCPE:
-                        exporter = new MCPEWorldExporter(world);
-                        break;
-                    default:
-                        throw new IllegalArgumentException("Unsupported platform: " + world.getPlatform());
-                }
+                WorldExporter exporter = PlatformManager.getInstance().getExporter(world);
                 try {
                     backupDir = exporter.selectBackupDir(new File(baseDir, FileUtils.sanitiseName(name)));
                     return exporter.export(baseDir, name, backupDir, progressReceiver);

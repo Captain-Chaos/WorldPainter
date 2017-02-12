@@ -18,6 +18,8 @@ import org.pepsoft.worldpainter.layers.CombinedLayer;
 import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.GardenCategory;
 import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.plugins.PlatformManager;
+import org.pepsoft.worldpainter.plugins.PlatformProvider;
 import org.pepsoft.worldpainter.util.FileInUseException;
 import org.pepsoft.worldpainter.vo.AttributeKeyVO;
 import org.pepsoft.worldpainter.vo.EventVO;
@@ -39,7 +41,7 @@ import static org.pepsoft.worldpainter.Constants.*;
 public class JavaWorldExporter extends AbstractWorldExporter {
     public JavaWorldExporter(World2 world) {
         super(world);
-        if ((world.getPlatform() != Platform.JAVA_ANVIL) && (world.getPlatform() != Platform.JAVA_MCREGION)) {
+        if ((! world.getPlatform().equals(DefaultPlugin.JAVA_ANVIL)) && (! world.getPlatform().equals(DefaultPlugin.JAVA_MCREGION))) {
             throw new IllegalArgumentException("Unsupported platform " + world.getPlatform());
         }
     }
@@ -116,7 +118,7 @@ public class JavaWorldExporter extends AbstractWorldExporter {
             level.setMapFeatures(world.isMapFeatures());
             level.setGenerator(world.getGenerator());
         }
-        if (world.getPlatform() == Platform.JAVA_ANVIL) {
+        if (world.getPlatform().equals(DefaultPlugin.JAVA_ANVIL)) {
             if ((! endlessBorder) && (world.getGenerator() == Generator.FLAT) && (world.getGeneratorOptions() != null)) {
                 level.setGeneratorOptions(world.getGeneratorOptions());
             }
@@ -177,12 +179,12 @@ public class JavaWorldExporter extends AbstractWorldExporter {
             EventVO event = new EventVO(EVENT_KEY_ACTION_EXPORT_WORLD).duration(System.currentTimeMillis() - start);
             event.setAttribute(EventVO.ATTRIBUTE_TIMESTAMP, new Date(start));
             event.setAttribute(ATTRIBUTE_KEY_MAX_HEIGHT, world.getMaxHeight());
-            event.setAttribute(ATTRIBUTE_KEY_PLATFORM, world.getPlatform().name());
+            event.setAttribute(ATTRIBUTE_KEY_PLATFORM, world.getPlatform().getDisplayName());
             event.setAttribute(ATTRIBUTE_KEY_MAP_FEATURES, world.isMapFeatures());
             event.setAttribute(ATTRIBUTE_KEY_GAME_TYPE_NAME, world.getGameType().name());
             event.setAttribute(ATTRIBUTE_KEY_ALLOW_CHEATS, world.isAllowCheats());
             event.setAttribute(ATTRIBUTE_KEY_GENERATOR, world.getGenerator().name());
-            if ((world.getPlatform() == Platform.JAVA_ANVIL) && (world.getGenerator() == Generator.FLAT)) {
+            if (world.getPlatform().equals(DefaultPlugin.JAVA_ANVIL) && (world.getGenerator() == Generator.FLAT)) {
                 event.setAttribute(ATTRIBUTE_KEY_GENERATOR_OPTIONS, world.getGeneratorOptions());
             }
             Dimension dimension = world.getDimension(0);
@@ -233,6 +235,8 @@ public class JavaWorldExporter extends AbstractWorldExporter {
         ExportResults exportResults = new ExportResults();
         int chunkNo = 0;
         int ceilingDelta = dimension.getMaxHeight() - dimension.getCeilingHeight();
+        Platform platform = world.getPlatform();
+        PlatformProvider platformProvider = PlatformManager.getInstance().getPlatformProvider(platform);
         for (int chunkX = lowestChunkX; chunkX <= highestChunkX; chunkX++) {
             for (int chunkY = lowestChunkY; chunkY <= highestChunkY; chunkY++) {
                 ChunkFactory.ChunkCreationResult chunkCreationResult = createChunk(dimension, chunkFactory, tiles, chunkX, chunkY, tileSelection, exporters, ceiling);
@@ -247,7 +251,7 @@ public class JavaWorldExporter extends AbstractWorldExporter {
                         Chunk invertedChunk = new InvertedChunk(chunkCreationResult.chunk, ceilingDelta);
                         Chunk existingChunk = minecraftWorld.getChunkForEditing(chunkX, chunkY);
                         if (existingChunk == null) {
-                            existingChunk = world.getPlatform().createChunk(chunkX, chunkY, world.getMaxHeight());
+                            existingChunk = platformProvider.createChunk(platform, chunkX, chunkY, world.getMaxHeight());
                             minecraftWorld.addChunk(existingChunk);
                         }
                         mergeChunks(invertedChunk, existingChunk);
@@ -836,7 +840,7 @@ public class JavaWorldExporter extends AbstractWorldExporter {
                                 }
                             } finally {
                                 if ((exportResults != null) && exportResults.chunksGenerated) {
-                                    minecraftWorld.save(dimensionDir);
+                                    minecraftWorld.save(worldDir, dimension.getDim());
                                 }
                             }
                             synchronized (fixups) {
@@ -901,7 +905,7 @@ public class JavaWorldExporter extends AbstractWorldExporter {
             
             // Calculate total size of dimension
             for (Point region: regions) {
-                File file = new File(dimensionDir, "region/r." + region.x + "." + region.y + ((platform == Platform.JAVA_ANVIL) ? ".mca" : ".mcr"));
+                File file = new File(dimensionDir, "region/r." + region.x + "." + region.y + (platform.equals(DefaultPlugin.JAVA_ANVIL) ? ".mca" : ".mcr"));
                 collectedStats.size += file.length();
             }
             collectedStats.time = System.currentTimeMillis() - start;
@@ -1001,7 +1005,7 @@ public class JavaWorldExporter extends AbstractWorldExporter {
     protected void performFixups(final File worldDir, final Dimension dimension, final Platform platform, final ProgressReceiver progressReceiver, final Map<Point, List<Fixup>> fixups) throws OperationCancelled {
         long start = System.currentTimeMillis();
         // Make sure to honour the read-only layer:
-        JavaMinecraftWorld minecraftWorld = new JavaMinecraftWorld(worldDir, dimension, platform, false, true, 512);
+        JavaMinecraftWorld minecraftWorld = new JavaMinecraftWorld(worldDir, dimension.getDim(), dimension.getMaxHeight(), platform, false, 512);
         int count = 0, total = 0;
         for (Map.Entry<Point, List<Fixup>> entry: fixups.entrySet()) {
             total += entry.getValue().size();

@@ -7,7 +7,7 @@ import org.junit.Test;
 import org.pepsoft.minecraft.*;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ProgressReceiver;
-import org.pepsoft.worldpainter.exporting.WorldExporter;
+import org.pepsoft.worldpainter.exporting.JavaWorldExporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +23,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
+
+import org.pepsoft.worldpainter.Dimension;
 
 /**
  * Created by Pepijn Schmitz on 09-01-17.
@@ -102,9 +104,6 @@ public class RegressionIT {
 
     private File exportWorld(World2 world, File baseDir) throws IOException, UnloadableWorldException, ProgressReceiver.OperationCancelled {
         // Prepare for export
-        if (world.getVersion() == 0) {
-            world.setVersion((world.getMaxHeight() == DEFAULT_MAX_HEIGHT_2) ? SUPPORTED_VERSION_2 : SUPPORTED_VERSION_1);
-        }
         for (int i = 0; i < Terrain.CUSTOM_TERRAIN_COUNT; i++) {
             MixedMaterial material = world.getMixedMaterial(i);
             Terrain.setCustomMaterial(i, material);
@@ -112,7 +111,7 @@ public class RegressionIT {
 
         // Export
         logger.info("Exporting world {}", world.getName());
-        WorldExporter worldExporter = new WorldExporter(world);
+        JavaWorldExporter worldExporter = new JavaWorldExporter(world);
         worldExporter.export(baseDir, world.getName(), null, null);
 
         // Return the directory into which the world was exported
@@ -146,9 +145,9 @@ public class RegressionIT {
             default:
                 throw new IllegalArgumentException();
         }
-        int version = world.getVersion();
+        Platform platform = world.getPlatform();
         int maxHeight = dimension.getMaxHeight();
-        Pattern regionFilePattern = (version == SUPPORTED_VERSION_1)
+        Pattern regionFilePattern = platform.equals(DefaultPlugin.JAVA_MCREGION)
             ? Pattern.compile("r\\.(-?\\d+)\\.(-?\\d+)\\.mcr")
             : Pattern.compile("r\\.(-?\\d+)\\.(-?\\d+)\\.mca");
         int lowestChunkX = Integer.MAX_VALUE, highestChunkX = Integer.MIN_VALUE;
@@ -180,7 +179,7 @@ public class RegressionIT {
                                 Chunk chunk;
                                 try (NBTInputStream in = new NBTInputStream(regionFile.getChunkDataInputStream(chunkX, chunkZ))) {
                                     Tag tag = in.readTag();
-                                    chunk = (version == SUPPORTED_VERSION_1)
+                                    chunk = platform.equals(DefaultPlugin.JAVA_MCREGION)
                                             ? new ChunkImpl((CompoundTag) tag, maxHeight, true)
                                             : new ChunkImpl2((CompoundTag) tag, maxHeight, true);
                                 }

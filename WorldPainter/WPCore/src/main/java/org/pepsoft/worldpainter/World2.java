@@ -612,13 +612,13 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         if (wpVersion < 6) {
             switch (version) {
                 case org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_1:
-                    platform = Platform.JAVA_MCREGION;
+                    platform = DefaultPlugin.JAVA_MCREGION;
                     break;
                 case org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_2:
-                    platform = Platform.JAVA_ANVIL;
+                    platform = DefaultPlugin.JAVA_ANVIL;
                     break;
                 default:
-                    platform = (maxheight == org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2) ? Platform.JAVA_ANVIL : Platform.JAVA_MCREGION;
+                    platform = (maxheight == org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2) ? DefaultPlugin.JAVA_ANVIL : DefaultPlugin.JAVA_MCREGION;
             }
             version = -1;
             gameTypeObj = GameType.values()[gameType];

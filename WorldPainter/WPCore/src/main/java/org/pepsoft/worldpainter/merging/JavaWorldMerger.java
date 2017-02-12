@@ -208,7 +208,7 @@ public class JavaWorldMerger extends JavaWorldExporter {
         // Set the world to the same Minecraft version as the existing map, in
         // case it has changed. This affects the type of chunks created in the
         // first pass
-        Platform platform = (version == SUPPORTED_VERSION_1) ? Platform.JAVA_MCREGION : Platform.JAVA_ANVIL;
+        Platform platform = (version == SUPPORTED_VERSION_1) ? DefaultPlugin.JAVA_MCREGION : DefaultPlugin.JAVA_ANVIL;
         world.setPlatform(platform);
         
         // Modify it if necessary and write it to the the new level
@@ -292,12 +292,12 @@ public class JavaWorldMerger extends JavaWorldExporter {
             EventVO event = new EventVO(EVENT_KEY_ACTION_MERGE_WORLD).duration(System.currentTimeMillis() - start);
             event.setAttribute(EventVO.ATTRIBUTE_TIMESTAMP, new Date(start));
             event.setAttribute(ATTRIBUTE_KEY_MAX_HEIGHT, world.getMaxHeight());
-            event.setAttribute(ATTRIBUTE_KEY_PLATFORM, world.getPlatform().name());
+            event.setAttribute(ATTRIBUTE_KEY_PLATFORM, world.getPlatform().getDisplayName());
             event.setAttribute(ATTRIBUTE_KEY_MAP_FEATURES, world.isMapFeatures());
             event.setAttribute(ATTRIBUTE_KEY_GAME_TYPE_NAME, world.getGameType().name());
             event.setAttribute(ATTRIBUTE_KEY_ALLOW_CHEATS, world.isAllowCheats());
             event.setAttribute(ATTRIBUTE_KEY_GENERATOR, world.getGenerator().name());
-            if ((world.getPlatform() == Platform.JAVA_ANVIL) && (world.getGenerator() == Generator.FLAT)) {
+            if (world.getPlatform().equals(DefaultPlugin.JAVA_ANVIL) && (world.getGenerator() == Generator.FLAT)) {
                 event.setAttribute(ATTRIBUTE_KEY_GENERATOR_OPTIONS, world.getGeneratorOptions());
             }
             if ((selectedDimensions == null) || selectedDimensions.contains(DIM_NORMAL)) {
@@ -464,7 +464,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
 
             // Read the region coordinates of the existing map
             final File backupRegionDir = new File(backupDimensionDir, "region");
-            final Pattern regionFilePattern = (platform == Platform.JAVA_ANVIL)
+            final Pattern regionFilePattern = platform.equals(DefaultPlugin.JAVA_ANVIL)
                 ? Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mca")
                 : Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mcr");
             File[] existingRegionFiles = backupRegionDir.listFiles((dir, name) -> regionFilePattern.matcher(name).matches());
@@ -581,7 +581,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                                             logger.debug("Merged region " + regionCoords.x + "," + regionCoords.y);
                                         }
                                     } finally {
-                                        minecraftWorld.save(dimensionDir);
+                                        minecraftWorld.save(worldDir, dimension.getDim());
                                     }
                                     synchronized (fixups) {
                                         if (! regionFixups.isEmpty()) {
@@ -657,7 +657,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                                     }
                                 } finally {
                                     if ((exportResults != null) && exportResults.chunksGenerated) {
-                                        minecraftWorld.save(dimensionDir);
+                                        minecraftWorld.save(worldDir, dimension.getDim());
                                     }
                                 }
                                 synchronized (fixups) {
@@ -838,7 +838,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         // Set the world to the same Minecraft version as the existing map, in
         // case it has changed. This affects the type of chunks created in the
         // first pass
-        world.setPlatform(Platform.JAVA_ANVIL);
+        world.setPlatform(DefaultPlugin.JAVA_ANVIL);
         
         // Modify it if necessary and write it to the the new level
         level.setSeed(dimension.getMinecraftSeed());
@@ -964,7 +964,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                     }
                     RegionFile regionFile = regionFiles.get(coords);
                     if (regionFile == null) {
-                        File file = new File(oldRegionDir, "r." + regionX + "." + regionY + ((platform == Platform.JAVA_ANVIL) ? ".mca" : ".mcr"));
+                        File file = new File(oldRegionDir, "r." + regionX + "." + regionY + (platform.equals(DefaultPlugin.JAVA_ANVIL) ? ".mca" : ".mcr"));
                         try {
                             regionFile = new RegionFile(file);
                             regionFiles.put(coords, regionFile);
@@ -1001,7 +1001,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                             logger.error("Illegal argument exception while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk", e);
                             continue;
                         }
-                        Chunk existingChunk = (platform == Platform.JAVA_ANVIL)
+                        Chunk existingChunk = platform.equals(DefaultPlugin.JAVA_ANVIL)
                                 ? new ChunkImpl2((CompoundTag) tag, maxHeight)
                                 : new ChunkImpl((CompoundTag) tag, maxHeight);
                         if (newChunk != null) {
@@ -1186,7 +1186,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                     }
                     RegionFile regionFile = regionFiles.get(coords);
                     if (regionFile == null) {
-                        File file = new File(oldRegionDir, "r." + regionX + "." + regionY + ((platform == Platform.JAVA_ANVIL) ? ".mca" : ".mcr"));
+                        File file = new File(oldRegionDir, "r." + regionX + "." + regionY + (platform.equals(DefaultPlugin.JAVA_ANVIL) ? ".mca" : ".mcr"));
                         try {
                             regionFile = new RegionFile(file);
                             regionFiles.put(coords, regionFile);
@@ -1223,7 +1223,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                             logger.error("Illegal argument exception while reading chunk " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk", e);
                             continue;
                         }
-                        Chunk existingChunk = (platform == Platform.JAVA_MCREGION)
+                        Chunk existingChunk = platform.equals(DefaultPlugin.JAVA_MCREGION)
                             ? new ChunkImpl((CompoundTag) tag, maxHeight)
                             : new ChunkImpl2((CompoundTag) tag, maxHeight);
                         minecraftWorld.addChunk(existingChunk);

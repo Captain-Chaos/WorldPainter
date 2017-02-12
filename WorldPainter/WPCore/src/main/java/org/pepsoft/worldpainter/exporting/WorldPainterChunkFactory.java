@@ -11,6 +11,8 @@ import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.layers.*;
+import org.pepsoft.worldpainter.plugins.PlatformManager;
+import org.pepsoft.worldpainter.plugins.PlatformProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +33,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
         this.dimension = dimension;
         this.exporters = exporters;
         this.platform  = platform;
+        platformProvider = PlatformManager.getInstance().getPlatformProvider(platform);
         this.maxHeight = maxHeight;
         minimumLayers = dimension.getMinimumLayers();
     }
@@ -73,7 +76,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
         final Random random = new Random(seed + xOffsetInTile * 3 + yOffsetInTile * 5);
         final boolean populate = dimension.isPopulate() || tile.getBitLayerValue(Populate.INSTANCE, xOffsetInTile, yOffsetInTile);
         final ChunkCreationResult result = new ChunkCreationResult();
-        result.chunk = platform.createChunk(chunkX, chunkZ, maxHeight);
+        result.chunk = platformProvider.createChunk(platform, chunkX, chunkZ, maxHeight);
         final int maxY = maxHeight - 1;
         final boolean copyBiomes = (platform.supportsBiomes()) && (dimension.getDim() == DIM_NORMAL);
         final int defaultBiome;
@@ -220,6 +223,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
     }
 
     private final Platform platform;
+    private final PlatformProvider platformProvider;
     private final int maxHeight;
     private final Dimension dimension;
     private final Set<Layer> minimumLayers;

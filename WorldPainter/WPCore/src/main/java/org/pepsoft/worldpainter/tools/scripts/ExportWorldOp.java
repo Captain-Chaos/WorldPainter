@@ -17,19 +17,19 @@
  */
 package org.pepsoft.worldpainter.tools.scripts;
 
-import org.pepsoft.minecraft.Platform;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ProgressReceiver;
+import org.pepsoft.worldpainter.DefaultPlugin;
 import org.pepsoft.worldpainter.MixedMaterial;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.World2;
 import org.pepsoft.worldpainter.exporting.JavaWorldExporter;
+import org.pepsoft.worldpainter.util.MinecraftUtil;
 
 import java.io.File;
 import java.io.IOException;
 
-import static org.pepsoft.minecraft.Constants.*;
-import org.pepsoft.worldpainter.util.MinecraftUtil;
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
 
 /**
  *
@@ -63,7 +63,7 @@ public class ExportWorldOp extends AbstractOperation<Void> {
         // Set the file format if it was not set yet (because this world was
         // not exported before)
         if (world.getPlatform() == null) {
-            world.setPlatform((world.getMaxHeight() == DEFAULT_MAX_HEIGHT_2) ? Platform.JAVA_ANVIL : Platform.JAVA_MCREGION);
+            world.setPlatform((world.getMaxHeight() == DEFAULT_MAX_HEIGHT_2) ? DefaultPlugin.JAVA_ANVIL : DefaultPlugin.JAVA_MCREGION);
         }
 
         // Load any custom materials defined in the world

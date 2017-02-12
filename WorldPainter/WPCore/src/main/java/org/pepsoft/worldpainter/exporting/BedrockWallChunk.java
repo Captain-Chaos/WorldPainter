@@ -9,6 +9,8 @@ import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLA
 
 import org.pepsoft.minecraft.*;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.plugins.PlatformManager;
+
 import static org.pepsoft.minecraft.Constants.*;
 
 /**
@@ -20,7 +22,7 @@ public class BedrockWallChunk {
         final int maxHeight = dimension.getMaxHeight();
         final Platform platform = dimension.getWorld().getPlatform();
         final ChunkFactory.ChunkCreationResult result = new ChunkFactory.ChunkCreationResult();
-        result.chunk = platform.createChunk(chunkX, chunkZ, maxHeight);
+        result.chunk = PlatformManager.getInstance().createChunk(platform, chunkX, chunkZ, maxHeight);
         final int maxY = maxHeight - 1;
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {

@@ -1,7 +1,5 @@
 package org.pepsoft.worldpainter.exporting;
 
-import org.pepsoft.minecraft.ChunkFactory;
-import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.World2;
 
 import java.awt.*;
@@ -10,13 +8,12 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Map;
 import java.util.Set;
 
 /**
  * Created by Pepijn on 11-12-2016.
  */
-public abstract class AbstractWorldExporter {
+public abstract class AbstractWorldExporter implements WorldExporter {
     protected AbstractWorldExporter(World2 world) {
         if (world == null) {
             throw new NullPointerException();
@@ -29,10 +26,12 @@ public abstract class AbstractWorldExporter {
         }
     }
 
+    @Override
     public World2 getWorld() {
         return world;
     }
 
+    @Override
     public File selectBackupDir(File worldDir) throws IOException {
         File baseDir = worldDir.getParentFile();
         File minecraftDir = baseDir.getParentFile();
@@ -45,8 +44,6 @@ public abstract class AbstractWorldExporter {
         }
         return new File(backupsDir, worldDir.getName() + "." + DATE_FORMAT.format(new Date()));
     }
-
-    public abstract  Map<Integer, ChunkFactory.Stats> export(File baseDir, String name, File backupDir, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled;
 
     protected final World2 world;
     protected final Set<Integer> selectedDimensions;

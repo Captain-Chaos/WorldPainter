@@ -5,7 +5,6 @@
 
 package org.pepsoft.worldpainter;
 
-import org.pepsoft.minecraft.Platform;
 import org.pepsoft.util.MemoryUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.TileRenderer.LightOrigin;
@@ -374,10 +373,10 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
                     && (dimension.getDim() == DIM_NORMAL)
                     && ((dimension.getBorder() == null) || (! dimension.getBorder().isEndless()))) {
                 World2 world = dimension.getWorld();
-                if (world != null) {
-                    if (world.getPlatform() == Platform.JAVA_MCREGION) {
+                if ((world != null) && (world.getPlatform() != null)) {
+                    if (world.getPlatform().equals(DefaultPlugin.JAVA_MCREGION)) {
                         biomeAlgorithm = BIOME_ALGORITHM_1_1;
-                    } else if (world.getPlatform() == Platform.JAVA_ANVIL) {
+                    } else if (world.getPlatform().equals(DefaultPlugin.JAVA_ANVIL)) {
                         if (world.getGenerator() == Generator.DEFAULT) {
                             biomeAlgorithm = BIOME_ALGORITHM_1_7_DEFAULT;
                         } else if (world.getGenerator() == Generator.LARGE_BIOMES) {

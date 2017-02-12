@@ -4,6 +4,7 @@ import org.jnbt.CompoundTag;
 import org.jnbt.NBTInputStream;
 import org.jnbt.NBTOutputStream;
 import org.pepsoft.minecraft.*;
+import org.pepsoft.worldpainter.DefaultPlugin;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.layers.ReadOnly;
 import org.slf4j.Logger;
@@ -17,6 +18,8 @@ import java.io.InputStream;
 import java.util.*;
 
 import static org.pepsoft.minecraft.Block.BLOCK_TYPE_NAMES;
+
+import org.pepsoft.worldpainter.Dimension;
 
 /**
  * Created by Pepijn on 15-12-2016.
@@ -144,7 +147,7 @@ public class JavaChunkStore implements ChunkStore {
                     CompoundTag tag = (CompoundTag) in.readTag();
 //                    timeSpentLoading += System.currentTimeMillis() - start;
                     boolean readOnly = honourReadOnlyChunks && dimension.getBitLayerValueAt(ReadOnly.INSTANCE, x << 4, z << 4);
-                    return (platform == Platform.JAVA_MCREGION) ? new ChunkImpl(tag, maxHeight, readOnly) : new ChunkImpl2(tag, maxHeight, readOnly);
+                    return platform.equals(DefaultPlugin.JAVA_MCREGION) ? new ChunkImpl(tag, maxHeight, readOnly) : new ChunkImpl2(tag, maxHeight, readOnly);
                 }
             } else {
 //                timeSpentLoading += System.currentTimeMillis() - start;
@@ -183,7 +186,7 @@ public class JavaChunkStore implements ChunkStore {
     }
 
     private RegionFile openRegionFile(Point regionCoords) throws IOException {
-        File file = new File(regionDir, "r." + regionCoords.x + "." + regionCoords.y + ((platform == Platform.JAVA_MCREGION) ? ".mcr" : ".mca"));
+        File file = new File(regionDir, "r." + regionCoords.x + "." + regionCoords.y + (platform.equals(DefaultPlugin.JAVA_MCREGION) ? ".mcr" : ".mca"));
         return file.exists() ? new RegionFile(file) : null;
     }
 

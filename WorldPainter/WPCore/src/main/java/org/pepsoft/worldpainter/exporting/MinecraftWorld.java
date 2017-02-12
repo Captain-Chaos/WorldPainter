@@ -80,6 +80,14 @@ public interface MinecraftWorld extends ChunkProvider {
     boolean isChunkPresent(int x, int y);
 
     /**
+     * Add a chunk. Not all implementations support adding chunks, and some may
+     * only accept chunks belonging to a specific {@link Platform}.
+     *
+     * @param chunk The chunk to add.
+     */
+    void addChunk(Chunk chunk);
+
+    /**
      * Get the Z coordinate of the highest non-air (block ID zero, any data
      * value) block in a specific column.
      *

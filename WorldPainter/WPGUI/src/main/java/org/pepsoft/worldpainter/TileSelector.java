@@ -10,7 +10,6 @@
  */
 package org.pepsoft.worldpainter;
 
-import org.pepsoft.minecraft.Platform;
 import org.pepsoft.worldpainter.TileRenderer.LightOrigin;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.Layer;
@@ -22,7 +21,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
 import java.util.*;
 import java.util.List;
 
@@ -231,9 +232,9 @@ public class TileSelector extends javax.swing.JPanel {
             if ((dimension.getDim() == DIM_NORMAL) && ((dimension.getBorder() == null) || (! dimension.getBorder().isEndless()))) {
                 World2 world = dimension.getWorld();
                 if (world != null) {
-                    if (world.getPlatform() == Platform.JAVA_MCREGION) {
+                    if (world.getPlatform().equals(DefaultPlugin.JAVA_MCREGION)) {
                         biomeAlgorithm = BIOME_ALGORITHM_1_1;
-                    } else if (world.getPlatform() == Platform.JAVA_ANVIL) {
+                    } else if (world.getPlatform().equals(DefaultPlugin.JAVA_ANVIL)) {
                         if (world.getGenerator() == Generator.DEFAULT) {
                             biomeAlgorithm = BIOME_ALGORITHM_1_7_DEFAULT;
                         } else if (world.getGenerator() == Generator.LARGE_BIOMES) {

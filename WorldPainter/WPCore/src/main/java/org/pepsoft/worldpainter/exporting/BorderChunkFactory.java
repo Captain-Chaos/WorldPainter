@@ -13,6 +13,7 @@ import org.pepsoft.worldpainter.Dimension.Border;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.plugins.PlatformManager;
 
 import java.util.Map;
 import java.util.Set;
@@ -52,7 +53,7 @@ public class BorderChunkFactory {
         final int variation = Math.min(15, (borderLevel - floor) / 2);
 
         final ChunkFactory.ChunkCreationResult result = new ChunkFactory.ChunkCreationResult();
-        result.chunk = platform.createChunk(chunkX, chunkZ, maxHeight);
+        result.chunk = PlatformManager.getInstance().createChunk(platform, chunkX, chunkZ, maxHeight);
         final int maxY = maxHeight - 1;
         if (platform.supportsBiomes()) {
             switch(border) {

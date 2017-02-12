@@ -82,7 +82,7 @@ public class JavaMapImporter {
         }
         world.setGenerator(level.getGenerator());
         world.setGeneratorOptions(level.getGeneratorOptions());
-        world.setPlatform((version == SUPPORTED_VERSION_1) ? Platform.JAVA_MCREGION : Platform.JAVA_ANVIL);
+        world.setPlatform((version == SUPPORTED_VERSION_1) ? DefaultPlugin.JAVA_MCREGION : DefaultPlugin.JAVA_ANVIL);
         world.setDifficulty(level.getDifficulty());
         if ((version == SUPPORTED_VERSION_2) && (level.getBorderSize() > 0.0)) {
             // If the world is version 0x4abd and actually has border settings,
@@ -209,12 +209,12 @@ public class JavaMapImporter {
             EventVO event = new EventVO(EVENT_KEY_ACTION_IMPORT_MAP).duration(System.currentTimeMillis() - start);
             event.setAttribute(EventVO.ATTRIBUTE_TIMESTAMP, new Date(start));
             event.setAttribute(ATTRIBUTE_KEY_MAX_HEIGHT, world.getMaxHeight());
-            event.setAttribute(ATTRIBUTE_KEY_PLATFORM, world.getPlatform().name());
+            event.setAttribute(ATTRIBUTE_KEY_PLATFORM, world.getPlatform().getDisplayName());
             event.setAttribute(ATTRIBUTE_KEY_MAP_FEATURES, world.isMapFeatures());
             event.setAttribute(ATTRIBUTE_KEY_GAME_TYPE_NAME, world.getGameType().name());
             event.setAttribute(ATTRIBUTE_KEY_ALLOW_CHEATS, world.isAllowCheats());
             event.setAttribute(ATTRIBUTE_KEY_GENERATOR, world.getGenerator().name());
-            if ((world.getPlatform() == Platform.JAVA_ANVIL) && (world.getGenerator() == Generator.FLAT)) {
+            if (world.getPlatform().equals(DefaultPlugin.JAVA_ANVIL) && (world.getGenerator() == Generator.FLAT)) {
                 event.setAttribute(ATTRIBUTE_KEY_GENERATOR_OPTIONS, world.getGeneratorOptions());
             }
             event.setAttribute(ATTRIBUTE_KEY_TILES, dimension.getTiles().size());

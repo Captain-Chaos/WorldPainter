@@ -17,6 +17,7 @@ import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.Populate;
+import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.util.MinecraftUtil;
 
 import javax.swing.*;
@@ -29,9 +30,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
-import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Constants.DIFFICULTY_HARD;
+import static org.pepsoft.minecraft.Constants.DIFFICULTY_PEACEFUL;
 import static org.pepsoft.worldpainter.Constants.*;
 
 /**
@@ -121,12 +122,24 @@ public class ExportWorldDialog extends WorldPainterDialog {
         }
         checkBoxGoodies.setSelected(world.isCreateGoodiesChest());
         int maxHeight = world.getMaxHeight();
-        List<Platform> availablePlatforms = stream(Platform.values()).filter(p -> p.supportsNonStandardHeights() || p.getStandardMaxHeight() == maxHeight).collect(toList());
+        List<Platform> availablePlatforms = PlatformManager.getInstance().getAllPlatforms().stream()
+                .filter(p -> p.getMinMaxHeight() <= maxHeight && p.getStandardMaxHeight() >= maxHeight)
+                .collect(toList());
         comboBoxMinecraftVersion.setToolTipText("Only platforms which support a map height of " + maxHeight + " are displayed");
         comboBoxMinecraftVersion.setModel(new DefaultComboBoxModel(availablePlatforms.toArray()));
+        comboBoxMinecraftVersion.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof Platform) {
+                    setText(((Platform) value).getDisplayName());
+                }
+                return this;
+            }
+        });
         Platform platform = world.getPlatform();
         if (platform == null) {
-            platform = maxHeight == Platform.JAVA_ANVIL.getStandardMaxHeight() ? Platform.JAVA_ANVIL : Platform.JAVA_MCREGION;
+            platform = maxHeight == DefaultPlugin.JAVA_ANVIL.getStandardMaxHeight() ? DefaultPlugin.JAVA_ANVIL : DefaultPlugin.JAVA_MCREGION;
         }
         comboBoxMinecraftVersion.setSelectedItem(platform);
         if (availablePlatforms.size() < 2) {
@@ -694,7 +707,7 @@ dims:   for (Dimension dim: world.getDimensions()) {
             } else {
                 comboBoxGameType.setSelectedItem(GameType.SURVIVAL);
             }
-            if (newPlatform == Platform.JAVA_ANVIL) {
+            if (newPlatform.equals(DefaultPlugin.JAVA_ANVIL)) {
                 checkBoxAllowCheats.setSelected(gameType == GameType.CREATIVE);
             } else {
                 checkBoxAllowCheats.setSelected(false);
@@ -704,7 +717,7 @@ dims:   for (Dimension dim: world.getDimensions()) {
     }//GEN-LAST:event_comboBoxMinecraftVersionActionPerformed
 
     private void comboBoxGameTypeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxGameTypeActionPerformed
-        if ((comboBoxMinecraftVersion.getSelectedItem() == Platform.JAVA_ANVIL) && (comboBoxGameType.getSelectedItem() == GameType.CREATIVE)) {
+        if (comboBoxMinecraftVersion.getSelectedItem().equals(DefaultPlugin.JAVA_ANVIL) && (comboBoxGameType.getSelectedItem() == GameType.CREATIVE)) {
             checkBoxAllowCheats.setSelected(true);
             comboBoxDifficulty.setSelectedIndex(DIFFICULTY_PEACEFUL);
         } else if (comboBoxGameType.getSelectedItem() == GameType.HARDCORE) {

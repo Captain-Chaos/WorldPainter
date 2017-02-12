@@ -152,6 +152,11 @@ public class InvertedWorld implements MinecraftWorld {
     }
 
     @Override
+    public void addChunk(Chunk chunk) {
+        throw new UnsupportedOperationException("Not supported");
+    }
+
+    @Override
     public int getHighestNonAirBlock(int x, int y) {
         throw new UnsupportedOperationException("Not supported yet");
     }

@@ -241,15 +241,6 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
         }
     }
 
-    /**
-     * @throws UnsupportedOperationException Always, as this class does not
-     * store chunks persistently and therefore does not support flushing.
-     */
-    @Override
-    public void flush() {
-        throw new UnsupportedOperationException();
-    }
-
     @Override
     public int getHighestNonAirBlock(int x, int y) {
         if (volume.containsXY(x, y)) {

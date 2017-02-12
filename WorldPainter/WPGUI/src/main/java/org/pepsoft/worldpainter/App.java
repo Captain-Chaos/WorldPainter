@@ -948,7 +948,7 @@ public final class App extends JFrame implements RadiusControl,
                 // Force the version to "Anvil" if it was previously exported
                 // with the old format
                 if (newWorld.getPlatform() != null) {
-                    newWorld.setPlatform(Platform.JAVA_ANVIL);
+                    newWorld.setPlatform(DefaultPlugin.JAVA_ANVIL);
                 }
                 
                 // Log event
