@@ -10,14 +10,6 @@
  */
 package org.pepsoft.worldpainter;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
-import javax.swing.InputMap;
-import javax.swing.JComponent;
-import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
 import org.pepsoft.worldpainter.history.HistoryEntry;
@@ -29,10 +21,10 @@ import static org.pepsoft.worldpainter.Constants.*;
  *
  * @author pepijn
  */
-public class ShiftWorldDialog extends javax.swing.JDialog implements ProgressReceiver {
+public class ShiftWorldDialog extends WorldPainterDialog implements ProgressReceiver {
     /** Creates new form RotateWorldDialog */
     public ShiftWorldDialog(java.awt.Frame parent, World2 world, int dim) {
-        super(parent, true);
+        super(parent);
         this.world = world;
         this.dim = dim;
         Dimension opposite = null;
@@ -65,26 +57,9 @@ public class ShiftWorldDialog extends javax.swing.JDialog implements ProgressRec
         initComponents();
         jCheckBox1.setEnabled(oppositeDim != Integer.MIN_VALUE);
 
-        ActionMap actionMap = rootPane.getActionMap();
-        actionMap.put("cancel", new AbstractAction("cancel") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-            }
-            
-            private static final long serialVersionUID = 1L;
-        });
-
-        InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "cancel");
-        
         getRootPane().setDefaultButton(buttonShift);
         
         setLocationRelativeTo(parent);
-    }
-
-    public boolean isCancelled() {
-        return cancelled;
     }
 
     // ProgressReceiver
@@ -100,16 +75,13 @@ public class ShiftWorldDialog extends javax.swing.JDialog implements ProgressRec
             ErrorDialog errorDialog = new ErrorDialog(ShiftWorldDialog.this);
             errorDialog.setException(exception);
             errorDialog.setVisible(true);
-            dispose();
+            cancel();
         });
     }
 
     @Override
     public synchronized void done() {
-        doOnEventThread(() -> {
-            cancelled = false;
-            dispose();
-        });
+        doOnEventThread(this::ok);
     }
 
     @Override
@@ -290,7 +262,7 @@ public class ShiftWorldDialog extends javax.swing.JDialog implements ProgressRec
     }// </editor-fold>//GEN-END:initComponents
 
     private void buttonCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCancelActionPerformed
-        dispose();
+        cancel();
     }//GEN-LAST:event_buttonCancelActionPerformed
 
     private void buttonShiftActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonShiftActionPerformed
@@ -332,7 +304,6 @@ public class ShiftWorldDialog extends javax.swing.JDialog implements ProgressRec
 
     private final World2 world;
     private final int dim, oppositeDim;
-    private boolean cancelled = true;
-    
+
     private static final long serialVersionUID = 1L;
 }

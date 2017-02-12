@@ -115,12 +115,12 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk, Minecraf
         }
         setIntArray(TAG_HEIGHT_MAP, heightMap);
         List<Tag> entityTags = new ArrayList<>(entities.size());
-        entityTags.addAll(entities.stream().map(Entity::toNBT).collect(toList()));
+        entities.stream().map(Entity::toNBT).forEach(entityTags::add);
         setList(TAG_ENTITIES, CompoundTag.class, entityTags);
         List<Tag> tileEntityTags = new ArrayList<>(entities.size());
-        tileEntityTags.addAll(tileEntities.stream().map(TileEntity::toNBT).collect(toList()));
+        tileEntities.stream().map(TileEntity::toNBT).forEach(tileEntityTags::add);
         setList(TAG_TILE_ENTITIES, CompoundTag.class, tileEntityTags);
-        setLong(TAG_LAST_UPDATE, System.currentTimeMillis());
+        setLong(TAG_LAST_UPDATE, System.currentTimeMillis()); // TODO: is this correct?
         setInt(TAG_X_POS, xPos);
         setInt(TAG_Z_POS, zPos);
         setBoolean(TAG_TERRAIN_POPULATED, terrainPopulated);

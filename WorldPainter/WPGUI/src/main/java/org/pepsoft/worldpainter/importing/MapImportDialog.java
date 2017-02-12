@@ -19,8 +19,6 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileFilter;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -36,12 +34,12 @@ import static org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_2;
  *
  * @author SchmitzP
  */
-public class MapImportDialog extends javax.swing.JDialog {
+public class MapImportDialog extends WorldPainterDialog {
     /**
      * Creates new form MapImportDialog
      */
     public MapImportDialog(App app) {
-        super(app, ModalityType.APPLICATION_MODAL);
+        super(app);
         this.app = app;
         
         initComponents();
@@ -68,26 +66,9 @@ public class MapImportDialog extends javax.swing.JDialog {
             }
         });
         
-        ActionMap actionMap = rootPane.getActionMap();
-        actionMap.put("cancel", new AbstractAction("cancel") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-            }
-            
-            private static final long serialVersionUID = 1L;
-        });
-
-        InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "cancel");
-        
         getRootPane().setDefaultButton(buttonOK);
         
         setLocationRelativeTo(app);
-    }
-
-    public boolean isCancelled() {
-        return cancelled;
     }
 
     public World2 getImportedWorld() {
@@ -146,9 +127,7 @@ public class MapImportDialog extends javax.swing.JDialog {
         final Pattern regionFilePattern = (version == SUPPORTED_VERSION_1)
             ? Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mcr")
             : Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mca");
-        final File[] regionFiles = regionDir.listFiles((dir, name) -> {
-            return regionFilePattern.matcher(name).matches();
-        });
+        final File[] regionFiles = regionDir.listFiles((dir, name) -> regionFilePattern.matcher(name).matches());
         if ((regionFiles == null) || (regionFiles.length == 0)) {
             logger.error("Region files missing while analysing map " + levelDatFile);
             JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("the.region.folder.contains.no.region.files"), strings.getString("region.files.missing"), JOptionPane.ERROR_MESSAGE);
@@ -159,18 +138,14 @@ public class MapImportDialog extends javax.swing.JDialog {
         boolean netherPresent = false, endPresent = false;
         File netherRegionDir = new File(worldDir, "DIM-1/region");
         if (netherRegionDir.isDirectory()) {
-            File[] netherRegionFiles = netherRegionDir.listFiles((dir, name) -> {
-                return regionFilePattern.matcher(name).matches();
-            });
+            File[] netherRegionFiles = netherRegionDir.listFiles((dir, name) -> regionFilePattern.matcher(name).matches());
             if ((netherRegionFiles != null) && (netherRegionFiles.length > 0)) {
                 netherPresent = true;
             }
         }
         File endRegionDir = new File(worldDir, "DIM1/region");
         if (endRegionDir.isDirectory()) {
-            File[] endRegionFiles = endRegionDir.listFiles((dir, name) -> {
-                return regionFilePattern.matcher(name).matches();
-            });
+            File[] endRegionFiles = endRegionDir.listFiles((dir, name) -> regionFilePattern.matcher(name).matches());
             if ((endRegionFiles != null) && (endRegionFiles.length > 0)) {
                 endPresent = true;
             }
@@ -443,15 +418,14 @@ public class MapImportDialog extends javax.swing.JDialog {
         }, true);
         if (importedWorld == null) {
             // The import was cancelled
-            dispose();
+            cancel();
             return;
         }
         
         importedWorld.setDirty(false);
         Configuration config = Configuration.getInstance();
         config.setSavesDirectory(levelDatFile.getParentFile().getParentFile());
-        cancelled = false;
-        dispose();
+        ok();
     }
     
     /**
@@ -709,7 +683,7 @@ public class MapImportDialog extends javax.swing.JDialog {
     }//GEN-LAST:event_buttonOKActionPerformed
 
     private void buttonCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCancelActionPerformed
-        dispose();
+        cancel();
     }//GEN-LAST:event_buttonCancelActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -747,7 +721,6 @@ public class MapImportDialog extends javax.swing.JDialog {
     private final App app;
     private File previouslySelectedFile;
     private MapStatistics mapStatistics;
-    private boolean cancelled = true;
     private World2 importedWorld;
     
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MapImportDialog.class);

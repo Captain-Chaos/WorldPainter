@@ -92,6 +92,7 @@ public class Bo2ObjectTube implements Bo2ObjectProvider {
      */
     public static Bo2ObjectTube load(String name, File dir) throws IOException {
         File[] files = dir.listFiles((dir1, name1) -> name1.toLowerCase().endsWith(".bo2") || name1.toLowerCase().endsWith(".bo3") || name1.toLowerCase().endsWith(".schematic"));
+        //noinspection ConstantConditions // Responsibility of caller to provide extant directory
         return load(name, Arrays.asList(files));
     }
     

@@ -283,7 +283,7 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
     }
     
 //    private void excavateDisc(final MinecraftWorld world, final int x, final int y, final int z, int r, final Material materialAbove, final Material materialBesides, final Material materialBelow) {
-//        GeometryUtil.visitFilledCircle(r, new GeometryVisitor() {
+//        GeometryUtil.visitFilledCircle(r, new PlaneVisitor() {
 //            @Override
 //            public boolean visit(int dx, int dy, float d) {
 //                world.setMaterialAt(x + dx, y + dy, z, Material.AIR);

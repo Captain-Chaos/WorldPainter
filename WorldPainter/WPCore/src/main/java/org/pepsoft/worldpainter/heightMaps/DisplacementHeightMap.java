@@ -101,5 +101,5 @@ public class DisplacementHeightMap extends DelegatingHeightMap {
     }
 
     private static final long serialVersionUID = 1L;
-    private static final Icon ICON_DISPLACEMENT_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/displacement.png");
+    private static final Icon ICON_DISPLACEMENT_HEIGHTMAP = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/displacement.png");
 }

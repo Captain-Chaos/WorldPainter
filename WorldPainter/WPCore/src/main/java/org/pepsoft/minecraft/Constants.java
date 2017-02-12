@@ -5,6 +5,8 @@
 
 package org.pepsoft.minecraft;
 
+import com.google.common.collect.ImmutableSet;
+
 import java.util.*;
 
 /**
@@ -319,6 +321,24 @@ public final class Constants {
 
     public static final int BLK_BONE_BLOCK = 216;
 
+    public static final int BLK_OBSERVER               = 218;
+    public static final int BLK_WHITE_SHULKER_BOX      = 219;
+    public static final int BLK_ORANGE_SHULKER_BOX     = 220;
+    public static final int BLK_MAGENTA_SHULKER_BOX    = 221;
+    public static final int BLK_LIGHT_BLUE_SHULKER_BOX = 222;
+    public static final int BLK_YELLOW_SHULKER_BOX     = 223;
+    public static final int BLK_LIME_SHULKER_BOX       = 224;
+    public static final int BLK_PINK_SHULKER_BOX       = 225;
+    public static final int BLK_GREY_SHULKER_BOX       = 226;
+    public static final int BLK_LIGHT_GREY_SHULKER_BOX = 227;
+    public static final int BLK_CYAN_SHULKER_BOX       = 228;
+    public static final int BLK_PURPLE_SHULKER_BOX     = 229;
+    public static final int BLK_BLUE_SHULKER_BOX       = 230;
+    public static final int BLK_BROWN_SHULKER_BOX      = 231;
+    public static final int BLK_GREEN_SHULKER_BOX      = 232;
+    public static final int BLK_RED_SHULKER_BOX        = 233;
+    public static final int BLK_BLACK_SHULKER_BOX      = 234;
+
     public static final int BLK_STRUCTURE_BLOCK = 255;
 
     public static final int HIGHEST_KNOWN_BLOCK_ID = BLK_STRUCTURE_BLOCK;
@@ -446,6 +466,7 @@ public final class Constants {
     public static final String ID_TRAP         = "Trap";
     public static final String ID_BANNER       = "Banner";
     public static final String ID_STRUCTURE    = "Structure";
+    public static final String ID_SHULKER_BOX  = "shulker_box"; // TODO: really?
 
     public static final int GAME_TYPE_SURVIVAL  = 0;
     public static final int GAME_TYPE_CREATIVE  = 1;
@@ -499,30 +520,31 @@ public final class Constants {
      * A map from tile entity ID's to the corresponding block ID's.
      */
     public static final Map<String, Set<Integer>> TILE_ENTITY_MAP = new HashMap<>();
-    
+
     static {
         TILE_ENTITY_MAP.put(ID_AIRPORTAL, Collections.singleton(BLK_END_PORTAL));
         TILE_ENTITY_MAP.put(ID_BEACON, Collections.singleton(BLK_BEACON));
         TILE_ENTITY_MAP.put(ID_CAULDRON, Collections.singleton(BLK_BREWING_STAND));
-        TILE_ENTITY_MAP.put(ID_CHEST, Collections.unmodifiableSet(new HashSet<>(Arrays.asList(BLK_CHEST, BLK_TRAPPED_CHEST))));
-        TILE_ENTITY_MAP.put(ID_COMPARATOR, Collections.unmodifiableSet(new HashSet<>(Arrays.asList(BLK_REDSTONE_COMPARATOR_UNPOWERED, BLK_REDSTONE_COMPARATOR_POWERED))));
-        TILE_ENTITY_MAP.put(ID_CONTROL, Collections.unmodifiableSet(new HashSet<>(Arrays.asList(BLK_COMMAND_BLOCK, BLK_CHAIN_COMMAND_BLOCK, BLK_REPEATING_COMMAND_BLOCK))));
-        TILE_ENTITY_MAP.put(ID_DLDETECTOR, Collections.unmodifiableSet(new HashSet<>(Arrays.asList(BLK_DAYLIGHT_SENSOR, BLK_DAYLIGHT_SENSOR_INVERTED))));
+        TILE_ENTITY_MAP.put(ID_CHEST, ImmutableSet.of(BLK_CHEST, BLK_TRAPPED_CHEST));
+        TILE_ENTITY_MAP.put(ID_COMPARATOR, ImmutableSet.of(BLK_REDSTONE_COMPARATOR_UNPOWERED, BLK_REDSTONE_COMPARATOR_POWERED));
+        TILE_ENTITY_MAP.put(ID_CONTROL, ImmutableSet.of(BLK_COMMAND_BLOCK, BLK_CHAIN_COMMAND_BLOCK, BLK_REPEATING_COMMAND_BLOCK));
+        TILE_ENTITY_MAP.put(ID_DLDETECTOR, ImmutableSet.of(BLK_DAYLIGHT_SENSOR, BLK_DAYLIGHT_SENSOR_INVERTED));
         TILE_ENTITY_MAP.put(ID_DROPPER, Collections.singleton(BLK_DROPPER));
         TILE_ENTITY_MAP.put(ID_ENCHANTTABLE, Collections.singleton(BLK_ENCHANTMENT_TABLE));
         TILE_ENTITY_MAP.put(ID_ENDERCHEST, Collections.singleton(BLK_ENDER_CHEST));
         TILE_ENTITY_MAP.put(ID_FLOWERPOT, Collections.singleton(BLK_FLOWER_POT));
-        TILE_ENTITY_MAP.put(ID_FURNACE, Collections.unmodifiableSet(new HashSet<>(Arrays.asList(BLK_FURNACE, BLK_BURNING_FURNACE))));
+        TILE_ENTITY_MAP.put(ID_FURNACE, ImmutableSet.of(BLK_FURNACE, BLK_BURNING_FURNACE));
         TILE_ENTITY_MAP.put(ID_HOPPER, Collections.singleton(BLK_HOPPER));
         TILE_ENTITY_MAP.put(ID_MOBSPAWNER, Collections.singleton(BLK_MONSTER_SPAWNER));
         TILE_ENTITY_MAP.put(ID_MUSIC, Collections.singleton(BLK_NOTE_BLOCK));
         TILE_ENTITY_MAP.put(ID_PISTON, Collections.singleton(BLK_PISTON_HEAD));
         TILE_ENTITY_MAP.put(ID_RECORDPLAYER, Collections.singleton(BLK_JUKEBOX));
-        TILE_ENTITY_MAP.put(ID_SIGN, Collections.unmodifiableSet(new HashSet<>(Arrays.asList(BLK_SIGN, BLK_WALL_SIGN))));
+        TILE_ENTITY_MAP.put(ID_SIGN, ImmutableSet.of(BLK_SIGN, BLK_WALL_SIGN));
         TILE_ENTITY_MAP.put(ID_SKULL, Collections.singleton(BLK_HEAD));
         TILE_ENTITY_MAP.put(ID_TRAP, Collections.singleton(BLK_DISPENSER));
-        TILE_ENTITY_MAP.put(ID_BANNER, Collections.unmodifiableSet(new HashSet<>(Arrays.asList(BLK_STANDING_BANNER, BLK_WALL_BANNER))));
+        TILE_ENTITY_MAP.put(ID_BANNER, ImmutableSet.of(BLK_STANDING_BANNER, BLK_WALL_BANNER));
         TILE_ENTITY_MAP.put(ID_STRUCTURE, Collections.singleton(BLK_STRUCTURE_BLOCK));
+        TILE_ENTITY_MAP.put(ID_SHULKER_BOX, ImmutableSet.of(BLK_WHITE_SHULKER_BOX, BLK_ORANGE_SHULKER_BOX, BLK_MAGENTA_SHULKER_BOX, BLK_LIGHT_BLUE_SHULKER_BOX, BLK_YELLOW_SHULKER_BOX, BLK_LIME_SHULKER_BOX, BLK_PINK_SHULKER_BOX, BLK_GREY_SHULKER_BOX, BLK_LIGHT_GREY_SHULKER_BOX, BLK_CYAN_SHULKER_BOX, BLK_PURPLE_SHULKER_BOX, BLK_BLUE_SHULKER_BOX, BLK_BROWN_SHULKER_BOX, BLK_GREEN_SHULKER_BOX, BLK_RED_SHULKER_BOX, BLK_BLACK_SHULKER_BOX));
 
         // Make sure the tile entity flag in the block database is consistent
         // with the tile entity map:

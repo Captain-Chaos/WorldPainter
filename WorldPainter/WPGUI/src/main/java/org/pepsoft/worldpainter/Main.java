@@ -11,6 +11,7 @@ import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
 import com.jidesoft.plaf.LookAndFeelFactory;
 import com.jidesoft.utils.Lm;
+import org.pepsoft.util.GUIUtils;
 import org.pepsoft.util.PluginManager;
 import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
 import org.pepsoft.worldpainter.browser.WPTrustManager;
@@ -311,30 +312,34 @@ public class Main {
             // Install configured look and feel
             try {
                 String laf;
-                switch (lookAndFeel) {
-                    case SYSTEM:
-                        laf = UIManager.getSystemLookAndFeelClassName();
-                        break;
-                    case METAL:
-                        laf = "javax.swing.plaf.metal.MetalLookAndFeel";
-                        break;
-                    case NIMBUS:
-                        laf = "javax.swing.plaf.nimbus.NimbusLookAndFeel";
-                        break;
-                    case DARK_METAL:
-                        laf = "org.netbeans.swing.laf.dark.DarkMetalLookAndFeel";
-                        break;
-                    case DARK_NIMBUS:
-                        laf = "org.netbeans.swing.laf.dark.DarkNimbusLookAndFeel";
-                        break;
-                    default:
-                        throw new InternalError();
+                if (GUIUtils.UI_SCALE > 1) {
+                    laf = UIManager.getSystemLookAndFeelClassName();
+                } else {
+                    switch (lookAndFeel) {
+                        case SYSTEM:
+                            laf = UIManager.getSystemLookAndFeelClassName();
+                            break;
+                        case METAL:
+                            laf = "javax.swing.plaf.metal.MetalLookAndFeel";
+                            break;
+                        case NIMBUS:
+                            laf = "javax.swing.plaf.nimbus.NimbusLookAndFeel";
+                            break;
+                        case DARK_METAL:
+                            laf = "org.netbeans.swing.laf.dark.DarkMetalLookAndFeel";
+                            break;
+                        case DARK_NIMBUS:
+                            laf = "org.netbeans.swing.laf.dark.DarkNimbusLookAndFeel";
+                            break;
+                        default:
+                            throw new InternalError();
+                    }
                 }
                 logger.debug("Installing look and feel: " + laf);
                 UIManager.setLookAndFeel(laf);
                 LookAndFeelFactory.installJideExtension();
-                if ((lookAndFeel == Configuration.LookAndFeel.DARK_METAL)
-                        || (lookAndFeel == Configuration.LookAndFeel.DARK_NIMBUS)) {
+                if ((GUIUtils.UI_SCALE == 1) && ((lookAndFeel == Configuration.LookAndFeel.DARK_METAL)
+                        || (lookAndFeel == Configuration.LookAndFeel.DARK_NIMBUS))) {
                     // Patch some things to make dark themes look better
                     VoidRenderer.setColour(UIManager.getColor("Panel.background").getRGB());
                     if (lookAndFeel == Configuration.LookAndFeel.DARK_METAL) {
@@ -370,11 +375,10 @@ public class Main {
                 DonationDialog.maybeShowDonationDialog(app);
             });
         });
-
-        // If a background image was configured
     }
 
     private static void configError(Throwable e) {
+        logger.error("Exception while initialising configuration", e);
         JOptionPane.showMessageDialog(null, "Could not read configuration file! Resetting configuration.\n\nException type: " + e.getClass().getSimpleName() + "\nMessage: " + e.getMessage(), "Configuration Error", JOptionPane.ERROR_MESSAGE);
     }
     

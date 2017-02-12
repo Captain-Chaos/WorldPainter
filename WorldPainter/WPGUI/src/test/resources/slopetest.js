@@ -1,4 +1,4 @@
-println('WorldPainter version: ' + wp.version);
+print('WorldPainter version: ' + wp.version);
 
 var heightMap = wp.getHeightMap()
     .fromFile('src/test/resources/heightmap.png')

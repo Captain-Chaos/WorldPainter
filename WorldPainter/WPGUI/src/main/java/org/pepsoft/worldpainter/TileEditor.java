@@ -10,38 +10,28 @@
  */
 package org.pepsoft.worldpainter;
 
-import java.awt.Font;
-import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
+import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
+import org.pepsoft.worldpainter.history.HistoryEntry;
+import org.pepsoft.worldpainter.layers.Layer;
+
+import javax.swing.*;
+import javax.swing.text.html.HTMLDocument;
+import java.awt.*;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
-import javax.swing.InputMap;
-import javax.swing.JComponent;
-import javax.swing.JOptionPane;
-import javax.swing.KeyStroke;
-import javax.swing.UIManager;
-import javax.swing.text.html.HTMLDocument;
-
-import org.pepsoft.worldpainter.history.HistoryEntry;
-import org.pepsoft.worldpainter.layers.Layer;
-
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
-import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 
 /**
  *
  * @author pepijn
  */
-public class TileEditor extends javax.swing.JDialog implements TileSelector.Listener {
+public class TileEditor extends WorldPainterDialog implements TileSelector.Listener {
     /** Creates new form TileEditor */
     public TileEditor(java.awt.Frame parent, Dimension dimension, ColourScheme colourScheme, BiomeScheme biomeScheme, CustomBiomeManager customBiomeManager, Collection<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin) {
-        super(parent, true);
+        super(parent);
         this.dimension = dimension;
         initComponents();
         
@@ -49,16 +39,6 @@ public class TileEditor extends javax.swing.JDialog implements TileSelector.List
         Font font = UIManager.getFont("Label.font");
         String bodyRule = "body { font-family: " + font.getFamily() + "; font-size: " + font.getSize() + "pt; }";
         ((HTMLDocument) jTextPane1.getDocument()).getStyleSheet().addRule(bodyRule);
-        
-        ActionMap actionMap = rootPane.getActionMap();
-        actionMap.put("cancel", new AbstractAction("cancel") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-            }
-            
-            private static final long serialVersionUID = 1L;
-        });
         
         tileSelector1.setColourScheme(colourScheme);
         tileSelector1.setBiomeScheme(biomeScheme);
@@ -70,9 +50,6 @@ public class TileEditor extends javax.swing.JDialog implements TileSelector.List
         tileSelector1.setCustomBiomeManager(customBiomeManager);
         tileSelector1.addListener(this);
 
-        InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "cancel");
-        
         getRootPane().setDefaultButton(buttonClose);
         
         setLocationRelativeTo(parent);
@@ -286,7 +263,7 @@ public class TileEditor extends javax.swing.JDialog implements TileSelector.List
     }// </editor-fold>//GEN-END:initComponents
 
     private void buttonCloseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCloseActionPerformed
-        dispose();
+        cancel();
     }//GEN-LAST:event_buttonCloseActionPerformed
 
     private void buttonAddTilesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonAddTilesActionPerformed

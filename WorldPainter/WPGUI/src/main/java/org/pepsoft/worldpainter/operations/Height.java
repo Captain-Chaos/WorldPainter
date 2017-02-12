@@ -11,6 +11,8 @@ import org.pepsoft.worldpainter.RadiusControl;
 import org.pepsoft.worldpainter.WorldPainter;
 import org.pepsoft.worldpainter.panels.DefaultFilter;
 
+import javax.swing.*;
+
 /**
  *
  * @author pepijn
@@ -18,6 +20,11 @@ import org.pepsoft.worldpainter.panels.DefaultFilter;
 public class Height extends RadiusOperation {
     public Height(WorldPainter view, RadiusControl radiusControl, MapDragControl mapDragControl) {
         super("Height", "Raise or lower the terrain", view, radiusControl, mapDragControl, 100, "operation.height");
+    }
+
+    @Override
+    public JPanel getOptionsPanel() {
+        return optionsPanel;
     }
 
 //    @Override
@@ -34,7 +41,7 @@ public class Height extends RadiusOperation {
     protected void tick(int centreX, int centreY, boolean inverse, boolean first, float dynamicLevel) {
         float adjustment = (float) Math.pow(dynamicLevel * getLevel() * 2, 2.0);
         Dimension dimension = getDimension();
-        final int minHeight, maxHeight;
+        int minHeight, maxHeight;
         if (getFilter() instanceof DefaultFilter) {
             DefaultFilter filter = (DefaultFilter) getFilter();
             if (filter.getAboveLevel() != -1) {
@@ -51,6 +58,7 @@ public class Height extends RadiusOperation {
             minHeight = Integer.MIN_VALUE;
             maxHeight = Integer.MAX_VALUE;
         }
+        boolean applyTheme = options.isApplyTheme();
         dimension.setEventsInhibited(true);
         try {
             int radius = getEffectiveRadius();
@@ -65,9 +73,14 @@ public class Height extends RadiusOperation {
                         targetHeight = maxZ;
                     }
                     float strength = getFullStrength(centreX, centreY, x, y);
-                    float newHeight = strength * targetHeight + (1 - strength) * currentHeight;
-                    if (inverse ? (newHeight < currentHeight) : (newHeight > currentHeight)) {
-                        dimension.setHeightAt(x, y, newHeight);
+                    if (strength > 0.0f) {
+                        float newHeight = strength * targetHeight + (1 - strength) * currentHeight;
+                        if (inverse ? (newHeight < currentHeight) : (newHeight > currentHeight)) {
+                            dimension.setHeightAt(x, y, newHeight);
+                            if (applyTheme) {
+                                dimension.applyTheme(x, y);
+                            }
+                        }
                     }
                 }
             }
@@ -76,5 +89,7 @@ public class Height extends RadiusOperation {
         }
     }
 
+    private final TerrainShapingOptions<Height> options = new TerrainShapingOptions<>();
+    private final TerrainShapingOptionsPanel optionsPanel = new TerrainShapingOptionsPanel(options);
 //    private Dimension dimensionSnapshot;
 }

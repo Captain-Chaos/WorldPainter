@@ -58,12 +58,6 @@ public abstract class SymmetricBrush extends AbstractBrush {
     }
 
     @Override
-    public final float getStrength(int centerX, int centerY, int x, int y) {
-        int dx = Math.abs(x - centerX), dy = Math.abs(y - centerY);
-        return strengthCache[dx][dy];
-    }
-
-    @Override
     public final float getStrength(int dx, int dy) {
         return strengthCache[Math.abs(dx)][Math.abs(dy)];
     }

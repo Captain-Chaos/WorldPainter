@@ -4,19 +4,22 @@
  */
 package org.pepsoft.worldpainter.layers;
 
+import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.MixedMaterial;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.Tile;
-import org.pepsoft.worldpainter.exporting.LayerExporter;
-import org.pepsoft.worldpainter.layers.combined.CombinedLayerExporter;
+import org.pepsoft.worldpainter.exporting.*;
+import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.*;
+import java.util.List;
 
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.layers.Layer.DataSize.*;
@@ -118,9 +121,22 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
         this.factors = factors;
     }
 
+    /**
+     * Returns a dummy exporter, all methods of which throw an
+     * {@link UnsupportedOperationException}, since combined layers must be
+     * exported by {@link #apply(Dimension) applying} them and then exporting
+     * its constituent layers, if any.
+     *
+     * <p>The exporter does implement {@link FirstPassLayerExporter} and
+     * {@link SecondPassLayerExporter} though, to signal the fact that it can
+     * contain layers for both phases.
+     *
+     * @return A dummy exporter which always throws
+     * <code>UnsupportedOperationException</code>.
+     */
     @Override
-    public CombinedLayerExporter getExporter() {
-        return new CombinedLayerExporter(this);
+    public LayerExporter getExporter() {
+        return EXPORTER;
     }
 
     @Override
@@ -167,7 +183,13 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
      */
     public boolean restoreCustomTerrain() {
         if (customTerrainPresent) {
-            if (customTerrainMaterial.equals(Terrain.getCustomMaterial(terrain.getCustomTerrainIndex()))) {
+            if (customTerrainMaterial == null) {
+                // This should not be possible, but due to earlier bugs there
+                // are worlds in the wild with a custom terrain without a stored
+                // custom material. Not much we can do
+                terrain = null;
+                return false;
+            } else if (customTerrainMaterial.equals(Terrain.getCustomMaterial(terrain.getCustomTerrainIndex()))) {
                 // The exact same custom terrain is present, in the same slot.
                 // Keep using it
                 return true;
@@ -218,4 +240,28 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
     private Map<Layer, Float> factors = Collections.emptyMap();
     private boolean customTerrainPresent;
     private transient MixedMaterial customTerrainMaterial;
+
+    private static final LayerExporter EXPORTER = new CombinedLayerExporter();
+
+    static class CombinedLayerExporter implements FirstPassLayerExporter, SecondPassLayerExporter {
+        @Override
+        public Layer getLayer() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void setSettings(ExporterSettings settings) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void render(Dimension dimension, Tile tile, Chunk chunk) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public List<Fixup> render(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
+            throw new UnsupportedOperationException();
+        }
+    }
 }

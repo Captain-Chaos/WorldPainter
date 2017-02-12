@@ -27,6 +27,7 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -226,6 +227,7 @@ public class JavaWorldMerger extends JavaWorldExporter {
 
         // Copy everything that we are not going to generate
         File[] files = backupDir.listFiles();
+        //noinspection ConstantConditions // Cannot happen because we previously loaded level.dat from it
         for (File file: files) {
             if ((! file.getName().equalsIgnoreCase("level.dat"))
                     && (! file.getName().equalsIgnoreCase("level.dat_old"))
@@ -407,11 +409,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                     int regionX = tileCoords.x >> 2;
                     int regionZ = tileCoords.y >> 2;
                     Point regionCoords = new Point(regionX, regionZ);
-                    Map<Point, Tile> tilesForRegion = tilesByRegion.get(regionCoords);
-                    if (tilesForRegion == null) {
-                        tilesForRegion = new HashMap<>();
-                        tilesByRegion.put(regionCoords, tilesForRegion);
-                    }
+                    Map<Point, Tile> tilesForRegion = tilesByRegion.computeIfAbsent(regionCoords, k -> new HashMap<>());
                     tilesForRegion.put(tileCoords, tile);
                     if (regionX < lowestRegionX) {
                         lowestRegionX = regionX;
@@ -447,11 +445,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                     int regionX = tile.getX() >> 2;
                     int regionZ = tile.getY() >> 2;
                     Point regionCoords = new Point(regionX, regionZ);
-                    Map<Point, Tile> tilesForRegion = tilesByRegion.get(regionCoords);
-                    if (tilesForRegion == null) {
-                        tilesForRegion = new HashMap<>();
-                        tilesByRegion.put(regionCoords, tilesForRegion);
-                    }
+                    Map<Point, Tile> tilesForRegion = tilesByRegion.computeIfAbsent(regionCoords, k -> new HashMap<>());
                     tilesForRegion.put(new Point(tile.getX(), tile.getY()), tile);
                     if (regionX < lowestRegionX) {
                         lowestRegionX = regionX;
@@ -473,9 +467,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
             final Pattern regionFilePattern = (platform == Platform.JAVA_ANVIL)
                 ? Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mca")
                 : Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mcr");
-            File[] existingRegionFiles = backupRegionDir.listFiles((dir, name) -> {
-                return regionFilePattern.matcher(name).matches();
-            });
+            File[] existingRegionFiles = backupRegionDir.listFiles((dir, name) -> regionFilePattern.matcher(name).matches());
             Map<Point, File> existingRegions = new HashMap<>();
             for (File file: existingRegionFiles) {
                 String[] parts = file.getName().split("\\.");
@@ -545,7 +537,17 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
 
             final Map<Point, List<Fixup> >fixups = new HashMap<>();
             final Set<Point> exportedRegions = new HashSet<>();
-            ExecutorService executor = Executors.newFixedThreadPool(threads);
+            ExecutorService executor = Executors.newFixedThreadPool(threads, new ThreadFactory() {
+                @Override
+                public synchronized Thread newThread(Runnable r) {
+                    Thread thread = new Thread(threadGroup, r, "Merger-" + nextID++);
+                    thread.setPriority(Thread.MIN_PRIORITY);
+                    return thread;
+                }
+
+                private final ThreadGroup threadGroup = new ThreadGroup("Mergers");
+                private int nextID = 1;
+            });
             final ParallelProgressManager parallelProgressManager = (progressReceiver != null) ? new ParallelProgressManager(progressReceiver, allRegionCoords.size()) : null;
             try {
                 // Merge each individual region
@@ -844,6 +846,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         // Copy everything that we are not going to generate (this includes the
         // Nether and End dimensions)
         File[] files = backupDir.listFiles();
+        //noinspection ConstantConditions // Cannot happen because we previously loaded level.dat from it
         for (File file: files) {
             if ((! file.getName().equalsIgnoreCase("level.dat"))
                     && (! file.getName().equalsIgnoreCase("level.dat_old"))
@@ -870,24 +873,21 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         // Find all the region files of the existing level
         File oldRegionDir = new File(backupDir, "region");
         final Pattern regionFilePattern = Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mca");
-        File[] oldRegionFiles = oldRegionDir.listFiles((dir, name) -> {
-            return regionFilePattern.matcher(name).matches();
-        });
+        File[] oldRegionFiles = oldRegionDir.listFiles((dir, name) -> regionFilePattern.matcher(name).matches());
 
         // Process each region file, copying every chunk unmodified, except
         // for the biomes
+        @SuppressWarnings("ConstantConditions") // Can only happen for corrupted maps
         int totalChunkCount = oldRegionFiles.length * 32 * 32, chunkCount = 0;
         File newRegionDir = new File(worldDir, "region");
         newRegionDir.mkdirs();
         for (File file: oldRegionFiles) {
-            RegionFile oldRegion = new RegionFile(file);
-            try {
+            try (RegionFile oldRegion = new RegionFile(file)) {
                 String[] parts = file.getName().split("\\.");
                 int regionX = Integer.parseInt(parts[1]);
                 int regionZ = Integer.parseInt(parts[2]);
                 File newRegionFile = new File(newRegionDir, "r." + regionX + "." + regionZ + ".mca");
-                RegionFile newRegion = new RegionFile(newRegionFile);
-                try {
+                try (RegionFile newRegion = new RegionFile(newRegionFile)) {
                     for (int x = 0; x < 32; x++) {
                         for (int z = 0; z < 32; z++) {
                             if (oldRegion.containsChunk(x, z)) {
@@ -912,11 +912,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                             }
                         }
                     }
-                } finally {
-                    newRegion.close();
                 }
-            } finally {
-                oldRegion.close();
             }
         }
     }
@@ -1501,12 +1497,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
     }
     
     private final File levelDatFile;
-    private final ThreadLocal<byte[]> histogramRef = new ThreadLocal<byte[]>() {
-        @Override
-        protected byte[] initialValue() {
-            return new byte[65536];
-        }
-    };
+    private final ThreadLocal<byte[]> histogramRef = ThreadLocal.withInitial(() -> new byte[65536]);
     private boolean replaceChunks, mergeOverworld, mergeUnderworld, clearTrees,
         clearResources, fillCaves, clearVegetation,
         clearManMadeAboveGround, clearManMadeBelowGround;

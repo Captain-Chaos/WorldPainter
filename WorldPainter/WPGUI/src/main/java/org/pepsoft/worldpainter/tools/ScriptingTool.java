@@ -48,7 +48,7 @@ public class ScriptingTool {
         StatusPrinter.printInCaseOfErrorsOrWarnings(logContext);
 
         System.err.println("WorldPainter scripting host version " + Version.VERSION + ".\n" +
-                "Copyright 2011-2016 pepsoft.org, The Netherlands.\n" +
+                "Copyright 2011-2017 pepsoft.org, The Netherlands.\n" +
                 "This is free software distributed under the terms of the GPL, version 3, a copy\n" +
                 "of which you can find in the installation directory.\n");
 

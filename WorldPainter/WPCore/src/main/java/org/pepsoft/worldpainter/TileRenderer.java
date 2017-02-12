@@ -6,6 +6,7 @@
 package org.pepsoft.worldpainter;
 
 import org.pepsoft.util.ColourUtils;
+import org.pepsoft.util.IconUtils;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.renderers.*;
@@ -26,10 +27,6 @@ import static org.pepsoft.worldpainter.Constants.*;
  */
 public final class TileRenderer {
     public TileRenderer(TileProvider tileProvider, ColourScheme colourScheme, BiomeScheme biomeScheme, CustomBiomeManager customBiomeManager, int zoom) {
-        this(tileProvider, colourScheme, biomeScheme, customBiomeManager, zoom, false);
-    }
-
-    public TileRenderer(TileProvider tileProvider, ColourScheme colourScheme, BiomeScheme biomeScheme, CustomBiomeManager customBiomeManager, int zoom, boolean dry) {
         biomeRenderer = new BiomeRenderer(biomeScheme, customBiomeManager);
         setTileProvider(tileProvider);
         if ((tileProvider instanceof Dimension) && (((Dimension) tileProvider).getWorld() != null)) {
@@ -60,7 +57,6 @@ public final class TileRenderer {
         }
         setColourScheme(colourScheme);
         this.zoom = zoom;
-        this.dry = dry;
         bufferedImage = new BufferedImage(TILE_SIZE, TILE_SIZE, BufferedImage.TYPE_INT_ARGB);
         renderBuffer = ((DataBufferInt) bufferedImage.getRaster().getDataBuffer()).getData();
     }
@@ -201,6 +197,8 @@ public final class TileRenderer {
             layerList.add(Biome.INSTANCE);
         }
         layerList.removeAll(hiddenLayers);
+        final boolean hideTerrain = hiddenLayers.contains(TERRAIN_AS_LAYER);
+        final boolean hideFluids = hiddenLayers.contains(FLUIDS_AS_LAYER);
         final boolean _void = layerList.contains(org.pepsoft.worldpainter.layers.Void.INSTANCE), notAllChunksPresent = layerList.contains(NotPresent.INSTANCE);
         final Layer[] layers = layerList.toArray(new Layer[layerList.size()]);
         final LayerRenderer[] renderers = new LayerRenderer[layers.length];
@@ -244,8 +242,8 @@ public final class TileRenderer {
                     } else if (_void && tile.getBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, x, y)) {
 //                        renderBuffer[x | (y << TILE_SIZE_BITS)] = 0xff000000 | getPixelColour(tileX, tileY, x, y, voidLayers, voidRenderers, false);
                     } else {
-                        int colour = getPixelColour(tileX, tileY, x, y, layers, renderers, contourLines);
-                        colour = ColourUtils.multiply(colour, getBrightenAmount());
+                        int colour = getPixelColour(tileX, tileY, x, y, layers, renderers, contourLines, hideTerrain, hideFluids);
+                        colour = ColourUtils.multiply(colour, getTerrainBrightenAmount());
                         final int offset = x + y * TILE_SIZE;
                         if (intFluidHeightCache[offset] > intHeightCache[offset]) {
                             colour = ColourUtils.multiply(colour, getFluidBrightenAmount());
@@ -273,8 +271,8 @@ public final class TileRenderer {
                     } else if (_void && tile.getBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, x, y)) {
 //                        renderBuffer[x / scale + y * tileSize] = 0xff000000 | getPixelColour(tileX, tileY, x, y, voidLayers, voidRenderers, false);
                     } else {
-                        int colour = getPixelColour(tileX, tileY, x, y, layers, renderers, contourLines);
-                        colour = ColourUtils.multiply(colour, getBrightenAmount());
+                        int colour = getPixelColour(tileX, tileY, x, y, layers, renderers, contourLines, hideTerrain, hideFluids);
+                        colour = ColourUtils.multiply(colour, getTerrainBrightenAmount());
                         final int offset = x + y * TILE_SIZE;
                         if (intFluidHeightCache[offset] > intHeightCache[offset]) {
                             colour = ColourUtils.multiply(colour, getFluidBrightenAmount());
@@ -303,11 +301,30 @@ public final class TileRenderer {
     /**
      * Determine the brighten amount. This method assumes that the
      * {@link #deltas} array has been filled by a previous call to
-     * {@link #getPixelColour(int, int, int, int, Layer[], LayerRenderer[], boolean)}.
+     * {@link #getPixelColour(int, int, int, int, Layer[], LayerRenderer[], boolean, boolean, boolean)}.
      * 
-     * @return The amount by which to brighten the pixel for the specified block. May be negative.
+     * @return The amount by which to brighten the pixel for the specified
+     * block, out of 256; values below 256 darkening the pixel; values above
+     * brightening it and 256 resulting in no change.
      */
-    private int getBrightenAmount() {
+    private int getTerrainBrightenAmount() {
+        return getBrightenAmount(deltas);
+    }
+
+    /**
+     * Determine the brighten amount for fluid. This method assumes that the
+     * {@link #deltas} array has been filled by a previous call to
+     * {@link #getPixelColour(int, int, int, int, Layer[], LayerRenderer[], boolean, boolean, boolean)}.
+     *
+     * @return The amount by which to brighten the pixel for the specified
+     * block, out of 256; values below 256 darkening the pixel; values above
+     * brightening it and 256 resulting in no change.
+     */
+    private int getFluidBrightenAmount() {
+        return getBrightenAmount(fluidDeltas);
+    }
+
+    private int getBrightenAmount(int[][] deltas) {
         switch (lightOrigin) {
             case NORTHWEST:
                 return Math.max(0, ((deltas[2][1] - deltas[0][1] + deltas[1][2] - deltas[1][0]) << 5) + 256);
@@ -317,28 +334,8 @@ public final class TileRenderer {
                 return Math.max(0, ((deltas[0][1] - deltas[2][1] + deltas[1][0] - deltas[1][2]) << 5) + 256);
             case SOUTHWEST:
                 return Math.max(0, ((deltas[2][1] - deltas[0][1] + deltas[1][0] - deltas[1][2]) << 5) + 256);
-            default:
-                throw new InternalError();
-        }
-    }
-
-    /**
-     * Determine the brighten amount for fluid. This method assumes that the
-     * {@link #deltas} array has been filled by a previous call to
-     * {@link #getPixelColour(int, int, int, int, Layer[], LayerRenderer[], boolean)}.
-     *
-     * @return The amount by which to brighten the pixel for the specified block. May be negative.
-     */
-    private int getFluidBrightenAmount() {
-        switch (lightOrigin) {
-            case NORTHWEST:
-                return Math.max(0, ((fluidDeltas[2][1] - fluidDeltas[0][1] + fluidDeltas[1][2] - fluidDeltas[1][0]) << 5) + 256);
-            case NORTHEAST:
-                return Math.max(0, ((fluidDeltas[0][1] - fluidDeltas[2][1] + fluidDeltas[1][2] - fluidDeltas[1][0]) << 5) + 256);
-            case SOUTHEAST:
-                return Math.max(0, ((fluidDeltas[0][1] - fluidDeltas[2][1] + fluidDeltas[1][0] - fluidDeltas[1][2]) << 5) + 256);
-            case SOUTHWEST:
-                return Math.max(0, ((fluidDeltas[2][1] - fluidDeltas[0][1] + fluidDeltas[1][0] - fluidDeltas[1][2]) << 5) + 256);
+            case ABOVE:
+                return 256;
             default:
                 throw new InternalError();
         }
@@ -355,7 +352,7 @@ public final class TileRenderer {
         this.lightOrigin = lightOrigin;
     }
 
-    private int getPixelColour(int tileX, int tileY, int x, int y, Layer[] layers, LayerRenderer[] renderers, boolean contourLines) {
+    private int getPixelColour(int tileX, int tileY, int x, int y, Layer[] layers, LayerRenderer[] renderers, boolean contourLines, boolean hideTerrain, boolean hideFluids) {
         final int offset = x + y * TILE_SIZE;
         final int intHeight = intHeightCache[offset];
         heights[1][0] = getNeighbourHeight(x, y,  0, -1);
@@ -384,22 +381,24 @@ public final class TileRenderer {
         fluidDeltas [1][2] = fluidHeights[1][2] - waterLevel;
         int colour;
         final int worldX = tileX | x, worldY = tileY | y;
-        if ((! dry) && (waterLevel > intHeight)) {
+        if ((! hideFluids) && (waterLevel > intHeight)) {
             if (tile.getBitLayerValue(FloodWithLava.INSTANCE, x, y)) {
                 colour = lavaColour;
             } else {
                 colour = waterColour;
             }
-        } else {
+        } else if (! hideTerrain) {
             final float height = floatHeightCache[offset];
             colour = ((! bottomless) && (intHeight == 0)) ? bedrockColour : tile.getTerrain(x, y).getColour(seed, worldX, worldY, height, intHeight, colourScheme);
+        } else {
+            colour = LIGHT_GREY;
         }
         for (int i = 0; i < layers.length; i++) {
             final Layer layer = layers[i];
             switch (layer.getDataSize()) {
                 case BIT:
                 case BIT_PER_CHUNK:
-                    if (dry && (layer instanceof Frost) && (waterLevel > intHeightCache[offset])) {
+                    if (hideFluids && (layer instanceof Frost) && (waterLevel > intHeightCache[offset])) {
                         continue;
                     }
                     boolean bitLayerValue = tile.getBitLayerValue(layer, x, y);
@@ -517,7 +516,6 @@ public final class TileRenderer {
     private final float[] floatHeightCache = new float[TILE_SIZE * TILE_SIZE];
     private final BufferedImage bufferedImage;
     private final int[] renderBuffer;
-    private final boolean dry;
     private final int[][] heights = new int[3][3], deltas = new int[3][3], fluidHeights = new int[3][3], fluidDeltas = new int[3][3];
     private final Set<Layer> missingRendererReportedFor = new HashSet<>(); // TODO remove when no longer necessary!
     private final boolean[] oppositesOverlap = new boolean[TILE_SIZE * TILE_SIZE];
@@ -530,7 +528,24 @@ public final class TileRenderer {
     private int contourSeparation = 10, waterColour, lavaColour, bedrockColour, oppositesDelta;
     private LightOrigin lightOrigin = LightOrigin.NORTHWEST;
     
-    private static final int BLACK = 0x000000, RED = 0xFF0000;
+    public static final Layer TERRAIN_AS_LAYER = new Layer("org.pepsoft.synthetic.Terrain", "Terrain", "The terrain type of the surface", Layer.DataSize.NONE, 0) {
+        @Override
+        public BufferedImage getIcon() {
+            return ICON;
+        }
+
+        private final BufferedImage ICON = IconUtils.scaleIcon(IconUtils.loadScaledImage("org/pepsoft/worldpainter/resources/terrain.png"), 16);
+    };
+    public static final Layer FLUIDS_AS_LAYER = new Layer("org.pepsoft.synthetic.Fluids", "Water/Lava", "Areas flooded with water or lava", Layer.DataSize.NONE, 0) {
+        @Override
+        public BufferedImage getIcon() {
+            return ICON;
+        }
+
+        private final BufferedImage ICON = IconUtils.loadScaledImage("org/pepsoft/worldpainter/resources/fluids.png");
+    };
+
+    private static final int BLACK = 0x000000, RED = 0xFF0000, LIGHT_GREY = 0xD0D0D0;
     private static final boolean[][] CEILING_PATTERN = {
             { true,  true, false, false,  true,  true, false, false},
             {false,  true,  true,  true,  true, false, false, false},
@@ -546,7 +561,7 @@ public final class TileRenderer {
         NORTHWEST {
             @Override
             public LightOrigin left() {
-                return SOUTHWEST;
+                return ABOVE;
             }
 
             @Override
@@ -584,10 +599,21 @@ public final class TileRenderer {
 
             @Override
             public LightOrigin right() {
+                return ABOVE;
+            }
+        },
+        ABOVE{
+            @Override
+            public LightOrigin left() {
+                return SOUTHWEST;
+            }
+
+            @Override
+            public LightOrigin right() {
                 return NORTHWEST;
             }
         };
-        
+
         public abstract LightOrigin left();
         
         public abstract LightOrigin right();

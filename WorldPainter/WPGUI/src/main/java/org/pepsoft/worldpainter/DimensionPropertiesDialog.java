@@ -10,20 +10,13 @@
  */
 package org.pepsoft.worldpainter;
 
-import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
-import javax.swing.InputMap;
-import javax.swing.JComponent;
-import javax.swing.KeyStroke;
+import java.awt.*;
 
 /**
  *
  * @author pepijn
  */
-public class DimensionPropertiesDialog extends javax.swing.JDialog {
+public class DimensionPropertiesDialog extends WorldPainterDialog {
     /** Creates new form DimensionPropertiesDialog */
     public DimensionPropertiesDialog(Window parent, Dimension dimension, ColourScheme colourScheme) {
         this(parent, dimension, colourScheme, false);
@@ -31,7 +24,7 @@ public class DimensionPropertiesDialog extends javax.swing.JDialog {
     
     /** Creates new form DimensionPropertiesDialog */
     public DimensionPropertiesDialog(Window parent, Dimension dimension, ColourScheme colourScheme, boolean defaultSettingsMode) {
-        super(parent, ModalityType.APPLICATION_MODAL);
+        super(parent);
         
         initComponents();
         
@@ -43,34 +36,17 @@ public class DimensionPropertiesDialog extends javax.swing.JDialog {
             worldPropertiesEditor1.setMode(DimensionPropertiesEditor.Mode.EDITOR);
         }
         
-        ActionMap actionMap = rootPane.getActionMap();
-        actionMap.put("cancel", new AbstractAction("cancel") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                cancel();
-            }
-            
-            private static final long serialVersionUID = 1L;
-        });
-
-        InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "cancel");
-
         rootPane.setDefaultButton(jButton2);
         
         setLocationRelativeTo(parent);
     }
     
-    private void ok() {
+    public void ok() {
         if (worldPropertiesEditor1.saveSettings()) {
-            dispose();
+            super.ok();
         }
     }
     
-    private void cancel() {
-        dispose();
-    }
-
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is

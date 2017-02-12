@@ -24,5 +24,5 @@ public class MapRootNode extends MinecraftDirectoryNode {
         return ICON;
     }
 
-    private static final Icon ICON = IconUtils.scaleIcon(IconUtils.loadIcon("org/pepsoft/worldpainter/icons/grass.png"), 16);
+    private static final Icon ICON = IconUtils.scaleIcon(IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/grass.png"), 16);
 }

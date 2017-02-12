@@ -10,13 +10,12 @@
  */
 package org.pepsoft.worldpainter;
 
+import org.pepsoft.util.GUIUtils;
 import org.pepsoft.worldpainter.TileRenderer.LightOrigin;
 import org.pepsoft.worldpainter.themes.SimpleTheme;
 import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.util.List;
 import java.util.Random;
@@ -30,13 +29,17 @@ import static org.pepsoft.worldpainter.Terrain.GRASS;
  *
  * @author pepijn
  */
-public class PreferencesDialog extends javax.swing.JDialog {
+public class PreferencesDialog extends WorldPainterDialog {
     /** Creates new form PreferencesDialog */
     public PreferencesDialog(java.awt.Frame parent, ColourScheme colourScheme) {
-        super(parent, true);
+        super(parent);
         this.colourScheme = colourScheme;
         
         initComponents();
+        if (GUIUtils.UI_SCALE > 1) {
+            comboBoxLookAndFeel.setEnabled(false);
+            jLabel32.setText("<html><em>Visual themes not available for high resolution displays</em></html>");
+        }
         
         comboBoxSurfaceMaterial.setModel(new DefaultComboBoxModel(Terrain.PICK_LIST));
         comboBoxSurfaceMaterial.setRenderer(new TerrainListCellRenderer(colourScheme));
@@ -53,19 +56,6 @@ public class PreferencesDialog extends javax.swing.JDialog {
         
         loadSettings();
         
-        ActionMap actionMap = rootPane.getActionMap();
-        actionMap.put("cancel", new AbstractAction("cancel") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                cancel();
-            }
-            
-            private static final long serialVersionUID = 1L;
-        });
-
-        InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "cancel");
-
         rootPane.setDefaultButton(buttonOK);
         pack();
         setLocationRelativeTo(parent);
@@ -73,16 +63,7 @@ public class PreferencesDialog extends javax.swing.JDialog {
     
     public void ok() {
         saveSettings();
-        cancelled = false;
-        dispose();
-    }
-    
-    public void cancel() {
-        dispose();
-    }
-    
-    public boolean isCancelled() {
-        return cancelled;
+        super.ok();
     }
     
     private void loadSettings() {
@@ -153,8 +134,10 @@ public class PreferencesDialog extends javax.swing.JDialog {
         checkBoxCheats.setSelected(config.isDefaultAllowCheats());
 
         previousExp = (int) Math.round(Math.log(config.getDefaultMaxHeight()) / Math.log(2.0));
-        
-        comboBoxLookAndFeel.setSelectedIndex(config.getLookAndFeel() != null ? config.getLookAndFeel().ordinal() : 0);
+
+        if (GUIUtils.UI_SCALE == 1) {
+            comboBoxLookAndFeel.setSelectedIndex(config.getLookAndFeel() != null ? config.getLookAndFeel().ordinal() : 0);
+        }
         
         switch (config.getAccelerationType()) {
             case DEFAULT:
@@ -236,8 +219,10 @@ public class PreferencesDialog extends javax.swing.JDialog {
         config.setDefaultMapFeatures(checkBoxStructures.isSelected());
         config.setDefaultGameType((GameType) comboBoxMode.getSelectedItem());
         config.setDefaultAllowCheats(checkBoxCheats.isSelected());
-        
-        config.setLookAndFeel(Configuration.LookAndFeel.values()[comboBoxLookAndFeel.getSelectedIndex()]);
+
+        if (GUIUtils.UI_SCALE == 1) {
+            config.setLookAndFeel(Configuration.LookAndFeel.values()[comboBoxLookAndFeel.getSelectedIndex()]);
+        }
         
         if (radioButtonAccelDefault.isSelected()) {
             config.setAccelerationType(AccelerationType.DEFAULT);
@@ -1410,7 +1395,7 @@ public class PreferencesDialog extends javax.swing.JDialog {
     // End of variables declaration//GEN-END:variables
 
     private final ColourScheme colourScheme;
-    private boolean pingNotSet, cancelled = true;
+    private boolean pingNotSet;
     private int previousExp;
     private String generatorOptions;
     

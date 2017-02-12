@@ -62,7 +62,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.zip.*;
 
-public final class RegionFile {
+public final class RegionFile implements AutoCloseable {
 
     private static final int VERSION_GZIP = 1;
     private static final int VERSION_DEFLATE = 2;
@@ -267,6 +267,7 @@ public final class RegionFile {
         return true;
     }
 
+    @Override
     public void close() throws IOException {
         file.close();
     }

@@ -15,18 +15,18 @@ public class GardenCategory extends Layer {
         super("Category", "Garden category", DataSize.NIBBLE, 80);
     }
     
-    public static String getLabel(int category) {
+    public static String getLabel(ResourceBundle resourceBundle, int category) {
         switch(category) {
             case CATEGORY_BUILDING:
-                return strings.getString("structure.building");
+                return resourceBundle.getString("structure.building");
             case CATEGORY_FIELD:
-                return strings.getString("structure.field");
+                return resourceBundle.getString("structure.field");
             case CATEGORY_ROAD:
-                return strings.getString("structure.road");
+                return resourceBundle.getString("structure.road");
             case CATEGORY_STREET_FURNITURE:
-                return strings.getString("structure.street.furniture");
+                return resourceBundle.getString("structure.street.furniture");
             case CATEGORY_WATER:
-                return strings.getString("structure.water");
+                return resourceBundle.getString("structure.water");
             case CATEGORY_TREE:
                 return "tree";
             case CATEGORY_OBJECT:
@@ -78,6 +78,5 @@ public class GardenCategory extends Layer {
     
     public static final GardenCategory INSTANCE = new GardenCategory();
 
-    private static final ResourceBundle strings = ResourceBundle.getBundle("org.pepsoft.worldpainter.resources.strings"); // NOI18N
     private static final long serialVersionUID = 1L;
 }

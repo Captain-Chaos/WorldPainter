@@ -70,6 +70,9 @@ public class PostProcessor {
         }
         final int worldMaxZ = minecraftWorld.getMaxHeight() - 1;
         final int x1, y1, x2, y2, minZ, maxZ;
+        // TODO: make these configurable:
+        final FloatMode sandMode = "false".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.supportSand")) ? FloatMode.LEAVE_FLOATING : FloatMode.SUPPORT;
+        final FloatMode gravelMode = FloatMode.LEAVE_FLOATING;
         if (minecraftWorld instanceof MinecraftWorldObject) {
             // Special support for MinecraftWorldObjects to constrain the area
             // further
@@ -117,10 +120,39 @@ public class PostProcessor {
                     }
                     switch (blockType) {
                         case BLK_SAND:
-                            if (supportSand && BLOCKS[blockTypeBelow].veryInsubstantial) {
-                                // All unsupported sand should be supported by sandstone
-                                minecraftWorld.setMaterialAt(x, y, z, (minecraftWorld.getDataAt(x, y, z) == 1) ? Material.RED_SANDSTONE : Material.SANDSTONE);
-                                blockType = minecraftWorld.getBlockTypeAt(x, y, z);
+                            if (BLOCKS[blockTypeBelow].veryInsubstantial) {
+                                switch (sandMode) {
+                                    case DROP:
+                                        dropBlock(minecraftWorld, x, y, z);
+                                        blockType = BLK_AIR;
+                                        break;
+                                    case SUPPORT:
+                                        // All unsupported sand should be supported by sandstone
+                                        minecraftWorld.setMaterialAt(x, y, z, (minecraftWorld.getDataAt(x, y, z) == 1) ? Material.RED_SANDSTONE : Material.SANDSTONE);
+                                        blockType = minecraftWorld.getBlockTypeAt(x, y, z);
+                                        break;
+                                    default:
+                                        // Do nothing
+                                        break;
+                                }
+                            }
+                            break;
+                        case BLK_GRAVEL:
+                            if (BLOCKS[blockTypeBelow].veryInsubstantial) {
+                                switch (gravelMode) {
+                                    case DROP:
+                                        dropBlock(minecraftWorld, x, y, z);
+                                        blockType = BLK_AIR;
+                                        break;
+                                    case SUPPORT:
+                                        // All unsupported gravel should be supported by stone
+                                        minecraftWorld.setMaterialAt(x, y, z, Material.STONE);
+                                        blockType = BLK_STONE;
+                                        break;
+                                    default:
+                                        // Do nothing
+                                        break;
+                                }
                             }
                             break;
                         case BLK_DEAD_SHRUBS:
@@ -268,8 +300,29 @@ public class PostProcessor {
         }
     }
 
+    private static void dropBlock(MinecraftWorld world, int x, int y, int z) {
+        int solidFloor = z - 1;
+        for (; solidFloor > 0; solidFloor--) {
+            int blockType = world.getBlockTypeAt(x, y, solidFloor);
+            if (BLOCKS[blockType].insubstantial) {
+                // Remove insubstantial blocks (as the falling block would have
+                // obliterated them) but keep looking for a solid floor
+                world.setMaterialAt(x, y, solidFloor, Material.AIR);
+            } else if ((blockType != BLK_AIR) && (blockType != BLK_WATER) && (blockType != BLK_STATIONARY_WATER) && (blockType != BLK_LAVA) && (blockType != BLK_STATIONARY_LAVA)) {
+                break;
+            }
+        }
+        if (solidFloor < 0) {
+            // The block would have fallen into the void, so just remove it
+            world.setMaterialAt(x, y, z, Material.AIR);
+        } else if (solidFloor < z - 1) {
+            Material block = world.getMaterialAt(x, y, z);
+            world.setMaterialAt(x, y, z, Material.AIR);
+            world.setMaterialAt(x, y, solidFloor + 1, block);
+        }
+    }
+
     private static final boolean enabled = ! "false".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.enforceBlockRules"));
-    private static final boolean supportSand = ! "false".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.supportSand"));
     private static final Logger logger = LoggerFactory.getLogger(PostProcessor.class);
 
     static {
@@ -277,4 +330,6 @@ public class PostProcessor {
             logger.warn("Block rule enforcement disabled");
         }
     }
+
+    enum FloatMode {DROP, SUPPORT, LEAVE_FLOATING}
 }

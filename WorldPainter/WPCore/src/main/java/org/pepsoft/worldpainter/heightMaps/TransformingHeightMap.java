@@ -168,7 +168,7 @@ public class TransformingHeightMap extends DelegatingHeightMap {
 
     private static final long serialVersionUID = 1L;
     private static final double DOUBLE_PI = Math.PI * 2;
-    private static final Icon ICON_TRANSFORMING_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/transform.png");
+    private static final Icon ICON_TRANSFORMING_HEIGHTMAP = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/transform.png");
 
     public static class TransformingHeightMapBuilder {
         public TransformingHeightMapBuilder withName(String name) {

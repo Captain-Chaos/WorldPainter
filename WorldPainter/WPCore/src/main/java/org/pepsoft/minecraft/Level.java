@@ -5,26 +5,16 @@
 
 package org.pepsoft.minecraft;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
-import org.jnbt.CompoundTag;
-import org.jnbt.IntTag;
-import org.jnbt.NBTInputStream;
-import org.jnbt.NBTOutputStream;
-import org.jnbt.Tag;
-import static org.pepsoft.minecraft.Constants.*;
+import org.jnbt.*;
 import org.pepsoft.worldpainter.AccessDeniedException;
 import org.pepsoft.worldpainter.Generator;
+
+import java.io.*;
+import java.util.*;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
+
+import static org.pepsoft.minecraft.Constants.*;
 
 /**
  *
@@ -67,7 +57,9 @@ public final class Level extends AbstractNBTItem {
         } else {
             // The root tag contains extra tags, most likely from mods. Preserve them (but filter out the data tag)
             extraTags = new HashSet<>();
-            extraTags.addAll(tag.getValue().values().stream().filter(extraTag -> !extraTag.getName().equals(TAG_DATA)).collect(Collectors.toList()));
+            tag.getValue().values().stream()
+                    .filter(extraTag -> ! extraTag.getName().equals(TAG_DATA))
+                    .forEach(extraTags::add);
         }
         addDimension(0);
     }

@@ -55,12 +55,12 @@ public interface MinecraftWorld extends ChunkProvider {
     int getBlockLightLevel(int x, int y, int height);
 
     /**
-     * Returns {@code 15} if {@code height} is too large.
+     * Fails silently if {@code height} is too large.
      */
     void setBlockLightLevel(int x, int y, int height, int blockLightLevel);
 
     /**
-     * Fails silently if {@code height} is too large.
+     * Returns {@code 15} if {@code height} is too large.
      */
     int getSkyLightLevel(int x, int y, int height);
 

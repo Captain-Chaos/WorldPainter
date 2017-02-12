@@ -5,6 +5,8 @@
 
 package org.pepsoft.util;
 
+import javax.vecmath.Vector3d;
+
 /**
  *
  * @author pepijn
@@ -185,7 +187,31 @@ public final class MathUtils {
     public static float clamp(float min, float value, float max) {
         return (value < min) ? min : ((value > max) ? max : value);
     }
-    
+
+    public static double clamp(double min, double value, double max) {
+        return (value < min) ? min : ((value > max) ? max : value);
+    }
+
+    /**
+     * Rotate a vector counterclockwise around an axis.
+     *
+     * @param vector The vector to rotate.
+     * @param axis The axis around which to rotate it.
+     * @param angle How many radians to rotate it counterclockwise.
+     * @return The rotated vector.
+     */
+    public static Vector3d rotateVectorCC(Vector3d vector, Vector3d axis, double angle){
+        double x = vector.x, y = vector.y, z = vector.z;
+        double u = axis.x, v = axis.y, w = axis.z;
+        double cosAngle = Math.cos(angle);
+        double sinAngle = Math.sin(angle);
+        double product = u * x + v * y + w * z;
+        double xPrime = u * product * (1d - cosAngle) + x * cosAngle + (-w * y + v * z) * sinAngle;
+        double yPrime = v * product * (1d - cosAngle) + y * cosAngle + (w * x - u * z) * sinAngle;
+        double zPrime = w * product * (1d - cosAngle) + z * cosAngle + (-v * x + u * y) * sinAngle;
+        return new Vector3d(xPrime, yPrime, zPrime);
+    }
+
     private static final float[][] DISTANCES_2D = new float[301][301];
     private static final float[][][] DISTANCES_3D = new float[51][51][51];
     private static final int[][] INTEGER_POWERS = new int[50][50];

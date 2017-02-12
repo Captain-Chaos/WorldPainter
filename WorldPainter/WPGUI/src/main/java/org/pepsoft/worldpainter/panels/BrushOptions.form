@@ -16,42 +16,44 @@
   <Layout>
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
+          <Component id="checkBoxInSelection" min="-2" max="-2" attributes="0"/>
+          <Component id="checkBoxBelow" alignment="0" min="-2" max="-2" attributes="0"/>
+          <Component id="checkBoxReplace" alignment="0" min="-2" max="-2" attributes="0"/>
+          <Component id="checkBoxExceptOn" alignment="0" min="-2" max="-2" attributes="0"/>
+          <Group type="102" alignment="0" attributes="0">
+              <Component id="checkBoxAboveSlope" min="-2" max="-2" attributes="0"/>
+              <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
+              <Component id="checkBoxBelowSlope" min="-2" max="-2" attributes="0"/>
+          </Group>
           <Group type="102" attributes="0">
+              <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="checkBoxAbove" min="-2" max="-2" attributes="0"/>
-                  <Component id="checkBoxBelow" alignment="0" min="-2" max="-2" attributes="0"/>
-                  <Component id="checkBoxReplace" alignment="0" min="-2" max="-2" attributes="0"/>
-                  <Component id="checkBoxExceptOn" alignment="0" min="-2" max="-2" attributes="0"/>
+                  <Component id="spinnerAbove" alignment="0" min="-2" max="-2" attributes="0"/>
+                  <Component id="spinnerBelow" alignment="0" min="-2" max="-2" attributes="0"/>
+                  <Component id="checkBoxFeather" alignment="0" min="-2" max="-2" attributes="0"/>
+                  <Component id="buttonReplace" alignment="0" min="-2" max="-2" attributes="0"/>
+                  <Component id="buttonExceptOn" alignment="0" min="-2" max="-2" attributes="0"/>
                   <Group type="102" alignment="0" attributes="0">
-                      <Component id="checkBoxAboveSlope" min="-2" max="-2" attributes="0"/>
+                      <Component id="spinnerSlope" min="-2" max="-2" attributes="0"/>
                       <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
-                      <Component id="checkBoxBelowSlope" min="-2" max="-2" attributes="0"/>
-                  </Group>
-                  <Group type="102" attributes="0">
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="spinnerAbove" alignment="0" min="-2" max="-2" attributes="0"/>
-                          <Component id="spinnerBelow" alignment="0" min="-2" max="-2" attributes="0"/>
-                          <Component id="checkBoxFeather" alignment="0" min="-2" max="-2" attributes="0"/>
-                          <Component id="buttonReplace" alignment="0" min="-2" max="-2" attributes="0"/>
-                          <Component id="buttonExceptOn" alignment="0" min="-2" max="-2" attributes="0"/>
-                          <Group type="102" alignment="0" attributes="0">
-                              <Component id="spinnerSlope" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
-                              <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
-                          </Group>
-                      </Group>
+                      <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
                   </Group>
               </Group>
-              <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
           </Group>
+          <Component id="checkBoxAbove" min="-2" max="-2" attributes="0"/>
+          <Component id="checkBoxOutsideSelection" alignment="0" min="-2" max="-2" attributes="0"/>
       </Group>
     </DimensionLayout>
     <DimensionLayout dim="1">
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" alignment="0" attributes="0">
-              <Component id="checkBoxAbove" min="-2" max="-2" attributes="0"/>
               <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
+              <Component id="checkBoxInSelection" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="checkBoxOutsideSelection" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="checkBoxAbove" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
               <Component id="spinnerAbove" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="checkBoxBelow" min="-2" max="-2" attributes="0"/>
@@ -259,6 +261,32 @@
         </Property>
         <Property name="text" type="java.lang.String" value="degrees"/>
       </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="checkBoxInSelection">
+      <Properties>
+        <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
+          <FontInfo relative="true">
+            <Font component="checkBoxInSelection" property="font" relativeSize="true" size="-1"/>
+          </FontInfo>
+        </Property>
+        <Property name="text" type="java.lang.String" value="inside selection"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="checkBoxInSelectionActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="checkBoxOutsideSelection">
+      <Properties>
+        <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
+          <FontInfo relative="true">
+            <Font component="checkBoxOutsideSelection" property="font" relativeSize="true" size="-1"/>
+          </FontInfo>
+        </Property>
+        <Property name="text" type="java.lang.String" value="outside selection"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="checkBoxOutsideSelectionActionPerformed"/>
+      </Events>
     </Component>
   </SubComponents>
 </Form>

@@ -53,5 +53,5 @@ public class ShelvingHeightMap extends DelegatingHeightMap {
 
     private static final long serialVersionUID = 1L;
     private static final double DOUBLE_PI = Math.PI * 2;
-    private static final Icon ICON_SHELVING_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/shelving.png");
+    private static final Icon ICON_SHELVING_HEIGHTMAP = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/shelving.png");
 }

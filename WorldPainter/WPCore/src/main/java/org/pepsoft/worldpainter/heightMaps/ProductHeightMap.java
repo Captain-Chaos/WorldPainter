@@ -55,5 +55,5 @@ public class ProductHeightMap extends CombiningHeightMap {
     }
 
     private static final long serialVersionUID = 1L;
-    private static final Icon ICON_PRODUCT_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/times.png");
+    private static final Icon ICON_PRODUCT_HEIGHTMAP = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/times.png");
 }

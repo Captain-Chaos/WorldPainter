@@ -265,15 +265,31 @@ public class CreateFilterOp extends AbstractOperation<Filter> {
         degrees = belowDegrees;
         return this;
     }
-    
+
+    public CreateFilterOp inSelection() throws ScriptException {
+        if (outsideSelection) {
+            throw new ScriptException("inSelection and outsideSelection may not both be specified");
+        }
+        inSelection = true;
+        return this;
+    }
+
+    public CreateFilterOp outsideSelection() throws ScriptException {
+        if (inSelection) {
+            throw new ScriptException("inSelection and outsideSelection may not both be specified");
+        }
+        outsideSelection = true;
+        return this;
+    }
+
     @Override
     public Filter go() throws ScriptException {
         goCalled();
 
-        return new DefaultFilter(null, aboveLevel, belowLevel, feather, onlyOn, exceptOn, degrees, slopeIsAbove);
+        return new DefaultFilter(null, inSelection, outsideSelection, aboveLevel, belowLevel, feather, onlyOn, exceptOn, degrees, slopeIsAbove);
     }
     
     private int aboveLevel = -1, belowLevel = -1, degrees = -1;
-    private boolean feather, slopeIsAbove, exceptOnLastSet;
+    private boolean feather, slopeIsAbove, exceptOnLastSet, inSelection, outsideSelection;
     private Object onlyOn, exceptOn;
 }

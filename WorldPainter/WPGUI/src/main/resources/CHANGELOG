@@ -1,6 +1,43 @@
--- Version 2.3.3, released ...
+-- Version 2.4.2, released ...
 
+ * Added support for new blocks in Minecraft 1.11
+
+-- Version 2.4.1, released 5-2-2017
+
+ * Bug fix: make Importing existing Minecraft maps work again
+
+-- Version 2.4.0, released 4-2-2017
+
+ * There are two new selection modification operations on the Global Operations tool screen: "add to selection" and "remove from selection" which together with the filter settings allows you to sculpt complex and intricate selections based on the contents of the world
+ * It is now possible to hide the terrain type and the fluids (water and lava), or show *just* the terrain, hiding all layers. This is done with the new checkboxes on the Terrain panel. Deselecting "Show Terrain" will turn the surface entirely grey, hiding the terrain type and making layers easier to see. Selecting "Solo Terrain" will hide all layers. And deselecting "Show Water/Lava" will remove all water and lava from view, making it easier to see river, lake and ocean beds. Just as with the other "show" checkboxes: whenever the corresponding tool or paint is selected the layer *will* be shown, regardless of the checkbox setting. In other words: when you have the Flood or Lava tools selected the fluids will always be shown, and whenever you have any terrain type selected the terrain will always be shown
+ * The four terrain shaping operations (Height, Flatten, Smooth and Raise Mountain) now have an option on the Tool Settings panel: "Apply theme". When enabled (which is the default only for Raise Mountain), applying the operation will also reset the terrain type to the theme (the default terrain settings), as well as apply or remove any layers contained in the theme (such as the Frost layer by default)
+   + Applying the theme now will also remove layers, where it would previously only add them. This only applies to the layers actually contained in the theme (by default this is only the Frost layer). Applying the theme happens when the new "Apply theme" tool setting is active, or the "reset terrain and layers to theme" operation on the Global Operations screen is used, or when right-clicking with a painting tool selected and a terrain type as the active paint
+ * Export and Merge operations are now done with low priority threads, reducing the impact on the responsiveness of the rest of the system
+   PLEASE NOTE: this does mean that if you start other resource intensive programs while WorldPainter is Exporting or Merging, those programs will take precedence and delay the Export or Merge operation
+ * Directional lighting can now be turned off. This has been implemented by adding a fifth direction: "from above", which you can select by pressing "rotate left" once when the light direction is "north west" (the default), or "rotate right" when the direction is "south west"
+ * High resolution display support on Windows. WorldPainter now should use the full resolution of your high resolution (more than 120 dpi) display instead of scaling everything up two times on Windows. It's not perfect yet, so please let us know of any visual problems on high resolution displays. Note that as a result, visual themes are unfortunately no longer supported for high resolution displays on Windows
+
+-- Version 2.3.6, released 5-1-2017
+
+ * Bug fix: make working with Combined Layers work again without crashing WorldPainter
+ * Bug fix: since version 2.3.0, when editing multiple Custom Objects at once, WorldPainter has been resetting the offsets to zero. This has now been fixed
+
+-- Version 2.3.5, released 4-1-2017
+
+ * Should be more robust at loading combined layers that had previously been affected by a custom terrain related bug. Such layers, and worlds containing them, should now load without crashing WorldPainter, but the custom terrains from them might be lost. WorldPainter will inform you if that happens
+ * Bug fix: correctly interpret the layer intensities for Custom Underground Pockets layers
+   PLEASE NOTE: check your maps in which you use Custom Underground Pockets layers! They have been incorrectly mapping layer intensity to block frequency. The intention, and how they now work, is: at 50% intensity the blocks are as frequent as you specified in the layer settings; at 1% intensity they are half as frequent and at 100% they are twice as frequent. If you set the frequency to 1000‰ it will be completely solid anywhere it is painted at 50% intensity (the default) or higher
+
+-- Version 2.3.4, released 26-12-2016
+
+ * Bug fix: make Merge work once again, by fixing a bug in the directory moving logic.
+   PLEASE NOTE: if you have tried to Merge maps with version 2.3.3 and run into this error you will first have to restore that map from the backup made by WorldPainter before you can Merge with it again! If the map is in <minecraft dir>\saves\<MapName> then the backup will be in <minecraft dir>\backups\<MapName>.<timestamp>. You can just copy all files and directories from the backup directory over those in the map directory
+
+-- Version 2.3.3, released 23-12-2016
+
+ * The Brush Settings panel now has "in selection" and "outside selection" options to apply operations only inside or outside the selection. This also applies to the Global Operations tool
  * Bug fix: don't crash when trying to Export or Merge on Windows versions older than Windows 7
+ * Bug fix: don't allow the Copy Selection tool to be selected when there is no selection
 
 -- Version 2.3.2, released 9-12-2016
 

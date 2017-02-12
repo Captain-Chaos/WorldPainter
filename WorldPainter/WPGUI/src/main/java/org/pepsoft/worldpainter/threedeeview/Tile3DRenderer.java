@@ -32,7 +32,7 @@ public class Tile3DRenderer {
         maxHeight = dimension.getMaxHeight();
         this.colourScheme = colourScheme;
         this.rotation = rotation;
-        tileRenderer = new TileRenderer(dimension, colourScheme, biomeScheme, customBiomeManager, 0, true);
+        tileRenderer = new TileRenderer(dimension, colourScheme, biomeScheme, customBiomeManager, 0);
         tileRenderer.addHiddenLayers(DEFAULT_HIDDEN_LAYERS);
         tileRenderer.setContourLines(false);
     }

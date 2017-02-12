@@ -20,6 +20,10 @@ import javax.swing.KeyStroke;
  */
 public class WorldPainterDialog extends JDialog {
     public WorldPainterDialog(Window parent) {
+        this(parent, true);
+    }
+
+    public WorldPainterDialog(Window parent, boolean enableHelpKey) {
         super(parent, ModalityType.APPLICATION_MODAL);
 
         ActionMap actionMap = rootPane.getActionMap();
@@ -34,6 +38,19 @@ public class WorldPainterDialog extends JDialog {
 
         InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "cancel");
+
+        if (enableHelpKey) {
+            getRootPane().putClientProperty(App.HELP_KEY_KEY, "Dialog/" + getClass().getSimpleName());
+            actionMap.put("help", new AbstractAction("help") {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    App.getInstance().showHelp(WorldPainterDialog.this);
+                }
+
+                private static final long serialVersionUID = 1L;
+            });
+            inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "help");
+        }
     }
 
     public final boolean isCancelled() {

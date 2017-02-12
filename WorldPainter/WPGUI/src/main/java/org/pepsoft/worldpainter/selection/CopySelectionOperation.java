@@ -9,7 +9,9 @@ import org.pepsoft.worldpainter.operations.MouseOrTabletOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.*;
 import java.awt.*;
+import java.beans.PropertyVetoException;
 
 /**
  * Created by Pepijn Schmitz on 03-11-16.
@@ -20,16 +22,20 @@ public class CopySelectionOperation extends MouseOrTabletOperation {
     }
 
     @Override
-    public CopySelectionOperationOptionsPanel getOptionsPanel() {
+    public JPanel getOptionsPanel() {
         return optionsPanel;
     }
 
     @Override
-    protected void activate() {
+    protected void activate() throws PropertyVetoException {
         super.activate();
         selectionHelper = new SelectionHelper(getDimension());
         WorldPainter view = (WorldPainter) getView();
         Rectangle bounds = selectionHelper.getSelectionBounds();
+        if (bounds == null) {
+            super.deactivate();
+            throw new PropertyVetoException("No active selection", null);
+        }
         bounds.translate(-bounds.x, -bounds.y);
         view.setCustomBrushShape(bounds);
         view.setBrushShape(BrushShape.CUSTOM);

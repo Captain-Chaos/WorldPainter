@@ -16,6 +16,7 @@ import org.pepsoft.util.*;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.swing.ProgressDialog;
 import org.pepsoft.util.swing.ProgressTask;
+import org.pepsoft.util.swing.RemoteJCheckBox;
 import org.pepsoft.util.swing.TiledImageViewerContainer;
 import org.pepsoft.util.undo.UndoManager;
 import org.pepsoft.worldpainter.biomeschemes.AutoBiomeScheme;
@@ -44,12 +45,11 @@ import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayer;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayerDialog;
 import org.pepsoft.worldpainter.operations.*;
-import org.pepsoft.worldpainter.painting.DiscreteLayerPaint;
-import org.pepsoft.worldpainter.painting.LayerPaint;
+import org.pepsoft.worldpainter.painting.*;
 import org.pepsoft.worldpainter.painting.Paint;
-import org.pepsoft.worldpainter.painting.PaintFactory;
 import org.pepsoft.worldpainter.panels.BrushOptions;
 import org.pepsoft.worldpainter.panels.BrushOptions.Listener;
+import org.pepsoft.worldpainter.panels.DefaultFilter;
 import org.pepsoft.worldpainter.panels.InfoPanel;
 import org.pepsoft.worldpainter.plugins.CustomLayerProvider;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
@@ -82,11 +82,13 @@ import java.awt.image.BufferedImageOp;
 import java.awt.image.WritableRaster;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.beans.PropertyVetoException;
 import java.io.*;
 import java.lang.Void;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -101,8 +103,11 @@ import static com.jidesoft.docking.DockableFrame.*;
 import static java.awt.event.KeyEvent.*;
 import static javax.swing.JOptionPane.*;
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.util.GUIUtils.UI_SCALE;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Terrain.*;
+import static org.pepsoft.worldpainter.TileRenderer.FLUIDS_AS_LAYER;
+import static org.pepsoft.worldpainter.TileRenderer.TERRAIN_AS_LAYER;
 
 //import javax.swing.JSeparator;
 
@@ -138,13 +143,16 @@ public final class App extends JFrame implements RadiusControl,
         
         brushOptions = new BrushOptions();
         brushOptions.setListener(this);
+        brushOptions.setSelectionState(selectionState);
 
         if (SystemUtils.isMac()) {
             installMacCustomisations();
         }
 
         initComponents();
-        
+
+        getRootPane().putClientProperty(HELP_KEY_KEY, "Main");
+
         hiddenLayers.add(Biome.INSTANCE);
         view.addHiddenLayer(Biome.INSTANCE);
         
@@ -273,6 +281,9 @@ public final class App extends JFrame implements RadiusControl,
         DisplayMode displayMode = graphicsDevice.getDisplayMode();
         ImageCapabilities imageCapabilities = graphicsDevice.getDefaultConfiguration().getImageCapabilities();
         logger.info("Default graphics device, ID string: " + graphicsDevice.getIDstring() + ", available accelerated memory: " + graphicsDevice.getAvailableAcceleratedMemory() + ", display mode: " + displayMode.getWidth() + "x" + displayMode.getHeight() + ", bit depth: " + ((displayMode.getBitDepth() == DisplayMode.BIT_DEPTH_MULTI) ? "multi" : displayMode.getBitDepth()) + ", refresh rate: " + ((displayMode.getRefreshRate() == DisplayMode.REFRESH_RATE_UNKNOWN) ? "unknown" : displayMode.getRefreshRate()) + ", reported dpi: " + Toolkit.getDefaultToolkit().getScreenResolution() + ", accelerated: " + (imageCapabilities.isAccelerated() ? "yes" : "no") + ", true volatile: " + (imageCapabilities.isTrueVolatile() ? "yes" : "no"));
+        if (GUIUtils.UI_SCALE > 1) {
+            logger.info("High resolution display support enabled");
+        }
     }
 
     public World2 getWorld() {
@@ -495,7 +506,7 @@ public final class App extends JFrame implements RadiusControl,
             }
                 
             // Add the custom object layers from the world
-            boolean missingTerrainWarningGiven = false;
+            StringBuilder warnings = new StringBuilder();
             for (CustomLayer customLayer: dimension.getCustomLayers()) {
                 if (customLayer.isHide()) {
                     layersWithNoButton.add(customLayer);
@@ -504,10 +515,10 @@ public final class App extends JFrame implements RadiusControl,
                 }
                 if (customLayer instanceof CombinedLayer) {
                     if (! ((CombinedLayer) customLayer).restoreCustomTerrain()) {
-                        if (! missingTerrainWarningGiven) {
-                            showMessageDialog(this, "The world contains one or more Combined Layer(s) referring to a Custom Terrain\nwhich is not present in this world. The terrain has been reset.", "Missing Custom Terrain", WARNING_MESSAGE);
-                            missingTerrainWarningGiven = true;
+                        if (warnings.length() == 0) {
+                            warnings.append("The Custom Terrain for one or more Combined Layer could not be restored:\n\n");
                         }
+                        warnings.append(customLayer.getName()).append('\n');
                     } else {
                         // Check for a custom terrain type and if necessary make
                         // sure it has a button
@@ -518,21 +529,26 @@ public final class App extends JFrame implements RadiusControl,
                     }
                 }
             }
+            if (warnings.length() > 0) {
+                warnings.append("\nThe Custom Terrain has been removed from the layer(s).");
+                showMessageDialog(this, warnings.toString(), "Custom Terrain(s) Not Restored", ERROR_MESSAGE);
+            }
             
             // Set action states
             ACTION_GRID.setSelected(view.isPaintGrid());
             ACTION_CONTOURS.setSelected(view.isDrawContours());
             ACTION_OVERLAY.setSelected(view.isDrawOverlay());
 
+            // TODO: make this work correctly with undo/redo, and make "inside selection" ineffective when there is no selection, to avoid confusion
             // Set operation states
-            if (dimension.containsOneOf(SelectionChunk.INSTANCE, SelectionBlock.INSTANCE)) {
-                copySelectionButton.setEnabled(true);
-            } else {
-                if (activeOperation instanceof CopySelectionOperation) {
-                    deselectTool();
-                }
-                copySelectionButton.setEnabled(false);
-            }
+//            if (dimension.containsOneOf(SelectionChunk.INSTANCE, SelectionBlock.INSTANCE)) {
+//                selectionState.setValue(true);
+//            } else {
+//                if (activeOperation instanceof CopySelectionOperation) {
+//                    deselectTool();
+//                }
+//                selectionState.setValue(false);
+//            }
             
             // Load custom biomes. But first remove any that are now regular
             // biomes
@@ -582,8 +598,9 @@ public final class App extends JFrame implements RadiusControl,
                 deselectTool();
             }
 
+            // TODO: make this work correctly with undo/redo, and make "inside selection" ineffective when there is no selection, to avoid confusion
             // Disable copy selection operation
-            copySelectionButton.setEnabled(false);
+//            selectionState.setValue(false);
             
             programmaticChange = true;
             try {
@@ -664,7 +681,7 @@ public final class App extends JFrame implements RadiusControl,
                     break;
             }
         } else if (activeOperation instanceof GardenOfEdenOperation) {
-            setTextIfDifferent(waterLabel, strings.getString("structure") + ": " + GardenCategory.getLabel(tile.getLayerValue(GardenCategory.INSTANCE, xInTile, yInTile)));
+            setTextIfDifferent(waterLabel, strings.getString("structure") + ": " + GardenCategory.getLabel(strings, tile.getLayerValue(GardenCategory.INSTANCE, xInTile, yInTile)));
         } else {
             int waterLevel = tile.getWaterLevel(xInTile, yInTile);
             if (waterLevel > height) {
@@ -735,7 +752,7 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     public int getZoom() {
-        return zoom;
+        return view.getZoom();
     }
 
     public final int getMaxRadius() {
@@ -1390,6 +1407,40 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
 
+    public void showHelp(Component component) {
+        String helpKey = null;
+        do {
+            if ((component instanceof AbstractButton) && (((AbstractButton) component).getAction() != null) && (((AbstractButton) component).getAction().getValue(HELP_KEY_KEY) != null)) {
+                helpKey = (String) ((AbstractButton) component).getAction().getValue(HELP_KEY_KEY);
+            } else if (component instanceof JComponent) {
+                helpKey = (String) ((JComponent) component).getClientProperty(HELP_KEY_KEY);
+            } else if (component instanceof RootPaneContainer) {
+                helpKey = (String) ((RootPaneContainer) component).getRootPane().getClientProperty(HELP_KEY_KEY);
+            }
+            component = component.getParent();
+        } while ((helpKey == null) && (component != null));
+        if (helpKey == null) {
+            throw new IllegalArgumentException("No help key found in hierarchy");
+        }
+        try {
+            DesktopUtils.open(new URL(HELP_ROOT_URL + encodeForURL(helpKey)));
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("Malformed help URL: " + HELP_ROOT_URL + encodeForURL(helpKey), e);
+        }
+    }
+
+    private String encodeForURL(String str) {
+        String[] parts = str.split("/");
+        try {
+            for (int i = 0; i < parts.length; i++) {
+                    parts[i] = URLEncoder.encode(parts[i], "UTF-8");
+            }
+        } catch (UnsupportedEncodingException e) {
+            throw new InternalError("VM does not support mandatory encoding UTF-8");
+        }
+        return String.join("/", parts);
+    }
+
     private int findNextCustomTerrainIndex() {
         for (int i = 0; i < CUSTOM_TERRAIN_COUNT; i++) {
             if (! Terrain.isCustomMaterialConfigured(i)) {
@@ -2029,7 +2080,7 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void updateZoomLabel() {
-        double factor = Math.pow(2.0, zoom);
+        double factor = Math.pow(2.0, view.getZoom());
         int zoomPercentage = (int) (100 * factor);
         zoomLabel.setText(MessageFormat.format(strings.getString("zoom.0"), zoomPercentage));
         glassPane.setScale((float) factor);
@@ -2061,7 +2112,7 @@ public final class App extends JFrame implements RadiusControl,
         }
         view.setRadius(radius);
         view.setBrushShape(brush.getBrushShape());
-        final Cursor cursor = Toolkit.getDefaultToolkit().createCustomCursor(IconUtils.loadImage("org/pepsoft/worldpainter/cursor.png"), new Point(15, 15), "Custom Crosshair");
+        final Cursor cursor = Toolkit.getDefaultToolkit().createCustomCursor(IconUtils.loadScaledImage("org/pepsoft/worldpainter/cursor.png"), new Point(15 * UI_SCALE, 15 * UI_SCALE), "Custom Crosshair");
         view.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
@@ -2077,6 +2128,7 @@ public final class App extends JFrame implements RadiusControl,
 
         glassPane = new GlassPane();
         JRootPane privateRootPane = new JRootPane();
+        privateRootPane.putClientProperty(HELP_KEY_KEY, "Editor");
         privateRootPane.setContentPane(viewContainer);
         privateRootPane.setGlassPane(glassPane);
         glassPane.setVisible(true);
@@ -2153,7 +2205,7 @@ public final class App extends JFrame implements RadiusControl,
         
         dockingManager.addFrame(new DockableFrameBuilder(createBrushSettingsPanel(), "Brush Settings", DOCK_SIDE_EAST, 2).withId("brushSettings").build());
 
-        dockingManager.addFrame(new DockableFrameBuilder(createInfoPanel(), "Info", DOCK_SIDE_EAST, 2).withId("infoPanel").expand().withIcon(loadIcon("information")).build());
+        dockingManager.addFrame(new DockableFrameBuilder(createInfoPanel(), "Info", DOCK_SIDE_EAST, 2).withId("infoPanel").expand().withIcon(loadScaledIcon("information")).build());
 
         if (config.getDefaultJideLayoutData() != null) {
             dockingManager.loadLayoutFrom(new ByteArrayInputStream(config.getDefaultJideLayoutData()));
@@ -2180,11 +2232,11 @@ public final class App extends JFrame implements RadiusControl,
             @Override
             public void mouseWheelMoved(MouseWheelEvent e) {
                 if (e.isControlDown()) {
-                    int oldZoom = zoom;
+                    int oldZoom = view.getZoom(), zoom;
                     if (e.getWheelRotation() < 0) {
-                        zoom = Math.min(zoom - e.getWheelRotation(), 6);
+                        zoom = Math.min(oldZoom - e.getWheelRotation(), 6);
                     } else {
-                        zoom = Math.max(zoom - e.getWheelRotation(), -4);
+                        zoom = Math.max(oldZoom - e.getWheelRotation(), -4);
                     }
                     if (zoom != oldZoom) {
                         view.setZoom(zoom, e.getX(), e.getY());
@@ -2426,35 +2478,47 @@ public final class App extends JFrame implements RadiusControl,
 
 //        toolPanel.add(createButtonForOperation(new Erode(view, this, mapDragControl), 'm'));
         toolPanel.add(createButtonForOperation(new SetSpawnPoint(view)));
-        JButton button = new JButton(loadIcon("globals"));
+        JButton button = new JButton(loadScaledIcon("globals"));
         button.setMargin(new Insets(2, 2, 2, 2));
         button.addActionListener(e -> showGlobalOperations());
         button.setToolTipText(strings.getString("global.operations.fill.or.clear.the.world.with.a.terrain.biome.or.layer"));
+        button.putClientProperty(HELP_KEY_KEY, "Operation/GlobalOperations");
         toolPanel.add(button);
         toolPanel.add(createButtonForOperation(new RaiseRotatedPyramid(view)));
         toolPanel.add(createButtonForOperation(new RaisePyramid(view)));
 
-        copySelectionButton = createButtonForOperation(new CopySelectionOperation(view));
-        copySelectionButton.setEnabled(false);
-        toolPanel.add(createButtonForOperation(new EditSelectionOperation(view, this, mapDragControl, copySelectionButton)));
+        JToggleButton copySelectionButton = createButtonForOperation(new CopySelectionOperation(view));
+        copySelectionButton.setEnabled(selectionState.getValue());
+        toolPanel.add(createButtonForOperation(new EditSelectionOperation(view, this, mapDragControl, selectionState)));
         toolPanel.add(copySelectionButton);
-        button = new JButton(loadIcon("clear_selection"));
-        button.setMargin(new Insets(2, 2, 2, 2));
-        button.addActionListener(e -> {
-            dimension.setEventsInhibited(true);
-            try {
-                new SelectionHelper(dimension).clearSelection();
-                dimension.armSavePoint();
-            } finally {
-                dimension.setEventsInhibited(false);
+        JButton clearSelectionButton = new JButton(loadScaledIcon("clear_selection"));
+        clearSelectionButton.setEnabled(selectionState.getValue());
+        clearSelectionButton.setMargin(new Insets(2, 2, 2, 2));
+        clearSelectionButton.addActionListener(e -> {
+            if (dimension.containsOneOf(SelectionChunk.INSTANCE, SelectionBlock.INSTANCE)) {
+                dimension.setEventsInhibited(true);
+                try {
+                    new SelectionHelper(dimension).clearSelection();
+                    dimension.armSavePoint();
+                } finally {
+                    dimension.setEventsInhibited(false);
+                }
+            } else {
+                Toolkit.getDefaultToolkit().beep();
             }
             if (activeOperation instanceof CopySelectionOperation) {
                 deselectTool();
             }
-            copySelectionButton.setEnabled(false);
+            // TODO: make this work correctly with undo/redo, and make "inside selection" ineffective when there is no selection, to avoid confusion
+//            selectionState.setValue(false);
         });
-        button.setToolTipText("Clear the selection");
-        toolPanel.add(button);
+        clearSelectionButton.setToolTipText("Clear the selection");
+        selectionState.addObserver((o, selectionMayBePresent) -> {
+            copySelectionButton.setEnabled((boolean) selectionMayBePresent);
+            clearSelectionButton.setEnabled((boolean) selectionMayBePresent);
+        });
+        clearSelectionButton.putClientProperty(HELP_KEY_KEY, "Operation/ClearSelection");
+        toolPanel.add(clearSelectionButton);
 
         for (Operation operation: operations) {
             operation.setView(view);
@@ -2491,20 +2555,25 @@ public final class App extends JFrame implements RadiusControl,
         layerPanel.add(new JLabel(), constraints);
         
         Configuration config = Configuration.getInstance();
-        constraints.anchor = GridBagConstraints.FIRST_LINE_START;
+        constraints.anchor = GridBagConstraints.WEST;
         constraints.weightx = 0.0;
+        List<Component> terrainComponents = createLayerButton(TERRAIN_AS_LAYER, (char) 0, true, false);
+        terrainCheckBox = (JCheckBox) terrainComponents.get(0);
+        terrainSoloCheckBox = (JCheckBox) terrainComponents.get(1);
+        LayoutUtils.addRowOfComponents(layerPanel, constraints, terrainComponents);
+        LayoutUtils.addRowOfComponents(layerPanel, constraints, createLayerButton(FLUIDS_AS_LAYER, (char) 0, false, false));
         for (Layer layer: layers) {
-            LayoutUtils.addRowOfComponents(layerPanel, constraints, createLayerButton(layer, layer.getMnemonic(), true));
+            LayoutUtils.addRowOfComponents(layerPanel, constraints, createLayerButton(layer, layer.getMnemonic()));
         }
         if (! config.isEasyMode()) {
-            LayoutUtils.addRowOfComponents(layerPanel, constraints, createLayerButton(Populate.INSTANCE, 'p', true));
+            LayoutUtils.addRowOfComponents(layerPanel, constraints, createLayerButton(Populate.INSTANCE, 'p'));
         }
-        LayoutUtils.addRowOfComponents(layerPanel, constraints, createLayerButton(ReadOnly.INSTANCE, 'o', true));
+        LayoutUtils.addRowOfComponents(layerPanel, constraints, createLayerButton(ReadOnly.INSTANCE, 'o'));
         disableImportedWorldOperation();
 
         final JPopupMenu customLayerMenu = createCustomLayerMenu(null);
 
-        final JButton addLayerButton = new JButton(loadIcon("plus"));
+        final JButton addLayerButton = new JButton(loadScaledIcon("plus"));
         addLayerButton.setToolTipText(strings.getString("add.a.custom.layer"));
         addLayerButton.setMargin(new Insets(2, 2, 2, 2));
         addLayerButton.addActionListener(e -> customLayerMenu.show(layerPanel, addLayerButton.getX() + addLayerButton.getWidth(), addLayerButton.getY()));
@@ -2624,9 +2693,9 @@ public final class App extends JFrame implements RadiusControl,
         JPanel colourGrid = new JPanel(new GridLayout(0, 4));
         for (int i = 1; i < 16; i++) {
             final int selectedColour = i, dataValue = i - ((i < 8) ? 1 : 0);
-            JToggleButton button = new JToggleButton(IconUtils.createColourIcon(defaultColourScheme.getColour(BLK_WOOL, dataValue)));
+            JToggleButton button = new JToggleButton(IconUtils.createScaledColourIcon(defaultColourScheme.getColour(BLK_WOOL, dataValue)));
             button.setToolTipText(COLOUR_NAMES[dataValue]);
-            button.setMargin(new Insets(2, 2, 2, 2));
+            button.setMargin(new Insets(2, 4, 2, 4));
             if (i == 1) {
                 button.setSelected(true);
             }
@@ -2782,73 +2851,98 @@ public final class App extends JFrame implements RadiusControl,
 
     private JPanel createTerrainPanel() {
         JPanel terrainPanel = new JPanel();
-        terrainPanel.setLayout(new GridLayout(0, 4));
-        terrainPanel.add(createTerrainButton(GRASS));
-        terrainPanel.add(createTerrainButton(PERMADIRT));
-        terrainPanel.add(createTerrainButton(SAND));
-        terrainPanel.add(createTerrainButton(GRASS_PATH));
+        terrainPanel.setLayout(new GridBagLayout());
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.insets = new Insets(1, 1, 1, 1);
 
-        terrainPanel.add(createTerrainButton(BARE_GRASS));
-        terrainPanel.add(createTerrainButton(STONE));
-        terrainPanel.add(createTerrainButton(ROCK));
-        terrainPanel.add(createTerrainButton(SANDSTONE));
+        Configuration config = Configuration.getInstance();
+        constraints.anchor = GridBagConstraints.FIRST_LINE_START;
+        constraints.weightx = 0.0;
+        JCheckBox checkBoxShowTerrain = new RemoteJCheckBox(terrainCheckBox, "Show:");
+        checkBoxShowTerrain.setHorizontalTextPosition(SwingConstants.LEADING);
+        checkBoxShowTerrain.setToolTipText("Uncheck to hide biomes from view (it will still be exported)");
+        if (! config.isEasyMode()) {
+            constraints.gridwidth = 1;
+            constraints.weightx = 0.0;
+            terrainPanel.add(checkBoxShowTerrain, constraints);
+        }
 
-        terrainPanel.add(createTerrainButton(STONE_MIX));
-        terrainPanel.add(createTerrainButton(GRANITE));
-        terrainPanel.add(createTerrainButton(DIORITE));
-        terrainPanel.add(createTerrainButton(ANDESITE));
+        JCheckBox checkBoxSoloTerrain = new RemoteJCheckBox(terrainSoloCheckBox, "Solo:");
+        checkBoxSoloTerrain.setHorizontalTextPosition(SwingConstants.LEADING);
+        checkBoxSoloTerrain.setToolTipText("<html>Check to show <em>only</em> the biomes (the other layers are still exported)</html>");
+        if (! config.isEasyMode()) {
+            constraints.gridwidth = GridBagConstraints.REMAINDER;
+            terrainPanel.add(checkBoxSoloTerrain, constraints);
+        }
 
-        terrainPanel.add(createTerrainButton(PODZOL));
-        terrainPanel.add(createTerrainButton(COBBLESTONE));
-        terrainPanel.add(createTerrainButton(MOSSY_COBBLESTONE));
-        terrainPanel.add(createTerrainButton(GRAVEL));
+        JPanel buttonPanel = new JPanel(new GridLayout(0, 4));
+        buttonPanel.add(createTerrainButton(GRASS));
+        buttonPanel.add(createTerrainButton(PERMADIRT));
+        buttonPanel.add(createTerrainButton(SAND));
+        buttonPanel.add(createTerrainButton(GRASS_PATH));
+
+        buttonPanel.add(createTerrainButton(BARE_GRASS));
+        buttonPanel.add(createTerrainButton(STONE));
+        buttonPanel.add(createTerrainButton(ROCK));
+        buttonPanel.add(createTerrainButton(SANDSTONE));
+
+        buttonPanel.add(createTerrainButton(STONE_MIX));
+        buttonPanel.add(createTerrainButton(GRANITE));
+        buttonPanel.add(createTerrainButton(DIORITE));
+        buttonPanel.add(createTerrainButton(ANDESITE));
+
+        buttonPanel.add(createTerrainButton(PODZOL));
+        buttonPanel.add(createTerrainButton(COBBLESTONE));
+        buttonPanel.add(createTerrainButton(MOSSY_COBBLESTONE));
+        buttonPanel.add(createTerrainButton(GRAVEL));
         
-        terrainPanel.add(createTerrainButton(OBSIDIAN));
-        terrainPanel.add(createTerrainButton(WATER));
-        terrainPanel.add(createTerrainButton(LAVA));
-        terrainPanel.add(createTerrainButton(MAGMA));
+        buttonPanel.add(createTerrainButton(OBSIDIAN));
+        buttonPanel.add(createTerrainButton(WATER));
+        buttonPanel.add(createTerrainButton(LAVA));
+        buttonPanel.add(createTerrainButton(MAGMA));
         
-        terrainPanel.add(createTerrainButton(NETHERRACK));
-        terrainPanel.add(createTerrainButton(SOUL_SAND));
-        terrainPanel.add(createTerrainButton(NETHERLIKE));
-        terrainPanel.add(createTerrainButton(MYCELIUM));
+        buttonPanel.add(createTerrainButton(NETHERRACK));
+        buttonPanel.add(createTerrainButton(SOUL_SAND));
+        buttonPanel.add(createTerrainButton(NETHERLIKE));
+        buttonPanel.add(createTerrainButton(MYCELIUM));
 
-        terrainPanel.add(createTerrainButton(END_STONE));
-        terrainPanel.add(createTerrainButton(BEDROCK));
-        terrainPanel.add(createTerrainButton(CLAY));
-        terrainPanel.add(createTerrainButton(DESERT));
+        buttonPanel.add(createTerrainButton(END_STONE));
+        buttonPanel.add(createTerrainButton(BEDROCK));
+        buttonPanel.add(createTerrainButton(CLAY));
+        buttonPanel.add(createTerrainButton(DESERT));
 
-        terrainPanel.add(createTerrainButton(RED_SAND));
-        terrainPanel.add(createTerrainButton(RED_SANDSTONE));
-        terrainPanel.add(createTerrainButton(RED_DESERT));
-        terrainPanel.add(createTerrainButton(MESA));
+        buttonPanel.add(createTerrainButton(RED_SAND));
+        buttonPanel.add(createTerrainButton(RED_SANDSTONE));
+        buttonPanel.add(createTerrainButton(RED_DESERT));
+        buttonPanel.add(createTerrainButton(MESA));
 
-        terrainPanel.add(createTerrainButton(WHITE_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(ORANGE_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(MAGENTA_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(LIGHT_BLUE_STAINED_CLAY));
+        buttonPanel.add(createTerrainButton(WHITE_STAINED_CLAY));
+        buttonPanel.add(createTerrainButton(ORANGE_STAINED_CLAY));
+        buttonPanel.add(createTerrainButton(MAGENTA_STAINED_CLAY));
+        buttonPanel.add(createTerrainButton(LIGHT_BLUE_STAINED_CLAY));
 
-        terrainPanel.add(createTerrainButton(YELLOW_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(LIME_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(PINK_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(GREY_STAINED_CLAY));
+        buttonPanel.add(createTerrainButton(YELLOW_STAINED_CLAY));
+        buttonPanel.add(createTerrainButton(LIME_STAINED_CLAY));
+        buttonPanel.add(createTerrainButton(PINK_STAINED_CLAY));
+        buttonPanel.add(createTerrainButton(GREY_STAINED_CLAY));
 
-        terrainPanel.add(createTerrainButton(LIGHT_GREY_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(CYAN_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(PURPLE_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(BLUE_STAINED_CLAY));
+        buttonPanel.add(createTerrainButton(LIGHT_GREY_STAINED_CLAY));
+        buttonPanel.add(createTerrainButton(CYAN_STAINED_CLAY));
+        buttonPanel.add(createTerrainButton(PURPLE_STAINED_CLAY));
+        buttonPanel.add(createTerrainButton(BLUE_STAINED_CLAY));
 
-        terrainPanel.add(createTerrainButton(BROWN_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(GREEN_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(RED_STAINED_CLAY));
-        terrainPanel.add(createTerrainButton(BLACK_STAINED_CLAY));
+        buttonPanel.add(createTerrainButton(BROWN_STAINED_CLAY));
+        buttonPanel.add(createTerrainButton(GREEN_STAINED_CLAY));
+        buttonPanel.add(createTerrainButton(RED_STAINED_CLAY));
+        buttonPanel.add(createTerrainButton(BLACK_STAINED_CLAY));
 
-        terrainPanel.add(createTerrainButton(HARDENED_CLAY));
-        terrainPanel.add(createTerrainButton(BEACHES));
-        terrainPanel.add(createTerrainButton(DEEP_SNOW));
+        buttonPanel.add(createTerrainButton(HARDENED_CLAY));
+        buttonPanel.add(createTerrainButton(BEACHES));
+        buttonPanel.add(createTerrainButton(DEEP_SNOW));
         JButton addCustomTerrainButton = new JButton(ACTION_SHOW_CUSTOM_TERRAIN_POPUP);
         addCustomTerrainButton.setMargin(new Insets(2, 2, 2, 2));
-        terrainPanel.add(addCustomTerrainButton);
+        buttonPanel.add(addCustomTerrainButton);
+        terrainPanel.add(buttonPanel, constraints);
 
         return terrainPanel;
     }
@@ -3084,7 +3178,7 @@ public final class App extends JFrame implements RadiusControl,
     
     @Override
     public List<Component> createCustomLayerButton(final CustomLayer layer) {
-        final List<Component> buttonComponents = createLayerButton(layer, '\0', true);
+        final List<Component> buttonComponents = createLayerButton(layer, '\0');
         final JToggleButton button = (JToggleButton) buttonComponents.get(2);
         button.setToolTipText(button.getToolTipText() + "; right-click for options");
         button.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -3244,7 +3338,7 @@ public final class App extends JFrame implements RadiusControl,
     public List<Component> createPopupMenuButton(String paletteName) {
         final JPopupMenu customLayerMenu = createCustomLayerMenu(paletteName);
         
-        final JButton addLayerButton = new JButton(loadIcon("plus"));
+        final JButton addLayerButton = new JButton(loadScaledIcon("plus"));
         final List<Component> addLayerButtonPanel = new ArrayList<>(3);
         addLayerButton.setToolTipText(strings.getString("add.a.custom.layer"));
         addLayerButton.setMargin(new Insets(2, 2, 2, 2));
@@ -3408,6 +3502,7 @@ public final class App extends JFrame implements RadiusControl,
             menuItem.setMnemonic('x');
             menu.add(menuItem);
         }
+        menu.putClientProperty(HELP_KEY_KEY, "Menu/File");
         return menu;
     }
     
@@ -3533,8 +3628,6 @@ public final class App extends JFrame implements RadiusControl,
             menuItem = new JMenuItem(ACTION_SHIFT_WORLD);
             menuItem.setMnemonic('s');
             menu.add(menuItem);
-
-            menu.addSeparator();
         }
 
         menuItem = new JMenuItem(strings.getString("global.operations") + "...");
@@ -3595,6 +3688,8 @@ public final class App extends JFrame implements RadiusControl,
 //        menu.add(easyModeItem);
 
         if ((! config.isEasyMode()) && (! hidePreferences)) {
+            menu.addSeparator();
+
             menuItem = new JMenuItem(strings.getString("preferences") + "...");
             menuItem.addActionListener(e -> {
                 PreferencesDialog dialog = new PreferencesDialog(App.this, selectedColourScheme);
@@ -3607,6 +3702,7 @@ public final class App extends JFrame implements RadiusControl,
             menu.add(menuItem);
         }
 
+        menu.putClientProperty(HELP_KEY_KEY, "Menu/Edit");
         return menu;
     }
 
@@ -3779,6 +3875,7 @@ public final class App extends JFrame implements RadiusControl,
         });
         menu.add(menuItem);
 
+        menu.putClientProperty(HELP_KEY_KEY, "Menu/View");
         return menu;
     }
 
@@ -3909,6 +4006,7 @@ public final class App extends JFrame implements RadiusControl,
             new ScriptRunner(this, world, dimension, undoManagers.values()).setVisible(true);
         });
         menu.add(menuItem);
+        menu.putClientProperty(HELP_KEY_KEY, "Menu/Tools");
         return menu;
     }
 
@@ -3918,6 +4016,8 @@ public final class App extends JFrame implements RadiusControl,
         JMenu menu = new JMenu(strings.getString("help"));
 //        menu.setMnemonic('h');
         menu.add(menuItem);
+
+        menu.add(ACTION_SHOW_HELP_PICKER);
 
         if (! hideAbout) {
             menu.addSeparator();
@@ -3930,6 +4030,7 @@ public final class App extends JFrame implements RadiusControl,
             });
             menu.add(menuItem);
         }
+        menu.putClientProperty(HELP_KEY_KEY, "Menu/Help");
         return menu;
     }
 
@@ -4169,6 +4270,8 @@ public final class App extends JFrame implements RadiusControl,
         toolBar.add(button);
         toolBar.add(ACTION_ROTATE_LIGHT_LEFT);
         toolBar.add(ACTION_ROTATE_LIGHT_RIGHT);
+        toolBar.add(Box.createHorizontalGlue());
+        toolBar.add(ACTION_SHOW_HELP_PICKER);
         return toolBar;
     }
     
@@ -4318,7 +4421,7 @@ public final class App extends JFrame implements RadiusControl,
         biomeLabel.setText(" ");
         materialLabel.setText(" ");
         radiusLabel.setText(MessageFormat.format(strings.getString("radius.0"), radius));
-        zoomLabel.setText(MessageFormat.format(strings.getString("zoom.0"), 100));
+        updateZoomLabel();
     }
 
     private JToggleButton createButtonForOperation(final Operation operation) {
@@ -4348,7 +4451,11 @@ public final class App extends JFrame implements RadiusControl,
                 if (operation instanceof RadiusOperation) {
                     view.setDrawBrush(false);
                 }
-                operation.setActive(false);
+                try {
+                    operation.setActive(false);
+                } catch (PropertyVetoException e) {
+                    logger.error("Property veto exception while deactivating operation " + operation, e);
+                }
                 activeOperation = null;
                 if (toolSettingsPanel.getComponentCount() > 0) {
                     toolSettingsPanel.removeAll();
@@ -4375,7 +4482,11 @@ public final class App extends JFrame implements RadiusControl,
                     } finally {
                         programmaticChange = false;
                     }
-                    brushOptions.setFilter(filter);
+                    if (filter instanceof DefaultFilter) {
+                        brushOptions.setFilter((DefaultFilter) filter);
+                    } else {
+                        brushOptions.setFilter(null);
+                    }
                     ((PaintOperation) operation).setPaint(paint);
                 } else {
                     programmaticChange = true;
@@ -4397,7 +4508,11 @@ public final class App extends JFrame implements RadiusControl,
                     } finally {
                         programmaticChange = false;
                     }
-                    brushOptions.setFilter(toolFilter);
+                    if (toolFilter instanceof DefaultFilter) {
+                        brushOptions.setFilter((DefaultFilter) toolFilter);
+                    } else {
+                        brushOptions.setFilter(null);
+                    }
                 }
                 if (operation instanceof RadiusOperation) {
                     view.setDrawBrush(true);
@@ -4407,7 +4522,13 @@ public final class App extends JFrame implements RadiusControl,
                 activeOperation = operation;
                 updateLayerVisibility();
                 updateBrushRotation();
-                operation.setActive(true);
+                try {
+                    operation.setActive(true);
+                } catch (PropertyVetoException e) {
+                    deselectTool();
+                    Toolkit.getDefaultToolkit().beep();
+                    return;
+                }
                 if (closeCallout("callout_1")) {
                     // If the user picked an operation which doesn't need a
                     // brush, close the "select brush" callout too
@@ -4427,60 +4548,43 @@ public final class App extends JFrame implements RadiusControl,
                 }
             }
         });
+        button.putClientProperty(HELP_KEY_KEY, "Operation/" + operation.getClass().getSimpleName());
         toolButtonGroup.add(button);
         return button;
     }
 
-    private List<Component> createLayerButton(final Layer layer, char mnemonic, boolean checkboxEnabled) {
+    private List<Component> createLayerButton(final Layer layer, char mnemonic) {
+        return createLayerButton(layer, mnemonic, true, true);
+    }
+
+    private List<Component> createLayerButton(final Layer layer, char mnemonic, boolean createSoloCheckbox, boolean createButton) {
         boolean readOnlyOperation = layer.equals(ReadOnly.INSTANCE);
-        final JToggleButton button = new JToggleButton();
-        if (readOnlyOperation) {
-            readOnlyToggleButton = button;
-        }
-        button.setMargin(new Insets(2, 2, 2, 2));
-        button.setIcon(new ImageIcon(layer.getIcon()));
-        button.setToolTipText(layer.getName() + ": " + layer.getDescription());
-        // TODO: make this work again, but with Ctrl + Alt or something
-//        if (mnemonic != 0) {
-//            button.setMnemonic(mnemonic);
-//        }
-        button.addItemListener(event -> {
-            if (event.getStateChange() == ItemEvent.SELECTED) {
-                paintUpdater = () -> {
-                    paint = PaintFactory.createLayerPaint(layer);
-                    paintChanged();
-                };
-                paintUpdater.updatePaint();
-            }
-        });
-        paintButtonGroup.add(button);
+        List<Component> components = new ArrayList<>(3);
+
         final JCheckBox checkBox = new JCheckBox();
         if (readOnlyOperation) {
             readOnlyCheckBox = checkBox;
         }
         checkBox.setToolTipText(strings.getString("whether.or.not.to.display.this.layer"));
         checkBox.setSelected(true);
-        if (checkboxEnabled) {
-            checkBox.addActionListener(e -> {
-                if (checkBox.isSelected()) {
-                    hiddenLayers.remove(layer);
-                } else {
-                    hiddenLayers.add(layer);
-                }
-                updateLayerVisibility();
-            });
-        } else {
-            checkBox.setEnabled(false);
-        }
+        checkBox.addChangeListener(e -> {
+            if (checkBox.isSelected()) {
+                hiddenLayers.remove(layer);
+            } else {
+                hiddenLayers.add(layer);
+            }
+            updateLayerVisibility();
+        });
+        components.add(checkBox);
 
-        final JCheckBox soloCheckBox = new JCheckBox();
-        if (readOnlyOperation) {
-            readOnlySoloCheckBox = soloCheckBox;
-        }
-        layerSoloCheckBoxes.put(layer, soloCheckBox);
-        soloCheckBox.setToolTipText("<html>Check to show <em>only</em> this layer (the other layers are still exported)</html>");
-        if (checkboxEnabled) {
-            soloCheckBox.addActionListener(e -> {
+        if (createSoloCheckbox) {
+            final JCheckBox soloCheckBox = new JCheckBox();
+            if (readOnlyOperation) {
+                readOnlySoloCheckBox = soloCheckBox;
+            }
+            layerSoloCheckBoxes.put(layer, soloCheckBox);
+            soloCheckBox.setToolTipText("<html>Check to show <em>only</em> this layer (the other layers are still exported)</html>");
+            soloCheckBox.addChangeListener(e -> {
                 if (soloCheckBox.isSelected()) {
                     layerSoloCheckBoxes.values().stream().filter(otherSoloCheckBox -> otherSoloCheckBox != soloCheckBox).forEach(otherSoloCheckBox -> otherSoloCheckBox.setSelected(false));
                     soloLayer = layer;
@@ -4489,17 +4593,50 @@ public final class App extends JFrame implements RadiusControl,
                 }
                 updateLayerVisibility();
             });
+            components.add(soloCheckBox);
         } else {
-            soloCheckBox.setEnabled(false);
+            components.add(Box.createGlue());
         }
 
-        button.setText(layer.getName());
-        return Arrays.asList(checkBox, soloCheckBox, button);
+        if (createButton) {
+            final JToggleButton button = new JToggleButton();
+            if (readOnlyOperation) {
+                readOnlyToggleButton = button;
+            }
+            button.setMargin(new Insets(2, 2, 2, 2));
+            if (layer.getIcon() != null) {
+                button.setIcon(new ImageIcon(layer.getIcon()));
+            }
+            button.setToolTipText(layer.getName() + ": " + layer.getDescription());
+            // TODO: make this work again, but with Ctrl + Alt or something
+    //        if (mnemonic != 0) {
+    //            button.setMnemonic(mnemonic);
+    //        }
+            button.addItemListener(event -> {
+                if (event.getStateChange() == ItemEvent.SELECTED) {
+                    paintUpdater = () -> {
+                        paint = PaintFactory.createLayerPaint(layer);
+                        paintChanged();
+                    };
+                    paintUpdater.updatePaint();
+                }
+            });
+            paintButtonGroup.add(button);
+            button.setText(layer.getName());
+            button.putClientProperty(HELP_KEY_KEY, "Layer/" + layer.getId());
+            components.add(button);
+        } else {
+            JLabel label = new JLabel(layer.getName(), new ImageIcon(layer.getIcon()), JLabel.LEADING);
+            label.putClientProperty(HELP_KEY_KEY, "Layer/" + layer.getId());
+            components.add(label);
+        }
+
+        return components;
     }
 
     private JToggleButton createTerrainButton(final Terrain terrain) {
         final JToggleButton button = new JToggleButton();
-        button.setMargin(new Insets(2, 2, 2, 2));
+        button.setMargin(new Insets(2, 4, 2, 4));
         button.setIcon(new ImageIcon(terrain.getIcon(defaultColourScheme)));
         button.setToolTipText(terrain.getName() + ": " + terrain.getDescription());
         button.addItemListener(event -> {
@@ -4550,6 +4687,9 @@ public final class App extends JFrame implements RadiusControl,
             // Only the solo layer and the active layer (if there is one and it
             // is different than the solo layer) should be visible
             targetHiddenLayers.addAll((dimension != null) ? dimension.getAllLayers(true) : new HashSet<>(layers));
+            // Put in the currently hidden layers as well, as some of them might
+            // be synthetic and not returned by the dimension
+            targetHiddenLayers.addAll(hiddenLayers);
             targetHiddenLayers.remove(soloLayer);
         } else {
             // The layers marked as hidden should be invisible, except the
@@ -4557,13 +4697,26 @@ public final class App extends JFrame implements RadiusControl,
             targetHiddenLayers.addAll(hiddenLayers);
         }
         // The currently active layer, if any, should always be visible
-        if ((activeOperation instanceof PaintOperation) && (paint instanceof LayerPaint)) {
-            targetHiddenLayers.remove(((LayerPaint) paint).getLayer());
+        if (activeOperation instanceof PaintOperation) {
+            if (paint instanceof LayerPaint) {
+                targetHiddenLayers.remove(((LayerPaint) paint).getLayer());
+            } else if (paint instanceof TerrainPaint) {
+                targetHiddenLayers.remove(TERRAIN_AS_LAYER);
+            }
+        } else if ((activeOperation instanceof Flood) || (activeOperation instanceof FloodWithLava)) {
+            targetHiddenLayers.remove(FLUIDS_AS_LAYER);
         }
+        // The Selection layers should *never* be hidden
+        targetHiddenLayers.remove(SelectionBlock.INSTANCE);
+        targetHiddenLayers.remove(SelectionChunk.INSTANCE);
         
         // Hide the selected layers
-        targetHiddenLayers.stream().filter(hiddenLayer -> !viewHiddenLayers.contains(hiddenLayer)).forEach(view::addHiddenLayer);
-        viewHiddenLayers.stream().filter(hiddenLayer -> !targetHiddenLayers.contains(hiddenLayer)).forEach(view::removeHiddenLayer);
+        targetHiddenLayers.stream()
+                .filter(hiddenLayer -> ! viewHiddenLayers.contains(hiddenLayer))
+                .forEach(view::addHiddenLayer);
+        viewHiddenLayers.stream()
+                .filter(hiddenLayer -> ! targetHiddenLayers.contains(hiddenLayer))
+                .forEach(view::removeHiddenLayer);
         
         // Configure the glass pane to show the right icons
         glassPane.setHiddenLayers(hiddenLayers);
@@ -4620,7 +4773,7 @@ public final class App extends JFrame implements RadiusControl,
     
     private Icon createBrushIcon(Brush brush, int degrees) {
         brush = brush.clone();
-        brush.setRadius(15);
+        brush.setRadius(16 * UI_SCALE - 1);
         if (degrees != 0) {
             brush = RotatedBrush.rotate(brush, degrees);
         }
@@ -4628,19 +4781,19 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private BufferedImage createBrushImage(Brush brush) {
-        BufferedImage image = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(32, 32, Transparency.TRANSLUCENT);
-        for (int dx = -15; dx <= 15; dx++) {
-            for (int dy = -15; dy <= 15; dy++) {
+        BufferedImage image = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(32 * UI_SCALE, 32 * UI_SCALE, Transparency.TRANSLUCENT);
+        for (int dx = -16 * UI_SCALE + 1; dx < 16 * UI_SCALE; dx++) {
+            for (int dy = -16 * UI_SCALE + 1; dy < 16 * UI_SCALE; dy++) {
                 float strength = brush.getFullStrength(dx, dy);
                 int alpha = (int) (strength * 255f + 0.5f);
-                image.setRGB(dx + 15, dy + 15, alpha << 24);
+                image.setRGB(dx + 16 * UI_SCALE - 1, dy + 16 * UI_SCALE - 1, alpha << 24);
             }
         }
         return image;
     }
 
-    private static Icon loadIcon(@NonNls String name) {
-        return IconUtils.loadIcon("org/pepsoft/worldpainter/icons/" + name + ".png");
+    private static Icon loadScaledIcon(@NonNls String name) {
+        return IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/" + name + ".png");
     }
     
     private void enableImportedWorldOperation() {
@@ -4879,7 +5032,7 @@ public final class App extends JFrame implements RadiusControl,
         if (customBiomeManager.getCustomBiomes() != null) {
             allBiomes.addAll(customBiomeManager.getCustomBiomes().stream().map(CustomBiome::getId).collect(Collectors.toList()));
         }
-        FillDialog dialog = new FillDialog(App.this, dimension, allLayers.toArray(new Layer[allLayers.size()]), selectedColourScheme, allBiomes.toArray(new Integer[allBiomes.size()]), customBiomeManager, view);
+        FillDialog dialog = new FillDialog(App.this, dimension, allLayers.toArray(new Layer[allLayers.size()]), selectedColourScheme, allBiomes.toArray(new Integer[allBiomes.size()]), customBiomeManager, view, selectionState);
         dialog.setVisible(true);
     }
 
@@ -5100,7 +5253,7 @@ public final class App extends JFrame implements RadiusControl,
                             CombinedLayer combinedLayer = (CombinedLayer) layer;
                             addLayersFromCombinedLayer(combinedLayer);
                             if (! combinedLayer.restoreCustomTerrain()) {
-                                showMessageDialog(this, "The layer contained a Custom Terrain which is not present in this world. The terrain has been reset.", "Missing Custom Terrain", WARNING_MESSAGE);
+                                showMessageDialog(this, "The layer contained a Custom Terrain which could not be restored. The terrain has been reset.", "Custom Terrain Not Restored", ERROR_MESSAGE);
                             } else {
                                 // Check for a custom terrain type and if necessary make
                                 // sure it has a button
@@ -5416,7 +5569,7 @@ public final class App extends JFrame implements RadiusControl,
             this.title = title;
             this.side = side;
             this.index = index;
-            id = Character.toLowerCase(title.charAt(0)) + title.substring(1);
+            id = (Character.toLowerCase(title.charAt(0)) + title.substring(1)).replaceAll("\\s", "");
         }
 
         DockableFrameBuilder withId(String id) {
@@ -5471,16 +5624,16 @@ public final class App extends JFrame implements RadiusControl,
             if ((icon == null) && (component instanceof Container)) {
                 icon = findIcon((Container) component);
                 if (icon != null) {
-                    if (((icon.getIconHeight() > 16) || (icon.getIconWidth() > 16))
+                    if (((icon.getIconHeight() > 16 * UI_SCALE) || (icon.getIconWidth() > 16 * UI_SCALE))
                             && (icon instanceof ImageIcon)
                             && (((ImageIcon) icon).getImage() instanceof BufferedImage)) {
                         float s;
                         if (icon.getIconWidth() > icon.getIconHeight()) {
                             // Wide icon
-                            s = 16f / icon.getIconWidth();
+                            s = 16f * UI_SCALE / icon.getIconWidth();
                         } else {
                             // Tall (or square) icon
-                            s = 16f / icon.getIconHeight();
+                            s = 16f * UI_SCALE / icon.getIconHeight();
                         }
                         BufferedImageOp op = new AffineTransformOp(AffineTransform.getScaleInstance(s, s), AffineTransformOp.TYPE_BICUBIC);
                         BufferedImage iconImage = op.filter((BufferedImage) ((ImageIcon) icon).getImage(), null);
@@ -5488,9 +5641,7 @@ public final class App extends JFrame implements RadiusControl,
                     }
                 }
             }
-            if (icon != null) {
-                dockableFrame.setFrameIcon(icon);
-            }
+            dockableFrame.setFrameIcon(icon);
 
             // Use preferred size of component as much as possible
             final java.awt.Dimension preferredSize = component.getPreferredSize();
@@ -5513,6 +5664,9 @@ public final class App extends JFrame implements RadiusControl,
             // Other flags
             dockableFrame.setAutohideWhenActive(true);
             dockableFrame.setMaximizable(false);
+
+            //Help key
+            dockableFrame.putClientProperty(HELP_KEY_KEY, "Panel/" + id);
             return dockableFrame;
         }
 
@@ -5536,6 +5690,22 @@ public final class App extends JFrame implements RadiusControl,
                 JOptionPane.showMessageDialog(this, "The selected layers have been deleted.", "Layers Deleted", JOptionPane.INFORMATION_MESSAGE);
             }
         }
+    }
+
+    private void showHelpPicker() {
+        Component glassPane = getGlassPane();
+        MouseListener mouseListener = new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                glassPane.setVisible(false);
+                glassPane.removeMouseListener(this);
+                glassPane.setCursor(null);
+                showHelp(SwingUtilities.getDeepestComponentAt(getRootPane(), e.getX(), e.getY()));
+            }
+        };
+        glassPane.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        glassPane.addMouseListener(mouseListener);
+        glassPane.setVisible(true);
     }
 
     static Icon findIcon(Container container) {
@@ -5690,7 +5860,7 @@ public final class App extends JFrame implements RadiusControl,
         @Override
         public void performAction(ActionEvent e) {
 //            Point location = view.getViewCentreInWorldCoords();
-            zoom++;
+            int zoom = view.getZoom() + 1;
             view.setZoom(zoom);
             updateZoomLabel();
 //            view.moveTo(location);
@@ -5714,8 +5884,7 @@ public final class App extends JFrame implements RadiusControl,
         @Override
         public void performAction(ActionEvent e) {
 //            int oldZoom = zoom;
-            zoom = 0;
-            view.setZoom(zoom);
+            view.resetZoom();
             updateZoomLabel();
 //            Point mousePosition = view.getMousePosition();
 //            if (mousePosition != null) {
@@ -5754,7 +5923,7 @@ public final class App extends JFrame implements RadiusControl,
         @Override
         public void performAction(ActionEvent e) {
 //            Point location = view.getViewCentreInWorldCoords();
-            zoom--;
+            int zoom = view.getZoom() - 1;
             view.setZoom(zoom);
             updateZoomLabel();
 //            view.moveTo(location);
@@ -6268,7 +6437,7 @@ public final class App extends JFrame implements RadiusControl,
         private static final long serialVersionUID = 1L;
     };
 
-    private final BetterAction ACTION_SHOW_CUSTOM_TERRAIN_POPUP = new BetterAction("showCustomTerrainMenu", null, loadIcon("plus")) {
+    private final BetterAction ACTION_SHOW_CUSTOM_TERRAIN_POPUP = new BetterAction("showCustomTerrainMenu", null, loadScaledIcon("plus")) {
         {
             setShortDescription("Add a new Custom Terrain");
         }
@@ -6276,6 +6445,17 @@ public final class App extends JFrame implements RadiusControl,
         @Override
         protected void performAction(ActionEvent e) {
             showCustomTerrainButtonPopup(e, -1);
+        }
+    };
+
+    private final BetterAction ACTION_SHOW_HELP_PICKER = new BetterAction("showHelpPicker", "Help for control", loadScaledIcon("information")) {
+        {
+            setShortDescription("Show help information for a specific control");
+        }
+
+        @Override
+        protected void performAction(ActionEvent e) {
+            showHelpPicker();
         }
     };
 
@@ -6295,10 +6475,10 @@ public final class App extends JFrame implements RadiusControl,
     private JSlider levelSlider, brushRotationSlider;
     private float level = 0.51f, toolLevel = 0.51f;
     private Set<Layer> hiddenLayers = new HashSet<>();
-    private int zoom = 0, maxRadius = DEFAULT_MAX_RADIUS, brushRotation = 0, toolBrushRotation = 0, previousBrushRotation = 0;
+    private int maxRadius = DEFAULT_MAX_RADIUS, brushRotation = 0, toolBrushRotation = 0, previousBrushRotation = 0;
     private GlassPane glassPane;
-    private JCheckBox readOnlyCheckBox, biomesCheckBox, annotationsCheckBox, readOnlySoloCheckBox, biomesSoloCheckBox, annotationsSoloCheckBox;
-    private JToggleButton readOnlyToggleButton, setSpawnPointToggleButton, copySelectionButton;
+    private JCheckBox readOnlyCheckBox, biomesCheckBox, annotationsCheckBox, readOnlySoloCheckBox, biomesSoloCheckBox, annotationsSoloCheckBox, terrainCheckBox, terrainSoloCheckBox;
+    private JToggleButton readOnlyToggleButton, setSpawnPointToggleButton;
     private JMenuItem addNetherMenuItem, removeNetherMenuItem, addEndMenuItem, removeEndMenuItem, addSurfaceCeilingMenuItem, removeSurfaceCeilingMenuItem, addNetherCeilingMenuItem, removeNetherCeilingMenuItem, addEndCeilingMenuItem, removeEndCeilingMenuItem, exportHighResHeightMapMenuItem;
     private JCheckBoxMenuItem viewSurfaceMenuItem, viewNetherMenuItem, viewEndMenuItem, extendedBlockIdsMenuItem, viewSurfaceCeilingMenuItem, viewNetherCeilingMenuItem, viewEndCeilingMenuItem;
     private final JToggleButton[] customMaterialButtons = new JToggleButton[CUSTOM_TERRAIN_COUNT];
@@ -6332,10 +6512,13 @@ public final class App extends JFrame implements RadiusControl,
     private final Map<String, BufferedImage> callouts = new HashMap<>();
     private JMenu recentMenu;
     private JPanel toolSettingsPanel, customTerrainPanel;
+    private final ObservableBoolean selectionState = new ObservableBoolean(true);
 
-    public static final Image ICON = IconUtils.loadImage("org/pepsoft/worldpainter/icons/shovel-icon.png");
+    public static final Image ICON = IconUtils.loadScaledImage("org/pepsoft/worldpainter/icons/shovel-icon.png");
     
     public static final int DEFAULT_MAX_RADIUS = 300;
+
+    public static final String HELP_KEY_KEY = "org.pepsoft.worldpainter.helpKey";
 
     private static App instance;
     private static Mode mode = Mode.WORLDPAINTER;
@@ -6352,31 +6535,31 @@ public final class App extends JFrame implements RadiusControl,
     
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(App.class);
 
-    private static final Icon ICON_NEW_WORLD            = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/page_white.png");
-    private static final Icon ICON_OPEN_WORLD           = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/folder_page_white.png");
-    private static final Icon ICON_SAVE_WORLD           = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/disk.png");
-    private static final Icon ICON_EXPORT_WORLD         = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/map_go.png");
-    private static final Icon ICON_EXIT                 = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/door_in.png");
-    private static final Icon ICON_ZOOM_IN              = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/magnifier_zoom_in.png");
-    private static final Icon ICON_ZOOM_RESET           = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/magnifier.png");
-    private static final Icon ICON_ZOOM_OUT             = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/magnifier_zoom_out.png");
-    private static final Icon ICON_GRID                 = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/grid.png");
-    private static final Icon ICON_CONTOURS             = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/contours.png");
-    private static final Icon ICON_OVERLAY              = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/photo.png");
-    private static final Icon ICON_UNDO                 = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/arrow_undo.png");
-    private static final Icon ICON_REDO                 = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/arrow_redo.png");
-    private static final Icon ICON_EDIT_TILES           = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/plugin.png");
-    private static final Icon ICON_CHANGE_HEIGHT        = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/arrow_up_down.png");
-    private static final Icon ICON_ROTATE_WORLD         = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/arrow_rotate_anticlockwise.png");
-    private static final Icon ICON_DIMENSION_PROPERTIES = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/application_form.png");
-    private static final Icon ICON_VIEW_DISTANCE        = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/eye.png");
-    private static final Icon ICON_WALKING_DISTANCE     = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/user_go.png");
-    private static final Icon ICON_ROTATE_LIGHT_RIGHT   = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/arrow_rotate_lightbulb_clockwise.png");
-    private static final Icon ICON_ROTATE_LIGHT_LEFT    = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/arrow_rotate_lightbulb_anticlockwise.png");
-    private static final Icon ICON_MOVE_TO_SPAWN        = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/spawn_red.png");
-    private static final Icon ICON_MOVE_TO_ORIGIN       = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/arrow_in.png");
-    private static final Icon ICON_UNKNOWN_PATTERN      = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/unknown_pattern.png");
-    private static final Icon ICON_SHIFT_WORLD          = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/arrow_cross.png");
+    private static final Icon ICON_NEW_WORLD            = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/page_white.png");
+    private static final Icon ICON_OPEN_WORLD           = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/folder_page_white.png");
+    private static final Icon ICON_SAVE_WORLD           = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/disk.png");
+    private static final Icon ICON_EXPORT_WORLD         = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/map_go.png");
+    private static final Icon ICON_EXIT                 = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/door_in.png");
+    private static final Icon ICON_ZOOM_IN              = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/magnifier_zoom_in.png");
+    private static final Icon ICON_ZOOM_RESET           = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/magnifier.png");
+    private static final Icon ICON_ZOOM_OUT             = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/magnifier_zoom_out.png");
+    private static final Icon ICON_GRID                 = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/grid.png");
+    private static final Icon ICON_CONTOURS             = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/contours.png");
+    private static final Icon ICON_OVERLAY              = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/photo.png");
+    private static final Icon ICON_UNDO                 = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_undo.png");
+    private static final Icon ICON_REDO                 = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_redo.png");
+    private static final Icon ICON_EDIT_TILES           = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/plugin.png");
+    private static final Icon ICON_CHANGE_HEIGHT        = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_up_down.png");
+    private static final Icon ICON_ROTATE_WORLD         = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_rotate_anticlockwise.png");
+    private static final Icon ICON_DIMENSION_PROPERTIES = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/application_form.png");
+    private static final Icon ICON_VIEW_DISTANCE        = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/eye.png");
+    private static final Icon ICON_WALKING_DISTANCE     = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/user_go.png");
+    private static final Icon ICON_ROTATE_LIGHT_RIGHT   = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_rotate_lightbulb_clockwise.png");
+    private static final Icon ICON_ROTATE_LIGHT_LEFT    = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_rotate_lightbulb_anticlockwise.png");
+    private static final Icon ICON_MOVE_TO_SPAWN        = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/spawn_red.png");
+    private static final Icon ICON_MOVE_TO_ORIGIN       = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_in.png");
+    private static final Icon ICON_UNKNOWN_PATTERN      = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/unknown_pattern.png");
+    private static final Icon ICON_SHIFT_WORLD          = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_cross.png");
     
     private static final int PLATFORM_COMMAND_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
@@ -6384,6 +6567,8 @@ public final class App extends JFrame implements RadiusControl,
 
     private static final int MAX_RECENT_FILES = 10;
     
+    private static final String HELP_ROOT_URL = "http://www.worldpainter.net/trac/wiki/Help/";
+
     private static final ResourceBundle strings = ResourceBundle.getBundle("org.pepsoft.worldpainter.resources.strings"); // NOI18N
     private static final long serialVersionUID = 1L;
     

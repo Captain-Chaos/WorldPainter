@@ -12,6 +12,8 @@ import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.layers.FloodWithLava;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.operations.Filter;
+import org.pepsoft.worldpainter.selection.SelectionBlock;
+import org.pepsoft.worldpainter.selection.SelectionChunk;
 
 import static org.pepsoft.worldpainter.layers.Layer.DataSize.*;
 
@@ -20,8 +22,13 @@ import static org.pepsoft.worldpainter.layers.Layer.DataSize.*;
  * @author pepijn
  */
 public final class DefaultFilter implements Filter {
-    public DefaultFilter(Dimension dimension, int aboveLevel, int belowLevel, boolean feather, Object onlyOn, Object exceptOn, int aboveDegrees, boolean slopeIsAbove) {
+    public DefaultFilter(Dimension dimension, boolean inSelection, boolean outsideSelection, int aboveLevel, int belowLevel, boolean feather, Object onlyOn, Object exceptOn, int aboveDegrees, boolean slopeIsAbove) {
         this.dimension = dimension;
+        this.inSelection = inSelection;
+        this.outsideSelection = outsideSelection;
+        if (inSelection && outsideSelection) {
+            throw new IllegalArgumentException("inSelection and outsideSelection are mutually exclusive");
+        }
         this.aboveLevel = aboveLevel;
         this.belowLevel = belowLevel;
         if (aboveLevel >= 0) {
@@ -276,11 +283,20 @@ public final class DefaultFilter implements Filter {
         this.dimension = dimension;
     }
 
+    public boolean isInSelection() {
+        return inSelection;
+    }
+
     // Filter
     
     @Override
     public float modifyStrength(int x, int y, float strength) {
         if (strength > 0.0f) {
+            if (inSelection && (! dimension.getBitLayerValueAt(SelectionChunk.INSTANCE, x, y)) && (! dimension.getBitLayerValueAt(SelectionBlock.INSTANCE, x, y))) {
+                return 0.0f;
+            } else if (outsideSelection && (dimension.getBitLayerValueAt(SelectionChunk.INSTANCE, x, y) || dimension.getBitLayerValueAt(SelectionBlock.INSTANCE, x, y))) {
+                return 0.0f;
+            }
             if (exceptOn) {
                 switch (exceptOnObjectType) {
                     case BIOME:
@@ -462,19 +478,27 @@ public final class DefaultFilter implements Filter {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("DefaultFilter{");
+        if (inSelection) {
+            sb.append("in selection");
+        } else if (outsideSelection) {
+            sb.append("outside selection");
+        }
         if (onlyOn) {
+            if (inSelection || outsideSelection) {
+                sb.append(" and ");
+            }
             sb.append("only on ");
             append(sb, onlyOnObjectType, onlyOnValue, onlyOnLayer, onlyOnTerrain);
         }
         if (exceptOn) {
-            if (onlyOn) {
+            if (inSelection || outsideSelection || onlyOn) {
                 sb.append(' ');
             }
             sb.append("except on ");
             append(sb, exceptOnObjectType, exceptOnValue, exceptOnLayer, exceptOnTerrain);
         }
         if (checkLevel) {
-            if (onlyOn || exceptOn) {
+            if (inSelection || outsideSelection || onlyOn || exceptOn) {
                 sb.append(" and ");
             }
             sb.append("height ");
@@ -494,7 +518,7 @@ public final class DefaultFilter implements Filter {
             }
         }
         if (checkSlope) {
-            if (onlyOn || exceptOn || checkLevel) {
+            if (inSelection || outsideSelection || onlyOn || exceptOn || checkLevel) {
                 sb.append(" and ");
             }
             sb.append("gradient ").append(slopeIsAbove ? "above " : "below ").append(slope);
@@ -545,20 +569,14 @@ public final class DefaultFilter implements Filter {
         }
     }
 
-    final boolean checkLevel;
-    final boolean onlyOn, exceptOn;
-    final boolean feather;
+    final boolean checkLevel, onlyOn, exceptOn, feather, checkSlope,
+            slopeIsAbove, inSelection, outsideSelection;
     final LevelType levelType;
     final ObjectType onlyOnObjectType, exceptOnObjectType;
-    final int aboveLevel;
-    final int belowLevel;
-    final int onlyOnValue, exceptOnValue;
+    final int aboveLevel, belowLevel, onlyOnValue, exceptOnValue, degrees;
     final Terrain onlyOnTerrain, exceptOnTerrain;
     final Layer onlyOnLayer, exceptOnLayer;
     final float slope;
-    final boolean checkSlope;
-    final boolean slopeIsAbove;
-    final int degrees;
     Dimension dimension;
 
     public static final String LAND = "Land";

@@ -6,9 +6,9 @@
 
 package org.pepsoft.worldpainter.biomeschemes;
 
+import org.pepsoft.util.IconUtils;
 import org.pepsoft.worldpainter.BiomeScheme;
 import org.pepsoft.worldpainter.ColourScheme;
-import org.pepsoft.worldpainter.layers.BiomesPanel;
 
 import javax.swing.*;
 
@@ -52,7 +52,7 @@ public class BiomeHelper {
             } else if (customBiomeManager.getCustomBiomes() != null) {
                 for (CustomBiome customBiome: customBiomeManager.getCustomBiomes()) {
                     if (customBiome.getId() == biomeID) {
-                        icons[biomeID] = new ImageIcon(BiomesPanel.createIcon(customBiome.getColour()));
+                        icons[biomeID] = IconUtils.createScaledColourIcon(customBiome.getColour());
                         break;
                     }
                 }

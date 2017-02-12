@@ -14,10 +14,6 @@ import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 
-import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-
 import static org.pepsoft.util.AwtUtils.doOnEventThread;
 import static org.pepsoft.worldpainter.Constants.*;
 
@@ -25,10 +21,10 @@ import static org.pepsoft.worldpainter.Constants.*;
  *
  * @author pepijn
  */
-public class RotateWorldDialog extends javax.swing.JDialog implements ProgressReceiver {
+public class RotateWorldDialog extends WorldPainterDialog implements ProgressReceiver {
     /** Creates new form RotateWorldDialog */
     public RotateWorldDialog(java.awt.Frame parent, World2 world, int dim) {
-        super(parent, true);
+        super(parent);
         this.world = world;
         this.dim = dim;
         Dimension opposite = null;
@@ -61,26 +57,9 @@ public class RotateWorldDialog extends javax.swing.JDialog implements ProgressRe
         initComponents();
         jCheckBox1.setEnabled(oppositeDim != -1);
 
-        ActionMap actionMap = rootPane.getActionMap();
-        actionMap.put("cancel", new AbstractAction("cancel") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-            }
-            
-            private static final long serialVersionUID = 1L;
-        });
-
-        InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "cancel");
-        
         getRootPane().setDefaultButton(buttonRotate);
         
         setLocationRelativeTo(parent);
-    }
-
-    public boolean isCancelled() {
-        return cancelled;
     }
 
     // ProgressReceiver
@@ -96,16 +75,13 @@ public class RotateWorldDialog extends javax.swing.JDialog implements ProgressRe
             ErrorDialog errorDialog = new ErrorDialog(RotateWorldDialog.this);
             errorDialog.setException(exception);
             errorDialog.setVisible(true);
-            dispose();
+            cancel();
         });
     }
 
     @Override
     public synchronized void done() {
-        doOnEventThread(() -> {
-            cancelled = false;
-            dispose();
-        });
+        doOnEventThread(this::ok);
     }
 
     @Override
@@ -268,7 +244,7 @@ public class RotateWorldDialog extends javax.swing.JDialog implements ProgressRe
     }// </editor-fold>//GEN-END:initComponents
 
     private void buttonCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCancelActionPerformed
-        dispose();
+        cancel();
     }//GEN-LAST:event_buttonCancelActionPerformed
 
     private void buttonRotateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonRotateActionPerformed
@@ -291,7 +267,6 @@ public class RotateWorldDialog extends javax.swing.JDialog implements ProgressRe
 
     private final World2 world;
     private final int dim, oppositeDim;
-    private boolean cancelled = true;
-    
+
     private static final long serialVersionUID = 1L;
 }

@@ -9,7 +9,6 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.List;
 
@@ -43,7 +42,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         for (Component component: grid.getComponents()) {
             if ((component instanceof JToggleButton) && (((Integer) ((JToggleButton) component).getClientProperty(KEY_BIOME)) == customBiome.getId())) {
                 JToggleButton button = (JToggleButton) component;
-                button.setIcon(new ImageIcon(createIcon(customBiome.getColour())));
+                button.setIcon(IconUtils.createScaledColourIcon(customBiome.getColour()));
                 button.setToolTipText(customBiome.getName());
                 return;
             }
@@ -80,7 +79,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
             if (biome != -1) {
                 final JToggleButton button = new JToggleButton(new ImageIcon(BiomeSchemeManager.createImage(BIOME_SCHEME, biome, colourScheme)));
                 button.putClientProperty(KEY_BIOME, biome);
-                button.setMargin(new Insets(2, 2, 2, 2));
+                button.setMargin(new Insets(2, 4, 2, 4));
                 StringBuilder tooltip = new StringBuilder();
                 tooltip.append(AutoBiomeScheme.BIOME_NAMES[biome]);
                 tooltip.append(" (");
@@ -108,7 +107,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
             }
         }
 
-        JButton addCustomBiomeButton = new JButton(IconUtils.loadIcon("org/pepsoft/worldpainter/icons/plus.png"));
+        JButton addCustomBiomeButton = new JButton(IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/plus.png"));
         addCustomBiomeButton.setMargin(new Insets(2, 2, 2, 2));
         addCustomBiomeButton.setToolTipText("Add a custom biome");
         addCustomBiomeButton.addActionListener(e -> {
@@ -236,7 +235,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
 
     private void addButton(CustomBiome customBiome) {
         final int biome = customBiome.getId();
-        final JToggleButton button = new JToggleButton(new ImageIcon(createIcon(customBiome.getColour())));
+        final JToggleButton button = new JToggleButton(IconUtils.createScaledColourIcon(customBiome.getColour()));
         button.putClientProperty(KEY_BIOME, biome);
         button.setMargin(new Insets(2, 2, 2, 2));
         button.setToolTipText(customBiome.getName() + " (" + biome + "); right-click for options");
@@ -302,20 +301,6 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         if (parent != null) {
             parent.validate();
         }
-    }
-
-    public static BufferedImage createIcon(int colour) {
-        BufferedImage iconImage = new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB);
-        for (int x = 0; x < 16; x++) {
-            for (int y = 0; y < 16; y++) {
-                if ((x == 0) || (x == 15) || (y == 0) || (y == 15)) {
-                    iconImage.setRGB(x, y, 0);
-                } else {
-                    iconImage.setRGB(x, y, colour);
-                }
-            }
-        }
-        return iconImage;
     }
 
     /**

@@ -27,12 +27,11 @@ import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter;
 import org.pepsoft.worldpainter.themes.SimpleTheme;
 import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
+import org.pepsoft.worldpainter.themes.impl.simple.EditSimpleThemeDialog;
 
 import javax.swing.*;
 import javax.swing.JSpinner.DefaultEditor;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -42,13 +41,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Terrain.*;
-import org.pepsoft.worldpainter.themes.impl.simple.EditSimpleThemeDialog;
 
 /**
  *
  * @author pepijn
  */
-public class NewWorldDialog extends javax.swing.JDialog {
+public class NewWorldDialog extends WorldPainterDialog {
     /** Creates new form NewWorldDialog */
     public NewWorldDialog(App app, String name, long seed, int dim, int defaultMaxHeight) {
         this(app, name, seed, dim, defaultMaxHeight, null);
@@ -56,7 +54,7 @@ public class NewWorldDialog extends javax.swing.JDialog {
     
     /** Creates new form NewWorldDialog */
     public NewWorldDialog(App app, String name, long seed, int dim, int defaultMaxHeight, Set<Point> tiles) {
-        super(app, true);
+        super(app);
         this.app = app;
         this.dim = dim;
         this.tiles = tiles;
@@ -187,29 +185,12 @@ public class NewWorldDialog extends javax.swing.JDialog {
         labelWarning.setVisible(false);
         checkBoxExtendedBlockIds.setSelected(config.isDefaultExtendedBlockIds());
         
-        ActionMap actionMap = rootPane.getActionMap();
-        actionMap.put("cancel", new AbstractAction("cancel") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                cancel();
-            }
-            
-            private static final long serialVersionUID = 1L;
-        });
-
-        InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "cancel");
-
         rootPane.setDefaultButton(buttonCreate);
         
         updatePreview();
         
         setControlStates();
         updateWalkingTimes();
-    }
-
-    public boolean isCancelled() {
-        return cancelled;
     }
 
     /**
@@ -537,15 +518,6 @@ public class NewWorldDialog extends javax.swing.JDialog {
         return dimension;
     }
 
-    private void create() {
-        cancelled = false;
-        dispose();
-    }
-
-    private void cancel() {
-        dispose();
-    }
-    
     private void setControlStates() {
         boolean surfaceDimension = dim == DIM_NORMAL;
         boolean minecraft11Only = Integer.parseInt((String) comboBoxMaxHeight.getSelectedItem()) != DEFAULT_MAX_HEIGHT_2;
@@ -1216,7 +1188,7 @@ public class NewWorldDialog extends javax.swing.JDialog {
     }// </editor-fold>//GEN-END:initComponents
 
     private void buttonCreateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCreateActionPerformed
-        create();
+        ok();
     }//GEN-LAST:event_buttonCreateActionPerformed
 
     private void buttonCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCancelActionPerformed
@@ -1479,7 +1451,6 @@ public class NewWorldDialog extends javax.swing.JDialog {
     private final App app;
     private final Set<Point> tiles;
     private final AutoBiomeScheme autoBiomeScheme = new AutoBiomeScheme(null);
-    private boolean cancelled = true;
     private int previousExp = 7, dim, savedTerrainLevel;
     private long worldpainterSeed;
     private SimpleTheme theme;

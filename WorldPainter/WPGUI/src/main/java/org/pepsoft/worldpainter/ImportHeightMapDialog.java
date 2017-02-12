@@ -778,7 +778,7 @@ outer:          for (int x = 0; x < width; x++) {
                 .addContainerGap())
         );
 
-        jTabbedPane1.addTab("Terrain and Layers", jPanel3);
+        jTabbedPane1.addTab("Theme", jPanel3);
 
         checkBoxCreateTiles.setText("Create new tiles");
 

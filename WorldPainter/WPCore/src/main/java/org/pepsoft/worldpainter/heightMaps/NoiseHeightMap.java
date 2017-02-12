@@ -196,5 +196,5 @@ public final class NoiseHeightMap extends AbstractHeightMap {
 
     private static final int[] FACTORS = {1, 2, 4, 8, 16, 32, 64, 128, 256, 512};
     private static final long serialVersionUID = 1L;
-    private static final Icon ICON_NOISE_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/noise.png");
+    private static final Icon ICON_NOISE_HEIGHTMAP = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/noise.png");
 }

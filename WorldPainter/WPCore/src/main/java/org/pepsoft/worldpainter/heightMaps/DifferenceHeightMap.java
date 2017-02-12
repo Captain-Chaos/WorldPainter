@@ -46,5 +46,5 @@ public class DifferenceHeightMap extends CombiningHeightMap {
         return clone;
     }
 
-    private static final Icon ICON_DIFFERENCE_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/minus.png");
+    private static final Icon ICON_DIFFERENCE_HEIGHTMAP = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/minus.png");
 }

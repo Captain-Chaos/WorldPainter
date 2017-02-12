@@ -24,9 +24,9 @@ import org.junit.Test;
  *
  * @author pepijn
  */
-public class ApplyLayerTest extends AbstractScriptTest {
+public class SlopeIT extends AbstractScriptTest {
     @Test
     public void testApplyLayer() throws IOException, ClassNotFoundException, javax.script.ScriptException {
-        testScript("applylayertest.js");
+        testScript("slopetest.js");
     }
 }

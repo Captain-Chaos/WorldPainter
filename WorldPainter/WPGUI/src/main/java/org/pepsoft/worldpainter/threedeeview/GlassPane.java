@@ -78,10 +78,10 @@ public class GlassPane extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel1;
     // End of variables declaration//GEN-END:variables
 
-    private static final Icon NORTH_ARROW_TOP_LEFT     = new ImageIcon(IconUtils.loadImage("org/pepsoft/worldpainter/north_arrow_top_left.png"));
-    private static final Icon NORTH_ARROW_TOP_RIGHT    = new ImageIcon(IconUtils.loadImage("org/pepsoft/worldpainter/north_arrow_top_right.png"));
-    private static final Icon NORTH_ARROW_BOTTOM_RIGHT = new ImageIcon(IconUtils.loadImage("org/pepsoft/worldpainter/north_arrow_bottom_right.png"));
-    private static final Icon NORTH_ARROW_BOTTOM_LEFT  = new ImageIcon(IconUtils.loadImage("org/pepsoft/worldpainter/north_arrow_bottom_left.png"));
+    private static final Icon NORTH_ARROW_TOP_LEFT     = new ImageIcon(IconUtils.loadScaledImage("org/pepsoft/worldpainter/north_arrow_top_left.png"));
+    private static final Icon NORTH_ARROW_TOP_RIGHT    = new ImageIcon(IconUtils.loadScaledImage("org/pepsoft/worldpainter/north_arrow_top_right.png"));
+    private static final Icon NORTH_ARROW_BOTTOM_RIGHT = new ImageIcon(IconUtils.loadScaledImage("org/pepsoft/worldpainter/north_arrow_bottom_right.png"));
+    private static final Icon NORTH_ARROW_BOTTOM_LEFT  = new ImageIcon(IconUtils.loadScaledImage("org/pepsoft/worldpainter/north_arrow_bottom_left.png"));
 
     private static final long serialVersionUID = 1L;
 }

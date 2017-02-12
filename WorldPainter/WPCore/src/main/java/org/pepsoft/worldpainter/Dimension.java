@@ -11,11 +11,16 @@ import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.undo.UndoManager;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiome;
+import org.pepsoft.worldpainter.brushes.Brush;
 import org.pepsoft.worldpainter.gardenofeden.Garden;
 import org.pepsoft.worldpainter.gardenofeden.Seed;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter.ResourcesExporterSettings;
+import org.pepsoft.worldpainter.operations.Filter;
+import org.pepsoft.worldpainter.panels.DefaultFilter;
+import org.pepsoft.worldpainter.selection.SelectionBlock;
+import org.pepsoft.worldpainter.selection.SelectionChunk;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -33,7 +38,6 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
@@ -350,12 +354,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         tiles.put(key, tile);
         // Invalidate all thread local tile caches, as the fact that this tile
         // didn't exist may be cached somewhere
-        tileCache = new ThreadLocal<TileCache>() {
-            @Override
-            protected TileCache initialValue() {
-                return new TileCache();
-            }
-        };
+        tileCache = ThreadLocal.withInitial(TileCache::new);
         if (x < lowestX) {
             lowestX = x;
         }
@@ -1425,17 +1424,43 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         }
     }
 
-    public Stream<Tile> streamTiles() {
-        return tiles.values().stream();
-    }
-
     public boolean containsOneOf(Layer... layers) {
         for (Tile tile: tiles.values()) {
             if (tile.containsOneOf(layers)) {
                 return true;
             }
         }
+        visitTiles().andDo(tile -> {});
         return false;
+    }
+
+    /**
+     * Visit the tiles in this dimension, optionally constraining the visited
+     * tiles according to some basic constraints. Uses the builder pattern. To
+     * visit all tiles, do:
+     *
+     * <pre>visitTiles().andDo(tile -> { /* process tile &#42;/ });</pre>
+     *
+     * <p>To restrict to a filter:
+     *
+     * <pre>visitTiles().forFilter(filter).andDo(tile -> { /* process tile &#42;/ });</pre>
+     *
+     * <p>To restrict to a brush:
+     *
+     * <pre>visitTiles().forBrush(brush, x, y).andDo(tile -> { /* process tile &#42;/ });</pre>
+     *
+     * <p>To restrict to the selection:
+     *
+     * <pre>visitTiles().forSelection().andDo(tile -> { /* process tile &#42;/ });</pre>
+     *
+     * <p>You can combine constraints:
+     *
+     * <pre>visitTiles().forFilter(filter).forBrush(brush, x, y).andDo(tile -> { /* process tile &#42;/ });</pre>
+     *
+     * @return
+     */
+    public TileVisitationBuilder visitTiles() {
+        return new TileVisitationBuilder();
     }
 
     // Tile.Listener
@@ -1545,12 +1570,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
 
-        tileCache = new ThreadLocal<TileCache>() {
-            @Override
-            protected TileCache initialValue() {
-                return new TileCache();
-            }
-        };
+        tileCache = ThreadLocal.withInitial(TileCache::new);
 
         init();
     }
@@ -1704,12 +1724,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     private transient PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
     private transient WPGarden garden = new WPGarden();
     private transient PerlinNoise topLayerDepthNoise;
-    private transient ThreadLocal<TileCache> tileCache = new ThreadLocal<TileCache>() {
-        @Override
-        protected TileCache initialValue() {
-            return new TileCache();
-        }
-    };
+    private transient ThreadLocal<TileCache> tileCache = ThreadLocal.withInitial(TileCache::new);
 
     public static final int[] POSSIBLE_AUTO_BIOMES = {BIOME_PLAINS, BIOME_FOREST,
         BIOME_SWAMPLAND, BIOME_JUNGLE, BIOME_MESA, BIOME_DESERT, BIOME_BEACH,
@@ -1728,6 +1743,10 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         void tilesRemoved(Dimension dimension, Set<Tile> tiles);
     }
 
+    public interface TileVisitor {
+        void visit(Tile tile);
+    }
+
     public enum Border {
         VOID(false), WATER(false), LAVA(false), ENDLESS_VOID(true), ENDLESS_WATER(true), ENDLESS_LAVA(true);
 
@@ -1740,6 +1759,75 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         }
 
         private final boolean endless;
+    }
+
+    public class TileVisitationBuilder {
+        public TileVisitationBuilder forFilter(Filter filter) {
+            this.filter = filter;
+            return this;
+        }
+
+        public TileVisitationBuilder forBrush(Brush brush, int x, int y) {
+            this.brush = brush;
+            this.x = x;
+            this.y = y;
+            return this;
+        }
+
+        public TileVisitationBuilder forSelection() {
+            selection = true;
+            return this;
+        }
+
+        public void andDo(TileVisitor visitor) {
+            try {
+                andDo(visitor, null);
+            } catch (OperationCancelled operationCancelled) {
+                // Can't happen since we didn't pass in a progress receiver
+                throw new InternalError();
+            }
+        }
+
+        public void andDo(TileVisitor visitor, ProgressReceiver progressReceiver) throws OperationCancelled {
+            if ((! selection) && (filter instanceof DefaultFilter) && ((DefaultFilter) filter).isInSelection()) {
+                // The filter is set to "in selection", so we only need to process
+                // the tiles intersecting the selection
+                selection = true;
+            }
+            int totalTiles = tiles.size(), tileCount = 0;
+            int tileX1 = Integer.MIN_VALUE, tileX2 = Integer.MAX_VALUE;
+            int tileY1 = Integer.MIN_VALUE, tileY2 = Integer.MAX_VALUE;
+            if (brush != null) {
+                int effectiveRadius = brush.getEffectiveRadius();
+                int x1 = x - effectiveRadius, x2 = x + effectiveRadius;
+                int y1 = y - effectiveRadius, y2 = y + effectiveRadius;
+                tileX1 = x1 >> TILE_SIZE_BITS;
+                tileX2 = x2 >> TILE_SIZE_BITS;
+                tileY1 = y1 >> TILE_SIZE_BITS;
+                tileY2 = y2 >> TILE_SIZE_BITS;
+            }
+            for (Tile tile: tiles.values()) {
+                int tileX = tile.getX(), tileY = tile.getY();
+                if ((tileX >= tileX1) && (tileX <= tileX2) && (tileY >= tileY1) && (tileY <= tileY2)
+                        && ((! selection) || (tile.containsOneOf(SelectionBlock.INSTANCE, SelectionChunk.INSTANCE)))) {
+                    tile.inhibitEvents();
+                    try {
+                        visitor.visit(tile);
+                    } finally {
+                        tile.releaseEvents();
+                    }
+                }
+                tileCount++;
+                if (progressReceiver != null) {
+                    progressReceiver.setProgress((float) tileCount / totalTiles);
+                }
+            }
+        }
+
+        private Filter filter;
+        private Brush brush;
+        private int x, y;
+        private boolean selection;
     }
 
     private class WPGarden implements Garden {

@@ -13,7 +13,12 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import org.jetbrains.annotations.NonNls;
 
+import static org.pepsoft.util.GUIUtils.UI_SCALE;
+import static org.pepsoft.util.GUIUtils.scaleToUI;
+
 /**
+ * Utility methods for loading and scaling images and icons, with automatic
+ * support for HiDPI displays.
  *
  * @author pepijn
  */
@@ -26,36 +31,43 @@ public final class IconUtils {
     /**
      * Load an icon from the classpath using the system class loader.
      *
+     * <p>The icon will automatically be scaled up for HiDPI displays.
+     *
      * @param path The path of the image to load.
      * @return The specified icon, or <code>null</code> if the specified path
      *     did not contain a resource.
      */
-    public static ImageIcon loadIcon(String path) {
-        BufferedImage image = loadImage(path);
+    public static ImageIcon loadScaledIcon(String path) {
+        BufferedImage image = loadScaledImage(path);
         return (image != null) ? new ImageIcon(image) : null;
     }
     
     /**
      * Load an icon from the classpath using a specific class loader.
      *
+     * <p>The icon will automatically be scaled up for HiDPI displays.
+     *
      * @param classLoader The class loader to use to load the image.
      * @param path The path of the image to load.
      * @return The specified icon, or <code>null</code> if the specified path
      *     did not contain a resource.
      */
-    public static ImageIcon loadIcon(ClassLoader classLoader, String path) {
-        BufferedImage image = loadImage(classLoader, path);
+    public static ImageIcon loadScaledIcon(ClassLoader classLoader, String path) {
+        BufferedImage image = loadScaledImage(classLoader, path);
         return (image != null) ? new ImageIcon(image) : null;
     }
 
     /**
      * Load an image from the classpath using the system class loader.
      *
+     * <p>The image will be returned at its original resolution and not be
+     * rescaled.
+     *
      * @param path The path of the image to load.
      * @return The specified image, or <code>null</code> if the specified path
      *     did not contain a resource.
      */
-    public static BufferedImage loadImage(String path) {
+    public static BufferedImage loadUnscaledImage(String path) {
         try {
             URL url = ClassLoader.getSystemResource(path);
             if (url != null) {
@@ -67,20 +79,40 @@ public final class IconUtils {
             throw new RuntimeException("I/O error loading image " + path, e);
         }
     }
+
+    /**
+     * Load an image from the classpath using the system class loader.
+     *
+     * <p>The image will automatically be scaled up for HiDPI displays.
+     *
+     * @param path The path of the image to load.
+     * @return The specified image, or <code>null</code> if the specified path
+     *     did not contain a resource.
+     */
+    public static BufferedImage loadScaledImage(String path) {
+        BufferedImage image = loadUnscaledImage(path);
+        if (image != null) {
+            return scaleToUI(image);
+        } else {
+            return null;
+        }
+    }
     
     /**
      * Load an image from the classpath using a specific class loader.
+     *
+     * <p>The image will automatically be scaled up for HiDPI displays.
      *
      * @param classLoader The class loader to use to load the image.
      * @param path The path of the image to load.
      * @return The specified image, or <code>null</code> if the specified path
      *     did not contain a resource.
      */
-    public static BufferedImage loadImage(ClassLoader classLoader, String path) {
+    public static BufferedImage loadScaledImage(ClassLoader classLoader, String path) {
         try {
             URL url = classLoader.getResource(path);
             if (url != null) {
-                return ImageIO.read(url);
+                return scaleToUI(ImageIO.read(url));
             } else {
                 return null;
             }
@@ -92,13 +124,15 @@ public final class IconUtils {
     /**
      * Create a 16x16 pixel icon of a solid colour.
      *
-     * @param colour The colour as a combind rgb value.
+     * <p>The icon will automatically be scaled up for HiDPI displays.
+     *
+     * @param colour The colour as a combined rgb value.
      * @return A 16x16 icon of the specified colour.
      */
-    public static Icon createColourIcon(int colour) {
-        BufferedImage image = new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB);
-        for (int x = 0; x < 16; x++) {
-            for (int y = 0; y < 16; y++) {
+    public static Icon createScaledColourIcon(int colour) {
+        BufferedImage image = new BufferedImage(16 * UI_SCALE, 16 * UI_SCALE, BufferedImage.TYPE_INT_RGB);
+        for (int x = 1; x < 16 * UI_SCALE - 1; x++) {
+            for (int y = 1; y < 16 * UI_SCALE - 1; y++) {
                 image.setRGB(x, y, colour);
             }
         }
@@ -107,6 +141,8 @@ public final class IconUtils {
 
     /**
      * Scale a square icon using bicubic scaling.
+     *
+     * <p>The icon will automatically be scaled up for HiDPI displays.
      *
      * @param icon The icon to scale.
      * @param size The size (edge to edge) of the scaled icon.
@@ -119,16 +155,18 @@ public final class IconUtils {
     /**
      * Scale a square icon using bicubic scaling.
      *
+     * <p>The icon will automatically be scaled up for HiDPI displays.
+     *
      * @param iconImage The icon to scale.
      * @param size The size (edge to edge) of the scaled icon.
      * @return The scaled icon.
      */
     public static BufferedImage scaleIcon(Image iconImage, int size) {
-        BufferedImage newImage = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage newImage = new BufferedImage(size * UI_SCALE, size * UI_SCALE, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2 = newImage.createGraphics();
         try {
             g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-            g2.drawImage(iconImage, 0, 0, size, size, null);
+            g2.drawImage(iconImage, 0, 0, size * UI_SCALE, size * UI_SCALE, null);
         } finally {
             g2.dispose();
         }

@@ -6,6 +6,7 @@ package org.pepsoft.worldpainter.biomeschemes;
 
 import org.pepsoft.util.Checksum;
 import org.pepsoft.util.FileUtils;
+import org.pepsoft.util.GUIUtils;
 import org.pepsoft.util.Version;
 import org.pepsoft.worldpainter.BiomeScheme;
 import org.pepsoft.worldpainter.ColourScheme;
@@ -81,7 +82,9 @@ public class BiomeSchemeManager {
                 BIOME_SCHEMES.put(biomeAlgorithm, biomeScheme);
                 return biomeScheme;
             } else {
-                logger.info("Could not find compatible jar for biome scheme " + version);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Could not find compatible jar for biome scheme " + version);
+                }
                 return null;
             }
         }
@@ -115,7 +118,7 @@ public class BiomeSchemeManager {
                 }
             }
         }
-        return image;
+        return GUIUtils.scaleToUI(image);
     }
 
     public static List<Integer> getAvailableBiomeAlgorithms() {
@@ -271,11 +274,7 @@ public class BiomeSchemeManager {
                         Checksum checksum = FileUtils.getMD5(file);
                         if (DESCRIPTORS.containsKey(checksum)) {
                             for (BiomeSchemeDescriptor descriptor: DESCRIPTORS.get(checksum)) {
-                                SortedMap<Version, BiomeJar> jars = BIOME_JARS.get(descriptor.biomeScheme);
-                                if (jars == null) {
-                                    jars = new TreeMap<>();
-                                    BIOME_JARS.put(descriptor.biomeScheme, jars);
-                                }
+                                SortedMap<Version, BiomeJar> jars = BIOME_JARS.computeIfAbsent(descriptor.biomeScheme, key -> new TreeMap<>());
                                 jars.put(descriptor.minecraftVersion, new BiomeJar(file, checksum, descriptor));
                                 // Also store it as a resources jar
                                 ALL_JARS.put(descriptor.minecraftVersion, file);
@@ -366,11 +365,7 @@ public class BiomeSchemeManager {
     }
 
     private static void addDescriptor(Checksum checksum, BiomeSchemeDescriptor descriptor) {
-        Set<BiomeSchemeDescriptor> descriptors = DESCRIPTORS.get(checksum);
-        if (descriptors == null) {
-            descriptors = new HashSet<>();
-            DESCRIPTORS.put(checksum, descriptors);
-        }
+        Set<BiomeSchemeDescriptor> descriptors = DESCRIPTORS.computeIfAbsent(checksum, key -> new HashSet<>());
         descriptors.add(descriptor);
     }
 

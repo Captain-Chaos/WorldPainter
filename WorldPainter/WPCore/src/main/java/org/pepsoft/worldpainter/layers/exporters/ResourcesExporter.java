@@ -82,7 +82,9 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
         }
         if ((currentSeed == 0) || (currentSeed != seed)) {
             for (int blockType: oreTypes) {
-                noiseGenerators[blockType].setSeed(seed + seedOffsets[blockType]);
+                if (noiseGenerators[blockType].getSeed() != (seed + seedOffsets[blockType])) {
+                    noiseGenerators[blockType].setSeed(seed + seedOffsets[blockType]);
+                }
             }
         }
 //        int[] counts = new int[256];

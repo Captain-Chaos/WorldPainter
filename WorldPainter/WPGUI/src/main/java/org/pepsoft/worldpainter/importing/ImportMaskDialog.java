@@ -225,7 +225,7 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
         jLabel2 = new javax.swing.JLabel();
         radioButtonTerrain = new javax.swing.JRadioButton();
         radioButtonLayer = new javax.swing.JRadioButton();
-        comboBoxLayer = new javax.swing.JComboBox<>();
+        comboBoxLayer = new javax.swing.JComboBox<Layer>();
         jLabel3 = new javax.swing.JLabel();
         radioButtonOneToOne = new javax.swing.JRadioButton();
         radioButtonThreshold = new javax.swing.JRadioButton();
@@ -249,7 +249,7 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
         jLabel14.setText("jLabel14");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("Import Height Map");
+        setTitle("Import Mask");
 
         jLabel1.setText("Select the image to import as a mask:");
 

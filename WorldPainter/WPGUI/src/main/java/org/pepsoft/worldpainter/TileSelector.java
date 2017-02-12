@@ -37,18 +37,16 @@ public class TileSelector extends javax.swing.JPanel {
     public TileSelector() {
         initComponents();
         jPanel1.setBackground(new Color(VoidRenderer.getColour()));
-        viewer.setZoom(zoom);
-        viewer.addMouseWheelListener(new MouseWheelListener() {
-            @Override
-            public void mouseWheelMoved(MouseWheelEvent e) {
-                int rotation = e.getWheelRotation();
-                if (rotation < 0) {
-                    zoom = Math.min(zoom + -rotation, 0);
-                } else {
-                    zoom = Math.max(zoom - rotation, -4);
-                }
-                viewer.setZoom(zoom);
+        viewer.setZoom(viewer.getZoom() - 2);
+        viewer.addMouseWheelListener(e -> {
+            int rotation = e.getWheelRotation();
+            int zoom = viewer.getZoom();
+            if (rotation < 0) {
+                zoom = Math.min(zoom + -rotation, 0);
+            } else {
+                zoom = Math.max(zoom - rotation, -4);
             }
+            viewer.setZoom(zoom);
         });
         MouseAdapter mouseAdapter = new MouseAdapter() {
             @Override
@@ -151,9 +149,9 @@ public class TileSelector extends javax.swing.JPanel {
         actionMap.put("zoomIn", new AbstractAction("zoomIn") {
             @Override
             public void actionPerformed(ActionEvent e) {
+                int zoom = viewer.getZoom();
                 if (zoom < 0) {
-                    zoom++;
-                    viewer.setZoom(zoom);
+                    viewer.setZoom(zoom + 1);
                 }
             }
             
@@ -162,9 +160,9 @@ public class TileSelector extends javax.swing.JPanel {
         actionMap.put("zoomOut", new AbstractAction("zoomOut") {
             @Override
             public void actionPerformed(ActionEvent e) {
+                int zoom = viewer.getZoom();
                 if (zoom > -4) {
-                    zoom--;
-                    viewer.setZoom(zoom);
+                    viewer.setZoom(zoom - 1);
                 }
             }
             
@@ -500,7 +498,7 @@ public class TileSelector extends javax.swing.JPanel {
     private ColourScheme colourScheme;
     private BiomeScheme biomeScheme;
     private Collection<Layer> hiddenLayers;
-    private int zoom = -2, contourSeparation = 10;
+    private int contourSeparation = 10;
     private boolean contourLines, allowNonExistentTileSelection = false;
     private TileRenderer.LightOrigin lightOrigin;
     private CustomBiomeManager customBiomeManager;

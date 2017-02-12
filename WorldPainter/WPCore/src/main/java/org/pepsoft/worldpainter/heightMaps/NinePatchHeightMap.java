@@ -196,5 +196,5 @@ public final class NinePatchHeightMap extends AbstractHeightMap {
     private float height, halfHeight;
     
     private static final long serialVersionUID = 1L;
-    private static final Icon ICON_NINE_PATCH_HEIGHTMAP = IconUtils.loadIcon("org/pepsoft/worldpainter/icons/nine_patch.png");
+    private static final Icon ICON_NINE_PATCH_HEIGHTMAP = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/nine_patch.png");
 }

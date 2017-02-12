@@ -499,8 +499,8 @@
         <Container class="javax.swing.JPanel" name="jPanel3">
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
-              <JTabbedPaneConstraints tabName="Terrain and Layers">
-                <Property name="tabTitle" type="java.lang.String" value="Terrain and Layers"/>
+              <JTabbedPaneConstraints tabName="Theme">
+                <Property name="tabTitle" type="java.lang.String" value="Theme"/>
               </JTabbedPaneConstraints>
             </Constraint>
           </Constraints>

@@ -17,6 +17,7 @@
 
 package org.pepsoft.worldpainter.tools.scripts;
 
+import java.io.File;
 import java.io.IOException;
 import org.junit.Test;
 
@@ -24,9 +25,9 @@ import org.junit.Test;
  *
  * @author pepijn
  */
-public class SlopeTest extends AbstractScriptTest {
+public class ScriptingIT extends AbstractScriptTest {
     @Test
-    public void testApplyLayer() throws IOException, ClassNotFoundException, javax.script.ScriptException {
-        testScript("slopetest.js");
+    public void testScripting() throws IOException, ClassNotFoundException, javax.script.ScriptException {
+        testScript("scriptingtest.js", new File("Generated World.world"), new File("."));
     }
 }

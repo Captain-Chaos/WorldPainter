@@ -107,7 +107,7 @@ public class EditObjectAttributes extends javax.swing.JDialog {
             boolean allFrequenciesIdentical = true;
             Point3i origin = new Point3i();
             for (WPObject object: objects) {
-                if (object.getOffset().equals(origin)) {
+                if (! object.getOffset().equals(origin)) {
                     offsets.put(object, object.getOffset());
                 }
                 int frequency = object.getAttribute(ATTRIBUTE_FREQUENCY);

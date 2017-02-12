@@ -11,6 +11,8 @@ import org.pepsoft.worldpainter.MapDragControl;
 import org.pepsoft.worldpainter.RadiusControl;
 import org.pepsoft.worldpainter.WorldPainter;
 
+import javax.swing.*;
+
 /**
  *
  * @author pepijn
@@ -18,6 +20,11 @@ import org.pepsoft.worldpainter.WorldPainter;
 public class Smooth extends RadiusOperation {
     public Smooth(WorldPainter view, RadiusControl radiusControl, MapDragControl mapDragControl) {
         super("Smooth", "Smooth the terrain out", view, radiusControl, mapDragControl, 100, "operation.smooth");
+    }
+
+    @Override
+    public JPanel getOptionsPanel() {
+        return optionsPanel;
     }
 
     @Override
@@ -34,6 +41,7 @@ public class Smooth extends RadiusOperation {
                 Arrays.fill(sampleCounts[i], 0);
             }
         }
+        boolean applyTheme = options.isApplyTheme();
         Dimension dimension = getDimension();
         dimension.setEventsInhibited(true);
         try {
@@ -56,10 +64,14 @@ public class Smooth extends RadiusOperation {
                 }
                 if (x >= 10) {
                     for (int y = 5; y < diameter + 5; y++) {
-                        float averageHeight = totals[x - 5][y] / sampleCounts[x - 5][y];
                         float strength = dynamicLevel * getStrength(centreX, centreY, centreX + x - radius - 10, centreY + y - radius - 5);
-                        float newHeight = strength * averageHeight + (1 - strength) * currentHeights[x - 5][y];
-                        dimension.setHeightAt(x + centreX - radius - 10, y + centreY - radius - 5, newHeight);
+                        if (strength > 0.0f) {
+                            float newHeight = strength * (totals[x - 5][y] / sampleCounts[x - 5][y]) + (1 - strength) * currentHeights[x - 5][y];
+                            dimension.setHeightAt(x + centreX - radius - 10, y + centreY - radius - 5, newHeight);
+                            if (applyTheme) {
+                                dimension.applyTheme(x + centreX - radius - 10, y + centreY - radius - 5);
+                            }
+                        }
                     }
                 }
             }
@@ -68,6 +80,8 @@ public class Smooth extends RadiusOperation {
         }
     }
     
+    private final TerrainShapingOptions<Smooth> options = new TerrainShapingOptions<>();
+    private final TerrainShapingOptionsPanel optionsPanel = new TerrainShapingOptionsPanel(options);
     private float[][] totals, currentHeights;
     private int[][] sampleCounts;
 }

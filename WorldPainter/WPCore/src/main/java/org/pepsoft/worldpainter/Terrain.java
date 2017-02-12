@@ -2794,7 +2794,7 @@ public enum Terrain {
         this.toppingHeight = (topping == AIR) ? 0 : 1;
         this.description = description;
         this.defaultBiome = defaultBiome;
-        icon = IconUtils.scaleIcon(IconUtils.loadImage("org/pepsoft/worldpainter/icons/" + name().toLowerCase() + ".png"), 16);
+        icon = IconUtils.scaleIcon(IconUtils.loadUnscaledImage("org/pepsoft/worldpainter/icons/" + name().toLowerCase() + ".png"), 16);
     }
 
     public String getName() {

@@ -12,6 +12,7 @@ package org.pepsoft.worldpainter;
 
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.swing.TiledImageViewer;
+import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
 import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
 
 import javax.imageio.ImageIO;
@@ -35,7 +36,7 @@ import java.util.Set;
  *
  * @author pepijn
  */
-public class ConfigureViewDialog extends javax.swing.JDialog implements WindowListener {
+public class ConfigureViewDialog extends WorldPainterDialog implements WindowListener {
     /** Creates new form ConfigureViewDialog */
     public ConfigureViewDialog(Frame parent, Dimension dimension, WorldPainter view) {
         this(parent, dimension, view, false);
@@ -43,7 +44,7 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements WindowLi
     
     /** Creates new form ConfigureViewDialog */
     public ConfigureViewDialog(Frame parent, Dimension dimension, WorldPainter view, boolean enableOverlay) {
-        super(parent, true);
+        super(parent);
         this.dimension = dimension;
         this.view = view;
         this.enableOverlay = enableOverlay;
@@ -120,21 +121,12 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements WindowLi
             }
             view.setBackground(new Color(newColour));
         });
+        if (BiomeSchemeManager.getAvailableBiomeAlgorithms().isEmpty()) {
+            checkBoxShowBiomes.setSelected(false);
+            checkBoxShowBiomes.setEnabled(false);
+        }
         setControlStates();
         setLocationRelativeTo(parent);
-        
-        ActionMap actionMap = rootPane.getActionMap();
-        actionMap.put("cancel", new AbstractAction("cancel") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-            }
-
-            private static final long serialVersionUID = 1L;
-        });
-
-        InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "cancel");
         
         if (enableOverlay) {
             addWindowListener(this);
@@ -247,11 +239,7 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements WindowLi
                 }
                 return optimumImage;
             }
-        } catch (RuntimeException e) {
-            logger.error(e.getClass().getSimpleName() + " while scaling image of size " + image.getWidth() + "x" + image.getHeight() + " and type " + image.getType() + " to " + scale + "%", e);
-            JOptionPane.showMessageDialog(null, "An error occurred while " + ((scale == 100) ? "optimising" : "scaling") + " the overlay image.\nThere may not be enough available memory, or the image may be too large.", "Error " + ((scale == 100) ? "Optimising" : "Scaling") + " Image", JOptionPane.ERROR_MESSAGE);
-            return null;
-        } catch (Error e) {
+        } catch (RuntimeException | Error e) {
             logger.error(e.getClass().getSimpleName() + " while scaling image of size " + image.getWidth() + "x" + image.getHeight() + " and type " + image.getType() + " to " + scale + "%", e);
             JOptionPane.showMessageDialog(null, "An error occurred while " + ((scale == 100) ? "optimising" : "scaling") + " the overlay image.\nThere may not be enough available memory, or the image may be too large.", "Error " + ((scale == 100) ? "Optimising" : "Scaling") + " Image", JOptionPane.ERROR_MESSAGE);
             return null;
@@ -763,7 +751,7 @@ public class ConfigureViewDialog extends javax.swing.JDialog implements WindowLi
             imageUpdateTimer = null;
             updateImageFile();
         }
-        dispose();
+        ok();
     }//GEN-LAST:event_buttonCloseActionPerformed
 
     private void checkBoxContoursActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxContoursActionPerformed
