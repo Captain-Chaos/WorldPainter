@@ -9,6 +9,7 @@ import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLA
 
 import org.pepsoft.minecraft.*;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 
 import static org.pepsoft.minecraft.Constants.*;
@@ -26,7 +27,7 @@ public class BedrockWallChunk {
         final int maxY = maxHeight - 1;
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
-                if (platform.supportsBiomes()) {
+                if (platform.supportsBiomes) {
                     result.chunk.setBiome(x, z, BIOME_PLAINS);
                 }
                 for (int y = 0; y <= maxY; y++) {

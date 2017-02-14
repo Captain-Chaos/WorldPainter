@@ -2,7 +2,7 @@ package org.pepsoft.worldpainter.plugins;
 
 import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.minecraft.ChunkStore;
-import org.pepsoft.minecraft.Platform;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.World2;
 import org.pepsoft.worldpainter.exporting.WorldExporter;
 

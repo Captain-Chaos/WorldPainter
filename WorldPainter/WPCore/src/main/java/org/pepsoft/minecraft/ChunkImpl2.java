@@ -520,6 +520,11 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk, Minecraf
         return getChunk(x, z);
     }
 
+    @Override
+    public void close() {
+        // Do nothing
+    }
+
     // Object
 
     @Override

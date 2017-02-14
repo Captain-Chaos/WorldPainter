@@ -22,7 +22,7 @@ public class DumpWorld {
         System.out.println("History:");
         world.getHistory().forEach(entry -> System.out.println("    " + entry.getText()));
         if (world.getPlatform() != null) {
-            System.out.printf("Last exported for platform: %s%n", world.getPlatform().getDisplayName());
+            System.out.printf("Last exported for platform: %s%n", world.getPlatform().displayName);
         }
         System.out.println("Generator: " + world.getGenerator());
         if (world.getGeneratorOptions() != null) {

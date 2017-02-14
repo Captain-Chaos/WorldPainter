@@ -10,6 +10,7 @@ import org.pepsoft.minecraft.AbstractNBTItem;
 import org.pepsoft.minecraft.Entity;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.minecraft.TileEntity;
+import org.pepsoft.util.AttributeKey;
 import org.pepsoft.worldpainter.objects.WPObject;
 
 import javax.vecmath.Point3i;

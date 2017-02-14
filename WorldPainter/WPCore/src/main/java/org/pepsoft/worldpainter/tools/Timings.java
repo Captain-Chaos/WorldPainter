@@ -13,7 +13,6 @@ import java.security.SecureRandom;
 import java.util.Random;
 import java.util.zip.GZIPInputStream;
 import org.pepsoft.minecraft.Constants;
-import org.pepsoft.minecraft.Platform;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.DefaultPlugin;

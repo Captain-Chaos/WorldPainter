@@ -14,6 +14,7 @@ import org.pepsoft.minecraft.Direction;
 import org.pepsoft.minecraft.Entity;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.minecraft.TileEntity;
+import org.pepsoft.util.AttributeKey;
 
 /**
  *

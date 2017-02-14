@@ -11,7 +11,6 @@
 
 package org.pepsoft.worldpainter;
 
-import org.pepsoft.minecraft.Platform;
 import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.CustomLayer;
@@ -123,7 +122,7 @@ public class ExportWorldDialog extends WorldPainterDialog {
         checkBoxGoodies.setSelected(world.isCreateGoodiesChest());
         int maxHeight = world.getMaxHeight();
         List<Platform> availablePlatforms = PlatformManager.getInstance().getAllPlatforms().stream()
-                .filter(p -> p.getMinMaxHeight() <= maxHeight && p.getStandardMaxHeight() >= maxHeight)
+                .filter(p -> p.minMaxHeight <= maxHeight && p.maxMaxHeight >= maxHeight)
                 .collect(toList());
         comboBoxMinecraftVersion.setToolTipText("Only platforms which support a map height of " + maxHeight + " are displayed");
         comboBoxMinecraftVersion.setModel(new DefaultComboBoxModel(availablePlatforms.toArray()));
@@ -132,22 +131,22 @@ public class ExportWorldDialog extends WorldPainterDialog {
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 if (value instanceof Platform) {
-                    setText(((Platform) value).getDisplayName());
+                    setText(((Platform) value).displayName);
                 }
                 return this;
             }
         });
         Platform platform = world.getPlatform();
         if (platform == null) {
-            platform = maxHeight == DefaultPlugin.JAVA_ANVIL.getStandardMaxHeight() ? DefaultPlugin.JAVA_ANVIL : DefaultPlugin.JAVA_MCREGION;
+            platform = maxHeight == DefaultPlugin.JAVA_ANVIL.standardMaxHeight ? DefaultPlugin.JAVA_ANVIL : DefaultPlugin.JAVA_MCREGION;
         }
         comboBoxMinecraftVersion.setSelectedItem(platform);
         if (availablePlatforms.size() < 2) {
             comboBoxMinecraftVersion.setEnabled(false);
         }
-        comboBoxGenerator.setModel(new DefaultComboBoxModel(platform.getGenerators().toArray()));
+        comboBoxGenerator.setModel(new DefaultComboBoxModel(platform.supportedGenerators.toArray()));
         comboBoxGenerator.setSelectedItem(world.getGenerator());
-        comboBoxGameType.setModel(new DefaultComboBoxModel(platform.getGameTypes().toArray()));
+        comboBoxGameType.setModel(new DefaultComboBoxModel(platform.supportedGameTypes.toArray()));
         comboBoxGameType.setSelectedItem(world.getGameType());
         checkBoxAllowCheats.setSelected(world.isAllowCheats());
         if (selectedTiles != null) {
@@ -695,14 +694,14 @@ dims:   for (Dimension dim: world.getDimensions()) {
         if (newPlatform != null) {
             Generator generator = (Generator) comboBoxGenerator.getSelectedItem();
             GameType gameType = (GameType) comboBoxGameType.getSelectedItem();
-            comboBoxGenerator.setModel(new DefaultComboBoxModel(newPlatform.getGenerators().toArray()));
-            if (newPlatform.getGenerators().contains(generator)) {
+            comboBoxGenerator.setModel(new DefaultComboBoxModel(newPlatform.supportedGenerators.toArray()));
+            if (newPlatform.supportedGenerators.contains(generator)) {
                 comboBoxGenerator.setSelectedItem(generator);
             } else {
                 comboBoxGenerator.setSelectedItem(Generator.DEFAULT);
             }
-            comboBoxGameType.setModel(new DefaultComboBoxModel(newPlatform.getGameTypes().toArray()));
-            if (newPlatform.getGameTypes().contains(gameType)) {
+            comboBoxGameType.setModel(new DefaultComboBoxModel(newPlatform.supportedGameTypes.toArray()));
+            if (newPlatform.supportedGameTypes.contains(gameType)) {
                 comboBoxGameType.setSelectedItem(gameType);
             } else {
                 comboBoxGameType.setSelectedItem(GameType.SURVIVAL);

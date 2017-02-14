@@ -5,7 +5,6 @@
 package org.pepsoft.worldpainter.tools;
 
 import org.pepsoft.minecraft.Level;
-import org.pepsoft.minecraft.Platform;
 import org.pepsoft.worldpainter.DefaultPlugin;
 import org.pepsoft.worldpainter.exporting.JavaMinecraftWorld;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;

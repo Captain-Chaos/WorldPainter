@@ -7,7 +7,6 @@ package org.pepsoft.worldpainter;
 
 import org.pepsoft.minecraft.Direction;
 import org.pepsoft.minecraft.Material;
-import org.pepsoft.minecraft.Platform;
 import org.pepsoft.util.MemoryUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;

@@ -18,7 +18,7 @@ import javax.imageio.ImageIO;
 import static org.pepsoft.minecraft.Constants.*;
 import org.pepsoft.minecraft.Level;
 import org.pepsoft.minecraft.Material;
-import org.pepsoft.minecraft.Platform;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.minecraft.RegionFile;
 import org.pepsoft.util.ColourUtils;
 import org.pepsoft.worldpainter.ColourScheme;

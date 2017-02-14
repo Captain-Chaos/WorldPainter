@@ -24,7 +24,6 @@
 
 package org.pepsoft.worldpainter.tools.scripts;
 
-import org.pepsoft.minecraft.Platform;
 import org.pepsoft.worldpainter.DefaultPlugin;
 import org.pepsoft.worldpainter.MixedMaterial;
 import org.pepsoft.worldpainter.Terrain;

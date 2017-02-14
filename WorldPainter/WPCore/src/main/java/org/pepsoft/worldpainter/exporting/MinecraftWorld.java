@@ -5,6 +5,7 @@
 package org.pepsoft.worldpainter.exporting;
 
 import org.pepsoft.minecraft.*;
+import org.pepsoft.worldpainter.Platform;
 
 /**
  *

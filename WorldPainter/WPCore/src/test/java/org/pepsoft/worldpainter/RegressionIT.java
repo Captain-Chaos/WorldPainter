@@ -24,8 +24,6 @@ import static org.junit.Assert.assertTrue;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
 
-import org.pepsoft.worldpainter.Dimension;
-
 /**
  * Created by Pepijn Schmitz on 09-01-17.
  */

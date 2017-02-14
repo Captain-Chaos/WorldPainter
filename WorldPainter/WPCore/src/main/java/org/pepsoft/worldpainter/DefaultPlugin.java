@@ -99,7 +99,7 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
                 default:
                     throw new IllegalArgumentException("Dimension " + dimension + " not supported");
             }
-            return new JavaChunkStore(platform, regionDir, false, null, platform.getStandardMaxHeight());
+            return new JavaChunkStore(platform, regionDir, false, null, platform.standardMaxHeight);
         } else {
             throw new IllegalArgumentException("Platform " + platform + " not supported");
         }
@@ -115,9 +115,25 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
         }
     }
 
-    public static final Platform JAVA_MCREGION = new Platform("org.pepsoft.mcregion", "Java/MCRegion", false, 32, DEFAULT_MAX_HEIGHT_1, 2048, Arrays.asList(SURVIVAL, CREATIVE), Arrays.asList(DEFAULT, FLAT));
+    public static final Platform JAVA_MCREGION = new Platform(
+            "org.pepsoft.mcregion",
+            "Java/MCRegion",
+            false,
+            32, DEFAULT_MAX_HEIGHT_1, 2048,
+            Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE,
+            Arrays.asList(SURVIVAL, CREATIVE),
+            Arrays.asList(DEFAULT, FLAT),
+            Arrays.asList(DIM_NORMAL, DIM_NETHER, DIM_END));
 
-    public static final Platform JAVA_ANVIL = new Platform("org.pepsoft.anvil", "Java/Anvil", true, DEFAULT_MAX_HEIGHT_2, DEFAULT_MAX_HEIGHT_2, DEFAULT_MAX_HEIGHT_2, Arrays.asList(SURVIVAL, CREATIVE, ADVENTURE, HARDCORE), Arrays.asList(DEFAULT, FLAT, LARGE_BIOMES));
+    public static final Platform JAVA_ANVIL = new Platform(
+            "org.pepsoft.anvil",
+            "Java/Anvil",
+            true,
+            DEFAULT_MAX_HEIGHT_2, DEFAULT_MAX_HEIGHT_2, DEFAULT_MAX_HEIGHT_2,
+            Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE,
+            Arrays.asList(SURVIVAL, CREATIVE, ADVENTURE, HARDCORE),
+            Arrays.asList(DEFAULT, FLAT, LARGE_BIOMES),
+            Arrays.asList(DIM_NORMAL, DIM_NETHER, DIM_END));
 
     private static final List<Platform> PLATFORMS = Collections.unmodifiableList(Arrays.asList(JAVA_ANVIL, JAVA_MCREGION));
 }

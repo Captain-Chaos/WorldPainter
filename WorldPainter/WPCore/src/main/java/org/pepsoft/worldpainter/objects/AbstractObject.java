@@ -4,6 +4,8 @@
  */
 package org.pepsoft.worldpainter.objects;
 
+import org.pepsoft.util.AttributeKey;
+
 import javax.vecmath.Point3i;
 import java.io.Serializable;
 

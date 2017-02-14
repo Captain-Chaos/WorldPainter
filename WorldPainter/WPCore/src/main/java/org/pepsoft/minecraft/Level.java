@@ -9,6 +9,7 @@ import org.jnbt.*;
 import org.pepsoft.worldpainter.AccessDeniedException;
 import org.pepsoft.worldpainter.DefaultPlugin;
 import org.pepsoft.worldpainter.Generator;
+import org.pepsoft.worldpainter.Platform;
 
 import java.io.*;
 import java.util.*;

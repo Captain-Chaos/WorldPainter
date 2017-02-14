@@ -6,6 +6,7 @@ import org.jnbt.NBTOutputStream;
 import org.pepsoft.minecraft.*;
 import org.pepsoft.worldpainter.DefaultPlugin;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.layers.ReadOnly;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,8 +19,6 @@ import java.io.InputStream;
 import java.util.*;
 
 import static org.pepsoft.minecraft.Block.BLOCK_TYPE_NAMES;
-
-import org.pepsoft.worldpainter.Dimension;
 
 /**
  * Created by Pepijn on 15-12-2016.
@@ -172,6 +171,11 @@ public class JavaChunkStore implements ChunkStore {
     @Override
     public Chunk getChunkForEditing(int x, int z) {
         return getChunk(x, z);
+    }
+
+    @Override
+    public void close() {
+        flush();
     }
 
     private RegionFile getRegionFile(Point regionCoords) throws IOException {

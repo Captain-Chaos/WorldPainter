@@ -12,6 +12,7 @@ import javax.vecmath.Point3i;
 import org.pepsoft.minecraft.Entity;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.minecraft.TileEntity;
+import org.pepsoft.util.AttributeKey;
 
 /**
  * A three dimensional object, consisting of Minecraft blocks, which can be
@@ -206,49 +207,4 @@ public interface WPObject extends Serializable, Cloneable {
      * "foundation" which will be extended by WorldPainter to meet the ground.
      */
     AttributeKey<Boolean> ATTRIBUTE_EXTEND_FOUNDATION = new AttributeKey<>("WPObject.extendFoundation", false);
-
-    /**
-     * A utility class for getting a typed attribute value with a default
-     * conveniently.
-     *
-     * @param <T> The value type of the attribute.
-     */
-    final class AttributeKey<T extends Serializable> {
-        public AttributeKey(String key) {
-            this(key, null);
-        }
-
-        public AttributeKey(String key, T defaultValue) {
-            if (key == null) {
-                throw new NullPointerException("key");
-            }
-            this.key = key;
-            this.defaultValue = defaultValue;
-        }
-
-        @SuppressWarnings("unchecked") // Responsibility of client
-        public T get(Map<String, Serializable> values) {
-            return ((values != null) && values.containsKey(key)) ? (T) values.get(key) : defaultValue;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            AttributeKey<?> that = (AttributeKey<?>) o;
-
-            if (!key.equals(that.key)) return false;
-
-            return true;
-        }
-
-        @Override
-        public int hashCode() {
-            return key.hashCode();
-        }
-
-        public final String key;
-        public final T defaultValue;
-    }
 }

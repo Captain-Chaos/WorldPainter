@@ -8,6 +8,7 @@ package org.pepsoft.worldpainter.exporting;
 import org.pepsoft.minecraft.*;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.layers.*;
@@ -78,7 +79,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
         final ChunkCreationResult result = new ChunkCreationResult();
         result.chunk = platformProvider.createChunk(platform, chunkX, chunkZ, maxHeight);
         final int maxY = maxHeight - 1;
-        final boolean copyBiomes = (platform.supportsBiomes()) && (dimension.getDim() == DIM_NORMAL);
+        final boolean copyBiomes = platform.supportsBiomes && (dimension.getDim() == DIM_NORMAL);
         final int defaultBiome;
         switch (dimension.getDim()) {
             case DIM_NORMAL:

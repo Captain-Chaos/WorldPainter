@@ -6,7 +6,7 @@
 package org.pepsoft.worldpainter.exporting;
 
 import org.pepsoft.minecraft.ChunkFactory;
-import org.pepsoft.minecraft.Platform;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Dimension.Border;
@@ -55,7 +55,7 @@ public class BorderChunkFactory {
         final ChunkFactory.ChunkCreationResult result = new ChunkFactory.ChunkCreationResult();
         result.chunk = PlatformManager.getInstance().createChunk(platform, chunkX, chunkZ, maxHeight);
         final int maxY = maxHeight - 1;
-        if (platform.supportsBiomes()) {
+        if (platform.supportsBiomes) {
             switch(border) {
                 case VOID:
                 case LAVA:

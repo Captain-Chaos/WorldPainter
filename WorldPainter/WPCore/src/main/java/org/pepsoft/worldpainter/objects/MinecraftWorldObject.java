@@ -10,6 +10,7 @@ import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.minecraft.Entity;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.minecraft.TileEntity;
+import org.pepsoft.util.AttributeKey;
 import org.pepsoft.util.Box;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 
@@ -263,6 +264,11 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
     @Override
     public Chunk getChunkForEditing(int x, int z) {
         throw new UnsupportedOperationException("Not supported");
+    }
+
+    @Override
+    public void close() {
+        // Do nothing
     }
 
     // WPObject

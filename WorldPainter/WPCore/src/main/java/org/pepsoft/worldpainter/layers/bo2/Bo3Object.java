@@ -11,6 +11,7 @@ import org.jnbt.Tag;
 import org.pepsoft.minecraft.Entity;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.minecraft.TileEntity;
+import org.pepsoft.util.AttributeKey;
 import org.pepsoft.worldpainter.objects.AbstractObject;
 import org.pepsoft.worldpainter.objects.WPObject;
 import org.slf4j.Logger;

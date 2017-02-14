@@ -5,6 +5,7 @@
 
 package org.pepsoft.worldpainter;
 
+import org.pepsoft.util.AttributeKey;
 import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.util.ProgressReceiver;
@@ -1463,6 +1464,21 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         return new TileVisitationBuilder();
     }
 
+    public <T> T getAttribute(AttributeKey<T> key) {
+        if (attributes != null) {
+            return attributes.containsKey(key.key) ? (T) attributes.get(key.key) : key.defaultValue;
+        } else {
+            return key.defaultValue;
+        }
+    }
+
+    public <T> void setAttribute(AttributeKey<T> key, T value) {
+        if (attributes == null) {
+            attributes = new HashMap<>();
+        }
+        attributes.put(key.key, value);
+    }
+
     // Tile.Listener
 
     @Override
@@ -1714,6 +1730,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     private int wpVersion = CURRENT_WP_VERSION;
     private boolean fixOverlayCoords;
     private int ceilingHeight = maxHeight;
+    private Map<String, Object> attributes;
     private transient List<Listener> listeners = new ArrayList<>();
     private transient boolean eventsInhibited;
     private transient Set<Tile> dirtyTiles = new HashSet<>();

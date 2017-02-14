@@ -11,7 +11,6 @@ import com.jidesoft.swing.JideLabel;
 import org.jetbrains.annotations.NonNls;
 import org.pepsoft.minecraft.Direction;
 import org.pepsoft.minecraft.Material;
-import org.pepsoft.minecraft.Platform;
 import org.pepsoft.util.*;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.swing.ProgressDialog;

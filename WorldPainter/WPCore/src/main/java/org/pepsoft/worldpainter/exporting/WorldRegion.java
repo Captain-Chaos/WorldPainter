@@ -5,6 +5,7 @@
 package org.pepsoft.worldpainter.exporting;
 
 import org.pepsoft.minecraft.*;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.plugins.PlatformProvider;
 
@@ -247,6 +248,11 @@ public class WorldRegion implements MinecraftWorld {
     }
 
     @Override
+    public void close() {
+        // Do nothing
+    }
+
+    @Override
     public void addChunk(Chunk chunk) {
         int localX = chunk.getxPos() - (regionX << 5);
         int localZ = chunk.getzPos() - (regionZ << 5);
@@ -266,8 +272,7 @@ public class WorldRegion implements MinecraftWorld {
     }
 
     public void save(File worldDir, int dimension) throws IOException {
-        ChunkStore chunkStore = PlatformManager.getInstance().getChunkStore(platform, worldDir, dimension);
-        try {
+        try (ChunkStore chunkStore = platformProvider.getChunkStore(platform, worldDir, dimension)) {
             for (int x = 0; x < CHUNKS_PER_SIDE; x++) {
                 for (int z = 0; z < CHUNKS_PER_SIDE; z++) {
                     final Chunk chunk = chunks[x + 1][z + 1];
@@ -313,8 +318,6 @@ public class WorldRegion implements MinecraftWorld {
                     }
                 }
             }
-        } finally {
-            chunkStore.flush();
         }
     }
 

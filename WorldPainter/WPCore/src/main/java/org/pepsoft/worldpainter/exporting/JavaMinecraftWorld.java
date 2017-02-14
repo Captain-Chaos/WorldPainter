@@ -5,7 +5,7 @@
 
 package org.pepsoft.worldpainter.exporting;
 
-import org.pepsoft.minecraft.Platform;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.Dimension;
 
 import java.awt.*;

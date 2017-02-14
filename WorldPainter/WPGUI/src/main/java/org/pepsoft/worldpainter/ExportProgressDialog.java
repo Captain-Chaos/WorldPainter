@@ -72,7 +72,7 @@ public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, Chunk
 
     @Override
     protected String getResultsReport(Map<Integer, ChunkFactory.Stats> result, long duration) {
-        boolean nonStandardHeight = world.getMaxHeight() != world.getPlatform().getStandardMaxHeight();
+        boolean nonStandardHeight = world.getMaxHeight() != world.getPlatform().standardMaxHeight;
         StringBuilder sb = new StringBuilder();
         sb.append("<html>World exported as ").append(new File(baseDir, FileUtils.sanitiseName(name)));
         int hours = (int) (duration / 3600);

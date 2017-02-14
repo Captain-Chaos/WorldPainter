@@ -173,6 +173,15 @@ public class InvertedWorld implements MinecraftWorld {
         return (chunk != null) ? new InvertedChunk(chunk, delta) : null;
     }
 
+    /**
+     * Does nothing. (In particular: does <em>not</em> close the underlying
+     * world).
+     */
+    @Override
+    public void close() {
+        // Do nothing
+    }
+
     private final MinecraftWorld world;
     private final int maxHeight, maxZ, delta;
 }

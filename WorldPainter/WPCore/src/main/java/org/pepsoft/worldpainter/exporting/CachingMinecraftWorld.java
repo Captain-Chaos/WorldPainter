@@ -2,6 +2,7 @@ package org.pepsoft.worldpainter.exporting;
 
 import org.pepsoft.minecraft.*;
 import org.pepsoft.util.jobqueue.HashList;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 
 import java.awt.*;
@@ -16,7 +17,7 @@ import static org.pepsoft.minecraft.Constants.BLK_AIR;
 /**
  * Created by Pepijn on 15-12-2016.
  */
-public abstract class CachingMinecraftWorld implements MinecraftWorld {
+public class CachingMinecraftWorld implements MinecraftWorld {
     public CachingMinecraftWorld(File worldDir, int dimension, int maxHeight, Platform platform, boolean readOnly, int cacheSize) {
         this.maxHeight = maxHeight;
         this.cacheSize = cacheSize;
@@ -293,6 +294,12 @@ public abstract class CachingMinecraftWorld implements MinecraftWorld {
             clone.setZ(y);
             chunk.getTileEntities().add(clone);
         }
+    }
+
+    @Override
+    public void close() {
+        flush();
+        chunkStore.close();
     }
 
     public int getCacheSize() {
