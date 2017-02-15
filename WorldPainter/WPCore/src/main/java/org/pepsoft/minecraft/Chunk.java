@@ -9,6 +9,7 @@ import java.awt.Point;
 import java.util.List;
 
 /**
+ * This API's coordinate system is the Minecraft coordinate system (W <- x -> E, down <- y -> up, N <- z -> S).
  *
  * @author pepijn
  */
