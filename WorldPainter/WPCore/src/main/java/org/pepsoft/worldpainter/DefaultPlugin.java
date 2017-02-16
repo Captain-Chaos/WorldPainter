@@ -117,7 +117,7 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
 
     public static final Platform JAVA_MCREGION = new Platform(
             "org.pepsoft.mcregion",
-            "Java/MCRegion",
+            "Minecraft 1.1 (MCRegion)",
             false,
             32, DEFAULT_MAX_HEIGHT_1, 2048,
             Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE,
@@ -127,7 +127,7 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
 
     public static final Platform JAVA_ANVIL = new Platform(
             "org.pepsoft.anvil",
-            "Java/Anvil",
+            "Minecraft 1.2 or later (Anvil)",
             true,
             DEFAULT_MAX_HEIGHT_2, DEFAULT_MAX_HEIGHT_2, DEFAULT_MAX_HEIGHT_2,
             Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE,

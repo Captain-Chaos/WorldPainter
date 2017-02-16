@@ -1,6 +1,7 @@
 package org.pepsoft.worldpainter.layers;
 
 import org.pepsoft.util.IconUtils;
+import org.pepsoft.worldpainter.App;
 import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.biomeschemes.*;
 
@@ -79,7 +80,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
             if (biome != -1) {
                 final JToggleButton button = new JToggleButton(new ImageIcon(BiomeSchemeManager.createImage(BIOME_SCHEME, biome, colourScheme)));
                 button.putClientProperty(KEY_BIOME, biome);
-                button.setMargin(new Insets(2, 4, 2, 4));
+                button.setMargin(App.BUTTON_INSETS);
                 StringBuilder tooltip = new StringBuilder();
                 tooltip.append(AutoBiomeScheme.BIOME_NAMES[biome]);
                 tooltip.append(" (");
@@ -108,7 +109,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         }
 
         JButton addCustomBiomeButton = new JButton(IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/plus.png"));
-        addCustomBiomeButton.setMargin(new Insets(2, 2, 2, 2));
+        addCustomBiomeButton.setMargin(App.BUTTON_INSETS);
         addCustomBiomeButton.setToolTipText("Add a custom biome");
         addCustomBiomeButton.addActionListener(e -> {
             final Window parent = SwingUtilities.getWindowAncestor(BiomesPanel.this);
@@ -237,7 +238,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         final int biome = customBiome.getId();
         final JToggleButton button = new JToggleButton(IconUtils.createScaledColourIcon(customBiome.getColour()));
         button.putClientProperty(KEY_BIOME, biome);
-        button.setMargin(new Insets(2, 2, 2, 2));
+        button.setMargin(App.BUTTON_INSETS);
         button.setToolTipText(customBiome.getName() + " (" + biome + "); right-click for options");
         button.addMouseListener(new MouseAdapter() {
                 @Override

@@ -31,6 +31,27 @@ public final class Platform implements Serializable {
         this.supportedDimensions = copyOf(supportedDimensions);
     }
 
+    /**
+     * Determines whether a world could be retargeted to this platform without
+     * requiring any changes or edits.
+     * 
+     * @param world The world to check for compatibility.
+     * @return <code>true</code> if the world could be trivially retargeted to
+     * this platform.
+     */
+    public boolean isCompatible(World2 world) {
+        if ((world.getMaxHeight() < minMaxHeight)
+                || (world.getMaxHeight() > maxMaxHeight)) {
+            return false;
+        }
+        for (Dimension dimension: world.getDimensions()) {
+            if ((dimension.getDim() >= 0) && (! supportedDimensions.contains(dimension.getDim()))) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
     // Object
 
     @Override

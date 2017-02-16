@@ -258,6 +258,7 @@ public class BiomesViewerFrame extends JFrame {
             app,
             "Generated World",
             ((Number) seedSpinner.getValue()).longValue(),
+            ((Integer) schemeChooser.getSelectedItem() == BIOME_ALGORITHM_1_1) ? DefaultPlugin.JAVA_MCREGION : DefaultPlugin.JAVA_ANVIL,
             DIM_NORMAL,
             Configuration.getInstance().getDefaultMaxHeight(),
             imageViewer.getSelectedTiles());

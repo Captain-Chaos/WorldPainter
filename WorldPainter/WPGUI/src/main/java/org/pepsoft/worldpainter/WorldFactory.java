@@ -12,6 +12,8 @@ import static org.pepsoft.minecraft.Constants.*;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.MathUtils;
 import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
+
 import org.pepsoft.worldpainter.MixedMaterial.Row;
 import org.pepsoft.worldpainter.biomeschemes.Minecraft1_2BiomeScheme;
 import org.pepsoft.worldpainter.history.HistoryEntry;
@@ -112,7 +114,7 @@ public final class WorldFactory {
             theme.setTerrainRanges(new TreeMap<>(defaultTheme.getTerrainRanges()));
             theme.setRandomise(defaultTheme.isRandomise());
         }
-        final World2 world = new World2(World2.DEFAULT_OCEAN_SEED, tileFactory, tileFactory.getMaxHeight());
+        final World2 world = new World2(config.getDefaultPlatform(), World2.DEFAULT_OCEAN_SEED, tileFactory, tileFactory.getMaxHeight());
         world.addHistoryEntry(HistoryEntry.WORLD_CREATED);
         final ResourceBundle strings = ResourceBundle.getBundle("org.pepsoft.worldpainter.resources.strings");
         world.setName(strings.getString("generated.world"));
@@ -163,7 +165,7 @@ public final class WorldFactory {
     public static World2 createFancyWorld(final Configuration config, final long seed) {
         final HeightMapTileFactory tileFactory = TileFactoryFactory.createFancyTileFactory(seed, Terrain.GRASS, DEFAULT_MAX_HEIGHT_2, 58, 62, false, 20f, 1.0);
         final Dimension defaults = config.getDefaultTerrainAndLayerSettings();
-        final World2 world = new World2(World2.DEFAULT_OCEAN_SEED, tileFactory, tileFactory.getMaxHeight());
+        final World2 world = new World2(JAVA_ANVIL, World2.DEFAULT_OCEAN_SEED, tileFactory, tileFactory.getMaxHeight());
         world.addHistoryEntry(HistoryEntry.WORLD_CREATED);
         if (config.getDefaultMaxHeight() == DEFAULT_MAX_HEIGHT_2) {
             world.setGenerator(Generator.LARGE_BIOMES);

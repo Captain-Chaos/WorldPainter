@@ -120,12 +120,11 @@ public class ExportWorldDialog extends WorldPainterDialog {
             jTabbedPane1.setEnabledAt(5, false);
         }
         checkBoxGoodies.setSelected(world.isCreateGoodiesChest());
-        int maxHeight = world.getMaxHeight();
         List<Platform> availablePlatforms = PlatformManager.getInstance().getAllPlatforms().stream()
-                .filter(p -> p.minMaxHeight <= maxHeight && p.maxMaxHeight >= maxHeight)
+                .filter(p -> p.isCompatible(world))
                 .collect(toList());
-        comboBoxMinecraftVersion.setToolTipText("Only platforms which support a map height of " + maxHeight + " are displayed");
-        comboBoxMinecraftVersion.setModel(new DefaultComboBoxModel(availablePlatforms.toArray()));
+        comboBoxMinecraftVersion.setToolTipText("Only map formats compatible with this world are displayed");
+        comboBoxMinecraftVersion.setModel(new DefaultComboBoxModel<>(availablePlatforms.toArray(new Platform[availablePlatforms.size()])));
         comboBoxMinecraftVersion.setRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
@@ -137,17 +136,16 @@ public class ExportWorldDialog extends WorldPainterDialog {
             }
         });
         Platform platform = world.getPlatform();
-        if (platform == null) {
-            platform = maxHeight == DefaultPlugin.JAVA_ANVIL.standardMaxHeight ? DefaultPlugin.JAVA_ANVIL : DefaultPlugin.JAVA_MCREGION;
-        }
         comboBoxMinecraftVersion.setSelectedItem(platform);
         if (availablePlatforms.size() < 2) {
             comboBoxMinecraftVersion.setEnabled(false);
         }
-        comboBoxGenerator.setModel(new DefaultComboBoxModel(platform.supportedGenerators.toArray()));
+        comboBoxGenerator.setModel(new DefaultComboBoxModel<>(platform.supportedGenerators.toArray(new Generator[platform.supportedGenerators.size()])));
         comboBoxGenerator.setSelectedItem(world.getGenerator());
-        comboBoxGameType.setModel(new DefaultComboBoxModel(platform.supportedGameTypes.toArray()));
+        comboBoxGenerator.setEnabled(comboBoxGenerator.getItemCount() > 1);
+        comboBoxGameType.setModel(new DefaultComboBoxModel<>(platform.supportedGameTypes.toArray(new GameType[platform.supportedGameTypes.size()])));
         comboBoxGameType.setSelectedItem(world.getGameType());
+        comboBoxGameType.setEnabled(comboBoxGameType.getItemCount() > 1);
         checkBoxAllowCheats.setSelected(world.isAllowCheats());
         if (selectedTiles != null) {
             radioButtonExportSelection.setText("export " + selectedTiles.size() + " selected tiles");
@@ -694,18 +692,20 @@ dims:   for (Dimension dim: world.getDimensions()) {
         if (newPlatform != null) {
             Generator generator = (Generator) comboBoxGenerator.getSelectedItem();
             GameType gameType = (GameType) comboBoxGameType.getSelectedItem();
-            comboBoxGenerator.setModel(new DefaultComboBoxModel(newPlatform.supportedGenerators.toArray()));
+            comboBoxGenerator.setModel(new DefaultComboBoxModel<>(newPlatform.supportedGenerators.toArray(new Generator[newPlatform.supportedGenerators.size()])));
             if (newPlatform.supportedGenerators.contains(generator)) {
                 comboBoxGenerator.setSelectedItem(generator);
             } else {
                 comboBoxGenerator.setSelectedItem(Generator.DEFAULT);
             }
-            comboBoxGameType.setModel(new DefaultComboBoxModel(newPlatform.supportedGameTypes.toArray()));
+            comboBoxGenerator.setEnabled(newPlatform.supportedGenerators.size() > 1);
+            comboBoxGameType.setModel(new DefaultComboBoxModel<>(newPlatform.supportedGameTypes.toArray(new GameType[newPlatform.supportedGameTypes.size()])));
             if (newPlatform.supportedGameTypes.contains(gameType)) {
                 comboBoxGameType.setSelectedItem(gameType);
             } else {
                 comboBoxGameType.setSelectedItem(GameType.SURVIVAL);
             }
+            comboBoxGameType.setEnabled(newPlatform.supportedGameTypes.size() > 1);
             if (newPlatform.equals(DefaultPlugin.JAVA_ANVIL)) {
                 checkBoxAllowCheats.setSelected(gameType == GameType.CREATIVE);
             } else {

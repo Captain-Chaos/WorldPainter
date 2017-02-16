@@ -1672,7 +1672,8 @@ public final class App extends JFrame implements RadiusControl,
         if (! saveIfNecessary()) {
             return;
         }
-        final NewWorldDialog dialog = new NewWorldDialog(this, strings.getString("generated.world"), World2.DEFAULT_OCEAN_SEED, DIM_NORMAL, Configuration.getInstance().getDefaultMaxHeight());
+        Configuration config = Configuration.getInstance();
+        final NewWorldDialog dialog = new NewWorldDialog(this, strings.getString("generated.world"), World2.DEFAULT_OCEAN_SEED, config.getDefaultPlatform(), DIM_NORMAL, config.getDefaultMaxHeight());
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             setWorld(null); // Free up memory of the world and the undo buffer
@@ -1696,14 +1697,11 @@ public final class App extends JFrame implements RadiusControl,
             }
 
             // Log an event
-            Configuration config = Configuration.getInstance();
-            if (config != null) {
-                EventVO event = new EventVO(EVENT_KEY_ACTION_NEW_WORLD).addTimestamp();
-                event.setAttribute(ATTRIBUTE_KEY_MAX_HEIGHT, newWorld.getMaxHeight());
-                event.setAttribute(ATTRIBUTE_KEY_TILES, newWorld.getDimension(0).getTiles().size());
-                config.logEvent(event);
-            }
-            
+            EventVO event = new EventVO(EVENT_KEY_ACTION_NEW_WORLD).addTimestamp();
+            event.setAttribute(ATTRIBUTE_KEY_MAX_HEIGHT, newWorld.getMaxHeight());
+            event.setAttribute(ATTRIBUTE_KEY_TILES, newWorld.getDimension(0).getTiles().size());
+            config.logEvent(event);
+
             setWorld(newWorld);
             lastSelectedFile = null;
             disableImportedWorldOperation();
@@ -2478,7 +2476,7 @@ public final class App extends JFrame implements RadiusControl,
 //        toolPanel.add(createButtonForOperation(new Erode(view, this, mapDragControl), 'm'));
         toolPanel.add(createButtonForOperation(new SetSpawnPoint(view)));
         JButton button = new JButton(loadScaledIcon("globals"));
-        button.setMargin(new Insets(2, 2, 2, 2));
+        button.setMargin(App.BUTTON_INSETS);
         button.addActionListener(e -> showGlobalOperations());
         button.setToolTipText(strings.getString("global.operations.fill.or.clear.the.world.with.a.terrain.biome.or.layer"));
         button.putClientProperty(HELP_KEY_KEY, "Operation/GlobalOperations");
@@ -2492,7 +2490,7 @@ public final class App extends JFrame implements RadiusControl,
         toolPanel.add(copySelectionButton);
         JButton clearSelectionButton = new JButton(loadScaledIcon("clear_selection"));
         clearSelectionButton.setEnabled(selectionState.getValue());
-        clearSelectionButton.setMargin(new Insets(2, 2, 2, 2));
+        clearSelectionButton.setMargin(App.BUTTON_INSETS);
         clearSelectionButton.addActionListener(e -> {
             if (dimension.containsOneOf(SelectionChunk.INSTANCE, SelectionBlock.INSTANCE)) {
                 dimension.setEventsInhibited(true);
@@ -2574,7 +2572,7 @@ public final class App extends JFrame implements RadiusControl,
 
         final JButton addLayerButton = new JButton(loadScaledIcon("plus"));
         addLayerButton.setToolTipText(strings.getString("add.a.custom.layer"));
-        addLayerButton.setMargin(new Insets(2, 2, 2, 2));
+        addLayerButton.setMargin(App.BUTTON_INSETS);
         addLayerButton.addActionListener(e -> customLayerMenu.show(layerPanel, addLayerButton.getX() + addLayerButton.getWidth(), addLayerButton.getY()));
         JPanel spacer = new JPanel();
         constraints.gridwidth = 1;
@@ -2694,7 +2692,7 @@ public final class App extends JFrame implements RadiusControl,
             final int selectedColour = i, dataValue = i - ((i < 8) ? 1 : 0);
             JToggleButton button = new JToggleButton(IconUtils.createScaledColourIcon(defaultColourScheme.getColour(BLK_WOOL, dataValue)));
             button.setToolTipText(COLOUR_NAMES[dataValue]);
-            button.setMargin(new Insets(2, 4, 2, 4));
+            button.setMargin(App.BUTTON_INSETS);
             if (i == 1) {
                 button.setSelected(true);
             }
@@ -2939,7 +2937,7 @@ public final class App extends JFrame implements RadiusControl,
         buttonPanel.add(createTerrainButton(BEACHES));
         buttonPanel.add(createTerrainButton(DEEP_SNOW));
         JButton addCustomTerrainButton = new JButton(ACTION_SHOW_CUSTOM_TERRAIN_POPUP);
-        addCustomTerrainButton.setMargin(new Insets(2, 2, 2, 2));
+        addCustomTerrainButton.setMargin(App.BUTTON_INSETS);
         buttonPanel.add(addCustomTerrainButton);
         terrainPanel.add(buttonPanel, constraints);
 
@@ -2951,7 +2949,7 @@ public final class App extends JFrame implements RadiusControl,
         customTerrainPanel.setLayout(new GridLayout(0, 4));
 
         JButton addCustomTerrainButton = new JButton(ACTION_SHOW_CUSTOM_TERRAIN_POPUP);
-        addCustomTerrainButton.setMargin(new Insets(2, 2, 2, 2));
+        addCustomTerrainButton.setMargin(App.BUTTON_INSETS);
         customTerrainPanel.add(addCustomTerrainButton);
 
         return customTerrainPanel;
@@ -4034,7 +4032,7 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void addSurfaceCeiling() {
-        final NewWorldDialog dialog = new NewWorldDialog(this, world.getName(), dimension.getSeed() + 1, DIM_NORMAL_CEILING, world.getMaxHeight(), world.getDimension(DIM_NORMAL).getTileCoords());
+        final NewWorldDialog dialog = new NewWorldDialog(this, world.getName(), dimension.getSeed() + 1, world.getPlatform(), DIM_NORMAL_CEILING, world.getMaxHeight(), world.getDimension(DIM_NORMAL).getTileCoords());
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             if (! dialog.checkMemoryRequirements(this)) {
@@ -4077,7 +4075,7 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void addNetherCeiling() {
-        final NewWorldDialog dialog = new NewWorldDialog(this, world.getName(), dimension.getSeed() + 1, DIM_NETHER_CEILING, world.getMaxHeight(), world.getDimension(DIM_NETHER).getTileCoords());
+        final NewWorldDialog dialog = new NewWorldDialog(this, world.getName(), dimension.getSeed() + 1, world.getPlatform(), DIM_NETHER_CEILING, world.getMaxHeight(), world.getDimension(DIM_NETHER).getTileCoords());
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             if (! dialog.checkMemoryRequirements(this)) {
@@ -4120,7 +4118,7 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void addEndCeiling() {
-        final NewWorldDialog dialog = new NewWorldDialog(this, world.getName(), dimension.getSeed() + 1, DIM_END_CEILING, world.getMaxHeight(), world.getDimension(DIM_END).getTileCoords());
+        final NewWorldDialog dialog = new NewWorldDialog(this, world.getName(), dimension.getSeed() + 1, world.getPlatform(), DIM_END_CEILING, world.getMaxHeight(), world.getDimension(DIM_END).getTileCoords());
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             if (! dialog.checkMemoryRequirements(this)) {
@@ -4293,7 +4291,7 @@ public final class App extends JFrame implements RadiusControl,
     }
     
     private void addNether() {
-        final NewWorldDialog dialog = new NewWorldDialog(this, world.getName(), dimension.getSeed() + 1, DIM_NETHER, world.getMaxHeight());
+        final NewWorldDialog dialog = new NewWorldDialog(this, world.getName(), dimension.getSeed() + 1, world.getPlatform(), DIM_NETHER, world.getMaxHeight());
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             if (! dialog.checkMemoryRequirements(this)) {
@@ -4338,7 +4336,7 @@ public final class App extends JFrame implements RadiusControl,
     }
     
     private void addEnd() {
-        final NewWorldDialog dialog = new NewWorldDialog(this, world.getName(), dimension.getSeed() + 1, DIM_END, world.getMaxHeight());
+        final NewWorldDialog dialog = new NewWorldDialog(this, world.getName(), dimension.getSeed() + 1, world.getPlatform(), DIM_END, world.getMaxHeight());
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             if (! dialog.checkMemoryRequirements(this)) {
@@ -4433,7 +4431,7 @@ public final class App extends JFrame implements RadiusControl,
         if (operation instanceof SetSpawnPoint) {
             setSpawnPointToggleButton = button;
         }
-        button.setMargin(new Insets(2, 2, 2, 2));
+        button.setMargin(App.BUTTON_INSETS);
         if (icon != null) {
             button.setIcon(new ImageIcon(icon));
         }
@@ -4635,7 +4633,7 @@ public final class App extends JFrame implements RadiusControl,
 
     private JToggleButton createTerrainButton(final Terrain terrain) {
         final JToggleButton button = new JToggleButton();
-        button.setMargin(new Insets(2, 4, 2, 4));
+        button.setMargin(App.BUTTON_INSETS);
         button.setIcon(new ImageIcon(terrain.getIcon(defaultColourScheme)));
         button.setToolTipText(terrain.getName() + ": " + terrain.getDescription());
         button.addItemListener(event -> {
@@ -6518,6 +6516,13 @@ public final class App extends JFrame implements RadiusControl,
     public static final int DEFAULT_MAX_RADIUS = 300;
 
     public static final String HELP_KEY_KEY = "org.pepsoft.worldpainter.helpKey";
+
+    public static final Insets BUTTON_INSETS = new Insets(3, 5, 3, 5) {
+        @Override
+        public void set(int top, int left, int bottom, int right) {
+            throw new UnsupportedOperationException();
+        }
+    };
 
     private static App instance;
     private static Mode mode = Mode.WORLDPAINTER;

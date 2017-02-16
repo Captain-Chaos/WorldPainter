@@ -10,12 +10,7 @@ import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import org.pepsoft.minecraft.Constants;
-import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.Terrain;
-import org.pepsoft.worldpainter.TileFactory;
-import org.pepsoft.worldpainter.TileFactoryFactory;
-import org.pepsoft.worldpainter.World2;
-import org.pepsoft.worldpainter.WorldPainter;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.colourschemes.DynMapColourScheme;
 
 /**
@@ -40,7 +35,7 @@ public class WorldMorph {
     private static World2 createNewWorld() {
         long seed = System.currentTimeMillis();
         TileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(seed, Terrain.GRASS, Constants.DEFAULT_MAX_HEIGHT_1, 16, 24, false, true, 20, 1.0);
-        World2 world = new World2(seed, tileFactory, World2.DEFAULT_MAX_HEIGHT);
+        World2 world = new World2(DefaultPlugin.JAVA_MCREGION, seed, tileFactory, World2.DEFAULT_MAX_HEIGHT);
         Dimension dim0 = world.getDimension(0);
         for (int x = -2; x <= 2; x++) {
             for (int y = -2; y <= 2; y++) {

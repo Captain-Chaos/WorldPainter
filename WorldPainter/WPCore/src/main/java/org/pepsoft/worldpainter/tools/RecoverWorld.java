@@ -25,6 +25,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
+
 /**
  *
  * @author pepijn
@@ -125,10 +129,15 @@ public class RecoverWorld {
                 maxHeight = defaultMaxHeight;
             }
             if (newWorld == null) {
-                newWorld = new World2(maxHeight);
-                newWorld.addHistoryEntry(HistoryEntry.WORLD_RECOVERED);
                 if (worlds.size() > 0) {
                     World2 world = worlds.get(0);
+                    if (world.getPlatform() != null) {
+                        newWorld = new World2(world.getPlatform(), maxHeight);
+                    } else if (maxHeight == DEFAULT_MAX_HEIGHT_2) {
+                        newWorld = new World2(JAVA_ANVIL, maxHeight);
+                    } else {
+                        newWorld = new World2(JAVA_MCREGION, maxHeight);
+                    }
                     if (world.getName() != null) {
                         newWorld.setName(worlds.get(0).getName() + " (recovered)");
                     }
@@ -158,10 +167,15 @@ public class RecoverWorld {
                     } else {
                         System.err.println("North direction setting lost; resetting to north is up");
                     }
-                    newWorld.setPlatform(world.getPlatform());
                 } else {
                     System.err.println("No world recovered; all world settings lost");
+                    if (maxHeight == DEFAULT_MAX_HEIGHT_2) {
+                        newWorld = new World2(JAVA_ANVIL, maxHeight);
+                    } else {
+                        newWorld = new World2(JAVA_MCREGION, maxHeight);
+                    }
                 }
+                newWorld.addHistoryEntry(HistoryEntry.WORLD_RECOVERED);
                 if (newWorld.getName() == null) {
                     String worldName = file.getName();
                     if (worldName.toLowerCase().endsWith(".world")) {

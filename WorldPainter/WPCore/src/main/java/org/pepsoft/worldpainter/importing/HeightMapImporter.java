@@ -28,6 +28,7 @@ import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
 import static org.pepsoft.worldpainter.Constants.MEDIUM_BLOBS;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
+import static org.pepsoft.worldpainter.DefaultPlugin.*;
 
 /**
  *
@@ -50,7 +51,7 @@ public class HeightMapImporter {
         logger.info("Importing world from height map {} (size: {}x{})", name, extent.width, extent.height);
 
         final boolean highRes = (imageHighLevel >= maxHeight) && (worldHighLevel < maxHeight);
-        final World2 world = new World2(World2.DEFAULT_OCEAN_SEED, tileFactory, maxHeight);
+        final World2 world = new World2((maxHeight == DEFAULT_MAX_HEIGHT_2) ? JAVA_ANVIL : JAVA_MCREGION, World2.DEFAULT_OCEAN_SEED, tileFactory, maxHeight);
         world.addHistoryEntry(HistoryEntry.WORLD_IMPORTED_FROM_HEIGHT_MAP, imageFile);
         int p = name.lastIndexOf('.');
         if (p != -1) {

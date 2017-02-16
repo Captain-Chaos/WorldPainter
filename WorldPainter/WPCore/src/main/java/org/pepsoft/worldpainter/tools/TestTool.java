@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.util.Random;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 //import org.pepsoft.worldpainter.gardenofeden.Inn;
 
 /**
@@ -28,8 +29,7 @@ public class TestTool {
         long seed = random.nextLong();
 //        TileFactory tileFactory = new NoiseTileFactory(Terrain.GRASS, DEFAULT_MAX_HEIGHT_2, 58, 62, false, false);
         TileFactory tileFactory = TileFactoryFactory.createFlatTileFactory(seed, Terrain.GRASS, DEFAULT_MAX_HEIGHT_2, 62, 0, false, false);
-        World2 world = new World2(seed, tileFactory, DEFAULT_MAX_HEIGHT_2);
-        world.setPlatform(DefaultPlugin.JAVA_ANVIL);
+        World2 world = new World2(JAVA_ANVIL, seed, tileFactory, DEFAULT_MAX_HEIGHT_2);
         world.setName("TestWorld");
         world.setSpawnPoint(new Point(64, 64));
         world.setGameType(GameType.CREATIVE);

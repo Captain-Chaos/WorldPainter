@@ -20,6 +20,7 @@ import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipException;
 
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 
 /**
  * Created by Pepijn Schmitz on 02-07-15.
@@ -129,7 +130,7 @@ public class WorldIO {
     private World2 migrate(Object object) {
         if (object instanceof World) {
             World oldWorld = (World) object;
-            World2 newWorld = new World2(oldWorld.getMinecraftSeed(), oldWorld.getTileFactory(), 128);
+            World2 newWorld = new World2(JAVA_MCREGION, oldWorld.getMinecraftSeed(), oldWorld.getTileFactory(), 128);
             newWorld.setCreateGoodiesChest(oldWorld.isCreateGoodiesChest());
             newWorld.setImportedFrom(oldWorld.getImportedFrom());
             newWorld.setName(oldWorld.getName());

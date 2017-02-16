@@ -28,6 +28,7 @@ import java.util.regex.Pattern;
 
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.*;
 
 /**
  *
@@ -68,7 +69,7 @@ public class JavaMapImporter {
         }
         String name = level.getName().trim();
         int maxHeight = level.getMaxHeight();
-        World2 world = new World2(maxHeight);
+        World2 world = new World2((version == SUPPORTED_VERSION_1) ? JAVA_MCREGION : JAVA_ANVIL, maxHeight);
         world.addHistoryEntry(HistoryEntry.WORLD_IMPORTED_FROM_MINECRAFT_MAP, level.getName(), levelDatFile.getParentFile());
         world.setCreateGoodiesChest(false);
         world.setName(name);
@@ -82,7 +83,6 @@ public class JavaMapImporter {
         }
         world.setGenerator(level.getGenerator());
         world.setGeneratorOptions(level.getGeneratorOptions());
-        world.setPlatform((version == SUPPORTED_VERSION_1) ? DefaultPlugin.JAVA_MCREGION : DefaultPlugin.JAVA_ANVIL);
         world.setDifficulty(level.getDifficulty());
         if ((version == SUPPORTED_VERSION_2) && (level.getBorderSize() > 0.0)) {
             // If the world is version 0x4abd and actually has border settings,
@@ -214,7 +214,7 @@ public class JavaMapImporter {
             event.setAttribute(ATTRIBUTE_KEY_GAME_TYPE_NAME, world.getGameType().name());
             event.setAttribute(ATTRIBUTE_KEY_ALLOW_CHEATS, world.isAllowCheats());
             event.setAttribute(ATTRIBUTE_KEY_GENERATOR, world.getGenerator().name());
-            if (world.getPlatform().equals(DefaultPlugin.JAVA_ANVIL) && (world.getGenerator() == Generator.FLAT)) {
+            if (world.getPlatform().equals(JAVA_ANVIL) && (world.getGenerator() == Generator.FLAT)) {
                 event.setAttribute(ATTRIBUTE_KEY_GENERATOR_OPTIONS, world.getGeneratorOptions());
             }
             event.setAttribute(ATTRIBUTE_KEY_TILES, dimension.getTiles().size());

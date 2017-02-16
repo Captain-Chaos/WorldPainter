@@ -5,7 +5,6 @@
 
 package org.pepsoft.worldpainter;
 
-import javafx.scene.layout.BackgroundImage;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.SystemUtils;
@@ -588,60 +587,68 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         this.recentFiles = recentFiles;
     }
 
-    public List<File> getRecentScriptFiles() {
+    public synchronized List<File> getRecentScriptFiles() {
         return recentScriptFiles;
     }
 
-    public void setRecentScriptFiles(List<File> recentScriptFiles) {
+    public synchronized void setRecentScriptFiles(List<File> recentScriptFiles) {
         this.recentScriptFiles = recentScriptFiles;
     }
 
-    public File getMasksDirectory() {
+    public synchronized File getMasksDirectory() {
         return masksDirectory;
     }
 
-    public void setMasksDirectory(File masksDirectory) {
+    public synchronized void setMasksDirectory(File masksDirectory) {
         this.masksDirectory = masksDirectory;
     }
 
-    public File getBackgroundImage() {
+    public synchronized File getBackgroundImage() {
         return backgroundImage;
     }
 
-    public void setBackgroundImage(File backgroundImage) {
+    public synchronized void setBackgroundImage(File backgroundImage) {
         this.backgroundImage = backgroundImage;
     }
 
-    public TiledImageViewer.BackgroundImageMode getBackgroundImageMode() {
+    public synchronized TiledImageViewer.BackgroundImageMode getBackgroundImageMode() {
         return backgroundImageMode;
     }
 
-    public void setBackgroundImageMode(TiledImageViewer.BackgroundImageMode backgroundImageMode) {
+    public synchronized void setBackgroundImageMode(TiledImageViewer.BackgroundImageMode backgroundImageMode) {
         this.backgroundImageMode = backgroundImageMode;
     }
 
-    public int getBackgroundColour() {
+    public synchronized int getBackgroundColour() {
         return backgroundColour;
     }
 
-    public void setBackgroundColour(int backgroundColour) {
+    public synchronized void setBackgroundColour(int backgroundColour) {
         this.backgroundColour = backgroundColour;
     }
 
-    public boolean isShowBorders() {
+    public synchronized boolean isShowBorders() {
         return showBorders;
     }
 
-    public void setShowBorders(boolean showBorders) {
+    public synchronized void setShowBorders(boolean showBorders) {
         this.showBorders = showBorders;
     }
 
-    public boolean isShowBiomes() {
+    public synchronized boolean isShowBiomes() {
         return showBiomes;
     }
 
-    public void setShowBiomes(boolean showBiomes) {
+    public synchronized void setShowBiomes(boolean showBiomes) {
         this.showBiomes = showBiomes;
+    }
+
+    public synchronized Platform getDefaultPlatform() {
+        return defaultPlatform;
+    }
+
+    public synchronized void setDefaultPlatform(Platform defaultPlatform) {
+        this.defaultPlatform = defaultPlatform;
     }
 
     @Override
@@ -825,6 +832,9 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
             defaultGameTypeObj = GameType.values()[defaultGameType];
             defaultGameType = -1;
         }
+        if (version < 15) {
+            defaultPlatform = DefaultPlugin.JAVA_ANVIL;
+        }
         version = CURRENT_VERSION;
         
         // Bug fix: make sure terrain ranges map conforms to surface material setting
@@ -860,7 +870,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         
         out.defaultWriteObject();
     }
-    
+
     public static synchronized Configuration load() throws IOException, ClassNotFoundException {
         File configFile = getConfigFile();
         if (! configFile.isFile()) {
@@ -982,6 +992,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private int backgroundColour = -1;
     private boolean showBorders = true, showBiomes = true;
     private GameType defaultGameTypeObj = GameType.SURVIVAL;
+    private Platform defaultPlatform = DefaultPlugin.JAVA_ANVIL;
 
     /**
      * The acceleration type is only stored here at runtime. It is saved to disk
@@ -993,7 +1004,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Configuration.class);
     private static final long serialVersionUID = 2011041801L;
     private static final int CIRCULAR_WORLD = -1;
-    private static final int CURRENT_VERSION = 14;
+    private static final int CURRENT_VERSION = 15;
     
     public enum DonationStatus {DONATED, NO_THANK_YOU}
     

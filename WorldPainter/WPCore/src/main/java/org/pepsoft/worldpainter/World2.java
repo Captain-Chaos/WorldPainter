@@ -33,11 +33,23 @@ import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
  * @author pepijn
  */
 public class World2 extends InstanceKeeper implements Serializable, Cloneable {
-    public World2(int maxHeight) {
+    public World2(Platform platform, int maxHeight) {
+        if (platform == null) {
+            throw new NullPointerException();
+        } else if ((maxHeight < platform.minMaxHeight) || (maxHeight > platform.maxMaxHeight)) {
+            throw new IllegalArgumentException();
+        }
+        this.platform = platform;
         this.maxheight = maxHeight;
     }
     
-    public World2(long minecraftSeed, TileFactory tileFactory, int maxHeight) {
+    public World2(Platform platform, long minecraftSeed, TileFactory tileFactory, int maxHeight) {
+        if (platform == null) {
+            throw new NullPointerException();
+        } else if ((maxHeight < platform.minMaxHeight) || (maxHeight > platform.maxMaxHeight)) {
+            throw new IllegalArgumentException();
+        }
+        this.platform = platform;
         this.maxheight = maxHeight;
         Dimension dim = new Dimension(minecraftSeed, tileFactory, 0, maxHeight);
         addDimension(dim);
@@ -253,6 +265,9 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     }
 
     public void setPlatform(Platform platform) {
+        if (platform == null) {
+            throw new NullPointerException();
+        }
         if (platform != this.platform) {
             Platform oldPlatform = this.platform;
             this.platform = platform;
