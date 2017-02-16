@@ -224,7 +224,6 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             }
             logger.info("Using " + threads + " thread(s) for export (cores: " + runtime.availableProcessors() + ", available memory: " + (maxMemoryAvailable / 1048576L) + " MB)");
 
-            PlatformManager platformManager = PlatformManager.getInstance();
             final Map<Point, List<Fixup>> fixups = new HashMap<>();
             ExecutorService executor = Executors.newFixedThreadPool(threads, new ThreadFactory() {
                 @Override
@@ -268,7 +267,9 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                                 }
                             } finally {
                                 if ((exportResults != null) && exportResults.chunksGenerated) {
+                                    long saveStart = System.currentTimeMillis();
                                     worldRegion.save(worldDir, dimension.getDim());
+                                    logger.info("Saving region took {} ms", System.currentTimeMillis() - saveStart);
                                 }
                             }
                             synchronized (fixups) {
@@ -577,7 +578,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             int height = Math.min(dimension.getIntHeightAt(goodiesPoint) + 1, dimension.getMaxHeight() - 1);
             minecraftWorld.setMaterialAt(goodiesPoint.x, goodiesPoint.y, height, Material.CHEST_NORTH);
             Chunk chunk = minecraftWorld.getChunk(goodiesPoint.x >> 4, goodiesPoint.y >> 4);
-            if (chunk != null) {
+            if ((chunk != null) && (chunk.getTileEntities() != null)) {
                 Chest goodiesChest = createGoodiesChest();
                 goodiesChest.setX(goodiesPoint.x);
                 goodiesChest.setY(height);

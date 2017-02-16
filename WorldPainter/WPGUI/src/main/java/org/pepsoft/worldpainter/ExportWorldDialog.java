@@ -311,6 +311,8 @@ dims:   for (Dimension dim: world.getDimensions()) {
                 return;
             }
         }
+        Platform platform = (Platform) comboBoxMinecraftVersion.getSelectedItem();
+        world.setPlatform(platform);
         world.setCreateGoodiesChest(checkBoxGoodies.isSelected());
         world.setGameType((GameType) comboBoxGameType.getSelectedItem());
         world.setAllowCheats(checkBoxAllowCheats.isSelected());

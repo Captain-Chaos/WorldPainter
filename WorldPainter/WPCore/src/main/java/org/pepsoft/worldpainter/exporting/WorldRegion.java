@@ -28,6 +28,7 @@ public class WorldRegion implements MinecraftWorld {
         this.regionZ = regionZ;
         this.maxHeight = maxHeight;
         this.platform = platform;
+        platformProvider = PlatformManager.getInstance().getPlatformProvider(platform);
     }
     
     public WorldRegion(File worldDir, int dimension, int regionX, int regionZ, int maxHeight, Platform platform) throws IOException {
@@ -35,6 +36,7 @@ public class WorldRegion implements MinecraftWorld {
         this.regionZ = regionZ;
         this.maxHeight = maxHeight;
         this.platform = platform;
+        platformProvider = PlatformManager.getInstance().getPlatformProvider(platform);
         int lowestX = (regionX << 5) - 1;
         int highestX = lowestX + 33;
         int lowestZ = (regionZ << 5) - 1;
@@ -278,39 +280,41 @@ public class WorldRegion implements MinecraftWorld {
                     final Chunk chunk = chunks[x + 1][z + 1];
                     if (chunk != null) {
                         // Do some sanity checks first
-                        // Check that all tile entities for which the chunk
-                        // contains data are actually there
-                        for (Iterator<TileEntity> i = chunk.getTileEntities().iterator(); i.hasNext(); ) {
-                            final TileEntity tileEntity = i.next();
-                            final Set<Integer> blockIds = Constants.TILE_ENTITY_MAP.get(tileEntity.getId());
-                            if (blockIds == null) {
-                                logger.warn("Unknown tile entity ID \"" + tileEntity.getId() + "\" encountered @ " + tileEntity.getX() + "," + tileEntity.getZ() + "," + tileEntity.getY() + "; can't check whether the corresponding block is there!");
-                            } else {
-                                final int existingBlockId = chunk.getBlockType(tileEntity.getX() & 0xf, tileEntity.getY(), tileEntity.getZ() & 0xf);
-                                if (! blockIds.contains(existingBlockId)) {
-                                    // The block at the specified location
-                                    // is not a tile entity, or a different
-                                    // tile entity. Remove the data
-                                    i.remove();
-                                    if (logger.isDebugEnabled()) {
-                                        logger.debug("Removing tile entity " + tileEntity.getId() + " @ " + tileEntity.getX() + "," + tileEntity.getZ() + "," + tileEntity.getY() + " because the block at that location is a " + BLOCK_TYPE_NAMES[existingBlockId]);
+                        if (chunk.getTileEntities() != null) {
+                            // Check that all tile entities for which the chunk
+                            // contains data are actually there
+                            for (Iterator<TileEntity> i = chunk.getTileEntities().iterator(); i.hasNext(); ) {
+                                final TileEntity tileEntity = i.next();
+                                final Set<Integer> blockIds = Constants.TILE_ENTITY_MAP.get(tileEntity.getId());
+                                if (blockIds == null) {
+                                    logger.warn("Unknown tile entity ID \"" + tileEntity.getId() + "\" encountered @ " + tileEntity.getX() + "," + tileEntity.getZ() + "," + tileEntity.getY() + "; can't check whether the corresponding block is there!");
+                                } else {
+                                    final int existingBlockId = chunk.getBlockType(tileEntity.getX() & 0xf, tileEntity.getY(), tileEntity.getZ() & 0xf);
+                                    if (! blockIds.contains(existingBlockId)) {
+                                        // The block at the specified location
+                                        // is not a tile entity, or a different
+                                        // tile entity. Remove the data
+                                        i.remove();
+                                        if (logger.isDebugEnabled()) {
+                                            logger.debug("Removing tile entity " + tileEntity.getId() + " @ " + tileEntity.getX() + "," + tileEntity.getZ() + "," + tileEntity.getY() + " because the block at that location is a " + BLOCK_TYPE_NAMES[existingBlockId]);
+                                        }
                                     }
                                 }
                             }
-                        }
-                        // Check that there aren't multiple tile entities (of the same type,
-                        // otherwise they would have been removed above) in the same location
-                        Set<Point3i> occupiedCoords = new HashSet<>();
-                        for (Iterator<TileEntity> i = chunk.getTileEntities().iterator(); i.hasNext(); ) {
-                            TileEntity tileEntity = i.next();
-                            Point3i coords = new Point3i(tileEntity.getX(), tileEntity.getZ(), tileEntity.getY());
-                            if (occupiedCoords.contains(coords)) {
-                                // There is already tile data for that location in the chunk;
-                                // remove this copy
-                                i.remove();
-                                logger.warn("Removing tile entity " + tileEntity.getId() + " @ " + tileEntity.getX() + "," + tileEntity.getZ() + "," + tileEntity.getY() + " because there is already a tile entity of the same type at that location");
-                            } else {
-                                occupiedCoords.add(coords);
+                            // Check that there aren't multiple tile entities (of the same type,
+                            // otherwise they would have been removed above) in the same location
+                            Set<Point3i> occupiedCoords = new HashSet<>();
+                            for (Iterator<TileEntity> i = chunk.getTileEntities().iterator(); i.hasNext(); ) {
+                                TileEntity tileEntity = i.next();
+                                Point3i coords = new Point3i(tileEntity.getX(), tileEntity.getZ(), tileEntity.getY());
+                                if (occupiedCoords.contains(coords)) {
+                                    // There is already tile data for that location in the chunk;
+                                    // remove this copy
+                                    i.remove();
+                                    logger.warn("Removing tile entity " + tileEntity.getId() + " @ " + tileEntity.getX() + "," + tileEntity.getZ() + "," + tileEntity.getY() + " because there is already a tile entity of the same type at that location");
+                                } else {
+                                    occupiedCoords.add(coords);
+                                }
                             }
                         }
 
@@ -333,9 +337,9 @@ public class WorldRegion implements MinecraftWorld {
     private final Platform platform;
     private final Chunk[][] chunks = new Chunk[CHUNKS_PER_SIDE + 2][CHUNKS_PER_SIDE + 2];
     private final int regionX, regionZ;
+    private final PlatformProvider platformProvider;
     private boolean chunkCreationMode;
-    private PlatformProvider platformProvider;
-    
+
 //    private static final Object DISK_ACCESS_MONITOR = new Object();
     
     public static final int CHUNKS_PER_SIDE = 32;
