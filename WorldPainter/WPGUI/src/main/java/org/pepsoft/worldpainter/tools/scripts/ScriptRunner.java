@@ -54,6 +54,9 @@ public class ScriptRunner extends WorldPainterDialog {
         this.dimension = dimension;
         this.undoManagers = undoManagers;
 
+        // Stores self in a static variable for use with file loading for scripts
+        fileWindow = this;
+
         initComponents();
         
         Configuration config = Configuration.getInstance();
@@ -433,6 +436,26 @@ public class ScriptRunner extends WorldPainterDialog {
             }
         }.start();
     }
+	
+	private static ScriptRunner fileWindow;
+
+	/**
+     * Returns the absolute path to the selected file for use with scripts
+     * @param title name of the window that opens and prompts for a file
+     * @param extensionName name of list of allowed extensions
+     * @param extensions extension names without the dot in front separated with a space
+     * @return absolute path to the selected file or a blank String if canceled
+     */
+	public static String getFilePath(String title, String extensionName, String extensions) {
+		FileFilter filter = new FileNameExtensionFilter(extensionName, extensions.split(" "));
+		
+		File file = FileUtils.selectFileForOpen(fileWindow, title, null, filter);
+
+		if (file != null) {
+			return file.getAbsolutePath();
+		}
+		return "";
+	}
 
     /**
      * This method is called from within the constructor to initialize the form.
