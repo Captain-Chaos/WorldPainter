@@ -103,12 +103,12 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         this.windowBounds = windowBounds;
     }
 
-    public synchronized File getExportDirectory() {
-        return exportDirectory;
+    public synchronized File getExportDirectory(Platform platform) {
+        return (exportDirectories != null) ? exportDirectories.get(platform) : null;
     }
 
-    public synchronized void setExportDirectory(File exportDirectory) {
-        this.exportDirectory = exportDirectory;
+    public synchronized void setExportDirectory(Platform platform, File exportDirectory) {
+        exportDirectories.put(platform, exportDirectory);
     }
 
     public synchronized File getSavesDirectory() {
@@ -834,6 +834,12 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         }
         if (version < 15) {
             defaultPlatform = DefaultPlugin.JAVA_ANVIL;
+            exportDirectories = new HashMap<>();
+            if (exportDirectory != null) {
+                exportDirectories.put(DefaultPlugin.JAVA_ANVIL, exportDirectory);
+                exportDirectories.put(DefaultPlugin.JAVA_MCREGION, exportDirectory);
+                exportDirectory = null;
+            }
         }
         version = CURRENT_VERSION;
         
@@ -855,10 +861,8 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         // up being null somehow. Work around the problem by making sure all
         // Files are actually java.io.Files
         worldDirectory = FileUtils.absolutise(worldDirectory);
-        exportDirectory = FileUtils.absolutise(exportDirectory);
         savesDirectory = FileUtils.absolutise(savesDirectory);
         customObjectsDirectory = FileUtils.absolutise(customObjectsDirectory);
-        minecraft1_9_p3Jar = FileUtils.absolutise(minecraft1_9_p3Jar);
         minecraftJars = FileUtils.absolutise(minecraftJars);
         layerDirectory = FileUtils.absolutise(layerDirectory);
         terrainDirectory = FileUtils.absolutise(terrainDirectory);
@@ -867,6 +871,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         recentScriptFiles = FileUtils.absolutise(recentScriptFiles);
         masksDirectory = FileUtils.absolutise(masksDirectory);
         backgroundImage = FileUtils.absolutise(backgroundImage);
+        exportDirectories = FileUtils.absolutise(exportDirectories);
         
         out.defaultWriteObject();
     }
@@ -946,7 +951,10 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private boolean maximised, hilly = true, lava, goodies = true, populate, beaches = true, mergeWarningDisplayed, importWarningDisplayed;
     private int level = 58, waterLevel = 62, borderLevel = 62;
     private Terrain surface = Terrain.GRASS, underground = Terrain.RESOURCES;
-    private File worldDirectory, exportDirectory, savesDirectory, customObjectsDirectory;
+    private File worldDirectory;
+    @Deprecated
+    private File exportDirectory;
+    private File savesDirectory, customObjectsDirectory;
     @Deprecated
     private File minecraft1_9_p3Jar;
     @Deprecated
@@ -993,6 +1001,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private boolean showBorders = true, showBiomes = true;
     private GameType defaultGameTypeObj = GameType.SURVIVAL;
     private Platform defaultPlatform = DefaultPlugin.JAVA_ANVIL;
+    private Map<Platform, File> exportDirectories = new HashMap<>();
 
     /**
      * The acceleration type is only stored here at runtime. It is saved to disk

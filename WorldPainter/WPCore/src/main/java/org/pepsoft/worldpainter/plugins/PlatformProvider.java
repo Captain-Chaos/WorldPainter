@@ -53,4 +53,14 @@ public interface PlatformProvider extends Plugin {
      * @return A world exporter which will export the specified world.
      */
     WorldExporter getExporter(World2 world2);
+
+    /**
+     * Get the default directory to select on the Export screen for a
+     * platform supported by this plugin.
+     *
+     * @param platform The platform for which to provide the default export
+     *                 directory.
+     * @return The default export directory for the specified platform.
+     */
+    File getDefaultExportDir(Platform platform);
 }

@@ -4,7 +4,10 @@
  */
 package org.pepsoft.worldpainter;
 
-import org.pepsoft.minecraft.*;
+import org.pepsoft.minecraft.Chunk;
+import org.pepsoft.minecraft.ChunkImpl;
+import org.pepsoft.minecraft.ChunkImpl2;
+import org.pepsoft.minecraft.ChunkStore;
 import org.pepsoft.worldpainter.exporting.JavaChunkStore;
 import org.pepsoft.worldpainter.exporting.JavaWorldExporter;
 import org.pepsoft.worldpainter.exporting.WorldExporter;
@@ -14,20 +17,20 @@ import org.pepsoft.worldpainter.plugins.ContextProvider;
 import org.pepsoft.worldpainter.plugins.LayerProvider;
 import org.pepsoft.worldpainter.plugins.PlatformProvider;
 import org.pepsoft.worldpainter.util.MinecraftJarProvider;
+import org.pepsoft.worldpainter.util.MinecraftUtil;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 
-import static org.pepsoft.minecraft.Constants.*;
-import static org.pepsoft.worldpainter.Constants.DIM_END;
-import static org.pepsoft.worldpainter.Constants.DIM_NETHER;
-import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_1;
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
+import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.GameType.*;
-import static org.pepsoft.worldpainter.Generator.DEFAULT;
-import static org.pepsoft.worldpainter.Generator.FLAT;
-import static org.pepsoft.worldpainter.Generator.LARGE_BIOMES;
+import static org.pepsoft.worldpainter.Generator.*;
+import static org.pepsoft.worldpainter.Platform.Capability.*;
 
 /**
  *
@@ -88,13 +91,13 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
             File regionDir;
             switch (dimension) {
                 case DIM_NORMAL:
-                    regionDir = new File(worldDir, "regions");
+                    regionDir = new File(worldDir, "region");
                     break;
                 case DIM_NETHER:
-                    regionDir = new File(worldDir, "DIM-1/regions");
+                    regionDir = new File(worldDir, "DIM-1/region");
                     break;
                 case DIM_END:
-                    regionDir = new File(worldDir, "DIM1/regions");
+                    regionDir = new File(worldDir, "DIM1/region");
                     break;
                 default:
                     throw new IllegalArgumentException("Dimension " + dimension + " not supported");
@@ -115,25 +118,31 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
         }
     }
 
+    @Override
+    public File getDefaultExportDir(Platform platform) {
+        File minecraftDir = MinecraftUtil.findMinecraftDir();
+        return (minecraftDir != null) ? new File(minecraftDir, "saves") : null;
+    }
+
     public static final Platform JAVA_MCREGION = new Platform(
             "org.pepsoft.mcregion",
             "Minecraft 1.1 (MCRegion)",
-            false,
             32, DEFAULT_MAX_HEIGHT_1, 2048,
             Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE,
             Arrays.asList(SURVIVAL, CREATIVE),
             Arrays.asList(DEFAULT, FLAT),
-            Arrays.asList(DIM_NORMAL, DIM_NETHER, DIM_END));
+            Arrays.asList(DIM_NORMAL, DIM_NETHER, DIM_END),
+            EnumSet.of(PRECALCULATED_LIGHT, SET_SPAWN_POINT));
 
     public static final Platform JAVA_ANVIL = new Platform(
             "org.pepsoft.anvil",
             "Minecraft 1.2 or later (Anvil)",
-            true,
             DEFAULT_MAX_HEIGHT_2, DEFAULT_MAX_HEIGHT_2, DEFAULT_MAX_HEIGHT_2,
             Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE,
             Arrays.asList(SURVIVAL, CREATIVE, ADVENTURE, HARDCORE),
             Arrays.asList(DEFAULT, FLAT, LARGE_BIOMES),
-            Arrays.asList(DIM_NORMAL, DIM_NETHER, DIM_END));
+            Arrays.asList(DIM_NORMAL, DIM_NETHER, DIM_END),
+            EnumSet.of(BIOMES, PRECALCULATED_LIGHT, SET_SPAWN_POINT));
 
     private static final List<Platform> PLATFORMS = Collections.unmodifiableList(Arrays.asList(JAVA_ANVIL, JAVA_MCREGION));
 }

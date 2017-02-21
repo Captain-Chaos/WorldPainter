@@ -1,9 +1,10 @@
 package org.pepsoft.worldpainter;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Set;
 
 import static com.google.common.collect.ImmutableList.copyOf;
 
@@ -13,12 +14,11 @@ import static com.google.common.collect.ImmutableList.copyOf;
  * <p>Created by Pepijn on 11-12-2016.
  */
 public final class Platform implements Serializable {
-    public Platform(String id, String displayName, boolean supportsBiomes, int minMaxHeight, int standardMaxHeight,
+    public Platform(String id, String displayName, int minMaxHeight, int standardMaxHeight,
                     int maxMaxHeight, int minX, int maxX, int minY, int maxY, List<GameType> supportedGameTypes,
-                    List<Generator> supportedGenerators, List<Integer> supportedDimensions) {
+                    List<Generator> supportedGenerators, List<Integer> supportedDimensions, Set<Capability> capabilities) {
         this.id = id;
         this.displayName = displayName;
-        this.supportsBiomes = supportsBiomes;
         this.minMaxHeight = minMaxHeight;
         this.standardMaxHeight = standardMaxHeight;
         this.maxMaxHeight = maxMaxHeight;
@@ -29,6 +29,7 @@ public final class Platform implements Serializable {
         this.supportedGameTypes = copyOf(supportedGameTypes);
         this.supportedGenerators = copyOf(supportedGenerators);
         this.supportedDimensions = copyOf(supportedDimensions);
+        this.capabilities = Sets.immutableEnumSet(capabilities);
     }
 
     /**
@@ -73,11 +74,6 @@ public final class Platform implements Serializable {
      * The human-friendly display name of this platform.
      */
     public final String displayName;
-
-    /**
-     * Indicates whether this platform supports storing biome IDs.
-     */
-    public final boolean supportsBiomes;
 
     /**
      * Get the lowest map height supported by this platform.
@@ -135,5 +131,12 @@ public final class Platform implements Serializable {
      */
     public final List<Integer> supportedDimensions;
 
+    /**
+     * The set of capabilities supported by this platform.
+     */
+    public final Set<Capability> capabilities;
+
     private static final long serialVersionUID = 1L;
+
+    public enum Capability {BIOMES, PRECALCULATED_LIGHT, SET_SPAWN_POINT}
 }

@@ -45,6 +45,10 @@ public class PlatformManager {
         return platformProviders.get(world.getPlatform()).getExporter(world);
     }
 
+    public File getDefaultExportDir(Platform platform) {
+        return platformProviders.get(platform).getDefaultExportDir(platform);
+    }
+
     public static PlatformManager getInstance() {
         return INSTANCE;
     }

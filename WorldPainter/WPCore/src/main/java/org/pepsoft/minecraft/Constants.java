@@ -349,7 +349,9 @@ public final class Constants {
     public static final int DATA_JUNGLE   = 3;
     public static final int DATA_ACACIA   = 0;
     public static final int DATA_DARK_OAK = 1;
-    
+    public static final int DATA_ACACIA_SAPLING   =   DATA_ACACIA + 4;
+    public static final int DATA_DARK_OAK_SAPLING = DATA_DARK_OAK + 4;
+
     public static final int DATA_DEAD_SHRUB = 0;
     public static final int DATA_TALL_GRASS = 1;
     public static final int DATA_FERN       = 2;

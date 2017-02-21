@@ -67,12 +67,13 @@ public class ExportWorldDialog extends WorldPainterDialog {
             comboBoxMinecraftVersion.setVisible(false);
         }
 
-        if (config.getExportDirectory() != null) {
-            fieldDirectory.setText(config.getExportDirectory().getAbsolutePath());
+        Platform platform = world.getPlatform();
+        if (config.getExportDirectory(platform) != null) {
+            fieldDirectory.setText(config.getExportDirectory(platform).getAbsolutePath());
         } else {
-            File minecraftDir = MinecraftUtil.findMinecraftDir();
-            if (minecraftDir != null) {
-                fieldDirectory.setText(new File(minecraftDir, "saves").getAbsolutePath());
+            File exportDir = PlatformManager.getInstance().getDefaultExportDir(platform);
+            if (exportDir != null) {
+                fieldDirectory.setText(exportDir.getAbsolutePath());
             } else {
                 fieldDirectory.setText(DesktopUtils.getDocumentsFolder().getAbsolutePath());
             }
@@ -135,7 +136,6 @@ public class ExportWorldDialog extends WorldPainterDialog {
                 return this;
             }
         });
-        Platform platform = world.getPlatform();
         comboBoxMinecraftVersion.setSelectedItem(platform);
         if (availablePlatforms.size() < 2) {
             comboBoxMinecraftVersion.setEnabled(false);
@@ -357,7 +357,7 @@ dims:   for (Dimension dim: world.getDimensions()) {
 
         Configuration config = Configuration.getInstance();
         if (config != null) {
-            config.setExportDirectory(baseDir);
+            config.setExportDirectory(world.getPlatform(), baseDir);
         }
 
         ExportProgressDialog dialog = new ExportProgressDialog(this, world, baseDir, name);
@@ -713,6 +713,14 @@ dims:   for (Dimension dim: world.getDimensions()) {
             } else {
                 checkBoxAllowCheats.setSelected(false);
             }
+            File exportDir = Configuration.getInstance().getExportDirectory(newPlatform);
+            if ((exportDir == null) || (! exportDir.isDirectory())) {
+                exportDir = PlatformManager.getInstance().getDefaultExportDir(newPlatform);
+            }
+            if ((exportDir != null) && exportDir.isDirectory()) {
+                fieldDirectory.setText(exportDir.getAbsolutePath());
+            }
+            pack();
         }
         setControlStates();
     }//GEN-LAST:event_comboBoxMinecraftVersionActionPerformed

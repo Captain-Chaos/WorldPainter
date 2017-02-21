@@ -122,11 +122,6 @@ public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, Chunk
 
     @Override
     protected ProgressTask<Map<Integer, ChunkFactory.Stats>> getTask() {
-        Configuration config = Configuration.getInstance();
-        if (config != null) {
-            config.setExportDirectory(baseDir);
-        }
-        
         return new ProgressTask<Map<Integer, ChunkFactory.Stats>>() {
             @Override
             public String getName() {

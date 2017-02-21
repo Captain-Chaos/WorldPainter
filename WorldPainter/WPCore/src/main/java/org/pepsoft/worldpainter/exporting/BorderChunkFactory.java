@@ -21,6 +21,7 @@ import java.util.Set;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.MEDIUM_BLOBS;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
+import static org.pepsoft.worldpainter.Platform.Capability.BIOMES;
 import static org.pepsoft.worldpainter.Terrain.BEACHES;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_OCEAN;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
@@ -55,7 +56,7 @@ public class BorderChunkFactory {
         final ChunkFactory.ChunkCreationResult result = new ChunkFactory.ChunkCreationResult();
         result.chunk = PlatformManager.getInstance().createChunk(platform, chunkX, chunkZ, maxHeight);
         final int maxY = maxHeight - 1;
-        if (platform.supportsBiomes) {
+        if (platform.capabilities.contains(BIOMES)) {
             switch(border) {
                 case VOID:
                 case LAVA:

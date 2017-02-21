@@ -76,7 +76,7 @@ public class JavaChunkStore implements ChunkStore {
 
         try {
             int x = chunk.getxPos(), z = chunk.getzPos();
-            RegionFile regionFile = getRegionFile(new Point(x >> 5, z >> 5));
+            RegionFile regionFile = getOrCreateRegionFile(new Point(x >> 5, z >> 5));
             try (NBTOutputStream out = new NBTOutputStream(regionFile.getChunkDataOutputStream(x & 31, z & 31))) {
                 out.writeTag(((NBTItem) chunk).toNBT());
             }
@@ -189,9 +189,23 @@ public class JavaChunkStore implements ChunkStore {
         return regionFile;
     }
 
+    private RegionFile getOrCreateRegionFile(Point regionCoords) throws IOException {
+        RegionFile regionFile = regionFiles.get(regionCoords);
+        if (regionFile == null) {
+            regionFile = openOrCreateRegionFile(regionCoords);
+            regionFiles.put(regionCoords, regionFile);
+        }
+        return regionFile;
+    }
+
     private RegionFile openRegionFile(Point regionCoords) throws IOException {
         File file = new File(regionDir, "r." + regionCoords.x + "." + regionCoords.y + (platform.equals(DefaultPlugin.JAVA_MCREGION) ? ".mcr" : ".mca"));
         return file.exists() ? new RegionFile(file) : null;
+    }
+
+    private RegionFile openOrCreateRegionFile(Point regionCoords) throws IOException {
+        File file = new File(regionDir, "r." + regionCoords.x + "." + regionCoords.y + (platform.equals(DefaultPlugin.JAVA_MCREGION) ? ".mcr" : ".mca"));
+        return new RegionFile(file);
     }
 
 //    private void updateStatistics() {

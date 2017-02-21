@@ -23,6 +23,7 @@ import java.util.Set;
 
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.Platform.Capability.BIOMES;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.*;
 
 /**
@@ -79,7 +80,8 @@ public class WorldPainterChunkFactory implements ChunkFactory {
         final ChunkCreationResult result = new ChunkCreationResult();
         result.chunk = platformProvider.createChunk(platform, chunkX, chunkZ, maxHeight);
         final int maxY = maxHeight - 1;
-        final boolean copyBiomes = platform.supportsBiomes && (dimension.getDim() == DIM_NORMAL);
+        final boolean biomesSupported = platform.capabilities.contains(BIOMES);
+        final boolean copyBiomes = biomesSupported && (dimension.getDim() == DIM_NORMAL);
         final int defaultBiome;
         switch (dimension.getDim()) {
             case DIM_NORMAL:
@@ -116,7 +118,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                         }
                     }
                     result.chunk.setBiome(x, z, biome);
-                } else if (result.chunk instanceof ChunkImpl2) {
+                } else if (biomesSupported && (result.chunk instanceof ChunkImpl2)) {
                     result.chunk.setBiome(x, z, defaultBiome);
                 }
 
