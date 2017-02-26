@@ -97,7 +97,7 @@ public class CavesExporter extends AbstractLayerExporter<Caves> implements Secon
                 // Don't stray into areas where the layer isn't present at all
                 return;
             }
-            excavate(world, random, settings, location, radius);
+            excavate(world, dimension, random, settings, location, radius);
             length += direction.length();
             location.add(direction);
             Vector3d dirChange = getRandomDirection(random);
@@ -111,9 +111,9 @@ public class CavesExporter extends AbstractLayerExporter<Caves> implements Secon
         }
     }
 
-    private void excavate(MinecraftWorld world, Random random, CaveSettings settings, Point3d location, double radius) {
+    private void excavate(MinecraftWorld world, Dimension dimension, Random random, CaveSettings settings, Point3d location, double radius) {
         boolean intrudingStone = settings.intrudingStone, roughWalls = settings.roughWalls, removeFloatingBlocks = settings.removeFloatingBlocks;
-        int minZ = settings.minZ, maxZ = world.getMaxHeight() - 1;
+        int minZ = settings.minZ;
         // TODO: change visitFilledSphere so the sphere doesn't have single-block spikes at the x, y, and z axes
         GeometryUtil.visitFilledSphere((int) Math.ceil(radius), ((dx, dy, dz, d) -> {
             if (d > radius) {
@@ -124,6 +124,10 @@ public class CavesExporter extends AbstractLayerExporter<Caves> implements Secon
             if (z >= minZ) {
                 int x = (int) (location.x + dx);
                 int y = (int) (location.y + dy);
+                int maxZ = dimension.getIntHeightAt(x, y);
+                if (z > maxZ) {
+                    return true;
+                }
                 int existingBlock = world.getBlockTypeAt(x, y, z);
                 if (existingBlock == BLK_AIR) {
                     // Already excavated

@@ -34,6 +34,7 @@ public interface ChunkFactory {
     class ChunkCreationResult {
         public Chunk chunk;
         public final Stats stats = new Stats();
+        public String errors, warnings;
     }
     
     class Stats {

@@ -1,6 +1,7 @@
 package org.pepsoft.worldpainter.exporting;
 
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.Platform;
 
 /**
  * A delayed rendering operation, invoked after a region and all its neighbours
@@ -15,6 +16,7 @@ public interface Fixup {
      *
      * @param world The world in which to perform the fixup.
      * @param dimension The dimension for which to perform the fixup.
+     * @param platform The platform for which the export is being performed.
      */
-    void fixup(MinecraftWorld world, Dimension dimension);
+    void fixup(MinecraftWorld world, Dimension dimension, Platform platform);
 }

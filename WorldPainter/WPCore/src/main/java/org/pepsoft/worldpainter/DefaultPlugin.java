@@ -8,10 +8,9 @@ import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.minecraft.ChunkImpl;
 import org.pepsoft.minecraft.ChunkImpl2;
 import org.pepsoft.minecraft.ChunkStore;
-import org.pepsoft.worldpainter.exporting.JavaChunkStore;
-import org.pepsoft.worldpainter.exporting.JavaWorldExporter;
-import org.pepsoft.worldpainter.exporting.WorldExporter;
+import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.layers.*;
+import org.pepsoft.worldpainter.mapexplorer.MapRecognizer;
 import org.pepsoft.worldpainter.plugins.AbstractPlugin;
 import org.pepsoft.worldpainter.plugins.ContextProvider;
 import org.pepsoft.worldpainter.plugins.LayerProvider;
@@ -122,6 +121,20 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
     public File getDefaultExportDir(Platform platform) {
         File minecraftDir = MinecraftUtil.findMinecraftDir();
         return (minecraftDir != null) ? new File(minecraftDir, "saves") : null;
+    }
+
+    @Override
+    public PostProcessor getPostProcessor(Platform platform) {
+        if (platform.equals(JAVA_MCREGION) || platform.equals(JAVA_ANVIL)) {
+            return new JavaPostProcessor();
+        } else {
+            throw new IllegalArgumentException("Platform " + platform + " not supported");
+        }
+    }
+
+    @Override
+    public MapRecognizer getMapRecognizer() {
+        return null;
     }
 
     public static final Platform JAVA_MCREGION = new Platform(

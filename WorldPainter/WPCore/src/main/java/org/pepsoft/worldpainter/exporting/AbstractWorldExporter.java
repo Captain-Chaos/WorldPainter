@@ -39,8 +39,6 @@ import static org.pepsoft.minecraft.Block.BLOCKS;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
 
-import org.pepsoft.worldpainter.Dimension;
-
 /**
  * Created by Pepijn on 11-12-2016.
  */
@@ -254,7 +252,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                             WorldRegion worldRegion = new WorldRegion(regionCoords.x, regionCoords.y, dimension.getMaxHeight(), platform);
                             ExportResults exportResults = null;
                             try {
-                                exportResults = exportRegion(worldRegion, dimension, ceiling, regionCoords, tileSelection, exporters, ceilingExporters, chunkFactory, ceilingChunkFactory, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.0f, 0.9f) : null);
+                                exportResults = exportRegion(worldRegion, dimension, ceiling, platform, regionCoords, tileSelection, exporters, ceilingExporters, chunkFactory, ceilingChunkFactory, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.0f, 0.9f) : null);
                                 if (logger.isDebugEnabled()) {
                                     logger.debug("Generated region " + regionCoords.x + "," + regionCoords.y);
                                 }
@@ -269,7 +267,9 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                                 if ((exportResults != null) && exportResults.chunksGenerated) {
                                     long saveStart = System.currentTimeMillis();
                                     worldRegion.save(worldDir, dimension.getDim());
-                                    logger.info("Saving region took {} ms", System.currentTimeMillis() - saveStart);
+                                    if (logger.isDebugEnabled()) {
+                                        logger.debug("Saving region took {} ms", System.currentTimeMillis() - saveStart);
+                                    }
                                 }
                             }
                             synchronized (fixups) {
@@ -646,7 +646,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         }
     }
 
-    protected final ExportResults exportRegion(MinecraftWorld minecraftWorld, Dimension dimension, Dimension ceiling, Point regionCoords, boolean tileSelection, Map<Layer, LayerExporter> exporters, Map<Layer, LayerExporter> ceilingExporters, ChunkFactory chunkFactory, ChunkFactory ceilingChunkFactory, ProgressReceiver progressReceiver) throws OperationCancelled, IOException {
+    protected final ExportResults exportRegion(MinecraftWorld minecraftWorld, Dimension dimension, Dimension ceiling, Platform platform, Point regionCoords, boolean tileSelection, Map<Layer, LayerExporter> exporters, Map<Layer, LayerExporter> ceilingExporters, ChunkFactory chunkFactory, ChunkFactory ceilingChunkFactory, ProgressReceiver progressReceiver) throws OperationCancelled, IOException {
         if (progressReceiver != null) {
             progressReceiver.setMessage("Exporting region " + regionCoords.x + "," + regionCoords.y + " of " + dimension.getName());
         }
@@ -742,7 +742,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
 
             // Post processing. Fix covered grass blocks, things like that
             long t3 = System.currentTimeMillis();
-            PostProcessor.postProcess(minecraftWorld, new Rectangle(regionCoords.x << 9, regionCoords.y << 9, 512, 512), (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.55f, 0.1f) : null);
+            PlatformManager.getInstance().getPostProcessor(platform).postProcess(minecraftWorld, new Rectangle(regionCoords.x << 9, regionCoords.y << 9, 512, 512), (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.55f, 0.1f) : null);
 
             // Third pass. Calculate lighting
             long t4 = System.currentTimeMillis();
@@ -900,7 +900,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                     logger.debug("Performing " + regionFixups.size() + " fixups for region " + entry.getKey().x + "," + entry.getKey().y);
                 }
                 for (Fixup fixup: regionFixups) {
-                    fixup.fixup(minecraftWorld, dimension);
+                    fixup.fixup(minecraftWorld, dimension, platform);
                     if (progressReceiver != null) {
                         progressReceiver.setProgress((float) ++count / total);
                     }

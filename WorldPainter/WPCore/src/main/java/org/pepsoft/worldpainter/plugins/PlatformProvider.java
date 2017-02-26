@@ -4,7 +4,9 @@ import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.minecraft.ChunkStore;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.World2;
+import org.pepsoft.worldpainter.exporting.PostProcessor;
 import org.pepsoft.worldpainter.exporting.WorldExporter;
+import org.pepsoft.worldpainter.mapexplorer.MapRecognizer;
 
 import java.io.File;
 import java.util.List;
@@ -63,4 +65,23 @@ public interface PlatformProvider extends Plugin {
      * @return The default export directory for the specified platform.
      */
     File getDefaultExportDir(Platform platform);
+
+    /**
+     * Obtain a {@link PostProcessor} for a platform supported by this plugin.
+     *
+     * @param platform The platform for which to provide a post processor.
+     * @return A post processor for the specified platform.
+     */
+    PostProcessor getPostProcessor(Platform platform);
+
+    /**
+     * Obtain a {@link MapRecognizer} which can recognize directories as
+     * containing maps corresponding to any platform supported by this
+     * plugin.
+     *
+     * @return A {@link MapRecognizer} which can recognize directories as
+     * containing maps corresponding to any platform supported by this
+     * plugin.
+     */
+    MapRecognizer getMapRecognizer();
 }

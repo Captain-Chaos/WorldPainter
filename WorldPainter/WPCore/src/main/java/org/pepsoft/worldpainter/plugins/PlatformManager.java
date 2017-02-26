@@ -4,6 +4,7 @@ import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.minecraft.ChunkStore;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.World2;
+import org.pepsoft.worldpainter.exporting.PostProcessor;
 import org.pepsoft.worldpainter.exporting.WorldExporter;
 
 import java.io.File;
@@ -47,6 +48,10 @@ public class PlatformManager {
 
     public File getDefaultExportDir(Platform platform) {
         return platformProviders.get(platform).getDefaultExportDir(platform);
+    }
+
+    public PostProcessor getPostProcessor(Platform platform) {
+        return platformProviders.get(platform).getPostProcessor(platform);
     }
 
     public static PlatformManager getInstance() {

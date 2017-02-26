@@ -307,22 +307,26 @@ public class CachingMinecraftWorld implements MinecraftWorld {
     }
 
     public void saveDirtyChunks() {
-        for (Point coords: dirtyChunks) {
-            chunkStore.saveChunk(cache.get(coords));
-        }
+        chunkStore.doInTransaction(() -> {
+            for (Point coords : dirtyChunks) {
+                chunkStore.saveChunk(cache.get(coords));
+            }
+        });
         dirtyChunks.clear();
         cachedForEditing = false;
     }
 
     private void maintainCache() {
-        while (cache.size() >= cacheSize) {
-            Point lruCoords = lruList.remove(0);
-            Chunk lruChunk = cache.remove(lruCoords);
-            if (dirtyChunks.contains(lruCoords)) {
-                chunkStore.saveChunk(lruChunk);
-                dirtyChunks.remove(lruCoords);
+        chunkStore.doInTransaction(() -> {
+            while (cache.size() >= cacheSize) {
+                Point lruCoords = lruList.remove(0);
+                Chunk lruChunk = cache.remove(lruCoords);
+                if (dirtyChunks.contains(lruCoords)) {
+                    chunkStore.saveChunk(lruChunk);
+                    dirtyChunks.remove(lruCoords);
+                }
             }
-        }
+        });
     }
 
     private final Map<Point, Chunk> cache;

@@ -86,6 +86,11 @@ public class JavaChunkStore implements ChunkStore {
 //        timeSpentSaving += System.currentTimeMillis() - start;
     }
 
+    @Override
+    public void doInTransaction(Runnable task) {
+        task.run();
+    }
+
     /**
      * Saves all dirty chunks and closes all files. Ensures that all changes are
      * saved and no system resources are being used, but the objects can still

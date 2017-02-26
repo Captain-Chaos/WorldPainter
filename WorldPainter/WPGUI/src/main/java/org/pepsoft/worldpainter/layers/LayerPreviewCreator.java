@@ -201,7 +201,7 @@ public class LayerPreviewCreator {
         timestamp = now;
         now = System.currentTimeMillis();
         try {
-            PostProcessor.postProcess(minecraftWorldObject, new Rectangle(-8, -8, 136, 136), null);
+            new JavaPostProcessor().postProcess(minecraftWorldObject, new Rectangle(-8, -8, 136, 136), null);
         } catch (ProgressReceiver.OperationCancelled e) {
             // Can't happen since we didn't pass in a progress receiver
             throw new InternalError();

@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package org.pepsoft.minecraft.mapexplorer;
+package org.pepsoft.worldpainter.mapexplorer;
 
 import javax.swing.*;
 
@@ -21,6 +21,10 @@ public abstract class Node {
             children = loadChildren();
         }
         return children;
+    }
+
+    public void doubleClicked() {
+        // Do nothing
     }
 
     protected abstract Node[] loadChildren();

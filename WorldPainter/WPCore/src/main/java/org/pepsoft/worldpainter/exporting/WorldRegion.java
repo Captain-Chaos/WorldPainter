@@ -10,10 +10,11 @@ import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.plugins.PlatformProvider;
 
 import javax.vecmath.Point3i;
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 import static org.pepsoft.minecraft.Block.BLOCK_TYPE_NAMES;
 import static org.pepsoft.minecraft.Constants.BLK_AIR;
@@ -42,16 +43,9 @@ public class WorldRegion implements MinecraftWorld {
         int lowestZ = (regionZ << 5) - 1;
         int highestZ = lowestZ + 33;
         ChunkStore chunkStore = PlatformManager.getInstance().getChunkStore(platform, worldDir, dimension);
-        Map<Point, RegionFile> regionFiles = new HashMap<>();
-        try {
-            for (int x = lowestX; x <= highestX; x++) {
-                for (int z = lowestZ; z <= highestZ; z++) {
-                    chunks[x - (regionX << 5) + 1][z - (regionZ << 5) + 1] = chunkStore.getChunkForEditing(x, z);
-                }
-            }
-        } finally {
-            for (RegionFile regionFile: regionFiles.values()) {
-                regionFile.close();
+        for (int x = lowestX; x <= highestX; x++) {
+            for (int z = lowestZ; z <= highestZ; z++) {
+                chunks[x - (regionX << 5) + 1][z - (regionZ << 5) + 1] = chunkStore.getChunkForEditing(x, z);
             }
         }
     }
@@ -275,53 +269,55 @@ public class WorldRegion implements MinecraftWorld {
 
     public void save(File worldDir, int dimension) throws IOException {
         try (ChunkStore chunkStore = platformProvider.getChunkStore(platform, worldDir, dimension)) {
-            for (int x = 0; x < CHUNKS_PER_SIDE; x++) {
-                for (int z = 0; z < CHUNKS_PER_SIDE; z++) {
-                    final Chunk chunk = chunks[x + 1][z + 1];
-                    if (chunk != null) {
-                        // Do some sanity checks first
-                        if (chunk.getTileEntities() != null) {
-                            // Check that all tile entities for which the chunk
-                            // contains data are actually there
-                            for (Iterator<TileEntity> i = chunk.getTileEntities().iterator(); i.hasNext(); ) {
-                                final TileEntity tileEntity = i.next();
-                                final Set<Integer> blockIds = Constants.TILE_ENTITY_MAP.get(tileEntity.getId());
-                                if (blockIds == null) {
-                                    logger.warn("Unknown tile entity ID \"" + tileEntity.getId() + "\" encountered @ " + tileEntity.getX() + "," + tileEntity.getZ() + "," + tileEntity.getY() + "; can't check whether the corresponding block is there!");
-                                } else {
-                                    final int existingBlockId = chunk.getBlockType(tileEntity.getX() & 0xf, tileEntity.getY(), tileEntity.getZ() & 0xf);
-                                    if (! blockIds.contains(existingBlockId)) {
-                                        // The block at the specified location
-                                        // is not a tile entity, or a different
-                                        // tile entity. Remove the data
-                                        i.remove();
-                                        if (logger.isDebugEnabled()) {
-                                            logger.debug("Removing tile entity " + tileEntity.getId() + " @ " + tileEntity.getX() + "," + tileEntity.getZ() + "," + tileEntity.getY() + " because the block at that location is a " + BLOCK_TYPE_NAMES[existingBlockId]);
+            chunkStore.doInTransaction(() -> {
+                for (int x = 0; x < CHUNKS_PER_SIDE; x++) {
+                    for (int z = 0; z < CHUNKS_PER_SIDE; z++) {
+                        final Chunk chunk = chunks[x + 1][z + 1];
+                        if (chunk != null) {
+                            // Do some sanity checks first
+                            if (chunk.getTileEntities() != null) {
+                                // Check that all tile entities for which the chunk
+                                // contains data are actually there
+                                for (Iterator<TileEntity> i = chunk.getTileEntities().iterator(); i.hasNext(); ) {
+                                    final TileEntity tileEntity = i.next();
+                                    final Set<Integer> blockIds = Constants.TILE_ENTITY_MAP.get(tileEntity.getId());
+                                    if (blockIds == null) {
+                                        logger.warn("Unknown tile entity ID \"" + tileEntity.getId() + "\" encountered @ " + tileEntity.getX() + "," + tileEntity.getZ() + "," + tileEntity.getY() + "; can't check whether the corresponding block is there!");
+                                    } else {
+                                        final int existingBlockId = chunk.getBlockType(tileEntity.getX() & 0xf, tileEntity.getY(), tileEntity.getZ() & 0xf);
+                                        if (!blockIds.contains(existingBlockId)) {
+                                            // The block at the specified location
+                                            // is not a tile entity, or a different
+                                            // tile entity. Remove the data
+                                            i.remove();
+                                            if (logger.isDebugEnabled()) {
+                                                logger.debug("Removing tile entity " + tileEntity.getId() + " @ " + tileEntity.getX() + "," + tileEntity.getZ() + "," + tileEntity.getY() + " because the block at that location is a " + BLOCK_TYPE_NAMES[existingBlockId]);
+                                            }
                                         }
                                     }
                                 }
-                            }
-                            // Check that there aren't multiple tile entities (of the same type,
-                            // otherwise they would have been removed above) in the same location
-                            Set<Point3i> occupiedCoords = new HashSet<>();
-                            for (Iterator<TileEntity> i = chunk.getTileEntities().iterator(); i.hasNext(); ) {
-                                TileEntity tileEntity = i.next();
-                                Point3i coords = new Point3i(tileEntity.getX(), tileEntity.getZ(), tileEntity.getY());
-                                if (occupiedCoords.contains(coords)) {
-                                    // There is already tile data for that location in the chunk;
-                                    // remove this copy
-                                    i.remove();
-                                    logger.warn("Removing tile entity " + tileEntity.getId() + " @ " + tileEntity.getX() + "," + tileEntity.getZ() + "," + tileEntity.getY() + " because there is already a tile entity of the same type at that location");
-                                } else {
-                                    occupiedCoords.add(coords);
+                                // Check that there aren't multiple tile entities (of the same type,
+                                // otherwise they would have been removed above) in the same location
+                                Set<Point3i> occupiedCoords = new HashSet<>();
+                                for (Iterator<TileEntity> i = chunk.getTileEntities().iterator(); i.hasNext(); ) {
+                                    TileEntity tileEntity = i.next();
+                                    Point3i coords = new Point3i(tileEntity.getX(), tileEntity.getZ(), tileEntity.getY());
+                                    if (occupiedCoords.contains(coords)) {
+                                        // There is already tile data for that location in the chunk;
+                                        // remove this copy
+                                        i.remove();
+                                        logger.warn("Removing tile entity " + tileEntity.getId() + " @ " + tileEntity.getX() + "," + tileEntity.getZ() + "," + tileEntity.getY() + " because there is already a tile entity of the same type at that location");
+                                    } else {
+                                        occupiedCoords.add(coords);
+                                    }
                                 }
                             }
-                        }
 
-                        chunkStore.saveChunk(chunk);
+                            chunkStore.saveChunk(chunk);
+                        }
                     }
                 }
-            }
+            });
         }
     }
 
