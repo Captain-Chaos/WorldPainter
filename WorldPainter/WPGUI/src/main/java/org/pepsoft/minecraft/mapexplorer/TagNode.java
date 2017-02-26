@@ -6,6 +6,7 @@
 package org.pepsoft.minecraft.mapexplorer;
 
 import org.jnbt.*;
+import org.pepsoft.worldpainter.mapexplorer.Node;
 
 import javax.swing.*;
 import java.text.Collator;

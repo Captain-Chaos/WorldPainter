@@ -7,6 +7,7 @@ package org.pepsoft.minecraft.mapexplorer;
 
 import org.jnbt.NBTInputStream;
 import org.jnbt.Tag;
+import org.pepsoft.worldpainter.mapexplorer.Node;
 
 import java.io.*;
 import java.util.zip.GZIPInputStream;

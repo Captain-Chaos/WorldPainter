@@ -1,5 +1,7 @@
 package org.pepsoft.minecraft.mapexplorer;
 
+import org.pepsoft.worldpainter.mapexplorer.Node;
+
 import javax.swing.*;
 import java.io.File;
 import java.util.Arrays;

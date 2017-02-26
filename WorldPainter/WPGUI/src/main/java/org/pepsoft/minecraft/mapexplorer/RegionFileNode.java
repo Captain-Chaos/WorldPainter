@@ -7,6 +7,7 @@ package org.pepsoft.minecraft.mapexplorer;
 
 import org.pepsoft.minecraft.RegionFile;
 import org.pepsoft.util.IconUtils;
+import org.pepsoft.worldpainter.mapexplorer.Node;
 
 import javax.swing.*;
 import java.io.File;

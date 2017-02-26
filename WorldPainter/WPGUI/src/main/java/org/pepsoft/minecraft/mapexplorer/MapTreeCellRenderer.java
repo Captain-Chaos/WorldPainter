@@ -8,11 +8,8 @@ package org.pepsoft.minecraft.mapexplorer;
 import java.awt.Component;
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeCellRenderer;
-import org.jnbt.ByteArrayTag;
-import org.jnbt.CompoundTag;
-import org.jnbt.ListTag;
-import org.jnbt.StringTag;
-import org.jnbt.Tag;
+
+import org.pepsoft.worldpainter.mapexplorer.Node;
 
 /**
  *

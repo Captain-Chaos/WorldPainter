@@ -1,5 +1,7 @@
 package org.pepsoft.minecraft.mapexplorer;
 
+import org.pepsoft.worldpainter.mapexplorer.Node;
+
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
 import java.io.File;
@@ -7,9 +9,19 @@ import java.io.File;
 /**
  * Created by Pepijn on 15-6-2016.
  */
-public abstract class FileSystemNode extends Node {
+public class FileSystemNode extends Node {
     public FileSystemNode(File file) {
         this.file = file;
+    }
+
+    @Override
+    public boolean isLeaf() {
+        return ! file.isDirectory();
+    }
+
+    @Override
+    protected Node[] loadChildren() {
+        throw new UnsupportedOperationException("Not implemented");
     }
 
     @Override

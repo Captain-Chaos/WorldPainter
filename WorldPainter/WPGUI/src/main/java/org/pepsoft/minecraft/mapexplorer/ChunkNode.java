@@ -9,6 +9,7 @@ import java.io.IOException;
 import org.jnbt.NBTInputStream;
 import org.jnbt.Tag;
 import org.pepsoft.minecraft.RegionFile;
+import org.pepsoft.worldpainter.mapexplorer.Node;
 
 import javax.swing.*;
 
