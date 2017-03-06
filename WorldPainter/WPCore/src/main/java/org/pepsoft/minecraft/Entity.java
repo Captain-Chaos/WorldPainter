@@ -6,6 +6,8 @@
 package org.pepsoft.minecraft;
 
 import java.util.HashMap;
+import java.util.UUID;
+
 import org.jnbt.CompoundTag;
 import org.jnbt.StringTag;
 
@@ -72,6 +74,21 @@ public class Entity extends AbstractNBTItem {
             throw new IllegalArgumentException();
         }
         setDoubleList(TAG_MOTION, vel);
+    }
+
+    public final UUID getUUID() {
+        String uuidStr = getString(TAG_UUID);
+        if (uuidStr != null) {
+            return UUID.fromString(uuidStr);
+        } else {
+            return new UUID(getLong(TAG_UUID_MOST), getLong(TAG_UUID_LEAST));
+        }
+    }
+
+    public final void setUUID(UUID uuid) {
+        setLong(TAG_UUID_MOST, uuid.getMostSignificantBits());
+        setLong(TAG_UUID_LEAST, uuid.getLeastSignificantBits());
+        setString(TAG_UUID, null);
     }
 
     public static Entity fromNBT(CompoundTag entityTag) {

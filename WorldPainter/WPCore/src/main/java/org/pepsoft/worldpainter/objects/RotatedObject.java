@@ -8,6 +8,7 @@ import org.pepsoft.minecraft.Entity;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.minecraft.TileEntity;
 import org.pepsoft.util.AttributeKey;
+import org.pepsoft.util.MathUtils;
 
 import javax.vecmath.Point3i;
 import java.io.Serializable;
@@ -132,6 +133,10 @@ public class RotatedObject extends AbstractObject {
                             throw new InternalError();
                     }
                     entity.setPos(pos);
+                    float[] rot = objectEntity.getRot();
+                    rot[0] = MathUtils.mod(rot[0] + steps * 90.0f, 360.0f);
+                    entity.setRot(rot);
+                    // TODO: adjust velocity
                 }
                 entities.add(entity);
             }

@@ -96,7 +96,10 @@ public final class Constants {
     public static final String TAG_BORDER_SIZE_LERP_TARGET = "BorderSizeLerpTarget";
     public static final String TAG_BORDER_SIZE_LERP_TIME   = "BorderSizeLerpTime";
     public static final String TAG_BORDER_DAMAGE_PER_BLOCK = "BorderDamagePerBlock";
-    
+    public static final String TAG_UUID                    = "UUID";
+    public static final String TAG_UUID_MOST               = "UUIDMost";
+    public static final String TAG_UUID_LEAST              = "UUIDLeast";
+
     /**
      * Possibly unofficial, SpoutCraft-specific
      */

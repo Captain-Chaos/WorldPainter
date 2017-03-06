@@ -15,6 +15,7 @@ import org.pepsoft.minecraft.Entity;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.minecraft.TileEntity;
 import org.pepsoft.util.AttributeKey;
+import org.pepsoft.util.MathUtils;
 
 /**
  *
@@ -69,12 +70,19 @@ public class MirroredObject extends AbstractObject {
             for (Entity objectEntity: objectEntities) {
                 Entity entity = (Entity) objectEntity.clone();
                 double[] pos = entity.getPos();
+                double[] vel = entity.getVel();
                 if (mirrorYAxis) {
                     pos[2] = dimensions.y - pos[2];
+                    vel[2] = -vel[2];
                 } else {
                     pos[0] = dimensions.x - pos[0];
+                    vel[0] = -vel[0];
                 }
                 entity.setPos(pos);
+                entity.setVel(vel);
+                float[] rot = entity.getRot();
+                rot[0] = MathUtils.mod(rot[0] + 180.0f, 360.0f);
+                entity.setRot(rot);
                 entities.add(entity);
             }
             return entities;

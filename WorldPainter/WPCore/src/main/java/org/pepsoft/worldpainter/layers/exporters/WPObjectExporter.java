@@ -21,10 +21,8 @@ import org.pepsoft.worldpainter.plugins.PlatformManager;
 
 import javax.vecmath.Point3i;
 import java.awt.*;
-import java.util.Arrays;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 
 import static org.pepsoft.minecraft.Block.*;
 import static org.pepsoft.minecraft.Constants.*;
@@ -159,6 +157,10 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                     if (logger.isTraceEnabled()) {
                         logger.trace("Adding entity " + entity.getId() + " @ " + entityX + "," + entityY + "," + entityZ);
                     }
+                    // Make sure each entity has a unique ID, otherwise
+                    // Minecraft will see them all as duplicates and remove
+                    // them:
+                    entity.setUUID(UUID.randomUUID());
                     world.addEntity(entityX, entityY, entityZ, entity);
                 }
             }
