@@ -1473,10 +1473,19 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public <T> void setAttribute(AttributeKey<T> key, T value) {
-        if (attributes == null) {
-            attributes = new HashMap<>();
+        if ((value != null) ? value.equals(key.defaultValue) : (key.defaultValue == null)) {
+            // Setting value to default
+            attributes.remove(key.key);
+            if (attributes.isEmpty()) {
+                attributes = null;
+            }
+        } else {
+            if (attributes == null) {
+                attributes = new HashMap<>();
+            }
+            attributes.put(key.key, value);
         }
-        attributes.put(key.key, value);
+        dirty = true;
     }
 
     // Tile.Listener

@@ -14,14 +14,7 @@ import java.util.List;
 /**
  * Created by Pepijn on 12-2-2017.
  */
-public interface PlatformProvider extends Plugin {
-    /**
-     * Provide the list of platforms supported by this plugin.
-     *
-     * @return The list of platforms supported by this plugin.
-     */
-    List<Platform> getSupportedPlatforms();
-
+public interface PlatformProvider extends Provider<Platform> {
     /**
      * Create a new, empty chunk for a platform supported by this plugin.
      *

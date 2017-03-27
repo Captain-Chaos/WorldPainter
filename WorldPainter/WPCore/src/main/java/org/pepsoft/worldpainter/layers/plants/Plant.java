@@ -10,6 +10,7 @@ import org.pepsoft.minecraft.Entity;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.minecraft.TileEntity;
 import org.pepsoft.util.AttributeKey;
+import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import org.pepsoft.worldpainter.objects.WPObject;
 
@@ -198,6 +199,11 @@ public final class Plant implements WPObject {
     @Override
     public List<TileEntity> getTileEntities() {
         return null;
+    }
+
+    @Override
+    public void prepareForExport(Dimension dimension) {
+        // Do nothing
     }
 
     @Override

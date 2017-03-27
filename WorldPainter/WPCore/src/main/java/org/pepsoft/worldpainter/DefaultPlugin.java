@@ -4,23 +4,13 @@
  */
 package org.pepsoft.worldpainter;
 
-import org.pepsoft.minecraft.Chunk;
-import org.pepsoft.minecraft.ChunkImpl;
-import org.pepsoft.minecraft.ChunkImpl2;
-import org.pepsoft.minecraft.ChunkStore;
-import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.layers.*;
-import org.pepsoft.worldpainter.mapexplorer.MapRecognizer;
 import org.pepsoft.worldpainter.plugins.AbstractPlugin;
 import org.pepsoft.worldpainter.plugins.ContextProvider;
 import org.pepsoft.worldpainter.plugins.LayerProvider;
-import org.pepsoft.worldpainter.plugins.PlatformProvider;
 import org.pepsoft.worldpainter.util.MinecraftJarProvider;
-import org.pepsoft.worldpainter.util.MinecraftUtil;
 
-import java.io.File;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -35,11 +25,11 @@ import static org.pepsoft.worldpainter.Platform.Capability.*;
  *
  * @author pepijn
  */
-public class DefaultPlugin extends AbstractPlugin implements LayerProvider, ContextProvider, WPContext, PlatformProvider {
+public class DefaultPlugin extends AbstractPlugin implements LayerProvider, ContextProvider, WPContext {
     public DefaultPlugin() {
         super("Default", Version.VERSION);
     }
-    
+
     // LayerProvider
     
     @Override
@@ -66,77 +56,6 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
         return Configuration.getInstance();
     }
 
-    // PlatformProvider
-
-    @Override
-    public List<Platform> getSupportedPlatforms() {
-        return PLATFORMS;
-    }
-
-    @Override
-    public Chunk createChunk(Platform platform, int x, int z, int maxHeight) {
-        if (platform.equals(JAVA_MCREGION)) {
-            return new ChunkImpl(x, z, maxHeight);
-        } else if (platform.equals(JAVA_ANVIL)) {
-            return new ChunkImpl2(x, z, maxHeight);
-        } else {
-            throw new IllegalArgumentException("Platform " + platform + " not supported");
-        }
-    }
-
-    @Override
-    public ChunkStore getChunkStore(Platform platform, File worldDir, int dimension) {
-        if (platform.equals(JAVA_MCREGION) || platform.equals(JAVA_ANVIL)) {
-            File regionDir;
-            switch (dimension) {
-                case DIM_NORMAL:
-                    regionDir = new File(worldDir, "region");
-                    break;
-                case DIM_NETHER:
-                    regionDir = new File(worldDir, "DIM-1/region");
-                    break;
-                case DIM_END:
-                    regionDir = new File(worldDir, "DIM1/region");
-                    break;
-                default:
-                    throw new IllegalArgumentException("Dimension " + dimension + " not supported");
-            }
-            return new JavaChunkStore(platform, regionDir, false, null, platform.standardMaxHeight);
-        } else {
-            throw new IllegalArgumentException("Platform " + platform + " not supported");
-        }
-    }
-
-    @Override
-    public WorldExporter getExporter(World2 world) {
-        Platform platform = world.getPlatform();
-        if (platform.equals(JAVA_MCREGION) || platform.equals(JAVA_ANVIL)) {
-            return new JavaWorldExporter(world);
-        } else {
-            throw new IllegalArgumentException("Platform " + platform + " not supported");
-        }
-    }
-
-    @Override
-    public File getDefaultExportDir(Platform platform) {
-        File minecraftDir = MinecraftUtil.findMinecraftDir();
-        return (minecraftDir != null) ? new File(minecraftDir, "saves") : null;
-    }
-
-    @Override
-    public PostProcessor getPostProcessor(Platform platform) {
-        if (platform.equals(JAVA_MCREGION) || platform.equals(JAVA_ANVIL)) {
-            return new JavaPostProcessor();
-        } else {
-            throw new IllegalArgumentException("Platform " + platform + " not supported");
-        }
-    }
-
-    @Override
-    public MapRecognizer getMapRecognizer() {
-        return null;
-    }
-
     public static final Platform JAVA_MCREGION = new Platform(
             "org.pepsoft.mcregion",
             "Minecraft 1.1 (MCRegion)",
@@ -156,6 +75,4 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
             Arrays.asList(DEFAULT, FLAT, LARGE_BIOMES),
             Arrays.asList(DIM_NORMAL, DIM_NETHER, DIM_END),
             EnumSet.of(BIOMES, PRECALCULATED_LIGHT, SET_SPAWN_POINT));
-
-    private static final List<Platform> PLATFORMS = Collections.unmodifiableList(Arrays.asList(JAVA_ANVIL, JAVA_MCREGION));
 }

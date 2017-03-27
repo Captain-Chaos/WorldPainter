@@ -14,6 +14,7 @@ import javax.swing.JPanel;
 import javax.swing.border.BevelBorder;
 import org.pepsoft.worldpainter.dynmap.DynMapPreviewer;
 import org.pepsoft.worldpainter.objects.WPObject;
+import org.pepsoft.worldpainter.plugins.CustomObjectManager;
 
 /**
  *
@@ -28,28 +29,27 @@ public class WPObjectPreviewer extends JPanel implements PropertyChangeListener 
         setBorder(new BevelBorder(BevelBorder.LOWERED));
     }
 
+    public org.pepsoft.worldpainter.Dimension getDimension() {
+        return dimension;
+    }
+
+    public void setDimension(org.pepsoft.worldpainter.Dimension dimension) {
+        this.dimension = dimension;
+    }
+
     public void setObject(WPObject object) {
-        previewer.setObject(object);
+        previewer.setObject(object, dimension);
     }
     
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         if (evt.getPropertyName().equals(JFileChooser.SELECTED_FILE_CHANGED_PROPERTY)) {
             File file = (File) evt.getNewValue();
-            if (file == null) {
+            if ((file == null) || (! file.isFile())) {
                 return;
             }
-            WPObject object = null;
             try {
-                String filename = file.getName().toLowerCase();
-                if (filename.toLowerCase().endsWith(".bo2")) {
-                    object = Bo2Object.load(file);
-                } else if (filename.toLowerCase().endsWith(".bo3")) {
-                    object = Bo3Object.load(file);
-                } else if (filename.toLowerCase().endsWith(".schematic")) {
-                    object = Schematic.load(file);
-                }
-                setObject(object);
+                setObject(CustomObjectManager.getInstance().loadObject(file));
             } catch (Throwable t) {
                 logger.error("Exception while trying to generate preview for " + file, t);
             }
@@ -57,6 +57,7 @@ public class WPObjectPreviewer extends JPanel implements PropertyChangeListener 
     }
     
     private final DynMapPreviewer previewer;
+    private org.pepsoft.worldpainter.Dimension dimension;
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WPObjectPreviewer.class);
     private static final long serialVersionUID = 1L;

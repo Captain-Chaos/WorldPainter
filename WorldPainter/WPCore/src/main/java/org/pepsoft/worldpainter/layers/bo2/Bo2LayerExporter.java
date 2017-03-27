@@ -4,6 +4,7 @@
  */
 package org.pepsoft.worldpainter.layers.bo2;
 
+import com.google.common.collect.Sets;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.exporting.Fixup;
 import org.pepsoft.worldpainter.exporting.IncidentalLayerExporter;
@@ -21,6 +22,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 import static org.pepsoft.minecraft.Block.BLOCKS;
 import static org.pepsoft.minecraft.Constants.*;
@@ -28,6 +30,8 @@ import static org.pepsoft.worldpainter.objects.WPObject.*;
 
 /**
  * An exporter of {@link Bo2Layer}s.
+ *
+ * <p>This class is <strong>not</strong> thread safe.
  *
  * @author pepijn
  */
@@ -75,7 +79,11 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
                                 }
                             }
                             final int z = (placement == Placement.ON_LAND) ? height + 1 : dimension.getWaterLevelAt(x, y) + 1;
-                            if ((! isSane(object, x, y, z, maxHeight)) || (! isRoom(minecraftWorld, dimension, object, x, y, z, placement))) {
+                            if (! isSane(object, x, y, z, maxHeight)) {
+                                continue;
+                            }
+                            prepareForExport(object, dimension);
+                            if (! isRoom(minecraftWorld, dimension, object, x, y, z, placement)) {
                                 continue;
                             }
                             if (! fitsInExportedArea(exportedArea, object, x, y)) {
@@ -99,10 +107,9 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
 
     @Override
     public Fixup apply(Dimension dimension, Point3i location, int intensity, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
-        final Random random = incidentalRandomRef.get();
         final long seed = dimension.getSeed() ^ ((long) location.x << 40) ^ ((long) location.y << 20) ^ (location.z);
-        random.setSeed(seed);
-        if ((intensity > 0) && (random.nextInt(layer.getDensity() * 20) <= intensity * intensity / 225)) {
+        applyRandom.setSeed(seed);
+        if ((intensity > 0) && (applyRandom.nextInt(layer.getDensity() * 20) <= intensity * intensity / 225)) {
             final Bo2ObjectProvider objectProvider = layer.getObjectProvider();
             objectProvider.setSeed(seed);
             WPObject object = objectProvider.getObject();
@@ -113,18 +120,22 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
                     || (object.getAttribute(ATTRIBUTE_SPAWN_ON_LAND) && (! BLOCKS[blockBelow].veryInsubstantial))
                     || (! object.getAttribute(ATTRIBUTE_NEEDS_FOUNDATION) && BLOCKS[blockBelow].veryInsubstantial)) {
                 if (object.getAttribute(ATTRIBUTE_RANDOM_ROTATION)) {
-                    if (random.nextBoolean()) {
+                    if (applyRandom.nextBoolean()) {
                         object = new MirroredObject(object, false);
                     }
-                    int rotateSteps = random.nextInt(4);
+                    int rotateSteps = applyRandom.nextInt(4);
                     if (rotateSteps > 0) {
                         object = new RotatedObject(object, rotateSteps);
                     }
                 }
-                if ((!isSane(object, location.x, location.y, location.z, minecraftWorld.getMaxHeight())) || (!isRoom(minecraftWorld, dimension, object, location.x, location.y, location.z, Placement.ON_LAND))) {
+                if (! isSane(object, location.x, location.y, location.z, minecraftWorld.getMaxHeight())) {
                     return null;
                 }
-                if (!fitsInExportedArea(exportedArea, object, location.x, location.y)) {
+                prepareForExport(object, dimension);
+                if (! isRoom(minecraftWorld, dimension, object, location.x, location.y, location.z, Placement.ON_LAND)) {
+                    return null;
+                }
+                if (! fitsInExportedArea(exportedArea, object, location.x, location.y)) {
                     // There is room on our side of the border, but the object
                     // extends outside the exported area, so it might clash with an
                     // object from another area. Schedule a fixup to retest whether
@@ -203,12 +214,23 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
         }
         return Placement.NONE;
     }
-    
-    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Bo2LayerExporter.class);
-    private final ThreadLocal<Random> incidentalRandomRef = new ThreadLocal<Random>() {
-        @Override
-        protected Random initialValue() {
-            return new Random();
+
+    /**
+     * In case the object is from a plugin and needs to be processed by the
+     * plugin before being exported, and that hasn't happened yet for this
+     * object, do that now.
+     *
+     * @param object The object to prepare for export.
+     */
+    private void prepareForExport(WPObject object, Dimension dimension) {
+        if (! preparedObjects.contains(object)) {
+            object.prepareForExport(dimension);
+            preparedObjects.add(object);
         }
-    };
+    }
+
+    private final Random applyRandom = new Random();
+    private final Set<WPObject> preparedObjects = Sets.newIdentityHashSet();
+
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Bo2LayerExporter.class);
 }

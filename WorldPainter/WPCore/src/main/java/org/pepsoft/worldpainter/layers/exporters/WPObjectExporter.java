@@ -4,6 +4,7 @@
  */
 package org.pepsoft.worldpainter.layers.exporters;
 
+import com.google.common.collect.Sets;
 import org.pepsoft.minecraft.Block;
 import org.pepsoft.minecraft.Entity;
 import org.pepsoft.minecraft.Material;
@@ -17,6 +18,7 @@ import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.layers.Frost;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.objects.WPObject;
+import org.pepsoft.worldpainter.plugins.CustomObjectManager;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 
 import javax.vecmath.Point3i;
@@ -374,7 +376,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
         }
         return true;
     }
-    
+
     /**
      * Determine whether placing a block of the specified type at the specified
      * location in the specified world would cause the block to connect to
@@ -458,7 +460,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
             world.setMaterialAt(x, y, z, material);
         }
     }
-    
+
     private static final Set<Integer> AIR_AND_FLUIDS = new HashSet<>(Arrays.asList(BLK_AIR, BLK_WATER, BLK_STATIONARY_WATER, BLK_LAVA, BLK_STATIONARY_LAVA));
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WPObjectExporter.class);
 

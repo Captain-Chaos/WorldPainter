@@ -4,6 +4,7 @@
  */
 package org.pepsoft.worldpainter.layers.bo2;
 
+import org.pepsoft.worldpainter.App;
 import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.objects.WPObject;
 
@@ -95,6 +96,7 @@ public class EditObjectAttributes extends javax.swing.JDialog {
             checkBoxExtendFoundation.setSelected(object.getAttribute(ATTRIBUTE_EXTEND_FOUNDATION));
             checkBoxExtendFoundation.setTristateMode(false);
             WPObjectPreviewer previewer = new WPObjectPreviewer();
+            previewer.setDimension(App.getInstance().getDimension());
             previewer.setObject(object);
             jPanel1.add(previewer, BorderLayout.CENTER);
         } else {

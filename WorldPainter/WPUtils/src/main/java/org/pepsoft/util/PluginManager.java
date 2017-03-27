@@ -55,7 +55,7 @@ public final class PluginManager {
                         continue;
                     }
                     ClassLoader pluginClassLoader = new URLClassLoader(new URL[] {pluginFile.toURI().toURL()});
-                    pluginJars.put(jarFile, pluginClassLoader);
+                    jarClassLoaders.put(jarFile, pluginClassLoader);
                 } catch (MalformedURLException e) {
                     throw new RuntimeException("Malformed URL exception while trying to load plugins", e);
                 } catch (IOException e) {
@@ -83,7 +83,7 @@ public final class PluginManager {
         try {
             List<T> plugins = new ArrayList<>();
             findPlugins(type, filename, classLoader, plugins);
-            for (JarFile pluginJar: pluginJars.keySet()) {
+            for (JarFile pluginJar: jarClassLoaders.keySet()) {
                 findPlugins(type, filename, pluginJar, plugins);
             }
             return plugins;
@@ -129,17 +129,17 @@ public final class PluginManager {
         }
         return true;
     }
-    
+
+    @SuppressWarnings("unchecked") // Guaranteed by isAssignableFrom
     private static <T> void findPlugins(Class<T> type, String filename, JarFile jarFile, List<T> plugins) throws IOException {
         JarEntry jarEntry = jarFile.getJarEntry(filename);
         try (BufferedReader in = new BufferedReader(new InputStreamReader(jarFile.getInputStream(jarEntry), Charset.forName("UTF-8")))) {
             String line;
             while ((line = in.readLine()) != null) {
                 try {
-                    @SuppressWarnings("unchecked")
-                    Class<T> pluginType = (Class<T>) pluginJars.get(jarFile).loadClass(line);
+                    Class<?> pluginType = jarClassLoaders.get(jarFile).loadClass(line);
                     if (type.isAssignableFrom(pluginType)) {
-                        plugins.add(pluginType.newInstance());
+                        plugins.add(((Class<T>) pluginType).newInstance());
                     }
                 } catch (ClassNotFoundException e) {
                     throw new RuntimeException("Class not found while instantiating plugin " + line, e);
@@ -151,7 +151,8 @@ public final class PluginManager {
             }
         }
     }
-    
+
+    @SuppressWarnings("unchecked") // Guaranteed by isAssignableFrom
     private static <T> void findPlugins(Class<T> type, String filename, ClassLoader classLoader, List<T> plugins) throws IOException {
         Enumeration<URL> resources = classLoader.getResources(filename);
         while (resources.hasMoreElements()) {
@@ -160,10 +161,9 @@ public final class PluginManager {
                 String line;
                 while ((line = in.readLine()) != null) {
                     try {
-                        @SuppressWarnings("unchecked")
-                        Class<T> pluginType = (Class<T>) classLoader.loadClass(line);
+                        Class<?> pluginType = classLoader.loadClass(line);
                         if (type.isAssignableFrom(pluginType)) {
-                            plugins.add(pluginType.newInstance());
+                            plugins.add(((Class<T>) pluginType).newInstance());
                         }
                     } catch (ClassNotFoundException e) {
                         throw new RuntimeException("Class not found while instantiating plugin " + line, e);
@@ -177,12 +177,12 @@ public final class PluginManager {
         }
     }
     
-    private static final Map<JarFile, ClassLoader> pluginJars = new HashMap<>();
+    private static final Map<JarFile, ClassLoader> jarClassLoaders = new HashMap<>();
     private static final int BUFFER_SIZE = 32768;
     private static final ClassLoader classLoader = new ClassLoader(ClassLoader.getSystemClassLoader()) {
         @Override
         protected Class<?> findClass(String name) throws ClassNotFoundException {
-            for (Map.Entry<JarFile, ClassLoader> entry: pluginJars.entrySet()) {
+            for (Map.Entry<JarFile, ClassLoader> entry: jarClassLoaders.entrySet()) {
                 Class<?> _class;
                 try {
                     _class = entry.getValue().loadClass(name);

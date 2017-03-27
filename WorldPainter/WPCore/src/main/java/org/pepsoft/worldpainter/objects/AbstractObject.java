@@ -5,6 +5,7 @@
 package org.pepsoft.worldpainter.objects;
 
 import org.pepsoft.util.AttributeKey;
+import org.pepsoft.worldpainter.Dimension;
 
 import javax.vecmath.Point3i;
 import java.io.Serializable;
@@ -15,6 +16,11 @@ import java.io.Serializable;
  * @author pepijn
  */
 public abstract class AbstractObject implements WPObject {
+    @Override
+    public void prepareForExport(Dimension dimension) {
+        // Do nothing
+    }
+
     @Override
     @SuppressWarnings("unchecked") // Responsibility of caller
     public <T extends Serializable> T getAttribute(AttributeKey<T> key) {

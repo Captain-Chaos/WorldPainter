@@ -3,12 +3,15 @@ package org.pepsoft.worldpainter.dynmap;
 import org.pepsoft.util.Box;
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.util.MathUtils;
+import org.pepsoft.util.PluginManager;
 import org.pepsoft.util.swing.TiledImageViewer;
-import org.pepsoft.worldpainter.Configuration;
-import org.pepsoft.worldpainter.layers.bo2.Bo2Object;
-import org.pepsoft.worldpainter.layers.bo2.Bo3Object;
-import org.pepsoft.worldpainter.layers.bo2.Schematic;
+import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.objects.WPObject;
+import org.pepsoft.worldpainter.plugins.CustomObjectManager;
+import org.pepsoft.worldpainter.plugins.WPPluginManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import javax.swing.*;
@@ -20,6 +23,12 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
+import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 
 /**
  * A component which can show isometric 3D views of arbitrary {@link WPObject}s
@@ -94,10 +103,13 @@ public class DynMapPreviewer extends TiledImageViewer {
         return object;
     }
 
-    public void setObject(WPObject object) {
+    public void setObject(WPObject object, Dimension dimension) {
         this.object = object;
         setActionStates();
         if (object != null) {
+            // Make sure the object is prepared for export, in case it is from a
+            // plugin and needs a mapping applied, for instance
+            object.prepareForExport(dimension);
             WPObjectDynmapWorld dmWorld = new WPObjectDynmapWorld(object);
             tileProvider = new DynMapTileProvider(dmWorld);
             tileProvider.setAzimuth(azimuth);
@@ -181,33 +193,48 @@ public class DynMapPreviewer extends TiledImageViewer {
         rotateDown.setEnabled((object != null) && (inclination < 90.0));
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
         // Install java.util.logging -> slf4j bridge:
         SLF4JBridgeHandler.removeHandlersForRootLogger();
         SLF4JBridgeHandler.install();
 
-        // Install default config
-        Configuration.setInstance(new Configuration());
+        // Load or initialise configuration
+        Configuration config = Configuration.load(); // This will migrate the configuration directory if necessary
+        if (config == null) {
+            if (! logger.isDebugEnabled()) {
+                // If debug logging is on, the Configuration constructor will
+                // already log this
+                logger.info("Creating new configuration");
+            }
+            config = new Configuration();
+        }
+        Configuration.setInstance(config);
+        logger.info("Installation ID: " + config.getUuid());
+
+        // Load and install trusted WorldPainter root certificate
+        X509Certificate trustedCert = null;
+        try {
+            CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+            trustedCert = (X509Certificate) certificateFactory.generateCertificate(DynMapPreviewer.class.getResourceAsStream("/wproot.pem"));
+        } catch (CertificateException e) {
+            logger.error("Certificate exception while loading trusted root certificate", e);
+        }
+
+        // Load the plugins
+        if (trustedCert != null) {
+            PluginManager.loadPlugins(new File(Configuration.getConfigDir(), "plugins"), trustedCert.getPublicKey());
+        } else {
+            logger.error("Trusted root certificate not available; not loading plugins");
+        }
+        WPPluginManager.initialise(config.getUuid());
 
         JFrame frame = new JFrame("DynMapPreviewerTest");
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         DynMapPreviewer viewer = new DynMapPreviewer();
-        WPObject object;
-        int p = args[0].lastIndexOf('.');
-        switch (args[0].substring(p + 1)) {
-            case "schematic":
-                object = Schematic.load(new File(args[0]));
-                break;
-            case "bo2":
-                object = Bo2Object.load(new File(args[0]));
-                break;
-            case "bo3":
-                object = Bo3Object.load(new File(args[0]));
-                break;
-            default:
-                throw new IllegalArgumentException(args[0]);
-        }
-        viewer.setObject(object);
+        WPObject object = CustomObjectManager.getInstance().loadObject(new File(args[0]));
+        TileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(0L, Terrain.GRASS, DEFAULT_MAX_HEIGHT_2, 58, 62, false, true, 20.0f, 1.0);
+        Dimension dimension = new Dimension(0L, tileFactory, DIM_NORMAL, DEFAULT_MAX_HEIGHT_2);
+        viewer.setObject(object, dimension);
         frame.getContentPane().add(viewer, BorderLayout.CENTER);
         frame.setSize(800, 600);
         frame.setLocationRelativeTo(null);
@@ -297,4 +324,6 @@ public class DynMapPreviewer extends TiledImageViewer {
     private DynMapTileProvider tileProvider;
     private double azimuth, inclination;
     private boolean caves;
+
+    private static final Logger logger = LoggerFactory.getLogger(DynMapPreviewer.class);
 }

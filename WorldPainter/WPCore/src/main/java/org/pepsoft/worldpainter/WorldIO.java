@@ -58,7 +58,10 @@ public class WorldIO {
             if (WPPluginManager.getInstance() != null) {
                 List<String[]> pluginArray = new ArrayList<>();
                 for (Plugin plugin : WPPluginManager.getInstance().getAllPlugins()) {
-                    if (plugin.getName().equals("Default") || plugin.getName().equals("DefaultLayerEditorProvider")) {
+                    if (plugin.getName().equals("Default")
+                            || plugin.getName().equals("DefaultPlatforms")
+                            || plugin.getName().equals("DefaultCustomObjects")
+                            || plugin.getName().equals("DefaultLayerEditorProvider")) {
                         // Don't include the system plugins
                         continue;
                     }

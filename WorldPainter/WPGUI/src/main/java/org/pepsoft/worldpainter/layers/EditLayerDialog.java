@@ -6,9 +6,8 @@
 
 package org.pepsoft.worldpainter.layers;
 
-import org.pepsoft.worldpainter.App;
-import org.pepsoft.worldpainter.ColourScheme;
-import org.pepsoft.worldpainter.WorldPainterDialog;
+import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.objects.MinecraftWorldObject;
@@ -114,6 +113,11 @@ public class EditLayerDialog<L extends Layer> extends WorldPainterDialog impleme
     }
 
     @Override
+    public Dimension getDimension() {
+        return app.getDimension();
+    }
+
+    @Override
     public ColourScheme getColourScheme() {
         return app.getColourScheme();
     }
@@ -176,7 +180,7 @@ renderLoop:                 do {
                                     previewCreator.setLayer(settings.getLayer());
                                     previewCreator.setSettings(settings);
                                     final MinecraftWorldObject preview = previewCreator.renderPreview();
-                                    SwingUtilities.invokeLater(() -> dynMapPreviewer1.setObject(preview));
+                                    SwingUtilities.invokeLater(() -> dynMapPreviewer1.setObject(preview, app.getDimension()));
                                 }
                                 synchronized (PREVIEW_STATE_LOCK) {
                                     switch (previewRenderState) {

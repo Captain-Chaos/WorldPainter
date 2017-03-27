@@ -1,7 +1,6 @@
 package org.pepsoft.worldpainter;
 
 import org.pepsoft.minecraft.Material;
-import org.pepsoft.util.GUIUtils;
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.heightMaps.NoiseHeightMap;
@@ -14,7 +13,7 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.Callable;
 
-import static org.pepsoft.util.GUIUtils.*;
+import static org.pepsoft.util.GUIUtils.UI_SCALE;
 
 /**
  * @author SchmitzP
@@ -552,9 +551,9 @@ public class MixedMaterial implements Serializable, Comparable<MixedMaterial> {
             return material.toString();
         }
 
-        final Material material;
-        final int occurrence;
-        final float scale;
+        public final Material material;
+        public final int occurrence;
+        public final float scale;
         float chance;
 
         private static final long serialVersionUID = 1L;

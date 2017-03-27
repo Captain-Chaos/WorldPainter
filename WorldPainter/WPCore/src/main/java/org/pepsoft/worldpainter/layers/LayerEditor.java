@@ -9,6 +9,7 @@ package org.pepsoft.worldpainter.layers;
 import java.util.List;
 import javax.swing.JComponent;
 import org.pepsoft.worldpainter.ColourScheme;
+import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 
@@ -139,5 +140,12 @@ public interface LayerEditor<L extends Layer> {
          * reset.
          */
         void settingsChanged();
+
+        /**
+         * Get the dimension currently loaded in the editor.
+         *
+         * @return The dimension currently loaded in the editor.
+         */
+        Dimension getDimension();
     }
 }

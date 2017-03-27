@@ -1,1 +1,3 @@
 org.pepsoft.worldpainter.DefaultPlugin
+org.pepsoft.worldpainter.DefaultPlatformProvider
+org.pepsoft.worldpainter.DefaultCustomObjectProvider

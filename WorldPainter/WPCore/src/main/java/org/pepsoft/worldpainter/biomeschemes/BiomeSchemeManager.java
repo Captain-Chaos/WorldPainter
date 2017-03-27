@@ -79,7 +79,9 @@ public class BiomeSchemeManager {
                 final BiomeJar biomeJar = biomeJars.get(biomeJars.lastKey());
                 logger.info("Creating biome scheme " + version + " from " + biomeJar.file.getAbsolutePath());
                 BiomeScheme biomeScheme = biomeJar.descriptor.instantiate(biomeJar.file, minecraftDir, biomeJar.checksum);
-                BIOME_SCHEMES.put(biomeAlgorithm, biomeScheme);
+                if (shared) {
+                    BIOME_SCHEMES.put(biomeAlgorithm, biomeScheme);
+                }
                 return biomeScheme;
             } else {
                 if (logger.isDebugEnabled()) {

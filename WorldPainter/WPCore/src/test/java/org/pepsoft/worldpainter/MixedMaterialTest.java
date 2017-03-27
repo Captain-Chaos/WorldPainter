@@ -9,6 +9,12 @@ import org.junit.Test;
 import org.pepsoft.minecraft.Material;
 import static org.pepsoft.minecraft.Material.*;
 import org.pepsoft.worldpainter.MixedMaterial.Row;
+
+import java.io.FileDescriptor;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
+
 import static org.pepsoft.minecraft.Constants.*;
 
 /**
@@ -18,6 +24,11 @@ import static org.pepsoft.minecraft.Constants.*;
 public class MixedMaterialTest {
     @Test
     public void testBlobs() {
+        try {
+            System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out), true, "UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            throw new InternalError("VM does not support mandatory encoding UTF-8");
+        }
         MixedMaterial mixedMaterial = new MixedMaterial("Test", new Row[] {
             new Row(DIRT,      400, 1.0f),
             new Row(GRAVEL,    300, 1.0f),

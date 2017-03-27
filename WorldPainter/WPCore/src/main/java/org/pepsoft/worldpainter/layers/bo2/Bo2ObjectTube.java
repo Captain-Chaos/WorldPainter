@@ -5,6 +5,7 @@
 package org.pepsoft.worldpainter.layers.bo2;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
@@ -16,6 +17,8 @@ import java.util.Random;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import org.pepsoft.worldpainter.objects.WPObject;
+import org.pepsoft.worldpainter.plugins.CustomObjectManager;
+
 import static org.pepsoft.worldpainter.objects.WPObject.*;
 
 /**
@@ -91,7 +94,7 @@ public class Bo2ObjectTube implements Bo2ObjectProvider {
      * @throws IOException If there was an I/O error reading one of the files.
      */
     public static Bo2ObjectTube load(String name, File dir) throws IOException {
-        File[] files = dir.listFiles((dir1, name1) -> name1.toLowerCase().endsWith(".bo2") || name1.toLowerCase().endsWith(".bo3") || name1.toLowerCase().endsWith(".schematic"));
+        File[] files = dir.listFiles((FilenameFilter) CustomObjectManager.getInstance().getFileFilter());
         //noinspection ConstantConditions // Responsibility of caller to provide extant directory
         return load(name, Arrays.asList(files));
     }
@@ -111,17 +114,9 @@ public class Bo2ObjectTube implements Bo2ObjectProvider {
             throw new IllegalArgumentException("Cannot create an object tube with no objects");
         }
         List<WPObject> objects = new ArrayList<>(files.size());
+        CustomObjectManager customObjectManager = CustomObjectManager.getInstance();
         for (File file: files) {
-            String filename = file.getName().toLowerCase();
-            if (filename.endsWith(".bo2")) {
-                objects.add(Bo2Object.load(file));
-            } else if (filename.endsWith(".bo3")) {
-                objects.add(Bo3Object.load(file));
-            } else if (filename.endsWith(".schematic")) {
-                objects.add(Schematic.load(file));
-            } else {
-                throw new IllegalArgumentException("Unsupported file encountered: " + file);
-            }
+            objects.add(customObjectManager.loadObject(file));
         }
         return new Bo2ObjectTube(name, objects);
     }

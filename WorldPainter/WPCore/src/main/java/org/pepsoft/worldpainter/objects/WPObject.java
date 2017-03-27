@@ -13,6 +13,8 @@ import org.pepsoft.minecraft.Entity;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.minecraft.TileEntity;
 import org.pepsoft.util.AttributeKey;
+import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.Platform;
 
 /**
  * A three dimensional object, consisting of Minecraft blocks, which can be
@@ -95,7 +97,17 @@ public interface WPObject extends Serializable, Cloneable {
      *     <code>null</code>.
      */
     List<TileEntity> getTileEntities();
-    
+
+    /**
+     * Make preparations, if necessary, for exporting the object. For example
+     * retrieving and applying a mapping. This method will be invoked by
+     * WorldPainter before {@link #getMask(int, int, int)} or
+     * {@link #getMaterial(int, int, int)} are invoked.
+     *
+     * @param dimension The dimension for which the object is being exported.
+     */
+    void prepareForExport(Dimension dimension);
+
     /**
      * Get a live view of the object metadata.
      * 
@@ -173,7 +185,7 @@ public interface WPObject extends Serializable, Cloneable {
      * <tr><td><strong>{@link #COLLISION_MODE_SOLID}</strong></td><td>Will collide with (and therefore not render) any above ground <em>solid</em> block (i.e. not air, grass, water, flowers, leaves, etc.). Default value</td></tr>
      * <tr><td>{@link #COLLISION_MODE_NONE}</td><td>Will not collide with <em>any</em> above ground block (and therefore intersect any other object already there!)</td></tr></table>
      */
-    AttributeKey<Integer> ATTRIBUTE_COLLISION_MODE   = new AttributeKey<>("WPObject.collisionMode", COLLISION_MODE_SOLID); // See COLLISION_MODE_* constants
+    AttributeKey<Integer> ATTRIBUTE_COLLISION_MODE = new AttributeKey<>("WPObject.collisionMode", COLLISION_MODE_SOLID); // See COLLISION_MODE_* constants
     /**
      * Underground rendering mode. Possible values:
      * 
@@ -191,7 +203,7 @@ public interface WPObject extends Serializable, Cloneable {
      * <tr><td>{@link #LEAF_DECAY_ON}</td><td>All leaf blocks are set to decay regardless of their setting in the custom object</td></tr>
      * <tr><td>{@link #LEAF_DECAY_OFF}</td><td>All leaf blocks are set to <em>not</em> decay regardless of their setting in the custom object</td></tr></table>
      */
-    AttributeKey<Integer> ATTRIBUTE_LEAF_DECAY_MODE  = new AttributeKey<>("WPObject.leafDecay", LEAF_DECAY_NO_CHANGE); // See LEAF_DECAY_* constants
+    AttributeKey<Integer> ATTRIBUTE_LEAF_DECAY_MODE = new AttributeKey<>("WPObject.leafDecay", LEAF_DECAY_NO_CHANGE); // See LEAF_DECAY_* constants
     /**
      * When set, describes a block ID (index 0) and data (index 1) combination
      * which will be replaced with air blocks when this object is rendered.
@@ -206,5 +218,6 @@ public interface WPObject extends Serializable, Cloneable {
      * floating in the air. This allows objects to have "legs", "roots" or a
      * "foundation" which will be extended by WorldPainter to meet the ground.
      */
-    AttributeKey<Boolean> ATTRIBUTE_EXTEND_FOUNDATION = new AttributeKey<>("WPObject.extendFoundation", false);
+    AttributeKey<Boolean>  ATTRIBUTE_EXTEND_FOUNDATION = new AttributeKey<>("WPObject.extendFoundation", false);
+    AttributeKey<Platform> ATTRIBUTE_PLATFORM          = new AttributeKey<>("WPObject.platform");
 }

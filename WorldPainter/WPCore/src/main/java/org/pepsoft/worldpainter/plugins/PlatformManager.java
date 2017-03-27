@@ -8,58 +8,47 @@ import org.pepsoft.worldpainter.exporting.PostProcessor;
 import org.pepsoft.worldpainter.exporting.WorldExporter;
 
 import java.io.File;
-import java.util.*;
+import java.util.List;
 
 /**
  * Created by Pepijn on 12-2-2017.
  */
-public class PlatformManager {
+public class PlatformManager extends AbstractProviderManager<Platform, PlatformProvider> {
     private PlatformManager() {
-        List<Platform> platforms = new ArrayList<>();
-        for (PlatformProvider platformProvider: WPPluginManager.getInstance().getPlugins(PlatformProvider.class)) {
-            List<Platform> supportedPlatforms = platformProvider.getSupportedPlatforms();
-            platforms.addAll(supportedPlatforms);
-            for (Platform platform: supportedPlatforms) {
-                platformProviders.put(platform, platformProvider);
-            }
-        }
-        allPlatforms = Collections.unmodifiableList(platforms);
+        super(PlatformProvider.class);
     }
 
     public List<Platform> getAllPlatforms() {
-        return allPlatforms;
+        return getKeys();
     }
 
     public PlatformProvider getPlatformProvider(Platform platform) {
-        return platformProviders.get(platform);
+        return getImplementation(platform);
     }
 
     public Chunk createChunk(Platform platform, int x, int z, int maxHeight) {
-        return platformProviders.get(platform).createChunk(platform, x, z, maxHeight);
+        return getImplementation(platform).createChunk(platform, x, z, maxHeight);
     }
 
     public ChunkStore getChunkStore(Platform platform, File worldDir, int dimension) {
-        return platformProviders.get(platform).getChunkStore(platform, worldDir, dimension);
+        return getImplementation(platform).getChunkStore(platform, worldDir, dimension);
     }
 
     public WorldExporter getExporter(World2 world) {
-        return platformProviders.get(world.getPlatform()).getExporter(world);
+        return getImplementation(world.getPlatform()).getExporter(world);
     }
 
     public File getDefaultExportDir(Platform platform) {
-        return platformProviders.get(platform).getDefaultExportDir(platform);
+        return getImplementation(platform).getDefaultExportDir(platform);
     }
 
     public PostProcessor getPostProcessor(Platform platform) {
-        return platformProviders.get(platform).getPostProcessor(platform);
+        return getImplementation(platform).getPostProcessor(platform);
     }
 
     public static PlatformManager getInstance() {
         return INSTANCE;
     }
-
-    private final List<Platform> allPlatforms;
-    private final Map<Platform, PlatformProvider> platformProviders = new HashMap<>();
 
     private static final PlatformManager INSTANCE = new PlatformManager();
 }

@@ -311,7 +311,7 @@ public class LayerPreviewCreator {
             if ((layer instanceof Caverns) || (layer instanceof Chasms) || (layer instanceof TunnelLayer)) {
                 previewer.setCaves(true);
             }
-            previewer.setObject(preview);
+            previewer.setObject(preview, dimension);
     //        frame.getContentPane().add(previewer, BorderLayout.CENTER);
     //        frame.setSize(800, 600);
     //        frame.setLocationRelativeTo(null); // Center on screen

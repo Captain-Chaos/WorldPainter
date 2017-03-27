@@ -7,6 +7,7 @@ package org.pepsoft.worldpainter;
 
 import org.pepsoft.minecraft.Direction;
 import org.pepsoft.minecraft.Material;
+import org.pepsoft.util.AttributeKey;
 import org.pepsoft.util.MemoryUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
@@ -433,6 +434,30 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         }
     }
 
+    public <T> T getAttribute(AttributeKey<T> key) {
+        if (attributes != null) {
+            return attributes.containsKey(key.key) ? (T) attributes.get(key.key) : key.defaultValue;
+        } else {
+            return key.defaultValue;
+        }
+    }
+
+    public <T> void setAttribute(AttributeKey<T> key, T value) {
+        if ((value != null) ? value.equals(key.defaultValue) : (key.defaultValue == null)) {
+            // Setting value to default
+            attributes.remove(key.key);
+            if (attributes.isEmpty()) {
+                attributes = null;
+            }
+        } else {
+            if (attributes == null) {
+                attributes = new HashMap<>();
+            }
+            attributes.put(key.key, value);
+        }
+        dirty = true;
+    }
+
     /**
      * Transforms all dimensions of this world horizontally. If an undo manager
      * is installed this operation will destroy all undo info.
@@ -702,6 +727,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     private Set<Integer> dimensionsToExport;
     private Platform platform;
     private GameType gameTypeObj = GameType.SURVIVAL;
+    private Map<String, Object> attributes;
     private transient Set<Warning> warnings;
     private transient Map<String, Object> metadata;
 

@@ -12,6 +12,7 @@ import org.pepsoft.minecraft.Material;
 import org.pepsoft.minecraft.TileEntity;
 import org.pepsoft.util.AttributeKey;
 import org.pepsoft.util.Box;
+import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 
 import javax.vecmath.Point3i;
@@ -306,6 +307,11 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
     @Override
     public List<TileEntity> getTileEntities() {
         return null;
+    }
+
+    @Override
+    public void prepareForExport(Dimension dimension) {
+        // Do nothing
     }
 
     @Override

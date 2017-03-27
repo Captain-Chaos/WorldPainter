@@ -7,26 +7,25 @@
 package org.pepsoft.worldpainter.layers.bo2;
 
 import org.pepsoft.minecraft.Constants;
-import org.pepsoft.minecraft.MCInterface;
 import org.pepsoft.util.DesktopUtils;
-import org.pepsoft.worldpainter.BiomeScheme;
+import org.pepsoft.worldpainter.App;
 import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.Configuration;
-import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
 import org.pepsoft.worldpainter.layers.AbstractLayerEditor;
 import org.pepsoft.worldpainter.layers.Bo2Layer;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.objects.WPObject;
+import org.pepsoft.worldpainter.plugins.CustomObjectManager;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.filechooser.FileFilter;
 import javax.vecmath.Point3i;
 import java.awt.*;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.MalformedURLException;
@@ -35,7 +34,6 @@ import java.text.NumberFormat;
 import java.util.*;
 import java.util.List;
 
-import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.objects.WPObject.*;
 
 /**
@@ -63,7 +61,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
     
     @Override
     public Bo2Layer createLayer() {
-        return new Bo2Layer(new Bo2ObjectTube("My Custom Objects", Collections.emptyList()), "Custom bo2, bo3 and/or schematic objects", Color.ORANGE.getRGB());
+        return new Bo2Layer(new Bo2ObjectTube("My Custom Objects", Collections.emptyList()), "Custom (e.g. bo2, bo3 and/or schematic) objects", Color.ORANGE.getRGB());
     }
 
     @Override
@@ -96,19 +94,14 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
             } else {
                 // Old layer; files stored separately
                 int missingFiles = 0;
+                CustomObjectManager customObjectManager = CustomObjectManager.getInstance();
                 if ((files.size() == 1) && files.get(0).isDirectory()) {
                     logger.info("Existing custom object layer contains old style directory; migrating to new style");
-                    File[] filesInDir = files.get(0).listFiles((dir, name) -> name.toLowerCase().endsWith(".bo2") || name.toLowerCase().endsWith(".schematic"));
+                    File[] filesInDir = files.get(0).listFiles((FilenameFilter) CustomObjectManager.getInstance().getFileFilter());
                     //noinspection ConstantConditions // Cannot happen as we already checked that files.get(0) is an extant directory
                     for (File file: filesInDir) {
                         try {
-                            WPObject object;
-                            if (file.getName().toLowerCase().endsWith(".bo2")) {
-                                object = Bo2Object.load(file);
-                            } else {
-                                object = Schematic.load(file);
-                            }
-                            objects.add(object);
+                            objects.add(customObjectManager.loadObject(file));
                         } catch (IOException e) {
                             logger.error("I/O error while trying to load custom object " + file, e);
                             missingFiles++;
@@ -119,13 +112,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                     for (File file: files) {
                         if (file.exists()) {
                             try {
-                                WPObject object;
-                                if (file.getName().toLowerCase().endsWith(".bo2")) {
-                                    object = Bo2Object.load(file);
-                                } else {
-                                    object = Schematic.load(file);
-                                }
-                                objects.add(object);
+                                objects.add(customObjectManager.loadObject(file));
                             } catch (IOException e) {
                                 logger.error("I/O error while trying to load custom object " + file, e);
                                 missingFiles++;
@@ -226,7 +213,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
         }
         Bo2ObjectProvider objectProvider = new Bo2ObjectTube(name, objects);
         if (layer == null) {
-            layer = new Bo2Layer(objectProvider, "Custom bo2, bo3 and/or schematic objects", selectedColour);
+            layer = new Bo2Layer(objectProvider, "Custom (e.g. bo2, bo3 and/or schematic) objects", selectedColour);
         } else {
             layer.setObjectProvider(objectProvider);
             layer.setColour(selectedColour);
@@ -271,22 +258,11 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
         fileChooser.setDialogTitle("Select File(s) or Directory");
         fileChooser.setMultiSelectionEnabled(true);
         fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-        fileChooser.setFileFilter(new FileFilter() {
-            @Override
-            public boolean accept(File f) {
-                return f.isDirectory()
-                        || f.getName().toLowerCase().endsWith(".bo2")
-                        || f.getName().toLowerCase().endsWith(".bo3")
-                        || f.getName().toLowerCase().endsWith(".schematic")
-                        || f.getName().toLowerCase().endsWith(".nbt");
-            }
-
-            @Override
-            public String getDescription() {
-                return "Custom Object Files (*.bo2, *.bo3, *.schematic, *.nbt)";
-            }
-        });
+        CustomObjectManager customObjectManager = CustomObjectManager.getInstance();
+        CustomObjectManager.UniversalFileFilter fileFilter = customObjectManager.getFileFilter();
+        fileChooser.setFileFilter(fileFilter);
         WPObjectPreviewer previewer = new WPObjectPreviewer();
+        previewer.setDimension(App.getInstance().getDimension());
         fileChooser.addPropertyChangeListener(JFileChooser.SELECTED_FILE_CHANGED_PROPERTY, previewer);
         fileChooser.setAccessory(previewer);
         if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
@@ -302,33 +278,14 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                             }
                             fieldName.setText(name);
                         }
-                        File[] files = selectedFile.listFiles((dir, name) -> name.toLowerCase().endsWith(".bo2") || name.toLowerCase().endsWith(".bo3") || name.toLowerCase().endsWith(".schematic") || name.toLowerCase().endsWith(".nbt"));
+                        File[] files = selectedFile.listFiles((FilenameFilter) fileFilter);
                         //noinspection ConstantConditions // Cannot happen as we already checked selectedFile is an extant directory
                         if (files.length == 0) {
-                            JOptionPane.showMessageDialog(this, "Directory " + selectedFile.getName() + " does not contain any .bo2, .bo3, .schematic or .nbt files.", "No Custom Object Files", JOptionPane.ERROR_MESSAGE);
+                            JOptionPane.showMessageDialog(this, "Directory " + selectedFile.getName() + " does not contain any supported custom object files.", "No Custom Object Files", JOptionPane.ERROR_MESSAGE);
                         } else {
-                            MCInterface mcInterface = null;
                             for (File file: files) {
                                 try {
-                                    WPObject object;
-                                    if (file.getName().toLowerCase().endsWith(".bo2")) {
-                                        object = Bo2Object.load(file);
-                                    } else if (file.getName().toLowerCase().endsWith(".bo3")) {
-                                        object = Bo3Object.load(file);
-                                    } else if (file.getName().toLowerCase().endsWith(".nbt")) {
-                                        if (mcInterface == null) {
-                                            BiomeScheme biomeScheme = BiomeSchemeManager.getSharedBiomeScheme(BIOME_ALGORITHM_1_7_DEFAULT);
-                                            if (biomeScheme instanceof MCInterface) {
-                                                mcInterface = (MCInterface) biomeScheme;
-                                            } else {
-                                                throw new RuntimeException("WorldPainter requires access to Minecraft 1.10.2 or newer for loading *.nbt files");
-                                            }
-                                        }
-                                        object = Structure.load(file, mcInterface);
-                                    } else {
-                                        object = Schematic.load(file);
-                                    }
-                                    listModel.addElement(object);
+                                    listModel.addElement(customObjectManager.loadObject(file));
                                 } catch (IOException e) {
                                     logger.error("I/O error while trying to load custom object " + file, e);
                                     JOptionPane.showMessageDialog(this, "I/O error while loading " + file.getName() + "; it was not added", "I/O Error", JOptionPane.ERROR_MESSAGE);
@@ -348,22 +305,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                             fieldName.setText(name);
                         }
                         try {
-                            WPObject object;
-                            if (selectedFile.getName().toLowerCase().endsWith(".bo2")) {
-                                object = Bo2Object.load(selectedFile);
-                            } else if (selectedFile.getName().toLowerCase().endsWith(".bo3")) {
-                                object = Bo3Object.load(selectedFile);
-                            } else if (selectedFile.getName().toLowerCase().endsWith(".nbt")) {
-                                BiomeScheme biomeScheme = BiomeSchemeManager.getSharedBiomeScheme(BIOME_ALGORITHM_1_7_DEFAULT);
-                                if (biomeScheme instanceof MCInterface) {
-                                    object = Structure.load(selectedFile, (MCInterface) biomeScheme);
-                                } else {
-                                    throw new RuntimeException("WorldPainter requires access to Minecraft 1.10.2 or newer for loading *.nbt files");
-                                }
-                            } else {
-                                object = Schematic.load(selectedFile);
-                            }
-                            listModel.addElement(object);
+                            listModel.addElement(customObjectManager.loadObject(selectedFile));
                         } catch (IOException e) {
                             logger.error("I/O error while trying to load custom object " + selectedFile, e);
                             JOptionPane.showMessageDialog(this, "I/O error while loading " + selectedFile.getName() + "; it was not added", "I/O Error", JOptionPane.ERROR_MESSAGE);
@@ -398,20 +340,15 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                 indices[i] = i;
             }
         }
-        for (int indice : indices) {
-            WPObject object = (WPObject) listModel.getElementAt(indice);
+        CustomObjectManager customObjectManager = CustomObjectManager.getInstance();
+        for (int index: indices) {
+            WPObject object = (WPObject) listModel.getElementAt(index);
             File file = object.getAttribute(ATTRIBUTE_FILE);
             if (file != null) {
                 if (file.isFile() && file.canRead()) {
                     try {
                         Map<String, Serializable> existingAttributes = object.getAttributes();
-                        if (file.getName().toLowerCase().endsWith(".bo2")) {
-                            object = Bo2Object.load(file);
-                        } else if (file.getName().toLowerCase().endsWith(".bo3")) {
-                            object = Bo3Object.load(file);
-                        } else {
-                            object = Schematic.load(file);
-                        }
+                        object = customObjectManager.loadObject(file);
                         if (existingAttributes != null) {
                             Map<String, Serializable> attributes = object.getAttributes();
                             if (attributes == null) {
@@ -420,7 +357,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                             attributes.putAll(existingAttributes);
                             object.setAttributes(attributes);
                         }
-                        listModel.setElementAt(object, indice);
+                        listModel.setElementAt(object, index);
                     } catch (IOException e) {
                         logger.error("I/O error while reloading " + file, e);
                         errors.append(file.getPath()).append('\n');
@@ -482,6 +419,7 @@ outer:  for (Enumeration<WPObject> e = (Enumeration<WPObject>) listModel.element
                 case LEAF_DECAY_NO_CHANGE:
                     // Leaf decay attribute not set (or set to "no change");
                     // examine actual blocks
+                    object.prepareForExport(context.getDimension());
                     Point3i dim = object.getDimensions();
                     for (int x = 0; x < dim.x; x++) {
                         for (int y = 0; y < dim.y; y++) {

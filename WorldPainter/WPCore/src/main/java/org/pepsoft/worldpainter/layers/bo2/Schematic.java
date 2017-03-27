@@ -11,6 +11,7 @@ import org.pepsoft.minecraft.Entity;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.minecraft.TileEntity;
 import org.pepsoft.util.AttributeKey;
+import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.objects.WPObject;
 
 import javax.vecmath.Point3i;
@@ -151,7 +152,12 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
     public List<TileEntity> getTileEntities() {
         return tileEntities;
     }
-    
+
+    @Override
+    public void prepareForExport(Dimension dimension) {
+        // Do nothing
+    }
+
     @Override
     public String getName() {
         return name;
