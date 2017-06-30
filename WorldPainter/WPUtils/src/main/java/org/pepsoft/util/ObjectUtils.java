@@ -73,13 +73,9 @@ public final class ObjectUtils {
                 } else {
                     copy = new HashMap<>(((Map) object).size());
                 }
-                boolean first = true, deeplyCopyKeys = false;
                 for (Map.Entry entry: ((Map<?, ?>) object).entrySet()) {
-                    if (first) {
-                        deeplyCopyKeys = entry.getKey() instanceof DeeplyCopyable;
-                        first = false;
-                    }
-                    copy.put(deeplyCopyKeys ? copyObject(entry.getKey()) : entry.getKey(), copyObject(entry.getValue()));
+                    // TODO: map keys are never copied, should we document that?
+                    copy.put(entry.getKey(), copyObject(entry.getValue()));
                 }
                 return (T) copy;
             } else if (object instanceof List) {
@@ -104,8 +100,6 @@ public final class ObjectUtils {
                     copy.add(copyObject(entry));
                 }
                 return (T) copy;
-            } else if (object instanceof DeeplyCopyable) {
-                return ((DeeplyCopyable<T>) object).deepCopy();
             } else if (object instanceof Cloneable) {
                 return ((Cloneable<T>) object).clone();
             } else {
