@@ -31,7 +31,8 @@ public class AwtUtils {
     /**
      * Execute a task on the event dispatch thread and return the result. The
      * task <em>may</em> be executed on a different thread, so it must be
-     * thread-safe.
+     * thread-safe. Since it will block the event thread it should be short and
+     * to the point.
      *
      * @param task The task to execute.
      * @param <T> The type of the result to return.
@@ -83,9 +84,10 @@ public class AwtUtils {
 
     /**
      * Execute a task on the even dispatch thread. The task <em>may</em> be
-     * executed on a different thread, so it must be thread-safe. If the current
-     * thread is not the event dispatch thread this method does <em>not</em>
-     * wait for the task to finish.
+     * executed on a different thread, so it must be thread-safe. Since it will
+     * block the event thread it should be short and to the point. If the
+     * current thread is not the event dispatch thread this method does
+     * <em>not</em> wait for the task to finish.
      *
      * @param task The task to execute.
      */
@@ -100,7 +102,8 @@ public class AwtUtils {
     /**
      * Execute a task on the even dispatch thread and wait for it to finish. The
      * task <em>may</em> be executed on a different thread, so it must be
-     * thread-safe.
+     * thread-safe. Since it will block the event thread it should be short and
+     * to the point.
      *
      * @param task The task to execute.
      */
@@ -122,7 +125,8 @@ public class AwtUtils {
     /**
      * Schedule a task for later execution on the even dispatch thread and
      * return immediately. The task <em>may</em> be executed on a different
-     * thread, so it must be thread-safe.
+     * thread, so it must be thread-safe. Since it will block the event thread
+     * it should be short and to the point.
      *
      * @param task The task to execute.
      */
