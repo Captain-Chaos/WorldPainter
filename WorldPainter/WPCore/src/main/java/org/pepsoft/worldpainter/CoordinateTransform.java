@@ -14,13 +14,25 @@ import org.pepsoft.minecraft.Direction;
  * @author pepijn
  */
 public abstract class CoordinateTransform {
-    public abstract Point transform(int x, int y);
+    public Point transform(int x, int y) {
+        Point rc = new Point(x, y);
+        transformInPlace(rc);
+        return rc;
+    }
 
-    public abstract Point3i transform(int x, int y, int z);
+    public Point3i transform(int x, int y, int z) {
+        Point3i rc = new Point3i(x, y, z);
+        transformInPlace(rc);
+        return rc;
+    }
     
-    public abstract Point transform(Point coords);
+    public final Point transform(Point coords) {
+        return transform(coords.x, coords.y);
+    }
     
-    public abstract Point3i transform(Point3i coords);
+    public final Point3i transform(Point3i coords) {
+        return transform(coords.x, coords.y, coords.z);
+    }
     
     public abstract void transformInPlace(Point coords);
     
@@ -49,16 +61,6 @@ public abstract class CoordinateTransform {
         @Override
         public Point3i transform(int x, int y, int z) {
             return new Point3i(-y - 1, x, z);
-        }
-        
-        @Override
-        public Point transform(Point coords) {
-            return new Point(-coords.y - 1, coords.x);
-        }
-        
-        @Override
-        public Point3i transform(Point3i coords) {
-            return new Point3i(-coords.y - 1, coords.x, coords.z);
         }
         
         @Override
@@ -93,9 +95,6 @@ public abstract class CoordinateTransform {
             }
             return angle;
         }
-        
-        private static final float HALF_PI = (float) (Math.PI / 2);
-        private static final float TWO_PI  = (float) (Math.PI * 2);
     };
 
     public static final CoordinateTransform ROTATE_180_DEGREES = new CoordinateTransform() {
@@ -107,16 +106,6 @@ public abstract class CoordinateTransform {
         @Override
         public Point3i transform(int x, int y, int z) {
             return new Point3i(-x - 1, -y - 1, z);
-        }
-
-        @Override
-        public Point transform(Point coords) {
-            return new Point(-coords.x - 1, -coords.y - 1);
-        }
-
-        @Override
-        public Point3i transform(Point3i coords) {
-            return new Point3i(-coords.x - 1, -coords.y - 1, coords.z);
         }
 
         @Override
@@ -149,9 +138,6 @@ public abstract class CoordinateTransform {
             }
             return angle;
         }
-        
-        private static final float PI      = (float) Math.PI;
-        private static final float TWO_PI  = (float) (Math.PI * 2);
     };
 
     public static final CoordinateTransform ROTATE_CLOCKWISE_270_DEGREES = new CoordinateTransform() {
@@ -165,16 +151,6 @@ public abstract class CoordinateTransform {
             return new Point3i(y, -x - 1, z);
         }
 
-        @Override
-        public Point transform(Point coords) {
-            return new Point(coords.y, -coords.x - 1);
-        }
-
-        @Override
-        public Point3i transform(Point3i coords) {
-            return new Point3i(coords.y, -coords.x - 1, coords.z);
-        }
-        
         @Override
         public void transformInPlace(Point coords) {
             int tmp = -coords.x - 1;
@@ -208,7 +184,9 @@ public abstract class CoordinateTransform {
             return angle;
         }
         
-        private static final float HALF_PI = (float) (Math.PI / 2);
-        private static final float TWO_PI  = (float) (Math.PI * 2);
     };
+
+    private static final float HALF_PI = (float) (Math.PI / 2);
+    private static final float PI      = (float)  Math.PI;
+    private static final float TWO_PI  = (float) (Math.PI * 2);
 }

@@ -23,8 +23,13 @@ import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 
 /**
- * Created by Pepijn Schmitz on 02-07-15.
+ * A utility class for saving and loading WorldPainter {@link World2 worlds} in
+ * the WorldPainter binary file format, with support for metadata and for
+ * loading and migrating legacy formats.
+ *
+ * <p>Created by Pepijn Schmitz on 02-07-15.
  */
+@SuppressWarnings("deprecation") // Support for deprecated classes is a stated goal of this class
 public class WorldIO {
     public WorldIO() {
         // Do nothing
@@ -106,24 +111,14 @@ public class WorldIO {
                     throw new UnloadableWorldException("Object of unexpected type " + object.getClass() + " encountered", metadata);
                 }
             }
-        } catch (ZipException e) {
-            throw new UnloadableWorldException("ZipException while loading world", e, metadata);
-        } catch (StreamCorruptedException e) {
-            throw new UnloadableWorldException("StreamCorruptedException while loading world", e, metadata);
-        } catch (EOFException e) {
-            throw new UnloadableWorldException("EOFException while loading world", e, metadata);
-        } catch (InvalidClassException e) {
-            throw new UnloadableWorldException("InvalidClassException while loading world", e, metadata);
+        } catch (ZipException | StreamCorruptedException | IllegalArgumentException | ClassNotFoundException | InvalidClassException | EOFException e) {
+            throw new UnloadableWorldException(e.getClass().getSimpleName() + " while loading world", e, metadata);
         } catch (IOException e) {
             if (e.getMessage().equals("Not in GZIP format")) {
                 throw new UnloadableWorldException("Not in GZIP format", e, metadata);
             } else {
                 throw e;
             }
-        } catch (ClassNotFoundException e) {
-            throw new UnloadableWorldException("ClassNotFoundException while loading world", e, metadata);
-        } catch (IllegalArgumentException e) {
-            throw new UnloadableWorldException("IllegalArgumentException while loading world", e, metadata);
         }
         if (metadata != null) {
             world.setMetadata(metadata);
@@ -218,6 +213,4 @@ public class WorldIO {
     }
 
     private World2 world;
-
-    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WorldIO.class);
 }

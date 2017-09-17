@@ -517,9 +517,9 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     }
 
     /**
-     * Get the set of warning generated during loading, if any.
+     * Get the set of warnings generated during loading, if any.
      * 
-     * @return The set of warning generated during loading, if any. May be
+     * @return The set of warnings generated during loading, if any. May be
      *     <code>null</code>.
      */
     Set<Warning> getWarnings() {
@@ -529,9 +529,9 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         propertyChangeSupport = new PropertyChangeSupport(this);
-        
+
+        // Legacy maps
         if (wpVersion < 1) {
-            // Legacy maps
             if (maxheight == 0) {
                 maxheight = 128;
             }
