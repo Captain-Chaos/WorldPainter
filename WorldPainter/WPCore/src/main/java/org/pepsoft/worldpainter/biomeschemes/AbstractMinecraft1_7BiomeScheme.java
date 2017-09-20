@@ -155,9 +155,8 @@ public abstract class AbstractMinecraft1_7BiomeScheme extends AbstractBiomeSchem
             String minecraftJarName = minecraftJar.getName();
             String jsonFileName = minecraftJarName.substring(0, minecraftJarName.length() - 4) + ".json";
             File jsonFile = new File(minecraftJarDir, jsonFileName);
-            JSONParser jsonParser = new JSONParser();
             try (FileReader in = new FileReader(jsonFile)) {
-                Map<?, ?> rootNode = (Map<?, ?>) jsonParser.parse(in);
+                Map<?, ?> rootNode = (Map<?, ?>) new JSONParser().parse(in);
                 List<Map<?, ?>> librariesNode = (List<Map<?, ?>>) rootNode.get("libraries");
                 for (Map<?, ?> libraryNode : librariesNode) {
                     if (libraryNode.containsKey("rules")) {
