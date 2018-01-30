@@ -5,8 +5,6 @@
  */
 package org.pepsoft.worldpainter.brushes;
 
-import sun.awt.image.ByteComponentRaster;
-
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
@@ -122,7 +120,7 @@ public final class RotatedBrush extends AbstractBrush {
             }
         }
         final DataBuffer imageDataBuffer = new DataBufferByte(rasterData, d * d);
-        final Raster raster = new ByteComponentRaster(new SinglePixelPackedSampleModel(DataBuffer.TYPE_BYTE, d, d, new int[] {255}), imageDataBuffer, new Point(0, 0));
+        final Raster raster = Raster.createRaster(new SinglePixelPackedSampleModel(DataBuffer.TYPE_BYTE, d, d, new int[] {255}), imageDataBuffer, new Point(0, 0));
         
         // Rotate image
         final double a = degrees / 180d * Math.PI;

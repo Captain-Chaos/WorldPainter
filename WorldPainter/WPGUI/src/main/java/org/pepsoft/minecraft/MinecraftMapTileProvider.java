@@ -7,15 +7,16 @@ import org.pepsoft.util.swing.TileListener;
 import org.pepsoft.util.swing.TileProvider;
 import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.colourschemes.DynMapColourScheme;
-import sun.awt.image.IntegerInterleavedRaster;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -87,7 +88,6 @@ public class MinecraftMapTileProvider implements TileProvider {
     @Override
     public boolean paintTile(Image tileImage, int x, int y, int dx, int dy) {
         final BufferedImage image = renderBufferRef.get();
-        Arrays.fill(((IntegerInterleavedRaster) image.getRaster()).getDataStorage(), 0);
         int scale = MathUtils.pow(2, -zoom);
         final int chunkX1 = x * 8 * scale, chunkY1 = y * 8 * scale;
         final int chunkX2 = chunkX1 + 8 * scale - 1, chunkY2 = chunkY1 + 8 * scale - 1;
@@ -121,6 +121,12 @@ public class MinecraftMapTileProvider implements TileProvider {
                         for (int blockX = 0; blockX < 16; blockX += scale) {
                             for (int blockY = 0; blockY < 16; blockY += scale) {
                                 image.setRGB((((chunkX - chunkX1) << 4) | blockX) / scale, (((chunkY - chunkY1) << 4) | blockY) / scale, 0xff000000 | getColour(chunk, blockX, blockY));
+                            }
+                        }
+                    } else {
+                        for (int blockX = 0; blockX < 16; blockX += scale) {
+                            for (int blockY = 0; blockY < 16; blockY += scale) {
+                                image.setRGB((((chunkX - chunkX1) << 4) | blockX) / scale, (((chunkY - chunkY1) << 4) | blockY) / scale, 0);
                             }
                         }
                     }
@@ -215,10 +221,5 @@ public class MinecraftMapTileProvider implements TileProvider {
 
     private static final int DEFAULT_VOID_COLOUR = 0x00FFFF;
     private static final RegionFile NULL = new RegionFile();
-    private static final ThreadLocal<BufferedImage> renderBufferRef = new ThreadLocal<BufferedImage>() {
-        @Override
-        protected BufferedImage initialValue() {
-            return new BufferedImage(TILE_SIZE, TILE_SIZE, BufferedImage.TYPE_INT_ARGB);
-        }
-    };
+    private static final ThreadLocal<BufferedImage> renderBufferRef = ThreadLocal.withInitial(() -> new BufferedImage(TILE_SIZE, TILE_SIZE, BufferedImage.TYPE_INT_ARGB));
 }
