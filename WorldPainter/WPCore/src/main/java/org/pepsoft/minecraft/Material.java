@@ -222,6 +222,22 @@ public final class Material implements Serializable, Comparable<Material> {
             case BLK_DARK_OAK_WOOD_FENCE_GATE:
             case BLK_ACACIA_WOOD_FENCE_GATE:
             case BLK_TRIPWIRE_HOOK:
+            case BLK_WHITE_GLAZED_TERRACOTTA:
+            case BLK_ORANGE_GLAZED_TERRACOTTA:
+            case BLK_MAGENTA_GLAZED_TERRACOTTA:
+            case BLK_LIGHT_BLUE_GLAZED_TERRACOTTA:
+            case BLK_YELLOW_GLAZED_TERRACOTTA:
+            case BLK_LIME_GLAZED_TERRACOTTA:
+            case BLK_PINK_GLAZED_TERRACOTTA:
+            case BLK_GREY_GLAZED_TERRACOTTA:
+            case BLK_LIGHT_GREY_GLAZED_TERRACOTTA:
+            case BLK_CYAN_GLAZED_TERRACOTTA:
+            case BLK_PURPLE_GLAZED_TERRACOTTA:
+            case BLK_BLUE_GLAZED_TERRACOTTA:
+            case BLK_BROWN_GLAZED_TERRACOTTA:
+            case BLK_GREEN_GLAZED_TERRACOTTA:
+            case BLK_RED_GLAZED_TERRACOTTA:
+            case BLK_BLACK_GLAZED_TERRACOTTA:
                 switch (data & 0x03) {
                     case 0:
                         return Direction.SOUTH;
@@ -507,6 +523,22 @@ public final class Material implements Serializable, Comparable<Material> {
             case BLK_DARK_OAK_WOOD_FENCE_GATE:
             case BLK_ACACIA_WOOD_FENCE_GATE:
             case BLK_TRIPWIRE_HOOK:
+            case BLK_WHITE_GLAZED_TERRACOTTA:
+            case BLK_ORANGE_GLAZED_TERRACOTTA:
+            case BLK_MAGENTA_GLAZED_TERRACOTTA:
+            case BLK_LIGHT_BLUE_GLAZED_TERRACOTTA:
+            case BLK_YELLOW_GLAZED_TERRACOTTA:
+            case BLK_LIME_GLAZED_TERRACOTTA:
+            case BLK_PINK_GLAZED_TERRACOTTA:
+            case BLK_GREY_GLAZED_TERRACOTTA:
+            case BLK_LIGHT_GREY_GLAZED_TERRACOTTA:
+            case BLK_CYAN_GLAZED_TERRACOTTA:
+            case BLK_PURPLE_GLAZED_TERRACOTTA:
+            case BLK_BLUE_GLAZED_TERRACOTTA:
+            case BLK_BROWN_GLAZED_TERRACOTTA:
+            case BLK_GREEN_GLAZED_TERRACOTTA:
+            case BLK_RED_GLAZED_TERRACOTTA:
+            case BLK_BLACK_GLAZED_TERRACOTTA:
                 switch (direction) {
                     case SOUTH:
                         return MATERIALS[((blockType) << 4) | (data & 0x0C)];

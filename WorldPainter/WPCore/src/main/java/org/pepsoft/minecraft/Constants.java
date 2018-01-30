@@ -324,23 +324,41 @@ public final class Constants {
 
     public static final int BLK_BONE_BLOCK = 216;
 
-    public static final int BLK_OBSERVER               = 218;
-    public static final int BLK_WHITE_SHULKER_BOX      = 219;
-    public static final int BLK_ORANGE_SHULKER_BOX     = 220;
-    public static final int BLK_MAGENTA_SHULKER_BOX    = 221;
-    public static final int BLK_LIGHT_BLUE_SHULKER_BOX = 222;
-    public static final int BLK_YELLOW_SHULKER_BOX     = 223;
-    public static final int BLK_LIME_SHULKER_BOX       = 224;
-    public static final int BLK_PINK_SHULKER_BOX       = 225;
-    public static final int BLK_GREY_SHULKER_BOX       = 226;
-    public static final int BLK_LIGHT_GREY_SHULKER_BOX = 227;
-    public static final int BLK_CYAN_SHULKER_BOX       = 228;
-    public static final int BLK_PURPLE_SHULKER_BOX     = 229;
-    public static final int BLK_BLUE_SHULKER_BOX       = 230;
-    public static final int BLK_BROWN_SHULKER_BOX      = 231;
-    public static final int BLK_GREEN_SHULKER_BOX      = 232;
-    public static final int BLK_RED_SHULKER_BOX        = 233;
-    public static final int BLK_BLACK_SHULKER_BOX      = 234;
+    public static final int BLK_OBSERVER                     = 218;
+    public static final int BLK_WHITE_SHULKER_BOX            = 219;
+    public static final int BLK_ORANGE_SHULKER_BOX           = 220;
+    public static final int BLK_MAGENTA_SHULKER_BOX          = 221;
+    public static final int BLK_LIGHT_BLUE_SHULKER_BOX       = 222;
+    public static final int BLK_YELLOW_SHULKER_BOX           = 223;
+    public static final int BLK_LIME_SHULKER_BOX             = 224;
+    public static final int BLK_PINK_SHULKER_BOX             = 225;
+    public static final int BLK_GREY_SHULKER_BOX             = 226;
+    public static final int BLK_LIGHT_GREY_SHULKER_BOX       = 227;
+    public static final int BLK_CYAN_SHULKER_BOX             = 228;
+    public static final int BLK_PURPLE_SHULKER_BOX           = 229;
+    public static final int BLK_BLUE_SHULKER_BOX             = 230;
+    public static final int BLK_BROWN_SHULKER_BOX            = 231;
+    public static final int BLK_GREEN_SHULKER_BOX            = 232;
+    public static final int BLK_RED_SHULKER_BOX              = 233;
+    public static final int BLK_BLACK_SHULKER_BOX            = 234;
+    public static final int BLK_WHITE_GLAZED_TERRACOTTA      = 235;
+    public static final int BLK_ORANGE_GLAZED_TERRACOTTA     = 236;
+    public static final int BLK_MAGENTA_GLAZED_TERRACOTTA    = 237;
+    public static final int BLK_LIGHT_BLUE_GLAZED_TERRACOTTA = 238;
+    public static final int BLK_YELLOW_GLAZED_TERRACOTTA     = 239;
+    public static final int BLK_LIME_GLAZED_TERRACOTTA       = 240;
+    public static final int BLK_PINK_GLAZED_TERRACOTTA       = 241;
+    public static final int BLK_GREY_GLAZED_TERRACOTTA       = 242;
+    public static final int BLK_LIGHT_GREY_GLAZED_TERRACOTTA = 243;
+    public static final int BLK_CYAN_GLAZED_TERRACOTTA       = 244;
+    public static final int BLK_PURPLE_GLAZED_TERRACOTTA     = 245;
+    public static final int BLK_BLUE_GLAZED_TERRACOTTA       = 246;
+    public static final int BLK_BROWN_GLAZED_TERRACOTTA      = 247;
+    public static final int BLK_GREEN_GLAZED_TERRACOTTA      = 248;
+    public static final int BLK_RED_GLAZED_TERRACOTTA        = 249;
+    public static final int BLK_BLACK_GLAZED_TERRACOTTA      = 250;
+
+    public static final int BLK_CEMENT = 252;
 
     public static final int BLK_STRUCTURE_BLOCK = 255;
 

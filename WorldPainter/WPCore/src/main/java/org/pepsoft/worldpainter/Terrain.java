@@ -983,24 +983,24 @@ public enum Terrain {
     PERMADIRT("Permadirt", Material.PERMADIRT, Material.PERMADIRT, "dirt on which no grass will grow", BIOME_PLAINS),
     PODZOL("Podzol", Material.PODZOL, Material.DIRT, "podzol", BIOME_PLAINS),
     RED_SAND("Red Sand", Material.RED_SAND, Material.RED_SAND, "red sand", BIOME_MESA),
-    HARDENED_CLAY("Hardened Clay", Material.HARDENED_CLAY, Material.HARDENED_CLAY, "hardened clay", BIOME_MESA),
-    WHITE_STAINED_CLAY("White Clay", Material.WHITE_CLAY, Material.WHITE_CLAY, "white stained clay", BIOME_MESA),
-    ORANGE_STAINED_CLAY("Orange Clay", Material.ORANGE_CLAY, Material.ORANGE_CLAY, "orange stained clay", BIOME_MESA),
-    MAGENTA_STAINED_CLAY("Magenta Clay", Material.MAGENTA_CLAY, Material.MAGENTA_CLAY, "magenta stained clay", BIOME_PLAINS),
-    LIGHT_BLUE_STAINED_CLAY("Light Blue Clay", Material.LIGHT_BLUE_CLAY, Material.LIGHT_BLUE_CLAY, "light blue stained clay", BIOME_PLAINS),
-    YELLOW_STAINED_CLAY("Yellow Clay", Material.YELLOW_CLAY, Material.YELLOW_CLAY, "yellow stained clay", BIOME_MESA),
-    LIME_STAINED_CLAY("Lime Clay", Material.LIME_CLAY, Material.LIME_CLAY, "lime stained clay", BIOME_PLAINS),
-    PINK_STAINED_CLAY("Pink Clay", Material.PINK_CLAY, Material.PINK_CLAY, "pink stained clay", BIOME_PLAINS),
-    GREY_STAINED_CLAY("Grey Clay", Material.GREY_CLAY, Material.GREY_CLAY, "grey stained clay", BIOME_PLAINS),
-    LIGHT_GREY_STAINED_CLAY("Light Grey Clay", Material.LIGHT_GREY_CLAY, Material.LIGHT_GREY_CLAY, "light grey stained clay", BIOME_MESA),
-    CYAN_STAINED_CLAY("Cyan Clay", Material.CYAN_CLAY, Material.CYAN_CLAY, "cyan stained clay", BIOME_PLAINS),
-    PURPLE_STAINED_CLAY("Purple Clay", Material.PURPLE_CLAY, Material.PURPLE_CLAY, "purple stained clay", BIOME_PLAINS),
-    BLUE_STAINED_CLAY("Blue Clay", Material.BLUE_CLAY, Material.BLUE_CLAY, "blue stained clay", BIOME_PLAINS),
-    BROWN_STAINED_CLAY("Brown Clay", Material.BROWN_CLAY, Material.BROWN_CLAY, "brown stained clay", BIOME_MESA),
-    GREEN_STAINED_CLAY("Green Clay", Material.GREEN_CLAY, Material.GREEN_CLAY, "green stained clay", BIOME_PLAINS),
-    RED_STAINED_CLAY("Red Clay", Material.RED_CLAY, Material.RED_CLAY, "red stained clay", BIOME_MESA),
-    BLACK_STAINED_CLAY("Black Clay", Material.BLACK_CLAY, Material.BLACK_CLAY, "black stained clay", BIOME_PLAINS),
-    MESA("Mesa", "Layers of red sand, hardened clay and stained clay, with here and there a cactus or a dead shrub", BIOME_MESA) {
+    HARDENED_CLAY("Terracotta", Material.HARDENED_CLAY, Material.HARDENED_CLAY, "terracotta", BIOME_MESA),
+    WHITE_STAINED_CLAY("White Stained Terracotta", Material.WHITE_CLAY, Material.WHITE_CLAY, "white stained terracotta", BIOME_MESA),
+    ORANGE_STAINED_CLAY("Orange Stained Terracotta", Material.ORANGE_CLAY, Material.ORANGE_CLAY, "orange stained terracotta", BIOME_MESA),
+    MAGENTA_STAINED_CLAY("Magenta Stained Terracotta", Material.MAGENTA_CLAY, Material.MAGENTA_CLAY, "magenta stained terracotta", BIOME_PLAINS),
+    LIGHT_BLUE_STAINED_CLAY("Light Blue Stained Terracotta", Material.LIGHT_BLUE_CLAY, Material.LIGHT_BLUE_CLAY, "light blue stained terracotta", BIOME_PLAINS),
+    YELLOW_STAINED_CLAY("Yellow Stained Terracotta", Material.YELLOW_CLAY, Material.YELLOW_CLAY, "yellow stained terracotta", BIOME_MESA),
+    LIME_STAINED_CLAY("Lime Stained Terracotta", Material.LIME_CLAY, Material.LIME_CLAY, "lime stained terracotta", BIOME_PLAINS),
+    PINK_STAINED_CLAY("Pink Stained Terracotta", Material.PINK_CLAY, Material.PINK_CLAY, "pink stained terracotta", BIOME_PLAINS),
+    GREY_STAINED_CLAY("Grey Stained Terracotta", Material.GREY_CLAY, Material.GREY_CLAY, "grey stained terracotta", BIOME_PLAINS),
+    LIGHT_GREY_STAINED_CLAY("Light Grey Stained Terracotta", Material.LIGHT_GREY_CLAY, Material.LIGHT_GREY_CLAY, "light grey stained terracotta", BIOME_MESA),
+    CYAN_STAINED_CLAY("Cyan Stained Terracotta", Material.CYAN_CLAY, Material.CYAN_CLAY, "cyan stained terracotta", BIOME_PLAINS),
+    PURPLE_STAINED_CLAY("Purple Stained Terracotta", Material.PURPLE_CLAY, Material.PURPLE_CLAY, "purple stained terracotta", BIOME_PLAINS),
+    BLUE_STAINED_CLAY("Blue Stained Terracotta", Material.BLUE_CLAY, Material.BLUE_CLAY, "blue stained terracotta", BIOME_PLAINS),
+    BROWN_STAINED_CLAY("Brown Stained Terracotta", Material.BROWN_CLAY, Material.BROWN_CLAY, "brown stained terracotta", BIOME_MESA),
+    GREEN_STAINED_CLAY("Green Stained Terracotta", Material.GREEN_CLAY, Material.GREEN_CLAY, "green stained terracotta", BIOME_PLAINS),
+    RED_STAINED_CLAY("Red Stained Terracotta", Material.RED_CLAY, Material.RED_CLAY, "red stained terracotta", BIOME_MESA),
+    BLACK_STAINED_CLAY("Black Stained Terracotta", Material.BLACK_CLAY, Material.BLACK_CLAY, "black stained terracotta", BIOME_PLAINS),
+    MESA("Mesa", "layers of red sand, hardened clay and stained clay, with here and there a cactus or a dead shrub", BIOME_MESA) {
         @Override
         public Material getMaterial(final long seed, final int x, final int y, final int z, final int height) {
             return getMaterial(seed, x, y, (float) z, height);
@@ -2772,7 +2772,8 @@ public enum Terrain {
         @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(95);
-    };
+    },
+    CEMENT("Concrete Powder", BLK_CEMENT, BLK_CEMENT, "concrete powder", BIOME_PLAINS);
 
     Terrain(String name, String description, int defaultBiome) {
         this(name, Material.STONE, Material.STONE, AIR, description, defaultBiome);
@@ -3130,7 +3131,9 @@ public enum Terrain {
         Terrain.CUSTOM_93,
         Terrain.CUSTOM_94,
         Terrain.CUSTOM_95,
-        Terrain.CUSTOM_96
+        Terrain.CUSTOM_96,
+
+        Terrain.CEMENT
     };
 
     /**
@@ -3166,12 +3169,13 @@ public enum Terrain {
         Terrain.OBSIDIAN,
         Terrain.BEDROCK,
         Terrain.GRAVEL,
+        Terrain.CEMENT,
         Terrain.CLAY,
         Terrain.BEACHES,
         Terrain.WATER,
         Terrain.LAVA,
-        Terrain.MAGMA,
 
+        Terrain.MAGMA,
         Terrain.DEEP_SNOW,
         Terrain.NETHERRACK,
         Terrain.SOUL_SAND,
@@ -3181,8 +3185,8 @@ public enum Terrain {
         Terrain.WHITE_STAINED_CLAY,
         Terrain.ORANGE_STAINED_CLAY,
         Terrain.MAGENTA_STAINED_CLAY,
-        Terrain.LIGHT_BLUE_STAINED_CLAY,
 
+        Terrain.LIGHT_BLUE_STAINED_CLAY,
         Terrain.YELLOW_STAINED_CLAY,
         Terrain.LIME_STAINED_CLAY,
         Terrain.PINK_STAINED_CLAY,
@@ -3192,8 +3196,8 @@ public enum Terrain {
         Terrain.PURPLE_STAINED_CLAY,
         Terrain.BLUE_STAINED_CLAY,
         Terrain.BROWN_STAINED_CLAY,
-        Terrain.GREEN_STAINED_CLAY,
 
+        Terrain.GREEN_STAINED_CLAY,
         Terrain.RED_STAINED_CLAY,
         Terrain.BLACK_STAINED_CLAY
     };

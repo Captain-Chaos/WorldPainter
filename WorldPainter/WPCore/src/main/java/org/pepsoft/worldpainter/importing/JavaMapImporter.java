@@ -477,6 +477,7 @@ public class JavaMapImporter {
         TERRAIN_MAPPING.put(BLK_RED_SANDSTONE, Terrain.RED_SANDSTONE);
         TERRAIN_MAPPING.put(BLK_GRASS_PATH, Terrain.GRASS_PATH);
         TERRAIN_MAPPING.put(BLK_MAGMA, Terrain.MAGMA); // TODO: or should this be mapped to stone and magma added to the Resources layer?
+        TERRAIN_MAPPING.put(BLK_CEMENT, Terrain.CEMENT);
 
         SPECIAL_TERRAIN_MAPPING.put(Material.RED_SAND, Terrain.RED_SAND);
         SPECIAL_TERRAIN_MAPPING.put(Material.PERMADIRT, Terrain.PERMADIRT);

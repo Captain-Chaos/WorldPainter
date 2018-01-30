@@ -86,10 +86,10 @@ public class BiomesViewerFrame extends JFrame {
                             setText("Minecraft 1.3 - 1.6 Large");
                             break;
                         case BIOME_ALGORITHM_1_7_DEFAULT:
-                            setText("Minecraft 1.7 - 1.10 Default");
+                            setText("Minecraft 1.7 - 1.12 Default");
                             break;
                         case BIOME_ALGORITHM_1_7_LARGE:
-                            setText("Minecraft 1.7 - 1.10 Large");
+                            setText("Minecraft 1.7 - 1.12 Large");
                             break;
                     }
                 }
@@ -223,7 +223,7 @@ public class BiomesViewerFrame extends JFrame {
         BiomeScheme biomeScheme1 = BiomesViewerFrame.this.biomeScheme;
         Level level = new Level(Constants.DEFAULT_MAX_HEIGHT_1, (biomeScheme1 instanceof Minecraft1_1BiomeScheme) ? DefaultPlugin.JAVA_MCREGION : DefaultPlugin.JAVA_ANVIL);
         if (! (biomeScheme1 instanceof Minecraft1_1BiomeScheme)) {
-            level.setGenerator(((biomeScheme1 instanceof Minecraft1_3LargeBiomeScheme) || (biomeScheme1 instanceof Minecraft1_7LargeBiomeScheme) || (biomeScheme1 instanceof Minecraft1_8LargeBiomeScheme)) ? Generator.LARGE_BIOMES : Generator.DEFAULT);
+            level.setGenerator(((biomeScheme1 instanceof Minecraft1_3LargeBiomeScheme) || (biomeScheme1 instanceof Minecraft1_7LargeBiomeScheme) || (biomeScheme1 instanceof Minecraft1_8LargeBiomeScheme) || (biomeScheme1 instanceof Minecraft1_12LargeBiomeScheme)) ? Generator.LARGE_BIOMES : Generator.DEFAULT);
         }
         if (creativeMode) {
             level.setGameType(Constants.GAME_TYPE_CREATIVE);

@@ -49,6 +49,7 @@ public class JavaPostProcessor extends PostProcessor {
         // TODO: make these configurable:
         final FloatMode sandMode = "false".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.supportSand")) ? FloatMode.LEAVE_FLOATING : FloatMode.SUPPORT;
         final FloatMode gravelMode = FloatMode.LEAVE_FLOATING;
+        final FloatMode cementMode = FloatMode.LEAVE_FLOATING;
         if (minecraftWorld instanceof MinecraftWorldObject) {
             // Special support for MinecraftWorldObjects to constrain the area
             // further
@@ -126,6 +127,21 @@ public class JavaPostProcessor extends PostProcessor {
                                         minecraftWorld.setMaterialAt(x, y, z, Material.STONE);
                                         blockType = BLK_STONE;
                                         break;
+                                    default:
+                                        // Do nothing
+                                        break;
+                                }
+                            }
+                            break;
+                        case BLK_CEMENT:
+                            if (BLOCKS[blockTypeBelow].veryInsubstantial) {
+                                switch (cementMode) {
+                                    case DROP:
+                                        dropBlock(minecraftWorld, x, y, z);
+                                        blockType = BLK_AIR;
+                                        break;
+                                    case SUPPORT:
+                                        throw new UnsupportedOperationException("Don't know how to support cement yet");
                                     default:
                                         // Do nothing
                                         break;
