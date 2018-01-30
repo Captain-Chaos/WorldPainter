@@ -204,7 +204,31 @@ public class FileUtils {
         }
         return dir.delete();
     }
-    
+
+    /**
+     * Recursively delete all contents of a directory.
+     *
+     * @param dir The directory to empty.
+     * @return <code>true</code> if and only if all contents of the directory
+     * were successfully deleted; <code>false</code> otherwise
+     */
+    public static boolean emptyDir(File dir) {
+        if (! dir.isDirectory()) {
+            throw new IllegalArgumentException(dir + " does not exist or is not a directory");
+        }
+        boolean success = true;
+        File[] contents = dir.listFiles();
+        //noinspection ConstantConditions // Guaranteed by precondition check at start
+        for (File file: contents) {
+            if (file.isDirectory()) {
+                success &= deleteDir(file);
+            } else {
+                success &= file.delete();
+            }
+        }
+        return success;
+    }
+
     /**
      * Sanitises a filename by replacing characters which are illegal for
      * Windows, Linux or Mac OS filenames with underscores and enforcing other

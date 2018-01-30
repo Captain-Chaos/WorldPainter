@@ -49,9 +49,13 @@ public class JavaWorldExporter extends AbstractWorldExporter {
         File worldDir = new File(baseDir, FileUtils.sanitiseName(name));
         logger.info("Exporting world " + world.getName() + " to map at " + worldDir);
         if (worldDir.isDirectory()) {
-            logger.info("Directory already exists; backing up to " + backupDir);
-            if (! worldDir.renameTo(backupDir)) {
-                throw new FileInUseException("Could not move " + worldDir + " to " + backupDir);
+            if (backupDir != null) {
+                logger.info("Directory already exists; backing up to " + backupDir);
+                if (!worldDir.renameTo(backupDir)) {
+                    throw new FileInUseException("Could not move " + worldDir + " to " + backupDir);
+                }
+            } else {
+                throw new IllegalStateException("Directory already exists and no backup directory specified");
             }
         }
         

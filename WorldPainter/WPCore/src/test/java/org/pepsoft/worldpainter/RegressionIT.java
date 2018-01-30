@@ -8,6 +8,7 @@ import org.pepsoft.minecraft.*;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.exporting.JavaWorldExporter;
+import org.pepsoft.worldpainter.layers.NotPresent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +35,7 @@ public class RegressionIT {
         World2 world = loadWorld("/testset/test-v2.3.6-1.world");
         File tmpBaseDir = createTmpBaseDir();
         try {
-            File worldDir = exportWorld(world, tmpBaseDir);
+            File worldDir = exportJavaWorld(world, tmpBaseDir);
             verifyJavaWorld(worldDir, SUPPORTED_VERSION_2);
             verifyJavaDimension(worldDir, world.getDimension(DIM_NORMAL),
                 // Bedrock
@@ -86,21 +87,7 @@ public class RegressionIT {
         }
     }
 
-    private World2 loadWorld(String worldName) throws IOException, UnloadableWorldException {
-        // Load the world
-        logger.info("Loading world {}", worldName);
-        WorldIO worldIO = new WorldIO();
-        worldIO.load(RegressionIT.class.getResourceAsStream(worldName));
-        return worldIO.getWorld();
-    }
-
-    private File createTmpBaseDir() {
-        File tmpBaseDir = new File(System.getProperty("java.io.tmpdir"), UUID.randomUUID().toString());
-        tmpBaseDir.mkdirs();
-        return tmpBaseDir;
-    }
-
-    private File exportWorld(World2 world, File baseDir) throws IOException, UnloadableWorldException, ProgressReceiver.OperationCancelled {
+    protected File exportJavaWorld(World2 world, File baseDir) throws IOException, ProgressReceiver.OperationCancelled {
         // Prepare for export
         for (int i = 0; i < Terrain.CUSTOM_TERRAIN_COUNT; i++) {
             MixedMaterial material = world.getMixedMaterial(i);
@@ -116,18 +103,54 @@ public class RegressionIT {
         return new File(baseDir, FileUtils.sanitiseName(world.getName()));
     }
 
-    private void verifyJavaWorld(File worldDir, int expectedVersion) throws IOException {
+    protected void verifyJavaWorld(File worldDir, int expectedVersion) throws IOException {
         Level level = Level.load(new File(worldDir, "level.dat"));
         assertEquals(expectedVersion, level.getVersion());
     }
 
-    private void verifyJavaDimension(File worldDir, Dimension dimension, int... expectedBlocks) throws IOException {
+    protected void verifyJavaDimension(File worldDir, Dimension dimension, int... expectedBlocks) throws IOException {
         World2 world = dimension.getWorld();
         logger.info("Verifying dimension {} of map {}", dimension.getName(), world.getName());
 
-        int expectedLowestChunkX = dimension.getLowestX() << 3, expectedHighestChunkX = ((dimension.getHighestX() + 1) << 3) - 1;
-        int expectedLowestChunkZ = dimension.getLowestY() << 3, expectedHighestChunkZ = ((dimension.getHighestY() + 1) << 3) - 1;
-        Rectangle expectedBounds = new Rectangle(expectedLowestChunkX, expectedLowestChunkZ, expectedHighestChunkX - expectedLowestChunkX + 1, expectedHighestChunkZ - expectedLowestChunkZ + 1);
+        boolean checkBounds;
+        Rectangle expectedBounds = null;
+        if (! dimension.containsOneOf(NotPresent.INSTANCE)) {
+            checkBounds = true;
+            int lowestTileX, highestTileX, lowestTileY, highestTileY;
+            if (dimension.getWorld().getTilesToExport() != null) {
+                lowestTileX = Integer.MAX_VALUE;
+                highestTileX = Integer.MIN_VALUE;
+                lowestTileY = Integer.MAX_VALUE;
+                highestTileY = Integer.MIN_VALUE;
+                for (Point tile : dimension.getWorld().getTilesToExport()) {
+                    if (tile.x < lowestTileX) {
+                        lowestTileX = tile.x;
+                    }
+                    if (tile.x > highestTileX) {
+                        highestTileX = tile.x;
+                    }
+                    if (tile.y < lowestTileY) {
+                        lowestTileY = tile.y;
+                    }
+                    if (tile.y > highestTileY) {
+                        highestTileY = tile.y;
+                    }
+                }
+            } else {
+                lowestTileX = dimension.getLowestX();
+                highestTileX = dimension.getHighestX();
+                lowestTileY = dimension.getLowestY();
+                highestTileY = dimension.getHighestY();
+            }
+            int expectedLowestChunkX = lowestTileX << 3;
+            int expectedHighestChunkX = ((highestTileX + 1) << 3) - 1;
+            int expectedLowestChunkZ = lowestTileY << 3;
+            int expectedHighestChunkZ = ((highestTileY + 1) << 3) - 1;
+            expectedBounds = new Rectangle(expectedLowestChunkX, expectedLowestChunkZ, expectedHighestChunkX - expectedLowestChunkX + 1, expectedHighestChunkZ - expectedLowestChunkZ + 1);
+        } else {
+            checkBounds = false;
+            logger.warn("Skipping bounds check for dimension which contains the NotReady layer");
+        }
 
         File regionDir;
         switch (dimension.getDim()) {
@@ -198,13 +221,29 @@ public class RegressionIT {
                 }
             }
         }
-        assertEquals(expectedBounds, new Rectangle(lowestChunkX, lowestChunkZ, highestChunkX - lowestChunkX + 1, highestChunkZ - lowestChunkZ + 1));
+        if (checkBounds) {
+            assertEquals(expectedBounds, new Rectangle(lowestChunkX, lowestChunkZ, highestChunkX - lowestChunkX + 1, highestChunkZ - lowestChunkZ + 1));
+        }
 
         // Check blocks we know should definitely be present due to the terrain
         // types and layers used
         for (int expectedBlock: expectedBlocks) {
             assertTrue("expected block type " + Block.BLOCKS[expectedBlock].name + " missing", blockTypes.get(expectedBlock));
         }
+    }
+
+    private World2 loadWorld(String worldName) throws IOException, UnloadableWorldException {
+        // Load the world
+        logger.info("Loading world {}", worldName);
+        WorldIO worldIO = new WorldIO();
+        worldIO.load(RegressionIT.class.getResourceAsStream(worldName));
+        return worldIO.getWorld();
+    }
+
+    private File createTmpBaseDir() {
+        File tmpBaseDir = new File(System.getProperty("java.io.tmpdir"), UUID.randomUUID().toString());
+        tmpBaseDir.mkdirs();
+        return tmpBaseDir;
     }
 
     private static final Logger logger = LoggerFactory.getLogger(RegressionIT.class);
