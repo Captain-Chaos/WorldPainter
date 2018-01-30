@@ -1,3 +1,5 @@
 target
 logs
 exporttimings.csv
+.settings
+.project
