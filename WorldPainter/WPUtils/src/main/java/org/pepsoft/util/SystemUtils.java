@@ -28,7 +28,11 @@ public final class SystemUtils {
     public static boolean isLinux() {
         return OPERATING_SYSTEM == OS.LINUX;
     }
-    
+
+    public static final Version JAVA_VERSION = Version.parse(System.getProperty("java.specification.version"));
+    public static final Version JAVA_9 = new Version(9);
+    public static final Version JAVA_8 = new Version(1, 8);
+
     private static final OS OPERATING_SYSTEM;
     
     static {

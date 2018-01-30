@@ -11,6 +11,9 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Set;
 
+import static org.pepsoft.util.SystemUtils.JAVA_9;
+import static org.pepsoft.util.SystemUtils.JAVA_VERSION;
+
 /**
  *
  * @author pepijn
@@ -21,11 +24,15 @@ public class MemoryUtils {
      *
      * @param object The object of which to determine the memory used.
      * @param stopAt Types of references which should not be followed.
-     * @return The number of bytes of RAM used by the object.
+     * @return The number of bytes of RAM used by the object, or -1 if the size
+     * could not be determined.
      */
     public static int getSize(Object object, Set<Class<?>> stopAt) {
         if (object == null) {
             return 0;
+        } else if (JAVA_VERSION.isAtLeast(JAVA_9)) {
+            // TODO: support Java 9
+            return -1;
         } else {
             IdentityHashMap<Object, Void> processedObjects = new IdentityHashMap<>();
             return getSize(object, processedObjects, stopAt/*, "root"*/);

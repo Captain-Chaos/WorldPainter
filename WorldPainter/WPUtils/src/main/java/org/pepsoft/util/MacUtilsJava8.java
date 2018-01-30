@@ -18,18 +18,19 @@
 
 package org.pepsoft.util;
 
+import com.apple.eawt.Application;
+
 import java.io.File;
 import java.util.List;
 
-import static org.pepsoft.util.SystemUtils.*;
-
 /**
- * Utility methods for integrating into the Mac OS X desktop environment.
+ * Utility methods for integrating into the Mac OS X desktop environment on
+ * Java 8 and earlier.
  *
  * Created by pepijn on 16-04-15.
  */
-public abstract class MacUtils {
-    protected MacUtils() {
+final class MacUtilsJava8 extends MacUtils {
+    MacUtilsJava8() {
         // Prevent illegal instantiation
     }
 
@@ -43,8 +44,17 @@ public abstract class MacUtils {
      *     <code>false</code> if the Apple Java extensions cannot be found or
      *     are too old.
      */
-    public static boolean installQuitHandler(final QuitHandler quitHandler) {
-        return IMPL.doInstallQuitHandler(quitHandler);
+    protected boolean doInstallQuitHandler(final MacUtils.QuitHandler quitHandler) {
+        Application application = Application.getApplication();
+        application.setQuitHandler((quitEvent, quitResponse) -> {
+            boolean shouldQuit = AwtUtils.resultOfOnEventThread(quitHandler::quitRequested);
+            if (shouldQuit) {
+                quitResponse.performQuit();
+            } else {
+                quitResponse.cancelQuit();
+            }
+        });
+        return true;
     }
 
     /**
@@ -56,8 +66,10 @@ public abstract class MacUtils {
      *     <code>false</code> if the Apple Java extensions cannot be found or
      *     are too old.
      */
-    public static boolean installAboutHandler(final AboutHandler aboutHandler) {
-        return IMPL.doInstallAboutHandler(aboutHandler);
+    protected boolean doInstallAboutHandler(final MacUtils.AboutHandler aboutHandler) {
+        Application application = Application.getApplication();
+        application.setAboutHandler(aboutEvent -> AwtUtils.doLaterOnEventThread(aboutHandler::aboutRequested));
+        return true;
     }
 
     /**
@@ -69,56 +81,18 @@ public abstract class MacUtils {
      *     <code>false</code> if the Apple Java extensions cannot be found or
      *     are too old.
      */
-    public static boolean installOpenFilesHandler(final OpenFilesHandler openFilesHandler) {
-        return IMPL.doInstallOpenFilesHandler(openFilesHandler);
+    protected boolean doInstallOpenFilesHandler(final MacUtils.OpenFilesHandler openFilesHandler) {
+        Application application = Application.getApplication();
+        application.setOpenFileHandler(openFilesEvent -> {
+            final List<File> files = openFilesEvent.getFiles();
+            AwtUtils.doLaterOnEventThread(() -> openFilesHandler.filesOpened(files));
+        });
+        return true;
     }
 
-    public static boolean installPreferencesHandler(final PreferencesHandler preferencesHandler) {
-        return IMPL.doInstallPreferencesHandler(preferencesHandler);
-    }
-
-    protected abstract boolean doInstallQuitHandler(QuitHandler quitHandler);
-    protected abstract boolean doInstallAboutHandler(AboutHandler aboutHandler);
-    protected abstract boolean doInstallOpenFilesHandler(OpenFilesHandler openFilesHandler);
-    protected abstract boolean doInstallPreferencesHandler(PreferencesHandler preferencesHandler);
-
-    public interface QuitHandler {
-        /**
-         * Invoked when the user has requested to quit the application.
-         *
-         * @return <code>true</code> if the quit should proceed.
-         */
-        boolean quitRequested();
-    }
-
-    public interface AboutHandler {
-        /**
-         * Invoked when the user has requested to view the About screen.
-         */
-        void aboutRequested();
-    }
-
-    public interface OpenFilesHandler {
-        /**
-         * Invoked when the user has requested to open (a) file(s) associated
-         * with this application.
-         *
-         * @param files The list of files requested to be opened.
-         */
-        void filesOpened(List<File> files);
-    }
-
-    public interface PreferencesHandler {
-        void preferencesRequested();
-    }
-
-    private static final MacUtils IMPL;
-
-    static {
-        if (JAVA_VERSION.isAtLeast(JAVA_9)) {
-            IMPL = new MacUtilsJava9();
-        } else {
-            IMPL = new MacUtilsJava8();
-        }
+    protected boolean doInstallPreferencesHandler(final MacUtils.PreferencesHandler preferencesHandler) {
+        Application application = Application.getApplication();
+        application.setPreferencesHandler(preferencesEvent -> AwtUtils.doLaterOnEventThread(preferencesHandler::preferencesRequested));
+        return true;
     }
 }

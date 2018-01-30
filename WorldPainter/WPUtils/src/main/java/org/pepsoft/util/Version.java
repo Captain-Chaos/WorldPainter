@@ -7,7 +7,6 @@ package org.pepsoft.util;
 
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 /**
@@ -27,7 +26,11 @@ public class Version implements Comparable<Version>, Serializable {
     public int[] getParts() {
         return Arrays.copyOf(parts, parts.length);
     }
-    
+
+    public boolean isAtLeast(Version version) {
+        return compareTo(version) >= 0;
+    }
+
     @Override
     public int compareTo(Version o) {
         for (int i = 0; i < Math.max(parts.length, o.parts.length); i++) {
@@ -58,24 +61,6 @@ public class Version implements Comparable<Version>, Serializable {
         return 0;
     }
 
-    /**
-     * Create a new <code>Version</code> from a string of the form
-     * <code>x.y.z</code> (with any number of parts).
-     * 
-     * @param str The string to parse.
-     * @return The resulting Version object.
-     * @throws NumberFormatException If there are non-numeric characters in the
-     *     string.
-     */
-    public static Version parse(String str) {
-        String[] partStrs = str.split("\\.");
-        int[] parts = new int[partStrs.length];
-        for (int i = 0; i < partStrs.length; i++) {
-            parts[i] = Integer.parseInt(partStrs[i]);
-        }
-        return new Version(parts);
-    }
-    
     @Override
     public int hashCode() {
         int hash = 7;
@@ -101,6 +86,24 @@ public class Version implements Comparable<Version>, Serializable {
     @Override
     public String toString() {
         return Arrays.stream(parts).mapToObj(Integer::toString).collect(Collectors.joining("."));
+    }
+
+    /**
+     * Create a new <code>Version</code> from a string of the form
+     * <code>x.y.z</code> (with any number of parts).
+     *
+     * @param str The string to parse.
+     * @return The resulting Version object.
+     * @throws NumberFormatException If there are non-numeric characters in the
+     *     string.
+     */
+    public static Version parse(String str) {
+        String[] partStrs = str.split("\\.");
+        int[] parts = new int[partStrs.length];
+        for (int i = 0; i < partStrs.length; i++) {
+            parts[i] = Integer.parseInt(partStrs[i]);
+        }
+        return new Version(parts);
     }
 
     private final int[] parts;
