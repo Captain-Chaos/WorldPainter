@@ -1,7 +1,10 @@
 -- Version 2.4.2, released ...
 
- * Added support for new blocks in Minecraft 1.11
+ * Added support for new blocks in Minecraft 1.11 and 1.12
+ * Added support for the Minecraft 1.12.2 jar for displaying Minecraft biomes
+ * The Export and Merge buttons on their respective screens are no longer disabled if some condition is not met. This was causing confusion. Instead, an error message will be displayed when you press Export or Merge, explaining the problem
  * Entities from custom objects will now be assigned a random UUID each time they are placed by WorldPainter, making it once again possible to use (for instance) schematics to place mobs and other entities in the map. Previously Minecraft would remove all but one of such entities, since they all shared the same UUID
+ * Added support for running on Java 9
 
 -- Version 2.4.1, released 5-2-2017
 
