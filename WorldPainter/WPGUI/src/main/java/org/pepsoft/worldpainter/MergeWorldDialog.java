@@ -18,6 +18,8 @@ import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.merging.JavaWorldMerger;
 import org.pepsoft.worldpainter.util.MinecraftUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -115,6 +117,41 @@ public class MergeWorldDialog extends WorldPainterDialog {
     }
 
     private void merge() {
+        // Check for errors
+        if (levelDatFile == null) {
+            fieldLevelDatFile.requestFocusInWindow();
+            Toolkit.getDefaultToolkit().beep();
+            JOptionPane.showMessageDialog(this, "No level.dat of an existing Minecraft map selected.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        final boolean biomesOnly = radioButtonBiomes.isSelected();
+        if (! biomesOnly) {
+            if ((!radioButtonExportEverything.isSelected()) && ((selectedTiles == null) || selectedTiles.isEmpty())) {
+                radioButtonExportEverything.requestFocusInWindow();
+                Toolkit.getDefaultToolkit().beep();
+                JOptionPane.showMessageDialog(this, "No tiles selected for merging.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if ((!checkBoxSurface.isSelected()) && (!checkBoxNether.isSelected()) && (!checkBoxEnd.isSelected())) {
+                checkBoxSurface.requestFocusInWindow();
+                Toolkit.getDefaultToolkit().beep();
+                JOptionPane.showMessageDialog(this, "No dimension selected for merging.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        }
+        JavaWorldMerger merger = new JavaWorldMerger(world, levelDatFile);
+        try {
+            merger.performSanityChecks(biomesOnly);
+        } catch (IllegalArgumentException e) {
+            logger.error(e.getClass().getSimpleName() + ": " + e.getMessage(), e);
+            Toolkit.getDefaultToolkit().beep();
+            JOptionPane.showMessageDialog(this, e.getLocalizedMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        } catch (IOException e) {
+            throw new RuntimeException("I/O error reading level.dat file", e);
+        }
+
+        // Check for warnings
         StringBuilder sb = new StringBuilder("<html>Please confirm that you want to merge the world<br>notwithstanding the following warnings:<br><ul>");
         boolean showWarning = false;
         if ((radioButtonExportSelection.isSelected()) && (! disableWarning)) {
@@ -140,7 +177,6 @@ public class MergeWorldDialog extends WorldPainterDialog {
             return;
         }
 
-        final boolean biomesOnly = radioButtonBiomes.isSelected();
         final boolean replaceChunks = radioButtonReplaceChunks.isSelected();
 
         fieldLevelDatFile.setEnabled(false);
@@ -193,7 +229,6 @@ public class MergeWorldDialog extends WorldPainterDialog {
             world.setTilesToExport(selectedTiles);
         }
 
-        JavaWorldMerger merger = new JavaWorldMerger(world, levelDatFile);
         synchronized (merger) {
             try {
                 backupDir = merger.selectBackupDir(levelDatFile.getParentFile());
@@ -257,8 +292,11 @@ public class MergeWorldDialog extends WorldPainterDialog {
                     radioButtonBiomes.setEnabled(true);
                 }
             } catch (IOException e) {
+                levelDatFile = null;
                 throw new RuntimeException("I/O error while loading level.dat", e);
             }
+        } else {
+            levelDatFile = null;
         }
         boolean mergeAll = radioButtonAll.isSelected();
         boolean mergeBiomesOnly = radioButtonBiomes.isSelected();
@@ -279,7 +317,6 @@ public class MergeWorldDialog extends WorldPainterDialog {
         checkBoxSurface.setEnabled(mergeEverything && (! mergeBiomesOnly) && surfacePresent && (! oneDimensionPresent));
         checkBoxNether.setEnabled(mergeEverything && (! mergeBiomesOnly) && netherPresent && (! oneDimensionPresent));
         checkBoxEnd.setEnabled(mergeEverything && (! mergeBiomesOnly) && endPresent && (! oneDimensionPresent));
-        buttonMerge.setEnabled(levelDatSelected && (checkBoxSurface.isSelected() || checkBoxNether.isSelected() || checkBoxEnd.isSelected()));
         if (radioButtonExportSelection.isSelected()) {
             labelSelectTiles.setForeground(Color.BLUE);
             labelSelectTiles.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -718,6 +755,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
     private int selectedDimension;
     private Set<Point> selectedTiles;
     private boolean disableWarning;
-    
+
+    private static final Logger logger = LoggerFactory.getLogger(MergeWorldDialog.class);
     private static final long serialVersionUID = 1L;
 }

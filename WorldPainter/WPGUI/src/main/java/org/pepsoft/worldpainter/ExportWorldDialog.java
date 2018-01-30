@@ -17,7 +17,7 @@ import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.Populate;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
-import org.pepsoft.worldpainter.util.MinecraftUtil;
+import org.pepsoft.worldpainter.util.EnumListCellRenderer;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -143,9 +143,11 @@ public class ExportWorldDialog extends WorldPainterDialog {
         comboBoxGenerator.setModel(new DefaultComboBoxModel<>(platform.supportedGenerators.toArray(new Generator[platform.supportedGenerators.size()])));
         comboBoxGenerator.setSelectedItem(world.getGenerator());
         comboBoxGenerator.setEnabled(comboBoxGenerator.getItemCount() > 1);
+        comboBoxGenerator.setRenderer(new EnumListCellRenderer());
         comboBoxGameType.setModel(new DefaultComboBoxModel<>(platform.supportedGameTypes.toArray(new GameType[platform.supportedGameTypes.size()])));
         comboBoxGameType.setSelectedItem(world.getGameType());
         comboBoxGameType.setEnabled(comboBoxGameType.getItemCount() > 1);
+        comboBoxGameType.setRenderer(new EnumListCellRenderer());
         checkBoxAllowCheats.setSelected(world.isAllowCheats());
         if (selectedTiles != null) {
             radioButtonExportSelection.setText("export " + selectedTiles.size() + " selected tiles");
@@ -210,6 +212,27 @@ dims:   for (Dimension dim: world.getDimensions()) {
     }
 
     private void export() {
+        // Check for errors
+        if (! new File(fieldDirectory.getText().trim()).isDirectory()) {
+            fieldDirectory.requestFocusInWindow();
+            Toolkit.getDefaultToolkit().beep();
+            JOptionPane.showMessageDialog(this, "The selected output directory does not exist or is not a directory.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (fieldName.getText().trim().isEmpty()) {
+            fieldName.requestFocusInWindow();
+            Toolkit.getDefaultToolkit().beep();
+            JOptionPane.showMessageDialog(this, "You have not specified a name for the map.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if ((! radioButtonExportEverything.isSelected()) && ((selectedTiles == null) || selectedTiles.isEmpty())) {
+            radioButtonExportEverything.requestFocusInWindow();
+            Toolkit.getDefaultToolkit().beep();
+            JOptionPane.showMessageDialog(this, "No tiles have been selected for export.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Check for warnings
         StringBuilder sb = new StringBuilder("<html>Please confirm that you want to export the world<br>notwithstanding the following warnings:<br><ul>");
         boolean showWarning = false;
         Generator generator = Generator.values()[comboBoxGenerator.getSelectedIndex()];
@@ -371,10 +394,6 @@ dims:   for (Dimension dim: world.getDimensions()) {
     }
 
     private void setControlStates() {
-        boolean dirExists = new File(fieldDirectory.getText().trim()).isDirectory();
-        boolean nameEntered = fieldName.getText().trim().length() > 0;
-        boolean tilesSelected = radioButtonExportEverything.isSelected() || ((selectedTiles != null) && (! selectedTiles.isEmpty()));
-        buttonExport.setEnabled(dirExists && nameEntered && tilesSelected);
         if (radioButtonExportSelection.isSelected()) {
             labelSelectTiles.setForeground(Color.BLUE);
             labelSelectTiles.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));

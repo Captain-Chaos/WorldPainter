@@ -171,34 +171,59 @@ public class JavaWorldMerger extends JavaWorldExporter {
         this.clearManMadeBelowGround = clearManMadeBelowGround;
     }
 
-    public void merge(File backupDir, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
-        logger.info("Merging world " + world.getName() + " with map at " + levelDatFile.getParentFile());
-        
+    /**
+     * Perform sanity checks to ensure the merge can proceed. Throws an
+     * {@link IllegalArgumentException} if the check fails, with the message
+     * describing the problem. Returns the loaded Minecraft level object as a
+     * convenience.
+     *
+     * @param biomesOnly Whether to check sanity for a biomes only merge (when
+     *                   <code>true</code>) or a full merge (when
+     *                   <code>false</code>).
+     * @return The loaded Minecraft level object, for convenience.
+     * @throws IllegalArgumentException If there is a problem that would prevent
+     * the merge from completing.
+     * @throws IOException If the level.dat file could not be read due to an I/O
+     * error.
+     */
+    public Level performSanityChecks(boolean biomesOnly) throws IOException {
         // Read existing level.dat file
         Level level = Level.load(levelDatFile);
-        
+
         // Sanity checks
         int existingMaxHeight = level.getMaxHeight();
         if (existingMaxHeight != world.getMaxHeight()) {
-            throw new IllegalArgumentException("Level has different max height (" + existingMaxHeight + ") than WorldPainter world (" + world.getMaxHeight() + ")");
+            throw new IllegalArgumentException("Existing map has different max height (" + existingMaxHeight + ") than WorldPainter world (" + world.getMaxHeight() + ")");
         }
         int version = level.getVersion();
         if ((version != SUPPORTED_VERSION_1) && (version != SUPPORTED_VERSION_2)) {
-            throw new IllegalArgumentException("Not a supported version: 0x" + Integer.toHexString(version));
+            throw new IllegalArgumentException("Version of existing map not supported: 0x" + Integer.toHexString(version));
         }
-        
+
         // Dimension sanity checks
         for (Dimension dimension: world.getDimensions()) {
+            if (biomesOnly && (dimension.getDim() != DIM_NORMAL)) {
+                continue;
+            }
             if (existingMaxHeight != dimension.getMaxHeight()) {
-                throw new IllegalArgumentException("Dimension " + dimension.getDim() + " has different max height (" + dimension.getMaxHeight() + ") than existing level (" + existingMaxHeight + ")");
+                throw new IllegalArgumentException("Dimension " + dimension.getName() + " has different max height (" + dimension.getMaxHeight() + ") than existing map (" + existingMaxHeight + ")");
             }
         }
-        File worldDir = levelDatFile.getParentFile();
+
+        return level;
+    }
+
+    public void merge(File backupDir, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
+        logger.info("Merging world " + world.getName() + " with map at " + levelDatFile.getParentFile());
+        
+        // Read existing level.dat file and perform sanity checks
+        Level level = performSanityChecks(false);
         
         // Record start of export
         long start = System.currentTimeMillis();
         
         // Backup existing level
+        File worldDir = levelDatFile.getParentFile();
         if (! worldDir.renameTo(backupDir)) {
             throw new FileInUseException("Could not move " + worldDir + " to " + backupDir);
         }
@@ -209,6 +234,7 @@ public class JavaWorldMerger extends JavaWorldExporter {
         // Set the world to the same Minecraft version as the existing map, in
         // case it has changed. This affects the type of chunks created in the
         // first pass
+        int version = level.getVersion();
         Platform platform = (version == SUPPORTED_VERSION_1) ? DefaultPlugin.JAVA_MCREGION : DefaultPlugin.JAVA_ANVIL;
         world.setPlatform(platform);
         
@@ -808,27 +834,11 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
      * Merge only the biomes, leave everything else the same.
      */
     public void mergeBiomes(File backupDir, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
-        // Read existing level.dat file
-        Level level = Level.load(levelDatFile);
-        
-        // Sanity checks
-        int existingMaxHeight = level.getMaxHeight();
-        if (existingMaxHeight != world.getMaxHeight()) {
-            throw new IllegalArgumentException("Level has different max height (" + existingMaxHeight + ") than WorldPainter world (" + world.getMaxHeight() + ")");
-        }
-        int version = level.getVersion();
-        if (version != SUPPORTED_VERSION_2) {
-            throw new IllegalArgumentException("Not a supported version: 0x" + Integer.toHexString(version));
-        }
-        
-        // Dimension sanity checks
-        Dimension dimension = world.getDimension(0);
-        if (existingMaxHeight != dimension.getMaxHeight()) {
-            throw new IllegalArgumentException("Dimension " + dimension.getDim() + " has different max height (" + dimension.getMaxHeight() + ") than existing level (" + existingMaxHeight + ")");
-        }
-        File worldDir = levelDatFile.getParentFile();
+        // Read existing level.dat file and perform sanity checks
+        Level level = performSanityChecks(true);
         
         // Backup existing level
+        File worldDir = levelDatFile.getParentFile();
         if (! worldDir.renameTo(backupDir)) {
             throw new FileInUseException("Could not move " + worldDir + " to " + backupDir);
         }
@@ -842,6 +852,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         world.setPlatform(DefaultPlugin.JAVA_ANVIL);
         
         // Modify it if necessary and write it to the the new level
+        Dimension dimension = world.getDimension(0);
         level.setSeed(dimension.getMinecraftSeed());
         
         // Copy everything that we are not going to generate (this includes the
