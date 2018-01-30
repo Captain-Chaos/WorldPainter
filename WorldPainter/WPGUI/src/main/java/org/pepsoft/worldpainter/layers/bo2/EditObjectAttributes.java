@@ -260,40 +260,14 @@ public class EditObjectAttributes extends javax.swing.JDialog {
     private void autoOffset() {
         boolean singleSelection = objects.size() == 1;
         for (WPObject object: objects) {
-            int offsetZ = Integer.MIN_VALUE, lowestX = 0, highestX = 0, lowestY = 0, highestY = 0;
-            Point3i dimensions = object.getDimensions();
-            for (int z = 0; (z < dimensions.z) && (offsetZ == Integer.MIN_VALUE); z++) {
-                for (int x = 0; x < dimensions.x; x++) {
-                    for (int y = 0; y < dimensions.y; y++) {
-                        if (object.getMask(x, y, z)) {
-                            if (offsetZ == Integer.MIN_VALUE) {
-                                offsetZ = z;
-                                lowestX = highestX = x;
-                                lowestY = highestY = y;
-                            } else {
-                                if (x < lowestX) {
-                                    lowestX = x;
-                                } else if (x > highestX) {
-                                    highestX = x;
-                                }
-                                if (y < lowestY) {
-                                    lowestY = y;
-                                } else if (y > highestY) {
-                                    highestY = y;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            if (offsetZ == Integer.MIN_VALUE) {
+            Point3i offset = object.guestimateOffset();
+            if (offset == null) {
                 // This object has size zero or consists of nothing but air!
                 offsets.clear();
                 if (singleSelection) {
                     labelOffset.setText("<html><u>0, 0, 0</u></html>");
                 }
             } else {
-                Point3i offset = new Point3i(-(lowestX + highestX) / 2, -(lowestY + highestY) / 2, -offsetZ);
                 offsets.put(object, offset);
                 if (singleSelection) {
                     String offsetStr = "<html><u>" + offset.x + ", " + offset.y + ", " + offset.z + "</u></html>";

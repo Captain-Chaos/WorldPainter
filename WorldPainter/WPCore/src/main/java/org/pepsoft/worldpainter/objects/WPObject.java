@@ -157,6 +157,40 @@ public interface WPObject extends Serializable, Cloneable {
      */
     WPObject clone();
 
+    /**
+     * Guestimate an offset for the object. If an offset cannot be calculated
+     * because the object is entirely empty, <code>null</code> will be returned.
+     */
+    default Point3i guestimateOffset() {
+        final Point3i dims = getDimensions();
+        int offsetZ = Integer.MIN_VALUE, lowestX = 0, highestX = 0, lowestY = 0, highestY = 0;
+        for (int z = 0; (z < dims.z) && (offsetZ == Integer.MIN_VALUE); z++) {
+            for (int x = 0; x < dims.x; x++) {
+                for (int y = 0; y < dims.y; y++) {
+                    if (getMask(x, y, z)) {
+                        if (offsetZ == Integer.MIN_VALUE) {
+                            offsetZ = z;
+                            lowestX = highestX = x;
+                            lowestY = highestY = y;
+                        } else {
+                            if (x < lowestX) {
+                                lowestX = x;
+                            } else if (x > highestX) {
+                                highestX = x;
+                            }
+                            if (y < lowestY) {
+                                lowestY = y;
+                            } else if (y > highestY) {
+                                highestY = y;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return (offsetZ > Integer.MIN_VALUE) ? new Point3i(-(lowestX + highestX) / 2, -(lowestY + highestY) / 2, -offsetZ) : null;
+    }
+
     // Standard attribute values
     int COLLISION_MODE_ALL   = 1;
     int COLLISION_MODE_SOLID = 2;

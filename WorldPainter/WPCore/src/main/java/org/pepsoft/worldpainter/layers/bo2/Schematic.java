@@ -69,34 +69,7 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
             weOffsetX = weOffsetY = weOffsetZ = 0;
         }
         if (offset == null) {
-            int offsetZ = Integer.MIN_VALUE, lowestX = 0, highestX = 0, lowestY = 0, highestY = 0;
-            for (int z = 0; (z < height) && (offsetZ == Integer.MIN_VALUE); z++) {
-                for (int x = 0; x < width; x++) {
-                    for (int y = 0; y < length; y++) {
-                        if (getMask(x, y, z)) {
-                            if (offsetZ == Integer.MIN_VALUE) {
-                                offsetZ = z;
-                                lowestX = highestX = x;
-                                lowestY = highestY = y;
-                            } else {
-                                if (x < lowestX) {
-                                    lowestX = x;
-                                } else if (x > highestX) {
-                                    highestX = x;
-                                }
-                                if (y < lowestY) {
-                                    lowestY = y;
-                                } else if (y > highestY) {
-                                    highestY = y;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            if (offsetZ > Integer.MIN_VALUE) {
-                offset = new Point3i(-(lowestX + highestX) / 2, -(lowestY + highestY) / 2, -offsetZ);
-            }
+            offset = guestimateOffset();
         }
         if ((offset != null) && ((offset.x != 0) || (offset.y != 0) || (offset.z != 0))) {
             if (attributes == null) {
