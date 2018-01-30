@@ -1442,7 +1442,7 @@ public final class App extends JFrame implements RadiusControl,
             throw new IllegalArgumentException("No help key found in hierarchy");
         }
         try {
-            DesktopUtils.open(new URL(HELP_ROOT_URL + encodeForURL(helpKey)));
+            DesktopUtils.open(new URL(HELP_ROOT_URL + encodeForURL(helpKey.toLowerCase())));
         } catch (MalformedURLException e) {
             throw new RuntimeException("Malformed help URL: " + HELP_ROOT_URL + encodeForURL(helpKey), e);
         }
@@ -1452,7 +1452,7 @@ public final class App extends JFrame implements RadiusControl,
         String[] parts = str.split("/");
         try {
             for (int i = 0; i < parts.length; i++) {
-                    parts[i] = URLEncoder.encode(parts[i], "UTF-8");
+                parts[i] = URLEncoder.encode(parts[i], "UTF-8");
             }
         } catch (UnsupportedEncodingException e) {
             throw new InternalError("VM does not support mandatory encoding UTF-8");
@@ -4032,10 +4032,10 @@ public final class App extends JFrame implements RadiusControl,
 //        menu.setMnemonic('h');
         menu.add(menuItem);
 
-        menu.add(ACTION_SHOW_HELP_PICKER);
+//        menu.add(ACTION_SHOW_HELP_PICKER);
 
         if (! hideAbout) {
-            menu.addSeparator();
+//            menu.addSeparator();
 
             menuItem = new JMenuItem(strings.getString("about"));
             menuItem.setMnemonic('a');
@@ -4282,8 +4282,8 @@ public final class App extends JFrame implements RadiusControl,
         toolBar.add(button);
         toolBar.add(ACTION_ROTATE_LIGHT_LEFT);
         toolBar.add(ACTION_ROTATE_LIGHT_RIGHT);
-        toolBar.add(Box.createHorizontalGlue());
-        toolBar.add(ACTION_SHOW_HELP_PICKER);
+//        toolBar.add(Box.createHorizontalGlue());
+//        toolBar.add(ACTION_SHOW_HELP_PICKER);
         return toolBar;
     }
     
@@ -6247,7 +6247,7 @@ public final class App extends JFrame implements RadiusControl,
         @Override
         public void performAction(ActionEvent event) {
             try {
-                DesktopUtils.open(new URL("http://www.worldpainter.net/trac/wiki/Documentation/"));
+                DesktopUtils.open(new URL("http://www.worldpainter.net/doc/"));
             } catch (MalformedURLException e) {
                 throw new RuntimeException(e);
             }
@@ -6583,7 +6583,7 @@ public final class App extends JFrame implements RadiusControl,
 
     private static final int MAX_RECENT_FILES = 10;
     
-    private static final String HELP_ROOT_URL = "http://www.worldpainter.net/trac/wiki/Help/";
+    private static final String HELP_ROOT_URL = "http://www.worldpainter.net/help/";
 
     private static final ResourceBundle strings = ResourceBundle.getBundle("org.pepsoft.worldpainter.resources.strings"); // NOI18N
     private static final long serialVersionUID = 1L;
