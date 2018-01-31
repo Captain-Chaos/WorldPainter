@@ -40,29 +40,29 @@
         <!--<dependency>-->
             <!--<groupId>com.jidesoft</groupId>-->
             <!--<artifactId>jide-oss</artifactId>-->
-            <!--<version>3.6.14</version>-->
+            <!--<version>3.7.2</version>-->
         <!--</dependency>-->
         <dependency>
             <!-- Commercial product; you will need to download the evaluation version, or obtain a license to use JIDE
                  (an open source license is free). -->
             <groupId>com.jidesoft</groupId>
             <artifactId>jide-common</artifactId>
-            <version>3.6.14</version>
+            <version>3.7.2</version>
         </dependency>
         <dependency>
             <!-- Commercial product; you will need to download the evaluation version, or obtain a license to use JIDE
                  (an open source license is free). -->
             <groupId>com.jidesoft</groupId>
             <artifactId>jide-dock</artifactId>
-            <version>3.6.14</version>
+            <version>3.7.2</version>
         </dependency>
         <dependency>
             <!-- Commercial product; you will need to download the evaluation version, or obtain a license to use JIDE
                  (an open source license is free). This module is only necessary on Linux, to make the GTK look and feel
                  work correctly. -->
             <groupId>com.jidesoft</groupId>
-            <artifactId>jide-plaf-jdk7</artifactId>
-            <version>3.6.14</version>
+            <artifactId>jide-plaf</artifactId>
+            <version>3.7.2</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
