@@ -14,6 +14,7 @@ import org.pepsoft.util.GUIUtils;
 import org.pepsoft.worldpainter.TileRenderer.LightOrigin;
 import org.pepsoft.worldpainter.themes.SimpleTheme;
 import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
+import org.pepsoft.worldpainter.util.EnumListCellRenderer;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -44,7 +45,9 @@ public class PreferencesDialog extends WorldPainterDialog {
         comboBoxSurfaceMaterial.setModel(new DefaultComboBoxModel(Terrain.PICK_LIST));
         comboBoxSurfaceMaterial.setRenderer(new TerrainListCellRenderer(colourScheme));
         comboBoxMode.setModel(new DefaultComboBoxModel<>(GameType.values()));
+        comboBoxMode.setRenderer(new EnumListCellRenderer());
         comboBoxWorldType.setModel(new DefaultComboBoxModel<>(Generator.values()));
+        comboBoxWorldType.setRenderer(new EnumListCellRenderer());
 
         List<AccelerationType> accelTypes = AccelerationType.getForThisOS();
         radioButtonAccelDefault.setEnabled(accelTypes.contains(AccelerationType.DEFAULT));
