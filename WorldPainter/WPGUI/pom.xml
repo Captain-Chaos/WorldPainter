@@ -61,7 +61,7 @@
                  (an open source license is free). This module is only necessary on Linux, to make the GTK look and feel
                  work correctly. -->
             <groupId>com.jidesoft</groupId>
-            <artifactId>jide-plaf</artifactId>
+            <artifactId>jide-plaf-jdk7</artifactId>
             <version>3.7.2</version>
             <scope>runtime</scope>
         </dependency>
