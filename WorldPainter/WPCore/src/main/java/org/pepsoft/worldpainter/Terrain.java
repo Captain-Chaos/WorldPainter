@@ -2772,8 +2772,7 @@ public enum Terrain {
         @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(95);
-    },
-    CEMENT("Concrete Powder", BLK_CEMENT, BLK_CEMENT, "concrete powder", BIOME_PLAINS);
+    };
 
     Terrain(String name, String description, int defaultBiome) {
         this(name, Material.STONE, Material.STONE, AIR, description, defaultBiome);
@@ -3131,9 +3130,7 @@ public enum Terrain {
         Terrain.CUSTOM_93,
         Terrain.CUSTOM_94,
         Terrain.CUSTOM_95,
-        Terrain.CUSTOM_96,
-
-        Terrain.CEMENT
+        Terrain.CUSTOM_96
     };
 
     /**
@@ -3169,13 +3166,12 @@ public enum Terrain {
         Terrain.OBSIDIAN,
         Terrain.BEDROCK,
         Terrain.GRAVEL,
-        Terrain.CEMENT,
         Terrain.CLAY,
         Terrain.BEACHES,
         Terrain.WATER,
         Terrain.LAVA,
-
         Terrain.MAGMA,
+
         Terrain.DEEP_SNOW,
         Terrain.NETHERRACK,
         Terrain.SOUL_SAND,
@@ -3185,8 +3181,8 @@ public enum Terrain {
         Terrain.WHITE_STAINED_CLAY,
         Terrain.ORANGE_STAINED_CLAY,
         Terrain.MAGENTA_STAINED_CLAY,
-
         Terrain.LIGHT_BLUE_STAINED_CLAY,
+
         Terrain.YELLOW_STAINED_CLAY,
         Terrain.LIME_STAINED_CLAY,
         Terrain.PINK_STAINED_CLAY,
@@ -3196,8 +3192,8 @@ public enum Terrain {
         Terrain.PURPLE_STAINED_CLAY,
         Terrain.BLUE_STAINED_CLAY,
         Terrain.BROWN_STAINED_CLAY,
-
         Terrain.GREEN_STAINED_CLAY,
+
         Terrain.RED_STAINED_CLAY,
         Terrain.BLACK_STAINED_CLAY
     };

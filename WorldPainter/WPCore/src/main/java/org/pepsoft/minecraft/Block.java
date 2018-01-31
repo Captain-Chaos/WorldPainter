@@ -465,7 +465,7 @@ public final class Block implements Serializable {
 //                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
                 new Block(250, 15,         "Black Glazed Terracotta", false, false, false, false, false, false, false,  0, false),
                 new Block(251, 15,                        "Concrete", false, false, false, false, false, false, false,  0, false),
-                new Block(252, 15,                 "Concrete Powder",  true, false, false, false, false, false, false,  0,  true),
+                new Block(252, 15,                 "Concrete Powder", false, false, false, false, false, false, false,  0, false),
                 new Block(253,  0,                              null, false, false, false, false, false, false, false,  0, false),
                 new Block(254,  0,                              null, false, false, false, false, false, false, false,  0, false),
                 new Block(255, 15,                 "Structure Block", false, false, false, false,  true, false, false,  0, false),
