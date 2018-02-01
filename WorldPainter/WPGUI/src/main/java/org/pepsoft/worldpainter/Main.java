@@ -47,6 +47,7 @@ import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import static org.pepsoft.worldpainter.Constants.ATTRIBUTE_KEY_PLUGINS;
+import static org.pepsoft.worldpainter.Constants.ATTRIBUTE_KEY_SAFE_MODE;
 
 /**
  *
@@ -93,6 +94,20 @@ public class Main {
         SLF4JBridgeHandler.install();
         logger.info("Starting WorldPainter " + Version.VERSION + " (" + Version.BUILD + ")");
 
+        // Parse the command line
+        File myFile = null;
+        boolean mySafeMode = false;
+        for (String arg: args) {
+            if (arg.trim().toLowerCase().equals("--safe")) {
+                mySafeMode = true;
+                logger.info("WorldPainter running in safe mode");
+            } else if (new File(arg).isFile()) {
+                myFile = new File(args[0]);
+            }
+        }
+        final File file = myFile;
+        boolean safeMode = mySafeMode;
+
         // Set the acceleration mode. For some reason we don't fully understand,
         // loading the Configuration from disk initialises Java2D, so we have to
         // do this *before* then.
@@ -108,41 +123,48 @@ public class Main {
                 accelerationType = AccelerationType.DEFAULT;
                 // TODO: Experiment with which ones work well and use them by default!
             }
-            switch (accelerationType) {
-                case UNACCELERATED:
-                    // Try to disable all accelerated pipelines we know of:
-                    System.setProperty("sun.java2d.d3d", "false");
-                    System.setProperty("sun.java2d.opengl", "false");
-                    System.setProperty("sun.java2d.xrender", "false");
-                    System.setProperty("apple.awt.graphics.UseQuartz", "false");
-                    logger.info("Hardware acceleration method: unaccelerated");
-                    break;
-                case DIRECT3D:
-                    // Direct3D should already be the default on Windows, but
-                    // enable a few things which are off by default:
-                    System.setProperty("sun.java2d.translaccel", "true");
-                    System.setProperty("sun.java2d.ddscale", "true");
-                    logger.info("Hardware acceleration method: Direct3D");
-                    break;
-                case OPENGL:
-                    System.setProperty("sun.java2d.opengl", "True");
-                    logger.info("Hardware acceleration method: OpenGL");
-                    break;
-                case XRENDER:
-                    System.setProperty("sun.java2d.xrender", "True");
-                    logger.info("Hardware acceleration method: XRender");
-                    break;
-                case QUARTZ:
-                    System.setProperty("apple.awt.graphics.UseQuartz", "true");
-                    logger.info("Hardware acceleration method: Quartz");
-                    break;
-                default:
-                    logger.info("Hardware acceleration method: default");
-                    break;
+            if (! safeMode) {
+                switch (accelerationType) {
+                    case UNACCELERATED:
+                        // Try to disable all accelerated pipelines we know of:
+                        System.setProperty("sun.java2d.d3d", "false");
+                        System.setProperty("sun.java2d.opengl", "false");
+                        System.setProperty("sun.java2d.xrender", "false");
+                        System.setProperty("apple.awt.graphics.UseQuartz", "false");
+                        logger.info("Hardware acceleration method: unaccelerated");
+                        break;
+                    case DIRECT3D:
+                        // Direct3D should already be the default on Windows, but
+                        // enable a few things which are off by default:
+                        System.setProperty("sun.java2d.translaccel", "true");
+                        System.setProperty("sun.java2d.ddscale", "true");
+                        logger.info("Hardware acceleration method: Direct3D");
+                        break;
+                    case OPENGL:
+                        System.setProperty("sun.java2d.opengl", "True");
+                        logger.info("Hardware acceleration method: OpenGL");
+                        break;
+                    case XRENDER:
+                        System.setProperty("sun.java2d.xrender", "True");
+                        logger.info("Hardware acceleration method: XRender");
+                        break;
+                    case QUARTZ:
+                        System.setProperty("apple.awt.graphics.UseQuartz", "true");
+                        logger.info("Hardware acceleration method: Quartz");
+                        break;
+                    default:
+                        logger.info("Hardware acceleration method: default");
+                        break;
+                }
             }
         } else {
             accelerationType = AccelerationType.DEFAULT;
-            logger.info("Hardware acceleration method: default");
+            if (! safeMode) {
+                logger.info("Hardware acceleration method: default");
+            }
+        }
+        if (safeMode) {
+            logger.info("[SAFE MODE] Hardware acceleration method: default");
         }
 
         // Load or initialise configuration
@@ -189,10 +211,14 @@ public class Main {
         }
         
         // Load the plugins
-        if (trustedCert != null) {
-            PluginManager.loadPlugins(new File(configDir, "plugins"), trustedCert.getPublicKey());
+        if (! safeMode) {
+            if (trustedCert != null) {
+                PluginManager.loadPlugins(new File(configDir, "plugins"), trustedCert.getPublicKey());
+            } else {
+                logger.error("Trusted root certificate not available; not loading plugins");
+            }
         } else {
-            logger.error("Trusted root certificate not available; not loading plugins");
+            logger.info("[SAFE MODE] Not loading plugins");
         }
         WPPluginManager.initialise(config.getUuid());
         
@@ -248,6 +274,7 @@ public class Main {
                     if (sb.length() > 0) {
                         sessionEvent.setAttribute(ATTRIBUTE_KEY_PLUGINS, sb.toString());
                     }
+                    sessionEvent.setAttribute(ATTRIBUTE_KEY_SAFE_MODE, safeMode);
                     config.logEvent(sessionEvent);
                     config.save();
 
@@ -288,14 +315,11 @@ public class Main {
         });
 
         final World2 world;
-        final File file;
-        if ((args.length > 0) && new File(args[0]).isFile()) {
-            file = new File(args[0]);
-            world = null;
-        } else {
-            file = null;
+        if (file == null) {
             world = WorldFactory.createDefaultWorld(config, new Random().nextLong());
 //            world = WorldFactory.createFancyWorld(config, new Random().nextLong());
+        } else {
+            world = null;
         }
 
         // Install JIDE licence, if present
@@ -315,7 +339,7 @@ public class Main {
             // Install configured look and feel
             try {
                 String laf;
-                if (GUIUtils.UI_SCALE > 1) {
+                if ((GUIUtils.UI_SCALE > 1) || safeMode) {
                     laf = UIManager.getSystemLookAndFeelClassName();
                 } else {
                     switch (lookAndFeel) {
@@ -338,11 +362,14 @@ public class Main {
                             throw new InternalError();
                     }
                 }
+                if (safeMode) {
+                    logger.info("[SAFE MODE] Installing system visual theme");
+                }
                 logger.debug("Installing look and feel: " + laf);
                 UIManager.setLookAndFeel(laf);
                 LookAndFeelFactory.installJideExtension();
                 if ((GUIUtils.UI_SCALE == 1) && ((lookAndFeel == Configuration.LookAndFeel.DARK_METAL)
-                        || (lookAndFeel == Configuration.LookAndFeel.DARK_NIMBUS))) {
+                        || (lookAndFeel == Configuration.LookAndFeel.DARK_NIMBUS)) && (! safeMode)) {
                     // Patch some things to make dark themes look better
                     VoidRenderer.setColour(UIManager.getColor("Panel.background").getRGB());
                     if (lookAndFeel == Configuration.LookAndFeel.DARK_METAL) {

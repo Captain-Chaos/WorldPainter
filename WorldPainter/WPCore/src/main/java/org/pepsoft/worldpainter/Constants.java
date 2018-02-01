@@ -62,6 +62,7 @@ public final class Constants {
     public static final AttributeKeyVO<String> ATTRIBUTE_KEY_SCRIPT_FILENAME = new AttributeKeyVO<>("script.fileName");
     public static final AttributeKeyVO<String> ATTRIBUTE_KEY_SCRIPT_NAME = new AttributeKeyVO<>("script.name");
     public static final AttributeKeyVO<String> ATTRIBUTE_KEY_PLATFORM = new AttributeKeyVO<>("platform");
+    public static final AttributeKeyVO<Boolean> ATTRIBUTE_KEY_SAFE_MODE = new AttributeKeyVO<>("safeMode");
 
     public static final String EVENT_KEY_ACTION_NEW_WORLD         = "action.newWorld";
     public static final String EVENT_KEY_ACTION_EXPORT_WORLD      = "action.exportWorld";
