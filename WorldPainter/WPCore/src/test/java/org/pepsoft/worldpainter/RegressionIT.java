@@ -3,12 +3,14 @@ package org.pepsoft.worldpainter;
 import org.jnbt.CompoundTag;
 import org.jnbt.NBTInputStream;
 import org.jnbt.Tag;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.pepsoft.minecraft.*;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.exporting.JavaWorldExporter;
 import org.pepsoft.worldpainter.layers.NotPresent;
+import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +32,11 @@ import static org.pepsoft.worldpainter.Constants.*;
  */
 @SuppressWarnings({"ResultOfMethodCallIgnored", "SameParameterValue"})
 public class RegressionIT {
+    @BeforeClass
+    public static void init() {
+        WPPluginManager.initialise(null);
+    }
+
     @Test
     public void test2_3_6World() throws IOException, UnloadableWorldException, ProgressReceiver.OperationCancelled {
         World2 world = loadWorld("/testset/test-v2.3.6-1.world");
