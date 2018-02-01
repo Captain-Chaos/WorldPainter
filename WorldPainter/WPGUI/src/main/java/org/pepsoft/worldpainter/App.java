@@ -934,7 +934,7 @@ public final class App extends JFrame implements RadiusControl,
                     case AUTO_BIOMES_DISABLED:
                         if (showOptionDialog(this, "Automatic Biomes were previously enabled for this world but have been disabled.\nPress More Info for more information, including how to reenable it.", "Automatic Biomes Disabled", DEFAULT_OPTION, WARNING_MESSAGE, null, new Object[] {"More Info", "OK"}, "OK") == 0) {
                             try {
-                                DesktopUtils.open(new URL("http://www.worldpainter.net/trac/wiki/NewAutomaticBiomes"));
+                                DesktopUtils.open(new URL("https://www.worldpainter.net/doc/legacy/newautomaticbiomes"));
                             } catch (MalformedURLException e) {
                                 throw new RuntimeException(e);
                             }
@@ -943,7 +943,7 @@ public final class App extends JFrame implements RadiusControl,
                     case AUTO_BIOMES_ENABLED:
                         if (showOptionDialog(this, "Automatic Biomes were previously disabled for this world but have been enabled.\nPress More Info for more information, including how to disable it.", "Automatic Biomes Enabled", DEFAULT_OPTION, WARNING_MESSAGE, null, new Object[] {"More Info", "OK"}, "OK") == 0) {
                             try {
-                                DesktopUtils.open(new URL("http://www.worldpainter.net/trac/wiki/NewAutomaticBiomes"));
+                                DesktopUtils.open(new URL("https://www.worldpainter.net/doc/legacy/newautomaticbiomes"));
                             } catch (MalformedURLException e) {
                                 throw new RuntimeException(e);
                             }
@@ -6247,7 +6247,7 @@ public final class App extends JFrame implements RadiusControl,
         @Override
         public void performAction(ActionEvent event) {
             try {
-                DesktopUtils.open(new URL("http://www.worldpainter.net/doc/"));
+                DesktopUtils.open(new URL("https://www.worldpainter.net/doc/"));
             } catch (MalformedURLException e) {
                 throw new RuntimeException(e);
             }
@@ -6583,7 +6583,7 @@ public final class App extends JFrame implements RadiusControl,
 
     private static final int MAX_RECENT_FILES = 10;
     
-    private static final String HELP_ROOT_URL = "http://www.worldpainter.net/help/";
+    private static final String HELP_ROOT_URL = "https://www.worldpainter.net/help/";
 
     private static final ResourceBundle strings = ResourceBundle.getBundle("org.pepsoft.worldpainter.resources.strings"); // NOI18N
     private static final long serialVersionUID = 1L;

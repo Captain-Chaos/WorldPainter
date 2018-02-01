@@ -888,9 +888,9 @@ outer:  for (Enumeration<WPObject> e = (Enumeration<WPObject>) listModel.element
 
     private void jLabel6MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel6MouseClicked
         try {
-            DesktopUtils.open(new URL("http://www.worldpainter.net/trac/wiki/CustomObjects"));
+            DesktopUtils.open(new URL("https://www.worldpainter.net/doc/legacy/customobjects"));
         } catch (MalformedURLException e) {
-            throw new RuntimeException("Malformed URL exception while trying to open http://www.worldpainter.net/trac/wiki/CustomObjects", e);
+            throw new RuntimeException("Malformed URL exception while trying to open https://www.worldpainter.net/doc/legacy/customobjects", e);
         }
     }//GEN-LAST:event_jLabel6MouseClicked
 

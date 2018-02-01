@@ -5,7 +5,7 @@ var heightMap = wp.getHeightMap().fromFile('test_res/heightmap.png').go();
 var world = wp.createWorld().fromHeightMap(heightMap).go();
 
 // Use the same height map to set the default terrain. For the terrain indices
-// to use, see: http://www.worldpainter.net/trac/wiki/Scripting/TerrainTypeValues
+// to use, see: https://www.worldpainter.net/doc/scripting/legacy/terraintypevalues
 wp.applyHeightMap()
         .heightMap(heightMap)
         .world(world)
