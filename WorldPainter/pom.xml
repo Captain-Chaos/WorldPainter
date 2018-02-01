@@ -3,12 +3,12 @@
 
     <groupId>org.pepsoft.worldpainter</groupId>
     <artifactId>WorldPainter</artifactId>
-    <version>2.4.2-SNAPSHOT</version>
+    <version>2.4.2</version>
     <packaging>pom</packaging>
 
     <name>WorldPainter</name>
     <description>WorldPainter is an interactive map generator for Minecraft. It allows you to "paint" landscapes using similar tools as a regular paint program. Sculpt and mould the terrain, paint materials, trees, snow and ice, etc. onto it, and much more.</description>
-    <url>http://www.worldpainter.net/</url>
+    <url>https://www.worldpainter.net/</url>
     <inceptionYear>2011</inceptionYear>
 
     <licenses>
@@ -43,7 +43,7 @@
     <repositories>
         <repository>
             <id>worldpainter-private</id>
-            <url>http://www.worldpainter.net/maven-repo/</url>
+            <url>https://www.worldpainter.net/maven-repo/</url>
         </repository>
     </repositories>
 
