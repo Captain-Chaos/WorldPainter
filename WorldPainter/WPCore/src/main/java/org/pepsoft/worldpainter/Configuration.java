@@ -829,8 +829,15 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
             showBiomes = showBorders = true;
         }
         if (version < 14) {
-            defaultGameTypeObj = GameType.values()[defaultGameType];
-            defaultGameType = -1;
+            if (defaultGameType >= 0) {
+                defaultGameTypeObj = GameType.values()[defaultGameType];
+                defaultGameType = -1;
+            } else {
+                // Not sure how this could have happened, but it has been
+                // observed
+                defaultGameTypeObj = GameType.SURVIVAL;
+                defaultGameType = -1;
+            }
         }
         if (version < 15) {
             defaultPlatform = DefaultPlugin.JAVA_ANVIL;
