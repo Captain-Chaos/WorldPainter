@@ -19,7 +19,7 @@ import org.pepsoft.worldpainter.MixedMaterial.Row;
  *
  * @author pepijn
  */
-public class MixedMaterialTableModel implements TableModel {
+public final class MixedMaterialTableModel implements TableModel, Cloneable {
     public MixedMaterialTableModel(MixedMaterial material) {
         rows = Arrays.copyOf(material.getRows(), material.getRows().length);
         mode = material.getMode();
@@ -126,6 +126,30 @@ public class MixedMaterialTableModel implements TableModel {
         return mode;
     }
 
+    /**
+     * Adjusts the occurrences, if necessary, so that they total one thousand
+     * while keeping their proportions the same.
+     */
+    public void ensureTotalOccurenceIsThousand() {
+        int total = 0;
+        for (Row row: rows) {
+            total += row.occurrence;
+        }
+        if (total != 1000) {
+            float ratio = (float) 1000 / total;
+            total = 0;
+            for (int i = 0; i < rows.length; i++) {
+                if (i < (rows.length - 1)) {
+                    rows[i] = new Row(rows[i].material, (int) (rows[i].occurrence * ratio + 0.5f), rows[i].scale);
+                    total += rows[i].occurrence;
+                } else {
+                    rows[i] = new Row(rows[i].material, 1000 - total, rows[i].scale);
+                }
+            }
+            fireEvent(new TableModelEvent(this, 0, rows.length - 1, COLUMN_OCCURRENCE));
+        }
+    }
+
     // TableModel
     
     @Override
@@ -175,7 +199,6 @@ public class MixedMaterialTableModel implements TableModel {
         if ((rows.length == 1) && (columnIndex == COLUMN_OCCURRENCE) && (mode != Mode.LAYERED)) {
             throw new IllegalArgumentException("Uneditable cell");
         }
-        int occurrence = 0, oldOccurrence = 0;
         Row row = rows[rowIndex];
         switch (columnIndex) {
             case COLUMN_BLOCK_ID:
@@ -185,9 +208,9 @@ public class MixedMaterialTableModel implements TableModel {
                 row = new Row(Material.get(row.material.blockType, (Integer) aValue), row.occurrence, row.scale);
                 break;
             case COLUMN_OCCURRENCE:
-                oldOccurrence = row.occurrence;
+                int oldOccurrence = row.occurrence;
                 int maxValue = 1001 - rows.length;
-                occurrence = Math.min((Integer) aValue, maxValue);
+                int occurrence = Math.min((Integer) aValue, maxValue);
                 if (occurrence == oldOccurrence) {
                     return;
                 }
@@ -201,28 +224,8 @@ public class MixedMaterialTableModel implements TableModel {
         }
         rows[rowIndex] = row;
         
-        if ((mode != Mode.LAYERED) &&  (columnIndex == COLUMN_OCCURRENCE)) {
-            int remaining = 1000 - occurrence;
-            float factor = (float) remaining / (1000 - oldOccurrence);
-            for (int i = 0; i < rows.length; i++) {
-                if (i == rowIndex) {
-                    continue;
-                }
-                if ((rowIndex == rows.length - 1) ? (i < rows.length - 2) : (i < rows.length - 1)) {
-                    int newOccurrence = MathUtils.clamp(1, (int) (rows[i].occurrence * factor + 0.5f), 999);
-                    rows[i] = new Row(rows[i].material, newOccurrence, rows[i].scale);
-                    remaining -= newOccurrence;
-                } else {
-                    rows[i] = new Row(rows[i].material, remaining, rows[i].scale);
-                }
-            }
-
-            TableModelEvent event = new TableModelEvent(this, 0, rows.length - 1, columnIndex);
-            fireEvent(event);
-        } else {
-            TableModelEvent event = new TableModelEvent(this, rowIndex, rowIndex, columnIndex);
-            fireEvent(event);
-        }
+        TableModelEvent event = new TableModelEvent(this, rowIndex, rowIndex, columnIndex);
+        fireEvent(event);
     }
 
     @Override
@@ -233,6 +236,16 @@ public class MixedMaterialTableModel implements TableModel {
     @Override
     public void removeTableModelListener(TableModelListener l) {
         listeners.remove(l);
+    }
+
+    // Cloneable
+
+    @Override
+    public MixedMaterialTableModel clone() {
+        MixedMaterialTableModel clone = new MixedMaterialTableModel();
+        clone.mode = mode;
+        clone.rows = rows.clone();
+        return clone;
     }
 
     private void fireEvent(TableModelEvent event) {

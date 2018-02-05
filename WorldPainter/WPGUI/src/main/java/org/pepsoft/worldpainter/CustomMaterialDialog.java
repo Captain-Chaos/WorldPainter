@@ -112,6 +112,7 @@ public class CustomMaterialDialog extends WorldPainterDialog {
                 break;
             case 1:
                 // Complex
+                tableModel.ensureTotalOccurenceIsThousand();
                 Row[] rows = tableModel.getRows();
                 if (rows.length == 1) {
                     material.edit(
@@ -179,7 +180,9 @@ public class CustomMaterialDialog extends WorldPainterDialog {
                     checkBoxColour.isSelected() ? selectedColour : null);
             case 1:
                 // Complex
-                Row[] rows = tableModel.getRows().clone();
+                MixedMaterialTableModel tableModelClone = tableModel.clone();
+                tableModelClone.ensureTotalOccurenceIsThousand();
+                Row[] rows = tableModelClone.getRows();
                 if (rows.length == 1) {
                     return new MixedMaterial(
                             fieldName.getText(),

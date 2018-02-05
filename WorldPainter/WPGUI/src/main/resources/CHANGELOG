@@ -1,3 +1,7 @@
+-- Version 2.4.4, released ...
+
+ * The usability of the Complex Custom Material editor has been improved. Instead of continually adjusting the occurrences so that they add up to 1000‰, which made it extremely difficult to set them to exact values, that redistribution is now done when saving the material, in such a way that their proportions stay the same (so it will not affect the result)
+
 -- Version 2.4.3, released 5-2-2018
 
  * Bug fix: make loading schematics work again
