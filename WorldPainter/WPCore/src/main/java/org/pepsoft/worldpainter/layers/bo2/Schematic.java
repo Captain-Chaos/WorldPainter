@@ -68,6 +68,7 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
         } else {
             weOffsetX = weOffsetY = weOffsetZ = 0;
         }
+        dimensions = new Point3i(width, length, height);
         if (offset == null) {
             offset = guestimateOffset();
         }
@@ -84,7 +85,6 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
         } else {
             weOriginX = weOriginY = weOriginZ = 0;
         }
-        dimensions = new Point3i(width, length, height);
         this.attributes = attributes;
     }
 

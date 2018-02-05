@@ -160,6 +160,9 @@ public interface WPObject extends Serializable, Cloneable {
     /**
      * Guestimate an offset for the object. If an offset cannot be calculated
      * because the object is entirely empty, <code>null</code> will be returned.
+     *
+     * <p><strong>Note</strong> that this method calls {@link #getDimensions()}
+     * and {@link #getMask(int, int, int)}, so they must return valid values.
      */
     default Point3i guestimateOffset() {
         final Point3i dims = getDimensions();
