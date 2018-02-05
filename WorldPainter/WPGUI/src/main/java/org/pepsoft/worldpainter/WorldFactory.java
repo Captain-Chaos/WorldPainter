@@ -13,6 +13,7 @@ import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.MathUtils;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
+import static org.pepsoft.worldpainter.util.MathUtils.*;
 
 import org.pepsoft.worldpainter.MixedMaterial.Row;
 import org.pepsoft.worldpainter.biomeschemes.Minecraft1_2BiomeScheme;
@@ -22,6 +23,8 @@ import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.layers.exporters.FrostExporter;
 import org.pepsoft.worldpainter.themes.SimpleTheme;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -33,6 +36,11 @@ public final class WorldFactory {
     }
     
     public static World2 createDefaultWorld(final Configuration config, final long seed) {
+        if (config.isDefaultCircularWorld()) {
+            logger.info("Creating default circular world with {} tiles diameter (approximately {} tiles total)", config.getDefaultWidth(), (int) (Math.PI * config.getDefaultWidth() / 2 * config.getDefaultWidth() / 2 + 0.5));
+        } else {
+            logger.info("Creating default world of {} by {} tiles ({} tiles total)", config.getDefaultWidth(), config.getDefaultHeight(), config.getDefaultWidth() * config.getDefaultHeight());
+        }
         World2 world = createDefaultWorldWithoutTiles(config, seed);
         final boolean circularWorld = config.isDefaultCircularWorld();
         final int radius = config.getDefaultWidth() * 64;
@@ -46,7 +54,7 @@ public final class WorldFactory {
                 final int tileRadius = (radius + 127) / 128;
                 for (int x = -tileRadius; x < tileRadius; x++) {
                     for (int y = -tileRadius; y < tileRadius; y++) {
-                        if (org.pepsoft.worldpainter.util.MathUtils.getSmallestDistanceFromOrigin(x, y) < radius) {
+                        if (getSmallestDistanceFromOrigin(x, y) < radius) {
                             // At least one corner is inside the circle; include
                             // the tile. Note that this is always correct in
                             // this case only because the centre of the circle
@@ -55,7 +63,7 @@ public final class WorldFactory {
                             // the tile's corners being inside the circle
                             final Tile tile = tileFactory.createTile(x, y);
                             dim0.addTile(tile);
-                            if (org.pepsoft.worldpainter.util.MathUtils.getLargestDistanceFromOrigin(x, y) >= radius) {
+                            if (getLargestDistanceFromOrigin(x, y) >= radius) {
                                 // The tile is not completely inside the circle,
                                 // so use the Void layer to create the shape of
                                 // the edge
@@ -74,8 +82,13 @@ public final class WorldFactory {
                 
                 // Assume the user will want a void border by default; override
                 // the preferences
-                dim0.setBorder(Dimension.Border.VOID);
-                dim0.setBorderSize(2);
+                if ((dim0.getBorder() != null) && dim0.getBorder().isEndless()) {
+                    dim0.setBorder(Dimension.Border.ENDLESS_VOID);
+                    dim0.setBorderSize(0);
+                } else {
+                    dim0.setBorder(Dimension.Border.VOID);
+                    dim0.setBorderSize(2);
+                }
                 dim0.setBedrockWall(false);
             } else {
                 final int width = config.getDefaultWidth(), height = config.getDefaultHeight();
@@ -183,7 +196,7 @@ public final class WorldFactory {
                 final int tileRadius = (radius + 127) / 128;
                 for (int x = -tileRadius; x < tileRadius; x++) {
                     for (int y = -tileRadius; y < tileRadius; y++) {
-                        if (org.pepsoft.worldpainter.util.MathUtils.getSmallestDistanceFromOrigin(x, y) < radius) {
+                        if (getSmallestDistanceFromOrigin(x, y) < radius) {
                             // At least one corner is inside the circle; include
                             // the tile. Note that this is always correct in
                             // this case only because the centre of the circle
@@ -255,4 +268,6 @@ public final class WorldFactory {
         world.setDirty(false);
         return world;
     }
+
+    private static final Logger logger = LoggerFactory.getLogger(WorldFactory.class);
 }
