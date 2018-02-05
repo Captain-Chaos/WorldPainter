@@ -116,7 +116,11 @@ public abstract class MacUtils {
 
     static {
         if (JAVA_VERSION.isAtLeast(JAVA_9)) {
-            IMPL = new MacUtilsJava9();
+            try {
+                IMPL = (MacUtils) Class.forName("org.pepsoft.util.MacUtilsJava9").newInstance();
+            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+                throw new RuntimeException(e.getClass().getSimpleName() + " while loading Mac OS X support for Java 9", e);
+            }
         } else {
             IMPL = new MacUtilsJava8();
         }

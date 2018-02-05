@@ -20,6 +20,12 @@
             <artifactId>WPDynmapPreviewer</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.pepsoft.worldpainter</groupId>
+            <artifactId>WPJava9Support</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+        </dependency>
 
         <dependency>
             <groupId>com.intellij</groupId>

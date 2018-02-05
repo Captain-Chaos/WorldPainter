@@ -157,9 +157,7 @@ public final class DesktopUtils {
      * @param percentage The progress to display out of 100.
      */
     public static void setProgress(Window window, int percentage) {
-        if (SystemUtils.isWindows()) {
-            doOnEventThread(() -> ProgressHelper.setProgress(window, percentage));
-        }
+        doOnEventThread(() -> ProgressHelper.getInstance().setProgress(window, percentage));
     }
 
     /**
@@ -170,9 +168,7 @@ public final class DesktopUtils {
      *               display progress.
      */
     public static void setProgressDone(Window window) {
-        if (SystemUtils.isWindows()) {
-            doOnEventThread(() -> ProgressHelper.setProgressDone(window));
-        }
+        doOnEventThread(() -> ProgressHelper.getInstance().setProgressDone(window));
     }
 
     /**
@@ -187,9 +183,7 @@ public final class DesktopUtils {
      *               display progress.
      */
     public static void setProgressError(Window window) {
-        if (SystemUtils.isWindows()) {
-            doOnEventThread(() -> ProgressHelper.setProgressError(window));
-        }
+        doOnEventThread(() -> ProgressHelper.getInstance().setProgressError(window));
     }
 
     public static void main(String[] args) throws MalformedURLException {
