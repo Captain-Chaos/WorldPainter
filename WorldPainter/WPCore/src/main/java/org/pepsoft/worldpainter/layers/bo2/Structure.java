@@ -108,13 +108,17 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
     }
 
     public static Structure load(File file, MCInterface mcInterface) throws IOException {
-        CompoundTag root;
-        try (NBTInputStream in = new NBTInputStream(new GZIPInputStream(new BufferedInputStream(new FileInputStream(file))))) {
-            root = (CompoundTag) in.readTag();
-        }
         String name = file.getName();
         if (name.toLowerCase().endsWith(".nbt")) {
             name = name.substring(0, name.length() - 4).trim();
+        }
+        return load(name, new FileInputStream(file), mcInterface);
+    }
+
+    public static Structure load(String objectName, InputStream inputStream, MCInterface mcInterface) throws IOException {
+        CompoundTag root;
+        try (NBTInputStream in = new NBTInputStream(new GZIPInputStream(new BufferedInputStream(inputStream)))) {
+            root = (CompoundTag) in.readTag();
         }
 
         // Load the palette
@@ -137,7 +141,7 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
         root.setTag("palette", null);
         root.setTag("blocks", null);
 
-        return new Structure(root, name, blocks);
+        return new Structure(root, objectName, blocks);
     }
 
     private final CompoundTag root;
