@@ -13,8 +13,7 @@ import org.pepsoft.worldpainter.BiomeScheme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -119,9 +118,20 @@ public abstract class Minecraft1_12JarBiomeScheme extends AbstractMinecraft1_7Bi
                 blockClass.getMethod("e", blockDataClass));
 
         // Initialise Minecraft
-        Class<?> initClass = classLoader.loadClass(initClassName);
-        Method initMethod = initClass.getMethod("c");
-        initMethod.invoke(null);
+        // Minecraft replaces the system in- and output streams, but we don't
+        // want that
+        InputStream in = System.in;
+        PrintStream out = System.out;
+        PrintStream err = System.err;
+        try {
+            Class<?> initClass = classLoader.loadClass(initClassName);
+            Method initMethod = initClass.getMethod("c");
+            initMethod.invoke(null);
+        } finally {
+            System.setIn(in);
+            System.setOut(out);
+            System.setErr(err);
+        }
     }
 
     Class<?> worldGeneratorClass;
