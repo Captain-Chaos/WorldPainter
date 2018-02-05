@@ -37,6 +37,10 @@ public class RegressionIT {
         WPPluginManager.initialise(null);
     }
 
+    /**
+     * Test whether a version 2.3.6-era world can still be loaded and exported.
+     * Do some basic sanity checks of the results.
+     */
     @Test
     public void test2_3_6World() throws IOException, UnloadableWorldException, ProgressReceiver.OperationCancelled {
         World2 world = loadWorld("/testset/test-v2.3.6-1.world");
