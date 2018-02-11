@@ -46,7 +46,7 @@ public final class DonationDialog extends javax.swing.JDialog {
         jTextArea1.setFont(UIManager.getFont("TextField.font"));
         
         try {
-            URL buttonURL = new URL("http://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif");
+            URL buttonURL = new URL("https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif");
             try (InputStream in = buttonURL.openStream()) {
                 BufferedImage buttonImage = ImageIO.read(in);
                 // buttonImage is null if the image format is not supported:
