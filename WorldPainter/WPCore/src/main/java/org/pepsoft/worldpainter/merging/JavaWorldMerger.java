@@ -191,22 +191,28 @@ public class JavaWorldMerger extends JavaWorldExporter {
         Level level = Level.load(levelDatFile);
 
         // Sanity checks
-        int existingMaxHeight = level.getMaxHeight();
-        if (existingMaxHeight != world.getMaxHeight()) {
-            throw new IllegalArgumentException("Existing map has different max height (" + existingMaxHeight + ") than WorldPainter world (" + world.getMaxHeight() + ")");
-        }
-        int version = level.getVersion();
-        if ((version != SUPPORTED_VERSION_1) && (version != SUPPORTED_VERSION_2)) {
-            throw new IllegalArgumentException("Version of existing map not supported: 0x" + Integer.toHexString(version));
-        }
-
-        // Dimension sanity checks
-        for (Dimension dimension: world.getDimensions()) {
-            if (biomesOnly && (dimension.getDim() != DIM_NORMAL)) {
-                continue;
+        if (biomesOnly) {
+            int version = level.getVersion();
+            if (version == SUPPORTED_VERSION_1) {
+                throw new IllegalArgumentException("MCRegion (Minecraft 1.1) maps do not support biomes");
+            } else if (version != SUPPORTED_VERSION_2) {
+                throw new IllegalArgumentException("Version of existing map not supported: 0x" + Integer.toHexString(version));
             }
-            if (existingMaxHeight != dimension.getMaxHeight()) {
-                throw new IllegalArgumentException("Dimension " + dimension.getName() + " has different max height (" + dimension.getMaxHeight() + ") than existing map (" + existingMaxHeight + ")");
+        } else {
+            int existingMaxHeight = level.getMaxHeight();
+            if (existingMaxHeight != world.getMaxHeight()) {
+                throw new IllegalArgumentException("Existing map has different max height (" + existingMaxHeight + ") than WorldPainter world (" + world.getMaxHeight() + ")");
+            }
+            int version = level.getVersion();
+            if ((version != SUPPORTED_VERSION_1) && (version != SUPPORTED_VERSION_2)) {
+                throw new IllegalArgumentException("Version of existing map not supported: 0x" + Integer.toHexString(version));
+            }
+
+            // Dimension sanity checks
+            for (Dimension dimension : world.getDimensions()) {
+                if (existingMaxHeight != dimension.getMaxHeight()) {
+                    throw new IllegalArgumentException("Dimension " + dimension.getName() + " has different max height (" + dimension.getMaxHeight() + ") than existing map (" + existingMaxHeight + ")");
+                }
             }
         }
 
@@ -846,26 +852,13 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
             throw new IOException("Could not create " + worldDir);
         }
         
-        // Set the world to the same Minecraft version as the existing map, in
-        // case it has changed. This affects the type of chunks created in the
-        // first pass
-        world.setPlatform(DefaultPlugin.JAVA_ANVIL);
-        
-        // Modify it if necessary and write it to the the new level
-        Dimension dimension = world.getDimension(0);
-        level.setSeed(dimension.getMinecraftSeed());
-        
         // Copy everything that we are not going to generate (this includes the
         // Nether and End dimensions)
         File[] files = backupDir.listFiles();
         //noinspection ConstantConditions // Cannot happen because we previously loaded level.dat from it
         for (File file: files) {
-            if ((! file.getName().equalsIgnoreCase("level.dat"))
-                    && (! file.getName().equalsIgnoreCase("level.dat_old"))
-                    && (! file.getName().equalsIgnoreCase("session.lock"))
-                    && (! file.getName().equalsIgnoreCase("region"))
-                    && (! file.getName().equalsIgnoreCase("maxheight.txt"))
-                    && (! file.getName().equalsIgnoreCase("Height.txt"))) {
+            if ((! file.getName().equalsIgnoreCase("session.lock"))
+                    && (! file.getName().equalsIgnoreCase("region"))) {
                 if (file.isFile()) {
                     FileUtils.copyFileToDir(file, worldDir);
                 } else if (file.isDirectory()) {
@@ -876,7 +869,11 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
             }
         }
 
-        level.save(worldDir);
+        // Write session.lock file
+        File sessionLockFile = new File(worldDir, "session.lock");
+        try (DataOutputStream sessionOut = new DataOutputStream(new FileOutputStream(sessionLockFile))) {
+            sessionOut.writeLong(System.currentTimeMillis());
+        }
         
         // Process all chunks and copy just the biomes
         if (progressReceiver != null) {
@@ -893,6 +890,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         int totalChunkCount = oldRegionFiles.length * 32 * 32, chunkCount = 0;
         File newRegionDir = new File(worldDir, "region");
         newRegionDir.mkdirs();
+        Dimension dimension = world.getDimension(DIM_NORMAL);
         for (File file: oldRegionFiles) {
             try (RegionFile oldRegion = new RegionFile(file)) {
                 String[] parts = file.getName().split("\\.");
@@ -926,6 +924,11 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                     }
                 }
             }
+        }
+
+        // Rewrite session.lock file
+        try (DataOutputStream sessionOut = new DataOutputStream(new FileOutputStream(sessionLockFile))) {
+            sessionOut.writeLong(System.currentTimeMillis());
         }
     }
     
