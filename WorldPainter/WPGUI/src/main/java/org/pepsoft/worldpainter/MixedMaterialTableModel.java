@@ -140,11 +140,26 @@ public final class MixedMaterialTableModel implements TableModel, Cloneable {
             total = 0;
             for (int i = 0; i < rows.length; i++) {
                 if (i < (rows.length - 1)) {
-                    rows[i] = new Row(rows[i].material, (int) (rows[i].occurrence * ratio + 0.5f), rows[i].scale);
-                    total += rows[i].occurrence;
+                    rows[i] = new Row(rows[i].material, Math.max((int) (rows[i].occurrence * ratio + 0.5f), 1), rows[i].scale);
                 } else {
-                    rows[i] = new Row(rows[i].material, 1000 - total, rows[i].scale);
+                    rows[i] = new Row(rows[i].material, Math.max(1000 - total, 1), rows[i].scale);
                 }
+                total += rows[i].occurrence;
+            }
+            while (total > 1000) {
+                // This can happen if one or more rows have had to be rounded up
+                // because they would have otherwise been zero. This crude
+                // algorithm keeps stealing from the highest row (where the
+                // relative effect will be the smallest) until the total is 1000
+                int highestRowOccurrence = -1, highestRowIndex = -1;
+                for (int i = 0; i < rows.length; i++) {
+                    if (rows[i].occurrence > highestRowOccurrence) {
+                        highestRowOccurrence = rows[i].occurrence;
+                        highestRowIndex = i;
+                    }
+                }
+                rows[highestRowIndex] = new Row(rows[highestRowIndex].material, rows[highestRowIndex].occurrence - 1, rows[highestRowIndex].scale);
+                total--;
             }
             fireEvent(new TableModelEvent(this, 0, rows.length - 1, COLUMN_OCCURRENCE));
         }
