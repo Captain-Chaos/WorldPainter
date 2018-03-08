@@ -130,13 +130,13 @@ public final class MixedMaterialTableModel implements TableModel, Cloneable {
      * Adjusts the occurrences, if necessary, so that they total one thousand
      * while keeping their proportions the same.
      */
-    public void ensureTotalOccurenceIsThousand() {
+    public void normalise() {
         int total = 0;
         for (Row row: rows) {
             total += row.occurrence;
         }
         if (total != 1000) {
-            float ratio = (float) 1000 / total;
+            float ratio = 1000f / total;
             total = 0;
             for (int i = 0; i < rows.length; i++) {
                 if (i < (rows.length - 1)) {
