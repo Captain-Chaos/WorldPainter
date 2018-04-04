@@ -17,4 +17,4 @@ Maven, or using your favourite IDE. However there are some missing dependencies
 which are not in Maven Central which you will have to install locally first. For
 full details, see:
 
-http://www.worldpainter.net/trac/wiki/BuildingWorldPainter
+https://www.worldpainter.net/doc/building
