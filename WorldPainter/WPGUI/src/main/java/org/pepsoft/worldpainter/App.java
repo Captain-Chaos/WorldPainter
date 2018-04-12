@@ -282,7 +282,18 @@ public final class App extends JFrame implements RadiusControl,
         GraphicsDevice graphicsDevice = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
         DisplayMode displayMode = graphicsDevice.getDisplayMode();
         ImageCapabilities imageCapabilities = graphicsDevice.getDefaultConfiguration().getImageCapabilities();
-        logger.info("Default graphics device, ID string: " + graphicsDevice.getIDstring() + ", available accelerated memory: " + graphicsDevice.getAvailableAcceleratedMemory() + ", display mode: " + displayMode.getWidth() + "x" + displayMode.getHeight() + ", bit depth: " + ((displayMode.getBitDepth() == DisplayMode.BIT_DEPTH_MULTI) ? "multi" : displayMode.getBitDepth()) + ", refresh rate: " + ((displayMode.getRefreshRate() == DisplayMode.REFRESH_RATE_UNKNOWN) ? "unknown" : displayMode.getRefreshRate()) + ", reported dpi: " + Toolkit.getDefaultToolkit().getScreenResolution() + ", accelerated: " + (imageCapabilities.isAccelerated() ? "yes" : "no") + ", true volatile: " + (imageCapabilities.isTrueVolatile() ? "yes" : "no"));
+        int availableAcceleratedMemory = graphicsDevice.getAvailableAcceleratedMemory();
+        logger.info("Default graphics device, ID string: {}, available accelerated memory: {}, display mode: {}x{}, bit depth: {}, refresh rate: {}, reported dpi: {}, accelerated: {}, true volatile: {}",
+                graphicsDevice.getIDstring(),
+                (availableAcceleratedMemory == -1) ? "unknown" : (0x00000000ffffffffL & availableAcceleratedMemory) + " bytes",
+                displayMode.getWidth(),
+                displayMode.getHeight(),
+                (displayMode.getBitDepth() == DisplayMode.BIT_DEPTH_MULTI) ? "multi" : displayMode.getBitDepth(),
+                (displayMode.getRefreshRate() == DisplayMode.REFRESH_RATE_UNKNOWN) ? "unknown" : displayMode.getRefreshRate(),
+                Toolkit.getDefaultToolkit().getScreenResolution(),
+                imageCapabilities.isAccelerated() ? "yes" : "no",
+                imageCapabilities.isTrueVolatile() ? "yes" : "no"
+        );
         if (GUIUtils.UI_SCALE > 1) {
             logger.info("High resolution display support enabled");
         }
