@@ -4,11 +4,14 @@ import java.awt.*;
 import java.util.Map;
 import java.util.WeakHashMap;
 
+import static java.awt.Taskbar.Feature.PROGRESS_STATE_WINDOW;
 import static java.awt.Taskbar.Feature.PROGRESS_VALUE_WINDOW;
 
 class ProgressHelperJava9 extends ProgressHelper {
     ProgressHelperJava9() {
-        enabled = Taskbar.isTaskbarSupported() && Taskbar.getTaskbar().isSupported(PROGRESS_VALUE_WINDOW);
+        enabled = Taskbar.isTaskbarSupported()
+                && Taskbar.getTaskbar().isSupported(PROGRESS_VALUE_WINDOW)
+                && Taskbar.getTaskbar().isSupported(PROGRESS_STATE_WINDOW);
     }
 
     @Override
