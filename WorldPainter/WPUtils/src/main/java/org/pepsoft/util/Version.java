@@ -13,9 +13,9 @@ import java.util.stream.Collectors;
  *
  * @author pepijn
  */
-public class Version implements Comparable<Version>, Serializable {
+public final class Version implements Comparable<Version>, Serializable {
     public Version(int... parts) {
-        this.parts = parts;
+        this.parts = parts.clone();
         for (int part: parts) {
             if (part < 0) {
                 throw new IllegalArgumentException("Negative numbers not allowed");
@@ -24,7 +24,7 @@ public class Version implements Comparable<Version>, Serializable {
     }
 
     public int[] getParts() {
-        return Arrays.copyOf(parts, parts.length);
+        return parts.clone();
     }
 
     public boolean isAtLeast(Version version) {
