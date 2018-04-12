@@ -96,17 +96,18 @@ public class Main {
 
         // Parse the command line
         File myFile = null;
-        boolean mySafeMode = false;
         for (String arg: args) {
             if (arg.trim().toLowerCase().equals("--safe")) {
-                mySafeMode = true;
-                logger.info("WorldPainter running in safe mode");
+                System.setProperty("org.pepsoft.worldpainter.safeMode", "true");
             } else if (new File(arg).isFile()) {
                 myFile = new File(args[0]);
             }
         }
         final File file = myFile;
-        boolean safeMode = mySafeMode;
+        boolean safeMode = "true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.safeMode"));
+        if (safeMode) {
+            logger.info("WorldPainter running in safe mode");
+        }
 
         // Set the acceleration mode. For some reason we don't fully understand,
         // loading the Configuration from disk initialises Java2D, so we have to
@@ -316,8 +317,13 @@ public class Main {
 
         final World2 world;
         if (file == null) {
-            world = WorldFactory.createDefaultWorld(config, new Random().nextLong());
-//            world = WorldFactory.createFancyWorld(config, new Random().nextLong());
+            if (! safeMode) {
+                world = WorldFactory.createDefaultWorld(config, new Random().nextLong());
+//                world = WorldFactory.createFancyWorld(config, new Random().nextLong());
+            } else {
+                logger.info("[SAFE MODE] Using default configuration for default world");
+                world = WorldFactory.createDefaultWorld(new Configuration(), new Random().nextLong());
+            }
         } else {
             world = null;
         }
@@ -336,49 +342,50 @@ public class Main {
         
         final Configuration.LookAndFeel lookAndFeel = (config.getLookAndFeel() != null) ? config.getLookAndFeel() : Configuration.LookAndFeel.SYSTEM;
         SwingUtilities.invokeLater(() -> {
-            // Install configured look and feel
-            try {
-                String laf;
-                if ((GUIUtils.UI_SCALE > 1) || safeMode) {
-                    laf = UIManager.getSystemLookAndFeelClassName();
-                } else {
-                    switch (lookAndFeel) {
-                        case SYSTEM:
-                            laf = UIManager.getSystemLookAndFeelClassName();
-                            break;
-                        case METAL:
-                            laf = "javax.swing.plaf.metal.MetalLookAndFeel";
-                            break;
-                        case NIMBUS:
-                            laf = "javax.swing.plaf.nimbus.NimbusLookAndFeel";
-                            break;
-                        case DARK_METAL:
-                            laf = "org.netbeans.swing.laf.dark.DarkMetalLookAndFeel";
-                            break;
-                        case DARK_NIMBUS:
-                            laf = "org.netbeans.swing.laf.dark.DarkNimbusLookAndFeel";
-                            break;
-                        default:
-                            throw new InternalError();
+            if (safeMode) {
+                logger.info("[SAFE MODE] Not installing visual theme");
+            } else {
+                // Install configured look and feel
+                try {
+                    String laf;
+                    if (GUIUtils.UI_SCALE > 1) {
+                        laf = UIManager.getSystemLookAndFeelClassName();
+                    } else {
+                        switch (lookAndFeel) {
+                            case SYSTEM:
+                                laf = UIManager.getSystemLookAndFeelClassName();
+                                break;
+                            case METAL:
+                                laf = "javax.swing.plaf.metal.MetalLookAndFeel";
+                                break;
+                            case NIMBUS:
+                                laf = "javax.swing.plaf.nimbus.NimbusLookAndFeel";
+                                break;
+                            case DARK_METAL:
+                                laf = "org.netbeans.swing.laf.dark.DarkMetalLookAndFeel";
+                                break;
+                            case DARK_NIMBUS:
+                                laf = "org.netbeans.swing.laf.dark.DarkNimbusLookAndFeel";
+                                break;
+                            default:
+                                throw new InternalError();
+                        }
                     }
-                }
-                if (safeMode) {
-                    logger.info("[SAFE MODE] Installing system visual theme");
-                }
-                logger.debug("Installing look and feel: " + laf);
-                UIManager.setLookAndFeel(laf);
-                LookAndFeelFactory.installJideExtension();
-                if ((GUIUtils.UI_SCALE == 1) && ((lookAndFeel == Configuration.LookAndFeel.DARK_METAL)
-                        || (lookAndFeel == Configuration.LookAndFeel.DARK_NIMBUS)) && (! safeMode)) {
-                    // Patch some things to make dark themes look better
-                    VoidRenderer.setColour(UIManager.getColor("Panel.background").getRGB());
-                    if (lookAndFeel == Configuration.LookAndFeel.DARK_METAL) {
-                        UIManager.put("ContentContainer.background", UIManager.getColor("desktop"));
-                        UIManager.put("JideTabbedPane.foreground", new Color(222, 222, 222));
+                    logger.debug("Installing look and feel: " + laf);
+                    UIManager.setLookAndFeel(laf);
+                    LookAndFeelFactory.installJideExtension();
+                    if ((GUIUtils.UI_SCALE == 1) && ((lookAndFeel == Configuration.LookAndFeel.DARK_METAL)
+                            || (lookAndFeel == Configuration.LookAndFeel.DARK_NIMBUS))) {
+                        // Patch some things to make dark themes look better
+                        VoidRenderer.setColour(UIManager.getColor("Panel.background").getRGB());
+                        if (lookAndFeel == Configuration.LookAndFeel.DARK_METAL) {
+                            UIManager.put("ContentContainer.background", UIManager.getColor("desktop"));
+                            UIManager.put("JideTabbedPane.foreground", new Color(222, 222, 222));
+                        }
                     }
+                } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
+                    logger.warn("Could not install selected look and feel", e);
                 }
-            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
-                logger.warn("Could not install selected look and feel", e);
             }
 
             // Don't paint values above sliders in GTK look and feel

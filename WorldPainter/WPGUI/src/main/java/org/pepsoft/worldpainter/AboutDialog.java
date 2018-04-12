@@ -205,7 +205,11 @@ public class AboutDialog extends javax.swing.JDialog implements WindowListener {
         }
         File minecraftDir = MinecraftUtil.findMinecraftDir();
         File configDir = Configuration.getConfigDir();
-        String message = MessageFormat.format(strings.getString("worldpainter.version.0.njava.version.1.noperating.system.2.3.version.4.n"), Version.VERSION, Version.BUILD, System.getProperty("java.version"), System.getProperty("os.name"), System.getProperty("os.arch"), System.getProperty("os.version"));
+        String message = "";
+        if ("true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.safeMode"))) {
+            message += "WorldPainter is running in safe mode\n";
+        }
+        message += MessageFormat.format(strings.getString("worldpainter.version.0.njava.version.1.noperating.system.2.3.version.4.n"), Version.VERSION, Version.BUILD, System.getProperty("java.version"), System.getProperty("os.name"), System.getProperty("os.arch"), System.getProperty("os.version"));
         if (installDir != null) {
             message += MessageFormat.format(strings.getString("installation.directory.0.n"), installDir);
         }

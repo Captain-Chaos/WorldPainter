@@ -141,7 +141,8 @@ public final class App extends JFrame implements RadiusControl,
         operations = OperationManager.getInstance().getOperations();
         setMaxRadius(config.getMaximumBrushSize());
 
-        loadCustomBrushes();
+        boolean safeMode = "true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.safeMode"));
+        loadCustomBrushes(safeMode);
         
         brushOptions = new BrushOptions();
         brushOptions.setListener(this);
@@ -151,7 +152,7 @@ public final class App extends JFrame implements RadiusControl,
             installMacCustomisations();
         }
 
-        initComponents();
+        initComponents(safeMode);
 
         getRootPane().putClientProperty(HELP_KEY_KEY, "Main");
 
@@ -1596,7 +1597,15 @@ public final class App extends JFrame implements RadiusControl,
     public DockingManager getDockingManager() {
         return dockingManager;
     }
-    
+
+    // JFrame
+
+    @Override
+    public void setTitle(String title) {
+        boolean safeMode = "true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.safeMode"));
+        super.setTitle(safeMode ? (title + " [SAFE MODE]") : title);
+    }
+
     void exit() {
         if (saveIfNecessary()) {
             System.exit(0);
@@ -1624,11 +1633,15 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
 
-    private void loadCustomBrushes() {
+    private void loadCustomBrushes(boolean safeMode) {
         customBrushes = new TreeMap<>();
-        File brushesDir = new File(Configuration.getConfigDir(), "brushes");
-        if (brushesDir.isDirectory()) {
-            loadCustomBrushes(CUSTOM_BRUSHES_DEFAULT_TITLE, brushesDir);
+        if (! safeMode) {
+            File brushesDir = new File(Configuration.getConfigDir(), "brushes");
+            if (brushesDir.isDirectory()) {
+                loadCustomBrushes(CUSTOM_BRUSHES_DEFAULT_TITLE, brushesDir);
+            }
+        } else {
+            logger.info("[SAFE MODE] Not loading custom brushes");
         }
     }
     
@@ -2112,7 +2125,7 @@ public final class App extends JFrame implements RadiusControl,
         glassPane.setScale((float) factor);
     }
 
-    private void initComponents() {
+    private void initComponents(boolean safeMode) {
         view = new WorldPainter(selectedColourScheme, autoBiomeScheme, customBiomeManager);
         Configuration config = Configuration.getInstance();
         if (config.getBackgroundColour() == -1) {
@@ -2124,17 +2137,21 @@ public final class App extends JFrame implements RadiusControl,
         view.setDrawBiomes(config.isShowBiomes());
         view.setBackgroundImageMode(config.getBackgroundImageMode());
         if (config.getBackgroundImage() != null) {
-            new Thread("Background Image Loader") {
-                @Override
-                public void run() {
-                    try {
-                        BufferedImage image = ImageIO.read(config.getBackgroundImage());
-                        SwingUtilities.invokeLater(() -> view.setBackgroundImage(image));
-                    } catch (IOException e) {
-                        logger.error("I/O error loading background image; disabling background image", e);
+            if (! safeMode) {
+                new Thread("Background Image Loader") {
+                    @Override
+                    public void run() {
+                        try {
+                            BufferedImage image = ImageIO.read(config.getBackgroundImage());
+                            SwingUtilities.invokeLater(() -> view.setBackgroundImage(image));
+                        } catch (IOException e) {
+                            logger.error("I/O error loading background image; disabling background image", e);
+                        }
                     }
-                }
-            }.start();
+                }.start();
+            } else {
+                logger.info("[SAFE MODE] Not loading background image");
+            }
         }
         view.setRadius(radius);
         view.setBrushShape(brush.getBrushShape());

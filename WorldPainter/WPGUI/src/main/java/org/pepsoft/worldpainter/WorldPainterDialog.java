@@ -56,7 +56,13 @@ public class WorldPainterDialog extends JDialog {
     public final boolean isCancelled() {
         return cancelled;
     }
-    
+
+    @Override
+    public void setTitle(String title) {
+        boolean safeMode = "true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.safeMode"));
+        super.setTitle(safeMode ? (title + " [SAFE MODE]") : title);
+    }
+
     protected void ok() {
         cancelled = false;
         dispose();

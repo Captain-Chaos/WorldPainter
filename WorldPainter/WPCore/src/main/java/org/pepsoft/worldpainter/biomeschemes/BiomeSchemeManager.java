@@ -76,13 +76,23 @@ public class BiomeSchemeManager {
             SortedMap<Version, BiomeJar> biomeJars = BIOME_JARS.get(biomeAlgorithm);
             if ((biomeJars != null) && (! biomeJars.isEmpty())) {
                 // We have a jar for this biome scheme
-                final BiomeJar biomeJar = biomeJars.get(biomeJars.lastKey());
-                logger.info("Creating biome scheme " + version + " from " + biomeJar.file.getAbsolutePath());
-                BiomeScheme biomeScheme = biomeJar.descriptor.instantiate(biomeJar.file, minecraftDir, biomeJar.checksum);
-                if (shared) {
-                    BIOME_SCHEMES.put(biomeAlgorithm, biomeScheme);
+                if ("true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.safeMode"))) {
+                    logger.info("[SAFE MODE] Not creating biome scheme");
+                    return null;
+                } else {
+                    final BiomeJar biomeJar = biomeJars.get(biomeJars.lastKey());
+                    logger.info("Creating biome scheme " + version + " from " + biomeJar.file.getAbsolutePath());
+                    try {
+                        BiomeScheme biomeScheme = biomeJar.descriptor.instantiate(biomeJar.file, minecraftDir, biomeJar.checksum);
+                        if (shared) {
+                            BIOME_SCHEMES.put(biomeAlgorithm, biomeScheme);
+                        }
+                        return biomeScheme;
+                    } catch (RuntimeException | Error e) {
+                        logger.error("{} while instantiating biome scheme of type {} from {}", e.getClass().getSimpleName(), biomeJar.descriptor._class.getName(), biomeJar.file.getAbsolutePath(), e);
+                        return null;
+                    }
                 }
-                return biomeScheme;
             } else {
                 if (logger.isDebugEnabled()) {
                     logger.debug("Could not find compatible jar for biome scheme " + version);

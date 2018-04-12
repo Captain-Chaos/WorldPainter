@@ -21,8 +21,6 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileFilter;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
@@ -187,12 +185,24 @@ public class ConfigureViewDialog extends WorldPainterDialog implements WindowLis
     }
 
     private void updateBackgroundImageFile() {
+        boolean safeMode = "true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.safeMode"));
         File file = new File(fieldBackgroundImage.getText());
-        BufferedImage image = loadImage(file);
-        if (image != null) {
-            // The loading succeeded
-            Configuration.getInstance().setBackgroundImage(file);
-            view.setBackgroundImage(image);
+        if (! safeMode) {
+            BufferedImage image = loadImage(file);
+            if (image != null) {
+                // The loading succeeded
+                Configuration.getInstance().setBackgroundImage(file);
+                view.setBackgroundImage(image);
+            }
+        } else {
+            // Don't try to load the image, as that may have been what was
+            // crashing, but do store the new value in the configuration, as
+            // long as the file exists and is readable, so that it is still
+            // possible to change the configured background image in safe mode
+            if (file.isFile() && file.canRead()) {
+                logger.info("[SAFE MODE] Not loading background image");
+                Configuration.getInstance().setBackgroundImage(file);
+            }
         }
     }
 
