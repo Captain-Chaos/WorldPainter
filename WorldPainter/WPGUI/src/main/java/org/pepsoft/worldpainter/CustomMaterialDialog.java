@@ -887,9 +887,9 @@ public class CustomMaterialDialog extends WorldPainterDialog {
 
     private void jLabel4MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel4MouseClicked
         try {
-            DesktopUtils.open(new URL("http://www.minecraftwiki.net/wiki/Data_values"));
+            DesktopUtils.open(new URL("https://www.worldpainter.net/links/dataValues"));
         } catch (MalformedURLException e) {
-            throw new RuntimeException("Malformed URL exception while trying to open http://www.minecraftwiki.net/wiki/Data_values", e);
+            throw new RuntimeException("Malformed URL exception while trying to open https://www.worldpainter.net/links/dataValues", e);
         }
     }//GEN-LAST:event_jLabel4MouseClicked
 
@@ -958,9 +958,9 @@ public class CustomMaterialDialog extends WorldPainterDialog {
 
     private void jLabel12MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel12MouseClicked
         try {
-            DesktopUtils.open(new URL("http://www.minecraftwiki.net/wiki/Data_values"));
+            DesktopUtils.open(new URL("https://www.worldpainter.net/links/dataValues"));
         } catch (MalformedURLException e) {
-            throw new RuntimeException("Malformed URL exception while trying to open http://www.minecraftwiki.net/wiki/Data_values", e);
+            throw new RuntimeException("Malformed URL exception while trying to open https://www.worldpainter.net/links/dataValues", e);
         }
     }//GEN-LAST:event_jLabel12MouseClicked
 
