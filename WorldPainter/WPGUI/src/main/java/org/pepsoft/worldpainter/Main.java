@@ -13,6 +13,7 @@ import com.jidesoft.plaf.LookAndFeelFactory;
 import com.jidesoft.utils.Lm;
 import org.pepsoft.util.GUIUtils;
 import org.pepsoft.util.PluginManager;
+import org.pepsoft.util.SystemUtils;
 import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
 import org.pepsoft.worldpainter.browser.WPTrustManager;
 import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
@@ -46,6 +47,9 @@ import java.util.List;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
+import static com.jidesoft.plaf.LookAndFeelFactory.EXTENSION_STYLE_VSNET_WITHOUT_MENU;
+import static org.pepsoft.util.SystemUtils.JAVA_10;
+import static org.pepsoft.util.SystemUtils.JAVA_VERSION;
 import static org.pepsoft.worldpainter.Constants.ATTRIBUTE_KEY_PLUGINS;
 import static org.pepsoft.worldpainter.Constants.ATTRIBUTE_KEY_SAFE_MODE;
 
@@ -373,7 +377,13 @@ public class Main {
                     }
                     logger.debug("Installing look and feel: " + laf);
                     UIManager.setLookAndFeel(laf);
-                    LookAndFeelFactory.installJideExtension();
+                    if (SystemUtils.isMac() && JAVA_VERSION.isAtLeast(JAVA_10)) {
+                        // Work around a bug in JIDE 3.7.2
+                        // TODO: remove when the fixed version of JIDE is released
+                        LookAndFeelFactory.installJideExtension(EXTENSION_STYLE_VSNET_WITHOUT_MENU);
+                    } else {
+                        LookAndFeelFactory.installJideExtension();
+                    }
                     if ((GUIUtils.UI_SCALE == 1) && ((lookAndFeel == Configuration.LookAndFeel.DARK_METAL)
                             || (lookAndFeel == Configuration.LookAndFeel.DARK_NIMBUS))) {
                         // Patch some things to make dark themes look better

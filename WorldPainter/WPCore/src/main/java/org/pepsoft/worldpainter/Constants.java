@@ -5,7 +5,6 @@
 
 package org.pepsoft.worldpainter;
 
-import org.pepsoft.util.Version;
 import org.pepsoft.worldpainter.vo.AttributeKeyVO;
 
 /**
@@ -79,8 +78,6 @@ public final class Constants {
     public static final String EVENT_KEY_DONATION_ASK_LATER       = "donation.askLater";
     public static final String EVENT_KEY_DONATION_NO_THANKS       = "donation.noThanks";
     public static final String EVENT_KEY_DONATION_CLOSED          = "donation.closed";
-
-    public static final Version JAVA_VERSION = Version.parse(System.getProperty("java.specification.version"));
 
     public static final int BIOME_ALGORITHM_1_1                 =  4;
     public static final int BIOME_ALGORITHM_1_2_AND_1_3_DEFAULT =  5;

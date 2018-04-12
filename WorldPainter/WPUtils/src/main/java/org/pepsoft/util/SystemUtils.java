@@ -29,9 +29,15 @@ public final class SystemUtils {
         return OPERATING_SYSTEM == OS.LINUX;
     }
 
+    public static Version getJavaVersion() {
+        return JAVA_VERSION;
+    }
+
     public static final Version JAVA_VERSION = Version.parse(System.getProperty("java.specification.version"));
-    public static final Version JAVA_9 = new Version(9);
-    public static final Version JAVA_8 = new Version(1, 8);
+    public static final Version JAVA_11 = new Version(11);
+    public static final Version JAVA_10 = new Version(10);
+    public static final Version JAVA_9  = new Version(9);
+    public static final Version JAVA_8  = new Version(1, 8);
 
     private static final OS OPERATING_SYSTEM;
     
