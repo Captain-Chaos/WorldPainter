@@ -4,6 +4,10 @@
  */
 package org.pepsoft.worldpainter.util;
 
+import org.pepsoft.util.SystemUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 
 /**
@@ -17,19 +21,41 @@ public class MinecraftUtil {
     
     public static File findMinecraftDir() {
         File candidate;
-        String appData = System.getenv("APPDATA");
-        if (appData != null) {
-            candidate = new File(appData, ".minecraft");
+        String env = System.getProperty("org.pepsoft.worldpainter.minecraftDir");
+        if (env != null) {
+            candidate = new File(env);
             if (candidate.isDirectory()) {
+                return candidate;
+            } else {
+                logger.error("Minecraft directory from system property does not exist: {}; continuing without Minecraft installation", env);
+                return null;
+            }
+        }
+        if (SystemUtils.isWindows()) {
+            String appData = System.getenv("APPDATA");
+            if (appData != null) {
+                candidate = new File(appData, ".minecraft");
+                if (candidate.isDirectory()) {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Using Minecraft installation in {}", candidate);
+                    }
+                    return candidate;
+                }
+            }
+        } else if (SystemUtils.isMac()) {
+            candidate = new File(System.getProperty("user.home"), "Library/Application Support/minecraft");
+            if (candidate.isDirectory()) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Using Minecraft installation in {}", candidate);
+                }
                 return candidate;
             }
         }
-        candidate = new File(System.getProperty("user.home"), "Library/Application Support/minecraft");
-        if (candidate.isDirectory()) {
-            return candidate;
-        }
         candidate = new File(System.getProperty("user.home"), ".minecraft");
         if (candidate.isDirectory()) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Using Minecraft installation in {}", candidate);
+            }
             return candidate;
         }
         return null;
@@ -51,4 +77,6 @@ public class MinecraftUtil {
         }
         return null;
     }
+
+    private static final Logger logger = LoggerFactory.getLogger(MinecraftUtil.class);
 }
