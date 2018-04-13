@@ -26,7 +26,7 @@ abstract class ProgressHelper {
             try {
                 IMPL = (ProgressHelper) Class.forName("org.pepsoft.util.ProgressHelperJava9").newInstance();
             } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-                throw new RuntimeException(e.getClass().getSimpleName() + " while loading Mac OS X support for Java 9", e);
+                throw new RuntimeException(e.getClass().getSimpleName() + " while loading progress reporting support for Java 9", e);
             }
         } else {
             IMPL = new ProgressHelperJava8();
