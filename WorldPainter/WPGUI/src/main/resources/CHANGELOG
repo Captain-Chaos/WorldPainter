@@ -1,6 +1,10 @@
--- Version 2.4.4, released ...
+-- Version 2.4.4, released 13-4-2018
 
  * The usability of the Complex Custom Material editor has been improved. Instead of continually adjusting the occurrences so that they add up to 1000‰, which made it extremely difficult to set them to exact values, that redistribution is now done when saving the material, in such a way that their proportions stay the same (so it will not affect the result)
+ * WorldPainter can now be started in safe mode. In this mode it will not load plugins or custom brushes; not change the visual theme; not load the background image; etc.. This may allow it to start successfully if a problem with one of these is causing normal startup to fail. Functionality may be limited; this mode is not intended for doing work, but for diagnosing problems and changing preferences. To start WorldPainter in safe mode, use the new "WorldPainter (Safe Mode)" start menu entry, or on the command line add the parameter "--safe"
+ * An advanced setting has been added to specify the Minecraft installation directory, if you have it installed in a non-standard location. See https://www.worldpainter.net/doc/advancedSettings for details
+ * For unknown reasons, initialising the Minecraft runtime in order to be able to load .nbt files sometimes failed, causing an error when trying to add custom objects to a Custom Object Layer. This failure should now happen silently so that you can continue normally (but without .nbt support)
+ * A workaround has been implemented for a bug in the JIDE docking framework that prevented WorldPainter from starting on Mac OS X with Java 10 installed
 
 -- Version 2.4.3, released 5-2-2018
 
