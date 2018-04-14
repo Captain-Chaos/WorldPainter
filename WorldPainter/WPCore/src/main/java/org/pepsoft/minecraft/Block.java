@@ -187,7 +187,7 @@ public final class Block implements Serializable {
     // 15 being fully opaque
     static {
         System.arraycopy(new Block[] {
-//                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
+//                         ID, Tr,                      Display Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
                 new Block(  0,  0,                             "Air", false, false,  true, false, false, false, false,  0,  true),
                 new Block(  1, 15,                           "Stone",  true, false, false, false, false, false, false,  0,  true),
                 new Block(  2, 15,                           "Grass",  true, false, false, false, false, false, false,  0,  true),
@@ -198,7 +198,7 @@ public final class Block implements Serializable {
                 new Block(  7, 15,                         "Bedrock",  true, false, false, false, false, false, false,  0,  true),
                 new Block(  8,  3,                           "Water", false, false,  true, false, false, false, false,  0,  true),
                 new Block(  9,  3,                "Stationary Water", false, false,  true, false, false, false, false,  0,  true),
-//                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
+//                         ID, Tr,                      Display Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
                 new Block( 10,  0,                            "Lava", false, false,  true, false, false, false, false, 15,  true),
                 new Block( 11,  0,                 "Stationary Lava", false, false,  true, false, false, false, false, 15,  true),
                 new Block( 12, 15,                            "Sand",  true, false, false, false, false, false, false,  0,  true),
@@ -209,7 +209,7 @@ public final class Block implements Serializable {
                 new Block( 17, 15,                            "Wood", false, false, false, false, false,  true, false,  0,  true),
                 new Block( 18,  1,                          "Leaves", false, false,  true, false, false,  true, false,  0,  true),
                 new Block( 19, 15,                          "Sponge", false, false, false, false, false, false, false,  0, false),
-//                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
+//                         ID, Tr,                      Display Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
                 new Block( 20,  0,                           "Glass", false, false, false, false, false, false, false,  0, false),
                 new Block( 21, 15,                "Lapis Lazuli Ore",  true, false, false,  true, false, false, false,  0,  true),
                 new Block( 22, 15,              "Lapis Lazuli Block", false, false, false, false, false, false, false,  0, false),
@@ -220,7 +220,7 @@ public final class Block implements Serializable {
                 new Block( 27,  0,                    "Powered Rail", false, false, false, false, false, false, false,  0, false),
                 new Block( 28,  0,                   "Detector Rail", false, false, false, false, false, false, false,  0, false),
                 new Block( 29, 15,                   "Sticky Piston", false, false, false, false, false, false, false,  0, false),
-//                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
+//                         ID, Tr,                      Display Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
                 new Block( 30,  0,                          "Cobweb", false,  true,  true, false, false, false, false,  0, false),
                 new Block( 31,  0,                      "Tall Grass", false,  true,  true, false, false, false,  true,  0,  true),
                 new Block( 32,  0,                       "Dead Bush", false,  true,  true, false, false, false,  true,  0,  true),
@@ -231,7 +231,7 @@ public final class Block implements Serializable {
                 new Block( 37,  0,                       "Dandelion", false,  true,  true, false, false, false,  true,  0,  true),
                 new Block( 38,  0,                          "Flower", false,  true,  true, false, false, false,  true,  0,  true),
                 new Block( 39,  0,                  "Brown Mushroom", false,  true,  true, false, false, false,  true,  1,  true),
-//                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
+//                         ID, Tr,                      Display Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
                 new Block( 40,  0,                    "Red Mushroom", false,  true,  true, false, false, false,  true,  0,  true),
                 new Block( 41, 15,                      "Gold Block", false, false, false, false, false, false, false,  0, false),
                 new Block( 42, 15,                      "Iron Block", false, false, false, false, false, false, false,  0, false),
@@ -242,7 +242,7 @@ public final class Block implements Serializable {
                 new Block( 47, 15,                       "Bookshelf", false, false, false, false, false, false, false,  0, false),
                 new Block( 48, 15,               "Mossy Cobblestone", false, false, false, false, false, false, false,  0, false),
                 new Block( 49, 15,                        "Obsidian",  true, false, false, false, false, false, false,  0,  true),
-//                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
+//                         ID, Tr,                      Display Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
                 new Block( 50,  0,                           "Torch", false, false, false, false, false, false, false, 14, false),
                 new Block( 51,  0,                            "Fire", false,  true,  true, false, false, false, false, 15,  true),
                 new Block( 52, 15,                 "Monster Spawner", false, false, false, false,  true, false, false,  0, false),
@@ -253,7 +253,7 @@ public final class Block implements Serializable {
                 new Block( 57, 15,                   "Diamond Block", false, false, false, false, false, false, false,  0, false),
                 new Block( 58, 15,                  "Crafting Table", false, false, false, false, false, false, false,  0, false),
                 new Block( 59,  0,                           "Wheat", false,  true,  true, false, false, false,  true,  0, false),
-//                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
+//                         ID, Tr,                      Display Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
                 new Block( 60, 15,                     "Tilled Dirt",  true, false, false, false, false, false, false,  0, false),
                 new Block( 61, 15,                         "Furnace", false, false, false, false,  true, false, false,  0, false),
                 new Block( 62, 15,                 "Burning Furnace", false, false, false, false,  true, false, false, 13, false),
@@ -264,7 +264,7 @@ public final class Block implements Serializable {
                 new Block( 67, 15,              "Cobblestone Stairs", false, false, false, false, false, false, false,  0, false),
                 new Block( 68,  0,                       "Wall Sign", false, false, false, false,  true, false, false,  0, false),
                 new Block( 69,  0,                           "Lever", false, false, false, false, false, false, false,  0, false),
-//                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
+//                         ID, Tr,                      Display Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
                 new Block( 70,  0,            "Stone Pressure Plate", false, false, false, false, false, false, false,  0, false),
                 new Block( 71,  0,                       "Iron Door", false, false, false, false, false, false, false,  0, false),
                 new Block( 72,  0,           "Wooden Pressure Plate", false, false, false, false, false, false, false,  0, false),
@@ -275,7 +275,7 @@ public final class Block implements Serializable {
                 new Block( 77,  0,                    "Stone Button", false, false, false, false, false, false, false,  0, false),
                 new Block( 78,  0,                            "Snow", false,  true,  true, false, false, false, false,  0,  true),
                 new Block( 79,  3,                             "Ice", false, false, false, false, false, false, false,  0,  true),
-//                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
+//                         ID, Tr,                      Display Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
                 new Block( 80, 15,                      "Snow Block",  true, false, false, false, false, false, false,  0,  true),
                 new Block( 81,  0,                          "Cactus", false,  true,  true, false, false, false,  true,  0,  true),
                 new Block( 82, 15,                      "Clay Block",  true, false, false, false, false, false, false,  0,  true),
@@ -286,7 +286,7 @@ public final class Block implements Serializable {
                 new Block( 87, 15,                      "Netherrack",  true, false, false, false, false, false, false,  0,  true),
                 new Block( 88, 15,                       "Soul Sand",  true, false, false, false, false, false, false,  0,  true),
                 new Block( 89, 15,                 "Glowstone Block", false, false, false, false, false, false, false, 15,  true),
-//                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
+//                         ID, Tr,                      Display Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
                 new Block( 90,  0,                          "Portal", false, false, false, false, false, false, false, 11, false),
                 new Block( 91, 15,                  "Jack-O-Lantern", false, false, false, false, false, false, false, 15, false),
                 new Block( 92,  0,                            "Cake", false, false, false, false, false, false, false,  0, false),
@@ -297,7 +297,7 @@ public final class Block implements Serializable {
                 new Block( 97, 15,               "Hidden Silverfish",  true, false, false, false, false, false, false,  0,  true),
                 new Block( 98, 15,                    "Stone Bricks", false, false, false, false, false, false, false,  0, false),
                 new Block( 99, 15,             "Huge Brown Mushroom", false, false, false, false, false,  true, false,  0,  true),
-//                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
+//                         ID, Tr,                      Display Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
                 new Block(100, 15,               "Huge Red Mushroom", false, false, false, false, false,  true, false,  0,  true),
                 new Block(101,  0,                       "Iron Bars", false, false, false, false, false, false, false,  0, false),
                 new Block(102,  0,                      "Glass Pane", false, false, false, false, false, false, false,  0, false),
@@ -308,7 +308,7 @@ public final class Block implements Serializable {
                 new Block(107,  0,                      "Fence Gate", false, false, false, false, false, false, false,  0, false),
                 new Block(108, 15,                    "Brick Stairs", false, false, false, false, false, false, false,  0, false),
                 new Block(109, 15,              "Stone Brick Stairs", false, false, false, false, false, false, false,  0, false),
-//                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
+//                         ID, Tr,                      Display Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
                 new Block(110, 15,                        "Mycelium",  true, false, false, false, false, false, false,  0,  true),
                 new Block(111,  0,                        "Lily Pad", false,  true,  true, false, false, false,  true,  0,  true),
                 new Block(112, 15,                    "Nether Brick", false, false, false, false, false, false, false,  0, false),
@@ -319,7 +319,7 @@ public final class Block implements Serializable {
                 new Block(117,  0,                   "Brewing Stand", false, false, false, false,  true, false, false,  1, false),
                 new Block(118,  0,                        "Cauldron", false, false, false, false, false, false, false,  0, false),
                 new Block(119,  0,                      "End Portal", false, false, false, false,  true, false, false, 15, false),
-//                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
+//                         ID, Tr,                      Display Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
                 new Block(120, 15,                "End Portal Frame", false, false, false, false, false, false, false,  1, false),
                 new Block(121, 15,                       "End Stone",  true, false, false, false, false, false, false,  0,  true),
                 new Block(122,  0,                      "Dragon Egg", false, false, false, false, false, false, false,  1, false),
@@ -330,7 +330,7 @@ public final class Block implements Serializable {
                 new Block(127,  0,                     "Cocoa Plant", false,  true,  true, false, false,  true, false,  0,  true),
                 new Block(128, 15,                "Sandstone Stairs", false, false, false, false, false, false, false,  0, false),
                 new Block(129, 15,                     "Emerald Ore", false, false, false,  true, false, false, false,  0,  true),
-//                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
+//                         ID, Tr,                      Display Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
                 new Block(130,  0,                     "Ender Chest", false, false, false, false,  true, false, false,  7, false),
                 new Block(131,  0,                   "Tripwire Hook", false, false, false, false, false, false, false,  0, false),
                 new Block(132,  0,                        "Tripwire", false, false, false, false, false, false, false,  0, false),
@@ -341,7 +341,7 @@ public final class Block implements Serializable {
                 new Block(137, 15,                   "Command Block", false, false, false, false,  true, false, false,  0, false),
                 new Block(138, 15,                          "Beacon", false, false, false, false,  true, false, false, 15, false),
                 new Block(139,  0,                "Cobblestone Wall", false, false, false, false, false, false, false,  0, false),
-//                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
+//                         ID, Tr,                      Display Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
                 new Block(140,  0,                      "Flower Pot", false, false, false, false,  true, false, false,  0, false),
                 new Block(141,  0,                         "Carrots", false,  true,  true, false, false, false,  true,  0, false),
                 new Block(142,  0,                        "Potatoes", false,  true,  true, false, false, false,  true,  0, false),
@@ -352,7 +352,7 @@ public final class Block implements Serializable {
                 new Block(147,  0, "Weighted Pressure Plate (light)", false, false, false, false, false, false, false,  0, false),
                 new Block(148,  0, "Weighted Pressure Plate (heavy)", false, false, false, false, false, false, false,  0, false),
                 new Block(149,  0, "Redstone Comparator (unpowered)", false, false, false, false,  true, false, false,  0, false),
-//                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
+//                         ID, Tr,                      Display Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
                 new Block(150,  0,   "Redstone Comparator (powered)", false, false, false, false,  true, false, false,  0, false),
                 new Block(151,  0,                 "Daylight Sensor", false, false, false, false,  true, false, false,  0, false),
                 new Block(152, 15,                  "Redstone Block", false, false, false, false, false, false, false,  0, false),
@@ -363,7 +363,7 @@ public final class Block implements Serializable {
                 new Block(157,  0,                  "Activator Rail", false, false, false, false, false, false, false,  0, false),
                 new Block(158,  0,                         "Dropper", false, false, false, false,  true, false, false,  0, false),
                 new Block(159, 15,              "Stained Terracotta",  true, false, false, false, false, false, false,  0,  true),
-//                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
+//                         ID, Tr,                      Display Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
                 new Block(160,  0,              "Stained Glass Pane", false, false, false, false, false, false, false,  0, false),
                 new Block(161,  1,                        "Leaves 2", false, false,  true, false, false,  true, false,  0,  true),
                 new Block(162, 15,                          "Wood 2", false, false, false, false, false,  true, false,  0,  true),
@@ -374,7 +374,7 @@ public final class Block implements Serializable {
                 new Block(167,  0,                   "Iron Trapdoor", false, false, false, false, false, false, false,  0, false),
                 new Block(168, 15,                      "Prismarine", false, false, false, false, false, false, false,  0, false),
                 new Block(169, 15,                     "Sea Lantern", false, false, false, false, false, false, false, 15, false),
-//                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
+//                         ID, Tr,                      Display Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
                 new Block(170, 15,                        "Hay Bale", false, false, false, false, false, false, false,  0, false),
                 new Block(171,  0,                          "Carpet", false, false, false, false, false, false, false,  0, false),
                 new Block(172, 15,                      "Terracotta",  true, false, false, false, false, false, false,  0,  true),
@@ -385,7 +385,7 @@ public final class Block implements Serializable {
                 new Block(177,  0,                     "Wall Banner", false, false, false, false,  true, false, false,  0, false),
                 new Block(178,  0,        "Inverted Daylight Sensor", false, false, false, false,  true, false, false,  0, false),
                 new Block(179, 15,                   "Red Sandstone",  true, false, false, false, false, false, false,  0,  true),
-//                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
+//                         ID, Tr,                      Display Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
                 new Block(180, 15,            "Red Sandstone Stairs", false, false, false, false, false, false, false,  0, false),
                 new Block(181, 15,       "Double Red Sandstone Slab", false, false, false, false, false, false, false,  0, false),
                 new Block(182, 15,              "Red Sandstone Slab", false, false, false, false, false, false, false,  0, false),
@@ -396,7 +396,7 @@ public final class Block implements Serializable {
                 new Block(187,  0,          "Acacia Wood Fence Gate", false, false, false, false, false, false, false,  0, false),
                 new Block(188,  0,                 "Pine Wood Fence", false, false, false, false, false, false, false,  0, false),
                 new Block(189,  0,                "Birch Wood Fence", false, false, false, false, false, false, false,  0, false),
-//                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
+//                         ID, Tr,                      Display Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
                 new Block(190,  0,               "Jungle Wood Fence", false, false, false, false, false, false, false,  0, false),
                 new Block(191,  0,             "Dark Oak Wood Fence", false, false, false, false, false, false, false,  0, false),
                 new Block(192,  0,               "Acacia Wood Fence", false, false, false, false, false, false, false,  0, false),
@@ -407,7 +407,7 @@ public final class Block implements Serializable {
                 new Block(197,  0,              "Dark Oak Wood Door", false, false, false, false, false, false, false,  0, false),
                 new Block(198,  0,                         "End Rod", false, false, false, false, false, false, false, 14, false),
                 new Block(199,  0,                    "Chorus Plant", false,  true,  true,  false, false, false, true,  0,  true),
-//                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
+//                         ID, Tr,                      Display Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
                 new Block(200,  0,                   "Chorus Flower", false,  true,  true,  false, false, false, true,  0,  true),
                 new Block(201, 15,                    "Purpur Block", false, false, false, false, false, false, false,  0, false),
                 new Block(202, 15,                   "Purpur Pillar", false, false, false, false, false, false, false,  0, false),
@@ -418,7 +418,7 @@ public final class Block implements Serializable {
                 new Block(207,  0,                       "Beetroots", false,  true,  true, false, false, false,  true,  0, false),
                 new Block(208, 15,                      "Grass Path",  true, false, false, false, false, false, false,  0, false),
                 new Block(209, 15,                     "End Gateway", false, false, false, false, false, false, false,  0, false),
-//                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
+//                         ID, Tr,                      Display Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
                 new Block(210, 15,         "Repeating Command Block", false, false, false, false,  true, false, false,  0, false),
                 new Block(211, 15,             "Chain Command Block", false, false, false, false,  true, false, false,  0, false),
                 new Block(212,  3,                     "Frosted Ice", false, false, false, false, false, false, false,  0, false),
@@ -429,7 +429,7 @@ public final class Block implements Serializable {
                 new Block(217,  0,                  "Structure Void", false,  true,  true, false, false, false, false,  0, false),
                 new Block(218,  0,                        "Observer", false, false, false, false, false, false, false,  0, false),
                 new Block(219,  0,               "White Shulker Box", false, false, false, false, true,  false, false,  0, false),
-//                         ID,  0,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
+//                         ID,  0,                      Display Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
                 new Block(220,  0,              "Orange Shulker Box", false, false, false, false, true,  false, false,  0, false),
                 new Block(221,  0,             "Magenta Shulker Box", false, false, false, false, true,  false, false,  0, false),
                 new Block(222,  0,          "Light Blue Shulker Box", false, false, false, false, true,  false, false,  0, false),
@@ -440,7 +440,7 @@ public final class Block implements Serializable {
                 new Block(227,  0,          "Light Grey Shulker Box", false, false, false, false, true,  false, false,  0, false),
                 new Block(228,  0,                "Cyan Shulker Box", false, false, false, false, true,  false, false,  0, false),
                 new Block(229,  0,              "Purple Shulker Box", false, false, false, false, true,  false, false,  0, false),
-//                         ID,  0,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
+//                         ID,  0,                      Display Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
                 new Block(230,  0,                "Blue Shulker Box", false, false, false, false, true,  false, false,  0, false),
                 new Block(231,  0,               "Brown Shulker Box", false, false, false, false, true,  false, false,  0, false),
                 new Block(232,  0,               "Green Shulker Box", false, false, false, false, true,  false, false,  0, false),
@@ -451,7 +451,7 @@ public final class Block implements Serializable {
                 new Block(237, 15,       "Magenta Glazed Terracotta", false, false, false, false, false, false, false,  0, false),
                 new Block(238, 15,    "Light Blue Glazed Terracotta", false, false, false, false, false, false, false,  0, false),
                 new Block(239, 15,        "Yellow Glazed Terracotta", false, false, false, false, false, false, false,  0, false),
-//                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
+//                         ID, Tr,                      Display Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
                 new Block(240, 15,          "Lime Glazed Terracotta", false, false, false, false, false, false, false,  0, false),
                 new Block(241, 15,          "Pink Glazed Terracotta", false, false, false, false, false, false, false,  0, false),
                 new Block(242, 15,          "Grey Glazed Terracotta", false, false, false, false, false, false, false,  0, false),
@@ -462,14 +462,14 @@ public final class Block implements Serializable {
                 new Block(247, 15,         "Brown Glazed Terracotta", false, false, false, false, false, false, false,  0, false),
                 new Block(248, 15,         "Green Glazed Terracotta", false, false, false, false, false, false, false,  0, false),
                 new Block(249, 15,           "Red Glazed Terracotta", false, false, false, false, false, false, false,  0, false),
-//                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
+//                         ID, Tr,                      Display Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
                 new Block(250, 15,         "Black Glazed Terracotta", false, false, false, false, false, false, false,  0, false),
                 new Block(251, 15,                        "Concrete", false, false, false, false, false, false, false,  0, false),
                 new Block(252, 15,                 "Concrete Powder", false, false, false, false, false, false, false,  0, false),
                 new Block(253,  0,                              null, false, false, false, false, false, false, false,  0, false),
                 new Block(254,  0,                              null, false, false, false, false, false, false, false,  0, false),
                 new Block(255, 15,                 "Structure Block", false, false, false, false,  true, false, false,  0, false),
-//                         ID, Tr,                              Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
+//                         ID, Tr,                      Display Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
         }, 0, BLOCKS, 0, 256);
 
         for (int i = 256; i < 4096; i++) {
