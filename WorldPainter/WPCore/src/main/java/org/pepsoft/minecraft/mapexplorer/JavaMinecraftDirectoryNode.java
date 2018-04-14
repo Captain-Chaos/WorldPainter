@@ -15,8 +15,8 @@ import java.util.regex.Pattern;
  *
  * <p>Created by Pepijn on 15-6-2016.
  */
-public class MinecraftDirectoryNode extends DirectoryNode {
-    public MinecraftDirectoryNode(File dir) {
+public class JavaMinecraftDirectoryNode extends DirectoryNode {
+    public JavaMinecraftDirectoryNode(File dir) {
         super(dir);
     }
 
@@ -27,7 +27,7 @@ public class MinecraftDirectoryNode extends DirectoryNode {
         List<Node> children = new ArrayList<>(contents.length);
         for (File file: contents) {
             if (file.isDirectory()) {
-                children.add(new MinecraftDirectoryNode(file));
+                children.add(new JavaMinecraftDirectoryNode(file));
             } else if (file.isFile()) {
                 String name = file.getName();
                 if (regionFilenamePatternVersion1.matcher(name).matches() || regionFilenamePatternVersion2.matcher(name).matches()) {
@@ -43,7 +43,7 @@ public class MinecraftDirectoryNode extends DirectoryNode {
                 }
             }
         }
-        children.sort((node1, node2) -> COLLATOR.compare(node1.getName(), node2.getName()));
+        children.sort((node1, node2) -> DirectoryNode.COLLATOR.compare(node1.getName(), node2.getName()));
         return children.toArray(new Node[children.size()]);
     }
 

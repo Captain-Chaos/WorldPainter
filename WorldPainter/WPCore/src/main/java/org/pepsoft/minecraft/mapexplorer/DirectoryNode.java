@@ -37,7 +37,7 @@ public class DirectoryNode extends FileSystemNode {
             Node[] children = new Node[contents.length];
             for (int i = 0; i < contents.length; i++) {
                 if (contents[i].isDirectory()) {
-                    for (MapRecognizer mapRecognizer : MAP_RECOGNIZERS) {
+                    for (MapRecognizer mapRecognizer: MAP_RECOGNIZERS) {
                         if (mapRecognizer.isMap(contents[i])) {
                             children[i] = mapRecognizer.getMapNode(contents[i]);
                             break;

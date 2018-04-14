@@ -12,6 +12,7 @@ import org.pepsoft.worldpainter.MouseAdapter;
 import org.pepsoft.worldpainter.browser.WPTrustManager;
 import org.pepsoft.worldpainter.mapexplorer.Node;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
+import org.pepsoft.worldpainter.util.MinecraftUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,20 +87,20 @@ public class MapExplorer {
             JFrame frame = new JFrame("Minecraft Map Explorer");
             frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             MapTreeModel treeModel = new MapTreeModel();
-//            File minecraftDir = MinecraftUtil.findMinecraftDir();
-//            File defaultDir;
-//            if (minecraftDir != null) {
-//                defaultDir = new File(minecraftDir, "saves");
-//            } else {
-//                defaultDir = new File(System.getProperty("user.home"));
-//            }
+            File minecraftDir = MinecraftUtil.findMinecraftDir();
+            File defaultDir;
+            if (minecraftDir != null) {
+                defaultDir = new File(minecraftDir, "saves");
+            } else {
+                defaultDir = new File(System.getProperty("user.home"));
+            }
             JTree tree = new JTree(treeModel);
             tree.setRootVisible(false);
             tree.setShowsRootHandles(true);
             tree.setCellRenderer(new MapTreeCellRenderer());
             JScrollPane scrollPane = new JScrollPane(tree);
-//            tree.expandPath(treeModel.getPath(defaultDir));
-//            tree.scrollPathToVisible(treeModel.getPath(defaultDir));
+            tree.expandPath(treeModel.getPath(defaultDir));
+            tree.scrollPathToVisible(treeModel.getPath(defaultDir));
             // Automatically expand any nodes if they only have one child
             tree.addTreeExpansionListener(new TreeExpansionListener() {
                 @Override

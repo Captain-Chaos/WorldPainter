@@ -14,8 +14,8 @@ import java.io.File;
  *
  * @author pepijn
  */
-public class MapRootNode extends MinecraftDirectoryNode {
-    public MapRootNode(File dir) {
+public class JavaMapRootNode extends JavaMinecraftDirectoryNode {
+    public JavaMapRootNode(File dir) {
         super(dir);
     }
     
@@ -24,5 +24,5 @@ public class MapRootNode extends MinecraftDirectoryNode {
         return ICON;
     }
 
-    private static final Icon ICON = IconUtils.scaleIcon(IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/grass.png"), 16);
+    private static final Icon ICON = IconUtils.scaleIcon(IconUtils.loadScaledIcon("org/pepsoft/worldpainter/mapexplorer/maproot.png"), 16);
 }

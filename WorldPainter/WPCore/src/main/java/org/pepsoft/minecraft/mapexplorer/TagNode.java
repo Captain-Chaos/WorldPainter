@@ -9,6 +9,7 @@ import org.jnbt.*;
 import org.pepsoft.worldpainter.mapexplorer.Node;
 
 import javax.swing.*;
+import java.awt.*;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -48,6 +49,10 @@ public class TagNode extends Node {
             sb.append(": ");
             sb.append(((IntArrayTag) tag).getValue().length * 4);
             sb.append(" bytes of data");
+        } else if (tag instanceof LongArrayTag) {
+            sb.append(": ");
+            sb.append(((LongArrayTag) tag).getValue().length * 8);
+            sb.append(" bytes of data");
         } else if (! ((tag instanceof CompoundTag) || (tag instanceof ListTag))) {
             sb.append(": ");
             sb.append(tag.getValue());
@@ -63,6 +68,55 @@ public class TagNode extends Node {
     @Override
     public boolean isLeaf() {
         return ! ((tag instanceof CompoundTag) || (tag instanceof ListTag));
+    }
+
+    @Override
+    public void doubleClicked() {
+        if (tag instanceof ByteArrayTag) {
+            byte[] bytes = ((ByteArrayTag) tag).getValue();
+            for (int i = 0; i < bytes.length; i += 16) {
+                if ((i % 256) == 0) {
+                    System.out.println();
+                }
+                for (int j = 0; j < 16; j++) {
+                    int k = i + j;
+                    if (k < bytes.length) {
+                        System.out.printf("%02x ", bytes[k]);
+                    }
+                }
+                System.out.println();
+            }
+        } else if (tag instanceof IntArrayTag) {
+            int[] ints = ((IntArrayTag) tag).getValue();
+            for (int i = 0; i < ints.length; i += 4) {
+                if ((i % 64) == 0) {
+                    System.out.println();
+                }
+                for (int j = 0; j < 4; j++) {
+                    int k = i + j;
+                    if (k < ints.length) {
+                        System.out.printf("%08x ", ints[k]);
+                    }
+                }
+                System.out.println();
+            }
+        } else if (tag instanceof LongArrayTag) {
+            long[] longs = ((LongArrayTag) tag).getValue();
+            for (int i = 0; i < longs.length; i += 2) {
+                if ((i % 32) == 0) {
+                    System.out.println();
+                }
+                for (int j = 0; j < 2; j++) {
+                    int k = i + j;
+                    if (k < longs.length) {
+                        System.out.printf("%016x ", longs[k]);
+                    }
+                }
+                System.out.println();
+            }
+        } else {
+            Toolkit.getDefaultToolkit().beep();
+        }
     }
 
     @Override

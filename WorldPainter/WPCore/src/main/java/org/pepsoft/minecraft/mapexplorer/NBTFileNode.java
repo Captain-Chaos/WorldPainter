@@ -7,8 +7,10 @@ package org.pepsoft.minecraft.mapexplorer;
 
 import org.jnbt.NBTInputStream;
 import org.jnbt.Tag;
+import org.pepsoft.util.IconUtils;
 import org.pepsoft.worldpainter.mapexplorer.Node;
 
+import javax.swing.*;
 import java.io.*;
 import java.util.zip.GZIPInputStream;
 
@@ -24,6 +26,11 @@ public class NBTFileNode extends FileSystemNode {
     @Override
     public boolean isLeaf() {
         return false;
+    }
+
+    @Override
+    public Icon getIcon() {
+        return ICON;
     }
 
     @Override
@@ -43,4 +50,6 @@ public class NBTFileNode extends FileSystemNode {
             throw new RuntimeException("I/O error while reading level.dat file", e);
         }
     }
+
+    private static final Icon ICON = IconUtils.scaleIcon(IconUtils.loadScaledIcon("org/pepsoft/worldpainter/mapexplorer/nbtfile.png"), 16);
 }
