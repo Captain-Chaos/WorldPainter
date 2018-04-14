@@ -249,7 +249,7 @@ public class JavaMapImporter {
         final StringBuilder reportBuilder = new StringBuilder();
         for (File file: regionFiles) {
             try {
-                RegionFile regionFile = new RegionFile(file);
+                RegionFile regionFile = new RegionFile(file, true);
                 try {
                     for (int x = 0; x < 32; x++) {
                         for (int z = 0; z < 32; z++) {
