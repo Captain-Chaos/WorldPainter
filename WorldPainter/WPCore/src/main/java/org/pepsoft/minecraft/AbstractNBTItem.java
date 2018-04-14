@@ -8,18 +8,9 @@ package org.pepsoft.minecraft;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import org.jnbt.ByteArrayTag;
-import org.jnbt.ByteTag;
-import org.jnbt.CompoundTag;
-import org.jnbt.DoubleTag;
-import org.jnbt.FloatTag;
-import org.jnbt.IntArrayTag;
-import org.jnbt.IntTag;
-import org.jnbt.ListTag;
-import org.jnbt.LongTag;
-import org.jnbt.ShortTag;
-import org.jnbt.StringTag;
-import org.jnbt.Tag;
+import java.util.Map;
+
+import org.jnbt.*;
 
 /**
  * A data structure based on an NBT tag or hierarchy of tags.
@@ -41,6 +32,15 @@ public abstract class AbstractNBTItem implements NBTItem, Serializable, Cloneabl
     
     protected final boolean containsTag(String name) {
         return tag.containsTag(name);
+    }
+
+    protected final Map<String, Tag> getMap(String name) {
+        CompoundTag compoundTag = (CompoundTag) tag.getTag(name);
+        return (compoundTag != null) ? compoundTag.getValue() : null;
+    }
+
+    protected final void setMap(String name, Map<String, Tag> value) {
+        tag.setTag(name, new CompoundTag(name, value));
     }
 
     protected final long getLong(String name) {
@@ -218,6 +218,15 @@ public abstract class AbstractNBTItem implements NBTItem, Serializable, Cloneabl
 
     protected final void setIntArray(String name, int[] values) {
         tag.setTag(name, new IntArrayTag(name, values));
+    }
+
+    protected final long[] getLongArray(String name) {
+        LongArrayTag longArrayTag = (LongArrayTag) tag.getTag(name);
+        return (longArrayTag != null) ? longArrayTag.getValue() : null;
+    }
+
+    protected final void setLongArray(String name, long[] values) {
+        tag.setTag(name, new LongArrayTag(name, values));
     }
 
     @Override
