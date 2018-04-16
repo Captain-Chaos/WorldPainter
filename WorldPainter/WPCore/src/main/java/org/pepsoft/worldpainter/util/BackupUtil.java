@@ -30,5 +30,4 @@ public final class BackupUtil {
         }
         return new File(file.getParentFile(), filename);
     }
-
 }
