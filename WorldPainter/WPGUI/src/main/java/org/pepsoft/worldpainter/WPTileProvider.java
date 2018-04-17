@@ -256,18 +256,7 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
 
     @Override
     public Rectangle getExtent() {
-        Rectangle sourceExtent = tileProvider.getExtent();
-        if (sourceExtent != null) {
-            if (zoom == 0) {
-                return sourceExtent;
-            } else if (zoom < 0) {
-                return new Rectangle(sourceExtent.x >> -zoom, sourceExtent.y >> -zoom, sourceExtent.width >> -zoom, sourceExtent.height >> -zoom);
-            } else {
-                return new Rectangle(sourceExtent.x << zoom, sourceExtent.y << zoom, sourceExtent.width << zoom, sourceExtent.height << zoom);
-            }
-        } else {
-            return null;
-        }
+        return tileProvider.getExtent();
     }
     
     @Override
