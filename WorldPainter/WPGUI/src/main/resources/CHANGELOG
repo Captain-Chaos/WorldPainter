@@ -1,3 +1,9 @@
+-- Version 2.4.5, released 17-4-2018
+
+ * On Mac OS X with Java 10, lock the visual theme to Metal to work around a bug in a support library. To use other visual themes, downgrade Java to version 9, or wait for a new release of WorldPainter with the fixed support library (it is not yet known when this will be released)
+ * Bug fix: fix a recurring error message while Exporting a world on Mac OS X
+ * Bug fix: fix a problem with the scrollbar range being too small when zoomed out, making it difficult to scroll to the entire extent of the world
+
 -- Version 2.4.4, released 13-4-2018
 
  * The usability of the Complex Custom Material editor has been improved. Instead of continually adjusting the occurrences so that they add up to 1000‰, which made it extremely difficult to set them to exact values, that redistribution is now done when saving the material, in such a way that their proportions stay the same (so it will not affect the result)
