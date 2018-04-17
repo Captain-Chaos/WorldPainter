@@ -12,8 +12,8 @@ import java.util.WeakHashMap;
 /**
  * Created by Pepijn on 27-11-2016.
  */
-class ProgressHelperJava8 extends ProgressHelper {
-    ProgressHelperJava8() {
+class ProgressHelperWindowsJava8 extends ProgressHelper {
+    ProgressHelperWindowsJava8() {
         enabled = SystemUtils.isWindows();
     }
 

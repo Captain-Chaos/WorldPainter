@@ -28,8 +28,25 @@ abstract class ProgressHelper {
             } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
                 throw new RuntimeException(e.getClass().getSimpleName() + " while loading progress reporting support for Java 9", e);
             }
+        } else if (SystemUtils.isWindows()) {
+            IMPL = new ProgressHelperWindowsJava8();
         } else {
-            IMPL = new ProgressHelperJava8();
+            IMPL = new ProgressHelper() {
+                @Override
+                void setProgress(Window window, int percentage) {
+                    // Do nothing
+                }
+
+                @Override
+                void setProgressDone(Window window) {
+                    // Do nothing
+                }
+
+                @Override
+                void setProgressError(Window window) {
+                    // Do nothing
+                }
+            };
         }
     }
 }
