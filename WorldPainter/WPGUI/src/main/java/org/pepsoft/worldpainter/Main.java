@@ -352,7 +352,12 @@ public class Main {
                 // Install configured look and feel
                 try {
                     String laf;
-                    if (GUIUtils.UI_SCALE > 1) {
+                    if (SystemUtils.isMac() && JAVA_VERSION.isAtLeast(JAVA_10)) {
+                        // Work around a bug in JIDE 3.7.2
+                        // TODO: remove when the fixed version of JIDE is released
+                        logger.warn("Locking visual theme to Metal to work around bug in JIDE 3.7.2 on Java 10 on Mac OS X");
+                        laf = "javax.swing.plaf.metal.MetalLookAndFeel";
+                    } else if (GUIUtils.UI_SCALE > 1) {
                         laf = UIManager.getSystemLookAndFeelClassName();
                     } else {
                         switch (lookAndFeel) {
@@ -418,6 +423,14 @@ public class Main {
                     app.setWorld(world);
                 } else {
                     app.open(file);
+                }
+                if ((! safeMode) && SystemUtils.isMac() && JAVA_VERSION.isAtLeast(JAVA_10) && (! Configuration.getInstance().isJava10onMacMessageDisplayed())) {
+                    JOptionPane.showMessageDialog(app, "The visual theme has been locked to Metal\n"
+                            + "to work around a bug in a support library on Java 10.\n"
+                            + "To re-enable visual themes, downgrade Java to version 9\n"
+                            + "or wait for a release of WorldPainter with a fixed library.\n"
+                            + "It is not yet known when that fix will be released.", "Visual Theme Locked", JOptionPane.INFORMATION_MESSAGE);
+                    Configuration.getInstance().setJava10onMacMessageDisplayed(true);
                 }
                 DonationDialog.maybeShowDonationDialog(app);
             });

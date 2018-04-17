@@ -651,6 +651,14 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         this.defaultPlatform = defaultPlatform;
     }
 
+    public synchronized boolean isJava10onMacMessageDisplayed() {
+        return java10onMacMessageDisplayed;
+    }
+
+    public synchronized void setJava10onMacMessageDisplayed(boolean java10onMacMessageDisplayed) {
+        this.java10onMacMessageDisplayed = java10onMacMessageDisplayed;
+    }
+
     @Override
     public synchronized void logEvent(EventVO event) {
         if (eventLog != null) {
@@ -1009,6 +1017,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private GameType defaultGameTypeObj = GameType.SURVIVAL;
     private Platform defaultPlatform = DefaultPlugin.JAVA_ANVIL;
     private Map<Platform, File> exportDirectories = new HashMap<>();
+    private boolean java10onMacMessageDisplayed = false;
 
     /**
      * The acceleration type is only stored here at runtime. It is saved to disk
