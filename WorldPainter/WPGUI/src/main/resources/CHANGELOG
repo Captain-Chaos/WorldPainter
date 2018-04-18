@@ -1,3 +1,7 @@
+-- Version 2.4.6, released 18-4-2018
+
+ * Bug fix: don't normalise the thicknesses of the layers of a layered material to add up to 1000
+
 -- Version 2.4.5, released 17-4-2018
 
  * On Mac OS X with Java 10, lock the visual theme to Metal to work around a bug in a support library. To use other visual themes, downgrade Java to version 9, or wait for a new release of WorldPainter with the fixed support library (it is not yet known when this will be released)
