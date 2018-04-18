@@ -112,7 +112,9 @@ public class CustomMaterialDialog extends WorldPainterDialog {
                 break;
             case 1:
                 // Complex
-                tableModel.normalise();
+                if (! radioButtonLayered.isSelected()) {
+                    tableModel.normalise();
+                }
                 Row[] rows = tableModel.getRows();
                 if (rows.length == 1) {
                     material.edit(
@@ -181,7 +183,9 @@ public class CustomMaterialDialog extends WorldPainterDialog {
             case 1:
                 // Complex
                 MixedMaterialTableModel tableModelClone = tableModel.clone();
-                tableModelClone.normalise();
+                if (! radioButtonLayered.isSelected()) {
+                    tableModelClone.normalise();
+                }
                 Row[] rows = tableModelClone.getRows();
                 if (rows.length == 1) {
                     return new MixedMaterial(
