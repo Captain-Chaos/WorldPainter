@@ -18,12 +18,24 @@ public interface Chunk {
 
     void setBlockLightLevel(int x, int y, int z, int blockLightLevel);
 
+    /**
+     * @deprecated Use {@link #getMaterial(int, int, int)}
+     */
     int getBlockType(int x, int y, int z);
 
+    /**
+     * @deprecated Use {@link #setMaterial(int, int, int, Material)}
+     */
     void setBlockType(int x, int y, int z, int blockType);
 
+    /**
+     * @deprecated Use {@link #getMaterial(int, int, int)}
+     */
     int getDataValue(int x, int y, int z);
 
+    /**
+     * @deprecated Use {@link #setMaterial(int, int, int, Material)}
+     */
     void setDataValue(int x, int y, int z, int dataValue);
 
     int getHeight(int x, int z);

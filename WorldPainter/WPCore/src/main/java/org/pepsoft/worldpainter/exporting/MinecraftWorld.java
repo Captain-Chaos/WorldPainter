@@ -14,11 +14,15 @@ import org.pepsoft.worldpainter.Platform;
 public interface MinecraftWorld extends ChunkProvider {
     /**
      * Returns {@link Constants#BLK_AIR} if {@code height} is too large.
+     * 
+     * @deprecated Use {@link #getMaterialAt(int, int, int)}
      */
     int getBlockTypeAt(int x, int y, int height);
 
     /**
      * Returns {@code 0} if {@code height} is too large.
+     * 
+     * @deprecated Use {@link #getMaterialAt(int, int, int)}
      */
     int getDataAt(int x, int y, int height);
 
@@ -29,11 +33,15 @@ public interface MinecraftWorld extends ChunkProvider {
 
     /**
      * Fails silently if {@code height} is too large.
+     * 
+     * @deprecated Use {@link #setMaterialAt(int, int, int, Material)}
      */
     void setBlockTypeAt(int x, int y, int height, int blockType);
 
     /**
      * Fails silently if {@code height} is too large.
+     * 
+     * @deprecated Use {@link #setMaterialAt(int, int, int, Material)}
      */
     void setDataAt(int x, int y, int height, int data);
 
