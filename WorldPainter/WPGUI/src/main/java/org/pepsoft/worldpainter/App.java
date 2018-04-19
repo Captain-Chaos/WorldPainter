@@ -4320,8 +4320,12 @@ public final class App extends JFrame implements RadiusControl,
             JMenuItem menuItem = (JMenuItem) menuElement;
             if (((! (menuItem.getAction() instanceof BetterAction)) || (! ((BetterAction) menuItem.getAction()).isLogEvent()))
                     && (! menuItem.getText().equals("Existing Minecraft map..."))
-                    && (! menuItem.getText().equals("Merge World..."))){
-                menuItem.addActionListener(e -> eventLogger.logEvent(new EventVO(key).addTimestamp()));
+                    && (! menuItem.getText().equals("Merge World..."))) {
+                if (key.startsWith("menu.File.RecentlyusedWorlds.")) {
+                    menuItem.addActionListener(e -> eventLogger.logEvent(new EventVO("menu.File.RecentlyusedWorlds").addTimestamp()));
+                } else {
+                    menuItem.addActionListener(e -> eventLogger.logEvent(new EventVO(key).addTimestamp()));
+                }
             }
         }
         for (MenuElement subElement: menuElement.getSubElements()) {
