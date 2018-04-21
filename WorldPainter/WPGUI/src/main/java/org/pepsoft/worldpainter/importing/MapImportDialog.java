@@ -363,7 +363,7 @@ public class MapImportDialog extends WorldPainterDialog {
         } else {
             readOnlyOption = JavaMapImporter.ReadOnlyOption.NONE;
         }
-        app.setWorld(null);
+        app.clearWorld();
         importedWorld = ProgressDialog.executeTask(this, new ProgressTask<World2>() {
             @Override
             public String getName() {
@@ -422,7 +422,6 @@ public class MapImportDialog extends WorldPainterDialog {
             return;
         }
         
-        importedWorld.setDirty(false);
         Configuration config = Configuration.getInstance();
         config.setSavesDirectory(levelDatFile.getParentFile().getParentFile());
         ok();
