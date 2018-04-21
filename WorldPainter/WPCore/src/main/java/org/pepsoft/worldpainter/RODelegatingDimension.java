@@ -44,8 +44,8 @@ public class RODelegatingDimension extends Dimension {
     }
 
     @Override
-    public boolean isDirty() {
-        return dimension.isDirty();
+    public long getChangeNo() {
+        return dimension.getChangeNo();
     }
 
     @Override
@@ -650,7 +650,7 @@ public class RODelegatingDimension extends Dimension {
     }
 
     @Override
-    public void setDirty(boolean dirty) {
+    public void changed() {
         throw new UnsupportedOperationException();
     }
 

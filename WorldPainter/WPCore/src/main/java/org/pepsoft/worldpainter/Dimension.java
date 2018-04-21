@@ -100,12 +100,23 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         }
     }
 
-    public boolean isDirty() {
-        return dirty;
+    /**
+     * Get the change number. This number is updated every time the state of the
+     * dimension changes and can be used to determine whether the state needs to
+     * be saved.
+     *
+     * @return The current change number.
+     */
+    public long getChangeNo() {
+        return changeNo;
     }
 
-    public void setDirty(boolean dirty) {
-        this.dirty = dirty;
+    /**
+     * Update the change number; for use when some aspect of a dimension changes
+     * which the <code>Dimension</code> class itself does not track.
+     */
+    public void changed() {
+        changeNo++;
     }
 
     public long getSeed() {
@@ -120,7 +131,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         if (subsurfaceMaterial != this.subsurfaceMaterial) {
             Terrain oldSubsurfaceMaterial = this.subsurfaceMaterial;
             this.subsurfaceMaterial = subsurfaceMaterial;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("subsurfaceMaterial", oldSubsurfaceMaterial, subsurfaceMaterial);
         }
     }
@@ -132,7 +143,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     public void setPopulate(boolean populate) {
         if (populate != this.populate) {
             this.populate = populate;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("populate", ! populate, populate);
         }
     }
@@ -145,7 +156,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         if (border != this.border) {
             Border oldBorder = this.border;
             this.border = border;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("border", oldBorder, border);
         }
     }
@@ -158,7 +169,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         if (borderLevel != this.borderLevel) {
             int oldBorderLevel = this.borderLevel;
             this.borderLevel = borderLevel;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("borderLevel", oldBorderLevel, borderLevel);
         }
     }
@@ -171,7 +182,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         if (borderSize != this.borderSize) {
             int oldBorderSize = this.borderSize;
             this.borderSize = borderSize;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("borderSize", oldBorderSize, borderSize);
         }
     }
@@ -183,7 +194,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     public void setDarkLevel(boolean darkLevel) {
         if (darkLevel != this.darkLevel) {
             this.darkLevel = darkLevel;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("darkLevel", ! darkLevel, darkLevel);
         }
     }
@@ -195,7 +206,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     public void setBedrockWall(boolean bedrockWall) {
         if (bedrockWall != this.bedrockWall) {
             this.bedrockWall = bedrockWall;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("bedrockWall", ! bedrockWall, bedrockWall);
         }
     }
@@ -369,8 +380,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             highestY = y;
         }
         fireTileAdded(tile);
-        dirty = true;
-//        biomesCalculated = false;
+        changeNo++;
     }
 
     public void removeTile(int tileX, int tileY) {
@@ -414,7 +424,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             }
         }
         fireTileRemoved(tile);
-        dirty = true;
+        changeNo++;
     }
 
     public int getHighestX() {
@@ -838,7 +848,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     public void setLayerSettings(Layer layer, ExporterSettings settings) {
         if ((! layerSettings.containsKey(layer)) || (! settings.equals(layerSettings.get(layer)))) {
             layerSettings.put(layer, settings);
-            dirty = true;
+            changeNo++;
         }
     }
 
@@ -850,7 +860,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         if (minecraftSeed != this.minecraftSeed) {
             long oldMinecraftSeed = this.minecraftSeed;
             this.minecraftSeed = minecraftSeed;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("minecraftSeed", oldMinecraftSeed, minecraftSeed);
         }
     }
@@ -863,7 +873,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         if ((overlay != null) ? (! overlay.equals(this.overlay)) : (this.overlay == null)) {
             File oldOverlay = this.overlay;
             this.overlay = overlay;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("overlay", oldOverlay, overlay);
         }
     }
@@ -876,7 +886,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         if (overlayOffsetX != this.overlayOffsetX) {
             int oldOverlayOffsetX = this.overlayOffsetX;
             this.overlayOffsetX = overlayOffsetX;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("overlayOffsetX", oldOverlayOffsetX, overlayOffsetX);
         }
     }
@@ -889,7 +899,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         if (overlayOffsetY != this.overlayOffsetY) {
             int oldOverlayOffsetY = this.overlayOffsetY;
             this.overlayOffsetY = overlayOffsetY;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("overlayOffsetY", oldOverlayOffsetY, overlayOffsetY);
         }
     }
@@ -902,7 +912,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         if (overlayScale != this.overlayScale) {
             float oldOverlayScale = this.overlayScale;
             this.overlayScale = overlayScale;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("overlayScale", oldOverlayScale, overlayScale);
         }
     }
@@ -915,7 +925,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         if (overlayTransparency != this.overlayTransparency) {
             float oldOverlayTransparency = this.overlayTransparency;
             this.overlayTransparency = overlayTransparency;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("overlayTransparency", oldOverlayTransparency, overlayTransparency);
         }
     }
@@ -927,7 +937,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     public void setGridEnabled(boolean gridEnabled) {
         if (gridEnabled != this.gridEnabled) {
             this.gridEnabled = gridEnabled;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("gridEnabled", ! gridEnabled, gridEnabled);
         }
     }
@@ -940,7 +950,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         if (gridSize != this.gridSize) {
             int oldGridSize = this.gridSize;
             this.gridSize = gridSize;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("gridSize", oldGridSize, gridSize);
         }
     }
@@ -952,7 +962,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     public void setOverlayEnabled(boolean overlayEnabled) {
         if (overlayEnabled != this.overlayEnabled) {
             this.overlayEnabled = overlayEnabled;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("overlayEnabled", ! overlayEnabled, overlayEnabled);
         }
     }
@@ -965,7 +975,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         if (maxHeight != this.maxHeight) {
             int oldMaxHeight = this.maxHeight;
             this.maxHeight = maxHeight;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("maxHeight", oldMaxHeight, maxHeight);
         }
     }
@@ -978,7 +988,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         if (contourSeparation != this.contourSeparation) {
             int oldContourSeparation = this.contourSeparation;
             this.contourSeparation = contourSeparation;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("contourSeparation", oldContourSeparation, contourSeparation);
         }
     }
@@ -990,7 +1000,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     public void setContoursEnabled(boolean contoursEnabled) {
         if (contoursEnabled != this.contoursEnabled) {
             this.contoursEnabled = contoursEnabled;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("contoursEnabled", ! contoursEnabled, contoursEnabled);
         }
     }
@@ -1003,7 +1013,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         if (topLayerMinDepth != this.topLayerMinDepth) {
             int oldTopLayerMinDepth = this.topLayerMinDepth;
             this.topLayerMinDepth = topLayerMinDepth;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("topLayerMinDepth", oldTopLayerMinDepth, topLayerMinDepth);
         }
     }
@@ -1016,7 +1026,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         if (topLayerVariation != this.topLayerVariation) {
             int oldTopLayerVariation = this.topLayerVariation;
             this.topLayerVariation = topLayerVariation;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("topLayerVariation", oldTopLayerVariation, topLayerVariation);
         }
     }
@@ -1028,7 +1038,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     public void setBottomless(boolean bottomless) {
         if (bottomless != this.bottomless) {
             this.bottomless = bottomless;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("bottomless", ! bottomless, bottomless);
         }
     }
@@ -1057,7 +1067,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         if ((customBiomes != null) ? (! customBiomes.equals(this.customBiomes)) : (this.customBiomes != null)) {
             List<CustomBiome> oldCustomBiomes = this.customBiomes;
             this.customBiomes = customBiomes;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("customBiomes", oldCustomBiomes, customBiomes);
         }
     }
@@ -1069,7 +1079,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     public void setCoverSteepTerrain(boolean coverSteepTerrain) {
         if (coverSteepTerrain != this.coverSteepTerrain) {
             this.coverSteepTerrain = coverSteepTerrain;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("coverSteepTerrain", ! coverSteepTerrain, coverSteepTerrain);
         }
     }
@@ -1145,7 +1155,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         if (ceilingHeight != this.ceilingHeight) {
             int oldCeilingHeight = this.ceilingHeight;
             this.ceilingHeight = ceilingHeight;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("ceilingHeight", oldCeilingHeight, ceilingHeight);
         }
     }
@@ -1167,6 +1177,10 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public boolean undoChanges() {
+        if (rememberedChangeNo != -1) {
+            changeNo = rememberedChangeNo;
+            rememberedChangeNo = -1;
+        }
         if ((undoManager != null) && undoManager.isDirty()) {
             return undoManager.undo();
         } else {
@@ -1175,6 +1189,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public void clearUndo() {
+        rememberedChangeNo = -1;
         if (undoManager != null) {
             undoManager.clear();
         }
@@ -1187,6 +1202,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public void rememberChanges() {
+        rememberedChangeNo = changeNo;
         if (undoManager != null) {
             if (undoManager.isDirty()) {
                 undoManager.savePoint();
@@ -1354,7 +1370,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             addedTiles.clear();
             removedTiles.clear();
             dirtyTiles.clear();
-            dirty = true;
+            changeNo++;
 
             Rectangle overlayCoords = null;
             if ((overlay != null) && overlay.canRead()) {
@@ -1431,7 +1447,6 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                 return true;
             }
         }
-        visitTiles().andDo(tile -> {});
         return false;
     }
 
@@ -1485,44 +1500,44 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             }
             attributes.put(key.key, value);
         }
-        dirty = true;
+        changeNo++;
     }
 
     // Tile.Listener
 
     @Override
     public void heightMapChanged(Tile tile) {
-        dirty = true;
+        changeNo++;
     }
 
     @Override
     public void terrainChanged(Tile tile) {
-        dirty = true;
+        changeNo++;
     }
 
     @Override
     public void waterLevelChanged(Tile tile) {
-        dirty = true;
+        changeNo++;
     }
 
     @Override
     public void seedsChanged(Tile tile) {
-        dirty = true;
+        changeNo++;
     }
 
     @Override
     public void layerDataChanged(Tile tile, Set<Layer> changedLayers) {
-        dirty = true;
+        changeNo++;
     }
 
     @Override
     public void allBitLayerDataChanged(Tile tile) {
-        dirty = true;
+        changeNo++;
     }
 
     @Override
     public void allNonBitlayerDataChanged(Tile tile) {
-        dirty = true;
+        changeNo++;
     }
 
     private void fireTileAdded(Tile tile) {
@@ -1745,7 +1760,6 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     private transient Set<Tile> dirtyTiles = new HashSet<>();
     private transient Set<Tile> addedTiles = new HashSet<>();
     private transient Set<Tile> removedTiles = new HashSet<>();
-    private transient boolean dirty;
     private transient UndoManager undoManager;
     private transient PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
     private transient WPGarden garden = new WPGarden();

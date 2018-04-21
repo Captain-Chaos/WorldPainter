@@ -61,6 +61,8 @@ public class HistoryEntry implements Serializable {
                 return MessageFormat.format("Height map {1} imported into dimension {0}", args[0], args[1]);
             case WORLD_MASK_IMPORTED_TO_DIMENSION:
                 return MessageFormat.format("Mask {1} imported into dimension {0} as layer {2}", args[0], args[1], args[2]);
+            case WORLD_RECOVERED_FROM_AUTOSAVE:
+                return MessageFormat.format("World recovered from autosave with WorldPainter {0}", wpVersion);
             default:
                 return MessageFormat.format("Unknown event ID {0} by WorldPainter {0} ({1})", key, wpVersion, wpBuild);
         }
@@ -93,6 +95,7 @@ public class HistoryEntry implements Serializable {
     public static final int WORLD_MAX_HEIGHT_CHANGED               = 20; // arg 0: new maxHeight as Integer
     public static final int WORLD_HEIGHT_MAP_IMPORTED_TO_DIMENSION = 21; // arg 0: name of dimension as String, arg 1: height map file as File
     public static final int WORLD_MASK_IMPORTED_TO_DIMENSION       = 22; // arg 0: name of dimension as String, arg 1: mask file as File, arg 2: name of aspect to which the mask was applied
+    public static final int WORLD_RECOVERED_FROM_AUTOSAVE          = 23;
 
     private static final long serialVersionUID = 1L;
 }

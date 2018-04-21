@@ -195,7 +195,6 @@ public class WorldIO {
             } finally {
                 dim0.setEventsInhibited(false);
             }
-            newWorld.setDirty(false);
 
             // Log event
             Configuration config = Configuration.getInstance();

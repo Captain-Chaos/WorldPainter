@@ -320,7 +320,8 @@ public class Main {
         });
 
         final World2 world;
-        if (file == null) {
+        final File autosaveFile = new File(configDir, "autosave.world");
+        if ((file == null) && (! autosaveFile.isFile())) {
             if (! safeMode) {
                 world = WorldFactory.createDefaultWorld(config, new Random().nextLong());
 //                world = WorldFactory.createFancyWorld(config, new Random().nextLong());
@@ -420,7 +421,12 @@ public class Main {
                     // On a Mac we may be doing this unnecessarily because we
                     // may be opening a .world file, but it has proven difficult
                     // to detect that. TODO
-                    app.setWorld(world);
+                    app.setWorld(world, true);
+                } else if (autosaveFile.isFile()) {
+                    logger.info("Recovering autosaved world");
+                    app.open(autosaveFile);
+                    Toolkit.getDefaultToolkit().beep();
+                    JOptionPane.showMessageDialog(app, "WorldPainter was not shut down correctly.\nYour world has been recovered from the most recent autosave.\nMake sure to Save it if you want to keep it!", "World Recovered", JOptionPane.WARNING_MESSAGE);
                 } else {
                     app.open(file);
                 }

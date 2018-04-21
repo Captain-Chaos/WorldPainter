@@ -328,7 +328,6 @@ public class NewWorldDialog extends WorldPainterDialog {
             world.setMixedMaterial(1, new MixedMaterial("Stone/Gravel", new MixedMaterial.Row[] {new MixedMaterial.Row(Material.STONE, 750, 1.0f), new MixedMaterial.Row(Material.GRAVEL, 250, 1.0f)}, Minecraft1_2BiomeScheme.BIOME_PLAINS, null, 1.0f));
         }
         
-        world.setDirty(false);
         return world;
     }
     
@@ -535,7 +534,6 @@ public class NewWorldDialog extends WorldPainterDialog {
             dimension.setEventsInhibited(false);
         }
 
-        dimension.setDirty(false);
         return dimension;
     }
 

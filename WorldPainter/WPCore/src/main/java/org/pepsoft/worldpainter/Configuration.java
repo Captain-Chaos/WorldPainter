@@ -659,6 +659,30 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         this.java10onMacMessageDisplayed = java10onMacMessageDisplayed;
     }
 
+    public synchronized boolean isAutosaveEnabled() {
+        return autosaveEnabled;
+    }
+
+    public synchronized void setAutosaveEnabled(boolean autosaveEnabled) {
+        this.autosaveEnabled = autosaveEnabled;
+    }
+
+    public synchronized int getAutosaveDelay() {
+        return autosaveDelay;
+    }
+
+    public synchronized void setAutosaveDelay(int autosaveDelay) {
+        this.autosaveDelay = autosaveDelay;
+    }
+
+    public synchronized int getAutosaveInterval() {
+        return autosaveInterval;
+    }
+
+    public synchronized void setAutosaveInterval(int autosaveInterval) {
+        this.autosaveInterval = autosaveInterval;
+    }
+
     @Override
     public synchronized void logEvent(EventVO event) {
         if (eventLog != null) {
@@ -856,6 +880,11 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
                 exportDirectory = null;
             }
         }
+        if (version < 16) {
+            autosaveEnabled = true;
+            autosaveDelay = 10000; // Ten seconds
+            autosaveInterval = 300000; // Five minutes
+        }
         version = CURRENT_VERSION;
         
         // Bug fix: make sure terrain ranges map conforms to surface material setting
@@ -1018,6 +1047,8 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private Platform defaultPlatform = DefaultPlugin.JAVA_ANVIL;
     private Map<Platform, File> exportDirectories = new HashMap<>();
     private boolean java10onMacMessageDisplayed = false;
+    private boolean autosaveEnabled = true;
+    private int autosaveDelay = 10000, autosaveInterval = 300000; // Ten seconds delay; five minutes interval
 
     /**
      * The acceleration type is only stored here at runtime. It is saved to disk
@@ -1029,7 +1060,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Configuration.class);
     private static final long serialVersionUID = 2011041801L;
     private static final int CIRCULAR_WORLD = -1;
-    private static final int CURRENT_VERSION = 15;
+    private static final int CURRENT_VERSION = 16;
     
     public enum DonationStatus {DONATED, NO_THANK_YOU}
     

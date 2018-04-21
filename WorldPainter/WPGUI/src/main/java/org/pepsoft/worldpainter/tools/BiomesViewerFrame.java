@@ -264,7 +264,7 @@ public class BiomesViewerFrame extends JFrame {
             imageViewer.getSelectedTiles());
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
-            app.setWorld(null);
+            app.clearWorld();
             if (! dialog.checkMemoryRequirements(this)) {
                 return;
             }
@@ -291,7 +291,7 @@ public class BiomesViewerFrame extends JFrame {
                         newWorld.setGenerator(Generator.LARGE_BIOMES);
                         break;
                 }
-                app.setWorld(newWorld);
+                app.setWorld(newWorld, true);
             }
         }
     }

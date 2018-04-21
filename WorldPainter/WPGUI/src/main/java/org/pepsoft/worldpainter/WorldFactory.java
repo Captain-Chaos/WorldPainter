@@ -106,7 +106,6 @@ public final class WorldFactory {
         }
 //            final RiverGenerator riverGenerator = new RiverGenerator(dim0);
 //            riverGenerator.generateRivers();
-        world.setDirty(false);
         return world;
     }
     
@@ -171,7 +170,6 @@ public final class WorldFactory {
         } finally {
             dim0.setEventsInhibited(false);
         }
-        world.setDirty(false);
         return world;
     }
     
@@ -265,7 +263,6 @@ public final class WorldFactory {
         }
 //            final RiverGenerator riverGenerator = new RiverGenerator(dim0);
 //            riverGenerator.generateRivers();
-        world.setDirty(false);
         return world;
     }
 

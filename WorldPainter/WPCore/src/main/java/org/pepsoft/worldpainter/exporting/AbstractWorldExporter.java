@@ -97,7 +97,6 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         }
 
         final ChunkFactory.Stats collectedStats = new ChunkFactory.Stats();
-        boolean wasDirty = dimension.isDirty(), ceilingWasDirty = (ceiling != null) && ceiling.isDirty();
         dimension.rememberChanges();
         if (ceiling != null) {
             ceiling.rememberChanges();
@@ -348,9 +347,6 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 dimension.armSavePoint();
             }
 
-            // If the dimension wasn't dirty make sure it still isn't
-            dimension.setDirty(wasDirty);
-
             if (ceiling != null) {
                 // Undo any changes we made (such as applying any combined layers)
                 if (ceiling.undoChanges()) {
@@ -359,9 +355,6 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                     ceiling.clearRedo();
                     ceiling.armSavePoint();
                 }
-
-                // If the dimension wasn't dirty make sure it still isn't
-                ceiling.setDirty(ceilingWasDirty);
             }
         }
 

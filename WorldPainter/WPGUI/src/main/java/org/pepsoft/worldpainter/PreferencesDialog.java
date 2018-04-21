@@ -186,6 +186,10 @@ public class PreferencesDialog extends WorldPainterDialog {
                 break;
         }
         
+        checkBoxAutoSave.setSelected(config.isAutosaveEnabled());
+        spinnerAutoSaveGuardTime.setValue(config.getAutosaveDelay() / 1000);
+        spinnerAutoSaveInterval.setValue(config.getAutosaveInterval() / 1000);
+        
         setControlStates();
     }
     
@@ -262,6 +266,10 @@ public class PreferencesDialog extends WorldPainterDialog {
             config.setOverlayType(Configuration.OverlayType.SCALE_ON_PAINT);
         }
         
+        config.setAutosaveEnabled(checkBoxAutoSave.isSelected());
+        config.setAutosaveDelay(((Integer) spinnerAutoSaveGuardTime.getValue()) * 1000);
+        config.setAutosaveInterval(((Integer) spinnerAutoSaveInterval.getValue()) * 1000);
+        
         try {
             config.save();
         } catch (IOException e) {
@@ -278,6 +286,9 @@ public class PreferencesDialog extends WorldPainterDialog {
         spinnerScale.setEnabled(hilly);
         spinnerHeight.setEnabled(! checkBoxCircular.isSelected());
         buttonModePreset.setEnabled(comboBoxWorldType.getSelectedIndex() == 1);
+        boolean autosaveEnabled = checkBoxAutoSave.isSelected();
+        spinnerAutoSaveGuardTime.setEnabled(autosaveEnabled);
+        spinnerAutoSaveInterval.setEnabled(autosaveEnabled);
     }
     
     private void editTerrainAndLayerSettings() {
@@ -314,34 +325,62 @@ public class PreferencesDialog extends WorldPainterDialog {
         buttonGroup3 = new javax.swing.ButtonGroup();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         jPanel1 = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
-        jSeparator1 = new javax.swing.JSeparator();
         checkBoxPing = new javax.swing.JCheckBox();
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         checkBoxCheckForUpdates = new javax.swing.JCheckBox();
+        jLabel20 = new javax.swing.JLabel();
+        spinnerWorldBackups = new javax.swing.JSpinner();
+        jLabel30 = new javax.swing.JLabel();
+        comboBoxLookAndFeel = new javax.swing.JComboBox();
+        jLabel32 = new javax.swing.JLabel();
+        checkBoxAutoSave = new javax.swing.JCheckBox();
+        jLabel45 = new javax.swing.JLabel();
+        spinnerAutoSaveGuardTime = new javax.swing.JSpinner();
+        jLabel46 = new javax.swing.JLabel();
+        spinnerAutoSaveInterval = new javax.swing.JSpinner();
+        jLabel47 = new javax.swing.JLabel();
+        jLabel48 = new javax.swing.JLabel();
+        checkBoxUndo = new javax.swing.JCheckBox();
+        jLabel5 = new javax.swing.JLabel();
+        spinnerUndoLevels = new javax.swing.JSpinner();
+        jPanel5 = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel18 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
         jSeparator2 = new javax.swing.JSeparator();
         checkBoxGrid = new javax.swing.JCheckBox();
+        checkBoxContours = new javax.swing.JCheckBox();
+        checkBoxViewDistance = new javax.swing.JCheckBox();
+        jLabel22 = new javax.swing.JLabel();
+        comboBoxLightDirection = new javax.swing.JComboBox();
         jLabel7 = new javax.swing.JLabel();
         spinnerGrid = new javax.swing.JSpinner();
         jLabel8 = new javax.swing.JLabel();
-        checkBoxContours = new javax.swing.JCheckBox();
         spinnerContours = new javax.swing.JSpinner();
-        checkBoxViewDistance = new javax.swing.JCheckBox();
         checkBoxWalkingDistance = new javax.swing.JCheckBox();
+        jLabel26 = new javax.swing.JLabel();
+        spinnerBrushSize = new javax.swing.JSpinner();
+        jLabel21 = new javax.swing.JLabel();
+        jLabel27 = new javax.swing.JLabel();
         jLabel9 = new javax.swing.JLabel();
         jSeparator3 = new javax.swing.JSeparator();
         jLabel10 = new javax.swing.JLabel();
         spinnerWidth = new javax.swing.JSpinner();
         jLabel11 = new javax.swing.JLabel();
         spinnerHeight = new javax.swing.JSpinner();
+        jLabel19 = new javax.swing.JLabel();
         jLabel12 = new javax.swing.JLabel();
         comboBoxHeight = new javax.swing.JComboBox();
         jLabel13 = new javax.swing.JLabel();
         radioButtonHilly = new javax.swing.JRadioButton();
+        jLabel23 = new javax.swing.JLabel();
+        spinnerRange = new javax.swing.JSpinner();
+        jLabel24 = new javax.swing.JLabel();
+        spinnerScale = new javax.swing.JSpinner();
+        jLabel25 = new javax.swing.JLabel();
         radioButtonFlat = new javax.swing.JRadioButton();
+        checkBoxCircular = new javax.swing.JCheckBox();
         jLabel14 = new javax.swing.JLabel();
         spinnerGroundLevel = new javax.swing.JSpinner();
         jLabel15 = new javax.swing.JLabel();
@@ -350,26 +389,9 @@ public class PreferencesDialog extends WorldPainterDialog {
         checkBoxBeaches = new javax.swing.JCheckBox();
         jLabel16 = new javax.swing.JLabel();
         comboBoxSurfaceMaterial = new javax.swing.JComboBox();
-        labelTerrainAndLayerSettings = new javax.swing.JLabel();
-        jLabel19 = new javax.swing.JLabel();
-        jLabel18 = new javax.swing.JLabel();
-        buttonReset = new javax.swing.JButton();
-        jSeparator4 = new javax.swing.JSeparator();
-        jLabel20 = new javax.swing.JLabel();
-        spinnerWorldBackups = new javax.swing.JSpinner();
-        jLabel21 = new javax.swing.JLabel();
-        jLabel22 = new javax.swing.JLabel();
-        comboBoxLightDirection = new javax.swing.JComboBox();
-        jLabel23 = new javax.swing.JLabel();
-        spinnerRange = new javax.swing.JSpinner();
-        jLabel24 = new javax.swing.JLabel();
-        spinnerScale = new javax.swing.JSpinner();
-        jLabel25 = new javax.swing.JLabel();
-        jLabel26 = new javax.swing.JLabel();
-        spinnerBrushSize = new javax.swing.JSpinner();
-        jLabel27 = new javax.swing.JLabel();
-        checkBoxCircular = new javax.swing.JCheckBox();
         checkBoxExtendedBlockIds = new javax.swing.JCheckBox();
+        buttonReset = new javax.swing.JButton();
+        labelTerrainAndLayerSettings = new javax.swing.JLabel();
         jLabel17 = new javax.swing.JLabel();
         jSeparator5 = new javax.swing.JSeparator();
         checkBoxChestOfGoodies = new javax.swing.JCheckBox();
@@ -380,13 +402,7 @@ public class PreferencesDialog extends WorldPainterDialog {
         jLabel29 = new javax.swing.JLabel();
         comboBoxMode = new javax.swing.JComboBox<>();
         checkBoxCheats = new javax.swing.JCheckBox();
-        jLabel30 = new javax.swing.JLabel();
-        comboBoxLookAndFeel = new javax.swing.JComboBox();
-        jLabel32 = new javax.swing.JLabel();
         jPanel2 = new javax.swing.JPanel();
-        checkBoxUndo = new javax.swing.JCheckBox();
-        jLabel5 = new javax.swing.JLabel();
-        spinnerUndoLevels = new javax.swing.JSpinner();
         jPanel3 = new javax.swing.JPanel();
         jLabel31 = new javax.swing.JLabel();
         radioButtonAccelDefault = new javax.swing.JRadioButton();
@@ -419,11 +435,6 @@ public class PreferencesDialog extends WorldPainterDialog {
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Preferences");
 
-        jLabel1.setText("Configure your preferences and default settings on this screen:");
-
-        jLabel2.setFont(jLabel2.getFont().deriveFont((jLabel2.getFont().getStyle() | java.awt.Font.ITALIC)));
-        jLabel2.setText("General ");
-
         checkBoxPing.setSelected(true);
         checkBoxPing.setText("Send usage information to the developer");
         checkBoxPing.addActionListener(new java.awt.event.ActionListener() {
@@ -441,10 +452,159 @@ public class PreferencesDialog extends WorldPainterDialog {
         checkBoxCheckForUpdates.setSelected(true);
         checkBoxCheckForUpdates.setText("Check for updates on startup");
 
+        jLabel20.setText("No. of backups of .world files to keep:");
+
+        spinnerWorldBackups.setModel(new javax.swing.SpinnerNumberModel(3, 0, null, 1));
+
+        jLabel30.setText("Visual theme:");
+
+        comboBoxLookAndFeel.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "System", "Metal", "Nimbus", "Dark Metal", "Dark Nimbus" }));
+
+        jLabel32.setText("<html><em>Effective after restart  </em></html>");
+
+        checkBoxAutoSave.setSelected(true);
+        checkBoxAutoSave.setText("Enable autosave");
+        checkBoxAutoSave.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxAutoSaveActionPerformed(evt);
+            }
+        });
+
+        jLabel45.setText("Guard time:");
+
+        spinnerAutoSaveGuardTime.setModel(new javax.swing.SpinnerNumberModel(10, 1, 999, 1));
+
+        jLabel46.setText("Autosave interval:");
+
+        spinnerAutoSaveInterval.setModel(new javax.swing.SpinnerNumberModel(300, 1, 9999, 1));
+
+        jLabel47.setText("seconds");
+
+        jLabel48.setText("seconds");
+
+        checkBoxUndo.setSelected(true);
+        checkBoxUndo.setText("Enable undo");
+        checkBoxUndo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxUndoActionPerformed(evt);
+            }
+        });
+
+        jLabel5.setLabelFor(spinnerUndoLevels);
+        jLabel5.setText("Undo levels:");
+
+        spinnerUndoLevels.setModel(new javax.swing.SpinnerNumberModel(25, 1, 999, 1));
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(checkBoxPing)
+                    .addComponent(checkBoxCheckForUpdates)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(12, 12, 12)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel4)
+                            .addComponent(jLabel3)))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jLabel20)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(spinnerWorldBackups, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jLabel30)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel32, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(comboBoxLookAndFeel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addComponent(checkBoxAutoSave)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(19, 19, 19)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(jLabel45)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(spinnerAutoSaveGuardTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 0, 0)
+                                .addComponent(jLabel47))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(jLabel46)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(spinnerAutoSaveInterval, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 0, 0)
+                                .addComponent(jLabel48))))
+                    .addComponent(checkBoxUndo)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(12, 12, 12)
+                        .addComponent(jLabel5)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(spinnerUndoLevels, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(checkBoxPing)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel3)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel4)
+                .addGap(18, 18, 18)
+                .addComponent(checkBoxCheckForUpdates)
+                .addGap(18, 18, 18)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel20)
+                    .addComponent(spinnerWorldBackups, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addComponent(checkBoxAutoSave)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel45)
+                    .addComponent(spinnerAutoSaveGuardTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel47))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel46)
+                    .addComponent(spinnerAutoSaveInterval, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel48))
+                .addGap(18, 18, 18)
+                .addComponent(checkBoxUndo)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel5)
+                    .addComponent(spinnerUndoLevels, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel30)
+                    .addComponent(comboBoxLookAndFeel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel32, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        jTabbedPane1.addTab("General", jPanel1);
+
+        jLabel1.setText("Configure your default settings on this screen:");
+
+        jLabel18.setFont(jLabel18.getFont().deriveFont((jLabel18.getFont().getStyle() | java.awt.Font.ITALIC)));
+        jLabel18.setText("(Note that changes to these settings will only take effect for the next world you load or create.) ");
+
         jLabel6.setFont(jLabel6.getFont().deriveFont((jLabel6.getFont().getStyle() | java.awt.Font.ITALIC)));
         jLabel6.setText("Default view settings ");
 
         checkBoxGrid.setText("Grid enabled");
+
+        checkBoxContours.setSelected(true);
+        checkBoxContours.setText("Contour lines enabled");
+
+        checkBoxViewDistance.setText("View distance enabled");
+
+        jLabel22.setText("Light direction:");
+
+        comboBoxLightDirection.setModel(new DefaultComboBoxModel(LightOrigin.values()));
 
         jLabel7.setLabelFor(spinnerGrid);
         jLabel7.setText("Grid size:");
@@ -453,14 +613,18 @@ public class PreferencesDialog extends WorldPainterDialog {
 
         jLabel8.setText("Separation:");
 
-        checkBoxContours.setSelected(true);
-        checkBoxContours.setText("Contour lines enabled");
-
         spinnerContours.setModel(new javax.swing.SpinnerNumberModel(10, 2, 999, 1));
 
-        checkBoxViewDistance.setText("View distance enabled");
-
         checkBoxWalkingDistance.setText("Walking distance enabled");
+
+        jLabel26.setText("Maximum brush size:");
+
+        spinnerBrushSize.setModel(new javax.swing.SpinnerNumberModel(300, 100, null, 10));
+
+        jLabel21.setText(" ");
+
+        jLabel27.setFont(jLabel27.getFont().deriveFont((jLabel27.getFont().getStyle() | java.awt.Font.ITALIC)));
+        jLabel27.setText("Warning: large brush sizes could slow your computer to a crawl! ");
 
         jLabel9.setFont(jLabel9.getFont().deriveFont((jLabel9.getFont().getStyle() | java.awt.Font.ITALIC)));
         jLabel9.setText("Default world settings ");
@@ -484,6 +648,8 @@ public class PreferencesDialog extends WorldPainterDialog {
             }
         });
 
+        jLabel19.setText("blocks");
+
         jLabel12.setLabelFor(comboBoxHeight);
         jLabel12.setText("Height:");
 
@@ -506,11 +672,28 @@ public class PreferencesDialog extends WorldPainterDialog {
             }
         });
 
+        jLabel23.setText("(height:");
+
+        spinnerRange.setModel(new javax.swing.SpinnerNumberModel(20, 1, 255, 1));
+
+        jLabel24.setText("scale:");
+
+        spinnerScale.setModel(new javax.swing.SpinnerNumberModel(100, 1, 999, 1));
+
+        jLabel25.setText("%)");
+
         buttonGroup1.add(radioButtonFlat);
         radioButtonFlat.setText("Flat");
         radioButtonFlat.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 radioButtonFlatActionPerformed(evt);
+            }
+        });
+
+        checkBoxCircular.setText("Circular world");
+        checkBoxCircular.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxCircularActionPerformed(evt);
             }
         });
 
@@ -547,19 +730,7 @@ public class PreferencesDialog extends WorldPainterDialog {
             }
         });
 
-        labelTerrainAndLayerSettings.setForeground(java.awt.Color.blue);
-        labelTerrainAndLayerSettings.setText("<html><u>Configure default border, terrain and layer settings</u></html>");
-        labelTerrainAndLayerSettings.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        labelTerrainAndLayerSettings.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                labelTerrainAndLayerSettingsMouseClicked(evt);
-            }
-        });
-
-        jLabel19.setText("blocks");
-
-        jLabel18.setFont(jLabel18.getFont().deriveFont((jLabel18.getFont().getStyle() | java.awt.Font.ITALIC)));
-        jLabel18.setText("(Note that changes to these settings will only take effect for the next world you load or create.) ");
+        checkBoxExtendedBlockIds.setText("Extended block ID's");
 
         buttonReset.setText("Reset...");
         buttonReset.addActionListener(new java.awt.event.ActionListener() {
@@ -568,43 +739,14 @@ public class PreferencesDialog extends WorldPainterDialog {
             }
         });
 
-        jSeparator4.setOrientation(javax.swing.SwingConstants.VERTICAL);
-
-        jLabel20.setText("No. of backups of .world files to keep:");
-
-        spinnerWorldBackups.setModel(new javax.swing.SpinnerNumberModel(3, 0, null, 1));
-
-        jLabel21.setText(" ");
-
-        jLabel22.setText("Light direction:");
-
-        comboBoxLightDirection.setModel(new DefaultComboBoxModel(LightOrigin.values()));
-
-        jLabel23.setText("(height:");
-
-        spinnerRange.setModel(new javax.swing.SpinnerNumberModel(20, 1, 255, 1));
-
-        jLabel24.setText("scale:");
-
-        spinnerScale.setModel(new javax.swing.SpinnerNumberModel(100, 1, 999, 1));
-
-        jLabel25.setText("%)");
-
-        jLabel26.setText("Maximum brush size:");
-
-        spinnerBrushSize.setModel(new javax.swing.SpinnerNumberModel(300, 100, null, 10));
-
-        jLabel27.setFont(jLabel27.getFont().deriveFont((jLabel27.getFont().getStyle() | java.awt.Font.ITALIC)));
-        jLabel27.setText("Warning: large brush sizes could slow your computer to a crawl! ");
-
-        checkBoxCircular.setText("Circular world");
-        checkBoxCircular.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                checkBoxCircularActionPerformed(evt);
+        labelTerrainAndLayerSettings.setForeground(java.awt.Color.blue);
+        labelTerrainAndLayerSettings.setText("<html><u>Configure default border, terrain and layer settings</u></html>");
+        labelTerrainAndLayerSettings.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        labelTerrainAndLayerSettings.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                labelTerrainAndLayerSettingsMouseClicked(evt);
             }
         });
-
-        checkBoxExtendedBlockIds.setText("Extended block ID's");
 
         jLabel17.setFont(jLabel17.getFont().deriveFont((jLabel17.getFont().getStyle() | java.awt.Font.ITALIC)));
         jLabel17.setText("Default export settings");
@@ -638,163 +780,129 @@ public class PreferencesDialog extends WorldPainterDialog {
 
         checkBoxCheats.setText("Allow Cheats");
 
-        jLabel30.setText("Visual theme:");
-
-        comboBoxLookAndFeel.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "System", "Metal", "Nimbus", "Dark Metal", "Dark Nimbus" }));
-
-        jLabel32.setText("<html><em>Effective after restart  </em></html>");
-
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
+        javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
+        jPanel5.setLayout(jPanel5Layout);
+        jPanel5Layout.setHorizontalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel5Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jSeparator3)
                     .addComponent(jSeparator2)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
+                    .addGroup(jPanel5Layout.createSequentialGroup()
                         .addComponent(labelTerrainAndLayerSettings, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(buttonReset))
-                    .addComponent(jSeparator1)
                     .addComponent(jSeparator5)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel1)
-                            .addComponent(jLabel18)
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(checkBoxChestOfGoodies)
-                                .addGap(18, 18, 18)
-                                .addComponent(jLabel28)
+                    .addComponent(jLabel1)
+                    .addComponent(jLabel18)
+                    .addGroup(jPanel5Layout.createSequentialGroup()
+                        .addComponent(checkBoxChestOfGoodies)
+                        .addGap(18, 18, 18)
+                        .addComponent(jLabel28)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(comboBoxWorldType, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(buttonModePreset)
+                        .addGap(18, 18, 18)
+                        .addComponent(checkBoxStructures)
+                        .addGap(18, 18, 18)
+                        .addComponent(jLabel29)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(comboBoxMode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(checkBoxCheats))
+                    .addGroup(jPanel5Layout.createSequentialGroup()
+                        .addComponent(jLabel10)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(spinnerWidth, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel11)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(spinnerHeight, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, 0)
+                        .addComponent(jLabel19)
+                        .addGap(18, 18, 18)
+                        .addComponent(jLabel12)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(comboBoxHeight, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jLabel13)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(radioButtonHilly)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel23)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(spinnerRange, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel24)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(spinnerScale, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, 0)
+                        .addComponent(jLabel25)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(radioButtonFlat))
+                    .addComponent(jLabel6)
+                    .addGroup(jPanel5Layout.createSequentialGroup()
+                        .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel5Layout.createSequentialGroup()
+                                .addGap(12, 12, 12)
+                                .addComponent(jLabel7)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(comboBoxWorldType, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(spinnerGrid, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(checkBoxGrid))
+                        .addGap(18, 18, 18)
+                        .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(checkBoxContours)
+                            .addGroup(jPanel5Layout.createSequentialGroup()
+                                .addGap(12, 12, 12)
+                                .addComponent(jLabel8)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(buttonModePreset)
-                                .addGap(18, 18, 18)
-                                .addComponent(checkBoxStructures)
-                                .addGap(18, 18, 18)
-                                .addComponent(jLabel29)
+                                .addComponent(spinnerContours, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(18, 18, 18)
+                        .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(checkBoxWalkingDistance)
+                            .addComponent(checkBoxViewDistance))
+                        .addGap(18, 18, 18)
+                        .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel5Layout.createSequentialGroup()
+                                .addComponent(jLabel26)
+                                .addGap(6, 6, 6)
+                                .addComponent(spinnerBrushSize, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(comboBoxMode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jLabel21))
+                            .addGroup(jPanel5Layout.createSequentialGroup()
+                                .addComponent(jLabel22)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(checkBoxCheats))
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(jLabel10)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(spinnerWidth, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel11)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(spinnerHeight, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 0, 0)
-                                .addComponent(jLabel19)
-                                .addGap(18, 18, 18)
-                                .addComponent(jLabel12)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(comboBoxHeight, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(18, 18, 18)
-                                .addComponent(jLabel13)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(radioButtonHilly)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel23)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(spinnerRange, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel24)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(spinnerScale, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 0, 0)
-                                .addComponent(jLabel25)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(radioButtonFlat))
-                            .addComponent(jLabel6)
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(jPanel1Layout.createSequentialGroup()
-                                        .addGap(12, 12, 12)
-                                        .addComponent(jLabel7)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(spinnerGrid, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addComponent(checkBoxGrid))
-                                .addGap(18, 18, 18)
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(checkBoxContours)
-                                    .addGroup(jPanel1Layout.createSequentialGroup()
-                                        .addGap(12, 12, 12)
-                                        .addComponent(jLabel8)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(spinnerContours, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                                .addGap(18, 18, 18)
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(checkBoxWalkingDistance)
-                                    .addComponent(checkBoxViewDistance))
-                                .addGap(18, 18, 18)
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(jPanel1Layout.createSequentialGroup()
-                                        .addComponent(jLabel26)
-                                        .addGap(6, 6, 6)
-                                        .addComponent(spinnerBrushSize, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(jLabel21))
-                                    .addGroup(jPanel1Layout.createSequentialGroup()
-                                        .addComponent(jLabel22)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(comboBoxLightDirection, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addComponent(jLabel27)))
-                            .addComponent(jLabel9)
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(checkBoxCircular)
-                                .addGap(18, 18, 18)
-                                .addComponent(jLabel14)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(spinnerGroundLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(18, 18, 18)
-                                .addComponent(jLabel15)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(spinnerWaterLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(18, 18, 18)
-                                .addComponent(checkBoxLava)
-                                .addGap(18, 18, 18)
-                                .addComponent(checkBoxBeaches))
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(jLabel16)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(comboBoxSurfaceMaterial, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(18, 18, 18)
-                                .addComponent(checkBoxExtendedBlockIds))
-                            .addComponent(jLabel2)
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(checkBoxPing)
-                                    .addComponent(checkBoxCheckForUpdates)
-                                    .addGroup(jPanel1Layout.createSequentialGroup()
-                                        .addGap(12, 12, 12)
-                                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addComponent(jLabel4)
-                                            .addComponent(jLabel3))))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jSeparator4, javax.swing.GroupLayout.PREFERRED_SIZE, 2, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(jPanel1Layout.createSequentialGroup()
-                                        .addComponent(jLabel20)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(spinnerWorldBackups, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addGroup(jPanel1Layout.createSequentialGroup()
-                                        .addComponent(jLabel30)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addComponent(jLabel32, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                            .addComponent(comboBoxLookAndFeel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))))
-                            .addComponent(jLabel17))
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                                .addComponent(comboBoxLightDirection, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jLabel27)))
+                    .addComponent(jLabel9)
+                    .addGroup(jPanel5Layout.createSequentialGroup()
+                        .addComponent(checkBoxCircular)
+                        .addGap(18, 18, 18)
+                        .addComponent(jLabel14)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(spinnerGroundLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jLabel15)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(spinnerWaterLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(checkBoxLava)
+                        .addGap(18, 18, 18)
+                        .addComponent(checkBoxBeaches))
+                    .addGroup(jPanel5Layout.createSequentialGroup()
+                        .addComponent(jLabel16)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(comboBoxSurfaceMaterial, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(checkBoxExtendedBlockIds))
+                    .addComponent(jLabel17))
                 .addContainerGap())
         );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
+        jPanel5Layout.setVerticalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel5Layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -804,14 +912,14 @@ public class PreferencesDialog extends WorldPainterDialog {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jSeparator2, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(checkBoxGrid)
                     .addComponent(checkBoxContours)
                     .addComponent(checkBoxViewDistance)
                     .addComponent(jLabel22)
                     .addComponent(comboBoxLightDirection, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel7)
                     .addComponent(spinnerGrid, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel8)
@@ -827,7 +935,7 @@ public class PreferencesDialog extends WorldPainterDialog {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jSeparator3, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel10)
                     .addComponent(spinnerWidth, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel11)
@@ -844,7 +952,7 @@ public class PreferencesDialog extends WorldPainterDialog {
                     .addComponent(spinnerScale, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel25))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel14)
                     .addComponent(spinnerGroundLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel15)
@@ -853,12 +961,12 @@ public class PreferencesDialog extends WorldPainterDialog {
                     .addComponent(checkBoxBeaches)
                     .addComponent(checkBoxCircular))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel16)
                     .addComponent(comboBoxSurfaceMaterial, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(checkBoxExtendedBlockIds))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(labelTerrainAndLayerSettings, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(buttonReset))
                 .addGap(18, 18, 18)
@@ -866,7 +974,7 @@ public class PreferencesDialog extends WorldPainterDialog {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jSeparator5, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(checkBoxChestOfGoodies)
                     .addComponent(jLabel28)
                     .addComponent(comboBoxWorldType, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -875,49 +983,10 @@ public class PreferencesDialog extends WorldPainterDialog {
                     .addComponent(jLabel29)
                     .addComponent(comboBoxMode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(checkBoxCheats))
-                .addGap(18, 18, 18)
-                .addComponent(jLabel2)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addGroup(jPanel1Layout.createSequentialGroup()
-                            .addComponent(checkBoxPing)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(jLabel3)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(jLabel4)
-                            .addGap(18, 18, 18)
-                            .addComponent(checkBoxCheckForUpdates))
-                        .addComponent(jSeparator4))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel20)
-                            .addComponent(spinnerWorldBackups, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(18, 18, 18)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel30)
-                            .addComponent(comboBoxLookAndFeel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel32, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        jTabbedPane1.addTab("General", jPanel1);
-
-        checkBoxUndo.setSelected(true);
-        checkBoxUndo.setText("Enable undo");
-        checkBoxUndo.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                checkBoxUndoActionPerformed(evt);
-            }
-        });
-
-        jLabel5.setLabelFor(spinnerUndoLevels);
-        jLabel5.setText("Undo levels:");
-
-        spinnerUndoLevels.setModel(new javax.swing.SpinnerNumberModel(25, 1, 999, 1));
+        jTabbedPane1.addTab("Defaults", jPanel5);
 
         jPanel3.setBorder(javax.swing.BorderFactory.createTitledBorder("Hardware Acceleration"));
 
@@ -1087,12 +1156,6 @@ public class PreferencesDialog extends WorldPainterDialog {
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(checkBoxUndo)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGap(12, 12, 12)
-                        .addComponent(jLabel5)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(spinnerUndoLevels, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
@@ -1100,12 +1163,6 @@ public class PreferencesDialog extends WorldPainterDialog {
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(checkBoxUndo)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel5)
-                    .addComponent(spinnerUndoLevels, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
                 .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -1173,10 +1230,6 @@ public class PreferencesDialog extends WorldPainterDialog {
     private void labelTerrainAndLayerSettingsMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_labelTerrainAndLayerSettingsMouseClicked
         editTerrainAndLayerSettings();
     }//GEN-LAST:event_labelTerrainAndLayerSettingsMouseClicked
-
-    private void checkBoxPingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxPingActionPerformed
-        pingNotSet = false;
-    }//GEN-LAST:event_checkBoxPingActionPerformed
 
     private void comboBoxHeightActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxHeightActionPerformed
         int maxHeight = Integer.parseInt((String) comboBoxHeight.getSelectedItem());
@@ -1302,6 +1355,14 @@ public class PreferencesDialog extends WorldPainterDialog {
         }
     }//GEN-LAST:event_comboBoxModeActionPerformed
 
+    private void checkBoxPingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxPingActionPerformed
+        pingNotSet = false;
+    }//GEN-LAST:event_checkBoxPingActionPerformed
+
+    private void checkBoxAutoSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxAutoSaveActionPerformed
+        setControlStates();
+    }//GEN-LAST:event_checkBoxAutoSaveActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonCancel;
     private javax.swing.ButtonGroup buttonGroup1;
@@ -1310,6 +1371,7 @@ public class PreferencesDialog extends WorldPainterDialog {
     private javax.swing.JButton buttonModePreset;
     private javax.swing.JButton buttonOK;
     private javax.swing.JButton buttonReset;
+    private javax.swing.JCheckBox checkBoxAutoSave;
     private javax.swing.JCheckBox checkBoxBeaches;
     private javax.swing.JCheckBox checkBoxCheats;
     private javax.swing.JCheckBox checkBoxCheckForUpdates;
@@ -1341,7 +1403,6 @@ public class PreferencesDialog extends WorldPainterDialog {
     private javax.swing.JLabel jLabel17;
     private javax.swing.JLabel jLabel18;
     private javax.swing.JLabel jLabel19;
-    private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel20;
     private javax.swing.JLabel jLabel21;
     private javax.swing.JLabel jLabel22;
@@ -1369,6 +1430,10 @@ public class PreferencesDialog extends WorldPainterDialog {
     private javax.swing.JLabel jLabel42;
     private javax.swing.JLabel jLabel43;
     private javax.swing.JLabel jLabel44;
+    private javax.swing.JLabel jLabel45;
+    private javax.swing.JLabel jLabel46;
+    private javax.swing.JLabel jLabel47;
+    private javax.swing.JLabel jLabel48;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
@@ -1378,11 +1443,10 @@ public class PreferencesDialog extends WorldPainterDialog {
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
+    private javax.swing.JPanel jPanel5;
     private javax.swing.JRadioButton jRadioButton3;
-    private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;
     private javax.swing.JSeparator jSeparator3;
-    private javax.swing.JSeparator jSeparator4;
     private javax.swing.JSeparator jSeparator5;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JLabel labelTerrainAndLayerSettings;
@@ -1397,6 +1461,8 @@ public class PreferencesDialog extends WorldPainterDialog {
     private javax.swing.JRadioButton radioButtonOverlayOptimiseOnLoad;
     private javax.swing.JRadioButton radioButtonOverlayScaleOnLoad;
     private javax.swing.JRadioButton radioButtonOverlayScaleOnPaint;
+    private javax.swing.JSpinner spinnerAutoSaveGuardTime;
+    private javax.swing.JSpinner spinnerAutoSaveInterval;
     private javax.swing.JSpinner spinnerBrushSize;
     private javax.swing.JSpinner spinnerContours;
     private javax.swing.JSpinner spinnerGrid;

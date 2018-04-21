@@ -107,8 +107,7 @@ public class HeightMapImporter {
         dimension.setContourSeparation(config.getDefaultContourSeparation());
         world.setSpawnPoint(new Point(extent.x + extent.width / 2, extent.y + extent.height / 2));
         dimension.setLastViewPosition(world.getSpawnPoint());
-        world.setDirty(false);
-        
+
         return world;
     }
 

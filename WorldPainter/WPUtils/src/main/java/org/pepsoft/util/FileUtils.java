@@ -9,6 +9,7 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.MessageFormat;
 import java.util.*;
 import java.util.List;
 
@@ -572,7 +573,43 @@ public class FileUtils {
         }
         return map;
     }
-    
+
+    /**
+     * Recursively move a file out of the way by using increasing index numbers,
+     * renaming each file to the next number and deleting the last one.
+     *
+     * @param file        The file to rotate or delete.
+     * @param namePattern The pattern to use to create an indexed filename. Must
+     *                    contain a <code>"{0}"</code> which will be replaced
+     *                    with the index number.
+     * @param index       The index of the current file.
+     * @param maxIndex    The maximum index which should exist. Beyond this the
+     *                    file will be deleted instead of renamed.
+     * @throws IOException If a file could not be renamed or deleted.
+     */
+    public static void rotateFile(File file, String namePattern, int index, int maxIndex) throws IOException {
+        if (file.isFile()) {
+            // The file exists; move it out of the way by rotating it or
+            // deleting it
+            if (index >= maxIndex) {
+                // We've used the max index, so delete the file
+                if (! file.delete()) {
+                    throw new IOException("Could not delete file " + file);
+                }
+            } else {
+                // Rotate the file, but first make sure there is room by
+                // rotating the next file
+                File nextFile = new File(file.getParentFile(), MessageFormat.format(namePattern, index + 1));
+                rotateFile(nextFile, namePattern, index + 1, maxIndex);
+                // If the next file existed it has now either been renamed or
+                // deleted
+                if (! file.renameTo(nextFile)) {
+                    throw new IOException("Could not rename file " + file + " to " + nextFile);
+                }
+            }
+        }
+    }
+
     public static void main(String[] args) throws IOException {
         Checksum md5 = getMD5(new File(args[0]));
         System.out.print('{');

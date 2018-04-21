@@ -56,27 +56,15 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         addDimension(dim);
     }
     
-    public boolean isDirty() {
-        if (dirty || borderSettings.isDirty()) {
-            return true;
-        } else {
-            for (Dimension dimension: dimensions.values()) {
-                if (dimension.isDirty()) {
-                    return true;
-                }
-            }
-            return false;
+    public long getChangeNo() {
+        long totalChangeNo = changeNo + borderSettings.getChangeNo();
+        for (Dimension dimension: dimensions.values()) {
+            totalChangeNo += dimension.getChangeNo();
         }
-    }
-
-    public void setDirty(boolean dirty) {
-        this.dirty = dirty;
-        if (! dirty) {
-            borderSettings.setDirty(false);
-            for (Dimension dimension: dimensions.values()) {
-                dimension.setDirty(false);
-            }
+        if (logger.isDebugEnabled()) {
+            logger.debug("World change no: {}", totalChangeNo);
         }
+        return totalChangeNo;
     }
 
     public String getName() {
@@ -87,7 +75,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         if (! (name.equals(this.name))) {
             String oldName = this.name;
             this.name = name;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("name", oldName, name);
         }
     }
@@ -99,7 +87,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     public void setCreateGoodiesChest(boolean createGoodiesChest) {
         if (createGoodiesChest != this.createGoodiesChest) {
             this.createGoodiesChest = createGoodiesChest;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("createGoodiesChest", ! createGoodiesChest, createGoodiesChest);
         }
     }
@@ -122,7 +110,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         if (! spawnPoint.equals(this.spawnPoint)) {
             Point oldSpawnPoint = this.spawnPoint;
             this.spawnPoint = spawnPoint;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("spawnPoint", oldSpawnPoint, spawnPoint);
         }
     }
@@ -146,7 +134,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     public void setMapFeatures(boolean mapFeatures) {
         if (mapFeatures != this.mapFeatures) {
             this.mapFeatures = mapFeatures;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("mapFeatures", ! mapFeatures, mapFeatures);
         }
     }
@@ -159,7 +147,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         if (gameType != gameTypeObj) {
             GameType oldGameType = gameTypeObj;
             gameTypeObj = gameType;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("gameType", oldGameType, gameType);
         }
     }
@@ -213,7 +201,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
 
     public Dimension removeDimension(int dim) {
         if (dimensions.containsKey(dim)) {
-            dirty = true;
+            changeNo++;
             Dimension dimension = dimensions.remove(dim);
             history.add(new HistoryEntry(HistoryEntry.WORLD_DIMENSION_REMOVED, dimension.getName()));
             return dimension;
@@ -230,7 +218,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         if ((material == null) ? (mixedMaterials[index] != null) : (! material.equals(mixedMaterials[index]))) {
             MixedMaterial oldMaterial = mixedMaterials[index];
             mixedMaterials[index] = material;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.fireIndexedPropertyChange("mixedMaterial", index, oldMaterial, material);
         }
     }
@@ -243,7 +231,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         if (maxHeight != this.maxheight) {
             int oldMaxHeight = this.maxheight;
             this.maxheight = maxHeight;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("maxHeight", oldMaxHeight, maxHeight);
         }
     }
@@ -256,7 +244,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         if (generator != this.generator) {
             Generator oldGenerator = this.generator;
             this.generator = generator;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("generator", oldGenerator, generator);
         }
     }
@@ -273,7 +261,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
             Platform oldPlatform = this.platform;
             this.platform = platform;
             if (! oldPlatform.equals(platform)) {
-                dirty = true;
+                changeNo++;
             }
             propertyChangeSupport.firePropertyChange("platform", oldPlatform, platform);
         }
@@ -288,7 +276,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         // Inverted so that legacy worlds have the correct setting
         if (askToConvertToAnvil == dontAskToConvertToAnvil) {
             dontAskToConvertToAnvil = !askToConvertToAnvil;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("askToConvertToAnvil", askToConvertToAnvil, !askToConvertToAnvil);
         }
     }
@@ -308,7 +296,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     public void setAskToRotate(boolean askToRotate) {
         if (askToRotate != this.askToRotate) {
             this.askToRotate = askToRotate;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("askToRotate", !askToRotate, askToRotate);
         }
     }
@@ -321,7 +309,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         if (upIs != this.upIs) {
             Direction oldUpIs = this.upIs;
             this.upIs = upIs;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("upIs", oldUpIs, upIs);
         }
     }
@@ -341,7 +329,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     public void setAllowCheats(boolean allowCheats) {
         if (allowCheats != this.allowCheats) {
             this.allowCheats = allowCheats;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("allowCheats", !allowCheats, allowCheats);
         }
     }
@@ -354,7 +342,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         if ((generatorOptions != null) ? (! generatorOptions.equals(this.generatorOptions)) : (this.generatorOptions != null)) {
             String oldGeneratorOptions = this.generatorOptions;
             this.generatorOptions = generatorOptions;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("generatorOptions", oldGeneratorOptions, generatorOptions);
         }
     }
@@ -366,7 +354,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     public void setExtendedBlockIds(boolean extendedBlockIds) {
         if (extendedBlockIds != this.extendedBlockIds) {
             this.extendedBlockIds = extendedBlockIds;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("extendedBlockIds", !extendedBlockIds, extendedBlockIds);
         }
     }
@@ -379,7 +367,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         if (difficulty != this.difficulty) {
             int oldDifficulty = this.difficulty;
             this.difficulty = difficulty;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("difficulty", oldDifficulty, difficulty);
         }
     }
@@ -416,7 +404,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         if ((mergedWith == null) ? (this.mergedWith != null) : (! mergedWith.equals(this.mergedWith))) {
             File oldMergedWith = this.mergedWith;
             this.mergedWith = mergedWith;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("mergedWith", oldMergedWith, mergedWith);
         }
     }
@@ -429,7 +417,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         if ((dimensionsToExport == null) ? (this.dimensionsToExport != null) : (! dimensionsToExport.equals(this.dimensionsToExport))) {
             Set<Integer> oldMergedDimensions = this.dimensionsToExport;
             this.dimensionsToExport = dimensionsToExport;
-            dirty = true;
+            changeNo++;
             propertyChangeSupport.firePropertyChange("mergedDimensions", oldMergedDimensions, dimensionsToExport);
         }
     }
@@ -455,7 +443,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
             }
             attributes.put(key.key, value);
         }
-        dirty = true;
+        changeNo++;
     }
 
     /**
@@ -478,7 +466,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         Direction oldUpIs = upIs;
         upIs = transform.inverseTransform(upIs);
         propertyChangeSupport.firePropertyChange("upIs", oldUpIs, upIs);
-        dirty = true;
+        changeNo++;
     }
     
     /**
@@ -501,7 +489,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
             upIs = transform.inverseTransform(upIs);
             propertyChangeSupport.firePropertyChange("upIs", oldUpIs, upIs);
         }
-        dirty = true;
+        changeNo++;
     }
 
     public void clearLayerData(Layer layer) {
@@ -675,7 +663,6 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
             .forEach(dimension -> {
                 logger.warn("Fixing maxHeight of dimension " + dimension.getDim() + " (was " + dimension.getMaxHeight() + ", should be " + maxheight + ")");
                 dimension.setMaxHeight(maxheight);
-                dimension.setDirty(false);
             });
         
         // The number of custom terrains increases now and again; correct old
@@ -698,7 +685,6 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     @Deprecated
     private int biomeAlgorithm = -1;
     private int maxheight = DEFAULT_MAX_HEIGHT; // Typo, but there are already worlds in the wild with this, so leave it
-    private transient boolean dirty;
     private transient PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
     @Deprecated
     private String generatorName;
@@ -730,6 +716,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     private Map<String, Object> attributes;
     private transient Set<Warning> warnings;
     private transient Map<String, Object> metadata;
+    private transient long changeNo;
 
     @Deprecated
     public static final int BIOME_ALGORITHM_NONE                = -1;
@@ -784,7 +771,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         public void setCentreX(int centreX) {
             if (centreX != this.centreX) {
                 this.centreX = centreX;
-                dirty = true;
+                changeNo++;
             }
         }
 
@@ -795,7 +782,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         public void setCentreY(int centreY) {
             if (centreY != this.centreY) {
                 this.centreY = centreY;
-                dirty = true;
+                changeNo++;
             }
         }
 
@@ -806,7 +793,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         public void setSize(int size) {
             if (size != this.size) {
                 this.size = size;
-                dirty = true;
+                changeNo++;
             }
         }
 
@@ -817,7 +804,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         public void setSafeZone(int safeZone) {
             if (safeZone != this.safeZone) {
                 this.safeZone = safeZone;
-                dirty = true;
+                changeNo++;
             }
         }
 
@@ -828,7 +815,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         public void setWarningBlocks(int warningBlocks) {
             if (warningBlocks != this.warningBlocks) {
                 this.warningBlocks = warningBlocks;
-                dirty = true;
+                changeNo++;
             }
         }
 
@@ -839,7 +826,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         public void setWarningTime(int warningTime) {
             if (warningTime != this.warningTime) {
                 this.warningTime = warningTime;
-                dirty = true;
+                changeNo++;
             }
         }
 
@@ -850,7 +837,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         public void setSizeLerpTarget(int sizeLerpTarget) {
             if (sizeLerpTarget != this.sizeLerpTarget) {
                 this.sizeLerpTarget = sizeLerpTarget;
-                dirty = true;
+                changeNo++;
             }
         }
 
@@ -861,9 +848,8 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         public void setSizeLerpTime(int sizeLerpTime) {
             if (sizeLerpTime != this.sizeLerpTime) {
                 this.sizeLerpTime = sizeLerpTime;
-                dirty = true;
+                changeNo++;
             }
-            dirty = true;
         }
 
         public float getDamagePerBlock() {
@@ -873,17 +859,12 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         public void setDamagePerBlock(float damagePerBlock) {
             if (damagePerBlock != this.damagePerBlock) {
                 this.damagePerBlock = damagePerBlock;
-                dirty = true;
+                changeNo++;
             }
-            dirty = true;
         }
 
-        public boolean isDirty() {
-            return dirty;
-        }
-
-        public void setDirty(boolean dirty) {
-            this.dirty = dirty;
+        public long getChangeNo() {
+            return changeNo;
         }
 
         @Override
@@ -929,7 +910,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
 
         private int centreX, centreY, size = 60000000, safeZone = 5, warningBlocks = 5, warningTime = 15, sizeLerpTarget = 60000000, sizeLerpTime;
         private float damagePerBlock = 0.2f;
-        private boolean dirty;
+        private transient long changeNo;
         
         private static final long serialVersionUID = 1L;
     }

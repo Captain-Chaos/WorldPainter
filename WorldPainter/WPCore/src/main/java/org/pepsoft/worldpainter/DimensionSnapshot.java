@@ -226,7 +226,7 @@ public final class DimensionSnapshot extends Dimension {
     }
 
     @Override
-    public void setDirty(boolean dirty) {
+    public void changed() {
         throw new UnsupportedOperationException();
     }
 

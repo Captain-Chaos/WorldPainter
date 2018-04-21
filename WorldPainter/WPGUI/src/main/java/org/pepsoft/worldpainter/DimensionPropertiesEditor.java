@@ -439,7 +439,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         // custom layers
         if ((mode == Mode.EXPORT) && (! customLayersTableModel.isPristine())) {
             customLayersTableModel.save();
-            dimension.setDirty(true);
+            dimension.changed();
         }
         
         return true;

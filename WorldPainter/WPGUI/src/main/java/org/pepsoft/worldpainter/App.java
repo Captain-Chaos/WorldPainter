@@ -93,6 +93,7 @@ import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -119,7 +120,7 @@ import static org.pepsoft.worldpainter.TileRenderer.TERRAIN_AS_LAYER;
  */
 public final class App extends JFrame implements RadiusControl,
         BiomesViewerFrame.SeedListener, Listener, CustomBiomeListener,
-        PaletteManager.ButtonProvider, DockableHolder, PropertyChangeListener {
+        PaletteManager.ButtonProvider, DockableHolder, PropertyChangeListener, Dimension.Listener, Tile.Listener {
     private App() {
         super((mode == Mode.WORLDPAINTER) ? "WorldPainter" : "MinecraftMapEditor"); // NOI18N
         setIconImage(ICON);
@@ -191,6 +192,9 @@ public final class App extends JFrame implements RadiusControl,
             public void componentShown(ComponentEvent e) {
                 fixLabelSizes();
                 maybePing();
+                autosaveTimer = new Timer(config.getAutosaveDelay(), event -> maybeAutosave());
+                autosaveTimer.setDelay(config.getAutosaveDelay() / 2);
+                autosaveTimer.start();
 
                 // Show mini map here because we only know our location now
 //                JDialog miniMapDialog = new JDialog(App.this, "Mini Map");
@@ -305,79 +309,20 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     /**
-     * This setter <em>must</em> be called in two steps when loading a new
-     * world: first setting the value to <code>null</code>, and then to the new
-     * World, except when re-loading the same World. Otherwise it will throw
-     * an {@link IllegalStateException}.
+     * Unload the currently loaded World. This must always be done before
+     * loading a different World using {@link #setWorld(World2, boolean)}.
      *
      * <p>This is for historical reasons: it was introduced to make sure that
      * the custom materials, which are registered when loaded, are not then
-     * immediately cleared when invoking this method.
-     *
-     * @param world The world to set, or <code>null</code>.
-     */
-    public void setWorld(World2 world) {
-        if ((this.world != null) && (world != null) && (this.world != world)) {
-            throw new IllegalStateException(world + " != " + this.world);
-        }
+     * immediately cleared when invoking this method.*/
+    public void clearWorld() {
         if (world != null) {
-            if (world == this.world) {
-                // Reloading the same world; no need to do anything other than
-                // to reload the dimension
-                if (dimension != null) {
-                    setDimension(world.getDimension(dimension.getDim()));
-                }
-            } else {
-                this.world = world;
-                // Refresh the platform if we have the plugin, as the capabilities may have changed
-                Platform stalePlatform = world.getPlatform();
-                for (Platform freshPlatform: PlatformManager.getInstance().getAllPlatforms()) {
-                    if (freshPlatform.equals(stalePlatform)) {
-                        world.setPlatform(freshPlatform);
-                        break;
-                    }
-                }
-                world.addPropertyChangeListener(this);
-
-                loadCustomTerrains();
-
-                extendedBlockIdsMenuItem.setSelected(world.isExtendedBlockIds());
-
-                // Load the layout *before* setting the dimension, because otherwise
-                // the subsequent changes (due to the loading of custom layers for
-                // instance) may cause layout/display bugs
-                Configuration config = Configuration.getInstance();
-                if ((config.getJideLayoutData() != null) && config.getJideLayoutData().containsKey(world.getName())) {
-                    dockingManager.loadLayoutFrom(new ByteArrayInputStream(config.getJideLayoutData().get(world.getName())));
-                }
-
-                setDimension(world.getDimension(DIM_NORMAL));
-
-                if (config.isDefaultViewDistanceEnabled() != view.isDrawViewDistance()) {
-                    ACTION_VIEW_DISTANCE.actionPerformed(null);
-                }
-                if (config.isDefaultWalkingDistanceEnabled() != view.isDrawWalkingDistance()) {
-                    ACTION_WALKING_DISTANCE.actionPerformed(null);
-                }
-                view.setLightOrigin(config.getDefaultLightOrigin());
-
-                brushOptions.setMaxHeight(world.getMaxHeight());
-
-                if (config.isEasyMode()) {
-                    boolean imported = world.getImportedFrom() != null;
-                    ACTION_EXPORT_WORLD.setEnabled(!imported);
-                    ACTION_MERGE_WORLD.setEnabled(imported);
-                } else {
-                    ACTION_EXPORT_WORLD.setEnabled(true);
-                    ACTION_MERGE_WORLD.setEnabled(true);
-                }
-            }
-        } else if (this.world != null) {
-            for (Dimension dimension: this.world.getDimensions()) {
+            for (Dimension dimension: world.getDimensions()) {
                 dimension.unregister();
             }
-            this.world.removePropertyChangeListener(this);
-            this.world = null;
+            world.removePropertyChangeListener(this);
+            world = null;
+            lastSavedState = lastAutosavedState = -1;
 
             setDimension(null);
 
@@ -394,6 +339,89 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
 
+    /**
+     * This setter may only be used to re-load the same World (by passing in the
+     * current World instance), or after the current World has been unloaded by
+     * invoking {@link #clearWorld()}. Otherwise it will throw an {@link
+     * IllegalStateException}.
+     *
+     * <p>This is for historical reasons: it was introduced to make sure that
+     * the custom materials, which are registered when loaded, are not then
+     * immediately cleared when invoking this method.
+     *
+     * @param world The world to set.
+     * @param markClean Whether the world is clean (loaded or created from a
+     *                  persistent source so that it can be recreated and does
+     *                  not need to be saved if unchanged) or dirty (needs to be
+     *                  saved even if unchanged by the user).
+     */
+    public void setWorld(World2 world, boolean markClean) {
+        if (world == null) {
+            throw new NullPointerException();
+        } else if ((this.world != null) && (this.world != world)) {
+            throw new IllegalStateException(world + " != " + this.world);
+        }
+        if (world == this.world) {
+            // Reloading the same world; no need to do anything other than
+            // to reload the dimension
+            if (dimension != null) {
+                setDimension(world.getDimension(dimension.getDim()));
+            }
+        } else {
+            this.world = world;
+            long now = System.currentTimeMillis();
+            if (markClean) {
+                lastSavedState = lastAutosavedState = world.getChangeNo();
+            } else {
+                lastSavedState = lastAutosavedState = -1;
+            }
+            lastSaveTimestamp = now;
+            lastChangeTimestamp = now;
+            // Refresh the platform if we have the plugin, as the capabilities may have changed
+            Platform stalePlatform = world.getPlatform();
+            for (Platform freshPlatform: PlatformManager.getInstance().getAllPlatforms()) {
+                if (freshPlatform.equals(stalePlatform)) {
+                    world.setPlatform(freshPlatform);
+                    break;
+                }
+            }
+            world.addPropertyChangeListener(this);
+
+            loadCustomTerrains();
+
+            extendedBlockIdsMenuItem.setSelected(world.isExtendedBlockIds());
+
+            // Load the layout *before* setting the dimension, because otherwise
+            // the subsequent changes (due to the loading of custom layers for
+            // instance) may cause layout/display bugs
+            Configuration config = Configuration.getInstance();
+            if ((config.getJideLayoutData() != null) && config.getJideLayoutData().containsKey(world.getName())) {
+                dockingManager.loadLayoutFrom(new ByteArrayInputStream(config.getJideLayoutData().get(world.getName())));
+            }
+
+            setDimension(world.getDimension(DIM_NORMAL));
+
+            if (config.isDefaultViewDistanceEnabled() != view.isDrawViewDistance()) {
+                ACTION_VIEW_DISTANCE.actionPerformed(null);
+            }
+            if (config.isDefaultWalkingDistanceEnabled() != view.isDrawWalkingDistance()) {
+                ACTION_WALKING_DISTANCE.actionPerformed(null);
+            }
+            view.setLightOrigin(config.getDefaultLightOrigin());
+
+            brushOptions.setMaxHeight(world.getMaxHeight());
+
+            if (config.isEasyMode()) {
+                boolean imported = world.getImportedFrom() != null;
+                ACTION_EXPORT_WORLD.setEnabled(!imported);
+                ACTION_MERGE_WORLD.setEnabled(imported);
+            } else {
+                ACTION_EXPORT_WORLD.setEnabled(true);
+                ACTION_MERGE_WORLD.setEnabled(true);
+            }
+        }
+    }
+
     public Dimension getDimension() {
         return dimension;
     }
@@ -402,6 +430,10 @@ public final class App extends JFrame implements RadiusControl,
         Configuration config = Configuration.getInstance();
         if (this.dimension != null) {
             this.dimension.removePropertyChangeListener(this);
+            this.dimension.removeDimensionListener(this);
+            for (Tile tile: this.dimension.getTiles()) {
+                tile.removeListener(this);
+            }
             Point viewPosition = view.getViewCentreInWorldCoords();
             if (viewPosition != null) {
                 this.dimension.setLastViewPosition(viewPosition);
@@ -595,6 +627,10 @@ public final class App extends JFrame implements RadiusControl,
                 programmaticChange = false;
             }
             dimension.addPropertyChangeListener(this);
+            dimension.addDimensionListener(this);
+            for (Tile tile: dimension.getTiles()) {
+                tile.addListener(this);
+            }
         } else {
             view.setDimension(null);
             setTitle("WorldPainter"); // NOI18N
@@ -796,7 +832,7 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     public void open(File file, boolean askForConfirmation) {
-        if (askForConfirmation && (world != null) && world.isDirty()) {
+        if (askForConfirmation && (world != null) && (world.getChangeNo() != lastSavedState)) {
             int action = showConfirmDialog(this, strings.getString("there.are.unsaved.changes"));
             if (action == YES_OPTION) {
                 if (! saveAs()) {
@@ -813,7 +849,8 @@ public final class App extends JFrame implements RadiusControl,
     
     public void open(final File file) {
         logger.info("Loading world " + file.getAbsolutePath());
-        setWorld(null); // Free up memory of the world and the undo buffer
+        clearWorld(); // Free up memory of the world and the undo buffer
+        boolean loadedFromAutosave = isAutosaveFile(file);
         final World2 newWorld = ProgressDialog.executeTask(this, new ProgressTask<World2>() {
             @Override
             public String getName() {
@@ -826,7 +863,11 @@ public final class App extends JFrame implements RadiusControl,
                     WorldIO worldIO = new WorldIO();
                     worldIO.load(new FileInputStream(file));
                     World2 world = worldIO.getWorld();
-                    world.addHistoryEntry(HistoryEntry.WORLD_LOADED, file);
+                    if (loadedFromAutosave) {
+                        world.addHistoryEntry(HistoryEntry.WORLD_RECOVERED_FROM_AUTOSAVE);
+                    } else {
+                        world.addHistoryEntry(HistoryEntry.WORLD_LOADED, file);
+                    }
                     if (logger.isDebugEnabled() && (world.getMetadata() != null)) {
                         logMetadataAsDebug(world.getMetadata());
                     }
@@ -911,7 +952,8 @@ public final class App extends JFrame implements RadiusControl,
             // The file was damaged
             return;
         }
-        if (! isBackupFile(file)) {
+        boolean loadedFromBackup = (! loadedFromAutosave) && isBackupFile(file);
+        if ((! loadedFromBackup) && (! loadedFromAutosave)) {
             lastSelectedFile = file;
         } else {
             lastSelectedFile = null;
@@ -1007,30 +1049,31 @@ public final class App extends JFrame implements RadiusControl,
             newWorld.setAskToRotate(false);
         }
 
-        // Make sure the world name is always the same as the file name, to
-        // avoid confusion, unless the only difference is illegal filename
-        // characters changed into underscores. Do this here as well as when
-        // saving, because the file might have been renamed
-        String name = isBackupFile(file) ? getOriginalFile(file).getName() : file.getName();
-        int p = name.lastIndexOf('.');
-        if (p != -1) {
-            name = name.substring(0, p);
-        }
-        String worldName = newWorld.getName();
-        if (worldName.length() != name.length()) {
-            newWorld.setName(name);
-        } else {
-            for (int i = 0; i < name.length(); i++) {
-                if ((name.charAt(i) != '_') && (name.charAt(i) != worldName.charAt(i))) {
-                    newWorld.setName(name);
-                    break;
+        if (! loadedFromAutosave) {
+            // Make sure the world name is always the same as the file name, to
+            // avoid confusion, unless the only difference is illegal filename
+            // characters changed into underscores. Do this here as well as when
+            // saving, because the file might have been renamed
+            File originalFile = loadedFromBackup ? getOriginalFile(file) : file;
+            String name = originalFile.getName();
+            if (name.toLowerCase().endsWith(".world")) {
+                name = name.substring(0, name.length() - 6);
+            }
+            String worldName = newWorld.getName();
+            if (worldName.length() != name.length()) {
+                newWorld.setName(name);
+            } else {
+                for (int i = 0; i < name.length(); i++) {
+                    if ((name.charAt(i) != '_') && (name.charAt(i) != worldName.charAt(i))) {
+                        newWorld.setName(name);
+                        break;
+                    }
                 }
             }
-        }
-        newWorld.setDirty(false);
-        setWorld(newWorld);
 
-        addRecentlyUsedWorld(file);
+            addRecentlyUsedWorld(originalFile);
+        }
+        setWorld(newWorld, ! (loadedFromBackup || loadedFromAutosave));
 
         if (newWorld.getImportedFrom() != null) {
             enableImportedWorldOperation();
@@ -1095,24 +1138,73 @@ public final class App extends JFrame implements RadiusControl,
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        Runnable task = null;
         if (evt.getSource() == dimension) {
+            lastChangeTimestamp = System.currentTimeMillis();
             if (evt.getPropertyName().equals("maxHeight")) {
                 boolean enableHighResHeightMapMenuItem = (Integer) evt.getNewValue() <= 256;
-                task = () -> exportHighResHeightMapMenuItem.setEnabled(enableHighResHeightMapMenuItem);
+                AwtUtils.doOnEventThread(() -> exportHighResHeightMapMenuItem.setEnabled(enableHighResHeightMapMenuItem));
             }
         } else if (evt.getSource() == world) {
+            lastChangeTimestamp = System.currentTimeMillis();
             if (evt.getPropertyName().equals("platform")) {
-                task = () -> configureForPlatform((Platform) evt.getNewValue());
+                AwtUtils.doOnEventThread(() -> configureForPlatform((Platform) evt.getNewValue()));
             }
         }
-        if (task != null) {
-            if (SwingUtilities.isEventDispatchThread()) {
-                task.run();
-            } else {
-                SwingUtilities.invokeLater(task);
-            }
+    }
+
+    // Dimension.Listener
+
+    @Override
+    public void tilesAdded(Dimension dimension, Set<Tile> tiles) {
+        for (Tile tile: tiles) {
+            tile.addListener(this);
         }
+        lastChangeTimestamp = System.currentTimeMillis();
+    }
+
+    @Override
+    public void tilesRemoved(Dimension dimension, Set<Tile> tiles) {
+        for (Tile tile: tiles) {
+            tile.removeListener(this);
+        }
+        lastChangeTimestamp = System.currentTimeMillis();
+    }
+
+    // Tile.Listener
+
+    @Override
+    public void heightMapChanged(Tile tile) {
+        lastChangeTimestamp = System.currentTimeMillis();
+    }
+
+    @Override
+    public void terrainChanged(Tile tile) {
+        lastChangeTimestamp = System.currentTimeMillis();
+    }
+
+    @Override
+    public void waterLevelChanged(Tile tile) {
+        lastChangeTimestamp = System.currentTimeMillis();
+    }
+
+    @Override
+    public void layerDataChanged(Tile tile, Set<Layer> changedLayers) {
+        lastChangeTimestamp = System.currentTimeMillis();
+    }
+
+    @Override
+    public void allBitLayerDataChanged(Tile tile) {
+        lastChangeTimestamp = System.currentTimeMillis();
+    }
+
+    @Override
+    public void allNonBitlayerDataChanged(Tile tile) {
+        lastChangeTimestamp = System.currentTimeMillis();
+    }
+
+    @Override
+    public void seedsChanged(Tile tile) {
+        lastChangeTimestamp = System.currentTimeMillis();
     }
 
     // RadiusControl
@@ -1224,7 +1316,10 @@ public final class App extends JFrame implements RadiusControl,
      *     destructive operation should be cancelled).
      */
     public boolean saveIfNecessary() {
-        if ((world != null) && world.isDirty()) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Last saved state: {}", lastSavedState);
+        }
+        if ((world != null) && (world.getChangeNo() != lastSavedState)) {
             int action = showConfirmDialog(this, (lastSelectedFile != null) ? (MessageFormat.format(strings.getString("there.are.unsaved.changes.do.you.want.to.save.the.world.to.0"), lastSelectedFile.getName())) : strings.getString("there.are.unsaved.changes"));
             if (action == YES_OPTION) {
                 if (! save()) {
@@ -1236,9 +1331,14 @@ public final class App extends JFrame implements RadiusControl,
                 return false;
             }
         }
+        // If we get here then either the world didn't need saving; it was
+        // saved, or the user indicated it didn't need saving. In all cases
+        // any autosave file should no longer exist, so make sure to delete it
+        // if necessary
+        rotateAutosaveFile();
         return true;
     }
-    
+
     public boolean editCustomMaterial(int customMaterialIndex) {
         MixedMaterial material = getCustomMaterial(customMaterialIndex);
         CustomMaterialDialog dialog;
@@ -1720,7 +1820,7 @@ public final class App extends JFrame implements RadiusControl,
         final NewWorldDialog dialog = new NewWorldDialog(this, strings.getString("generated.world"), World2.DEFAULT_OCEAN_SEED, config.getDefaultPlatform(), DIM_NORMAL, config.getDefaultMaxHeight());
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
-            setWorld(null); // Free up memory of the world and the undo buffer
+            clearWorld(); // Free up memory of the world and the undo buffer
             if (! dialog.checkMemoryRequirements(this)) {
                 return;
             }
@@ -1746,7 +1846,7 @@ public final class App extends JFrame implements RadiusControl,
             event.setAttribute(ATTRIBUTE_KEY_TILES, newWorld.getDimension(0).getTiles().size());
             config.logEvent(event);
 
-            setWorld(newWorld);
+            setWorld(newWorld, true);
             lastSelectedFile = null;
             disableImportedWorldOperation();
         }
@@ -2010,7 +2110,9 @@ public final class App extends JFrame implements RadiusControl,
         if (currentUndoManager != null) {
             currentUndoManager.armSavePoint();
         }
-        world.setDirty(false);
+        lastSaveTimestamp = lastChangeTimestamp = System.currentTimeMillis();
+        lastAutosavedState = lastSavedState = world.getChangeNo();
+        rotateAutosaveFile();
         lastSelectedFile = file;
         addRecentlyUsedWorld(file);
 
@@ -2018,7 +2120,103 @@ public final class App extends JFrame implements RadiusControl,
 
         return true;
     }
-    
+
+    private void rotateAutosaveFile() {
+        try {
+            FileUtils.rotateFile(getAutosaveFile(), "autosave.{0}.world", 0, 3);
+        } catch (IOException e) {
+            throw new RuntimeException("I/O error while rotating autosave file");
+        }
+    }
+
+    /**
+     * Evaluate whether an autosave should be performed given the current change
+     * number and the time since the last autosave, and if so, perform one.
+     */
+    private void maybeAutosave() {
+        if (logger.isDebugEnabled()) {
+            logger.debug("[AUTOSAVE] maybeAutosave() invoked");
+        }
+        Configuration config = Configuration.getInstance();
+        if (config.isAutosaveEnabled() && (world != null) && (world.getChangeNo() != lastAutosavedState)) {
+            // Autosave is enabled, a world is loaded, and it has changed since it was last (auto)saved
+            if (logger.isDebugEnabled()) {
+                logger.debug("[AUTOSAVE] Autosave is enabled, a world is loaded, and it has changed since it was last (auto)saved");
+            }
+            long now = System.currentTimeMillis();
+            long timeSinceLastChange = now - lastChangeTimestamp;
+            if (timeSinceLastChange > config.getAutosaveDelay()) {
+                // The last change was longer than the autosave delay ago
+                if (logger.isDebugEnabled()) {
+                    logger.debug("[AUTOSAVE] The last change ({}) was longer than the autosave delay ({}) ago", new Date(lastChangeTimestamp), config.getAutosaveDelay());
+                }
+                long timeSinceLastSave = now - lastSaveTimestamp;
+                if (timeSinceLastSave > config.getAutosaveInterval()) {
+                    // The last save was longer than the autosave interval ago
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("[AUTOSAVE] The last save ({}) was longer than the autosave interval ({}) ago", new Date(lastSaveTimestamp), config.getAutosaveInterval());
+                    }
+                    // Do the autosave
+                    autosave();
+                }
+            }
+        }
+    }
+
+    private void autosave() {
+        if (logger.isDebugEnabled()) {
+            logger.debug("[AUTOSAVE] Autosaving");
+        }
+        saveCustomMaterials();
+        saveCustomBiomes();
+
+        // Remove the existing custom object layers and save the list of
+        // custom layers to the dimension to preserve layers which aren't
+        // currently in use
+        if (! paletteManager.isEmpty()) {
+            List<CustomLayer> customLayers = new ArrayList<>();
+            for (Palette palette: paletteManager.getPalettes()) {
+                customLayers.addAll(palette.getLayers());
+            }
+            dimension.setCustomLayers(customLayers);
+        } else {
+            dimension.setCustomLayers(Collections.EMPTY_LIST);
+        }
+
+        if (dimension != null) {
+            Point viewPosition = view.getViewCentreInWorldCoords();
+            if (viewPosition != null) {
+                this.dimension.setLastViewPosition(viewPosition);
+            }
+        }
+
+        ProgressDialog.executeTask(this, new ProgressTask<java.lang.Void>() {
+            @Override
+            public String getName() {
+                return "Autosaving";
+            }
+
+            @Override
+            public java.lang.Void execute(ProgressReceiver progressReceiver) throws OperationCancelled {
+                try {
+                    rotateAutosaveFile();
+                    WorldIO worldIO = new WorldIO(world);
+                    worldIO.save(new FileOutputStream(getAutosaveFile()));
+                } catch (IOException e) {
+                    throw new RuntimeException("I/O error autosaving world (message: " + e.getMessage() + ")", e);
+                }
+                return null;
+            }
+        }, false);
+
+        lastSaveTimestamp = lastChangeTimestamp = System.currentTimeMillis();
+        lastAutosavedState = world.getChangeNo();
+    }
+
+    private boolean isAutosaveFile(File file) {
+        return file.equals(getAutosaveFile());
+    }
+
     private boolean isBackupFile(File file) {
         String filename = file.getName();
         if (filename.toLowerCase().endsWith(".world")) {
@@ -2063,7 +2261,8 @@ public final class App extends JFrame implements RadiusControl,
         MapImportDialog dialog = new MapImportDialog(this);
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
-            setWorld(dialog.getImportedWorld());
+            World2 importedWorld = dialog.getImportedWorld();
+            setWorld(importedWorld, true);
             lastSelectedFile = null;
             Configuration config = Configuration.getInstance();
             config.setImportWarningDisplayed(true);
@@ -2078,9 +2277,9 @@ public final class App extends JFrame implements RadiusControl,
         ImportHeightMapDialog dialog = new ImportHeightMapDialog(this, selectedColourScheme);
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
-            setWorld(null);
+            clearWorld();
             World2 importedWorld = dialog.getImportedWorld();
-            setWorld(importedWorld);
+            setWorld(importedWorld, true);
             lastSelectedFile = null;
         }
     }
@@ -3318,7 +3517,7 @@ public final class App extends JFrame implements RadiusControl,
                         view.refreshTilesForLayer(layer, false);
                         viewRefreshed = true;
                     }
-                    dimension.setDirty(true);
+                    dimension.changed();
                     if (layer instanceof CombinedLayer) {
                         updateHiddenLayers();
                     }
@@ -3738,8 +3937,9 @@ public final class App extends JFrame implements RadiusControl,
                 PreferencesDialog dialog = new PreferencesDialog(App.this, selectedColourScheme);
                 dialog.setVisible(true);
                 if (! dialog.isCancelled()) {
-                    setMaxRadius(Configuration.getInstance().getMaximumBrushSize());
-            }
+                    setMaxRadius(config.getMaximumBrushSize());
+                    autosaveTimer.setDelay(config.getAutosaveDelay() / 2);
+                }
             });
             menuItem.setMnemonic('f');
             menu.add(menuItem);
@@ -5056,7 +5256,9 @@ public final class App extends JFrame implements RadiusControl,
             PreferencesDialog dialog = new PreferencesDialog(App.this, selectedColourScheme);
             dialog.setVisible(true);
             if (! dialog.isCancelled()) {
-                setMaxRadius(Configuration.getInstance().getMaximumBrushSize());
+                Configuration config = Configuration.getInstance();
+                setMaxRadius(config.getMaximumBrushSize());
+                autosaveTimer.setDelay(config.getAutosaveDelay() / 2);
             }
         });
     }
@@ -5761,6 +5963,10 @@ public final class App extends JFrame implements RadiusControl,
             }
         }
         return null;
+    }
+
+    static File getAutosaveFile() {
+        return new File(Configuration.getConfigDir(), "autosave.world");
     }
 
     public final IntensityAction ACTION_INTENSITY_10_PERCENT  = new IntensityAction(  2, VK_1); // 9 so that it will round to level 1 for nibble sized layers
@@ -6501,6 +6707,8 @@ public final class App extends JFrame implements RadiusControl,
     };
 
     private World2 world;
+    private long lastSavedState = -1, lastAutosavedState = -1, lastSaveTimestamp = -1;
+    private volatile long lastChangeTimestamp = -1;
     private Dimension dimension;
     private WorldPainter view;
     private Operation activeOperation;
@@ -6554,6 +6762,7 @@ public final class App extends JFrame implements RadiusControl,
     private JMenu recentMenu;
     private JPanel toolSettingsPanel, customTerrainPanel;
     private final ObservableBoolean selectionState = new ObservableBoolean(true);
+    private Timer autosaveTimer;
 
     public static final Image ICON = IconUtils.loadScaledImage("org/pepsoft/worldpainter/icons/shovel-icon.png");
     
