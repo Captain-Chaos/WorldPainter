@@ -364,9 +364,6 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             tile.register(undoManager);
         }
         tiles.put(key, tile);
-        // Invalidate all thread local tile caches, as the fact that this tile
-        // didn't exist may be cached somewhere
-        tileCache = ThreadLocal.withInitial(TileCache::new);
         if (x < lowestX) {
             lowestX = x;
         }
@@ -1610,8 +1607,6 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
 
-        tileCache = ThreadLocal.withInitial(TileCache::new);
-
         init();
     }
 
@@ -1764,7 +1759,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     private transient PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
     private transient WPGarden garden = new WPGarden();
     private transient PerlinNoise topLayerDepthNoise;
-    private transient ThreadLocal<TileCache> tileCache = ThreadLocal.withInitial(TileCache::new);
+    private transient long changeNo, rememberedChangeNo = -1;
 
     public static final int[] POSSIBLE_AUTO_BIOMES = {BIOME_PLAINS, BIOME_FOREST,
         BIOME_SWAMPLAND, BIOME_JUNGLE, BIOME_MESA, BIOME_DESERT, BIOME_BEACH,
