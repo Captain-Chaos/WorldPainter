@@ -1,3 +1,12 @@
+-- Version 2.4.8, released 21-4-2018
+
+ * An autosave mechanism has been implemented:
+   + WorldPainter will autosave the world every five minutes (if it has changed, and after ten seconds of inactivity)
+   + If WorldPainter is not shut down correctly, it will load the autosaved world automatically the next time it is started
+   + You can disable the autosave mechanism on the Preferences screen if you wish. You can also configure the guard time (the time you have to be inactive before it will autosave) and interval (the minimum time between autosaves) there
+   + The autosave is stored separately from your .world file, in the WorldPainter config directory
+   + WorldPainter keeps a copy of the previous three autosaves in the same directory, which you could manually recover if your autosaved changes somehow get lost or overwritten
+
 -- Version 2.4.7, released 18-4-2018
 
  * Administrative update: replace expired keys and certificates
