@@ -92,7 +92,7 @@ public class DefaultPlatformProvider extends AbstractPlugin implements PlatformP
 
     @Override
     public MapRecognizer getMapRecognizer() {
-        return null;
+        return new JavaMapRecognizer();
     }
 
     private static final List<Platform> PLATFORMS = ImmutableList.of(JAVA_ANVIL, JAVA_MCREGION);
