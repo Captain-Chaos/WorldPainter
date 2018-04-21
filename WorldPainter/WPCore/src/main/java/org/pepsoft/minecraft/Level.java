@@ -159,7 +159,15 @@ public final class Level extends AbstractNBTItem {
     public int getVersion() {
         return getInt(TAG_VERSION);
     }
-    
+
+    /**
+     * 1.12.2: 1343
+     * 18w11a: 1478
+     */
+    public int getDataVersion() {
+        return getInt(TAG_DATA_VERSION);
+    }
+
     public boolean isMapFeatures() {
         return getBoolean(TAG_MAP_FEATURES);
     }

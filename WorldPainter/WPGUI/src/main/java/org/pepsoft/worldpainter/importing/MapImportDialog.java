@@ -27,8 +27,7 @@ import java.util.*;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import static org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_1;
-import static org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_2;
+import static org.pepsoft.minecraft.Constants.*;
 
 /**
  *
@@ -94,10 +93,11 @@ public class MapImportDialog extends WorldPainterDialog {
         final File worldDir = levelDatFile.getParentFile();
 
         // Check if it's a valid level.dat file before we commit
-        int version;
+        int version, dataVersion;
         try {
             Level testLevel = Level.load(levelDatFile);
             version = testLevel.getVersion();
+            dataVersion = testLevel.getDataVersion();
         } catch (IOException e) {
             logger.error("IOException while analysing map " + levelDatFile, e);
             JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("selected.file.is.not.a.valid.level.dat.file"), strings.getString("invalid.file"), JOptionPane.ERROR_MESSAGE);
@@ -113,7 +113,7 @@ public class MapImportDialog extends WorldPainterDialog {
         }
 
         // Other sanity checks
-        if ((version != SUPPORTED_VERSION_1) && (version != SUPPORTED_VERSION_2)) {
+        if (((version != SUPPORTED_VERSION_1) && (version != SUPPORTED_VERSION_2)) || (dataVersion > DATA_VERSION_MC_1_12_2)) {
             logger.error("Unsupported Minecraft version while analysing map " + levelDatFile);
             JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("unsupported.minecraft.version"), strings.getString("unsupported.version"), JOptionPane.ERROR_MESSAGE);
             return;
