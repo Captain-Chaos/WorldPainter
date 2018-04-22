@@ -20,10 +20,12 @@ public final class Constants {
     
     public static final String TAG_LEVEL                   = "Level";
     public static final String TAG_BLOCKS                  = "Blocks";
+    public static final String TAG_BLOCK_STATES            = "BlockStates";
     public static final String TAG_DATA                    = "Data";
     public static final String TAG_SKY_LIGHT               = "SkyLight";
     public static final String TAG_BLOCK_LIGHT             = "BlockLight";
     public static final String TAG_HEIGHT_MAP              = "HeightMap";
+    public static final String TAG_HEIGHT_MAPS             = "Heightmaps";
     public static final String TAG_ENTITIES                = "Entities";
     public static final String TAG_TILE_ENTITIES           = "TileEntities";
     public static final String TAG_LAST_UPDATE             = "LastUpdate";
