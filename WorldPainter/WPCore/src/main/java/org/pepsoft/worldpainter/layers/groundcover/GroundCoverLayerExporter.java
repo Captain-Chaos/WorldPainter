@@ -66,6 +66,19 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
         final double edgeFactor = edgeThickness / 2.0, edgeOffset = 1.5 + edgeFactor;
         final long seed = dimension.getSeed();
         final boolean smooth = layer.isSmooth();
+        final GroundCoverLayer.LayerAnchor layeredMaterialAnchor;
+        final int layeredMaterialHeight;
+        if (mixedMaterial.getMode() == MixedMaterial.Mode.LAYERED) {
+            layeredMaterialAnchor = layer.getLayerAnchor();
+            int total = 0;
+            for (MixedMaterial.Row row: mixedMaterial.getRows()) {
+                total += row.occurrence;
+            }
+            layeredMaterialHeight = total;
+        } else {
+            layeredMaterialAnchor = GroundCoverLayer.LayerAnchor.BEDROCK;
+            layeredMaterialHeight = -1;
+        }
         for (int x = 0; x < 16; x++) {
             final int localX = xOffset + x;
             final int worldX = (chunk.getxPos() << 4) + x;
@@ -100,13 +113,27 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                             effectiveThickness += noiseHeightMap.getHeight(worldX, worldY) - noiseOffset;
                         }
                         if (thickness > 0) {
+                            int yOffset;
+                            switch (layeredMaterialAnchor) {
+                                case BEDROCK:
+                                    yOffset = 0;
+                                    break;
+                                case TERRAIN:
+                                    yOffset = -(terrainheight + 1);
+                                    break;
+                                case TOP_OF_LAYER:
+                                    yOffset = -(terrainheight + effectiveThickness - layeredMaterialHeight + 1);
+                                    break;
+                                default:
+                                    throw new InternalError();
+                            }
                             for (int dy = 0; dy < effectiveThickness; dy++) {
                                 final int y = terrainheight + dy + 1;
                                 if (y > maxY) {
                                     break;
                                 }
                                 final int existingBlockType = chunk.getBlockType(x, y, z);
-                                final Material material = mixedMaterial.getMaterial(seed, worldX, worldY, y);
+                                final Material material = mixedMaterial.getMaterial(seed, worldX, worldY, y + yOffset);
                                 if ((material != Material.AIR)
                                         && ((! material.block.veryInsubstantial)
                                             || (existingBlockType == BLK_AIR)
@@ -125,6 +152,20 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                                 }
                             }
                         } else {
+                            int yOffset;
+                            switch (layeredMaterialAnchor) {
+                                case BEDROCK:
+                                    yOffset = 0;
+                                    break;
+                                case TERRAIN:
+                                    yOffset = -(terrainheight - effectiveThickness + 1);
+                                    break;
+                                case TOP_OF_LAYER:
+                                    yOffset = -(terrainheight - layeredMaterialHeight + 1);
+                                    break;
+                                default:
+                                    throw new InternalError();
+                            }
                             for (int dy = 0; dy < effectiveThickness; dy++) {
                                 final int y = terrainheight - dy;
                                 if (y < minY) {
@@ -132,7 +173,7 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                                 }
                                 int existingBlockType = chunk.getBlockType(x, y, z);
                                 if (existingBlockType != BLK_AIR) {
-                                    chunk.setMaterial(x, y, z, mixedMaterial.getMaterial(seed, worldX, worldY, y));
+                                    chunk.setMaterial(x, y, z, mixedMaterial.getMaterial(seed, worldX, worldY, y + yOffset));
                                 }
                             }
                         }

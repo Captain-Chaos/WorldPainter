@@ -6,16 +6,17 @@
 
 package org.pepsoft.worldpainter.layers.groundcover;
 
-import java.awt.Color;
-import javax.swing.JColorChooser;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import org.pepsoft.minecraft.Constants;
 import org.pepsoft.worldpainter.MixedMaterial;
 import org.pepsoft.worldpainter.MixedMaterialManager;
 import org.pepsoft.worldpainter.NoiseSettings;
 import org.pepsoft.worldpainter.layers.AbstractLayerEditor;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
+
+import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import java.awt.*;
 
 /**
  *
@@ -52,6 +53,15 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
                 settingsChanged();
             }
         });
+        mixedMaterialSelector1.addPropertyChangeListener("material", event -> {
+            if ((((MixedMaterial) event.getNewValue()).getMode() != MixedMaterial.Mode.LAYERED)
+                    || (layer == null)) {
+                comboBoxLayerAnchor.setSelectedItem(null);
+            } else {
+                comboBoxLayerAnchor.setSelectedIndex(layer.getLayerAnchor().ordinal());
+            }
+            settingsChanged();
+        });
     }
 
     // LayerEditor
@@ -80,6 +90,11 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
     @Override
     public void reset() {
         fieldName.setText(layer.getName());
+        if (layer.getMaterial().getMode() == MixedMaterial.Mode.LAYERED) {
+            comboBoxLayerAnchor.setSelectedIndex(layer.getLayerAnchor().ordinal());
+        } else {
+            comboBoxLayerAnchor.setSelectedItem(null);
+        }
         spinnerThickness.setValue(layer.getThickness());
         selectedColour = layer.getColour();
         switch (layer.getEdgeShape()) {
@@ -166,6 +181,7 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
         radioButtonLinearEdge.setEnabled(thickness < -1 || thickness > 1);
         radioButtonSmoothEdge.setEnabled(thickness < -1 || thickness > 1);
         radioButtonRoundedEdge.setEnabled(thickness < -1 || thickness > 1);
+        comboBoxLayerAnchor.setEnabled((mixedMaterialSelector1.getMaterial() != null) && (mixedMaterialSelector1.getMaterial().getMode() == MixedMaterial.Mode.LAYERED));
     }
     
     private GroundCoverLayer saveSettings(GroundCoverLayer layer) {
@@ -174,6 +190,9 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
         } else {
             layer.setName(fieldName.getText());
             layer.setColour(selectedColour);
+        }
+        if (mixedMaterialSelector1.getMaterial().getMode() == MixedMaterial.Mode.LAYERED) {
+            layer.setLayerAnchor(GroundCoverLayer.LayerAnchor.values()[comboBoxLayerAnchor.getSelectedIndex()]);
         }
         layer.setThickness((Integer) spinnerThickness.getValue());
         if (radioButtonSheerEdge.isSelected()) {
@@ -233,10 +252,16 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
         jButton1 = new javax.swing.JButton();
         jLabel12 = new javax.swing.JLabel();
         spinnerEdgeWidth = new javax.swing.JSpinner();
+        comboBoxLayerAnchor = new javax.swing.JComboBox<>();
+        jLabel16 = new javax.swing.JLabel();
 
         buttonGroup1.add(radioButtonRoundedEdge);
         radioButtonRoundedEdge.setText("rounded");
-        radioButtonRoundedEdge.addActionListener(this::radioButtonRoundedEdgeActionPerformed);
+        radioButtonRoundedEdge.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonRoundedEdgeActionPerformed(evt);
+            }
+        });
 
         jLabel13.setText("Variation:");
 
@@ -263,7 +288,11 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
         jLabel7.setText("Thickness:");
 
         spinnerThickness.setModel(new javax.swing.SpinnerNumberModel(1, -255, 255, 1));
-        spinnerThickness.addChangeListener(this::spinnerThicknessStateChanged);
+        spinnerThickness.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerThicknessStateChanged(evt);
+            }
+        });
 
         jLabel9.setText("(negative values will dig down into the terrain)");
 
@@ -272,17 +301,29 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
         buttonGroup1.add(radioButtonSheerEdge);
         radioButtonSheerEdge.setSelected(true);
         radioButtonSheerEdge.setText("sheer");
-        radioButtonSheerEdge.addActionListener(this::radioButtonSheerEdgeActionPerformed);
+        radioButtonSheerEdge.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonSheerEdgeActionPerformed(evt);
+            }
+        });
 
         buttonGroup1.add(radioButtonLinearEdge);
         radioButtonLinearEdge.setText("linear");
-        radioButtonLinearEdge.addActionListener(this::radioButtonLinearEdgeActionPerformed);
+        radioButtonLinearEdge.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonLinearEdgeActionPerformed(evt);
+            }
+        });
 
         jLabel11.setText("shape:");
 
         buttonGroup1.add(radioButtonSmoothEdge);
         radioButtonSmoothEdge.setText("smooth");
-        radioButtonSmoothEdge.addActionListener(this::radioButtonSmoothEdgeActionPerformed);
+        radioButtonSmoothEdge.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonSmoothEdgeActionPerformed(evt);
+            }
+        });
 
         jLabel2.setText("Material:");
 
@@ -294,22 +335,35 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
         jLabel5.setOpaque(true);
 
         jButton1.setText("...");
-        jButton1.addActionListener(this::jButton1ActionPerformed);
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
 
         jLabel12.setText("width:");
 
         spinnerEdgeWidth.setModel(new javax.swing.SpinnerNumberModel(1, 1, 255, 1));
         spinnerEdgeWidth.setEnabled(false);
-        spinnerEdgeWidth.addChangeListener(this::spinnerEdgeWidthStateChanged);
+        spinnerEdgeWidth.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerEdgeWidthStateChanged(evt);
+            }
+        });
+
+        comboBoxLayerAnchor.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Bedrock", "Terrain", "Top of ground cover" }));
+        comboBoxLayerAnchor.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboBoxLayerAnchorActionPerformed(evt);
+            }
+        });
+
+        jLabel16.setText("Layers relative to:");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jLabel2)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(mixedMaterialSelector1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
             .addGroup(layout.createSequentialGroup()
                 .addComponent(jLabel7)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -365,6 +419,15 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
                         .addComponent(checkBoxSmooth)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(labelWesterosCraftFeature))))
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jLabel2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel16)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(comboBoxLayerAnchor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(mixedMaterialSelector1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -372,6 +435,10 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
                     .addComponent(mixedMaterialSelector1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(comboBoxLayerAnchor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel16))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel7)
@@ -441,10 +508,15 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
         settingsChanged();
     }//GEN-LAST:event_spinnerEdgeWidthStateChanged
 
+    private void comboBoxLayerAnchorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxLayerAnchorActionPerformed
+        settingsChanged();
+    }//GEN-LAST:event_comboBoxLayerAnchorActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JCheckBox checkBoxSmooth;
+    private javax.swing.JComboBox<String> comboBoxLayerAnchor;
     private javax.swing.JTextField fieldName;
     private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
@@ -454,6 +526,7 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
     private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel15;
+    private javax.swing.JLabel jLabel16;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;

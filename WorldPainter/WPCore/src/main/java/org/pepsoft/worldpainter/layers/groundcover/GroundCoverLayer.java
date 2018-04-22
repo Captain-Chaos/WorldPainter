@@ -7,7 +7,6 @@ package org.pepsoft.worldpainter.layers.groundcover;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.worldpainter.MixedMaterial;
 import org.pepsoft.worldpainter.NoiseSettings;
-import org.pepsoft.worldpainter.exporting.LayerExporter;
 import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.Layer;
 
@@ -82,6 +81,14 @@ public class GroundCoverLayer extends CustomLayer {
         this.smooth = smooth;
     }
 
+    public LayerAnchor getLayerAnchor() {
+        return layerAnchor;
+    }
+
+    public void setLayerAnchor(LayerAnchor layerAnchor) {
+        this.layerAnchor = layerAnchor;
+    }
+
     @Override
     public GroundCoverLayerExporter getExporter() {
         return new GroundCoverLayerExporter(this);
@@ -120,6 +127,9 @@ public class GroundCoverLayer extends CustomLayer {
                 edgeShape = EdgeShape.ROUNDED;
             }
         }
+        if (layerAnchor == null) {
+            layerAnchor = LayerAnchor.BEDROCK;
+        }
     }
     
     @Deprecated
@@ -132,8 +142,33 @@ public class GroundCoverLayer extends CustomLayer {
     private EdgeShape edgeShape = EdgeShape.SHEER;
     private NoiseSettings noiseSettings;
     private boolean smooth;
+    private LayerAnchor layerAnchor = LayerAnchor.TERRAIN;
 
     private static final long serialVersionUID = 1L;
     
     public enum EdgeShape {SHEER, LINEAR, SMOOTH, ROUNDED}
+    
+    /**
+     * The anchor relative to which the layers of a layered material should be
+     * placed. Only applies to layered materials.
+     */
+    public enum LayerAnchor {
+        /**
+         * Layers relative to height 0. This is the default and previously the
+         * only option.
+         */
+        BEDROCK,
+        
+        /**
+         * The bottom of the layers should be aligned with the height of the
+         * terrain.
+         */
+        TERRAIN,
+        
+        /**
+         * The top of the layers should be aligned with the top of the ground
+         * cover layer.
+         */
+        TOP_OF_LAYER
+    }
 }

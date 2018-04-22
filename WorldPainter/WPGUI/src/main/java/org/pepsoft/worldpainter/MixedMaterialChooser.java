@@ -114,6 +114,7 @@ public class MixedMaterialChooser extends javax.swing.JPanel {
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             jComboBox1.repaint();
+            firePropertyChange("material", null, jComboBox1.getSelectedItem());
         }
     }
 

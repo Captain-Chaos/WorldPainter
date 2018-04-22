@@ -1,3 +1,10 @@
+-- Version 2...., released ...
+
+ * Layered custom materials can now be relative to the terrain, or to the top of the ground cover, when used in Custom Ground Cover Layers. A new "layers relative to" setting has been added to the Edit Layer Settings screen which is only active for layered materials and has the following choices:
+   + Bedrock - this is the old behaviour where the layers start at height 0
+   + Terrain - the bottom most layer of the layered material will be placed on top of the terrain - this is the new default for Custom Ground Cover Layers
+   + Top of ground cover - the top most layer of the layered material will be placed at the top of the ground cover. If the Custom Ground Cover Layer has sloping edges then the layered material will slope down with it
+
 -- Version 2.4.8, released 21-4-2018
 
  * An autosave mechanism has been implemented:
