@@ -5,6 +5,7 @@ import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.minecraft.ChunkImpl;
 import org.pepsoft.minecraft.ChunkImpl2;
 import org.pepsoft.minecraft.ChunkStore;
+import org.pepsoft.minecraft.mapexplorer.JavaMapRecognizer;
 import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.mapexplorer.MapRecognizer;
 import org.pepsoft.worldpainter.plugins.AbstractPlugin;
