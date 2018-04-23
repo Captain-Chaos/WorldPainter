@@ -2125,7 +2125,7 @@ public final class App extends JFrame implements RadiusControl,
         try {
             FileUtils.rotateFile(getAutosaveFile(), "autosave.{0}.world", 0, 3);
         } catch (IOException e) {
-            throw new RuntimeException("I/O error while rotating autosave file");
+            throw new RuntimeException("I/O error while rotating autosave file", e);
         }
     }
 
