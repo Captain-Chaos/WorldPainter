@@ -107,6 +107,17 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
         }
     }
 
+    // Cloneable
+
+    @Override
+    public Structure clone() {
+        Structure clone = (Structure) super.clone();
+        if (attributes != null) {
+            clone.attributes = new HashMap<>(attributes);
+        }
+        return clone;
+    }
+
     public static Structure load(File file, MCInterface mcInterface) throws IOException {
         String name = file.getName();
         if (name.toLowerCase().endsWith(".nbt")) {

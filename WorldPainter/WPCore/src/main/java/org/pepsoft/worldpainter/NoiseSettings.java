@@ -6,6 +6,7 @@
 package org.pepsoft.worldpainter;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Settings for a noise generator.
@@ -61,6 +62,23 @@ public class NoiseSettings implements Serializable, Cloneable {
     public void setRoughness(int roughness) {
         this.roughness = roughness;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        NoiseSettings that = (NoiseSettings) o;
+        return range == that.range &&
+                roughness == that.roughness &&
+                Float.compare(that.scale, scale) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(range, roughness, scale);
+    }
+
+    // Cloneable
 
     @Override
     public NoiseSettings clone() {

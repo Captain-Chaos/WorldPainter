@@ -26,7 +26,7 @@ import java.util.List;
  * @author Pepijn Schmitz
  * @param <L> The type of layer which the dialog should edit.
  */
-public class EditLayerDialog<L extends Layer> extends WorldPainterDialog implements LayerEditor.LayerEditorContext, ActionListener {
+public class EditLayerDialog<L extends Layer> extends AbstractEditLayerDialog<L> implements LayerEditor.LayerEditorContext, ActionListener {
     /**
      * Creates new form EditLayerDialog for creating a new instance of a
      * specific layer type.
@@ -95,6 +95,9 @@ public class EditLayerDialog<L extends Layer> extends WorldPainterDialog impleme
         setLocationRelativeTo(parent);
     }
 
+    // AbstractEditLayerDialog
+
+    @Override
     public L getLayer() {
         return editor.getLayer();
     }

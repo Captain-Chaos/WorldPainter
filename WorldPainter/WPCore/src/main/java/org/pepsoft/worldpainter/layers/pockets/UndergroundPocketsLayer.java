@@ -4,14 +4,14 @@
  */
 package org.pepsoft.worldpainter.layers.pockets;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.worldpainter.MixedMaterial;
+import org.pepsoft.worldpainter.MixedMaterialManager;
 import org.pepsoft.worldpainter.Terrain;
-import org.pepsoft.worldpainter.exporting.LayerExporter;
 import org.pepsoft.worldpainter.layers.CustomLayer;
-import org.pepsoft.worldpainter.layers.Layer;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
 
 /**
  *
@@ -99,6 +99,18 @@ public class UndergroundPocketsLayer extends CustomLayer {
         return new UndergroundPocketsLayerExporter(this);
     }
 
+    // Cloneable
+
+    @Override
+    public UndergroundPocketsLayer clone() {
+        UndergroundPocketsLayer clone = (UndergroundPocketsLayer) super.clone();
+        if (mixedMaterial != null) {
+            clone.mixedMaterial = mixedMaterial.clone();
+            MixedMaterialManager.getInstance().register(clone.mixedMaterial);
+        }
+        return clone;
+    }
+
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
 
@@ -108,7 +120,8 @@ public class UndergroundPocketsLayer extends CustomLayer {
             material = null;
         }
     }
-    
+
+    @Deprecated
     private Material material;
     private int scale, frequency, maxLevel, minLevel;
     private MixedMaterial mixedMaterial;

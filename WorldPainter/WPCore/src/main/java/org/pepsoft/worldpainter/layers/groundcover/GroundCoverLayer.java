@@ -6,6 +6,7 @@ package org.pepsoft.worldpainter.layers.groundcover;
 
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.worldpainter.MixedMaterial;
+import org.pepsoft.worldpainter.MixedMaterialManager;
 import org.pepsoft.worldpainter.NoiseSettings;
 import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.Layer;
@@ -19,7 +20,7 @@ import java.io.ObjectInputStream;
  */
 public class GroundCoverLayer extends CustomLayer {
     public GroundCoverLayer(String name, MixedMaterial material, int colour) {
-        super(name, "a 1 block layer of " + name + " on top of the terrain", DataSize.BIT, 30, colour);
+        super(name, "a layer of " + material.getName() + " on top of the terrain", DataSize.BIT, 30, colour);
         mixedMaterial = material;
     }
 
@@ -103,7 +104,20 @@ public class GroundCoverLayer extends CustomLayer {
             return super.compareTo(layer);
         }
     }
-    
+
+    // Cloneable
+
+    @Override
+    public GroundCoverLayer clone() {
+        GroundCoverLayer clone = (GroundCoverLayer) super.clone();
+        clone.mixedMaterial = mixedMaterial.clone();
+        MixedMaterialManager.getInstance().register(clone.mixedMaterial);
+        if (noiseSettings != null) {
+            clone.noiseSettings = noiseSettings.clone();
+        }
+        return clone;
+    }
+
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
 

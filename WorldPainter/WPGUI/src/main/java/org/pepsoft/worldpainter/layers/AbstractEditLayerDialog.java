@@ -11,12 +11,12 @@ import org.pepsoft.worldpainter.WorldPainterDialog;
  *
  * @author pepijn
  */
-public abstract class CustomLayerDialog<T extends CustomLayer> extends WorldPainterDialog {
-    public CustomLayerDialog(Window owner) {
+public abstract class AbstractEditLayerDialog<T extends Layer> extends WorldPainterDialog {
+    public AbstractEditLayerDialog(Window owner) {
         super(owner);
     }
-    
-    public abstract T getSelectedLayer();
-    
+
+    public abstract T getLayer();
+
     private static final long serialVersionUID = 1L;
 }

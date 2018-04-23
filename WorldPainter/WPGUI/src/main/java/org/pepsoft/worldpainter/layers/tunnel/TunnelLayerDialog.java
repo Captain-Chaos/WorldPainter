@@ -9,7 +9,7 @@ import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.MixedMaterial;
 import org.pepsoft.worldpainter.MixedMaterialManager;
 import org.pepsoft.worldpainter.NoiseSettings;
-import org.pepsoft.worldpainter.layers.CustomLayerDialog;
+import org.pepsoft.worldpainter.layers.AbstractEditLayerDialog;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.Mode;
 
 import javax.swing.*;
@@ -37,7 +37,7 @@ import org.pepsoft.worldpainter.layers.plants.PlantLayer;
  *
  * @author SchmitzP
  */
-public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements ChangeListener, ListSelectionListener {
+public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> implements ChangeListener, ListSelectionListener {
     public TunnelLayerDialog(Window parent, TunnelLayer layer, boolean extendedBlockIds, ColourScheme colourScheme, int maxHeight, int baseHeight, int waterLevel) {
         super(parent);
         this.layer = layer;
@@ -74,8 +74,10 @@ public class TunnelLayerDialog extends CustomLayerDialog<TunnelLayer> implements
         setLocationRelativeTo(parent);
     }
 
+    // AbstractEditLayerDialog
+
     @Override
-    public TunnelLayer getSelectedLayer() {
+    public TunnelLayer getLayer() {
         return layer;
     }
 

@@ -63,7 +63,21 @@ public class Bo2ObjectTube implements Bo2ObjectProvider {
     public List<WPObject> getAllObjects() {
         return Collections.unmodifiableList(objects);
     }
-    
+
+    // Cloneable
+
+    @Override
+    public Bo2ObjectTube clone() {
+        try {
+            Bo2ObjectTube clone = (Bo2ObjectTube) super.clone();
+            clone.random = new Random();
+            clone.weightedObjects = null;
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         random = new Random();

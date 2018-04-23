@@ -216,7 +216,19 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
             return (terrain == null) || (! terrain.isCustom());
         }
     }
-    
+
+    @Override
+    public CombinedLayer clone() {
+        CombinedLayer clone = (CombinedLayer) super.clone();
+        if (! layers.isEmpty()) {
+            clone.layers = new ArrayList<>(layers);
+        }
+        if (! factors.isEmpty()) {
+            clone.factors = new HashMap<>(factors);
+        }
+        return clone;
+    }
+
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         if (customTerrainPresent) {

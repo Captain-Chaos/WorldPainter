@@ -52,6 +52,15 @@ public class Bo2Layer extends CustomLayer {
         this.density = density;
     }
 
+    // Cloneable
+
+    @Override
+    public Bo2Layer clone() {
+        Bo2Layer clone = (Bo2Layer) super.clone();
+        clone.objectProvider = objectProvider.clone();
+        return clone;
+    }
+
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
 

@@ -17,7 +17,7 @@ import org.pepsoft.worldpainter.layers.renderers.TransparentColourRenderer;
  *
  * @author pepijn
  */
-public abstract class CustomLayer extends Layer {
+public abstract class CustomLayer extends Layer implements Cloneable {
     public CustomLayer(String name, String description, DataSize dataSize, int priority, int colour) {
         super(createId(name), name, description, dataSize, priority);
         this.colour = colour;
@@ -133,7 +133,27 @@ public abstract class CustomLayer extends Layer {
         }
         return super.compareTo(layer);
     }
-    
+
+    // Cloneable
+
+    /**
+     * Create a deep copy of the custom layer, with a different ID and
+     * independent settings.
+     *
+     * @return A deep copy of the custom layer.
+     */
+    @Override
+    public CustomLayer clone() {
+        try {
+            CustomLayer clone = (CustomLayer) super.clone();
+            clone.id = createId(getName());
+            clone.hide = false;
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private BufferedImage createIcon() {
         BufferedImage iconImage = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
         for (int x = 1; x < 15; x++) {

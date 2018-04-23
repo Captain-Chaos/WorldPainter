@@ -7,15 +7,15 @@ package org.pepsoft.worldpainter.layers.tunnel;
 
 import org.pepsoft.minecraft.Constants;
 import org.pepsoft.worldpainter.MixedMaterial;
+import org.pepsoft.worldpainter.MixedMaterialManager;
 import org.pepsoft.worldpainter.NoiseSettings;
-import org.pepsoft.worldpainter.exporting.LayerExporter;
 import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.Layer;
-import org.pepsoft.worldpainter.layers.renderers.LayerRenderer;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -220,7 +220,44 @@ public class TunnelLayer extends CustomLayer {
     public TunnelLayerRenderer getRenderer() {
         return renderer;
     }
-    
+
+    // Cloneable
+
+    @Override
+    public TunnelLayer clone() {
+        TunnelLayer clone = (TunnelLayer) super.clone();
+        MixedMaterialManager mixedMaterialManager = MixedMaterialManager.getInstance();
+        if (floorMaterial != null) {
+            clone.floorMaterial = floorMaterial.clone();
+            mixedMaterialManager.register(clone.floorMaterial);
+        }
+        if (wallMaterial != null) {
+            clone.wallMaterial = wallMaterial.clone();
+            mixedMaterialManager.register(clone.wallMaterial);
+        }
+        if (roofMaterial != null) {
+            clone.roofMaterial = roofMaterial.clone();
+            mixedMaterialManager.register(clone.roofMaterial);
+        }
+        if (floorNoise != null) {
+            clone.floorNoise = floorNoise.clone();
+        }
+        if (roofNoise != null) {
+            clone.roofNoise = roofNoise.clone();
+        }
+        if (wallNoise != null) {
+            clone.wallNoise = wallNoise.clone();
+        }
+        if (floorLayers != null) {
+            clone.floorLayers = new HashMap<>();
+            for (Map.Entry<Layer, LayerSettings> entry: floorLayers.entrySet()) {
+                clone.floorLayers.put(entry.getKey(), entry.getValue().clone());
+            }
+        }
+        clone.renderer = new TunnelLayerRenderer(clone);
+        return clone;
+    }
+
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         

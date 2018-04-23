@@ -6,9 +6,9 @@
 package org.pepsoft.worldpainter;
 
 import com.jidesoft.docking.*;
-import com.jidesoft.docking.DockableFrame;
 import com.jidesoft.swing.JideLabel;
 import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
 import org.pepsoft.minecraft.Direction;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.*;
@@ -74,7 +74,6 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.event.KeyEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
@@ -93,7 +92,6 @@ import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -3009,7 +3007,7 @@ public final class App extends JFrame implements RadiusControl,
             UndergroundPocketsDialog dialog = new UndergroundPocketsDialog(App.this, MixedMaterial.create(Material.IRON_BLOCK), selectedColourScheme, world.getMaxHeight(), world.isExtendedBlockIds());
             dialog.setVisible(true);
             if (! dialog.isCancelled()) {
-                UndergroundPocketsLayer layer = dialog.getSelectedLayer();
+                UndergroundPocketsLayer layer = dialog.getLayer();
                 if (paletteName != null) {
                     layer.setPalette(paletteName);
                 }
@@ -3468,6 +3466,9 @@ public final class App extends JFrame implements RadiusControl,
                 JMenuItem menuItem = new JMenuItem(strings.getString("edit") + "...");
                 menuItem.addActionListener(e1 -> edit());
                 popup.add(menuItem);
+                menuItem = new JMenuItem("Duplicate...");
+                menuItem.addActionListener(e1 -> duplicate());
+                popup.add(menuItem);
                 menuItem = new JMenuItem(strings.getString("remove") + "...");
                 menuItem.addActionListener(e1 -> remove());
                 popup.add(menuItem);
@@ -3505,25 +3506,7 @@ public final class App extends JFrame implements RadiusControl,
 
             private void edit() {
                 int previousColour = layer.getColour();
-                WorldPainterDialog dialog;
-                if ((layer instanceof Bo2Layer) || (layer instanceof GroundCoverLayer) || (layer instanceof CombinedLayer) || (layer instanceof PlantLayer)) {
-                    dialog = new EditLayerDialog<Layer>(App.this, layer);
-                } else if (layer instanceof UndergroundPocketsLayer) {
-                    dialog = new UndergroundPocketsDialog(App.this, (UndergroundPocketsLayer) layer, selectedColourScheme, dimension.getMaxHeight(), world.isExtendedBlockIds());
-                } else if (layer instanceof TunnelLayer) {
-                    final int baseHeight, waterLevel;
-                    final TileFactory tileFactory = dimension.getTileFactory();
-                    if (tileFactory instanceof HeightMapTileFactory) {
-                        baseHeight = (int) ((HeightMapTileFactory) tileFactory).getBaseHeight();
-                        waterLevel = ((HeightMapTileFactory) tileFactory).getWaterHeight();
-                    } else {
-                        baseHeight = 58;
-                        waterLevel = 62;
-                    }
-                    dialog = new TunnelLayerDialog(App.this, (TunnelLayer) layer, world.isExtendedBlockIds(), selectedColourScheme, dimension.getMaxHeight(), baseHeight, waterLevel);
-                } else {
-                    throw new RuntimeException("Don't know how to edit " + layer.getName());
-                }
+                AbstractEditLayerDialog<CustomLayer> dialog = createDialog(layer);
                 dialog.setVisible(true);
                 if (!dialog.isCancelled()) {
                     button.setText(layer.getName());
@@ -3545,11 +3528,56 @@ public final class App extends JFrame implements RadiusControl,
                 }
             }
 
+            private void duplicate() {
+                CustomLayer duplicate = layer.clone();
+                duplicate.setName("Copy of " + layer.getName());
+                Color colour = new Color(layer.getColour());
+                float hsb[] = Color.RGBtoHSB(colour.getRed(), colour.getGreen(), colour.getBlue(), null);
+                hsb[0] += 1f / 12;
+                if (hsb[0] > 1f) {
+                    hsb[0] -= 1f;
+                }
+                colour = Color.getHSBColor(hsb[0], hsb[1], hsb[2]);
+                duplicate.setColour(colour.getRGB());
+                AbstractEditLayerDialog<CustomLayer> dialog;
+                dialog = createDialog(duplicate);
+                dialog.setVisible(true);
+                if ( !dialog.isCancelled()) {
+                    duplicate = dialog.getLayer();
+                    registerCustomLayer(duplicate, true);
+                }
+            }
+            
             private void remove() {
                 if (showConfirmDialog(App.this, MessageFormat.format(strings.getString("are.you.sure.you.want.to.remove.the.0.layer"), layer.getName()), MessageFormat.format(strings.getString("confirm.0.removal"), layer.getName()), YES_NO_OPTION) == YES_OPTION) {
                     deleteCustomLayer(layer);
                     App.this.validate(); // Doesn't happen automatically for some reason; Swing bug?
                 }
+            }
+
+            @SuppressWarnings("unchecked") // Guaranteed by code
+            @NotNull
+            private <L extends CustomLayer> AbstractEditLayerDialog<L> createDialog(L layer) {
+                AbstractEditLayerDialog<L> dialog;
+                if ((layer instanceof Bo2Layer) || (layer instanceof GroundCoverLayer) || (layer instanceof CombinedLayer) || (layer instanceof PlantLayer)) {
+                    dialog = new EditLayerDialog<>(App.this, layer);
+                } else if (layer instanceof UndergroundPocketsLayer) {
+                    dialog = (AbstractEditLayerDialog<L>) new UndergroundPocketsDialog(App.this, (UndergroundPocketsLayer) layer, selectedColourScheme, dimension.getMaxHeight(), world.isExtendedBlockIds());
+                } else if (layer instanceof TunnelLayer) {
+                    final int baseHeight, waterLevel;
+                    final TileFactory tileFactory = dimension.getTileFactory();
+                    if (tileFactory instanceof HeightMapTileFactory) {
+                        baseHeight = (int) ((HeightMapTileFactory) tileFactory).getBaseHeight();
+                        waterLevel = ((HeightMapTileFactory) tileFactory).getWaterHeight();
+                    } else {
+                        baseHeight = 58;
+                        waterLevel = 62;
+                    }
+                    dialog = (AbstractEditLayerDialog<L>) new TunnelLayerDialog(App.this, (TunnelLayer) layer, world.isExtendedBlockIds(), selectedColourScheme, dimension.getMaxHeight(), baseHeight, waterLevel);
+                } else {
+                    throw new IllegalArgumentException("Don't know how to create dialog for layer " + layer.getName());
+                }
+                return dialog;
             }
         });
         return buttonComponents;

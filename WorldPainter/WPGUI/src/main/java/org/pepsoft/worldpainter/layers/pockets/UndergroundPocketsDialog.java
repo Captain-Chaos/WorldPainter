@@ -8,7 +8,7 @@ import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.MixedMaterial;
 import org.pepsoft.worldpainter.MixedMaterialManager;
 import org.pepsoft.worldpainter.Terrain;
-import org.pepsoft.worldpainter.layers.CustomLayerDialog;
+import org.pepsoft.worldpainter.layers.AbstractEditLayerDialog;
 import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
 
 import javax.swing.*;
@@ -20,7 +20,7 @@ import java.beans.PropertyChangeListener;
  *
  * @author pepijn
  */
-public class UndergroundPocketsDialog extends CustomLayerDialog<UndergroundPocketsLayer> implements PropertyChangeListener {
+public class UndergroundPocketsDialog extends AbstractEditLayerDialog<UndergroundPocketsLayer> implements PropertyChangeListener {
     /**
      * Creates new form UndergroundPocketsDialog
      */
@@ -82,8 +82,10 @@ public class UndergroundPocketsDialog extends CustomLayerDialog<UndergroundPocke
         setLocationRelativeTo(parent);
     }
 
+    // AbstractEditLayerDialog
+
     @Override
-    public UndergroundPocketsLayer getSelectedLayer() {
+    public UndergroundPocketsLayer getLayer() {
         return layer;
     }
 

@@ -15,8 +15,7 @@ import java.util.*;
  */
 public class MixedMaterialManager {
     public MixedMaterial[] getMaterials() {
-        Set<MixedMaterial> materials = idsByMaterial.keySet();
-        return materials.toArray(new MixedMaterial[materials.size()]);
+        return materialsById.values().toArray(new MixedMaterial[0]);
     }
     
     /**
@@ -24,7 +23,6 @@ public class MixedMaterialManager {
      */
     public synchronized void clear() {
         materialsById.clear();
-        idsByMaterial.clear();
     }
     
     /**
@@ -41,18 +39,24 @@ public class MixedMaterialManager {
         if (id == null) {
             // Old material without an ID. See if a material with the exact same
             // settings already exist. If so use that, if not, assign a new ID.
-            id = idsByMaterial.get(material);
-            if (id != null) {
-                // A material with the same settings already exists
-                return materialsById.get(id);
-            } else {
-                return registerAsNew(material);
+            for (Map.Entry<UUID, MixedMaterial> entry: materialsById.entrySet()) {
+                MixedMaterial existingMaterial = entry.getValue();
+                if ((existingMaterial.getBiome() == material.getBiome())
+                        && (existingMaterial.getMode() == material.getMode())
+                        && (existingMaterial.getScale() == material.getScale())
+                        && (existingMaterial.isRepeat() == material.isRepeat())
+                        && (existingMaterial.getLayerXSlope() == material.getLayerXSlope())
+                        && (existingMaterial.getLayerYSlope() == material.getLayerYSlope())
+                        && ((existingMaterial.getVariation() == null) ? (material.getVariation() == null) : existingMaterial.getVariation().equals(material.getVariation()))
+                        && Arrays.equals(existingMaterial.getRows(), material.getRows())) {
+                    return existingMaterial;
+                }
             }
+            return registerAsNew(material);
         } else if (materialsById.containsKey(id)) {
             return materialsById.get(id);
         } else {
             materialsById.put(id, material);
-            idsByMaterial.put(material, id);
             return material;
         }
     }
@@ -67,7 +71,6 @@ public class MixedMaterialManager {
     public synchronized MixedMaterial registerAsNew(MixedMaterial material) {
         material = new MixedMaterial(material.getName(), material.getRows(), material.getBiome(), material.getMode(), material.getScale(), material.getColour(), material.getVariation(), material.getLayerXSlope(), material.getLayerYSlope(), material.isRepeat());
         materialsById.put(material.getId(), material);
-        idsByMaterial.put(material, material.getId());
         return material;
     }
 
@@ -76,7 +79,6 @@ public class MixedMaterialManager {
     }
     
     private final Map<UUID, MixedMaterial> materialsById = new HashMap<>();
-    private final SortedMap<MixedMaterial, UUID> idsByMaterial = new TreeMap<>();
-    
+
     private static final MixedMaterialManager INSTANCE = new MixedMaterialManager();
 }

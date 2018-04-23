@@ -18,7 +18,7 @@ import static org.pepsoft.util.GUIUtils.UI_SCALE;
 /**
  * @author SchmitzP
  */
-public class MixedMaterial implements Serializable, Comparable<MixedMaterial> {
+public final class MixedMaterial implements Serializable, Comparable<MixedMaterial>, Cloneable {
     /**
      * Create a new "mixed material" which contains only one material.
      * 
@@ -322,36 +322,19 @@ public class MixedMaterial implements Serializable, Comparable<MixedMaterial> {
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 19 * hash + this.biome;
-        hash = 19 * hash + Arrays.deepHashCode(this.rows);
-        hash = 19 * hash + mode.hashCode();
-        hash = 19 * hash + Float.floatToIntBits(this.scale);
-        return hash;
+        return id.hashCode();
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final MixedMaterial other = (MixedMaterial) obj;
-        if (this.biome != other.biome) {
-            return false;
-        }
-        if (!Arrays.deepEquals(this.rows, other.rows)) {
-            return false;
-        }
-        if (this.mode != other.mode) {
-            return false;
-        }
-        if (Float.floatToIntBits(this.scale) != Float.floatToIntBits(other.scale)) {
-            return false;
-        }
-        return true;
+        return (obj instanceof MixedMaterial) && id.equals(((MixedMaterial) obj).id);
+    }
+
+    // Cloneable
+
+    @Override
+    public MixedMaterial clone() {
+        return new MixedMaterial(name.startsWith("Copy of") ? name : "Copy of " + name, rows, biome, mode, scale, colour, (variation != null) ? variation.clone() : null, layerXSlope, layerYSlope, repeat);
     }
 
     /**

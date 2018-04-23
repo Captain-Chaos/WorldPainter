@@ -87,6 +87,17 @@ public class PlantLayer extends CustomLayer {
                 random.setSeed(seed);
             }
 
+            /**
+             * This is an ephemeral implementation, not meant for storage, there
+             * is no need for it to be cloneable.
+             *
+             * @throws UnsupportedOperationException Always.
+             */
+            @Override
+            public Bo2ObjectProvider clone() {
+                throw new UnsupportedOperationException("Not supported");
+            }
+
             private final Random random = new Random();
         };
     }
@@ -97,7 +108,19 @@ public class PlantLayer extends CustomLayer {
     public PlantLayerExporter getExporter() {
         return new PlantLayerExporter(this);
     }
-    
+
+    // Cloneable
+
+    @Override
+    public PlantLayer clone() {
+        PlantLayer clone = (PlantLayer) super.clone();
+        clone.settings = new PlantSettings[settings.length];
+        for (int i = 0; i < settings.length; i++) {
+            clone.settings[i] = settings[i].clone();
+        }
+        return clone;
+    }
+
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
 
@@ -110,7 +133,16 @@ public class PlantLayer extends CustomLayer {
         }
     }
     
-    public static class PlantSettings implements Serializable {
+    public static class PlantSettings implements Serializable, Cloneable {
+        @Override
+        public PlantSettings clone() {
+            try {
+                return (PlantSettings) super.clone();
+            } catch (CloneNotSupportedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
         short occurrence;
         byte dataValueFrom, dataValueTo;
         

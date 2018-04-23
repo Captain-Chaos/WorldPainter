@@ -13,7 +13,7 @@ import org.pepsoft.worldpainter.objects.WPObject;
  *
  * @author pepijn
  */
-public interface Bo2ObjectProvider extends Serializable {
+public interface Bo2ObjectProvider extends Serializable, Cloneable {
     /**
      * Get the name of this object provider (if it represents one object this
      * may be the name of the object).
@@ -50,4 +50,11 @@ public interface Bo2ObjectProvider extends Serializable {
      * @param seed The seed to set on the PRNG, if any.
      */
     void setSeed(long seed);
+
+    /**
+     * Create a deep copy of the object provider.
+     *
+     * @return A deep copy of the object provider.
+     */
+    Bo2ObjectProvider clone();
 }

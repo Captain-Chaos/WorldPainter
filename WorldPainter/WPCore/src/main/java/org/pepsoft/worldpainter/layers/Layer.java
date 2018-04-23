@@ -150,7 +150,7 @@ public abstract class Layer implements Serializable, Comparable<Layer> {
             return id.compareTo(layer.id);
         }
     }
-    
+
     @SuppressWarnings("unchecked")
     private void init() {
         Class<? extends Layer> clazz = getClass();
@@ -191,7 +191,7 @@ public abstract class Layer implements Serializable, Comparable<Layer> {
     private String name, description;
     public final DataSize dataSize;
     public final int priority;
-    private String id;
+    protected String id;
     private transient LayerRenderer renderer;
     private transient Class<LayerExporter> exporterClass;
     private transient BufferedImage icon;
