@@ -1331,11 +1331,17 @@ public final class App extends JFrame implements RadiusControl,
                 return false;
             }
         }
-        // If we get here then either the world didn't need saving; it was
-        // saved, or the user indicated it didn't need saving. In all cases
-        // any autosave file should no longer exist, so make sure to delete it
-        // if necessary
-        rotateAutosaveFile();
+        // If we get here then either the world didn't need saving; it *was*
+        // saved; or the user indicated it didn't need saving. In all cases
+        // any autosave file should no longer exist, so make sure to rotate it
+        // away if necessary
+        try {
+            rotateAutosaveFile();
+        } catch (RuntimeException | Error e) {
+            logger.error("An exception occurred while trying to rotate the autosave", e);
+            Toolkit.getDefaultToolkit().beep();
+            JOptionPane.showMessageDialog(this, "An error occurred while trying to clear the autosave.\nWorldPainter may try to load the autosave on the next start.\nIf this keeps happening, please report it to the author.", "Clearing Autosave Failed", JOptionPane.WARNING_MESSAGE);
+        }
         return true;
     }
 
@@ -2112,7 +2118,13 @@ public final class App extends JFrame implements RadiusControl,
         }
         lastSaveTimestamp = lastChangeTimestamp = System.currentTimeMillis();
         lastAutosavedState = lastSavedState = world.getChangeNo();
-        rotateAutosaveFile();
+        try {
+            rotateAutosaveFile();
+        } catch (RuntimeException | Error e) {
+            logger.error("An exception occurred while trying to rotate the autosave", e);
+            Toolkit.getDefaultToolkit().beep();
+            JOptionPane.showMessageDialog(this, "An error occurred while trying to clear the autosave.\nWorldPainter may try to load the autosave on the next start.\nIf this keeps happening, please report it to the author.", "Clearing Autosave Failed", JOptionPane.WARNING_MESSAGE);
+        }
         lastSelectedFile = file;
         addRecentlyUsedWorld(file);
 
@@ -2164,53 +2176,59 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void autosave() {
-        if (logger.isDebugEnabled()) {
-            logger.debug("[AUTOSAVE] Autosaving");
-        }
-        saveCustomMaterials();
-        saveCustomBiomes();
-
-        // Remove the existing custom object layers and save the list of
-        // custom layers to the dimension to preserve layers which aren't
-        // currently in use
-        if (! paletteManager.isEmpty()) {
-            List<CustomLayer> customLayers = new ArrayList<>();
-            for (Palette palette: paletteManager.getPalettes()) {
-                customLayers.addAll(palette.getLayers());
+        try {
+            if (logger.isDebugEnabled()) {
+                logger.debug("[AUTOSAVE] Autosaving");
             }
-            dimension.setCustomLayers(customLayers);
-        } else {
-            dimension.setCustomLayers(Collections.EMPTY_LIST);
-        }
+            saveCustomMaterials();
+            saveCustomBiomes();
 
-        if (dimension != null) {
-            Point viewPosition = view.getViewCentreInWorldCoords();
-            if (viewPosition != null) {
-                this.dimension.setLastViewPosition(viewPosition);
-            }
-        }
-
-        ProgressDialog.executeTask(this, new ProgressTask<java.lang.Void>() {
-            @Override
-            public String getName() {
-                return "Autosaving";
-            }
-
-            @Override
-            public java.lang.Void execute(ProgressReceiver progressReceiver) throws OperationCancelled {
-                try {
-                    rotateAutosaveFile();
-                    WorldIO worldIO = new WorldIO(world);
-                    worldIO.save(new FileOutputStream(getAutosaveFile()));
-                } catch (IOException e) {
-                    throw new RuntimeException("I/O error autosaving world (message: " + e.getMessage() + ")", e);
+            // Remove the existing custom object layers and save the list of
+            // custom layers to the dimension to preserve layers which aren't
+            // currently in use
+            if (!paletteManager.isEmpty()) {
+                List<CustomLayer> customLayers = new ArrayList<>();
+                for (Palette palette : paletteManager.getPalettes()) {
+                    customLayers.addAll(palette.getLayers());
                 }
-                return null;
+                dimension.setCustomLayers(customLayers);
+            } else {
+                dimension.setCustomLayers(Collections.EMPTY_LIST);
             }
-        }, false);
 
-        lastSaveTimestamp = lastChangeTimestamp = System.currentTimeMillis();
-        lastAutosavedState = world.getChangeNo();
+            if (dimension != null) {
+                Point viewPosition = view.getViewCentreInWorldCoords();
+                if (viewPosition != null) {
+                    this.dimension.setLastViewPosition(viewPosition);
+                }
+            }
+
+            ProgressDialog.executeTask(this, new ProgressTask<java.lang.Void>() {
+                @Override
+                public String getName() {
+                    return "Autosaving";
+                }
+
+                @Override
+                public java.lang.Void execute(ProgressReceiver progressReceiver) throws OperationCancelled {
+                    try {
+                        rotateAutosaveFile();
+                        WorldIO worldIO = new WorldIO(world);
+                        worldIO.save(new FileOutputStream(getAutosaveFile()));
+                    } catch (IOException e) {
+                        throw new RuntimeException("I/O error autosaving world (message: " + e.getMessage() + ")", e);
+                    }
+                    return null;
+                }
+            }, false);
+
+            lastSaveTimestamp = lastChangeTimestamp = System.currentTimeMillis();
+            lastAutosavedState = world.getChangeNo();
+        } catch (RuntimeException | Error e) {
+            logger.error("An exception occurred while trying to autosave world", e);
+            Toolkit.getDefaultToolkit().beep();
+            JOptionPane.showMessageDialog(this, "An error occurred while trying to autosave the world.\nIt has not been autosaved. If this keeps happening,\nplease report it to the author.", "Autosave Failed", JOptionPane.WARNING_MESSAGE);
+        }
     }
 
     private boolean isAutosaveFile(File file) {
