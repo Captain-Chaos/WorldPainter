@@ -63,7 +63,7 @@ public class PreferencesDialog extends WorldPainterDialog {
         radioButtonAccelQuartz.setEnabled(accelTypes.contains(AccelerationType.QUARTZ));
         radioButtonAccelUnaccelerated.setEnabled(accelTypes.contains(AccelerationType.UNACCELERATED));
         radioButtonAccelXRender.setEnabled(accelTypes.contains(AccelerationType.XRENDER));
-        
+
         loadSettings();
         
         rootPane.setDefaultButton(buttonOK);
@@ -287,8 +287,10 @@ public class PreferencesDialog extends WorldPainterDialog {
         spinnerHeight.setEnabled(! checkBoxCircular.isSelected());
         buttonModePreset.setEnabled(comboBoxWorldType.getSelectedIndex() == 1);
         boolean autosaveEnabled = checkBoxAutoSave.isSelected();
-        spinnerAutoSaveGuardTime.setEnabled(autosaveEnabled);
-        spinnerAutoSaveInterval.setEnabled(autosaveEnabled);
+        boolean autosaveInhibited = App.getInstance().isInhibitAutosave();
+        checkBoxAutoSave.setEnabled(! autosaveInhibited);
+        spinnerAutoSaveGuardTime.setEnabled(autosaveEnabled && (! autosaveInhibited));
+        spinnerAutoSaveInterval.setEnabled(autosaveEnabled && (! autosaveInhibited));
     }
     
     private void editTerrainAndLayerSettings() {

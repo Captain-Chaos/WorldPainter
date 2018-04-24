@@ -36,6 +36,12 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -65,9 +71,43 @@ public class Main {
         // Force language to English for now. TODO: remove this once the first
         // translations are implemented
         Locale.setDefault(Locale.US);
-        
+
         System.setProperty("sun.awt.exception.handler", ExceptionHandler.class.getName());
         Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler());
+
+        // Use a file lock to make sure only one instance is running with autosave enabled
+        File configDir = Configuration.getConfigDir();
+        if (! configDir.isDirectory()) {
+            configDir.mkdirs();
+        }
+        Path lockFilePath = new File(configDir, "wpsession.lock").toPath();
+        try {
+            Files.createFile(lockFilePath);
+        } catch (FileAlreadyExistsException e) {
+            // We can't yet conclude another instance is running, because it may
+            // have crashed and left the lock file behind
+        }
+        FileChannel lockFileChannel = FileChannel.open(lockFilePath, StandardOpenOption.WRITE);
+        FileLock lock = lockFileChannel.tryLock();
+        boolean autosaveInhibited;
+        if (lock == null) {
+            lockFileChannel.close();
+            autosaveInhibited = true;
+        } else {
+            Runtime.getRuntime().addShutdownHook(new Thread("Lock File Eraser") {
+                @Override
+                public void run() {
+                    try {
+                        lock.release();
+                        lockFileChannel.close();
+                        Files.delete(lockFilePath);
+                    } catch (IOException e) {
+                        logger.error("Could not delete lock file " + lockFilePath, e);
+                    }
+                }
+            });
+            autosaveInhibited = false;
+        }
 
         // Configure logging
         String logLevel;
@@ -77,10 +117,6 @@ public class Main {
             logLevel = "TRACE";
         } else {
             logLevel = "INFO";
-        }
-        File configDir = Configuration.getConfigDir();
-        if (! configDir.isDirectory()) {
-            configDir.mkdirs();
         }
         LoggerContext logContext = (LoggerContext) LoggerFactory.getILoggerFactory();
         try {
@@ -97,6 +133,9 @@ public class Main {
         SLF4JBridgeHandler.removeHandlersForRootLogger();
         SLF4JBridgeHandler.install();
         logger.info("Starting WorldPainter " + Version.VERSION + " (" + Version.BUILD + ")");
+        if (autosaveInhibited) {
+            logger.warn("Another instance of WorldPainter is already running; disabling autosave");
+        }
 
         // Parse the command line
         File myFile = null;
@@ -321,7 +360,7 @@ public class Main {
 
         final World2 world;
         final File autosaveFile = new File(configDir, "autosave.world");
-        if ((file == null) && (! autosaveFile.isFile())) {
+        if ((file == null) && (autosaveInhibited || (! config.isAutosaveEnabled()) || (! autosaveFile.isFile()))) {
             if (! safeMode) {
                 world = WorldFactory.createDefaultWorld(config, new Random().nextLong());
 //                world = WorldFactory.createFancyWorld(config, new Random().nextLong());
@@ -408,6 +447,7 @@ public class Main {
             UIManager.put("Slider.paintValue", Boolean.FALSE);
 
             final App app = App.getInstance();
+            app.setInhibitAutosave(autosaveInhibited);
             app.setVisible(true);
             // Swing quirk:
             if (Configuration.getInstance().isMaximised() && (System.getProperty("org.pepsoft.worldpainter.size") == null)) {
@@ -417,12 +457,13 @@ public class Main {
             // Do this later to give the app the chance to properly set
             // itself up
             SwingUtilities.invokeLater(() -> {
+                Configuration myConfig = Configuration.getInstance();
                 if (world != null) {
                     // On a Mac we may be doing this unnecessarily because we
                     // may be opening a .world file, but it has proven difficult
                     // to detect that. TODO
                     app.setWorld(world, true);
-                } else if (autosaveFile.isFile()) {
+                } else if ((! autosaveInhibited) && myConfig.isAutosaveEnabled() && autosaveFile.isFile()) {
                     logger.info("Recovering autosaved world");
                     app.open(autosaveFile);
                     Toolkit.getDefaultToolkit().beep();
@@ -430,13 +471,16 @@ public class Main {
                 } else {
                     app.open(file);
                 }
-                if ((! safeMode) && SystemUtils.isMac() && JAVA_VERSION.isAtLeast(JAVA_10) && (! Configuration.getInstance().isJava10onMacMessageDisplayed())) {
+                if (myConfig.isAutosaveEnabled() && autosaveInhibited) {
+                    JOptionPane.showMessageDialog(app, "Another instance of WorldPainter is already running.\nAutosave will therefore be disabled in this instance of WorldPainter!", "Autosave Disabled", JOptionPane.WARNING_MESSAGE);
+                }
+                if ((! safeMode) && SystemUtils.isMac() && JAVA_VERSION.isAtLeast(JAVA_10) && (! myConfig.isJava10onMacMessageDisplayed())) {
                     JOptionPane.showMessageDialog(app, "The visual theme has been locked to Metal\n"
                             + "to work around a bug in a support library on Java 10.\n"
                             + "To re-enable visual themes, downgrade Java to version 9\n"
                             + "or wait for a release of WorldPainter with a fixed library.\n"
                             + "It is not yet known when that fix will be released.", "Visual Theme Locked", JOptionPane.INFORMATION_MESSAGE);
-                    Configuration.getInstance().setJava10onMacMessageDisplayed(true);
+                    myConfig.setJava10onMacMessageDisplayed(true);
                 }
                 DonationDialog.maybeShowDonationDialog(app);
             });

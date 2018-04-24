@@ -1,3 +1,7 @@
+-- Version 2.5.1, released ...
+
+ * Having multiple simultaneous instances of WorldPainter running is once again allowed, but for all but the first instance autosave will be disabled! You will be warned of this by a popup at the startup of additional instances
+
 -- Version 2.5.0, released 23-4-2018
 
  * It is now possible to duplicate existing Custom Layers by right-clicking on their button and selecting "Duplicate...". This will open a copy of the layer in question with the same settings as the original, which you can then modify and save as a new layer. Make sure to give it a different name and colour to avoid confusion

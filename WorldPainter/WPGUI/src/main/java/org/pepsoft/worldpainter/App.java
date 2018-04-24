@@ -192,7 +192,9 @@ public final class App extends JFrame implements RadiusControl,
                 maybePing();
                 autosaveTimer = new Timer(config.getAutosaveDelay(), event -> maybeAutosave());
                 autosaveTimer.setDelay(config.getAutosaveDelay() / 2);
-                autosaveTimer.start();
+                if (config.isAutosaveEnabled() && (! inhibitAutosave)) {
+                    autosaveTimer.start();
+                }
 
                 // Show mini map here because we only know our location now
 //                JDialog miniMapDialog = new JDialog(App.this, "Mini Map");
@@ -1434,6 +1436,14 @@ public final class App extends JFrame implements RadiusControl,
         return customBiomeManager;
     }
 
+    public boolean isInhibitAutosave() {
+        return inhibitAutosave;
+    }
+
+    public void setInhibitAutosave(boolean inhibitAutosave) {
+        this.inhibitAutosave = inhibitAutosave;
+    }
+
     public void showCustomTerrainButtonPopup(final AWTEvent event, final int customMaterialIndex) {
         final JToggleButton button = (customMaterialIndex >= 0) ? customMaterialButtons[customMaterialIndex] : null;
         JPopupMenu popupMenu = new JPopupMenu();
@@ -2132,6 +2142,9 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void rotateAutosaveFile() {
+        if (inhibitAutosave) {
+            return;
+        }
         try {
             FileUtils.rotateFile(getAutosaveFile(), "autosave.{0}.world", 0, 3);
         } catch (IOException e) {
@@ -3984,7 +3997,24 @@ public final class App extends JFrame implements RadiusControl,
                 dialog.setVisible(true);
                 if (! dialog.isCancelled()) {
                     setMaxRadius(config.getMaximumBrushSize());
-                    autosaveTimer.setDelay(config.getAutosaveDelay() / 2);
+                    if (! inhibitAutosave) {
+                        if (config.isAutosaveEnabled()) {
+                            autosaveTimer.setInitialDelay(config.getAutosaveDelay());
+                            autosaveTimer.setDelay(config.getAutosaveDelay() / 2);
+                            if (!autosaveTimer.isRunning()) {
+                                autosaveTimer.start();
+                            }
+                        } else {
+                            autosaveTimer.stop();
+                            try {
+                                rotateAutosaveFile();
+                            } catch (RuntimeException | Error e2) {
+                                logger.error("An exception occurred while trying to rotate the autosave", e2);
+                                Toolkit.getDefaultToolkit().beep();
+                                JOptionPane.showMessageDialog(this, "An error occurred while trying to clear the autosave.\nWorldPainter may try to load the autosave on the next start.\nIf this keeps happening, please report it to the author.", "Clearing Autosave Failed", JOptionPane.WARNING_MESSAGE);
+                            }
+                        }
+                    }
                 }
             });
             menuItem.setMnemonic('f');
@@ -5304,7 +5334,24 @@ public final class App extends JFrame implements RadiusControl,
             if (! dialog.isCancelled()) {
                 Configuration config = Configuration.getInstance();
                 setMaxRadius(config.getMaximumBrushSize());
-                autosaveTimer.setDelay(config.getAutosaveDelay() / 2);
+                if (! inhibitAutosave) {
+                    if (config.isAutosaveEnabled()) {
+                        autosaveTimer.setInitialDelay(config.getAutosaveDelay());
+                        autosaveTimer.setDelay(config.getAutosaveDelay() / 2);
+                        if (!autosaveTimer.isRunning()) {
+                            autosaveTimer.start();
+                        }
+                    } else {
+                        autosaveTimer.stop();
+                        try {
+                            rotateAutosaveFile();
+                        } catch (RuntimeException | Error e2) {
+                            logger.error("An exception occurred while trying to rotate the autosave", e2);
+                            Toolkit.getDefaultToolkit().beep();
+                            JOptionPane.showMessageDialog(this, "An error occurred while trying to clear the autosave.\nWorldPainter may try to load the autosave on the next start.\nIf this keeps happening, please report it to the author.", "Clearing Autosave Failed", JOptionPane.WARNING_MESSAGE);
+                        }
+                    }
+                }
             }
         });
     }
@@ -6799,7 +6846,7 @@ public final class App extends JFrame implements RadiusControl,
     private Layer soloLayer;
     private final PaletteManager paletteManager = new PaletteManager(this);
     private DockingManager dockingManager;
-    private boolean hideAbout, hidePreferences, hideExit;
+    private boolean hideAbout, hidePreferences, hideExit, inhibitAutosave;
     private Paint paint = PaintFactory.NULL_PAINT;
     private PaintUpdater paintUpdater = () -> {
         // Do nothing
