@@ -234,9 +234,7 @@ public final class TileRenderer {
                 for (int x = 0; x < TILE_SIZE; x++) {
                     for (int y = 0; y < TILE_SIZE; y++) {
                         if (notAllChunksPresent && (tile.getBitLayerValue(NotPresent.INSTANCE, x, y))) {
-                            // Do nothing; for us the contents of this chunk are
-                            // undefined; WPTileProvider will copy Minecraft biomes
-                            // over this
+                            renderBuffer[x | (y << TILE_SIZE_BITS)] = 0x00000000;
                         } else if ((! noOpposites) && oppositesOverlap[x | (y << TILE_SIZE_BITS)] && CEILING_PATTERN[x & 0x7][y & 0x7]) {
                             renderBuffer[x | (y << TILE_SIZE_BITS)] = 0xff000000;
                         } else if (_void && tile.getBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, x, y)) {
@@ -259,9 +257,7 @@ public final class TileRenderer {
                 for (int x = 0; x < TILE_SIZE; x += scale) {
                     for (int y = 0; y < TILE_SIZE; y += scale) {
                         if (notAllChunksPresent && (tile.getBitLayerValue(NotPresent.INSTANCE, x, y))) {
-                            // Do nothing; for us the contents of this chunk are
-                            // undefined; WPTileProvider will copy Minecraft biomes
-                            // over this
+                            renderBuffer[x / scale + y * tileSize] = 0x00000000;
                         } else if ((! noOpposites) && oppositesOverlap[x | (y << TILE_SIZE_BITS)]) {
                             renderBuffer[x / scale + y * tileSize] = 0xff000000;
                         } else if (_void && tile.getBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, x, y)) {
