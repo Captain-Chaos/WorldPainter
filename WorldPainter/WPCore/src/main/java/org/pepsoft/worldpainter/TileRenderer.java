@@ -189,6 +189,15 @@ public final class TileRenderer {
         this.contourSeparation = contourSeparation;
     }
 
+    /**
+     * Render the tile to an image, with an optional offset. This will
+     * completely paint the square covered by the tile, possibly partly with
+     * transparent pixels.
+     *
+     * @param image The image to which to render the tile.
+     * @param dx The horizontal offset at which to render the tile.
+     * @param dy The vertical offset at which to render the tile.
+     */
     public void renderTile(Image image, int dx, int dy) {
         // TODO this deadlocks background painting. Find out why:
 //        synchronized (tile) {
@@ -202,11 +211,9 @@ public final class TileRenderer {
         final boolean _void = layerList.contains(org.pepsoft.worldpainter.layers.Void.INSTANCE), notAllChunksPresent = layerList.contains(NotPresent.INSTANCE);
         final Layer[] layers = layerList.toArray(new Layer[layerList.size()]);
         final LayerRenderer[] renderers = new LayerRenderer[layers.length];
-//        boolean renderBiomes = false;
         for (int i = 0; i < layers.length; i++) {
             if (layers[i] instanceof Biome) {
                 renderers[i] = biomeRenderer;
-//                renderBiomes = true;
             } else {
                 renderers[i] = layers[i].getRenderer();
             }
@@ -217,78 +224,64 @@ public final class TileRenderer {
                 ((DimensionAwareRenderer) renderers[i]).setDimension((Dimension) tileProvider);
             }
         }
-//        LayerRenderer[] voidRenderers = null;
-//        Layer[] voidLayers = null;
-//        if (_void) {
-//            if (renderBiomes) {
-//                voidLayers = new Layer[] {org.pepsoft.worldpainter.layers.Void.INSTANCE, Biome.INSTANCE};
-//                voidRenderers = new LayerRenderer[] {org.pepsoft.worldpainter.layers.Void.INSTANCE.getRenderer(), biomeRenderer};
-//            } else {
-//                voidLayers = new Layer[] {org.pepsoft.worldpainter.layers.Void.INSTANCE};
-//                voidRenderers = new LayerRenderer[] {org.pepsoft.worldpainter.layers.Void.INSTANCE.getRenderer()};
-//            }
-//        }
 
-        Arrays.fill(renderBuffer, 0);
         final int tileX = tile.getX() * TILE_SIZE, tileY = tile.getY() * TILE_SIZE;
         final int scale = 1 << -zoom;
-        if (zoom == 0) {
-            for (int x = 0; x < TILE_SIZE; x++) {
-                for (int y = 0; y < TILE_SIZE; y++) {
-                    if (notAllChunksPresent && (tile.getBitLayerValue(NotPresent.INSTANCE, x, y))) {
-//                        renderBuffer[x | (y << TILE_SIZE_BITS)] = 0x00000000;
-                    } else if ((! noOpposites) && oppositesOverlap[x | (y << TILE_SIZE_BITS)] && CEILING_PATTERN[x & 0x7][y & 0x7]) {
-                        renderBuffer[x | (y << TILE_SIZE_BITS)] = 0xff000000;
-                    } else if (_void && tile.getBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, x, y)) {
-//                        renderBuffer[x | (y << TILE_SIZE_BITS)] = 0xff000000 | getPixelColour(tileX, tileY, x, y, voidLayers, voidRenderers, false);
-                    } else {
-                        int colour = getPixelColour(tileX, tileY, x, y, layers, renderers, contourLines, hideTerrain, hideFluids);
-                        colour = ColourUtils.multiply(colour, getTerrainBrightenAmount());
-                        final int offset = x + y * TILE_SIZE;
-                        if (intFluidHeightCache[offset] > intHeightCache[offset]) {
-                            colour = ColourUtils.multiply(colour, getFluidBrightenAmount());
+        final Graphics2D g2 = (Graphics2D) image.getGraphics();
+        try {
+            g2.setComposite(AlphaComposite.Src);
+            if (zoom == 0) {
+                for (int x = 0; x < TILE_SIZE; x++) {
+                    for (int y = 0; y < TILE_SIZE; y++) {
+                        if (notAllChunksPresent && (tile.getBitLayerValue(NotPresent.INSTANCE, x, y))) {
+                            // Do nothing; for us the contents of this chunk are
+                            // undefined; WPTileProvider will copy Minecraft biomes
+                            // over this
+                        } else if ((! noOpposites) && oppositesOverlap[x | (y << TILE_SIZE_BITS)] && CEILING_PATTERN[x & 0x7][y & 0x7]) {
+                            renderBuffer[x | (y << TILE_SIZE_BITS)] = 0xff000000;
+                        } else if (_void && tile.getBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, x, y)) {
+                            renderBuffer[x | (y << TILE_SIZE_BITS)] = 0x00000000;
+                        } else {
+                            int colour = getPixelColour(tileX, tileY, x, y, layers, renderers, contourLines, hideTerrain, hideFluids);
+                            colour = ColourUtils.multiply(colour, getTerrainBrightenAmount());
+                            final int offset = x + y * TILE_SIZE;
+                            if (intFluidHeightCache[offset] > intHeightCache[offset]) {
+                                colour = ColourUtils.multiply(colour, getFluidBrightenAmount());
+                            }
+                            renderBuffer[x | (y << TILE_SIZE_BITS)] = 0xff000000 | colour;
                         }
-                        renderBuffer[x | (y << TILE_SIZE_BITS)] = 0xff000000 | colour;
                     }
                 }
-            }
 
-            Graphics2D g2 = (Graphics2D) image.getGraphics();
-            try {
-                g2.setComposite(AlphaComposite.Src);
                 g2.drawImage(bufferedImage, dx, dy, null);
-            } finally {
-                g2.dispose();
-            }
-        } else {
-            final int tileSize = TILE_SIZE / scale;
-            for (int x = 0; x < TILE_SIZE; x += scale) {
-                for (int y = 0; y < TILE_SIZE; y += scale) {
-                    if (notAllChunksPresent && (tile.getBitLayerValue(NotPresent.INSTANCE, x, y))) {
-//                        renderBuffer[x / scale + y * tileSize] = 0x00000000;
-                    } else if ((! noOpposites) && oppositesOverlap[x | (y << TILE_SIZE_BITS)]) {
-                        renderBuffer[x / scale + y * tileSize] = 0xff000000;
-                    } else if (_void && tile.getBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, x, y)) {
-//                        renderBuffer[x / scale + y * tileSize] = 0xff000000 | getPixelColour(tileX, tileY, x, y, voidLayers, voidRenderers, false);
-                    } else {
-                        int colour = getPixelColour(tileX, tileY, x, y, layers, renderers, contourLines, hideTerrain, hideFluids);
-                        colour = ColourUtils.multiply(colour, getTerrainBrightenAmount());
-                        final int offset = x + y * TILE_SIZE;
-                        if (intFluidHeightCache[offset] > intHeightCache[offset]) {
-                            colour = ColourUtils.multiply(colour, getFluidBrightenAmount());
+            } else {
+                final int tileSize = TILE_SIZE / scale;
+                for (int x = 0; x < TILE_SIZE; x += scale) {
+                    for (int y = 0; y < TILE_SIZE; y += scale) {
+                        if (notAllChunksPresent && (tile.getBitLayerValue(NotPresent.INSTANCE, x, y))) {
+                            // Do nothing; for us the contents of this chunk are
+                            // undefined; WPTileProvider will copy Minecraft biomes
+                            // over this
+                        } else if ((! noOpposites) && oppositesOverlap[x | (y << TILE_SIZE_BITS)]) {
+                            renderBuffer[x / scale + y * tileSize] = 0xff000000;
+                        } else if (_void && tile.getBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, x, y)) {
+                            renderBuffer[x / scale + y * tileSize] = 0x00000000;
+                        } else {
+                            int colour = getPixelColour(tileX, tileY, x, y, layers, renderers, contourLines, hideTerrain, hideFluids);
+                            colour = ColourUtils.multiply(colour, getTerrainBrightenAmount());
+                            final int offset = x + y * TILE_SIZE;
+                            if (intFluidHeightCache[offset] > intHeightCache[offset]) {
+                                colour = ColourUtils.multiply(colour, getFluidBrightenAmount());
+                            }
+                            renderBuffer[x / scale + y * tileSize] = 0xff000000 | colour;
                         }
-                        renderBuffer[x / scale + y * tileSize] = 0xff000000 | colour;
                     }
                 }
-            }
 
-            Graphics2D g2 = (Graphics2D) image.getGraphics();
-            try {
-                g2.setComposite(AlphaComposite.Src);
                 g2.drawImage(bufferedImage, dx, dy, dx + tileSize, dy + tileSize, 0, 0, tileSize, tileSize, null);
-            } finally {
-                g2.dispose();
             }
+        } finally {
+            g2.dispose();
         }
 //        }
     }
@@ -527,7 +520,7 @@ public final class TileRenderer {
     private boolean contourLines = true, bottomless, noOpposites;
     private int contourSeparation = 10, waterColour, lavaColour, bedrockColour, oppositesDelta;
     private LightOrigin lightOrigin = LightOrigin.NORTHWEST;
-    
+
     public static final Layer TERRAIN_AS_LAYER = new Layer("org.pepsoft.synthetic.Terrain", "Terrain", "The terrain type of the surface", Layer.DataSize.NONE, 0) {
         @Override
         public BufferedImage getIcon() {
