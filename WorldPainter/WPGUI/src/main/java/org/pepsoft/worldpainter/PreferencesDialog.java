@@ -44,7 +44,7 @@ public class PreferencesDialog extends WorldPainterDialog {
         if (GUIUtils.UI_SCALE > 1) {
             comboBoxLookAndFeel.setEnabled(false);
             jLabel32.setText("<html><em>Visual themes not available for high resolution displays</em></html>");
-        } else if (SystemUtils.isMac() && JAVA_VERSION.isAtLeast(JAVA_10)) {
+        } else if ((SystemUtils.isMac() || SystemUtils.isLinux()) && JAVA_VERSION.isAtLeast(JAVA_10)) {
             comboBoxLookAndFeel.setEnabled(false);
             jLabel32.setText("<html><em>Visual theme locked to work around bug in support library on Java 10</em></html>");
         }
@@ -145,7 +145,7 @@ public class PreferencesDialog extends WorldPainterDialog {
 
         previousExp = (int) Math.round(Math.log(config.getDefaultMaxHeight()) / Math.log(2.0));
 
-        if (SystemUtils.isMac() && JAVA_VERSION.isAtLeast(JAVA_10)) {
+        if ((SystemUtils.isMac() || SystemUtils.isLinux()) && JAVA_VERSION.isAtLeast(JAVA_10)) {
             // Work around a bug in JIDE 3.7.2
             // TODO: remove when the fixed version of JIDE is released
             comboBoxLookAndFeel.setSelectedIndex(METAL.ordinal());
@@ -240,7 +240,7 @@ public class PreferencesDialog extends WorldPainterDialog {
 
         // Work around a bug in JIDE 3.7.2
         // TODO: remove when the fixed version of JIDE is released
-        if ((GUIUtils.UI_SCALE == 1) && (! (SystemUtils.isMac() && JAVA_VERSION.isAtLeast(JAVA_10)))) {
+        if ((GUIUtils.UI_SCALE == 1) && (! ((SystemUtils.isMac() || SystemUtils.isLinux()) && JAVA_VERSION.isAtLeast(JAVA_10)))) {
             config.setLookAndFeel(Configuration.LookAndFeel.values()[comboBoxLookAndFeel.getSelectedIndex()]);
         }
         
