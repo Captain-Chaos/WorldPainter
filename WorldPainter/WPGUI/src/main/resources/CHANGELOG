@@ -1,6 +1,8 @@
 -- Version 2.5.1, released ...
 
  * Having multiple simultaneous instances of WorldPainter running is once again allowed, but for all but the first instance autosave will be disabled! You will be warned of this by a popup at the startup of additional instances
+ * On Linux with Java 10, lock the visual theme to Metal to work around a bug in a support library. To use other visual themes, downgrade Java to version 8, or wait for a new release of WorldPainter with the fixed support library (it is not yet known when this will be released)
+ * Bug fix: fill in the outside edges of an imported map with Minecraft biomes correctly, instead of displaying those missing chunks as Void
 
 -- Version 2.5.0, released 23-4-2018
 
@@ -30,7 +32,7 @@
 
 -- Version 2.4.5, released 17-4-2018
 
- * On Mac OS X with Java 10, lock the visual theme to Metal to work around a bug in a support library. To use other visual themes, downgrade Java to version 9, or wait for a new release of WorldPainter with the fixed support library (it is not yet known when this will be released)
+ * On Mac OS X with Java 10, lock the visual theme to Metal to work around a bug in a support library. To use other visual themes, downgrade Java to version 8, or wait for a new release of WorldPainter with the fixed support library (it is not yet known when this will be released)
  * Bug fix: fix a recurring error message while Exporting a world on Mac OS X
  * Bug fix: fix a problem with the scrollbar range being too small when zoomed out, making it difficult to scroll to the entire extent of the world
 
