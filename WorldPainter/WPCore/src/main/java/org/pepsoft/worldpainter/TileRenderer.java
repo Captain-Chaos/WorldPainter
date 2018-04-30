@@ -191,8 +191,8 @@ public final class TileRenderer {
 
     /**
      * Render the tile to an image, with an optional offset. This will
-     * completely paint the square covered by the tile, possibly partly with
-     * transparent pixels.
+     * completely paint the square covered by the tile, replacing any existing
+     * contents.
      *
      * @param image The image to which to render the tile.
      * @param dx The horizontal offset at which to render the tile.
