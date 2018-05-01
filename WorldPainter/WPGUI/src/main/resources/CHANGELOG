@@ -1,5 +1,7 @@
 -- Version 2.5.1, released ...
 
+ * It is now possible to expand the irregular edges of imported worlds into full tiles by using the "Add, Expand or Remove Tiles" screen (Edit menu, puzzle piece icon on toolbar, or Ctrl+T)
+ * Autosaves will not be performed while exporting or merging, or while already in a save dialog
  * Having multiple simultaneous instances of WorldPainter running is once again allowed, but for all but the first instance autosave will be disabled! You will be warned of this by a popup at the startup of additional instances
  * On Linux with Java 10, lock the visual theme to Metal to work around a bug in a support library. To use other visual themes, downgrade Java to version 8, or wait for a new release of WorldPainter with the fixed support library (it is not yet known when this will be released)
  * Bug fix: fill in the outside edges of an imported map with Minecraft biomes correctly, instead of displaying those missing chunks as Void
