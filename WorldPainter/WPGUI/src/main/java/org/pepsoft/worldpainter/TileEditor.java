@@ -13,6 +13,7 @@ package org.pepsoft.worldpainter;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.layers.NotPresent;
 
 import javax.swing.*;
 import javax.swing.text.html.HTMLDocument;
@@ -71,8 +72,12 @@ public class TileEditor extends WorldPainterDialog implements TileSelector.Liste
             allowAddTiles = false;
             allowRemoveTiles = false;
             for (Point selectedTile: selectedTiles) {
-                if (dimension.getTile(selectedTile) != null) {
+                Tile existingTile = dimension.getTile(selectedTile);
+                if (existingTile != null) {
                     allowRemoveTiles = true;
+                    if (existingTile.hasLayer(NotPresent.INSTANCE)) {
+                        allowAddTiles = true;
+                    }
                 } else {
                     allowAddTiles = true;
                 }
@@ -84,11 +89,12 @@ public class TileEditor extends WorldPainterDialog implements TileSelector.Liste
     
     private void addTiles() {
         Set<Point> selectedTiles = tileSelector1.getSelectedTiles();
-        Set<Point> tilesToAdd = new HashSet<>();
+        Set<Point> tilesToAdd = new HashSet<>(), tilesToExpand = new HashSet<>();
         int newLowestTileX = dimension.getLowestX(), newHighestTileX = dimension.getHighestX();
         int newLowestTileY = dimension.getLowestY(), newHighestTileY = dimension.getHighestY();
         for (Point selectedTile: selectedTiles) {
-            if (dimension.getTile(selectedTile) == null) {
+            Tile existingTile = dimension.getTile(selectedTile);
+            if (existingTile == null) {
                 tilesToAdd.add(selectedTile);
                 if (selectedTile.x < newLowestTileX) {
                     newLowestTileX = selectedTile.x;
@@ -102,9 +108,11 @@ public class TileEditor extends WorldPainterDialog implements TileSelector.Liste
                 if (selectedTile.y > newHighestTileY) {
                     newHighestTileY = selectedTile.y;
                 }
+            } else if (existingTile.hasLayer(NotPresent.INSTANCE)) {
+                tilesToExpand.add(selectedTile);
             }
         }
-        if (tilesToAdd.isEmpty()) {
+        if (tilesToAdd.isEmpty() && tilesToExpand.isEmpty()) {
             return;
         }
         
@@ -132,7 +140,12 @@ public class TileEditor extends WorldPainterDialog implements TileSelector.Liste
                 return;
             }
         } else {
-            if (JOptionPane.showConfirmDialog(this, "Do you want to add " + tilesToAdd.size() + " new tiles?\nNote that this cannot be undone!", "Confirm Adding Tiles", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
+            String action = (tilesToAdd.isEmpty())
+                ? ("expand " + tilesToExpand.size() + " tile(s)")
+                    : (tilesToExpand.isEmpty()
+                        ? ("add " + tilesToAdd.size() + " new tile(s)")
+                        : ("add " + tilesToAdd.size() + " new tile(s) and expand " + tilesToExpand.size() + " tile(s)"));
+            if (JOptionPane.showConfirmDialog(this, "Do you want to " + action + "?\nNote that this cannot be undone!", "Confirm Adding/Expanding Tiles", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
                 return;
             }            
         }
@@ -143,6 +156,10 @@ public class TileEditor extends WorldPainterDialog implements TileSelector.Liste
             for (Point newTileCoords: tilesToAdd) {
                 Tile newTile = dimension.getTileFactory().createTile(newTileCoords.x, newTileCoords.y);
                 dimension.addTile(newTile);
+            }
+            for (Point expandTileCoords: tilesToExpand) {
+                Tile tile = dimension.getTileForEditing(expandTileCoords);
+                tile.clearLayerData(NotPresent.INSTANCE);
             }
         } finally {
             dimension.setEventsInhibited(false);
@@ -204,24 +221,36 @@ public class TileEditor extends WorldPainterDialog implements TileSelector.Liste
         jTextPane1 = new javax.swing.JTextPane();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("WorldPainter - Add or Remove Tiles");
+        setTitle("WorldPainter - Add, Expand or Remove Tiles");
 
         buttonClose.setText("Close");
-        buttonClose.addActionListener(this::buttonCloseActionPerformed);
+        buttonClose.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonCloseActionPerformed(evt);
+            }
+        });
 
-        buttonAddTiles.setText("Add tiles");
+        buttonAddTiles.setText("Add or expand tiles");
         buttonAddTiles.setEnabled(false);
-        buttonAddTiles.addActionListener(this::buttonAddTilesActionPerformed);
+        buttonAddTiles.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonAddTilesActionPerformed(evt);
+            }
+        });
 
         buttonRemoveTiles.setText("Remove tiles");
         buttonRemoveTiles.setEnabled(false);
-        buttonRemoveTiles.addActionListener(this::buttonRemoveTilesActionPerformed);
+        buttonRemoveTiles.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonRemoveTilesActionPerformed(evt);
+            }
+        });
 
         tileSelector1.setAllowNonExistentTileSelection(true);
 
         jTextPane1.setEditable(false);
         jTextPane1.setContentType("text/html"); // NOI18N
-        jTextPane1.setText("WorldPainter works in tiles of 128 by 128 blocks. On this screen you can add or remove tiles.<br><br>Select tiles to the right using the left mouse button, move the map with the middle or right buttons, then select an action below:<br><br><b>Note:</b> this will remove all undo information!");
+        jTextPane1.setText("WorldPainter works in tiles of 128 by 128 blocks. On this screen you can add, expand or remove tiles.<br><br>Select tiles to the right using the left mouse button, move the map with the middle or right buttons, then select an action below:<br><br><b>Note:</b> this will remove all undo information!");
         jTextPane1.setOpaque(false);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());

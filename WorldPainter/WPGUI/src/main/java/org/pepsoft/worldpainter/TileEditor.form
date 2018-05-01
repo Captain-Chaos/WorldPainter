@@ -3,7 +3,7 @@
 <Form version="1.5" maxVersion="1.7" type="org.netbeans.modules.form.forminfo.JDialogFormInfo">
   <Properties>
     <Property name="defaultCloseOperation" type="int" value="2"/>
-    <Property name="title" type="java.lang.String" value="WorldPainter - Add or Remove Tiles"/>
+    <Property name="title" type="java.lang.String" value="WorldPainter - Add, Expand or Remove Tiles"/>
   </Properties>
   <SyntheticProperties>
     <SyntheticProperty name="formSizePolicy" type="int" value="1"/>
@@ -76,7 +76,7 @@
     </Component>
     <Component class="javax.swing.JButton" name="buttonAddTiles">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Add tiles"/>
+        <Property name="text" type="java.lang.String" value="Add or expand tiles"/>
         <Property name="enabled" type="boolean" value="false"/>
       </Properties>
       <Events>
@@ -101,7 +101,7 @@
       <Properties>
         <Property name="editable" type="boolean" value="false"/>
         <Property name="contentType" type="java.lang.String" value="text/html" noResource="true"/>
-        <Property name="text" type="java.lang.String" value="WorldPainter works in tiles of 128 by 128 blocks. On this screen you can add or remove tiles.&lt;br&gt;&lt;br&gt;Select tiles to the right using the left mouse button, move the map with the middle or right buttons, then select an action below:&lt;br&gt;&lt;br&gt;&lt;b&gt;Note:&lt;/b&gt; this will remove all undo information!"/>
+        <Property name="text" type="java.lang.String" value="WorldPainter works in tiles of 128 by 128 blocks. On this screen you can add, expand or remove tiles.&lt;br&gt;&lt;br&gt;Select tiles to the right using the left mouse button, move the map with the middle or right buttons, then select an action below:&lt;br&gt;&lt;br&gt;&lt;b&gt;Note:&lt;/b&gt; this will remove all undo information!"/>
         <Property name="opaque" type="boolean" value="false"/>
       </Properties>
     </Component>
