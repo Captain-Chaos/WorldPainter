@@ -1319,30 +1319,36 @@ public final class App extends JFrame implements RadiusControl,
         if (logger.isDebugEnabled()) {
             logger.debug("Last saved state: {}", lastSavedState);
         }
-        if ((world != null) && (world.getChangeNo() != lastSavedState)) {
-            int action = showConfirmDialog(this, (lastSelectedFile != null) ? (MessageFormat.format(strings.getString("there.are.unsaved.changes.do.you.want.to.save.the.world.to.0"), lastSelectedFile.getName())) : strings.getString("there.are.unsaved.changes"));
-            if (action == YES_OPTION) {
-                if (! save()) {
-                    // The file was not saved for some reason
+        pauseAutosave = true;
+        try {
+            if ((world != null) && (world.getChangeNo() != lastSavedState)) {
+                int action = showConfirmDialog(this, (lastSelectedFile != null) ? (MessageFormat.format(strings.getString("there.are.unsaved.changes.do.you.want.to.save.the.world.to.0"), lastSelectedFile.getName())) : strings.getString("there.are.unsaved.changes"));
+                if (action == YES_OPTION) {
+                    if (!save()) {
+                        // The file was not saved for some reason
+                        return false;
+                    }
+                } else if (action != NO_OPTION) {
+                    // User closed the confirmation dialog without making a choice
                     return false;
                 }
-            } else if (action != NO_OPTION) {
-                // User closed the confirmation dialog without making a choice
-                return false;
             }
+            // If we get here then either the world didn't need saving; it *was*
+            // saved; or the user indicated it didn't need saving. In all cases
+            // any autosave file should no longer exist, so make sure to rotate it
+            // away if necessary
+            try {
+                rotateAutosaveFile();
+            } catch (RuntimeException | Error e) {
+                logger.error("An exception occurred while trying to rotate the autosave", e);
+                Toolkit.getDefaultToolkit().beep();
+                JOptionPane.showMessageDialog(this, "An error occurred while trying to clear the autosave.\nWorldPainter may try to load the autosave on the next start.\nIf this keeps happening, please report it to the author.", "Clearing Autosave Failed", JOptionPane.WARNING_MESSAGE);
+            }
+            return true;
+        } finally {
+            // save() may have done this already, but that's fine
+            pauseAutosave = false;
         }
-        // If we get here then either the world didn't need saving; it *was*
-        // saved; or the user indicated it didn't need saving. In all cases
-        // any autosave file should no longer exist, so make sure to rotate it
-        // away if necessary
-        try {
-            rotateAutosaveFile();
-        } catch (RuntimeException | Error e) {
-            logger.error("An exception occurred while trying to rotate the autosave", e);
-            Toolkit.getDefaultToolkit().beep();
-            JOptionPane.showMessageDialog(this, "An error occurred while trying to clear the autosave.\nWorldPainter may try to load the autosave on the next start.\nIf this keeps happening, please report it to the author.", "Clearing Autosave Failed", JOptionPane.WARNING_MESSAGE);
-        }
-        return true;
     }
 
     public boolean editCustomMaterial(int customMaterialIndex) {
@@ -1940,40 +1946,45 @@ public final class App extends JFrame implements RadiusControl,
      * @return <code>true</code> if the file was saved.
      */
     private boolean saveAs() {
-        Configuration config = Configuration.getInstance();
-        File file = lastSelectedFile;
-        if (file == null) {
-            if ((config != null) && (config.getWorldDirectory() != null)) {
-                file = new File(config.getWorldDirectory(), FileUtils.sanitiseName(world.getName().trim() + ".world"));
-            } else {
-                file = new File(DesktopUtils.getDocumentsFolder(), FileUtils.sanitiseName(world.getName().trim() + ".world"));
+        pauseAutosave = true;
+        try {
+            Configuration config = Configuration.getInstance();
+            File file = lastSelectedFile;
+            if (file == null) {
+                if ((config != null) && (config.getWorldDirectory() != null)) {
+                    file = new File(config.getWorldDirectory(), FileUtils.sanitiseName(world.getName().trim() + ".world"));
+                } else {
+                    file = new File(DesktopUtils.getDocumentsFolder(), FileUtils.sanitiseName(world.getName().trim() + ".world"));
+                }
             }
-        }
-        file = FileUtils.selectFileForSave(App.this, "Save as a WorldPainter world", file, new FileFilter() {
-            @Override
-            public boolean accept(File f) {
-                return f.isDirectory()
-                    || f.getName().toLowerCase().endsWith(".world");
-            }
+            file = FileUtils.selectFileForSave(App.this, "Save as a WorldPainter world", file, new FileFilter() {
+                @Override
+                public boolean accept(File f) {
+                    return f.isDirectory()
+                            || f.getName().toLowerCase().endsWith(".world");
+                }
 
-            @Override
-            public String getDescription() {
-                return strings.getString("worldpainter.files.world");
+                @Override
+                public String getDescription() {
+                    return strings.getString("worldpainter.files.world");
+                }
+            });
+            if (file != null) {
+                if (!file.getName().toLowerCase().endsWith(".world")) {
+                    file = new File(file.getParentFile(), file.getName() + ".world");
+                }
+                if (file.exists() && (showConfirmDialog(App.this, strings.getString("do.you.want.to.overwrite.the.file"), strings.getString("file.exists"), YES_NO_OPTION) != YES_OPTION)) {
+                    return false;
+                }
+                if (save(file)) {
+                    showMessageDialog(App.this, strings.getString("file.saved"), strings.getString("success"), INFORMATION_MESSAGE);
+                    return true;
+                }
             }
-        });
-        if (file != null) {
-            if (! file.getName().toLowerCase().endsWith(".world")) {
-                file = new File(file.getParentFile(), file.getName() + ".world");
-            }
-            if (file.exists() && (showConfirmDialog(App.this, strings.getString("do.you.want.to.overwrite.the.file"), strings.getString("file.exists"), YES_NO_OPTION) != YES_OPTION)) {
-                return false;
-            }
-            if (save(file)) {
-                showMessageDialog(App.this, strings.getString("file.saved"), strings.getString("success"), INFORMATION_MESSAGE);
-                return true;
-            }
+            return false;
+        } finally {
+            pauseAutosave = false;
         }
-        return false;
     }
     
     /**
@@ -1983,162 +1994,167 @@ public final class App extends JFrame implements RadiusControl,
      * @param file The file to which to save the world.
      */
     private boolean save(File file) {
-        // Check for write access to directory
-        if (! file.getParentFile().isDirectory()) {
-            showMessageDialog(this, strings.getString("the.selected.path.does.not.exist"), strings.getString("non.existant.path"), ERROR_MESSAGE);
-            return false;
-        }
-        if (! file.getParentFile().canWrite()) {
-            showMessageDialog(this, strings.getString("you.do.not.have.write.access"), strings.getString("access.denied"), ERROR_MESSAGE);
-            return false;
-        }
-        
-        // Normalise the filename
-        String name = file.getName();
-        name = name.trim();
-        if (name.isEmpty()) {
-            name = strings.getString("generated.world") + ".world"; // NOI18N
-        } else {
-            name = FileUtils.sanitiseName(name);
-        }
-        final File normalisedFile = new File(file.getParentFile(), name);
-        
-        // Make sure the world name is always the same as the file name, to
-        // avoid confusion (unless the only difference is illegal filename
-        // characters changed into underscores
-        int p = name.lastIndexOf('.');
-        if (p != -1) {
-            name = name.substring(0, p).trim();
-        }
-        String worldName = world.getName();
-        if (worldName.length() != name.length()) {
-            world.setName(name);
-            setTitle("WorldPainter - " + name + " - " + dimension.getName()); // NOI18N
-        } else {
-            for (int i = 0; i < name.length(); i++) {
-                if ((name.charAt(i) != '_') && (name.charAt(i) != worldName.charAt(i))) {
-                    world.setName(name);
-                    setTitle("WorldPainter - " + name + " - " + dimension.getName()); // NOI18N
-                    break;
+        pauseAutosave = true;
+        try {
+            // Check for write access to directory
+            if (! file.getParentFile().isDirectory()) {
+                showMessageDialog(this, strings.getString("the.selected.path.does.not.exist"), strings.getString("non.existant.path"), ERROR_MESSAGE);
+                return false;
+            }
+            if (! file.getParentFile().canWrite()) {
+                showMessageDialog(this, strings.getString("you.do.not.have.write.access"), strings.getString("access.denied"), ERROR_MESSAGE);
+                return false;
+            }
+
+            // Normalise the filename
+            String name = file.getName();
+            name = name.trim();
+            if (name.isEmpty()) {
+                name = strings.getString("generated.world") + ".world"; // NOI18N
+            } else {
+                name = FileUtils.sanitiseName(name);
+            }
+            final File normalisedFile = new File(file.getParentFile(), name);
+
+            // Make sure the world name is always the same as the file name, to
+            // avoid confusion (unless the only difference is illegal filename
+            // characters changed into underscores
+            int p = name.lastIndexOf('.');
+            if (p != -1) {
+                name = name.substring(0, p).trim();
+            }
+            String worldName = world.getName();
+            if (worldName.length() != name.length()) {
+                world.setName(name);
+                setTitle("WorldPainter - " + name + " - " + dimension.getName()); // NOI18N
+            } else {
+                for (int i = 0; i < name.length(); i++) {
+                    if ((name.charAt(i) != '_') && (name.charAt(i) != worldName.charAt(i))) {
+                        world.setName(name);
+                        setTitle("WorldPainter - " + name + " - " + dimension.getName()); // NOI18N
+                        break;
+                    }
                 }
             }
-        }
 
-        logger.info("Saving world " + world.getName() + " to "+ file.getAbsolutePath());
+            logger.info("Saving world " + world.getName() + " to " + file.getAbsolutePath());
 
-        saveCustomMaterials();
-        
-        saveCustomBiomes();
-        
-        // Remove the existing custom object layers and save the list of
-        // custom layers to the dimension to preserve layers which aren't
-        // currently in use
-        if (! paletteManager.isEmpty()) {
-            List<CustomLayer> customLayers = new ArrayList<>();
-            for (Palette palette: paletteManager.getPalettes()) {
-                customLayers.addAll(palette.getLayers());
-            }
-            dimension.setCustomLayers(customLayers);
-        } else {
-            dimension.setCustomLayers(Collections.EMPTY_LIST);
-        }
+            saveCustomMaterials();
 
-        if (dimension != null) {
-            Point viewPosition = view.getViewCentreInWorldCoords();
-            if (viewPosition != null) {
-                this.dimension.setLastViewPosition(viewPosition);
-            }
-        }
+            saveCustomBiomes();
 
-        ProgressDialog.executeTask(this, new ProgressTask<java.lang.Void>() {
-            @Override
-            public String getName() {
-                return strings.getString("saving.world");
+            // Remove the existing custom object layers and save the list of
+            // custom layers to the dimension to preserve layers which aren't
+            // currently in use
+            if (!paletteManager.isEmpty()) {
+                List<CustomLayer> customLayers = new ArrayList<>();
+                for (Palette palette : paletteManager.getPalettes()) {
+                    customLayers.addAll(palette.getLayers());
+                }
+                dimension.setCustomLayers(customLayers);
+            } else {
+                dimension.setCustomLayers(Collections.EMPTY_LIST);
             }
 
-            @Override
-            public java.lang.Void execute(ProgressReceiver progressReceiver) throws OperationCancelled {
-                try {
-                    Configuration config = Configuration.getInstance();
-                    if ((config.getWorldFileBackups() > 0) && normalisedFile.isFile()) {
-                        progressReceiver.setMessage(strings.getString("creating.backup.s"));
-                        for (int i = config.getWorldFileBackups(); i > 0; i--) {
-                            File nextBackupFile = (i > 1) ? BackupUtil.getBackupFile(normalisedFile, i - 1) : normalisedFile;
-                            if (nextBackupFile.isFile()) {
-                                File backupFile = BackupUtil.getBackupFile(normalisedFile, i);
-                                if (backupFile.isFile()) {
-                                    if (! backupFile.delete()) {
-                                        throw new RuntimeException("Could not delete old backup file " + backupFile);
+            if (dimension != null) {
+                Point viewPosition = view.getViewCentreInWorldCoords();
+                if (viewPosition != null) {
+                    this.dimension.setLastViewPosition(viewPosition);
+                }
+            }
+
+            ProgressDialog.executeTask(this, new ProgressTask<java.lang.Void>() {
+                @Override
+                public String getName() {
+                    return strings.getString("saving.world");
+                }
+
+                @Override
+                public java.lang.Void execute(ProgressReceiver progressReceiver) throws OperationCancelled {
+                    try {
+                        Configuration config = Configuration.getInstance();
+                        if ((config.getWorldFileBackups() > 0) && normalisedFile.isFile()) {
+                            progressReceiver.setMessage(strings.getString("creating.backup.s"));
+                            for (int i = config.getWorldFileBackups(); i > 0; i--) {
+                                File nextBackupFile = (i > 1) ? BackupUtil.getBackupFile(normalisedFile, i - 1) : normalisedFile;
+                                if (nextBackupFile.isFile()) {
+                                    File backupFile = BackupUtil.getBackupFile(normalisedFile, i);
+                                    if (backupFile.isFile()) {
+                                        if (!backupFile.delete()) {
+                                            throw new RuntimeException("Could not delete old backup file " + backupFile);
+                                        }
+                                    }
+                                    if (!nextBackupFile.renameTo(backupFile)) {
+                                        throw new RuntimeException("Could not move " + nextBackupFile + " to " + backupFile);
                                     }
                                 }
-                                if (! nextBackupFile.renameTo(backupFile)) {
-                                    throw new RuntimeException("Could not move " + nextBackupFile + " to " + backupFile);
-                                }
                             }
+                            progressReceiver.setMessage(null);
                         }
-                        progressReceiver.setMessage(null);
-                    }
 
-                    world.addHistoryEntry(HistoryEntry.WORLD_SAVED, normalisedFile);
-                    WorldIO worldIO = new WorldIO(world);
-                    worldIO.save(new FileOutputStream(normalisedFile));
+                        world.addHistoryEntry(HistoryEntry.WORLD_SAVED, normalisedFile);
+                        WorldIO worldIO = new WorldIO(world);
+                        worldIO.save(new FileOutputStream(normalisedFile));
 
-                    Map<String, byte[]> layoutData = config.getJideLayoutData();
-                    if (layoutData == null) {
-                        layoutData = new HashMap<>();
+                        Map<String, byte[]> layoutData = config.getJideLayoutData();
+                        if (layoutData == null) {
+                            layoutData = new HashMap<>();
+                        }
+                        layoutData.put(world.getName(), dockingManager.getLayoutRawData());
+                        config.setJideLayoutData(layoutData);
+
+                        return null;
+                    } catch (IOException e) {
+                        throw new RuntimeException("I/O error saving file (message: " + e.getMessage() + ")", e);
                     }
-                    layoutData.put(world.getName(), dockingManager.getLayoutRawData());
-                    config.setJideLayoutData(layoutData);
-                    
-                    return null;
-                } catch (IOException e) {
-                    throw new RuntimeException("I/O error saving file (message: " + e.getMessage() + ")", e);
                 }
-            }
-        }, false);
+            }, false);
 
-        // Log an event
-        Configuration config = Configuration.getInstance();
-        if (config != null) {
-            EventVO event = new EventVO(EVENT_KEY_ACTION_SAVE_WORLD).addTimestamp();
-            event.setAttribute(ATTRIBUTE_KEY_MAX_HEIGHT, world.getMaxHeight());
-            Dimension loadedDimension = world.getDimension(0);
-            event.setAttribute(ATTRIBUTE_KEY_TILES, loadedDimension.getTiles().size());
-            logLayers(loadedDimension, event, "");
-            loadedDimension = world.getDimension(1);
-            if (loadedDimension != null) {
-                event.setAttribute(ATTRIBUTE_KEY_NETHER_TILES, loadedDimension.getTiles().size());
-                logLayers(loadedDimension, event, "nether.");
+            // Log an event
+            Configuration config = Configuration.getInstance();
+            if (config != null) {
+                EventVO event = new EventVO(EVENT_KEY_ACTION_SAVE_WORLD).addTimestamp();
+                event.setAttribute(ATTRIBUTE_KEY_MAX_HEIGHT, world.getMaxHeight());
+                Dimension loadedDimension = world.getDimension(0);
+                event.setAttribute(ATTRIBUTE_KEY_TILES, loadedDimension.getTiles().size());
+                logLayers(loadedDimension, event, "");
+                loadedDimension = world.getDimension(1);
+                if (loadedDimension != null) {
+                    event.setAttribute(ATTRIBUTE_KEY_NETHER_TILES, loadedDimension.getTiles().size());
+                    logLayers(loadedDimension, event, "nether.");
+                }
+                loadedDimension = world.getDimension(2);
+                if (loadedDimension != null) {
+                    event.setAttribute(ATTRIBUTE_KEY_END_TILES, loadedDimension.getTiles().size());
+                    logLayers(loadedDimension, event, "end.");
+                }
+                if (world.getImportedFrom() != null) {
+                    event.setAttribute(ATTRIBUTE_KEY_IMPORTED_WORLD, true);
+                }
+                config.logEvent(event);
             }
-            loadedDimension = world.getDimension(2);
-            if (loadedDimension != null) {
-                event.setAttribute(ATTRIBUTE_KEY_END_TILES, loadedDimension.getTiles().size());
-                logLayers(loadedDimension, event, "end.");
+
+            if (currentUndoManager != null) {
+                currentUndoManager.armSavePoint();
             }
-            if (world.getImportedFrom() != null) {
-                event.setAttribute(ATTRIBUTE_KEY_IMPORTED_WORLD, true);
+            lastSaveTimestamp = lastChangeTimestamp = System.currentTimeMillis();
+            lastAutosavedState = lastSavedState = world.getChangeNo();
+            try {
+                rotateAutosaveFile();
+            } catch (RuntimeException | Error e) {
+                logger.error("An exception occurred while trying to rotate the autosave", e);
+                Toolkit.getDefaultToolkit().beep();
+                JOptionPane.showMessageDialog(this, "An error occurred while trying to clear the autosave.\nWorldPainter may try to load the autosave on the next start.\nIf this keeps happening, please report it to the author.", "Clearing Autosave Failed", JOptionPane.WARNING_MESSAGE);
             }
-            config.logEvent(event);
+            lastSelectedFile = file;
+            addRecentlyUsedWorld(file);
+
+            Configuration.getInstance().setWorldDirectory(file.getParentFile());
+
+            return true;
+        } finally {
+            pauseAutosave = false;
         }
-
-        if (currentUndoManager != null) {
-            currentUndoManager.armSavePoint();
-        }
-        lastSaveTimestamp = lastChangeTimestamp = System.currentTimeMillis();
-        lastAutosavedState = lastSavedState = world.getChangeNo();
-        try {
-            rotateAutosaveFile();
-        } catch (RuntimeException | Error e) {
-            logger.error("An exception occurred while trying to rotate the autosave", e);
-            Toolkit.getDefaultToolkit().beep();
-            JOptionPane.showMessageDialog(this, "An error occurred while trying to clear the autosave.\nWorldPainter may try to load the autosave on the next start.\nIf this keeps happening, please report it to the author.", "Clearing Autosave Failed", JOptionPane.WARNING_MESSAGE);
-        }
-        lastSelectedFile = file;
-        addRecentlyUsedWorld(file);
-
-        Configuration.getInstance().setWorldDirectory(file.getParentFile());
-
-        return true;
     }
 
     private void rotateAutosaveFile() {
@@ -2161,10 +2177,10 @@ public final class App extends JFrame implements RadiusControl,
             logger.debug("[AUTOSAVE] maybeAutosave() invoked");
         }
         Configuration config = Configuration.getInstance();
-        if (config.isAutosaveEnabled() && (world != null) && (world.getChangeNo() != lastAutosavedState)) {
-            // Autosave is enabled, a world is loaded, and it has changed since it was last (auto)saved
+        if (config.isAutosaveEnabled() && (world != null) && (! pauseAutosave) && (world.getChangeNo() != lastAutosavedState)) {
+            // Autosave is enabled and not paused, a world is loaded, and it has changed since it was last (auto)saved
             if (logger.isDebugEnabled()) {
-                logger.debug("[AUTOSAVE] Autosave is enabled, a world is loaded, and it has changed since it was last (auto)saved");
+                logger.debug("[AUTOSAVE] Autosave is enabled and not paused, a world is loaded, and it has changed since it was last (auto)saved");
             }
             long now = System.currentTimeMillis();
             long timeSinceLastChange = now - lastChangeTimestamp;
@@ -2331,19 +2347,24 @@ public final class App extends JFrame implements RadiusControl,
     }
     
     private void merge() {
-        if ((world.getImportedFrom() != null) && (! world.isAllowMerging())) {
-            showMessageDialog(this, strings.getString("this.world.was.imported.before.the.great.coordinate.shift"), strings.getString("merge.not.allowed"), ERROR_MESSAGE);
-            return;
+        pauseAutosave = true;
+        try {
+            if ((world.getImportedFrom() != null) && (!world.isAllowMerging())) {
+                showMessageDialog(this, strings.getString("this.world.was.imported.before.the.great.coordinate.shift"), strings.getString("merge.not.allowed"), ERROR_MESSAGE);
+                return;
+            }
+            if ((world.getImportedFrom() == null) && (world.getMergedWith() == null) && (showConfirmDialog(this, strings.getString("this.world.was.not.imported"), strings.getString("not.imported"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
+                return;
+            }
+            Configuration config = Configuration.getInstance();
+            if (((config == null) || (!config.isMergeWarningDisplayed())) && (showConfirmDialog(this, strings.getString("this.is.experimental.and.unfinished.functionality"), strings.getString("experimental.functionality"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
+                return;
+            }
+            MergeWorldDialog dialog = new MergeWorldDialog(this, world, autoBiomeScheme, selectedColourScheme, customBiomeManager, hiddenLayers, false, 10, view.getLightOrigin(), view);
+            dialog.setVisible(true);
+        } finally {
+            pauseAutosave = false;
         }
-        if ((world.getImportedFrom() == null) && (world.getMergedWith() == null) && (showConfirmDialog(this, strings.getString("this.world.was.not.imported"), strings.getString("not.imported"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
-            return;
-        }
-        Configuration config = Configuration.getInstance();
-        if (((config == null) || (! config.isMergeWarningDisplayed())) && (showConfirmDialog(this, strings.getString("this.is.experimental.and.unfinished.functionality"), strings.getString("experimental.functionality"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
-            return;
-        }
-        MergeWorldDialog dialog = new MergeWorldDialog(this, world, autoBiomeScheme, selectedColourScheme, customBiomeManager, hiddenLayers, false, 10, view.getLightOrigin(), view);
-        dialog.setVisible(true);
     }
 
     private void updateZoomLabel() {
@@ -6137,14 +6158,19 @@ public final class App extends JFrame implements RadiusControl,
         
         @Override
         public void performAction(ActionEvent e) {
-            if (world.getImportedFrom() != null) {
-                Toolkit.getDefaultToolkit().beep();
-                if (showConfirmDialog(App.this, strings.getString("this.is.an.imported.world"), strings.getString("imported"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION) {
-                    return;
+            pauseAutosave = true;
+            try {
+                if (world.getImportedFrom() != null) {
+                    Toolkit.getDefaultToolkit().beep();
+                    if (showConfirmDialog(App.this, strings.getString("this.is.an.imported.world"), strings.getString("imported"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION) {
+                        return;
+                    }
                 }
+                ExportWorldDialog dialog = new ExportWorldDialog(App.this, world, autoBiomeScheme, selectedColourScheme, customBiomeManager, hiddenLayers, false, 10, view.getLightOrigin(), view);
+                dialog.setVisible(true);
+            } finally {
+                pauseAutosave = false;
             }
-            ExportWorldDialog dialog = new ExportWorldDialog(App.this, world, autoBiomeScheme, selectedColourScheme, customBiomeManager, hiddenLayers, false, 10, view.getLightOrigin(), view);
-            dialog.setVisible(true);
         }
 
         private static final long serialVersionUID = 1L;
@@ -6846,7 +6872,7 @@ public final class App extends JFrame implements RadiusControl,
     private Layer soloLayer;
     private final PaletteManager paletteManager = new PaletteManager(this);
     private DockingManager dockingManager;
-    private boolean hideAbout, hidePreferences, hideExit, inhibitAutosave;
+    private boolean hideAbout, hidePreferences, hideExit, inhibitAutosave, pauseAutosave;
     private Paint paint = PaintFactory.NULL_PAINT;
     private PaintUpdater paintUpdater = () -> {
         // Do nothing
