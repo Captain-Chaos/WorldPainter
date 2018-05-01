@@ -1157,6 +1157,32 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         }
     }
 
+    public LayerAnchor getSubsurfaceLayerAnchor() {
+        return subsurfaceLayerAnchor;
+    }
+
+    public void setSubsurfaceLayerAnchor(LayerAnchor subsurfaceLayerAnchor) {
+        if (subsurfaceLayerAnchor != this.subsurfaceLayerAnchor) {
+            LayerAnchor oldSubsurfaceLayerAnchor = this.subsurfaceLayerAnchor;
+            this.subsurfaceLayerAnchor = subsurfaceLayerAnchor;
+            changeNo++;
+            propertyChangeSupport.firePropertyChange("subsurfaceLayerAnchor", oldSubsurfaceLayerAnchor, subsurfaceLayerAnchor);
+        }
+    }
+
+    public LayerAnchor getTopLayerAnchor() {
+        return topLayerAnchor;
+    }
+
+    public void setTopLayerAnchor(LayerAnchor topLayerAnchor) {
+        if (topLayerAnchor != this.topLayerAnchor) {
+            LayerAnchor oldTopLayerAnchor = this.topLayerAnchor;
+            this.topLayerAnchor = topLayerAnchor;
+            changeNo++;
+            propertyChangeSupport.firePropertyChange("topLayerAnchor", oldTopLayerAnchor, topLayerAnchor);
+        }
+    }
+
     public void applyTheme(Point coords) {
         applyTheme(coords.x, coords.y);
     }
@@ -1703,6 +1729,10 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         if (wpVersion < 3) {
             ceilingHeight = maxHeight;
         }
+        if (wpVersion < 4) {
+            subsurfaceLayerAnchor = LayerAnchor.BEDROCK;
+            topLayerAnchor = LayerAnchor.BEDROCK;
+        }
         wpVersion = CURRENT_WP_VERSION;
 
         // Make sure that any custom layers which somehow ended up in the world
@@ -1750,6 +1780,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     private boolean fixOverlayCoords;
     private int ceilingHeight = maxHeight;
     private Map<String, Object> attributes;
+    private LayerAnchor subsurfaceLayerAnchor = LayerAnchor.BEDROCK, topLayerAnchor = LayerAnchor.BEDROCK;
     private transient List<Listener> listeners = new ArrayList<>();
     private transient boolean eventsInhibited;
     private transient Set<Tile> dirtyTiles = new HashSet<>();
@@ -1769,7 +1800,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
 
     private static final long TOP_LAYER_DEPTH_SEED_OFFSET = 180728193;
     private static final float ROOT_EIGHT = (float) Math.sqrt(8.0);
-    private static final int CURRENT_WP_VERSION = 3;
+    private static final int CURRENT_WP_VERSION = 4;
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Dimension.class);
     private static final long serialVersionUID = 2011062401L;
 
@@ -1795,6 +1826,8 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
 
         private final boolean endless;
     }
+
+    public enum LayerAnchor {BEDROCK, TERRAIN}
 
     public class TileVisitationBuilder {
         public TileVisitationBuilder forFilter(Filter filter) {
@@ -2028,10 +2061,5 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         }
 
         private final HashSet<Point> activeTiles = new HashSet<>();
-    }
-
-    static class TileCache {
-        int x = Integer.MIN_VALUE, y = Integer.MIN_VALUE;
-        Tile tile;
     }
 }

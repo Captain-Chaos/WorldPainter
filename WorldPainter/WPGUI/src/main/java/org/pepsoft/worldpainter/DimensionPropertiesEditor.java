@@ -26,6 +26,7 @@ import javax.swing.event.ListSelectionEvent;
 import java.util.*;
 
 import static org.pepsoft.minecraft.Constants.*;
+import org.pepsoft.worldpainter.Dimension.LayerAnchor;
 
 /**
  *
@@ -237,7 +238,9 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         int topLayerMinDepth = (Integer) spinnerMinSurfaceDepth.getValue();
         dimension.setTopLayerMinDepth(topLayerMinDepth);
         dimension.setTopLayerVariation((Integer) spinnerMaxSurfaceDepth.getValue() - topLayerMinDepth);
+        dimension.setTopLayerAnchor(Dimension.LayerAnchor.values()[comboBoxSurfaceLayerAnchor.getSelectedIndex()]);
         dimension.setSubsurfaceMaterial((Terrain) comboBoxSubsurfaceMaterial.getSelectedItem());
+        dimension.setSubsurfaceLayerAnchor(subsurfaceLayerAnchor);
         dimension.setBorder(getSelectedBorder());
         dimension.setBorderLevel((Integer) spinnerBorderLevel.getValue());
         dimension.setBorderSize((Integer) spinnerBorderSize.getValue() / 128);
@@ -477,6 +480,20 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         spinnerMinSurfaceDepth.setValue(dimension.getTopLayerMinDepth());
         ((SpinnerNumberModel) spinnerMaxSurfaceDepth.getModel()).setMaximum(maxHeight);
         spinnerMaxSurfaceDepth.setValue(dimension.getTopLayerMinDepth() + dimension.getTopLayerVariation());
+        comboBoxSurfaceLayerAnchor.setSelectedIndex(dimension.getTopLayerAnchor().ordinal());
+        Terrain subsurfaceTerrain = dimension.getSubsurfaceMaterial();
+        subsurfaceLayerAnchor = dimension.getSubsurfaceLayerAnchor();
+        if ((subsurfaceTerrain != null) && subsurfaceTerrain.isCustom()) {
+            MixedMaterial material = Terrain.getCustomMaterial(subsurfaceTerrain.getCustomTerrainIndex());
+            if (material.getMode() == MixedMaterial.Mode.LAYERED) {
+                comboBoxUndergroundLayerAnchor.setSelectedIndex(subsurfaceLayerAnchor.ordinal());
+            } else {
+                comboBoxUndergroundLayerAnchor.setSelectedItem(null);
+            }
+        } else {
+            comboBoxUndergroundLayerAnchor.setSelectedItem(null);
+        }
+
         if (dimension.getBorder() != null) {
             switch (dimension.getBorder()) {
                 case LAVA:
@@ -804,6 +821,13 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         int selectedRow = tableCustomLayers.getSelectedRow();
         buttonCustomLayerUp.setEnabled(enabled && (selectedRow != -1) && (! customLayersTableModel.isHeaderRow(selectedRow)) && (selectedRow > 0) && (! customLayersTableModel.isHeaderRow(selectedRow - 1)));
         buttonCustomLayerDown.setEnabled(enabled && (selectedRow != -1) && (! customLayersTableModel.isHeaderRow(selectedRow)) && (selectedRow < (tableCustomLayers.getRowCount() - 1)) && (! customLayersTableModel.isHeaderRow(selectedRow + 1)));
+        Terrain subsurfaceTerrain = (Terrain) comboBoxSubsurfaceMaterial.getSelectedItem();
+        if ((subsurfaceTerrain != null) && subsurfaceTerrain.isCustom()) {
+            MixedMaterial material = Terrain.getCustomMaterial(subsurfaceTerrain.getCustomTerrainIndex());
+            comboBoxUndergroundLayerAnchor.setEnabled(material.getMode() == MixedMaterial.Mode.LAYERED);
+        } else {
+            comboBoxUndergroundLayerAnchor.setEnabled(false);
+        }
     }
 
     private void addListeners(final JSpinner minSpinner, final JSpinner maxSpinner) {
@@ -881,6 +905,10 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         jLabel90 = new javax.swing.JLabel();
         radioButtonFixedBorder = new javax.swing.JRadioButton();
         radioButtonEndlessBorder = new javax.swing.JRadioButton();
+        comboBoxSurfaceLayerAnchor = new javax.swing.JComboBox<>();
+        jLabel83 = new javax.swing.JLabel();
+        jLabel84 = new javax.swing.JLabel();
+        comboBoxUndergroundLayerAnchor = new javax.swing.JComboBox<>();
         jPanel5 = new javax.swing.JPanel();
         themeEditor = new org.pepsoft.worldpainter.themes.impl.simple.SimpleThemeEditor();
         jLabel45 = new javax.swing.JLabel();
@@ -1080,13 +1108,13 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
         jLabel7.setText("Minecraft seed:");
 
-        spinnerMinecraftSeed.setModel(new javax.swing.SpinnerNumberModel(Long.valueOf(-9223372036854775808L), null, null, Long.valueOf(1L)));
+        spinnerMinecraftSeed.setModel(new javax.swing.SpinnerNumberModel(-9223372036854775808L, null, null, 1L));
         spinnerMinecraftSeed.setEditor(new javax.swing.JSpinner.NumberEditor(spinnerMinecraftSeed, "0"));
 
         jLabel8.setLabelFor(spinnerBorderSize);
         jLabel8.setText("Border size:");
 
-        spinnerBorderSize.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(256), Integer.valueOf(128), null, Integer.valueOf(128)));
+        spinnerBorderSize.setModel(new javax.swing.SpinnerNumberModel(256, 128, null, 128));
         spinnerBorderSize.setEnabled(false);
         spinnerBorderSize.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
@@ -1213,6 +1241,19 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             }
         });
 
+        comboBoxSurfaceLayerAnchor.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Bedrock", "Terrain" }));
+
+        jLabel83.setText("Layered materials relative to:");
+
+        jLabel84.setText("Layered material relative to:");
+
+        comboBoxUndergroundLayerAnchor.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Bedrock", "Terrain" }));
+        comboBoxUndergroundLayerAnchor.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboBoxUndergroundLayerAnchorActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -1220,10 +1261,6 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jLabel6)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(comboBoxSubsurfaceMaterial, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(jLabel65)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -1233,7 +1270,19 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(spinnerMaxSurfaceDepth, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
-                        .addComponent(checkBoxCoverSteepTerrain))
+                        .addComponent(checkBoxCoverSteepTerrain)
+                        .addGap(18, 18, 18)
+                        .addComponent(jLabel83)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(comboBoxSurfaceLayerAnchor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jLabel6)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(comboBoxSubsurfaceMaterial, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jLabel84)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(comboBoxUndergroundLayerAnchor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(checkBoxBottomless)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -1275,7 +1324,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(checkBoxBedrockWall))
-                .addContainerGap(114, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1286,11 +1335,15 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                     .addComponent(spinnerMinSurfaceDepth, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel66)
                     .addComponent(spinnerMaxSurfaceDepth, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(checkBoxCoverSteepTerrain))
+                    .addComponent(checkBoxCoverSteepTerrain)
+                    .addComponent(comboBoxSurfaceLayerAnchor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel83))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel6)
-                    .addComponent(comboBoxSubsurfaceMaterial, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(comboBoxSubsurfaceMaterial, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel84)
+                    .addComponent(comboBoxUndergroundLayerAnchor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(checkBoxBottomless)
@@ -2289,7 +2342,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                         .addComponent(jLabel82, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(jPanel7Layout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 618, Short.MAX_VALUE)
+                        .addComponent(jScrollPane1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(buttonCustomLayerDown, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -2303,12 +2356,12 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 .addComponent(jLabel82, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1)
                     .addGroup(jPanel7Layout.createSequentialGroup()
                         .addComponent(buttonCustomLayerUp)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buttonCustomLayerDown)
-                        .addGap(0, 226, Short.MAX_VALUE)))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
 
@@ -2363,10 +2416,19 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 }//GEN-LAST:event_radioButtonLavaBorderActionPerformed
 
     private void comboBoxSubsurfaceMaterialActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxSubsurfaceMaterialActionPerformed
-        //        if (comboBoxSubsurfaceMaterial.getSelectedItem() == Terrain.RESOURCES) {
-        //            // TODO: do something?
-        //        }
-}//GEN-LAST:event_comboBoxSubsurfaceMaterialActionPerformed
+        Terrain terrain = (Terrain) comboBoxSubsurfaceMaterial.getSelectedItem();
+        if ((terrain != null) && terrain.isCustom()) {
+            MixedMaterial material = Terrain.getCustomMaterial(terrain.getCustomTerrainIndex());
+            if (material.getMode() == MixedMaterial.Mode.LAYERED) {
+                comboBoxUndergroundLayerAnchor.setSelectedIndex(subsurfaceLayerAnchor.ordinal());
+            } else {
+                comboBoxUndergroundLayerAnchor.setSelectedItem(null);
+            }
+        } else {
+            comboBoxUndergroundLayerAnchor.setSelectedItem(null);
+        }
+        setControlStates();
+    }//GEN-LAST:event_comboBoxSubsurfaceMaterialActionPerformed
 
     private void checkBoxDeciduousEverywhereActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxDeciduousEverywhereActionPerformed
         setControlStates();
@@ -2463,6 +2525,13 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         notifyBorderListeners();
     }//GEN-LAST:event_radioButtonEndlessBorderActionPerformed
 
+    private void comboBoxUndergroundLayerAnchorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxUndergroundLayerAnchorActionPerformed
+        int selectedIndex = comboBoxUndergroundLayerAnchor.getSelectedIndex();
+        if (selectedIndex >= 0) {
+            subsurfaceLayerAnchor = LayerAnchor.values()[selectedIndex];
+        }
+    }//GEN-LAST:event_comboBoxUndergroundLayerAnchorActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonCustomLayerDown;
     private javax.swing.JButton buttonCustomLayerUp;
@@ -2489,6 +2558,8 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private javax.swing.JCheckBox checkBoxSnowUnderTrees;
     private javax.swing.JCheckBox checkBoxSwamplandEverywhere;
     private javax.swing.JComboBox comboBoxSubsurfaceMaterial;
+    private javax.swing.JComboBox<String> comboBoxSurfaceLayerAnchor;
+    private javax.swing.JComboBox<String> comboBoxUndergroundLayerAnchor;
     private javax.swing.JCheckBox jCheckBox8;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
@@ -2571,6 +2642,8 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel80;
     private javax.swing.JLabel jLabel81;
     private javax.swing.JLabel jLabel82;
+    private javax.swing.JLabel jLabel83;
+    private javax.swing.JLabel jLabel84;
     private javax.swing.JLabel jLabel85;
     private javax.swing.JLabel jLabel86;
     private javax.swing.JLabel jLabel9;
@@ -2658,6 +2731,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private CustomLayersTableModel customLayersTableModel;
     private Mode mode;
     private List<BorderListener> borderListeners = new ArrayList<>();
+    private Dimension.LayerAnchor subsurfaceLayerAnchor;
     
     private static final long serialVersionUID = 1L;
     
