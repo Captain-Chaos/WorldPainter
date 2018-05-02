@@ -13,7 +13,6 @@ import com.jidesoft.plaf.LookAndFeelFactory;
 import com.jidesoft.utils.Lm;
 import org.pepsoft.util.GUIUtils;
 import org.pepsoft.util.PluginManager;
-import org.pepsoft.util.SystemUtils;
 import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
 import org.pepsoft.worldpainter.browser.WPTrustManager;
 import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
@@ -53,9 +52,6 @@ import java.util.List;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
-import static com.jidesoft.plaf.LookAndFeelFactory.EXTENSION_STYLE_VSNET_WITHOUT_MENU;
-import static org.pepsoft.util.SystemUtils.JAVA_10;
-import static org.pepsoft.util.SystemUtils.JAVA_VERSION;
 import static org.pepsoft.worldpainter.Constants.ATTRIBUTE_KEY_PLUGINS;
 import static org.pepsoft.worldpainter.Constants.ATTRIBUTE_KEY_SAFE_MODE;
 
@@ -396,12 +392,7 @@ public class Main {
                 // Install configured look and feel
                 try {
                     String laf;
-                    if ((SystemUtils.isMac() || SystemUtils.isLinux()) && JAVA_VERSION.isAtLeast(JAVA_10)) {
-                        // Work around a bug in JIDE 3.7.2
-                        // TODO: remove when the fixed version of JIDE is released
-                        logger.warn("Locking visual theme to Metal to work around bug in JIDE 3.7.2 on Java 10 on Mac OS X and Linux");
-                        laf = "javax.swing.plaf.metal.MetalLookAndFeel";
-                    } else if (GUIUtils.UI_SCALE > 1) {
+                    if (GUIUtils.UI_SCALE > 1) {
                         laf = UIManager.getSystemLookAndFeelClassName();
                     } else {
                         switch (lookAndFeel) {
@@ -426,13 +417,7 @@ public class Main {
                     }
                     logger.debug("Installing look and feel: " + laf);
                     UIManager.setLookAndFeel(laf);
-                    if ((SystemUtils.isMac() || SystemUtils.isLinux()) && JAVA_VERSION.isAtLeast(JAVA_10)) {
-                        // Work around a bug in JIDE 3.7.2
-                        // TODO: remove when the fixed version of JIDE is released
-                        LookAndFeelFactory.installJideExtension(EXTENSION_STYLE_VSNET_WITHOUT_MENU);
-                    } else {
-                        LookAndFeelFactory.installJideExtension();
-                    }
+                    LookAndFeelFactory.installJideExtension();
                     if ((GUIUtils.UI_SCALE == 1) && ((lookAndFeel == Configuration.LookAndFeel.DARK_METAL)
                             || (lookAndFeel == Configuration.LookAndFeel.DARK_NIMBUS))) {
                         // Patch some things to make dark themes look better
@@ -475,14 +460,6 @@ public class Main {
                 }
                 if (myConfig.isAutosaveEnabled() && autosaveInhibited) {
                     JOptionPane.showMessageDialog(app, "Another instance of WorldPainter is already running.\nAutosave will therefore be disabled in this instance of WorldPainter!", "Autosave Disabled", JOptionPane.WARNING_MESSAGE);
-                }
-                if ((! myConfig.isSafeMode()) && (SystemUtils.isMac() || SystemUtils.isLinux()) && JAVA_VERSION.isAtLeast(JAVA_10) && (! Configuration.getInstance().isJava10onMacMessageDisplayed())) {
-                    JOptionPane.showMessageDialog(app, "The visual theme has been locked to Metal\n"
-                            + "to work around a bug in a support library on Java 10.\n"
-                            + "To re-enable visual themes, downgrade Java to version 8\n"
-                            + "or wait for a release of WorldPainter with a fixed library.\n"
-                            + "It is not yet known when that fix will be released.", "Visual Theme Locked", JOptionPane.INFORMATION_MESSAGE);
-                    myConfig.setJava10onMacMessageDisplayed(true);
                 }
                 DonationDialog.maybeShowDonationDialog(app);
             });

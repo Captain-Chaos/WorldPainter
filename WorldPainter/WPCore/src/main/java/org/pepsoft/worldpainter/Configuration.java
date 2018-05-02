@@ -651,14 +651,6 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         this.defaultPlatform = defaultPlatform;
     }
 
-    public synchronized boolean isJava10onMacMessageDisplayed() {
-        return java10onMacMessageDisplayed;
-    }
-
-    public synchronized void setJava10onMacMessageDisplayed(boolean java10onMacMessageDisplayed) {
-        this.java10onMacMessageDisplayed = java10onMacMessageDisplayed;
-    }
-
     public synchronized boolean isAutosaveEnabled() {
         return autosaveEnabled;
     }
@@ -1064,7 +1056,8 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private GameType defaultGameTypeObj = GameType.SURVIVAL;
     private Platform defaultPlatform = DefaultPlugin.JAVA_ANVIL;
     private Map<Platform, File> exportDirectories = new HashMap<>();
-    private boolean java10onMacMessageDisplayed = false;
+    @Deprecated
+    private boolean java10onMacMessageDisplayed;
     private boolean autosaveEnabled = true;
     private int autosaveDelay = 10000, autosaveInterval = 300000; // Ten seconds delay; five minutes interval
 

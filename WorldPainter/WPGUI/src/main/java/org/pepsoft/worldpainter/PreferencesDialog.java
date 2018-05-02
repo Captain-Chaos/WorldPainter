@@ -11,7 +11,6 @@
 package org.pepsoft.worldpainter;
 
 import org.pepsoft.util.GUIUtils;
-import org.pepsoft.util.SystemUtils;
 import org.pepsoft.worldpainter.TileRenderer.LightOrigin;
 import org.pepsoft.worldpainter.themes.SimpleTheme;
 import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
@@ -24,9 +23,6 @@ import java.util.Random;
 import java.util.SortedMap;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
-import static org.pepsoft.util.SystemUtils.JAVA_10;
-import static org.pepsoft.util.SystemUtils.JAVA_VERSION;
-import static org.pepsoft.worldpainter.Configuration.LookAndFeel.METAL;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 import static org.pepsoft.worldpainter.Terrain.GRASS;
 
@@ -44,9 +40,6 @@ public class PreferencesDialog extends WorldPainterDialog {
         if (GUIUtils.UI_SCALE > 1) {
             comboBoxLookAndFeel.setEnabled(false);
             jLabel32.setText("<html><em>Visual themes not available for high resolution displays</em></html>");
-        } else if ((SystemUtils.isMac() || SystemUtils.isLinux()) && JAVA_VERSION.isAtLeast(JAVA_10)) {
-            comboBoxLookAndFeel.setEnabled(false);
-            jLabel32.setText("<html><em>Visual theme locked to work around bug in support library on Java 10</em></html>");
         }
         
         comboBoxSurfaceMaterial.setModel(new DefaultComboBoxModel(Terrain.PICK_LIST));
@@ -145,11 +138,7 @@ public class PreferencesDialog extends WorldPainterDialog {
 
         previousExp = (int) Math.round(Math.log(config.getDefaultMaxHeight()) / Math.log(2.0));
 
-        if ((SystemUtils.isMac() || SystemUtils.isLinux()) && JAVA_VERSION.isAtLeast(JAVA_10)) {
-            // Work around a bug in JIDE 3.7.2
-            // TODO: remove when the fixed version of JIDE is released
-            comboBoxLookAndFeel.setSelectedIndex(METAL.ordinal());
-        } else if (GUIUtils.UI_SCALE == 1) {
+        if (GUIUtils.UI_SCALE == 1) {
             comboBoxLookAndFeel.setSelectedIndex(config.getLookAndFeel() != null ? config.getLookAndFeel().ordinal() : 0);
         }
         
@@ -238,9 +227,7 @@ public class PreferencesDialog extends WorldPainterDialog {
         config.setDefaultGameType((GameType) comboBoxMode.getSelectedItem());
         config.setDefaultAllowCheats(checkBoxCheats.isSelected());
 
-        // Work around a bug in JIDE 3.7.2
-        // TODO: remove when the fixed version of JIDE is released
-        if ((GUIUtils.UI_SCALE == 1) && (! ((SystemUtils.isMac() || SystemUtils.isLinux()) && JAVA_VERSION.isAtLeast(JAVA_10)))) {
+        if (GUIUtils.UI_SCALE == 1) {
             config.setLookAndFeel(Configuration.LookAndFeel.values()[comboBoxLookAndFeel.getSelectedIndex()]);
         }
         
