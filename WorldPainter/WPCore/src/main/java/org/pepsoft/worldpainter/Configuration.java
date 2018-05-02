@@ -683,6 +683,24 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         this.autosaveInterval = autosaveInterval;
     }
 
+    // Transient settings which aren't stored on disk
+
+    public boolean isAutosaveInhibited() {
+        return autosaveInhibited;
+    }
+
+    public void setAutosaveInhibited(boolean autosaveInhibited) {
+        this.autosaveInhibited = autosaveInhibited;
+    }
+
+    public boolean isSafeMode() {
+        return safeMode;
+    }
+
+    public void setSafeMode(boolean safeMode) {
+        this.safeMode = safeMode;
+    }
+
     @Override
     public synchronized void logEvent(EventVO event) {
         if (eventLog != null) {
@@ -1055,6 +1073,9 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
      * using the Preferences API.
      */
     private transient AccelerationType accelerationType;
+
+    // Runtime settings which aren't stored on disk
+    private transient boolean autosaveInhibited, safeMode;
 
     private static Configuration instance;
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Configuration.class);

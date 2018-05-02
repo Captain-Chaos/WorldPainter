@@ -76,7 +76,7 @@ public class BiomeSchemeManager {
             SortedMap<Version, BiomeJar> biomeJars = BIOME_JARS.get(biomeAlgorithm);
             if ((biomeJars != null) && (! biomeJars.isEmpty())) {
                 // We have a jar for this biome scheme
-                if ("true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.safeMode"))) {
+                if (Configuration.getInstance().isSafeMode()) {
                     logger.info("[SAFE MODE] Not creating biome scheme");
                     return null;
                 } else {

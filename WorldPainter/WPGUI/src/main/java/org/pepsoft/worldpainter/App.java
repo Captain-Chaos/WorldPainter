@@ -140,8 +140,7 @@ public final class App extends JFrame implements RadiusControl,
         operations = OperationManager.getInstance().getOperations();
         setMaxRadius(config.getMaximumBrushSize());
 
-        boolean safeMode = "true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.safeMode"));
-        loadCustomBrushes(safeMode);
+        loadCustomBrushes();
         
         brushOptions = new BrushOptions();
         brushOptions.setListener(this);
@@ -151,7 +150,7 @@ public final class App extends JFrame implements RadiusControl,
             installMacCustomisations();
         }
 
-        initComponents(safeMode);
+        initComponents();
 
         getRootPane().putClientProperty(HELP_KEY_KEY, "Main");
 
@@ -192,7 +191,7 @@ public final class App extends JFrame implements RadiusControl,
                 maybePing();
                 autosaveTimer = new Timer(config.getAutosaveDelay(), event -> maybeAutosave());
                 autosaveTimer.setDelay(config.getAutosaveDelay() / 2);
-                if (config.isAutosaveEnabled() && (! inhibitAutosave)) {
+                if (config.isAutosaveEnabled() && (! config.isAutosaveInhibited())) {
                     autosaveTimer.start();
                 }
 
@@ -1442,14 +1441,6 @@ public final class App extends JFrame implements RadiusControl,
         return customBiomeManager;
     }
 
-    public boolean isInhibitAutosave() {
-        return inhibitAutosave;
-    }
-
-    public void setInhibitAutosave(boolean inhibitAutosave) {
-        this.inhibitAutosave = inhibitAutosave;
-    }
-
     public void showCustomTerrainButtonPopup(final AWTEvent event, final int customMaterialIndex) {
         final JToggleButton button = (customMaterialIndex >= 0) ? customMaterialButtons[customMaterialIndex] : null;
         JPopupMenu popupMenu = new JPopupMenu();
@@ -1722,8 +1713,7 @@ public final class App extends JFrame implements RadiusControl,
 
     @Override
     public void setTitle(String title) {
-        boolean safeMode = "true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.safeMode"));
-        super.setTitle(safeMode ? (title + " [SAFE MODE]") : title);
+        super.setTitle(Configuration.getInstance().isSafeMode() ? (title + " [SAFE MODE]") : title);
     }
 
     void exit() {
@@ -1753,9 +1743,9 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
 
-    private void loadCustomBrushes(boolean safeMode) {
+    private void loadCustomBrushes() {
         customBrushes = new TreeMap<>();
-        if (! safeMode) {
+        if (! Configuration.getInstance().isSafeMode()) {
             File brushesDir = new File(Configuration.getConfigDir(), "brushes");
             if (brushesDir.isDirectory()) {
                 loadCustomBrushes(CUSTOM_BRUSHES_DEFAULT_TITLE, brushesDir);
@@ -2158,7 +2148,7 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void rotateAutosaveFile() {
-        if (inhibitAutosave) {
+        if (Configuration.getInstance().isAutosaveInhibited()) {
             return;
         }
         try {
@@ -2374,7 +2364,7 @@ public final class App extends JFrame implements RadiusControl,
         glassPane.setScale((float) factor);
     }
 
-    private void initComponents(boolean safeMode) {
+    private void initComponents() {
         view = new WorldPainter(selectedColourScheme, autoBiomeScheme, customBiomeManager);
         Configuration config = Configuration.getInstance();
         if (config.getBackgroundColour() == -1) {
@@ -2386,7 +2376,7 @@ public final class App extends JFrame implements RadiusControl,
         view.setDrawBiomes(config.isShowBiomes());
         view.setBackgroundImageMode(config.getBackgroundImageMode());
         if (config.getBackgroundImage() != null) {
-            if (! safeMode) {
+            if (! config.isSafeMode()) {
                 new Thread("Background Image Loader") {
                     @Override
                     public void run() {
@@ -2690,6 +2680,22 @@ public final class App extends JFrame implements RadiusControl,
     private JPanel createStatusBar() {
         JPanel statusBar = new JPanel();
         statusBar.setLayout(new FlowLayout(FlowLayout.LEADING));
+        StringBuilder warnings = new StringBuilder();
+        Configuration config = Configuration.getInstance();
+        if (config.isAutosaveEnabled() && config.isAutosaveInhibited()) {
+            warnings.append("Autosave disabled");
+        }
+        if (config.isSafeMode()) {
+            if (warnings.length() > 0) {
+                warnings.append(": ");
+            }
+            warnings.append("Safe mode");
+        }
+        if (warnings.length() > 0) {
+            JLabel warningsLabel = new JLabel(warnings.toString(), IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/error.png"), SwingConstants.LEADING);
+            warningsLabel.setBorder(new BevelBorder(BevelBorder.LOWERED));
+            statusBar.add(warningsLabel);
+        }
         locationLabel = new JLabel(MessageFormat.format(strings.getString("location.0.1"), -99999, -99999));
         locationLabel.setBorder(new BevelBorder(BevelBorder.LOWERED));
         statusBar.add(locationLabel);
@@ -2911,15 +2917,7 @@ public final class App extends JFrame implements RadiusControl,
         biomesSoloCheckBox = new JCheckBox("Solo:");
         biomesSoloCheckBox.setHorizontalTextPosition(SwingConstants.LEADING);
         biomesSoloCheckBox.setToolTipText("<html>Check to show <em>only</em> the biomes (the other layers are still exported)</html>");
-        biomesSoloCheckBox.addActionListener(e -> {
-            if (biomesSoloCheckBox.isSelected()) {
-                layerSoloCheckBoxes.values().stream().filter(otherSoloCheckBox -> otherSoloCheckBox != biomesSoloCheckBox).forEach(otherSoloCheckBox -> otherSoloCheckBox.setSelected(false));
-                soloLayer = Biome.INSTANCE;
-            } else {
-                soloLayer = null;
-            }
-            updateLayerVisibility();
-        });
+        biomesSoloCheckBox.addActionListener(new SoloCheckboxHandler(biomesSoloCheckBox, Biome.INSTANCE));
         layerSoloCheckBoxes.put(Biome.INSTANCE, biomesSoloCheckBox);
         if (! config.isEasyMode()) {
             constraints.gridwidth = GridBagConstraints.REMAINDER;
@@ -2967,15 +2965,7 @@ public final class App extends JFrame implements RadiusControl,
         annotationsSoloCheckBox = new JCheckBox("Solo:");
         annotationsSoloCheckBox.setHorizontalTextPosition(SwingConstants.LEADING);
         annotationsSoloCheckBox.setToolTipText("<html>Check to show <em>only</em> the annotations (the other layers are still exported)</html>");
-        annotationsSoloCheckBox.addActionListener(e -> {
-            if (annotationsSoloCheckBox.isSelected()) {
-                layerSoloCheckBoxes.values().stream().filter(otherSoloCheckBox -> otherSoloCheckBox != annotationsSoloCheckBox).forEach(otherSoloCheckBox -> otherSoloCheckBox.setSelected(false));
-                soloLayer = Annotations.INSTANCE;
-            } else {
-                soloLayer = null;
-            }
-            updateLayerVisibility();
-        });
+        annotationsSoloCheckBox.addActionListener(new SoloCheckboxHandler(annotationsSoloCheckBox, Annotations.INSTANCE));
         layerSoloCheckBoxes.put(Annotations.INSTANCE, annotationsSoloCheckBox);
         if (! config.isEasyMode()) {
             constraints.gridwidth = GridBagConstraints.REMAINDER;
@@ -4018,7 +4008,7 @@ public final class App extends JFrame implements RadiusControl,
                 dialog.setVisible(true);
                 if (! dialog.isCancelled()) {
                     setMaxRadius(config.getMaximumBrushSize());
-                    if (! inhibitAutosave) {
+                    if (! config.isAutosaveInhibited()) {
                         if (config.isAutosaveEnabled()) {
                             autosaveTimer.setInitialDelay(config.getAutosaveDelay());
                             autosaveTimer.setDelay(config.getAutosaveDelay() / 2);
@@ -4922,15 +4912,7 @@ public final class App extends JFrame implements RadiusControl,
             }
             layerSoloCheckBoxes.put(layer, soloCheckBox);
             soloCheckBox.setToolTipText("<html>Check to show <em>only</em> this layer (the other layers are still exported)</html>");
-            soloCheckBox.addChangeListener(e -> {
-                if (soloCheckBox.isSelected()) {
-                    layerSoloCheckBoxes.values().stream().filter(otherSoloCheckBox -> otherSoloCheckBox != soloCheckBox).forEach(otherSoloCheckBox -> otherSoloCheckBox.setSelected(false));
-                    soloLayer = layer;
-                } else {
-                    soloLayer = null;
-                }
-                updateLayerVisibility();
-            });
+            soloCheckBox.addActionListener(new SoloCheckboxHandler(soloCheckBox, layer));
             components.add(soloCheckBox);
         } else {
             components.add(Box.createGlue());
@@ -5355,7 +5337,7 @@ public final class App extends JFrame implements RadiusControl,
             if (! dialog.isCancelled()) {
                 Configuration config = Configuration.getInstance();
                 setMaxRadius(config.getMaximumBrushSize());
-                if (! inhibitAutosave) {
+                if (! config.isAutosaveInhibited()) {
                     if (config.isAutosaveEnabled()) {
                         autosaveTimer.setInitialDelay(config.getAutosaveDelay());
                         autosaveTimer.setDelay(config.getAutosaveDelay() / 2);
@@ -6872,7 +6854,7 @@ public final class App extends JFrame implements RadiusControl,
     private Layer soloLayer;
     private final PaletteManager paletteManager = new PaletteManager(this);
     private DockingManager dockingManager;
-    private boolean hideAbout, hidePreferences, hideExit, inhibitAutosave, pauseAutosave;
+    private boolean hideAbout, hidePreferences, hideExit, pauseAutosave;
     private Paint paint = PaintFactory.NULL_PAINT;
     private PaintUpdater paintUpdater = () -> {
         // Do nothing
@@ -7114,6 +7096,30 @@ public final class App extends JFrame implements RadiusControl,
 
     interface PaintUpdater {
         void updatePaint();
+    }
+
+    class SoloCheckboxHandler implements ActionListener {
+        public SoloCheckboxHandler(JCheckBox checkBox, Layer layer) {
+            this.checkBox = checkBox;
+            this.layer = layer;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            System.out.println("Action event for JCheckBox@" + Integer.toHexString(checkBox.hashCode()) + " (selected: " + checkBox.isSelected() + ")");
+            if (checkBox.isSelected()) {
+                System.out.println("JCheckBox@" + Integer.toHexString(checkBox.hashCode()) + " selected; deselecting other checkboxes and setting solo layer to " + layer);
+                layerSoloCheckBoxes.values().stream().filter(otherSoloCheckBox -> otherSoloCheckBox != checkBox).forEach(otherSoloCheckBox -> otherSoloCheckBox.setSelected(false));
+                soloLayer = layer;
+            } else {
+                System.out.println("JCheckBox@" + Integer.toHexString(checkBox.hashCode()) + " deselected; setting solo layer to null");
+                soloLayer = null;
+            }
+            updateLayerVisibility();
+        }
+
+        private final JCheckBox checkBox;
+        private final Layer layer;
     }
 
     public enum Mode {WORLDPAINTER, MINECRAFTMAPEDITOR}

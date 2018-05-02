@@ -84,6 +84,23 @@ public final class DesktopUtils {
         return homeDir;
     }
 
+    public static File getPicturesFolder() {
+        if (XDG.XDG_PICTURES_DIR_FILE != null) {
+            // Should cover most Linuxes
+            return XDG.XDG_PICTURES_DIR_FILE;
+        }
+        File homeDir = new File(System.getProperty("user.home"));
+        File potentialDocsDir = new File(homeDir, "Pictures");
+        if (potentialDocsDir.isDirectory()) {
+            return potentialDocsDir;
+        }
+        potentialDocsDir = new File(homeDir, "Photos");
+        if (potentialDocsDir.isDirectory()) {
+            return potentialDocsDir;
+        }
+        return getDocumentsFolder();
+    }
+
     /**
      * Get the default images folder of the current user.
      *

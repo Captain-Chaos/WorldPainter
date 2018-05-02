@@ -10,6 +10,7 @@
  */
 package org.pepsoft.worldpainter;
 
+import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.swing.TiledImageViewer;
 import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
@@ -185,9 +186,9 @@ public class ConfigureViewDialog extends WorldPainterDialog implements WindowLis
     }
 
     private void updateBackgroundImageFile() {
-        boolean safeMode = "true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.safeMode"));
         File file = new File(fieldBackgroundImage.getText());
-        if (! safeMode) {
+        Configuration config = Configuration.getInstance();
+        if (! config.isSafeMode()) {
             BufferedImage image = loadImage(file);
             if (image != null) {
                 // The loading succeeded
@@ -201,7 +202,7 @@ public class ConfigureViewDialog extends WorldPainterDialog implements WindowLis
             // possible to change the configured background image in safe mode
             if (file.isFile() && file.canRead()) {
                 logger.info("[SAFE MODE] Not loading background image");
-                Configuration.getInstance().setBackgroundImage(file);
+                config.setBackgroundImage(file);
             }
         }
     }
@@ -280,7 +281,7 @@ public class ConfigureViewDialog extends WorldPainterDialog implements WindowLis
         sb.append(')');
         final String description = sb.toString();
         File selectedFile = new File(targetField.getText());
-        selectedFile = FileUtils.selectFileForOpen(this, "Select " + imageType, (selectedFile.isFile()) ? selectedFile : null, new FileFilter() {
+        selectedFile = FileUtils.selectFileForOpen(this, "Select " + imageType, (selectedFile.isFile()) ? selectedFile : DesktopUtils.getPicturesFolder(), new FileFilter() {
             @Override
             public boolean accept(File f) {
                 if (f.isDirectory()) {

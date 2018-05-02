@@ -287,7 +287,7 @@ public class PreferencesDialog extends WorldPainterDialog {
         spinnerHeight.setEnabled(! checkBoxCircular.isSelected());
         buttonModePreset.setEnabled(comboBoxWorldType.getSelectedIndex() == 1);
         boolean autosaveEnabled = checkBoxAutoSave.isSelected();
-        boolean autosaveInhibited = App.getInstance().isInhibitAutosave();
+        boolean autosaveInhibited = Configuration.getInstance().isAutosaveInhibited();
         checkBoxAutoSave.setEnabled(! autosaveInhibited);
         spinnerAutoSaveGuardTime.setEnabled(autosaveEnabled && (! autosaveInhibited));
         spinnerAutoSaveInterval.setEnabled(autosaveEnabled && (! autosaveInhibited));

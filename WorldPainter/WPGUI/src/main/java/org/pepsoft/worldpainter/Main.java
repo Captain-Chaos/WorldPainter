@@ -139,15 +139,15 @@ public class Main {
 
         // Parse the command line
         File myFile = null;
+        boolean safeMode = "true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.safeMode"));
         for (String arg: args) {
             if (arg.trim().toLowerCase().equals("--safe")) {
-                System.setProperty("org.pepsoft.worldpainter.safeMode", "true");
+                safeMode = true;
             } else if (new File(arg).isFile()) {
                 myFile = new File(args[0]);
             }
         }
         final File file = myFile;
-        boolean safeMode = "true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.safeMode"));
         if (safeMode) {
             logger.info("WorldPainter running in safe mode");
         }
@@ -226,6 +226,9 @@ public class Main {
             }
             config = new Configuration();
         }
+        // Load the transient settings into the config object
+        config.setSafeMode(safeMode);
+        config.setAutosaveInhibited(autosaveInhibited);
         Configuration.setInstance(config);
         logger.info("Installation ID: " + config.getUuid());
 
@@ -318,7 +321,7 @@ public class Main {
                     if (sb.length() > 0) {
                         sessionEvent.setAttribute(ATTRIBUTE_KEY_PLUGINS, sb.toString());
                     }
-                    sessionEvent.setAttribute(ATTRIBUTE_KEY_SAFE_MODE, safeMode);
+                    sessionEvent.setAttribute(ATTRIBUTE_KEY_SAFE_MODE, config.isSafeMode());
                     config.logEvent(sessionEvent);
                     config.save();
 
@@ -386,7 +389,8 @@ public class Main {
         
         final Configuration.LookAndFeel lookAndFeel = (config.getLookAndFeel() != null) ? config.getLookAndFeel() : Configuration.LookAndFeel.SYSTEM;
         SwingUtilities.invokeLater(() -> {
-            if (safeMode) {
+            Configuration myConfig = Configuration.getInstance();
+            if (myConfig.isSafeMode()) {
                 logger.info("[SAFE MODE] Not installing visual theme");
             } else {
                 // Install configured look and feel
@@ -447,17 +451,15 @@ public class Main {
             UIManager.put("Slider.paintValue", Boolean.FALSE);
 
             final App app = App.getInstance();
-            app.setInhibitAutosave(autosaveInhibited);
             app.setVisible(true);
             // Swing quirk:
-            if (Configuration.getInstance().isMaximised() && (System.getProperty("org.pepsoft.worldpainter.size") == null)) {
+            if (myConfig.isMaximised() && (System.getProperty("org.pepsoft.worldpainter.size") == null)) {
                 app.setExtendedState(Frame.MAXIMIZED_BOTH);
             }
 
             // Do this later to give the app the chance to properly set
             // itself up
             SwingUtilities.invokeLater(() -> {
-                Configuration myConfig = Configuration.getInstance();
                 if (world != null) {
                     // On a Mac we may be doing this unnecessarily because we
                     // may be opening a .world file, but it has proven difficult
@@ -474,7 +476,7 @@ public class Main {
                 if (myConfig.isAutosaveEnabled() && autosaveInhibited) {
                     JOptionPane.showMessageDialog(app, "Another instance of WorldPainter is already running.\nAutosave will therefore be disabled in this instance of WorldPainter!", "Autosave Disabled", JOptionPane.WARNING_MESSAGE);
                 }
-                if ((! safeMode) && (SystemUtils.isMac() || SystemUtils.isLinux()) && JAVA_VERSION.isAtLeast(JAVA_10) && (! Configuration.getInstance().isJava10onMacMessageDisplayed())) {
+                if ((! myConfig.isSafeMode()) && (SystemUtils.isMac() || SystemUtils.isLinux()) && JAVA_VERSION.isAtLeast(JAVA_10) && (! Configuration.getInstance().isJava10onMacMessageDisplayed())) {
                     JOptionPane.showMessageDialog(app, "The visual theme has been locked to Metal\n"
                             + "to work around a bug in a support library on Java 10.\n"
                             + "To re-enable visual themes, downgrade Java to version 8\n"
