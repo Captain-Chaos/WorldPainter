@@ -1,12 +1,10 @@
 -- Version 2.5.1, released ...
 
- * It is now possible to expand the irregular edges of imported worlds into full tiles by using the "Add, Expand or Remove Tiles" screen (Edit menu, puzzle piece icon on toolbar, or Ctrl+T)
  * Autosaves will not be performed while exporting or merging, or while already in a save dialog
  * Having multiple simultaneous instances of WorldPainter running is once again allowed, but for all but the first instance autosave will be disabled! You will be warned of this by a popup at the startup of additional instances
  * Bug fix: fix the behaviour of the "solo" checkboxes which are supposed to show only that layer and hide all others, but which were malfunctioning when the mouse hovered over any of the other "solo" checkboxes
  * Bug fix: the support library which caused problems on Java 10 on Mac OS X and Linux has been fixed, so the workaround which locked the visual theme has been removed
  * Bug fix: fill in the outside edges of an imported map with Minecraft biomes correctly, instead of displaying those missing chunks as Void
- * Bug fix: fix the rendering of the irregular edges of imported worlds, which should display Minecraft biomes wherever chunks are not present (if Minecraft biomes display is available and enabled), but which was displaying Void in those areas
 
 -- Version 2.5.0, released 23-4-2018
 
