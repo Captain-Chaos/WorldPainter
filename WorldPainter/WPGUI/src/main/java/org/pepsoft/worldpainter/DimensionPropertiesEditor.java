@@ -222,6 +222,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         checkBoxCoverSteepTerrain.setEnabled(enabled);
         checkBoxExportAnnotations.setEnabled(enabled);
         checkBoxSnowUnderTrees.setEnabled(enabled);
+        comboBoxSurfaceLayerAnchor.setEnabled(enabled);
         setControlStates();
     }
     
@@ -821,12 +822,16 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         int selectedRow = tableCustomLayers.getSelectedRow();
         buttonCustomLayerUp.setEnabled(enabled && (selectedRow != -1) && (! customLayersTableModel.isHeaderRow(selectedRow)) && (selectedRow > 0) && (! customLayersTableModel.isHeaderRow(selectedRow - 1)));
         buttonCustomLayerDown.setEnabled(enabled && (selectedRow != -1) && (! customLayersTableModel.isHeaderRow(selectedRow)) && (selectedRow < (tableCustomLayers.getRowCount() - 1)) && (! customLayersTableModel.isHeaderRow(selectedRow + 1)));
-        Terrain subsurfaceTerrain = (Terrain) comboBoxSubsurfaceMaterial.getSelectedItem();
-        if ((subsurfaceTerrain != null) && subsurfaceTerrain.isCustom()) {
-            MixedMaterial material = Terrain.getCustomMaterial(subsurfaceTerrain.getCustomTerrainIndex());
-            comboBoxUndergroundLayerAnchor.setEnabled(material.getMode() == MixedMaterial.Mode.LAYERED);
-        } else {
+        if (! enabled) {
             comboBoxUndergroundLayerAnchor.setEnabled(false);
+        } else {
+            Terrain subsurfaceTerrain = (Terrain) comboBoxSubsurfaceMaterial.getSelectedItem();
+            if ((subsurfaceTerrain != null) && subsurfaceTerrain.isCustom()) {
+                MixedMaterial material = Terrain.getCustomMaterial(subsurfaceTerrain.getCustomTerrainIndex());
+                comboBoxUndergroundLayerAnchor.setEnabled(material.getMode() == MixedMaterial.Mode.LAYERED);
+            } else {
+                comboBoxUndergroundLayerAnchor.setEnabled(false);
+            }
         }
     }
 
