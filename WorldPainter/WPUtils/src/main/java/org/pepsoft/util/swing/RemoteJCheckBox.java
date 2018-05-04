@@ -8,7 +8,7 @@ import javax.swing.*;
  *
  * Created by Pepijn Schmitz on 19-01-17.
  */
-public class RemoteJCheckBox extends JCheckBox /*implements ChangeListener, ActionListener*/ {
+public class RemoteJCheckBox extends JCheckBox {
     public RemoteJCheckBox(JCheckBox peer, String text) {
         setModel(peer.getModel());
         setText(text);
