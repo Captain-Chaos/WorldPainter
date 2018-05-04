@@ -7106,13 +7106,10 @@ public final class App extends JFrame implements RadiusControl,
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            System.out.println("Action event for JCheckBox@" + Integer.toHexString(checkBox.hashCode()) + " (selected: " + checkBox.isSelected() + ")");
             if (checkBox.isSelected()) {
-                System.out.println("JCheckBox@" + Integer.toHexString(checkBox.hashCode()) + " selected; deselecting other checkboxes and setting solo layer to " + layer);
                 layerSoloCheckBoxes.values().stream().filter(otherSoloCheckBox -> otherSoloCheckBox != checkBox).forEach(otherSoloCheckBox -> otherSoloCheckBox.setSelected(false));
                 soloLayer = layer;
             } else {
-                System.out.println("JCheckBox@" + Integer.toHexString(checkBox.hashCode()) + " deselected; setting solo layer to null");
                 soloLayer = null;
             }
             updateLayerVisibility();
