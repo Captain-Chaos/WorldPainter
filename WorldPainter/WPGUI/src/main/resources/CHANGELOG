@@ -1,6 +1,12 @@
 -- Version 2.5.1, released ...
 
- * Autosaves will not be performed while exporting or merging, or while already in a save dialog
+ * Layered custom materials can now also be relative to the terrain, when used as a Custom Terrain and when used as the underground material
+   + The setting for this has been added to the Dimension Properties screen (and thus also the Export screen) in the form of the "Layered materials relative to" listboxes at the end of the first two lines on the General tab, which allow you to choose between Bedrock (the default, and old behaviour) and Terrain
+   + There is only one setting for the entire surface; you cannot have some layered Custom Terrains be relative to the terrain and others relative to bedrock. If that's what you need then you can use Custom Ground Cover Layers with a negative thickness for the areas where you need the surface to be layered relative to the terrain (see release 2.5.0)
+   + "Relative to terrain" means that the pattern will be rendered as the topmost part of the terrain, following the shape of the terrain. The topmost layer of the pattern will be the surface block; the next layer one block down, etc.
+   + This does not affect the top layer minimum and maximum depth settings. If the pattern is higher than the top layer thickness then the lower part will not be used; if it is smaller then either the pattern will be repeated (if "repeat" is set) or the lowermost block will be repeated down
+   + For the underground material the meaning is exactly the same. The pattern will be rendered relative to the terrain, but since the underground material does not actually extend all the way up to the terrain, the top part of the pattern will be replaced with the surface terrain type
+ * Autosaves will not be performed while exporting or merging, or while already in a save dialog. In addition, the autosave popup will no longer steal the keyboard focus
  * Having multiple simultaneous instances of WorldPainter running is once again allowed, but for all but the first instance autosave will be disabled! You will be warned of this by a popup at the startup of additional instances
  * Bug fix: fix the behaviour of the "solo" checkboxes which are supposed to show only that layer and hide all others, but which were malfunctioning when the mouse hovered over any of the other "solo" checkboxes
  * Bug fix: the support library which caused problems on Java 10 on Mac OS X and Linux has been fixed, so the workaround which locked the visual theme has been removed
