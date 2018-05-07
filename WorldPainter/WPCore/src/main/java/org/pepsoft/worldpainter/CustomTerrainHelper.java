@@ -18,8 +18,7 @@ public class CustomTerrainHelper {
     }
 
     public Material getMaterial(long seed, int x, int y, float z, int height) {
-        final float dz = z - height;
-        if (dz >= 0.5f) {
+        if ((z - height) >= 0.5f) {
             return AIR;
         } else {
             MixedMaterial material = Terrain.customMaterials[index];
@@ -32,8 +31,7 @@ public class CustomTerrainHelper {
     }
     
     public Material getMaterial(long seed, int x, int y, int z, int height) {
-        final int dz = z - height;
-        if (dz > 0) {
+        if ((z - height) > 0) {
             return AIR;
         } else {
             MixedMaterial material = Terrain.customMaterials[index];
