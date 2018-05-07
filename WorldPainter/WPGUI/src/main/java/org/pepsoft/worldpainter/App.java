@@ -103,6 +103,8 @@ import static java.awt.event.KeyEvent.*;
 import static javax.swing.JOptionPane.*;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.util.GUIUtils.UI_SCALE;
+import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
+import static org.pepsoft.util.swing.ProgressDialog.NO_FOCUS_STEALING;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Platform.Capability.BIOMES;
 import static org.pepsoft.worldpainter.Platform.Capability.SET_SPAWN_POINT;
@@ -946,7 +948,7 @@ public final class App extends JFrame implements RadiusControl,
                     throw new RuntimeException("Invocation target exception while reporting unloadable file " + file, e2);
                 }
             }
-        }, false);
+        }, NOT_CANCELABLE);
         if (newWorld == null) {
             // The file was damaged
             return;
@@ -1039,7 +1041,7 @@ public final class App extends JFrame implements RadiusControl,
                         }
                         return null;
                     }
-                }, false);
+                }, NOT_CANCELABLE);
                 
                 // Log event
                 config.logEvent(new EventVO(EVENT_KEY_ACTION_MIGRATE_ROTATION).addTimestamp());
@@ -1366,6 +1368,9 @@ public final class App extends JFrame implements RadiusControl,
             customMaterialButtons[customMaterialIndex].setIcon(new ImageIcon(material.getIcon(selectedColourScheme)));
             customMaterialButtons[customMaterialIndex].setToolTipText(MessageFormat.format(strings.getString("customMaterial.0.right.click.to.change"), material));
             view.refreshTiles();
+            if (threeDeeFrame != null) {
+                threeDeeFrame.refresh();
+            }
             return true;
         }
         return false;
@@ -1698,7 +1703,7 @@ public final class App extends JFrame implements RadiusControl,
                     }
                     return null;
                 }
-            }, false);
+            }, NOT_CANCELABLE);
         }
     }
     
@@ -2098,7 +2103,7 @@ public final class App extends JFrame implements RadiusControl,
                         throw new RuntimeException("I/O error saving file (message: " + e.getMessage() + ")", e);
                     }
                 }
-            }, false);
+            }, NOT_CANCELABLE);
 
             // Log an event
             Configuration config = Configuration.getInstance();
@@ -2227,7 +2232,7 @@ public final class App extends JFrame implements RadiusControl,
                 }
 
                 @Override
-                public java.lang.Void execute(ProgressReceiver progressReceiver) throws OperationCancelled {
+                public java.lang.Void execute(ProgressReceiver progressReceiver) {
                     try {
                         rotateAutosaveFile();
                         WorldIO worldIO = new WorldIO(world);
@@ -2237,7 +2242,7 @@ public final class App extends JFrame implements RadiusControl,
                     }
                     return null;
                 }
-            }, false);
+            }, NOT_CANCELABLE, NO_FOCUS_STEALING);
 
             lastSaveTimestamp = lastChangeTimestamp = System.currentTimeMillis();
             lastAutosavedState = world.getChangeNo();
@@ -5231,7 +5236,6 @@ public final class App extends JFrame implements RadiusControl,
             setCustomMaterial(customMaterialIndex, customMaterial);
             customMaterialButtons[customMaterialIndex].setIcon(new ImageIcon(customMaterial.getIcon(selectedColourScheme)));
             customMaterialButtons[customMaterialIndex].setToolTipText(MessageFormat.format(strings.getString("customMaterial.0.right.click.to.change"), customMaterial));
-            view.refreshTiles();
             return true;
         } else {
             return false;
@@ -5446,7 +5450,7 @@ public final class App extends JFrame implements RadiusControl,
                                 throw new RuntimeException("I/O error while exporting image", e);
                             }
                         }
-                    }, false)) {
+                    }, NOT_CANCELABLE)) {
                 showMessageDialog(App.this, MessageFormat.format(strings.getString("format.0.not.supported"), type));
             }
         }
@@ -5549,7 +5553,7 @@ public final class App extends JFrame implements RadiusControl,
                                 throw new RuntimeException("I/O error while exporting image", e);
                             }
                         }
-                    }, false)) {
+                    }, NOT_CANCELABLE)) {
                 showMessageDialog(App.this, MessageFormat.format(strings.getString("format.0.not.supported"), type));
             }
         }
@@ -5828,7 +5832,7 @@ public final class App extends JFrame implements RadiusControl,
                         throw new RuntimeException("Invocation target exception while reporting unloadable file " + selectedFile, e2);
                     }
                 }
-            }, false);
+            }, NOT_CANCELABLE);
             if (selectedWorld == null) {
                 // The file was damaged
                 return;
@@ -6150,6 +6154,12 @@ public final class App extends JFrame implements RadiusControl,
                 }
                 ExportWorldDialog dialog = new ExportWorldDialog(App.this, world, autoBiomeScheme, selectedColourScheme, customBiomeManager, hiddenLayers, false, 10, view.getLightOrigin(), view);
                 dialog.setVisible(true);
+                if (! dialog.isCancelled()) {
+                    view.refreshTiles();
+                    if (threeDeeFrame != null) {
+                        threeDeeFrame.refresh();
+                    }
+                }
             } finally {
                 pauseAutosave = false;
             }
@@ -6470,11 +6480,13 @@ public final class App extends JFrame implements RadiusControl,
             int previousCeilingHeight = dimension.getCeilingHeight();
             boolean previousBedrockWall = dimension.isBedrockWall();
             World2.BorderSettings previousBorderSettings = (dimension.getWorld() != null) ? dimension.getWorld().getBorderSettings().clone() : null;
+            Dimension.LayerAnchor previousTopLayerAnchor = dimension.getTopLayerAnchor();
             DimensionPropertiesDialog dialog = new DimensionPropertiesDialog(App.this, dimension, selectedColourScheme);
             dialog.setVisible(true);
             if ((dimension.isCoverSteepTerrain() != previousCoverSteepTerrain)
                     || (dimension.getTopLayerMinDepth() != previousTopLayerMinDepth)
-                    || (dimension.getTopLayerVariation() != previousTopLayerVariation)) {
+                    || (dimension.getTopLayerVariation() != previousTopLayerVariation)
+                    || (dimension.getTopLayerAnchor() != previousTopLayerAnchor)) {
                 if (threeDeeFrame != null) {
                     threeDeeFrame.refresh();
                 }
@@ -6483,7 +6495,8 @@ public final class App extends JFrame implements RadiusControl,
                     || ((dimension.getBorder() != null) && (dimension.getBorderSize() != previousBorderSize))
                     || (dimension.getMinecraftSeed() != previousMinecraftSeed)
                     || (dimension.getCeilingHeight() != previousCeilingHeight)
-                    || (dimension.isBedrockWall() != previousBedrockWall)) {
+                    || (dimension.isBedrockWall() != previousBedrockWall)
+                    || (dimension.getTopLayerAnchor() != previousTopLayerAnchor)) {
                 view.refreshTiles();
             }
             if ((previousBorderSettings != null) && (! previousBorderSettings.equals(dimension.getWorld().getBorderSettings()))) {

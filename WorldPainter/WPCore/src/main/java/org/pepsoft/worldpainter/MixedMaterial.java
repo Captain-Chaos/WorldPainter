@@ -162,7 +162,7 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
             } else {
                 for (int x = 1; x < 16 * UI_SCALE - 1; x++) {
                     for (int y = 1; y < 16 * UI_SCALE - 1; y++) {
-                        icon.setRGB(x, y, colourScheme.getColour(getMaterial(0, x / 2, 0, 15 - y / 2f)));
+                        icon.setRGB(x, y, colourScheme.getColour(getMaterial(0, x * 2, 0, 15 - y * 2f)));
                     }
                 }
             }
@@ -207,9 +207,9 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
                     if (layerYSlope != 0.0) {
                         z += layerYSlope * y;
                     }
-                    return materials[Math.floorMod((int) (z + 0.5f), materials.length)];
+                    return materials[Math.floorMod(Math.round(z), materials.length)];
                 } else {
-                    final int iZ = (int) (z + 0.5f);
+                    final int iZ = Math.round(z);
                     if (iZ < 0) {
                         return materials[0];
                     } else if (iZ >= materials.length) {
@@ -259,9 +259,9 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
                     if (layerYSlope != 0.0) {
                         fZ += layerYSlope * y;
                     }
-                    return materials[Math.floorMod((int) (fZ + 0.5f), materials.length)];
+                    return materials[Math.floorMod(Math.round(fZ), materials.length)];
                 } else {
-                    final int iZ = (int) (fZ + 0.5f);
+                    final int iZ = Math.round(fZ);
                     if (iZ < 0) {
                         return materials[0];
                     } else if (iZ >= materials.length) {
@@ -275,8 +275,29 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
         }
     }
 
+    /**
+     * Get the single material of which this mixed material consists, or
+     * <code>null</code> if it contains more than one material.
+     *
+     * @return The single material of which this mixed material consists, or
+     * <code>null</code> if it contains more than one material.
+     */
+    public Material getSingleMaterial() {
+        return simpleMaterial;
+    }
+
     public Row[] getRows() {
-        return Arrays.copyOf(rows, rows.length);
+        return rows;
+    }
+
+    /**
+     * Get the height of the pattern, or -1 if this does not apply because there
+     * is no pattern.
+     *
+     * @return The height of the pattern, or -1 if this does not apply.
+     */
+    public int getPatternHeight() {
+        return patternHeight;
     }
 
     void edit(final String name, final Row[] rows, final int biome, final Mode mode, final float scale, final Integer colour, final NoiseSettings variation, final double layerXSlope, final double layerYSlope, final boolean repeat) {
@@ -416,6 +437,7 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
                     throw new IllegalArgumentException("Only one row allowed for SIMPLE mode");
                 }
                 simpleMaterial = rows[0].material;
+                patternHeight = -1;
                 break;
             case NOISE:
                 if (rows.length < 2) {
@@ -429,6 +451,7 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
                     }
                 }
                 random = new Random();
+                patternHeight = -1;
                 break;
             case BLOBS:
                 if (rows.length < 2) {
@@ -443,6 +466,7 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
                     cumulativePermillage += sortedRows[i].occurrence * (1000 - cumulativePermillage) / 1000;
                     sortedRows[i].chance = PerlinNoise.getLevelForPromillage(cumulativePermillage);
                 }
+                patternHeight = -1;
                 break;
             case LAYERED:
                 if (rows.length < 2) {
@@ -452,7 +476,9 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
                     throw new IllegalArgumentException("Angle may not be non-zero if repeat is false");
                 }
                 List<Material> tmpMaterials = new ArrayList<>(org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2);
+                patternHeight = 0;
                 for (int i = rows.length - 1; i >= 0; i--) {
+                    patternHeight += rows[i].occurrence;
                     for (int j = 0; j < rows[i].occurrence; j++) {
                         tmpMaterials.add(rows[i].material);
                     }
@@ -481,13 +507,14 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
     private NoiseSettings variation;
     private boolean repeat;
     private double layerXSlope, layerYSlope;
+    private transient List<Row> rowsView;
     private transient Row[] sortedRows;
     private transient PerlinNoise[] noiseGenerators;
     private transient Material[] materials;
     private transient Random random;
     private transient Material simpleMaterial;
     private transient NoiseHeightMap layerNoiseheightMap;
-    private transient int layerNoiseOffset;
+    private transient int layerNoiseOffset, patternHeight;
 
     public static class Row implements Serializable {
         public Row(Material material, int occurrence, float scale) {

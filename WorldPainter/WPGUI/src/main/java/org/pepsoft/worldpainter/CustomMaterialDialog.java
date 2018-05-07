@@ -241,9 +241,9 @@ public class CustomMaterialDialog extends WorldPainterDialog {
             switch (mixedMaterial.getMode()) {
             case SIMPLE:
                 jTabbedPane1.setSelectedIndex(0);
-                Material simpleMaterial = mixedMaterial.getRows()[0].material;
-                comboBoxSimpleBlockID.setSelectedIndex(simpleMaterial.blockType);
-                spinnerSimpleDataValue.setValue(simpleMaterial.data);
+                Material singleMaterial = mixedMaterial.getSingleMaterial();
+                comboBoxSimpleBlockID.setSelectedIndex(singleMaterial.blockType);
+                spinnerSimpleDataValue.setValue(singleMaterial.data);
                 break;
             case NOISE:
                 jTabbedPane1.setSelectedIndex(1);

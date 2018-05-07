@@ -41,8 +41,7 @@ public class DimensionRenderer {
     public void renderTile(Image image, int x, int y) {
         Tile tile = dimension.getTile(x, y);
         if (tile != null) {
-            tileRenderer.setTile(tile);
-            tileRenderer.renderTile(image, (x - dimension.getLowestX()) * TILE_SIZE, (y - dimension.getLowestY()) * TILE_SIZE);
+            tileRenderer.renderTile(tile, image, (x - dimension.getLowestX()) * TILE_SIZE, (y - dimension.getLowestY()) * TILE_SIZE);
         }
     }
 

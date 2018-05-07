@@ -21,7 +21,7 @@ import org.pepsoft.worldpainter.MixedMaterial.Row;
  */
 public final class MixedMaterialTableModel implements TableModel, Cloneable {
     public MixedMaterialTableModel(MixedMaterial material) {
-        rows = Arrays.copyOf(material.getRows(), material.getRows().length);
+        rows = material.getRows().clone();
         mode = material.getMode();
         if (mode == Mode.LAYERED) {
             COLUMN_NAMES[COLUMN_OCCURRENCE] = "Thickness";

@@ -39,11 +39,10 @@ public class Tile3DRenderer {
     
     public BufferedImage render(Tile tile) {
 //        System.out.println("Rendering tile " + tile);
-        tileRenderer.setTile(tile);
-        tileRenderer.renderTile(tileImgBuffer, 0, 0);
+        tileRenderer.renderTile(tile, tileImgBuffer, 0, 0);
 //        Terrain subSurfaceMaterial = dimension.getSubsurfaceMaterial();
         final long seed = dimension.getSeed();
-        final boolean coverSteepTerrain = dimension.isCoverSteepTerrain();
+        final boolean coverSteepTerrain = dimension.isCoverSteepTerrain(), topLayersRelativeToTerrain = dimension.getTopLayerAnchor() == Dimension.LayerAnchor.TERRAIN;
         final int tileOffsetX = tile.getX() * TILE_SIZE, tileOffsetY = tile.getY() * TILE_SIZE;
         int currentColour = -1;
         final int imgWidth = TILE_SIZE * 2;
@@ -93,7 +92,7 @@ public class Tile3DRenderer {
                     }
                     // Image coordinates
                     final float imgX = TILE_SIZE + x - y - 0.5f, imgY = (x + y) / 2f + maxHeight - 0.5f;
-    //                                System.out.println(blockX + ", " + blockY + " -> " + blockXTranslated + ", " + blockYTranslated + " -> " + imgX + ", " + imgY);
+//                    System.out.println(blockX + ", " + blockY + " -> " + blockXTranslated + ", " + blockYTranslated + " -> " + imgX + ", " + imgY);
                     int subsurfaceHeight = Math.max(terrainHeight - dimension.getTopLayerDepth(blockX, blockY, terrainHeight), 0);
                     if (coverSteepTerrain) {
                         subsurfaceHeight = Math.min(subsurfaceHeight,
@@ -122,25 +121,55 @@ public class Tile3DRenderer {
                     // Do this per block because they might have different
                     // colours
                     final Terrain terrain = tile.getTerrain(xInTile, yInTile);
-                    Material nextMaterial = terrain.getMaterial(seed, blockX, blockY, subsurfaceHeight + 1, terrainHeight);
-                    for (int z = subsurfaceHeight + 1; z <= terrainHeight - 1; z++) {
-                        Material material = nextMaterial;
-                        if (z < maxZ) {
-                            nextMaterial = terrain.getMaterial(seed, blockX, blockY, z + 1, terrainHeight);
-                            if (! nextMaterial.block.veryInsubstantial) {
-                                // Block above is solid
-                                if ((material == Material.GRASS) || (material == Material.MYCELIUM) || (material == Material.TILLED_DIRT)) {
-                                    material = Material.DIRT;
-                                }
-                            }
+                    final MixedMaterial mixedMaterial;
+                    final int topLayerOffset;
+                    if (terrain.isCustom()) {
+                        mixedMaterial = Terrain.getCustomMaterial(terrain.getCustomTerrainIndex());
+                        if (topLayersRelativeToTerrain && (mixedMaterial.getMode() == MixedMaterial.Mode.LAYERED)) {
+                            topLayerOffset = -(terrainHeight - mixedMaterial.getPatternHeight() + 1);
+                        } else {
+                            topLayerOffset = 0;
                         }
-                        colour = colourScheme.getColour(material);
+                    } else {
+                        mixedMaterial = null;
+                        topLayerOffset = 0;
+                    }
+                    if ((mixedMaterial != null) && (mixedMaterial.getColour() != null)) {
+                        // A custom terrain with a configured colour; use that
+                        // colour throughout
+                        colour = mixedMaterial.getColour();
                         if (colour != currentColour) {
-    //                                        g2.setColor(new Color(ColourUtils.multiply(colour, brightenAmount)));
                             g2.setColor(new Color(colour));
                             currentColour = colour;
                         }
-                        g2.draw(new Line2D.Float(imgX, imgY - z, imgX + 1, imgY - z));
+                        g2.fill(new Rectangle2D.Float(imgX, imgY - terrainHeight + 1, 2, terrainHeight - subsurfaceHeight - 1));
+                    } else {
+                        Material nextMaterial = terrain.getMaterial(seed, blockX, blockY, subsurfaceHeight + 1, terrainHeight);
+                        for (int z = subsurfaceHeight + 1; z <= terrainHeight - 1; z++) {
+                            Material material = nextMaterial;
+                            if (z < maxZ) {
+                                nextMaterial = terrain.getMaterial(seed, blockX, blockY, z + 1, terrainHeight);
+                                if (!nextMaterial.block.veryInsubstantial) {
+                                    // Block above is solid
+                                    if ((material == Material.GRASS) || (material == Material.MYCELIUM) || (material == Material.TILLED_DIRT)) {
+                                        material = Material.DIRT;
+                                    }
+                                }
+                            }
+                            if (topLayerOffset != 0) {
+                                // This means the terrain is a custom terrain with a
+                                // layered material
+                                colour = colourScheme.getColour(mixedMaterial.getMaterial(seed, blockX, blockY, z + topLayerOffset));
+                            } else {
+                                colour = colourScheme.getColour(material);
+                            }
+                            if (colour != currentColour) {
+//                                g2.setColor(new Color(ColourUtils.multiply(colour, brightenAmount)));
+                                g2.setColor(new Color(colour));
+                                currentColour = colour;
+                            }
+                            g2.draw(new Line2D.Float(imgX, imgY - z, imgX + 1, imgY - z));
+                        }
                     }
                     colour = tileImgBuffer.getRGB(xInTile, yInTile);
                     if (colour != currentColour) {

@@ -136,8 +136,7 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
                                 case WORLD:
                                     Tile tile = tileProvider.getTile(x * scale + dx, y * scale + dy);
                                     TileRenderer tileRenderer = tileRendererRef.get();
-                                    tileRenderer.setTile(tile);
-                                    tileRenderer.renderTile(tileImage, dx * subSize, dy * subSize);
+                                    tileRenderer.renderTile(tile, tileImage, dx * subSize, dy * subSize);
 
                                     // If the tile has chunks that are marked "not present" and
                                     // there is a surrounding tile provider, copy those chunks from
@@ -426,8 +425,7 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
             case WORLD:
                 Tile tile = tileProvider.getTile(x, y);
                 TileRenderer tileRenderer = tileRendererRef.get();
-                tileRenderer.setTile(tile);
-                tileRenderer.renderTile(tileImage, dx, dy);
+                tileRenderer.renderTile(tile, tileImage, dx, dy);
 
                 // If the tile has chunks that are marked "not present" and
                 // there is a surrounding tile provider, copy those chunks from

@@ -67,17 +67,6 @@ public final class TileRenderer {
 
     public final void setTileProvider(TileProvider tileProvider) {
         this.tileProvider = tileProvider;
-        if (tileProvider instanceof Dimension) {
-            seed = ((Dimension) tileProvider).getSeed();
-            bottomless = ((Dimension) tileProvider).isBottomless();
-            if (oppositeTileProvider instanceof Dimension) {
-                oppositesDelta = Math.abs(((Dimension) tileProvider).getCeilingHeight() - ((Dimension) oppositeTileProvider).getCeilingHeight());
-            } else {
-                noOpposites = true;
-            }
-        } else {
-            noOpposites = true;
-        }
     }
 
     public TileProvider getOppositeTileProvider() {
@@ -86,11 +75,6 @@ public final class TileRenderer {
 
     public void setOppositeTileProvider(TileProvider oppositeTileProvider) {
         this.oppositeTileProvider = oppositeTileProvider;
-        if ((oppositeTileProvider instanceof Dimension) && (tileProvider instanceof Dimension)) {
-            oppositesDelta = Math.abs(((Dimension) tileProvider).getCeilingHeight() - ((Dimension) oppositeTileProvider).getCeilingHeight());
-        } else {
-            noOpposites = true;
-        }
     }
 
     public final ColourScheme getColourScheme() {
@@ -132,43 +116,6 @@ public final class TileRenderer {
         return Collections.unmodifiableSet(hiddenLayers);
     }
 
-    public Tile getTile() {
-        return tile;
-    }
-
-    public void setTile(Tile tile) {
-        this.tile = tile;
-        for (int x = 0; x < TILE_SIZE; x++) {
-            for (int y = 0; y < TILE_SIZE; y++) {
-                final float height = tile.getHeight(x, y);
-                floatHeightCache[x | (y << TILE_SIZE_BITS)] = height;
-                intHeightCache[x | (y << TILE_SIZE_BITS)] = (int) (height + 0.5f);
-                intFluidHeightCache[x | (y << TILE_SIZE_BITS)] = tile.getWaterLevel(x, y);
-            }
-        }
-
-        // Determine which coordinates, if any, have heights which would
-        // intersect with the opposite tile, if any
-        if (oppositeTileProvider != null) {
-            if (! noOpposites) {
-                Arrays.fill(oppositesOverlap, false);
-            }
-            noOpposites = true;
-            final int maxHeight = tile.getMaxHeight();
-            Tile oppositeTile = oppositeTileProvider.getTile(tile.getX(), tile.getY());
-            if (oppositeTile != null) {
-                for (int x = 0; x < TILE_SIZE; x++) {
-                    for (int y = 0; y < TILE_SIZE; y++) {
-                        if ((oppositeTile.getIntHeight(x, y) + intHeightCache[x | (y << TILE_SIZE_BITS)] + oppositesDelta) >= maxHeight) {
-                            oppositesOverlap[x | (y << TILE_SIZE_BITS)] = true;
-                            noOpposites = false;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     public int getZoom() {
         return zoom;
     }
@@ -194,13 +141,56 @@ public final class TileRenderer {
      * completely paint the square covered by the tile, replacing any existing
      * contents.
      *
+     * @param tile The tile to render.
      * @param image The image to which to render the tile.
      * @param dx The horizontal offset at which to render the tile.
      * @param dy The vertical offset at which to render the tile.
      */
-    public void renderTile(Image image, int dx, int dy) {
+    public void renderTile(Tile tile, Image image, int dx, int dy) {
         // TODO this deadlocks background painting. Find out why:
 //        synchronized (tile) {
+
+        for (int x = 0; x < TILE_SIZE; x++) {
+            for (int y = 0; y < TILE_SIZE; y++) {
+                final float height = tile.getHeight(x, y);
+                floatHeightCache[x | (y << TILE_SIZE_BITS)] = height;
+                intHeightCache[x | (y << TILE_SIZE_BITS)] = (int) (height + 0.5f);
+                intFluidHeightCache[x | (y << TILE_SIZE_BITS)] = tile.getWaterLevel(x, y);
+            }
+        }
+
+        // Determine which coordinates, if any, have heights which would
+        // intersect with the opposite tile, if any
+        final boolean bottomless, topLayersRelativeToTerrain;
+        final long seed;
+        boolean noOpposites = true;
+        if (tileProvider instanceof Dimension) {
+            final Dimension dim = (Dimension) tileProvider;
+            bottomless = dim.isBottomless();
+            topLayersRelativeToTerrain = dim.getTopLayerAnchor() == Dimension.LayerAnchor.TERRAIN;
+            seed = dim.getSeed();
+            if (oppositeTileProvider instanceof Dimension) {
+                final int maxHeight = tile.getMaxHeight();
+                final Tile oppositeTile = oppositeTileProvider.getTile(tile.getX(), tile.getY());
+                if (oppositeTile != null) {
+                    Arrays.fill(oppositesOverlap, false);
+                    final int oppositesDelta = Math.abs(dim.getCeilingHeight() - ((Dimension) oppositeTileProvider).getCeilingHeight());
+                    for (int x = 0; x < TILE_SIZE; x++) {
+                        for (int y = 0; y < TILE_SIZE; y++) {
+                            if ((oppositeTile.getIntHeight(x, y) + intHeightCache[x | (y << TILE_SIZE_BITS)] + oppositesDelta) >= maxHeight) {
+                                oppositesOverlap[x | (y << TILE_SIZE_BITS)] = true;
+                                noOpposites = false;
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            bottomless = false;
+            topLayersRelativeToTerrain = false;
+            seed = 0L;
+        }
+
         final List<Layer> layerList = new ArrayList<>(tile.getLayers());
         if (! layerList.contains(Biome.INSTANCE)) {
             layerList.add(Biome.INSTANCE);
@@ -225,7 +215,6 @@ public final class TileRenderer {
             }
         }
 
-        final int tileX = tile.getX() * TILE_SIZE, tileY = tile.getY() * TILE_SIZE;
         final int scale = 1 << -zoom;
         final Graphics2D g2 = (Graphics2D) image.getGraphics();
         try {
@@ -235,12 +224,12 @@ public final class TileRenderer {
                     for (int y = 0; y < TILE_SIZE; y++) {
                         if (notAllChunksPresent && (tile.getBitLayerValue(NotPresent.INSTANCE, x, y))) {
                             renderBuffer[x | (y << TILE_SIZE_BITS)] = 0x00000000;
-                        } else if ((! noOpposites) && oppositesOverlap[x | (y << TILE_SIZE_BITS)] && CEILING_PATTERN[x & 0x7][y & 0x7]) {
+                        } else if ((!noOpposites) && oppositesOverlap[x | (y << TILE_SIZE_BITS)] && CEILING_PATTERN[x & 0x7][y & 0x7]) {
                             renderBuffer[x | (y << TILE_SIZE_BITS)] = 0xff000000;
                         } else if (_void && tile.getBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, x, y)) {
                             renderBuffer[x | (y << TILE_SIZE_BITS)] = 0x00000000;
                         } else {
-                            int colour = getPixelColour(tileX, tileY, x, y, layers, renderers, contourLines, hideTerrain, hideFluids);
+                            int colour = getPixelColour(tile, x, y, layers, renderers, contourLines, hideTerrain, hideFluids, bottomless, topLayersRelativeToTerrain, seed);
                             colour = ColourUtils.multiply(colour, getTerrainBrightenAmount());
                             final int offset = x + y * TILE_SIZE;
                             if (intFluidHeightCache[offset] > intHeightCache[offset]) {
@@ -258,12 +247,12 @@ public final class TileRenderer {
                     for (int y = 0; y < TILE_SIZE; y += scale) {
                         if (notAllChunksPresent && (tile.getBitLayerValue(NotPresent.INSTANCE, x, y))) {
                             renderBuffer[x / scale + y * tileSize] = 0x00000000;
-                        } else if ((! noOpposites) && oppositesOverlap[x | (y << TILE_SIZE_BITS)]) {
+                        } else if ((!noOpposites) && oppositesOverlap[x | (y << TILE_SIZE_BITS)]) {
                             renderBuffer[x / scale + y * tileSize] = 0xff000000;
                         } else if (_void && tile.getBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, x, y)) {
                             renderBuffer[x / scale + y * tileSize] = 0x00000000;
                         } else {
-                            int colour = getPixelColour(tileX, tileY, x, y, layers, renderers, contourLines, hideTerrain, hideFluids);
+                            int colour = getPixelColour(tile, x, y, layers, renderers, contourLines, hideTerrain, hideFluids, bottomless, topLayersRelativeToTerrain, seed);
                             colour = ColourUtils.multiply(colour, getTerrainBrightenAmount());
                             final int offset = x + y * TILE_SIZE;
                             if (intFluidHeightCache[offset] > intHeightCache[offset]) {
@@ -290,7 +279,7 @@ public final class TileRenderer {
     /**
      * Determine the brighten amount. This method assumes that the
      * {@link #deltas} array has been filled by a previous call to
-     * {@link #getPixelColour(int, int, int, int, Layer[], LayerRenderer[], boolean, boolean, boolean)}.
+     * {@link #getPixelColour(Tile, int, int, Layer[], LayerRenderer[], boolean, boolean, boolean, boolean, boolean, long)}.
      * 
      * @return The amount by which to brighten the pixel for the specified
      * block, out of 256; values below 256 darkening the pixel; values above
@@ -303,7 +292,7 @@ public final class TileRenderer {
     /**
      * Determine the brighten amount for fluid. This method assumes that the
      * {@link #deltas} array has been filled by a previous call to
-     * {@link #getPixelColour(int, int, int, int, Layer[], LayerRenderer[], boolean, boolean, boolean)}.
+     * {@link #getPixelColour(Tile, int, int, Layer[], LayerRenderer[], boolean, boolean, boolean, boolean, boolean, long)}.
      *
      * @return The amount by which to brighten the pixel for the specified
      * block, out of 256; values below 256 darkening the pixel; values above
@@ -341,16 +330,16 @@ public final class TileRenderer {
         this.lightOrigin = lightOrigin;
     }
 
-    private int getPixelColour(int tileX, int tileY, int x, int y, Layer[] layers, LayerRenderer[] renderers, boolean contourLines, boolean hideTerrain, boolean hideFluids) {
+    private int getPixelColour(Tile tile, int x, int y, Layer[] layers, LayerRenderer[] renderers, boolean contourLines, boolean hideTerrain, boolean hideFluids, boolean bottomless, boolean topLayersRelativeToTerrain, long seed) {
         final int offset = x + y * TILE_SIZE;
         final int intHeight = intHeightCache[offset];
-        heights[1][0] = getNeighbourHeight(x, y,  0, -1);
+        heights[1][0] = getNeighbourHeight(tile, x, y,  0, -1);
         deltas [1][0] = heights[1][0] - intHeight;
-        heights[0][1] = getNeighbourHeight(x, y, -1,  0);
+        heights[0][1] = getNeighbourHeight(tile, x, y, -1,  0);
         deltas [0][1] = heights[0][1] - intHeight;
-        heights[2][1] = getNeighbourHeight(x, y,  1,  0);
+        heights[2][1] = getNeighbourHeight(tile, x, y,  1,  0);
         deltas [2][1] = heights[2][1] - intHeight;
-        heights[1][2] = getNeighbourHeight(x, y,  0,  1);
+        heights[1][2] = getNeighbourHeight(tile, x, y,  0,  1);
         deltas [1][2] = heights[1][2] - intHeight;
         if (contourLines && ((intHeight % contourSeparation) == 0)
                 && ((deltas[0][1] < 0)
@@ -360,16 +349,16 @@ public final class TileRenderer {
             return BLACK;
         }
         final int waterLevel = tile.getWaterLevel(x, y);
-        fluidHeights[1][0] = getNeighbourFluidHeight(x, y, 0, -1, waterLevel);
+        fluidHeights[1][0] = getNeighbourFluidHeight(tile, x, y, 0, -1, waterLevel);
         fluidDeltas [1][0] = fluidHeights[1][0] - waterLevel;
-        fluidHeights[0][1] = getNeighbourFluidHeight(x, y, -1, 0, waterLevel);
+        fluidHeights[0][1] = getNeighbourFluidHeight(tile, x, y, -1, 0, waterLevel);
         fluidDeltas [0][1] = fluidHeights[0][1] - waterLevel;
-        fluidHeights[2][1] = getNeighbourFluidHeight(x, y, 1, 0, waterLevel);
+        fluidHeights[2][1] = getNeighbourFluidHeight(tile, x, y, 1, 0, waterLevel);
         fluidDeltas [2][1] = fluidHeights[2][1] - waterLevel;
-        fluidHeights[1][2] = getNeighbourFluidHeight(x, y, 0, 1, waterLevel);
+        fluidHeights[1][2] = getNeighbourFluidHeight(tile, x, y, 0, 1, waterLevel);
         fluidDeltas [1][2] = fluidHeights[1][2] - waterLevel;
+        final int worldX = (tile.getX() << TILE_SIZE_BITS) | x, worldY = (tile.getY() << TILE_SIZE_BITS) | y;
         int colour;
-        final int worldX = tileX | x, worldY = tileY | y;
         if ((! hideFluids) && (waterLevel > intHeight)) {
             if (tile.getBitLayerValue(FloodWithLava.INSTANCE, x, y)) {
                 colour = lavaColour;
@@ -378,7 +367,22 @@ public final class TileRenderer {
             }
         } else if (! hideTerrain) {
             final float height = floatHeightCache[offset];
-            colour = ((! bottomless) && (intHeight == 0)) ? bedrockColour : tile.getTerrain(x, y).getColour(seed, worldX, worldY, height, intHeight, colourScheme);
+            if ((! bottomless) && (intHeight == 0)) {
+                colour = bedrockColour;
+            } else {
+                Terrain terrain = tile.getTerrain(x, y);
+                if (topLayersRelativeToTerrain
+                        && terrain.isCustom()) {
+                    MixedMaterial mixedMaterial = Terrain.getCustomMaterial(terrain.getCustomTerrainIndex());
+                    if (mixedMaterial.getMode() == MixedMaterial.Mode.LAYERED){
+                        colour = terrain.getColour(seed, worldX, worldY, mixedMaterial.getPatternHeight() - 1, intHeight, colourScheme);
+                    } else {
+                        colour = terrain.getColour(seed, worldX, worldY, height, intHeight, colourScheme);
+                    }
+                } else {
+                    colour = terrain.getColour(seed, worldX, worldY, height, intHeight, colourScheme);
+                }
+            }
         } else {
             colour = LIGHT_GREY;
         }
@@ -441,7 +445,7 @@ public final class TileRenderer {
         return colour;
     }
 
-    private int getNeighbourHeight(int x, int y, int dx, int dy) {
+    private int getNeighbourHeight(Tile tile, int x, int y, int dx, int dy) {
         x = x + dx;
         y = y + dy;
         if ((x >= 0) && (x < TILE_SIZE) && (y >= 0) && (y < TILE_SIZE)) {
@@ -467,7 +471,7 @@ public final class TileRenderer {
         }
     }
 
-    private int getNeighbourFluidHeight(int x, int y, int dx, int dy, int defaultHeight) {
+    private int getNeighbourFluidHeight(Tile tile, int x, int y, int dx, int dy, int defaultHeight) {
         x = x + dx;
         y = y + dy;
         if ((x >= 0) && (x < TILE_SIZE) && (y >= 0) && (y < TILE_SIZE)) {
@@ -500,7 +504,7 @@ public final class TileRenderer {
     }
 
     private final BiomeRenderer biomeRenderer;
-    private final Set<Layer> hiddenLayers = new HashSet<>(Arrays.asList(FloodWithLava.INSTANCE));
+    private final Set<Layer> hiddenLayers = new HashSet<>(Collections.singletonList(FloodWithLava.INSTANCE));
     private final int[] intHeightCache = new int[TILE_SIZE * TILE_SIZE], intFluidHeightCache = new int[TILE_SIZE * TILE_SIZE];
     private final float[] floatHeightCache = new float[TILE_SIZE * TILE_SIZE];
     private final BufferedImage bufferedImage;
@@ -510,11 +514,9 @@ public final class TileRenderer {
     private final boolean[] oppositesOverlap = new boolean[TILE_SIZE * TILE_SIZE];
     private final int zoom;
     private TileProvider tileProvider, oppositeTileProvider;
-    private long seed;
-    private Tile tile;
     private ColourScheme colourScheme;
-    private boolean contourLines = true, bottomless, noOpposites;
-    private int contourSeparation = 10, waterColour, lavaColour, bedrockColour, oppositesDelta;
+    private boolean contourLines = true;
+    private int contourSeparation = 10, waterColour, lavaColour, bedrockColour;
     private LightOrigin lightOrigin = LightOrigin.NORTHWEST;
 
     public static final Layer TERRAIN_AS_LAYER = new Layer("org.pepsoft.synthetic.Terrain", "Terrain", "The terrain type of the surface", Layer.DataSize.NONE, 0) {
@@ -534,7 +536,7 @@ public final class TileRenderer {
         private final BufferedImage ICON = IconUtils.loadScaledImage("org/pepsoft/worldpainter/resources/fluids.png");
     };
 
-    private static final int BLACK = 0x000000, RED = 0xFF0000, LIGHT_GREY = 0xD0D0D0;
+    private static final int BLACK = 0x000000, LIGHT_GREY = 0xD0D0D0;
     private static final boolean[][] CEILING_PATTERN = {
             { true,  true, false, false,  true,  true, false, false},
             {false,  true,  true,  true,  true, false, false, false},

@@ -23,6 +23,7 @@ import javax.swing.*;
 import java.awt.*;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
+import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
 
 /**
  *
@@ -150,7 +151,7 @@ public class ChangeHeightDialog extends WorldPainterDialog {
                     world.setMaxHeight(newMaxHeight);
                     return world;
                 }
-            }, false);
+            }, NOT_CANCELABLE);
         } finally {
             for (Dimension dim: world.getDimensions()) {
                 dim.setEventsInhibited(false);

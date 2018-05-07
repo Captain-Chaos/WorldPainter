@@ -10,7 +10,7 @@
  */
 package org.pepsoft.util.swing;
 
-import java.awt.Window;
+import java.awt.*;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 
@@ -18,16 +18,25 @@ import java.awt.event.ComponentListener;
  *
  * @author pepijn
  */
-public class ProgressDialog<T> extends javax.swing.JDialog implements ComponentListener, ProgressComponent.Listener {
-    /** Creates new form ProgressDialog */
-    public ProgressDialog(Window parent, ProgressTask<T> task, boolean cancelable) {
+public class ProgressDialog<T> extends javax.swing.JDialog implements ComponentListener, ProgressComponent.Listener<T> {
+    /**
+     * Creates new form ProgressDialog.
+     *
+     * @param parent The parent window for the modal dialog.
+     * @param task The task to execute.
+     * @param options Optional modifiers to change the behaviour. See
+     * {@link #NOT_CANCELABLE} and {@link #NO_FOCUS_STEALING}.
+     */
+    public ProgressDialog(Window parent, ProgressTask<T> task, Option... options) {
         super(parent, ModalityType.APPLICATION_MODAL);
         initComponents();
         setTitle(task.getName());
         progressComponent1.setListener(this);
         progressComponent1.setTask(task);
-        if (! cancelable) {
-            progressComponent1.setCancelable(false);
+        if (options != null) {
+            for (Option option: options) {
+                option.apply(this);
+            }
         }
         setLocationRelativeTo(parent);
         addComponentListener(this);
@@ -49,38 +58,28 @@ public class ProgressDialog<T> extends javax.swing.JDialog implements ComponentL
 
     /**
      * Execute a task in the background with progress reporting via a modal
-     * dialog with a progress bar. The Cancel button is enabled.
-     *
-     * @param parent The parent window for the modal dialog.
-     * @param task The task to execute.
-     * @param <T> The return type of the task. Use {@link Void} for tasks which
-     *     don't return a value.
-     * @return The result of the task, or <code>null</code> if the task does not
-     *     return a result.
-     */
-    public static <T> T executeTask(Window parent, ProgressTask<T> task) {
-        return executeTask(parent, task, true);
-    }
-    
-    /**
-     * Execute a task in the background with progress reporting via a modal
      * dialog with a progress bar. The task is executed on a separate thread.
      * This method blocks until the task has completed, but events are
      * dispatched while the method is blocked. If the task throws an exception,
      * that exception will be rethrown by this method.
      *
+     * <p>By default the Cancel button is enabled and the popup will steal the
+     * keyboard focus. Use one or more of the {@link #NOT_CANCELABLE} and
+     * {@link #NO_FOCUS_STEALING} options to modify this.
+     *
      * @param parent The parent window for the modal dialog.
      * @param task The task to execute.
-     * @param cancelable Whether the Cancel button should be enabled.
      * @param <T> The return type of the task. Use {@link Void} for tasks which
      *     don't return a value.
+     * @param options Optional modifiers to change the behaviour. See
+     * {@link #NOT_CANCELABLE} and {@link #NO_FOCUS_STEALING}.
      * @return The result of the task, or <code>null</code> if the task does not
      *     return a result or if it was cancelled.
      * @throws Error If the task threw an {@link Error}.
      * @throws RuntimeException If the task threw a {@link RuntimeException}.
      */
-    public static <T> T executeTask(Window parent, ProgressTask<T> task, boolean cancelable) {
-        ProgressDialog<T> dialog = new ProgressDialog<>(parent, task, cancelable);
+    public static <T> T executeTask(Window parent, ProgressTask<T> task, Option... options) {
+        ProgressDialog<T> dialog = new ProgressDialog<>(parent, task, options);
         dialog.setVisible(true);
         if (dialog.cancelled) {
             return null;
@@ -117,8 +116,8 @@ public class ProgressDialog<T> extends javax.swing.JDialog implements ComponentL
     }
 
     @Override @SuppressWarnings("unchecked")
-    public void done(Object result) {
-        this.result = (T) result;
+    public void done(T result) {
+        this.result = result;
         dispose();
     }
 
@@ -137,7 +136,7 @@ public class ProgressDialog<T> extends javax.swing.JDialog implements ComponentL
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        progressComponent1 = new org.pepsoft.util.swing.ProgressComponent();
+        progressComponent1 = new org.pepsoft.util.swing.ProgressComponent<>();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
 
@@ -162,7 +161,7 @@ public class ProgressDialog<T> extends javax.swing.JDialog implements ComponentL
     }// </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private org.pepsoft.util.swing.ProgressComponent progressComponent1;
+    private org.pepsoft.util.swing.ProgressComponent<T> progressComponent1;
     // End of variables declaration//GEN-END:variables
 
     private boolean cancelled;
@@ -170,4 +169,30 @@ public class ProgressDialog<T> extends javax.swing.JDialog implements ComponentL
     private T result;
     
     private static final long serialVersionUID = 2011101701L;
+
+    public static abstract class Option {
+        abstract void apply(ProgressDialog<?> dialog);
+    }
+
+    /**
+     * Option to pass to make the Cancel button inactive, forcing the user to
+     * wait until the task is completed.
+     */
+    public static final Option NOT_CANCELABLE = new Option() {
+        @Override
+        void apply(ProgressDialog<?> dialog) {
+            dialog.progressComponent1.setCancelable(false);
+        }
+    };
+
+    /**
+     * Option to pass to prevent the popup that opens while the task is running
+     * to display its progress, from stealing the keyboard focus.
+     */
+    public static final Option NO_FOCUS_STEALING = new Option() {
+        @Override
+        void apply(ProgressDialog<?> dialog) {
+            dialog.setAutoRequestFocus(false);
+        }
+    };
 }

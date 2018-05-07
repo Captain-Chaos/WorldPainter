@@ -273,7 +273,7 @@ public class MapImportDialog extends WorldPainterDialog {
                 progressReceiver.setProgress(1.0f);
                 return stats;
             }
-        }, true);
+        });
         if ((mapStatistics != null) && (mapStatistics.chunkCount > 0)) {
             int width = mapStatistics.highestChunkXNoOutliers - mapStatistics.lowestChunkXNoOutliers + 1;
             int length = mapStatistics.highestChunkZNoOutliers - mapStatistics.lowestChunkZNoOutliers + 1;
@@ -415,7 +415,7 @@ public class MapImportDialog extends WorldPainterDialog {
                 }
             }
 
-        }, true);
+        });
         if (importedWorld == null) {
             // The import was cancelled
             cancel();

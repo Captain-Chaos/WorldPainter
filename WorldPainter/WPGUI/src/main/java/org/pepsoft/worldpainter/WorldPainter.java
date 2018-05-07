@@ -437,8 +437,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         int xOffset = dimension.getLowestX(), yOffset = dimension.getLowestY();
         BufferedImage image = new BufferedImage(dimension.getWidth() << TILE_SIZE_BITS, dimension.getHeight() << TILE_SIZE_BITS, BufferedImage.TYPE_INT_ARGB);
         for (Tile tile: dimension.getTiles()) {
-            tileRenderer.setTile(tile);
-            tileRenderer.renderTile(image, (tile.getX() - xOffset) << TILE_SIZE_BITS, (tile.getY() - yOffset) << TILE_SIZE_BITS);
+            tileRenderer.renderTile(tile, image, (tile.getX() - xOffset) << TILE_SIZE_BITS, (tile.getY() - yOffset) << TILE_SIZE_BITS);
         }
         return image;
     }

@@ -40,6 +40,7 @@ import java.util.Set;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_1;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
+import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
 
 /**
  *
@@ -139,7 +140,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             public World2 execute(ProgressReceiver progressReceiver) throws OperationCancelled {
                 return importer.importToNewWorld(progressReceiver);
             }
-        }, false);
+        }, NOT_CANCELABLE);
         Configuration.getInstance().setHeightMapsDirectory(selectedFile.getParentFile());
         return world;
     }
@@ -391,7 +392,7 @@ outer:          for (int x = 0; x < width; x++) {
                 importer.importToDimension(currentDimension, checkBoxCreateTiles.isSelected(), progressReceiver);
                 return null;
             }
-        }, false);
+        }, NOT_CANCELABLE);
         Configuration.getInstance().setHeightMapsDirectory(selectedFile.getParentFile());
         currentDimension.clearUndo();
         currentDimension.armSavePoint();

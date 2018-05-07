@@ -67,17 +67,11 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
         final long seed = dimension.getSeed();
         final boolean smooth = layer.isSmooth();
         final GroundCoverLayer.LayerAnchor layeredMaterialAnchor;
-        final int layeredMaterialHeight;
+        final int patternHeight = mixedMaterial.getPatternHeight();
         if (mixedMaterial.getMode() == MixedMaterial.Mode.LAYERED) {
             layeredMaterialAnchor = layer.getLayerAnchor();
-            int total = 0;
-            for (MixedMaterial.Row row: mixedMaterial.getRows()) {
-                total += row.occurrence;
-            }
-            layeredMaterialHeight = total;
         } else {
             layeredMaterialAnchor = GroundCoverLayer.LayerAnchor.BEDROCK;
-            layeredMaterialHeight = -1;
         }
         for (int x = 0; x < 16; x++) {
             final int localX = xOffset + x;
@@ -122,7 +116,7 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                                     yOffset = -(terrainheight + 1);
                                     break;
                                 case TOP_OF_LAYER:
-                                    yOffset = -(terrainheight + effectiveThickness - layeredMaterialHeight + 1);
+                                    yOffset = -(terrainheight + effectiveThickness - patternHeight + 1);
                                     break;
                                 default:
                                     throw new InternalError();
@@ -161,7 +155,7 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                                     yOffset = -(terrainheight - effectiveThickness + 1);
                                     break;
                                 case TOP_OF_LAYER:
-                                    yOffset = -(terrainheight - layeredMaterialHeight + 1);
+                                    yOffset = -(terrainheight - patternHeight + 1);
                                     break;
                                 default:
                                     throw new InternalError();
