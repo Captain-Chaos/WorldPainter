@@ -1,6 +1,6 @@
--- Version 2.5.1, released ...
+-- Version 2.5.1, released 8-5-2018
 
- * Layered custom materials can now also be relative to the terrain, when used as a Custom Terrain and when used as the underground material
+ * Layered custom materials can now also be relative to the terrain when used as a Custom Terrain and when used as the underground material
    + The setting for this has been added to the Dimension Properties screen (and thus also the Export screen) in the form of the "Layered materials relative to" listboxes at the end of the first two lines on the General tab, which allow you to choose between Bedrock (the default, and old behaviour) and Terrain
    + There is only one setting for the entire surface; you cannot have some layered Custom Terrains be relative to the terrain and others relative to bedrock. If that's what you need then you can use Custom Ground Cover Layers with a negative thickness for the areas where you need the surface to be layered relative to the terrain (see release 2.5.0)
    + "Relative to terrain" means that the pattern will be rendered as the topmost part of the terrain, following the shape of the terrain. The topmost layer of the pattern will be the surface block; the next layer one block down, etc.
