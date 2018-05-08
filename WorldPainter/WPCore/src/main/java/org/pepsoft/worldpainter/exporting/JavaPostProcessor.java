@@ -50,6 +50,8 @@ public class JavaPostProcessor extends PostProcessor {
         final FloatMode sandMode = "false".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.supportSand")) ? FloatMode.LEAVE_FLOATING : FloatMode.SUPPORT;
         final FloatMode gravelMode = FloatMode.LEAVE_FLOATING;
         final FloatMode cementMode = FloatMode.LEAVE_FLOATING;
+        final FloatMode waterMode = FloatMode.LEAVE_FLOATING;
+        final FloatMode lavaMode = FloatMode.LEAVE_FLOATING;
         if (minecraftWorld instanceof MinecraftWorldObject) {
             // Special support for MinecraftWorldObjects to constrain the area
             // further
@@ -142,6 +144,36 @@ public class JavaPostProcessor extends PostProcessor {
                                         break;
                                     case SUPPORT:
                                         throw new UnsupportedOperationException("Don't know how to support cement yet");
+                                    default:
+                                        // Do nothing
+                                        break;
+                                }
+                            }
+                            break;
+                        case BLK_WATER:
+                        case BLK_STATIONARY_WATER:
+                            if (BLOCKS[blockTypeBelow].veryInsubstantial) {
+                                switch (waterMode) {
+                                    case DROP:
+                                        dropFluid(minecraftWorld, x, y, z);
+                                        break;
+                                    case SUPPORT:
+                                        throw new UnsupportedOperationException("Don't know how to support water yet");
+                                    default:
+                                        // Do nothing
+                                        break;
+                                }
+                            }
+                            break;
+                        case BLK_LAVA:
+                        case BLK_STATIONARY_LAVA:
+                            if (BLOCKS[blockTypeBelow].veryInsubstantial) {
+                                switch (lavaMode) {
+                                    case DROP:
+                                        dropFluid(minecraftWorld, x, y, z);
+                                        break;
+                                    case SUPPORT:
+                                        throw new UnsupportedOperationException("Don't know how to support lava yet");
                                     default:
                                         // Do nothing
                                         break;

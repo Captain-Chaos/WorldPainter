@@ -11,6 +11,7 @@ import java.awt.*;
 import static org.pepsoft.minecraft.Block.BLOCKS;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Constants.BLK_STATIONARY_LAVA;
+import static org.pepsoft.minecraft.Material.*;
 
 /**
  * Helper class which can post process a fully rendered map to make sure it
@@ -54,18 +55,36 @@ public abstract class PostProcessor {
             if (BLOCKS[blockType].insubstantial) {
                 // Remove insubstantial blocks (as the falling block would have
                 // obliterated them) but keep looking for a solid floor
-                world.setMaterialAt(x, y, solidFloor, Material.AIR);
+                world.setMaterialAt(x, y, solidFloor, AIR);
             } else if ((blockType != BLK_AIR) && (blockType != BLK_WATER) && (blockType != BLK_STATIONARY_WATER) && (blockType != BLK_LAVA) && (blockType != BLK_STATIONARY_LAVA)) {
                 break;
             }
         }
         if (solidFloor < 0) {
             // The block would have fallen into the void, so just remove it
-            world.setMaterialAt(x, y, z, Material.AIR);
+            world.setMaterialAt(x, y, z, AIR);
         } else if (solidFloor < z - 1) {
             Material block = world.getMaterialAt(x, y, z);
-            world.setMaterialAt(x, y, z, Material.AIR);
+            world.setMaterialAt(x, y, z, AIR);
             world.setMaterialAt(x, y, solidFloor + 1, block);
+        }
+    }
+
+    protected void dropFluid(MinecraftWorld world, int x, int y, int z) {
+        boolean lava = world.getBlockTypeAt(x, y, z) == BLK_LAVA || world.getBlockTypeAt(x, y, z) == BLK_STATIONARY_LAVA;
+        int solidFloor = z - 1;
+        for (; solidFloor > 0; solidFloor--) {
+            int blockType = world.getBlockTypeAt(x, y, solidFloor);
+            if (blockType == BLK_AIR || BLOCKS[blockType].insubstantial) {
+                world.setMaterialAt(x, y, solidFloor, lava ? STATIONARY_LAVA : STATIONARY_WATER);
+            } else {
+                break;
+            }
+        }
+        if ((solidFloor >= 0) && (solidFloor < (z - 1))){
+            // Make the lowest block flowing, so that Minecraft will continue it
+            // sideways
+            world.setMaterialAt(x, y, solidFloor + 1,lava ? LAVA : WATER);
         }
     }
 
