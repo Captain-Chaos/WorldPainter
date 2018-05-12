@@ -243,10 +243,8 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         if (overlayScale != this.overlayScale) {
             float oldOverlayScale = this.overlayScale;
             this.overlayScale = overlayScale;
-            if (overlay != null) {
-                if (overlayTransparency < 1.0f) {
-                    repaint();
-                }
+            if ((overlay != null) && (overlayTransparency < 1.0f)) {
+                repaint();
             }
             firePropertyChange("overlayScale", oldOverlayScale, overlayScale);
         }

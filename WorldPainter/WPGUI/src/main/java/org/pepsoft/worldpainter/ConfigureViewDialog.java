@@ -31,6 +31,8 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
+
 /**
  *
  * @author pepijn
@@ -54,8 +56,8 @@ public class ConfigureViewDialog extends WorldPainterDialog implements WindowLis
         if (dimension.getOverlay() != null) {
             fieldImage.setText(dimension.getOverlay().getAbsolutePath());
         }
-        spinnerScale.setValue((int) (dimension.getOverlayScale() * 100));
-        spinnerTransparency.setValue((int) (view.getOverlayTransparency() * 100));
+        spinnerScale.setValue((int) (dimension.getOverlayScale() * 100 + 0.5f));
+        spinnerTransparency.setValue((int) (view.getOverlayTransparency() * 100 + 0.5f));
         spinnerXOffset.setValue(view.getOverlayOffsetX());
         spinnerYOffset.setValue(view.getOverlayOffsetY());
         checkBoxContours.setSelected(view.isDrawContours());
@@ -157,6 +159,7 @@ public class ConfigureViewDialog extends WorldPainterDialog implements WindowLis
         spinnerTransparency.setEnabled(imageOverlayEnabled);
         spinnerXOffset.setEnabled(imageOverlayEnabled);
         spinnerYOffset.setEnabled(imageOverlayEnabled);
+        buttonFitToDimension.setEnabled(imageOverlayEnabled);
         spinnerContourSeparation.setEnabled(checkBoxContours.isSelected());
         boolean backgroundImageEnabled = checkBoxBackgroundImage.isSelected();
         fieldBackgroundImage.setEnabled(backgroundImageEnabled);
@@ -335,7 +338,35 @@ public class ConfigureViewDialog extends WorldPainterDialog implements WindowLis
             imageUpdateTimer.restart();
         }
     }
-    
+
+    private void fitOverlayToDimension() {
+        BufferedImage overlay = view.getOverlay();
+        if (overlay == null) {
+            return;
+        }
+        int desiredScale;
+        float dimRatio = (float) dimension.getWidth() / dimension.getHeight();
+        float imgRatio = (float) overlay.getWidth() / overlay.getHeight();
+        if (dimRatio > imgRatio) {
+            // Dimension is wider than image, so make image the height of the
+            // dimension
+            desiredScale = (int) ((float) (dimension.getHeight() << TILE_SIZE_BITS) / overlay.getHeight() * 100);
+        } else {
+            // Dimension is taller than image, so make image the width of the
+            // dimension
+            desiredScale = (int) ((float) (dimension.getWidth() << TILE_SIZE_BITS) / overlay.getWidth() * 100);
+        }
+        int scaledWidth = Math.round(overlay.getWidth() * (float) desiredScale / 100);
+        int scaledHeight = Math.round(overlay.getHeight() * (float) desiredScale / 100);
+        int xOffset = (dimension.getLowestX() << TILE_SIZE_BITS) + ((dimension.getWidth() << TILE_SIZE_BITS) - scaledWidth) / 2;
+        int yOffset = (dimension.getLowestY() << TILE_SIZE_BITS) + ((dimension.getHeight() << TILE_SIZE_BITS) - scaledHeight) / 2;
+        // The event listeners for these controls will take care of setting the
+        // values on the view and the dimension:
+        spinnerScale.setValue(desiredScale);
+        spinnerXOffset.setValue(xOffset);
+        spinnerYOffset.setValue(yOffset);
+    }
+
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -379,6 +410,7 @@ public class ConfigureViewDialog extends WorldPainterDialog implements WindowLis
         checkBoxShowBiomes = new javax.swing.JCheckBox();
         checkBoxShowBorders = new javax.swing.JCheckBox();
         buttonResetBackgroundColour = new javax.swing.JButton();
+        buttonFitToDimension = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Configure View");
@@ -542,6 +574,15 @@ public class ConfigureViewDialog extends WorldPainterDialog implements WindowLis
             }
         });
 
+        buttonFitToDimension.setText("Fit to dimension");
+        buttonFitToDimension.setToolTipText("Sets the scale and offset such that the image exactly covers the current dimension (as far as possible).");
+        buttonFitToDimension.setEnabled(false);
+        buttonFitToDimension.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonFitToDimensionActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -626,7 +667,8 @@ public class ConfigureViewDialog extends WorldPainterDialog implements WindowLis
                                         .addComponent(colourEditor1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(buttonResetBackgroundColour)))
-                                .addGap(0, 0, Short.MAX_VALUE))))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(buttonFitToDimension))))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(buttonClose)))
@@ -660,7 +702,8 @@ public class ConfigureViewDialog extends WorldPainterDialog implements WindowLis
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3)
                     .addComponent(spinnerScale, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel4))
+                    .addComponent(jLabel4)
+                    .addComponent(buttonFitToDimension))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel5)
@@ -820,8 +863,13 @@ public class ConfigureViewDialog extends WorldPainterDialog implements WindowLis
         Configuration.getInstance().setBackgroundColour(-1);
     }//GEN-LAST:event_buttonResetBackgroundColourActionPerformed
 
+    private void buttonFitToDimensionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonFitToDimensionActionPerformed
+        fitOverlayToDimension();
+    }//GEN-LAST:event_buttonFitToDimensionActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonClose;
+    private javax.swing.JButton buttonFitToDimension;
     private javax.swing.JButton buttonResetBackgroundColour;
     private javax.swing.JButton buttonSelectBackgroundImage;
     private javax.swing.JButton buttonSelectImage;

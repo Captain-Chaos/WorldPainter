@@ -1,6 +1,7 @@
 -- Version 2.5.2, released ...
 
  * Added support for custom world types. This enables you to, for example, easily create maps for the Biomes O' Plenty mod and other custom Minecraft world generators. To use, set the world type to Custom on the Export screen, and press the [...] button to set the generator name to store in the level.dat file, for example BIOMESOP for Biomes O' Plenty
+ * A "fit to dimension" button has been added to the image overlay settings on the Configure View screen (Ctrl+V or View menu) which will automatically set the scale and offset so that the image overlay exactly covers (as best as possible) the current dimension
 
 -- Version 2.5.1, released 8-5-2018
 
