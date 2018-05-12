@@ -197,8 +197,10 @@ public final class Level extends AbstractNBTItem {
             return Generator.FLAT;
         } else if ("largeBiomes".equals(getGeneratorName())) {
             return Generator.LARGE_BIOMES;
-        } else {
+        } else if ("DEFAULT".equals(getGeneratorName()) || "default".equals(getGeneratorName())) {
             return Generator.DEFAULT;
+        } else {
+            return Generator.CUSTOM;
         }
     }
     
@@ -293,7 +295,11 @@ public final class Level extends AbstractNBTItem {
     public void setHardcore(boolean hardcore) {
         setBoolean(TAG_HARDCORE, hardcore);
     }
-    
+
+    public void setGeneratorName(String generatorName) {
+        setString(TAG_GENERATOR_NAME, generatorName);
+    }
+
     public void setGenerator(Generator generator) {
         switch (generator) {
             case DEFAULT:
@@ -320,7 +326,7 @@ public final class Level extends AbstractNBTItem {
                 }
                 break;
             default:
-                throw new InternalError();
+                throw new IllegalArgumentException("Use setGeneratorName(String) for generator " + generator);
         }
     }
     

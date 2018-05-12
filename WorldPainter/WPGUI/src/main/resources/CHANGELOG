@@ -1,3 +1,7 @@
+-- Version 2.5.2, released ...
+
+ * Added support for custom world types. This enables you to, for example, easily create maps for the Biomes O' Plenty mod and other custom Minecraft world generators. To use, set the world type to Custom on the Export screen, and press the [...] button to set the generator name to store in the level.dat file, for example BIOMESOP for Biomes O' Plenty
+
 -- Version 2.5.1, released 8-5-2018
 
  * Layered custom materials can now also be relative to the terrain when used as a Custom Terrain and when used as the underground material

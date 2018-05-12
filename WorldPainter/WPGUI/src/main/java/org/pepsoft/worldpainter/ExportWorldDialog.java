@@ -142,6 +142,7 @@ public class ExportWorldDialog extends WorldPainterDialog {
         }
         comboBoxGenerator.setModel(new DefaultComboBoxModel<>(platform.supportedGenerators.toArray(new Generator[platform.supportedGenerators.size()])));
         comboBoxGenerator.setSelectedItem(world.getGenerator());
+        updateGeneratorButtonTooltip();
         comboBoxGenerator.setEnabled(comboBoxGenerator.getItemCount() > 1);
         comboBoxGenerator.setRenderer(new EnumListCellRenderer());
         comboBoxGameType.setModel(new DefaultComboBoxModel<>(platform.supportedGameTypes.toArray(new GameType[platform.supportedGameTypes.size()])));
@@ -229,6 +230,12 @@ dims:   for (Dimension dim: world.getDimensions()) {
             radioButtonExportEverything.requestFocusInWindow();
             Toolkit.getDefaultToolkit().beep();
             JOptionPane.showMessageDialog(this, "No tiles have been selected for export.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if ((comboBoxGenerator.getSelectedItem() == Generator.CUSTOM) && ((generatorOptions == null) || generatorOptions.trim().isEmpty())) {
+            buttonGeneratorOptions.requestFocusInWindow();
+            Toolkit.getDefaultToolkit().beep();
+            JOptionPane.showMessageDialog(this, "The custom world generator name has not been set.\nUse the [...] button to set it.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
@@ -403,7 +410,7 @@ dims:   for (Dimension dim: world.getDimensions()) {
         }
         boolean notHardcore = comboBoxGameType.getSelectedItem() != GameType.HARDCORE;
         checkBoxAllowCheats.setEnabled((comboBoxMinecraftVersion.getSelectedIndex() == 0) && notHardcore);
-        buttonGeneratorOptions.setEnabled((! endlessBorder) && (comboBoxGenerator.getSelectedIndex() == 1));
+        buttonGeneratorOptions.setEnabled((! endlessBorder) && ((comboBoxGenerator.getSelectedItem() == Generator.FLAT) || (comboBoxGenerator.getSelectedItem() == Generator.CUSTOM)));
         comboBoxDifficulty.setEnabled(notHardcore);
         checkBoxMapFeatures.setEnabled(! endlessBorder);
     }
@@ -430,7 +437,21 @@ dims:   for (Dimension dim: world.getDimensions()) {
             disableTileSelectionWarning = true;
         }
     }
-    
+
+    private void updateGeneratorButtonTooltip() {
+        switch ((Generator) comboBoxGenerator.getSelectedItem()) {
+            case FLAT:
+                buttonGeneratorOptions.setToolTipText("Edit the Superflat mode preset");
+                break;
+            case CUSTOM:
+                buttonGeneratorOptions.setToolTipText("Set the custom world generator name");
+                break;
+            default:
+                buttonGeneratorOptions.setToolTipText(null);
+                break;
+        }
+    }
+
     // Change the line adding jTabbedPane1 to the vertical group to:
     //
     //     .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 100, Short.MAX_VALUE)
@@ -762,7 +783,7 @@ dims:   for (Dimension dim: world.getDimensions()) {
     }//GEN-LAST:event_comboBoxGameTypeActionPerformed
 
     private void buttonGeneratorOptionsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonGeneratorOptionsActionPerformed
-        String editedGeneratorOptions = JOptionPane.showInputDialog(this, "Edit the Superflat mode preset:", generatorOptions);
+        String editedGeneratorOptions = JOptionPane.showInputDialog(this, comboBoxGenerator.getSelectedItem() == Generator.CUSTOM ? "Edit the custom world generator name:" : "Edit the Superflat mode preset:", generatorOptions);
         if (editedGeneratorOptions != null) {
             generatorOptions = editedGeneratorOptions;
         }
@@ -770,6 +791,7 @@ dims:   for (Dimension dim: world.getDimensions()) {
 
     private void comboBoxGeneratorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxGeneratorActionPerformed
         setControlStates();
+        updateGeneratorButtonTooltip();
     }//GEN-LAST:event_comboBoxGeneratorActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

@@ -82,7 +82,11 @@ public class JavaMapImporter {
             world.setGameType(GameType.values()[level.getGameType()]);
         }
         world.setGenerator(level.getGenerator());
-        world.setGeneratorOptions(level.getGeneratorOptions());
+        if (level.getGenerator() == Generator.CUSTOM) {
+            world.setGeneratorOptions(level.getGeneratorName());
+        } else {
+            world.setGeneratorOptions(level.getGeneratorOptions());
+        }
         world.setDifficulty(level.getDifficulty());
         if ((version == SUPPORTED_VERSION_2) && (level.getBorderSize() > 0.0)) {
             // If the world is version 0x4abd and actually has border settings,

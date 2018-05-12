@@ -44,6 +44,9 @@ public class JavaWorldExporter extends AbstractWorldExporter {
         if ((selectedTiles == null) && (selectedDimensions != null)) {
             throw new IllegalArgumentException("Exporting a subset of dimensions not supported");
         }
+        if ((world.getGenerator() == Generator.CUSTOM) && ((world.getGeneratorOptions() == null) || world.getGeneratorOptions().trim().isEmpty())) {
+            throw new IllegalArgumentException("Custom world generator name not set");
+        }
         
         // Backup existing level
         File worldDir = new File(baseDir, FileUtils.sanitiseName(name));
@@ -112,7 +115,11 @@ public class JavaWorldExporter extends AbstractWorldExporter {
             level.setGeneratorOptions(generatorOptions.toString());
         } else {
             level.setMapFeatures(world.isMapFeatures());
-            level.setGenerator(world.getGenerator());
+            if (world.getGenerator() == Generator.CUSTOM) {
+                level.setGeneratorName(world.getGeneratorOptions());
+            } else {
+                level.setGenerator(world.getGenerator());
+            }
         }
         if (world.getPlatform().equals(DefaultPlugin.JAVA_ANVIL)) {
             if ((! endlessBorder) && (world.getGenerator() == Generator.FLAT) && (world.getGeneratorOptions() != null)) {

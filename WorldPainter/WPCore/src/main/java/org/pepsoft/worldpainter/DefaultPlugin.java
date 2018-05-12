@@ -72,7 +72,7 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
             DEFAULT_MAX_HEIGHT_2, DEFAULT_MAX_HEIGHT_2, DEFAULT_MAX_HEIGHT_2,
             Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE,
             Arrays.asList(SURVIVAL, CREATIVE, ADVENTURE, HARDCORE),
-            Arrays.asList(DEFAULT, FLAT, LARGE_BIOMES),
+            Arrays.asList(DEFAULT, FLAT, LARGE_BIOMES, CUSTOM),
             Arrays.asList(DIM_NORMAL, DIM_NETHER, DIM_END),
             EnumSet.of(BIOMES, PRECALCULATED_LIGHT, SET_SPAWN_POINT));
 }
