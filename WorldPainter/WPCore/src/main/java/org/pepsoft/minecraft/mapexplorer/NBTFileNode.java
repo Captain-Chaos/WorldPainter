@@ -34,6 +34,11 @@ public class NBTFileNode extends FileSystemNode {
     }
 
     @Override
+    public void doubleClicked() {
+        // Do nothing
+    }
+
+    @Override
     protected Node[] loadChildren() {
         try (InputStream in = new BufferedInputStream(new FileInputStream(file))) {
             in.mark(2);

@@ -1,5 +1,6 @@
 package org.pepsoft.minecraft.mapexplorer;
 
+import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.worldpainter.mapexplorer.Node;
 
 import javax.swing.*;
@@ -32,6 +33,11 @@ public class FileSystemNode extends Node {
     @Override
     public Icon getIcon() {
         return FILE_SYSTEM_VIEW.getSystemIcon(file);
+    }
+
+    @Override
+    public void doubleClicked() {
+        DesktopUtils.open(file);
     }
 
     public static String getName(File file) {

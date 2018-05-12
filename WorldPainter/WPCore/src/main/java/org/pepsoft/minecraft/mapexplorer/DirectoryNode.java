@@ -31,6 +31,11 @@ public class DirectoryNode extends FileSystemNode {
     }
 
     @Override
+    public void doubleClicked() {
+        // Do nothing
+    }
+
+    @Override
     protected Node[] loadChildren() {
         File[] contents = file.listFiles(showFiles ? null : File::isDirectory);
         if (contents != null) {
