@@ -32,9 +32,9 @@ public class I18nHelper {
     
     public static String m(Enum<?> e) {
         try {
-            return ENUM_BUNDLES.get(e.getClass()).getString(e.name());
+            return ENUM_BUNDLES.get(e.getDeclaringClass()).getString(e.name());
         } catch (NullPointerException ex) {
-            ResourceBundle rb = ResourceBundle.getBundle("org.pepsoft.worldpainter.resources." + e.getClass().getSimpleName());
+            ResourceBundle rb = ResourceBundle.getBundle("org.pepsoft.worldpainter.resources." + e.getDeclaringClass().getSimpleName());
             ENUM_BUNDLES.put(e.getClass(), rb);
             return rb.getString(e.name());
         }

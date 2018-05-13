@@ -594,6 +594,7 @@ public class PreferencesDialog extends WorldPainterDialog {
         jLabel22.setText("Light direction:");
 
         comboBoxLightDirection.setModel(new DefaultComboBoxModel(LightOrigin.values()));
+        comboBoxLightDirection.setRenderer(new EnumListCellRenderer());
 
         jLabel7.setLabelFor(spinnerGrid);
         jLabel7.setText("Grid size:");
