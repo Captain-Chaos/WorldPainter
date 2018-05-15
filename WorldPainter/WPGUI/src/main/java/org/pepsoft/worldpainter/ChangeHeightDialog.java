@@ -31,7 +31,7 @@ import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
  */
 public class ChangeHeightDialog extends WorldPainterDialog {
     /** Creates new form ChangeHeightDialog */
-    public ChangeHeightDialog(java.awt.Frame parent, World2 world) {
+    public ChangeHeightDialog(Window parent, World2 world) {
         super(parent);
         this.world = world;
         

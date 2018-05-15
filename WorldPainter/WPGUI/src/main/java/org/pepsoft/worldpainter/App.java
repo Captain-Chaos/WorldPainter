@@ -1083,6 +1083,36 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
 
+    void changeWorldHeight(Window parent) {
+        ChangeHeightDialog dialog = new ChangeHeightDialog(parent, world);
+        dialog.setVisible(true);
+        if (threeDeeFrame != null) {
+            threeDeeFrame.refresh();
+        }
+    }
+
+    void shiftWorld(Window parent) {
+        if ((world.getImportedFrom() != null) && (showConfirmDialog(parent, "This world was imported from an existing map!\nIf you shift it you will no longer be able to merge it properly.\nAre you sure you want to shift the world?", strings.getString("imported"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
+            return;
+        }
+        ShiftWorldDialog dialog = new ShiftWorldDialog(parent, world, dimension.getDim());
+        dialog.setVisible(true);
+        if (! dialog.isCancelled()) {
+            currentUndoManager.armSavePoint();
+        }
+    }
+
+    void rotateWorld(Window parent) {
+        if ((world.getImportedFrom() != null) && (showConfirmDialog(parent, strings.getString("this.world.was.imported.from.an.existing.map"), strings.getString("imported"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
+            return;
+        }
+        RotateWorldDialog dialog = new RotateWorldDialog(parent, world, dimension.getDim());
+        dialog.setVisible(true);
+        if (! dialog.isCancelled()) {
+            currentUndoManager.armSavePoint();
+        }
+    }
+
     private void addRecentlyUsedWorld(File file) {
         // For some reason (Java bug? Java 8 bug?) the files passed in are
         // sometimes Win32ShellFolder2 instances, instead of Files, which causes
@@ -6413,16 +6443,12 @@ public final class App extends JFrame implements RadiusControl,
         
         @Override
         public void performAction(ActionEvent e) {
-            ChangeHeightDialog dialog = new ChangeHeightDialog(App.this, world);
-            dialog.setVisible(true);
-            if (threeDeeFrame != null) {
-                threeDeeFrame.refresh();
-            }
+            changeWorldHeight(App.this);
         }
 
         private static final long serialVersionUID = 1L;
     };
-    
+
     private final BetterAction ACTION_ROTATE_WORLD = new BetterAction("rotate", strings.getString("rotate") + "...", ICON_ROTATE_WORLD) {
         {
             setShortDescription(strings.getString("rotate.the.entire.map.by.quarter.turns"));
@@ -6430,19 +6456,12 @@ public final class App extends JFrame implements RadiusControl,
         
         @Override
         public void performAction(ActionEvent e) {
-            if ((world.getImportedFrom() != null) && (showConfirmDialog(App.this, strings.getString("this.world.was.imported.from.an.existing.map"), strings.getString("imported"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
-                return;
-            }
-            RotateWorldDialog dialog = new RotateWorldDialog(App.this, world, dimension.getDim());
-            dialog.setVisible(true);
-            if (! dialog.isCancelled()) {
-                currentUndoManager.armSavePoint();
-            }
+            rotateWorld(App.this);
         }
 
         private static final long serialVersionUID = 1L;
     };
-    
+
     private final BetterAction ACTION_SHIFT_WORLD = new BetterAction("shift", "Shift...", ICON_SHIFT_WORLD) {
         {
             setShortDescription("Shift the entire map horizontally by whole 128-block tiles");
@@ -6450,14 +6469,7 @@ public final class App extends JFrame implements RadiusControl,
 
         @Override
         public void performAction(ActionEvent e) {
-            if ((world.getImportedFrom() != null) && (showConfirmDialog(App.this, "This world was imported from an existing map!\nIf you shift it you will no longer be able to merge it properly.\nAre you sure you want to shift the world?", strings.getString("imported"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
-                return;
-            }
-            ShiftWorldDialog dialog = new ShiftWorldDialog(App.this, world, dimension.getDim());
-            dialog.setVisible(true);
-            if (! dialog.isCancelled()) {
-                currentUndoManager.armSavePoint();
-            }
+            shiftWorld(App.this);
         }
 
         private static final long serialVersionUID = 1L;
