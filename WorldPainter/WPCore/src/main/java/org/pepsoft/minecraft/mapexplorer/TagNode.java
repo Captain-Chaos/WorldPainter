@@ -25,6 +25,10 @@ public class TagNode extends Node {
         this.tag = tag;
     }
 
+    public Tag getTag() {
+        return tag;
+    }
+
     @Override
     public String getName() {
         StringBuilder sb = new StringBuilder();

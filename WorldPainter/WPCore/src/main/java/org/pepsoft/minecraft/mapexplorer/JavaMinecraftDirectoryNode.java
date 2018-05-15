@@ -39,6 +39,8 @@ public class JavaMinecraftDirectoryNode extends DirectoryNode {
                     } else if (isGzip(file)) {
                         // Gamble that any gzipped file is an NBT file
                         children.add(new NBTFileNode(file));
+//                    } else if (lowercaseName.endsWith(".json")) {
+                        // TODO
                     } else {
                         children.add(new FileSystemNode(file));
                     }
