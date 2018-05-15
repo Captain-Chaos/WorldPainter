@@ -14,6 +14,8 @@ import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 
+import java.awt.*;
+
 import static org.pepsoft.util.AwtUtils.doOnEventThread;
 import static org.pepsoft.worldpainter.Constants.*;
 
@@ -23,7 +25,7 @@ import static org.pepsoft.worldpainter.Constants.*;
  */
 public class RotateWorldDialog extends WorldPainterDialog implements ProgressReceiver {
     /** Creates new form RotateWorldDialog */
-    public RotateWorldDialog(java.awt.Frame parent, World2 world, int dim) {
+    public RotateWorldDialog(Window parent, World2 world, int dim) {
         super(parent);
         this.world = world;
         this.dim = dim;
