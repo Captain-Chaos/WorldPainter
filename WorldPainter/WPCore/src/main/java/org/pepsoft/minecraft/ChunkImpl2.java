@@ -125,9 +125,7 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk, Minecraf
         setInt(TAG_Z_POS, zPos);
         setBoolean(TAG_TERRAIN_POPULATED, terrainPopulated);
         setBoolean(TAG_LIGHT_POPULATED, lightPopulated);
-        if (inhabitedTime != 0) {
-            setLong(TAG_INHABITED_TIME, inhabitedTime);
-        }
+        setLong(TAG_INHABITED_TIME, inhabitedTime);
 
         return new CompoundTag("", Collections.singletonMap("", super.toNBT()));
     }
