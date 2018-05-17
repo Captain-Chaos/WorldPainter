@@ -6,6 +6,7 @@
 package org.pepsoft.worldpainter.exporting;
 
 import org.pepsoft.minecraft.Chunk;
+import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.Box;
 
 import java.util.Arrays;
@@ -54,21 +55,22 @@ public class LightingCalculator {
                     continue;
                 }
                 for (int y = dirtyArea.getY1(); y <= dirtyArea.getY2(); y++) {
-                    int blockType = world.getBlockTypeAt(x, z, y);
+                    Material material = world.getMaterialAt(x, z, y);
                     int currentSkylightLevel = world.getSkyLightLevel(x, z, y);
                     int currentBlockLightLevel = world.getBlockLightLevel(x, z, y);
                     int newSkyLightLevel;
                     int newBlockLightLevel;
-                    if ((blockType <= HIGHEST_KNOWN_BLOCK_ID) && (BLOCK_TRANSPARENCY[blockType] == 15)) {
+                    // TODO: migrate lighting information to material
+                    if ((material.blockType >= 0) && (material.blockType <= HIGHEST_KNOWN_BLOCK_ID) && (BLOCK_TRANSPARENCY[material.blockType] == 15)) {
                         // Opaque block
                         newSkyLightLevel = 0;
-                        newBlockLightLevel = (LIGHT_SOURCES[blockType] > 0) ? currentBlockLightLevel : 0;
+                        newBlockLightLevel = (LIGHT_SOURCES[material.blockType] > 0) ? currentBlockLightLevel : 0;
                     } else {
                         // Transparent block, or unknown block. We err on the
                         // side of transparency for unknown blocks to try and
                         // cause less visible lighting bugs
                         newSkyLightLevel = (currentSkylightLevel < 15) ? calculateSkyLightLevel(x, y, z) : 15;
-                        newBlockLightLevel = ((blockType <= HIGHEST_KNOWN_BLOCK_ID) && (LIGHT_SOURCES[blockType] > 0)) ? currentBlockLightLevel : calculateBlockLightLevel(x, y, z);
+                        newBlockLightLevel = ((material.blockType >= 0) && (material.blockType <= HIGHEST_KNOWN_BLOCK_ID) && (LIGHT_SOURCES[material.blockType] > 0)) ? currentBlockLightLevel : calculateBlockLightLevel(x, y, z);
                     }
                     if ((newSkyLightLevel != currentSkylightLevel) || (newBlockLightLevel != currentBlockLightLevel)) {
                         if (newSkyLightLevel != currentSkylightLevel) {
@@ -109,18 +111,19 @@ public class LightingCalculator {
         for (int y = maxHeight - 1; y >= 0; y--) {
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
-                    int blockType = chunk.getBlockType(x, y, z);
+                    Material material = chunk.getMaterial(x, y, z);
                     int blockLightLevel = chunk.getBlockLightLevel(x, y, z);
                     int skyLightLevel = chunk.getSkyLightLevel(x, y, z);
                     int newBlockLightLevel, newSkyLightLevel;
-                    if ((blockType > HIGHEST_KNOWN_BLOCK_ID) || (BLOCK_TRANSPARENCY[blockType] < 15)) {
+                    // TODO: migrate lighting information to material
+                    if ((material.blockType < 0) || (material.blockType > HIGHEST_KNOWN_BLOCK_ID) || (BLOCK_TRANSPARENCY[material.blockType] < 15)) {
                         // Transparent block, or unknown block. We err on the
                         // side of transparency for unknown blocks to try and
                         // cause less visible lighting bugs
                         if (y < lightingVolumeLowMark) {
                             lightingVolumeLowMark = y;
                         }
-                        int transparency = (blockType > HIGHEST_KNOWN_BLOCK_ID) ? 0 : BLOCK_TRANSPARENCY[blockType];
+                        int transparency = ((material.blockType < 0) || (material.blockType > HIGHEST_KNOWN_BLOCK_ID)) ? 0 : BLOCK_TRANSPARENCY[material.blockType];
                         if ((transparency == 0) && (DAYLIGHT[x][z])) {
                             // Propagate daylight down
                             newSkyLightLevel = 15;
@@ -139,14 +142,14 @@ public class LightingCalculator {
                         newSkyLightLevel = 0;
                         DAYLIGHT[x][z] = false;
                     }
-                    if ((blockType <= HIGHEST_KNOWN_BLOCK_ID) && (LIGHT_SOURCES[blockType] > 0)) {
+                    if ((material.blockType >= 0) && (material.blockType <= HIGHEST_KNOWN_BLOCK_ID) && (LIGHT_SOURCES[material.blockType] > 0)) {
                         if (y > lightingVolumeHighMark) {
                             lightingVolumeHighMark = y;
                         }
                         if (y < lightingVolumeLowMark) {
                             lightingVolumeLowMark = y;
                         }
-                        newBlockLightLevel = LIGHT_SOURCES[blockType];
+                        newBlockLightLevel = LIGHT_SOURCES[material.blockType];
                     } else {
                         newBlockLightLevel = 0;
                     }
@@ -249,11 +252,12 @@ public class LightingCalculator {
                 }
             }
         }
-        return Math.max(highestSurroundingSkyLight - Math.max((blockType <= HIGHEST_KNOWN_BLOCK_ID) ? BLOCK_TRANSPARENCY[blockType] : 0, 1), 0);
+        return Math.max(highestSurroundingSkyLight - Math.max((blockType >= 0) && (blockType <= HIGHEST_KNOWN_BLOCK_ID) ? BLOCK_TRANSPARENCY[blockType] : 0, 1), 0);
     }
 
     private int calculateBlockLightLevel(int x, int y, int z) {
-        int blockType = world.getBlockTypeAt(x, z, y);
+        // TODO: migrate lighting information to material
+        int blockType = world.getMaterialAt(x, z, y).blockType;
         int blockLightLevel = getBlockLightLevelAt(x, y + 1, z);
         int highestSurroundingBlockLight = blockLightLevel;
         blockLightLevel = getBlockLightLevelAt(x - 1, y, z);
@@ -276,7 +280,7 @@ public class LightingCalculator {
         if (blockLightLevel > highestSurroundingBlockLight) {
             highestSurroundingBlockLight = blockLightLevel;
         }
-        return Math.max(highestSurroundingBlockLight - Math.max((blockType <= HIGHEST_KNOWN_BLOCK_ID) ? BLOCK_TRANSPARENCY[blockType] : 0, 1), 0);
+        return Math.max(highestSurroundingBlockLight - Math.max(((blockType >= 0) && (blockType <= HIGHEST_KNOWN_BLOCK_ID)) ? BLOCK_TRANSPARENCY[blockType] : 0, 1), 0);
     }
 
     private int getSkyLightLevelAt(int x, int y, int z) {

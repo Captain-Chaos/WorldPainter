@@ -33,7 +33,7 @@ public class UndergroundPocketsLayerExporter extends AbstractLayerExporter<Under
     }
     
     @Override
-    public void render(Dimension dimension, Tile tile, Chunk chunk) {
+    public void render(Dimension dimension, Tile tile, Chunk chunk, Platform platform) {
         final MixedMaterial material = layer.getMaterial();
         final Terrain terrain = layer.getTerrain();
         final boolean useMaterial = material != null;

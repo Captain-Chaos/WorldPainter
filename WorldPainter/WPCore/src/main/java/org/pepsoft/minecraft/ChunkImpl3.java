@@ -5,20 +5,22 @@
 
 package org.pepsoft.minecraft;
 
-import org.jnbt.CompoundTag;
-import org.jnbt.LongArrayTag;
-import org.jnbt.Tag;
+import org.jnbt.*;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 
 import java.awt.*;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.*;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Material.AIR;
 
 /**
- * An "Anvil" chunk.
+ * An "Anvil" chunk for Minecraft 1.13 and higher.
  * 
  * @author pepijn
  */
@@ -35,6 +37,8 @@ public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, Minecraf
         tileEntities = new ArrayList<>();
         readOnly = false;
         lightPopulated = true;
+
+        setTerrainPopulated(true); // TODO: necessary?
     }
 
     public ChunkImpl3(CompoundTag tag, int maxHeight) {
@@ -84,18 +88,6 @@ public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, Minecraf
     public Tag toNBT() {
         List<Tag> sectionTags = new ArrayList<>(maxHeight >> 4);
         for (Section section: sections) {
-//            if (section != null) {
-//                for (byte skyLightLevelByte: section.skyLight) {
-//                    int skyLightLevel = skyLightLevelByte & 0x0F;
-//                    if ((skyLightLevel < 0) || (skyLightLevel > 15)) {
-//                        throw new IllegalStateException("skyLightLevel " + skyLightLevel + " in section " + section.level);
-//                    }
-//                    skyLightLevel = (skyLightLevelByte >> 4) & 0x0F;
-//                    if ((skyLightLevel < 0) || (skyLightLevel > 15)) {
-//                        throw new IllegalStateException("skyLightLevel " + skyLightLevel + " in section " + section.level);
-//                    }
-//                }
-//            }
             if ((section != null) && (! section.isEmpty())) {
                 sectionTags.add(section.toNBT());
             }
@@ -120,7 +112,10 @@ public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, Minecraf
             setLong(TAG_INHABITED_TIME, inhabitedTime);
         }
 
-        return new CompoundTag("", Collections.singletonMap("", super.toNBT()));
+        CompoundTag tag = new CompoundTag("", Collections.EMPTY_MAP);
+        tag.setTag(TAG_LEVEL, super.toNBT());
+        tag.setTag(TAG_DATA_VERSION, new IntTag(TAG_DATA_VERSION, DATA_VERSION_MC_1_13));
+        return tag;
     }
 
     @Override
@@ -145,59 +140,34 @@ public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, Minecraf
 
     @Override
     public int getBlockType(int x, int y, int z) {
-        Section section = sections[y >> 4];
-        if (section == null) {
-            return 0;
-        } else {
-            throw new UnsupportedOperationException(); // TODO
-        }
+        return getMaterial(x, y, z).blockType;
     }
 
+    /**
+     * Not supported. Always throws {@link UnsupportedOperationException}.
+     *
+     * @deprecated Use {@link #setMaterial(int, int, int, Material)}
+     * @throws UnsupportedOperationException
+     */
     @Override
     public void setBlockType(int x, int y, int z, int blockType) {
-        if (readOnly) {
-            return;
-        }
-        int level = y >> 4;
-        Section section = sections[level];
-        if (section == null) {
-            if (blockType == BLK_AIR) {
-                return;
-            }
-            section = new Section((byte) level);
-            sections[level] = section;
-        }
-        throw new UnsupportedOperationException(); // TODO
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public int getDataValue(int x, int y, int z) {
-        int level = y >> 4;
-        if (sections[level] == null) {
-            return 0;
-        } else {
-            throw new UnsupportedOperationException(); // TODO
-        }
+        return getMaterial(x, y, z).data;
     }
 
+    /**
+     * Not supported. Always throws {@link UnsupportedOperationException}.
+     *
+     * @deprecated Use {@link #setMaterial(int, int, int, Material)}
+     * @throws UnsupportedOperationException
+     */
     @Override
     public void setDataValue(int x, int y, int z, int dataValue) {
-//        if ((dataValue < 0) || (dataValue > 15)) {
-//            throw new IllegalArgumentException("dataValue " + dataValue);
-//        }
-        if (readOnly) {
-            return;
-        }
-        int level = y >> 4;
-        Section section = sections[level];
-        if (section == null) {
-            if (dataValue == 0) {
-                return;
-            }
-            section = new Section((byte) level);
-            sections[level] = section;
-        }
-        throw new UnsupportedOperationException(); // TODO
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -212,9 +182,6 @@ public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, Minecraf
 
     @Override
     public void setSkyLightLevel(int x, int y, int z, int skyLightLevel) {
-//        if ((skyLightLevel < 0) || (skyLightLevel > 15)) {
-//            throw new IllegalArgumentException("skyLightLevel " + skyLightLevel);
-//        }
         if (readOnly) {
             return;
         }
@@ -242,9 +209,6 @@ public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, Minecraf
 
     @Override
     public void setBlockLightLevel(int x, int y, int z, int blockLightLevel) {
-//        if ((blockLightLevel < 0) || (blockLightLevel > 15)) {
-//            throw new IllegalArgumentException("blockLightLevel " + blockLightLevel);
-//        }
         if (readOnly) {
             return;
         }
@@ -262,7 +226,8 @@ public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, Minecraf
 
     @Override
     public int getHeight(int x, int z) {
-        throw new UnsupportedOperationException(); // TODO
+        // TODO: how necessary is this? Will Minecraft create these if they're missing?
+        return 62;
     }
 
     @Override
@@ -270,9 +235,9 @@ public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, Minecraf
         if (readOnly) {
             return;
         }
-        throw new UnsupportedOperationException(); // TODO
+        // TODO: how necessary is this? Will Minecraft create these if they're missing?
     }
-    
+
     @Override
     public boolean isBiomesAvailable() {
         return biomes != null;
@@ -326,9 +291,10 @@ public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, Minecraf
     public Material getMaterial(int x, int y, int z) {
         Section section = sections[y >> 4];
         if (section == null) {
-            return Material.AIR;
+            return AIR;
         } else {
-            throw new UnsupportedOperationException(); // TODO
+            Material material = section.materials[blockOffset(x, y, z)];
+            return (material != null) ? material : AIR;
         }
     }
 
@@ -340,13 +306,13 @@ public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, Minecraf
         int level = y >> 4;
         Section section = sections[level];
         if (section == null) {
-            if (material == Material.AIR) {
+            if (material == AIR) {
                 return;
             }
             section = new Section((byte) level);
             sections[level] = section;
         }
-        throw new UnsupportedOperationException(); // TODO
+        section.materials[blockOffset(x, y, z)] = (material == AIR) ? null : material;
     }
 
     @Override
@@ -544,7 +510,11 @@ public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, Minecraf
         array[offset] = dataByte;
     }
 
-    private int blockOffset(int x, int y, int z) {
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        throw new IOException("ChunkImpl3 is not serializable");
+    }
+
+    static int blockOffset(int x, int y, int z) {
         return x | ((z | ((y & 0xF) << 4)) << 4);
     }
 
@@ -561,14 +531,46 @@ public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, Minecraf
     Status status;
     final Map<HeightmapType, long[]> heightMaps;
 
-    private static final long serialVersionUID = 1L;
-
     public static class Section extends AbstractNBTItem {
         Section(CompoundTag tag) {
             super(tag);
             level = getByte(TAG_Y2);
-            blockStates = getLongArray(TAG_BLOCK_STATES);
-            palette = new Material[0]; // TODO
+            materials = new Material[4096];
+            long[] blockStates = getLongArray(TAG_BLOCK_STATES);
+            List<CompoundTag> palette = getList(TAG_PALETTE);
+            int wordSize = blockStates.length * 64 / 4096;
+            if (wordSize == 4) {
+                // Optimised special case
+                for (int w = 0; w < 4096; w += 16) {
+                    long data = blockStates[w >> 4];
+                    materials[w]      = getMaterial(palette, (int) (data & 0xf));
+                    materials[w +  1] = getMaterial(palette, (int) ((data & 0xf0) >> 4));
+                    materials[w +  2] = getMaterial(palette, (int) ((data & 0xf00) >> 8));
+                    materials[w +  3] = getMaterial(palette, (int) ((data & 0xf000) >> 12));
+                    materials[w +  4] = getMaterial(palette, (int) ((data & 0xf0000) >> 16));
+                    materials[w +  5] = getMaterial(palette, (int) ((data & 0xf00000) >> 20));
+                    materials[w +  6] = getMaterial(palette, (int) ((data & 0xf000000) >> 24));
+                    materials[w +  7] = getMaterial(palette, (int) ((data & 0xf0000000) >> 28));
+                    materials[w +  8] = getMaterial(palette, (int) ((data & 0xf00000000L) >> 32));
+                    materials[w +  9] = getMaterial(palette, (int) ((data & 0xf000000000L) >> 36));
+                    materials[w + 10] = getMaterial(palette, (int) ((data & 0xf0000000000L) >> 40));
+                    materials[w + 11] = getMaterial(palette, (int) ((data & 0xf00000000000L) >> 44));
+                    materials[w + 12] = getMaterial(palette, (int) ((data & 0xf000000000000L) >> 48));
+                    materials[w + 13] = getMaterial(palette, (int) ((data & 0xf0000000000000L) >> 52));
+                    materials[w + 14] = getMaterial(palette, (int) ((data & 0xf00000000000000L) >> 56));
+                    materials[w + 15] = getMaterial(palette, (int) ((data & 0xf000000000000000L) >> 60));
+                }
+            } else {
+                BitSet bitSet = BitSet.valueOf(blockStates);
+                for (int w = 0; w < 4096; w++) {
+                    int wordOffset = w * wordSize;
+                    int index = 0;
+                    for (int b = 0; b < wordSize; b++) {
+                        index |= bitSet.get(wordOffset + b) ? 1 << b : 0;
+                    }
+                    materials[w] = getMaterial(palette, index);
+                }
+            }
             skyLight = getByteArray(TAG_SKY_LIGHT);
             blockLight = getByteArray(TAG_BLOCK_LIGHT);
         }
@@ -576,8 +578,7 @@ public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, Minecraf
         Section(byte level) {
             super(new CompoundTag("", new HashMap<>()));
             this.level = level;
-            blockStates = new long[256];
-            palette = new Material[0]; // TODO
+            materials = new Material[4096];
             skyLight = new byte[128 * 16];
             Arrays.fill(skyLight, (byte) 0xff);
             blockLight = new byte[128 * 16];
@@ -586,12 +587,98 @@ public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, Minecraf
         @Override
         public Tag toNBT() {
             setByte(TAG_Y2, level);
-            // TODO: store blockStates and palette
+
+            // Create the palette. We have to do this first, because otherwise
+            // we don't know how many bits the indice will be and therefore how
+            // big to make the blockStates array
+            Map<Material, Integer> reversePalette = new HashMap<>();
+            List<Material> palette = new LinkedList<>();
+            for (Material material: materials) {
+                if (material == null) {
+                    material = AIR;
+                }
+                if (! reversePalette.containsKey(material)) {
+                    reversePalette.put(material, palette.size());
+                    palette.add(material);
+                }
+            }
+            List<Tag> paletteList = new ArrayList<>(palette.size());
+            for (Material material: palette) {
+                CompoundTag paletteEntry = new CompoundTag("", Collections.emptyMap());
+                paletteEntry.setTag(TAG_NAME, new StringTag(TAG_NAME, material.getName()));
+                if (material.getProperties() != null) {
+                    CompoundTag propertiesTag = new CompoundTag(TAG_PROPERTIES, Collections.emptyMap());
+                    for (Map.Entry<String, Serializable> property: material.getProperties().entrySet()) {
+                        propertiesTag.setTag(property.getKey(), toNBT(property.getKey(), property.getValue()));
+                    }
+                    paletteEntry.setTag(TAG_PROPERTIES, propertiesTag);
+                }
+                paletteList.add(paletteEntry);
+            }
+            setList(TAG_PALETTE, CompoundTag.class, paletteList);
+
+            // Create the blockStates array and fill it, using the appropriate
+            // length palette indices so that it just fits
+            int paletteIndexSize = Math.max((int) Math.ceil(Math.log(palette.size()) / Math.log(2)), 4);
+            if (paletteIndexSize == 4) {
+                // Optimised special case
+                long[] blockStates = new long[256];
+                for (int i = 0; i < 4096; i += 16) {
+                    blockStates[i >> 4] =
+                           reversePalette.get(materials[i]      != null ? materials[i]      : AIR)
+                        | (reversePalette.get(materials[i +  1] != null ? materials[i +  1] : AIR) << 4)
+                        | (reversePalette.get(materials[i +  2] != null ? materials[i +  2] : AIR) << 8)
+                        | (reversePalette.get(materials[i +  3] != null ? materials[i +  3] : AIR) << 12)
+                        | (reversePalette.get(materials[i +  4] != null ? materials[i +  4] : AIR) << 16)
+                        | (reversePalette.get(materials[i +  5] != null ? materials[i +  5] : AIR) << 20)
+                        | (reversePalette.get(materials[i +  6] != null ? materials[i +  6] : AIR) << 24)
+                        | (reversePalette.get(materials[i +  7] != null ? materials[i +  7] : AIR) << 28)
+                        | ((long) (reversePalette.get(materials[i +  8] != null ? materials[i +  8] : AIR)) << 32)
+                        | ((long) (reversePalette.get(materials[i +  9] != null ? materials[i +  9] : AIR)) << 36)
+                        | ((long) (reversePalette.get(materials[i + 10] != null ? materials[i + 10] : AIR)) << 40)
+                        | ((long) (reversePalette.get(materials[i + 11] != null ? materials[i + 11] : AIR)) << 44)
+                        | ((long) (reversePalette.get(materials[i + 12] != null ? materials[i + 12] : AIR)) << 48)
+                        | ((long) (reversePalette.get(materials[i + 13] != null ? materials[i + 13] : AIR)) << 52)
+                        | ((long) (reversePalette.get(materials[i + 14] != null ? materials[i + 14] : AIR)) << 56)
+                        | ((long) (reversePalette.get(materials[i + 15] != null ? materials[i + 15] : AIR)) << 60);
+                }
+                setLongArray(TAG_BLOCK_STATES, blockStates);
+            } else {
+                BitSet blockStates = new BitSet(4096 * paletteIndexSize);
+                for (int i = 0; i < 4096; i++) {
+                    int offset = i * paletteIndexSize;
+                    int index = reversePalette.get(materials[i] != null ? materials[i] : AIR);
+                    for (int j = 0; j < paletteIndexSize; j++) {
+                        if ((index & (1 << j)) != 0) {
+                            blockStates.set(offset + j);
+                        }
+                    }
+                }
+                long[] blockStatesArray = blockStates.toLongArray();
+                // Pad with zeros if necessary
+                int requiredLength = 64 * paletteIndexSize;
+                if (blockStatesArray.length != requiredLength) {
+                    long[] expandedArray = new long[requiredLength];
+                    System.arraycopy(blockStatesArray, 0, expandedArray, 0, blockStatesArray.length);
+                    setLongArray(TAG_BLOCK_STATES, expandedArray);
+                } else {
+                    setLongArray(TAG_BLOCK_STATES, blockStatesArray);
+                }
+            }
+
             setByteArray(TAG_SKY_LIGHT, skyLight);
             setByteArray(TAG_BLOCK_LIGHT, blockLight);
             return super.toNBT();
         }
-        
+
+        private Tag toNBT(String name, Serializable value) {
+            if (value instanceof String) {
+                return new StringTag(name, (String) value);
+            } else {
+                throw new UnsupportedOperationException("Don't know how to encode property type " + value.getClass());
+            }
+        }
+
         /**
          * Indicates whether the section is empty, meaning all block ID's, data
          * values and block light values are 0, and all sky light values are 15.
@@ -612,16 +699,32 @@ public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, Minecraf
             }
             return true;
         }
-        
+
+        private void writeObject(ObjectOutputStream out) throws IOException {
+            throw new IOException("ChunkImpl3.Section is not serializable");
+        }
+
+        private Material getMaterial(List<CompoundTag> palette, int index) {
+            CompoundTag blockSpecTag = palette.get(index);
+            CompoundTag propertiesTag = (CompoundTag) blockSpecTag.getTag(TAG_PROPERTIES);
+            Map<String, Serializable> properties;
+            if (propertiesTag != null) {
+                properties = new HashMap<>();
+                for (Map.Entry<String, Tag> entry : propertiesTag.getValue().entrySet()) {
+                    properties.put(entry.getKey(), (Serializable) entry.getValue().getValue());
+                }
+            } else {
+                properties = null;
+            }
+            return Material.get(((StringTag) blockSpecTag.getTag(TAG_NAME)).getValue(), properties);
+        }
+
         final byte level;
         final byte[] skyLight;
         final byte[] blockLight;
-        final long[] blockStates;
-        final Material[] palette;
-
-        private static final long serialVersionUID = 1L;
+        final Material[] materials;
     }
 
-    public enum HeightmapType {LIGHT, LIQUID, RAIN, SOLID}
+    public enum HeightmapType {LIGHT, LIQUID, RAIN, SOLID, OCEAN_FLOOR, MOTION_BLOCKING_NO_LEAVES, LIGHT_BLOCKING, MOTION_BLOCKING, OCEAN_FLOOR_WG, WORLD_SURFACE_WG}
     public enum Status {CARVED, DECORATED, EMPTY, FULLCHUNK, LIGHTED, LIQUID_CARVED, POSTPROCESSED, FINALIZED}
 }

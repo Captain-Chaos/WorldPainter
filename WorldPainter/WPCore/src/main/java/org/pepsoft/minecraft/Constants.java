@@ -103,7 +103,9 @@ public final class Constants {
     public static final String TAG_UUID_LEAST              = "UUIDLeast";
     public static final String TAG_DATA_VERSION            = "DataVersion";
     public static final String TAG_STATUS                  = "Status";
-
+    public static final String TAG_PALETTE                 = "Palette";
+    public static final String TAG_NAME                    = "Name";
+    public static final String TAG_PROPERTIES              = "Properties";
     /**
      * Possibly unofficial, SpoutCraft-specific
      */

@@ -29,7 +29,7 @@ import java.util.zip.GZIPInputStream;
  * @author pepijn
  */
 public class Export {
-    public static void main(String args[]) throws IOException, ClassNotFoundException, OperationCancelled, CertificateException {
+    public static void main(String args[]) throws IOException, ClassNotFoundException, OperationCancelled, CertificateException, UnloadableWorldException {
 //        Logger rootLogger = Logger.getLogger("");
 //        rootLogger.setLevel(Level.OFF);
         
@@ -56,8 +56,10 @@ public class Export {
         File worldFile = new File(args[0]);
         System.out.println("Loading " + worldFile);
         World2 world;
-        try (ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new FileInputStream(worldFile)))) {
-            world = (World2) in.readObject();
+        try (FileInputStream in = new FileInputStream(worldFile)) {
+            WorldIO worldIO = new WorldIO();
+            worldIO.load(in);
+            world = worldIO.getWorld();
         }
 
         for (int i = 0; i < Terrain.CUSTOM_TERRAIN_COUNT; i++) {

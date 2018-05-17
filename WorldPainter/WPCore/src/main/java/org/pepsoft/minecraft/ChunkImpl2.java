@@ -10,6 +10,8 @@ import org.jnbt.Tag;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 
 import java.awt.*;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.*;
 import java.util.List;
 
@@ -593,6 +595,10 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk, Minecraf
         return x | ((z | ((y & 0xF) << 4)) << 4);
     }
 
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        throw new IOException("ChunkImpl2 is not serializable");
+    }
+
     public final boolean readOnly;
 
     final Section[] sections;
@@ -604,8 +610,6 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk, Minecraf
     final List<TileEntity> tileEntities;
     final int maxHeight;
     long inhabitedTime;
-
-    private static final long serialVersionUID = 1L;
 
     public static class Section extends AbstractNBTItem {
         Section(CompoundTag tag) {
@@ -684,14 +688,16 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk, Minecraf
             }
             return true;
         }
-        
+
+        private void writeObject(ObjectOutputStream out) throws IOException {
+            throw new IOException("ChunkImpl2.Section is not serializable");
+        }
+
         final byte level;
         final byte[] blocks;
         final byte[] data;
         final byte[] skyLight;
         final byte[] blockLight;
         byte[] add;
-        
-        private static final long serialVersionUID = 1L;
     }
 }

@@ -4,7 +4,6 @@
  */
 package org.pepsoft.worldpainter.layers.exporters;
 
-import com.google.common.collect.Sets;
 import org.pepsoft.minecraft.Block;
 import org.pepsoft.minecraft.Entity;
 import org.pepsoft.minecraft.Material;
@@ -18,7 +17,6 @@ import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.layers.Frost;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.objects.WPObject;
-import org.pepsoft.worldpainter.plugins.CustomObjectManager;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 
 import javax.vecmath.Point3i;
@@ -487,7 +485,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                 Point3i offset = object.getOffset();
                 Point3i dim = object.getDimensions();
                 Rectangle area = new Rectangle(x + offset.x, y + offset.y, dim.x, dim.y);
-                frostExporter.render(dimension, area, null, world);
+                frostExporter.render(dimension, area, null, world, platform);
 
                 // Fixups are done *after* post processing, so post process
                 // again

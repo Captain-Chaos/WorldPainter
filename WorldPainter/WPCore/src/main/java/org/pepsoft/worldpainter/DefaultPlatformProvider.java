@@ -3,11 +3,6 @@ package org.pepsoft.worldpainter;
 import com.google.common.collect.ImmutableList;
 import org.pepsoft.minecraft.*;
 import org.pepsoft.minecraft.mapexplorer.JavaMapRecognizer;
-import org.pepsoft.minecraft.Chunk;
-import org.pepsoft.minecraft.ChunkImpl;
-import org.pepsoft.minecraft.ChunkImpl2;
-import org.pepsoft.minecraft.ChunkStore;
-import org.pepsoft.minecraft.mapexplorer.JavaMapRecognizer;
 import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.mapexplorer.MapRecognizer;
 import org.pepsoft.worldpainter.plugins.AbstractPlugin;
@@ -18,9 +13,7 @@ import java.io.File;
 import java.util.List;
 
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_13;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
+import static org.pepsoft.worldpainter.DefaultPlugin.*;
 
 /**
  * Created by Pepijn on 9-3-2017.
@@ -89,8 +82,10 @@ public class DefaultPlatformProvider extends AbstractPlugin implements PlatformP
 
     @Override
     public PostProcessor getPostProcessor(Platform platform) {
-        if (PLATFORMS.contains(platform)) {
-            return new JavaPostProcessor();
+        if (platform.equals(JAVA_ANVIL_1_13)) {
+            return new Java1_13PostProcessor();
+        } else if (PLATFORMS.contains(platform)) {
+            return new Java1_2PostProcessor();
         } else {
             throw new IllegalArgumentException("Platform " + platform + " not supported");
         }

@@ -3,6 +3,7 @@ package org.pepsoft.worldpainter.layers.exporters;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.MathUtils;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.exporting.AbstractLayerExporter;
 import org.pepsoft.worldpainter.exporting.Fixup;
@@ -35,7 +36,7 @@ public class CavesExporter extends AbstractLayerExporter<Caves> implements Secon
     }
 
     @Override
-    public List<Fixup> render(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
+    public List<Fixup> render(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
         CavesSettings settings = (CavesSettings) getSettings();
         int minZ = Math.max(settings.getMinimumLevel(), dimension.isBottomless() ? 0 : 1),
                 maxZForWorld = Math.min(settings.getMaximumLevel(), minecraftWorld.getMaxHeight() - 1);

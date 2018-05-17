@@ -7,6 +7,7 @@ package org.pepsoft.worldpainter.layers.exporters;
 
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.layers.DeciduousForest;
 import org.pepsoft.worldpainter.layers.GardenCategory;
@@ -24,6 +25,7 @@ import java.util.Random;
 
 import static org.pepsoft.minecraft.Block.BLOCKS;
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.SMALL_BLOBS;
 
 /**
@@ -36,7 +38,7 @@ public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T>
     }
     
     @Override
-    public List<Fixup> render(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
+    public List<Fixup> render(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
         TreeLayerSettings<T> settings = (TreeLayerSettings<T>) getSettings();
         int minimumLevel = settings.getMinimumLevel();
         int treeChance = settings.getTreeChance();
@@ -91,7 +93,7 @@ public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T>
     }
 
     @Override
-    public Fixup apply(Dimension dimension, Point3i location, int intensity, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
+    public Fixup apply(Dimension dimension, Point3i location, int intensity, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -145,12 +147,12 @@ public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T>
                     if ((dx != 0) || (dy != 0)) {
                         int rnd = random.nextInt(mushroomIncidence);
                         int x = blockInWorldX + dx, y = blockInWorldY + dy;
-                        if ((rnd == 0) && (minecraftWorld.getBlockTypeAt(x, y, height) != BLK_AIR) && (minecraftWorld.getBlockTypeAt(x, y, height + 1) == BLK_AIR)) {
+                        if ((rnd == 0) && (minecraftWorld.getMaterialAt(x, y, height) != AIR) && (minecraftWorld.getMaterialAt(x, y, height + 1) == AIR)) {
                             float chance = perlinNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, height / SMALL_BLOBS);
                             if (chance > mushroomChance) {
-                                minecraftWorld.setBlockTypeAt(x, y, height + 1, BLK_BROWN_MUSHROOM);
+                                minecraftWorld.setMaterialAt(x, y, height + 1, BROWN_MUSHROOM);
                             } else if (chance < -mushroomChance) {
-                                minecraftWorld.setBlockTypeAt(x, y, height + 1, BLK_RED_MUSHROOM);
+                                minecraftWorld.setMaterialAt(x, y, height + 1, RED_MUSHROOM);
                             }
                         }
                     }

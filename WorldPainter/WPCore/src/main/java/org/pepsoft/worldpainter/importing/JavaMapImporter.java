@@ -27,8 +27,11 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Material.EMERALD_ORE;
+import static org.pepsoft.minecraft.Material.QUARTZ_ORE;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 
 /**
  *
@@ -129,7 +132,7 @@ public class JavaMapImporter {
             ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) dimension.getLayerSettings(Resources.INSTANCE);
             resourcesSettings.setMinimumLevel(0);
             if (version == SUPPORTED_VERSION_1) {
-                resourcesSettings.setChance(BLK_EMERALD_ORE, 0);
+                resourcesSettings.setChance(EMERALD_ORE, 0);
             }
             Configuration config = Configuration.getInstance();
             dimension.setGridEnabled(config.isDefaultGridEnabled());
@@ -165,7 +168,7 @@ public class JavaMapImporter {
                 ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) dimension.getLayerSettings(Resources.INSTANCE);
                 resourcesSettings.setMinimumLevel(0);
                 if (version == SUPPORTED_VERSION_1) {
-                    resourcesSettings.setChance(BLK_QUARTZ_ORE, 0);
+                    resourcesSettings.setChance(QUARTZ_ORE, 0);
                 }
                 String dimWarnings = importDimension(netherDir, dimension, version, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) dimNo++ / dimCount, 1.0f / dimCount) : null);
                 if (dimWarnings != null) {

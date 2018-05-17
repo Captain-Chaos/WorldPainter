@@ -21,6 +21,9 @@ import java.util.Random;
 import java.util.Set;
 
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Material.BEDROCK;
+import static org.pepsoft.minecraft.Material.STATIONARY_LAVA;
+import static org.pepsoft.minecraft.Material.STATIONARY_WATER;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Platform.Capability.BIOMES;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.*;
@@ -153,7 +156,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                         result.stats.landArea++;
                     }
                     if (bedrock) {
-                        result.chunk.setBlockType(x, 0, z, BLK_BEDROCK);
+                        result.chunk.setMaterial(x, 0, z, BEDROCK);
                     }
                     int topLayerMinimumHeight = intHeight - topLayerDepth;
                     if (coverSteepTerrain) {
@@ -190,9 +193,9 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                         } else if (y <= waterLevel) {
                             // Above the surface but below the water/lava level
                             if (floodWithLava) {
-                                result.chunk.setBlockType(x, y, z, BLK_STATIONARY_LAVA);
+                                result.chunk.setMaterial(x, y, z, STATIONARY_LAVA);
                             } else {
-                                result.chunk.setBlockType(x, y, z, BLK_STATIONARY_WATER);
+                                result.chunk.setMaterial(x, y, z, STATIONARY_WATER);
                             }
                         } else if (! underWater) {
                             // Above the surface on dry land
@@ -215,7 +218,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                     }
                 }
                 if (dark) {
-                    result.chunk.setBlockType(x, maxY, z, BLK_BEDROCK);
+                    result.chunk.setMaterial(x, maxY, z, BEDROCK);
                     result.chunk.setHeight(x, z, maxY);
                 } else if (_void) {
                     result.chunk.setHeight(x, z, 0);
@@ -235,7 +238,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                 if (logger.isTraceEnabled()) {
                     logger.trace("Exporting layer {} for chunk {},{}", layer, chunkX, chunkZ);
                 }
-                ((FirstPassLayerExporter) layerExporter).render(dimension, tile, result.chunk);
+                ((FirstPassLayerExporter) layerExporter).render(dimension, tile, result.chunk, platform);
             }
         }
         result.stats.surfaceArea = 256;

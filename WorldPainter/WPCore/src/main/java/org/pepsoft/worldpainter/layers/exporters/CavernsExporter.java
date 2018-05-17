@@ -8,6 +8,7 @@ package org.pepsoft.worldpainter.layers.exporters;
 import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.exporting.AbstractLayerExporter;
 import org.pepsoft.worldpainter.exporting.FirstPassLayerExporter;
@@ -31,7 +32,7 @@ public class CavernsExporter extends AbstractLayerExporter<Caverns> implements F
     }
     
     @Override
-    public void render(Dimension dimension, Tile tile, Chunk chunk) {
+    public void render(Dimension dimension, Tile tile, Chunk chunk, Platform platform) {
         final CavernsSettings settings = (CavernsSettings) getSettings();
         final boolean surfaceBreaking = settings.isSurfaceBreaking();
         final boolean floodWithLava = settings.isFloodWithLava();

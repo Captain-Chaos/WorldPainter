@@ -19,12 +19,16 @@ import java.io.InputStream;
 import java.util.*;
 
 import static org.pepsoft.minecraft.Block.BLOCK_TYPE_NAMES;
+import static org.pepsoft.worldpainter.DefaultPlugin.*;
 
 /**
  * Created by Pepijn on 15-12-2016.
  */
 public class JavaChunkStore implements ChunkStore {
     public JavaChunkStore(Platform platform, File regionDir, boolean honourReadOnlyChunks, Dimension dimension, int maxHeight) {
+        if (! (platform.equals(JAVA_MCREGION) || platform.equals(JAVA_ANVIL) || platform.equals(JAVA_ANVIL_1_13))) {
+            throw new IllegalArgumentException("Unsupported platform " + platform);
+        }
         this.platform = platform;
         this.regionDir = regionDir;
         this.honourReadOnlyChunks = honourReadOnlyChunks;
@@ -151,7 +155,13 @@ public class JavaChunkStore implements ChunkStore {
                     CompoundTag tag = (CompoundTag) in.readTag();
 //                    timeSpentLoading += System.currentTimeMillis() - start;
                     boolean readOnly = honourReadOnlyChunks && dimension.getBitLayerValueAt(ReadOnly.INSTANCE, x << 4, z << 4);
-                    return platform.equals(DefaultPlugin.JAVA_MCREGION) ? new ChunkImpl(tag, maxHeight, readOnly) : new ChunkImpl2(tag, maxHeight, readOnly);
+                    if (platform.equals(JAVA_MCREGION)) {
+                        return new ChunkImpl(tag, maxHeight, readOnly);
+                    } else if (platform.equals(JAVA_ANVIL)) {
+                        return new ChunkImpl2(tag, maxHeight, readOnly);
+                    } else {
+                        return new ChunkImpl3(tag, maxHeight, readOnly);
+                    }
                 }
             } else {
 //                timeSpentLoading += System.currentTimeMillis() - start;
@@ -204,12 +214,12 @@ public class JavaChunkStore implements ChunkStore {
     }
 
     private RegionFile openRegionFile(Point regionCoords) throws IOException {
-        File file = new File(regionDir, "r." + regionCoords.x + "." + regionCoords.y + (platform.equals(DefaultPlugin.JAVA_MCREGION) ? ".mcr" : ".mca"));
+        File file = new File(regionDir, "r." + regionCoords.x + "." + regionCoords.y + (platform.equals(JAVA_MCREGION) ? ".mcr" : ".mca"));
         return file.exists() ? new RegionFile(file) : null;
     }
 
     private RegionFile openOrCreateRegionFile(Point regionCoords) throws IOException {
-        File file = new File(regionDir, "r." + regionCoords.x + "." + regionCoords.y + (platform.equals(DefaultPlugin.JAVA_MCREGION) ? ".mcr" : ".mca"));
+        File file = new File(regionDir, "r." + regionCoords.x + "." + regionCoords.y + (platform.equals(JAVA_MCREGION) ? ".mcr" : ".mca"));
         return new RegionFile(file);
     }
 

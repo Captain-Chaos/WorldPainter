@@ -33,7 +33,9 @@ import static org.pepsoft.worldpainter.Constants.*;
 public class JavaWorldExporter extends AbstractWorldExporter {
     public JavaWorldExporter(World2 world) {
         super(world);
-        if ((! world.getPlatform().equals(DefaultPlugin.JAVA_ANVIL)) && (! world.getPlatform().equals(DefaultPlugin.JAVA_MCREGION))) {
+        if ((! world.getPlatform().equals(DefaultPlugin.JAVA_ANVIL))
+                && (! world.getPlatform().equals(DefaultPlugin.JAVA_MCREGION))
+                && (! world.getPlatform().equals(DefaultPlugin.JAVA_ANVIL_1_13))) {
             throw new IllegalArgumentException("Unsupported platform " + world.getPlatform());
         }
     }

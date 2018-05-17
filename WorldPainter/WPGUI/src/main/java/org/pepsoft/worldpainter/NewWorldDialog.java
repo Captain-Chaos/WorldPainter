@@ -40,9 +40,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
+import static org.pepsoft.minecraft.Material.LAVA;
+import static org.pepsoft.minecraft.Material.WATER;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.Terrain.*;
 
 /**
@@ -481,15 +484,15 @@ public class NewWorldDialog extends WorldPainterDialog {
                 ResourcesExporter.ResourcesExporterSettings resourcesSettings = new ResourcesExporter.ResourcesExporterSettings(maxHeight);
                 // Invert min and max levels:
                 int maxZ = maxHeight - 1;
-                for (int blockType: resourcesSettings.getBlockTypes()) {
-                    int low = resourcesSettings.getMinLevel(blockType);
-                    int high = resourcesSettings.getMaxLevel(blockType);
-                    resourcesSettings.setMinLevel(blockType, maxZ - high);
-                    resourcesSettings.setMaxLevel(blockType, maxZ - low);
+                for (Material material: resourcesSettings.getMaterials()) {
+                    int low = resourcesSettings.getMinLevel(material);
+                    int high = resourcesSettings.getMaxLevel(material);
+                    resourcesSettings.setMinLevel(material, maxZ - high);
+                    resourcesSettings.setMaxLevel(material, maxZ - low);
                 }
                 // Remove lava and water:
-                resourcesSettings.setChance(BLK_WATER, 0);
-                resourcesSettings.setChance(BLK_LAVA, 0);
+                resourcesSettings.setChance(WATER, 0);
+                resourcesSettings.setChance(LAVA, 0);
                 dimension.setLayerSettings(Resources.INSTANCE, resourcesSettings);
             } else if (dim == DIM_NETHER) {
                 dimension.setSubsurfaceMaterial(NETHERLIKE);

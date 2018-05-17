@@ -6,7 +6,7 @@
 
 package org.pepsoft.worldpainter.layers.plants;
 
-import org.pepsoft.worldpainter.exporting.LayerExporter;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.bo2.Bo2ObjectProvider;
 import org.pepsoft.worldpainter.objects.WPObject;
@@ -42,7 +42,7 @@ public class PlantLayer extends CustomLayer {
         this.generateTilledDirt = generateTilledDirt;
     }
 
-    public Bo2ObjectProvider getObjectProvider() {
+    public Bo2ObjectProvider getObjectProvider(Platform platform) {
         int total = 0;
         for (PlantSettings setting: settings) {
             if (setting != null) {
@@ -71,9 +71,9 @@ public class PlantLayer extends CustomLayer {
                 final int index = random.nextInt(pool.length);
                 final Plant plant = Plant.ALL_PLANTS[pool[index]];
                 if (growthRange[index] == 0) {
-                    return plant.withGrowth(growthOffset[index]);
+                    return plant.getPlant(growthOffset[index], platform);
                 } else {
-                    return plant.withGrowth(growthOffset[index] + random.nextInt(growthRange[index] + 1));
+                    return plant.getPlant(growthOffset[index] + random.nextInt(growthRange[index] + 1), platform);
                 }
             }
 

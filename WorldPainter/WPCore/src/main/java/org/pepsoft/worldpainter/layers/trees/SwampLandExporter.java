@@ -6,6 +6,7 @@ package org.pepsoft.worldpainter.layers.trees;
 
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.exporting.Fixup;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import org.pepsoft.worldpainter.layers.SwampLand;
@@ -28,8 +29,8 @@ public class SwampLandExporter extends TreesExporter<TreeLayer> {
     }
 
     @Override
-    public List<Fixup> render(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld world) {
-        List<Fixup> fixups = super.render(dimension, area, exportedArea, world);
+    public List<Fixup> render(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld world, Platform platform) {
+        List<Fixup> fixups = super.render(dimension, area, exportedArea, world, platform);
         
         // Render lily pads
         TreeLayerSettings<TreeLayer> settings = (TreeLayerSettings<TreeLayer>) getSettings();

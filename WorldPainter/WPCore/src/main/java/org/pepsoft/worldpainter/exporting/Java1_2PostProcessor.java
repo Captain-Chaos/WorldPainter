@@ -11,12 +11,12 @@ import static org.pepsoft.minecraft.Block.*;
 import static org.pepsoft.minecraft.Constants.*;
 
 /**
- * Helper class which can post process a fully rendered Minecraft map to make
- * sure it doesn't violate any Minecraft rules.
+ * Helper class which can post process a fully rendered Minecraft 1.2 to 1.13
+ * (not inclusive) map to make sure it doesn't violate any Minecraft rules.
  *
  * Created by Pepijn Schmitz on 15-06-15.
  */
-public class JavaPostProcessor extends PostProcessor {
+public class Java1_2PostProcessor extends PostProcessor {
     /**
      * Post process (part of) a {@link MinecraftWorld} to make sure it conforms
      * to Minecraft's rules. For instance:
@@ -325,5 +325,5 @@ public class JavaPostProcessor extends PostProcessor {
         }
     }
 
-    private static final Logger logger = LoggerFactory.getLogger(JavaPostProcessor.class);
+    private static final Logger logger = LoggerFactory.getLogger(Java1_2PostProcessor.class);
 }

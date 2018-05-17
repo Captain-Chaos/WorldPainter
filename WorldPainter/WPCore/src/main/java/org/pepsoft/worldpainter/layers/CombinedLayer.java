@@ -5,10 +5,8 @@
 package org.pepsoft.worldpainter.layers;
 
 import org.pepsoft.minecraft.Chunk;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.MixedMaterial;
-import org.pepsoft.worldpainter.Terrain;
-import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 
@@ -267,12 +265,12 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
         }
 
         @Override
-        public void render(Dimension dimension, Tile tile, Chunk chunk) {
+        public void render(Dimension dimension, Tile tile, Chunk chunk, Platform platform) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public List<Fixup> render(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
+        public List<Fixup> render(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
             throw new UnsupportedOperationException();
         }
     }

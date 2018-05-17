@@ -8,10 +8,8 @@ package org.pepsoft.worldpainter.layers.groundcover;
 import org.pepsoft.minecraft.Block;
 import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.minecraft.Material;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.MixedMaterial;
-import org.pepsoft.worldpainter.NoiseSettings;
-import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.heightMaps.NoiseHeightMap;
 
@@ -50,7 +48,7 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
     }
     
     @Override
-    public void render(Dimension dimension, Tile tile, Chunk chunk) {
+    public void render(Dimension dimension, Tile tile, Chunk chunk, Platform platform) {
         if (noiseHeightMap != null) {
             noiseHeightMap.setSeed(dimension.getSeed());
         }
@@ -178,7 +176,7 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
     }
 
     @Override
-    public Fixup apply(Dimension dimension, Point3i location, int intensity, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
+    public Fixup apply(Dimension dimension, Point3i location, int intensity, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
         if (intensity > 0) {
             final int blockBelow = minecraftWorld.getBlockTypeAt(location.x, location.y, location.z - 1);
             if ((blockBelow != BLK_AIR)

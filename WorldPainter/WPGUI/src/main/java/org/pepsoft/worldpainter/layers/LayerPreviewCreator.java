@@ -189,7 +189,7 @@ public class LayerPreviewCreator {
             timestamp = now;
             Rectangle area = new Rectangle(128, 128);
             for (SecondPassLayerExporter exporter: pass2Exporters.values()) {
-                exporter.render(dimension, area, area, minecraftWorldObject);
+                exporter.render(dimension, area, area, minecraftWorldObject, DefaultPlugin.JAVA_ANVIL);
             }
             now = System.currentTimeMillis();
             if (logger.isDebugEnabled()) {
@@ -201,7 +201,7 @@ public class LayerPreviewCreator {
         timestamp = now;
         now = System.currentTimeMillis();
         try {
-            new JavaPostProcessor().postProcess(minecraftWorldObject, new Rectangle(-8, -8, 136, 136), null);
+            new Java1_2PostProcessor().postProcess(minecraftWorldObject, new Rectangle(-8, -8, 136, 136), null);
         } catch (ProgressReceiver.OperationCancelled e) {
             // Can't happen since we didn't pass in a progress receiver
             throw new InternalError();

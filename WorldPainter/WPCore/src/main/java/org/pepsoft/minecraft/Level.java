@@ -25,7 +25,9 @@ import static org.pepsoft.minecraft.Constants.*;
 public final class Level extends AbstractNBTItem {
     public Level(int mapHeight, Platform platform) {
         super(new CompoundTag(TAG_DATA, new HashMap<>()));
-        if ((! platform.equals(DefaultPlugin.JAVA_ANVIL)) && (! platform.equals(DefaultPlugin.JAVA_MCREGION))) {
+        if ((! platform.equals(DefaultPlugin.JAVA_ANVIL))
+                && (! platform.equals(DefaultPlugin.JAVA_MCREGION))
+                && (! platform.equals(DefaultPlugin.JAVA_ANVIL_1_13))) {
             throw new IllegalArgumentException("Not a supported platform: " + platform);
         }
         if ((mapHeight & (mapHeight - 1)) != 0) {
@@ -37,6 +39,10 @@ public final class Level extends AbstractNBTItem {
         this.maxHeight = mapHeight;
         extraTags = null;
         setInt(TAG_VERSION, platform.equals(DefaultPlugin.JAVA_MCREGION) ? SUPPORTED_VERSION_1 : SUPPORTED_VERSION_2);
+        // TODO: make this dynamic?
+        if (platform.equals(DefaultPlugin.JAVA_ANVIL_1_13)) {
+            setInt(TAG_DATA_VERSION, DATA_VERSION_MC_1_13);
+        }
         addDimension(0);
     }
 

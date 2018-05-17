@@ -11,6 +11,7 @@ import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
 import com.jidesoft.plaf.LookAndFeelFactory;
 import com.jidesoft.utils.Lm;
+import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.GUIUtils;
 import org.pepsoft.util.PluginManager;
 import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
@@ -467,6 +468,18 @@ public class Main {
     }
 
     private static void configError(Throwable e) {
+        // Try to preserve the config file
+        File configFile = Configuration.getConfigFile();
+        if (configFile.isFile() && configFile.canRead()) {
+            File backupConfigFile = new File(configFile.getParentFile(), configFile.getName() + ".old");
+            try {
+                FileUtils.copyFileToFile(configFile, backupConfigFile, true);
+            } catch (IOException e1) {
+                logger.error("I/O error while trying to preserve faulty config file", e1);
+            }
+        }
+
+        // Report the error
         logger.error("Exception while initialising configuration", e);
         JOptionPane.showMessageDialog(null, "Could not read configuration file! Resetting configuration.\n\nException type: " + e.getClass().getSimpleName() + "\nMessage: " + e.getMessage(), "Configuration Error", JOptionPane.ERROR_MESSAGE);
     }

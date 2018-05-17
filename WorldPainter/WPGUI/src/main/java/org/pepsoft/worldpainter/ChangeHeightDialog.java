@@ -10,6 +10,7 @@
  */
 package org.pepsoft.worldpainter;
 
+import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.swing.ProgressDialog;
@@ -131,15 +132,15 @@ public class ChangeHeightDialog extends WorldPainterDialog {
                             }
                             ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) dim.getLayerSettings(Resources.INSTANCE);
                             if (resourcesSettings != null) {
-                                for (int blockType: resourcesSettings.getBlockTypes()) {
-                                    int maxLevel = resourcesSettings.getMaxLevel(blockType);
+                                for (Material material: resourcesSettings.getMaterials()) {
+                                    int maxLevel = resourcesSettings.getMaxLevel(material);
                                     if (maxLevel == (oldMaxHeight - 1)) {
                                         maxLevel = newMaxHeight - 1;
                                     } else if (maxLevel > 1) {
                                         maxLevel = clamp(transform.transformHeight(maxLevel), newMaxHeight - 1);
                                     }
-                                    resourcesSettings.setMaxLevel(blockType, maxLevel);
-                                    resourcesSettings.setMaxLevel(blockType, clamp(transform.transformHeight(resourcesSettings.getMaxLevel(blockType)), newMaxHeight - 1));
+                                    resourcesSettings.setMaxLevel(material, maxLevel);
+                                    resourcesSettings.setMaxLevel(material, clamp(transform.transformHeight(resourcesSettings.getMaxLevel(material)), newMaxHeight - 1));
                                 }
                             }
                             dim.clearUndo();

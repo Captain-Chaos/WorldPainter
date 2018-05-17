@@ -9,6 +9,8 @@ import org.jnbt.CompoundTag;
 import org.jnbt.Tag;
 
 import java.awt.*;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -333,6 +335,10 @@ public final class ChunkImpl extends AbstractNBTItem implements Chunk {
         return y + (z + x * 16) * maxHeight;
     }
 
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        throw new IOException("ChunkImpl is not serializable");
+    }
+
     public final boolean readOnly;
 
     final byte[] blocks;
@@ -345,6 +351,4 @@ public final class ChunkImpl extends AbstractNBTItem implements Chunk {
     final List<Entity> entities;
     final List<TileEntity> tileEntities;
     final int maxHeight;
-
-    private static final long serialVersionUID = 1L;
 }
