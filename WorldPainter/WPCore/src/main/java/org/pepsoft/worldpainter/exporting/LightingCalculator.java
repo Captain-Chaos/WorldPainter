@@ -186,11 +186,12 @@ public class LightingCalculator {
                     int blockLightLevel = chunk.getBlockLightLevel(x & 0xf, y, z & 0xf);
                     int skyLightLevel = chunk.getSkyLightLevel(x & 0xf, y, z & 0xf);
                     int newBlockLightLevel, newSkyLightLevel;
-                    if ((blockType > HIGHEST_KNOWN_BLOCK_ID) || (BLOCK_TRANSPARENCY[blockType] < 15)) {
+                    // TODO migrate this information to Material
+                    if ((blockType < 0) || (blockType > HIGHEST_KNOWN_BLOCK_ID) || (BLOCK_TRANSPARENCY[blockType] < 15)) {
                         // Transparent block, or unknown block. We err on the
                         // side of transparency for unknown blocks to try and
                         // cause less visible lighting bugs
-                        int transparency = (blockType > HIGHEST_KNOWN_BLOCK_ID) ? 0 : BLOCK_TRANSPARENCY[blockType];
+                        int transparency = ((blockType < 0) || (blockType > HIGHEST_KNOWN_BLOCK_ID)) ? 0 : BLOCK_TRANSPARENCY[blockType];
                         if ((transparency == 0) && daylight) {
                             // Propagate daylight down
                             newSkyLightLevel = 15;
@@ -202,7 +203,7 @@ public class LightingCalculator {
                         newSkyLightLevel = 0;
                         daylight = false;
                     }
-                    if ((blockType <= HIGHEST_KNOWN_BLOCK_ID) && (LIGHT_SOURCES[blockType] > 0)) {
+                    if ((blockType >= 0) && (blockType <= HIGHEST_KNOWN_BLOCK_ID) && (LIGHT_SOURCES[blockType] > 0)) {
                         newBlockLightLevel = LIGHT_SOURCES[blockType];
                     } else {
                         newBlockLightLevel = 0;

@@ -98,6 +98,21 @@ public class Java1_13PostProcessor extends PostProcessor {
                         minecraftWorld.setMaterialAt(x, y, z - 1, DIRT);
                         materialBelow = DIRT;
                     }
+                    // TODO: can  we do this more efficiently?
+                    if (materialBelow.hasProperty(SNOWY)) {
+                        // The material below has a "snowy" property, so make sure it is set correctly
+                        if ((material.blockType == BLK_SNOW) || (material.blockType == BLK_SNOW_BLOCK)) {
+                            // It should be snowy, change it if it isn't
+                            if (! materialBelow.getProperty(SNOWY)) {
+                                minecraftWorld.setMaterialAt(x, y, z - 1, materialBelow.withProperty(SNOWY, true));
+                            }
+                        } else {
+                            // It should NOT be snowy, change it if it is
+                            if (materialBelow.getProperty(SNOWY)) {
+                                minecraftWorld.setMaterialAt(x, y, z - 1, materialBelow.withProperty(SNOWY, false));
+                            }
+                        }
+                    }
                     switch (material.blockType) {
                         case BLK_SAND:
                             if (BLOCKS[materialBelow.blockType].veryInsubstantial) {

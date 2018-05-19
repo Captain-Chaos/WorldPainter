@@ -43,9 +43,15 @@ public final class Constants {
     public static final String TAG_SPAWN_Z                 = "SpawnZ";
     public static final String TAG_SIZE_ON_DISK            = "SizeOnDisk";
     public static final String TAG_RANDOM_SEED             = "RandomSeed";
+    /** Lower case variant. */
     public static final String TAG_VERSION                 = "version";
+    /** Upper case variant. */
+    public static final String TAG_VERSION_                = "Version";
     public static final String TAG_LEVEL_NAME              = "LevelName";
+    /** Lower case variant. */
     public static final String TAG_ID                      = "id";
+    /** Upper case variant. */
+    public static final String TAG_ID_                     = "Id";
     public static final String TAG_POS                     = "Pos";
     public static final String TAG_MOTION                  = "Motion";
     public static final String TAG_ROTATION                = "Rotation";
@@ -106,6 +112,7 @@ public final class Constants {
     public static final String TAG_PALETTE                 = "Palette";
     public static final String TAG_NAME                    = "Name";
     public static final String TAG_PROPERTIES              = "Properties";
+    public static final String TAG_SNAPSHOT                = "Snapshot";
     /**
      * Possibly unofficial, SpoutCraft-specific
      */
@@ -115,7 +122,7 @@ public final class Constants {
     public static final int SUPPORTED_VERSION_2 = 0x4abd;
 
     public static final int DATA_VERSION_MC_1_12_2 = 1343;
-    public static final int DATA_VERSION_MC_1_13   = 1478;
+    public static final int DATA_VERSION_MC_1_13   = 1493; // TODO: update when 1.13 is released
 
     public static final int BLK_AIR                   =   0;
     public static final int BLK_STONE                 =   1;

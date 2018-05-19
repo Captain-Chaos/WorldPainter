@@ -6,6 +6,7 @@ import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.swing.TileListener;
 import org.pepsoft.util.swing.TileProvider;
 import org.pepsoft.worldpainter.ColourScheme;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.colourschemes.DynMapColourScheme;
 
 import java.awt.*;
@@ -20,8 +21,13 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.awt.RenderingHints.KEY_TEXT_ANTIALIASING;
+import static java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_DEFAULT;
+import static org.pepsoft.minecraft.Constants.DATA_VERSION_MC_1_12_2;
 import static org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_1;
+import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.util.swing.TiledImageViewer.TILE_SIZE;
+import static org.pepsoft.worldpainter.DefaultPlugin.*;
 
 /**
  * Created by Pepijn Schmitz on 27-10-16.
@@ -34,6 +40,14 @@ public class MinecraftMapTileProvider implements TileProvider {
         Level level = Level.load(new File(mapDir, "level.dat"));
         maxHeight = level.getMaxHeight();
         version = level.getVersion();
+        dataVersion = level.getDataVersion();
+        if (version == SUPPORTED_VERSION_1) {
+            platform = JAVA_MCREGION;
+        } else if (dataVersion == DATA_VERSION_MC_1_12_2) {
+            platform = JAVA_ANVIL;
+        } else {
+            platform = JAVA_ANVIL_1_13;
+        }
 
         // Scan the region files to determine a rough extent
         File regionDir = new File(mapDir, "region");
@@ -94,6 +108,7 @@ public class MinecraftMapTileProvider implements TileProvider {
         int previousRegionX = Integer.MIN_VALUE, previousRegionY = Integer.MIN_VALUE;
         RegionFile previousRegion = null;
         final int step = Math.max(scale / 16, 1);
+        final Font font = Font.decode("Dialog-8");
         for (int chunkX = chunkX1; chunkX <= chunkX2; chunkX += step) {
             for (int chunkY = chunkY1; chunkY <= chunkY2; chunkY += step) {
                 try {
@@ -112,15 +127,31 @@ public class MinecraftMapTileProvider implements TileProvider {
                     }
                     DataInputStream dataIn = region.getChunkDataInputStream(chunkX & 0x1f, chunkY & 0x1f);
                     if (dataIn != null) {
+                        ChunkImpl3.Status status = null;
                         Chunk chunk;
                         try (NBTInputStream in = new NBTInputStream(dataIn)) {
-                            chunk = (version == Constants.SUPPORTED_VERSION_2)
-                                    ? new ChunkImpl2((CompoundTag) in.readTag(), maxHeight)
-                                    : new ChunkImpl((CompoundTag) in.readTag(), maxHeight);
+                            if (platform.equals(JAVA_MCREGION)) {
+                                chunk = new ChunkImpl((CompoundTag) in.readTag(), maxHeight);
+                            } else if (platform.equals(JAVA_ANVIL)) {
+                                chunk = new ChunkImpl2((CompoundTag) in.readTag(), maxHeight);
+                            } else {
+                                chunk = new ChunkImpl3((CompoundTag) in.readTag(), maxHeight);
+                                status = ((ChunkImpl3) chunk).status;
+                            }
                         }
                         for (int blockX = 0; blockX < 16; blockX += scale) {
                             for (int blockY = 0; blockY < 16; blockY += scale) {
                                 image.setRGB((((chunkX - chunkX1) << 4) | blockX) / scale, (((chunkY - chunkY1) << 4) | blockY) / scale, 0xff000000 | getColour(chunk, blockX, blockY));
+                            }
+                        }
+                        if (status != null) {
+                            Graphics2D g2 = image.createGraphics();
+                            try {
+                                g2.setFont(font);
+                                g2.setRenderingHint(KEY_TEXT_ANTIALIASING, VALUE_TEXT_ANTIALIAS_DEFAULT);
+                                g2.drawString(status.name(), (((chunkX - chunkX1) << 4) + 1) / scale, (((chunkY - chunkY1) << 4) + 15) / scale);
+                            } finally {
+                                g2.dispose();
                             }
                         }
                     } else {
@@ -202,16 +233,17 @@ public class MinecraftMapTileProvider implements TileProvider {
 
     private int getColour(Chunk chunk, int x, int y) {
         for (int z = maxHeight - 1; z >= 0; z--) {
-            int blockType = chunk.getBlockType(x, z, y);
-            if (blockType != Constants.BLK_AIR) {
-                return colourScheme.getColour(blockType, chunk.getDataValue(x, z, y));
+            Material material = chunk.getMaterial(x, z, y);
+            if (material != AIR) {
+                return colourScheme.getColour(material);
             }
         }
         return DEFAULT_VOID_COLOUR;
     }
 
     private final File mapDir;
-    private final int maxHeight, version;
+    private final Platform platform;
+    private final int maxHeight, version, dataVersion;
     private final ColourScheme colourScheme;
     private final List<TileListener> listeners = new ArrayList<>();
     private final Map<Point, File> fileCache = new HashMap<>();

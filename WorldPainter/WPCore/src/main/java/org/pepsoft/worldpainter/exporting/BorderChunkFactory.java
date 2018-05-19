@@ -6,10 +6,10 @@
 package org.pepsoft.worldpainter.exporting;
 
 import org.pepsoft.minecraft.ChunkFactory;
-import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Dimension.Border;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.layers.Layer;
@@ -18,7 +18,7 @@ import org.pepsoft.worldpainter.plugins.PlatformManager;
 import java.util.Map;
 import java.util.Set;
 
-import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.MEDIUM_BLOBS;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 import static org.pepsoft.worldpainter.Platform.Capability.BIOMES;
@@ -85,7 +85,7 @@ public class BorderChunkFactory {
                     final int surfaceLayerLevel = floorLevel - dimension.getTopLayerDepth(worldX, worldZ, floorLevel);
                     for (int y = 0; y <= maxY; y++) {
                         if ((y == 0) && (! bottomless)) {
-                            result.chunk.setBlockType(x, y, z, BLK_BEDROCK);
+                            result.chunk.setMaterial(x, y, z, BEDROCK);
                         } else if (y <= surfaceLayerLevel) {
                             result.chunk.setMaterial(x, y, z, subsurfaceMaterial.getMaterial(seed, worldX, worldZ, y, floorLevel));
                         } else if (y <= floorLevel) {
@@ -93,10 +93,10 @@ public class BorderChunkFactory {
                         } else if (y <= borderLevel) {
                             switch(border) {
                                 case WATER:
-                                    result.chunk.setBlockType(x, y, z, BLK_STATIONARY_WATER);
+                                    result.chunk.setMaterial(x, y, z, STATIONARY_WATER);
                                     break;
                                 case LAVA:
-                                    result.chunk.setBlockType(x, y, z, BLK_STATIONARY_LAVA);
+                                    result.chunk.setMaterial(x, y, z, STATIONARY_LAVA);
                                     break;
                                 default:
                                     // Do nothing
@@ -105,7 +105,7 @@ public class BorderChunkFactory {
                     }
                 }
                 if (dark) {
-                    result.chunk.setBlockType(x, maxY, z, BLK_BEDROCK);
+                    result.chunk.setMaterial(x, maxY, z, BEDROCK);
                     result.chunk.setHeight(x, z, maxY);
                 } else if (border == Border.VOID) {
                     result.chunk.setHeight(x, z, 0);

@@ -292,9 +292,11 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                                     }
                                     return false;
                                 } else if (worldZ > dimension.getIntHeightAt(worldX, worldY)) {
+                                    // TODO: migrate this information to Material
+                                    int blockType = world.getBlockTypeAt(worldX, worldY, worldZ);
                                     if ((collisionMode == COLLISION_MODE_ALL)
-                                            ? (!AIR_AND_FLUIDS.contains(world.getBlockTypeAt(worldX, worldY, worldZ)))
-                                            : (!BLOCKS[world.getBlockTypeAt(worldX, worldY, worldZ)].veryInsubstantial)) {
+                                            ? (! AIR_AND_FLUIDS.contains(world.getBlockTypeAt(worldX, worldY, worldZ)))
+                                            : ((blockType < 0) || (! BLOCKS[blockType].veryInsubstantial))) { // TODO: for blocks not in the legacy block database we guess that they are substantial for now
                                         // The block is above ground, it is present in the
                                         // custom object, is substantial, and there is already a
                                         // substantial block at the same location in the world;
@@ -303,7 +305,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                                             logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " due to collision with existing above ground block of type " + BLOCKS[world.getBlockTypeAt(worldX, worldY, worldZ)]);
                                         }
                                         return false;
-                                    } else if ((!allowConnectingBlocks) && wouldConnect(world, worldX, worldY, worldZ, objectBlock.id)) {
+                                    } else if ((! allowConnectingBlocks) && wouldConnect(world, worldX, worldY, worldZ, objectBlock.id)) {
                                         if (logger.isTraceEnabled()) {
                                             logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " because it would cause a connecting block");
                                         }

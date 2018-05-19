@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -47,12 +49,12 @@ public final class Material implements Serializable {
         Map<String, Object> blockSpec = BLOCK_SPECS.get(index);
         if (blockSpec != null) {
             String name = ((String) blockSpec.get("name")).intern();
-            Map<String, Serializable> properties;
+            Map<String, String> properties;
             if (blockSpec.containsKey("properties")) {
                 properties = new HashMap<>();
-                for (Map.Entry<String, Serializable> entry : ((Map<String, Serializable>) blockSpec.get("properties")).entrySet()) {
+                for (Map.Entry<String, String> entry : ((Map<String, String>) blockSpec.get("properties")).entrySet()) {
                     String key = entry.getKey();
-                    Serializable value = entry.getValue();
+                    String value = entry.getValue();
                     properties.put(key, value);
                 }
             } else {
@@ -60,7 +62,7 @@ public final class Material implements Serializable {
             }
             identity = new Identity(name, properties);
         } else {
-            identity = new Identity("legacy:block_" + blockType, Collections.singletonMap("data_value", data));
+            identity = new Identity("legacy:block_" + blockType, Collections.singletonMap("data_value", Integer.toString(data)));
         }
     }
 
@@ -82,16 +84,38 @@ public final class Material implements Serializable {
         return identity.name;
     }
 
-    public Map<String, Serializable> getProperties() {
+    public Map<String, String> getProperties() {
         return identity.properties;
     }
 
-    public Serializable getProperty(String name) {
+    public boolean hasProperty(Property<?> property) {
+        return (identity.properties != null) && identity.properties.containsKey(property.name);
+    }
+
+    @SuppressWarnings("unchecked") // Responsibility of client
+    public <T> T getProperty(Property<T> property) {
+        return (identity.properties != null) ? property.fromString(identity.properties.get(property.name)) : null;
+    }
+
+    public Material withProperty(Property<?> property, Object value) {
+        Map<String, String> newProperties = new HashMap<>();
+        if (identity.properties != null) {
+            newProperties.putAll(identity.properties);
+        }
+        newProperties.put(property.name, value.toString());
+        return get(identity.name, newProperties);
+    }
+
+    public boolean hasProperty(String name) {
+        return (identity.properties != null) && identity.properties.containsKey(name);
+    }
+
+    public String getProperty(String name) {
         return (identity.properties != null) ? identity.properties.get(name) : null;
     }
 
-    public Material withProperty(String name, Serializable value) {
-        Map<String, Serializable> newProperties = new HashMap<>();
+    public Material withProperty(String name, String value) {
+        Map<String, String> newProperties = new HashMap<>();
         if (identity.properties != null) {
             newProperties.putAll(identity.properties);
         }
@@ -1041,7 +1065,7 @@ public final class Material implements Serializable {
      */
     public static Material getByCombinedIndex(int index) {
         if (index >= LEGACY_MATERIALS.length) {
-            return get(new Identity("legacy:block_" + (index >> 4), Collections.singletonMap("data_value", index & 0xf)));
+            return get(new Identity("legacy:block_" + (index >> 4), Collections.singletonMap("data_value", Integer.toString(index & 0xf))));
         } else {
             return LEGACY_MATERIALS[index];
         }
@@ -1073,7 +1097,7 @@ public final class Material implements Serializable {
      *                   <code>null</code>.
      * @return The single instance of the specified material.
      */
-    public static Material get(String name, Map<String, Serializable> properties) {
+    public static Material get(String name, Map<String, String> properties) {
         return get(new Identity(name, properties));
     }
 
@@ -1104,7 +1128,7 @@ public final class Material implements Serializable {
         if (blockType != -1) {
             int index = (blockType << 4) | data;
             if (index >= LEGACY_MATERIALS.length) {
-                return get(new Identity("legacy:block_" + blockType, Collections.singletonMap("data_value", data)));
+                return get(new Identity("legacy:block_" + blockType, Collections.singletonMap("data_value", Integer.toString(data))));
             } else {
                 return LEGACY_MATERIALS[index];
             }
@@ -1310,10 +1334,12 @@ public final class Material implements Serializable {
     public static final Material PUMPKIN_SOUTH_FACE = LEGACY_MATERIALS[((BLK_PUMPKIN) << 4) | (DATA_PUMPKIN_SOUTH_FACE)];
     public static final Material PUMPKIN_WEST_FACE = LEGACY_MATERIALS[((BLK_PUMPKIN) << 4) | (DATA_PUMPKIN_WEST_FACE)];
 
+    public static final Property<Boolean> SNOWY = new Property<>("snowy", Boolean.class);
+
     private static final long serialVersionUID = 2011101001L;
 
     static final class Identity implements Serializable {
-        Identity(String name, Map<String, Serializable> properties) {
+        Identity(String name, Map<String, String> properties) {
             if (name == null) {
                 throw new NullPointerException();
             }
@@ -1335,8 +1361,41 @@ public final class Material implements Serializable {
         }
 
         final String name;
-        final Map<String, Serializable> properties;
+        final Map<String, String> properties;
 
         private static final long serialVersionUID = 1L;
+    }
+
+    public static final class Property<T> {
+        public Property(String name, Class<T> type) {
+            this.name = name;
+            this.type = type;
+            Method method = null;
+            if (type != String.class) {
+                try {
+                    method = type.getMethod("valueOf", String.class);
+                } catch (NoSuchMethodException e) {
+                    throw new IllegalArgumentException("Type " + type + " has no valueOf(String) method");
+                }
+            }
+            valueOfMethod = method;
+        }
+
+        @SuppressWarnings("unchecked") // Responsibility of client
+        public T fromString(String str) {
+            if (valueOfMethod == null) {
+                return (T) str;
+            } else {
+                try {
+                    return (T) valueOfMethod.invoke(null, str);
+                } catch (IllegalAccessException | InvocationTargetException e) {
+                    throw new RuntimeException(e.getClass().getSimpleName() + " when trying to parse\"" + str + "\" to " + type, e);
+                }
+            }
+        }
+
+        public final String name;
+        public final Class<T> type;
+        private final Method valueOfMethod;
     }
 }

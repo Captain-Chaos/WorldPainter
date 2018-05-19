@@ -508,8 +508,8 @@ public class JavaMapImporter {
         SPECIAL_TERRAIN_MAPPING.put(Material.DIORITE, Terrain.DIORITE);
         SPECIAL_TERRAIN_MAPPING.put(Material.ANDESITE, Terrain.ANDESITE);
 
-        // Make sure the tile entity flag in the block database is consistent
-        // with the tile entity map:
+        // Make sure the terrain flag in the block database is consistent
+        // with the terrain mapping:
         Set<Integer> allTerrainBlockIds = new HashSet<>();
         allTerrainBlockIds.addAll(TERRAIN_MAPPING.keySet());
         for (int blockId: TERRAIN_MAPPING.keySet()) {

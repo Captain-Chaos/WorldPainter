@@ -4190,7 +4190,7 @@
   {
     "blockId": 78,
     "dataValue": 0,
-    "name": "minecraft:snowHeight",
+    "name": "minecraft:snow",
     "properties": {
       "layers": "1"
     }

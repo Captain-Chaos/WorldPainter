@@ -11,11 +11,12 @@ import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import java.awt.*;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.util.*;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
+import static org.pepsoft.minecraft.ChunkImpl3.Status.LIQUID_CARVED;
+import static org.pepsoft.minecraft.ChunkImpl3.Status.POSTPROCESSED;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.AIR;
 
@@ -59,8 +60,10 @@ public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, Minecraf
         biomes = getIntArray(TAG_BIOMES);
         heightMaps = new EnumMap<>(HeightmapType.class);
         Map<String, Tag> heightMapTags = getMap(TAG_HEIGHT_MAPS);
-        for (Map.Entry<String, Tag> entry : heightMapTags.entrySet()) {
-            heightMaps.put(HeightmapType.valueOf(entry.getKey()), ((LongArrayTag) entry.getValue()).getValue());
+        if (heightMapTags != null) {
+            for (Map.Entry<String, Tag> entry : heightMapTags.entrySet()) {
+                heightMaps.put(HeightmapType.valueOf(entry.getKey()), ((LongArrayTag) entry.getValue()).getValue());
+            }
         }
         List<CompoundTag> entityTags = getList(TAG_ENTITIES);
         entities = new ArrayList<>(entityTags.size());
@@ -259,7 +262,7 @@ public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, Minecraf
 
     @Override
     public boolean isTerrainPopulated() {
-        return status == Status.POSTPROCESSED;
+        return status.ordinal() > LIQUID_CARVED.ordinal();
     }
 
     @Override
@@ -269,9 +272,9 @@ public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, Minecraf
         }
         // TODO: this is a guess, is this useful?
         if (terrainPopulated) {
-            status = Status.POSTPROCESSED;
+            status = POSTPROCESSED;
         } else {
-            status = Status.CARVED;
+            status = LIQUID_CARVED;
         }
     }
 
@@ -521,7 +524,7 @@ public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, Minecraf
     final Section[] sections;
     final int xPos, zPos;
     int[] biomes;
-    boolean lightPopulated;
+    boolean lightPopulated; // TODO: is this still used by MC 1.13?
     final List<Entity> entities;
     final List<TileEntity> tileEntities;
     final int maxHeight;
@@ -548,7 +551,7 @@ public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, Minecraf
                     materials[w +  4] = getMaterial(palette, (int) ((data & 0xf0000) >> 16));
                     materials[w +  5] = getMaterial(palette, (int) ((data & 0xf00000) >> 20));
                     materials[w +  6] = getMaterial(palette, (int) ((data & 0xf000000) >> 24));
-                    materials[w +  7] = getMaterial(palette, (int) ((data & 0xf0000000) >> 28));
+                    materials[w +  7] = getMaterial(palette, (int) ((data & 0xf0000000L) >> 28));
                     materials[w +  8] = getMaterial(palette, (int) ((data & 0xf00000000L) >> 32));
                     materials[w +  9] = getMaterial(palette, (int) ((data & 0xf000000000L) >> 36));
                     materials[w + 10] = getMaterial(palette, (int) ((data & 0xf0000000000L) >> 40));
@@ -556,7 +559,7 @@ public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, Minecraf
                     materials[w + 12] = getMaterial(palette, (int) ((data & 0xf000000000000L) >> 48));
                     materials[w + 13] = getMaterial(palette, (int) ((data & 0xf0000000000000L) >> 52));
                     materials[w + 14] = getMaterial(palette, (int) ((data & 0xf00000000000000L) >> 56));
-                    materials[w + 15] = getMaterial(palette, (int) ((data & 0xf000000000000000L) >> 60));
+                    materials[w + 15] = getMaterial(palette, (int) ((data & 0xf000000000000000L) >>> 60));
                 }
             } else {
                 BitSet bitSet = BitSet.valueOf(blockStates);
@@ -606,8 +609,8 @@ public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, Minecraf
                 paletteEntry.setTag(TAG_NAME, new StringTag(TAG_NAME, material.getName()));
                 if (material.getProperties() != null) {
                     CompoundTag propertiesTag = new CompoundTag(TAG_PROPERTIES, Collections.emptyMap());
-                    for (Map.Entry<String, Serializable> property: material.getProperties().entrySet()) {
-                        propertiesTag.setTag(property.getKey(), toNBT(property.getKey(), property.getValue()));
+                    for (Map.Entry<String, String> property: material.getProperties().entrySet()) {
+                        propertiesTag.setTag(property.getKey(), new StringTag(property.getKey(), property.getValue()));
                     }
                     paletteEntry.setTag(TAG_PROPERTIES, propertiesTag);
                 }
@@ -630,7 +633,7 @@ public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, Minecraf
                         | (reversePalette.get(materials[i +  4] != null ? materials[i +  4] : AIR) << 16)
                         | (reversePalette.get(materials[i +  5] != null ? materials[i +  5] : AIR) << 20)
                         | (reversePalette.get(materials[i +  6] != null ? materials[i +  6] : AIR) << 24)
-                        | (reversePalette.get(materials[i +  7] != null ? materials[i +  7] : AIR) << 28)
+                        | ((long) (reversePalette.get(materials[i +  7] != null ? materials[i +  7] : AIR)) << 28)
                         | ((long) (reversePalette.get(materials[i +  8] != null ? materials[i +  8] : AIR)) << 32)
                         | ((long) (reversePalette.get(materials[i +  9] != null ? materials[i +  9] : AIR)) << 36)
                         | ((long) (reversePalette.get(materials[i + 10] != null ? materials[i + 10] : AIR)) << 40)
@@ -669,14 +672,6 @@ public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, Minecraf
             return super.toNBT();
         }
 
-        private Tag toNBT(String name, Serializable value) {
-            if (value instanceof String) {
-                return new StringTag(name, (String) value);
-            } else {
-                throw new UnsupportedOperationException("Don't know how to encode property type " + value.getClass());
-            }
-        }
-
         /**
          * Indicates whether the section is empty, meaning all block ID's, data
          * values and block light values are 0, and all sky light values are 15.
@@ -704,17 +699,21 @@ public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, Minecraf
 
         private Material getMaterial(List<CompoundTag> palette, int index) {
             CompoundTag blockSpecTag = palette.get(index);
+            String name = ((StringTag) blockSpecTag.getTag(TAG_NAME)).getValue();
             CompoundTag propertiesTag = (CompoundTag) blockSpecTag.getTag(TAG_PROPERTIES);
-            Map<String, Serializable> properties;
+            if (name.equals("minecraft:air") && propertiesTag == null) {
+                return null;
+            }
+            Map<String, String> properties;
             if (propertiesTag != null) {
                 properties = new HashMap<>();
                 for (Map.Entry<String, Tag> entry : propertiesTag.getValue().entrySet()) {
-                    properties.put(entry.getKey(), (Serializable) entry.getValue().getValue());
+                    properties.put(entry.getKey(), ((StringTag) entry.getValue()).getValue());
                 }
             } else {
                 properties = null;
             }
-            return Material.get(((StringTag) blockSpecTag.getTag(TAG_NAME)).getValue(), properties);
+            return Material.get(name, properties);
         }
 
         final byte level;
@@ -724,5 +723,10 @@ public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, Minecraf
     }
 
     public enum HeightmapType {LIGHT, LIQUID, RAIN, SOLID, OCEAN_FLOOR, MOTION_BLOCKING_NO_LEAVES, LIGHT_BLOCKING, MOTION_BLOCKING, OCEAN_FLOOR_WG, WORLD_SURFACE_WG}
-    public enum Status {CARVED, DECORATED, EMPTY, FULLCHUNK, LIGHTED, LIQUID_CARVED, POSTPROCESSED, FINALIZED}
+
+    /**
+     * The chunk generation status. These are in the order Minecraft has been
+     * observed to generate them.
+     */
+    public enum Status {EMPTY, CARVED, LIQUID_CARVED, DECORATED, LIGHTED, FULLCHUNK, POSTPROCESSED, FINALIZED}
 }

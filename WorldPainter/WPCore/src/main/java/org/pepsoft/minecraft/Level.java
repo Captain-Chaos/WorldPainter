@@ -17,6 +17,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.*;
 
 /**
  *
@@ -25,23 +26,31 @@ import static org.pepsoft.minecraft.Constants.*;
 public final class Level extends AbstractNBTItem {
     public Level(int mapHeight, Platform platform) {
         super(new CompoundTag(TAG_DATA, new HashMap<>()));
-        if ((! platform.equals(DefaultPlugin.JAVA_ANVIL))
-                && (! platform.equals(DefaultPlugin.JAVA_MCREGION))
-                && (! platform.equals(DefaultPlugin.JAVA_ANVIL_1_13))) {
+        if ((! platform.equals(JAVA_ANVIL))
+                && (! platform.equals(JAVA_MCREGION))
+                && (! platform.equals(JAVA_ANVIL_1_13))) {
             throw new IllegalArgumentException("Not a supported platform: " + platform);
         }
         if ((mapHeight & (mapHeight - 1)) != 0) {
             throw new IllegalArgumentException("mapHeight " + mapHeight + " not a power of two");
         }
-        if (mapHeight != (platform.equals(DefaultPlugin.JAVA_MCREGION) ? DEFAULT_MAX_HEIGHT_1 : DEFAULT_MAX_HEIGHT_2)) {
+        if (mapHeight != (platform.equals(JAVA_MCREGION) ? DEFAULT_MAX_HEIGHT_1 : DEFAULT_MAX_HEIGHT_2)) {
             setInt(TAG_MAP_HEIGHT, mapHeight);
         }
         this.maxHeight = mapHeight;
         extraTags = null;
-        setInt(TAG_VERSION, platform.equals(DefaultPlugin.JAVA_MCREGION) ? SUPPORTED_VERSION_1 : SUPPORTED_VERSION_2);
+        setInt(TAG_VERSION, platform.equals(JAVA_MCREGION) ? SUPPORTED_VERSION_1 : SUPPORTED_VERSION_2);
         // TODO: make this dynamic?
-        if (platform.equals(DefaultPlugin.JAVA_ANVIL_1_13)) {
-            setInt(TAG_DATA_VERSION, DATA_VERSION_MC_1_13);
+        if (! platform.equals(JAVA_MCREGION)) {
+            int dataVersion = platform.equals(JAVA_ANVIL) ? DATA_VERSION_MC_1_12_2 : DATA_VERSION_MC_1_13;
+            String name = platform.equals(JAVA_ANVIL) ? "1.2" : "18w20c"; // TODO: update when 1.13 is out
+            boolean snapshot = ! platform.equals(JAVA_ANVIL); // TODO: update when 1.13 is out
+            setInt(TAG_DATA_VERSION, dataVersion);
+            Map<String, Tag> versionTag = new HashMap<>();
+            versionTag.put(TAG_ID_, new IntTag(TAG_ID_, dataVersion));
+            versionTag.put(TAG_NAME, new StringTag(TAG_NAME, name));
+            versionTag.put(TAG_SNAPSHOT, new ByteTag(TAG_SNAPSHOT, (byte) (snapshot ? 1 : 0)));
+            setMap(TAG_VERSION_, versionTag);
         }
         addDimension(0);
     }
