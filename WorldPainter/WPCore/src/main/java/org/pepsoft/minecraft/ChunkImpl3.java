@@ -39,7 +39,7 @@ public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, Minecraf
         readOnly = false;
         lightPopulated = true;
 
-        setTerrainPopulated(true); // TODO: necessary?
+        setTerrainPopulated(false);
     }
 
     public ChunkImpl3(CompoundTag tag, int maxHeight) {
