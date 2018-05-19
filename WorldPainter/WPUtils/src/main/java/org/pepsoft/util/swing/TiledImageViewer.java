@@ -221,10 +221,15 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
             tileProvider.removeTileListener(this);
             tileCaches.remove(tileProvider);
             dirtyTileCaches.remove(tileProvider);
-            // Prune the queue of jobs related to this tile provider
-            for (Iterator<Runnable> i = queue.iterator(); i.hasNext(); ) {
-                if (((TileRenderJob) i.next()).tileProvider == tileProvider) {
-                    i.remove();
+            // We're not completely sure how, but sometimes we reach here
+            // without the renderers having been started, so check whether there
+            // actually is a queue
+            if (queue != null) {
+                // Prune the queue of jobs related to this tile provider
+                for (Iterator<Runnable> i = queue.iterator(); i.hasNext(); ) {
+                    if (((TileRenderJob) i.next()).tileProvider == tileProvider) {
+                        i.remove();
+                    }
                 }
             }
         }
