@@ -755,7 +755,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
             defaultMaxHeight = DEFAULT_MAX_HEIGHT_2;
         }
         if (defaultTerrainAndLayerSettings == null) {
-            defaultTerrainAndLayerSettings = new Dimension(World2.DEFAULT_OCEAN_SEED, TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), surface, defaultMaxHeight, level, waterLevel, lava, beaches, 20, 1.0), Constants.DIM_NORMAL, defaultMaxHeight);
+            defaultTerrainAndLayerSettings = new World2(DefaultPlugin.JAVA_ANVIL, World2.DEFAULT_OCEAN_SEED, TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), surface, defaultMaxHeight, level, waterLevel, lava, beaches, 20, 1.0), defaultMaxHeight).getDimension(Constants.DIM_NORMAL);
         }
         
         // New legacy mechanism with version number
@@ -1024,7 +1024,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     // Default view and world settings
     private boolean checkForUpdates = true, undoEnabled = true, defaultGridEnabled, defaultContoursEnabled = true, defaultViewDistanceEnabled, defaultWalkingDistanceEnabled;
     private int undoLevels = 100, defaultGridSize = 128, defaultContourSeparation = 10, defaultWidth = 5, defaultHeight = 5, defaultMaxHeight = World2.DEFAULT_MAX_HEIGHT;
-    private Dimension defaultTerrainAndLayerSettings = new Dimension(World2.DEFAULT_OCEAN_SEED, TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), surface, defaultMaxHeight, level, waterLevel, lava, beaches, 20, 1.0), Constants.DIM_NORMAL, defaultMaxHeight);
+    private Dimension defaultTerrainAndLayerSettings = new World2(DefaultPlugin.JAVA_ANVIL, World2.DEFAULT_OCEAN_SEED, TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), surface, defaultMaxHeight, level, waterLevel, lava, beaches, 20, 1.0), defaultMaxHeight).getDimension(Constants.DIM_NORMAL);
     private boolean toolbarsLocked;
     private int version = CURRENT_VERSION, worldFileBackups = 3;
     private float defaultRange = 20;

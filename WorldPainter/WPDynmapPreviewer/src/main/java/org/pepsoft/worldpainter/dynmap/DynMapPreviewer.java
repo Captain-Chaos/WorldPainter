@@ -233,7 +233,7 @@ public class DynMapPreviewer extends TiledImageViewer {
         DynMapPreviewer viewer = new DynMapPreviewer();
         WPObject object = CustomObjectManager.getInstance().loadObject(new File(args[0]));
         TileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(0L, Terrain.GRASS, DEFAULT_MAX_HEIGHT_2, 58, 62, false, true, 20.0f, 1.0);
-        Dimension dimension = new Dimension(0L, tileFactory, DIM_NORMAL, DEFAULT_MAX_HEIGHT_2);
+        Dimension dimension = new World2(DefaultPlugin.JAVA_ANVIL, 0L, tileFactory, DEFAULT_MAX_HEIGHT_2).getDimension(DIM_NORMAL);
         viewer.setObject(object, dimension);
         frame.getContentPane().add(viewer, BorderLayout.CENTER);
         frame.setSize(800, 600);

@@ -24,7 +24,7 @@ import java.util.List;
  */
 public class RODelegatingDimension extends Dimension {
     public RODelegatingDimension(Dimension dimension) {
-        super(dimension.getMinecraftSeed(), dimension.getTileFactory(), dimension.getDim(), dimension.getMaxHeight());
+        super(dimension.getWorld(), dimension.getMinecraftSeed(), dimension.getTileFactory(), dimension.getDim(), dimension.getMaxHeight());
         this.dimension = dimension;
     }
 
@@ -709,11 +709,6 @@ public class RODelegatingDimension extends Dimension {
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    void setWorld(World2 world) {
-        throw new UnsupportedOperationException();
-    }
-    
     protected final Dimension dimension;
     private final Map<Point, RODelegatingTile> tileCache = new HashMap<>();
     

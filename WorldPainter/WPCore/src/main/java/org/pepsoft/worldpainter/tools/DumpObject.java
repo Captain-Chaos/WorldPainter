@@ -122,7 +122,7 @@ public class DumpObject {
 
     static {
         TileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(0L, Terrain.GRASS, DEFAULT_MAX_HEIGHT_2, 58, 62, false, true, 20.0f, 1.0);
-        FAKE_DIMENSION = new Dimension(0L, tileFactory, DIM_NORMAL, DEFAULT_MAX_HEIGHT_2);
+        FAKE_DIMENSION = new World2(DefaultPlugin.JAVA_ANVIL, 0L, tileFactory, DEFAULT_MAX_HEIGHT_2).getDimension(DIM_NORMAL);
     }
 
     private static final Logger logger = LoggerFactory.getLogger(DumpObject.class);
