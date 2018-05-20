@@ -1294,7 +1294,7 @@ public class PreferencesDialog extends WorldPainterDialog {
             checkBoxLava.setSelected(false);
             checkBoxBeaches.setSelected(true);
             comboBoxSurfaceMaterial.setSelectedItem(GRASS);
-            Configuration.getInstance().setDefaultTerrainAndLayerSettings(new Dimension(World2.DEFAULT_OCEAN_SEED, TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), GRASS, DEFAULT_MAX_HEIGHT_2, 58, 62, false, true, 20, 1.0), DIM_NORMAL, DEFAULT_MAX_HEIGHT_2));
+            Configuration.getInstance().setDefaultTerrainAndLayerSettings(new World2(DefaultPlugin.JAVA_ANVIL, World2.DEFAULT_OCEAN_SEED, TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), GRASS, DEFAULT_MAX_HEIGHT_2, 58, 62, false, true, 20, 1.0), DEFAULT_MAX_HEIGHT_2).getDimension(DIM_NORMAL));
         }
     }//GEN-LAST:event_buttonResetActionPerformed
 

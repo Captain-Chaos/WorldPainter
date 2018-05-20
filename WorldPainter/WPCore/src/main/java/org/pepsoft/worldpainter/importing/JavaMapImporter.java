@@ -114,7 +114,7 @@ public class JavaMapImporter {
         }
         long minecraftSeed = level.getSeed();
         tileFactory.setSeed(minecraftSeed);
-        Dimension dimension = new Dimension(minecraftSeed, tileFactory, DIM_NORMAL, maxHeight);
+        Dimension dimension = new Dimension(world, minecraftSeed, tileFactory, DIM_NORMAL, maxHeight);
         dimension.setEventsInhibited(true);
         try {
             dimension.setCoverSteepTerrain(false);
@@ -157,7 +157,7 @@ public class JavaMapImporter {
             terrainRanges.put(-1, Terrain.NETHERRACK);
             theme.setTerrainRanges(terrainRanges);
             theme.setLayerMap(null);
-            dimension = new Dimension(minecraftSeed + 1, netherTileFactory, DIM_NETHER, maxHeight);
+            dimension = new Dimension(world, minecraftSeed + 1, netherTileFactory, DIM_NETHER, maxHeight);
             dimension.setEventsInhibited(true);
             try {
                 dimension.setCoverSteepTerrain(false);
@@ -188,7 +188,7 @@ public class JavaMapImporter {
             terrainRanges.put(-1, Terrain.END_STONE);
             theme.setTerrainRanges(terrainRanges);
             theme.setLayerMap(Collections.emptyMap());
-            dimension = new Dimension(minecraftSeed + 2, endTileFactory, DIM_END, maxHeight);
+            dimension = new Dimension(world, minecraftSeed + 2, endTileFactory, DIM_END, maxHeight);
             dimension.setEventsInhibited(true);
             try {
                 dimension.setCoverSteepTerrain(false);

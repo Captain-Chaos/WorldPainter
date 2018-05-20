@@ -19,7 +19,7 @@ import java.util.*;
  */
 public final class DimensionSnapshot extends Dimension {
     public DimensionSnapshot(Dimension dimension, Snapshot snapshot) {
-        super(dimension.getMinecraftSeed(), dimension.getTileFactory(), dimension.getDim(), dimension.getMaxHeight());
+        super(dimension.getWorld(), dimension.getMinecraftSeed(), dimension.getTileFactory(), dimension.getDim(), dimension.getMaxHeight());
         this.dimension = dimension;
         this.snapshot = snapshot;
         super.setBorder(dimension.getBorder());
@@ -27,7 +27,6 @@ public final class DimensionSnapshot extends Dimension {
         super.setBorderLevel(dimension.getBorderLevel());
         super.setMinecraftSeed(dimension.getMinecraftSeed());
         super.setSubsurfaceMaterial(dimension.getSubsurfaceMaterial());
-        super.setWorld(dimension.getWorld());
         super.setBedrockWall(dimension.isBedrockWall());
         super.setDarkLevel(dimension.isDarkLevel());
         super.setPopulate(dimension.isPopulate());
@@ -285,11 +284,6 @@ public final class DimensionSnapshot extends Dimension {
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    void setWorld(World2 world) {
-        throw new UnsupportedOperationException();
-    }
-    
     private final Dimension dimension;
     private final Snapshot snapshot;
     private final int width, height, lowestX, highestX, lowestY, highestY;

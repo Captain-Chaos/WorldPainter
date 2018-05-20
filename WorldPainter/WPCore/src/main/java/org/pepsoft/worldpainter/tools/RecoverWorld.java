@@ -189,7 +189,7 @@ public class RecoverWorld {
                 System.err.println("Dimension " + dimension.getName() + " tile factory lost; creating default tile factory");
                 tileFactory = TileFactoryFactory.createNoiseTileFactory(dimension.getSeed(), Terrain.GRASS, maxHeight, 58, 62, false, true, 20, 1.0);
             }
-            Dimension newDimension = new Dimension(dimension.getMinecraftSeed(), tileFactory, dimension.getDim(), maxHeight);
+            Dimension newDimension = new Dimension(newWorld, dimension.getMinecraftSeed(), tileFactory, dimension.getDim(), maxHeight);
             try {
                 for (Map.Entry<Layer, ExporterSettings> settingsEntry: dimension.getAllLayerSettings().entrySet()) {
                     if (settingsEntry.getValue() != null) {

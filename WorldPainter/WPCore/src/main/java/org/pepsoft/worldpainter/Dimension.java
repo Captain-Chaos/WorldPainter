@@ -49,11 +49,15 @@ import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.*;
  * @author pepijn
  */
 public class Dimension extends InstanceKeeper implements TileProvider, Serializable, Tile.Listener, Cloneable {
-    public Dimension(long minecraftSeed, TileFactory tileFactory, int dim, int maxHeight) {
-        this(minecraftSeed, tileFactory, dim, maxHeight, true);
+    public Dimension(World2 world, long minecraftSeed, TileFactory tileFactory, int dim, int maxHeight) {
+        this(world, minecraftSeed, tileFactory, dim, maxHeight, true);
     }
 
-    public Dimension(long minecraftSeed, TileFactory tileFactory, int dim, int maxHeight, boolean init) {
+    public Dimension(World2 world, long minecraftSeed, TileFactory tileFactory, int dim, int maxHeight, boolean init) {
+        if (world == null) {
+            throw new NullPointerException("world");
+        }
+        this.world = world;
         this.seed = tileFactory.getSeed();
         this.minecraftSeed = minecraftSeed;
         this.tileFactory = tileFactory;
@@ -71,10 +75,6 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
 
     public World2 getWorld() {
         return world;
-    }
-
-    void setWorld(World2 world) {
-        this.world = world;
     }
 
     public int getDim() {
@@ -1751,7 +1751,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
 
     }
 
-    private World2 world;
+    private final World2 world;
     private final long seed;
     private final int dim;
     private Map<Point, Tile> tiles = new HashMap<>();

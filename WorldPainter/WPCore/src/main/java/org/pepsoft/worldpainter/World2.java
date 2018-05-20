@@ -52,7 +52,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         }
         this.platform = platform;
         this.maxheight = maxHeight;
-        Dimension dim = new Dimension(minecraftSeed, tileFactory, 0, maxHeight);
+        Dimension dim = new Dimension(this, minecraftSeed, tileFactory, 0, maxHeight);
         addDimension(dim);
     }
     
@@ -182,7 +182,9 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         } else if (dimension.getMaxHeight() != maxheight) {
             throw new IllegalStateException("Dimension has different max height (" + dimension.getMaxHeight() + ") than world (" + maxheight + ")");
         } else {
-            dimension.setWorld(this);
+            if (dimension.getWorld() != this) {
+                throw new IllegalArgumentException("Dimension belongs to another world");
+            }
             dimensions.put(dimension.getDim(), dimension);
             if (dimension.getDim() == 0) {
                 TileFactory tileFactory = dimension.getTileFactory();

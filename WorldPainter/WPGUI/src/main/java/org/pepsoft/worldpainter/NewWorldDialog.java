@@ -256,12 +256,12 @@ public class NewWorldDialog extends WorldPainterDialog {
     
     public World2 getSelectedWorld(ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
         final String name = fieldName.getText().trim();
-        final Dimension dimension = getSelectedDimension(progressReceiver);
+        final World2 world = new World2(platform, (Integer) comboBoxMaxHeight.getSelectedItem());
+        final Dimension dimension = getSelectedDimension(world, progressReceiver);
         if (dimension == null) {
             // Operation cancelled by user
             return null;
         }
-        final World2 world = new World2(platform, dimension.getMaxHeight());
         world.addHistoryEntry(HistoryEntry.WORLD_CREATED);
         final boolean minecraft11Only = dimension.getMaxHeight() != DEFAULT_MAX_HEIGHT_2;
         world.setName(name);
@@ -331,7 +331,7 @@ public class NewWorldDialog extends WorldPainterDialog {
         return world;
     }
     
-    public Dimension getSelectedDimension(final ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
+    public Dimension getSelectedDimension(World2 world, final ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
         long minecraftSeed;
         try {
             minecraftSeed = Long.parseLong(fieldSeed.getText());
@@ -346,7 +346,7 @@ public class NewWorldDialog extends WorldPainterDialog {
         final TileFactory tileFactory = createTileFactory(worldpainterSeed);
         
         int maxHeight = (Integer) comboBoxMaxHeight.getSelectedItem();
-        final Dimension dimension = new Dimension(minecraftSeed, tileFactory, dim, maxHeight);
+        final Dimension dimension = new Dimension(world, minecraftSeed, tileFactory, dim, maxHeight);
         dimension.setEventsInhibited(true);
         try {
             ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());

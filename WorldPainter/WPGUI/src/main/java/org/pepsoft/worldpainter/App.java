@@ -4414,7 +4414,7 @@ public final class App extends JFrame implements RadiusControl,
 
                 @Override
                 public Dimension execute(ProgressReceiver progressReceiver) throws OperationCancelled {
-                    return dialog.getSelectedDimension(progressReceiver);
+                    return dialog.getSelectedDimension(world, progressReceiver);
                 }
             });
             if (surfaceCeiling == null) {
@@ -4456,7 +4456,7 @@ public final class App extends JFrame implements RadiusControl,
 
                 @Override
                 public Dimension execute(ProgressReceiver progressReceiver) throws OperationCancelled {
-                    return dialog.getSelectedDimension(progressReceiver);
+                    return dialog.getSelectedDimension(world, progressReceiver);
                 }
             });
             if (netherCeiling == null) {
@@ -4498,7 +4498,7 @@ public final class App extends JFrame implements RadiusControl,
 
                 @Override
                 public Dimension execute(ProgressReceiver progressReceiver) throws OperationCancelled {
-                    return dialog.getSelectedDimension(progressReceiver);
+                    return dialog.getSelectedDimension(world, progressReceiver);
                 }
             });
             if (endCeiling == null) {
@@ -4674,7 +4674,7 @@ public final class App extends JFrame implements RadiusControl,
 
                 @Override
                 public Dimension execute(ProgressReceiver progressReceiver) throws OperationCancelled {
-                    return dialog.getSelectedDimension(progressReceiver);
+                    return dialog.getSelectedDimension(world, progressReceiver);
                 }
             });
             if (nether == null) {
@@ -4718,7 +4718,7 @@ public final class App extends JFrame implements RadiusControl,
 
                 @Override
                 public Dimension execute(ProgressReceiver progressReceiver) throws OperationCancelled {
-                    return dialog.getSelectedDimension(progressReceiver);
+                    return dialog.getSelectedDimension(world, progressReceiver);
                 }
             });
             if (end == null) {
