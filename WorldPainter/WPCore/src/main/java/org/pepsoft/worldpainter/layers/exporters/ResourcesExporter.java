@@ -110,7 +110,8 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
                             if ((chance <= 0.5f)
                                     && (y >= minLevels[i])
                                     && (y <= maxLevels[i])
-                                    && (((i == BLK_DIRT) || (i == BLK_GRAVEL))
+                                    // TODO: migrate this information to Material:
+                                    && (((activeMaterials[i].blockType == BLK_DIRT) || (activeMaterials[i].blockType == BLK_GRAVEL))
                                         ? (noiseGenerators[i].getPerlinNoise(dirtX, dirtY, dirtZ) >= chance)
                                         : (noiseGenerators[i].getPerlinNoise(dx, dy, dz) >= chance))) {
 //                                counts[oreType]++;

@@ -115,7 +115,7 @@ public class MapExplorer {
     private static Component createDetailsPanel() {
         JPanel detailsPanel = new JPanel(new BorderLayout());
         JToolBar toolBar = new JToolBar();
-        wordSizeSpinner = new JSpinner(new SpinnerNumberModel(4, 4, 64, 1));
+        wordSizeSpinner = new JSpinner(new SpinnerNumberModel(4, 4, 999, 1));
         wordSizeSpinner.addChangeListener(e -> updateBinaryData());
         JLabel label = new JLabel("Word size:");
         label.setLabelFor(wordSizeSpinner);

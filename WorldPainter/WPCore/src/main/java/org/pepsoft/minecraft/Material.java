@@ -97,6 +97,15 @@ public final class Material implements Serializable {
         return (identity.properties != null) ? property.fromString(identity.properties.get(property.name)) : null;
     }
 
+    /**
+     * Returns a material identical to this one, except with the specified
+     * property set to the specified value.
+     *
+     * @param property The property that should be set.
+     * @param value The value to which it should be set.
+     * @return A material identical to this one, except with the specified
+     * property set.
+     */
     public Material withProperty(Property<?> property, Object value) {
         Map<String, String> newProperties = new HashMap<>();
         if (identity.properties != null) {

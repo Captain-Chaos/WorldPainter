@@ -679,7 +679,11 @@ public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, Minecraf
          * @return <code>true</code> if the section is empty
          */
         boolean isEmpty() {
-            // TODO: check blockStates
+            for (Material material: materials) {
+                if (material != null) {
+                    return false;
+                }
+            }
             for (byte b: skyLight) {
                 if (b != (byte) -1) {
                     return false;

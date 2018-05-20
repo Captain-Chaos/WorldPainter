@@ -12,10 +12,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import static org.pepsoft.minecraft.Block.BLOCKS;
-import static org.pepsoft.minecraft.Block.BLOCK_TYPE_NAMES;
+import static org.pepsoft.minecraft.Constants.DATA_VERSION_MC_1_12_2;
 import static org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_1;
+import static org.pepsoft.minecraft.Material.AIR;
 
 /**
  *
@@ -24,16 +26,20 @@ import static org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_1;
 public class DumpChunk {
     public static void main(String[] args) throws IOException {
         File levelDatFile = new File(args[0]);
-        int chunkX = Integer.parseInt(args[1]);
-        int chunkY = Integer.parseInt(args[2]);
+        int blockX = Integer.parseInt(args[1]);
+        int blockZ = Integer.parseInt(args[2]);
+        int chunkX = blockX >> 4;
+        int chunkZ = blockZ >> 4;
         Level level = Level.load(levelDatFile);
         CompoundTag tag;
-        try (NBTInputStream in = new NBTInputStream(RegionFileCache.getChunkDataInputStream(levelDatFile.getParentFile(), chunkX, chunkY, level.getVersion()))) {
+        try (NBTInputStream in = new NBTInputStream(RegionFileCache.getChunkDataInputStream(levelDatFile.getParentFile(), chunkX, chunkZ, level.getVersion()))) {
             tag = (CompoundTag) in.readTag();
         }
         Chunk chunk = (level.getVersion() == SUPPORTED_VERSION_1)
                 ? new ChunkImpl(tag, level.getMaxHeight())
-                : new ChunkImpl2(tag, level.getMaxHeight());
+                : ((level.getDataVersion() == DATA_VERSION_MC_1_12_2)
+                    ? new ChunkImpl2(tag, level.getMaxHeight())
+                    : new ChunkImpl3(tag, level.getMaxHeight()));
 
         System.out.println("Biomes");
         System.out.println("X-->");
@@ -69,10 +75,18 @@ x:          for (int x = 0; x < 16; x++) {
             System.out.println("X-->");
             for (int z = 0; z < 16; z++) {
                 for (int x = 0; x < 16; x++) {
-                    int blockType = chunk.getBlockType(x, y, z);
-                    int data = chunk.getDataValue(x, y, z);
-                    if (blockType > 0) {
-                        if (BLOCKS[blockType].tileEntity) {
+                    Material material = chunk.getMaterial(x, y, z);
+                    if (material != AIR) {
+                        String name = material.getName();
+                        name = name.substring(name.indexOf(':') + 1);
+                        String property;
+                        Map<String, String> propertyMap = material.getProperties();
+                        if ((propertyMap != null) && (! propertyMap.isEmpty())) {
+                            property = propertyMap.entrySet().iterator().next().getValue();
+                        } else {
+                            property = "";
+                        }
+                        if ((material.blockType >= 0) && BLOCKS[material.blockType].tileEntity) {
                             int count = 0;
                             for (Iterator<TileEntity> i = tileEntities.iterator(); i.hasNext(); ) {
                                 TileEntity tileEntity = i.next();
@@ -82,20 +96,12 @@ x:          for (int x = 0; x < 16; x++) {
                                 }
                             }
                             if (count == 1) {
-                                if (data > 0) {
-                                    System.out.printf("[%3.3s:%2d]", BLOCK_TYPE_NAMES[blockType], data);
-                                } else {
-                                    System.out.printf("[%3.3s:  ]", BLOCK_TYPE_NAMES[blockType]);
-                                }
+                                System.out.printf("[%3.3s:%2.2s]", name, property);
                             } else {
-                                System.out.printf("!%3.3s!%2d!", BLOCK_TYPE_NAMES[blockType], count);
+                                System.out.printf("!%3.3s!%2d!", name, count);
                             }
                         } else {
-                            if (data > 0) {
-                                System.out.printf("[%3.3s:%2d]", BLOCK_TYPE_NAMES[blockType], data);
-                            } else {
-                                System.out.printf("[%3.3s:  ]", BLOCK_TYPE_NAMES[blockType]);
-                            }
+                            System.out.printf("[%3.3s:%2.2s]", name, property);
                         }
                     } else {
                         System.out.print("[   :  ]");
