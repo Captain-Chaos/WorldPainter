@@ -14,7 +14,6 @@ import com.jidesoft.utils.Lm;
 import org.pepsoft.util.GUIUtils;
 import org.pepsoft.util.PluginManager;
 import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
-import org.pepsoft.worldpainter.browser.WPTrustManager;
 import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
 import org.pepsoft.worldpainter.operations.MouseOrTabletOperation;
 import org.pepsoft.worldpainter.plugins.Plugin;
@@ -24,9 +23,6 @@ import org.pepsoft.worldpainter.vo.EventVO;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
@@ -41,9 +37,6 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -240,17 +233,8 @@ public class Main {
         try {
             CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
             trustedCert = (X509Certificate) certificateFactory.generateCertificate(Main.class.getResourceAsStream("/wproot.pem"));
-            
-            WPTrustManager trustManager = new WPTrustManager(trustedCert);
-            SSLContext sslContext = SSLContext.getInstance("SSL");
-            sslContext.init(null, new TrustManager[] {trustManager}, new SecureRandom());
-            HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
         } catch (CertificateException e) {
             logger.error("Certificate exception while loading trusted root certificate", e);
-        } catch (NoSuchAlgorithmException  e) {
-            logger.error("No such algorithm exception while loading trusted root certificate", e);
-        } catch (KeyManagementException e) {
-            logger.error("Key management exception while loading trusted root certificate", e);
         }
         
         // Load the plugins
