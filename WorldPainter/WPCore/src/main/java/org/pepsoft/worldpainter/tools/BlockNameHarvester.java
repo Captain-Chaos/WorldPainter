@@ -1,6 +1,5 @@
 package org.pepsoft.worldpainter.tools;
 
-import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.pepsoft.minecraft.ChunkImpl2;
 import org.pepsoft.minecraft.Level;
@@ -13,7 +12,10 @@ import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.pepsoft.worldpainter.util.MinecraftUtil;
 
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.pepsoft.minecraft.Block.BLOCKS;
 import static org.pepsoft.minecraft.Constants.*;
@@ -97,7 +99,7 @@ public class BlockNameHarvester {
                     int dataValue = index & 0xf;
                     Material material = world.getMaterialAt(x, z, 4);
                     System.out.printf("%s:%d -> %s%n", BLOCKS[blockId].name, dataValue, material.toString());
-                    if (material.getName().equals("minecraft:air") && ((blockId != 0) || (dataValue != 0))) {
+                    if ((material == AIR) && ((blockId != 0) || (dataValue != 0))) {
                         // For anything other than 0:0 this means the
                         // blockId:dataValue combo didn't correspond to a valid
                         // block, OR that the block has popped off.

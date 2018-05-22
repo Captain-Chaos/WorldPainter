@@ -19,6 +19,7 @@ import static org.pepsoft.minecraft.ChunkImpl3.Status.LIQUID_CARVED;
 import static org.pepsoft.minecraft.ChunkImpl3.Status.POSTPROCESSED;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.AIR;
+import static org.pepsoft.minecraft.Material.MC_AIR;
 
 /**
  * An "Anvil" chunk for Minecraft 1.13 and higher.
@@ -705,7 +706,7 @@ public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, Minecraf
             CompoundTag blockSpecTag = palette.get(index);
             String name = ((StringTag) blockSpecTag.getTag(TAG_NAME)).getValue();
             CompoundTag propertiesTag = (CompoundTag) blockSpecTag.getTag(TAG_PROPERTIES);
-            if (name.equals("minecraft:air") && propertiesTag == null) {
+            if (name.equals(MC_AIR) && propertiesTag == null) {
                 return null;
             }
             Map<String, String> properties;

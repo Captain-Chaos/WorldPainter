@@ -1473,6 +1473,10 @@ public final class Material implements Serializable {
     
     public static final String MINECRAFT = "minecraft";
 
+    public static final String MC_AIR   = "minecraft:air";
+    public static final String MC_WATER = "minecraft:water";
+    public static final String MC_LAVA  = "minecraft:lava";
+
     private static final long serialVersionUID = 2011101001L;
 
     static final class Identity implements Serializable {
