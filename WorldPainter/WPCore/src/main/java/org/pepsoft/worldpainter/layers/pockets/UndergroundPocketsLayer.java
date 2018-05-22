@@ -5,6 +5,7 @@
 package org.pepsoft.worldpainter.layers.pockets;
 
 import org.pepsoft.minecraft.Material;
+import org.pepsoft.worldpainter.DefaultPlugin;
 import org.pepsoft.worldpainter.MixedMaterial;
 import org.pepsoft.worldpainter.MixedMaterialManager;
 import org.pepsoft.worldpainter.Terrain;
@@ -116,7 +117,7 @@ public class UndergroundPocketsLayer extends CustomLayer {
 
         // Legacy
         if (material != null) {
-            mixedMaterial = MixedMaterial.create(material);
+            mixedMaterial = MixedMaterial.create(DefaultPlugin.JAVA_ANVIL, material);
             material = null;
         }
     }

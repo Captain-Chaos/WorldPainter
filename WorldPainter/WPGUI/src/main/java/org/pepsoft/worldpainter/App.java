@@ -1386,10 +1386,10 @@ public final class App extends JFrame implements RadiusControl,
         MixedMaterial material = getCustomMaterial(customMaterialIndex);
         CustomMaterialDialog dialog;
         if (material == null) {
-            material = MixedMaterial.create(BLK_DIRT);
-            dialog = new CustomMaterialDialog(App.this, material, world.isExtendedBlockIds(), selectedColourScheme);
+            material = MixedMaterial.create(world.getPlatform(), Material.DIRT);
+            dialog = new CustomMaterialDialog(App.this, world.getPlatform(), material, world.isExtendedBlockIds(), selectedColourScheme);
         } else {
-            dialog = new CustomMaterialDialog(App.this, material, world.isExtendedBlockIds(), selectedColourScheme);
+            dialog = new CustomMaterialDialog(App.this, world.getPlatform(), material, world.isExtendedBlockIds(), selectedColourScheme);
         }
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
@@ -1487,8 +1487,8 @@ public final class App extends JFrame implements RadiusControl,
         if (button == null) {
             menuItem = new JMenuItem(strings.getString("select.custom.material") + "...");
             menuItem.addActionListener(e -> {
-                MixedMaterial newMaterial = MixedMaterial.create(BLK_DIRT);
-                CustomMaterialDialog dialog = new CustomMaterialDialog(App.this, newMaterial, world.isExtendedBlockIds(), selectedColourScheme);
+                MixedMaterial newMaterial = MixedMaterial.create(world.getPlatform(), Material.DIRT);
+                CustomMaterialDialog dialog = new CustomMaterialDialog(App.this, world.getPlatform(), newMaterial, world.isExtendedBlockIds(), selectedColourScheme);
                 dialog.setVisible(true);
                 if (! dialog.isCancelled()) {
                     newMaterial = MixedMaterialManager.getInstance().register(newMaterial);
@@ -3035,7 +3035,7 @@ public final class App extends JFrame implements RadiusControl,
         JPopupMenu customLayerMenu = new JPopupMenu();
         JMenuItem menuItem = new JMenuItem(strings.getString("add.a.custom.object.layer") + "...");
         menuItem.addActionListener(e -> {
-            EditLayerDialog<Bo2Layer> dialog = new EditLayerDialog<>(App.this, Bo2Layer.class);
+            EditLayerDialog<Bo2Layer> dialog = new EditLayerDialog<>(App.this, world.getPlatform(), Bo2Layer.class);
             dialog.setVisible(true);
             if (! dialog.isCancelled()) {
                 Bo2Layer layer = dialog.getLayer();
@@ -3049,7 +3049,7 @@ public final class App extends JFrame implements RadiusControl,
         
         menuItem = new JMenuItem(strings.getString("add.a.custom.ground.cover.layer") + "...");
         menuItem.addActionListener(e -> {
-            EditLayerDialog<GroundCoverLayer> dialog = new EditLayerDialog<>(App.this, GroundCoverLayer.class);
+            EditLayerDialog<GroundCoverLayer> dialog = new EditLayerDialog<>(App.this, world.getPlatform(), GroundCoverLayer.class);
             dialog.setVisible(true);
             if (! dialog.isCancelled()) {
                 GroundCoverLayer layer = dialog.getLayer();
@@ -3063,7 +3063,7 @@ public final class App extends JFrame implements RadiusControl,
         
         menuItem = new JMenuItem(strings.getString("add.a.custom.underground.pockets.layer") + "...");
         menuItem.addActionListener(e -> {
-            UndergroundPocketsDialog dialog = new UndergroundPocketsDialog(App.this, MixedMaterial.create(Material.IRON_BLOCK), selectedColourScheme, world.getMaxHeight(), world.isExtendedBlockIds());
+            UndergroundPocketsDialog dialog = new UndergroundPocketsDialog(App.this, world.getPlatform(), MixedMaterial.create(world.getPlatform(), Material.IRON_BLOCK), selectedColourScheme, world.getMaxHeight(), world.isExtendedBlockIds());
             dialog.setVisible(true);
             if (! dialog.isCancelled()) {
                 UndergroundPocketsLayer layer = dialog.getLayer();
@@ -3088,7 +3088,7 @@ public final class App extends JFrame implements RadiusControl,
                 baseHeight = 58;
                 waterLevel = 62;
             }
-            TunnelLayerDialog dialog = new TunnelLayerDialog(App.this, layer, world.isExtendedBlockIds(), selectedColourScheme, dimension.getMaxHeight(), baseHeight, waterLevel);
+            TunnelLayerDialog dialog = new TunnelLayerDialog(App.this, world.getPlatform(), layer, world.isExtendedBlockIds(), selectedColourScheme, dimension.getMaxHeight(), baseHeight, waterLevel);
             dialog.setVisible(true);
             if (! dialog.isCancelled()) {
                 if (paletteName != null) {
@@ -3101,7 +3101,7 @@ public final class App extends JFrame implements RadiusControl,
         
         menuItem = new JMenuItem("Add a custom plants layer...");
         menuItem.addActionListener(e -> {
-            EditLayerDialog<PlantLayer> dialog = new EditLayerDialog<>(App.this, PlantLayer.class);
+            EditLayerDialog<PlantLayer> dialog = new EditLayerDialog<>(App.this, world.getPlatform(), PlantLayer.class);
             dialog.setVisible(true);
             if (! dialog.isCancelled()) {
                 PlantLayer layer = dialog.getLayer();
@@ -3115,7 +3115,7 @@ public final class App extends JFrame implements RadiusControl,
         
         menuItem = new JMenuItem("Add a combined layer...");
         menuItem.addActionListener(e -> {
-            EditLayerDialog<CombinedLayer> dialog = new EditLayerDialog<>(App.this, CombinedLayer.class);
+            EditLayerDialog<CombinedLayer> dialog = new EditLayerDialog<>(App.this, world.getPlatform(), CombinedLayer.class);
             dialog.setVisible(true);
             if (! dialog.isCancelled()) {
                 // TODO: get saved layer
@@ -3138,7 +3138,7 @@ public final class App extends JFrame implements RadiusControl,
             for (Class<? extends CustomLayer> customLayerClass: allPluginLayers) {
                 menuItem = new JMenuItem("Add a " + customLayerClass.getSimpleName() + " layer...");
                 menuItem.addActionListener(e -> {
-                    EditLayerDialog<CustomLayer> dialog = new EditLayerDialog<>(App.this, (Class<CustomLayer>) customLayerClass);
+                    EditLayerDialog<CustomLayer> dialog = new EditLayerDialog<>(App.this, world.getPlatform(), (Class<CustomLayer>) customLayerClass);
                     dialog.setVisible(true);
                     if (! dialog.isCancelled()) {
                         // TODO: get saved layer
@@ -3619,9 +3619,9 @@ public final class App extends JFrame implements RadiusControl,
             private <L extends CustomLayer> AbstractEditLayerDialog<L> createDialog(L layer) {
                 AbstractEditLayerDialog<L> dialog;
                 if ((layer instanceof Bo2Layer) || (layer instanceof GroundCoverLayer) || (layer instanceof CombinedLayer) || (layer instanceof PlantLayer)) {
-                    dialog = new EditLayerDialog<>(App.this, layer);
+                    dialog = new EditLayerDialog<>(App.this, world.getPlatform(), layer);
                 } else if (layer instanceof UndergroundPocketsLayer) {
-                    dialog = (AbstractEditLayerDialog<L>) new UndergroundPocketsDialog(App.this, (UndergroundPocketsLayer) layer, selectedColourScheme, dimension.getMaxHeight(), world.isExtendedBlockIds());
+                    dialog = (AbstractEditLayerDialog<L>) new UndergroundPocketsDialog(App.this, world.getPlatform(), (UndergroundPocketsLayer) layer, selectedColourScheme, dimension.getMaxHeight(), world.isExtendedBlockIds());
                 } else if (layer instanceof TunnelLayer) {
                     final int baseHeight, waterLevel;
                     final TileFactory tileFactory = dimension.getTileFactory();
@@ -3632,7 +3632,7 @@ public final class App extends JFrame implements RadiusControl,
                         baseHeight = 58;
                         waterLevel = 62;
                     }
-                    dialog = (AbstractEditLayerDialog<L>) new TunnelLayerDialog(App.this, (TunnelLayer) layer, world.isExtendedBlockIds(), selectedColourScheme, dimension.getMaxHeight(), baseHeight, waterLevel);
+                    dialog = (AbstractEditLayerDialog<L>) new TunnelLayerDialog(App.this, world.getPlatform(), (TunnelLayer) layer, world.isExtendedBlockIds(), selectedColourScheme, dimension.getMaxHeight(), baseHeight, waterLevel);
                 } else {
                     throw new IllegalArgumentException("Don't know how to create dialog for layer " + layer.getName());
                 }

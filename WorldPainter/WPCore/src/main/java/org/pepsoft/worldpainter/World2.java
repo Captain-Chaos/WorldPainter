@@ -554,7 +554,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
                 if (customMaterials != null) {
                     for (int i = 0; i < customMaterials.length; i++) {
                         if (customMaterials[i] != null) {
-                            mixedMaterials[i] = MixedMaterial.create(customMaterials[i]);
+                            mixedMaterials[i] = MixedMaterial.create(DefaultPlugin.JAVA_ANVIL, customMaterials[i]);
                         }
                     }
                     customMaterials = null;

@@ -5,24 +5,17 @@
  */
 package org.pepsoft.worldpainter.themes.impl.fancy;
 
-import org.pepsoft.minecraft.Constants;
-import org.pepsoft.worldpainter.HeightMap;
-import org.pepsoft.worldpainter.HeightTransform;
-import org.pepsoft.worldpainter.MixedMaterial;
-import org.pepsoft.worldpainter.Terrain;
-import org.pepsoft.worldpainter.Tile;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.heightMaps.ConstantHeightMap;
 import org.pepsoft.worldpainter.heightMaps.NoiseHeightMap;
 import org.pepsoft.worldpainter.heightMaps.SumHeightMap;
-import org.pepsoft.worldpainter.layers.DeciduousForest;
-import org.pepsoft.worldpainter.layers.Frost;
-import org.pepsoft.worldpainter.layers.Jungle;
-import org.pepsoft.worldpainter.layers.PineForest;
-import org.pepsoft.worldpainter.layers.SwampLand;
+import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.groundcover.GroundCoverLayer;
 import org.pepsoft.worldpainter.themes.Theme;
 
 import java.util.Random;
+
+import static org.pepsoft.minecraft.Material.SNOW_BLOCK;
 
 /**
  *
@@ -241,7 +234,7 @@ public class FancyTheme implements Theme, Cloneable {
     private HeightMap forestMap;
     private Terrain baseTerrain;
     private final HeightMap randomNoiseMap = new SumHeightMap(new ConstantHeightMap(-5f), new NoiseHeightMap(10f, 1.0, 3));
-    private final GroundCoverLayer snowLayer = new GroundCoverLayer("Deep Snow", MixedMaterial.create(Constants.BLK_SNOW_BLOCK), 0xffffff);
+    private final GroundCoverLayer snowLayer = new GroundCoverLayer("Deep Snow", MixedMaterial.create("Deep Snow", SNOW_BLOCK), 0xffffff);
     
     private static final Terrain TERRAIN_DIRT_AND_GRAVEL = Terrain.CUSTOM_1;
     private static final Terrain TERRAIN_STONE_AND_GRAVEL = Terrain.CUSTOM_2;

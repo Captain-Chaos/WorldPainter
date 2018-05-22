@@ -16,12 +16,10 @@ import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
+import static org.pepsoft.minecraft.Block.BLOCK_TYPE_NAMES;
 import static org.pepsoft.minecraft.Constants.*;
 
 /**
@@ -49,6 +47,14 @@ public final class Material implements Serializable {
         Map<String, Object> blockSpec = BLOCK_SPECS.get(index);
         if (blockSpec != null) {
             String name = ((String) blockSpec.get("name")).intern();
+            int p = name.indexOf(':');
+            if (p != -1) {
+                namespace = name.substring(0, p);
+                simpleName = name.substring(p + 1);
+            } else {
+                namespace = null;
+                simpleName = name;
+            }
             Map<String, String> properties;
             if (blockSpec.containsKey("properties")) {
                 properties = new HashMap<>();
@@ -62,7 +68,18 @@ public final class Material implements Serializable {
             }
             identity = new Identity(name, properties);
         } else {
-            identity = new Identity("legacy:block_" + blockType, Collections.singletonMap("data_value", Integer.toString(data)));
+            namespace = "legacy";
+            simpleName = "block_" + blockType;
+            identity = new Identity(namespace + ":" + simpleName, Collections.singletonMap("data_value", Integer.toString(data)));
+        }
+        stringRep = createStringRep();
+        legacyStringRep = createLegacyStringRep();
+        if (namespace != null) {
+            ALL_NAMESPACES.add(namespace);
+            SIMPLE_NAMES_BY_NAMESPACE.computeIfAbsent(namespace, name -> new HashSet<>(Collections.singleton(name))).add(simpleName);
+        }
+        if (! DEFAULT_MATERIALS_BY_NAME.containsKey(identity.name)) {
+            DEFAULT_MATERIALS_BY_NAME.put(identity.name, this);
         }
     }
 
@@ -78,6 +95,22 @@ public final class Material implements Serializable {
         index = -1;
         block = null;
         this.identity = identity;
+        int p = identity.name.indexOf(':');
+        if (p != -1) {
+            namespace = identity.name.substring(0, p);
+            simpleName = identity.name.substring(p + 1);
+        } else {
+            namespace = null;
+            simpleName = identity.name;
+        }
+        stringRep = createStringRep();
+        legacyStringRep = createLegacyStringRep();
+        ALL_NAMESPACES.add(namespace);
+        Set<String> simpleNames = SIMPLE_NAMES_BY_NAMESPACE.computeIfAbsent(namespace, name -> new HashSet<>(Arrays.asList(name)));
+        simpleNames.add(simpleName);
+        if (! DEFAULT_MATERIALS_BY_NAME.containsKey(identity.name)) {
+            DEFAULT_MATERIALS_BY_NAME.put(identity.name, this);
+        }
     }
 
     public String getName() {
@@ -1018,6 +1051,57 @@ public final class Material implements Serializable {
         throw new UnsupportedOperationException("Not supported yet"); // TODO
     }
 
+    private String createStringRep() {
+        StringBuilder sb = new StringBuilder();
+        if (! namespace.equals(MINECRAFT)) {
+            sb.append(namespace);
+            sb.append(':');
+        }
+        sb.append(simpleName);
+        if (identity.properties != null) {
+            boolean[] first = {true};
+            identity.properties.forEach((key, value) -> {
+                if (value.equals("false") || value.equals("0")) {
+                    // Skip
+                } else {
+                    if (first[0]) {
+                        sb.append('(');
+                        first[0] = false;
+                    } else {
+                        sb.append(", ");
+                    }
+                    if (value.equals("true")) {
+                        sb.append(key);
+                    } else {
+                        sb.append(key);
+                        sb.append(": ");
+                        sb.append(value);
+                    }
+                }
+            });
+            if (! first[0]) {
+                sb.append(')');
+            }
+        }
+        return sb.toString();
+    }
+
+    private String createLegacyStringRep() {
+        if (blockType < 0) {
+            return createStringRep();
+        } else if ((blockType < BLOCK_TYPE_NAMES.length) && (BLOCK_TYPE_NAMES[blockType] != null)) {
+            if (data > 0) {
+                return BLOCK_TYPE_NAMES[blockType] + " (" + data + ")";
+            } else {
+                return BLOCK_TYPE_NAMES[blockType];
+            }
+        } else if (data > 0) {
+            return blockType + " (" + data + ")";
+        } else {
+            return Integer.toString(blockType);
+        }
+    }
+
     /**
      * Get a legacy (pre-1.13) material by block ID. The data value is assumed
      * to be zero.
@@ -1110,6 +1194,30 @@ public final class Material implements Serializable {
         return get(new Identity(name, properties));
     }
 
+    /**
+     * Get a known material by name only, disregarding the properties.
+     *
+     * @param name The name of the material to get.
+     * @return A material with the specified name and unspecified properties, or
+     * <code>null</code> if no material by that name is known.
+     */
+    public static Material getDefault(String name) {
+        for (Material material: ALL_MATERIALS.values()) {
+            if (material.identity.name.equals(name)) {
+                return material;
+            }
+        }
+        return null;
+    }
+
+    public static Set<String> getAllNamespaces() {
+        return Collections.unmodifiableSet(ALL_NAMESPACES);
+    }
+    
+    public static Set<String> getAllSimpleNamesForNamespace(String namespace) {
+        return SIMPLE_NAMES_BY_NAMESPACE.containsKey(namespace) ? Collections.unmodifiableSet(SIMPLE_NAMES_BY_NAMESPACE.get(namespace)) : Collections.EMPTY_SET;
+    }
+
     // Object
 
     public boolean equals(Object o) {
@@ -1121,16 +1229,29 @@ public final class Material implements Serializable {
         return identity.hashCode();
     }
 
+    /**
+     * Get the modern style (name and property-based) name of this material. For
+     * brevity, the namespace is omitted if it isn't <code>minecraft</code> and
+     * properties with value <code>"false"</code> or <code>"0"</code> are also
+     * omitted.
+     *
+     * @return The modern style name of this material.
+     */
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(identity.name);
-        if (identity.properties != null) {
-            sb.append('(');
-            sb.append(identity.properties.entrySet().stream().map(entry -> entry.getKey() + ": " + entry.getValue()).collect(Collectors.joining(", ")));
-            sb.append(')');
-        }
-        return sb.toString();
+        return stringRep;
+    }
+
+    /**
+     * For legacy materials (pre-1.13; with a numerical block ID), get the
+     * legacy style block name for this material. For modern materials, returns
+     * the same as {@link #toString()}.
+     *
+     * @return The legacy (pre-1.13) style block name for this material, if
+     * applicable.
+     */
+    public String toLegacyString() {
+        return legacyStringRep;
     }
 
     private Object readResolve() throws ObjectStreamException {
@@ -1150,7 +1271,9 @@ public final class Material implements Serializable {
     public final int data;
     public final transient int index;
     public final transient Block block;
+    public final transient String simpleName, namespace;
     private final Identity identity;
+    private final transient String stringRep, legacyStringRep;
 
     private static final Map<Integer, Map<String, Object>> BLOCK_SPECS = new HashMap<>();
 
@@ -1177,6 +1300,9 @@ public final class Material implements Serializable {
      */
     private static final Material[] LEGACY_MATERIALS = new Material[4096];
     private static final Map<Identity, Material> ALL_MATERIALS = new HashMap<>();
+    private static final Set<String> ALL_NAMESPACES = new HashSet<>();
+    private static final Map<String, Set<String>> SIMPLE_NAMES_BY_NAMESPACE = new HashMap<>();
+    private static final Map<String, Material> DEFAULT_MATERIALS_BY_NAME = new HashMap<>();
 
     static {
         for (int i = 0; i < 4096; i++) {
@@ -1344,6 +1470,8 @@ public final class Material implements Serializable {
     public static final Material PUMPKIN_WEST_FACE = LEGACY_MATERIALS[((BLK_PUMPKIN) << 4) | (DATA_PUMPKIN_WEST_FACE)];
 
     public static final Property<Boolean> SNOWY = new Property<>("snowy", Boolean.class);
+    
+    public static final String MINECRAFT = "minecraft";
 
     private static final long serialVersionUID = 2011101001L;
 

@@ -11,20 +11,20 @@
 package org.pepsoft.worldpainter;
 
 import org.pepsoft.minecraft.Material;
-import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.worldpainter.MixedMaterial.Row;
 import org.pepsoft.worldpainter.themes.JSpinnerTableCellEditor;
 
 import javax.swing.*;
-import javax.swing.event.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.Arrays;
-import static org.pepsoft.minecraft.Block.BLOCKS;
 
 import static org.pepsoft.minecraft.Constants.HIGHEST_KNOWN_BLOCK_ID;
 import static org.pepsoft.worldpainter.MixedMaterialTableModel.*;
@@ -33,15 +33,19 @@ import static org.pepsoft.worldpainter.MixedMaterialTableModel.*;
  *
  * @author pepijn
  */
-public class CustomMaterialDialog extends WorldPainterDialog {
-    public CustomMaterialDialog(Window parent, MixedMaterial material, boolean extendedBlockIds, ColourScheme colourScheme) {
+public class CustomMaterialDialog extends WorldPainterDialog implements PropertyChangeListener  {
+    public CustomMaterialDialog(Window parent, Platform platform, MixedMaterial material, boolean extendedBlockIds, ColourScheme colourScheme) {
         super(parent);
+        this.platform = platform;
         this.material = material;
         this.extendedBlockIds = extendedBlockIds;
         this.colourScheme = colourScheme;
         
         initComponents();
 
+        materialEditor1.setExtendedBlockIds(extendedBlockIds);
+        materialEditor1.setPlatform(platform);
+        materialEditor1.addPropertyChangeListener("material", this);
         fieldName.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
@@ -69,22 +73,79 @@ public class CustomMaterialDialog extends WorldPainterDialog {
                 setControlStates();
             }
         });
-        String[] blockIds = new String[extendedBlockIds ? 4096 : 256];
-        for (int i = 0; i < blockIds.length; i++) {
-            if (BLOCKS[i].name != null) {
-                blockIds[i] = i + ": " + BLOCKS[i].name;
-            } else {
-                blockIds[i] = Integer.toString(i);
+        tableMaterialRows.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                Point point = e.getPoint();
+                int column = tableMaterialRows.columnAtPoint(point);
+                int row = tableMaterialRows.rowAtPoint(point);
+                if ((row != -1) && (column == COLUMN_MATERIAL)) {
+                    JDialog dialog = new WorldPainterDialog(CustomMaterialDialog.this);
+                    dialog.setTitle("Edit Material");
+                    MaterialSelector materialSelector = new MaterialSelector();
+                    materialSelector.setPlatform(platform);
+                    materialSelector.setExtendedBlockIds(extendedBlockIds);
+                    materialSelector.setMaterial((Material) tableModel.getValueAt(row, COLUMN_MATERIAL));
+                    dialog.getContentPane().add(materialSelector, BorderLayout.CENTER);
+                    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+                    JButton okButton = new JButton("OK");
+                    okButton.addActionListener(event -> {
+                        Material material = materialSelector.getMaterial();
+                        tableModel.setValueAt(material, row, COLUMN_MATERIAL);
+                        dialog.dispose();
+                    });
+                    buttonPanel.add(okButton);
+                    JButton cancelButton = new JButton("Cancel");
+                    cancelButton.addActionListener(event -> dialog.dispose());
+                    buttonPanel.add(cancelButton);
+                    dialog.getRootPane().setDefaultButton(okButton);
+                    dialog.getContentPane().add(buttonPanel, BorderLayout.SOUTH);
+                    dialog.pack();
+                    dialog.setLocationRelativeTo(CustomMaterialDialog.this);
+                    dialog.setVisible(true);
+                }
             }
-        }
-        comboBoxSimpleBlockID.setModel(new DefaultComboBoxModel(blockIds));
+        });
+        tableMaterialRows.addMouseMotionListener(new MouseAdapter() {
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                Point point = e.getPoint();
+                int column = tableMaterialRows.columnAtPoint(point);
+                int row = tableMaterialRows.rowAtPoint(point);
+                if ((row != -1) && (column == COLUMN_MATERIAL)) {
+                    if (! cursorSet) {
+                        tableMaterialRows.setCursor(HAND_CURSOR);
+                        cursorSet = true;
+                    }
+                } else {
+                    if (cursorSet) {
+                        tableMaterialRows.setCursor(null);
+                        cursorSet = false;
+                    }
+                }
+            }
+
+            private boolean cursorSet;
+        });
         init(material);
 
         rootPane.setDefaultButton(buttonOK);
         
         setLocationRelativeTo(parent);
     }
-    
+
+    // PropertyChangeListener
+
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        if (evt.getPropertyName().equals("material")) {
+            System.out.println(evt.getNewValue());
+            updateName();
+            schedulePreviewUpdate();
+        }
+    }
+
     @Override
     protected void ok() {
         if (tableMaterialRows.isEditing()) {
@@ -100,7 +161,7 @@ public class CustomMaterialDialog extends WorldPainterDialog {
                 // Simple
                 material.edit(
                     fieldName.getText(),
-                    new Row[] {new Row(Material.get(comboBoxSimpleBlockID.getSelectedIndex(), (Integer) spinnerSimpleDataValue.getValue()), 1000, 1.0f)},
+                    new Row[] {new Row(materialEditor1.getMaterial(), 1000, 1.0f)},
                     biome,
                     MixedMaterial.Mode.SIMPLE,
                     1.0f,
@@ -177,7 +238,7 @@ public class CustomMaterialDialog extends WorldPainterDialog {
                 // Simple
                 return new MixedMaterial(
                     fieldName.getText(),
-                    new Row(Material.get(comboBoxSimpleBlockID.getSelectedIndex(), (Integer) spinnerSimpleDataValue.getValue()), 1000, 1.0f),
+                    new Row(materialEditor1.getMaterial(), 1000, 1.0f),
                     biome,
                     checkBoxColour.isSelected() ? selectedColour : null);
             case 1:
@@ -239,31 +300,34 @@ public class CustomMaterialDialog extends WorldPainterDialog {
                 schedulePreviewUpdate();
             });
             switch (mixedMaterial.getMode()) {
-            case SIMPLE:
-                jTabbedPane1.setSelectedIndex(0);
-                Material singleMaterial = mixedMaterial.getSingleMaterial();
-                comboBoxSimpleBlockID.setSelectedIndex(singleMaterial.blockType);
-                spinnerSimpleDataValue.setValue(singleMaterial.data);
-                break;
-            case NOISE:
-                jTabbedPane1.setSelectedIndex(1);
-                radioButtonNoise.setSelected(true);
-                break;
-            case BLOBS:
-                jTabbedPane1.setSelectedIndex(1);
-                radioButtonBlobs.setSelected(true);
-                spinnerScale.setValue((int) (mixedMaterial.getScale() * 100 + 0.5f));
-                break;
-            case LAYERED:
-                jTabbedPane1.setSelectedIndex(1);
-                radioButtonLayered.setSelected(true);
-                checkBoxLayeredRepeat.setSelected(mixedMaterial.isRepeat());
-                if (mixedMaterial.getVariation() != null) {
-                    noiseSettingsEditorLayeredVariation.setNoiseSettings(mixedMaterial.getVariation());
-                }
-                spinnerLayeredXAngle.setValue(-(int) Math.round(Math.atan(mixedMaterial.getLayerXSlope()) * DEGREES_TO_RADIANS));
-                spinnerLayeredYAngle.setValue(-(int) Math.round(Math.atan(mixedMaterial.getLayerYSlope()) * DEGREES_TO_RADIANS));
-                break;
+                case SIMPLE:
+                    jTabbedPane1.setSelectedIndex(0);
+                    materialEditor1.setMaterial(mixedMaterial.getSingleMaterial());
+                    break;
+                case NOISE:
+                    jTabbedPane1.setSelectedIndex(1);
+                    radioButtonNoise.setSelected(true);
+                    break;
+                case BLOBS:
+                    jTabbedPane1.setSelectedIndex(1);
+                    radioButtonBlobs.setSelected(true);
+                    spinnerScale.setValue((int) (mixedMaterial.getScale() * 100 + 0.5f));
+                    break;
+                case LAYERED:
+                    jTabbedPane1.setSelectedIndex(1);
+                    radioButtonLayered.setSelected(true);
+                    checkBoxLayeredRepeat.setSelected(mixedMaterial.isRepeat());
+                    if (mixedMaterial.getVariation() != null) {
+                        noiseSettingsEditorLayeredVariation.setNoiseSettings(mixedMaterial.getVariation());
+                    }
+                    spinnerLayeredXAngle.setValue(-(int) Math.round(Math.atan(mixedMaterial.getLayerXSlope()) * DEGREES_TO_RADIANS));
+                    spinnerLayeredYAngle.setValue(-(int) Math.round(Math.atan(mixedMaterial.getLayerYSlope()) * DEGREES_TO_RADIANS));
+                    break;
+            }
+            if (materialEditor1.getMaterial() == null) {
+                // Set a material on the single material editor in case the user
+                // switches back:
+                materialEditor1.setMaterial(mixedMaterial.getRows()[0].material);
             }
             tableMaterialRows.setModel(tableModel);
             previousCalculatedName = createName();
@@ -331,9 +395,7 @@ public class CustomMaterialDialog extends WorldPainterDialog {
         switch (jTabbedPane1.getSelectedIndex()) {
             case 0:
                 // Simple
-                int blockId = comboBoxSimpleBlockID.getSelectedIndex();
-                int dataValue = (Integer) spinnerSimpleDataValue.getValue();
-                return Material.get(blockId, dataValue).toString();
+                return createName(materialEditor1.getMaterial());
             case 1:
                 // Complex
                 Row[] rows = tableModel.getRows();
@@ -344,14 +406,18 @@ public class CustomMaterialDialog extends WorldPainterDialog {
                     if (sb.length() > 0) {
                         sb.append('/');
                     }
-                    sb.append(row.material.toString());
+                    sb.append(createName(row.material));
                 }
                 return sb.toString();
             default:
                 throw new InternalError();
         }
     }
-    
+
+    private String createName(Material material) {
+        return platform.equals(DefaultPlugin.JAVA_ANVIL_1_13) /* TODO make dynamic */ ? material.toString() : material.toLegacyString();
+    }
+
     private boolean isExtendedBlockIds() {
         for (Row row: tableModel.getRows()) {
             if (row.material.blockType > HIGHEST_KNOWN_BLOCK_ID) {
@@ -376,11 +442,8 @@ public class CustomMaterialDialog extends WorldPainterDialog {
     private void configureTable() {
         if (jTabbedPane1.getSelectedIndex() == 1) {
             TableColumnModel columnModel = tableMaterialRows.getColumnModel();
-            TableColumn blockIDColumn = columnModel.getColumn(COLUMN_BLOCK_ID);
-            blockIDColumn.setCellEditor(new BlockIDTableCellEditor(extendedBlockIds));
-            blockIDColumn.setCellRenderer(new BlockIDTableCellRenderer());
-            SpinnerModel dataValueSpinnerModel = new SpinnerNumberModel(0, 0, 15, 1);
-            columnModel.getColumn(COLUMN_DATA_VALUE).setCellEditor(new JSpinnerTableCellEditor(dataValueSpinnerModel));
+            TableColumn materialColumn = columnModel.getColumn(COLUMN_MATERIAL);
+            materialColumn.setCellRenderer(new MaterialTableCellRenderer(platform));
             SpinnerModel occurrenceSpinnerModel = new SpinnerNumberModel(1000, 1, 1000, 1);
             columnModel.getColumn(COLUMN_OCCURRENCE).setCellEditor(new JSpinnerTableCellEditor(occurrenceSpinnerModel));
             if (tableModel.getMode() == MixedMaterial.Mode.BLOBS) {
@@ -450,14 +513,9 @@ public class CustomMaterialDialog extends WorldPainterDialog {
         buttonSave = new javax.swing.JButton();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         jPanel3 = new javax.swing.JPanel();
-        jLabel10 = new javax.swing.JLabel();
-        jLabel11 = new javax.swing.JLabel();
-        comboBoxSimpleBlockID = new javax.swing.JComboBox();
-        spinnerSimpleDataValue = new javax.swing.JSpinner();
-        jLabel12 = new javax.swing.JLabel();
+        materialEditor1 = new org.pepsoft.worldpainter.MaterialSelector();
         jPanel2 = new javax.swing.JPanel();
         spinnerScale = new javax.swing.JSpinner();
-        jLabel4 = new javax.swing.JLabel();
         buttonAddMaterial = new javax.swing.JButton();
         buttonRemoveMaterial = new javax.swing.JButton();
         jLabel6 = new javax.swing.JLabel();
@@ -563,64 +621,17 @@ public class CustomMaterialDialog extends WorldPainterDialog {
             }
         });
 
-        jLabel10.setText("Block ID:");
-
-        jLabel11.setText("Data value:");
-
-        comboBoxSimpleBlockID.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                comboBoxSimpleBlockIDActionPerformed(evt);
-            }
-        });
-
-        spinnerSimpleDataValue.setModel(new javax.swing.SpinnerNumberModel(0, 0, 15, 1));
-        spinnerSimpleDataValue.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spinnerSimpleDataValueStateChanged(evt);
-            }
-        });
-
-        jLabel12.setForeground(new java.awt.Color(0, 0, 255));
-        jLabel12.setText("<html><u>Look up block ID's and data values</u></html>");
-        jLabel12.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        jLabel12.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jLabel12MouseClicked(evt);
-            }
-        });
-
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel10)
-                            .addComponent(jLabel11))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(spinnerSimpleDataValue, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(comboBoxSimpleBlockID, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(287, Short.MAX_VALUE))
+            .addComponent(materialEditor1, javax.swing.GroupLayout.PREFERRED_SIZE, 489, Short.MAX_VALUE)
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel10)
-                    .addComponent(comboBoxSimpleBlockID, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel11)
-                    .addComponent(spinnerSimpleDataValue, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(263, Short.MAX_VALUE))
+                .addComponent(materialEditor1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 222, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("Simple", jPanel3);
@@ -630,15 +641,6 @@ public class CustomMaterialDialog extends WorldPainterDialog {
         spinnerScale.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 spinnerScaleStateChanged(evt);
-            }
-        });
-
-        jLabel4.setForeground(new java.awt.Color(0, 0, 255));
-        jLabel4.setText("<html><u>Look up block ID's and data values</u></html>");
-        jLabel4.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        jLabel4.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jLabel4MouseClicked(evt);
             }
         });
 
@@ -770,8 +772,7 @@ public class CustomMaterialDialog extends WorldPainterDialog {
                                     .addComponent(checkBoxLayeredRepeat))))
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(buttonRemoveMaterial)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buttonAddMaterial)))
@@ -804,10 +805,9 @@ public class CustomMaterialDialog extends WorldPainterDialog {
                 .addGap(18, 18, 18)
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 143, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 205, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(buttonAddMaterial)
                     .addComponent(buttonRemoveMaterial))
                 .addContainerGap())
@@ -889,14 +889,6 @@ public class CustomMaterialDialog extends WorldPainterDialog {
         ok();
     }//GEN-LAST:event_buttonOKActionPerformed
 
-    private void jLabel4MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel4MouseClicked
-        try {
-            DesktopUtils.open(new URL("https://www.worldpainter.net/links/dataValues"));
-        } catch (MalformedURLException e) {
-            throw new RuntimeException("Malformed URL exception while trying to open https://www.worldpainter.net/links/dataValues", e);
-        }
-    }//GEN-LAST:event_jLabel4MouseClicked
-
     private void buttonAddMaterialActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonAddMaterialActionPerformed
         addMaterial();
     }//GEN-LAST:event_buttonAddMaterialActionPerformed
@@ -960,14 +952,6 @@ public class CustomMaterialDialog extends WorldPainterDialog {
         loadMaterial();
     }//GEN-LAST:event_buttonLoadActionPerformed
 
-    private void jLabel12MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel12MouseClicked
-        try {
-            DesktopUtils.open(new URL("https://www.worldpainter.net/links/dataValues"));
-        } catch (MalformedURLException e) {
-            throw new RuntimeException("Malformed URL exception while trying to open https://www.worldpainter.net/links/dataValues", e);
-        }
-    }//GEN-LAST:event_jLabel12MouseClicked
-
     private void jTabbedPane1StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jTabbedPane1StateChanged
         if (! programmaticChange) {
             setControlStates();
@@ -985,16 +969,6 @@ public class CustomMaterialDialog extends WorldPainterDialog {
         }
     }
 
-    private void comboBoxSimpleBlockIDActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxSimpleBlockIDActionPerformed
-        updateName();
-        schedulePreviewUpdate();
-    }//GEN-LAST:event_comboBoxSimpleBlockIDActionPerformed
-
-    private void spinnerSimpleDataValueStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerSimpleDataValueStateChanged
-        updateName();
-        schedulePreviewUpdate();
-    }//GEN-LAST:event_spinnerSimpleDataValueStateChanged
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonAddMaterial;
     private javax.swing.JButton buttonCancel;
@@ -1006,15 +980,10 @@ public class CustomMaterialDialog extends WorldPainterDialog {
     private javax.swing.JButton buttonSelectColour;
     private javax.swing.JCheckBox checkBoxColour;
     private javax.swing.JCheckBox checkBoxLayeredRepeat;
-    private javax.swing.JComboBox comboBoxSimpleBlockID;
     private javax.swing.JTextField fieldName;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel10;
-    private javax.swing.JLabel jLabel11;
-    private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
@@ -1027,6 +996,7 @@ public class CustomMaterialDialog extends WorldPainterDialog {
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JLabel labelColour;
     private javax.swing.JLabel labelPreview;
+    private org.pepsoft.worldpainter.MaterialSelector materialEditor1;
     private org.pepsoft.worldpainter.NoiseSettingsEditor noiseSettingsEditorLayeredVariation;
     private javax.swing.JRadioButton radioButtonBlobs;
     private javax.swing.JRadioButton radioButtonLayered;
@@ -1034,10 +1004,10 @@ public class CustomMaterialDialog extends WorldPainterDialog {
     private javax.swing.JSpinner spinnerLayeredXAngle;
     private javax.swing.JSpinner spinnerLayeredYAngle;
     private javax.swing.JSpinner spinnerScale;
-    private javax.swing.JSpinner spinnerSimpleDataValue;
     private javax.swing.JTable tableMaterialRows;
     // End of variables declaration//GEN-END:variables
 
+    private final Platform platform;
     private final boolean extendedBlockIds;
     private final ColourScheme colourScheme;
     private MixedMaterial material;
@@ -1049,6 +1019,6 @@ public class CustomMaterialDialog extends WorldPainterDialog {
     private boolean programmaticChange;
     
     private static final double DEGREES_TO_RADIANS = 180 / Math.PI;
+    private static final Cursor HAND_CURSOR = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
     private static final long serialVersionUID = 1L;
-    private static final String[] BLOCK_TYPES = new String[256];
 }

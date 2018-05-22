@@ -5,10 +5,7 @@
  */
 package org.pepsoft.worldpainter.layers.tunnel;
 
-import org.pepsoft.worldpainter.ColourScheme;
-import org.pepsoft.worldpainter.MixedMaterial;
-import org.pepsoft.worldpainter.MixedMaterialManager;
-import org.pepsoft.worldpainter.NoiseSettings;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.layers.AbstractEditLayerDialog;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.Mode;
 
@@ -16,13 +13,14 @@ import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
+import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import org.pepsoft.worldpainter.App;
+
 import org.pepsoft.worldpainter.exporting.IncidentalLayerExporter;
 import org.pepsoft.worldpainter.layers.Bo2Layer;
 import org.pepsoft.worldpainter.layers.CustomLayer;
@@ -38,8 +36,9 @@ import org.pepsoft.worldpainter.layers.plants.PlantLayer;
  * @author SchmitzP
  */
 public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> implements ChangeListener, ListSelectionListener {
-    public TunnelLayerDialog(Window parent, TunnelLayer layer, boolean extendedBlockIds, ColourScheme colourScheme, int maxHeight, int baseHeight, int waterLevel) {
+    public TunnelLayerDialog(Window parent, Platform platform, TunnelLayer layer, boolean extendedBlockIds, ColourScheme colourScheme, int maxHeight, int baseHeight, int waterLevel) {
         super(parent);
+        this.platform = platform;
         this.layer = layer;
         this.baseHeight = baseHeight;
         this.waterLevel = waterLevel;
@@ -286,7 +285,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         if (selectedRow != -1) {
             Layer layer = floorLayersTableModel.getLayer(selectedRow);
             if (layer instanceof CustomLayer) {
-                EditLayerDialog<Layer> dialog = new EditLayerDialog<>(this, layer);
+                EditLayerDialog<Layer> dialog = new EditLayerDialog<>(this, platform, layer);
                 dialog.setVisible(true);
                 if (! dialog.isCancelled()) {
                     floorLayersTableModel.layerChanged(selectedRow);
@@ -342,7 +341,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         JPopupMenu popupMenu = new JPopupMenu();
         JMenuItem item = new JMenuItem("Custom Objects Layer");
         item.addActionListener(e -> {
-            EditLayerDialog<Bo2Layer> dialog = new EditLayerDialog(TunnelLayerDialog.this, Bo2Layer.class);
+            EditLayerDialog<Bo2Layer> dialog = new EditLayerDialog(TunnelLayerDialog.this, platform, Bo2Layer.class);
             dialog.setVisible(true);
             if (! dialog.isCancelled()) {
                 Bo2Layer newLayer = dialog.getLayer();
@@ -353,7 +352,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         popupMenu.add(item);
         item = new JMenuItem("Custom Ground Cover Layer");
         item.addActionListener(e -> {
-            EditLayerDialog<GroundCoverLayer> dialog = new EditLayerDialog(TunnelLayerDialog.this, GroundCoverLayer.class);
+            EditLayerDialog<GroundCoverLayer> dialog = new EditLayerDialog(TunnelLayerDialog.this, platform, GroundCoverLayer.class);
             dialog.setVisible(true);
             if (! dialog.isCancelled()) {
                 GroundCoverLayer newLayer = dialog.getLayer();
@@ -364,7 +363,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         popupMenu.add(item);
         item = new JMenuItem("Custom Plants Layer");
         item.addActionListener(e -> {
-            EditLayerDialog<PlantLayer> dialog = new EditLayerDialog(TunnelLayerDialog.this, PlantLayer.class);
+            EditLayerDialog<PlantLayer> dialog = new EditLayerDialog(TunnelLayerDialog.this, platform, PlantLayer.class);
             dialog.setVisible(true);
             if (! dialog.isCancelled()) {
                 PlantLayer newLayer = dialog.getLayer();
@@ -1176,6 +1175,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
     private javax.swing.JTextField textFieldName;
     // End of variables declaration//GEN-END:variables
 
+    private final Platform platform;
     private final TunnelLayer layer;
     private final int waterLevel, baseHeight, maxHeight;
     private TunnelFloorLayersTableModel floorLayersTableModel;

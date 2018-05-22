@@ -5,6 +5,7 @@
 package org.pepsoft.worldpainter.layers.groundcover;
 
 import org.pepsoft.minecraft.Material;
+import org.pepsoft.worldpainter.DefaultPlugin;
 import org.pepsoft.worldpainter.MixedMaterial;
 import org.pepsoft.worldpainter.MixedMaterialManager;
 import org.pepsoft.worldpainter.NoiseSettings;
@@ -130,7 +131,7 @@ public class GroundCoverLayer extends CustomLayer {
             thickness = 1;
         }
         if (mixedMaterial == null) {
-            mixedMaterial = MixedMaterial.create(material);
+            mixedMaterial = MixedMaterial.create(DefaultPlugin.JAVA_ANVIL, material);
             material = null;
         }
         if (edgeShape == null) {
