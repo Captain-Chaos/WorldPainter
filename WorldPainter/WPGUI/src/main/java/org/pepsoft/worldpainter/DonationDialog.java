@@ -10,35 +10,27 @@
  */
 package org.pepsoft.worldpainter;
 
-import java.awt.Frame;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
+import org.pepsoft.util.DesktopUtils;
+import org.pepsoft.worldpainter.vo.EventVO;
+
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import javax.imageio.ImageIO;
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
-import javax.swing.ImageIcon;
-import javax.swing.InputMap;
-import javax.swing.JComponent;
-import javax.swing.JOptionPane;
-import javax.swing.KeyStroke;
-import javax.swing.UIManager;
-import javax.swing.border.EmptyBorder;
-import org.pepsoft.util.DesktopUtils;
-import org.pepsoft.worldpainter.vo.EventVO;
 
 /**
  *
  * @author pepijn
  */
-public final class DonationDialog extends javax.swing.JDialog {
+public final class DonationDialog extends WorldPainterDialog {
     /** Creates new form DonationDialog */
-    public DonationDialog(java.awt.Frame parent, boolean modal) {
-        super(parent, modal);
+    public DonationDialog(Window parent) {
+        super(parent);
         initComponents();
         
         // Fix JTextArea font, which uses a butt ugly non-proportional font by
@@ -55,38 +47,20 @@ public final class DonationDialog extends javax.swing.JDialog {
                     jButton1.setText(null);
                     jButton1.setBorder(new EmptyBorder(0, 0, 0, 0));
                     jButton1.setContentAreaFilled(false);
-                    pack();
                 }
             }
         } catch (IOException e) {
             // Do nothing
         }
         
-        ActionMap actionMap = rootPane.getActionMap();
-        actionMap.put("cancel", new AbstractAction("cancel") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                askLater();
-            }
-
-            private static final long serialVersionUID = 1L;
-        });
-
-        InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "cancel");
-
         rootPane.setDefaultButton(jButton1);
         pack();
     }
 
-    public boolean isCancelled() {
-        return cancelled;
-    }
-    
-    public static void maybeShowDonationDialog(Frame parent) {
+    public static void maybeShowDonationDialog(Window parent) {
         Configuration config = Configuration.getInstance();
         if ((config.getLaunchCount() >= 5) && (config.getDonationStatus() == null)) {
-            DonationDialog dialog = new DonationDialog(parent, true);
+            DonationDialog dialog = new DonationDialog(parent);
             dialog.setLocationRelativeTo(parent);
             dialog.setVisible(true);
             if (dialog.isCancelled()) {
@@ -100,9 +74,8 @@ public final class DonationDialog extends javax.swing.JDialog {
             DesktopUtils.open(new URL("https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=VZ7WNQVPXDZHY"));
             Configuration.getInstance().setDonationStatus(Configuration.DonationStatus.DONATED);
             JOptionPane.showMessageDialog(this, "The donation PayPal page has been opened in your browser.\n\nThank you very much for donating!", "Thank You", JOptionPane.INFORMATION_MESSAGE);
-            cancelled = false;
             Configuration.getInstance().logEvent(new EventVO(Constants.EVENT_KEY_DONATION_DONATE).addTimestamp());
-            dispose();
+            ok();
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
@@ -111,23 +84,20 @@ public final class DonationDialog extends javax.swing.JDialog {
     private void alreadyDonated() {
         Configuration.getInstance().setDonationStatus(Configuration.DonationStatus.DONATED);
         JOptionPane.showMessageDialog(this, "Thank you very much for donating!", "Thank You", JOptionPane.INFORMATION_MESSAGE);
-        cancelled = false;
         Configuration.getInstance().logEvent(new EventVO(Constants.EVENT_KEY_DONATION_ALREADY_DONATED).addTimestamp());
-        dispose();
+        ok();
     }
     
     private void askLater() {
-        cancelled = false;
         Configuration.getInstance().logEvent(new EventVO(Constants.EVENT_KEY_DONATION_ASK_LATER).addTimestamp());
-        dispose();
+        ok();
     }
     
     private void noThanks() {
         Configuration.getInstance().setDonationStatus(Configuration.DonationStatus.NO_THANK_YOU);
         JOptionPane.showMessageDialog(this, "Alright, no problem. We will not ask you again.\nIf you ever change your mind, you can donate from the About screen!", "No Problem", JOptionPane.INFORMATION_MESSAGE);
-        cancelled = false;
         Configuration.getInstance().logEvent(new EventVO(Constants.EVENT_KEY_DONATION_NO_THANKS).addTimestamp());
-        dispose();
+        ok();
     }
 
     /** This method is called from within the constructor to
@@ -148,13 +118,14 @@ public final class DonationDialog extends javax.swing.JDialog {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Please Donate");
+        setResizable(false);
 
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/resources/banner.png"))); // NOI18N
         jLabel1.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
 
-        jTextArea1.setColumns(20);
         jTextArea1.setEditable(false);
+        jTextArea1.setColumns(20);
         jTextArea1.setLineWrap(true);
         jTextArea1.setText("Thank you for using WorldPainter!\n\nWorldPainter takes a lot of effort to create and maintain. You are free to keep using it without paying, but please consider helping out with a small donation of € 4.95.");
         jTextArea1.setWrapStyleWord(true);
@@ -162,19 +133,35 @@ public final class DonationDialog extends javax.swing.JDialog {
 
         jButton1.setMnemonic('d');
         jButton1.setText("Donate");
-        jButton1.addActionListener(this::jButton1ActionPerformed);
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
 
         jButton2.setMnemonic('a');
         jButton2.setText("I have already donated");
-        jButton2.addActionListener(this::jButton2ActionPerformed);
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
 
         jButton3.setMnemonic('l');
         jButton3.setText("Ask me later");
-        jButton3.addActionListener(this::jButton3ActionPerformed);
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
 
         jButton4.setMnemonic('n');
         jButton4.setText("No thank you");
-        jButton4.addActionListener(this::jButton4ActionPerformed);
+        jButton4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton4ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -201,14 +188,14 @@ public final class DonationDialog extends javax.swing.JDialog {
                 .addContainerGap()
                 .addComponent(jLabel1)
                 .addGap(18, 18, 18)
-                .addComponent(jTextArea1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jTextArea1)
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton1)
                     .addComponent(jButton2)
                     .addComponent(jButton3)
                     .addComponent(jButton4))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
 
         pack();
@@ -239,7 +226,5 @@ public final class DonationDialog extends javax.swing.JDialog {
     private javax.swing.JTextArea jTextArea1;
     // End of variables declaration//GEN-END:variables
 
-    private boolean cancelled = true;
-    
     private static final long serialVersionUID = 1L;
 }
