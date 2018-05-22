@@ -14,7 +14,6 @@ import org.pepsoft.util.PluginManager;
 import org.pepsoft.worldpainter.Configuration;
 import org.pepsoft.worldpainter.Main;
 import org.pepsoft.worldpainter.MouseAdapter;
-import org.pepsoft.worldpainter.browser.WPTrustManager;
 import org.pepsoft.worldpainter.mapexplorer.Node;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.pepsoft.worldpainter.util.MinecraftUtil;
@@ -22,9 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
 import javax.swing.*;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
@@ -34,9 +30,6 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.file.Files;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -78,17 +71,8 @@ public class MapExplorer {
         try {
             CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
             trustedCert = (X509Certificate) certificateFactory.generateCertificate(Main.class.getResourceAsStream("/wproot.pem"));
-
-            WPTrustManager trustManager = new WPTrustManager(trustedCert);
-            SSLContext sslContext = SSLContext.getInstance("SSL");
-            sslContext.init(null, new TrustManager[] {trustManager}, new SecureRandom());
-            HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
         } catch (CertificateException e) {
             logger.error("Certificate exception while loading trusted root certificate", e);
-        } catch (NoSuchAlgorithmException e) {
-            logger.error("No such algorithm exception while loading trusted root certificate", e);
-        } catch (KeyManagementException e) {
-            logger.error("Key management exception while loading trusted root certificate", e);
         }
 
         // Load the plugins
