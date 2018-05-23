@@ -58,7 +58,8 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
                     int leafBlocksEncountered = 0;
                     for (int height = (maxHeight - 2); height >= 0; height--) {
                         Material material = minecraftWorld.getMaterialAt(x, y, height);
-                        if (noSnowOn.get(material.blockType)) {
+                        // TODOMC13: migrate this to modern materials:
+                        if ((material.blockType >= 0) && noSnowOn.get(material.blockType)) {
                             previousMaterial = material;
                             continue;
                         } else {

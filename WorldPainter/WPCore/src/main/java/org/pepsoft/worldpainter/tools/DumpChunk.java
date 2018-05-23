@@ -77,7 +77,7 @@ x:          for (int x = 0; x < 16; x++) {
                 for (int x = 0; x < 16; x++) {
                     Material material = chunk.getMaterial(x, y, z);
                     if (material != AIR) {
-                        String name = material.getName();
+                        String name = material.name;
                         name = name.substring(name.indexOf(':') + 1);
                         String property;
                         Map<String, String> propertyMap = material.getProperties();

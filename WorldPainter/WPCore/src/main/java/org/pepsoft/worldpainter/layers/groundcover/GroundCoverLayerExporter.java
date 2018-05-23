@@ -127,7 +127,7 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                                 final int existingBlockType = chunk.getBlockType(x, y, z);
                                 final Material material = mixedMaterial.getMaterial(seed, worldX, worldY, y + yOffset);
                                 if ((material != Material.AIR)
-                                        && ((! material.block.veryInsubstantial)
+                                        && ((! material.veryInsubstantial)
                                             || (existingBlockType == BLK_AIR)
                                             || Block.BLOCKS[existingBlockType].insubstantial)) {
                                     if (smooth && (dy == (effectiveThickness - 1))) {
@@ -199,7 +199,7 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                         final int existingBlockType = minecraftWorld.getBlockTypeAt(location.x, location.y, z);
                         final Material material = mixedMaterial.getMaterial(seed, location.x, location.y, z);
                         if ((material != Material.AIR)
-                                && ((! material.block.veryInsubstantial)
+                                && ((! material.veryInsubstantial)
                                     || (existingBlockType == BLK_AIR)
                                     || Block.BLOCKS[existingBlockType].insubstantial)) {
                             minecraftWorld.setMaterialAt(location.x, location.y, z, material);

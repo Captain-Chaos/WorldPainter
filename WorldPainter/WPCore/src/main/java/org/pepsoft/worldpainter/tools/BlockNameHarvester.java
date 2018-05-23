@@ -109,7 +109,7 @@ public class BlockNameHarvester {
                     Map<String, Object> blockSpec = new HashMap<>();
                     blockSpec.put("blockId", blockId);
                     blockSpec.put("dataValue", dataValue);
-                    blockSpec.put("name", material.getName());
+                    blockSpec.put("name", material.name);
                     if (material.getProperties() != null) {
                         blockSpec.put("properties", material.getProperties());
                     }

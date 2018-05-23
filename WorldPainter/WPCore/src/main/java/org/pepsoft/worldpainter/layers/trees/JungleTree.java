@@ -13,9 +13,7 @@ import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 
 import java.util.Random;
 
-import static org.pepsoft.minecraft.Block.BLOCKS;
 import static org.pepsoft.minecraft.Constants.*;
-import static org.pepsoft.minecraft.Direction.*;
 import static org.pepsoft.minecraft.Material.*;
 
 /**
@@ -85,7 +83,7 @@ public class JungleTree extends TreeType {
             int worldX = x + dx, worldY = y + dy;
             int depth = 0;
             for (int z = height + h; z > 0; z--) {
-                if (! BLOCKS[world.getBlockTypeAt(worldX, worldY, z)].veryInsubstantial) {
+                if (! world.getMaterialAt(worldX, worldY, z).veryInsubstantial) {
                     depth++;
                 }
                 world.setMaterialAt(worldX, worldY, z, (z < (height + h)) ? trunkMaterial : capMaterial);
@@ -187,7 +185,7 @@ public class JungleTree extends TreeType {
             int dx = (int) (Math.sin(angle) * i + 0.5f);
             int dy = (int) (Math.cos(angle) * i + 0.5f);
             int dz = (int) (i * slope);
-            if (! BLOCKS[world.getBlockTypeAt(x + dx, y + dy, height + size + dz + 1)].veryInsubstantial) {
+            if (! world.getMaterialAt(x + dx, y + dy, height + size + dz + 1).veryInsubstantial) {
                 continue;
             }
             world.setMaterialAt(x + dx, y + dy, height + size + dz, (i < (l - 1)) ? branchMaterial : capMaterial);
@@ -202,7 +200,7 @@ public class JungleTree extends TreeType {
     
     @Override
     protected void maybePlaceLeaves(int x, int y, int h, int r, float distance, MinecraftWorld minecraftWorld, Random random) {
-        if (minecraftWorld.getBlockTypeAt(x, y, h) == BLK_AIR) {
+        if (minecraftWorld.getMaterialAt(x, y, h) == AIR) {
             if (distance <= r) {
                 minecraftWorld.setMaterialAt(x, y, h, leafMaterial);
             }
@@ -211,19 +209,19 @@ public class JungleTree extends TreeType {
 
     protected void renderCocoaPods(int x, int y, int height, int size, MinecraftWorld world, Random random) {
         if (size < 12) {
-            renderCocoaPods(x - 1, y,     height, size, world, random, EAST);
-            renderCocoaPods(x,     y - 1, height, size, world, random, SOUTH);
-            renderCocoaPods(x + 1, y,     height, size, world, random, WEST);
-            renderCocoaPods(x,     y + 1, height, size, world, random, NORTH);
+            renderCocoaPods(x - 1, y,     height, size, world, random, Direction.EAST);
+            renderCocoaPods(x,     y - 1, height, size, world, random, Direction.SOUTH);
+            renderCocoaPods(x + 1, y,     height, size, world, random, Direction.WEST);
+            renderCocoaPods(x,     y + 1, height, size, world, random, Direction.NORTH);
         } else if (size < 32) {
-            renderCocoaPods(x - 1, y,     height, size, world, random, EAST);
-            renderCocoaPods(x - 1, y + 1, height, size, world, random, EAST);
-            renderCocoaPods(x,     y - 1, height, size, world, random, SOUTH);
-            renderCocoaPods(x + 1, y - 1, height, size, world, random, SOUTH);
-            renderCocoaPods(x + 2, y,     height, size, world, random, WEST);
-            renderCocoaPods(x + 2, y + 1, height, size, world, random, WEST);
-            renderCocoaPods(x,     y + 2, height, size, world, random, NORTH);
-            renderCocoaPods(x + 1, y + 2, height, size, world, random, NORTH);
+            renderCocoaPods(x - 1, y,     height, size, world, random, Direction.EAST);
+            renderCocoaPods(x - 1, y + 1, height, size, world, random, Direction.EAST);
+            renderCocoaPods(x,     y - 1, height, size, world, random, Direction.SOUTH);
+            renderCocoaPods(x + 1, y - 1, height, size, world, random, Direction.SOUTH);
+            renderCocoaPods(x + 2, y,     height, size, world, random, Direction.WEST);
+            renderCocoaPods(x + 2, y + 1, height, size, world, random, Direction.WEST);
+            renderCocoaPods(x,     y + 2, height, size, world, random, Direction.NORTH);
+            renderCocoaPods(x + 1, y + 2, height, size, world, random, Direction.NORTH);
         }
     }
     

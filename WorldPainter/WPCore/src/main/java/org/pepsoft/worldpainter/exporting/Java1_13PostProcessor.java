@@ -5,8 +5,6 @@ import org.pepsoft.util.Box;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.objects.MinecraftWorldObject;
 
-import static org.pepsoft.minecraft.Block.BLOCKS;
-import static org.pepsoft.minecraft.Block.BLOCK_TRANSPARENCY;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 
@@ -86,36 +84,42 @@ public class Java1_13PostProcessor extends PostProcessor {
 //                if ((minZ == 0) && (blockTypeAbove != BLK_BEDROCK) && (blockTypeAbove != BLK_AIR) && (blockTypeAbove != BLK_STATIONARY_WATER) && (blockTypeAbove != BLK_STATIONARY_LAVA)) {
 //                    logger.warn("Non-bedrock block @ " + x + "," + y + ",0: " + BLOCKS[blockTypeAbove].name);
 //                }
-                // TODO: port all properties of Blocks to Material and change the references
                 for (int z = minZ; z <= maxZ; z++) {
                     Material material = materialAbove;
                     materialAbove = (z < worldMaxZ) ? minecraftWorld.getMaterialAt(x, y, z + 1) : AIR;
-                    if (((materialBelow == GRASS) || (materialBelow == MYCELIUM) || (materialBelow.blockType == BLK_TILLED_DIRT)) && ((material == WATER) || (material == STATIONARY_WATER) || (material == ICE) || ((material.blockType >= 0) && (material.blockType <= HIGHEST_KNOWN_BLOCK_ID) && (BLOCK_TRANSPARENCY[material.blockType] == 15)))) {
+                    if (((materialBelow.isNamed(MC_GRASS_BLOCK)) || (materialBelow.isNamed(MC_MYCELIUM)) || (materialBelow.isNamed(MC_FARMLAND))) && ((material.isNamed(MC_WATER)) || (material == ICE) || material.opaque)) {
                         // Covered grass, mycelium or tilled earth block, should
-                        // be dirt. Note that unknown blocks are treated as
-                        // transparent for this check so that grass underneath
-                        // custom plants doesn't turn to dirt, for instance
+                        // be dirt
                         minecraftWorld.setMaterialAt(x, y, z - 1, DIRT);
                         materialBelow = DIRT;
                     }
                     // TODO: can  we do this more efficiently?
-                    if (materialBelow.hasProperty(SNOWY)) {
+                    if (materialBelow.hasProperty(MC_SNOWY)) {
                         // The material below has a "snowy" property, so make sure it is set correctly
-                        if ((material.blockType == BLK_SNOW) || (material.blockType == BLK_SNOW_BLOCK)) {
+                        if (material.isNamed(MC_SNOW) || material.isNamed(MC_SNOW_BLOCK)) {
                             // It should be snowy, change it if it isn't
                             if (! materialBelow.getProperty(SNOWY)) {
-                                minecraftWorld.setMaterialAt(x, y, z - 1, materialBelow.withProperty(SNOWY, true));
+                                materialBelow = materialBelow.withProperty(SNOWY, true);
+                                minecraftWorld.setMaterialAt(x, y, z - 1, materialBelow);
                             }
                         } else {
                             // It should NOT be snowy, change it if it is
                             if (materialBelow.getProperty(SNOWY)) {
-                                minecraftWorld.setMaterialAt(x, y, z - 1, materialBelow.withProperty(SNOWY, false));
+                                materialBelow = materialBelow.withProperty(SNOWY, false);
+                                minecraftWorld.setMaterialAt(x, y, z - 1, materialBelow);
                             }
                         }
                     }
-                    switch (material.blockType) {
-                        case BLK_SAND:
-                            if (BLOCKS[materialBelow.blockType].veryInsubstantial) {
+                    // Special case for backwards compatibility: turn legacy
+                    // upper large flower blocks into modern ones
+                    if ((material.blockType == BLK_LARGE_FLOWERS) && ((material.data & 0x8) == 0x8) && (materialBelow.blockType == BLK_LARGE_FLOWERS)) {
+                        material = materialBelow.withProperty(MC_HALF, "upper");
+                        minecraftWorld.setMaterialAt(x, y, z, material);
+                    }
+                    switch (material.name) {
+                        case MC_SAND:
+                        case MC_RED_SAND:
+                            if (materialBelow.veryInsubstantial) {
                                 switch (sandMode) {
                                     case DROP:
                                         dropBlock(minecraftWorld, x, y, z);
@@ -123,7 +127,7 @@ public class Java1_13PostProcessor extends PostProcessor {
                                         break;
                                     case SUPPORT:
                                         // All unsupported sand should be supported by sandstone
-                                        minecraftWorld.setMaterialAt(x, y, z, (minecraftWorld.getDataAt(x, y, z) == 1) ? RED_SANDSTONE : SANDSTONE);
+                                        minecraftWorld.setMaterialAt(x, y, z, (material == RED_SAND) ? RED_SANDSTONE : SANDSTONE);
                                         material = minecraftWorld.getMaterialAt(x, y, z);
                                         break;
                                     default:
@@ -132,8 +136,8 @@ public class Java1_13PostProcessor extends PostProcessor {
                                 }
                             }
                             break;
-                        case BLK_GRAVEL:
-                            if (BLOCKS[materialBelow.blockType].veryInsubstantial) {
+                        case MC_GRAVEL:
+                            if (materialBelow.veryInsubstantial) {
                                 switch (gravelMode) {
                                     case DROP:
                                         dropBlock(minecraftWorld, x, y, z);
@@ -150,8 +154,23 @@ public class Java1_13PostProcessor extends PostProcessor {
                                 }
                             }
                             break;
-                        case BLK_CEMENT:
-                            if (BLOCKS[materialBelow.blockType].veryInsubstantial) {
+                        case MC_WHITE_CONCRETE_POWDER:
+                        case MC_ORANGE_CONCRETE_POWDER:
+                        case MC_MAGENTA_CONCRETE_POWDER:
+                        case MC_LIGHT_BLUE_CONCRETE_POWDER:
+                        case MC_YELLOW_CONCRETE_POWDER:
+                        case MC_LIME_CONCRETE_POWDER:
+                        case MC_PINK_CONCRETE_POWDER:
+                        case MC_GRAY_CONCRETE_POWDER:
+                        case MC_LIGHT_GRAY_CONCRETE_POWDER:
+                        case MC_CYAN_CONCRETE_POWDER:
+                        case MC_PURPLE_CONCRETE_POWDER:
+                        case MC_BLUE_CONCRETE_POWDER:
+                        case MC_BROWN_CONCRETE_POWDER:
+                        case MC_GREEN_CONCRETE_POWDER:
+                        case MC_RED_CONCRETE_POWDER:
+                        case MC_BLACK_CONCRETE_POWDER:
+                            if (materialBelow.veryInsubstantial) {
                                 switch (cementMode) {
                                     case DROP:
                                         dropBlock(minecraftWorld, x, y, z);
@@ -165,9 +184,8 @@ public class Java1_13PostProcessor extends PostProcessor {
                                 }
                             }
                             break;
-                        case BLK_WATER:
-                        case BLK_STATIONARY_WATER:
-                            if (BLOCKS[materialBelow.blockType].veryInsubstantial) {
+                        case MC_WATER:
+                            if (materialBelow.veryInsubstantial) {
                                 switch (waterMode) {
                                     case DROP:
                                         dropFluid(minecraftWorld, x, y, z);
@@ -180,9 +198,8 @@ public class Java1_13PostProcessor extends PostProcessor {
                                 }
                             }
                             break;
-                        case BLK_LAVA:
-                        case BLK_STATIONARY_LAVA:
-                            if (BLOCKS[materialBelow.blockType].veryInsubstantial) {
+                        case MC_LAVA:
+                            if (materialBelow.veryInsubstantial) {
                                 switch (lavaMode) {
                                     case DROP:
                                         dropFluid(minecraftWorld, x, y, z);
@@ -195,32 +212,42 @@ public class Java1_13PostProcessor extends PostProcessor {
                                 }
                             }
                             break;
-                        case BLK_DEAD_SHRUBS:
-                            if ((materialBelow != SAND) && (materialBelow != RED_SAND) && (materialBelow != DIRT) && (materialBelow != PODZOL) && (materialBelow != PERMADIRT) && (materialBelow.blockType != BLK_STAINED_CLAY) && (materialBelow.blockType != BLK_HARDENED_CLAY)) {
-                                // Dead shrubs can only exist on Sand
+                        case MC_DEAD_BUSH:
+                            if ((materialBelow != SAND) && (materialBelow != RED_SAND) && (materialBelow != DIRT) && (materialBelow != PODZOL) && (materialBelow != PERMADIRT) && (! materialBelow.name.endsWith("_terracotta")) && (materialBelow != TERRACOTTA)) {
+                                // Dead shrubs can only exist on materials
+                                // present in Mesa biome
                                 minecraftWorld.setMaterialAt(x, y, z, AIR);
                                 material = AIR;
                             }
                             break;
-                        case BLK_TALL_GRASS:
-                        case BLK_ROSE:
-                        case BLK_DANDELION:
+                        case MC_GRASS:
+                        case MC_FERN:
+                        case MC_DANDELION:
+                        case MC_POPPY:
+                        case MC_BLUE_ORCHID:
+                        case MC_ALLIUM:
+                        case MC_AZURE_BLUET:
+                        case MC_RED_TULIP:
+                        case MC_ORANGE_TULIP:
+                        case MC_WHITE_TULIP:
+                        case MC_PINK_TULIP:
+                        case MC_OXEYE_DAISY:
                             if ((materialBelow != GRASS) && (materialBelow != DIRT) && (materialBelow != PODZOL) && (materialBelow != PERMADIRT)) {
                                 // Tall grass and flowers can only exist on Grass or Dirt blocks
                                 minecraftWorld.setMaterialAt(x, y, z, AIR);
                                 material = AIR;
                             }
                             break;
-                        case BLK_RED_MUSHROOM:
-                        case BLK_BROWN_MUSHROOM:
-                            if ((materialBelow != GRASS) && (materialBelow != DIRT) && (materialBelow != PODZOL) && (materialBelow != PERMADIRT) && (materialBelow != MYCELIUM) && (materialBelow.blockType != BLK_STONE)) {
+                        case MC_RED_MUSHROOM:
+                        case MC_BROWN_MUSHROOM:
+                            if ((materialBelow != GRASS) && (materialBelow != DIRT) && (materialBelow != PODZOL) && (materialBelow != PERMADIRT) && (materialBelow != MYCELIUM) && (materialBelow != STONE) && (materialBelow != GRANITE) && (materialBelow != DIORITE) && (materialBelow != ANDESITE)) {
                                 // Mushrooms can only exist on Grass, Dirt, Mycelium or Stone (in caves) blocks
                                 minecraftWorld.setMaterialAt(x, y, z, AIR);
                                 material = AIR;
                             }
                             break;
-                        case BLK_SNOW:
-                            if ((materialBelow == ICE) || (materialBelow == SNOW) || (materialBelow == AIR) || (materialBelow == PACKED_ICE)) {
+                        case MC_SNOW:
+                            if ((materialBelow == ICE) || materialBelow.isNamed(MC_SNOW) || (materialBelow == AIR) || (materialBelow == PACKED_ICE)) {
                                 // Snow can't be on ice, or another snow block, or air
                                 // (well it could be, but it makes no sense, would
                                 // disappear when touched, and it makes this algorithm
@@ -229,42 +256,34 @@ public class Java1_13PostProcessor extends PostProcessor {
                                 material = AIR;
                             }
                             break;
-                        case BLK_WHEAT:
-                            if (materialBelow.blockType != BLK_TILLED_DIRT) {
+                        case MC_WHEAT:
+                            if (materialBelow.isNotNamed(MC_FARMLAND)) {
                                 // Wheat can only exist on Tilled Dirt blocks
                                 minecraftWorld.setMaterialAt(x, y, z, AIR);
                                 material = AIR;
                             }
                             break;
-                        case BLK_LARGE_FLOWERS:
-                            if ((material.data & 0x8) == 0x8) {
-                                // Bit 4 set; top half of double high plant.
-                                // This is no longer how things are done in
-                                // Minecraft 1.13, so as a special favour,
-                                // change it to the right material (if there is
-                                // in fact a lower half below).
-                                if (materialBelow.blockType != BLK_LARGE_FLOWERS) {
-                                    // There's a non-double high plant block below;
-                                    // replace this block with air
+                        case MC_SUNFLOWER:
+                        case MC_LILAC:
+                        case MC_TALL_GRASS:
+                        case MC_LARGE_FERN:
+                        case MC_ROSE_BUSH:
+                        case MC_PEONY:
+                            if (material.getProperty(MC_HALF).equals("upper")) {
+                                // Top half of double high plant.
+                                if (materialBelow.isNotNamedSameAs(material)
+                                        || (! material.getProperty(MC_HALF).equals("lower"))) {
+                                    // There is not a corresponding lower half
+                                    // below; remove this block
                                     minecraftWorld.setMaterialAt(x, y, z, AIR);
                                     material = AIR;
-                                } else {
-                                    // There is a lower half below; put the
-                                    // corresponding upper half here
-                                    Material upperHalf = materialBelow.withProperty("half", "upper");
-                                    minecraftWorld.setMaterialAt(x, y, z, upperHalf);
-                                    material = upperHalf;
                                 }
                             } else {
-                                // Otherwise: lower half of double high plant; check
-                                // there's a top half above and grass or dirt below
-                                if ((materialAbove.blockType == BLK_LARGE_FLOWERS) || (materialAbove.getName().equals(material.getName()) && materialAbove.getProperty("half").equals("upper"))) {
-                                    if ((materialAbove.data & 0x8) == 0) {
-                                        // There's another lower half above. Replace
-                                        // this block with air
-                                        minecraftWorld.setMaterialAt(x, y, z, AIR);
-                                        material = AIR;
-                                    } else if ((materialBelow != GRASS) && (materialBelow != DIRT) && (materialBelow != PODZOL) && (materialBelow != PERMADIRT)) {
+                                // Otherwise: lower half of double high plant;
+                                // check there's a corresponding top half above
+                                // and grass or dirt below
+                                if (materialAbove.isNamedSameAs(material) && materialAbove.getProperty(MC_HALF).equals("upper")) {
+                                    if (materialBelow.isNotNamed(MC_GRASS_BLOCK) && (materialBelow != DIRT) && (materialBelow.isNotNamed(MC_PODZOL)) && (materialBelow != PERMADIRT)) {
                                         // Double high plants can (presumably; TODO:
                                         // check) only exist on grass or dirt
                                         minecraftWorld.setMaterialAt(x, y, z, AIR);
@@ -278,36 +297,36 @@ public class Java1_13PostProcessor extends PostProcessor {
                                 }
                             }
                             break;
-                        case BLK_CACTUS:
-                            if ((materialBelow != SAND) && (materialBelow != RED_SAND) && (materialBelow != CACTUS)) {
+                        case MC_CACTUS:
+                            if ((materialBelow != SAND) && (materialBelow != RED_SAND) && materialBelow.isNotNamed(MC_CACTUS)) {
                                 // Cactus blocks can only be on top of sand or other cactus blocks
                                 minecraftWorld.setMaterialAt(x, y, z, AIR);
                                 material = AIR;
                             }
                             break;
-                        case BLK_SUGAR_CANE:
-                            if ((materialBelow != GRASS) && (materialBelow != DIRT) && (materialBelow != PODZOL) && (materialBelow != PERMADIRT) && (materialBelow != SAND) && (materialBelow != RED_SAND) && (materialBelow != SUGAR_CANE)) {
+                        case MC_SUGAR_CANE:
+                            if (materialBelow.isNotNamed(MC_GRASS_BLOCK) && (materialBelow != DIRT) && materialBelow.isNotNamed(MC_PODZOL) && (materialBelow != PERMADIRT) && (materialBelow != SAND) && (materialBelow != RED_SAND) && materialBelow.isNotNamed(MC_SUGAR_CANE)) {
                                 // Sugar cane blocks can only be on top of grass, dirt, sand or other sugar cane blocks
                                 minecraftWorld.setMaterialAt(x, y, z, AIR);
                                 material = AIR;
                             }
                             break;
-                        case BLK_NETHER_WART:
+                        case MC_NETHER_WART:
                             if (materialBelow != SOUL_SAND) {
                                 // Nether wart blocks can only be on top of soul sand
                                 minecraftWorld.setMaterialAt(x, y, z, AIR);
                                 material = AIR;
                             }
                             break;
-                        case BLK_CHORUS_FLOWER:
-                        case BLK_CHORUS_PLANT:
-                            if ((materialBelow != END_STONE) && (materialBelow != CHORUS_PLANT)) {
+                        case MC_CHORUS_FLOWER:
+                        case MC_CHORUS_PLANT:
+                            if ((materialBelow != END_STONE) && (materialBelow.isNotNamed(MC_CHORUS_PLANT))) {
                                 // Chorus flower and plant blocks can only be on top of end stone or other chorus plant blocks
                                 minecraftWorld.setMaterialAt(x, y, z, AIR);
                                 material = AIR;
                             }
                             break;
-                        case BLK_FIRE:
+                        case MC_FIRE:
                             // We don't know which blocks are flammable, but at
                             // least check whether the fire is not floating in
                             // the air

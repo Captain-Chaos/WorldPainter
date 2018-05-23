@@ -5,15 +5,16 @@
 
 package org.pepsoft.worldpainter.layers.trees;
 
-import java.io.Serializable;
-import java.util.Random;
-import static org.pepsoft.minecraft.Constants.*;
 import org.pepsoft.minecraft.Direction;
 import org.pepsoft.minecraft.Material;
-import static org.pepsoft.minecraft.Material.*;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.exporting.Cursor;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
+
+import java.io.Serializable;
+import java.util.Random;
+
+import static org.pepsoft.minecraft.Material.*;
 
 /**
  *
@@ -36,15 +37,16 @@ public abstract class TreeType implements Serializable {
     }
     
     protected final Material getCapMaterial() {
-        if ((trunkMaterial.blockType == BLK_WOOD) || (trunkMaterial.blockType == BLK_WOOD2)) {
-            return Material.get(trunkMaterial.blockType, (trunkMaterial.data & 0x3) | 0xC);
+        if (trunkMaterial.name.endsWith("_log")) {
+            String woodType = trunkMaterial.name.substring(0, trunkMaterial.name.length() - 4);
+            return Material.get(woodType + "_bark", trunkMaterial.getProperties());
         } else {
             return trunkMaterial;
         }
     }
     
     protected void maybePlaceLeaves(int x, int y, int h, int r, float distance, MinecraftWorld minecraftWorld, Random random) {
-        if (minecraftWorld.getBlockTypeAt(x, y, h) == BLK_AIR) {
+        if (minecraftWorld.getMaterialAt(x, y, h) == AIR) {
             if (((r > 0) ? random.nextInt(r) : 0) + 1.5f >= distance) {
                 minecraftWorld.setMaterialAt(x, y, h, leafMaterial);
             }
@@ -88,11 +90,10 @@ public abstract class TreeType implements Serializable {
     
     private boolean isTreeBlock(Material material) {
         if (material != null) {
-            final int blockType = material.blockType;
-            return blockType == BLK_WOOD
-                    || blockType == BLK_WOOD2
-                    || blockType == BLK_LEAVES
-                    || blockType == BLK_LEAVES2;
+            final String simpleName = material.simpleName;
+            return simpleName.endsWith("_log")
+                    || simpleName.endsWith("_bark")
+                    || simpleName.endsWith("_leaves");
         } else {
             return false;
         }
@@ -100,28 +101,27 @@ public abstract class TreeType implements Serializable {
     
     private boolean addVine(MinecraftWorld world, int x, int y, int z, Direction direction) {
         Material existingBlock = world.getMaterialAt(x, y, z);
-        if ((existingBlock == null) || ((existingBlock != AIR) && (existingBlock.blockType != BLK_VINES))) {
+        if ((existingBlock == null) || ((existingBlock != AIR) && (existingBlock.isNotNamed(MC_VINE)))) {
             return false;
         }
-        int data = existingBlock.data;
+        Material vine;
         switch (direction) {
             case NORTH:
-                data |= 0x4;
+                vine = VINE.withProperty(NORTH, true);
                 break;
             case EAST:
-                data |= 0x8;
+                vine = VINE.withProperty(EAST, true);
                 break;
             case SOUTH:
-                data |= 0x1;
+                vine = VINE.withProperty(SOUTH, true);
                 break;
             case WEST:
-                data |= 0x2;
+                vine = VINE.withProperty(WEST, true);
                 break;
+            default:
+                throw new InternalError();
         }
-        if (existingBlock == AIR) {
-            world.setBlockTypeAt(x, y, z, BLK_VINES);
-        }
-        world.setDataAt(x, y, z, data);
+        world.setMaterialAt(x, y, z, vine);
         return true;
     }
     

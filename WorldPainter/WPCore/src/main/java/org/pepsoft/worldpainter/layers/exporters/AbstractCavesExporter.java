@@ -60,22 +60,22 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
                 if (state.surfaceBreaking) {
                     final Material blockAbove = chunk.getMaterial(x, y + 1, z);
                     if (state.leaveWater) {
-                        // TODO: migrate to modern materials:
+                        // TODOMC13: migrate to modern materials:
                         if (blockAbove.blockType == BLK_STATIONARY_WATER) {
                             chunk.setMaterial(x, y + 1, z, WATER);
                         } else if (blockAbove.blockType == BLK_STATIONARY_LAVA) {
                             chunk.setMaterial(x, y + 1, z, LAVA);
                         }
                     } else {
-                        if (blockAbove.getName().equals(MC_WATER)) {
+                        if (blockAbove.isNamed(MC_WATER)) {
                             for (int yy = y + 1; yy <= state.maxY; yy++) {
                                 final Material block = chunk.getMaterial(x, yy, z);
-                                if (block.getName().equals(MC_WATER)) {
+                                if (block.isNamed(MC_WATER)) {
                                     chunk.setMaterial(x, yy, z, AIR);
                                     // Set the surrounding water, if
                                     // any, to non-stationary, so that
                                     // it will flow into the cavern
-                                    // TODO: migrate to modern materials:
+                                    // TODOMC13: migrate to modern materials:
                                     if ((x > 0) && (chunk.getMaterial(x - 1, yy, z).blockType == BLK_STATIONARY_WATER)) {
                                         chunk.setMaterial(x - 1, yy, z, WATER);
                                     }
@@ -92,15 +92,15 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
                                     break;
                                 }
                             }
-                        } else if (blockAbove.getName().equals(MC_LAVA)) {
+                        } else if (blockAbove.isNamed(MC_LAVA)) {
                             for (int yy = y + 1; yy <= state.maxY; yy++) {
                                 final Material block = chunk.getMaterial(x, yy, z);
-                                if (block.getName().equals(MC_LAVA)) {
+                                if (block.isNamed(MC_LAVA)) {
                                     chunk.setMaterial(x, yy, z, AIR);
                                     // Set the surrounding water, if
                                     // any, to non-stationary, so that
                                     // it will flow into the cavern
-                                    // TODO: migrate to modern materials:
+                                    // TODOMC13: migrate to modern materials:
                                     if ((x > 0) && (chunk.getMaterial(x - 1, yy, z).blockType == BLK_STATIONARY_LAVA)) {
                                         chunk.setMaterial(x - 1, yy, z, LAVA);
                                     }

@@ -33,6 +33,8 @@ import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 
+// TODOMC13 migrate to modern materials
+
 /**
  *
  * @author pepijn
@@ -519,7 +521,7 @@ public class JavaMapImporter {
         }
         for (Material material: SPECIAL_TERRAIN_MAPPING.keySet()) {
             allTerrainBlockIds.add(material.blockType);
-            if (! material.block.terrain) {
+            if (! material.terrain) {
                 throw new AssertionError("Block " + material.blockType + " not marked as terrain block!");
             }
         }

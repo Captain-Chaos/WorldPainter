@@ -607,7 +607,7 @@ public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, Minecraf
             List<Tag> paletteList = new ArrayList<>(palette.size());
             for (Material material: palette) {
                 CompoundTag paletteEntry = new CompoundTag("", Collections.emptyMap());
-                paletteEntry.setTag(TAG_NAME, new StringTag(TAG_NAME, material.getName()));
+                paletteEntry.setTag(TAG_NAME, new StringTag(TAG_NAME, material.name));
                 if (material.getProperties() != null) {
                     CompoundTag propertiesTag = new CompoundTag(TAG_PROPERTIES, Collections.emptyMap());
                     for (Map.Entry<String, String> property: material.getProperties().entrySet()) {

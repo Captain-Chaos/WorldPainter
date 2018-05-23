@@ -13,6 +13,8 @@ import static org.pepsoft.minecraft.Constants.*;
  * instances.
  *
  * Created by pepijn on 17-3-15.
+ *
+ * @deprecated Use {@link Material}
  */
 public final class Block implements Serializable {
     private Block(int id, int transparency, String name, boolean terrain,

@@ -66,7 +66,7 @@ public class WPObjectDynmapWorld extends DynmapWorld {
     @Override
     public int getLightLevel(int x, int y, int z) {
         if (bounds.contains(x, z, y) && object.getMask(x - xOffset, z - yOffset, y)) {
-            return object.getMaterial(x - xOffset, z - yOffset, y).block.blockLight;
+            return object.getMaterial(x - xOffset, z - yOffset, y).blockLight;
         } else {
             return 0;
         }

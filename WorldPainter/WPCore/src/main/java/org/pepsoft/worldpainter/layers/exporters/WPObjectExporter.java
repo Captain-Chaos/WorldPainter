@@ -4,7 +4,6 @@
  */
 package org.pepsoft.worldpainter.layers.exporters;
 
-import org.pepsoft.minecraft.Block;
 import org.pepsoft.minecraft.Entity;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.minecraft.TileEntity;
@@ -13,7 +12,10 @@ import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Platform;
-import org.pepsoft.worldpainter.exporting.*;
+import org.pepsoft.worldpainter.exporting.AbstractLayerExporter;
+import org.pepsoft.worldpainter.exporting.Fixup;
+import org.pepsoft.worldpainter.exporting.LightingCalculator;
+import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import org.pepsoft.worldpainter.layers.Frost;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.objects.WPObject;
@@ -113,7 +115,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                                         break;
                                     case COLLISION_MODE_SOLID:
                                         // Only replace if object block is solid
-                                        if (! objectMaterial.block.veryInsubstantial) {
+                                        if (! objectMaterial.veryInsubstantial) {
                                             placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode);
                                         }
                                         break;
@@ -131,9 +133,9 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                                 }
                             }
                         }
-                        if (extendFoundation && (dz == 0) && (terrainHeight != -1) && (worldZ > terrainHeight) && (! finalMaterial.block.veryInsubstantial)) {
+                        if (extendFoundation && (dz == 0) && (terrainHeight != -1) && (worldZ > terrainHeight) && (! finalMaterial.veryInsubstantial)) {
                             int legZ = worldZ - 1;
-                            while ((legZ >= 0) && world.getMaterialAt(worldX, worldY, legZ).block.veryInsubstantial) {
+                            while ((legZ >= 0) && world.getMaterialAt(worldX, worldY, legZ).veryInsubstantial) {
                                 placeBlock(world, worldX, worldY, legZ, finalMaterial, leafDecayMode);
                                 legZ--;
                             }
@@ -278,7 +280,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                     final int worldX = x + dx + offset.x, worldY = y + dy + offset.y;
                     for (int dz = 0; dz < dimensions.z; dz++) {
                         if (object.getMask(dx, dy, dz)) {
-                            final Block objectBlock = object.getMaterial(dx, dy, dz).block;
+                            final Material objectBlock = object.getMaterial(dx, dy, dz);
                             if (! objectBlock.veryInsubstantial) {
                                 final int worldZ = z + dz + offset.z;
                                 if (worldZ < (bottomlessWorld ? 0 : 1)) {
@@ -305,7 +307,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                                             logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " due to collision with existing above ground block of type " + BLOCKS[world.getBlockTypeAt(worldX, worldY, worldZ)]);
                                         }
                                         return false;
-                                    } else if ((! allowConnectingBlocks) && wouldConnect(world, worldX, worldY, worldZ, objectBlock.id)) {
+                                    } else if ((! allowConnectingBlocks) && wouldConnect(world, worldX, worldY, worldZ, objectBlock)) {
                                         if (logger.isTraceEnabled()) {
                                             logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " because it would cause a connecting block");
                                         }
@@ -326,7 +328,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                     final int terrainHeight = dimension.getIntHeightAt(worldX, worldY);
                     for (int dz = 0; dz < dimensions.z; dz++) {
                         if (object.getMask(dx, dy, dz)) {
-                            final Block objectBlock = object.getMaterial(dx, dy, dz).block;
+                            final Material objectBlock = object.getMaterial(dx, dy, dz);
                             if (! objectBlock.veryInsubstantial) {
                                 final int worldZ = z + dz + offset.z;
                                 if (worldZ < (bottomlessWorld ? 0 : 1)) {
@@ -358,7 +360,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                                             logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " due to collision with existing above ground block of type " + BLOCK_TYPE_NAMES[world.getBlockTypeAt(worldX, worldY, worldZ)]);
                                         }
                                         return false;
-                                    } else if ((!allowConnectingBlocks) && wouldConnect(world, worldX, worldY, worldZ, objectBlock.id)) {
+                                    } else if ((! allowConnectingBlocks) && wouldConnect(world, worldX, worldY, worldZ, objectBlock)) {
                                         if (logger.isTraceEnabled()) {
                                             logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " because it would cause a connecting block");
                                         }
@@ -383,25 +385,25 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
      * surrounding blocks (for instance a fence block to a solid block, or
      * another fence block, but not another fence of a different type).
      */
-    private static boolean wouldConnect(MinecraftWorld world, int worldX, int worldY, int worldZ, int objectBlock) {
-        if (wouldConnect(objectBlock, world.getBlockTypeAt(worldX - 1, worldY, worldZ))) {
+    private static boolean wouldConnect(MinecraftWorld world, int worldX, int worldY, int worldZ, Material objectBlock) {
+        if (wouldConnect(objectBlock, world.getMaterialAt(worldX - 1, worldY, worldZ))) {
             if (logger.isTraceEnabled()) {
-                logger.trace(BLOCK_TYPE_NAMES[objectBlock] + " @ " + worldX + "," + worldY + "," + worldZ + " would connect to " + BLOCK_TYPE_NAMES[world.getBlockTypeAt(worldX - 1, worldY, worldZ)] + " @ dx = -1");
+                logger.trace(objectBlock + " @ " + worldX + "," + worldY + "," + worldZ + " would connect to " + world.getMaterialAt(worldX - 1, worldY, worldZ) + " @ dx = -1");
             }
             return true;
-        } else if (wouldConnect(objectBlock, world.getBlockTypeAt(worldX, worldY - 1, worldZ))) {
+        } else if (wouldConnect(objectBlock, world.getMaterialAt(worldX, worldY - 1, worldZ))) {
             if (logger.isTraceEnabled()) {
-                logger.trace(BLOCK_TYPE_NAMES[objectBlock] + " @ " + worldX + "," + worldY + "," + worldZ + " would connect to " + BLOCK_TYPE_NAMES[world.getBlockTypeAt(worldX, worldY - 1, worldZ)] + " @ dy = -1");
+                logger.trace(objectBlock + " @ " + worldX + "," + worldY + "," + worldZ + " would connect to " + world.getMaterialAt(worldX, worldY - 1, worldZ) + " @ dy = -1");
             }
             return true;
-        } else if (wouldConnect(objectBlock, world.getBlockTypeAt(worldX + 1, worldY, worldZ))) {
+        } else if (wouldConnect(objectBlock, world.getMaterialAt(worldX + 1, worldY, worldZ))) {
             if (logger.isTraceEnabled()) {
-                logger.trace(BLOCK_TYPE_NAMES[objectBlock] + " @ " + worldX + "," + worldY + "," + worldZ + " would connect to " + BLOCK_TYPE_NAMES[world.getBlockTypeAt(worldX + 1, worldY, worldZ)] + " @ dx = 1");
+                logger.trace(objectBlock + " @ " + worldX + "," + worldY + "," + worldZ + " would connect to " + world.getMaterialAt(worldX + 1, worldY, worldZ) + " @ dx = 1");
             }
             return true;
-        } else if (wouldConnect(objectBlock, world.getBlockTypeAt(worldX, worldY + 1, worldZ))) {
+        } else if (wouldConnect(objectBlock, world.getMaterialAt(worldX, worldY + 1, worldZ))) {
             if (logger.isTraceEnabled()) {
-                logger.trace(BLOCK_TYPE_NAMES[objectBlock] + " @ " + worldX + "," + worldY + "," + worldZ + " would connect to " + BLOCK_TYPE_NAMES[world.getBlockTypeAt(worldX, worldY + 1, worldZ)] + " @ dy = 1");
+                logger.trace(objectBlock + " @ " + worldX + "," + worldY + "," + worldZ + " would connect to " + world.getMaterialAt(worldX, worldY + 1, worldZ) + " @ dy = 1");
             }
             return true;
         } else {
@@ -413,31 +415,34 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
      * Determine whether two blocks would connect to each other in some way
      * (forming a fence, for instance).
      */
-    private static boolean wouldConnect(int blockTypeOne, int blockTypeTwo) {
-        return ((blockTypeOne == BLK_FENCE) && ((blockTypeTwo == BLK_FENCE) || isSolid(blockTypeTwo)))
-            || ((blockTypeOne == BLK_NETHER_BRICK_FENCE) && ((blockTypeTwo == BLK_NETHER_BRICK_FENCE) || isSolid(blockTypeTwo)))
-            || ((blockTypeOne == BLK_PINE_WOOD_FENCE) && ((blockTypeTwo == BLK_PINE_WOOD_FENCE) || isSolid(blockTypeTwo)))
-            || ((blockTypeOne == BLK_BIRCH_WOOD_FENCE) && ((blockTypeTwo == BLK_BIRCH_WOOD_FENCE) || isSolid(blockTypeTwo)))
-            || ((blockTypeOne == BLK_JUNGLE_WOOD_FENCE) && ((blockTypeTwo == BLK_JUNGLE_WOOD_FENCE) || isSolid(blockTypeTwo)))
-            || ((blockTypeOne == BLK_DARK_OAK_WOOD_FENCE) && ((blockTypeTwo == BLK_DARK_OAK_WOOD_FENCE) || isSolid(blockTypeTwo)))
-            || ((blockTypeOne == BLK_ACACIA_WOOD_FENCE) && ((blockTypeTwo == BLK_ACACIA_WOOD_FENCE) || isSolid(blockTypeTwo)))
-            || ((blockTypeOne == BLK_COBBLESTONE_WALL) && ((blockTypeTwo == BLK_COBBLESTONE_WALL) || isSolid(blockTypeTwo)))
-            || ((blockTypeOne == BLK_IRON_BARS) && ((blockTypeTwo == BLK_IRON_BARS) || isSolid(blockTypeTwo)))
-            || ((blockTypeOne == BLK_GLASS_PANE) && ((blockTypeTwo == BLK_GLASS_PANE) || isSolid(blockTypeTwo)))
-            || (isSolid(blockTypeOne) && ((blockTypeTwo == BLK_FENCE)
-                || (blockTypeTwo == BLK_NETHER_BRICK_FENCE)
-                || (blockTypeTwo == BLK_PINE_WOOD_FENCE)
-                || (blockTypeTwo == BLK_BIRCH_WOOD_FENCE)
-                || (blockTypeTwo == BLK_JUNGLE_WOOD_FENCE)
-                || (blockTypeTwo == BLK_DARK_OAK_WOOD_FENCE)
-                || (blockTypeTwo == BLK_ACACIA_WOOD_FENCE)
-                || (blockTypeTwo == BLK_COBBLESTONE_WALL)
-                || (blockTypeTwo == BLK_IRON_BARS)
-                || (blockTypeTwo == BLK_GLASS_PANE)));
+    private static boolean wouldConnect(Material blockTypeOne, Material blockTypeTwo) {
+        // TODOMC13: migrate to modern materials:
+        return ((blockTypeOne.blockType == BLK_FENCE) && ((blockTypeTwo.blockType == BLK_FENCE) || isSolid(blockTypeTwo.blockType)))
+            || ((blockTypeOne.blockType == BLK_NETHER_BRICK_FENCE) && ((blockTypeTwo.blockType == BLK_NETHER_BRICK_FENCE) || isSolid(blockTypeTwo.blockType)))
+            || ((blockTypeOne.blockType == BLK_PINE_WOOD_FENCE) && ((blockTypeTwo.blockType == BLK_PINE_WOOD_FENCE) || isSolid(blockTypeTwo.blockType)))
+            || ((blockTypeOne.blockType == BLK_BIRCH_WOOD_FENCE) && ((blockTypeTwo.blockType == BLK_BIRCH_WOOD_FENCE) || isSolid(blockTypeTwo.blockType)))
+            || ((blockTypeOne.blockType == BLK_JUNGLE_WOOD_FENCE) && ((blockTypeTwo.blockType == BLK_JUNGLE_WOOD_FENCE) || isSolid(blockTypeTwo.blockType)))
+            || ((blockTypeOne.blockType == BLK_DARK_OAK_WOOD_FENCE) && ((blockTypeTwo.blockType == BLK_DARK_OAK_WOOD_FENCE) || isSolid(blockTypeTwo.blockType)))
+            || ((blockTypeOne.blockType == BLK_ACACIA_WOOD_FENCE) && ((blockTypeTwo.blockType == BLK_ACACIA_WOOD_FENCE) || isSolid(blockTypeTwo.blockType)))
+            || ((blockTypeOne.blockType == BLK_COBBLESTONE_WALL) && ((blockTypeTwo.blockType == BLK_COBBLESTONE_WALL) || isSolid(blockTypeTwo.blockType)))
+            || ((blockTypeOne.blockType == BLK_IRON_BARS) && ((blockTypeTwo.blockType == BLK_IRON_BARS) || isSolid(blockTypeTwo.blockType)))
+            || ((blockTypeOne.blockType == BLK_GLASS_PANE) && ((blockTypeTwo.blockType == BLK_GLASS_PANE) || isSolid(blockTypeTwo.blockType)))
+            || (isSolid(blockTypeOne.blockType) && ((blockTypeTwo.blockType == BLK_FENCE)
+                || (blockTypeTwo.blockType == BLK_NETHER_BRICK_FENCE)
+                || (blockTypeTwo.blockType == BLK_PINE_WOOD_FENCE)
+                || (blockTypeTwo.blockType == BLK_BIRCH_WOOD_FENCE)
+                || (blockTypeTwo.blockType == BLK_JUNGLE_WOOD_FENCE)
+                || (blockTypeTwo.blockType == BLK_DARK_OAK_WOOD_FENCE)
+                || (blockTypeTwo.blockType == BLK_ACACIA_WOOD_FENCE)
+                || (blockTypeTwo.blockType == BLK_COBBLESTONE_WALL)
+                || (blockTypeTwo.blockType == BLK_IRON_BARS)
+                || (blockTypeTwo.blockType == BLK_GLASS_PANE)));
     }
-    
+
+    // TODO: is this not already encoded in Material.solid?
     private static boolean isSolid(int blockType) {
-        return (blockType <= HIGHEST_KNOWN_BLOCK_ID) && (BLOCK_TRANSPARENCY[blockType] == 15);
+        // TODOMC13: migrate to modern materials:
+        return (blockType < 0) || ((blockType <= HIGHEST_KNOWN_BLOCK_ID) && (BLOCK_TRANSPARENCY[blockType] == 15));
     }
     
     private static Box getBounds(WPObject object, int x, int y, int z) {
