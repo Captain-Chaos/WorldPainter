@@ -40,9 +40,12 @@ public final class Material implements Serializable {
      * Legacy constructor, which creates a pre-Minecraft 1.13 block type from a
      * block ID and data value.
      *
-     * @param blockType
-     * @param data
+     * @param blockType The block ID of the legacy block for which to create a
+     *                  material.
+     * @param data The data value of the legacy block for which to create a
+     *             material.
      */
+    @SuppressWarnings("unchecked") // Guaranteed by contents of file
     private Material(int blockType, int data) {
         this.blockType = blockType;
         this.data = data;
@@ -81,7 +84,7 @@ public final class Material implements Serializable {
             Map<String, String> properties;
             if (blockSpec.containsKey("properties")) {
                 properties = new HashMap<>();
-                for (Map.Entry<String, String> entry : ((Map<String, String>) blockSpec.get("properties")).entrySet()) {
+                for (Map.Entry<String, String> entry: ((Map<String, String>) blockSpec.get("properties")).entrySet()) {
                     String key = entry.getKey();
                     String value = entry.getValue();
                     properties.put(key, value);
@@ -157,14 +160,36 @@ public final class Material implements Serializable {
         }
     }
 
+    /**
+     * Get the properties of this material.
+     *
+     * @return The properties of this material. May be <code>null</code>.
+     */
     public Map<String, String> getProperties() {
         return identity.properties;
     }
 
+    /**
+     * Indicates whether a specific property is present on this material.
+     *
+     * @param property The property to check for presence.
+     * @return <code>true</code> if the specified property is present.
+     */
     public boolean hasProperty(Property<?> property) {
         return (identity.properties != null) && identity.properties.containsKey(property.name);
     }
 
+    /**
+     * Get the value of a property as the correct type. Convenience method which
+     * transforms the property value from a string using an instance of the
+     * {@link Property} helper class.
+     *
+     * @param property The property helper corresponding to the property of
+     *                 which to get the value.
+     * @param <T> The property type.
+     * @return The value of the specified property transformed to the specified
+     * type.
+     */
     @SuppressWarnings("unchecked") // Responsibility of client
     public <T> T getProperty(Property<T> property) {
         return (identity.properties != null) ? property.fromString(identity.properties.get(property.name)) : null;
@@ -188,14 +213,35 @@ public final class Material implements Serializable {
         return get(identity.name, newProperties);
     }
 
+    /**
+     * Indicates whether a specific property is present on this material.
+     *
+     * @param name The name of the property to check for presence.
+     * @return <code>true</code> if the specified property is present.
+     */
     public boolean hasProperty(String name) {
         return (identity.properties != null) && identity.properties.containsKey(name);
     }
 
+    /**
+     * Get the value of a property as a string.
+     *
+     * @param name The name of the property of which to get the value.
+     * @return The value of the specified property as a string.
+     */
     public String getProperty(String name) {
         return (identity.properties != null) ? identity.properties.get(name) : null;
     }
 
+    /**
+     * Returns a material identical to this one, except with the specified
+     * property set to the specified value.
+     *
+     * @param name The name of the property that should be set.
+     * @param value The value to which it should be set.
+     * @return A material identical to this one, except with the specified
+     * property set.
+     */
     public Material withProperty(String name, String value) {
         Map<String, String> newProperties = new HashMap<>();
         if (identity.properties != null) {
@@ -1294,7 +1340,7 @@ public final class Material implements Serializable {
     public static Material get(String name, Object... properties) {
         Map<String, String> propertyMap;
         if (properties != null) {
-            propertyMap = new HashMap<>();;
+            propertyMap = new HashMap<>();
             for (int i = 0; i < properties.length; i += 2) {
                 propertyMap.put((String) properties[i], properties[i + 1].toString());
             }
@@ -1490,6 +1536,7 @@ public final class Material implements Serializable {
         try (InputStreamReader in = new InputStreamReader(Block.class.getResourceAsStream("mc-blocks.json"))) {
             java.util.List<?> list = (List<?>) new JSONParser().parse(in);
             for (Object listEntry : list) {
+                @SuppressWarnings("unchecked") // Guaranteed by contents of file
                 Map<String, Object> blockSpec = (Map<String, Object>) listEntry;
                 int blockId = ((Number) blockSpec.get("blockId")).intValue();
                 int dataValue = ((Number) blockSpec.get("dataValue")).intValue();
