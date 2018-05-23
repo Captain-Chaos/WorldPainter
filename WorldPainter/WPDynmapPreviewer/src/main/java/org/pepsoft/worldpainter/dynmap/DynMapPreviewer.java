@@ -27,7 +27,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
-import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 
 /**
@@ -232,8 +232,8 @@ public class DynMapPreviewer extends TiledImageViewer {
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         DynMapPreviewer viewer = new DynMapPreviewer();
         WPObject object = CustomObjectManager.getInstance().loadObject(new File(args[0]));
-        TileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(0L, Terrain.GRASS, DEFAULT_MAX_HEIGHT_2, 58, 62, false, true, 20.0f, 1.0);
-        Dimension dimension = new World2(DefaultPlugin.JAVA_ANVIL, 0L, tileFactory, DEFAULT_MAX_HEIGHT_2).getDimension(DIM_NORMAL);
+        TileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(0L, Terrain.GRASS, DEFAULT_MAX_HEIGHT_ANVIL, 58, 62, false, true, 20.0f, 1.0);
+        Dimension dimension = new World2(DefaultPlugin.JAVA_ANVIL, 0L, tileFactory, DEFAULT_MAX_HEIGHT_ANVIL).getDimension(DIM_NORMAL);
         viewer.setObject(object, dimension);
         frame.getContentPane().add(viewer, BorderLayout.CENTER);
         frame.setSize(800, 600);

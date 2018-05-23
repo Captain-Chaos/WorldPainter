@@ -16,7 +16,7 @@ import java.util.Map;
 
 import static org.pepsoft.minecraft.Block.BLOCKS;
 import static org.pepsoft.minecraft.Constants.DATA_VERSION_MC_1_12_2;
-import static org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_1;
+import static org.pepsoft.minecraft.Constants.VERSION_MCREGION;
 import static org.pepsoft.minecraft.Material.AIR;
 
 /**
@@ -35,11 +35,11 @@ public class DumpChunk {
         try (NBTInputStream in = new NBTInputStream(RegionFileCache.getChunkDataInputStream(levelDatFile.getParentFile(), chunkX, chunkZ, level.getVersion()))) {
             tag = (CompoundTag) in.readTag();
         }
-        Chunk chunk = (level.getVersion() == SUPPORTED_VERSION_1)
-                ? new ChunkImpl(tag, level.getMaxHeight())
+        Chunk chunk = (level.getVersion() == VERSION_MCREGION)
+                ? new MCRegionChunk(tag, level.getMaxHeight())
                 : ((level.getDataVersion() == DATA_VERSION_MC_1_12_2)
-                    ? new ChunkImpl2(tag, level.getMaxHeight())
-                    : new ChunkImpl3(tag, level.getMaxHeight()));
+                    ? new MC12AnvilChunk(tag, level.getMaxHeight())
+                    : new MC113AnvilChunk(tag, level.getMaxHeight()));
 
         System.out.println("Biomes");
         System.out.println("X-->");

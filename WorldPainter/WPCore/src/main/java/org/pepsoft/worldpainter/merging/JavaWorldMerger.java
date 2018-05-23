@@ -193,9 +193,9 @@ public class JavaWorldMerger extends JavaWorldExporter {
         // Sanity checks
         if (biomesOnly) {
             int version = level.getVersion();
-            if (version == SUPPORTED_VERSION_1) {
+            if (version == VERSION_MCREGION) {
                 throw new IllegalArgumentException("MCRegion (Minecraft 1.1) maps do not support biomes");
-            } else if (version != SUPPORTED_VERSION_2) {
+            } else if (version != VERSION_ANVIL) {
                 throw new IllegalArgumentException("Version of existing map not supported: 0x" + Integer.toHexString(version));
             }
         } else {
@@ -204,7 +204,7 @@ public class JavaWorldMerger extends JavaWorldExporter {
                 throw new IllegalArgumentException("Existing map has different max height (" + existingMaxHeight + ") than WorldPainter world (" + world.getMaxHeight() + ")");
             }
             int version = level.getVersion();
-            if ((version != SUPPORTED_VERSION_1) && (version != SUPPORTED_VERSION_2)) {
+            if ((version != VERSION_MCREGION) && (version != VERSION_ANVIL)) {
                 throw new IllegalArgumentException("Version of existing map not supported: 0x" + Integer.toHexString(version));
             }
 
@@ -241,7 +241,7 @@ public class JavaWorldMerger extends JavaWorldExporter {
         // case it has changed. This affects the type of chunks created in the
         // first pass
         int version = level.getVersion();
-        Platform platform = (version == SUPPORTED_VERSION_1) ? DefaultPlugin.JAVA_MCREGION : DefaultPlugin.JAVA_ANVIL;
+        Platform platform = (version == VERSION_MCREGION) ? DefaultPlugin.JAVA_MCREGION : DefaultPlugin.JAVA_ANVIL;
         world.setPlatform(platform);
         
         // Modify it if necessary and write it to the the new level
@@ -901,10 +901,10 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                     for (int x = 0; x < 32; x++) {
                         for (int z = 0; z < 32; z++) {
                             if (oldRegion.containsChunk(x, z)) {
-                                ChunkImpl2 chunk;
+                                MC12AnvilChunk chunk;
                                 try (NBTInputStream in = new NBTInputStream(oldRegion.getChunkDataInputStream(x, z))) {
                                     CompoundTag tag = (CompoundTag) in.readTag();
-                                    chunk = new ChunkImpl2(tag, level.getMaxHeight());
+                                    chunk = new MC12AnvilChunk(tag, level.getMaxHeight());
                                 }
                                 int chunkX = chunk.getxPos(), chunkZ = chunk.getzPos();
                                 for (int xx = 0; xx < 16; xx++) {
@@ -1017,8 +1017,8 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                             continue;
                         }
                         Chunk existingChunk = platform.equals(DefaultPlugin.JAVA_ANVIL)
-                                ? new ChunkImpl2((CompoundTag) tag, maxHeight)
-                                : new ChunkImpl((CompoundTag) tag, maxHeight);
+                                ? new MC12AnvilChunk((CompoundTag) tag, maxHeight)
+                                : new MCRegionChunk((CompoundTag) tag, maxHeight);
                         if (newChunk != null) {
                             // Chunk exists in existing and new world; merge it
                             // Do any necessary processing of the existing chunk
@@ -1239,8 +1239,8 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                             continue;
                         }
                         Chunk existingChunk = platform.equals(DefaultPlugin.JAVA_MCREGION)
-                            ? new ChunkImpl((CompoundTag) tag, maxHeight)
-                            : new ChunkImpl2((CompoundTag) tag, maxHeight);
+                            ? new MCRegionChunk((CompoundTag) tag, maxHeight)
+                            : new MC12AnvilChunk((CompoundTag) tag, maxHeight);
                         minecraftWorld.addChunk(existingChunk);
                     }
                 }

@@ -23,7 +23,7 @@ import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter.ResourcesExpo
 import javax.swing.*;
 import java.awt.*;
 
-import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
 
 /**
@@ -68,7 +68,7 @@ public class ChangeHeightDialog extends WorldPainterDialog {
         buttonOK.setEnabled((oldMaxHeight != newMaxHeight) || (translate && ((Integer) spinnerTranslateAmount.getValue() != 0)) || (scale && ((Integer) spinnerScaleAmount.getValue() != 100)));
         spinnerTranslateAmount.setEnabled(translate);
         spinnerScaleAmount.setEnabled(scale);
-        labelWarning.setVisible(newMaxHeight != DEFAULT_MAX_HEIGHT_2);
+        labelWarning.setVisible(newMaxHeight != DEFAULT_MAX_HEIGHT_ANVIL);
     }
     
     private void doResize() {

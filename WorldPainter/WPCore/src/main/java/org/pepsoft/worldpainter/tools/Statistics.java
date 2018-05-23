@@ -13,8 +13,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
-import static org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_1;
-import static org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_2;
+import static org.pepsoft.minecraft.Constants.VERSION_MCREGION;
+import static org.pepsoft.minecraft.Constants.VERSION_ANVIL;
 
 /**
  *
@@ -24,7 +24,7 @@ public class Statistics {
     public static void main(String[] args) throws IOException {
         File levelDatFile = new File(args[0]);
         Level level = Level.load(levelDatFile);
-        if ((level.getVersion() != SUPPORTED_VERSION_1) && (level.getVersion() != SUPPORTED_VERSION_2)) {
+        if ((level.getVersion() != VERSION_MCREGION) && (level.getVersion() != VERSION_ANVIL)) {
             throw new UnsupportedOperationException("Level format version " + level.getVersion() + " not supported");
         }
         int maxHeight = level.getMaxHeight();
@@ -32,7 +32,7 @@ public class Statistics {
         File worldDir = levelDatFile.getParentFile();
         File regionDir = new File(worldDir, "region");
         int version = level.getVersion();
-        final Pattern regionFilePattern = (version == SUPPORTED_VERSION_1) ? Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mcr") : Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mca");
+        final Pattern regionFilePattern = (version == VERSION_MCREGION) ? Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mcr") : Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mca");
         File[] regionFiles = regionDir.listFiles((dir, name) -> {
             return regionFilePattern.matcher(name).matches();
         });
@@ -59,9 +59,9 @@ public class Statistics {
                             try (NBTInputStream in = new NBTInputStream(regionFile.getChunkDataInputStream(x, z))) {
                                 tag = in.readTag();
                             }
-                            Chunk chunk = (version == SUPPORTED_VERSION_1)
-                                ? new ChunkImpl((CompoundTag) tag, maxHeight)
-                                : new ChunkImpl2((CompoundTag) tag, maxHeight);
+                            Chunk chunk = (version == VERSION_MCREGION)
+                                ? new MCRegionChunk((CompoundTag) tag, maxHeight)
+                                : new MC12AnvilChunk((CompoundTag) tag, maxHeight);
 
                             for (int xx = 0; xx < 16; xx++) {
                                 for (int zz = 0; zz < 16; zz++) {

@@ -31,11 +31,11 @@ public class DefaultPlatformProvider extends AbstractPlugin implements PlatformP
     @Override
     public Chunk createChunk(Platform platform, int x, int z, int maxHeight) {
         if (platform.equals(JAVA_MCREGION)) {
-            return new ChunkImpl(x, z, maxHeight);
+            return new MCRegionChunk(x, z, maxHeight);
         } else if (platform.equals(JAVA_ANVIL)) {
-            return new ChunkImpl2(x, z, maxHeight);
+            return new MC12AnvilChunk(x, z, maxHeight);
         } else if (platform.equals(JAVA_ANVIL_1_13)) {
-            return new ChunkImpl3(x, z, maxHeight);
+            return new MC113AnvilChunk(x, z, maxHeight);
         } else {
             throw new IllegalArgumentException("Platform " + platform + " not supported");
         }

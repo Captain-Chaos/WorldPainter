@@ -414,7 +414,7 @@ public class MemoryChunk implements Chunk, MinecraftWorld, Serializable {
      * @throws UnsupportedOperationException
      */
     @Override
-    public ChunkImpl clone() {
+    public MCRegionChunk clone() {
         throw new UnsupportedOperationException("ChunkImlp2.clone() not supported");
     }
     

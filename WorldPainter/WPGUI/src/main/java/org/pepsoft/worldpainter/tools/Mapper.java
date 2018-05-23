@@ -109,7 +109,7 @@ public class Mapper {
     private static void map(final File worldDir, final int dim, final ColourScheme colourScheme, File output) throws IOException, InterruptedException {
         File levelDatFile = new File(worldDir, "level.dat");
         Level level = Level.load(levelDatFile);
-        final Platform platform = level.getVersion() == SUPPORTED_VERSION_1 ? DefaultPlugin.JAVA_MCREGION : DefaultPlugin.JAVA_ANVIL;
+        final Platform platform = level.getVersion() == VERSION_MCREGION ? DefaultPlugin.JAVA_MCREGION : DefaultPlugin.JAVA_ANVIL;
         maxHeight = level.getMaxHeight();
         File dimensionDir;
         switch (dim) {

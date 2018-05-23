@@ -158,8 +158,8 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
             settings.put(LAVA,             new ResourceSettings(LAVA,             0,            15, nether ? 0 :  2, random.nextLong()));
             settings.put(DIRT,             new ResourceSettings(DIRT,             0, maxHeight - 1, nether ? 0 : 57, random.nextLong()));
             settings.put(GRAVEL,           new ResourceSettings(GRAVEL,           0, maxHeight - 1, nether ? 0 : 28, random.nextLong()));
-            settings.put(EMERALD_ORE,      new ResourceSettings(EMERALD_ORE,      0,            31, nether ? 0 : ((maxHeight != DEFAULT_MAX_HEIGHT_2) ? 0 : 1), random.nextLong()));
-            settings.put(QUARTZ_ORE,       new ResourceSettings(QUARTZ_ORE,       0, maxHeight - 1, nether ? ((maxHeight != DEFAULT_MAX_HEIGHT_2) ? 0 : 6) : 0, random.nextLong()));
+            settings.put(EMERALD_ORE,      new ResourceSettings(EMERALD_ORE,      0,            31, nether ? 0 : ((maxHeight != DEFAULT_MAX_HEIGHT_ANVIL) ? 0 : 1), random.nextLong()));
+            settings.put(QUARTZ_ORE,       new ResourceSettings(QUARTZ_ORE,       0, maxHeight - 1, nether ? ((maxHeight != DEFAULT_MAX_HEIGHT_ANVIL) ? 0 : 6) : 0, random.nextLong()));
         }
 
         @Override

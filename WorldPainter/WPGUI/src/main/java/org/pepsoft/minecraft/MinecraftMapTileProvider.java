@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
 import static java.awt.RenderingHints.KEY_TEXT_ANTIALIASING;
 import static java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_DEFAULT;
 import static org.pepsoft.minecraft.Constants.DATA_VERSION_MC_1_12_2;
-import static org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_1;
+import static org.pepsoft.minecraft.Constants.VERSION_MCREGION;
 import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.util.swing.TiledImageViewer.TILE_SIZE;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
@@ -41,7 +41,7 @@ public class MinecraftMapTileProvider implements TileProvider {
         maxHeight = level.getMaxHeight();
         version = level.getVersion();
         dataVersion = level.getDataVersion();
-        if (version == SUPPORTED_VERSION_1) {
+        if (version == VERSION_MCREGION) {
             platform = JAVA_MCREGION;
         } else if (dataVersion == DATA_VERSION_MC_1_12_2) {
             platform = JAVA_ANVIL;
@@ -51,7 +51,7 @@ public class MinecraftMapTileProvider implements TileProvider {
 
         // Scan the region files to determine a rough extent
         File regionDir = new File(mapDir, "region");
-        Pattern regionFilePattern = (version == SUPPORTED_VERSION_1)
+        Pattern regionFilePattern = (version == VERSION_MCREGION)
             ? Pattern.compile("r\\.(-?\\d+)\\.(-?\\d+)\\.mcr")
             : Pattern.compile("r\\.(-?\\d+)\\.(-?\\d+)\\.mca");
         File[] regionFiles = regionDir.listFiles((dir, name) -> regionFilePattern.matcher(name).matches());
@@ -127,16 +127,16 @@ public class MinecraftMapTileProvider implements TileProvider {
                     }
                     DataInputStream dataIn = region.getChunkDataInputStream(chunkX & 0x1f, chunkY & 0x1f);
                     if (dataIn != null) {
-                        ChunkImpl3.Status status = null;
+                        MC113AnvilChunk.Status status = null;
                         Chunk chunk;
                         try (NBTInputStream in = new NBTInputStream(dataIn)) {
                             if (platform.equals(JAVA_MCREGION)) {
-                                chunk = new ChunkImpl((CompoundTag) in.readTag(), maxHeight);
+                                chunk = new MCRegionChunk((CompoundTag) in.readTag(), maxHeight);
                             } else if (platform.equals(JAVA_ANVIL)) {
-                                chunk = new ChunkImpl2((CompoundTag) in.readTag(), maxHeight);
+                                chunk = new MC12AnvilChunk((CompoundTag) in.readTag(), maxHeight);
                             } else {
-                                chunk = new ChunkImpl3((CompoundTag) in.readTag(), maxHeight);
-                                status = ((ChunkImpl3) chunk).status;
+                                chunk = new MC113AnvilChunk((CompoundTag) in.readTag(), maxHeight);
+                                status = ((MC113AnvilChunk) chunk).status;
                             }
                         }
                         for (int blockX = 0; blockX < 16; blockX += scale) {

@@ -87,7 +87,7 @@ public class ExportTester extends RegressionIT {
     }
 
     private void verifyJavaMap(World2 world, File mapDir) throws IOException {
-        verifyJavaWorld(mapDir, world.getPlatform().equals(DefaultPlugin.JAVA_MCREGION)? Constants.SUPPORTED_VERSION_1 : Constants.SUPPORTED_VERSION_2);
+        verifyJavaWorld(mapDir, world.getPlatform().equals(DefaultPlugin.JAVA_MCREGION)? Constants.VERSION_MCREGION : Constants.VERSION_ANVIL);
         Collection<Dimension> dimensions;
         if (world.getDimensionsToExport() != null) {
             dimensions = world.getDimensionsToExport().stream().map(world::getDimension).collect(Collectors.toSet());

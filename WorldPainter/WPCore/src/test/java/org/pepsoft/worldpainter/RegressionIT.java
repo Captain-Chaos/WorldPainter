@@ -47,7 +47,7 @@ public class RegressionIT {
         File tmpBaseDir = createTmpBaseDir();
         try {
             File worldDir = exportJavaWorld(world, tmpBaseDir);
-            verifyJavaWorld(worldDir, SUPPORTED_VERSION_2);
+            verifyJavaWorld(worldDir, VERSION_ANVIL);
             verifyJavaDimension(worldDir, world.getDimension(DIM_NORMAL),
                 // Bedrock
                 BLK_BEDROCK,
@@ -212,8 +212,8 @@ public class RegressionIT {
                                 try (NBTInputStream in = new NBTInputStream(regionFile.getChunkDataInputStream(chunkX, chunkZ))) {
                                     Tag tag = in.readTag();
                                     chunk = platform.equals(DefaultPlugin.JAVA_MCREGION)
-                                            ? new ChunkImpl((CompoundTag) tag, maxHeight, true)
-                                            : new ChunkImpl2((CompoundTag) tag, maxHeight, true);
+                                            ? new MCRegionChunk((CompoundTag) tag, maxHeight, true)
+                                            : new MC12AnvilChunk((CompoundTag) tag, maxHeight, true);
                                 }
 
                                 // Iterate over all blocks to check whether the

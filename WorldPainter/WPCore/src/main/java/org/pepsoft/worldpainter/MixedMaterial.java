@@ -492,7 +492,7 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
                 if ((! repeat) && ((layerXSlope != 0) || (layerYSlope != 0))) {
                     throw new IllegalArgumentException("Angle may not be non-zero if repeat is false");
                 }
-                List<Material> tmpMaterials = new ArrayList<>(org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2);
+                List<Material> tmpMaterials = new ArrayList<>(org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL);
                 patternHeight = 0;
                 for (int i = rows.length - 1; i >= 0; i--) {
                     patternHeight += rows[i].occurrence;

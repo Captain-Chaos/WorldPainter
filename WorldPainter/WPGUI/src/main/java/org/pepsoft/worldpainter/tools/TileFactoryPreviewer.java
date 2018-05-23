@@ -42,7 +42,7 @@ public class TileFactoryPreviewer {
         } else {
             seed = new Random().nextLong();
         }
-//        final ExperimentalTileFactory tileFactory = new ExperimentalTileFactory(DEFAULT_MAX_HEIGHT_2);
+//        final ExperimentalTileFactory tileFactory = new ExperimentalTileFactory(DEFAULT_MAX_HEIGHT_ANVIL);
 //        final HeightMapTileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(Terrain.GRASS, World2.DEFAULT_MAX_HEIGHT, 58, 62, false, true, 20.0f, 1.0);
 //        HeightMap oceanFloor = new ConstantHeightMap(40f);
 //        HeightMap continent;
@@ -66,7 +66,7 @@ public class TileFactoryPreviewer {
 //            new NoiseHeightMap(256f, 5f, 4));
 //        HeightMap heightMap = new MaximisingHeightMap(continent, mountains);
 //        final HeightMapTileFactory tileFactory = new HeightMapTileFactory(seed, heightMap, 256, false, new FancyTheme(256, 62, heightMap));
-        final HeightMapTileFactory tileFactory = TileFactoryFactory.createFancyTileFactory(seed, Terrain.GRASS, Constants.DEFAULT_MAX_HEIGHT_2, 62, 58, false, 20f, 1.0);
+        final HeightMapTileFactory tileFactory = TileFactoryFactory.createFancyTileFactory(seed, Terrain.GRASS, Constants.DEFAULT_MAX_HEIGHT_ANVIL, 62, 58, false, 20f, 1.0);
 //        SortedMap<Integer, Terrain> terrainRanges = tileFactory.getTerrainRanges();
 //        terrainRanges.clear();
 //        terrainRanges.put( -1, Terrain.DIRT);

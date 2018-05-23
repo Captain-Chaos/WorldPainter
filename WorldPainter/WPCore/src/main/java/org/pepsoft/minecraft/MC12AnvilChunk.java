@@ -19,12 +19,12 @@ import static java.util.stream.Collectors.toList;
 import static org.pepsoft.minecraft.Constants.*;
 
 /**
- * An "Anvil" chunk.
+ * An "Anvil" chunk for Minecraft 1.2 - 1.12.2.
  * 
  * @author pepijn
  */
-public final class ChunkImpl2 extends AbstractNBTItem implements Chunk, MinecraftWorld {
-    public ChunkImpl2(int xPos, int zPos, int maxHeight) {
+public final class MC12AnvilChunk extends AbstractNBTItem implements Chunk, MinecraftWorld {
+    public MC12AnvilChunk(int xPos, int zPos, int maxHeight) {
         super(new CompoundTag(TAG_LEVEL, new HashMap<>()));
         this.xPos = xPos;
         this.zPos = zPos;
@@ -38,11 +38,11 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk, Minecraf
         lightPopulated = true;
     }
 
-    public ChunkImpl2(CompoundTag tag, int maxHeight) {
+    public MC12AnvilChunk(CompoundTag tag, int maxHeight) {
         this(tag, maxHeight, false);
     }
 
-    public ChunkImpl2(CompoundTag tag, int maxHeight, boolean readOnly) {
+    public MC12AnvilChunk(CompoundTag tag, int maxHeight, boolean readOnly) {
         super((CompoundTag) tag.getTag(TAG_LEVEL));
         this.maxHeight = maxHeight;
         this.readOnly = readOnly;
@@ -535,7 +535,7 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk, Minecraf
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final ChunkImpl2 other = (ChunkImpl2) obj;
+        final MC12AnvilChunk other = (MC12AnvilChunk) obj;
         if (this.xPos != other.xPos) {
             return false;
         }
@@ -557,7 +557,7 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk, Minecraf
      * @throws UnsupportedOperationException
      */
     @Override
-    public ChunkImpl clone() {
+    public MCRegionChunk clone() {
         throw new UnsupportedOperationException("ChunkImlp2.clone() not supported");
     }
     
@@ -594,7 +594,7 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk, Minecraf
     }
 
     private void writeObject(ObjectOutputStream out) throws IOException {
-        throw new IOException("ChunkImpl2 is not serializable");
+        throw new IOException("MC12AnvilChunk is not serializable");
     }
 
     public final boolean readOnly;
@@ -688,7 +688,7 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk, Minecraf
         }
 
         private void writeObject(ObjectOutputStream out) throws IOException {
-            throw new IOException("ChunkImpl2.Section is not serializable");
+            throw new IOException("MC12AnvilChunk.Section is not serializable");
         }
 
         final byte level;

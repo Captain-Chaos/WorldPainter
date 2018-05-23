@@ -45,7 +45,7 @@ public final class RegionFileCache {
     }
 
     public static synchronized RegionFile getRegionFileIfExists(File basePath, int chunkX, int chunkZ, int version, boolean readOnly) throws IOException {
-        if ((version != SUPPORTED_VERSION_1) && (version != SUPPORTED_VERSION_2)) {
+        if ((version != VERSION_MCREGION) && (version != VERSION_ANVIL)) {
             throw new IllegalArgumentException("Not a supported version: 0x" + Integer.toHexString(version));
         }
         
@@ -53,7 +53,7 @@ public final class RegionFileCache {
         if (!regionDir.exists()) {
             return null;
         }
-        File file = new File(regionDir, "r." + (chunkX >> 5) + "." + (chunkZ >> 5) + ((version == SUPPORTED_VERSION_1) ? ".mcr" : ".mca"));
+        File file = new File(regionDir, "r." + (chunkX >> 5) + "." + (chunkZ >> 5) + ((version == VERSION_MCREGION) ? ".mcr" : ".mca"));
 
         Reference<RegionFile> ref = readOnly ? readOnlyCache.get(file) : cache.get(file);
 
@@ -76,12 +76,12 @@ public final class RegionFileCache {
     }
     
     public static synchronized RegionFile getRegionFile(File basePath, int chunkX, int chunkZ, int version) throws IOException {
-        if ((version != SUPPORTED_VERSION_1) && (version != SUPPORTED_VERSION_2)) {
+        if ((version != VERSION_MCREGION) && (version != VERSION_ANVIL)) {
             throw new IllegalArgumentException("Not a supported version: 0x" + Integer.toHexString(version));
         }
         
         File regionDir = new File(basePath, "region");
-        File file = new File(regionDir, "r." + (chunkX >> 5) + "." + (chunkZ >> 5) + ((version == SUPPORTED_VERSION_1) ? ".mcr" : ".mca"));
+        File file = new File(regionDir, "r." + (chunkX >> 5) + "." + (chunkZ >> 5) + ((version == VERSION_MCREGION) ? ".mcr" : ".mca"));
 
         Reference<RegionFile> ref = cache.get(file);
 

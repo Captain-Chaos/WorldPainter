@@ -15,19 +15,18 @@ import java.util.*;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
-import static org.pepsoft.minecraft.ChunkImpl3.Status.LIQUID_CARVED;
-import static org.pepsoft.minecraft.ChunkImpl3.Status.POSTPROCESSED;
+import static org.pepsoft.minecraft.MC113AnvilChunk.Status.LIQUID_CARVED;
+import static org.pepsoft.minecraft.MC113AnvilChunk.Status.POSTPROCESSED;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.AIR;
-import static org.pepsoft.minecraft.Material.MC_AIR;
 
 /**
  * An "Anvil" chunk for Minecraft 1.13 and higher.
  * 
  * @author pepijn
  */
-public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, MinecraftWorld {
-    public ChunkImpl3(int xPos, int zPos, int maxHeight) {
+public final class MC113AnvilChunk extends AbstractNBTItem implements Chunk, MinecraftWorld {
+    public MC113AnvilChunk(int xPos, int zPos, int maxHeight) {
         super(new CompoundTag(TAG_LEVEL, new HashMap<>()));
         this.xPos = xPos;
         this.zPos = zPos;
@@ -43,11 +42,11 @@ public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, Minecraf
         setTerrainPopulated(false);
     }
 
-    public ChunkImpl3(CompoundTag tag, int maxHeight) {
+    public MC113AnvilChunk(CompoundTag tag, int maxHeight) {
         this(tag, maxHeight, false);
     }
 
-    public ChunkImpl3(CompoundTag tag, int maxHeight, boolean readOnly) {
+    public MC113AnvilChunk(CompoundTag tag, int maxHeight, boolean readOnly) {
         super((CompoundTag) tag.getTag(TAG_LEVEL));
         this.maxHeight = maxHeight;
         this.readOnly = readOnly;
@@ -458,7 +457,7 @@ public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, Minecraf
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final ChunkImpl3 other = (ChunkImpl3) obj;
+        final MC113AnvilChunk other = (MC113AnvilChunk) obj;
         if (this.xPos != other.xPos) {
             return false;
         }
@@ -480,7 +479,7 @@ public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, Minecraf
      * @throws UnsupportedOperationException
      */
     @Override
-    public ChunkImpl clone() {
+    public MCRegionChunk clone() {
         throw new UnsupportedOperationException("ChunkImlp3.clone() not supported");
     }
     
@@ -513,7 +512,7 @@ public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, Minecraf
     }
 
     private void writeObject(ObjectOutputStream out) throws IOException {
-        throw new IOException("ChunkImpl3 is not serializable");
+        throw new IOException("MC113AnvilChunk is not serializable");
     }
 
     static int blockOffset(int x, int y, int z) {
@@ -699,7 +698,7 @@ public final class ChunkImpl3 extends AbstractNBTItem implements Chunk, Minecraf
         }
 
         private void writeObject(ObjectOutputStream out) throws IOException {
-            throw new IOException("ChunkImpl3.Section is not serializable");
+            throw new IOException("MC113AnvilChunk.Section is not serializable");
         }
 
         private Material getMaterial(List<CompoundTag> palette, int index) {

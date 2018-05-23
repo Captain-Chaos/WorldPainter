@@ -24,7 +24,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Map;
 
-import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.worldpainter.Constants.MEDIUM_BLOBS;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
@@ -51,7 +51,7 @@ public class HeightMapImporter {
         logger.info("Importing world from height map {} (size: {}x{})", name, extent.width, extent.height);
 
         final boolean highRes = (imageHighLevel >= maxHeight) && (worldHighLevel < maxHeight);
-        final World2 world = new World2((maxHeight == DEFAULT_MAX_HEIGHT_2) ? JAVA_ANVIL : JAVA_MCREGION, World2.DEFAULT_OCEAN_SEED, tileFactory, maxHeight);
+        final World2 world = new World2((maxHeight == DEFAULT_MAX_HEIGHT_ANVIL) ? JAVA_ANVIL : JAVA_MCREGION, World2.DEFAULT_OCEAN_SEED, tileFactory, maxHeight);
         world.addHistoryEntry(HistoryEntry.WORLD_IMPORTED_FROM_HEIGHT_MAP, imageFile);
         int p = name.lastIndexOf('.');
         if (p != -1) {
@@ -62,7 +62,7 @@ public class HeightMapImporter {
 
         // Export settings
         final Configuration config = Configuration.getInstance();
-        final boolean minecraft11Only = dimension.getMaxHeight() != DEFAULT_MAX_HEIGHT_2;
+        final boolean minecraft11Only = dimension.getMaxHeight() != DEFAULT_MAX_HEIGHT_ANVIL;
         world.setCreateGoodiesChest(config.isDefaultCreateGoodiesChest());
         Generator generator = config.getDefaultGenerator();
         if (minecraft11Only && (generator == Generator.LARGE_BIOMES)) {
@@ -205,13 +205,13 @@ public class HeightMapImporter {
     }
     
     public BufferedImage getPreview() {
-        if ((heightMap == null) || (maxHeight != DEFAULT_MAX_HEIGHT_2)) {
+        if ((heightMap == null) || (maxHeight != DEFAULT_MAX_HEIGHT_ANVIL)) {
             return null;
         }
-        BufferedImage preview = new BufferedImage(DEFAULT_MAX_HEIGHT_2, DEFAULT_MAX_HEIGHT_2, BufferedImage.TYPE_INT_RGB);
+        BufferedImage preview = new BufferedImage(DEFAULT_MAX_HEIGHT_ANVIL, DEFAULT_MAX_HEIGHT_ANVIL, BufferedImage.TYPE_INT_RGB);
         Graphics2D g2 = preview.createGraphics();
         try {
-            for (int x = 0; x < DEFAULT_MAX_HEIGHT_2; x++) {
+            for (int x = 0; x < DEFAULT_MAX_HEIGHT_ANVIL; x++) {
                 // TODO
             }
         } finally {
@@ -347,7 +347,7 @@ public class HeightMapImporter {
     }
     
     private HeightMap heightMap;
-    private int worldLowLevel, worldWaterLevel = 62, worldHighLevel = DEFAULT_MAX_HEIGHT_2 - 1, imageLowLevel, imageHighLevel = DEFAULT_MAX_HEIGHT_2 - 1, maxHeight = DEFAULT_MAX_HEIGHT_2, voidBelowLevel, maxZ;
+    private int worldLowLevel, worldWaterLevel = 62, worldHighLevel = DEFAULT_MAX_HEIGHT_ANVIL - 1, imageLowLevel, imageHighLevel = DEFAULT_MAX_HEIGHT_ANVIL - 1, maxHeight = DEFAULT_MAX_HEIGHT_ANVIL, voidBelowLevel, maxZ;
     private TileFactory tileFactory;
     private String name;
     private boolean onlyRaise, oneOnOne, highRes, mayBeScaled;

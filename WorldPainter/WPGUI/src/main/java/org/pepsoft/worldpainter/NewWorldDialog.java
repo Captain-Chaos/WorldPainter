@@ -40,7 +40,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.minecraft.Material.LAVA;
 import static org.pepsoft.minecraft.Material.WATER;
 import static org.pepsoft.worldpainter.Constants.*;
@@ -266,7 +266,7 @@ public class NewWorldDialog extends WorldPainterDialog {
             return null;
         }
         world.addHistoryEntry(HistoryEntry.WORLD_CREATED);
-        final boolean minecraft11Only = dimension.getMaxHeight() != DEFAULT_MAX_HEIGHT_2;
+        final boolean minecraft11Only = dimension.getMaxHeight() != DEFAULT_MAX_HEIGHT_ANVIL;
         world.setName(name);
 
         // Export settings

@@ -29,7 +29,7 @@ import org.pepsoft.worldpainter.util.MinecraftUtil;
 import java.io.File;
 import java.io.IOException;
 
-import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 
 /**
  *
@@ -63,7 +63,7 @@ public class ExportWorldOp extends AbstractOperation<Void> {
         // Set the file format if it was not set yet (because this world was
         // not exported before)
         if (world.getPlatform() == null) {
-            world.setPlatform((world.getMaxHeight() == DEFAULT_MAX_HEIGHT_2) ? DefaultPlugin.JAVA_ANVIL : DefaultPlugin.JAVA_MCREGION);
+            world.setPlatform((world.getMaxHeight() == DEFAULT_MAX_HEIGHT_ANVIL) ? DefaultPlugin.JAVA_ANVIL : DefaultPlugin.JAVA_MCREGION);
         }
 
         // Load any custom materials defined in the world

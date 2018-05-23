@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Random;
 
 import static org.pepsoft.minecraft.Block.BLOCKS;
+import static org.pepsoft.minecraft.Constants.MC_LAVA;
+import static org.pepsoft.minecraft.Constants.MC_WATER;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.SMALL_BLOBS;
 

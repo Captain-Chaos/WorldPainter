@@ -36,7 +36,7 @@ public class Timings {
 //            final World2 world = WorldFactory.createDefaultWorld(defaultConfig, random.nextLong());
             world.getDimension(0).getTileFactory().setSeed(random.nextLong());
             if (world.getPlatform() == null) {
-                if (world.getMaxHeight() == Constants.DEFAULT_MAX_HEIGHT_2) {
+                if (world.getMaxHeight() == Constants.DEFAULT_MAX_HEIGHT_ANVIL) {
                     world.setPlatform(DefaultPlugin.JAVA_ANVIL);
                 } else {
                     world.setPlatform(DefaultPlugin.JAVA_MCREGION);

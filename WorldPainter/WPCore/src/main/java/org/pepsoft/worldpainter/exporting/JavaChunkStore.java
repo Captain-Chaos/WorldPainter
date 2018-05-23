@@ -4,7 +4,6 @@ import org.jnbt.CompoundTag;
 import org.jnbt.NBTInputStream;
 import org.jnbt.NBTOutputStream;
 import org.pepsoft.minecraft.*;
-import org.pepsoft.worldpainter.DefaultPlugin;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.layers.ReadOnly;
@@ -156,11 +155,11 @@ public class JavaChunkStore implements ChunkStore {
 //                    timeSpentLoading += System.currentTimeMillis() - start;
                     boolean readOnly = honourReadOnlyChunks && dimension.getBitLayerValueAt(ReadOnly.INSTANCE, x << 4, z << 4);
                     if (platform.equals(JAVA_MCREGION)) {
-                        return new ChunkImpl(tag, maxHeight, readOnly);
+                        return new MCRegionChunk(tag, maxHeight, readOnly);
                     } else if (platform.equals(JAVA_ANVIL)) {
-                        return new ChunkImpl2(tag, maxHeight, readOnly);
+                        return new MC12AnvilChunk(tag, maxHeight, readOnly);
                     } else {
-                        return new ChunkImpl3(tag, maxHeight, readOnly);
+                        return new MC113AnvilChunk(tag, maxHeight, readOnly);
                     }
                 }
             } else {

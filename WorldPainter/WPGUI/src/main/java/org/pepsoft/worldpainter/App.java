@@ -1008,10 +1008,10 @@ public final class App extends JFrame implements RadiusControl,
             }
         }
         
-        if (newWorld.isAskToConvertToAnvil() && (newWorld.getMaxHeight() == DEFAULT_MAX_HEIGHT_1) && (newWorld.getImportedFrom() == null)) {
+        if (newWorld.isAskToConvertToAnvil() && (newWorld.getMaxHeight() == DEFAULT_MAX_HEIGHT_MCREGION) && (newWorld.getImportedFrom() == null)) {
             if (showConfirmDialog(this, strings.getString("this.world.is.128.blocks.high"), strings.getString("convert.world.height"), YES_NO_OPTION) == YES_OPTION) {
-                ChangeHeightDialog.resizeWorld(newWorld, HeightTransform.IDENTITY, DEFAULT_MAX_HEIGHT_2, this);
-                newWorld.addHistoryEntry(HistoryEntry.WORLD_MAX_HEIGHT_CHANGED, DEFAULT_MAX_HEIGHT_2);
+                ChangeHeightDialog.resizeWorld(newWorld, HeightTransform.IDENTITY, DEFAULT_MAX_HEIGHT_ANVIL, this);
+                newWorld.addHistoryEntry(HistoryEntry.WORLD_MAX_HEIGHT_CHANGED, DEFAULT_MAX_HEIGHT_ANVIL);
                 // Force the version to "Anvil" if it was previously exported
                 // with the old format
                 if (newWorld.getPlatform() != null) {
@@ -4313,7 +4313,7 @@ public final class App extends JFrame implements RadiusControl,
                 biomesViewerFrame.requestFocus();
             } else {
                 int preferredAlgorithm = -1;
-                if ((dimension != null) && (dimension.getDim() == DIM_NORMAL) && (dimension.getMaxHeight() == DEFAULT_MAX_HEIGHT_2)) {
+                if ((dimension != null) && (dimension.getDim() == DIM_NORMAL) && (dimension.getMaxHeight() == DEFAULT_MAX_HEIGHT_ANVIL)) {
                     if (world.getGenerator() == Generator.LARGE_BIOMES) {
                         preferredAlgorithm = BIOME_ALGORITHM_1_7_LARGE;
                     } else {

@@ -1,7 +1,7 @@
 package org.pepsoft.worldpainter.tools;
 
 import org.json.simple.JSONValue;
-import org.pepsoft.minecraft.ChunkImpl2;
+import org.pepsoft.minecraft.MC12AnvilChunk;
 import org.pepsoft.minecraft.Level;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.FileUtils;
@@ -50,7 +50,7 @@ public class BlockNameHarvester {
             if (worldDir.isDirectory()) {
                 FileUtils.deleteDir(worldDir);
             }
-            Level level = new Level(DEFAULT_MAX_HEIGHT_2, JAVA_ANVIL);
+            Level level = new Level(DEFAULT_MAX_HEIGHT_ANVIL, JAVA_ANVIL);
             level.setSeed(0L);
             level.setName("BlockNames");
             level.setGameType(GAME_TYPE_CREATIVE);
@@ -65,13 +65,13 @@ public class BlockNameHarvester {
             level.save(worldDir);
             File regionDir = new File(worldDir, "region");
             regionDir.mkdirs();
-            JavaMinecraftWorld world = new JavaMinecraftWorld(worldDir, DIM_NORMAL, DEFAULT_MAX_HEIGHT_2, JAVA_ANVIL, false, 256);
+            JavaMinecraftWorld world = new JavaMinecraftWorld(worldDir, DIM_NORMAL, DEFAULT_MAX_HEIGHT_ANVIL, JAVA_ANVIL, false, 256);
             try {
                 for (int x = -32; x < 32; x++) {
                     for (int z = -32; z < 32; z++) {
                         if (((x % 16) == 0) && ((z % 16) == 0)) {
                             // Chunk corner; add a chunk
-                            world.addChunk(new ChunkImpl2(x >> 4, z >> 4, DEFAULT_MAX_HEIGHT_2));
+                            world.addChunk(new MC12AnvilChunk(x >> 4, z >> 4, DEFAULT_MAX_HEIGHT_ANVIL));
                         }
                         world.setMaterialAt(x, z, 0, BEDROCK);
                         world.setMaterialAt(x, z, 1, DIRT);
@@ -91,7 +91,7 @@ public class BlockNameHarvester {
             List<Object> blockSpecs = new ArrayList<>();
             File savesDir = new File(MinecraftUtil.findMinecraftDir(), "saves");
             File worldDir = new File(savesDir, "BlockNames");
-            JavaMinecraftWorld world = new JavaMinecraftWorld(worldDir, DIM_NORMAL, DEFAULT_MAX_HEIGHT_2, JAVA_ANVIL_1_13, true, 256);
+            JavaMinecraftWorld world = new JavaMinecraftWorld(worldDir, DIM_NORMAL, DEFAULT_MAX_HEIGHT_ANVIL, JAVA_ANVIL_1_13, true, 256);
             for (int x = -32; x < 32; x++) {
                 for (int z = -32; z < 32; z++) {
                     int index = z + 32 + 64 * (x + 32);

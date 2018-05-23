@@ -6,7 +6,7 @@
 package org.pepsoft.worldpainter.exporting;
 
 import org.pepsoft.minecraft.ChunkFactory;
-import org.pepsoft.minecraft.ChunkImpl2;
+import org.pepsoft.minecraft.MC12AnvilChunk;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.*;
@@ -126,7 +126,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                         }
                     }
                     result.chunk.setBiome(x, z, biome);
-                } else if (biomesSupported && (result.chunk instanceof ChunkImpl2)) {
+                } else if (biomesSupported && (result.chunk instanceof MC12AnvilChunk)) {
                     result.chunk.setBiome(x, z, defaultBiome);
                 }
 

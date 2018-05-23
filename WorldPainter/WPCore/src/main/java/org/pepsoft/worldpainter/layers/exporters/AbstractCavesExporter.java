@@ -9,8 +9,7 @@ import org.pepsoft.worldpainter.layers.Layer;
 import java.util.Random;
 
 import static org.pepsoft.minecraft.Block.BLOCKS;
-import static org.pepsoft.minecraft.Constants.BLK_STATIONARY_LAVA;
-import static org.pepsoft.minecraft.Constants.BLK_STATIONARY_WATER;
+import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 
 public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLayerExporter<L> {

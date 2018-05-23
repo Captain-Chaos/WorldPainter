@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.regex.Pattern;
 
-import static org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_1;
+import static org.pepsoft.minecraft.Constants.VERSION_MCREGION;
 
 public class ScanMap {
     public static void main(String[] args) throws IOException {
@@ -18,7 +18,7 @@ public class ScanMap {
         final Level level = Level.load(levelDatFile);
         final int version = level.getVersion(), maxHeight = level.getMaxHeight(), dataVersion = level.getDataVersion();
         final File regionDir = new File(levelDatFile.getParentFile(), "region");
-        final Pattern regionFilePattern = (version == SUPPORTED_VERSION_1)
+        final Pattern regionFilePattern = (version == VERSION_MCREGION)
                 ? Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mcr")
                 : Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mca");
         final File[] regionFiles = regionDir.listFiles((dir, name) -> regionFilePattern.matcher(name).matches());
@@ -37,11 +37,11 @@ public class ScanMap {
                                 continue;
                             }
                             try {
-                                final Chunk chunk = (version == SUPPORTED_VERSION_1)
-                                    ? new ChunkImpl((CompoundTag) tag, maxHeight)
+                                final Chunk chunk = (version == VERSION_MCREGION)
+                                    ? new MCRegionChunk((CompoundTag) tag, maxHeight)
                                     : ((dataVersion >= 1477)
-                                        ? new ChunkImpl3((CompoundTag) tag, maxHeight)
-                                        : new ChunkImpl2((CompoundTag) tag, maxHeight));
+                                        ? new MC113AnvilChunk((CompoundTag) tag, maxHeight)
+                                        : new MC12AnvilChunk((CompoundTag) tag, maxHeight));
                             } catch (RuntimeException e) {
                                 System.err.printf("%s while parsing tag for chunk %d,%d%n", e.getClass().getSimpleName(), x, z);
                                 e.printStackTrace();

@@ -7,7 +7,6 @@ package org.pepsoft.minecraft;
 
 import org.jnbt.*;
 import org.pepsoft.worldpainter.AccessDeniedException;
-import org.pepsoft.worldpainter.DefaultPlugin;
 import org.pepsoft.worldpainter.Generator;
 import org.pepsoft.worldpainter.Platform;
 
@@ -34,12 +33,12 @@ public final class Level extends AbstractNBTItem {
         if ((mapHeight & (mapHeight - 1)) != 0) {
             throw new IllegalArgumentException("mapHeight " + mapHeight + " not a power of two");
         }
-        if (mapHeight != (platform.equals(JAVA_MCREGION) ? DEFAULT_MAX_HEIGHT_1 : DEFAULT_MAX_HEIGHT_2)) {
+        if (mapHeight != (platform.equals(JAVA_MCREGION) ? DEFAULT_MAX_HEIGHT_MCREGION : DEFAULT_MAX_HEIGHT_ANVIL)) {
             setInt(TAG_MAP_HEIGHT, mapHeight);
         }
         this.maxHeight = mapHeight;
         extraTags = null;
-        setInt(TAG_VERSION, platform.equals(JAVA_MCREGION) ? SUPPORTED_VERSION_1 : SUPPORTED_VERSION_2);
+        setInt(TAG_VERSION, platform.equals(JAVA_MCREGION) ? VERSION_MCREGION : VERSION_ANVIL);
         // TODO: make this dynamic?
         if (! platform.equals(JAVA_MCREGION)) {
             int dataVersion = platform.equals(JAVA_ANVIL) ? DATA_VERSION_MC_1_12_2 : DATA_VERSION_MC_1_13;
@@ -61,10 +60,10 @@ public final class Level extends AbstractNBTItem {
             throw new IllegalArgumentException("mapHeight " + mapHeight + " not a power of two");
         }
         int version = getInt(TAG_VERSION);
-        if ((version != SUPPORTED_VERSION_1) && (version != SUPPORTED_VERSION_2)) {
+        if ((version != VERSION_MCREGION) && (version != VERSION_ANVIL)) {
             throw new IllegalArgumentException("Not a supported version: 0x" + Integer.toHexString(version));
         }
-        if (mapHeight != ((version == SUPPORTED_VERSION_1) ? DEFAULT_MAX_HEIGHT_1 : DEFAULT_MAX_HEIGHT_2)) {
+        if (mapHeight != ((version == VERSION_MCREGION) ? DEFAULT_MAX_HEIGHT_MCREGION : DEFAULT_MAX_HEIGHT_ANVIL)) {
             setInt(TAG_MAP_HEIGHT, mapHeight);
         }
         this.maxHeight = mapHeight;
@@ -318,7 +317,7 @@ public final class Level extends AbstractNBTItem {
     public void setGenerator(Generator generator) {
         switch (generator) {
             case DEFAULT:
-                if (getVersion() == SUPPORTED_VERSION_1) {
+                if (getVersion() == VERSION_MCREGION) {
                     setString(TAG_GENERATOR_NAME, "DEFAULT");
                 } else {
                     setString(TAG_GENERATOR_NAME, "default");
@@ -326,14 +325,14 @@ public final class Level extends AbstractNBTItem {
                 }
                 break;
             case FLAT:
-                if (getVersion() == SUPPORTED_VERSION_1) {
+                if (getVersion() == VERSION_MCREGION) {
                     setString(TAG_GENERATOR_NAME, "FLAT");
                 } else {
                     setString(TAG_GENERATOR_NAME, "flat");
                 }
                 break;
             case LARGE_BIOMES:
-                if (getVersion() == SUPPORTED_VERSION_1) {
+                if (getVersion() == VERSION_MCREGION) {
                     throw new IllegalArgumentException("Large biomes not supported for Minecraft 1.1 maps");
                 } else {
                     setString(TAG_GENERATOR_NAME, "largeBiomes");
@@ -416,8 +415,8 @@ public final class Level extends AbstractNBTItem {
         }
         
         int version = ((IntTag) ((CompoundTag) ((CompoundTag) tag).getTag(TAG_DATA)).getTag(TAG_VERSION)).getValue();
-        int maxHeight = (version == SUPPORTED_VERSION_1) ? DEFAULT_MAX_HEIGHT_1 : DEFAULT_MAX_HEIGHT_2;
-        if (version == SUPPORTED_VERSION_1) {
+        int maxHeight = (version == VERSION_MCREGION) ? DEFAULT_MAX_HEIGHT_MCREGION : DEFAULT_MAX_HEIGHT_ANVIL;
+        if (version == VERSION_MCREGION) {
             if (((CompoundTag) ((CompoundTag) tag).getTag(TAG_DATA)).getTag(TAG_MAP_HEIGHT) != null) {
                 maxHeight = ((IntTag) ((CompoundTag) ((CompoundTag) tag).getTag(TAG_DATA)).getTag(TAG_MAP_HEIGHT)).getValue();
             } else {

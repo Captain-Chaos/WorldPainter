@@ -14,6 +14,7 @@ import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import java.io.Serializable;
 import java.util.Random;
 
+import static org.pepsoft.minecraft.Constants.MC_VINE;
 import static org.pepsoft.minecraft.Material.*;
 
 /**

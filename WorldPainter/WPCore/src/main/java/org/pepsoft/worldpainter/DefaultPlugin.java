@@ -14,8 +14,8 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 
-import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_1;
-import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_MCREGION;
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.GameType.*;
 import static org.pepsoft.worldpainter.Generator.*;
@@ -59,7 +59,7 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
     public static final Platform JAVA_MCREGION = new Platform(
             "org.pepsoft.mcregion",
             "Minecraft 1.1 (MCRegion)",
-            32, DEFAULT_MAX_HEIGHT_1, 2048,
+            32, DEFAULT_MAX_HEIGHT_MCREGION, 2048,
             Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE,
             Arrays.asList(SURVIVAL, CREATIVE),
             Arrays.asList(DEFAULT, FLAT),
@@ -69,7 +69,7 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
     public static final Platform JAVA_ANVIL = new Platform(
             "org.pepsoft.anvil",
             "Minecraft 1.2 - 1.12 (Anvil)",
-            DEFAULT_MAX_HEIGHT_2, DEFAULT_MAX_HEIGHT_2, DEFAULT_MAX_HEIGHT_2,
+            DEFAULT_MAX_HEIGHT_ANVIL, DEFAULT_MAX_HEIGHT_ANVIL, DEFAULT_MAX_HEIGHT_ANVIL,
             Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE,
             Arrays.asList(SURVIVAL, CREATIVE, ADVENTURE, HARDCORE),
             Arrays.asList(DEFAULT, FLAT, LARGE_BIOMES, CUSTOM),
@@ -79,7 +79,7 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
     public static final Platform JAVA_ANVIL_1_13 = new Platform(
             "org.pepsoft.anvil.1.13",
             "Minecraft 1.13 or later (Anvil)",
-            DEFAULT_MAX_HEIGHT_2, DEFAULT_MAX_HEIGHT_2, DEFAULT_MAX_HEIGHT_2,
+            DEFAULT_MAX_HEIGHT_ANVIL, DEFAULT_MAX_HEIGHT_ANVIL, DEFAULT_MAX_HEIGHT_ANVIL,
             Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE,
             Arrays.asList(SURVIVAL, CREATIVE, ADVENTURE, HARDCORE),
             Arrays.asList(DEFAULT, FLAT, LARGE_BIOMES, CUSTOM),

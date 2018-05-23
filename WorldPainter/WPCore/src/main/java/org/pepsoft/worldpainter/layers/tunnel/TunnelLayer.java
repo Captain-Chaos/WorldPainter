@@ -335,7 +335,7 @@ public class TunnelLayer extends CustomLayer {
         /**
          * The minimum and maximum heights at which the layer should be applied.
          */
-        private int minLevel = 0, maxLevel = Constants.DEFAULT_MAX_HEIGHT_2 - 1;
+        private int minLevel = 0, maxLevel = Constants.DEFAULT_MAX_HEIGHT_ANVIL - 1;
         
         private static final long serialVersionUID = 1L;
     }

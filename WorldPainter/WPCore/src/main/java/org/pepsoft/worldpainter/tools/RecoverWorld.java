@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
-import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 
@@ -133,7 +133,7 @@ public class RecoverWorld {
                     World2 world = worlds.get(0);
                     if (world.getPlatform() != null) {
                         newWorld = new World2(world.getPlatform(), maxHeight);
-                    } else if (maxHeight == DEFAULT_MAX_HEIGHT_2) {
+                    } else if (maxHeight == DEFAULT_MAX_HEIGHT_ANVIL) {
                         newWorld = new World2(JAVA_ANVIL, maxHeight);
                     } else {
                         newWorld = new World2(JAVA_MCREGION, maxHeight);
@@ -169,7 +169,7 @@ public class RecoverWorld {
                     }
                 } else {
                     System.err.println("No world recovered; all world settings lost");
-                    if (maxHeight == DEFAULT_MAX_HEIGHT_2) {
+                    if (maxHeight == DEFAULT_MAX_HEIGHT_ANVIL) {
                         newWorld = new World2(JAVA_ANVIL, maxHeight);
                     } else {
                         newWorld = new World2(JAVA_MCREGION, maxHeight);

@@ -18,11 +18,9 @@ import org.pepsoft.worldpainter.util.MinecraftUtil;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.util.zip.GZIPInputStream;
 
 /**
  *
@@ -67,7 +65,7 @@ public class Export {
             Terrain.setCustomMaterial(i, material);
         }
         if (world.getPlatform() == null) {
-            if (world.getMaxHeight() == Constants.DEFAULT_MAX_HEIGHT_2) {
+            if (world.getMaxHeight() == Constants.DEFAULT_MAX_HEIGHT_ANVIL) {
                 world.setPlatform(DefaultPlugin.JAVA_ANVIL);
             } else {
                 world.setPlatform(DefaultPlugin.JAVA_MCREGION);

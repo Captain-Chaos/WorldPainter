@@ -134,9 +134,9 @@ public final class WorldFactory {
         // Export settings
         world.setCreateGoodiesChest(config.isDefaultCreateGoodiesChest());
         Generator generator = config.getDefaultGenerator();
-        if ((world.getMaxHeight() == DEFAULT_MAX_HEIGHT_1) && (generator == Generator.LARGE_BIOMES)) {
+        if ((world.getMaxHeight() == DEFAULT_MAX_HEIGHT_MCREGION) && (generator == Generator.LARGE_BIOMES)) {
             generator = Generator.DEFAULT;
-        } else if ((world.getMaxHeight() == DEFAULT_MAX_HEIGHT_2) && (generator == Generator.DEFAULT)) {
+        } else if ((world.getMaxHeight() == DEFAULT_MAX_HEIGHT_ANVIL) && (generator == Generator.DEFAULT)) {
             generator = Generator.LARGE_BIOMES;
         }
         world.setGenerator(generator);
@@ -174,11 +174,11 @@ public final class WorldFactory {
     }
     
     public static World2 createFancyWorld(final Configuration config, final long seed) {
-        final HeightMapTileFactory tileFactory = TileFactoryFactory.createFancyTileFactory(seed, Terrain.GRASS, DEFAULT_MAX_HEIGHT_2, 58, 62, false, 20f, 1.0);
+        final HeightMapTileFactory tileFactory = TileFactoryFactory.createFancyTileFactory(seed, Terrain.GRASS, DEFAULT_MAX_HEIGHT_ANVIL, 58, 62, false, 20f, 1.0);
         final Dimension defaults = config.getDefaultTerrainAndLayerSettings();
         final World2 world = new World2(JAVA_ANVIL, World2.DEFAULT_OCEAN_SEED, tileFactory, tileFactory.getMaxHeight());
         world.addHistoryEntry(HistoryEntry.WORLD_CREATED);
-        if (config.getDefaultMaxHeight() == DEFAULT_MAX_HEIGHT_2) {
+        if (config.getDefaultMaxHeight() == DEFAULT_MAX_HEIGHT_ANVIL) {
             world.setGenerator(Generator.LARGE_BIOMES);
         }
         world.setMixedMaterial(0, new MixedMaterial("Dirt/Gravel", new Row[] {new Row(Material.DIRT, 750, 1.0f), new Row(Material.GRAVEL, 250, 1.0f)}, Minecraft1_2BiomeScheme.BIOME_PLAINS, null, 1.0f));
