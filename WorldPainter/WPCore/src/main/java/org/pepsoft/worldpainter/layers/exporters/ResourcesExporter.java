@@ -73,6 +73,7 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
         final long seed = dimension.getSeed();
         final int[] oreTypes = new int[activeOreCount];
         final int maxY = dimension.getMaxHeight() - 1;
+        final boolean coverSteepTerrain = dimension.isCoverSteepTerrain();
         int i = 0;
         for (int oreType: settings.getBlockTypes()) {
             if (settings.getChance(oreType) == 0) {
@@ -98,13 +99,22 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
                 final int resourcesValue = Math.max(minimumLevel, tile.getLayerValue(Resources.INSTANCE, localX, localY));
                 if (resourcesValue > 0) {
                     final int terrainheight = tile.getIntHeight(localX, localY);
+                    final int topLayerDepth = dimension.getTopLayerDepth(worldX, worldY, terrainheight);
+                    int subsurfaceMaxHeight = terrainheight - topLayerDepth;
+                    if (coverSteepTerrain) {
+                        subsurfaceMaxHeight = Math.min(subsurfaceMaxHeight,
+                                Math.min(Math.min(dimension.getIntHeightAt(worldX - 1, worldY, Integer.MAX_VALUE),
+                                        dimension.getIntHeightAt(worldX + 1, worldY, Integer.MAX_VALUE)),
+                                        Math.min(dimension.getIntHeightAt(worldX, worldY - 1, Integer.MAX_VALUE),
+                                                dimension.getIntHeightAt(worldX, worldY + 1, Integer.MAX_VALUE))));
+                    }
                     final double dx = worldX / TINY_BLOBS, dy = worldY / TINY_BLOBS;
                     final double dirtX = worldX / SMALL_BLOBS, dirtY = worldY / SMALL_BLOBS;
                     // Capping to maxY really shouldn't be necessary, but we've
                     // had several reports from the wild of this going higher
                     // than maxHeight, so there must be some obscure way in
                     // which the terrainHeight can be raised too high
-                    for (int y = Math.min(terrainheight - dimension.getTopLayerDepth(worldX, worldY, terrainheight), maxY); y > 0; y--) {
+                    for (int y = Math.min(subsurfaceMaxHeight, maxY); y > 0; y--) {
                         final double dz = y / TINY_BLOBS;
                         final double dirtZ = y / SMALL_BLOBS;
                         for (int oreType: oreTypes) {
