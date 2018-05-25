@@ -9,7 +9,7 @@ import java.util.Set;
 import static com.google.common.collect.ImmutableList.copyOf;
 
 /**
- * A WorldPainter-supported block-based game platform.
+ * A descriptor for a WorldPainter-supported map storage format.
  *
  * <p>Created by Pepijn on 11-12-2016.
  */
@@ -138,5 +138,31 @@ public final class Platform implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    public enum Capability {BIOMES, PRECALCULATED_LIGHT, SET_SPAWN_POINT}
+    public enum Capability {
+        /**
+         * Has the concept of a per-column biome, identified by a number.
+         */
+        BIOMES,
+
+        /**
+         * Stores precalculated light values, so a lighting pass is needed.
+         */
+        PRECALCULATED_LIGHT,
+
+        /**
+         * Can set the location where the player will initially spawn.
+         */
+        SET_SPAWN_POINT,
+
+        /**
+         * This is a Minecraft-like block based platform, based an a 3D map
+         * made up of large cube-shaped voxels.
+         */
+        BLOCK_BASED,
+
+        /**
+         * The platform uses named blocks rather than numerical IDs.
+         */
+        NAME_BASED
+    }
 }
