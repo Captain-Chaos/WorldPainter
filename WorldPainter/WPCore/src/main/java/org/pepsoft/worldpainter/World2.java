@@ -661,7 +661,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         // always correctly set (possibly only on imported worlds from
         // non-standard height maps due to a bug which should be fixed).
         dimensions.values().stream()
-            .filter(dimension -> dimension.getMaxHeight() != maxheight)
+            .filter(dimension -> (dimension.getMaxHeight() != maxheight) && (dimension.getMaxHeight() != 0))
             .forEach(dimension -> {
                 logger.warn("Fixing maxHeight of dimension " + dimension.getDim() + " (was " + dimension.getMaxHeight() + ", should be " + maxheight + ")");
                 dimension.setMaxHeight(maxheight);
