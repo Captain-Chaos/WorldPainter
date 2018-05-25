@@ -11,8 +11,8 @@ import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.layers.*;
+import org.pepsoft.worldpainter.plugins.BlockBasedPlatformProvider;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
-import org.pepsoft.worldpainter.plugins.PlatformProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +37,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
         this.dimension = dimension;
         this.exporters = exporters;
         this.platform  = platform;
-        platformProvider = PlatformManager.getInstance().getPlatformProvider(platform);
+        platformProvider = (BlockBasedPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
         this.maxHeight = maxHeight;
         minimumLayers = dimension.getMinimumLayers();
     }
@@ -256,7 +256,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
     }
 
     private final Platform platform;
-    private final PlatformProvider platformProvider;
+    private final BlockBasedPlatformProvider platformProvider;
     private final int maxHeight;
     private final Dimension dimension;
     private final Set<Layer> minimumLayers;

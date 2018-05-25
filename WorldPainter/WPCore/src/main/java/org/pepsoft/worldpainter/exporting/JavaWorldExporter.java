@@ -218,7 +218,7 @@ public class JavaWorldExporter extends AbstractWorldExporter {
         return stats;
     }
 
-    private ChunkFactory.Stats exportDimension(File worldDir, Dimension dimension, Platform platform, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled, IOException {
+    protected ChunkFactory.Stats exportDimension(File worldDir, Dimension dimension, Platform platform, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled, IOException {
         File dimensionDir;
         Dimension ceiling;
         switch (dimension.getDim()) {

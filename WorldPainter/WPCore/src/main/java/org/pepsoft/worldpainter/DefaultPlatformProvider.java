@@ -6,7 +6,7 @@ import org.pepsoft.minecraft.mapexplorer.JavaMapRecognizer;
 import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.mapexplorer.MapRecognizer;
 import org.pepsoft.worldpainter.plugins.AbstractPlugin;
-import org.pepsoft.worldpainter.plugins.PlatformProvider;
+import org.pepsoft.worldpainter.plugins.BlockBasedPlatformProvider;
 import org.pepsoft.worldpainter.util.MinecraftUtil;
 
 import java.io.File;
@@ -18,7 +18,7 @@ import static org.pepsoft.worldpainter.DefaultPlugin.*;
 /**
  * Created by Pepijn on 9-3-2017.
  */
-public class DefaultPlatformProvider extends AbstractPlugin implements PlatformProvider {
+public class DefaultPlatformProvider extends AbstractPlugin implements BlockBasedPlatformProvider {
     public DefaultPlatformProvider() {
         super("DefaultPlatforms", Version.VERSION);
     }

@@ -6,8 +6,8 @@ package org.pepsoft.worldpainter.exporting;
 
 import org.pepsoft.minecraft.*;
 import org.pepsoft.worldpainter.Platform;
+import org.pepsoft.worldpainter.plugins.BlockBasedPlatformProvider;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
-import org.pepsoft.worldpainter.plugins.PlatformProvider;
 
 import javax.vecmath.Point3i;
 import java.io.File;
@@ -29,7 +29,7 @@ public class WorldRegion implements MinecraftWorld {
         this.regionZ = regionZ;
         this.maxHeight = maxHeight;
         this.platform = platform;
-        platformProvider = PlatformManager.getInstance().getPlatformProvider(platform);
+        platformProvider = (BlockBasedPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
     }
     
     public WorldRegion(File worldDir, int dimension, int regionX, int regionZ, int maxHeight, Platform platform) throws IOException {
@@ -37,7 +37,7 @@ public class WorldRegion implements MinecraftWorld {
         this.regionZ = regionZ;
         this.maxHeight = maxHeight;
         this.platform = platform;
-        platformProvider = PlatformManager.getInstance().getPlatformProvider(platform);
+        platformProvider = (BlockBasedPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
         int lowestX = (regionX << 5) - 1;
         int highestX = lowestX + 33;
         int lowestZ = (regionZ << 5) - 1;
@@ -267,7 +267,7 @@ public class WorldRegion implements MinecraftWorld {
         }
     }
 
-    public void save(File worldDir, int dimension) throws IOException {
+    public void save(File worldDir, int dimension) {
         try (ChunkStore chunkStore = platformProvider.getChunkStore(platform, worldDir, dimension)) {
             chunkStore.doInTransaction(() -> {
                 for (int x = 0; x < CHUNKS_PER_SIDE; x++) {
@@ -333,7 +333,7 @@ public class WorldRegion implements MinecraftWorld {
     private final Platform platform;
     private final Chunk[][] chunks = new Chunk[CHUNKS_PER_SIDE + 2][CHUNKS_PER_SIDE + 2];
     private final int regionX, regionZ;
-    private final PlatformProvider platformProvider;
+    private final BlockBasedPlatformProvider platformProvider;
     private boolean chunkCreationMode;
 
 //    private static final Object DISK_ACCESS_MONITOR = new Object();

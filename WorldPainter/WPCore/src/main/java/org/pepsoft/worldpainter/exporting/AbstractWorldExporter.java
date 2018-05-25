@@ -17,8 +17,8 @@ import org.pepsoft.worldpainter.layers.CombinedLayer;
 import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.GardenCategory;
 import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.plugins.BlockBasedPlatformProvider;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
-import org.pepsoft.worldpainter.plugins.PlatformProvider;
 import org.pepsoft.worldpainter.vo.AttributeKeyVO;
 import org.pepsoft.worldpainter.vo.EventVO;
 import org.slf4j.Logger;
@@ -74,7 +74,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         return new File(backupsDir, worldDir.getName() + "." + DATE_FORMAT.format(new Date()));
     }
 
-    protected final ChunkFactory.Stats parallelExportRegions(Dimension dimension, Platform platform, File worldDir, ProgressReceiver progressReceiver) throws OperationCancelled {
+    protected ChunkFactory.Stats parallelExportRegions(Dimension dimension, Platform platform, File worldDir, ProgressReceiver progressReceiver) throws OperationCancelled {
         if (progressReceiver != null) {
             progressReceiver.setMessage("Exporting " + dimension.getName() + " dimension");
         }
@@ -375,7 +375,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
     }
 
     @NotNull
-    private Map<Layer, LayerExporter> setupDimensionForExport(Dimension dimension) {
+    protected Map<Layer, LayerExporter> setupDimensionForExport(Dimension dimension) {
         // Gather all layers used on the map
         final Map<Layer, LayerExporter> exporters = new HashMap<>();
         Set<Layer> allLayers = dimension.getAllLayers(false);
@@ -439,7 +439,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         int chunkNo = 0;
         int ceilingDelta = dimension.getMaxHeight() - dimension.getCeilingHeight();
         Platform platform = world.getPlatform();
-        PlatformProvider platformProvider = PlatformManager.getInstance().getPlatformProvider(platform);
+        BlockBasedPlatformProvider platformProvider = (BlockBasedPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
         for (int chunkX = lowestChunkX; chunkX <= highestChunkX; chunkX++) {
             for (int chunkY = lowestChunkY; chunkY <= highestChunkY; chunkY++) {
                 ChunkFactory.ChunkCreationResult chunkCreationResult = createChunk(dimension, chunkFactory, tiles, chunkX, chunkY, tileSelection, exporters, ceiling);
@@ -639,7 +639,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         }
     }
 
-    protected final ExportResults exportRegion(MinecraftWorld minecraftWorld, Dimension dimension, Dimension ceiling, Platform platform, Point regionCoords, boolean tileSelection, Map<Layer, LayerExporter> exporters, Map<Layer, LayerExporter> ceilingExporters, ChunkFactory chunkFactory, ChunkFactory ceilingChunkFactory, ProgressReceiver progressReceiver) throws OperationCancelled, IOException {
+    protected ExportResults exportRegion(MinecraftWorld minecraftWorld, Dimension dimension, Dimension ceiling, Platform platform, Point regionCoords, boolean tileSelection, Map<Layer, LayerExporter> exporters, Map<Layer, LayerExporter> ceilingExporters, ChunkFactory chunkFactory, ChunkFactory ceilingChunkFactory, ProgressReceiver progressReceiver) throws OperationCancelled, IOException {
         if (progressReceiver != null) {
             progressReceiver.setMessage("Exporting region " + regionCoords.x + "," + regionCoords.y + " of " + dimension.getName());
         }
@@ -755,7 +755,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         return exportResults;
     }
 
-    private ChunkFactory.ChunkCreationResult createChunk(Dimension dimension, ChunkFactory chunkFactory, Map<Point, Tile> tiles, int chunkX, int chunkY, boolean tileSelection, Map<Layer, LayerExporter> exporters, boolean ceiling) {
+    protected ChunkFactory.ChunkCreationResult createChunk(Dimension dimension, ChunkFactory chunkFactory, Map<Point, Tile> tiles, int chunkX, int chunkY, boolean tileSelection, Map<Layer, LayerExporter> exporters, boolean ceiling) {
         final int tileX = chunkX >> 3;
         final int tileY = chunkY >> 3;
         final Point tileCoords = new Point(tileX, tileY);

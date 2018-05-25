@@ -17,6 +17,7 @@ import java.net.URL;
 import java.util.*;
 
 import static org.pepsoft.minecraft.Block.BLOCKS;
+import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 
 /**
  * A GUI control for selecting a Minecraft material. Supports both legacy
@@ -58,7 +59,7 @@ public class MaterialSelector extends javax.swing.JPanel {
             namespace = material.namespace;
             simpleName = material.simpleName;
             loadActualProperties();
-            if (namespace.equals(Material.MINECRAFT) || ((platform != null) && (! platform.equals(DefaultPlugin.JAVA_ANVIL_1_13 /* TODO: make dynamic */)))) {
+            if (namespace.equals(Material.MINECRAFT) || ((platform != null) && (! platform.capabilities.contains(NAME_BASED)))) {
                 radioButtonMinecraft.setSelected(true);
                 int blockType = material.blockType;
                 if (blockType >= 0) {
@@ -373,7 +374,7 @@ public class MaterialSelector extends javax.swing.JPanel {
      */
     private void setControlStates() {
         boolean minecraft = radioButtonMinecraft.isSelected();
-        boolean platformHasNames = (platform == null) || platform.equals(DefaultPlugin.JAVA_ANVIL_1_13) /* TODO: make dynamic */;
+        boolean platformHasNames = (platform == null) || platform.capabilities.contains(NAME_BASED);
         radioButtonMinecraft.setEnabled(platformHasNames);
         radioButtonCustom.setEnabled(platformHasNames);
         comboBoxBlockType.setEnabled(minecraft);

@@ -27,11 +27,11 @@ public class PlatformManager extends AbstractProviderManager<Platform, PlatformP
     }
 
     public Chunk createChunk(Platform platform, int x, int z, int maxHeight) {
-        return getImplementation(platform).createChunk(platform, x, z, maxHeight);
+        return ((BlockBasedPlatformProvider) getImplementation(platform)).createChunk(platform, x, z, maxHeight);
     }
 
     public ChunkStore getChunkStore(Platform platform, File worldDir, int dimension) {
-        return getImplementation(platform).getChunkStore(platform, worldDir, dimension);
+        return ((BlockBasedPlatformProvider) getImplementation(platform)).getChunkStore(platform, worldDir, dimension);
     }
 
     public WorldExporter getExporter(World2 world) {
@@ -43,7 +43,7 @@ public class PlatformManager extends AbstractProviderManager<Platform, PlatformP
     }
 
     public PostProcessor getPostProcessor(Platform platform) {
-        return getImplementation(platform).getPostProcessor(platform);
+        return ((BlockBasedPlatformProvider) getImplementation(platform)).getPostProcessor(platform);
     }
 
     public static PlatformManager getInstance() {
