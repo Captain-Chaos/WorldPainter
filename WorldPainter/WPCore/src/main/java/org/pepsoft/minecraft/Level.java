@@ -42,13 +42,11 @@ public final class Level extends AbstractNBTItem {
         // TODO: make this dynamic?
         if (! platform.equals(JAVA_MCREGION)) {
             int dataVersion = platform.equals(JAVA_ANVIL) ? DATA_VERSION_MC_1_12_2 : DATA_VERSION_MC_1_13;
-            String name = platform.equals(JAVA_ANVIL) ? "1.2" : "18w20c"; // TODO: update when 1.13 is out
-            boolean snapshot = ! platform.equals(JAVA_ANVIL); // TODO: update when 1.13 is out
             setInt(TAG_DATA_VERSION, dataVersion);
             Map<String, Tag> versionTag = new HashMap<>();
             versionTag.put(TAG_ID_, new IntTag(TAG_ID_, dataVersion));
-            versionTag.put(TAG_NAME, new StringTag(TAG_NAME, name));
-            versionTag.put(TAG_SNAPSHOT, new ByteTag(TAG_SNAPSHOT, (byte) (snapshot ? 1 : 0)));
+            versionTag.put(TAG_NAME, new StringTag(TAG_NAME, "WorldPainter"));
+            versionTag.put(TAG_SNAPSHOT, new ByteTag(TAG_SNAPSHOT, (byte) (! platform.equals(JAVA_ANVIL) ? 1 : 0)));
             setMap(TAG_VERSION_, versionTag);
         }
         addDimension(0);
