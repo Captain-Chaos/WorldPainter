@@ -30,11 +30,11 @@ public class DefaultPlatformProvider extends AbstractPlugin implements BlockBase
 
     @Override
     public Chunk createChunk(Platform platform, int x, int z, int maxHeight) {
-        if (platform.equals(JAVA_MCREGION)) {
+        if ((platform == JAVA_MCREGION)) {
             return new MCRegionChunk(x, z, maxHeight);
-        } else if (platform.equals(JAVA_ANVIL)) {
+        } else if ((platform == JAVA_ANVIL)) {
             return new MC12AnvilChunk(x, z, maxHeight);
-        } else if (platform.equals(JAVA_ANVIL_1_13)) {
+        } else if ((platform == JAVA_ANVIL_1_13)) {
             return new MC113AnvilChunk(x, z, maxHeight);
         } else {
             throw new IllegalArgumentException("Platform " + platform + " not supported");
@@ -82,7 +82,7 @@ public class DefaultPlatformProvider extends AbstractPlugin implements BlockBase
 
     @Override
     public PostProcessor getPostProcessor(Platform platform) {
-        if (platform.equals(JAVA_ANVIL_1_13)) {
+        if ((platform == JAVA_ANVIL_1_13)) {
             return new Java1_13PostProcessor();
         } else if (PLATFORMS.contains(platform)) {
             return new Java1_2PostProcessor();

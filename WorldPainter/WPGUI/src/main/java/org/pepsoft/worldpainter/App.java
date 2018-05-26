@@ -51,7 +51,6 @@ import org.pepsoft.worldpainter.panels.BrushOptions.Listener;
 import org.pepsoft.worldpainter.panels.DefaultFilter;
 import org.pepsoft.worldpainter.panels.InfoPanel;
 import org.pepsoft.worldpainter.plugins.CustomLayerProvider;
-import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.pepsoft.worldpainter.selection.*;
 import org.pepsoft.worldpainter.threedeeview.ThreeDeeFrame;
@@ -378,14 +377,6 @@ public final class App extends JFrame implements RadiusControl,
             }
             lastSaveTimestamp = now;
             lastChangeTimestamp = now;
-            // Refresh the platform if we have the plugin, as the capabilities may have changed
-            Platform stalePlatform = world.getPlatform();
-            for (Platform freshPlatform: PlatformManager.getInstance().getAllPlatforms()) {
-                if (freshPlatform.equals(stalePlatform)) {
-                    world.setPlatform(freshPlatform);
-                    break;
-                }
-            }
             world.addPropertyChangeListener(this);
 
             loadCustomTerrains();

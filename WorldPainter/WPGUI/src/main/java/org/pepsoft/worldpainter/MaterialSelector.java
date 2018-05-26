@@ -405,7 +405,8 @@ public class MaterialSelector extends javax.swing.JPanel {
     }
 
     /**
-     * Update the current material to a modern material based on the currently
+     * Update the current material to a modern material based on the Minecraft
+     * namespace currently
      * selected namespace and simple name.
      */
     private void minecraftNameChanged() {

@@ -262,9 +262,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         if (platform != this.platform) {
             Platform oldPlatform = this.platform;
             this.platform = platform;
-            if (! oldPlatform.equals(platform)) {
-                changeNo++;
-            }
+            changeNo++;
             propertyChangeSupport.firePropertyChange("platform", oldPlatform, platform);
         }
     }

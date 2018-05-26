@@ -130,9 +130,9 @@ public class MinecraftMapTileProvider implements TileProvider {
                         MC113AnvilChunk.Status status = null;
                         Chunk chunk;
                         try (NBTInputStream in = new NBTInputStream(dataIn)) {
-                            if (platform.equals(JAVA_MCREGION)) {
+                            if ((platform == JAVA_MCREGION)) {
                                 chunk = new MCRegionChunk((CompoundTag) in.readTag(), maxHeight);
-                            } else if (platform.equals(JAVA_ANVIL)) {
+                            } else if ((platform == JAVA_ANVIL)) {
                                 chunk = new MC12AnvilChunk((CompoundTag) in.readTag(), maxHeight);
                             } else {
                                 chunk = new MC113AnvilChunk((CompoundTag) in.readTag(), maxHeight);

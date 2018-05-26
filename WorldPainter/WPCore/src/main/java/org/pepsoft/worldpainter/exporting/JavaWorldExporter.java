@@ -33,9 +33,9 @@ import static org.pepsoft.worldpainter.Constants.*;
 public class JavaWorldExporter extends AbstractWorldExporter {
     public JavaWorldExporter(World2 world) {
         super(world);
-        if ((! world.getPlatform().equals(DefaultPlugin.JAVA_ANVIL))
-                && (! world.getPlatform().equals(DefaultPlugin.JAVA_MCREGION))
-                && (! world.getPlatform().equals(DefaultPlugin.JAVA_ANVIL_1_13))) {
+        if ((! (world.getPlatform() == DefaultPlugin.JAVA_ANVIL))
+                && (! (world.getPlatform() == DefaultPlugin.JAVA_MCREGION))
+                && (! (world.getPlatform() == DefaultPlugin.JAVA_ANVIL_1_13))) {
             throw new IllegalArgumentException("Unsupported platform " + world.getPlatform());
         }
     }
@@ -123,7 +123,7 @@ public class JavaWorldExporter extends AbstractWorldExporter {
                 level.setGenerator(world.getGenerator());
             }
         }
-        if (world.getPlatform().equals(DefaultPlugin.JAVA_ANVIL)) {
+        if ((world.getPlatform() == DefaultPlugin.JAVA_ANVIL)) {
             if ((! endlessBorder) && (world.getGenerator() == Generator.FLAT) && (world.getGeneratorOptions() != null)) {
                 level.setGeneratorOptions(world.getGeneratorOptions());
             }
@@ -189,7 +189,7 @@ public class JavaWorldExporter extends AbstractWorldExporter {
             event.setAttribute(ATTRIBUTE_KEY_GAME_TYPE_NAME, world.getGameType().name());
             event.setAttribute(ATTRIBUTE_KEY_ALLOW_CHEATS, world.isAllowCheats());
             event.setAttribute(ATTRIBUTE_KEY_GENERATOR, world.getGenerator().name());
-            if (world.getPlatform().equals(DefaultPlugin.JAVA_ANVIL) && (world.getGenerator() == Generator.FLAT)) {
+            if ((world.getPlatform() == DefaultPlugin.JAVA_ANVIL) && (world.getGenerator() == Generator.FLAT)) {
                 event.setAttribute(ATTRIBUTE_KEY_GENERATOR_OPTIONS, world.getGeneratorOptions());
             }
             Dimension dimension = world.getDimension(0);
@@ -271,7 +271,7 @@ public class JavaWorldExporter extends AbstractWorldExporter {
             }
         }
         for (Point region: regions) {
-            File file = new File(dimensionDir, "region/r." + region.x + "." + region.y + (platform.equals(DefaultPlugin.JAVA_ANVIL) ? ".mca" : ".mcr"));
+            File file = new File(dimensionDir, "region/r." + region.x + "." + region.y + ((platform == DefaultPlugin.JAVA_ANVIL) ? ".mca" : ".mcr"));
             collectedStats.size += file.length();
         }
 

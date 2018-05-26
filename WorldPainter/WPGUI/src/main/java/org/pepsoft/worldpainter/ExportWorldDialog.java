@@ -754,7 +754,7 @@ dims:   for (Dimension dim: world.getDimensions()) {
                 comboBoxGameType.setSelectedItem(GameType.SURVIVAL);
             }
             comboBoxGameType.setEnabled(newPlatform.supportedGameTypes.size() > 1);
-            if (newPlatform.equals(DefaultPlugin.JAVA_ANVIL)) {
+            if (newPlatform == DefaultPlugin.JAVA_ANVIL) {
                 checkBoxAllowCheats.setSelected(gameType == GameType.CREATIVE);
             } else {
                 checkBoxAllowCheats.setSelected(false);

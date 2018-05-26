@@ -510,14 +510,14 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                 
                 // Fixups are done *after* lighting, so we have to relight the
                 // area
-                recalculateLight(world, bounds);
+                recalculateLight(world, bounds, platform);
             } else if (logger.isTraceEnabled()) {
                 logger.trace("No room for custom object " + object.getName() + " @ " + x + "," + y + "," + z + " in fixup");
             }
         }
 
-        private void recalculateLight(final MinecraftWorld world, final Box lightBox) {
-            LightingCalculator lightingCalculator = new LightingCalculator(world);
+        private void recalculateLight(final MinecraftWorld world, final Box lightBox, final Platform platform) {
+            LightingCalculator lightingCalculator = new LightingCalculator(world, platform);
             // Transpose coordinates from WP to MC coordinate system. Also
             // expand the box to light around it and try to account for uneven
             // terrain underneath the object

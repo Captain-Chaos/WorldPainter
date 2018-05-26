@@ -25,7 +25,7 @@ import static org.pepsoft.worldpainter.DefaultPlugin.*;
  */
 public class JavaChunkStore implements ChunkStore {
     public JavaChunkStore(Platform platform, File regionDir, boolean honourReadOnlyChunks, Dimension dimension, int maxHeight) {
-        if (! (platform.equals(JAVA_MCREGION) || platform.equals(JAVA_ANVIL) || platform.equals(JAVA_ANVIL_1_13))) {
+        if (! ((platform == JAVA_MCREGION) || (platform == JAVA_ANVIL) || (platform == JAVA_ANVIL_1_13))) {
             throw new IllegalArgumentException("Unsupported platform " + platform);
         }
         this.platform = platform;
@@ -154,9 +154,9 @@ public class JavaChunkStore implements ChunkStore {
                     CompoundTag tag = (CompoundTag) in.readTag();
 //                    timeSpentLoading += System.currentTimeMillis() - start;
                     boolean readOnly = honourReadOnlyChunks && dimension.getBitLayerValueAt(ReadOnly.INSTANCE, x << 4, z << 4);
-                    if (platform.equals(JAVA_MCREGION)) {
+                    if ((platform == JAVA_MCREGION)) {
                         return new MCRegionChunk(tag, maxHeight, readOnly);
-                    } else if (platform.equals(JAVA_ANVIL)) {
+                    } else if ((platform == JAVA_ANVIL)) {
                         return new MC12AnvilChunk(tag, maxHeight, readOnly);
                     } else {
                         return new MC113AnvilChunk(tag, maxHeight, readOnly);
@@ -213,12 +213,12 @@ public class JavaChunkStore implements ChunkStore {
     }
 
     private RegionFile openRegionFile(Point regionCoords) throws IOException {
-        File file = new File(regionDir, "r." + regionCoords.x + "." + regionCoords.y + (platform.equals(JAVA_MCREGION) ? ".mcr" : ".mca"));
+        File file = new File(regionDir, "r." + regionCoords.x + "." + regionCoords.y + ((platform == JAVA_MCREGION) ? ".mcr" : ".mca"));
         return file.exists() ? new RegionFile(file) : null;
     }
 
     private RegionFile openOrCreateRegionFile(Point regionCoords) throws IOException {
-        File file = new File(regionDir, "r." + regionCoords.x + "." + regionCoords.y + (platform.equals(JAVA_MCREGION) ? ".mcr" : ".mca"));
+        File file = new File(regionDir, "r." + regionCoords.x + "." + regionCoords.y + ((platform == JAVA_MCREGION) ? ".mcr" : ".mca"));
         return new RegionFile(file);
     }
 

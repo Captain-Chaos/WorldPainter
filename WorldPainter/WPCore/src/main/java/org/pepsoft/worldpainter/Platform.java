@@ -1,15 +1,19 @@
 package org.pepsoft.worldpainter;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 
+import java.io.ObjectStreamException;
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-import static com.google.common.collect.ImmutableList.copyOf;
-
 /**
- * A descriptor for a WorldPainter-supported map storage format.
+ * A descriptor for a WorldPainter-supported map storage format. Implements the
+ * Enumeration pattern, meaning there is only ever one instance of each unique
+ * platform, allowing the <code>==</code> operator to be used with it.
  *
  * <p>Created by Pepijn on 11-12-2016.
  */
@@ -17,19 +21,25 @@ public final class Platform implements Serializable {
     public Platform(String id, String displayName, int minMaxHeight, int standardMaxHeight,
                     int maxMaxHeight, int minX, int maxX, int minY, int maxY, List<GameType> supportedGameTypes,
                     List<Generator> supportedGenerators, List<Integer> supportedDimensions, Set<Capability> capabilities) {
-        this.id = id;
-        this.displayName = displayName;
-        this.minMaxHeight = minMaxHeight;
-        this.standardMaxHeight = standardMaxHeight;
-        this.maxMaxHeight = maxMaxHeight;
-        this.minX = minX;
-        this.maxX = maxX;
-        this.minY = minY;
-        this.maxY = maxY;
-        this.supportedGameTypes = copyOf(supportedGameTypes);
-        this.supportedGenerators = copyOf(supportedGenerators);
-        this.supportedDimensions = copyOf(supportedDimensions);
-        this.capabilities = Sets.immutableEnumSet(capabilities);
+        synchronized (ALL_PLATFORMS) {
+            if (ALL_PLATFORMS.containsKey(id)) {
+                throw new IllegalStateException("There is already a platform with ID " + id);
+            }
+            this.id = id;
+            this.displayName = displayName;
+            this.minMaxHeight = minMaxHeight;
+            this.standardMaxHeight = standardMaxHeight;
+            this.maxMaxHeight = maxMaxHeight;
+            this.minX = minX;
+            this.maxX = maxX;
+            this.minY = minY;
+            this.maxY = maxY;
+            this.supportedGameTypes = ImmutableList.copyOf(supportedGameTypes);
+            this.supportedGenerators = ImmutableList.copyOf(supportedGenerators);
+            this.supportedDimensions = ImmutableList.copyOf(supportedDimensions);
+            this.capabilities = Sets.immutableEnumSet(capabilities);
+            ALL_PLATFORMS.put(id, this);
+        }
     }
 
     /**
@@ -57,12 +67,23 @@ public final class Platform implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        return (o instanceof Platform) && id.equals(((Platform) o).id);
+        return o == this;
     }
 
     @Override
     public int hashCode() {
         return id.hashCode();
+    }
+
+    private Object readResolve() throws ObjectStreamException {
+        synchronized (ALL_PLATFORMS) {
+            if (ALL_PLATFORMS.containsKey(id)) {
+                return ALL_PLATFORMS.get(id);
+            } else {
+                ALL_PLATFORMS.put(id, this);
+                return this;
+            }
+        }
     }
 
     /**
@@ -136,6 +157,8 @@ public final class Platform implements Serializable {
      */
     public final Set<Capability> capabilities;
 
+    private static final Map<String, Platform> ALL_PLATFORMS = new HashMap<>();
+
     private static final long serialVersionUID = 1L;
 
     public enum Capability {
@@ -163,6 +186,12 @@ public final class Platform implements Serializable {
         /**
          * The platform uses named blocks rather than numerical IDs.
          */
-        NAME_BASED
+        NAME_BASED,
+
+        /**
+         * The platform uses a numerical world seed to procedurally generate
+         * deterministic maps.
+         */
+        SEED
     }
 }

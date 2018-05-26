@@ -223,7 +223,7 @@ public class JavaMapImporter {
             event.setAttribute(ATTRIBUTE_KEY_GAME_TYPE_NAME, world.getGameType().name());
             event.setAttribute(ATTRIBUTE_KEY_ALLOW_CHEATS, world.isAllowCheats());
             event.setAttribute(ATTRIBUTE_KEY_GENERATOR, world.getGenerator().name());
-            if (world.getPlatform().equals(JAVA_ANVIL) && (world.getGenerator() == Generator.FLAT)) {
+            if ((world.getPlatform() == JAVA_ANVIL) && (world.getGenerator() == Generator.FLAT)) {
                 event.setAttribute(ATTRIBUTE_KEY_GENERATOR_OPTIONS, world.getGeneratorOptions());
             }
             event.setAttribute(ATTRIBUTE_KEY_TILES, dimension.getTiles().size());

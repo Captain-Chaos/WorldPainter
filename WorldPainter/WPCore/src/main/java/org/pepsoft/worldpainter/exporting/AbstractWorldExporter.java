@@ -586,11 +586,11 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         return fixups;
     }
 
-    protected void lightingPass(MinecraftWorld minecraftWorld, Point regionCoords, ProgressReceiver progressReceiver) throws OperationCancelled {
+    protected void lightingPass(MinecraftWorld minecraftWorld, Platform platform, Point regionCoords, ProgressReceiver progressReceiver) throws OperationCancelled {
         if (progressReceiver != null) {
             progressReceiver.setMessage("Calculating primary light");
         }
-        LightingCalculator lightingVolume = new LightingCalculator(minecraftWorld);
+        LightingCalculator lightingVolume = new LightingCalculator(minecraftWorld, platform);
 
         // Calculate primary light
         int lightingLowMark = Integer.MAX_VALUE, lightingHighMark = Integer.MIN_VALUE;
@@ -739,7 +739,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
 
             // Third pass. Calculate lighting
             long t4 = System.currentTimeMillis();
-            lightingPass(minecraftWorld, regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.65f, 0.35f) : null);
+            lightingPass(minecraftWorld, platform, regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.65f, 0.35f) : null);
             long t5 = System.currentTimeMillis();
             if ("true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.devMode"))) {
                 String timingMessage = (t2 - t1) + ", " + (t3 - t2) + ", " + (t4 - t3) + ", " + (t5 - t4) + ", " + (t5 - t1);

@@ -179,7 +179,7 @@ public class RegressionIT {
         }
         Platform platform = world.getPlatform();
         int maxHeight = dimension.getMaxHeight();
-        Pattern regionFilePattern = platform.equals(DefaultPlugin.JAVA_MCREGION)
+        Pattern regionFilePattern = (platform == DefaultPlugin.JAVA_MCREGION)
             ? Pattern.compile("r\\.(-?\\d+)\\.(-?\\d+)\\.mcr")
             : Pattern.compile("r\\.(-?\\d+)\\.(-?\\d+)\\.mca");
         int lowestChunkX = Integer.MAX_VALUE, highestChunkX = Integer.MIN_VALUE;
@@ -211,7 +211,7 @@ public class RegressionIT {
                                 Chunk chunk;
                                 try (NBTInputStream in = new NBTInputStream(regionFile.getChunkDataInputStream(chunkX, chunkZ))) {
                                     Tag tag = in.readTag();
-                                    chunk = platform.equals(DefaultPlugin.JAVA_MCREGION)
+                                    chunk = (platform == DefaultPlugin.JAVA_MCREGION)
                                             ? new MCRegionChunk((CompoundTag) tag, maxHeight, true)
                                             : new MC12AnvilChunk((CompoundTag) tag, maxHeight, true);
                                 }

@@ -1535,7 +1535,7 @@ public final class Material implements Serializable {
         // Read MC block database
         try (InputStreamReader in = new InputStreamReader(Block.class.getResourceAsStream("mc-blocks.json"))) {
             java.util.List<?> list = (List<?>) new JSONParser().parse(in);
-            for (Object listEntry : list) {
+            for (Object listEntry: list) {
                 @SuppressWarnings("unchecked") // Guaranteed by contents of file
                 Map<String, Object> blockSpec = (Map<String, Object>) listEntry;
                 int blockId = ((Number) blockSpec.get("blockId")).intValue();

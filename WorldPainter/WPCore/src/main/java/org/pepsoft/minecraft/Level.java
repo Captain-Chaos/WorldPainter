@@ -25,28 +25,28 @@ import static org.pepsoft.worldpainter.DefaultPlugin.*;
 public final class Level extends AbstractNBTItem {
     public Level(int mapHeight, Platform platform) {
         super(new CompoundTag(TAG_DATA, new HashMap<>()));
-        if ((! platform.equals(JAVA_ANVIL))
-                && (! platform.equals(JAVA_MCREGION))
-                && (! platform.equals(JAVA_ANVIL_1_13))) {
+        if ((platform != JAVA_ANVIL)
+                && (platform != JAVA_MCREGION)
+                && (platform != JAVA_ANVIL_1_13)) {
             throw new IllegalArgumentException("Not a supported platform: " + platform);
         }
         if ((mapHeight & (mapHeight - 1)) != 0) {
             throw new IllegalArgumentException("mapHeight " + mapHeight + " not a power of two");
         }
-        if (mapHeight != (platform.equals(JAVA_MCREGION) ? DEFAULT_MAX_HEIGHT_MCREGION : DEFAULT_MAX_HEIGHT_ANVIL)) {
+        if (mapHeight != ((platform == JAVA_MCREGION) ? DEFAULT_MAX_HEIGHT_MCREGION : DEFAULT_MAX_HEIGHT_ANVIL)) {
             setInt(TAG_MAP_HEIGHT, mapHeight);
         }
         this.maxHeight = mapHeight;
         extraTags = null;
-        setInt(TAG_VERSION, platform.equals(JAVA_MCREGION) ? VERSION_MCREGION : VERSION_ANVIL);
+        setInt(TAG_VERSION, (platform == JAVA_MCREGION) ? VERSION_MCREGION : VERSION_ANVIL);
         // TODO: make this dynamic?
-        if (! platform.equals(JAVA_MCREGION)) {
-            int dataVersion = platform.equals(JAVA_ANVIL) ? DATA_VERSION_MC_1_12_2 : DATA_VERSION_MC_1_13;
+        if (platform != JAVA_MCREGION) {
+            int dataVersion = (platform == JAVA_ANVIL) ? DATA_VERSION_MC_1_12_2 : DATA_VERSION_MC_1_13;
             setInt(TAG_DATA_VERSION, dataVersion);
             Map<String, Tag> versionTag = new HashMap<>();
             versionTag.put(TAG_ID_, new IntTag(TAG_ID_, dataVersion));
             versionTag.put(TAG_NAME, new StringTag(TAG_NAME, "WorldPainter"));
-            versionTag.put(TAG_SNAPSHOT, new ByteTag(TAG_SNAPSHOT, (byte) (! platform.equals(JAVA_ANVIL) ? 1 : 0)));
+            versionTag.put(TAG_SNAPSHOT, new ByteTag(TAG_SNAPSHOT, (byte) (platform != JAVA_ANVIL ? 1 : 0)));
             setMap(TAG_VERSION_, versionTag);
         }
         addDimension(0);

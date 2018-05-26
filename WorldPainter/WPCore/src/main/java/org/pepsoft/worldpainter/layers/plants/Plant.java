@@ -174,7 +174,7 @@ public final class Plant implements WPObject {
         if (z > 0) {
             switch (category) {
                 case PLANTS_AND_FLOWERS:
-                    if (platform.equals(JAVA_ANVIL_1_13)) {
+                    if ((platform == JAVA_ANVIL_1_13)) {
                         return material.withProperty("half", "upper");
                     } else {
                         return UPPER_DOUBLE_HIGH_PLANT;

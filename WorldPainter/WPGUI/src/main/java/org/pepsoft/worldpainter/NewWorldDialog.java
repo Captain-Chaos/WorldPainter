@@ -44,8 +44,8 @@ import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.minecraft.Material.LAVA;
 import static org.pepsoft.minecraft.Material.WATER;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
+import static org.pepsoft.worldpainter.Platform.Capability.SEED;
 import static org.pepsoft.worldpainter.Terrain.*;
 
 /**
@@ -542,13 +542,12 @@ public class NewWorldDialog extends WorldPainterDialog {
 
     private void setControlStates() {
         boolean surfaceDimension = dim == DIM_NORMAL;
-        boolean minecraft = platform.equals(JAVA_ANVIL) || platform.equals(JAVA_MCREGION) || platform.id.equals("org.pepsoft.mcpe");
-        checkBoxExtendedBlockIds.setEnabled(! platform.equals(JAVA_MCREGION));
+        checkBoxExtendedBlockIds.setEnabled(platform != JAVA_MCREGION);
         boolean hilly = radioButtonHilly.isSelected();
         spinnerRange.setEnabled(hilly);
         spinnerScale.setEnabled(hilly);
         spinnerLength.setEnabled((tiles == null) && (! checkBoxCircular.isSelected()));
-        boolean seedLocked = (tiles != null) || (! minecraft);
+        boolean seedLocked = (tiles != null) || (! platform.capabilities.contains(SEED));
         radioButtonOceanSeed.setEnabled(surfaceDimension && (! seedLocked));
         radioButtonLandSeed.setEnabled(surfaceDimension && (! seedLocked));
         radioButtonCustomSeed.setEnabled(surfaceDimension && (! seedLocked));
@@ -741,7 +740,7 @@ public class NewWorldDialog extends WorldPainterDialog {
         comboBoxMaxHeight.setEnabled(maxHeights.size() > 1);
         maxHeightChanged(true);
 
-        if (platform.equals(JAVA_MCREGION)) {
+        if ((platform == JAVA_MCREGION)) {
             checkBoxExtendedBlockIds.setSelected(false);
         }
 
@@ -763,7 +762,7 @@ public class NewWorldDialog extends WorldPainterDialog {
             ((SpinnerNumberModel) spinnerTerrainLevel.getModel()).setMaximum(maxHeight - 1);
             ((SpinnerNumberModel) spinnerWaterLevel.getModel()).setMaximum(maxHeight - 1);
 
-            if (platform.equals(JAVA_MCREGION) && (exp != 7)) {
+            if ((platform == JAVA_MCREGION) && (exp != 7)) {
                 labelWarning.setVisible(true);
             } else {
                 labelWarning.setVisible(false);
