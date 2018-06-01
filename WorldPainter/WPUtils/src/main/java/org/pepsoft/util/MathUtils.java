@@ -216,7 +216,7 @@ public final class MathUtils {
      * Calculates the shortest distance of a point to a line segment.
      *
      * @param px The X coordinate of the point.
-     * @param py The Y coordiante of the point.
+     * @param py The Y coordinate of the point.
      * @param vx The X coordinate of the start of the line segment.
      * @param vy The Y coordinate of the start of the line segment.
      * @param wx The X coordinate of the end of the line segment.
