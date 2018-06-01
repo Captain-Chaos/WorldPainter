@@ -27,7 +27,7 @@ public class BitField {
         if (cachedBits == null) {
             // This might happen if reset() or get() was previously invoked for
             // these coordinates and there was no bitset created for them yet
-            cachedBits = new BitSet(16484);
+            cachedBits = new BitSet(16384);
             booleans.put(new Point(x >> 7, y >> 7), cachedBits);
         }
         cachedBits.set(((x & 0x7f) << 7) | (y & 0x7f));
