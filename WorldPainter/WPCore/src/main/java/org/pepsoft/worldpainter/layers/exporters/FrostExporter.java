@@ -50,7 +50,6 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
                 noSnowOn.set(Integer.parseInt(id.trim()));
             }
         }
-        // TODO: migrate use of the Block class to using Material only
         for (int x = area.x; x < area.x + area.width; x++) {
             for (int y = area.y; y < area.y + area.height; y++) {
                 if (frostEverywhere || dimension.getBitLayerValueAt(Frost.INSTANCE, x, y)) {
@@ -63,13 +62,12 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
                             previousMaterial = material;
                             continue;
                         } else {
-                            if (material == STATIONARY_WATER) {
+                            if (material.isNamed(MC_WATER)) {
                                 minecraftWorld.setMaterialAt(x, y, height, ICE);
                                 break;
-                            } else if ((material.blockType == BLK_LEAVES)
-                                    || (material.blockType == BLK_LEAVES2)
-                                    || (material.blockType == BLK_WOOD)
-                                    || (material.blockType == BLK_WOOD2)) {
+                            } else if ((material.name.endsWith("_leaves"))
+                                    || (material.name.endsWith("_log"))
+                                    || (material.name.endsWith("_bark"))) {
                                 if (previousMaterial == AIR) {
                                     minecraftWorld.setMaterialAt(x, y, height + 1, SNOW);
                                 }
@@ -85,7 +83,7 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
                                 if ((previousMaterial == AIR) || (previousMaterial == TALL_GRASS) || (previousMaterial == SNOW)) {
                                     if ((mode == FrostSettings.MODE_SMOOTH_AT_ALL_ELEVATIONS)
                                             || (height == dimension.getIntHeightAt(x, y))) {
-                                        // Only vary the snow tickness if we're
+                                        // Only vary the snow thickness if we're
                                         // at surface height, otherwise it looks
                                         // odd
                                         switch (mode) {
@@ -97,17 +95,16 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
                                                 break;
                                             case FrostSettings.MODE_SMOOTH:
                                             case FrostSettings.MODE_SMOOTH_AT_ALL_ELEVATIONS:
-                                                int snowHeight = (int) ((dimension.getHeightAt(x, y) + 0.5f - dimension.getIntHeightAt(x, y)) / 0.125f);
-                                                if ((snowHeight > 0) && (! frostEverywhere)) {
-                                                    snowHeight = Math.max(Math.min(snowHeight, dimension.getBitLayerCount(Frost.INSTANCE, x, y, 1) - 2), 0);
+                                                int snowLayers = (int) ((dimension.getHeightAt(x, y) + 0.5f - dimension.getIntHeightAt(x, y)) / 0.125f) + 1;
+                                                if ((snowLayers > 1) && (! frostEverywhere)) {
+                                                    snowLayers = Math.max(Math.min(snowLayers, dimension.getBitLayerCount(Frost.INSTANCE, x, y, 1) - 1), 0);
                                                 }
-                                                if (minecraftWorld.getBlockTypeAt(x, y, height + 1) == BLK_SNOW) {
+                                                Material existingMaterial = minecraftWorld.getMaterialAt(x, y, height + 1);
+                                                if (existingMaterial.isNamed(MC_SNOW)) {
                                                     // If there is already snow there, don't lower it
-                                                    minecraftWorld.setDataAt(x, y, height + 1, Math.max(snowHeight, minecraftWorld.getDataAt(x, y, height + 1)));
-                                                } else {
-                                                    minecraftWorld.setBlockTypeAt(x, y, height + 1, BLK_SNOW);
-                                                    minecraftWorld.setDataAt(x, y, height + 1, snowHeight);
+                                                    snowLayers = Math.max(snowLayers, existingMaterial.getProperty(LAYERS));
                                                 }
+                                                minecraftWorld.setMaterialAt(x, y, height + 1, SNOW.withProperty(LAYERS, snowLayers));
                                                 break;
                                         }
                                     } else {

@@ -1738,12 +1738,13 @@ public final class Material implements Serializable {
 
     // MC 1.13 block property access helpers
 
-    public static final Property<Boolean> SNOWY = new Property<>(MC_SNOWY, Boolean.class);
-    public static final Property<Boolean> NORTH = new Property<>(MC_NORTH, Boolean.class);
-    public static final Property<Boolean> EAST  = new Property<>(MC_EAST,  Boolean.class);
-    public static final Property<Boolean> SOUTH = new Property<>(MC_SOUTH, Boolean.class);
-    public static final Property<Boolean> WEST  = new Property<>(MC_WEST,  Boolean.class);
-    public static final Property<Boolean> UP    = new Property<>(MC_UP,    Boolean.class);
+    public static final Property<Boolean> SNOWY  = new Property<>(MC_SNOWY,  Boolean.class);
+    public static final Property<Boolean> NORTH  = new Property<>(MC_NORTH,  Boolean.class);
+    public static final Property<Boolean> EAST   = new Property<>(MC_EAST,   Boolean.class);
+    public static final Property<Boolean> SOUTH  = new Property<>(MC_SOUTH,  Boolean.class);
+    public static final Property<Boolean> WEST   = new Property<>(MC_WEST,   Boolean.class);
+    public static final Property<Boolean> UP     = new Property<>(MC_UP,     Boolean.class);
+    public static final Property<Integer> LAYERS = new Property<>(MC_LAYERS, Integer.class);
 
     // Namespaces
 

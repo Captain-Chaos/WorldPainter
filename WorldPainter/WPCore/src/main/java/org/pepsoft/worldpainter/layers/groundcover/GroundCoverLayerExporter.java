@@ -5,18 +5,18 @@
 package org.pepsoft.worldpainter.layers.groundcover;
 
 
-import org.pepsoft.minecraft.Block;
 import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.minecraft.Material;
-import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.heightMaps.NoiseHeightMap;
 
 import javax.vecmath.Point3i;
 import java.awt.*;
 
-import static org.pepsoft.minecraft.Constants.BLK_AIR;
+import static org.pepsoft.minecraft.Material.AIR;
+import static org.pepsoft.minecraft.Material.LAYERS;
 
 /**
  * Algorithm:
@@ -78,9 +78,9 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                 final int localY = zOffset + z;
                 if (tile.getBitLayerValue(layer, localX, localY)) {
                     final int terrainheight = tile.getIntHeight(localX, localY);
-                    final int blockBelow = chunk.getBlockType(x, terrainheight, z);
-                    if ((blockBelow != BLK_AIR)
-                            && (! Block.BLOCKS[blockBelow].insubstantial)) {
+                    final Material blockBelow = chunk.getMaterial(x, terrainheight, z);
+                    if ((blockBelow != AIR)
+                            && (! blockBelow.insubstantial)) {
                         int effectiveThickness = Math.abs(thickness);
                         final int worldY = (chunk.getzPos() << 4) + z;
                         if (taperedEdge) {
@@ -157,16 +157,15 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                                     if (y > maxY) {
                                         break;
                                     }
-                                    final int existingBlockType = chunk.getBlockType(x, y, z);
+                                    final Material existingMaterial = chunk.getMaterial(x, y, z);
                                     final Material material = mixedMaterial.getMaterial(seed, worldX, worldY, y + yOffset);
-                                    if ((material != Material.AIR)
-                                            && ((!material.block.veryInsubstantial)
-                                            || (existingBlockType == BLK_AIR)
-                                            || Block.BLOCKS[existingBlockType].insubstantial)) {
+                                    if ((material != AIR)
+                                            && ((! material.veryInsubstantial)
+                                            || (existingMaterial == AIR)
+                                            || existingMaterial.insubstantial)) {
                                         if (layerHeight < 8) {
                                             // Top layer, smooth enabled
-                                            chunk.setBlockType(x, y, z, material.blockType);
-                                            chunk.setDataValue(x, y, z, layerHeight - 1);
+                                            chunk.setMaterial(x, y, z, material.withProperty(LAYERS, layerHeight));
                                         } else {
                                             // Place a full block
                                             chunk.setMaterial(x, y, z, material == Material.SNOW ? Material.SNOW_BLOCK : material);
@@ -180,12 +179,12 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                                     if (y > maxY) {
                                         break;
                                     }
-                                    final int existingBlockType = chunk.getBlockType(x, y, z);
+                                    final Material existingMaterial = chunk.getMaterial(x, y, z);
                                     final Material material = mixedMaterial.getMaterial(seed, worldX, worldY, y + yOffset);
-                                    if ((material != Material.AIR)
-                                            && ((!material.block.veryInsubstantial)
-                                            || (existingBlockType == BLK_AIR)
-                                            || Block.BLOCKS[existingBlockType].insubstantial)) {
+                                    if ((material != AIR)
+                                            && ((! material.veryInsubstantial)
+                                            || (existingMaterial == AIR)
+                                            || existingMaterial.insubstantial)) {
                                         chunk.setMaterial(x, y, z, material);
                                     }
                                 }
@@ -210,8 +209,8 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                                 if (y < minY) {
                                     break;
                                 }
-                                int existingBlockType = chunk.getBlockType(x, y, z);
-                                if (existingBlockType != BLK_AIR) {
+                                Material existingMaterial = chunk.getMaterial(x, y, z);
+                                if (existingMaterial != AIR) {
                                     chunk.setMaterial(x, y, z, mixedMaterial.getMaterial(seed, worldX, worldY, y + yOffset));
                                 }
                             }
@@ -225,9 +224,9 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
     @Override
     public Fixup apply(Dimension dimension, Point3i location, int intensity, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
         if (intensity > 0) {
-            final int blockBelow = minecraftWorld.getBlockTypeAt(location.x, location.y, location.z - 1);
-            if ((blockBelow != BLK_AIR)
-                    && (! Block.BLOCKS[blockBelow].insubstantial)) {
+            final Material blockBelow = minecraftWorld.getMaterialAt(location.x, location.y, location.z - 1);
+            if ((blockBelow != AIR)
+                    && (! blockBelow.insubstantial)) {
                 final int thickness = layer.getThickness();
                 final MixedMaterial mixedMaterial = layer.getMaterial();
                 final long seed = dimension.getSeed();
@@ -243,12 +242,12 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                         if (z > maxZ) {
                             break;
                         }
-                        final int existingBlockType = minecraftWorld.getBlockTypeAt(location.x, location.y, z);
+                        final Material existingMaterial = minecraftWorld.getMaterialAt(location.x, location.y, z);
                         final Material material = mixedMaterial.getMaterial(seed, location.x, location.y, z);
-                        if ((material != Material.AIR)
+                        if ((material != AIR)
                                 && ((! material.veryInsubstantial)
-                                    || (existingBlockType == BLK_AIR)
-                                    || Block.BLOCKS[existingBlockType].insubstantial)) {
+                                    || (existingMaterial == AIR)
+                                    || existingMaterial.insubstantial)) {
                             minecraftWorld.setMaterialAt(location.x, location.y, z, material);
                         }
                     }
@@ -259,8 +258,8 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                         if (z < minZ) {
                             break;
                         }
-                        int existingBlockType = minecraftWorld.getBlockTypeAt(location.x, location.y, z);
-                        if (existingBlockType != BLK_AIR) {
+                        Material existingMaterial = minecraftWorld.getMaterialAt(location.x, location.y, z);
+                        if (existingMaterial != AIR) {
                             minecraftWorld.setMaterialAt(location.x, location.y, z, mixedMaterial.getMaterial(seed, location.x, location.y, z));
                         }
                     }
