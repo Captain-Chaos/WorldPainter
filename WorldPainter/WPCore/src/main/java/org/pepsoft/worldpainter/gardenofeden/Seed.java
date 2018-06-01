@@ -15,6 +15,7 @@ import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import org.pepsoft.worldpainter.layers.GardenCategory;
+import org.pepsoft.worldpainter.util.GeometryUtil;
 
 /**
  * A seed for planting in a {@link Garden} for creating complex random
@@ -364,34 +365,18 @@ public abstract class Seed implements Serializable, org.pepsoft.util.undo.Clonea
         if ((x1 == x2) && (y1 == y2)) {
             return 1;
         }
-        int dx = x2 - x1;
-        int dy = y2 - y1;
-        boolean armed = false;
-        if (Math.abs(dx) > Math.abs(dy)) {
-            float y = y1, offset = (float) dy / Math.abs(dx);
-            dx = (dx < 0) ? -1 : 1;
-            for (int x = x1; x != x2; x += dx) {
-                if (armed && garden.isOccupied(x, (int) y)) {
-                    return Math.abs(x - x1);
-                } else {
-                    armed = true;
-                }
-                y += offset;
+        boolean[] armed = {false};
+        int[] distance = {0};
+        GeometryUtil.visitLine(x1, y1, x2, y2, (x, y, d) -> {
+            if (armed[0] && garden.isOccupied(x, y)) {
+                return false;
+            } else {
+                armed[0] = true;
             }
-            return Math.abs(x2 - x1);
-        } else {
-            float x = x1, offset = (float) dx / Math.abs(dy);
-            dy = (dy < 0) ? -1 : 1;
-            for (int y = y1; y != y2; y += dy) {
-                if (armed && garden.isOccupied((int) x, y)) {
-                    return Math.abs(y - y1);
-                } else {
-                    armed = true;
-                }
-                x += offset;
-            }
-            return Math.abs(y2 - y1);
-        }
+            distance[0] = (int) d;
+            return true;
+        });
+        return distance[0];
     }
     
     /**
@@ -412,29 +397,14 @@ public abstract class Seed implements Serializable, org.pepsoft.util.undo.Clonea
      *                 {@link GardenCategory} class.
      */
     protected final void drawLine(int x1, int y1, int x2, int y2, int maxLength, int category) {
-        if ((x1 == x2) && (y1 == y2)) {
-            garden.setCategory(x1, y1, category);
-            return;
-        }
-        int dx = x2 - x1;
-        int dy = y2 - y1;
-        if (Math.abs(dx) > Math.abs(dy)) {
-            float y = y1, offset = (float) dy / Math.abs(dx);
-            dx = (dx < 0) ? -1 : 1;
-            for (int x = x1; (x != x2) && (maxLength > 0); x += dx) {
-                garden.setCategory(x, (int) y, category);
-                y += offset;
-                maxLength--;
+        GeometryUtil.visitLine(x1, y1, x2, y2, (x, y, d) -> {
+            if (d <= maxLength) {
+                garden.setCategory(x, y, category);
+                return true;
+            } else {
+                return false;
             }
-        } else {
-            float x = x1, offset = (float) dx / Math.abs(dy);
-            dy = (dy < 0) ? -1 : 1;
-            for (int y = y1; (y != y2) && (maxLength > 0); y += dy) {
-                garden.setCategory((int) x, y, category);
-                maxLength--;
-                x += offset;
-            }
-        }
+        });
     }
     
     /**
@@ -470,7 +440,7 @@ public abstract class Seed implements Serializable, org.pepsoft.util.undo.Clonea
      * @param task The task to perform at each loction along the specified line.
      */
     protected final void doAlongLine(int x1, int y1, int x2, int y2, Task task) {
-        doAlongLine(x1, y1, x2, y2, task, 1);
+        GeometryUtil.visitLine(x1, y1, x2, y2, (x, y, d) -> task.perform(x, y));
     }
     
     /**
@@ -486,7 +456,7 @@ public abstract class Seed implements Serializable, org.pepsoft.util.undo.Clonea
      * @param every The interval between performances of the specified task.
      */
     protected final void doAlongLine(int x1, int y1, int x2, int y2, Task task, int every) {
-        doAlongLine(x1, y1, x2, y2, Integer.MAX_VALUE, task, every);
+        GeometryUtil.visitLine(x1, y1, x2, y2, every, (x, y, d) -> task.perform(x, y));
     }
     
     /**
@@ -539,7 +509,7 @@ public abstract class Seed implements Serializable, org.pepsoft.util.undo.Clonea
      *             line.
      */
     protected final void doAlongLine(int x1, int y1, int x2, int y2, int maxLength, Task task) {
-        doAlongLine(x1, y1, x2, y2, maxLength, task, 1);
+        GeometryUtil.visitLine(x1, y1, x2, y2, (x, y, d) -> (d <= maxLength) && task.perform(x, y));
     }
     
     /**
@@ -560,36 +530,7 @@ public abstract class Seed implements Serializable, org.pepsoft.util.undo.Clonea
      * @param every The interval between performances of the specified task.
      */
     protected final void doAlongLine(int x1, int y1, int x2, int y2, int maxLength, Task task, int every) {
-        if ((x1 == x2) && (y1 == y2)) {
-            task.perform(x1, y1);
-            return;
-        }
-        int dx = x2 - x1;
-        int dy = y2 - y1;
-        int count = every / 2;
-        if (Math.abs(dx) > Math.abs(dy)) {
-            float y = y1, offset = (float) dy / Math.abs(dx);
-            dx = (dx < 0) ? -1 : 1;
-            for (int x = x1; (x != x2) && (maxLength > 0); x += dx) {
-                if (((count % every) == 0) && (! task.perform(x, (int) y))) {
-                    return;
-                }
-                y += offset;
-                maxLength--;
-                count++;
-            }
-        } else {
-            float x = x1, offset = (float) dx / Math.abs(dy);
-            dy = (dy < 0) ? -1 : 1;
-            for (int y = y1; (y != y2) && (maxLength > 0); y += dy) {
-                if (((count % every) == 0) && (! task.perform((int) x, y))) {
-                    return;
-                }
-                x += offset;
-                maxLength--;
-                count++;
-            }
-        }
+        GeometryUtil.visitLine(x1, y1, x2, y2, every, (x, y, d) -> (d <= maxLength) && task.perform(x, y));
     }
     
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {

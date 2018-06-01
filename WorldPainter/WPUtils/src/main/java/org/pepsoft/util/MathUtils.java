@@ -212,6 +212,38 @@ public final class MathUtils {
         return new Vector3d(xPrime, yPrime, zPrime);
     }
 
+    /**
+     * Calculates the shortest distance of a point to a line segment.
+     *
+     * @param px The X coordinate of the point.
+     * @param py The Y coordiante of the point.
+     * @param vx The X coordinate of the start of the line segment.
+     * @param vy The Y coordinate of the start of the line segment.
+     * @param wx The X coordinate of the end of the line segment.
+     * @param wy The Y coordinate of the end of the line segment.
+     * @return The shortest distance of the specified point to the specified
+     * line segment.
+     */
+    public static double distanceToLineSegment(int px, int py, int vx, int vy, int wx, int wy) {
+        return Math.sqrt(distToSegmentSquared(px, py, vx, vy, wx, wy));
+    }
+
+    private static double dist2(double x1, double y1, double x2, double y2) {
+        return (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2);
+    }
+
+    private static double distToSegmentSquared(long vx, long vy, long wx, long wy, long px, long py) {
+        double l2 = dist2(vx, vy, wx, wy);
+        if (l2 == 0) {
+            return dist2(px, py, vx, vy);
+        }
+        double t = ((px - vx) * (wx - vx) + (py - vy) * (wy - vy)) / l2;
+        t = Math.max(0, Math.min(1, t));
+        return dist2(px, py, vx + t * (wx - vx), vy + t * (wy - vy));
+    }
+
+    public static final double TWO_PI = Math.PI * 2;
+
     private static final float[][] DISTANCES_2D = new float[301][301];
     private static final float[][][] DISTANCES_3D = new float[51][51][51];
     private static final int[][] INTEGER_POWERS = new int[50][50];
