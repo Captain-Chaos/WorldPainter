@@ -279,7 +279,7 @@ public final class Block implements Serializable {
                 new Block( 78,  0,                            "Snow", false,  true,  true, false, false, false, false,  0,  true),
                 new Block( 79,  3,                             "Ice", false, false, false, false, false, false, false,  0,  true),
 //                         ID, Tr,                      Display Name, Terra, Insub, VryIn, Resou, TileE, TreeR, Veget, Li, Natural
-                new Block( 80, 15,                      "Snow Block",  true, false, false, false, false, false, false,  0,  true),
+                new Block( 80, 15,                      "Snow Block",  true,  true,  true, false, false, false, false,  0,  true),
                 new Block( 81,  0,                          "Cactus", false,  true,  true, false, false, false,  true,  0,  true),
                 new Block( 82, 15,                      "Clay Block",  true, false, false, false, false, false, false,  0,  true),
                 new Block( 83,  0,                      "Sugar Cane", false,  true,  true, false, false, false,  true,  0,  true),

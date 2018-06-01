@@ -84,8 +84,7 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
                                 // might want to place thicker snow
                                 if ((previousMaterial == AIR) || (previousMaterial == TALL_GRASS) || (previousMaterial == SNOW)) {
                                     if ((mode == FrostSettings.MODE_SMOOTH_AT_ALL_ELEVATIONS)
-                                            || (height == dimension.getIntHeightAt(x, y))
-                                            || (material == SNOW_BLOCK)) {
+                                            || (height == dimension.getIntHeightAt(x, y))) {
                                         // Only vary the snow tickness if we're
                                         // at surface height, otherwise it looks
                                         // odd
@@ -102,7 +101,13 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
                                                 if ((snowHeight > 0) && (! frostEverywhere)) {
                                                     snowHeight = Math.max(Math.min(snowHeight, dimension.getBitLayerCount(Frost.INSTANCE, x, y, 1) - 2), 0);
                                                 }
-                                                minecraftWorld.setMaterialAt(x, y, height + 1, SNOW.withProperty("layers", Integer.toString(snowHeight + 1)));
+                                                if (minecraftWorld.getBlockTypeAt(x, y, height + 1) == BLK_SNOW) {
+                                                    // If there is already snow there, don't lower it
+                                                    minecraftWorld.setDataAt(x, y, height + 1, Math.max(snowHeight, minecraftWorld.getDataAt(x, y, height + 1)));
+                                                } else {
+                                                    minecraftWorld.setBlockTypeAt(x, y, height + 1, BLK_SNOW);
+                                                    minecraftWorld.setDataAt(x, y, height + 1, snowHeight);
+                                                }
                                                 break;
                                         }
                                     } else {
@@ -134,8 +139,8 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
         BLK_WHEAT, BLK_BURNING_FURNACE, BLK_WOODEN_DOOR, BLK_IRON_DOOR,
         BLK_IRON_BARS, BLK_LADDER, BLK_LEVER, BLK_STONE_PRESSURE_PLATE,
         BLK_WOODEN_PRESSURE_PLATE, BLK_REDSTONE_TORCH_OFF,
-        BLK_REDSTONE_TORCH_ON, BLK_STONE_BUTTON, BLK_SNOW, BLK_CACTUS,
-        BLK_SUGAR_CANE, BLK_CAKE, BLK_REDSTONE_REPEATER_OFF,
+        BLK_REDSTONE_TORCH_ON, BLK_STONE_BUTTON, BLK_SNOW, BLK_SNOW_BLOCK,
+        BLK_CACTUS, BLK_SUGAR_CANE, BLK_CAKE, BLK_REDSTONE_REPEATER_OFF,
         BLK_REDSTONE_REPEATER_ON, BLK_TRAPDOOR, BLK_GLASS_PANE,
         BLK_PUMPKIN_STEM, BLK_MELON_STEM, BLK_LILY_PAD, BLK_NETHER_WART,
         BLK_ENCHANTMENT_TABLE, BLK_BREWING_STAND, BLK_END_PORTAL,
@@ -145,8 +150,8 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
         BLK_COBBLESTONE_WALL, BLK_FLOWER_POT, BLK_CARROTS, BLK_POTATOES,
         BLK_WOODEN_BUTTON, BLK_HEAD, BLK_ANVIL, BLK_TRAPPED_CHEST,
         BLK_WEIGHTED_PRESSURE_PLATE_HEAVY, BLK_WEIGHTED_PRESSURE_PLATE_LIGHT,
-        BLK_REDSTONE_COMPARATOR_UNPOWERED, BLK_DAYLIGHT_SENSOR, BLK_ACTIVATOR_RAIL,
-        BLK_STAINED_GLASS_PANE, BLK_ACACIA_WOOD_STAIRS,
+        BLK_REDSTONE_COMPARATOR_UNPOWERED, BLK_DAYLIGHT_SENSOR,
+        BLK_ACTIVATOR_RAIL, BLK_STAINED_GLASS_PANE, BLK_ACACIA_WOOD_STAIRS,
         BLK_DARK_OAK_WOOD_STAIRS, BLK_CARPET, BLK_LARGE_FLOWERS, BLK_PACKED_ICE);
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(FrostExporter.class);
     
