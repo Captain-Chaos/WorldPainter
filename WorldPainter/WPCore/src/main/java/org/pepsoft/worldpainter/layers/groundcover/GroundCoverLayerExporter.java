@@ -65,7 +65,7 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
         final int edgeWidth = layer.getEdgeWidth(), edgeWidthPlusOne = edgeWidth + 1, edgeWidthMinusOne = edgeWidth - 1;
         final double edgeFactor = edgeThickness / 2.0, edgeOffset = 1.5 + edgeFactor;
         final long seed = dimension.getSeed();
-        final boolean smooth = layer.isSmooth();
+        final boolean smooth = layer.isSmooth() || (mixedMaterial.getSingleMaterial() == Material.SNOW);
         final GroundCoverLayer.LayerAnchor layeredMaterialAnchor;
         final int patternHeight = mixedMaterial.getPatternHeight();
         if (mixedMaterial.getMode() == MixedMaterial.Mode.LAYERED) {
@@ -121,26 +121,73 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                                 default:
                                     throw new InternalError();
                             }
-                            for (int dy = 0; dy < effectiveThickness; dy++) {
-                                final int y = terrainheight + dy + 1;
-                                if (y > maxY) {
-                                    break;
+                            if (smooth) {
+                                float fEffectiveThickness = Math.abs(thickness);
+                                if (taperedEdge) {
+                                    float distanceToEdge = dimension.getDistanceToEdge(layer, worldX, worldY, edgeWidthPlusOne);
+                                    if (distanceToEdge < edgeWidth) {
+                                        final double normalisedDistance = distanceToEdge / edgeWidthPlusOne;
+                                        switch (edgeShape) {
+                                            case LINEAR:
+                                                fEffectiveThickness = (float) (normalisedDistance * thickness);
+                                                break;
+                                            case SMOOTH:
+                                                fEffectiveThickness = (float) ((-Math.cos(normalisedDistance * Math.PI) + 1) * thickness / 2);
+//                                                System.out.printf("distanceToEdge: %f, normalisedDistance: %f, effectiveThickness: %f%n", distanceToEdge, normalisedDistance, fEffectiveThickness);
+                                                break;
+                                            case ROUNDED:
+                                                // TODO is this right?
+                                                double reversedNormalisedDistance = 1 - (distanceToEdge - 0.5) / edgeWidth;
+                                                fEffectiveThickness = (float) (Math.sqrt(1 - reversedNormalisedDistance * reversedNormalisedDistance) * thickness);
+                                                break;
+                                        }
+                                    }
                                 }
-                                final int existingBlockType = chunk.getBlockType(x, y, z);
-                                final Material material = mixedMaterial.getMaterial(seed, worldX, worldY, y + yOffset);
-                                if ((material != Material.AIR)
-                                        && ((! material.block.veryInsubstantial)
+                                if (noiseHeightMap != null) {
+                                    fEffectiveThickness += noiseHeightMap.getHeight(worldX, worldY) - noiseOffset;
+                                }
+                                // Layer height in eights of a block
+                                int layerHeight = Math.max(Math.round((dimension.getHeightAt(worldX, worldY) + fEffectiveThickness - dimension.getIntHeightAt(worldX, worldY)) / 0.125f), 1);
+                                // TODO is this necessary or desired for smooth layers?
+//                                if (layerHeight > 0) {
+//                                    layerHeight = Math.max(Math.min(layerHeight, dimension.getBitLayerCount(layer, worldX, worldY, 1) - 2), 0);
+//                                }
+                                chunk.setMaterial(x, terrainheight, z, Material.WOOL_RED);
+                                for (int dy = 0; layerHeight > 0; dy++, layerHeight -= 8) {
+//                                    System.out.printf("dy: %d, layerHeight: %d; ", dy, layerHeight);
+                                    final int y = terrainheight + dy + 1;
+                                    if (y > maxY) {
+                                        break;
+                                    }
+                                    final int existingBlockType = chunk.getBlockType(x, y, z);
+                                    final Material material = mixedMaterial.getMaterial(seed, worldX, worldY, y + yOffset);
+                                    if ((material != Material.AIR)
+                                            && ((!material.block.veryInsubstantial)
                                             || (existingBlockType == BLK_AIR)
                                             || Block.BLOCKS[existingBlockType].insubstantial)) {
-                                    if (smooth && (dy == (effectiveThickness - 1))) {
-                                        // Top layer, smooth enabled
-                                        int layerHeight = (int) ((dimension.getHeightAt(worldX, worldY) + 0.5f - dimension.getIntHeightAt(worldX, worldY)) / 0.125f);
-                                        if (layerHeight > 0) {
-                                            layerHeight = Math.max(Math.min(layerHeight, dimension.getBitLayerCount(layer, worldX, worldY, 1) - 2), 0);
+                                        if (layerHeight < 8) {
+                                            // Top layer, smooth enabled
+                                            chunk.setBlockType(x, y, z, material.blockType);
+                                            chunk.setDataValue(x, y, z, layerHeight - 1);
+                                        } else {
+                                            // Place a full block
+                                            chunk.setMaterial(x, y, z, material == Material.SNOW ? Material.SNOW_BLOCK : material);
                                         }
-                                        chunk.setBlockType(x, y, z, material.blockType);
-                                        chunk.setDataValue(x, y, z, layerHeight);
-                                    } else {
+                                    }
+                                }
+//                                System.out.println();
+                            } else {
+                                for (int dy = 0; dy < effectiveThickness; dy++) {
+                                    final int y = terrainheight + dy + 1;
+                                    if (y > maxY) {
+                                        break;
+                                    }
+                                    final int existingBlockType = chunk.getBlockType(x, y, z);
+                                    final Material material = mixedMaterial.getMaterial(seed, worldX, worldY, y + yOffset);
+                                    if ((material != Material.AIR)
+                                            && ((!material.block.veryInsubstantial)
+                                            || (existingBlockType == BLK_AIR)
+                                            || Block.BLOCKS[existingBlockType].insubstantial)) {
                                         chunk.setMaterial(x, y, z, material);
                                     }
                                 }
