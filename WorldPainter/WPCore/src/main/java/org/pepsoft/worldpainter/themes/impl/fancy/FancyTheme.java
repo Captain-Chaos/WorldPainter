@@ -6,19 +6,11 @@
 package org.pepsoft.worldpainter.themes.impl.fancy;
 
 import org.pepsoft.minecraft.Constants;
-import org.pepsoft.worldpainter.HeightMap;
-import org.pepsoft.worldpainter.HeightTransform;
-import org.pepsoft.worldpainter.MixedMaterial;
-import org.pepsoft.worldpainter.Terrain;
-import org.pepsoft.worldpainter.Tile;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.heightMaps.ConstantHeightMap;
 import org.pepsoft.worldpainter.heightMaps.NoiseHeightMap;
 import org.pepsoft.worldpainter.heightMaps.SumHeightMap;
-import org.pepsoft.worldpainter.layers.DeciduousForest;
-import org.pepsoft.worldpainter.layers.Frost;
-import org.pepsoft.worldpainter.layers.Jungle;
-import org.pepsoft.worldpainter.layers.PineForest;
-import org.pepsoft.worldpainter.layers.SwampLand;
+import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.groundcover.GroundCoverLayer;
 import org.pepsoft.worldpainter.themes.Theme;
 
@@ -34,14 +26,14 @@ public class FancyTheme implements Theme, Cloneable {
         setWaterHeight(waterHeight);
         setHeightMap(heightMap);
         setDesertMaxHeight(waterHeight + 20);
-        Random random = new Random(heightMap.getSeed());
+        Random random = (heightMap != null) ? new Random(heightMap.getSeed()) : new Random();
         setTemperatureMap(new SumHeightMap(new NoiseHeightMap(60f, 10.0, 2, random.nextLong()), new ConstantHeightMap(-20f)));
         setHumidityMap(new NoiseHeightMap(100f, 10.0, 2, random.nextLong()));
         setForestMap(new NoiseHeightMap(1f, 1.0, 3, random.nextLong()));
         setBaseTerrain(baseTerrain);
-        snowLayer.setThickness(3);
-        snowLayer.setEdgeWidth(3);
-        snowLayer.setEdgeShape(GroundCoverLayer.EdgeShape.LINEAR);
+        snowLayer.setThickness(5);
+        snowLayer.setEdgeWidth(15);
+        snowLayer.setEdgeShape(GroundCoverLayer.EdgeShape.SMOOTH);
     }
 
     @Override
@@ -51,16 +43,16 @@ public class FancyTheme implements Theme, Cloneable {
         float height = tile.getHeight(x, y);
         temperature = temperature - Math.max(height - waterHeight, 0) / 2f + randomNoiseMap.getHeight(worldX, worldY);
         float humidity = humidityMap.getHeight(worldX, worldY) + randomNoiseMap.getHeight(worldX, worldY);
-        final float slopeNOSO = Math.abs(heightMap.getHeight(    worldX, worldY - 1) - heightMap.getHeight(    worldX, worldY + 1));
-        final float slopeNWSE = Math.abs(heightMap.getHeight(worldX + 1, worldY - 1) - heightMap.getHeight(worldX - 1, worldY + 1));
-        final float slopeEAWE = Math.abs(heightMap.getHeight(worldX + 1,     worldY) - heightMap.getHeight(worldX - 1,     worldY));
-        final float slopeSENW = Math.abs(heightMap.getHeight(worldX + 1, worldY + 1) - heightMap.getHeight(worldX - 1, worldY - 1));
+        final float slopeNOSO = Math.abs(getHeight(    worldX, worldY - 1) - getHeight(    worldX, worldY + 1));
+        final float slopeNWSE = Math.abs(getHeight(worldX + 1, worldY - 1) - getHeight(worldX - 1, worldY + 1));
+        final float slopeEAWE = Math.abs(getHeight(worldX + 1,     worldY) - getHeight(worldX - 1,     worldY));
+        final float slopeSENW = Math.abs(getHeight(worldX + 1, worldY + 1) - getHeight(worldX - 1, worldY - 1));
         final float slope = Math.max(Math.max(slopeNOSO, slopeNWSE), Math.max(slopeEAWE, slopeSENW));
         if (slope > 2f) {
-            tile.setTerrain(x, y, TERRAIN_STONE_AND_GRAVEL);
+            tile.setTerrain(x, y, terrainStoneAndGravel);
         } else {
             if (slope > 1.5f) {
-                tile.setTerrain(x, y, TERRAIN_DIRT_AND_GRAVEL);
+                tile.setTerrain(x, y, terrainDirtAndGravel);
             } else if (height < (waterHeight - 4)) {
                 tile.setTerrain(x, y, Terrain.BEACHES);
             } else if ((height < (waterHeight + 2)) && isWaterNear(worldX, worldY)) {
@@ -201,11 +193,13 @@ public class FancyTheme implements Theme, Cloneable {
     }
 
     @Override
-    public Theme clone() {
+    public FancyTheme clone() {
         try {
             FancyTheme clone = (FancyTheme) super.clone();
             clone.forestMap = forestMap.clone();
-            clone.heightMap = heightMap.clone();
+            if (heightMap != null) {
+                clone.heightMap = heightMap.clone();
+            }
             clone.humidityMap = humidityMap.clone();
             return clone;
         } catch (CloneNotSupportedException e) {
@@ -213,19 +207,27 @@ public class FancyTheme implements Theme, Cloneable {
         }
     }
 
+    protected float getHeight(int x, int y) {
+        return heightMap.getHeight(x, y);
+    }
+
     private boolean isWaterNear(int x, int y) {
-        if (heightMap.getHeight(x, y) < waterHeight) {
+        if (getHeight(x, y) < waterHeight) {
             return true;
         }
         for (int dx = -5; dx <= 5; dx++) {
             for (int dy = -5; dy <= 5; dy++) {
-                if (heightMap.getHeight(x + dx, y + dy) < waterHeight) {
+                if (getHeight(x + dx, y + dy) < waterHeight) {
                     return true;
                 }
             }
         }
         return false;
     }
+
+    protected GroundCoverLayer snowLayer = new GroundCoverLayer("Mountain Snow", MixedMaterial.create(Constants.BLK_SNOW), 0xffffff);
+    protected Terrain terrainDirtAndGravel = Terrain.CUSTOM_1;
+    protected Terrain terrainStoneAndGravel = Terrain.CUSTOM_2;
 
     private int maxHeight, waterHeight, desertMaxHeight;
     /**
@@ -241,9 +243,6 @@ public class FancyTheme implements Theme, Cloneable {
     private HeightMap forestMap;
     private Terrain baseTerrain;
     private final HeightMap randomNoiseMap = new SumHeightMap(new ConstantHeightMap(-5f), new NoiseHeightMap(10f, 1.0, 3));
-    private final GroundCoverLayer snowLayer = new GroundCoverLayer("Deep Snow", MixedMaterial.create(Constants.BLK_SNOW_BLOCK), 0xffffff);
-    
-    private static final Terrain TERRAIN_DIRT_AND_GRAVEL = Terrain.CUSTOM_1;
-    private static final Terrain TERRAIN_STONE_AND_GRAVEL = Terrain.CUSTOM_2;
+
     private static final long serialVersionUID = 1L;
 }
