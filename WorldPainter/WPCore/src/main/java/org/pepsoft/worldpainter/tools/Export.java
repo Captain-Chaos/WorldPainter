@@ -30,7 +30,17 @@ public class Export {
     public static void main(String args[]) throws IOException, ClassNotFoundException, OperationCancelled, CertificateException, UnloadableWorldException {
 //        Logger rootLogger = Logger.getLogger("");
 //        rootLogger.setLevel(Level.OFF);
-        
+
+        // Load the default platform descriptors so that they don't get blocked
+        // by older versions of them which might be contained in the
+        // configuration. Do this by loading and initialising (but not
+        // instantiating) the DefaultPlugin class
+        try {
+            Class.forName("org.pepsoft.worldpainter.DefaultPlugin");
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+
         // Load or initialise configuration
         Configuration config = Configuration.load(); // This will migrate the configuration directory if necessary
         if (config == null) {
