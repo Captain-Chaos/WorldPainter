@@ -272,7 +272,7 @@ public class Java1_13PostProcessor extends PostProcessor {
                             if (material.getProperty(MC_HALF).equals("upper")) {
                                 // Top half of double high plant.
                                 if (materialBelow.isNotNamedSameAs(material)
-                                        || (! material.getProperty(MC_HALF).equals("lower"))) {
+                                        || (! materialBelow.getProperty(MC_HALF).equals("lower"))) {
                                     // There is not a corresponding lower half
                                     // below; remove this block
                                     minecraftWorld.setMaterialAt(x, y, z, AIR);
