@@ -82,7 +82,9 @@ public final class Plant implements WPObject {
                 dimensions = plant.dimensions;
                 break;
             default:
-                throw new InternalError();
+                material = plant.material;
+                dimensions = plant.dimensions;
+                break;
         }
     }
     
