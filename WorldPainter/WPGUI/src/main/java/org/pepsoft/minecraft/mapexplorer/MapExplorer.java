@@ -49,6 +49,16 @@ import static javax.swing.tree.TreeSelectionModel.SINGLE_TREE_SELECTION;
  */
 public class MapExplorer {
     public static void main(String[] args) throws IOException, ClassNotFoundException {
+        // Load the default platform descriptors so that they don't get blocked
+        // by older versions of them which might be contained in the
+        // configuration. Do this by loading and initialising (but not
+        // instantiating) the DefaultPlugin class
+        try {
+            Class.forName("org.pepsoft.worldpainter.DefaultPlugin");
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+
         // Load or initialise configuration
         File configDir = Configuration.getConfigDir();
         if (! configDir.isDirectory()) {
