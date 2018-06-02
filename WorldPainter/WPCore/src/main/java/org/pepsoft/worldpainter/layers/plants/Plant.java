@@ -10,7 +10,6 @@ import org.pepsoft.minecraft.Entity;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.minecraft.TileEntity;
 import org.pepsoft.util.AttributeKey;
-import org.pepsoft.worldpainter.DefaultPlugin;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
@@ -87,7 +86,9 @@ public final class Plant implements WPObject {
                 dimensions = plant.dimensions;
                 break;
             default:
-                throw new InternalError();
+                material = plant.material;
+                dimensions = plant.dimensions;
+                break;
         }
     }
     
@@ -174,7 +175,7 @@ public final class Plant implements WPObject {
         if (z > 0) {
             switch (category) {
                 case PLANTS_AND_FLOWERS:
-                    if ((platform == JAVA_ANVIL_1_13)) {
+                    if (platform == JAVA_ANVIL_1_13) {
                         return material.withProperty("half", "upper");
                     } else {
                         return UPPER_DOUBLE_HIGH_PLANT;
