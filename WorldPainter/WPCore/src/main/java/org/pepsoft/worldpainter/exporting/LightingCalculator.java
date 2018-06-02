@@ -6,13 +6,15 @@
 package org.pepsoft.worldpainter.exporting;
 
 import org.pepsoft.minecraft.Chunk;
-import org.pepsoft.minecraft.Constants;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.Box;
-import org.pepsoft.worldpainter.DefaultPlugin;
 import org.pepsoft.worldpainter.Platform;
 
 import java.util.Arrays;
+
+import static org.pepsoft.minecraft.Constants.MC_WATER;
+import static org.pepsoft.minecraft.Material.AIR;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_13;
 
 /**
  * A lighting calculator for MinecraftWorlds.
@@ -26,6 +28,8 @@ import java.util.Arrays;
  * into the surrounding blocks. The second pass should be repeated until no
  * changes result from it, meaning the area has been fully lighted.
  *
+ * <p>This class uses the Minecraft coordinate system.
+ *
  * @author pepijn
  */
 public class LightingCalculator {
@@ -35,10 +39,20 @@ public class LightingCalculator {
         maxHeight = world.getMaxHeight();
     }
 
+    /**
+     * Get the current light dirty area in Minecraft coordinates.
+     *
+     * @return The current light dirty area in Minecraft coordinates.
+     */
     public Box getDirtyArea() {
         return dirtyArea;
     }
 
+    /**
+     * Set the light dirty area in Minecraft coordinates.
+     *
+     * @param dirtyArea The light dirty area in Minecraft coordinates to set.
+     */
     public void setDirtyArea(Box dirtyArea) {
         this.dirtyArea = dirtyArea;
     }
@@ -72,7 +86,7 @@ public class LightingCalculator {
                         // Transparent block, or unknown block. We err on the
                         // side of transparency for unknown blocks to try and
                         // cause less visible lighting bugs
-                        newSkyLightLevel = (currentSkylightLevel < 15) ? calculateSkyLightLevel(x, y, z) : 15;
+                        newSkyLightLevel = (currentSkylightLevel < 15) ? calculateSkyLightLevel(x, y, z, material) : 15;
                         newBlockLightLevel = (material.blockLight > 0) ? currentBlockLightLevel : calculateBlockLightLevel(x, y, z);
                     }
                     if ((newSkyLightLevel != currentSkylightLevel) || (newBlockLightLevel != currentBlockLightLevel)) {
@@ -220,16 +234,20 @@ public class LightingCalculator {
 
     private int getTransparency(Material material) {
         // TODOMC13: make this generic:
-        if ((platform == DefaultPlugin.JAVA_ANVIL_1_13) && material.isNamed(Constants.MC_WATER)) {
+        if ((platform == JAVA_ANVIL_1_13) && material.isNamed(MC_WATER)) {
             return 1;
         } else {
             return material.transparency;
         }
     }
 
-    private int calculateSkyLightLevel(int x, int y, int z) {
-        Material material = world.getMaterialAt(x, z, y);
+    private int calculateSkyLightLevel(int x, int y, int z, Material material) {
         int skyLightLevel = getSkyLightLevelAt(x, y + 1, z);
+        // TODOMC13: make this generic:
+        if ((skyLightLevel == 15) && (platform == JAVA_ANVIL_1_13) && (material.isNamed(MC_WATER)) && ((y >= maxHeight - 1) || (world.getMaterialAt(x, z, y + 1) == AIR))) {
+            // This seems to be a special case in MC 1.13. TODO: keep an eye on whether this was a bug or intended behaviour!
+            return 15;
+        }
         int highestSurroundingSkyLight = skyLightLevel;
         if (highestSurroundingSkyLight < 15) {
             skyLightLevel = getSkyLightLevelAt(x - 1, y, z);

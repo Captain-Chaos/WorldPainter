@@ -10,11 +10,8 @@ import org.pepsoft.minecraft.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
-import static org.pepsoft.minecraft.Block.BLOCKS;
 import static org.pepsoft.minecraft.Constants.DATA_VERSION_MC_1_12_2;
 import static org.pepsoft.minecraft.Constants.VERSION_MCREGION;
 import static org.pepsoft.minecraft.Material.AIR;
@@ -63,14 +60,14 @@ public class DumpChunk {
             boolean blockFound = false;
 x:          for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
-                    if (chunk.getBlockType(x, y, z) != 0) {
+                    if (chunk.getMaterial(x, y, z) != AIR) {
                         blockFound = true;
                         break x;
                     }
                 }
             }
             if (! blockFound) {
-                break;
+                continue;
             }
             System.out.println("X-->");
             for (int z = 0; z < 16; z++) {
@@ -79,32 +76,42 @@ x:          for (int x = 0; x < 16; x++) {
                     if (material != AIR) {
                         String name = material.name;
                         name = name.substring(name.indexOf(':') + 1);
-                        String property;
-                        Map<String, String> propertyMap = material.getProperties();
-                        if ((propertyMap != null) && (! propertyMap.isEmpty())) {
-                            property = propertyMap.entrySet().iterator().next().getValue();
+//                        String property;
+//                        Map<String, String> propertyMap = material.getProperties();
+//                        if ((propertyMap != null) && (! propertyMap.isEmpty())) {
+//                            property = propertyMap.entrySet().iterator().next().getValue();
+//                        } else {
+//                            property = "";
+//                        }
+//                        if ((material.blockType >= 0) && BLOCKS[material.blockType].tileEntity) {
+//                            int count = 0;
+//                            for (Iterator<TileEntity> i = tileEntities.iterator(); i.hasNext(); ) {
+//                                TileEntity tileEntity = i.next();
+//                                if ((tileEntity.getX() == x) && (tileEntity.getY() == y) && (tileEntity.getZ() == z)) {
+//                                    count++;
+//                                    i.remove();
+//                                }
+//                            }
+//                            if (count == 1) {
+//                                System.out.printf("[%3.3s:%2.2s]", name, property);
+//                            } else {
+//                                System.out.printf("!%3.3s!%2d!", name, count);
+//                            }
+//                        } else {
+//                            System.out.printf("[%3.3s:%2.2s]", name, property);
+//                        }
+                        if (chunk.getBlockLightLevel(x, y, z) == 0) {
+                            System.out.printf("[%3.3s:  ]", name);
                         } else {
-                            property = "";
+                            System.out.printf("[%3.3s:%2d]", name, chunk.getBlockLightLevel(x, y, z));
                         }
-                        if ((material.blockType >= 0) && BLOCKS[material.blockType].tileEntity) {
-                            int count = 0;
-                            for (Iterator<TileEntity> i = tileEntities.iterator(); i.hasNext(); ) {
-                                TileEntity tileEntity = i.next();
-                                if ((tileEntity.getX() == x) && (tileEntity.getY() == y) && (tileEntity.getZ() == z)) {
-                                    count++;
-                                    i.remove();
-                                }
-                            }
-                            if (count == 1) {
-                                System.out.printf("[%3.3s:%2.2s]", name, property);
-                            } else {
-                                System.out.printf("!%3.3s!%2d!", name, count);
-                            }
-                        } else {
-                            System.out.printf("[%3.3s:%2.2s]", name, property);
-                        }
+//                        System.out.printf("[%3.3s:%2d]", name, chunk.getBlockLightLevel(x, y, z));
                     } else {
-                        System.out.print("[   :  ]");
+                        if (chunk.getBlockLightLevel(x, y, z) == 0) {
+                            System.out.print("[   :  ]");
+                        } else {
+                            System.out.printf("[   :%2d]", chunk.getBlockLightLevel(x, y, z));
+                        }
                     }
                 }
                 if (z == 0) {

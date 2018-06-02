@@ -5945,7 +5945,7 @@
       "south": "false",
       "north": "false",
       "west": "false",
-      "up": "true"
+      "up": "false"
     }
   },
   {
@@ -5957,7 +5957,7 @@
       "south": "true",
       "north": "false",
       "west": "false",
-      "up": "true"
+      "up": "false"
     }
   },
   {
@@ -5969,7 +5969,7 @@
       "south": "false",
       "north": "false",
       "west": "true",
-      "up": "true"
+      "up": "false"
     }
   },
   {
@@ -5981,7 +5981,7 @@
       "south": "true",
       "north": "false",
       "west": "true",
-      "up": "true"
+      "up": "false"
     }
   },
   {
@@ -5993,7 +5993,7 @@
       "south": "false",
       "north": "true",
       "west": "false",
-      "up": "true"
+      "up": "false"
     }
   },
   {
@@ -6005,7 +6005,7 @@
       "south": "true",
       "north": "true",
       "west": "false",
-      "up": "true"
+      "up": "false"
     }
   },
   {
@@ -6017,7 +6017,7 @@
       "south": "false",
       "north": "true",
       "west": "true",
-      "up": "true"
+      "up": "false"
     }
   },
   {
@@ -6029,7 +6029,7 @@
       "south": "true",
       "north": "true",
       "west": "true",
-      "up": "true"
+      "up": "false"
     }
   },
   {
@@ -6041,7 +6041,7 @@
       "south": "false",
       "north": "false",
       "west": "false",
-      "up": "true"
+      "up": "false"
     }
   },
   {
@@ -6053,7 +6053,7 @@
       "south": "true",
       "north": "false",
       "west": "false",
-      "up": "true"
+      "up": "false"
     }
   },
   {
@@ -6065,7 +6065,7 @@
       "south": "false",
       "north": "false",
       "west": "true",
-      "up": "true"
+      "up": "false"
     }
   },
   {
@@ -6077,7 +6077,7 @@
       "south": "true",
       "north": "false",
       "west": "true",
-      "up": "true"
+      "up": "false"
     }
   },
   {
@@ -6089,7 +6089,7 @@
       "south": "false",
       "north": "true",
       "west": "false",
-      "up": "true"
+      "up": "false"
     }
   },
   {
@@ -6101,7 +6101,7 @@
       "south": "true",
       "north": "true",
       "west": "false",
-      "up": "true"
+      "up": "false"
     }
   },
   {
@@ -6113,7 +6113,7 @@
       "south": "false",
       "north": "true",
       "west": "true",
-      "up": "true"
+      "up": "false"
     }
   },
   {
@@ -6125,7 +6125,7 @@
       "south": "true",
       "north": "true",
       "west": "true",
-      "up": "true"
+      "up": "false"
     }
   },
   {
