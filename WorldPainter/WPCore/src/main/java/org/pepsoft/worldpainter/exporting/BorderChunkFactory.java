@@ -87,9 +87,9 @@ public class BorderChunkFactory {
                         if ((y == 0) && (! bottomless)) {
                             result.chunk.setMaterial(x, y, z, BEDROCK);
                         } else if (y <= surfaceLayerLevel) {
-                            result.chunk.setMaterial(x, y, z, subsurfaceMaterial.getMaterial(seed, worldX, worldZ, y, floorLevel));
+                            result.chunk.setMaterial(x, y, z, subsurfaceMaterial.getMaterial(platform, seed, worldX, worldZ, y, floorLevel));
                         } else if (y <= floorLevel) {
-                            result.chunk.setMaterial(x, y, z, BEACHES.getMaterial(seed, worldX, worldZ, y, floorLevel));
+                            result.chunk.setMaterial(x, y, z, BEACHES.getMaterial(platform, seed, worldX, worldZ, y, floorLevel));
                         } else if (y <= borderLevel) {
                             switch(border) {
                                 case WATER:

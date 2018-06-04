@@ -113,7 +113,7 @@ public class Java1_13PostProcessor extends PostProcessor {
                     // Special case for backwards compatibility: turn legacy
                     // upper large flower blocks into modern ones
                     if ((material.blockType == BLK_LARGE_FLOWERS) && ((material.data & 0x8) == 0x8) && (materialBelow.blockType == BLK_LARGE_FLOWERS)) {
-                        material = materialBelow.withProperty(MC_HALF, "upper");
+                        material = materialBelow.withProperty(HALF, "upper");
                         minecraftWorld.setMaterialAt(x, y, z, material);
                     }
                     switch (material.name) {
@@ -269,10 +269,10 @@ public class Java1_13PostProcessor extends PostProcessor {
                         case MC_LARGE_FERN:
                         case MC_ROSE_BUSH:
                         case MC_PEONY:
-                            if (material.getProperty(MC_HALF).equals("upper")) {
+                            if (material.getProperty(HALF).equals("upper")) {
                                 // Top half of double high plant.
                                 if (materialBelow.isNotNamedSameAs(material)
-                                        || (! materialBelow.getProperty(MC_HALF).equals("lower"))) {
+                                        || (! materialBelow.getProperty(HALF).equals("lower"))) {
                                     // There is not a corresponding lower half
                                     // below; remove this block
                                     minecraftWorld.setMaterialAt(x, y, z, AIR);
@@ -282,7 +282,7 @@ public class Java1_13PostProcessor extends PostProcessor {
                                 // Otherwise: lower half of double high plant;
                                 // check there's a corresponding top half above
                                 // and grass or dirt below
-                                if (materialAbove.isNamedSameAs(material) && materialAbove.getProperty(MC_HALF).equals("upper")) {
+                                if (materialAbove.isNamedSameAs(material) && materialAbove.getProperty(HALF).equals("upper")) {
                                     if (materialBelow.isNotNamed(MC_GRASS_BLOCK) && (materialBelow != DIRT) && (materialBelow.isNotNamed(MC_PODZOL)) && (materialBelow != PERMADIRT)) {
                                         // Double high plants can (presumably; TODO:
                                         // check) only exist on grass or dirt

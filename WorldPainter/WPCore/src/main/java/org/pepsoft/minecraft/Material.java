@@ -1745,6 +1745,7 @@ public final class Material implements Serializable {
     public static final Property<Boolean> WEST   = new Property<>(MC_WEST,   Boolean.class);
     public static final Property<Boolean> UP     = new Property<>(MC_UP,     Boolean.class);
     public static final Property<Integer> LAYERS = new Property<>(MC_LAYERS, Integer.class);
+    public static final Property<String>  HALF   = new Property<>(MC_HALF,   String.class);
 
     // Namespaces
 

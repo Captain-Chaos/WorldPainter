@@ -19,6 +19,7 @@ import java.util.Random;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_13;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.*;
 
 /**
@@ -40,8 +41,9 @@ import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.*;
 public enum Terrain {
     GRASS    ("Grass", "grass with flowers, tall grass and ferns here and there", BIOME_PLAINS) {
         @Override
-        public Material getMaterial(long seed, int x, int y, int z, int height) {
+        public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {
             final int dz = z - height;
+            // TODOMC13 migrate this to modern materials
             if (dz > 2) {
                 return AIR;
             } else if (dz == 2) {
@@ -54,12 +56,16 @@ public enum Terrain {
                         flowerTypeField.setSeed(seed + FLOWER_TYPE_FIELD_OFFSET);
                     }
                     // Use 1 instead of 2, even though dz == 2, to get consistent results for the lower and upper blocks
-                    // Keep the "1 / SMALLBLOBS" and the two noise generators for constistency with existing maps
+                    // Keep the "1 / SMALLBLOBS" and the two noise generators for consistency with existing maps
                     if ((dandelionNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, 1 / SMALL_BLOBS) > FLOWER_CHANCE)
                             || (roseNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, 1 / SMALL_BLOBS) > FLOWER_CHANCE)) {
                         Material flower = FLOWER_TYPES[flowerTypeField.getValue(x, y)];
                         if (flower.blockType == BLK_LARGE_FLOWERS) {
-                            return LARGE_FLOWER_TOP;
+                            if (platform == JAVA_ANVIL_1_13) {
+                                return flower.withProperty(HALF, "upper");
+                            } else {
+                                return LARGE_FLOWER_TOP;
+                            }
                         } else {
                             return AIR;
                         }
@@ -72,10 +78,18 @@ public enum Terrain {
                         tallGrassNoise.setSeed(seed + DOUBLE_TALL_GRASS_SEED_OFFSET);
                     }
                     // Use 1 instead of 2, even though dz == 2, to get consistent results for the lower and upper blocks
-                    // Keep the "1 / SMALLBLOBS" for constistency with existing maps
+                    // Keep the "1 / SMALLBLOBS" for consistency with existing maps
                     final float grassValue = grassNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, 1 / SMALL_BLOBS) + (rnd.nextFloat() * 0.3f - 0.15f);
                     if ((grassValue > DOUBLE_TALL_GRASS_CHANCE) && (tallGrassNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, 1 / SMALL_BLOBS) > 0)) {
-                        return LARGE_FLOWER_TOP;
+                        if (platform == JAVA_ANVIL_1_13) {
+                            if (rnd.nextInt(4) == 0) {
+                                return DOUBLE_TALL_FERN_BOTTOM.withProperty(HALF, "upper");
+                            } else {
+                                return DOUBLE_TALL_GRASS_BOTTOM.withProperty(HALF, "upper");
+                            }
+                        } else {
+                            return LARGE_FLOWER_TOP;
+                        }
                     } else {
                         return AIR;
                     }
@@ -179,7 +193,7 @@ public enum Terrain {
     STONE    ("Stone",     BLK_STONE,     BLK_STONE,      "bare stone", BIOME_PLAINS),
     ROCK     ("Rock",                                     "a mix of stone and cobblestone", BIOME_PLAINS) {
         @Override
-        public Material getMaterial(long seed, int x, int y, int z, int height) {
+        public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {
             final int dz = z - height;
             if (dz > 0) {
                 return AIR;
@@ -204,7 +218,7 @@ public enum Terrain {
     @Deprecated
     SNOW     ("Snow on Rock",                             "a thin layer of snow on a mix of stone and cobblestone", BIOME_ICE_PLAINS) {
         @Override
-        public Material getMaterial(long seed, int x, int y, int z, int height) {
+        public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {
             final int dz = z - height;
             if (dz > 1) {
                 return AIR;
@@ -242,7 +256,7 @@ public enum Terrain {
     BEDROCK("Bedrock",     BLK_BEDROCK,   BLK_BEDROCK,    "unbreakable bedrock", BIOME_PLAINS),
     DESERT("Desert",                                      "sand with here and there a cactus or dead shrub", BIOME_DESERT) {
         @Override
-        public Material getMaterial(long seed, int x, int y, int z, int height) {
+        public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {
             final int dz = z - height;
             if (dz <= 0) {
                 return Material.SAND;
@@ -274,7 +288,7 @@ public enum Terrain {
     },
     NETHERLIKE("Netherlike",                              "netherrack with pockets of lava, soul sand and glowstone and patches of fire on top", BIOME_HELL) {
         @Override
-        public Material getMaterial(long seed, int x, int y, int z, int height) {
+        public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {
             final int dz = z - height;
             if (dz > 1) {
                 return AIR;
@@ -315,7 +329,7 @@ public enum Terrain {
     @Deprecated
     RESOURCES("Resources",                                "stone on the surface with pockets of coal, ores, gravel and dirt, lava and water, etc.", BIOME_PLAINS) {
         @Override
-        public Material getMaterial(long seed, int x, int y, int z, int height) {
+        public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {
             if (z > height) {
                 return AIR;
             } else {
@@ -391,7 +405,7 @@ public enum Terrain {
     },
     BEACHES("Beaches",                                    "grass with patches of sand, gravel and clay", BIOME_BEACH) {
         @Override
-        public Material getMaterial(long seed, int x, int y, int z, int height) {
+        public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {
             final int dz = z - height;
             if (dz > 0) {
                 return AIR;
@@ -426,9 +440,9 @@ public enum Terrain {
         private static final long CLAY_SEED_OFFSET = 161603308;
     },
     CUSTOM_1("Custom 1",                                  "custom material one", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
         
         @Override public String getName() {return helper.getName();}
 
@@ -449,9 +463,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(0);
     },
     CUSTOM_2("Custom 2",                                  "custom material two", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -472,9 +486,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(1);
     },
     CUSTOM_3("Custom 3",                                  "custom material three", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -495,9 +509,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(2);
     },
     CUSTOM_4("Custom 4",                                  "custom material four", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -518,9 +532,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(3);
     },
     CUSTOM_5("Custom 5",                                  "custom material five", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -544,9 +558,9 @@ public enum Terrain {
     END_STONE("End Stone", BLK_END_STONE, BLK_END_STONE,  "end stone", BIOME_SKY),
     BARE_GRASS("Bare Grass", BLK_GRASS, BLK_GRASS,        "bare grass (no flowers, etc.)", BIOME_PLAINS),
     CUSTOM_6("Custom 6",                                  "custom material six", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -567,9 +581,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(5);
     },
     CUSTOM_7("Custom 7",                                  "custom material seven", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -590,9 +604,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(6);
     },
     CUSTOM_8("Custom 8",                                  "custom material eight", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -613,9 +627,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(7);
     },
     CUSTOM_9("Custom 9",                                  "custom material nine", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -636,9 +650,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(8);
     },
     CUSTOM_10("Custom 10",                                "custom material ten", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -659,9 +673,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(9);
     },
     CUSTOM_11("Custom 11",                                "custom material eleven", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -682,9 +696,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(10);
     },
     CUSTOM_12("Custom 12",                                "custom material twelve", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -705,9 +719,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(11);
     },
     CUSTOM_13("Custom 13",                                "custom material thirteen", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -728,9 +742,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(12);
     },
     CUSTOM_14("Custom 14",                                "custom material fourteen", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -751,9 +765,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(13);
     },
     CUSTOM_15("Custom 15",                                "custom material fifteen", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -774,9 +788,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(14);
     },
     CUSTOM_16("Custom 16",                                "custom material sixteen", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -797,9 +811,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(15);
     },
     CUSTOM_17("Custom 17",                                "custom material seventeen", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -820,9 +834,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(16);
     },
     CUSTOM_18("Custom 18",                                "custom material eighteen", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -843,9 +857,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(17);
     },
     CUSTOM_19("Custom 19",                                "custom material nineteen", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -866,9 +880,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(18);
     },
     CUSTOM_20("Custom 20",                                "custom material twenty", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -889,9 +903,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(19);
     },
     CUSTOM_21("Custom 21",                                "custom material twenty-one", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -912,9 +926,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(20);
     },
     CUSTOM_22("Custom 22",                                "custom material twenty-two", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -935,9 +949,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(21);
     },
     CUSTOM_23("Custom 23",                                "custom material twenty-three", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -958,9 +972,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(22);
     },
     CUSTOM_24("Custom 24",                                "custom material twenty-four", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1002,12 +1016,12 @@ public enum Terrain {
     BLACK_STAINED_CLAY("Black Stained Terracotta", Material.BLACK_CLAY, Material.BLACK_CLAY, "black stained terracotta", BIOME_PLAINS),
     MESA("Mesa", "layers of red sand, hardened clay and stained clay, with here and there a cactus or a dead shrub", BIOME_MESA) {
         @Override
-        public Material getMaterial(final long seed, final int x, final int y, final int z, final int height) {
-            return getMaterial(seed, x, y, (float) z, height);
+        public Material getMaterial(Platform platform, final long seed, final int x, final int y, final int z, final int height) {
+            return getMaterial(platform, seed, x, y, (float) z, height);
         }
         
         @Override
-        public Material getMaterial(final long seed, final int x, final int y, final float z, final int height) {
+        public Material getMaterial(Platform platform, final long seed, final int x, final int y, final float z, final int height) {
             if (seed != this.seed) {
                 init(seed);
             }
@@ -1049,7 +1063,7 @@ public enum Terrain {
     },
     RED_DESERT("Red Desert", "red sand with here and there a cactus or dead shrub", BIOME_MESA) {
         @Override
-        public Material getMaterial(long seed, int x, int y, int z, int height) {
+        public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {
             final int dz = z - height;
             if (dz <= 0) {
                 return Material.RED_SAND;
@@ -1085,7 +1099,7 @@ public enum Terrain {
     ANDESITE("Andesite", Material.ANDESITE, Material.ANDESITE, "andesite", BIOME_PLAINS),
     STONE_MIX("Stone Mix", "stone with patches of granite, diorite and andesite", BIOME_PLAINS) {
         @Override
-        public Material getMaterial(long seed, int x, int y, int z, int height) {
+        public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {
             final int dz = z - height;
             if (dz > 0) {
                 return AIR;
@@ -1116,9 +1130,9 @@ public enum Terrain {
         private static final int ANDESITE_SEED_OFFSET =  87772192;
     },
     CUSTOM_25("Custom 25",                                  "custom material twenty-five", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1139,9 +1153,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(24);
     },
     CUSTOM_26("Custom 26",                                  "custom material twenty-six", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1162,9 +1176,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(25);
     },
     CUSTOM_27("Custom 27",                                  "custom material twenty-seven", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1185,9 +1199,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(26);
     },
     CUSTOM_28("Custom 28",                                  "custom material twenty-eight", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1208,9 +1222,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(27);
     },
     CUSTOM_29("Custom 29",                                  "custom material twenty-nine", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1231,9 +1245,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(28);
     },
     CUSTOM_30("Custom 30",                                  "custom material thirty", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1254,9 +1268,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(29);
     },
     CUSTOM_31("Custom 31",                                  "custom material thirty-one", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1277,9 +1291,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(30);
     },
     CUSTOM_32("Custom 32",                                  "custom material thirty-two", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1300,9 +1314,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(31);
     },
     CUSTOM_33("Custom 33",                                  "custom material thirty-three", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1323,9 +1337,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(32);
     },
     CUSTOM_34("Custom 34",                                  "custom material thirty-four", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1346,9 +1360,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(33);
     },
     CUSTOM_35("Custom 35",                                  "custom material thirty-five", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1369,9 +1383,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(34);
     },
     CUSTOM_36("Custom 36",                                  "custom material thirty-six", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1392,9 +1406,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(35);
     },
     CUSTOM_37("Custom 37",                                  "custom material thirty-seven", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1415,9 +1429,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(36);
     },
     CUSTOM_38("Custom 38",                                  "custom material thirty-eight", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1438,9 +1452,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(37);
     },
     CUSTOM_39("Custom 39",                                  "custom material thirty-nine", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1461,9 +1475,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(38);
     },
     CUSTOM_40("Custom 40",                                  "custom material forty", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1484,9 +1498,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(39);
     },
     CUSTOM_41("Custom 41",                                  "custom material forty-one", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1507,9 +1521,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(40);
     },
     CUSTOM_42("Custom 42",                                  "life, the universe and everything", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1530,9 +1544,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(41);
     },
     CUSTOM_43("Custom 43",                                  "custom material forty-three", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1553,9 +1567,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(42);
     },
     CUSTOM_44("Custom 44",                                  "custom material forty-four", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1576,9 +1590,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(43);
     },
     CUSTOM_45("Custom 45",                                  "custom material forty-five", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1599,9 +1613,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(44);
     },
     CUSTOM_46("Custom 46",                                  "custom material forty-six", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1622,9 +1636,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(45);
     },
     CUSTOM_47("Custom 47",                                  "custom material forty-seven", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1645,9 +1659,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(46);
     },
     CUSTOM_48("Custom 48",                                  "custom material forty-eight", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1670,9 +1684,9 @@ public enum Terrain {
     GRASS_PATH("Grass Path", BLK_GRASS_PATH, BLK_GRASS, "grass path", BIOME_PLAINS),
     MAGMA("Magma", BLK_MAGMA, BLK_MAGMA, "magma", BIOME_PLAINS), // TODO: or should this be mapped to stone and magma added to the Resources layer?
     CUSTOM_49("Custom 49", "custom material forty-nine", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1693,9 +1707,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(48);
     },
     CUSTOM_50("Custom 50", "custom material fifty", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1716,9 +1730,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(49);
     },
     CUSTOM_51("Custom 51", "custom material fifty-one", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1739,9 +1753,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(50);
     },
     CUSTOM_52("Custom 52", "custom material fifty-two", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1762,9 +1776,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(51);
     },
     CUSTOM_53("Custom 53", "custom material fifty-three", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1785,9 +1799,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(52);
     },
     CUSTOM_54("Custom 54", "custom material fifty-four", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1808,9 +1822,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(53);
     },
     CUSTOM_55("Custom 55", "custom material fifty-five", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1831,9 +1845,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(54);
     },
     CUSTOM_56("Custom 56", "custom material fifty-six", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1854,9 +1868,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(55);
     },
     CUSTOM_57("Custom 57", "custom material fifty-seven", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1877,9 +1891,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(56);
     },
     CUSTOM_58("Custom 58", "custom material fifty-eight", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1900,9 +1914,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(57);
     },
     CUSTOM_59("Custom 59", "custom material fifty-nine", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1923,9 +1937,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(58);
     },
     CUSTOM_60("Custom 60", "custom material sixty", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1946,9 +1960,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(59);
     },
     CUSTOM_61("Custom 61", "custom material sixty-one", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1969,9 +1983,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(60);
     },
     CUSTOM_62("Custom 62", "custom material sixty-two", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -1992,9 +2006,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(61);
     },
     CUSTOM_63("Custom 63", "custom material sixty-three", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -2015,9 +2029,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(62);
     },
     CUSTOM_64("Custom 64", "custom material sixty-four", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -2038,9 +2052,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(63);
     },
     CUSTOM_65("Custom 65", "custom material sixty-five", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -2061,9 +2075,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(64);
     },
     CUSTOM_66("Custom 66", "custom material sixty-six", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -2084,9 +2098,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(65);
     },
     CUSTOM_67("Custom 67", "custom material sixty-seven", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -2107,9 +2121,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(66);
     },
     CUSTOM_68("Custom 68", "custom material sixty-eight", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -2130,9 +2144,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(67);
     },
     CUSTOM_69("Custom 69", "custom material sixty-nine", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -2153,9 +2167,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(68);
     },
     CUSTOM_70("Custom 70", "custom material seventy", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -2176,9 +2190,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(69);
     },
     CUSTOM_71("Custom 71", "custom material seventy-one", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -2199,9 +2213,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(70);
     },
     CUSTOM_72("Custom 72", "custom material seventy-two", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -2222,9 +2236,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(71);
     },
     CUSTOM_73("Custom 73", "custom material seventy-three", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -2245,9 +2259,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(72);
     },
     CUSTOM_74("Custom 74", "custom material seventy-four", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -2268,9 +2282,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(73);
     },
     CUSTOM_75("Custom 75", "custom material seventy-five", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -2291,9 +2305,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(74);
     },
     CUSTOM_76("Custom 76", "custom material seventy-six", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -2314,9 +2328,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(75);
     },
     CUSTOM_77("Custom 77", "custom material seventy-seven", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -2337,9 +2351,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(76);
     },
     CUSTOM_78("Custom 78", "custom material seventy-eight", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -2360,9 +2374,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(77);
     },
     CUSTOM_79("Custom 79", "custom material seventy-nine", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -2383,9 +2397,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(78);
     },
     CUSTOM_80("Custom 80", "custom material eighty", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -2406,9 +2420,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(79);
     },
     CUSTOM_81("Custom 81", "custom material eighty-one", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -2429,9 +2443,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(80);
     },
     CUSTOM_82("Custom 82", "custom material eighty-two", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -2452,9 +2466,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(81);
     },
     CUSTOM_83("Custom 83", "custom material eighty-three", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -2475,9 +2489,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(82);
     },
     CUSTOM_84("Custom 84", "custom material eighty-four", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -2498,9 +2512,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(83);
     },
     CUSTOM_85("Custom 85", "custom material eighty-five", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -2521,9 +2535,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(84);
     },
     CUSTOM_86("Custom 86", "custom material eighty-six", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -2544,9 +2558,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(85);
     },
     CUSTOM_87("Custom 87", "custom material eighty-seven", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -2567,9 +2581,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(86);
     },
     CUSTOM_88("Custom 88", "custom material eighty-eight", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -2590,9 +2604,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(87);
     },
     CUSTOM_89("Custom 89", "custom material eighty-nine", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -2613,9 +2627,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(88);
     },
     CUSTOM_90("Custom 90", "custom material ninety", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -2636,9 +2650,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(89);
     },
     CUSTOM_91("Custom 91", "custom material ninety-one", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -2659,9 +2673,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(90);
     },
     CUSTOM_92("Custom 92", "custom material ninety-two", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -2682,9 +2696,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(91);
     },
     CUSTOM_93("Custom 93", "custom material ninety-three", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -2705,9 +2719,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(92);
     },
     CUSTOM_94("Custom 94", "custom material ninety-four", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -2728,9 +2742,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(93);
     },
     CUSTOM_95("Custom 95", "custom material ninety-five", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -2751,9 +2765,9 @@ public enum Terrain {
         private final CustomTerrainHelper helper = new CustomTerrainHelper(94);
     },
     CUSTOM_96("Custom 96", "custom material ninety-six", BIOME_PLAINS) {
-        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
-        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
+        @Override public Material getMaterial(Platform platform, long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public String getName() {return helper.getName();}
 
@@ -2802,8 +2816,11 @@ public enum Terrain {
     }
 
     /**
-     * Get the block type to use for this material at a specific location in the
-     * world, relative to the surface.
+     * Get the material to use for this terrain type at a specific location in
+     * the world, relative to the surface, for an unspecified platform.
+     *
+     * <p>The default implementation forwards to
+     * {@link #getMaterial(Platform, long, int, int, int, int)}.
      *
      * @param seed The world seed.
      * @param x The absolute X position of the block in WorldPainter coordinates.
@@ -2811,15 +2828,18 @@ public enum Terrain {
      * @param z The absolute Z position of the block in WorldPainter coordinates.
      * @param height The height of the terrain at the specified X and Y
      *     coordinates.
-     * @return
+     * @return The material at the specified location in the terrain.
      */
     public Material getMaterial(final long seed, final int x, final int y, final float z, final int height) {
-        return getMaterial(seed, x, y, (int) (z + 0.5f), height);
+        return getMaterial(JAVA_ANVIL_1_13, seed, x, y, (int) (z + 0.5f), height);
     }
     
     /**
-     * Get the block type to use for this material at a specific location in the
-     * world, relative to the surface.
+     * Get the material to use for this terrain type at a specific location in
+     * the world, relative to the surface, for an unspecified platform.
+     *
+     * <p>The default implementation forwards to
+     * {@link #getMaterial(Platform, long, int, int, int, int)}.
      *
      * @param seed The world seed.
      * @param x The absolute X position of the block in WorldPainter coordinates.
@@ -2827,9 +2847,46 @@ public enum Terrain {
      * @param z The absolute Z position of the block in WorldPainter coordinates.
      * @param height The height of the terrain at the specified X and Y
      *     coordinates.
-     * @return
+     * @return The material at the specified location in the terrain.
      */
     public Material getMaterial(final long seed, final int x, final int y, final int z, final int height) {
+        return getMaterial(JAVA_ANVIL_1_13, seed, x, y, z, height);
+    }
+
+    /**
+     * Get the material to use for this terrain type at a specific location in
+     * the world, relative to the surface, for a specific platform.
+     *
+     * <p>The default implementation forwards to
+     * {@link #getMaterial(Platform, long, int, int, int, int)}.
+     *
+     * @param platform The platform for which to get the block type.
+     * @param seed The world seed.
+     * @param x The absolute X position of the block in WorldPainter coordinates.
+     * @param y The absolute Y position of the block in WorldPainter coordinates.
+     * @param z The absolute Z position of the block in WorldPainter coordinates.
+     * @param height The height of the terrain at the specified X and Y
+     *     coordinates.
+     * @return The material at the specified location in the terrain.
+     */
+    public Material getMaterial(final Platform platform, final long seed, final int x, final int y, final float z, final int height) {
+        return getMaterial(platform, seed, x, y, (int) (z + 0.5f), height);
+    }
+
+    /**
+     * Get the material to use for this terrain type at a specific location in
+     * the world, relative to the surface, for a specific platform.
+     *
+     * @param platform The platform for which to get the block type.
+     * @param seed The world seed.
+     * @param x The absolute X position of the block in WorldPainter coordinates.
+     * @param y The absolute Y position of the block in WorldPainter coordinates.
+     * @param z The absolute Z position of the block in WorldPainter coordinates.
+     * @param height The height of the terrain at the specified X and Y
+     *     coordinates.
+     * @return The material at the specified location in the terrain.
+     */
+    public Material getMaterial(final Platform platform, final long seed, final int x, final int y, final int z, final int height) {
         final int dz = z - height;
         if (dz > toppingHeight) {
             return Material.AIR;
