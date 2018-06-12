@@ -66,17 +66,6 @@ public class JavaWorldMerger extends JavaWorldExporter {
     }
 
     /**
-     * Whether to merge the part of the map <em>above</em> the surface.
-     */
-    public boolean isMergeOverworld() {
-        return mergeOverworld;
-    }
-
-    public void setMergeOverworld(final boolean mergeOverworld) {
-        this.mergeOverworld = mergeOverworld;
-    }
-
-    /**
      * Whether to merge the part of the map <em>below</em> the surface.
      */
     public boolean isMergeUnderworld() {
@@ -1264,6 +1253,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
             for (int z = 0; z < 16; z++) {
                 if (dimension.getBitLayerValueAt(org.pepsoft.worldpainter.layers.Void.INSTANCE, chunkX | x, chunkZ | z)) {
                     // Void. Just empty the entire column
+                    // TODO: only empty from the terrain height on downwards? or find some other way of preserving overhanging trees, that kind of thing?
                     for (int y = 0; y <= maxY; y++) {
                         newChunk.setMaterial(x, y, z, Material.AIR);
                         newChunk.setBlockLightLevel(x, y, z, 0);
@@ -1513,9 +1503,9 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
     
     private final File levelDatFile;
     private final ThreadLocal<byte[]> histogramRef = ThreadLocal.withInitial(() -> new byte[65536]);
-    private boolean replaceChunks, mergeOverworld, mergeUnderworld, clearTrees,
-        clearResources, fillCaves, clearVegetation,
-        clearManMadeAboveGround, clearManMadeBelowGround;
+    private boolean replaceChunks, mergeUnderworld, clearTrees, clearResources,
+        fillCaves, clearVegetation, clearManMadeAboveGround,
+        clearManMadeBelowGround;
     private String warnings;
     private int surfaceMergeDepth = 1;
     

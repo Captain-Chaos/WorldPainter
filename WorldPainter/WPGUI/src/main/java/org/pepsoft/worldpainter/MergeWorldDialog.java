@@ -239,6 +239,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
                 if (replaceChunks) {
                     merger.setReplaceChunks(true);
                 } else {
+                    merger.setMergeUnderworld(checkBoxIncludeUnderground.isSelected());
                     merger.setClearManMadeAboveGround(checkBoxRemoveManMadeAboveGround.isSelected());
                     merger.setClearManMadeBelowGround(checkBoxRemoveManMadeBelowGround.isSelected());
                     merger.setClearResources(checkBoxRemoveResources.isSelected());
@@ -305,6 +306,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
         boolean netherPresent = world.getDimension(DIM_NETHER) != null;
         boolean endPresent = world.getDimension(DIM_END) != null;
         boolean oneDimensionPresent = world.getDimensions().length == 1;
+        checkBoxIncludeUnderground.setEnabled(mergeAll);
         radioButtonExportEverything.setEnabled(! mergeBiomesOnly);
         radioButtonExportSelection.setEnabled(! mergeBiomesOnly);
         checkBoxFillCaves.setEnabled(mergeAll);
@@ -399,6 +401,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
         checkBoxSurface = new javax.swing.JCheckBox();
         checkBoxNether = new javax.swing.JCheckBox();
         checkBoxEnd = new javax.swing.JCheckBox();
+        checkBoxIncludeUnderground = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Merging");
@@ -423,7 +426,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
 
         buttonGroup1.add(radioButtonAll);
         radioButtonAll.setSelected(true);
-        radioButtonAll.setText("Merge old and new chunks");
+        radioButtonAll.setText("Merge old and new chunks (");
         radioButtonAll.setToolTipText("Will merge everything (terrain type and height changes, new layers, biome changes, etc.). Takes a very long time.");
         radioButtonAll.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -532,6 +535,8 @@ public class MergeWorldDialog extends WorldPainterDialog {
             }
         });
 
+        checkBoxIncludeUnderground.setText("including underground portion)");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -555,7 +560,10 @@ public class MergeWorldDialog extends WorldPainterDialog {
                                         .addGap(12, 12, 12)
                                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                             .addComponent(radioButtonBiomes)
-                                            .addComponent(radioButtonAll)
+                                            .addGroup(layout.createSequentialGroup()
+                                                .addComponent(radioButtonAll)
+                                                .addGap(0, 0, 0)
+                                                .addComponent(checkBoxIncludeUnderground))
                                             .addComponent(radioButtonReplaceChunks))))
                                 .addGap(0, 0, Short.MAX_VALUE)))
                         .addContainerGap())
@@ -611,7 +619,9 @@ public class MergeWorldDialog extends WorldPainterDialog {
                 .addGap(18, 18, 18)
                 .addComponent(jLabel4)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(radioButtonAll)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(radioButtonAll)
+                    .addComponent(checkBoxIncludeUnderground))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(radioButtonReplaceChunks)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -715,6 +725,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
     private javax.swing.JButton buttonSelectDirectory;
     private javax.swing.JCheckBox checkBoxEnd;
     private javax.swing.JCheckBox checkBoxFillCaves;
+    private javax.swing.JCheckBox checkBoxIncludeUnderground;
     private javax.swing.JCheckBox checkBoxNether;
     private javax.swing.JCheckBox checkBoxRemoveManMadeAboveGround;
     private javax.swing.JCheckBox checkBoxRemoveManMadeBelowGround;
