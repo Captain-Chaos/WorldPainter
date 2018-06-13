@@ -104,11 +104,11 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     }
 
     public synchronized File getExportDirectory(Platform platform) {
-        return (exportDirectories != null) ? exportDirectories.get(platform) : null;
+        return exportDirectoriesById.get(platform.id);
     }
 
     public synchronized void setExportDirectory(Platform platform, File exportDirectory) {
-        exportDirectories.put(platform, exportDirectory);
+        exportDirectoriesById.put(platform.id, exportDirectory);
     }
 
     public synchronized File getSavesDirectory() {
@@ -644,11 +644,11 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     }
 
     public synchronized Platform getDefaultPlatform() {
-        return defaultPlatform;
+        return Platform.getById(defaultPlatformId);
     }
 
     public synchronized void setDefaultPlatform(Platform defaultPlatform) {
-        this.defaultPlatform = defaultPlatform;
+        this.defaultPlatformId = defaultPlatform.id;
     }
 
     public synchronized boolean isAutosaveEnabled() {
@@ -895,6 +895,15 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
             autosaveDelay = 10000; // Ten seconds
             autosaveInterval = 300000; // Five minutes
         }
+        if (version < 17) {
+            defaultPlatformId = defaultPlatform.id;
+            exportDirectoriesById = new HashMap<>();
+            for (Map.Entry<Platform, File> entry: exportDirectories.entrySet()) {
+                exportDirectoriesById.put(entry.getKey().id, entry.getValue());
+            }
+            defaultPlatform = null;
+            exportDirectories = null;
+        }
         version = CURRENT_VERSION;
         
         // Bug fix: make sure terrain ranges map conforms to surface material setting
@@ -925,7 +934,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         recentScriptFiles = FileUtils.absolutise(recentScriptFiles);
         masksDirectory = FileUtils.absolutise(masksDirectory);
         backgroundImage = FileUtils.absolutise(backgroundImage);
-        exportDirectories = FileUtils.absolutise(exportDirectories);
+        exportDirectoriesById = FileUtils.absolutise(exportDirectoriesById);
         
         out.defaultWriteObject();
     }
@@ -1054,12 +1063,16 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private int backgroundColour = -1;
     private boolean showBorders = true, showBiomes = true;
     private GameType defaultGameTypeObj = GameType.SURVIVAL;
-    private Platform defaultPlatform = DefaultPlugin.JAVA_ANVIL;
-    private Map<Platform, File> exportDirectories = new HashMap<>();
+    @Deprecated
+    private Platform defaultPlatform;
+    @Deprecated
+    private Map<Platform, File> exportDirectories;
     @Deprecated
     private boolean java10onMacMessageDisplayed;
     private boolean autosaveEnabled = true;
     private int autosaveDelay = 10000, autosaveInterval = 300000; // Ten seconds delay; five minutes interval
+    private String defaultPlatformId = DefaultPlugin.JAVA_ANVIL.id;
+    private Map<String, File> exportDirectoriesById = new HashMap<>();
 
     /**
      * The acceleration type is only stored here at runtime. It is saved to disk
@@ -1074,7 +1087,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Configuration.class);
     private static final long serialVersionUID = 2011041801L;
     private static final int CIRCULAR_WORLD = -1;
-    private static final int CURRENT_VERSION = 16;
+    private static final int CURRENT_VERSION = 17;
     
     public enum DonationStatus {DONATED, NO_THANK_YOU}
     

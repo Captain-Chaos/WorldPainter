@@ -75,6 +75,10 @@ public final class Platform implements Serializable {
         return id.hashCode();
     }
 
+    public static Platform getById(String id) {
+        return ALL_PLATFORMS.get(id);
+    }
+
     private Object readResolve() throws ObjectStreamException {
         synchronized (ALL_PLATFORMS) {
             if (ALL_PLATFORMS.containsKey(id)) {
