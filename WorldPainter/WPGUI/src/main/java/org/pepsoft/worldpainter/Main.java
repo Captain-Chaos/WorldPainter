@@ -11,11 +11,13 @@ import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
 import com.jidesoft.plaf.LookAndFeelFactory;
 import com.jidesoft.utils.Lm;
+import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.GUIUtils;
 import org.pepsoft.util.PluginManager;
 import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
 import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
 import org.pepsoft.worldpainter.operations.MouseOrTabletOperation;
+import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.plugins.Plugin;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.pepsoft.worldpainter.util.BetterAction;
@@ -202,6 +204,16 @@ public class Main {
             logger.info("[SAFE MODE] Hardware acceleration method: default");
         }
 
+        // Load the default platform descriptors so that they don't get blocked
+        // by older versions of them which might be contained in the
+        // configuration. Do this by loading and initialising (but not
+        // instantiating) the DefaultPlugin class
+        try {
+            Class.forName("org.pepsoft.worldpainter.DefaultPlugin");
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+
         // Load or initialise configuration
         Configuration config = null;
         try {
@@ -251,6 +263,13 @@ public class Main {
         }
         WPPluginManager.initialise(config.getUuid());
         
+        // Load all the platform descriptors to ensure that when worlds
+        // containing older versions of them are loaded later they are replaced
+        // with the current versions, rather than the other way around
+        for (Platform platform : PlatformManager.getInstance().getAllPlatforms()) {
+            logger.info("Available platform: {}", platform.displayName);
+        }
+
         String httpAgent = "WorldPainter " + Version.VERSION + "; " + System.getProperty("os.name") + " " + System.getProperty("os.version") + " " + System.getProperty("os.arch") + ";";
         System.setProperty("http.agent", httpAgent);
 
@@ -453,6 +472,18 @@ public class Main {
     }
 
     private static void configError(Throwable e) {
+        // Try to preserve the config file
+        File configFile = Configuration.getConfigFile();
+        if (configFile.isFile() && configFile.canRead()) {
+            File backupConfigFile = new File(configFile.getParentFile(), configFile.getName() + ".old");
+            try {
+                FileUtils.copyFileToFile(configFile, backupConfigFile, true);
+            } catch (IOException e1) {
+                logger.error("I/O error while trying to preserve faulty config file", e1);
+            }
+        }
+
+        // Report the error
         logger.error("Exception while initialising configuration", e);
         JOptionPane.showMessageDialog(null, "Could not read configuration file! Resetting configuration.\n\nException type: " + e.getClass().getSimpleName() + "\nMessage: " + e.getMessage(), "Configuration Error", JOptionPane.ERROR_MESSAGE);
     }
