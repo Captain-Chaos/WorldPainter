@@ -48,6 +48,7 @@ public class NBTFileNode extends FileSystemNode {
                 in.reset();
                 tag = new NBTInputStream(new GZIPInputStream(in)).readTag();
             } else {
+                in.reset();
                 tag = new NBTInputStream(in).readTag();
             }
             return new Node[] {new TagNode(tag)};

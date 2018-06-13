@@ -21,7 +21,7 @@ import java.util.Map;
  * @author pepijn
  */
 public class TagNode extends Node {
-    TagNode(Tag tag) {
+    public TagNode(Tag tag) {
         this.tag = tag;
     }
 
