@@ -5,15 +5,12 @@
 package org.pepsoft.worldpainter.tools;
 
 import org.pepsoft.minecraft.Constants;
-import org.pepsoft.util.FileUtils;
-import org.pepsoft.util.PluginManager;
-import org.pepsoft.util.ProgressReceiver;
+import org.pepsoft.util.*;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
-import org.pepsoft.util.SubProgressReceiver;
 import org.pepsoft.worldpainter.*;
-import org.pepsoft.worldpainter.exporting.JavaWorldExporter;
+import org.pepsoft.worldpainter.exporting.WorldExporter;
+import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
-import org.pepsoft.worldpainter.util.MinecraftUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -81,17 +78,21 @@ public class Export {
                 world.setPlatform(DefaultPlugin.JAVA_MCREGION);
             }
         }
-        
+
+        Platform platform = world.getPlatform();
         File exportDir;
+        PlatformManager platformManager = PlatformManager.getInstance();
         if (args.length > 1) {
             exportDir = new File(args[1]);
         } else {
-            File minecraftDir = MinecraftUtil.findMinecraftDir();
-            exportDir = new File(minecraftDir, "saves");
+            exportDir = platformManager.getDefaultExportDir(platform);
+            if (exportDir == null) {
+                exportDir = DesktopUtils.getDocumentsFolder();
+            }
         }
         System.out.println("Exporting to " + exportDir);
         System.out.println("+---------+---------+---------+---------+---------+");
-        JavaWorldExporter exporter = new JavaWorldExporter(world);
+        WorldExporter exporter = platformManager.getExporter(world);
         exporter.export(exportDir, world.getName(), exporter.selectBackupDir(new File(exportDir, FileUtils.sanitiseName(world.getName()))), new ProgressReceiver() {
             @Override
             public void setProgress(float progressFraction) throws OperationCancelled {
