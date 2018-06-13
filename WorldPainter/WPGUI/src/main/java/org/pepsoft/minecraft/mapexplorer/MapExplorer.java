@@ -93,11 +93,23 @@ public class MapExplorer {
         }
         WPPluginManager.initialise(config.getUuid());
 
+        File defaultDir;
+        if (args.length > 0) {
+            defaultDir = new File(args[0]);
+        } else {
+            File minecraftDir = MinecraftUtil.findMinecraftDir();
+            if (minecraftDir != null) {
+                defaultDir = new File(minecraftDir, "saves");
+            } else {
+                defaultDir = new File(System.getProperty("user.home"));
+            }
+        }
+
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Minecraft Map Explorer");
             frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-            splitPane.setLeftComponent(createTreePanel());
+            splitPane.setLeftComponent(createTreePanel(defaultDir));
             splitPane.setRightComponent(createDetailsPanel());
             frame.getContentPane().add(splitPane, CENTER);
             frame.setSize(1024, 768);
@@ -131,15 +143,8 @@ public class MapExplorer {
     }
 
     @NotNull
-    private static Component createTreePanel() {
+    private static Component createTreePanel(File defaultDir) {
         MapTreeModel treeModel = new MapTreeModel();
-        File minecraftDir = MinecraftUtil.findMinecraftDir();
-        File defaultDir;
-        if (minecraftDir != null) {
-            defaultDir = new File(minecraftDir, "saves");
-        } else {
-            defaultDir = new File(System.getProperty("user.home"));
-        }
         JTree tree = new JTree(treeModel);
         tree.setRootVisible(false);
         tree.setShowsRootHandles(true);

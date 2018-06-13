@@ -8,8 +8,10 @@ import java.io.File;
 public class JavaMapRecognizer implements MapRecognizer {
     @Override
     public boolean isMap(File dir) {
-        File levelDatFile = new File(dir, "level.dat");
-        return levelDatFile.isFile();
+        return new File(dir, "level.dat").isFile()
+            // Distinguish from Bedrock Edition maps:
+            && (! new File(dir, "db").isDirectory())
+            && (! new File(dir, "levelname.txt").isFile());
     }
 
     @Override

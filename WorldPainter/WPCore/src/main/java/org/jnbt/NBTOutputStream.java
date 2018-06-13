@@ -57,13 +57,18 @@ public final class NBTOutputStream implements Closeable {
 
     /**
      * Creates a new <code>NBTOutputStream</code>, which will write data to the
-     * specified underlying output stream in big endian byte order.
+     * specified underlying output stream in big endian byte order, or if the
+     * output stream is already a {@link DataOutput} stream, in the stream's
+     * default byte order.
      *
      * @param os The output stream.
-     * @throws IOException if an I/O error occurs.
      */
-    public NBTOutputStream(OutputStream os) throws IOException {
-        this(os, false);
+    public NBTOutputStream(OutputStream os) {
+        if (os instanceof DataOutput) {
+            this.os = (DataOutput) os;
+        } else {
+            this.os = new DataOutputStream(os);
+        }
     }
 
     /**
@@ -73,9 +78,8 @@ public final class NBTOutputStream implements Closeable {
      * @param os The output stream.
      * @param littleEndian Whether the data should be written in little endian
      *                     byte order.
-     * @throws IOException if an I/O error occurs.
      */
-    public NBTOutputStream(OutputStream os, boolean littleEndian) throws IOException {
+    public NBTOutputStream(OutputStream os, boolean littleEndian) {
         this.os = littleEndian ? new LittleEndianDataOutputStream(os) : new DataOutputStream(os);
     }
 

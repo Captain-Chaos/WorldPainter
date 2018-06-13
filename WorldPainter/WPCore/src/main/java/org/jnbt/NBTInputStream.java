@@ -61,22 +61,27 @@ public final class NBTInputStream implements Closeable {
     /**
      * Creates a new <code>NBTInputStream</code>, which will source its data
      * from the specified input stream, which is assumed to contain big
-     * endian data.
+     * endian data, or if the input stream is already a {@link DataInput}
+     * stream, the stream's default byte order.
+     *
      * @param is The input stream.
-     * @throws IOException if an I/O error occurs.
      */
-    public NBTInputStream(InputStream is) throws IOException {
-        this(is, false);
+    public NBTInputStream(InputStream is) {
+        if (is instanceof DataInput) {
+            this.is = (DataInput) is;
+        } else {
+            this.is = new DataInputStream(is);
+        }
     }
 
     /**
      * Creates a new <code>NBTInputStream</code>, which will source its data
      * from the specified input stream.
+     *
      * @param is The input stream.
      * @param littleEndian Whether the stream contains little endian data.
-     * @throws IOException if an I/O error occurs.
      */
-    public NBTInputStream(InputStream is, boolean littleEndian) throws IOException {
+    public NBTInputStream(InputStream is, boolean littleEndian) {
         this.is = littleEndian ? new LittleEndianDataInputStream(is) : new DataInputStream(is);
     }
 
