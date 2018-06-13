@@ -122,6 +122,8 @@ public class Main {
         SLF4JBridgeHandler.removeHandlersForRootLogger();
         SLF4JBridgeHandler.install();
         logger.info("Starting WorldPainter " + Version.VERSION + " (" + Version.BUILD + ")");
+        logger.info("Running on {} version {}; architecture: {}", System.getProperty("os.name"), System.getProperty("os.version"), System.getProperty("os.arch"));
+        logger.info("Running on {} Java version {}; maximum heap size: {} MB", System.getProperty("java.vendor"), System.getProperty("java.specification.version"), Runtime.getRuntime().maxMemory() / 1000000);
         if (autosaveInhibited) {
             logger.warn("Another instance of WorldPainter is already running; disabling autosave");
         }
