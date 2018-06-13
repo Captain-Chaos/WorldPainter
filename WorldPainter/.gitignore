@@ -3,3 +3,4 @@ logs
 exporttimings.csv
 .settings
 .project
+.vscode
