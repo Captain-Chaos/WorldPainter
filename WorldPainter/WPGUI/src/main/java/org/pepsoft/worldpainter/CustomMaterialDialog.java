@@ -346,7 +346,11 @@ public class CustomMaterialDialog extends WorldPainterDialog {
                     }
                     sb.append(row.material.toString());
                 }
-                return sb.toString();
+                if (sb.length() > 30) {
+                    return sb.toString().substring(0, 27) + "...";
+                } else {
+                    return sb.toString();
+                }
             default:
                 throw new InternalError();
         }
