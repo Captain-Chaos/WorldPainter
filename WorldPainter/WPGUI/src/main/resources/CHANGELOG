@@ -1,13 +1,19 @@
--- Version 2.5.2, released ...
+-- Version 2.5.2, released 16-6-2018
 
+ * An option has been added to the Merge operation for merging the underground portion of the world in addition to the overground
+   + Previously the underground would always be copied unchanged from the existing map
+   + By enabling this option WorldPainter will attempt to merge the underground portion as well, attempting to keep existing caves, resources and structures and adding new caves, resources and structures from your world. This allows you to, for instance, add manually created Cave/Tunnel layers to the map
+   + If you don't want the resources, caves, etc. from the existing map to remain, use the already existing "Below ground" options for the existing map on the Merge screen to remove them
+ * Added support for custom world types/generators. This enables you to, for example, easily create maps for the Biomes O' Plenty mod and other custom Minecraft world generators. To use, set the world type to Custom on the Export screen, and press the [...] button to set the generator name to store in the level.dat file, for example BIOMESOP for Biomes O' Plenty
  * It is now possible to create thick smooth snow layers by creating a Custom Ground Cover layer with the material set to "78: Snow"
    + It will place a mixture of Snow Blocks and Snow to create a layer that is as thick as you specify and smoothly follows the terrain, the variation setting of the layer, and the layer's edge shape
    + For nice smooth results, set the edge shape to Smooth and the width high, for example 10
-   + For nice clean edges paint it with a solid brush at 100%, but experiment with rougher edges as well
-   + Note that it will not affect the biome, nor place snow on trees, etc.. To do that, paint Frost in the same location as well
+   + For nice clean edges paint it with a solid brush at 100%, but experiment with rougher edges as well to see the effect
+   + Note that it will not affect the biome, nor place snow on trees, etc.. To do that, paint Frost in the same location as well. If you want the Frost to overlap your deep snow layer exactly, use the Global Operations tool to paint it "only on" your deep snow layer
  * A rare behavioural change that may affect existing worlds: snow blocks (block ID 80) are now considered "insubstantial", meaning they will not block the placement of custom objects or other layers. This allows realistic deep snow layers that will not block the placement of trees, and will bury their lower trunks in a deep layer of snow. If you use snow blocks in your world in the same location as other layers, this change may affect the Export result
- * Added support for custom world types/generators. This enables you to, for example, easily create maps for the Biomes O' Plenty mod and other custom Minecraft world generators. To use, set the world type to Custom on the Export screen, and press the [...] button to set the generator name to store in the level.dat file, for example BIOMESOP for Biomes O' Plenty
  * A "fit to dimension" button has been added to the image overlay settings on the Configure View screen (Ctrl+V or View menu) which will automatically set the scale and offset so that the image overlay exactly covers (as best as possible) the current dimension
+ * A new advanced setting, org.pepsoft.worldpainter.smoothGroundCover, has been added which will add a "smooth" option to the Custom Ground Cover layer settings, allowing mod blocks that have snow-like variable height support to be exported with varying heights, just like smooth snow as exported by the Frost layer. See https://www.worldpainter.net/trac/wiki/AdvancedSettings for details
+ * A new advanced setting, org.pepsoft.worldpainter.insubstantialBlocks, had been added which allows you to mark mod blocks as "insubstantial", meaning that they will not block the placement of solid blocks. You can use this for example to mark leaf blocks from mods as insubstantial, so that they won't block the placement of modded trees and allow their canopies to overlap just like vanilla leaf blocks allow. See https://www.worldpainter.net/trac/wiki/AdvancedSettings for details
  * Bug fix: resources placed by the Resources layer no longer bleed through steep slopes covered by the "keep steep terrain covered" setting
  * A few small bug fixes and improvements
 
