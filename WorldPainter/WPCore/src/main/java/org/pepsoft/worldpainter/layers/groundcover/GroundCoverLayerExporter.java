@@ -224,6 +224,7 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
         }
     }
 
+    // TODO: add smooth layer support here as well; will require refactoring the incidental layer framework
     @Override
     public Fixup apply(Dimension dimension, Point3i location, int intensity, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
         if (intensity > 0) {
