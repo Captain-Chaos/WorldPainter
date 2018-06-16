@@ -29,7 +29,11 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
     public GroundCoverLayerEditor() {
         initComponents();
         
-        if (! "true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.westerosCraftMode"))) {
+        if ("true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.westerosCraftMode"))) {
+            // Leave checkbox and label visible
+        } else if ("true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.smoothGroundCover"))) {
+            labelWesterosCraftFeature.setVisible(false);
+        } else {
             checkBoxSmooth.setVisible(false);
             labelWesterosCraftFeature.setVisible(false);
         }
