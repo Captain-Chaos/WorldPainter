@@ -64,7 +64,7 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
             Arrays.asList(SURVIVAL, CREATIVE),
             Arrays.asList(DEFAULT, FLAT),
             Arrays.asList(DIM_NORMAL, DIM_NETHER, DIM_END),
-            EnumSet.of(PRECALCULATED_LIGHT, SET_SPAWN_POINT, BLOCK_BASED));
+            EnumSet.of(PRECALCULATED_LIGHT, SET_SPAWN_POINT, BLOCK_BASED, SEED));
 
     public static final Platform JAVA_ANVIL = new Platform(
             "org.pepsoft.anvil",
@@ -74,5 +74,5 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
             Arrays.asList(SURVIVAL, CREATIVE, ADVENTURE, HARDCORE),
             Arrays.asList(DEFAULT, FLAT, LARGE_BIOMES, CUSTOM),
             Arrays.asList(DIM_NORMAL, DIM_NETHER, DIM_END),
-            EnumSet.of(BIOMES, PRECALCULATED_LIGHT, SET_SPAWN_POINT, BLOCK_BASED, NAME_BASED));
+            EnumSet.of(BIOMES, PRECALCULATED_LIGHT, SET_SPAWN_POINT, BLOCK_BASED, SEED));
 }
