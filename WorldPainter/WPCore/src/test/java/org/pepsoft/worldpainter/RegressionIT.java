@@ -8,24 +8,33 @@ import org.junit.Test;
 import org.pepsoft.minecraft.*;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ProgressReceiver;
+import org.pepsoft.worldpainter.exporting.JavaMinecraftWorld;
 import org.pepsoft.worldpainter.exporting.JavaWorldExporter;
+import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import org.pepsoft.worldpainter.layers.NotPresent;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
+import org.pepsoft.worldpainter.util.MinecraftWorldUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.BitSet;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 
 /**
  * Created by Pepijn Schmitz on 09-01-17.
@@ -39,7 +48,7 @@ public class RegressionIT {
 
     /**
      * Test whether a version 2.3.6-era world can still be loaded and exported.
-     * Do some basic sanity checks of the results.
+     * Check whether the result is the same as when version 2.5.1 exported it.
      */
     @Test
     public void test2_3_6World() throws IOException, UnloadableWorldException, ProgressReceiver.OperationCancelled {
@@ -47,52 +56,30 @@ public class RegressionIT {
         File tmpBaseDir = createTmpBaseDir();
         try {
             File worldDir = exportJavaWorld(world, tmpBaseDir);
-            verifyJavaWorld(worldDir, SUPPORTED_VERSION_2);
-            verifyJavaDimension(worldDir, world.getDimension(DIM_NORMAL),
-                // Bedrock
-                BLK_BEDROCK,
-
-                // Stone Mix underground material
-                BLK_STONE, BLK_GRAVEL, BLK_DIRT,
-
-                // Surface
-                BLK_GRASS, BLK_TALL_GRASS,
-
-                // Air
-                BLK_AIR,
-
-                // Lakes
-                BLK_STATIONARY_WATER,
-
-                // Resources layer
-                BLK_WATER, BLK_LAVA,
-
-                // Various tree layers
-                BLK_WOOD, BLK_LEAVES, BLK_VINES,
-
-                // Desert terrain type
-                BLK_SAND, BLK_CACTUS,
-
-                // Frost layer
-                BLK_SNOW,
-
-                // Netherlike terrain type
-                BLK_NETHERRACK, BLK_FIRE,
-
-                // Annotations
-                BLK_WOOL,
-
-                // Plants
-                BLK_LARGE_FLOWERS, BLK_WHEAT, BLK_CARROTS, BLK_POTATOES, BLK_PUMPKIN_STEM, BLK_MELON_STEM,
-
-                // Deep Snow layer
-                BLK_SNOW_BLOCK);
-            verifyJavaDimension(worldDir, world.getDimension(DIM_NETHER),
-                // Nether
-                BLK_NETHERRACK, BLK_SOUL_SAND, BLK_GLOWSTONE, BLK_FIRE, BLK_LAVA, BLK_AIR);
-            verifyJavaDimension(worldDir, world.getDimension(DIM_END),
-                // End
-                BLK_END_STONE, BLK_AIR);
+            try (ZipInputStream in = new ZipInputStream(RegressionIT.class.getResourceAsStream("/testset/test-v2.3.6-1-result.zip"))) {
+                ZipEntry zipEntry;
+                byte[] buffer = new byte[32768];
+                while ((zipEntry = in.getNextEntry()) != null) {
+                    if (zipEntry.isDirectory()) {
+                        new File(tmpBaseDir, zipEntry.getName()).mkdir();
+                    } else {
+                        try (FileOutputStream out = new FileOutputStream(new File(tmpBaseDir, zipEntry.getName()))) {
+                            int bytesRead;
+                            while ((bytesRead = in.read(buffer)) != -1) {
+                                out.write(buffer, 0, bytesRead);
+                            }
+                        }
+                    }
+                }
+            }
+            for (Dimension dimension: world.getDimensions()) {
+                logger.info("Comparing dimension " + dimension.getName());
+                Rectangle area = new Rectangle(dimension.getLowestX() << 5, dimension.getLowestY() << 5, dimension.getWidth() << 5, dimension.getHeight() << 5);
+                try (MinecraftWorld expectedWorld = new JavaMinecraftWorld(new File(tmpBaseDir, "test-v2.3.6-1-result"), dimension.getDim(), dimension.getMaxHeight(), JAVA_ANVIL, true, 256);
+                        MinecraftWorld actualWorld = new JavaMinecraftWorld(worldDir, dimension.getDim(), dimension.getMaxHeight(), JAVA_ANVIL, true, 256)) {
+                    MinecraftWorldUtils.assertEquals(expectedWorld, actualWorld, area);
+                }
+            }
         } finally {
             FileUtils.deleteDir(tmpBaseDir);
         }

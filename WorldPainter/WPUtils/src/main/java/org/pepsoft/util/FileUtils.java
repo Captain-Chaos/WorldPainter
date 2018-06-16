@@ -610,6 +610,57 @@ public class FileUtils {
         }
     }
 
+    /**
+     * Asserts that the contents of two files or directories are equal.
+     *
+     * <p>Files have to have the same length and have the exact same contents.
+     *
+     * <p>Directories have to contain the same files and directories and are
+     * compared recursively.
+     *
+     * @param expected The file or directory that is expected.
+     * @param actual The actual file or directory.
+     * @throws AssertionError If the specified files or directories are not
+     * equal.
+     * @throws IOException If an I/O error occurred while comparing the files or
+     * directories.
+     */
+    public static void assertEquals(File expected, File actual) throws IOException {
+        if (expected.isFile()) {
+            if (! actual.isFile()) {
+                throw new AssertionError(expected + " is a file but " + actual + " is not");
+            }
+            if (expected.length() != actual.length()) {
+                throw new AssertionError("Size of " + expected + " is " + expected.length() + " bytes but size of " + actual + " is " + actual.length() + " bytes");
+            }
+            try (BufferedInputStream expIn = new BufferedInputStream(new FileInputStream(expected)); BufferedInputStream actIn = new BufferedInputStream(new FileInputStream(actual))) {
+                long count = 0;
+                int expByte;
+                while ((expByte = expIn.read()) != -1) {
+                    int actByte = actIn.read();
+                    if (expByte != actByte) {
+                        throw new AssertionError("Byte " + count + " is " + expByte + " in " + expected + " but " + actByte + " in " + actual);
+                    }
+                }
+            }
+        } else if (expected.isDirectory()) {
+            File[] expFiles = expected.listFiles();
+            File[] actFiles = actual.listFiles();
+            if (expFiles.length != actFiles.length) {
+                throw new AssertionError(expected + " has " + expFiles.length + " entries but " + actual + " has " + actFiles.length + " entries");
+            }
+            for (File expFile: expFiles) {
+                File actFile = new File(actual, expFile.getName());
+                if (! actFile.exists()) {
+                    throw new AssertionError(expFile + " does not exist in " + actual);
+                }
+                assertEquals(expFile, actFile);
+            }
+        } else {
+            throw new IllegalArgumentException("Don't know how to compare type of " + expected);
+        }
+    }
+
     public static void main(String[] args) throws IOException {
         Checksum md5 = getMD5(new File(args[0]));
         System.out.print('{');

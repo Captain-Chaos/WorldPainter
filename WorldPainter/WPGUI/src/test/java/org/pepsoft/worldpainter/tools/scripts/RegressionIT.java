@@ -5,6 +5,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.pepsoft.minecraft.MCInterface;
 import org.pepsoft.minecraft.Material;
+import org.pepsoft.worldpainter.AbstractRegressionIT;
 import org.pepsoft.worldpainter.BiomeScheme;
 import org.pepsoft.worldpainter.Configuration;
 import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
@@ -22,7 +23,7 @@ import java.net.URL;
 
 import static org.pepsoft.worldpainter.Constants.BIOME_ALGORITHM_1_7_DEFAULT;
 
-public class RegressionIT {
+public class RegressionIT extends AbstractRegressionIT {
     @BeforeClass
     public static void init() {
         Configuration.setInstance(new Configuration());
@@ -59,38 +60,5 @@ public class RegressionIT {
                 throw new UnsupportedOperationException("No supported Minecraft jar found for loading nbts");
             }
         }, this::scanObject);
-    }
-
-    interface Loader { WPObject load(InputStream in) throws IOException; }
-    interface Tester { void test(WPObject object); }
-
-    private void testObjects(String path, Loader loader, Tester tester) throws IOException {
-        URL baseURL = RegressionIT.class.getResource(path);
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(baseURL.openStream()))) {
-            String fileName;
-            while ((fileName = in.readLine()) != null) {
-                WPObject object = loader.load(RegressionIT.class.getResourceAsStream(path + "/" + fileName));
-                tester.test(object);
-                System.out.println("Tested " + fileName);
-            }
-        }
-    }
-
-    private void scanObject(WPObject object) {
-        Point3i dim = object.getDimensions();
-        for (int x = 0; x < dim.x; x++) {
-            for (int y = 0; y < dim.y; y++) {
-                for (int z= 0; z < dim.z; z++) {
-                    if (object.getMask(x, y, z)) {
-                        Material material = object.getMaterial(x, y, z);
-                        // This is here solely to prevent the above from being
-                        // optimised away. TODO: is that necessary?
-                        if (material.blockType == -1) {
-                            System.out.println("Well that's not possible!");
-                        }
-                    }
-                }
-            }
-        }
     }
 }
