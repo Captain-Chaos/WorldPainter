@@ -4,7 +4,6 @@
  */
 package org.pepsoft.worldpainter.layers.exporters;
 
-import com.google.common.collect.Sets;
 import org.pepsoft.minecraft.Block;
 import org.pepsoft.minecraft.Entity;
 import org.pepsoft.minecraft.Material;
@@ -14,11 +13,13 @@ import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Platform;
-import org.pepsoft.worldpainter.exporting.*;
+import org.pepsoft.worldpainter.exporting.AbstractLayerExporter;
+import org.pepsoft.worldpainter.exporting.Fixup;
+import org.pepsoft.worldpainter.exporting.LightingCalculator;
+import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import org.pepsoft.worldpainter.layers.Frost;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.objects.WPObject;
-import org.pepsoft.worldpainter.plugins.CustomObjectManager;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 
 import javax.vecmath.Point3i;
