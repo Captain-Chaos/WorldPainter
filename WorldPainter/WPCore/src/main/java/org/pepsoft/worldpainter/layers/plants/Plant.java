@@ -11,6 +11,7 @@ import org.pepsoft.minecraft.Material;
 import org.pepsoft.minecraft.TileEntity;
 import org.pepsoft.util.AttributeKey;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import org.pepsoft.worldpainter.objects.WPObject;
 
@@ -21,6 +22,7 @@ import java.util.Map;
 
 import static org.pepsoft.minecraft.Block.BLOCKS;
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_13;
 import static org.pepsoft.worldpainter.layers.plants.Plant.Category.*;
 
 /**
@@ -51,14 +53,16 @@ public final class Plant implements WPObject {
         this.iconName = iconName;
         dimensions = new Point3i(1, 1, height);
         growth = maxGrowth;
+        platform = null;
     }
     
-    private Plant(Plant plant, int growth) {
+    private Plant(Plant plant, int growth, Platform platform) {
         name = plant.name;
         category = plant.category;
         maxData = plant.maxData;
         iconName = plant.iconName;
         this.growth = growth;
+        this.platform = platform;
         switch (category) {
             case CACTUS:
             case SUGAR_CANE:
@@ -145,12 +149,8 @@ public final class Plant implements WPObject {
         }
     }
     
-    public Plant withGrowth(int growth) {
-        if ((maxData == 0) || (growth == this.growth)) {
-            return this;
-        } else {
-            return new Plant(this, growth);
-        }
+    public Plant getPlant(int growth, Platform platform) {
+        return new Plant(this, growth, platform);
     }
     
     // WPObject
@@ -175,7 +175,11 @@ public final class Plant implements WPObject {
         if (z > 0) {
             switch (category) {
                 case PLANTS_AND_FLOWERS:
-                    return UPPER_DOUBLE_HIGH_PLANT;
+                    if (platform == JAVA_ANVIL_1_13) {
+                        return material.withProperty("half", "upper");
+                    } else {
+                        return UPPER_DOUBLE_HIGH_PLANT;
+                    }
                 case CACTUS:
                     return Material.CACTUS;
                 case SUGAR_CANE:
@@ -269,6 +273,7 @@ public final class Plant implements WPObject {
     private final Material material;
     private final Category category;
     private final int maxData, growth;
+    private final Platform platform;
     
     private static final Material UPPER_DOUBLE_HIGH_PLANT = Material.get(BLK_LARGE_FLOWERS, 8);
 

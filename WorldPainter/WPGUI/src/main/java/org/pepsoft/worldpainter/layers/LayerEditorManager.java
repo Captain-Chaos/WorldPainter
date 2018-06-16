@@ -7,6 +7,8 @@
 package org.pepsoft.worldpainter.layers;
 
 import java.util.List;
+
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.plugins.LayerEditorProvider;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
 
@@ -19,9 +21,9 @@ public class LayerEditorManager {
         providers = WPPluginManager.getInstance().getPlugins(LayerEditorProvider.class);
     }
     
-    public <L extends Layer> LayerEditor<L> createEditor(Class<L> layerType) {
+    public <L extends Layer> LayerEditor<L> createEditor(Platform platform, Class<L> layerType) {
         for (LayerEditorProvider provider: providers) {
-            LayerEditor<L> editor = provider.createLayerEditor(layerType);
+            LayerEditor<L> editor = provider.createLayerEditor(platform, layerType);
             if (editor != null) {
                 return editor;
             }

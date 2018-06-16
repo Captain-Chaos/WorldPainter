@@ -7,6 +7,7 @@ package org.pepsoft.worldpainter.layers.exporters;
 import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.exporting.AbstractLayerExporter;
 import org.pepsoft.worldpainter.exporting.Fixup;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
@@ -36,7 +37,7 @@ public class VoidExporter extends AbstractLayerExporter<org.pepsoft.worldpainter
     }
     
     @Override
-    public List<Fixup> render(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
+    public List<Fixup> render(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
         if (noise.getSeed() != (dimension.getSeed() + SEED_OFFSET)) {
             noise.setSeed(dimension.getSeed() + SEED_OFFSET);
         }

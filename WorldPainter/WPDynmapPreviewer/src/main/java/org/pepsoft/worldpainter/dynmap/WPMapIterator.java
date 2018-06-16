@@ -6,7 +6,7 @@ import org.dynmap.renderer.RenderPatchFactory;
 import org.dynmap.utils.BlockStep;
 import org.dynmap.utils.MapIterator;
 import org.pepsoft.minecraft.Chunk;
-import org.pepsoft.minecraft.ChunkImpl2;
+import org.pepsoft.minecraft.MC12AnvilChunk;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 
 /**
@@ -113,8 +113,8 @@ class WPMapIterator implements MapIterator {
 
     public boolean isEmptySection() {
         Chunk chunk = world.getChunk(x >> 4, y >> 4);
-        if (chunk instanceof ChunkImpl2) {
-            return ! ((ChunkImpl2) chunk).isSectionPresent(height >> 4);
+        if (chunk instanceof MC12AnvilChunk) {
+            return ! ((MC12AnvilChunk) chunk).isSectionPresent(height >> 4);
         } else {
             return chunk == null;
         }

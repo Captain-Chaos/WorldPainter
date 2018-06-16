@@ -40,7 +40,7 @@ class WPObjectMapIterator implements MapIterator {
     }
 
     public int getBlockEmittedLight() {
-        return material.block.blockLight;
+        return material.blockLight;
     }
 
     public BiomeMap getBiome() {

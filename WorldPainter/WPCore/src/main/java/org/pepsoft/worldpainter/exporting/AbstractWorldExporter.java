@@ -505,7 +505,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         }
     }
 
-    protected List<Fixup> secondPass(List<Layer> secondaryPassLayers, Dimension dimension, MinecraftWorld minecraftWorld, Map<Layer, LayerExporter> exporters, Collection<Tile> tiles, Point regionCoords, ProgressReceiver progressReceiver) throws OperationCancelled {
+    protected List<Fixup> secondPass(List<Layer> secondaryPassLayers, Dimension dimension, Platform platform, MinecraftWorld minecraftWorld, Map<Layer, LayerExporter> exporters, Collection<Tile> tiles, Point regionCoords, ProgressReceiver progressReceiver) throws OperationCancelled {
         // Apply other secondary pass layers
         if (logger.isDebugEnabled()) {
             logger.debug("Start of second pass for region {},{}", regionCoords.x, regionCoords.y);
@@ -532,7 +532,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                     progressReceiver.setMessage("Exporting layer " + layer);
                 }
             }
-            List<Fixup> layerFixups = exporter.render(dimension, area, exportedArea, minecraftWorld);
+            List<Fixup> layerFixups = exporter.render(dimension, area, exportedArea, minecraftWorld, platform);
             if (layerFixups != null) {
                 fixups.addAll(layerFixups);
             }
@@ -586,11 +586,11 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         return fixups;
     }
 
-    protected void lightingPass(MinecraftWorld minecraftWorld, Point regionCoords, ProgressReceiver progressReceiver) throws OperationCancelled {
+    protected void lightingPass(MinecraftWorld minecraftWorld, Platform platform, Point regionCoords, ProgressReceiver progressReceiver) throws OperationCancelled {
         if (progressReceiver != null) {
             progressReceiver.setMessage("Calculating primary light");
         }
-        LightingCalculator lightingVolume = new LightingCalculator(minecraftWorld);
+        LightingCalculator lightingVolume = new LightingCalculator(minecraftWorld, platform);
 
         // Calculate primary light
         int lightingLowMark = Integer.MAX_VALUE, lightingHighMark = Integer.MIN_VALUE;
@@ -721,7 +721,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             // Second pass. Apply layers which need information from or apply
             // changes to neighbouring chunks
             long t2 = System.currentTimeMillis();
-            List<Fixup> myFixups = secondPass(secondaryPassLayers, dimension, minecraftWorld, exporters, tiles.values(), regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.45f, (ceiling != null) ? 0.05f : 0.1f) : null);
+            List<Fixup> myFixups = secondPass(secondaryPassLayers, dimension, platform, minecraftWorld, exporters, tiles.values(), regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.45f, (ceiling != null) ? 0.05f : 0.1f) : null);
             if ((myFixups != null) && (! myFixups.isEmpty())) {
                 exportResults.fixups = myFixups;
             }
@@ -730,7 +730,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 // Second pass for ceiling. Apply layers which need information
                 // from or apply changes to neighbouring chunks. Fixups are not
                 // supported for the ceiling for now. TODO: implement
-                secondPass(ceilingSecondaryPassLayers, ceiling, new InvertedWorld(minecraftWorld, ceiling.getMaxHeight() - ceiling.getCeilingHeight()), ceilingExporters, ceilingTiles.values(), regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.4f, 0.05f) : null);
+                secondPass(ceilingSecondaryPassLayers, ceiling, platform, new InvertedWorld(minecraftWorld, ceiling.getMaxHeight() - ceiling.getCeilingHeight()), ceilingExporters, ceilingTiles.values(), regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.4f, 0.05f) : null);
             }
 
             // Post processing. Fix covered grass blocks, things like that
@@ -739,7 +739,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
 
             // Third pass. Calculate lighting
             long t4 = System.currentTimeMillis();
-            lightingPass(minecraftWorld, regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.65f, 0.35f) : null);
+            lightingPass(minecraftWorld, platform, regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.65f, 0.35f) : null);
             long t5 = System.currentTimeMillis();
             if ("true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.devMode"))) {
                 String timingMessage = (t2 - t1) + ", " + (t3 - t2) + ", " + (t4 - t3) + ", " + (t5 - t4) + ", " + (t5 - t1);

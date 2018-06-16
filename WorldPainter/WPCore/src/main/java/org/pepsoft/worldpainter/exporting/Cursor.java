@@ -9,8 +9,7 @@ import org.pepsoft.minecraft.Material;
 
 import java.awt.*;
 
-import static org.pepsoft.minecraft.Block.BLOCKS;
-import static org.pepsoft.minecraft.Constants.BLK_AIR;
+import static org.pepsoft.minecraft.Material.AIR;
 
 /**
  *
@@ -74,17 +73,18 @@ public final class Cursor implements Cloneable {
     }
     
     public boolean isFree() {
-        return minecraftWorld.getBlockTypeAt(x, y, height) == BLK_AIR;
+        return minecraftWorld.getMaterialAt(x, y, height) == AIR;
     }
     
     public boolean isFreeOrInsubstantial() {
-        int blockType = minecraftWorld.getBlockTypeAt(x, y, height);
-        return (blockType == BLK_AIR) || BLOCKS[blockType].insubstantial;
+        Material block = minecraftWorld.getMaterialAt(x, y, height);
+        // TODO: migrate this information to Material:
+        return (block == AIR) || block.insubstantial;
     }
     
     public boolean setBlockIfFree(Material material) {
-        int existingBlock = minecraftWorld.getBlockTypeAt(x, y, height);
-        if ((existingBlock == BLK_AIR) || BLOCKS[existingBlock].insubstantial) {
+        Material existingBlock = minecraftWorld.getMaterialAt(x, y, height);
+        if ((existingBlock == AIR) || existingBlock.insubstantial) {
             minecraftWorld.setMaterialAt(x, y, height, material);
             return true;
         } else {
@@ -97,8 +97,8 @@ public final class Cursor implements Cloneable {
     }
     
     public boolean setBlockWithDirectionIfFree(Material material) {
-        int existingBlock = minecraftWorld.getBlockTypeAt(x, y, height);
-        if ((existingBlock == BLK_AIR) || BLOCKS[existingBlock].insubstantial) {
+        Material existingBlock = minecraftWorld.getMaterialAt(x, y, height);
+        if ((existingBlock == AIR) || existingBlock.insubstantial) {
             minecraftWorld.setMaterialAt(x, y, height, material.setDirection(direction));
             return true;
         } else {

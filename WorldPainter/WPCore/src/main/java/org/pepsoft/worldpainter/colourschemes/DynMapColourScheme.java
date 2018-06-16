@@ -51,22 +51,25 @@ public final class DynMapColourScheme implements ColourScheme {
     
     @Override
     public int getColour(int blockType) {
-        return (blockType < 256) ? COLOURS[blockType] : UNKNOWN_BLOCK_TYPE_COLOUR;
+        // TODO: migrate this information to Material
+        return (blockType >= 0) && (blockType < 256) ? COLOURS[blockType] : UNKNOWN_BLOCK_TYPE_COLOUR;
     }
 
     @Override
     public int getColour(int blockType, int dataValue) {
-        return (blockType < 256) ? COLOURS[blockType + dataValue * 256] : UNKNOWN_BLOCK_TYPE_COLOUR;
+        // TODO: migrate this information to Material
+        return (blockType >= 0) && (blockType < 256) ? COLOURS[blockType + dataValue * 256] : UNKNOWN_BLOCK_TYPE_COLOUR;
     }
 
     @Override
     public int getColour(Material material) {
+        // TODO: migrate this information to Material
         final int blockType = material.blockType;
-        return (blockType < 256) ? COLOURS[blockType + material.data * 256] : UNKNOWN_BLOCK_TYPE_COLOUR;
+        return (blockType >= 0) && (blockType < 256) ? COLOURS[blockType + material.data * 256] : UNKNOWN_BLOCK_TYPE_COLOUR;
     }
     
     private void loadColours(InputStream in, boolean bright) {
-        // Make all unknown blocks cyan instead of black
+        // Make all unknown blocks magenta instead of black
         Arrays.fill(COLOURS, UNKNOWN_BLOCK_TYPE_COLOUR);
         
         try {
@@ -142,5 +145,5 @@ public final class DynMapColourScheme implements ColourScheme {
     
     private final int COLOURS[] = new int[256 * 16];
     
-    private static final int UNKNOWN_BLOCK_TYPE_COLOUR = 0x00ffff; // Cyan
+    private static final int UNKNOWN_BLOCK_TYPE_COLOUR = 0xff00ff; // Magenta
 }

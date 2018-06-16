@@ -284,7 +284,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
             levelDatFile = file;
             try {
                 Level level = Level.load(levelDatFile);
-                if (level.getVersion() != org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_2) {
+                if (level.getVersion() != org.pepsoft.minecraft.Constants.VERSION_ANVIL) {
                     if (radioButtonBiomes.isSelected()) {
                         radioButtonAll.setSelected(true);
                     }

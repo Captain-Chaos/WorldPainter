@@ -68,7 +68,7 @@ public class ExportTester extends RegressionIT {
         for (File file: worldDir.listFiles()) {
             if (file.isFile() && WORLD_PATTERN.matcher(file.getName()).matches() && (! WORLD_BACKUP_PATTERN.matcher(file.getName()).matches())) {
                 World2 world = loadWorld(file);
-                if ((! world.getPlatform().equals(DefaultPlugin.JAVA_ANVIL)) && (! world.getPlatform().equals(DefaultPlugin.JAVA_MCREGION))) {
+                if ((! (world.getPlatform() == DefaultPlugin.JAVA_ANVIL)) && (! (world.getPlatform() == DefaultPlugin.JAVA_MCREGION))) {
                     logger.warn("Don't know how to export platform {}; skipping", world.getPlatform().displayName);
                     continue;
                 }
@@ -87,7 +87,7 @@ public class ExportTester extends RegressionIT {
     }
 
     private void verifyJavaMap(World2 world, File mapDir) throws IOException {
-        verifyJavaWorld(mapDir, world.getPlatform().equals(DefaultPlugin.JAVA_MCREGION)? Constants.SUPPORTED_VERSION_1 : Constants.SUPPORTED_VERSION_2);
+        verifyJavaWorld(mapDir, (world.getPlatform() == DefaultPlugin.JAVA_MCREGION)? Constants.VERSION_MCREGION : Constants.VERSION_ANVIL);
         Collection<Dimension> dimensions;
         if (world.getDimensionsToExport() != null) {
             dimensions = world.getDimensionsToExport().stream().map(world::getDimension).collect(Collectors.toSet());

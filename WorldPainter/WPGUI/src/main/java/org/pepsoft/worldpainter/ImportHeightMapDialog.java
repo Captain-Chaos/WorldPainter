@@ -38,8 +38,8 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
-import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_1;
-import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_MCREGION;
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
 
 /**
@@ -57,7 +57,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
 
         tileFactory = (currentDimension != null)
             ? (HeightMapTileFactory) currentDimension.getTileFactory()
-            : TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), Terrain.GRASS, DEFAULT_MAX_HEIGHT_2, 58, 62, false, true, 20, 1.0);
+            : TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), Terrain.GRASS, DEFAULT_MAX_HEIGHT_ANVIL, 58, 62, false, true, 20, 1.0);
         
         initComponents();
         
@@ -300,7 +300,7 @@ outer:          for (int x = 0; x < width; x++) {
     private void loadDefaults() {
         Theme defaults = Configuration.getInstance().getHeightMapDefaultTheme();
         if (defaults == null) {
-            HeightMapTileFactory tmpTileFactory = TileFactoryFactory.createNoiseTileFactory(seed, Terrain.GRASS, DEFAULT_MAX_HEIGHT_2, 58, 62, false, true, 20, 1.0);
+            HeightMapTileFactory tmpTileFactory = TileFactoryFactory.createNoiseTileFactory(seed, Terrain.GRASS, DEFAULT_MAX_HEIGHT_ANVIL, 58, 62, false, true, 20, 1.0);
             defaults = tmpTileFactory.getTheme();
             if (currentDimension == null) {
                 buttonResetDefaults.setEnabled(false);
@@ -1006,12 +1006,12 @@ outer:          for (int x = 0; x < width; x++) {
             float transposeAmount = Math.max(waterLevel - 4, 0) - baseHeight;
             tileFactory.setHeightMap(HeightMapUtils.transposeHeightMap(tileFactory.getHeightMap(), transposeAmount));
             heightMapTileFactoryEditor1.setTheme((SimpleTheme) tileFactory.getTheme());
-            if (maxHeight == DEFAULT_MAX_HEIGHT_1) {
+            if (maxHeight == DEFAULT_MAX_HEIGHT_MCREGION) {
                 labelWarning.setText("Only Minecraft 1.1!");
             } else {
                 labelWarning.setText("Only Minecraft 1.1, with mods!");
             }
-            labelWarning.setVisible(maxHeight != DEFAULT_MAX_HEIGHT_2);
+            labelWarning.setVisible(maxHeight != DEFAULT_MAX_HEIGHT_ANVIL);
             
             previousMaxHeight = maxHeight;
         }
@@ -1107,7 +1107,7 @@ outer:          for (int x = 0; x < width; x++) {
     private final Dimension currentDimension;
     private File selectedFile, heightMapDir;
     private volatile BufferedImage image;
-    private int previousMaxHeight = DEFAULT_MAX_HEIGHT_2, bitDepth = 8, imageLowValue = 32, imageHighValue = 224;
+    private int previousMaxHeight = DEFAULT_MAX_HEIGHT_ANVIL, bitDepth = 8, imageLowValue = 32, imageHighValue = 224;
     
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ImportHeightMapDialog.class);
     private static final long serialVersionUID = 1L;

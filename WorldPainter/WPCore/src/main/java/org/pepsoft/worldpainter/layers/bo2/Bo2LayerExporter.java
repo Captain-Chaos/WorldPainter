@@ -6,6 +6,7 @@ package org.pepsoft.worldpainter.layers.bo2;
 
 import com.google.common.collect.Sets;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.exporting.Fixup;
 import org.pepsoft.worldpainter.exporting.IncidentalLayerExporter;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
@@ -41,7 +42,7 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
     }
     
     @Override
-    public List<Fixup> render(final Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
+    public List<Fixup> render(final Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
         final Bo2ObjectProvider objectProvider = layer.getObjectProvider();
         final int maxHeight = dimension.getMaxHeight();
         final int maxZ = maxHeight - 1;
@@ -106,7 +107,7 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
     }
 
     @Override
-    public Fixup apply(Dimension dimension, Point3i location, int intensity, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
+    public Fixup apply(Dimension dimension, Point3i location, int intensity, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
         final long seed = dimension.getSeed() ^ ((long) location.x << 40) ^ ((long) location.y << 20) ^ (location.z);
         applyRandom.setSeed(seed);
         if ((intensity > 0) && (applyRandom.nextInt(layer.getDensity() * 20) <= intensity * intensity / 225)) {

@@ -19,7 +19,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipException;
 
-import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 
 /**
@@ -168,28 +168,28 @@ public class WorldIO {
                 }
 
                 // Load legacy settings
-                resourcesSettings.setChance(BLK_GOLD_ORE,         1);
-                resourcesSettings.setChance(BLK_IRON_ORE,         5);
-                resourcesSettings.setChance(BLK_COAL,             9);
-                resourcesSettings.setChance(BLK_LAPIS_LAZULI_ORE, 1);
-                resourcesSettings.setChance(BLK_DIAMOND_ORE,      1);
-                resourcesSettings.setChance(BLK_REDSTONE_ORE,     6);
-                resourcesSettings.setChance(BLK_WATER,            1);
-                resourcesSettings.setChance(BLK_LAVA,             1);
-                resourcesSettings.setChance(BLK_DIRT,             9);
-                resourcesSettings.setChance(BLK_GRAVEL,           9);
-                resourcesSettings.setChance(BLK_EMERALD_ORE,      0);
-                resourcesSettings.setMaxLevel(BLK_GOLD_ORE,         Terrain.GOLD_LEVEL);
-                resourcesSettings.setMaxLevel(BLK_IRON_ORE,         Terrain.IRON_LEVEL);
-                resourcesSettings.setMaxLevel(BLK_COAL,             Terrain.COAL_LEVEL);
-                resourcesSettings.setMaxLevel(BLK_LAPIS_LAZULI_ORE, Terrain.LAPIS_LAZULI_LEVEL);
-                resourcesSettings.setMaxLevel(BLK_DIAMOND_ORE,      Terrain.DIAMOND_LEVEL);
-                resourcesSettings.setMaxLevel(BLK_REDSTONE_ORE,     Terrain.REDSTONE_LEVEL);
-                resourcesSettings.setMaxLevel(BLK_WATER,            Terrain.WATER_LEVEL);
-                resourcesSettings.setMaxLevel(BLK_LAVA,             Terrain.LAVA_LEVEL);
-                resourcesSettings.setMaxLevel(BLK_DIRT,             Terrain.DIRT_LEVEL);
-                resourcesSettings.setMaxLevel(BLK_GRAVEL,           Terrain.GRAVEL_LEVEL);
-                resourcesSettings.setMaxLevel(BLK_EMERALD_ORE,      Terrain.GOLD_LEVEL);
+                resourcesSettings.setChance(GOLD_ORE,         1);
+                resourcesSettings.setChance(IRON_ORE,         5);
+                resourcesSettings.setChance(COAL,             9);
+                resourcesSettings.setChance(LAPIS_LAZULI_ORE, 1);
+                resourcesSettings.setChance(DIAMOND_ORE,      1);
+                resourcesSettings.setChance(REDSTONE_ORE,     6);
+                resourcesSettings.setChance(WATER,            1);
+                resourcesSettings.setChance(LAVA,             1);
+                resourcesSettings.setChance(DIRT,             9);
+                resourcesSettings.setChance(GRAVEL,           9);
+                resourcesSettings.setChance(EMERALD_ORE,      0);
+                resourcesSettings.setMaxLevel(GOLD_ORE,         Terrain.GOLD_LEVEL);
+                resourcesSettings.setMaxLevel(IRON_ORE,         Terrain.IRON_LEVEL);
+                resourcesSettings.setMaxLevel(COAL,             Terrain.COAL_LEVEL);
+                resourcesSettings.setMaxLevel(LAPIS_LAZULI_ORE, Terrain.LAPIS_LAZULI_LEVEL);
+                resourcesSettings.setMaxLevel(DIAMOND_ORE,      Terrain.DIAMOND_LEVEL);
+                resourcesSettings.setMaxLevel(REDSTONE_ORE,     Terrain.REDSTONE_LEVEL);
+                resourcesSettings.setMaxLevel(WATER,            Terrain.WATER_LEVEL);
+                resourcesSettings.setMaxLevel(LAVA,             Terrain.LAVA_LEVEL);
+                resourcesSettings.setMaxLevel(DIRT,             Terrain.DIRT_LEVEL);
+                resourcesSettings.setMaxLevel(GRAVEL,           Terrain.GRAVEL_LEVEL);
+                resourcesSettings.setMaxLevel(EMERALD_ORE,      Terrain.GOLD_LEVEL);
 
                 oldWorld.getTiles().forEach(dim0::addTile);
             } finally {

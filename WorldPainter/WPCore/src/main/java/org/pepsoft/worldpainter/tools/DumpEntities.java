@@ -8,7 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import org.jnbt.CompoundTag;
 import org.jnbt.NBTInputStream;
-import org.pepsoft.minecraft.ChunkImpl2;
+import org.pepsoft.minecraft.MC12AnvilChunk;
 import org.pepsoft.minecraft.Painting;
 import org.pepsoft.minecraft.RegionFile;
 
@@ -30,7 +30,7 @@ public class DumpEntities {
                             try (NBTInputStream in = new NBTInputStream(regionFile.getChunkDataInputStream(x, z))) {
                                 tag = (CompoundTag) in.readTag();
                             }
-                            ChunkImpl2 chunk = new ChunkImpl2(tag, 256);
+                            MC12AnvilChunk chunk = new MC12AnvilChunk(tag, 256);
                             /*&& (((Painting) entity).getTileX() == 40) && (((Painting) entity).getTileZ() == 31)*/
                             chunk.getEntities().stream().filter(entity -> (entity instanceof Painting)).forEach(System.out::println);
                         }

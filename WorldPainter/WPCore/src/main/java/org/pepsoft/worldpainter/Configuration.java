@@ -29,7 +29,7 @@ import java.io.*;
 import java.util.*;
 import java.util.List;
 
-import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.minecraft.Material.DIRT;
 
 /**
@@ -752,7 +752,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
             defaultContourSeparation = 10;
             defaultWidth = 5;
             defaultHeight = 5;
-            defaultMaxHeight = DEFAULT_MAX_HEIGHT_2;
+            defaultMaxHeight = DEFAULT_MAX_HEIGHT_ANVIL;
         }
         if (defaultTerrainAndLayerSettings == null) {
             defaultTerrainAndLayerSettings = new World2(DefaultPlugin.JAVA_ANVIL, World2.DEFAULT_OCEAN_SEED, TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), surface, defaultMaxHeight, level, waterLevel, lava, beaches, 20, 1.0), defaultMaxHeight).getDimension(Constants.DIM_NORMAL);

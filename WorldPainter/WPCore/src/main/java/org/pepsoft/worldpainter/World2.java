@@ -262,9 +262,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         if (platform != this.platform) {
             Platform oldPlatform = this.platform;
             this.platform = platform;
-            if (! oldPlatform.equals(platform)) {
-                changeNo++;
-            }
+            changeNo++;
             propertyChangeSupport.firePropertyChange("platform", oldPlatform, platform);
         }
     }
@@ -554,7 +552,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
                 if (customMaterials != null) {
                     for (int i = 0; i < customMaterials.length; i++) {
                         if (customMaterials[i] != null) {
-                            mixedMaterials[i] = MixedMaterial.create(customMaterials[i]);
+                            mixedMaterials[i] = MixedMaterial.create(DefaultPlugin.JAVA_ANVIL, customMaterials[i]);
                         }
                     }
                     customMaterials = null;
@@ -642,14 +640,14 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         }
         if (wpVersion < 6) {
             switch (version) {
-                case org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_1:
+                case org.pepsoft.minecraft.Constants.VERSION_MCREGION:
                     platform = DefaultPlugin.JAVA_MCREGION;
                     break;
-                case org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_2:
+                case org.pepsoft.minecraft.Constants.VERSION_ANVIL:
                     platform = DefaultPlugin.JAVA_ANVIL;
                     break;
                 default:
-                    platform = (maxheight == org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2) ? DefaultPlugin.JAVA_ANVIL : DefaultPlugin.JAVA_MCREGION;
+                    platform = (maxheight == org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL) ? DefaultPlugin.JAVA_ANVIL : DefaultPlugin.JAVA_MCREGION;
             }
             version = -1;
             gameTypeObj = GameType.values()[gameType];
@@ -727,7 +725,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     @Deprecated
     public static final int BIOME_ALGORITHM_AUTO_BIOMES         =  7; 
     
-    public static final int DEFAULT_MAX_HEIGHT = org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
+    public static final int DEFAULT_MAX_HEIGHT = org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
     public static final long DEFAULT_OCEAN_SEED = 27594263L; // A seed with a large ocean around the origin, and not many mushroom islands nearby. Should be used with Large Biomes
     public static final long DEFAULT_LAND_SEED = 227290L; // A seed with a huge continent around the origin. Should be used with Large Biomes
     

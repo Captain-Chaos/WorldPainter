@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.pepsoft.minecraft.Constants.BLK_DIRT;
+import static org.pepsoft.minecraft.Material.DIRT;
 
 /**
  *
@@ -71,6 +71,14 @@ public class MixedMaterialChooser extends javax.swing.JPanel {
         repaint();
     }
 
+    public Platform getPlatform() {
+        return platform;
+    }
+
+    public void setPlatform(Platform platform) {
+        this.platform = platform;
+    }
+
     // JComponent
     
     @Override
@@ -98,8 +106,8 @@ public class MixedMaterialChooser extends javax.swing.JPanel {
     }
     
     private void addMaterial() {
-        MixedMaterial material = MixedMaterial.create(BLK_DIRT);
-        CustomMaterialDialog dialog = new CustomMaterialDialog(SwingUtilities.getWindowAncestor(this), material, extendedBlockIds, colourScheme);
+        MixedMaterial material = MixedMaterial.create(platform, DIRT);
+        CustomMaterialDialog dialog = new CustomMaterialDialog(SwingUtilities.getWindowAncestor(this), platform, material, extendedBlockIds, colourScheme);
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             material = MixedMaterialManager.getInstance().register(material);
@@ -110,7 +118,7 @@ public class MixedMaterialChooser extends javax.swing.JPanel {
     }
 
     private void editMaterial() {
-        CustomMaterialDialog dialog = new CustomMaterialDialog(SwingUtilities.getWindowAncestor(this), (MixedMaterial) jComboBox1.getSelectedItem(), extendedBlockIds, colourScheme);
+        CustomMaterialDialog dialog = new CustomMaterialDialog(SwingUtilities.getWindowAncestor(this), platform, (MixedMaterial) jComboBox1.getSelectedItem(), extendedBlockIds, colourScheme);
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             jComboBox1.repaint();
@@ -194,4 +202,5 @@ public class MixedMaterialChooser extends javax.swing.JPanel {
     private final MixedMaterialListCellRenderer cellRenderer = new MixedMaterialListCellRenderer();
     private boolean extendedBlockIds, allowNull;
     private ColourScheme colourScheme;
+    private Platform platform;
 }

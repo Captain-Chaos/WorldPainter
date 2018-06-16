@@ -4,10 +4,7 @@
  */
 package org.pepsoft.worldpainter.layers.pockets;
 
-import org.pepsoft.worldpainter.ColourScheme;
-import org.pepsoft.worldpainter.MixedMaterial;
-import org.pepsoft.worldpainter.MixedMaterialManager;
-import org.pepsoft.worldpainter.Terrain;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.layers.AbstractEditLayerDialog;
 import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
 
@@ -24,25 +21,26 @@ public class UndergroundPocketsDialog extends AbstractEditLayerDialog<Undergroun
     /**
      * Creates new form UndergroundPocketsDialog
      */
-    public UndergroundPocketsDialog(Window parent, MixedMaterial material, ColourScheme colourScheme, int maxHeight, boolean extendedBlockIds) {
-        this(parent, material, null, colourScheme, maxHeight, extendedBlockIds);
+    public UndergroundPocketsDialog(Window parent, Platform platform, MixedMaterial material, ColourScheme colourScheme, int maxHeight, boolean extendedBlockIds) {
+        this(parent, platform, material, null, colourScheme, maxHeight, extendedBlockIds);
     }
     
     /**
      * Creates new form UndergroundPocketsDialog
      */
-    public UndergroundPocketsDialog(Window parent, UndergroundPocketsLayer existingLayer, ColourScheme colourScheme, int maxHeight, boolean extendedBlockIds) {
-        this(parent, null, existingLayer, colourScheme, maxHeight, extendedBlockIds);
+    public UndergroundPocketsDialog(Window parent, Platform platform, UndergroundPocketsLayer existingLayer, ColourScheme colourScheme, int maxHeight, boolean extendedBlockIds) {
+        this(parent, platform, null, existingLayer, colourScheme, maxHeight, extendedBlockIds);
     }
     
     /**
      * Creates new form UndergroundPocketsDialog
      */
-    private UndergroundPocketsDialog(Window parent, MixedMaterial material, UndergroundPocketsLayer existingLayer, ColourScheme colourScheme, int maxHeight, boolean extendedBlockIds) {
+    private UndergroundPocketsDialog(Window parent, Platform platform, MixedMaterial material, UndergroundPocketsLayer existingLayer, ColourScheme colourScheme, int maxHeight, boolean extendedBlockIds) {
         super(parent);
         this.colourScheme = colourScheme;
         
         initComponents();
+        mixedMaterialChooser.setPlatform(platform);
         mixedMaterialChooser.setExtendedBlockIds(extendedBlockIds);
         mixedMaterialChooser.setColourScheme(colourScheme);
         mixedMaterialChooser.addPropertyChangeListener("material", this);

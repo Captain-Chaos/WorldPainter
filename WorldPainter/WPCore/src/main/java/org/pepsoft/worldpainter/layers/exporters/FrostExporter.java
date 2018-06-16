@@ -5,8 +5,10 @@
 
 package org.pepsoft.worldpainter.layers.exporters;
 
+import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.CollectionUtils;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.exporting.AbstractLayerExporter;
 import org.pepsoft.worldpainter.exporting.Fixup;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
@@ -19,7 +21,7 @@ import java.util.List;
 import java.util.Random;
 
 import static org.pepsoft.minecraft.Constants.*;
-import static org.pepsoft.minecraft.Material.SNOW;
+import static org.pepsoft.minecraft.Material.*;
 
 /**
  *
@@ -31,7 +33,7 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
     }
     
     @Override
-    public List<Fixup> render(final Dimension dimension, final Rectangle area, final Rectangle exportedArea, final MinecraftWorld minecraftWorld) {
+    public List<Fixup> render(final Dimension dimension, final Rectangle area, final Rectangle exportedArea, final MinecraftWorld minecraftWorld, Platform platform) {
         final FrostSettings settings = (FrostSettings) getSettings();
         final boolean frostEverywhere = settings.isFrostEverywhere();
         final int mode = settings.getMode();
@@ -51,23 +53,23 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
         for (int x = area.x; x < area.x + area.width; x++) {
             for (int y = area.y; y < area.y + area.height; y++) {
                 if (frostEverywhere || dimension.getBitLayerValueAt(Frost.INSTANCE, x, y)) {
-                    int previousBlockType = minecraftWorld.getBlockTypeAt(x, y, maxHeight - 1);
+                    Material previousMaterial = minecraftWorld.getMaterialAt(x, y, maxHeight - 1);
                     int leafBlocksEncountered = 0;
                     for (int height = (maxHeight - 2); height >= 0; height--) {
-                        int blockType = minecraftWorld.getBlockTypeAt(x, y, height);
-                        if (noSnowOn.get(blockType)) {
-                            previousBlockType = blockType;
+                        Material material = minecraftWorld.getMaterialAt(x, y, height);
+                        // TODOMC13: migrate this to modern materials:
+                        if ((material.blockType >= 0) && noSnowOn.get(material.blockType)) {
+                            previousMaterial = material;
                             continue;
                         } else {
-                            if (blockType == BLK_STATIONARY_WATER) {
-                                minecraftWorld.setBlockTypeAt(x, y, height, BLK_ICE);
+                            if (material.isNamed(MC_WATER)) {
+                                minecraftWorld.setMaterialAt(x, y, height, ICE);
                                 break;
-                            } else if ((blockType == BLK_LEAVES)
-                                    || (blockType == BLK_LEAVES2)
-                                    || (blockType == BLK_WOOD)
-                                    || (blockType == BLK_WOOD2)) {
-                                if (previousBlockType == BLK_AIR) {
-                                    minecraftWorld.setBlockTypeAt(x, y, height + 1, BLK_SNOW);
+                            } else if ((material.name.endsWith("_leaves"))
+                                    || (material.name.endsWith("_log"))
+                                    || (material.name.endsWith("_bark"))) {
+                                if (previousMaterial == AIR) {
+                                    minecraftWorld.setMaterialAt(x, y, height + 1, SNOW);
                                 }
                                 leafBlocksEncountered++;
                                 if ((! snowUnderTrees) && (leafBlocksEncountered > 1)) {
@@ -78,10 +80,10 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
                                 // much of it, and leaving it in would look
                                 // strange. Also replace existing snow, as we
                                 // might want to place thicker snow
-                                if ((previousBlockType == BLK_AIR) || (previousBlockType == BLK_TALL_GRASS) || (previousBlockType == BLK_SNOW)) {
+                                if ((previousMaterial == AIR) || (previousMaterial == TALL_GRASS) || (previousMaterial == SNOW)) {
                                     if ((mode == FrostSettings.MODE_SMOOTH_AT_ALL_ELEVATIONS)
                                             || (height == dimension.getIntHeightAt(x, y))) {
-                                        // Only vary the snow tickness if we're
+                                        // Only vary the snow thickness if we're
                                         // at surface height, otherwise it looks
                                         // odd
                                         switch (mode) {
@@ -89,22 +91,20 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
                                                 minecraftWorld.setMaterialAt(x, y, height + 1, SNOW);
                                                 break;
                                             case FrostSettings.MODE_RANDOM:
-                                                minecraftWorld.setBlockTypeAt(x, y, height + 1, BLK_SNOW);
-                                                minecraftWorld.setDataAt(     x, y, height + 1, random.nextInt(3));
+                                                minecraftWorld.setMaterialAt(x, y, height + 1, SNOW.withProperty("layers", Integer.toString(random.nextInt(3) + 1)));
                                                 break;
                                             case FrostSettings.MODE_SMOOTH:
                                             case FrostSettings.MODE_SMOOTH_AT_ALL_ELEVATIONS:
-                                                int snowHeight = (int) ((dimension.getHeightAt(x, y) + 0.5f - dimension.getIntHeightAt(x, y)) / 0.125f);
-                                                if ((snowHeight > 0) && (! frostEverywhere)) {
-                                                    snowHeight = Math.max(Math.min(snowHeight, dimension.getBitLayerCount(Frost.INSTANCE, x, y, 1) - 2), 0);
+                                                int snowLayers = (int) ((dimension.getHeightAt(x, y) + 0.5f - dimension.getIntHeightAt(x, y)) / 0.125f) + 1;
+                                                if ((snowLayers > 1) && (! frostEverywhere)) {
+                                                    snowLayers = Math.max(Math.min(snowLayers, dimension.getBitLayerCount(Frost.INSTANCE, x, y, 1) - 1), 0);
                                                 }
-                                                if (minecraftWorld.getBlockTypeAt(x, y, height + 1) == BLK_SNOW) {
+                                                Material existingMaterial = minecraftWorld.getMaterialAt(x, y, height + 1);
+                                                if (existingMaterial.isNamed(MC_SNOW)) {
                                                     // If there is already snow there, don't lower it
-                                                    minecraftWorld.setDataAt(x, y, height + 1, Math.max(snowHeight, minecraftWorld.getDataAt(x, y, height + 1)));
-                                                } else {
-                                                    minecraftWorld.setBlockTypeAt(x, y, height + 1, BLK_SNOW);
-                                                    minecraftWorld.setDataAt(x, y, height + 1, snowHeight);
+                                                    snowLayers = Math.max(snowLayers, existingMaterial.getProperty(LAYERS));
                                                 }
+                                                minecraftWorld.setMaterialAt(x, y, height + 1, SNOW.withProperty(LAYERS, snowLayers));
                                                 break;
                                         }
                                     } else {
@@ -116,7 +116,7 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
                                 break;
                             }
                         }
-                        previousBlockType = blockType;
+                        previousMaterial = material;
                     }
                 }
             }

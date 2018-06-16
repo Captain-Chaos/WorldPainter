@@ -372,9 +372,9 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
                     && ((dimension.getBorder() == null) || (! dimension.getBorder().isEndless()))) {
                 World2 world = dimension.getWorld();
                 if ((world != null) && (world.getPlatform() != null)) {
-                    if (world.getPlatform().equals(DefaultPlugin.JAVA_MCREGION)) {
+                    if ((world.getPlatform() == DefaultPlugin.JAVA_MCREGION)) {
                         biomeAlgorithm = BIOME_ALGORITHM_1_1;
-                    } else if (world.getPlatform().equals(DefaultPlugin.JAVA_ANVIL)) {
+                    } else if ((world.getPlatform() == DefaultPlugin.JAVA_ANVIL)) {
                         if (world.getGenerator() == Generator.DEFAULT) {
                             biomeAlgorithm = BIOME_ALGORITHM_1_7_DEFAULT;
                         } else if (world.getGenerator() == Generator.LARGE_BIOMES) {

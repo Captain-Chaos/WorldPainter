@@ -250,7 +250,7 @@ public class Main {
         } catch (CertificateException e) {
             logger.error("Certificate exception while loading trusted root certificate", e);
         }
-        
+
         // Load the plugins
         if (! safeMode) {
             if (trustedCert != null) {
@@ -262,14 +262,12 @@ public class Main {
             logger.info("[SAFE MODE] Not loading plugins");
         }
         WPPluginManager.initialise(config.getUuid());
-        
         // Load all the platform descriptors to ensure that when worlds
         // containing older versions of them are loaded later they are replaced
         // with the current versions, rather than the other way around
         for (Platform platform : PlatformManager.getInstance().getAllPlatforms()) {
             logger.info("Available platform: {}", platform.displayName);
         }
-
         String httpAgent = "WorldPainter " + Version.VERSION + "; " + System.getProperty("os.name") + " " + System.getProperty("os.version") + " " + System.getProperty("os.arch") + ";";
         System.setProperty("http.agent", httpAgent);
 

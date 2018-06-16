@@ -14,7 +14,7 @@ import java.io.IOException;
 
 import static org.pepsoft.minecraft.Block.BLOCK_TYPE_NAMES;
 import static org.pepsoft.minecraft.Constants.BLK_AIR;
-import static org.pepsoft.minecraft.Constants.SUPPORTED_VERSION_1;
+import static org.pepsoft.minecraft.Constants.VERSION_MCREGION;
 
 /**
  *
@@ -27,7 +27,7 @@ public class DumpLighting {
         int y = Integer.parseInt(args[2]);
         int z = Integer.parseInt(args[3]);
         Level level = Level.load(levelDatFile);
-        MinecraftWorld world = new JavaMinecraftWorld(levelDatFile.getParentFile(), 0, level.getMaxHeight(), level.getVersion() == SUPPORTED_VERSION_1 ? DefaultPlugin.JAVA_MCREGION : DefaultPlugin.JAVA_ANVIL, true, CACHE_SIZE);
+        MinecraftWorld world = new JavaMinecraftWorld(levelDatFile.getParentFile(), 0, level.getMaxHeight(), level.getVersion() == VERSION_MCREGION ? DefaultPlugin.JAVA_MCREGION : DefaultPlugin.JAVA_ANVIL, true, CACHE_SIZE);
         for (int dy = 16; dy >= -62; dy--) {
             for (int dx = -16; dx <= 16; dx++) {
                 int blockX = x + dx, blockZ = z;

@@ -109,7 +109,7 @@ public class Mapper {
     private static void map(final File worldDir, final int dim, final ColourScheme colourScheme, File output) throws IOException, InterruptedException {
         File levelDatFile = new File(worldDir, "level.dat");
         Level level = Level.load(levelDatFile);
-        final Platform platform = level.getVersion() == SUPPORTED_VERSION_1 ? DefaultPlugin.JAVA_MCREGION : DefaultPlugin.JAVA_ANVIL;
+        final Platform platform = level.getVersion() == VERSION_MCREGION ? DefaultPlugin.JAVA_MCREGION : DefaultPlugin.JAVA_ANVIL;
         maxHeight = level.getMaxHeight();
         File dimensionDir;
         switch (dim) {
@@ -136,10 +136,10 @@ public class Mapper {
             System.out.println("Generator: " + level.getGeneratorName() + " (version " + level.getGeneratorVersion() + ")");
         }
         System.out.println("Map height: " + maxHeight);
-        System.out.println("Storage format: " + (platform.equals(DefaultPlugin.JAVA_MCREGION) ? "McRegion (Minecraft 1.1 or earlier)" : "Anvil (Minecraft 1.2 or later)"));
+        System.out.println("Storage format: " + ((platform == DefaultPlugin.JAVA_MCREGION) ? "McRegion (Minecraft 1.1 or earlier)" : "Anvil (Minecraft 1.2 or later)"));
 
         // Determine size
-        File[] regionFiles = regionDir.listFiles(platform.equals(DefaultPlugin.JAVA_MCREGION)
+        File[] regionFiles = regionDir.listFiles((platform == DefaultPlugin.JAVA_MCREGION)
             ? (dir, name) -> name.toLowerCase().endsWith(".mcr")
                 : (FilenameFilter) (dir, name) -> name.toLowerCase().endsWith(".mca"));
         int tmpLowestRegionX = Integer.MAX_VALUE, tmpHighestRegionX = Integer.MIN_VALUE;
@@ -166,7 +166,7 @@ public class Mapper {
         int tmpLowestChunkX = Integer.MAX_VALUE, tmpHighestChunkX = Integer.MIN_VALUE;
         int tmpLowestChunkZ = Integer.MAX_VALUE, tmpHighestChunkZ = Integer.MIN_VALUE;
         for (int regionX = lowestRegionX; regionX <= highestRegionX; regionX++) {
-            File file = new File(regionDir, "r." + regionX + "." + lowestRegionZ + (platform.equals(DefaultPlugin.JAVA_MCREGION) ? ".mcr" : ".mca"));
+            File file = new File(regionDir, "r." + regionX + "." + lowestRegionZ + ((platform == DefaultPlugin.JAVA_MCREGION) ? ".mcr" : ".mca"));
             if (file.exists()) {
                 int regionChunkX = regionX << 5;
                 int regionChunkZ = lowestRegionZ << 5;
@@ -196,7 +196,7 @@ public class Mapper {
                     region.close();
                 }
             }
-            file = new File(regionDir, "r." + regionX + "." + highestRegionZ + (platform.equals(DefaultPlugin.JAVA_MCREGION) ? ".mcr" : ".mca"));
+            file = new File(regionDir, "r." + regionX + "." + highestRegionZ + ((platform == DefaultPlugin.JAVA_MCREGION) ? ".mcr" : ".mca"));
             if (file.exists()) {
                 int regionChunkX = regionX << 5;
                 int regionChunkZ = highestRegionZ << 5;
@@ -228,7 +228,7 @@ public class Mapper {
             }
         }
         for (int regionZ = lowestRegionZ + 1; regionZ <= highestRegionZ - 1; regionZ++) {
-            File file = new File(regionDir, "r." + lowestRegionX + "." + regionZ + (platform.equals(DefaultPlugin.JAVA_MCREGION) ? ".mcr" : ".mca"));
+            File file = new File(regionDir, "r." + lowestRegionX + "." + regionZ + ((platform == DefaultPlugin.JAVA_MCREGION) ? ".mcr" : ".mca"));
             if (file.exists()) {
                 int regionChunkX = lowestRegionX << 5;
                 int regionChunkZ = regionZ << 5;
@@ -258,7 +258,7 @@ public class Mapper {
                     region.close();
                 }
             }
-            file = new File(regionDir, "r." + highestRegionX + "." + regionZ + (platform.equals(DefaultPlugin.JAVA_MCREGION) ? ".mcr" : ".mca"));
+            file = new File(regionDir, "r." + highestRegionX + "." + regionZ + ((platform == DefaultPlugin.JAVA_MCREGION) ? ".mcr" : ".mca"));
             if (file.exists()) {
                 int regionChunkX = highestRegionX << 5;
                 int regionChunkZ = regionZ << 5;

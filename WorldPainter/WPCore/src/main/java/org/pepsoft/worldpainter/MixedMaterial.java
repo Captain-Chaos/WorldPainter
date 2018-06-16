@@ -360,26 +360,43 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
 
     /**
      * Utility method for creating a simple mixed material, consisting of one
-     * block type with data value 0.
-     * 
+     * block type with data value 0, with a default name targeted to a specific
+     * platform.
+     *
+     * @deprecated Use {@link #create(Platform, Material)}
+     * @param platform The platform to which to target the name.
      * @param blockType The block type the mixed material should consist of
      * @return A new mixed material with the specified block type, and the
      *     block type's name
      */
-    public static MixedMaterial create(final int blockType) {
-        return create(Material.get(blockType));
+    public static MixedMaterial create(final Platform platform, final int blockType) {
+        return create(platform, Material.get(blockType));
     }
 
     /**
      * Utility method for creating a simple mixed material, consisting of one
-     * material.
-     * 
+     * material, with a default name targeted to a specific platform.
+     *
+     * @param platform The platform to which to target the name.
      * @param material The simple material the mixed material should consist of
      * @return A new mixed material with the specified material and an
      *     appropriate name
      */
-    public static MixedMaterial create(final Material material) {
-        return new MixedMaterial(material.toString(), new Row(material, 1000, 1.0f), -1, null);
+    public static MixedMaterial create(final Platform platform, final Material material) {
+        return create((platform == DefaultPlugin.JAVA_ANVIL_1_13) /* TODO make dynamic */ ? material.toString() : material.toLegacyString(), material);
+    }
+
+    /**
+     * Utility method for creating a simple mixed material, consisting of one
+     * material, with a specific name.
+     *
+     * @param name The name to give the mixed material.
+     * @param material The simple material the mixed material should consist of
+     * @return A new mixed material with the specified material and an
+     *     appropriate name
+     */
+    public static MixedMaterial create(final String name, final Material material) {
+        return new MixedMaterial(name, new Row(material, 1000, 1.0f), -1, null);
     }
 
     /**
@@ -475,7 +492,7 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
                 if ((! repeat) && ((layerXSlope != 0) || (layerYSlope != 0))) {
                     throw new IllegalArgumentException("Angle may not be non-zero if repeat is false");
                 }
-                List<Material> tmpMaterials = new ArrayList<>(org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2);
+                List<Material> tmpMaterials = new ArrayList<>(org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL);
                 patternHeight = 0;
                 for (int i = rows.length - 1; i >= 0; i--) {
                     patternHeight += rows[i].occurrence;
@@ -507,7 +524,6 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
     private NoiseSettings variation;
     private boolean repeat;
     private double layerXSlope, layerYSlope;
-    private transient List<Row> rowsView;
     private transient Row[] sortedRows;
     private transient PerlinNoise[] noiseGenerators;
     private transient Material[] materials;

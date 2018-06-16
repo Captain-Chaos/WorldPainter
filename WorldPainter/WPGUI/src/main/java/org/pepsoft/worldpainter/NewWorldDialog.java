@@ -40,9 +40,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
+import static org.pepsoft.minecraft.Material.LAVA;
+import static org.pepsoft.minecraft.Material.WATER;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
+import static org.pepsoft.worldpainter.Platform.Capability.SEED;
 import static org.pepsoft.worldpainter.Terrain.*;
 
 /**
@@ -263,7 +266,7 @@ public class NewWorldDialog extends WorldPainterDialog {
             return null;
         }
         world.addHistoryEntry(HistoryEntry.WORLD_CREATED);
-        final boolean minecraft11Only = dimension.getMaxHeight() != DEFAULT_MAX_HEIGHT_2;
+        final boolean minecraft11Only = dimension.getMaxHeight() != DEFAULT_MAX_HEIGHT_ANVIL;
         world.setName(name);
 
         // Export settings
@@ -481,15 +484,15 @@ public class NewWorldDialog extends WorldPainterDialog {
                 ResourcesExporter.ResourcesExporterSettings resourcesSettings = new ResourcesExporter.ResourcesExporterSettings(maxHeight);
                 // Invert min and max levels:
                 int maxZ = maxHeight - 1;
-                for (int blockType: resourcesSettings.getBlockTypes()) {
-                    int low = resourcesSettings.getMinLevel(blockType);
-                    int high = resourcesSettings.getMaxLevel(blockType);
-                    resourcesSettings.setMinLevel(blockType, maxZ - high);
-                    resourcesSettings.setMaxLevel(blockType, maxZ - low);
+                for (Material material: resourcesSettings.getMaterials()) {
+                    int low = resourcesSettings.getMinLevel(material);
+                    int high = resourcesSettings.getMaxLevel(material);
+                    resourcesSettings.setMinLevel(material, maxZ - high);
+                    resourcesSettings.setMaxLevel(material, maxZ - low);
                 }
                 // Remove lava and water:
-                resourcesSettings.setChance(BLK_WATER, 0);
-                resourcesSettings.setChance(BLK_LAVA, 0);
+                resourcesSettings.setChance(WATER, 0);
+                resourcesSettings.setChance(LAVA, 0);
                 dimension.setLayerSettings(Resources.INSTANCE, resourcesSettings);
             } else if (dim == DIM_NETHER) {
                 dimension.setSubsurfaceMaterial(NETHERLIKE);
@@ -539,13 +542,12 @@ public class NewWorldDialog extends WorldPainterDialog {
 
     private void setControlStates() {
         boolean surfaceDimension = dim == DIM_NORMAL;
-        boolean minecraft = platform.equals(JAVA_ANVIL) || platform.equals(JAVA_MCREGION) || platform.id.equals("org.pepsoft.mcpe");
-        checkBoxExtendedBlockIds.setEnabled(! platform.equals(JAVA_MCREGION));
+        checkBoxExtendedBlockIds.setEnabled(platform != JAVA_MCREGION);
         boolean hilly = radioButtonHilly.isSelected();
         spinnerRange.setEnabled(hilly);
         spinnerScale.setEnabled(hilly);
         spinnerLength.setEnabled((tiles == null) && (! checkBoxCircular.isSelected()));
-        boolean seedLocked = (tiles != null) || (! minecraft);
+        boolean seedLocked = (tiles != null) || (! platform.capabilities.contains(SEED));
         radioButtonOceanSeed.setEnabled(surfaceDimension && (! seedLocked));
         radioButtonLandSeed.setEnabled(surfaceDimension && (! seedLocked));
         radioButtonCustomSeed.setEnabled(surfaceDimension && (! seedLocked));
@@ -738,7 +740,7 @@ public class NewWorldDialog extends WorldPainterDialog {
         comboBoxMaxHeight.setEnabled(maxHeights.size() > 1);
         maxHeightChanged(true);
 
-        if (platform.equals(JAVA_MCREGION)) {
+        if ((platform == JAVA_MCREGION)) {
             checkBoxExtendedBlockIds.setSelected(false);
         }
 
@@ -760,7 +762,7 @@ public class NewWorldDialog extends WorldPainterDialog {
             ((SpinnerNumberModel) spinnerTerrainLevel.getModel()).setMaximum(maxHeight - 1);
             ((SpinnerNumberModel) spinnerWaterLevel.getModel()).setMaximum(maxHeight - 1);
 
-            if (platform.equals(JAVA_MCREGION) && (exp != 7)) {
+            if ((platform == JAVA_MCREGION) && (exp != 7)) {
                 labelWarning.setVisible(true);
             } else {
                 labelWarning.setVisible(false);

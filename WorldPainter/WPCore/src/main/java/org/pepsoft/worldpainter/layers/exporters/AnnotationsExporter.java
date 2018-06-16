@@ -10,6 +10,7 @@ package org.pepsoft.worldpainter.layers.exporters;
 import org.pepsoft.minecraft.Constants;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.exporting.AbstractLayerExporter;
 import org.pepsoft.worldpainter.exporting.Fixup;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
@@ -31,7 +32,7 @@ public class AnnotationsExporter extends AbstractLayerExporter<Annotations> impl
     }
 
     @Override
-    public List<Fixup> render(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
+    public List<Fixup> render(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
         AnnotationsSettings settings = (AnnotationsSettings) getSettings();
         if (settings == null) {
             settings = new AnnotationsSettings();

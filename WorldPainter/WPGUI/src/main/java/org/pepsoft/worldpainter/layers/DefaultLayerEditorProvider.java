@@ -6,6 +6,7 @@
 
 package org.pepsoft.worldpainter.layers;
 
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.Version;
 import org.pepsoft.worldpainter.layers.bo2.Bo2LayerEditor;
 import org.pepsoft.worldpainter.layers.combined.CombinedLayerEditor;
@@ -27,13 +28,13 @@ public class DefaultLayerEditorProvider extends AbstractPlugin implements LayerE
 
     @SuppressWarnings("unchecked") // Responsibility of implementations
     @Override
-    public <L extends Layer> LayerEditor<L> createLayerEditor(Class<L> layerType) {
+    public <L extends Layer> LayerEditor<L> createLayerEditor(Platform platform, Class<L> layerType) {
         if (Bo2Layer.class.isAssignableFrom(layerType)) {
             return (LayerEditor<L>) new Bo2LayerEditor();
         } else if (CombinedLayer.class.isAssignableFrom(layerType)) {
             return (LayerEditor<L>) new CombinedLayerEditor();
         } else if (GroundCoverLayer.class.isAssignableFrom(layerType)) {
-            return (LayerEditor<L>) new GroundCoverLayerEditor();
+            return (LayerEditor<L>) new GroundCoverLayerEditor(platform);
         } else if (PlantLayer.class.isAssignableFrom(layerType)) {
             return (LayerEditor<L>) new PlantLayerEditor();
         } else {

@@ -25,9 +25,9 @@ public class SimpleChunkFactory implements ChunkFactory {
     @Override
     public ChunkCreationResult createChunk(int chunkX, int chunkZ) {
         final ChunkCreationResult result = new ChunkCreationResult();
-        result.chunk = (version == SUPPORTED_VERSION_1)
-            ? new ChunkImpl(chunkX, chunkZ, maxHeight)
-            : new ChunkImpl2(chunkX, chunkZ, maxHeight);
+        result.chunk = (version == VERSION_MCREGION)
+            ? new MCRegionChunk(chunkX, chunkZ, maxHeight)
+            : new MC12AnvilChunk(chunkX, chunkZ, maxHeight);
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
                 for (int y = 0; y < maxHeight; y++) {

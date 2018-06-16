@@ -7,7 +7,6 @@ package org.pepsoft.minecraft;
 
 import org.jnbt.*;
 import org.pepsoft.worldpainter.AccessDeniedException;
-import org.pepsoft.worldpainter.DefaultPlugin;
 import org.pepsoft.worldpainter.Generator;
 import org.pepsoft.worldpainter.Platform;
 
@@ -17,6 +16,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.*;
 
 /**
  *
@@ -25,18 +25,30 @@ import static org.pepsoft.minecraft.Constants.*;
 public final class Level extends AbstractNBTItem {
     public Level(int mapHeight, Platform platform) {
         super(new CompoundTag(TAG_DATA, new HashMap<>()));
-        if ((! platform.equals(DefaultPlugin.JAVA_ANVIL)) && (! platform.equals(DefaultPlugin.JAVA_MCREGION))) {
+        if ((platform != JAVA_ANVIL)
+                && (platform != JAVA_MCREGION)
+                && (platform != JAVA_ANVIL_1_13)) {
             throw new IllegalArgumentException("Not a supported platform: " + platform);
         }
         if ((mapHeight & (mapHeight - 1)) != 0) {
             throw new IllegalArgumentException("mapHeight " + mapHeight + " not a power of two");
         }
-        if (mapHeight != (platform.equals(DefaultPlugin.JAVA_MCREGION) ? DEFAULT_MAX_HEIGHT_1 : DEFAULT_MAX_HEIGHT_2)) {
+        if (mapHeight != ((platform == JAVA_MCREGION) ? DEFAULT_MAX_HEIGHT_MCREGION : DEFAULT_MAX_HEIGHT_ANVIL)) {
             setInt(TAG_MAP_HEIGHT, mapHeight);
         }
         this.maxHeight = mapHeight;
         extraTags = null;
-        setInt(TAG_VERSION, platform.equals(DefaultPlugin.JAVA_MCREGION) ? SUPPORTED_VERSION_1 : SUPPORTED_VERSION_2);
+        setInt(TAG_VERSION, (platform == JAVA_MCREGION) ? VERSION_MCREGION : VERSION_ANVIL);
+        // TODO: make this dynamic?
+        if (platform != JAVA_MCREGION) {
+            int dataVersion = (platform == JAVA_ANVIL) ? DATA_VERSION_MC_1_12_2 : DATA_VERSION_MC_1_13;
+            setInt(TAG_DATA_VERSION, dataVersion);
+            Map<String, Tag> versionTag = new HashMap<>();
+            versionTag.put(TAG_ID_, new IntTag(TAG_ID_, dataVersion));
+            versionTag.put(TAG_NAME, new StringTag(TAG_NAME, "WorldPainter"));
+            versionTag.put(TAG_SNAPSHOT, new ByteTag(TAG_SNAPSHOT, (byte) (platform != JAVA_ANVIL ? 1 : 0)));
+            setMap(TAG_VERSION_, versionTag);
+        }
         addDimension(0);
     }
 
@@ -46,10 +58,10 @@ public final class Level extends AbstractNBTItem {
             throw new IllegalArgumentException("mapHeight " + mapHeight + " not a power of two");
         }
         int version = getInt(TAG_VERSION);
-        if ((version != SUPPORTED_VERSION_1) && (version != SUPPORTED_VERSION_2)) {
+        if ((version != VERSION_MCREGION) && (version != VERSION_ANVIL)) {
             throw new IllegalArgumentException("Not a supported version: 0x" + Integer.toHexString(version));
         }
-        if (mapHeight != ((version == SUPPORTED_VERSION_1) ? DEFAULT_MAX_HEIGHT_1 : DEFAULT_MAX_HEIGHT_2)) {
+        if (mapHeight != ((version == VERSION_MCREGION) ? DEFAULT_MAX_HEIGHT_MCREGION : DEFAULT_MAX_HEIGHT_ANVIL)) {
             setInt(TAG_MAP_HEIGHT, mapHeight);
         }
         this.maxHeight = mapHeight;
@@ -303,7 +315,7 @@ public final class Level extends AbstractNBTItem {
     public void setGenerator(Generator generator) {
         switch (generator) {
             case DEFAULT:
-                if (getVersion() == SUPPORTED_VERSION_1) {
+                if (getVersion() == VERSION_MCREGION) {
                     setString(TAG_GENERATOR_NAME, "DEFAULT");
                 } else {
                     setString(TAG_GENERATOR_NAME, "default");
@@ -311,14 +323,14 @@ public final class Level extends AbstractNBTItem {
                 }
                 break;
             case FLAT:
-                if (getVersion() == SUPPORTED_VERSION_1) {
+                if (getVersion() == VERSION_MCREGION) {
                     setString(TAG_GENERATOR_NAME, "FLAT");
                 } else {
                     setString(TAG_GENERATOR_NAME, "flat");
                 }
                 break;
             case LARGE_BIOMES:
-                if (getVersion() == SUPPORTED_VERSION_1) {
+                if (getVersion() == VERSION_MCREGION) {
                     throw new IllegalArgumentException("Large biomes not supported for Minecraft 1.1 maps");
                 } else {
                     setString(TAG_GENERATOR_NAME, "largeBiomes");
@@ -401,8 +413,8 @@ public final class Level extends AbstractNBTItem {
         }
         
         int version = ((IntTag) ((CompoundTag) ((CompoundTag) tag).getTag(TAG_DATA)).getTag(TAG_VERSION)).getValue();
-        int maxHeight = (version == SUPPORTED_VERSION_1) ? DEFAULT_MAX_HEIGHT_1 : DEFAULT_MAX_HEIGHT_2;
-        if (version == SUPPORTED_VERSION_1) {
+        int maxHeight = (version == VERSION_MCREGION) ? DEFAULT_MAX_HEIGHT_MCREGION : DEFAULT_MAX_HEIGHT_ANVIL;
+        if (version == VERSION_MCREGION) {
             if (((CompoundTag) ((CompoundTag) tag).getTag(TAG_DATA)).getTag(TAG_MAP_HEIGHT) != null) {
                 maxHeight = ((IntTag) ((CompoundTag) ((CompoundTag) tag).getTag(TAG_DATA)).getTag(TAG_MAP_HEIGHT)).getValue();
             } else {

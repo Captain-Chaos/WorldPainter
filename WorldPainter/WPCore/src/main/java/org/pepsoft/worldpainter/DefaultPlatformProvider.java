@@ -1,10 +1,7 @@
 package org.pepsoft.worldpainter;
 
 import com.google.common.collect.ImmutableList;
-import org.pepsoft.minecraft.Chunk;
-import org.pepsoft.minecraft.ChunkImpl;
-import org.pepsoft.minecraft.ChunkImpl2;
-import org.pepsoft.minecraft.ChunkStore;
+import org.pepsoft.minecraft.*;
 import org.pepsoft.minecraft.mapexplorer.JavaMapRecognizer;
 import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.mapexplorer.MapRecognizer;
@@ -16,8 +13,7 @@ import java.io.File;
 import java.util.List;
 
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
+import static org.pepsoft.worldpainter.DefaultPlugin.*;
 
 /**
  * Created by Pepijn on 9-3-2017.
@@ -34,10 +30,12 @@ public class DefaultPlatformProvider extends AbstractPlugin implements BlockBase
 
     @Override
     public Chunk createChunk(Platform platform, int x, int z, int maxHeight) {
-        if (platform.equals(JAVA_MCREGION)) {
-            return new ChunkImpl(x, z, maxHeight);
-        } else if (platform.equals(JAVA_ANVIL)) {
-            return new ChunkImpl2(x, z, maxHeight);
+        if ((platform == JAVA_MCREGION)) {
+            return new MCRegionChunk(x, z, maxHeight);
+        } else if ((platform == JAVA_ANVIL)) {
+            return new MC12AnvilChunk(x, z, maxHeight);
+        } else if ((platform == JAVA_ANVIL_1_13)) {
+            return new MC113AnvilChunk(x, z, maxHeight);
         } else {
             throw new IllegalArgumentException("Platform " + platform + " not supported");
         }
@@ -45,7 +43,7 @@ public class DefaultPlatformProvider extends AbstractPlugin implements BlockBase
 
     @Override
     public ChunkStore getChunkStore(Platform platform, File worldDir, int dimension) {
-        if (platform.equals(JAVA_MCREGION) || platform.equals(JAVA_ANVIL)) {
+        if (PLATFORMS.contains(platform)) {
             File regionDir;
             switch (dimension) {
                 case DIM_NORMAL:
@@ -69,7 +67,7 @@ public class DefaultPlatformProvider extends AbstractPlugin implements BlockBase
     @Override
     public WorldExporter getExporter(World2 world) {
         Platform platform = world.getPlatform();
-        if (platform.equals(JAVA_MCREGION) || platform.equals(JAVA_ANVIL)) {
+        if (PLATFORMS.contains(platform)) {
             return new JavaWorldExporter(world);
         } else {
             throw new IllegalArgumentException("Platform " + platform + " not supported");
@@ -84,8 +82,10 @@ public class DefaultPlatformProvider extends AbstractPlugin implements BlockBase
 
     @Override
     public PostProcessor getPostProcessor(Platform platform) {
-        if (platform.equals(JAVA_MCREGION) || platform.equals(JAVA_ANVIL)) {
-            return new JavaPostProcessor();
+        if ((platform == JAVA_ANVIL_1_13)) {
+            return new Java1_13PostProcessor();
+        } else if (PLATFORMS.contains(platform)) {
+            return new Java1_2PostProcessor();
         } else {
             throw new IllegalArgumentException("Platform " + platform + " not supported");
         }
@@ -96,5 +96,5 @@ public class DefaultPlatformProvider extends AbstractPlugin implements BlockBase
         return new JavaMapRecognizer();
     }
 
-    private static final List<Platform> PLATFORMS = ImmutableList.of(JAVA_ANVIL, JAVA_MCREGION);
+    private static final List<Platform> PLATFORMS = ImmutableList.of(JAVA_ANVIL_1_13, JAVA_ANVIL, JAVA_MCREGION);
 }

@@ -221,7 +221,7 @@ public class BiomesViewerFrame extends JFrame {
             throw new RuntimeException("Could not create " + worldDir);
         }
         BiomeScheme biomeScheme1 = BiomesViewerFrame.this.biomeScheme;
-        Level level = new Level(Constants.DEFAULT_MAX_HEIGHT_1, (biomeScheme1 instanceof Minecraft1_1BiomeScheme) ? DefaultPlugin.JAVA_MCREGION : DefaultPlugin.JAVA_ANVIL);
+        Level level = new Level(Constants.DEFAULT_MAX_HEIGHT_MCREGION, (biomeScheme1 instanceof Minecraft1_1BiomeScheme) ? DefaultPlugin.JAVA_MCREGION : DefaultPlugin.JAVA_ANVIL);
         if (! (biomeScheme1 instanceof Minecraft1_1BiomeScheme)) {
             level.setGenerator(((biomeScheme1 instanceof Minecraft1_3LargeBiomeScheme) || (biomeScheme1 instanceof Minecraft1_7LargeBiomeScheme) || (biomeScheme1 instanceof Minecraft1_8LargeBiomeScheme) || (biomeScheme1 instanceof Minecraft1_12LargeBiomeScheme)) ? Generator.LARGE_BIOMES : Generator.DEFAULT);
         }

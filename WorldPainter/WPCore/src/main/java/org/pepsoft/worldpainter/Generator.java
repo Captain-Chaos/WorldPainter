@@ -9,7 +9,7 @@ package org.pepsoft.worldpainter;
  * @author pepijn
  */
 public enum Generator {
-    DEFAULT("Default"), FLAT("Superflat"), LARGE_BIOMES("Large Biomes"), CUSTOM("Custom");
+    DEFAULT("Default"), FLAT("Superflat"), LARGE_BIOMES("Large Biomes"), BUFFET("Buffet"), CUSTOM("Custom");
 
     Generator(String displayName) {
         this.displayName = displayName;

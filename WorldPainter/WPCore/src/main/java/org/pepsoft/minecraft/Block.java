@@ -8,12 +8,15 @@ import java.util.BitSet;
 import static org.pepsoft.minecraft.Constants.*;
 
 /**
- * A database of Minecraft block information. Accessed by using the block ID as
- * index in the {@link #BLOCKS} array. Implements the Enumeration pattern,
- * meaning there is only ever one instance of this class for each block ID,
- * allowing use of the equals operator (==) for comparing instances.
+ * A database of legacy (pre-1.13) Minecraft block information. Accessed by
+ * using the block ID as index in the {@link #BLOCKS} array. Implements the
+ * Enumeration pattern, meaning there is only ever one instance of this class
+ * for each block ID, allowing use of the equals operator (==) for comparing
+ * instances.
  *
  * Created by pepijn on 17-3-15.
+ *
+ * @deprecated Use {@link Material}
  */
 public final class Block implements Serializable {
     private Block(int id, int transparency, String name, boolean terrain,

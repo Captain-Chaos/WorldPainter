@@ -189,17 +189,15 @@ public final class MixedMaterialTableModel implements TableModel, Cloneable {
 
     @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-        return (rows.length > 1) || (columnIndex != COLUMN_OCCURRENCE) || (mode == Mode.LAYERED);
+        return (columnIndex != COLUMN_MATERIAL) && ((rows.length > 1) || (columnIndex != COLUMN_OCCURRENCE) || (mode == Mode.LAYERED));
     }
 
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
         Row row = rows[rowIndex];
         switch (columnIndex) {
-            case COLUMN_BLOCK_ID:
-                return row.material.blockType;
-            case COLUMN_DATA_VALUE:
-                return row.material.data;
+            case COLUMN_MATERIAL:
+                return row.material;
             case COLUMN_OCCURRENCE:
                 return row.occurrence;
             case COLUMN_SCALE:
@@ -216,11 +214,8 @@ public final class MixedMaterialTableModel implements TableModel, Cloneable {
         }
         Row row = rows[rowIndex];
         switch (columnIndex) {
-            case COLUMN_BLOCK_ID:
-                row = new Row(Material.get((Integer) aValue, row.material.data), row.occurrence, row.scale);
-                break;
-            case COLUMN_DATA_VALUE:
-                row = new Row(Material.get(row.material.blockType, (Integer) aValue), row.occurrence, row.scale);
+            case COLUMN_MATERIAL:
+                row = new Row((Material) aValue, row.occurrence, row.scale);
                 break;
             case COLUMN_OCCURRENCE:
                 int oldOccurrence = row.occurrence;
@@ -273,11 +268,10 @@ public final class MixedMaterialTableModel implements TableModel, Cloneable {
     private Row[] rows;
     private Mode mode;
     
-    public static final int COLUMN_BLOCK_ID   = 0;
-    public static final int COLUMN_DATA_VALUE = 1;
-    public static final int COLUMN_OCCURRENCE = 2;
-    public static final int COLUMN_SCALE      = 3;
+    public static final int COLUMN_MATERIAL   = 0;
+    public static final int COLUMN_OCCURRENCE = 1;
+    public static final int COLUMN_SCALE      = 2;
     
-    private static final String[] COLUMN_NAMES =   {"Block ID",    "Data Value",  "Occurrence (in ‰)", "Scale (in %)"};
-    private static final Class<?>[] COLUMN_TYPES = {Integer.class, Integer.class, Integer.class,       Integer.class};
+    private static final String[] COLUMN_NAMES =   {"Material",     "Occurrence (in ‰)", "Scale (in %)"};
+    private static final Class<?>[] COLUMN_TYPES = {Material.class, Integer.class,         Integer.class};
 }

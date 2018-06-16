@@ -96,12 +96,12 @@ public class NewWorldDialog2 extends javax.swing.JDialog {
             // With hills
             heightMap = new SumHeightMap(heightMap, hills);
         }
-//        Theme theme = new FancyTheme(org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2, waterLevel, heightMap, Terrain.GRASS);
+//        Theme theme = new FancyTheme(org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL, waterLevel, heightMap, Terrain.GRASS);
         SortedMap<Integer, Terrain> terrainRanges = new TreeMap<>();
         terrainRanges.put(-1, Terrain.BEACHES);
         terrainRanges.put(waterLevel - 4, Terrain.GRASS);
-        Theme theme = new SimpleTheme(seed, waterLevel, terrainRanges, null, org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2, true, true);
-        return new HeightMapTileFactory(seed, heightMap, org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2, false, theme);
+        Theme theme = new SimpleTheme(seed, waterLevel, terrainRanges, null, org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL, true, true);
+        return new HeightMapTileFactory(seed, heightMap, org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL, false, theme);
     }
 
     private void schedulePreviewUpdate() {

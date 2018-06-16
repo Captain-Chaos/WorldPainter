@@ -6,7 +6,7 @@
 package org.pepsoft.worldpainter.exporting;
 
 import org.pepsoft.minecraft.ChunkFactory;
-import org.pepsoft.minecraft.ChunkImpl2;
+import org.pepsoft.minecraft.MC12AnvilChunk;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.*;
@@ -21,6 +21,9 @@ import java.util.Random;
 import java.util.Set;
 
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Material.BEDROCK;
+import static org.pepsoft.minecraft.Material.STATIONARY_LAVA;
+import static org.pepsoft.minecraft.Material.STATIONARY_WATER;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Platform.Capability.BIOMES;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.*;
@@ -123,7 +126,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                         }
                     }
                     result.chunk.setBiome(x, z, biome);
-                } else if (biomesSupported && (result.chunk instanceof ChunkImpl2)) {
+                } else if (biomesSupported && (result.chunk instanceof MC12AnvilChunk)) {
                     result.chunk.setBiome(x, z, defaultBiome);
                 }
 
@@ -153,7 +156,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                         result.stats.landArea++;
                     }
                     if (bedrock) {
-                        result.chunk.setBlockType(x, 0, z, BLK_BEDROCK);
+                        result.chunk.setMaterial(x, 0, z, BEDROCK);
                     }
                     int subsurfaceMaxHeight = intHeight - topLayerDepth;
                     if (coverSteepTerrain) {
@@ -166,20 +169,20 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                     for (int y = bedrock ? 1 : 0; y <= maxY; y++) {
                         if (y <= subsurfaceMaxHeight) {
                             // Sub surface
-                            result.chunk.setMaterial(x, y, z, subsurfaceMaterial.getMaterial(seed, worldX, worldY, y + subSurfaceLayerOffset, intHeight + subSurfaceLayerOffset));
+                            result.chunk.setMaterial(x, y, z, subsurfaceMaterial.getMaterial(platform, seed, worldX, worldY, y + subSurfaceLayerOffset, intHeight + subSurfaceLayerOffset));
                         } else if (y < intHeight) {
                             // Top/terrain layer, but not surface block
-                            result.chunk.setMaterial(x, y, z, terrain.getMaterial(seed, worldX, worldY, y + topLayerLayerOffset, intHeight + topLayerLayerOffset));
+                            result.chunk.setMaterial(x, y, z, terrain.getMaterial(platform, seed, worldX, worldY, y + topLayerLayerOffset, intHeight + topLayerLayerOffset));
                         } else if (y == intHeight) {
                             // Surface block
                             final Material material;
                             if (topLayerLayerOffset != 0) {
-                                material = terrain.getMaterial(seed, worldX, worldY, intHeight + topLayerLayerOffset, intHeight + topLayerLayerOffset);
+                                material = terrain.getMaterial(platform, seed, worldX, worldY, intHeight + topLayerLayerOffset, intHeight + topLayerLayerOffset);
                             } else {
                                 // Use floating point height here to make sure
                                 // undulations caused by layer variation settings/
                                 // blobs, etc. look continuous on the surface
-                                material = terrain.getMaterial(seed, worldX, worldY, height + topLayerLayerOffset, intHeight + topLayerLayerOffset);
+                                material = terrain.getMaterial(platform, seed, worldX, worldY, height + topLayerLayerOffset, intHeight + topLayerLayerOffset);
                             }
                             final int blockType = material.blockType;
                             if (((blockType == BLK_WOODEN_SLAB) || (blockType == BLK_SLAB) || (blockType == BLK_RED_SANDSTONE_SLAB)) && (! underWater) && (height > intHeight)) {
@@ -190,9 +193,9 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                         } else if (y <= waterLevel) {
                             // Above the surface but below the water/lava level
                             if (floodWithLava) {
-                                result.chunk.setBlockType(x, y, z, BLK_STATIONARY_LAVA);
+                                result.chunk.setMaterial(x, y, z, STATIONARY_LAVA);
                             } else {
-                                result.chunk.setBlockType(x, y, z, BLK_STATIONARY_WATER);
+                                result.chunk.setMaterial(x, y, z, STATIONARY_WATER);
                             }
                         } else if (! underWater) {
                             // Above the surface on dry land
@@ -206,16 +209,16 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                                 if ((random.nextInt(5) > 0) && ((blockTypeBelow == BLK_GRASS) || (blockTypeBelow == BLK_DIRT) || (blockTypeBelow == BLK_SAND) || (blockTypeBelow == BLK_SUGAR_CANE))) {
                                     result.chunk.setMaterial(x, y, z, Material.SUGAR_CANE);
                                 } else {
-                                    result.chunk.setMaterial(x, y, z, terrain.getMaterial(seed, worldX, worldY, y, intHeight));
+                                    result.chunk.setMaterial(x, y, z, terrain.getMaterial(platform, seed, worldX, worldY, y, intHeight));
                                 }
                             } else {
-                                result.chunk.setMaterial(x, y, z, terrain.getMaterial(seed, worldX, worldY, y, intHeight));
+                                result.chunk.setMaterial(x, y, z, terrain.getMaterial(platform, seed, worldX, worldY, y, intHeight));
                             }
                         }
                     }
                 }
                 if (dark) {
-                    result.chunk.setBlockType(x, maxY, z, BLK_BEDROCK);
+                    result.chunk.setMaterial(x, maxY, z, BEDROCK);
                     result.chunk.setHeight(x, z, maxY);
                 } else if (_void) {
                     result.chunk.setHeight(x, z, 0);
@@ -235,7 +238,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                 if (logger.isTraceEnabled()) {
                     logger.trace("Exporting layer {} for chunk {},{}", layer, chunkX, chunkZ);
                 }
-                ((FirstPassLayerExporter) layerExporter).render(dimension, tile, result.chunk);
+                ((FirstPassLayerExporter) layerExporter).render(dimension, tile, result.chunk, platform);
             }
         }
         result.stats.surfaceArea = 256;

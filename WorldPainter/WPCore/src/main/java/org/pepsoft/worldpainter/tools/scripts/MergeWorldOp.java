@@ -49,7 +49,7 @@ public class MergeWorldOp extends AbstractOperation<Void> {
         // Set the file format if it was not set yet (because this world was
         // not exported before)
         if (world.getPlatform() == null) {
-            world.setPlatform((world.getMaxHeight() == DEFAULT_MAX_HEIGHT_2) ? DefaultPlugin.JAVA_ANVIL : DefaultPlugin.JAVA_MCREGION);
+            world.setPlatform((world.getMaxHeight() == DEFAULT_MAX_HEIGHT_ANVIL) ? DefaultPlugin.JAVA_ANVIL : DefaultPlugin.JAVA_MCREGION);
         }
 
         // Load any custom materials defined in the world

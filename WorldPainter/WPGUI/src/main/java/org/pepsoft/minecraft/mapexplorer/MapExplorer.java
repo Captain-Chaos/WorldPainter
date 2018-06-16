@@ -121,7 +121,7 @@ public class MapExplorer {
     private static Component createDetailsPanel() {
         JPanel detailsPanel = new JPanel(new BorderLayout());
         JToolBar toolBar = new JToolBar();
-        wordSizeSpinner = new JSpinner(new SpinnerNumberModel(4, 4, 64, 1));
+        wordSizeSpinner = new JSpinner(new SpinnerNumberModel(4, 4, 999, 1));
         wordSizeSpinner.addChangeListener(e -> updateBinaryData());
         JLabel label = new JLabel("Word size:");
         label.setLabelFor(wordSizeSpinner);
@@ -186,42 +186,42 @@ public class MapExplorer {
     }
 
     private static void updateDetails(Node node) {
-        if (node instanceof TagNode) {
-            // NBT tag
-            Tag tag = ((TagNode) node).getTag();
-            if (tag instanceof ByteArrayTag) {
-                data = ((ByteArrayTag) tag).getValue();
-                updateBinaryData();
-            } else if (tag instanceof IntArrayTag) {
-                data = ((IntArrayTag) tag).getValue();
-                updateBinaryData();
-            } else if (tag instanceof LongArrayTag) {
-                data = ((LongArrayTag) tag).getValue();
-                updateBinaryData();
-            } else {
-                data = null;
-                detailsArea.setIcon(null);
-                detailsArea.setText("<html><pre>" + tag.getValue() + "</pre></html>");
-            }
-        } else if (node instanceof FileSystemNode) {
-            if (node instanceof NBTFileNode) {
-                clearDetails();
-                return;
-            }
-            File file = ((FileSystemNode) node).file;
-            if ((! file.isFile()) || (! file.canRead())) {
-                clearDetails();
-                return;
-            }
-            String name = file.getName().toLowerCase().trim();
-            int p = name.lastIndexOf('.');
-            String extension;
-            if (p != -1) {
-                extension = name.substring(p + 1);
-            } else {
-                extension = null;
-            }
-            try {
+        try {
+            if (node instanceof TagNode) {
+                // NBT tag
+                Tag tag = ((TagNode) node).getTag();
+                if (tag instanceof ByteArrayTag) {
+                    data = ((ByteArrayTag) tag).getValue();
+                    updateBinaryData();
+                } else if (tag instanceof IntArrayTag) {
+                    data = ((IntArrayTag) tag).getValue();
+                    updateBinaryData();
+                } else if (tag instanceof LongArrayTag) {
+                    data = ((LongArrayTag) tag).getValue();
+                    updateBinaryData();
+                } else {
+                    data = null;
+                    detailsArea.setIcon(null);
+                    detailsArea.setText("<html><pre>" + tag.getValue() + "</pre></html>");
+                }
+            } else if (node instanceof FileSystemNode) {
+                if (node instanceof NBTFileNode) {
+                    clearDetails();
+                    return;
+                }
+                File file = ((FileSystemNode) node).file;
+                if ((! file.isFile()) || (! file.canRead())) {
+                    clearDetails();
+                    return;
+                }
+                String name = file.getName().toLowerCase().trim();
+                int p = name.lastIndexOf('.');
+                String extension;
+                if (p != -1) {
+                    extension = name.substring(p + 1);
+                } else {
+                    extension = null;
+                }
                 byte[] contents = Files.readAllBytes(file.toPath());
                 if (SUPPORTED_IMAGE_TYPES.contains(extension)) {
                     // Image
@@ -238,17 +238,17 @@ public class MapExplorer {
                     data = contents;
                     updateBinaryData();
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
-                StringWriter sw = new StringWriter();
-                PrintWriter pw = new PrintWriter(sw);
-                e.printStackTrace(pw);
-                data = null;
-                detailsArea.setIcon(null);
-                detailsArea.setText("<html><pre>" + sw + "</pre></html>");
+            } else {
+                clearDetails();
             }
-        } else {
-            clearDetails();
+        } catch (IOException | RuntimeException e) {
+            e.printStackTrace();
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            data = null;
+            detailsArea.setIcon(null);
+            detailsArea.setText("<html><pre>" + sw + "</pre></html>");
         }
     }
 

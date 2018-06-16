@@ -9,6 +9,8 @@ import org.jnbt.CompoundTag;
 import org.jnbt.Tag;
 
 import java.awt.*;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -22,8 +24,8 @@ import static org.pepsoft.minecraft.Constants.*;
  * 
  * @author pepijn
  */
-public final class ChunkImpl extends AbstractNBTItem implements Chunk {
-    public ChunkImpl(int xPos, int zPos, int maxHeight) {
+public final class MCRegionChunk extends AbstractNBTItem implements Chunk {
+    public MCRegionChunk(int xPos, int zPos, int maxHeight) {
         super(new CompoundTag(TAG_LEVEL, new HashMap<>()));
         this.xPos = xPos;
         this.zPos = zPos;
@@ -39,11 +41,11 @@ public final class ChunkImpl extends AbstractNBTItem implements Chunk {
         readOnly = false;
     }
 
-    public ChunkImpl(CompoundTag tag, int maxHeight) {
+    public MCRegionChunk(CompoundTag tag, int maxHeight) {
         this(tag, maxHeight, false);
     }
 
-    public ChunkImpl(CompoundTag tag, int maxHeight, boolean readOnly) {
+    public MCRegionChunk(CompoundTag tag, int maxHeight, boolean readOnly) {
         super((CompoundTag) tag.getTag(TAG_LEVEL));
         this.maxHeight = maxHeight;
         this.readOnly = readOnly;
@@ -276,7 +278,7 @@ public final class ChunkImpl extends AbstractNBTItem implements Chunk {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final ChunkImpl other = (ChunkImpl) obj;
+        final MCRegionChunk other = (MCRegionChunk) obj;
         if (this.xPos != other.xPos) {
             return false;
         }
@@ -298,7 +300,7 @@ public final class ChunkImpl extends AbstractNBTItem implements Chunk {
      * @throws UnsupportedOperationException
      */
     @Override
-    public ChunkImpl clone() {
+    public MCRegionChunk clone() {
         throw new UnsupportedOperationException("ChunkImlp.clone() not supported");
     }
 
@@ -333,6 +335,10 @@ public final class ChunkImpl extends AbstractNBTItem implements Chunk {
         return y + (z + x * 16) * maxHeight;
     }
 
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        throw new IOException("MCRegionChunk is not serializable");
+    }
+
     public final boolean readOnly;
 
     final byte[] blocks;
@@ -345,6 +351,4 @@ public final class ChunkImpl extends AbstractNBTItem implements Chunk {
     final List<Entity> entities;
     final List<TileEntity> tileEntities;
     final int maxHeight;
-
-    private static final long serialVersionUID = 1L;
 }

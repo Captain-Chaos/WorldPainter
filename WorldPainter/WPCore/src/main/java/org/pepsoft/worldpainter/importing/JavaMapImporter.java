@@ -27,8 +27,13 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Material.EMERALD_ORE;
+import static org.pepsoft.minecraft.Material.QUARTZ_ORE;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
+
+// TODOMC13 migrate to modern materials
 
 /**
  *
@@ -64,12 +69,12 @@ public class JavaMapImporter {
         logger.info("Importing map from " + levelDatFile.getAbsolutePath());
         Level level = Level.load(levelDatFile);
         int version = level.getVersion();
-        if ((version != SUPPORTED_VERSION_1) && (version != SUPPORTED_VERSION_2)) {
+        if ((version != VERSION_MCREGION) && (version != VERSION_ANVIL)) {
             throw new UnsupportedOperationException("Level format version " + version + " not supported");
         }
         String name = level.getName().trim();
         int maxHeight = level.getMaxHeight();
-        World2 world = new World2((version == SUPPORTED_VERSION_1) ? JAVA_MCREGION : JAVA_ANVIL, maxHeight);
+        World2 world = new World2((version == VERSION_MCREGION) ? JAVA_MCREGION : JAVA_ANVIL, maxHeight);
         world.addHistoryEntry(HistoryEntry.WORLD_IMPORTED_FROM_MINECRAFT_MAP, level.getName(), levelDatFile.getParentFile());
         world.setCreateGoodiesChest(false);
         world.setName(name);
@@ -88,7 +93,7 @@ public class JavaMapImporter {
             world.setGeneratorOptions(level.getGeneratorOptions());
         }
         world.setDifficulty(level.getDifficulty());
-        if ((version == SUPPORTED_VERSION_2) && (level.getBorderSize() > 0.0)) {
+        if ((version == VERSION_ANVIL) && (level.getBorderSize() > 0.0)) {
             // If the world is version 0x4abd and actually has border settings,
             // load them
             world.getBorderSettings().setCentreX((int) (level.getBorderCenterX() + 0.5));
@@ -128,8 +133,8 @@ public class JavaMapImporter {
             
             ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) dimension.getLayerSettings(Resources.INSTANCE);
             resourcesSettings.setMinimumLevel(0);
-            if (version == SUPPORTED_VERSION_1) {
-                resourcesSettings.setChance(BLK_EMERALD_ORE, 0);
+            if (version == VERSION_MCREGION) {
+                resourcesSettings.setChance(EMERALD_ORE, 0);
             }
             Configuration config = Configuration.getInstance();
             dimension.setGridEnabled(config.isDefaultGridEnabled());
@@ -164,8 +169,8 @@ public class JavaMapImporter {
                 dimension.setSubsurfaceMaterial(Terrain.NETHERRACK);
                 ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) dimension.getLayerSettings(Resources.INSTANCE);
                 resourcesSettings.setMinimumLevel(0);
-                if (version == SUPPORTED_VERSION_1) {
-                    resourcesSettings.setChance(BLK_QUARTZ_ORE, 0);
+                if (version == VERSION_MCREGION) {
+                    resourcesSettings.setChance(QUARTZ_ORE, 0);
                 }
                 String dimWarnings = importDimension(netherDir, dimension, version, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) dimNo++ / dimCount, 1.0f / dimCount) : null);
                 if (dimWarnings != null) {
@@ -218,7 +223,7 @@ public class JavaMapImporter {
             event.setAttribute(ATTRIBUTE_KEY_GAME_TYPE_NAME, world.getGameType().name());
             event.setAttribute(ATTRIBUTE_KEY_ALLOW_CHEATS, world.isAllowCheats());
             event.setAttribute(ATTRIBUTE_KEY_GENERATOR, world.getGenerator().name());
-            if (world.getPlatform().equals(JAVA_ANVIL) && (world.getGenerator() == Generator.FLAT)) {
+            if ((world.getPlatform() == JAVA_ANVIL) && (world.getGenerator() == Generator.FLAT)) {
                 event.setAttribute(ATTRIBUTE_KEY_GENERATOR_OPTIONS, world.getGeneratorOptions());
             }
             event.setAttribute(ATTRIBUTE_KEY_TILES, dimension.getTiles().size());
@@ -238,7 +243,7 @@ public class JavaMapImporter {
         }
         final int maxHeight = dimension.getMaxHeight();
         final int maxY = maxHeight - 1;
-        final Pattern regionFilePattern = (version == SUPPORTED_VERSION_1)
+        final Pattern regionFilePattern = (version == VERSION_MCREGION)
             ? Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mcr")
             : Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mca");
         final File[] regionFiles = regionDir.listFiles((dir, name) -> regionFilePattern.matcher(name).matches());
@@ -247,7 +252,7 @@ public class JavaMapImporter {
         }
         final Set<Point> newChunks = new HashSet<>();
 //        final SortedSet<Material> manMadeBlockTypes = new TreeSet<Material>();
-        final boolean importBiomes = (version == SUPPORTED_VERSION_2) && (dimension.getDim() == DIM_NORMAL);
+        final boolean importBiomes = (version == VERSION_ANVIL) && (dimension.getDim() == DIM_NORMAL);
         final int total = regionFiles.length * 1024;
         int count = 0;
         final StringBuilder reportBuilder = new StringBuilder();
@@ -293,9 +298,9 @@ public class JavaMapImporter {
                                     logger.error("Negative array size exception while reading chunk " + x + ", " + z + " from file " + file + "; skipping chunk", e);
                                     continue;
                                 }
-                                final Chunk chunk = (version == SUPPORTED_VERSION_1)
-                                    ? new ChunkImpl((CompoundTag) tag, maxHeight)
-                                    : new ChunkImpl2((CompoundTag) tag, maxHeight);
+                                final Chunk chunk = (version == VERSION_MCREGION)
+                                    ? new MCRegionChunk((CompoundTag) tag, maxHeight)
+                                    : new MC12AnvilChunk((CompoundTag) tag, maxHeight);
 
                                 final Point tileCoords = new Point(chunk.getxPos() >> 3, chunk.getzPos() >> 3);
                                 Tile tile = dimension.getTile(tileCoords);
@@ -505,8 +510,8 @@ public class JavaMapImporter {
         SPECIAL_TERRAIN_MAPPING.put(Material.DIORITE, Terrain.DIORITE);
         SPECIAL_TERRAIN_MAPPING.put(Material.ANDESITE, Terrain.ANDESITE);
 
-        // Make sure the tile entity flag in the block database is consistent
-        // with the tile entity map:
+        // Make sure the terrain flag in the block database is consistent
+        // with the terrain mapping:
         Set<Integer> allTerrainBlockIds = new HashSet<>();
         allTerrainBlockIds.addAll(TERRAIN_MAPPING.keySet());
         for (int blockId: TERRAIN_MAPPING.keySet()) {
@@ -516,7 +521,7 @@ public class JavaMapImporter {
         }
         for (Material material: SPECIAL_TERRAIN_MAPPING.keySet()) {
             allTerrainBlockIds.add(material.blockType);
-            if (! material.block.terrain) {
+            if (! material.terrain) {
                 throw new AssertionError("Block " + material.blockType + " not marked as terrain block!");
             }
         }

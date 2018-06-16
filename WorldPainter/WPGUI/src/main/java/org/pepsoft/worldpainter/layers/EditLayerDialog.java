@@ -34,8 +34,8 @@ public class EditLayerDialog<L extends Layer> extends AbstractEditLayerDialog<L>
      * @param parent The window relative to which to display the dialog.
      * @param layerType The type of layer of which to create a new instance.
      */
-    public EditLayerDialog(Window parent, Class<L> layerType) {
-        this(parent, null, LayerEditorManager.getInstance().createEditor(layerType));
+    public EditLayerDialog(Window parent, Platform platform, Class<L> layerType) {
+        this(parent, null, LayerEditorManager.getInstance().createEditor(platform, layerType));
     }
     
     /**
@@ -44,8 +44,8 @@ public class EditLayerDialog<L extends Layer> extends AbstractEditLayerDialog<L>
      * @param parent The window relative to which to display the dialog.
      * @param layer The layer to edit..
      */
-    public EditLayerDialog(Window parent, L layer) {
-        this(parent, layer, LayerEditorManager.getInstance().createEditor((Class<L>) layer.getClass()));
+    public EditLayerDialog(Window parent, Platform platform, L layer) {
+        this(parent, layer, LayerEditorManager.getInstance().createEditor(platform, (Class<L>) layer.getClass()));
     }
 
     private EditLayerDialog(Window parent, L layer, LayerEditor<L> editor) {

@@ -8,36 +8,31 @@ package org.pepsoft.worldpainter.layers.exporters;
 import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.Tile;
-import org.pepsoft.worldpainter.exporting.AbstractLayerExporter;
 import org.pepsoft.worldpainter.exporting.FirstPassLayerExporter;
 import org.pepsoft.worldpainter.layers.Caverns;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.util.Random;
 
-import static org.pepsoft.minecraft.Block.BLOCKS;
-import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.worldpainter.Constants.*;
 
 /**
  *
  * @author pepijn
  */
-public class CavernsExporter extends AbstractLayerExporter<Caverns> implements FirstPassLayerExporter {
+public class CavernsExporter extends AbstractCavesExporter<Caverns> implements FirstPassLayerExporter {
     public CavernsExporter() {
         super(Caverns.INSTANCE, new CavernsSettings());
     }
     
     @Override
-    public void render(Dimension dimension, Tile tile, Chunk chunk) {
+    public void render(Dimension dimension, Tile tile, Chunk chunk, Platform platform) {
         final CavernsSettings settings = (CavernsSettings) getSettings();
         final boolean surfaceBreaking = settings.isSurfaceBreaking();
-        final boolean floodWithLava = settings.isFloodWithLava();
         final boolean glassCeiling = settings.isGlassCeiling();
-        final boolean leaveWater = settings.isLeaveWater();
-        final int waterLevel = (settings.getWaterLevel() > 0) ? settings.getWaterLevel() : -1; // To avoid rendering a layer of water when fallThrough is true
         final int minimumLevel = settings.getCavernsEverywhereLevel();
         final int minY = settings.getMinimumLevel();
         final int maxY = Math.min(settings.getMaximumLevel(), dimension.getMaxHeight() - 1);
@@ -49,6 +44,8 @@ public class CavernsExporter extends AbstractLayerExporter<Caverns> implements F
         }
         final int xOffset = (chunk.getxPos() & 7) << 4;
         final int zOffset = (chunk.getzPos() & 7) << 4;
+        setupForColumn(seed, tile, maxY, (settings.getWaterLevel() > 0) ? settings.getWaterLevel() : -1, glassCeiling,
+                surfaceBreaking, settings.isLeaveWater(), settings.isFloodWithLava());
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
                 final int localX = xOffset + x, localY = zOffset + z;
@@ -62,15 +59,12 @@ public class CavernsExporter extends AbstractLayerExporter<Caverns> implements F
 //                    if ((x == 0) && (z == 0)) {
 //                        System.out.println("terrainHeight: " + terrainheight);
 //                    }
-                    boolean breachedCeiling = false, previousBlockInCavern = false;
                     for (int y = terrainheight; fallThrough ? (y >= 0) : (y >= minYAdjusted); y--) {
-                        final int existingBlockType = chunk.getBlockType(x, y, z);
-                        if (existingBlockType == BLK_AIR) {
+                        if (chunk.getMaterial(x, y, z) == AIR) {
                             // There is already a void here; assume that things
                             // like removing water, etc. have already been done
                             // by whatever made the void
-                            breachedCeiling = true;
-                            previousBlockInCavern = true;
+                            emptyBlockEncountered();
                             continue;
                         }
                         float bias = CAVERN_CHANCE
@@ -89,121 +83,7 @@ public class CavernsExporter extends AbstractLayerExporter<Caverns> implements F
 //                        if ((x == 0) && (z == 0)) {
 //                            System.out.println(y + ": bias: " + bias + ", cavernLikelyHood: " + cavernLikelyhood);
 //                        }
-                        if (cavernLikelyhood > CAVERN_CHANCE) {
-                            // In a cavern
-                            if ((! breachedCeiling) && (y < maxY)) {
-//                                System.out.println("Cavern for value: " + cavernsValue);
-//                                if (cavernsValue < lowestValueCavern) {
-//                                    lowestValueCavern = cavernsValue;
-//                                    System.out.println("Lowest cavern value with caverns: " + lowestValueCavern);
-//                                }
-                                if (glassCeiling) {
-                                    for (int yy = y + 1; yy <= terrainheight; yy++) {
-                                        chunk.setBlockType(x, yy, z, BLK_GLASS);
-                                    }
-                                }
-                                if (surfaceBreaking) {
-                                    final int blockAbove = chunk.getBlockType(x, y + 1, z);
-                                    if (leaveWater) {
-                                        if (blockAbove == BLK_STATIONARY_WATER) {
-                                            chunk.setBlockType(x, y + 1, z, BLK_WATER);
-                                        } else if (blockAbove == BLK_STATIONARY_LAVA) {
-                                            chunk.setBlockType(x, y + 1, z, BLK_LAVA);
-                                        }                                        
-                                    } else {
-                                        if ((blockAbove == BLK_WATER) || (blockAbove == BLK_STATIONARY_WATER)) {
-                                            for (int yy = y + 1; yy <= maxY; yy++) {
-                                                final int blockType = chunk.getBlockType(x, yy, z);
-                                                if ((blockType == BLK_WATER) || (blockType == BLK_STATIONARY_WATER)) {
-                                                    chunk.setBlockType(x, yy, z, BLK_AIR);
-                                                    chunk.setDataValue(x, yy, z, 0);
-                                                    // Set the surrounding water, if
-                                                    // any, to non-stationary, so that
-                                                    // it will flow into the cavern
-                                                    if ((x > 0) && (chunk.getBlockType(x - 1, yy, z) == BLK_STATIONARY_WATER)) {
-                                                        chunk.setBlockType(x - 1, yy, z, BLK_WATER);
-                                                    }
-                                                    if ((x < 15) && (chunk.getBlockType(x + 1, yy, z) == BLK_STATIONARY_WATER)) {
-                                                        chunk.setBlockType(x + 1, yy, z, BLK_WATER);
-                                                    }
-                                                    if ((z > 0) && (chunk.getBlockType(x, yy, z - 1) == BLK_STATIONARY_WATER)) {
-                                                        chunk.setBlockType(x, yy, z - 1, BLK_WATER);
-                                                    }
-                                                    if ((z < 15) && (chunk.getBlockType(x, yy, z + 1) == BLK_STATIONARY_WATER)) {
-                                                        chunk.setBlockType(x, yy, z + 1, BLK_WATER);
-                                                    }
-                                                } else {
-                                                    break;
-                                                }
-                                            }
-                                        } else if ((blockAbove == BLK_LAVA) || (blockAbove == BLK_STATIONARY_LAVA)) {
-                                            for (int yy = y + 1; yy <= maxY; yy++) {
-                                                final int blockType = chunk.getBlockType(x, yy, z);
-                                                if ((blockType == BLK_LAVA) || (blockType == BLK_STATIONARY_LAVA)) {
-                                                    chunk.setBlockType(x, yy, z, BLK_AIR);
-                                                    chunk.setDataValue(x, yy, z, 0);
-                                                    // Set the surrounding water, if
-                                                    // any, to non-stationary, so that
-                                                    // it will flow into the cavern
-                                                    if ((x > 0) && (chunk.getBlockType(x - 1, yy, z) == BLK_STATIONARY_LAVA)) {
-                                                        chunk.setBlockType(x - 1, yy, z, BLK_LAVA);
-                                                    }
-                                                    if ((x < 15) && (chunk.getBlockType(x + 1, yy, z) == BLK_STATIONARY_LAVA)) {
-                                                        chunk.setBlockType(x + 1, yy, z, BLK_LAVA);
-                                                    }
-                                                    if ((z > 0) && (chunk.getBlockType(x, yy, z - 1) == BLK_STATIONARY_LAVA)) {
-                                                        chunk.setBlockType(x, yy, z - 1, BLK_LAVA);
-                                                    }
-                                                    if ((z < 15) && (chunk.getBlockType(x, yy, z + 1) == BLK_STATIONARY_LAVA)) {
-                                                        chunk.setBlockType(x, yy, z + 1, BLK_LAVA);
-                                                    }
-                                                } else {
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            breachedCeiling = true;
-                            if ((! previousBlockInCavern) && (y < maxY)) {
-                                final int blockAbove = chunk.getBlockType(x, y + 1, z);
-                                // Note that the post processor will take care
-                                // of supporting sand with sandstone, if that is
-                                // not disabled
-                                if (blockAbove == BLK_GRAVEL) {
-                                    // Support gravel with stone
-                                    chunk.setBlockType(x, y + 1, z, BLK_STONE);
-                                }
-                            }
-//                            System.out.println("Cavern at " + x + ", " + y + ", " + z);
-                            if (y > waterLevel) {
-                                chunk.setBlockType(x, y, z, BLK_AIR);
-                                previousBlockInCavern = true;
-                            } else {
-                                if (floodWithLava) {
-                                    chunk.setBlockType(x, y, z, BLK_STATIONARY_LAVA);
-                                } else {
-                                    chunk.setBlockType(x, y, z, BLK_STATIONARY_WATER);
-                                }
-                                previousBlockInCavern = false;
-                            }
-                        } else if (previousBlockInCavern
-                                && (y >= waterLevel)
-                                && (! BLOCKS[existingBlockType].veryInsubstantial)) {
-//                            Material material = subsurfaceMaterial.getMaterial(seed, worldX, worldY, 1);
-//                            if (material == Material.AIR) {
-                                final int rnd = new Random(seed + (worldX * 65537) + (worldY * 4099)).nextInt(MUSHROOM_CHANCE);
-                                if (rnd == 0) {
-                                    chunk.setBlockType(x, y + 1, z, BLK_BROWN_MUSHROOM);
-//                                    System.out.println("Cave shroom @ " + worldX + ", " + worldY + "!");
-                                }
-//                            } else {
-//                                chunk.setMaterial(x, y + 1, z, material);
-//                            }
-//                            chunk.setMaterial(x, y, z, subsurfaceMaterial.getMaterial(seed, worldX, worldY, 0));
-                            previousBlockInCavern = false;
-                        }
+                        processBlock(chunk, x, y, z, cavernLikelyhood > CAVERN_CHANCE);
                     }
                 }
                 if (glassCeiling) {
@@ -218,8 +98,7 @@ public class CavernsExporter extends AbstractLayerExporter<Caverns> implements F
     
     private static final float CAVERN_CHANCE = 0.5f;
     private static final long SEED_OFFSET = 37;
-    private static final int MUSHROOM_CHANCE = 250;
-    
+
     public static class CavernsSettings implements ExporterSettings {
         @Override
         public boolean isApplyEverywhere() {

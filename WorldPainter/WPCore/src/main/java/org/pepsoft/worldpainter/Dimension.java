@@ -40,7 +40,7 @@ import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.*;
 
@@ -1679,26 +1679,26 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
 
                 // Load legacy settings
                 ResourcesExporterSettings settings = new ResourcesExporterSettings(maxHeight);
-                settings.setChance(BLK_GOLD_ORE,         1);
-                settings.setChance(BLK_IRON_ORE,         5);
-                settings.setChance(BLK_COAL,             9);
-                settings.setChance(BLK_LAPIS_LAZULI_ORE, 1);
-                settings.setChance(BLK_DIAMOND_ORE,      1);
-                settings.setChance(BLK_REDSTONE_ORE,     6);
-                settings.setChance(BLK_WATER,            1);
-                settings.setChance(BLK_LAVA,             1);
-                settings.setChance(BLK_DIRT,             9);
-                settings.setChance(BLK_GRAVEL,           9);
-                settings.setMaxLevel(BLK_GOLD_ORE,         Terrain.GOLD_LEVEL);
-                settings.setMaxLevel(BLK_IRON_ORE,         Terrain.IRON_LEVEL);
-                settings.setMaxLevel(BLK_COAL,             Terrain.COAL_LEVEL);
-                settings.setMaxLevel(BLK_LAPIS_LAZULI_ORE, Terrain.LAPIS_LAZULI_LEVEL);
-                settings.setMaxLevel(BLK_DIAMOND_ORE,      Terrain.DIAMOND_LEVEL);
-                settings.setMaxLevel(BLK_REDSTONE_ORE,     Terrain.REDSTONE_LEVEL);
-                settings.setMaxLevel(BLK_WATER,            Terrain.WATER_LEVEL);
-                settings.setMaxLevel(BLK_LAVA,             Terrain.LAVA_LEVEL);
-                settings.setMaxLevel(BLK_DIRT,             Terrain.DIRT_LEVEL);
-                settings.setMaxLevel(BLK_GRAVEL,           Terrain.GRAVEL_LEVEL);
+                settings.setChance(GOLD_ORE,         1);
+                settings.setChance(IRON_ORE,         5);
+                settings.setChance(COAL,             9);
+                settings.setChance(LAPIS_LAZULI_ORE, 1);
+                settings.setChance(DIAMOND_ORE,      1);
+                settings.setChance(REDSTONE_ORE,     6);
+                settings.setChance(WATER,            1);
+                settings.setChance(LAVA,             1);
+                settings.setChance(DIRT,             9);
+                settings.setChance(GRAVEL,           9);
+                settings.setMaxLevel(GOLD_ORE,         Terrain.GOLD_LEVEL);
+                settings.setMaxLevel(IRON_ORE,         Terrain.IRON_LEVEL);
+                settings.setMaxLevel(COAL,             Terrain.COAL_LEVEL);
+                settings.setMaxLevel(LAPIS_LAZULI_ORE, Terrain.LAPIS_LAZULI_LEVEL);
+                settings.setMaxLevel(DIAMOND_ORE,      Terrain.DIAMOND_LEVEL);
+                settings.setMaxLevel(REDSTONE_ORE,     Terrain.REDSTONE_LEVEL);
+                settings.setMaxLevel(WATER,            Terrain.WATER_LEVEL);
+                settings.setMaxLevel(LAVA,             Terrain.LAVA_LEVEL);
+                settings.setMaxLevel(DIRT,             Terrain.DIRT_LEVEL);
+                settings.setMaxLevel(GRAVEL,           Terrain.GRAVEL_LEVEL);
 
                 layerSettings.put(Resources.INSTANCE, settings);
             }

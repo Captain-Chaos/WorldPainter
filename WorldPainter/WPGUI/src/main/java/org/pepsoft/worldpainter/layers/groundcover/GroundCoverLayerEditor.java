@@ -6,10 +6,10 @@
 
 package org.pepsoft.worldpainter.layers.groundcover;
 
-import org.pepsoft.minecraft.Constants;
 import org.pepsoft.worldpainter.MixedMaterial;
 import org.pepsoft.worldpainter.MixedMaterialManager;
 import org.pepsoft.worldpainter.NoiseSettings;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.layers.AbstractLayerEditor;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 
@@ -17,6 +17,8 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
+
+import static org.pepsoft.minecraft.Material.ROSE;
 
 /**
  *
@@ -26,9 +28,11 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
     /**
      * Creates new form GroundCoverLayerEditor
      */
-    public GroundCoverLayerEditor() {
+    public GroundCoverLayerEditor(Platform platform) {
         initComponents();
-        
+        this.platform = platform;
+
+        mixedMaterialSelector1.setPlatform(platform);
         if ("true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.westerosCraftMode"))) {
             // Leave checkbox and label visible
         } else if ("true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.smoothGroundCover"))) {
@@ -72,7 +76,7 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
     
     @Override
     public GroundCoverLayer createLayer() {
-        return new GroundCoverLayer("My Ground Cover", MixedMaterial.create(Constants.BLK_ROSE), Color.RED.getRGB());
+        return new GroundCoverLayer("My Ground Cover", MixedMaterial.create(platform, ROSE), Color.RED.getRGB());
     }
 
     @Override
@@ -550,5 +554,6 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
     private javax.swing.JSpinner spinnerThickness;
     // End of variables declaration//GEN-END:variables
 
+    private final Platform platform;
     private int selectedColour = Color.RED.getRGB();
 }

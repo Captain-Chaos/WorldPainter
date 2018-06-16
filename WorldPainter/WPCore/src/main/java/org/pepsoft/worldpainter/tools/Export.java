@@ -72,7 +72,7 @@ public class Export {
             Terrain.setCustomMaterial(i, material);
         }
         if (world.getPlatform() == null) {
-            if (world.getMaxHeight() == Constants.DEFAULT_MAX_HEIGHT_2) {
+            if (world.getMaxHeight() == Constants.DEFAULT_MAX_HEIGHT_ANVIL) {
                 world.setPlatform(DefaultPlugin.JAVA_ANVIL);
             } else {
                 world.setPlatform(DefaultPlugin.JAVA_MCREGION);

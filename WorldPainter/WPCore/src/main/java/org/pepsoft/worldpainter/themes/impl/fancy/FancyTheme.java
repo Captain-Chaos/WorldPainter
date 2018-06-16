@@ -5,7 +5,6 @@
  */
 package org.pepsoft.worldpainter.themes.impl.fancy;
 
-import org.pepsoft.minecraft.Constants;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.heightMaps.ConstantHeightMap;
 import org.pepsoft.worldpainter.heightMaps.NoiseHeightMap;
@@ -15,6 +14,8 @@ import org.pepsoft.worldpainter.layers.groundcover.GroundCoverLayer;
 import org.pepsoft.worldpainter.themes.Theme;
 
 import java.util.Random;
+
+import static org.pepsoft.minecraft.Material.SNOW_BLOCK;
 
 /**
  *
@@ -225,7 +226,7 @@ public class FancyTheme implements Theme, Cloneable {
         return false;
     }
 
-    protected GroundCoverLayer snowLayer = new GroundCoverLayer("Mountain Snow", MixedMaterial.create(Constants.BLK_SNOW), 0xffffff);
+    protected GroundCoverLayer snowLayer = new GroundCoverLayer("Mountain Snow", MixedMaterial.create("Deep Snow", SNOW_BLOCK), 0xffffff);
     protected Terrain terrainDirtAndGravel = Terrain.CUSTOM_1;
     protected Terrain terrainStoneAndGravel = Terrain.CUSTOM_2;
 

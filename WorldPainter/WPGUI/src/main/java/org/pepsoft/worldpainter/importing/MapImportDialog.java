@@ -113,7 +113,7 @@ public class MapImportDialog extends WorldPainterDialog {
         }
 
         // Other sanity checks
-        if (((version != SUPPORTED_VERSION_1) && (version != SUPPORTED_VERSION_2)) || (dataVersion > DATA_VERSION_MC_1_12_2)) {
+        if (((version != VERSION_MCREGION) && (version != VERSION_ANVIL)) || (dataVersion > DATA_VERSION_MC_1_12_2)) {
             logger.error("Unsupported Minecraft version while analysing map " + levelDatFile);
             JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("unsupported.minecraft.version"), strings.getString("unsupported.version"), JOptionPane.ERROR_MESSAGE);
             return;
@@ -124,7 +124,7 @@ public class MapImportDialog extends WorldPainterDialog {
             JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("the.region.folder.is.missing"), strings.getString("region.folder.missing"), JOptionPane.ERROR_MESSAGE);
             return;
         }
-        final Pattern regionFilePattern = (version == SUPPORTED_VERSION_1)
+        final Pattern regionFilePattern = (version == VERSION_MCREGION)
             ? Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mcr")
             : Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mca");
         final File[] regionFiles = regionDir.listFiles((dir, name) -> regionFilePattern.matcher(name).matches());
@@ -376,7 +376,7 @@ public class MapImportDialog extends WorldPainterDialog {
                     Level level = Level.load(levelDatFile);
                     int maxHeight = level.getMaxHeight();
                     int waterLevel;
-                    if (level.getVersion() == SUPPORTED_VERSION_1) {
+                    if (level.getVersion() == VERSION_MCREGION) {
                         waterLevel = maxHeight / 2 - 2;
                     } else {
                         waterLevel = 62;

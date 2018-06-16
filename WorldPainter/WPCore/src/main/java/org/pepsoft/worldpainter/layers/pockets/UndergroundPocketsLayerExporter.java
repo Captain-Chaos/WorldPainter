@@ -33,7 +33,7 @@ public class UndergroundPocketsLayerExporter extends AbstractLayerExporter<Under
     }
     
     @Override
-    public void render(Dimension dimension, Tile tile, Chunk chunk) {
+    public void render(Dimension dimension, Tile tile, Chunk chunk, Platform platform) {
         final MixedMaterial material = layer.getMaterial();
         final Terrain terrain = layer.getTerrain();
         final boolean useMaterial = material != null;
@@ -76,7 +76,7 @@ public class UndergroundPocketsLayerExporter extends AbstractLayerExporter<Under
                             if (useMaterial) {
                                 chunk.setMaterial(x, y, z, material.getMaterial(seed, worldX, worldY, y));
                             } else {
-                                chunk.setMaterial(x, y, z, terrain.getMaterial(seed, worldX, worldY, y, terrainheight));
+                                chunk.setMaterial(x, y, z, terrain.getMaterial(platform, seed, worldX, worldY, y, terrainheight));
                             }
                         }
                     } else {
@@ -86,7 +86,7 @@ public class UndergroundPocketsLayerExporter extends AbstractLayerExporter<Under
                                 if (useMaterial) {
                                     chunk.setMaterial(x, y, z, material.getMaterial(seed, worldX, worldY, y));
                                 } else {
-                                    chunk.setMaterial(x, y, z, terrain.getMaterial(seed, worldX, worldY, y, terrainheight));
+                                    chunk.setMaterial(x, y, z, terrain.getMaterial(platform, seed, worldX, worldY, y, terrainheight));
                                 }
                             }
                         }

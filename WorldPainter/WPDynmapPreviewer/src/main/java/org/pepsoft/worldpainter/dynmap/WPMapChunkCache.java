@@ -5,7 +5,7 @@ import org.dynmap.utils.MapChunkCache;
 import org.dynmap.utils.MapIterator;
 import org.dynmap.utils.VisibilityLimit;
 import org.pepsoft.minecraft.Chunk;
-import org.pepsoft.minecraft.ChunkImpl2;
+import org.pepsoft.minecraft.MC12AnvilChunk;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 
 /**
@@ -47,8 +47,8 @@ class WPMapChunkCache extends MapChunkCache {
     @Override
     public boolean isEmptySection(int sx, int sy, int sz) {
         Chunk chunk = mcWorld.getChunk(sx, sz);
-        if (chunk instanceof ChunkImpl2) {
-            return ! ((ChunkImpl2) chunk).isSectionPresent(sy);
+        if (chunk instanceof MC12AnvilChunk) {
+            return ! ((MC12AnvilChunk) chunk).isSectionPresent(sy);
         } else {
             return chunk == null;
         }
