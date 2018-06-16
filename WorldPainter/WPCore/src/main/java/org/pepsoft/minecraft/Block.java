@@ -2,6 +2,8 @@ package org.pepsoft.minecraft;
 
 import java.io.ObjectStreamException;
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.BitSet;
 
 import static org.pepsoft.minecraft.Constants.*;
 
@@ -24,8 +26,13 @@ public final class Block implements Serializable {
         this.translucent = (transparency < 15);
         this.opaque = (transparency == 15);
         this.terrain = terrain;
-        this.insubstantial = insubstantial;
-        this.veryInsubstantial = veryInsubstantial;
+        if (INSUBSTANTIAL_OVERRIDES.get(id)) {
+            this.insubstantial = true;
+            this.veryInsubstantial = true;
+        } else {
+            this.insubstantial = insubstantial;
+            this.veryInsubstantial = veryInsubstantial;
+        }
         this.solid = ! veryInsubstantial;
         this.resource = resource;
         this.tileEntity = tileEntity;
@@ -182,6 +189,15 @@ public final class Block implements Serializable {
     }
 
     public static final Block[] BLOCKS = new Block[4096];
+
+    private static final BitSet INSUBSTANTIAL_OVERRIDES = new BitSet();
+
+    static {
+        String insubStr = System.getProperty("org.pepsoft.worldpainter.insubstantialBlocks");
+        if (insubStr != null) {
+            Arrays.stream(insubStr.split("[, ]+")).forEach(s -> INSUBSTANTIAL_OVERRIDES.set(Integer.parseInt(s)));
+        }
+    }
 
     // Tr == Transparency, meaning in this case how much light is *blocked* by the block, 0 being fully transparent and
     // 15 being fully opaque
