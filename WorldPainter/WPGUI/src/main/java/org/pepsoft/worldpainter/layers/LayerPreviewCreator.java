@@ -15,6 +15,7 @@ import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.dynmap.DynMapPreviewer;
 import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
+import org.pepsoft.worldpainter.layers.groundcover.GroundCoverLayer;
 import org.pepsoft.worldpainter.layers.pockets.UndergroundPocketsLayer;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayer;
 import org.pepsoft.worldpainter.objects.MinecraftWorldObject;
@@ -273,16 +274,10 @@ public class LayerPreviewCreator {
                 || layer.equals(Resources.INSTANCE)) {
             previewer.setSubterranean(true);
             previewer.setPattern(CONSTANT_HALF);
+        } else if (layer instanceof GroundCoverLayer) {
+            previewer.setPattern(STEPPED_ZERO_TO_FULL);
         } else {
-            switch (layer.getDataSize()) {
-                case BIT:
-                case BIT_PER_CHUNK:
-                    previewer.setPattern(CONSTANT_FULL_PLUS_GRADIENT);
-                    break;
-                default:
-                    previewer.setPattern(CONSTANT_HALF_PLUS_GRADIENT_PLUS_HIGHLIGHT);
-                    break;
-            }
+            previewer.setPattern(CONSTANT_HALF_PLUS_GRADIENT_PLUS_HIGHLIGHT);
         }
         return previewer;
     }
@@ -391,6 +386,20 @@ public class LayerPreviewCreator {
         }
     };
 
+    public static final Pattern STEPPED_ZERO_TO_FULL = new Pattern("100% - 0% (hard edge)") {
+        @Override
+        float getStrength(int x, int y) {
+            return MathUtils.getDistance(x, y, 188, 64) < 128 ? 1 : 0;
+        }
+    };
+
+    public static final Pattern STEPPED_ZERO_TO_HALF = new Pattern("50% - 0% (hard edge)") {
+        @Override
+        float getStrength(int x, int y) {
+            return MathUtils.getDistance(x, y, 188, 64) < 128 ? 0.5f : 0;
+        }
+    };
+
     public static final Pattern CIRCULAR_ZERO_TO_FULL = new Pattern("0% - 100% (circular)") {
         @Override
         float getStrength(int x, int y) {
@@ -416,5 +425,5 @@ public class LayerPreviewCreator {
 
     public static final Pattern[] PATTERNS = {CONSTANT_ONE_QUARTER, CONSTANT_HALF, CONSTANT_THREE_QUARTERS,
             CONSTANT_FULL, CONSTANT_HALF_PLUS_GRADIENT_PLUS_HIGHLIGHT, CONSTANT_FULL_PLUS_GRADIENT,
-            GRADIENT_ZERO_TO_FULL, CIRCULAR_ZERO_TO_FULL};
+            GRADIENT_ZERO_TO_FULL, STEPPED_ZERO_TO_FULL, STEPPED_ZERO_TO_HALF, CIRCULAR_ZERO_TO_FULL};
 }
