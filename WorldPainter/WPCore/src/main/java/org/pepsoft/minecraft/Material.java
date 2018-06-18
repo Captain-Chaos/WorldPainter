@@ -1369,7 +1369,7 @@ public final class Material implements Serializable {
     public static Set<String> getAllNamespaces() {
         return Collections.unmodifiableSet(ALL_NAMESPACES);
     }
-    
+
     public static Set<String> getAllSimpleNamesForNamespace(String namespace) {
         return SIMPLE_NAMES_BY_NAMESPACE.containsKey(namespace) ? Collections.unmodifiableSet(SIMPLE_NAMES_BY_NAMESPACE.get(namespace)) : Collections.EMPTY_SET;
     }
@@ -1580,6 +1580,7 @@ public final class Material implements Serializable {
     public static final Material ANDESITE = LEGACY_MATERIALS[((BLK_STONE) << 4) | (DATA_STONE_ANDESITE)];
     public static final Material COBBLESTONE = LEGACY_MATERIALS[(BLK_COBBLESTONE) << 4];
     public static final Material SNOW = LEGACY_MATERIALS[(BLK_SNOW) << 4];
+    public static final Material SNOW_EIGHT_LAYERS = LEGACY_MATERIALS[((BLK_SNOW) << 4) | 7];
     public static final Material DEAD_SHRUBS = LEGACY_MATERIALS[(BLK_DEAD_SHRUBS) << 4];
     public static final Material CACTUS = LEGACY_MATERIALS[(BLK_CACTUS) << 4];
     public static final Material SAND = LEGACY_MATERIALS[(BLK_SAND) << 4];
