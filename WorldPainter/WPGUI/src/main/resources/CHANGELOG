@@ -1,3 +1,8 @@
+-- Version 2.5.3, released 18-6-2018
+
+ * The thick smooth snow layer support introduced in the previous release now requires the data value to be 7 to be triggered, instead of data value 0. Create smooth deep snow layers by creating a Custom Ground Cover layer with the material set to "Snow (7)" (block ID 78 and data value 7)
+ * Bug fix: remove development code that turned the terrain underneath smooth layers into red wool
+
 -- Version 2.5.2, released 16-6-2018
 
  * An option has been added to the Merge operation for merging the underground portion of the world in addition to the overground
@@ -5,7 +10,7 @@
    + By enabling this option WorldPainter will attempt to merge the underground portion as well, attempting to keep existing caves, resources and structures and adding new caves, resources and structures from your world. This allows you to, for instance, add manually created Cave/Tunnel layers to the map
    + If you don't want the resources, caves, etc. from the existing map to remain, use the already existing "Below ground" options for the existing map on the Merge screen to remove them
  * Added support for custom world types/generators. This enables you to, for example, easily create maps for the Biomes O' Plenty mod and other custom Minecraft world generators. To use, set the world type to Custom on the Export screen, and press the [...] button to set the generator name to store in the level.dat file, for example BIOMESOP for Biomes O' Plenty
- * It is now possible to create thick smooth snow layers by creating a Custom Ground Cover layer with the material set to "78: Snow"
+ * It is now possible to create thick smooth snow layers by creating a Custom Ground Cover layer with the material set to "Snow (7)" (block ID 78 and data value 7)
    + It will place a mixture of Snow Blocks and Snow to create a layer that is as thick as you specify and smoothly follows the terrain, the variation setting of the layer, and the layer's edge shape
    + For nice smooth results, set the edge shape to Smooth and the width high, for example 10
    + For nice clean edges paint it with a solid brush at 100%, but experiment with rougher edges as well to see the effect

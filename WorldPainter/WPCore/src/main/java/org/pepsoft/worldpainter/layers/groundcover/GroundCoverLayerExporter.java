@@ -65,7 +65,7 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
         final int edgeWidth = layer.getEdgeWidth(), edgeWidthPlusOne = edgeWidth + 1, edgeWidthMinusOne = edgeWidth - 1;
         final double edgeFactor = edgeThickness / 2.0, edgeOffset = 1.5 + edgeFactor;
         final long seed = dimension.getSeed();
-        final boolean smooth = layer.isSmooth() || (mixedMaterial.getSingleMaterial() == Material.SNOW);
+        final boolean smooth = layer.isSmooth() || (mixedMaterial.getSingleMaterial() == Material.SNOW_EIGHT_LAYERS);
         final GroundCoverLayer.LayerAnchor layeredMaterialAnchor;
         final int patternHeight = mixedMaterial.getPatternHeight();
         if (mixedMaterial.getMode() == MixedMaterial.Mode.LAYERED) {
@@ -152,7 +152,6 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
 //                                if (layerHeight > 0) {
 //                                    layerHeight = Math.max(Math.min(layerHeight, dimension.getBitLayerCount(layer, worldX, worldY, 1) - 2), 0);
 //                                }
-                                chunk.setMaterial(x, terrainheight, z, Material.WOOL_RED);
                                 for (int dy = 0; layerHeight > 0; dy++, layerHeight -= 8) {
 //                                    System.out.printf("dy: %d, layerHeight: %d; ", dy, layerHeight);
                                     final int y = terrainheight + dy + 1;
@@ -171,7 +170,7 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                                             chunk.setDataValue(x, y, z, layerHeight - 1);
                                         } else {
                                             // Place a full block
-                                            chunk.setMaterial(x, y, z, material == Material.SNOW ? Material.SNOW_BLOCK : material);
+                                            chunk.setMaterial(x, y, z, material == Material.SNOW_EIGHT_LAYERS ? Material.SNOW_BLOCK : material);
                                         }
                                     }
                                 }

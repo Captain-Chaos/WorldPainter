@@ -1007,6 +1007,7 @@ public final class Material implements Serializable, Comparable<Material> {
     public static final Material ANDESITE = MATERIALS[((BLK_STONE) << 4) | (DATA_STONE_ANDESITE)];
     public static final Material COBBLESTONE = MATERIALS[(BLK_COBBLESTONE) << 4];
     public static final Material SNOW = MATERIALS[(BLK_SNOW) << 4];
+    public static final Material SNOW_EIGHT_LAYERS = MATERIALS[((BLK_SNOW) << 4) | 7];
     public static final Material DEAD_SHRUBS = MATERIALS[(BLK_DEAD_SHRUBS) << 4];
     public static final Material CACTUS = MATERIALS[(BLK_CACTUS) << 4];
     public static final Material SAND = MATERIALS[(BLK_SAND) << 4];
