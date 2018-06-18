@@ -90,11 +90,11 @@ public class DumpObject {
             }
             if (wpObject.getEntities() != null) {
                 logger.info("    Entities:");
-                wpObject.getEntities().forEach(entity -> logger.info("        " + entity.getId() + " @ " + entity.getPos()[0] + "," + entity.getPos()[2] + "," + entity.getPos()[1]));
+                wpObject.getEntities().forEach(entity -> logger.info("        " + entity.getId() + " @ " + entity.getPos()[0] + "," + entity.getPos()[2] + "," + entity.getPos()[1] + "; data: " + entity.toNBT()));
             }
             if (wpObject.getTileEntities() != null) {
                 logger.info("    Tile entities:");
-                wpObject.getTileEntities().forEach(entity -> logger.info("        " + entity.getId() + " @ " + entity.getY() + "," + entity.getZ() + "," + entity.getY()));
+                wpObject.getTileEntities().forEach(entity -> logger.info("        " + entity.getId() + " @ " + entity.getY() + "," + entity.getZ() + "," + entity.getY() + "; data: " + entity.toNBT()));
             }
             logger.info("    Blocks:");
             int blockCount = 0;
