@@ -87,6 +87,16 @@ public final class MC113AnvilChunk extends AbstractNBTItem implements Chunk, Min
         return sections;
     }
 
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    // Chunk
+
     @Override
     public Tag toNBT() {
         List<Tag> sectionTags = new ArrayList<>(maxHeight >> 4);

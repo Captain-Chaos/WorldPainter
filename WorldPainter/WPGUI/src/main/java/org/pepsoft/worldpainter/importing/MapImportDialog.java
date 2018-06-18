@@ -113,7 +113,7 @@ public class MapImportDialog extends WorldPainterDialog {
         }
 
         // Other sanity checks
-        if (((version != VERSION_MCREGION) && (version != VERSION_ANVIL)) || (dataVersion > DATA_VERSION_MC_1_12_2)) {
+        if ((version != VERSION_MCREGION) && (version != VERSION_ANVIL)) {
             logger.error("Unsupported Minecraft version while analysing map " + levelDatFile);
             JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("unsupported.minecraft.version"), strings.getString("unsupported.version"), JOptionPane.ERROR_MESSAGE);
             return;
@@ -353,15 +353,15 @@ public class MapImportDialog extends WorldPainterDialog {
     private void importWorld() {
         final File levelDatFile = new File(fieldFilename.getText());
         final Set<Point> chunksToSkip = checkBoxImportOutliers.isSelected() ? null : mapStatistics.outlyingChunks;
-        final JavaMapImporter.ReadOnlyOption readOnlyOption;
+        final MapImporter.ReadOnlyOption readOnlyOption;
         if (radioButtonReadOnlyAll.isSelected()) {
-            readOnlyOption = JavaMapImporter.ReadOnlyOption.ALL;
+            readOnlyOption = MapImporter.ReadOnlyOption.ALL;
         } else if (radioButtonReadOnlyManMade.isSelected()) {
-            readOnlyOption = JavaMapImporter.ReadOnlyOption.MAN_MADE;
+            readOnlyOption = MapImporter.ReadOnlyOption.MAN_MADE;
         } else if (radioButtonReadOnlyManMadeAboveGround.isSelected()) {
-            readOnlyOption = JavaMapImporter.ReadOnlyOption.MAN_MADE_ABOVE_GROUND;
+            readOnlyOption = MapImporter.ReadOnlyOption.MAN_MADE_ABOVE_GROUND;
         } else {
-            readOnlyOption = JavaMapImporter.ReadOnlyOption.NONE;
+            readOnlyOption = MapImporter.ReadOnlyOption.NONE;
         }
         app.clearWorld();
         importedWorld = ProgressDialog.executeTask(this, new ProgressTask<World2>() {
@@ -391,7 +391,9 @@ public class MapImportDialog extends WorldPainterDialog {
                     if (checkBoxImportEnd.isSelected()) {
                         dimensionsToImport.add(Constants.DIM_END);
                     }
-                    final JavaMapImporter importer = new JavaMapImporter(tileFactory, levelDatFile, false, chunksToSkip, readOnlyOption, dimensionsToImport);
+                    final MapImporter importer = level.getDataVersion() <= DATA_VERSION_MC_1_12_2
+                        ? new LegacyJavaMapImporter(tileFactory, levelDatFile, false, chunksToSkip, readOnlyOption, dimensionsToImport)
+                        : new ModernJavaMapImporter(tileFactory, levelDatFile, false, chunksToSkip, readOnlyOption, dimensionsToImport);
                     World2 world = importer.doImport(progressReceiver);
                     if (importer.getWarnings() != null) {
                         try {

@@ -196,6 +196,30 @@ public final class Material implements Serializable {
     }
 
     /**
+     * Get the value of a property as the correct type, or a default value if
+     * the property is not set on the material. Convenience method which
+     * transforms the property value from a string using an instance of the
+     * {@link Property} helper class.
+     *
+     * @param property The property helper corresponding to the property of
+     *                 which to get the value.
+     * @param defaultValue The default value to return if the specified property
+     *                     is not set on the material.
+     * @param <T> The property type.
+     * @return The value of the specified property transformed to the specified
+     * type.
+     */
+    @SuppressWarnings("unchecked") // Responsibility of client
+    public <T> T getProperty(Property<T> property, T defaultValue) {
+        if (identity.properties != null) {
+            String value = identity.properties.get(property.name);
+            return (value != null) ? property.fromString(value) : defaultValue;
+        } else {
+            return defaultValue;
+        }
+    }
+
+    /**
      * Returns a material identical to this one, except with the specified
      * property set to the specified value.
      *
@@ -1374,6 +1398,10 @@ public final class Material implements Serializable {
         return SIMPLE_NAMES_BY_NAMESPACE.containsKey(namespace) ? Collections.unmodifiableSet(SIMPLE_NAMES_BY_NAMESPACE.get(namespace)) : Collections.EMPTY_SET;
     }
 
+    public static MaterialBuilder getAll() {
+        return new MaterialBuilder();
+    }
+
     // Object
 
     public boolean equals(Object o) {
@@ -1429,7 +1457,9 @@ public final class Material implements Serializable {
     public final transient int transparency;
 
     /**
-     * The name of the block.
+     * The name of the block. This value is guaranteed to be interned, so that
+     * it is valid to compare it with <code>String</code> literals or constants
+     * using the <code>==</code> operator.
      */
     public final transient String name;
 
@@ -1619,6 +1649,7 @@ public final class Material implements Serializable {
     public static final Material MYCELIUM = LEGACY_MATERIALS[(BLK_MYCELIUM) << 4];
     public static final Material TILLED_DIRT = LEGACY_MATERIALS[(BLK_TILLED_DIRT) << 4];
     public static final Material ICE = LEGACY_MATERIALS[(BLK_ICE) << 4];
+    public static final Material FROSTED_ICE = LEGACY_MATERIALS[(BLK_FROSTED_ICE) << 4];
     public static final Material PACKED_ICE = LEGACY_MATERIALS[BLK_PACKED_ICE << 4];
     public static final Material TORCH = LEGACY_MATERIALS[(BLK_TORCH) << 4];
     public static final Material COBBLESTONE_STAIRS = LEGACY_MATERIALS[(BLK_COBBLESTONE_STAIRS) << 4];
@@ -1739,14 +1770,16 @@ public final class Material implements Serializable {
 
     // MC 1.13 block property access helpers
 
-    public static final Property<Boolean> SNOWY  = new Property<>(MC_SNOWY,  Boolean.class);
-    public static final Property<Boolean> NORTH  = new Property<>(MC_NORTH,  Boolean.class);
-    public static final Property<Boolean> EAST   = new Property<>(MC_EAST,   Boolean.class);
-    public static final Property<Boolean> SOUTH  = new Property<>(MC_SOUTH,  Boolean.class);
-    public static final Property<Boolean> WEST   = new Property<>(MC_WEST,   Boolean.class);
-    public static final Property<Boolean> UP     = new Property<>(MC_UP,     Boolean.class);
-    public static final Property<Integer> LAYERS = new Property<>(MC_LAYERS, Integer.class);
-    public static final Property<String>  HALF   = new Property<>(MC_HALF,   String.class);
+    public static final Property<Boolean> SNOWY       = new Property<>(MC_SNOWY,       Boolean.class);
+    public static final Property<Boolean> NORTH       = new Property<>(MC_NORTH,       Boolean.class);
+    public static final Property<Boolean> EAST        = new Property<>(MC_EAST,        Boolean.class);
+    public static final Property<Boolean> SOUTH       = new Property<>(MC_SOUTH,       Boolean.class);
+    public static final Property<Boolean> WEST        = new Property<>(MC_WEST,        Boolean.class);
+    public static final Property<Boolean> UP          = new Property<>(MC_UP,          Boolean.class);
+    public static final Property<Integer> LAYERS      = new Property<>(MC_LAYERS,      Integer.class);
+    public static final Property<String>  HALF        = new Property<>(MC_HALF,        String.class);
+    public static final Property<Integer> LEVEL       = new Property<>(MC_LEVEL,       Integer.class);
+    public static final Property<Boolean> WATERLOGGED = new Property<>(MC_WATERLOGGED, Boolean.class);
 
     // Namespaces
 
@@ -1823,5 +1856,142 @@ public final class Material implements Serializable {
         public final String name;
         public final Class<T> type;
         private final Method valueOfMethod;
+    }
+
+    static class Metadata {
+        Metadata(int transparency, String name, boolean terrain,
+                 boolean insubstantial, boolean veryInsubstantial, boolean resource, boolean tileEntity, boolean treeRelated,
+                 boolean vegetation, int blockLight, boolean natural) {
+            this.transparency = transparency;
+            this.transparent = (transparency == 0);
+            this.translucent = (transparency < 15);
+            this.opaque = (transparency == 15);
+            this.terrain = terrain;
+            this.insubstantial = insubstantial;
+            this.veryInsubstantial = veryInsubstantial;
+            this.solid = ! veryInsubstantial;
+            this.resource = resource;
+            this.tileEntity = tileEntity;
+            this.treeRelated = treeRelated;
+            this.vegetation = vegetation;
+            this.blockLight = blockLight;
+            this.lightSource = (blockLight > 0);
+            this.natural = natural;
+
+            // Sanity checks
+            if ((transparency < 0) || (transparency > 15)
+                    || (insubstantial && (! veryInsubstantial))
+                    || (blockLight < 0) || (blockLight > 15)
+                    || (treeRelated && vegetation)) {
+                throw new IllegalArgumentException();
+            }
+
+            // Determine the category
+            if (name.equals(MC_AIR)) {
+                category = CATEGORY_AIR;
+            } else if (name.equals(MC_WATER) || name.equals(MC_LAVA)) {
+                category = CATEGORY_FLUID;
+            } else if (veryInsubstantial) {
+                category = CATEGORY_INSUBSTANTIAL;
+            } else if (! natural) {
+                category = CATEGORY_MAN_MADE;
+            } else if (resource) {
+                category = CATEGORY_RESOURCE;
+            } else {
+                category = CATEGORY_NATURAL_SOLID;
+            }
+        }
+
+        /**
+         * How much light the block blocks.
+         */
+        public final transient int transparency;
+
+        /**
+         * Whether the block is fully transparent ({@link #transparency} == 0)
+         */
+        public final transient boolean transparent;
+
+        /**
+         * Whether the block is translucent ({@link #transparency} < 15)
+         */
+        public final transient boolean translucent;
+
+        /**
+         * Whether the block is fully opaque ({@link #transparency} == 15)
+         */
+        public final transient boolean opaque;
+
+        /**
+         * Whether the block is part of Minecraft-generated natural ground; more
+         * specifically whether the block type should be assigned a terrain type
+         * when importing a Minecraft map.
+         */
+        public final transient boolean terrain;
+
+        /**
+         * Whether the block is insubstantial, meaning that they are fully
+         * transparent, not man-made, removing them would have no effect on the
+         * surrounding blocks and be otherwise inconsequential. In other words
+         * mostly decorative blocks that users presumably would not mind being
+         * removed.
+         */
+        public final transient boolean insubstantial;
+
+        /**
+         * Whether the block is even more insubstantial. Implies
+         * {@link #insubstantial} and adds air, water, lava and leaves.
+         */
+        public final transient boolean veryInsubstantial;
+
+        /**
+         * Whether the block is solid (meaning not {@link #insubstantial} or
+         * {@link #veryInsubstantial}).
+         */
+        public final transient boolean solid;
+
+        /**
+         * Whether the block is a mineable ore or resource.
+         */
+        public final transient boolean resource;
+
+        /**
+         * Whether the block is a tile entity.
+         */
+        public final transient boolean tileEntity;
+
+        /**
+         * Whether the block is part of or attached to naturally occurring
+         * trees or giant mushrooms. Also includes saplings, but not normal
+         * mushrooms.
+         */
+        public final transient boolean treeRelated;
+
+        /**
+         * Whether the block is a plant. Excludes {@link #treeRelated} blocks.
+         */
+        public final transient boolean vegetation;
+
+        /**
+         * The amount of blocklight emitted by this block.
+         */
+        public final transient int blockLight;
+
+        /**
+         * Whether the block is a source of blocklight ({@link #blockLight} > 0).
+         */
+        public final transient boolean lightSource;
+
+        /**
+         * Whether the block can occur as part of a pristine Minecraft-generated
+         * landscape, <em>excluding</em> artificial structures such as abandoned
+         * mineshafts, villages, temples, strongholds, etc.
+         */
+        public final transient boolean natural;
+
+        /**
+         * Type of block encoded in a single category
+         */
+        public final transient int category;
     }
 }

@@ -453,14 +453,16 @@ public final class Constants {
 
     // MC 1.13 property names
 
-    public static final String MC_SNOWY  = "snowy";
-    public static final String MC_NORTH  = "north";
-    public static final String MC_EAST   = "east";
-    public static final String MC_SOUTH  = "south";
-    public static final String MC_WEST   = "west";
-    public static final String MC_UP     = "up";
-    public static final String MC_HALF   = "half";
-    public static final String MC_LAYERS = "layers";
+    public static final String MC_SNOWY       = "snowy";
+    public static final String MC_NORTH       = "north";
+    public static final String MC_EAST        = "east";
+    public static final String MC_SOUTH       = "south";
+    public static final String MC_WEST        = "west";
+    public static final String MC_UP          = "up";
+    public static final String MC_HALF        = "half";
+    public static final String MC_LAYERS      = "layers";
+    public static final String MC_LEVEL       = "level";
+    public static final String MC_WATERLOGGED = "waterlogged";
 
     // Minecraft NBT tag names
 
@@ -568,7 +570,7 @@ public final class Constants {
     public static final int VERSION_ANVIL    = 0x4abd;
 
     public static final int DATA_VERSION_MC_1_12_2 = 1343;
-    public static final int DATA_VERSION_MC_1_13   = 1499; // TODO: update when 1.13 is released
+    public static final int DATA_VERSION_MC_1_13   = 1502; // TODO: update when 1.13 is released
 
     // Legacy (pre-MC 1.13) block IDs
 
