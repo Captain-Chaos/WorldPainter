@@ -97,7 +97,7 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
                                             case FrostSettings.MODE_SMOOTH_AT_ALL_ELEVATIONS:
                                                 int layers = (int) ((dimension.getHeightAt(x, y) + 0.5f - dimension.getIntHeightAt(x, y)) / 0.125f) + 1;
                                                 if ((layers > 1) && (! frostEverywhere)) {
-                                                    layers = Math.max(Math.min(layers, dimension.getBitLayerCount(Frost.INSTANCE, x, y, 1) - 1), 0);
+                                                    layers = Math.max(Math.min(layers, dimension.getBitLayerCount(Frost.INSTANCE, x, y, 1) - 1), 1);
                                                 }
                                                 placeSnow(minecraftWorld, x, y, height, layers);
                                                 break;
@@ -124,10 +124,12 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
      * not already present.
      */
     private void placeSnow(MinecraftWorld minecraftWorld, int x, int y, int height, int layers) {
-        Material existingMaterial = minecraftWorld.getMaterialAt(x, y, height + 1);
-        if (existingMaterial.isNamed(MC_SNOW)) {
-            // If there is already snow there, don't lower it
-            layers = Math.max(layers, existingMaterial.getProperty(LAYERS));
+        if ((layers < 1) || (layers > 8)) {
+            throw new IllegalArgumentException("layers " + layers);
+        }
+        if ((minecraftWorld.getBlockTypeAt(x, y, height + 1) != BLK_SNOW) || (minecraftWorld.getDataAt(x, y, height + 1) + 1 < layers)) {
+            minecraftWorld.setBlockTypeAt(x, y, height + 1, BLK_SNOW);
+            minecraftWorld.setDataAt(x, y, height + 1, layers - 1);
         }
         minecraftWorld.setMaterialAt(x, y, height + 1, SNOW.withProperty(LAYERS, layers));
     }
