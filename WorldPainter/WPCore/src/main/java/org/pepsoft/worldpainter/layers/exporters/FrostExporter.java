@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Random;
 
 import static org.pepsoft.minecraft.Constants.*;
-import static org.pepsoft.minecraft.Material.SNOW;
 
 /**
  *
@@ -86,31 +85,24 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
                                         // odd
                                         switch (mode) {
                                             case FrostSettings.MODE_FLAT:
-                                                minecraftWorld.setMaterialAt(x, y, height + 1, SNOW);
+                                                placeSnow(minecraftWorld, x, y, height, 1);
                                                 break;
                                             case FrostSettings.MODE_RANDOM:
-                                                minecraftWorld.setBlockTypeAt(x, y, height + 1, BLK_SNOW);
-                                                minecraftWorld.setDataAt(     x, y, height + 1, random.nextInt(3));
+                                                placeSnow(minecraftWorld, x, y, height, random.nextInt(3) + 1);
                                                 break;
                                             case FrostSettings.MODE_SMOOTH:
                                             case FrostSettings.MODE_SMOOTH_AT_ALL_ELEVATIONS:
-                                                int snowHeight = (int) ((dimension.getHeightAt(x, y) + 0.5f - dimension.getIntHeightAt(x, y)) / 0.125f);
-                                                if ((snowHeight > 0) && (! frostEverywhere)) {
-                                                    snowHeight = Math.max(Math.min(snowHeight, dimension.getBitLayerCount(Frost.INSTANCE, x, y, 1) - 2), 0);
+                                                int layers = (int) ((dimension.getHeightAt(x, y) + 0.5f - dimension.getIntHeightAt(x, y)) / 0.125f) + 1;
+                                                if ((layers > 1) && (! frostEverywhere)) {
+                                                    layers = Math.max(Math.min(layers, dimension.getBitLayerCount(Frost.INSTANCE, x, y, 1) - 1), 0);
                                                 }
-                                                if (minecraftWorld.getBlockTypeAt(x, y, height + 1) == BLK_SNOW) {
-                                                    // If there is already snow there, don't lower it
-                                                    minecraftWorld.setDataAt(x, y, height + 1, Math.max(snowHeight, minecraftWorld.getDataAt(x, y, height + 1)));
-                                                } else {
-                                                    minecraftWorld.setBlockTypeAt(x, y, height + 1, BLK_SNOW);
-                                                    minecraftWorld.setDataAt(x, y, height + 1, snowHeight);
-                                                }
+                                                placeSnow(minecraftWorld, x, y, height, layers);
                                                 break;
                                         }
                                     } else {
                                         // At other elevations just place a
                                         // regular thin snow block
-                                        minecraftWorld.setMaterialAt(x, y, height + 1, SNOW);
+                                        placeSnow(minecraftWorld, x, y, height, 1);
                                     }
                                 }
                                 break;
@@ -122,6 +114,17 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
             }
         }
         return null;
+    }
+
+    /**
+     * Place a snow block with a specific thickness, but only if thicker snow is
+     * not already present.
+     */
+    private void placeSnow(MinecraftWorld minecraftWorld, int x, int y, int height, int layers) {
+        if ((minecraftWorld.getBlockTypeAt(x, y, height + 1) != BLK_SNOW) || (minecraftWorld.getDataAt(x, y, height + 1) + 1 < layers)) {
+            minecraftWorld.setBlockTypeAt(x, y, height + 1, BLK_SNOW);
+            minecraftWorld.setDataAt(x, y, height + 1, layers - 1);
+        }
     }
 
     private static final BitSet NO_SNOW_ON = CollectionUtils.bitSetOf(
@@ -136,8 +139,8 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
         BLK_WHEAT, BLK_BURNING_FURNACE, BLK_WOODEN_DOOR, BLK_IRON_DOOR,
         BLK_IRON_BARS, BLK_LADDER, BLK_LEVER, BLK_STONE_PRESSURE_PLATE,
         BLK_WOODEN_PRESSURE_PLATE, BLK_REDSTONE_TORCH_OFF,
-        BLK_REDSTONE_TORCH_ON, BLK_STONE_BUTTON, BLK_SNOW, BLK_SNOW_BLOCK,
-        BLK_CACTUS, BLK_SUGAR_CANE, BLK_CAKE, BLK_REDSTONE_REPEATER_OFF,
+        BLK_REDSTONE_TORCH_ON, BLK_STONE_BUTTON, BLK_SNOW, BLK_CACTUS,
+        BLK_SUGAR_CANE, BLK_CAKE, BLK_REDSTONE_REPEATER_OFF,
         BLK_REDSTONE_REPEATER_ON, BLK_TRAPDOOR, BLK_GLASS_PANE,
         BLK_PUMPKIN_STEM, BLK_MELON_STEM, BLK_LILY_PAD, BLK_NETHER_WART,
         BLK_ENCHANTMENT_TABLE, BLK_BREWING_STAND, BLK_END_PORTAL,
