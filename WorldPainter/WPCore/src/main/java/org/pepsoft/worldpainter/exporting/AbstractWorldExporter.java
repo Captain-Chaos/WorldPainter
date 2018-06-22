@@ -74,6 +74,21 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         return new File(backupsDir, worldDir.getName() + "." + DATE_FORMAT.format(new Date()));
     }
 
+    /**
+     * Export a dimension by exporting each region (512 block by 512 block area)
+     * separately and in parallel as much as possible, taking into account the
+     * number of CPU cores and available memory.
+     *
+     * <p>If an exception occurs and a progress receiver has been specified, the
+     * exception is reported to the progress receiver and the export continues.
+     * If there is no progress receiver, the export is aborted and the first
+     * exception rethrown.
+     *
+     * @throws OperationCancelled If the progress receiver threw an
+     * <code>OperationCancelled</code> exception.
+     * @throws RuntimeException If an exception occurs during the export and no
+     * progress receiver has been specified.
+     */
     protected ChunkFactory.Stats parallelExportRegions(Dimension dimension, Platform platform, File worldDir, ProgressReceiver progressReceiver) throws OperationCancelled {
         if (progressReceiver != null) {
             progressReceiver.setMessage("Exporting " + dimension.getName() + " dimension");
@@ -233,6 +248,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 private final ThreadGroup threadGroup = new ThreadGroup("Exporters");
                 private int nextID = 1;
             });
+            final RuntimeException[] exception = new RuntimeException[1];
             final ParallelProgressManager parallelProgressManager = (progressReceiver != null) ? new ParallelProgressManager(progressReceiver, regions.size()) : null;
             try {
                 // Export each individual region
@@ -305,7 +321,11 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                             if (progressReceiver1 != null) {
                                 progressReceiver1.exceptionThrown(t);
                             } else {
-                                logger.error("Exception while exporting region", t);
+                                logger.error(t.getClass().getSimpleName() + " while exporting region {},{}", region.x, region.y, t);
+                                if (exception[0] == null) {
+                                    exception[0] = new RuntimeException(t.getClass().getSimpleName() + " while exporting region" + region.x + "," + region.y, exception[0]);
+                                }
+                                executor.shutdownNow();
                             }
                         }
                     });
@@ -317,6 +337,13 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 } catch (InterruptedException e) {
                     throw new RuntimeException("Thread interrupted while waiting for all tasks to finish", e);
                 }
+            }
+
+            // If there is a progress receiver then we have reported any
+            // exceptions to it, but if not then we should rethrow the recorded
+            // exception, if any
+            if (exception[0] != null) {
+                throw exception[0];
             }
 
             // It's possible for there to be fixups left, if thread A was
