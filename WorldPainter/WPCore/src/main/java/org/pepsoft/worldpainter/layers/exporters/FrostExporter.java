@@ -127,9 +127,10 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
         if ((layers < 1) || (layers > 8)) {
             throw new IllegalArgumentException("layers " + layers);
         }
-        if ((minecraftWorld.getBlockTypeAt(x, y, height + 1) != BLK_SNOW) || (minecraftWorld.getDataAt(x, y, height + 1) + 1 < layers)) {
-            minecraftWorld.setBlockTypeAt(x, y, height + 1, BLK_SNOW);
-            minecraftWorld.setDataAt(x, y, height + 1, layers - 1);
+        Material existingMaterial = minecraftWorld.getMaterialAt(x, y, height + 1);
+        if (existingMaterial.isNamed(MC_SNOW)) {
+            // If there is already snow there, don't lower it
+            layers = Math.max(layers, existingMaterial.getProperty(LAYERS));
         }
         minecraftWorld.setMaterialAt(x, y, height + 1, SNOW.withProperty(LAYERS, layers));
     }
