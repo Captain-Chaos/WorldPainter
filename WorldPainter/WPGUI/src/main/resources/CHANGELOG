@@ -1,3 +1,7 @@
+-- Version 2.5.4, released 22-6-2018
+
+ * Addressed an unintended consequence of snow blocks now being considered insubstantial. It caused the Frost layer no longer to place Snow on Snow Blocks. Frost will now once again place Snow on Snow Blocks.
+
 -- Version 2.5.3, released 18-6-2018
 
  * The thick smooth snow layer support introduced in the previous release now requires the data value to be 7 to be triggered, instead of data value 0. Create smooth deep snow layers by creating a Custom Ground Cover layer with the material set to "Snow (7)" (block ID 78 and data value 7)
