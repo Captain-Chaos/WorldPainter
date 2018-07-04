@@ -24,6 +24,7 @@ import javax.swing.*;
 import java.awt.*;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_MCREGION;
 import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
 
 /**
@@ -68,7 +69,19 @@ public class ChangeHeightDialog extends WorldPainterDialog {
         buttonOK.setEnabled((oldMaxHeight != newMaxHeight) || (translate && ((Integer) spinnerTranslateAmount.getValue() != 0)) || (scale && ((Integer) spinnerScaleAmount.getValue() != 100)));
         spinnerTranslateAmount.setEnabled(translate);
         spinnerScaleAmount.setEnabled(scale);
-        labelWarning.setVisible(newMaxHeight != DEFAULT_MAX_HEIGHT_ANVIL);
+        switch (newMaxHeight) {
+            case DEFAULT_MAX_HEIGHT_MCREGION:
+                labelWarning.setText("Only Minecraft 1.1!");
+                labelWarning.setVisible(true);
+                break;
+            case DEFAULT_MAX_HEIGHT_ANVIL:
+                labelWarning.setVisible(false);
+                break;
+            default:
+                labelWarning.setText("Only Minecraft 1.1, with mods!");
+                labelWarning.setVisible(true);
+                break;
+        }
     }
     
     private void doResize() {
