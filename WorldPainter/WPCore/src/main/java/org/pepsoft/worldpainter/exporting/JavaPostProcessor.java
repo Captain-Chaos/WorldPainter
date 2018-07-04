@@ -64,19 +64,19 @@ public class JavaPostProcessor extends PostProcessor {
                 return;
             } else {
                 x1 = objectVolume.getX1();
-                x2 = objectVolume.getX2() - 1;
+                x2 = objectVolume.getX2() - 1; // TODO: this is wrong, no?
                 y1 = objectVolume.getY1();
-                y2 = objectVolume.getY2() - 1;
+                y2 = objectVolume.getY2() - 1; // TODO: this is wrong, no?
                 minZ = objectVolume.getZ1();
-                maxZ = objectVolume.getZ2() - 1;
+                maxZ = objectVolume.getZ2() - 1; // TODO: this is wrong, no?
             }
         } else {
             x1 = volume.getX1();
             y1 = volume.getY1();
-            x2 = volume.getX2() - 1;
-            y2 = volume.getY2() - 1;
+            x2 = volume.getX2() - 1; // TODO: this is wrong, no?
+            y2 = volume.getY2() - 1; // TODO: this is wrong, no?
             minZ = volume.getZ1();
-            maxZ = volume.getZ2() - 1;
+            maxZ = volume.getZ2() - 1; // TODO: this is wrong, no?
         }
         final boolean traceEnabled = logger.isTraceEnabled();
         for (int x = x1; x <= x2; x ++) {
