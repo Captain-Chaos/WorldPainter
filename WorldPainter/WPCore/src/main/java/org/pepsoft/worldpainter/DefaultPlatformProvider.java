@@ -1,10 +1,7 @@
 package org.pepsoft.worldpainter;
 
 import com.google.common.collect.ImmutableList;
-import org.pepsoft.minecraft.Chunk;
-import org.pepsoft.minecraft.ChunkImpl;
-import org.pepsoft.minecraft.ChunkImpl2;
-import org.pepsoft.minecraft.ChunkStore;
+import org.pepsoft.minecraft.*;
 import org.pepsoft.minecraft.mapexplorer.JavaMapRecognizer;
 import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.mapexplorer.MapRecognizer;
@@ -13,6 +10,7 @@ import org.pepsoft.worldpainter.plugins.BlockBasedPlatformProvider;
 import org.pepsoft.worldpainter.util.MinecraftUtil;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import static org.pepsoft.worldpainter.Constants.*;
@@ -46,6 +44,13 @@ public class DefaultPlatformProvider extends AbstractPlugin implements BlockBase
     @Override
     public ChunkStore getChunkStore(Platform platform, File worldDir, int dimension) {
         if (platform.equals(JAVA_MCREGION) || platform.equals(JAVA_ANVIL)) {
+            Level level;
+            File levelDatFile = new File(worldDir, "level.dat");
+            try {
+                level = Level.load(levelDatFile);
+            } catch (IOException e) {
+                throw new RuntimeException("I/O error while trying to read level.dat", e);
+            }
             File regionDir;
             switch (dimension) {
                 case DIM_NORMAL:
@@ -60,7 +65,7 @@ public class DefaultPlatformProvider extends AbstractPlugin implements BlockBase
                 default:
                     throw new IllegalArgumentException("Dimension " + dimension + " not supported");
             }
-            return new JavaChunkStore(platform, regionDir, false, null, platform.standardMaxHeight);
+            return new JavaChunkStore(platform, regionDir, false, null, level.getMaxHeight());
         } else {
             throw new IllegalArgumentException("Platform " + platform + " not supported");
         }
