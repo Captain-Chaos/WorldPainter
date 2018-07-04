@@ -10,6 +10,7 @@ import org.pepsoft.minecraft.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 import static org.pepsoft.minecraft.Constants.DATA_VERSION_MC_1_12_2;
@@ -29,29 +30,39 @@ public class DumpChunk {
         int chunkZ = blockZ >> 4;
         Level level = Level.load(levelDatFile);
         CompoundTag tag;
-        try (NBTInputStream in = new NBTInputStream(RegionFileCache.getChunkDataInputStream(levelDatFile.getParentFile(), chunkX, chunkZ, level.getVersion()))) {
-            tag = (CompoundTag) in.readTag();
+        try (InputStream chunkIn = RegionFileCache.getChunkDataInputStream(levelDatFile.getParentFile(), chunkX, chunkZ, level.getVersion())) {
+            if (chunkIn != null) {
+                try (NBTInputStream in = new NBTInputStream(chunkIn)) {
+                    tag = (CompoundTag) in.readTag();
+                }
+            } else {
+                System.err.printf("Chunk %d,%d not present!%n", chunkX, chunkZ);
+                System.exit(1);
+                return;
+            }
         }
         Chunk chunk = (level.getVersion() == VERSION_MCREGION)
                 ? new MCRegionChunk(tag, level.getMaxHeight())
-                : ((level.getDataVersion() == DATA_VERSION_MC_1_12_2)
+                : (((level.getDataVersion() == DATA_VERSION_MC_1_12_2) || (level.getDataVersion() == 0))
                     ? new MC12AnvilChunk(tag, level.getMaxHeight())
                     : new MC113AnvilChunk(tag, level.getMaxHeight()));
 
-        System.out.println("Biomes");
-        System.out.println("X-->");
-        for (int z = 0; z < 16; z++) {
-            for (int x = 0; x < 16; x++) {
-                System.out.printf("[%3d]", chunk.getBiome(x, z));
+        if (! (chunk instanceof MCRegionChunk)) {
+            System.out.println("Biomes");
+            System.out.println("X-->");
+            for (int z = 0; z < 16; z++) {
+                for (int x = 0; x < 16; x++) {
+                    System.out.printf("[%3d]", chunk.getBiome(x, z));
+                }
+                if (z == 0) {
+                    System.out.print(" Z");
+                } else if (z == 1) {
+                    System.out.print(" |");
+                } else if (z == 2) {
+                    System.out.print(" v");
+                }
+                System.out.println();
             }
-            if (z == 0) {
-                System.out.print(" Z");
-            } else if (z == 1) {
-                System.out.print(" |");
-            } else if (z == 2) {
-                System.out.print(" v");
-            }
-            System.out.println();
         }
 
         System.out.println("Blocks:");
