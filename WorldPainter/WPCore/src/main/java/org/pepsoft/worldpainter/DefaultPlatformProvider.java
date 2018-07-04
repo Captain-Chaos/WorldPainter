@@ -10,6 +10,7 @@ import org.pepsoft.worldpainter.plugins.BlockBasedPlatformProvider;
 import org.pepsoft.worldpainter.util.MinecraftUtil;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import static org.pepsoft.worldpainter.Constants.*;
@@ -44,6 +45,13 @@ public class DefaultPlatformProvider extends AbstractPlugin implements BlockBase
     @Override
     public ChunkStore getChunkStore(Platform platform, File worldDir, int dimension) {
         if (PLATFORMS.contains(platform)) {
+            Level level;
+            File levelDatFile = new File(worldDir, "level.dat");
+            try {
+                level = Level.load(levelDatFile);
+            } catch (IOException e) {
+                throw new RuntimeException("I/O error while trying to read level.dat", e);
+            }
             File regionDir;
             switch (dimension) {
                 case DIM_NORMAL:
@@ -58,7 +66,7 @@ public class DefaultPlatformProvider extends AbstractPlugin implements BlockBase
                 default:
                     throw new IllegalArgumentException("Dimension " + dimension + " not supported");
             }
-            return new JavaChunkStore(platform, regionDir, false, null, platform.standardMaxHeight);
+            return new JavaChunkStore(platform, regionDir, false, null, level.getMaxHeight());
         } else {
             throw new IllegalArgumentException("Platform " + platform + " not supported");
         }
