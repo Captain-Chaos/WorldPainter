@@ -28,10 +28,11 @@ import static org.pepsoft.worldpainter.objects.WPObject.*;
  *
  * @author pepijn
  */
-public class Bo2ObjectTube implements Bo2ObjectProvider {
+public final class Bo2ObjectTube implements Bo2ObjectProvider {
     public Bo2ObjectTube(String name, List<WPObject> objects) {
         this.name = name;
-        this.objects = objects;
+        this.objects = Collections.unmodifiableList(objects);
+        initWeightedObjects();
     }
 
     @Override
@@ -46,41 +47,37 @@ public class Bo2ObjectTube implements Bo2ObjectProvider {
     
     @Override
     public WPObject getObject() {
-        if (weightedObjects == null) {
-            weightedObjects = new TreeMap<>();
-            totalObjectWeight = 0;
-            for (WPObject object: objects) {
-                int frequency = object.getAttribute(ATTRIBUTE_FREQUENCY);
-                totalObjectWeight += frequency;
-                weightedObjects.put(totalObjectWeight, object);
-            }
-            
-        }
         return weightedObjects.tailMap(random.nextInt(totalObjectWeight)).values().iterator().next();
     }
 
     @Override
     public List<WPObject> getAllObjects() {
-        return Collections.unmodifiableList(objects);
+        return objects;
     }
 
     // Cloneable
 
     @Override
     public Bo2ObjectTube clone() {
-        try {
-            Bo2ObjectTube clone = (Bo2ObjectTube) super.clone();
-            clone.random = new Random();
-            clone.weightedObjects = null;
-            return clone;
-        } catch (CloneNotSupportedException e) {
-            throw new RuntimeException(e);
+        List<WPObject> clonedObjects = new ArrayList<>(objects.size());
+        clonedObjects.forEach(object -> clonedObjects.add(object.clone()));
+        return new Bo2ObjectTube(name, clonedObjects);
+    }
+
+    private void initWeightedObjects() {
+        weightedObjects = new TreeMap<>();
+        totalObjectWeight = 0;
+        for (WPObject object: objects) {
+            int frequency = object.getAttribute(ATTRIBUTE_FREQUENCY);
+            totalObjectWeight += frequency;
+            weightedObjects.put(totalObjectWeight, object);
         }
     }
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         random = new Random();
+        initWeightedObjects();
     }
 
     /**
