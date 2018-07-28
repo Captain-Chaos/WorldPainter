@@ -1,3 +1,7 @@
+-- Version 2.5.6, released 28-7-2018
+
+ * Work around an incompatibility with Minecraft 1.13 that caused Custom Object and Custom Layer previews to malfunction if it is installed. If you applied the workaround of configuring an advanced setting to point WorldPainter to a non-existent Minecraft installation, you can remove that workaround
+
 -- Version 2.5.5, released 4-7-2018
 
  * Bug fix: when exporting worlds with a non-standard height, custom objects placed during the fix-up phase (along region borders) would be splattered all over the map. This will no longer happen
