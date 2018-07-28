@@ -4,6 +4,7 @@
  */
 package org.pepsoft.worldpainter.layers.bo2;
 
+import org.pepsoft.minecraft.Material;
 import org.pepsoft.worldpainter.App;
 import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.objects.WPObject;
@@ -18,10 +19,14 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import static org.pepsoft.minecraft.Block.BLOCK_TYPE_NAMES;
+import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.worldpainter.objects.WPObject.*;
 
 /**
@@ -84,14 +89,26 @@ public class EditObjectAttributes extends javax.swing.JDialog {
             comboBoxUndergroundMode.setSelectedIndex(object.getAttribute(ATTRIBUTE_UNDERGROUND_MODE) - 1);
             comboBoxLeafDecayMode.setSelectedIndex(object.getAttribute(ATTRIBUTE_LEAF_DECAY_MODE) - 1);
             spinnerFrequency.setValue(object.getAttribute(ATTRIBUTE_FREQUENCY));
-            if (object.getAttribute(ATTRIBUTE_REPLACE_WITH_AIR) != null) {
-                int[] replaceWithBlock = object.getAttribute(ATTRIBUTE_REPLACE_WITH_AIR);
-                checkBoxReplace.setSelected(true);
-                comboBoxReplaceBlockId.setSelectedIndex(replaceWithBlock[0]);
-                spinnerReplaceData.setValue(replaceWithBlock[1]);
+            SortedSet<Material> materials = new TreeSet<>(Comparator.comparing(Material::toString));
+            object.visitBlocks((WPObject o, int x, int y, int z, Material m) -> {
+                if (m != AIR) {
+                    materials.add(m);
+                }
+                return true;
+            });
+            if (! materials.isEmpty()) {
+                comboBoxReplacedMaterial.setModel(new DefaultComboBoxModel<>(materials.toArray(new Material[materials.size()])));
+                if (object.hasAttribute(ATTRIBUTE_REPLACE_WITH_AIR)) {
+                    int[] replaceWithBlock = object.getAttribute(ATTRIBUTE_REPLACE_WITH_AIR);
+                    checkBoxReplace.setSelected(true);
+                    comboBoxReplacedMaterial.setSelectedItem(Material.get(replaceWithBlock[0], replaceWithBlock[1]));
+                } else if (object.hasAttribute(ATTRIBUTE_REPLACE_WITH_AIR_MATERIAL)) {
+                    Material replaceWithMaterial = object.getAttribute(ATTRIBUTE_REPLACE_WITH_AIR_MATERIAL);
+                    checkBoxReplace.setSelected(true);
+                    comboBoxReplacedMaterial.setSelectedItem(replaceWithMaterial);
+                }
             } else {
-                // Magenta wool by default
-                comboBoxReplaceBlockId.setSelectedIndex(35);
+                checkBoxReplace.setEnabled(false);
             }
             checkBoxExtendFoundation.setSelected(object.getAttribute(ATTRIBUTE_EXTEND_FOUNDATION));
             checkBoxExtendFoundation.setTristateMode(false);
@@ -238,10 +255,11 @@ public class EditObjectAttributes extends javax.swing.JDialog {
                 attributes.put(ATTRIBUTE_LEAF_DECAY_MODE.key, comboBoxLeafDecayMode.getSelectedIndex() + (singleSelection ? 1 : 0));
             }
             if (singleSelection) {
+                attributes.remove(ATTRIBUTE_REPLACE_WITH_AIR.key);
                 if (checkBoxReplace.isSelected()) {
-                    attributes.put(ATTRIBUTE_REPLACE_WITH_AIR.key, new int[] {comboBoxReplaceBlockId.getSelectedIndex(), (Integer) spinnerReplaceData.getValue()});
+                    attributes.put(ATTRIBUTE_REPLACE_WITH_AIR_MATERIAL.key, (Material) comboBoxReplacedMaterial.getSelectedItem());
                 } else {
-                    attributes.remove(ATTRIBUTE_REPLACE_WITH_AIR.key);
+                    attributes.remove(ATTRIBUTE_REPLACE_WITH_AIR_MATERIAL.key);
                 }
             }
             if (! checkBoxExtendFoundation.isMixed()) {
@@ -292,8 +310,7 @@ public class EditObjectAttributes extends javax.swing.JDialog {
     
     private void setControlStates() {
         boolean replaceBlocks = checkBoxReplace.isSelected();
-        comboBoxReplaceBlockId.setEnabled(replaceBlocks);
-        spinnerReplaceData.setEnabled(replaceBlocks);
+        comboBoxReplacedMaterial.setEnabled(replaceBlocks);
     }
     
     /**
@@ -335,11 +352,8 @@ public class EditObjectAttributes extends javax.swing.JDialog {
         jLabel9 = new javax.swing.JLabel();
         comboBoxLeafDecayMode = new javax.swing.JComboBox();
         checkBoxReplace = new javax.swing.JCheckBox();
-        jLabel10 = new javax.swing.JLabel();
-        comboBoxReplaceBlockId = new javax.swing.JComboBox();
-        jLabel11 = new javax.swing.JLabel();
-        spinnerReplaceData = new javax.swing.JSpinner();
         checkBoxExtendFoundation = new org.pepsoft.worldpainter.util.TristateCheckBox();
+        comboBoxReplacedMaterial = new javax.swing.JComboBox<>();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Edit Object Attributes");
@@ -454,18 +468,9 @@ public class EditObjectAttributes extends javax.swing.JDialog {
             }
         });
 
-        jLabel10.setText("block ID:");
-
-        comboBoxReplaceBlockId.setModel(new DefaultComboBoxModel(BLOCK_TYPES)
-        );
-        comboBoxReplaceBlockId.setEnabled(false);
-
-        jLabel11.setText(", data:");
-
-        spinnerReplaceData.setModel(new javax.swing.SpinnerNumberModel(2, 0, 15, 1));
-        spinnerReplaceData.setEnabled(false);
-
         checkBoxExtendFoundation.setText("extend foundation to ground");
+
+        comboBoxReplacedMaterial.setEnabled(false);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -524,13 +529,7 @@ public class EditObjectAttributes extends javax.swing.JDialog {
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(checkBoxReplace)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel10)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(comboBoxReplaceBlockId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 0, 0)
-                                .addComponent(jLabel11)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(spinnerReplaceData, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(comboBoxReplacedMaterial, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addComponent(checkBoxExtendFoundation, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(18, 18, 18)
                         .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 256, Short.MAX_VALUE))
@@ -602,10 +601,7 @@ public class EditObjectAttributes extends javax.swing.JDialog {
                         .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(checkBoxReplace)
-                            .addComponent(jLabel10)
-                            .addComponent(comboBoxReplaceBlockId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel11)
-                            .addComponent(spinnerReplaceData, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(comboBoxReplacedMaterial, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(18, 18, 18)
                         .addComponent(checkBoxExtendFoundation, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(0, 0, Short.MAX_VALUE))
@@ -666,12 +662,10 @@ public class EditObjectAttributes extends javax.swing.JDialog {
     private org.pepsoft.worldpainter.util.TristateCheckBox checkBoxUnderWater;
     private javax.swing.JComboBox comboBoxCollisionMode;
     private javax.swing.JComboBox comboBoxLeafDecayMode;
-    private javax.swing.JComboBox comboBoxReplaceBlockId;
+    private javax.swing.JComboBox<Material> comboBoxReplacedMaterial;
     private javax.swing.JComboBox comboBoxUndergroundMode;
     private javax.swing.JTextField fieldName;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel10;
-    private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -684,7 +678,6 @@ public class EditObjectAttributes extends javax.swing.JDialog {
     private javax.swing.JLabel labelFile;
     private javax.swing.JLabel labelOffset;
     private javax.swing.JSpinner spinnerFrequency;
-    private javax.swing.JSpinner spinnerReplaceData;
     // End of variables declaration//GEN-END:variables
 
     private final Collection<WPObject> objects;

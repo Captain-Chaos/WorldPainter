@@ -114,7 +114,18 @@ public interface WPObject extends Serializable, Cloneable {
      * @return A live view of the object metadata. May be <code>null</code>.
      */
     Map<String, Serializable> getAttributes();
-    
+
+    /**
+     * Determine whether the object contains a value for a particular attribute.
+     *
+     * @param attributeKey The attribute key to check.
+     * @return <code>true</code> if a value is set for the specified attribute.
+     */
+    default boolean hasAttribute(AttributeKey<?> attributeKey) {
+        Map<String, Serializable> attributes = getAttributes();
+        return (attributes != null) && attributes.containsKey(attributeKey.key);
+    }
+
     /**
      * Convencience method for getting the value of an attribute stored in the
      * external metadata, if any. Should return the value of the attribute if it
@@ -193,6 +204,32 @@ public interface WPObject extends Serializable, Cloneable {
         }
         return (offsetZ > Integer.MIN_VALUE) ? new Point3i(-(lowestX + highestX) / 2, -(lowestY + highestY) / 2, -offsetZ) : null;
     }
+    
+    /**
+     * Visit all blocks in the object. The order in which the blocks are visited
+     * is undefined.
+     * 
+     * @param visitor The visitor to invoke for each block. If the visitor
+     * returns <code>false</code> the operation is aborted.
+     * @return <code>true</code> if all blocks were visited or
+     * <code>false</code> if the visitor returned <code>false</code> at some
+     * point.
+     */
+    default boolean visitBlocks(BlockVisitor visitor) {
+        final Point3i dim = getDimensions();
+        for (int z = 0; z < dim.z; z++) {
+            for (int x = 0; x < dim.x; x++) {
+                for (int y = 0; y < dim.y; y++) {
+                    if (getMask(x, y, z)) {
+                        if (! visitor.visitBlock(this, x, y, z, getMaterial(x, y, z))) {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+        return true;
+    }
 
     // Standard attribute values
     int COLLISION_MODE_ALL   = 1;
@@ -242,13 +279,17 @@ public interface WPObject extends Serializable, Cloneable {
      */
     AttributeKey<Integer> ATTRIBUTE_LEAF_DECAY_MODE = new AttributeKey<>("WPObject.leafDecay", LEAF_DECAY_NO_CHANGE); // See LEAF_DECAY_* constants
     /**
-     * When set, describes a block ID (index 0) and data (index 1) combination
-     * which will be replaced with air blocks when this object is rendered.
-     * Mainly meant to be able to create voids underground using schematics,
-     * which is otherwise not possible since there is no way to tell whether an
-     * air block from a schematic is supposed to be placed or not.
+     * @deprecated Use {@link #ATTRIBUTE_REPLACE_WITH_AIR_MATERIAL}
      */
     AttributeKey<int[]> ATTRIBUTE_REPLACE_WITH_AIR = new AttributeKey<>("WPObject.replaceWithAir");
+    /**
+     * When set, describes a material which will be replaced with air blocks
+     * when this object is rendered. Mainly meant to be able to create voids
+     * underground using schematics, which is otherwise not possible since there
+     * is no way to tell whether an air block from a schematic is supposed to be
+     * placed or not.
+     */
+    AttributeKey<Material> ATTRIBUTE_REPLACE_WITH_AIR_MATERIAL = new AttributeKey<>("WPObject.replaceWithAirMaterial");
     /**
      * When set, the blocks on the lowest level of the object will be copied
      * downwards until they meet a solid block, if they end up being placed
@@ -257,4 +298,9 @@ public interface WPObject extends Serializable, Cloneable {
      */
     AttributeKey<Boolean>  ATTRIBUTE_EXTEND_FOUNDATION = new AttributeKey<>("WPObject.extendFoundation", false);
     AttributeKey<Platform> ATTRIBUTE_PLATFORM          = new AttributeKey<>("WPObject.platform");
+    
+    @FunctionalInterface
+    interface BlockVisitor {
+        boolean visitBlock(WPObject object, int x, int y, int z, Material material);
+    }
 }

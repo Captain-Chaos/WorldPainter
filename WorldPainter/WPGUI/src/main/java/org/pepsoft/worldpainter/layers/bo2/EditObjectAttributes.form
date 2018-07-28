@@ -86,13 +86,7 @@
                           <Group type="102" alignment="0" attributes="0">
                               <Component id="checkBoxReplace" min="-2" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
-                              <Component id="jLabel10" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace max="-2" attributes="0"/>
-                              <Component id="comboBoxReplaceBlockId" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
-                              <Component id="jLabel11" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace max="-2" attributes="0"/>
-                              <Component id="spinnerReplaceData" min="-2" max="-2" attributes="0"/>
+                              <Component id="comboBoxReplacedMaterial" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <Component id="checkBoxExtendFoundation" min="-2" max="-2" attributes="0"/>
                       </Group>
@@ -184,10 +178,7 @@
                       <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="3" attributes="0">
                           <Component id="checkBoxReplace" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="jLabel10" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="comboBoxReplaceBlockId" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="jLabel11" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="spinnerReplaceData" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="comboBoxReplacedMaterial" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Component id="checkBoxExtendFoundation" min="-2" max="-2" attributes="0"/>
@@ -420,36 +411,18 @@
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="checkBoxReplaceActionPerformed"/>
       </Events>
     </Component>
-    <Component class="javax.swing.JLabel" name="jLabel10">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="block ID:"/>
-      </Properties>
-    </Component>
-    <Component class="javax.swing.JComboBox" name="comboBoxReplaceBlockId">
-      <Properties>
-        <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-          <Connection code="new DefaultComboBoxModel(BLOCK_TYPES)&#xd;&#xa;" type="code"/>
-        </Property>
-        <Property name="enabled" type="boolean" value="false"/>
-      </Properties>
-    </Component>
-    <Component class="javax.swing.JLabel" name="jLabel11">
-      <Properties>
-        <Property name="text" type="java.lang.String" value=", data:"/>
-      </Properties>
-    </Component>
-    <Component class="javax.swing.JSpinner" name="spinnerReplaceData">
-      <Properties>
-        <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
-          <SpinnerModel initial="2" maximum="15" minimum="0" numberType="java.lang.Integer" stepSize="1" type="number"/>
-        </Property>
-        <Property name="enabled" type="boolean" value="false"/>
-      </Properties>
-    </Component>
     <Component class="org.pepsoft.worldpainter.util.TristateCheckBox" name="checkBoxExtendFoundation">
       <Properties>
         <Property name="text" type="java.lang.String" value="extend foundation to ground"/>
       </Properties>
+    </Component>
+    <Component class="javax.swing.JComboBox" name="comboBoxReplacedMaterial">
+      <Properties>
+        <Property name="enabled" type="boolean" value="false"/>
+      </Properties>
+      <AuxValues>
+        <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;Material&gt;"/>
+      </AuxValues>
     </Component>
   </SubComponents>
 </Form>

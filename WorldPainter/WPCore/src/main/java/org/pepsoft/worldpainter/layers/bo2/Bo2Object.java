@@ -129,6 +129,17 @@ public final class Bo2Object extends AbstractObject implements Bo2ObjectProvider
     }
 
     @Override
+    public boolean visitBlocks(BlockVisitor visitor) {
+        for (Map.Entry<Point3i, Bo2BlockSpec> entry: blocks.entrySet()) {
+            Point3i coords = entry.getKey();
+            if (! visitor.visitBlock(this, coords.x + origin.x, coords.y + origin.y, coords.z + origin.z, entry.getValue().getMaterial())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
     public Bo2Object clone() {
         Bo2Object clone = (Bo2Object) super.clone();
         clone.origin = (Point3i) origin.clone();

@@ -83,8 +83,16 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
         final int undergroundMode = object.getAttribute(ATTRIBUTE_UNDERGROUND_MODE);
         final int leafDecayMode = object.getAttribute(ATTRIBUTE_LEAF_DECAY_MODE);
         final boolean bottomless = dimension.isBottomless();
-        final int[] replaceBlockIds = object.getAttribute(ATTRIBUTE_REPLACE_WITH_AIR);
-        final boolean replaceBlocks = replaceBlockIds != null;
+        final Material replaceMaterial;
+        if (object.hasAttribute(ATTRIBUTE_REPLACE_WITH_AIR_MATERIAL)) {
+            replaceMaterial = object.getAttribute(ATTRIBUTE_REPLACE_WITH_AIR_MATERIAL);
+        } else if (object.hasAttribute(ATTRIBUTE_REPLACE_WITH_AIR)) {
+            int[] ids = object.getAttribute(ATTRIBUTE_REPLACE_WITH_AIR);
+            replaceMaterial = Material.get(ids[0], ids[1]);
+        } else {
+            replaceMaterial = null;
+        }
+        final boolean replaceBlocks = replaceMaterial != null;
         final boolean extendFoundation = object.getAttribute(ATTRIBUTE_EXTEND_FOUNDATION);
         if ((z + offset.z + dim.z - 1) >= world.getMaxHeight()) {
             // Object doesn't fit in the world vertically
@@ -99,14 +107,14 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                 for (int dz = 0; dz < dim.z; dz++) {
                     if (object.getMask(dx, dy, dz)) {
                         final Material objectMaterial = object.getMaterial(dx, dy, dz);
-                        final Material finalMaterial = (replaceBlocks && (objectMaterial.blockType == replaceBlockIds[0]) && (objectMaterial.data == replaceBlockIds[1])) ? Material.AIR : objectMaterial;
+                        final Material finalMaterial = (replaceBlocks && (objectMaterial == replaceMaterial)) ? Material.AIR : objectMaterial;
                         final int worldZ = z + dz + offset.z;
                         if ((bottomless || obliterate) ? (worldZ < 0) : (worldZ < 1)) {
                             continue;
                         } else if (obliterate) {
                             placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode);
                         } else {
-                            final int existingBlockType = world.getBlockTypeAt(worldX, worldY, worldZ);
+                            final Material existingMaterial = world.getMaterialAt(worldX, worldY, worldZ);
                             if (worldZ <= terrainHeight) {
                                 switch (undergroundMode) {
                                     case COLLISION_MODE_ALL:
@@ -121,14 +129,14 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                                         break;
                                     case COLLISION_MODE_NONE:
                                         // Only replace less solid blocks
-                                        if (BLOCKS[existingBlockType].veryInsubstantial) {
+                                        if (existingMaterial.veryInsubstantial) {
                                             placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode);
                                         }
                                         break;
                                 }
                             } else {
                                 // Above ground only replace less solid blocks
-                                if (BLOCKS[existingBlockType].veryInsubstantial) {
+                                if (existingMaterial.veryInsubstantial) {
                                     placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode);
                                 }
                             }
@@ -216,21 +224,11 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
     public static boolean isSane(WPObject object, int x, int y, int z, int maxHeight) {
         final Point3i dimensions = object.getDimensions();
         final Point3i offset = object.getOffset();
-        if ((((long) x + offset.x) < Integer.MIN_VALUE) || (((long) x + offset.x) > Integer.MAX_VALUE)) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("Object {0}@{1},{2},{3} extends beyond the limits of a 32 bit signed integer in the X dimension", object.getName(), x, y, z);
-            }
-            return false;
-        }
-        if ((((long) x + dimensions.x - 1 + offset.x) < Integer.MIN_VALUE) || (((long) x + dimensions.x - 1 + offset.x) > Integer.MAX_VALUE)) {
+        if ((((long) x + offset.x) < Integer.MIN_VALUE) || (((long) x + dimensions.x - 1 + offset.x) > Integer.MAX_VALUE)) {
             // The object extends beyond the limits of a 32 bit signed integer in the X dimension
             return false;
         }
-        if ((((long) y + offset.y) < Integer.MIN_VALUE) || (((long) y + offset.y) > Integer.MAX_VALUE)) {
-            // The object extends beyond the limits of a 32 bit signed integer in the Y dimension
-            return false;
-        }
-        if ((((long) y + dimensions.y - 1 + offset.y) < Integer.MIN_VALUE) || (((long) y + dimensions.y - 1 + offset.y) > Integer.MAX_VALUE)) {
+        if ((((long) y + offset.y) < Integer.MIN_VALUE) || (((long) y + dimensions.y - 1 + offset.y) > Integer.MAX_VALUE)) {
             // The object extends beyond the limits of a 32 bit signed integer in the Y dimension
             return false;
         }
