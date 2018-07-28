@@ -6,7 +6,6 @@
 
 package org.pepsoft.worldpainter.layers.plants;
 
-import org.pepsoft.util.Version;
 import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
 import org.pepsoft.worldpainter.layers.AbstractLayerEditor;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
@@ -21,10 +20,10 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.SortedMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import static org.pepsoft.worldpainter.Constants.V_1_12_2;
 import static org.pepsoft.worldpainter.layers.plants.Plant.Category.*;
 import static org.pepsoft.worldpainter.util.I18nHelper.m;
 
@@ -233,10 +232,8 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
         }
         try {
             if (resourcesJar == null) {
-                SortedMap<Version, File> jars = BiomeSchemeManager.getAllMinecraftJars();
-                if (! jars.isEmpty()) {
-                    resourcesJar = jars.get(jars.lastKey());
-                } else {
+                resourcesJar = BiomeSchemeManager.getMinecraftJar(V_1_12_2);
+                if (resourcesJar == null) {
                     logger.warn("Could not find Minecraft jar for loading plant icons");
                     resourcesJar = RESOURCES_NOT_AVAILABLE;
                     return null;

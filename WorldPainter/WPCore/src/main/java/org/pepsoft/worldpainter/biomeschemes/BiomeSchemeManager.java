@@ -21,6 +21,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.Comparator.comparing;
 import static org.pepsoft.worldpainter.Constants.*;
 
 /**
@@ -115,6 +116,28 @@ public class BiomeSchemeManager {
         }
 
         return Collections.unmodifiableSortedMap(ALL_JARS);
+    }
+
+    /**
+     * Get the highest version Minecraft jar available of the specified version
+     * or lower.
+     *
+     * @param version The highest version to return.
+     * @return The highest version Minecraft jar found that is not higher than
+     * the specified version, or <code>null</code> if no such Minecraft jar is
+     * available.
+     */
+    public static File getMinecraftJar(Version version) {
+        synchronized (initialisationLock) {
+            if (! initialised) {
+                initialise();
+            }
+        }
+
+        return ALL_JARS.entrySet().stream()
+                .filter(e -> e.getKey().compareTo(version) <= 0)
+                .max(comparing(Map.Entry::getKey))
+                .map(Map.Entry::getValue).orElse(null);
     }
 
     public static BufferedImage createImage(BiomeScheme biomeScheme, int biome, ColourScheme colourScheme) {

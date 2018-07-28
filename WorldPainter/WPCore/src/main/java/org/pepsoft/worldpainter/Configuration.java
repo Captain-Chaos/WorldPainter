@@ -693,6 +693,28 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         this.safeMode = safeMode;
     }
 
+    /**
+     * Get the current configuration data version of this configuration.
+     *
+     * @return The current configuration data version of this configuration.
+     */
+    public int getVersion() {
+        return version;
+    }
+
+    /**
+     * Get the previous configuration data version of this configuration, which
+     * may be lower than the current version if the configuration was upgraded
+     * during load.
+     *
+     * @return The previous version of the configuration data as it existed on
+     * disk before loading, or <code>-1</code> if this configuration was not
+     * loaded from disk.
+     */
+    public int getPreviousVersion() {
+        return previousVersion;
+    }
+
     @Override
     public synchronized void logEvent(EventVO event) {
         if (eventLog != null) {
@@ -727,6 +749,8 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     @SuppressWarnings("deprecation")
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
+
+        previousVersion = version;
         
         // Legacy config
         if ((border != null) && (border2 == null)) {
@@ -903,6 +927,10 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
             }
             defaultPlatform = null;
             exportDirectories = null;
+        }
+        if (version < 18) {
+            // Do nothing; this only exists to signal Dynmap metadata removal
+            // because it may be corrupted
         }
         version = CURRENT_VERSION;
         
@@ -1082,12 +1110,13 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
 
     // Runtime settings which aren't stored on disk
     private transient boolean autosaveInhibited, safeMode;
+    private transient int previousVersion = -1;
 
     private static Configuration instance;
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Configuration.class);
     private static final long serialVersionUID = 2011041801L;
     private static final int CIRCULAR_WORLD = -1;
-    private static final int CURRENT_VERSION = 17;
+    private static final int CURRENT_VERSION = 18;
     
     public enum DonationStatus {DONATED, NO_THANK_YOU}
     

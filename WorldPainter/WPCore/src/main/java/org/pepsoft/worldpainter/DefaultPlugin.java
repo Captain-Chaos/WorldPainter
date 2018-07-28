@@ -68,7 +68,7 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
 
     public static final Platform JAVA_ANVIL = new Platform(
             "org.pepsoft.anvil",
-            "Minecraft 1.2 or later (Anvil)",
+            "Minecraft 1.2 - 1.12 (Anvil)",
             DEFAULT_MAX_HEIGHT_2, DEFAULT_MAX_HEIGHT_2, DEFAULT_MAX_HEIGHT_2,
             Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE,
             Arrays.asList(SURVIVAL, CREATIVE, ADVENTURE, HARDCORE),
