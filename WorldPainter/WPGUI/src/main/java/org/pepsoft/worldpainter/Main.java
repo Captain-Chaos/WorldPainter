@@ -235,6 +235,18 @@ public class Main {
         Configuration.setInstance(config);
         logger.info("Installation ID: " + config.getUuid());
 
+        if (config.getPreviousVersion() >= 0) {
+            // Perform legacy migration actions
+            if (config.getPreviousVersion() < 18) {
+                // The dynmap data may have been copied from Minecraft 1.13, in
+                // which case it doesn't work, so delete it if it exists
+                File dynmapDir = new File(Configuration.getConfigDir(), "dynmap");
+                if (dynmapDir.isDirectory()) {
+                    FileUtils.deleteDir(dynmapDir);
+                }
+            }
+        }
+
         // Store the acceleration type in the config object so the Preferences
         // dialog can edit it
         config.setAccelerationType(accelerationType);

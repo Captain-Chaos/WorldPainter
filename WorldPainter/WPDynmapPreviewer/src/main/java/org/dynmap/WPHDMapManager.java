@@ -1,7 +1,6 @@
 package org.dynmap;
 
 import org.dynmap.hdmap.*;
-import org.pepsoft.util.Version;
 import org.pepsoft.worldpainter.Configuration;
 import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
 import org.slf4j.Logger;
@@ -12,10 +11,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Enumeration;
-import java.util.SortedMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
+
+import static org.pepsoft.worldpainter.Constants.V_1_12_2;
 
 /**
  * An alternative implementation of {@link HDMapManager} which creates a hard
@@ -29,17 +29,16 @@ class WPHDMapManager extends HDMapManager {
     void init(ConfigurationNode configNode) {
         DynmapCore core = new DynmapCore();
         perspectives.put("default", new IsoHDPerspective(core, configNode));
-        SortedMap<Version, File> minecraftJars = BiomeSchemeManager.getAllMinecraftJars();
-        if (minecraftJars.isEmpty()) {
+        File minecraftJar = BiomeSchemeManager.getMinecraftJar(V_1_12_2);
+        if (minecraftJar == null) {
             logger.info("No Minecraft jars found; falling back to solid shading for 3D dynmap previews");
             shaders.put("default", new DefaultHDShader(core, configNode));
         } else {
-            Version latestVersion = minecraftJars.lastKey();
-            if (checkDynmapResources(latestVersion, minecraftJars.get(latestVersion))) {
+            if (checkDynmapResources(minecraftJar)) {
                 // Note that technically we're reporting the wrong version number
                 // here and theoretically it could be wrong. In practice it
                 // should usually be right though:
-                logger.info("Using textures from Minecraft " + latestVersion + " for 3D dynmap previews");
+                logger.info("Using textures from Minecraft jar " + minecraftJar.getName() + " for 3D dynmap previews");
                 configNode.put("texturepack", "standard");
                 TexturePack.loadTextureMapping(core, configNode);
                 // Force initialisation of texture pack to get early errors:
@@ -61,14 +60,14 @@ class WPHDMapManager extends HDMapManager {
      * filesystem. Check that they are there and if not create them.
      */
     @SuppressWarnings("ResultOfMethodCallIgnored") // Implicitly checked later
-    private boolean checkDynmapResources(Version latestVersion, File latestJar) {
+    private boolean checkDynmapResources(File latestJar) {
         File texPackDir = new File(Configuration.getConfigDir(), "dynmap/texturepacks");
         if (! texPackDir.isDirectory()) {
             texPackDir.mkdirs();
         }
         File existingJar = new File(texPackDir, "standard");
         if ((! existingJar.isFile()) || (latestJar.lastModified() > existingJar.lastModified())) {
-            logger.info("Copying textures from Minecraft " + latestVersion + " for dynmap previews");
+            logger.info("Copying textures from Minecraft jar " + latestJar.getName() + " for dynmap previews");
             return createDynmapResources(latestJar, existingJar);
         } else {
             return true;

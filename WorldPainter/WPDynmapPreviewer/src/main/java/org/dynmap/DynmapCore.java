@@ -7,6 +7,8 @@ import org.pepsoft.worldpainter.dynmap.WPDynmapServer;
 
 import java.io.File;
 
+import static org.pepsoft.worldpainter.Constants.V_1_12_2;
+
 /**
  * Private implementation of <code>DynmapCore</code> from dynmap in order to work offline.
  *
@@ -38,7 +40,7 @@ public class DynmapCore {
     }
 
     public File getPluginJarFile() {
-        return BiomeSchemeManager.getAllMinecraftJars().get(BiomeSchemeManager.getAllMinecraftJars().lastKey());
+        return BiomeSchemeManager.getMinecraftJar(V_1_12_2);
     }
 
     public boolean dumpMissingBlocks() {
