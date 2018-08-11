@@ -6,6 +6,7 @@
 package org.pepsoft.worldpainter;
 
 import org.pepsoft.minecraft.Material;
+import org.pepsoft.util.AttributeKey;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.SystemUtils;
 import org.pepsoft.util.swing.TiledImageViewer;
@@ -693,6 +694,15 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         this.safeMode = safeMode;
     }
 
+    public <T> T getAdvancedSetting(AttributeKey<T> key) {
+        String value = System.getProperty(ADVANCED_SETTING_PREFIX + '.' + key.key);
+        if (value != null) {
+            return key.toValue(value);
+        } else {
+            return key.defaultValue;
+        }
+    }
+
     /**
      * Get the current configuration data version of this configuration.
      *
@@ -1117,7 +1127,8 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private static final long serialVersionUID = 2011041801L;
     private static final int CIRCULAR_WORLD = -1;
     private static final int CURRENT_VERSION = 18;
-    
+    public static final String ADVANCED_SETTING_PREFIX = "org.pepsoft.worldpainter";
+
     public enum DonationStatus {DONATED, NO_THANK_YOU}
     
     public enum LookAndFeel {SYSTEM, METAL, NIMBUS, DARK_METAL, DARK_NIMBUS}
