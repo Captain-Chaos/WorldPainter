@@ -16,8 +16,8 @@ public abstract class WorldPainterView extends TiledImageViewer {
         // Do nothing
     }
 
-    protected WorldPainterView(boolean leftClickDrags, int threads, boolean paintCentre) {
-        super(leftClickDrags, threads, paintCentre);
+    protected WorldPainterView(boolean leftClickDrags, boolean paintCentre) {
+        super(leftClickDrags, paintCentre);
     }
 
     /**

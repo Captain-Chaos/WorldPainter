@@ -493,7 +493,7 @@ public class TileSelector extends javax.swing.JPanel {
     private javax.swing.JPanel jPanel1;
     // End of variables declaration//GEN-END:variables
 
-    private final WPTileSelectionViewer viewer = new WPTileSelectionViewer(false, Math.max(Runtime.getRuntime().availableProcessors() - 1, 1), true);
+    private final WPTileSelectionViewer viewer = new WPTileSelectionViewer(false, true);
     private final List<Listener> listeners = new ArrayList<>();
     private Dimension dimension;
     private ColourScheme colourScheme;

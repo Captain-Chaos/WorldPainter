@@ -37,7 +37,7 @@ import static org.pepsoft.worldpainter.Constants.*;
  */
 public class WorldPainter extends WorldPainterView implements MouseMotionListener, PropertyChangeListener {
     public WorldPainter(ColourScheme colourScheme, BiomeScheme biomeScheme, CustomBiomeManager customBiomeManager) {
-        super(false, Math.max(Runtime.getRuntime().availableProcessors() - 1, 1), false);
+        super(false, false);
         this.colourScheme = colourScheme;
         this.biomeScheme = biomeScheme;
         this.customBiomeManager = customBiomeManager;

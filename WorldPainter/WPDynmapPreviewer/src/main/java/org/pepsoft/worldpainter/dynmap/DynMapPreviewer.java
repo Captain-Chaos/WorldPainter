@@ -43,7 +43,7 @@ public class DynMapPreviewer extends TiledImageViewer {
     }
 
     public DynMapPreviewer(double myAzimuth, double myInclination, int myZoom) {
-        super(true, Math.max(Runtime.getRuntime().availableProcessors() - 1, 1), false);
+        super(true, false);
         initialAzimuth = myAzimuth;
         initialInclination = myInclination;
         initialZoom = myZoom;

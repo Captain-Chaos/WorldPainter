@@ -28,8 +28,8 @@ public class WPTileSelectionViewer extends TiledImageViewer {
         setPaintGrid(true);
     }
 
-    public WPTileSelectionViewer(boolean leftClickDrags, int threads, boolean paintCentre) {
-        super(leftClickDrags, threads, paintCentre);
+    public WPTileSelectionViewer(boolean leftClickDrags, boolean paintCentre) {
+        super(leftClickDrags, paintCentre);
         setPaintGrid(true);
     }
     

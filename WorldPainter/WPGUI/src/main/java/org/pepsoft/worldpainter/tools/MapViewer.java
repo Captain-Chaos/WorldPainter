@@ -44,7 +44,7 @@ public class MapViewer {
 
             JFrame frame = new JFrame("Map Viewer");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            final TiledImageViewer viewer = new TiledImageViewer(true, Math.max(Runtime.getRuntime().availableProcessors() - 1, 1), true);
+            final TiledImageViewer viewer = new TiledImageViewer(true, true);
             viewer.setTileProvider(tileProvider);
             viewer.addMouseWheelListener(e -> {
                 int zoom = viewer.getZoom();

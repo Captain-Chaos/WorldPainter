@@ -4,6 +4,8 @@
  */
 package org.pepsoft.util.swing;
 
+import org.pepsoft.util.IntegerAttributeKey;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -44,11 +46,10 @@ import static org.pepsoft.util.GUIUtils.UI_SCALE;
 public class TiledImageViewer extends JComponent implements TileListener, MouseListener, MouseMotionListener, ComponentListener, HierarchyListener {
     /**
      * Create a new tiled image viewer which allows panning by dragging with the
-     * left mouse button, uses as many background tile rendering threads as
-     * there are available processors and which paints the central crosshair.
+     * left mouse button and which paints the central crosshair.
      */
     public TiledImageViewer() {
-        this(true, Runtime.getRuntime().availableProcessors(), true);
+        this(true, true);
     }
 
     /**
@@ -56,18 +57,19 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
      *
      * @param leftClickDrags Whether dragging with the left mouse button should
      *                       pan the image.
-     * @param threads The number of background tile rendering threads to use.
      * @param paintCentre Whether the central crosshair indicating the current
      *                    location should be painted.
      */
     @SuppressWarnings("LeakingThisInConstructor")
-    public TiledImageViewer(boolean leftClickDrags, int threads, boolean paintCentre) {
-        if (threads < 1) {
-            throw new IllegalArgumentException("threads < 1");
-        }
+    public TiledImageViewer(boolean leftClickDrags, boolean paintCentre) {
         this.leftClickDrags = leftClickDrags;
-        this.threads = threads;
         this.paintCentre = paintCentre;
+        String maxThreads = System.getProperty("org.pepsoft.worldpainter." + ADVANCED_SETTING_MAX_TILE_RENDER_THREADS.key);
+        if (maxThreads != null) {
+            threads = ADVANCED_SETTING_MAX_TILE_RENDER_THREADS.toValue(maxThreads);
+        } else {
+            threads = Math.min(Math.max(Runtime.getRuntime().availableProcessors() - 1, 1), ADVANCED_SETTING_MAX_TILE_RENDER_THREADS.defaultValue);
+        }
         addMouseListener(this);
         addMouseMotionListener(this);
         addComponentListener(this);
@@ -1878,6 +1880,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
     private volatile boolean inhibitUpdates;
 
     public static final int TILE_SIZE = 128, TILE_SIZE_BITS = 7, TILE_SIZE_MASK = 0x7f;
+    public static final IntegerAttributeKey ADVANCED_SETTING_MAX_TILE_RENDER_THREADS = new IntegerAttributeKey("display.maxTileRenderThreads", 8);
     
     static final AtomicLong jobSeq = new AtomicLong(Long.MIN_VALUE);
 

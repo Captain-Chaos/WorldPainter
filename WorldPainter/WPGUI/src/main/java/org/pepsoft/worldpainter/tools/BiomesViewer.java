@@ -13,8 +13,8 @@ public class BiomesViewer extends WPTileSelectionViewer {
         // Do nothing
     }
 
-    public BiomesViewer(boolean leftClickDrags, int threads, boolean paintCentre) {
-        super(leftClickDrags, threads, paintCentre);
+    public BiomesViewer(boolean leftClickDrags, boolean paintCentre) {
+        super(leftClickDrags, paintCentre);
     }
     
     private static final long serialVersionUID = 1L;

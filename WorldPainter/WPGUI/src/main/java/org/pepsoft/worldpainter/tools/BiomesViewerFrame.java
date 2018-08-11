@@ -40,7 +40,7 @@ public class BiomesViewerFrame extends JFrame {
         this.colourScheme = colourScheme;
         this.seedListener = seedListener;
         standAloneMode = App.getInstanceIfExists() == null;
-        imageViewer = new BiomesViewer(standAloneMode, Math.max(Runtime.getRuntime().availableProcessors() - 1, 1), true);
+        imageViewer = new BiomesViewer(standAloneMode, true);
         if (marker != null) {
             imageViewer.setMarkerCoords(marker);
             imageViewer.moveToMarker();
