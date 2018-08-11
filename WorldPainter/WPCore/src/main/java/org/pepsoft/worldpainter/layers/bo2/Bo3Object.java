@@ -86,11 +86,10 @@ public final class Bo3Object extends AbstractObject implements Bo2ObjectProvider
         if (tileEntities == null) {
             tileEntities = blocks.values().stream()
                 .flatMap(block -> block.getTileEntities().stream())
-                .map(tileEntity -> {
+                .peek(tileEntity -> {
                     tileEntity.setX(tileEntity.getX() + origin.x);
                     tileEntity.setY(tileEntity.getY() + origin.z);
                     tileEntity.setZ(tileEntity.getZ() + origin.y);
-                    return tileEntity;
                 })
                 .collect(Collectors.toList());
         }
