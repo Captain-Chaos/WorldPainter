@@ -39,6 +39,29 @@
                     </execution>
                 </executions>
             </plugin>
+            <!-- Create a fake Javadoc jar to appease OSSRH -->
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>fake-javadoc</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>javadoc</classifier>
+                            <archive>
+                                <addMavenDescriptor>false</addMavenDescriptor>
+                            </archive>
+                            <classesDirectory>${project.basedir}/src/main/javadoc</classesDirectory>
+                            <includes>
+                                <include>README</include>
+                            </includes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
         <pluginManagement>
             <plugins>
