@@ -11,6 +11,7 @@ import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
 import com.jidesoft.plaf.LookAndFeelFactory;
 import com.jidesoft.utils.Lm;
+import org.intellij.lang.annotations.Language;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.GUIUtils;
 import org.pepsoft.util.PluginManager;
@@ -460,6 +461,22 @@ public class Main {
             // Do this later to give the app the chance to properly set
             // itself up
             SwingUtilities.invokeLater(() -> {
+                if (Version.isSnapshot() && ! myConfig.isSnapshotWarningDisplayed()) {
+                    String result = JOptionPane.showInputDialog(app, SNAPSHOT_MESSAGE, "Snapshot Release", JOptionPane.WARNING_MESSAGE);
+                    if (result == null) {
+                        // Cancel was pressed
+                        System.exit(0);
+                    }
+                    while (! result.toLowerCase().replace(" ", "").equals("iunderstand")) {
+                        Toolkit.getDefaultToolkit().beep();
+                        result = JOptionPane.showInputDialog(app, SNAPSHOT_MESSAGE, "Snapshot Release", JOptionPane.WARNING_MESSAGE);
+                        if (result == null) {
+                            // Cancel was pressed
+                            System.exit(0);
+                        }
+                    }
+                    myConfig.setSnapshotWarningDisplayed(true);
+                }
                 if (world != null) {
                     // On a Mac we may be doing this unnecessarily because we
                     // may be opening a .world file, but it has proven difficult
@@ -497,7 +514,16 @@ public class Main {
         logger.error("Exception while initialising configuration", e);
         JOptionPane.showMessageDialog(null, "Could not read configuration file! Resetting configuration.\n\nException type: " + e.getClass().getSimpleName() + "\nMessage: " + e.getMessage(), "Configuration Error", JOptionPane.ERROR_MESSAGE);
     }
-    
+
+    @Language("HTML")
+    private static final String SNAPSHOT_MESSAGE = "<html><h1>Warning: Snapshot Release</h1>" +
+            "<p>This is a snapshot release of WorldPainter. It is for testing <em>only</em>!" +
+            "<p>Any worlds you edit with this version <strong>may not be loadable</strong> by the production version when that is released!" +
+            "<p><strong>Make backups</strong> of any existing worlds you wish to test with this release, in a safe location." +
+            "<p>Any or all work you do with this test release may be lost, and if you don't create backups, you may lose your current worlds." +
+            "<p>Please report bugs on GitHub: https://github.com/Captain-Chaos/WorldPainter" +
+            "<p>Type \"I understand\" below to proceed with testing the next release of WorldPainter:</p></html>";
+
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Main.class);
 
     static PrivateContext privateContext;

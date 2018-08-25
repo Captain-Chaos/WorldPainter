@@ -15,6 +15,10 @@ public class Version {
     private Version() {
         // Prevent instantiation
     }
+
+    public static boolean isSnapshot() {
+        return VERSION.contains("SNAPSHOT");
+    }
     
     public static final String VERSION;
     public static final String BUILD;

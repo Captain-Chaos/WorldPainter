@@ -1739,7 +1739,15 @@ public final class App extends JFrame implements RadiusControl,
 
     @Override
     public void setTitle(String title) {
-        super.setTitle(Configuration.getInstance().isSafeMode() ? (title + " [SAFE MODE]") : title);
+        StringBuilder sb = new StringBuilder();
+        sb.append(title);
+        if (Version.isSnapshot()) {
+            sb.append(" [SNAPSHOT]");
+        }
+        if (Configuration.getInstance().isSafeMode()) {
+            sb.append(" [SAFE MODE]");
+        }
+        super.setTitle(sb.toString());
     }
 
     void exit() {
