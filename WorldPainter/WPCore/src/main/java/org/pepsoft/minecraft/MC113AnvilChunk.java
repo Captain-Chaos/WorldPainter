@@ -15,9 +15,9 @@ import java.util.*;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
+import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.MC113AnvilChunk.Status.LIQUID_CARVED;
 import static org.pepsoft.minecraft.MC113AnvilChunk.Status.POSTPROCESSED;
-import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.AIR;
 
 /**
@@ -123,7 +123,7 @@ public final class MC113AnvilChunk extends AbstractNBTItem implements Chunk, Min
         setBoolean(TAG_LIGHT_POPULATED, lightPopulated);
         setLong(TAG_INHABITED_TIME, inhabitedTime);
 
-        CompoundTag tag = new CompoundTag("", Collections.EMPTY_MAP);
+        CompoundTag tag = new CompoundTag("", Collections.emptyMap());
         tag.setTag(TAG_LEVEL, super.toNBT());
         tag.setTag(TAG_DATA_VERSION, new IntTag(TAG_DATA_VERSION, DATA_VERSION_MC_1_13));
         return tag;
@@ -736,7 +736,7 @@ public final class MC113AnvilChunk extends AbstractNBTItem implements Chunk, Min
         final Material[] materials;
     }
 
-    public enum HeightmapType {LIGHT, LIQUID, RAIN, SOLID, OCEAN_FLOOR, MOTION_BLOCKING_NO_LEAVES, LIGHT_BLOCKING, MOTION_BLOCKING, OCEAN_FLOOR_WG, WORLD_SURFACE_WG}
+    public enum HeightmapType {LIGHT, LIQUID, RAIN, SOLID, OCEAN_FLOOR, MOTION_BLOCKING_NO_LEAVES, LIGHT_BLOCKING, MOTION_BLOCKING, OCEAN_FLOOR_WG, WORLD_SURFACE_WG, WORLD_SURFACE}
 
     /**
      * The chunk generation status. These are in the order Minecraft has been

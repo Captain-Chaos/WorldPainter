@@ -842,30 +842,43 @@
   {
     "blockId": 17,
     "dataValue": 12,
-    "name": "minecraft:oak_bark"
+    "name": "minecraft:oak_wood",
+    "properties": {
+      "axis": "y"
+    }
   },
   {
     "blockId": 17,
     "dataValue": 13,
-    "name": "minecraft:spruce_bark"
+    "name": "minecraft:spruce_wood",
+    "properties": {
+      "axis": "y"
+    }
   },
   {
     "blockId": 17,
     "dataValue": 14,
-    "name": "minecraft:birch_bark"
+    "name": "minecraft:birch_wood",
+    "properties": {
+      "axis": "y"
+    }
   },
   {
     "blockId": 17,
     "dataValue": 15,
-    "name": "minecraft:jungle_bark"
+    "name": "minecraft:jungle_wood",
+    "properties": {
+      "axis": "y"
+    }
   },
+// TODO: should we be calculating the distance property?
   {
     "blockId": 18,
     "dataValue": 0,
     "name": "minecraft:oak_leaves",
     "properties": {
-      "check_decay": "false",
-      "decayable": "true"
+      "distance": "1",
+      "persistent": "false"
     }
   },
   {
@@ -873,8 +886,8 @@
     "dataValue": 1,
     "name": "minecraft:spruce_leaves",
     "properties": {
-      "check_decay": "false",
-      "decayable": "true"
+      "distance": "2",
+      "persistent": "false"
     }
   },
   {
@@ -882,8 +895,8 @@
     "dataValue": 2,
     "name": "minecraft:birch_leaves",
     "properties": {
-      "check_decay": "false",
-      "decayable": "true"
+      "distance": "3",
+      "persistent": "false"
     }
   },
   {
@@ -891,8 +904,8 @@
     "dataValue": 3,
     "name": "minecraft:jungle_leaves",
     "properties": {
-      "check_decay": "false",
-      "decayable": "true"
+      "distance": "4",
+      "persistent": "false"
     }
   },
   {
@@ -900,8 +913,8 @@
     "dataValue": 4,
     "name": "minecraft:oak_leaves",
     "properties": {
-      "check_decay": "false",
-      "decayable": "false"
+      "distance": "5",
+      "persistent": "true"
     }
   },
   {
@@ -909,8 +922,8 @@
     "dataValue": 5,
     "name": "minecraft:spruce_leaves",
     "properties": {
-      "check_decay": "false",
-      "decayable": "false"
+      "distance": "6",
+      "persistent": "true"
     }
   },
   {
@@ -918,8 +931,8 @@
     "dataValue": 6,
     "name": "minecraft:birch_leaves",
     "properties": {
-      "check_decay": "false",
-      "decayable": "false"
+      "distance": "7",
+      "persistent": "true"
     }
   },
   {
@@ -927,8 +940,8 @@
     "dataValue": 7,
     "name": "minecraft:jungle_leaves",
     "properties": {
-      "check_decay": "false",
-      "decayable": "false"
+      "distance": "7",
+      "persistent": "true"
     }
   },
   {
@@ -936,8 +949,8 @@
     "dataValue": 8,
     "name": "minecraft:oak_leaves",
     "properties": {
-      "check_decay": "true",
-      "decayable": "true"
+      "distance": "7",
+      "persistent": "false"
     }
   },
   {
@@ -945,10 +958,11 @@
     "dataValue": 9,
     "name": "minecraft:spruce_leaves",
     "properties": {
-      "check_decay": "true",
-      "decayable": "true"
+      "distance": "7",
+      "persistent": "false"
     }
   },
+// TODO: these two are missing in the 1.13 scan:
   {
     "blockId": 18,
     "dataValue": 10,
@@ -972,8 +986,8 @@
     "dataValue": 12,
     "name": "minecraft:oak_leaves",
     "properties": {
-      "check_decay": "true",
-      "decayable": "false"
+      "distance": "7",
+      "persistent": "true"
     }
   },
   {
@@ -981,8 +995,8 @@
     "dataValue": 13,
     "name": "minecraft:spruce_leaves",
     "properties": {
-      "check_decay": "true",
-      "decayable": "false"
+      "distance": "7",
+      "persistent": "true"
     }
   },
   {
@@ -990,8 +1004,8 @@
     "dataValue": 14,
     "name": "minecraft:birch_leaves",
     "properties": {
-      "check_decay": "true",
-      "decayable": "false"
+      "distance": "7",
+      "persistent": "true"
     }
   },
   {
@@ -999,8 +1013,8 @@
     "dataValue": 15,
     "name": "minecraft:jungle_leaves",
     "properties": {
-      "check_decay": "true",
-      "decayable": "false"
+      "distance": "7",
+      "persistent": "true"
     }
   },
   {
@@ -1161,6 +1175,7 @@
       "instrument": "harp"
     }
   },
+// TODO: beds are missing from the latest scan; they probably popped off for being incomplete
   {
     "blockId": 26,
     "dataValue": 0,
@@ -1610,6 +1625,7 @@
     "dataValue": 0,
     "name": "minecraft:cobweb"
   },
+// TODO: missing; popped off?
   {
     "blockId": 31,
     "dataValue": 0,
@@ -1738,6 +1754,7 @@
       "extended": "true"
     }
   },
+// TODO: missing; popped off?
   {
     "blockId": 34,
     "dataValue": 0,
@@ -1988,6 +2005,7 @@
     "dataValue": 8,
     "name": "minecraft:oxeye_daisy"
   },
+// TODO: missing; popped off?
   {
     "blockId": 39,
     "dataValue": 0,
@@ -2562,7 +2580,7 @@
   {
     "blockId": 52,
     "dataValue": 0,
-    "name": "minecraft:mob_spawner"
+    "name": "minecraft:spawner"
   },
   {
     "blockId": 53,
@@ -3627,6 +3645,7 @@
       "facing": "east"
     }
   },
+// TODO: missing in 1.13; popped off?
   {
     "blockId": 69,
     "dataValue": 0,
@@ -3777,6 +3796,7 @@
       "facing": "west"
     }
   },
+// TODO: missing in 1.13; popped off?
   {
     "blockId": 69,
     "dataValue": 15,
@@ -3803,6 +3823,7 @@
       "powered": "true"
     }
   },
+// TODO: missing in 1.13; popped off?
   {
     "blockId": 71,
     "dataValue": 0,
@@ -4067,6 +4088,7 @@
       "lit": "true"
     }
   },
+// TODO: missing in 1.13; popped off?
   {
     "blockId": 77,
     "dataValue": 0,
@@ -4087,6 +4109,7 @@
       "facing": "east"
     }
   },
+// TODO: next two missing in 1.13; popped off?
   {
     "blockId": 77,
     "dataValue": 2,
@@ -4147,6 +4170,7 @@
       "facing": "east"
     }
   },
+// TODO: next two missing in 1.13; popped off?
   {
     "blockId": 77,
     "dataValue": 10,
@@ -4261,6 +4285,7 @@
     "dataValue": 0,
     "name": "minecraft:snow_block"
   },
+// TODO: almost all cactus missing in 1.13; popped off?
   {
     "blockId": 81,
     "dataValue": 0,
@@ -4394,6 +4419,7 @@
     "dataValue": 0,
     "name": "minecraft:clay"
   },
+// TODO: all sugar_cane missing in 1.13; popped off because not next to water?
   {
     "blockId": 83,
     "dataValue": 0,
@@ -4553,22 +4579,34 @@
   {
     "blockId": 86,
     "dataValue": 0,
-    "name": "minecraft:pumpkin"
+    "name": "minecraft:carved_pumpkin",
+    "properties": {
+      "facing": "south"
+    }
   },
   {
     "blockId": 86,
     "dataValue": 1,
-    "name": "minecraft:pumpkin"
+    "name": "minecraft:carved_pumpkin",
+    "properties": {
+      "facing": "west"
+    }
   },
   {
     "blockId": 86,
     "dataValue": 2,
-    "name": "minecraft:pumpkin"
+    "name": "minecraft:carved_pumpkin",
+    "properties": {
+      "facing": "north"
+    }
   },
   {
     "blockId": 86,
     "dataValue": 3,
-    "name": "minecraft:pumpkin"
+    "name": "minecraft:carved_pumpkin",
+    "properties": {
+      "facing": "east"
+    }
   },
   {
     "blockId": 87,
@@ -4588,7 +4626,7 @@
   {
     "blockId": 90,
     "dataValue": 1,
-    "name": "minecraft:portal",
+    "name": "minecraft:nether_portal",
     "properties": {
       "axis": "x"
     }
@@ -4596,7 +4634,7 @@
   {
     "blockId": 90,
     "dataValue": 2,
-    "name": "minecraft:portal",
+    "name": "minecraft:nether_portal",
     "properties": {
       "axis": "z"
     }
@@ -4862,6 +4900,7 @@
       "delay": "4",
       "powered": "false",
       "facing": "east",
+      // TODO: "true" in latest scan; block updated?
       "locked": "false"
     }
   },
@@ -4906,6 +4945,7 @@
       "delay": "1",
       "powered": "true",
       "facing": "east",
+      // TODO: "true" in latest scan; block updated?
       "locked": "false"
     }
   },
@@ -4950,6 +4990,7 @@
       "delay": "2",
       "powered": "true",
       "facing": "east",
+      // TODO: "true" in latest scan; block updated?
       "locked": "false"
     }
   },
@@ -4994,6 +5035,7 @@
       "delay": "3",
       "powered": "true",
       "facing": "east",
+      // TODO: "true" in latest scan; block updated?
       "locked": "false"
     }
   },
@@ -5038,6 +5080,7 @@
       "delay": "4",
       "powered": "true",
       "facing": "east",
+      // TODO: "true" in latest scan; block updated?
       "locked": "false"
     }
   },
@@ -5506,6 +5549,7 @@
       "down": "false"
     }
   },
+// TODO: next three blocks missing in latest scan; is that correct?
   {
     "blockId": 99,
     "dataValue": 11,
@@ -5714,6 +5758,7 @@
       "down": "false"
     }
   },
+// TODO: next three blocks missing in latest scan; is that correct?
   {
     "blockId": 100,
     "dataValue": 11,
@@ -5806,7 +5851,7 @@
   {
     "blockId": 103,
     "dataValue": 0,
-    "name": "minecraft:melon_block"
+    "name": "minecraft:melon"
   },
   {
     "blockId": 104,
@@ -5936,6 +5981,7 @@
       "age": "7"
     }
   },
+// TODO: vine entirely missing; popped off?
   {
     "blockId": 106,
     "dataValue": 0,
@@ -6488,6 +6534,7 @@
       "snowy": "false"
     }
   },
+// TODO: missing; popped off due to no water?
   {
     "blockId": 111,
     "dataValue": 0,
@@ -6598,6 +6645,7 @@
       "facing": "north"
     }
   },
+// TODO: nether_wart entirely missing; popped off due to no netherrack?
   {
     "blockId": 115,
     "dataValue": 0,
@@ -7012,6 +7060,7 @@
       "type": "top"
     }
   },
+// TODO cocoa entirely missing; popped off due to no jungle wood?
   {
     "blockId": 127,
     "dataValue": 0,
@@ -7249,6 +7298,7 @@
       "facing": "east"
     }
   },
+// TODO missing; popped off?
   {
     "blockId": 131,
     "dataValue": 0,
@@ -7269,6 +7319,7 @@
       "facing": "west"
     }
   },
+  // TODO next three missing; popped off?
   {
     "blockId": 131,
     "dataValue": 2,
@@ -7309,6 +7360,7 @@
       "facing": "west"
     }
   },
+// TODO next six missing; popped off?
   {
     "blockId": 131,
     "dataValue": 6,
@@ -8235,6 +8287,7 @@
       "age": "7"
     }
   },
+// TODO: missing; popped off?
   {
     "blockId": 143,
     "dataValue": 0,
@@ -9921,13 +9974,14 @@
       "west": "false"
     }
   },
+// TODO: should we be calculating these distances?
   {
     "blockId": 161,
     "dataValue": 0,
     "name": "minecraft:acacia_leaves",
     "properties": {
-      "check_decay": "false",
-      "decayable": "true"
+      "distance": "7",
+      "persistent": "false"
     }
   },
   {
@@ -9935,8 +9989,8 @@
     "dataValue": 1,
     "name": "minecraft:dark_oak_leaves",
     "properties": {
-      "check_decay": "false",
-      "decayable": "true"
+      "distance": "7",
+      "persistent": "false"
     }
   },
   {
@@ -9944,8 +9998,8 @@
     "dataValue": 4,
     "name": "minecraft:acacia_leaves",
     "properties": {
-      "check_decay": "false",
-      "decayable": "false"
+      "distance": "7",
+      "persistent": "true"
     }
   },
   {
@@ -9953,8 +10007,8 @@
     "dataValue": 5,
     "name": "minecraft:dark_oak_leaves",
     "properties": {
-      "check_decay": "false",
-      "decayable": "false"
+      "distance": "7",
+      "persistent": "true"
     }
   },
   {
@@ -9962,8 +10016,8 @@
     "dataValue": 8,
     "name": "minecraft:acacia_leaves",
     "properties": {
-      "check_decay": "true",
-      "decayable": "true"
+      "distance": "7",
+      "persistent": "false"
     }
   },
   {
@@ -9971,8 +10025,8 @@
     "dataValue": 9,
     "name": "minecraft:dark_oak_leaves",
     "properties": {
-      "check_decay": "true",
-      "decayable": "true"
+      "distance": "7",
+      "persistent": "false"
     }
   },
   {
@@ -9980,8 +10034,8 @@
     "dataValue": 12,
     "name": "minecraft:acacia_leaves",
     "properties": {
-      "check_decay": "true",
-      "decayable": "false"
+      "distance": "7",
+      "persistent": "true"
     }
   },
   {
@@ -9989,8 +10043,8 @@
     "dataValue": 13,
     "name": "minecraft:dark_oak_leaves",
     "properties": {
-      "check_decay": "true",
-      "decayable": "false"
+      "distance": "7",
+      "persistent": "true"
     }
   },
   {
@@ -10044,12 +10098,18 @@
   {
     "blockId": 162,
     "dataValue": 12,
-    "name": "minecraft:acacia_bark"
+    "name": "minecraft:acacia_wood",
+    "properties": {
+      "axis": "y"
+    }
   },
   {
     "blockId": 162,
     "dataValue": 13,
-    "name": "minecraft:dark_oak_bark"
+    "name": "minecraft:dark_oak_wood",
+    "properties": {
+      "axis": "y"
+    }
   },
   {
     "blockId": 163,
@@ -10568,6 +10628,7 @@
     "dataValue": 0,
     "name": "minecraft:packed_ice"
   },
+// TODO: missing; popped off?
   {
     "blockId": 175,
     "dataValue": 0,
@@ -12427,6 +12488,7 @@
       "open": "false"
     }
   },
+// TODO: acacia door entirely missing; popped off? That's a very big coincidence...
   {
     "blockId": 196,
     "dataValue": 0,
@@ -12763,6 +12825,7 @@
       "facing": "east"
     }
   },
+// TODO: missing; popped off due to lack of end stone?
   {
     "blockId": 199,
     "dataValue": 0,
@@ -12776,6 +12839,7 @@
       "down": "false"
     }
   },
+// TODO: chorus_flower entirely missing; popped off due to lack of chorus_plant?
   {
     "blockId": 200,
     "dataValue": 0,

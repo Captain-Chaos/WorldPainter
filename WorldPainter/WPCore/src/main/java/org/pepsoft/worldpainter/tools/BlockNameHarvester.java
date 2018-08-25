@@ -1,8 +1,8 @@
 package org.pepsoft.worldpainter.tools;
 
 import org.json.simple.JSONValue;
-import org.pepsoft.minecraft.MC12AnvilChunk;
 import org.pepsoft.minecraft.Level;
+import org.pepsoft.minecraft.MC12AnvilChunk;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.worldpainter.Configuration;
@@ -32,6 +32,16 @@ import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_13;
  */
 public class BlockNameHarvester {
     public static void main(String[] args) throws IOException, ClassNotFoundException {
+        // Load the default platform descriptors so that they don't get blocked
+        // by older versions of them which might be contained in the
+        // configuration. Do this by loading and initialising (but not
+        // instantiating) the DefaultPlugin class
+        try {
+            Class.forName("org.pepsoft.worldpainter.DefaultPlugin");
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+
         // Load or initialise configuration
         Configuration config = Configuration.load(); // This will migrate the configuration directory if necessary
         if (config == null) {
@@ -79,8 +89,16 @@ public class BlockNameHarvester {
                         world.setMaterialAt(x, z, 3, GRASS);
                         int index = z + 32 + 64 * (x + 32);
                         int blockId = index >> 4;
-                        if ((blockId != BLK_PISTON_EXTENSION) && (blockId != 253) && (blockId != 254)) {
+                        if ((blockId != BLK_PISTON_EXTENSION) && (blockId != 253) && (blockId != 254)
+                                && (blockId != BLK_WATER) && (blockId != BLK_STATIONARY_WATER)
+                                && (blockId != BLK_LAVA) && (blockId != BLK_STATIONARY_LAVA)
+                                && (blockId != BLK_FIRE)) {
                             world.setMaterialAt(x, z, 4, Material.getByCombinedIndex(index));
+                            if (blockId == BLK_CACTUS) {
+                                world.setMaterialAt(x, z, 3, SAND);
+                            } else if (BLOCKS[blockId].vegetation) {
+                                world.setMaterialAt(x, z, 3, TILLED_DIRT);
+                            }
                         }
                     }
                 }

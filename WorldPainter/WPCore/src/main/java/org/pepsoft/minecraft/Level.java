@@ -46,7 +46,7 @@ public final class Level extends AbstractNBTItem {
             Map<String, Tag> versionTag = new HashMap<>();
             versionTag.put(TAG_ID_, new IntTag(TAG_ID_, dataVersion));
             versionTag.put(TAG_NAME, new StringTag(TAG_NAME, "WorldPainter"));
-            versionTag.put(TAG_SNAPSHOT, new ByteTag(TAG_SNAPSHOT, (byte) (platform != JAVA_ANVIL ? 1 : 0)));
+            versionTag.put(TAG_SNAPSHOT, new ByteTag(TAG_SNAPSHOT, (byte) 0));
             setMap(TAG_VERSION_, versionTag);
         }
         addDimension(0);

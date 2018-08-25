@@ -20,6 +20,8 @@ import java.util.*;
 import static org.pepsoft.minecraft.Block.BLOCK_TYPE_NAMES;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 
+import org.pepsoft.worldpainter.Dimension;
+
 /**
  * Created by Pepijn on 15-12-2016.
  */
@@ -154,9 +156,9 @@ public class JavaChunkStore implements ChunkStore {
                     CompoundTag tag = (CompoundTag) in.readTag();
 //                    timeSpentLoading += System.currentTimeMillis() - start;
                     boolean readOnly = honourReadOnlyChunks && dimension.getBitLayerValueAt(ReadOnly.INSTANCE, x << 4, z << 4);
-                    if ((platform == JAVA_MCREGION)) {
+                    if (platform == JAVA_MCREGION) {
                         return new MCRegionChunk(tag, maxHeight, readOnly);
-                    } else if ((platform == JAVA_ANVIL)) {
+                    } else if (platform == JAVA_ANVIL) {
                         return new MC12AnvilChunk(tag, maxHeight, readOnly);
                     } else {
                         return new MC113AnvilChunk(tag, maxHeight, readOnly);

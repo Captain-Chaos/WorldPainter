@@ -18,11 +18,8 @@ import java.io.InputStream;
 import java.util.regex.Pattern;
 
 import static org.pepsoft.minecraft.Constants.DATA_VERSION_MC_1_12_2;
-import static org.pepsoft.minecraft.Constants.DATA_VERSION_MC_1_13;
 import static org.pepsoft.minecraft.Constants.VERSION_MCREGION;
-import static org.pepsoft.worldpainter.Constants.DIM_END;
-import static org.pepsoft.worldpainter.Constants.DIM_NETHER;
-import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
+import static org.pepsoft.worldpainter.Constants.*;
 
 /**
  *

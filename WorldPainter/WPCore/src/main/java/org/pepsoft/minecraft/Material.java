@@ -10,10 +10,7 @@ import org.json.simple.parser.ParseException;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.ObjectStreamException;
-import java.io.Serializable;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -1563,17 +1560,27 @@ public final class Material implements Serializable {
 
     static {
         // Read MC block database
-        try (InputStreamReader in = new InputStreamReader(Block.class.getResourceAsStream("mc-blocks.json"))) {
-            java.util.List<?> list = (List<?>) new JSONParser().parse(in);
+        StringBuilder sb = new StringBuilder();
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(Block.class.getResourceAsStream("mc-blocks.json")))) {
+            String line;
+            while ((line = in.readLine()) != null) {
+                if ((! line.trim().startsWith("#")) && (! line.trim().startsWith("//"))) {
+                    sb.append(line);
+//                    sb.append('\n');
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("I/O error while reading Minecraft block database mc-blocks.json from classpath", e);
+        }
+        try {
+            java.util.List<?> list = (List<?>) new JSONParser().parse(sb.toString());
             for (Object listEntry: list) {
                 @SuppressWarnings("unchecked") // Guaranteed by contents of file
-                Map<String, Object> blockSpec = (Map<String, Object>) listEntry;
+                        Map<String, Object> blockSpec = (Map<String, Object>) listEntry;
                 int blockId = ((Number) blockSpec.get("blockId")).intValue();
                 int dataValue = ((Number) blockSpec.get("dataValue")).intValue();
                 BLOCK_SPECS.put((blockId << 4) | dataValue, blockSpec);
             }
-        } catch (IOException e) {
-            throw new RuntimeException("I/O error while reading Minecraft block database mc-blocks.json from classpath", e);
         } catch (ParseException e) {
             throw new RuntimeException("JSON parsing error while reading Minecraft block database mc-blocks.json from classpath", e);
         }
