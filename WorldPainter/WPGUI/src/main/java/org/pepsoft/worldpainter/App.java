@@ -47,7 +47,6 @@ import org.pepsoft.worldpainter.operations.*;
 import org.pepsoft.worldpainter.painting.*;
 import org.pepsoft.worldpainter.painting.Paint;
 import org.pepsoft.worldpainter.panels.BrushOptions;
-import org.pepsoft.worldpainter.panels.BrushOptions.Listener;
 import org.pepsoft.worldpainter.panels.DefaultFilter;
 import org.pepsoft.worldpainter.panels.InfoPanel;
 import org.pepsoft.worldpainter.plugins.CustomLayerProvider;
@@ -110,15 +109,14 @@ import static org.pepsoft.worldpainter.Platform.Capability.SET_SPAWN_POINT;
 import static org.pepsoft.worldpainter.Terrain.*;
 import static org.pepsoft.worldpainter.TileRenderer.FLUIDS_AS_LAYER;
 import static org.pepsoft.worldpainter.TileRenderer.TERRAIN_AS_LAYER;
-
-//import javax.swing.JSeparator;
+import static org.pepsoft.worldpainter.World2.*;
 
 /**
  *
  * @author pepijn
  */
 public final class App extends JFrame implements RadiusControl,
-        BiomesViewerFrame.SeedListener, Listener, CustomBiomeListener,
+        BiomesViewerFrame.SeedListener, BrushOptions.Listener, CustomBiomeListener,
         PaletteManager.ButtonProvider, DockableHolder, PropertyChangeListener, Dimension.Listener, Tile.Listener {
     private App() {
         super((mode == Mode.WORLDPAINTER) ? "WorldPainter" : "MinecraftMapEditor"); // NOI18N
@@ -511,7 +509,7 @@ public final class App extends JFrame implements RadiusControl,
             // have fixed the problem manually in 1.9.0 or 1.9.1, in which we
             // neglected to do it automatically)
             if (dimension.isFixOverlayCoords()) {
-                Toolkit.getDefaultToolkit().beep();
+                DesktopUtils.beep();
                 if (showConfirmDialog(this,
                         "This world was created in an older version of WorldPainter\n" +
                         "in which the overlay offsets were not stored correctly.\n" +
@@ -879,18 +877,18 @@ public final class App extends JFrame implements RadiusControl,
             private void appendMetadata(StringBuilder sb, Map<String, Object> metadata) {
                 for (Map.Entry<String, Object> entry: metadata.entrySet()) {
                     switch (entry.getKey()) {
-                        case World2.METADATA_KEY_WP_VERSION:
+                        case METADATA_KEY_WP_VERSION:
                             sb.append("Saved with WorldPainter ").append(entry.getValue());
-                            String build = (String) metadata.get(World2.METADATA_KEY_WP_BUILD);
+                            String build = (String) metadata.get(METADATA_KEY_WP_BUILD);
                             if (build != null) {
                                 sb.append(" (").append(build).append(')');
                             }
                             sb.append('\n');
                             break;
-                        case World2.METADATA_KEY_TIMESTAMP:
+                        case METADATA_KEY_TIMESTAMP:
                             sb.append("Saved on ").append(SimpleDateFormat.getDateTimeInstance().format((Date) entry.getValue())).append('\n');
                             break;
-                        case World2.METADATA_KEY_PLUGINS:
+                        case METADATA_KEY_PLUGINS:
                             String[][] plugins = (String[][]) entry.getValue();
                             for (String[] plugin: plugins) {
                                 sb.append("Plugin: ").append(plugin[0]).append(" (").append(plugin[1]).append(")\n");
@@ -972,10 +970,21 @@ public final class App extends JFrame implements RadiusControl,
             event.setAttribute(ATTRIBUTE_KEY_IMPORTED_WORLD, true);
         }
         config.logEvent(event);
-        
-        Set<World2.Warning> warnings = newWorld.getWarnings();
+
+        if (Version.isSnapshot()
+                && (newWorld.getMetadata() != null)
+                && newWorld.getMetadata().containsKey(METADATA_KEY_WP_VERSION)
+                && (! ((String) newWorld.getMetadata().get(METADATA_KEY_WP_VERSION)).contains("SNAPSHOT"))) {
+            DesktopUtils.beep();
+            showMessageDialog(this, "You are running a snapshot version of WorldPainter.\n" +
+                    "This file was last saved by a regular version of WorldPainter.\n" +
+                    "If you save the file with this version, you may no longer be able to open it\n" +
+                    "using a regular version of WorldPainter!", "Loading Non-snapshot World", WARNING_MESSAGE);
+        }
+
+        Set<Warning> warnings = newWorld.getWarnings();
         if ((warnings != null) && (! warnings.isEmpty())) {
-            for (World2.Warning warning: warnings) {
+            for (Warning warning: warnings) {
                 switch (warning) {
                     case AUTO_BIOMES_DISABLED:
                         if (showOptionDialog(this, "Automatic Biomes were previously enabled for this world but have been disabled.\nPress More Info for more information, including how to reenable it.", "Automatic Biomes Disabled", DEFAULT_OPTION, WARNING_MESSAGE, null, new Object[] {"More Info", "OK"}, "OK") == 0) {
@@ -1363,7 +1372,7 @@ public final class App extends JFrame implements RadiusControl,
                 rotateAutosaveFile();
             } catch (RuntimeException | Error e) {
                 logger.error("An exception occurred while trying to rotate the autosave", e);
-                Toolkit.getDefaultToolkit().beep();
+                DesktopUtils.beep();
                 JOptionPane.showMessageDialog(this, "An error occurred while trying to clear the autosave.\nWorldPainter may try to load the autosave on the next start.\nIf this keeps happening, please report it to the author.", "Clearing Autosave Failed", JOptionPane.WARNING_MESSAGE);
             }
             return true;
@@ -1861,7 +1870,7 @@ public final class App extends JFrame implements RadiusControl,
             return;
         }
         Configuration config = Configuration.getInstance();
-        final NewWorldDialog dialog = new NewWorldDialog(this, strings.getString("generated.world"), World2.DEFAULT_OCEAN_SEED, config.getDefaultPlatform(), DIM_NORMAL, config.getDefaultMaxHeight());
+        final NewWorldDialog dialog = new NewWorldDialog(this, strings.getString("generated.world"), DEFAULT_OCEAN_SEED, config.getDefaultPlatform(), DIM_NORMAL, config.getDefaultMaxHeight());
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             clearWorld(); // Free up memory of the world and the undo buffer
@@ -2167,7 +2176,7 @@ public final class App extends JFrame implements RadiusControl,
                 rotateAutosaveFile();
             } catch (RuntimeException | Error e) {
                 logger.error("An exception occurred while trying to rotate the autosave", e);
-                Toolkit.getDefaultToolkit().beep();
+                DesktopUtils.beep();
                 JOptionPane.showMessageDialog(this, "An error occurred while trying to clear the autosave.\nWorldPainter may try to load the autosave on the next start.\nIf this keeps happening, please report it to the author.", "Clearing Autosave Failed", JOptionPane.WARNING_MESSAGE);
             }
             lastSelectedFile = file;
@@ -2277,7 +2286,7 @@ public final class App extends JFrame implements RadiusControl,
             lastAutosavedState = world.getChangeNo();
         } catch (RuntimeException | Error e) {
             logger.error("An exception occurred while trying to autosave world", e);
-            Toolkit.getDefaultToolkit().beep();
+            DesktopUtils.beep();
             JOptionPane.showMessageDialog(this, "An error occurred while trying to autosave the world.\nIt has not been autosaved. If this keeps happening,\nplease report it to the author.", "Autosave Failed", JOptionPane.WARNING_MESSAGE);
         }
     }
@@ -2836,7 +2845,7 @@ public final class App extends JFrame implements RadiusControl,
                     dimension.setEventsInhibited(false);
                 }
             } else {
-                Toolkit.getDefaultToolkit().beep();
+                DesktopUtils.beep();
             }
             if (activeOperation instanceof CopySelectionOperation) {
                 deselectTool();
@@ -4055,7 +4064,7 @@ public final class App extends JFrame implements RadiusControl,
                                 rotateAutosaveFile();
                             } catch (RuntimeException | Error e2) {
                                 logger.error("An exception occurred while trying to rotate the autosave", e2);
-                                Toolkit.getDefaultToolkit().beep();
+                                DesktopUtils.beep();
                                 JOptionPane.showMessageDialog(this, "An error occurred while trying to clear the autosave.\nWorldPainter may try to load the autosave on the next start.\nIf this keeps happening, please report it to the author.", "Clearing Autosave Failed", JOptionPane.WARNING_MESSAGE);
                             }
                         }
@@ -4259,7 +4268,7 @@ public final class App extends JFrame implements RadiusControl,
             File brushesDir = new File(Configuration.getConfigDir(), "brushes");
             if (! brushesDir.exists()) {
                 if (! brushesDir.mkdirs()) {
-                    Toolkit.getDefaultToolkit().beep();
+                    DesktopUtils.beep();
                     return;
                 }
             }
@@ -4273,7 +4282,7 @@ public final class App extends JFrame implements RadiusControl,
             File pluginsDir = new File(Configuration.getConfigDir(), "plugins");
             if (! pluginsDir.exists()) {
                 if (! pluginsDir.mkdirs()) {
-                    Toolkit.getDefaultToolkit().beep();
+                    DesktopUtils.beep();
                     return;
                 }
             }
@@ -4888,7 +4897,7 @@ public final class App extends JFrame implements RadiusControl,
                     operation.setActive(true);
                 } catch (PropertyVetoException e) {
                     deselectTool();
-                    Toolkit.getDefaultToolkit().beep();
+                    DesktopUtils.beep();
                     return;
                 }
                 if (closeCallout("callout_1")) {
@@ -5383,7 +5392,7 @@ public final class App extends JFrame implements RadiusControl,
                             rotateAutosaveFile();
                         } catch (RuntimeException | Error e2) {
                             logger.error("An exception occurred while trying to rotate the autosave", e2);
-                            Toolkit.getDefaultToolkit().beep();
+                            DesktopUtils.beep();
                             JOptionPane.showMessageDialog(this, "An error occurred while trying to clear the autosave.\nWorldPainter may try to load the autosave on the next start.\nIf this keeps happening, please report it to the author.", "Clearing Autosave Failed", JOptionPane.WARNING_MESSAGE);
                         }
                     }
@@ -5807,18 +5816,18 @@ public final class App extends JFrame implements RadiusControl,
                 private void appendMetadata(StringBuilder sb, Map<String, Object> metadata) {
                     for (Map.Entry<String, Object> entry: metadata.entrySet()) {
                         switch (entry.getKey()) {
-                            case World2.METADATA_KEY_WP_VERSION:
+                            case METADATA_KEY_WP_VERSION:
                                 sb.append("Saved with WorldPainter ").append(entry.getValue());
-                                String build = (String) metadata.get(World2.METADATA_KEY_WP_BUILD);
+                                String build = (String) metadata.get(METADATA_KEY_WP_BUILD);
                                 if (build != null) {
                                     sb.append(" (").append(build).append(')');
                                 }
                                 sb.append('\n');
                                 break;
-                            case World2.METADATA_KEY_TIMESTAMP:
+                            case METADATA_KEY_TIMESTAMP:
                                 sb.append("Saved on ").append(SimpleDateFormat.getDateTimeInstance().format((Date) entry.getValue())).append('\n');
                                 break;
-                            case World2.METADATA_KEY_PLUGINS:
+                            case METADATA_KEY_PLUGINS:
                                 String[][] plugins = (String[][]) entry.getValue();
                                 for (String[] plugin: plugins) {
                                     sb.append("Plugin: ").append(plugin[0]).append(" (").append(plugin[1]).append(")\n");
@@ -6176,7 +6185,7 @@ public final class App extends JFrame implements RadiusControl,
             pauseAutosave = true;
             try {
                 if (world.getImportedFrom() != null) {
-                    Toolkit.getDefaultToolkit().beep();
+                    DesktopUtils.beep();
                     if (showConfirmDialog(App.this, strings.getString("this.is.an.imported.world"), strings.getString("imported"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION) {
                         return;
                     }
@@ -6396,7 +6405,7 @@ public final class App extends JFrame implements RadiusControl,
             if ((currentUndoManager != null) && currentUndoManager.undo()) {
                 currentUndoManager.armSavePoint();
             } else {
-                Toolkit.getDefaultToolkit().beep();
+                DesktopUtils.beep();
             }
         }
 
@@ -6414,7 +6423,7 @@ public final class App extends JFrame implements RadiusControl,
             if ((currentUndoManager != null) && currentUndoManager.redo()) {
                 currentUndoManager.armSavePoint();
             } else {
-                Toolkit.getDefaultToolkit().beep();
+                DesktopUtils.beep();
             }
         }
 
@@ -6490,7 +6499,7 @@ public final class App extends JFrame implements RadiusControl,
             long previousMinecraftSeed = dimension.getMinecraftSeed();
             int previousCeilingHeight = dimension.getCeilingHeight();
             boolean previousBedrockWall = dimension.isBedrockWall();
-            World2.BorderSettings previousBorderSettings = (dimension.getWorld() != null) ? dimension.getWorld().getBorderSettings().clone() : null;
+            BorderSettings previousBorderSettings = (dimension.getWorld() != null) ? dimension.getWorld().getBorderSettings().clone() : null;
             Dimension.LayerAnchor previousTopLayerAnchor = dimension.getTopLayerAnchor();
             DimensionPropertiesDialog dialog = new DimensionPropertiesDialog(App.this, dimension, selectedColourScheme);
             dialog.setVisible(true);
@@ -6803,7 +6812,7 @@ public final class App extends JFrame implements RadiusControl,
                     return;
                 }
             }
-            Toolkit.getDefaultToolkit().beep();
+            DesktopUtils.beep();
         }
 
         private static final long serialVersionUID = 1L;

@@ -518,9 +518,9 @@ public class Main {
     @Language("HTML")
     private static final String SNAPSHOT_MESSAGE = "<html><h1>Warning: Snapshot Release</h1>" +
             "<p>This is a snapshot release of WorldPainter. It is for testing <em>only</em>!" +
-            "<p>Any worlds you edit with this version <strong>may not be loadable</strong> by the production version when that is released!" +
+            "<p>Any worlds you edit with this version <strong>may not be loadable</strong> by the next production version<br>when that is released and <strong>will not be loadable</strong> by the current production version!" +
             "<p><strong>Make backups</strong> of any existing worlds you wish to test with this release, in a safe location." +
-            "<p>Any or all work you do with this test release may be lost, and if you don't create backups, you may lose your current worlds." +
+            "<p>Any or all work you do with this test release may be lost, and if you don't create backups,<br>you may lose your current worlds." +
             "<p>Please report bugs on GitHub: https://github.com/Captain-Chaos/WorldPainter" +
             "<p>Type \"I understand\" below to proceed with testing the next release of WorldPainter:</p></html>";
 

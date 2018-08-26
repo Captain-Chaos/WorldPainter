@@ -203,6 +203,14 @@ public final class DesktopUtils {
         doOnEventThread(() -> ProgressHelper.getInstance().setProgressError(window));
     }
 
+    /**
+     * Sound a beep, bell or other kind of audible alert, if supported by the
+     * desktop system.
+     */
+    public static void beep() {
+        Toolkit.getDefaultToolkit().beep();
+    }
+
     public static void main(String[] args) throws MalformedURLException {
         copyToClipboard("Testing, testing, one two three testing.");
         open(new URL("http://www.telegraaf.nl/"));
