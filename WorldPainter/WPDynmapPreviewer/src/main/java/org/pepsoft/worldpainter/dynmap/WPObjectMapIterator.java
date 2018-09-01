@@ -11,6 +11,9 @@ import org.pepsoft.worldpainter.objects.WPObject;
 
 import javax.vecmath.Point3i;
 
+import static org.pepsoft.minecraft.Constants.BLK_WOOL;
+import static org.pepsoft.minecraft.Constants.DATA_MAGENTA;
+
 /**
  * Implemenation of {@link MapIterator} used by {@link WPObjectDynmapWorld}.
  *
@@ -123,11 +126,11 @@ class WPObjectMapIterator implements MapIterator {
     }
 
     public int getBlockTypeID() {
-        return material.blockType;
+        return material.blockType >= 0 ? material.blockType : BLK_WOOL;
     }
 
     public int getBlockData() {
-        return material.data;
+        return material.data >= 0 ? material.data : DATA_MAGENTA;
     }
 
     public Object getBlockTileEntityField(String fieldId) {
@@ -139,7 +142,8 @@ class WPObjectMapIterator implements MapIterator {
         int offsetY = y + zoff;
         int offsetHeight = height + yoff;
         if (object.getMask(offsetX - xOffset, offsetY - yOffset, offsetHeight)) {
-            return object.getMaterial(offsetX - xOffset, offsetY - yOffset, offsetHeight).blockType;
+            int blockType = object.getMaterial(offsetX - xOffset, offsetY - yOffset, offsetHeight).blockType;
+            return (blockType >= 0) ? blockType : BLK_WOOL;
         } else {
             return 0;
         }
@@ -150,7 +154,8 @@ class WPObjectMapIterator implements MapIterator {
         int offsetY = y + zoff;
         int offsetHeight = height + yoff;
         if (object.getMask(offsetX - xOffset, offsetY - yOffset, offsetHeight)) {
-            return object.getMaterial(offsetX - xOffset, offsetY - yOffset, offsetHeight).blockType;
+            int data = object.getMaterial(offsetX - xOffset, offsetY - yOffset, offsetHeight).blockType;
+            return (data >= 0) ? data : DATA_MAGENTA;
         } else {
             return 0;
         }

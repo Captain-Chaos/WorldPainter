@@ -21,7 +21,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import static org.pepsoft.minecraft.Constants.BLK_AIR;
 import static org.pepsoft.minecraft.Material.AIR;
 
 /**
@@ -79,33 +78,29 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
         this.name = name;
         this.volume = volume;
         this.maxHeight = maxHeight;
+        this.lowestBlocks = lowestBlocks;
         this.offset = offset;
         dx = volume.getX1();
         dy = volume.getY1();
         dz = volume.getZ1();
         dimensions = new Point3i(volume.getWidth(), volume.getLength(), volume.getHeight());
-        data = new short[volume.getWidth()][volume.getLength()][volume.getHeight()];
-        if (lowestBlocks != null) {
-            this.lowestBlocks = new short[lowestBlocks.length];
-            for (int i = 0; i < lowestBlocks.length; i++) {
-                this.lowestBlocks[i] = (short) ((lowestBlocks[i].blockType << 4) | lowestBlocks[i].data);
-            }
-            for (short[][] slice: data) {
-                for (short[] row: slice) {
-                    System.arraycopy(this.lowestBlocks, 0, row, 0, this.lowestBlocks.length);
+        blocks = new Material[volume.getWidth()][volume.getLength()][volume.getHeight()];
+        for (Material[][] slice: blocks) {
+            for (Material[] column: slice) {
+                Arrays.fill(column, AIR);
+                if (lowestBlocks != null) {
+                    System.arraycopy(this.lowestBlocks, 0, column, 0, this.lowestBlocks.length);
                 }
             }
-        } else {
-            this.lowestBlocks = null;
         }
     }
 
     // Copy constructor for clone()
-    private MinecraftWorldObject(String name, Box volume, int maxHeight, short[][][] data, short[] lowestBlocks, Point3i offset) {
+    private MinecraftWorldObject(String name, Box volume, int maxHeight, Material[][][] blocks, Material[] lowestBlocks, Point3i offset) {
         this.name = name;
         this.volume = volume;
         this.maxHeight = maxHeight;
-        this.data = data;
+        this.blocks = blocks;
         this.lowestBlocks = lowestBlocks;
         dx = volume.getX1();
         dy = volume.getY1();
@@ -115,10 +110,10 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
     }
     
     public void reset() {
-        for (short[][] slice: data) {
-            for (short[] row: slice) {
-                Arrays.fill(row, (short) 0);
-                if ((lowestBlocks != null) && (lowestBlocks.length > 0)) {
+        for (Material[][] slice: blocks) {
+            for (Material[] row: slice) {
+                Arrays.fill(row, AIR);
+                if (lowestBlocks != null) {
                     System.arraycopy(lowestBlocks, 0, row, 0, lowestBlocks.length);
                 }
             }
@@ -133,26 +128,18 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
     
     @Override
     public int getBlockTypeAt(int x, int y, int height) {
-        if (volume.contains(x, y, height)) {
-            return data[x - dx][y - dy][height - dz] >> 4;
-        } else {
-            return BLK_AIR;
-        }
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public int getDataAt(int x, int y, int height) {
-        if (volume.contains(x, y, height)) {
-            return data[x - dx][y - dy][height - dz] & 0xf;
-        } else {
-            return 0;
-        }
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Material getMaterialAt(int x, int y, int height) {
         if (volume.contains(x, y, height)) {
-            return Material.getByCombinedIndex(data[x - dx][y - dy][height - dz]);
+            return blocks[x - dx][y - dy][height - dz];
         } else {
             return AIR;
         }
@@ -160,22 +147,18 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
 
     @Override
     public void setBlockTypeAt(int x, int y, int height, int blockType) {
-        if (volume.contains(x, y, height)) {
-            data[x - dx][y - dy][height - dz] = (short) ((blockType << 4) | (data[x - dx][y - dy][height - dz] & 0xf));
-        }
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void setDataAt(int x, int y, int height, int data) {
-        if (volume.contains(x, y, height)) {
-            this.data[x - dx][y - dy][height - dz] = (short) ((this.data[x - dx][y - dy][height - dz] & 0xfff0) | data);
-        }
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void setMaterialAt(int x, int y, int height, Material material) {
         if (volume.contains(x, y, height)) {
-            data[x - dx][y - dy][height - dz] = (short) material.index;
+            blocks[x - dx][y - dy][height - dz] = material;
         }
     }
 
@@ -236,7 +219,7 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
                 int blockX = (chunk.getxPos() << 4) | x, blockY = (chunk.getzPos() << 4) | z;
                 if (volume.containsXY(blockX, blockY)) {
                     for (int y = Math.min(chunk.getHighestNonAirBlock(x, z), dz + volume.getHeight() - 1); y >= dz; y--) {
-                        data[blockX - dx][blockY - dy][y - dz] = (short) chunk.getMaterial(x, y, z).index;
+                        blocks[blockX - dx][blockY - dy][y - dz] = chunk.getMaterial(x, y, z);
                     }
                 }
             }
@@ -247,7 +230,7 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
     public int getHighestNonAirBlock(int x, int y) {
         if (volume.containsXY(x, y)) {
             for (int z = volume.getHeight() - 1; z >= 0; z--) {
-                if (data[x - dx][y - dy][z] != 0) {
+                if (blocks[x - dx][y - dy][z] != null) {
                     return z + dz;
                 }
             }
@@ -291,12 +274,12 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
 
     @Override
     public Material getMaterial(int x, int y, int z) {
-        return Material.getByCombinedIndex(data[x][y][z]);
+        return blocks[x][y][z];
     }
 
     @Override
     public boolean getMask(int x, int y, int z) {
-        return data[x][y][z] != 0;
+        return blocks[x][y][z] != null;
     }
 
     @Override
@@ -347,13 +330,13 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
     @Override
     @SuppressWarnings("CloneDoesntCallSuperClone")
     public MinecraftWorldObject clone() {
-        return new MinecraftWorldObject(name, volume.clone(), maxHeight, data.clone(), lowestBlocks.clone(), (Point3i) offset.clone());
+        return new MinecraftWorldObject(name, volume.clone(), maxHeight, blocks.clone(), lowestBlocks.clone(), (Point3i) offset.clone());
     }
     
     private final String name;
     private final Box volume;
     private final int dx, dy, dz, maxHeight;
     private final Point3i dimensions, offset;
-    private final short[][][] data;
-    private final short[] lowestBlocks;
+    private final Material[][][] blocks;
+    private final Material[] lowestBlocks;
 }

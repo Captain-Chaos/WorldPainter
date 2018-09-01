@@ -28,6 +28,7 @@ import java.util.List;
 
 import static org.pepsoft.minecraft.Block.*;
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.worldpainter.objects.WPObject.*;
 
 /**
@@ -107,7 +108,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                 for (int dz = 0; dz < dim.z; dz++) {
                     if (object.getMask(dx, dy, dz)) {
                         final Material objectMaterial = object.getMaterial(dx, dy, dz);
-                        final Material finalMaterial = (replaceBlocks && (objectMaterial == replaceMaterial)) ? Material.AIR : objectMaterial;
+                        final Material finalMaterial = (replaceBlocks && (objectMaterial == replaceMaterial)) ? AIR : objectMaterial;
                         final int worldZ = z + dz + offset.z;
                         if ((bottomless || obliterate) ? (worldZ < 0) : (worldZ < 1)) {
                             continue;
@@ -292,11 +293,10 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                                     }
                                     return false;
                                 } else if (worldZ > dimension.getIntHeightAt(worldX, worldY)) {
-                                    // TODO: migrate this information to Material
-                                    int blockType = world.getBlockTypeAt(worldX, worldY, worldZ);
+                                    Material material = world.getMaterialAt(worldX, worldY, worldZ);
                                     if ((collisionMode == COLLISION_MODE_ALL)
-                                            ? (! AIR_AND_FLUIDS.contains(world.getBlockTypeAt(worldX, worldY, worldZ)))
-                                            : ((blockType < 0) || (! BLOCKS[blockType].veryInsubstantial))) { // TODO: for blocks not in the legacy block database we guess that they are substantial for now
+                                            ? ((material != AIR) && (! material.isNamed(MC_WATER)) && (! material.isNamed(MC_LAVA)))
+                                            : (! material.veryInsubstantial)) {
                                         // The block is above ground, it is present in the
                                         // custom object, is substantial, and there is already a
                                         // substantial block at the same location in the world;

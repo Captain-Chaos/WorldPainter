@@ -134,7 +134,7 @@ public class BlockNameHarvester {
                     blockSpecs.add(blockSpec);
                 }
             }
-            try (Writer out = new OutputStreamWriter(new FileOutputStream("mc-blocks.json"), "UTF-8")) {
+            try (Writer out = new OutputStreamWriter(new FileOutputStream("legacy-mc-blocks.json"), "UTF-8")) {
                 out.write(JSONValue.toJSONString(blockSpecs));
             }
         }

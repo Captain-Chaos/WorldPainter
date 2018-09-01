@@ -1,63 +1,22 @@
 package org.pepsoft.worldpainter.biomeschemes;
 
-import org.jnbt.CompoundTag;
-import org.pepsoft.minecraft.MCInterface;
-import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.Checksum;
+import org.pepsoft.worldpainter.BiomeScheme;
 
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * An {@link MCInterface} which makes use of Minecraft 1.10 jar files to provide
+ * A {@link BiomeScheme} which makes use of Minecraft 1.10 jar files to provide
  * biomes according to the Large Biomes world type.
  *
  * <p>Created by Pepijn on 26-6-2016.
  */
-public final class Minecraft1_10LargeBiomeScheme extends Minecraft1_8LargeBiomeScheme implements MCInterface {
+public final class Minecraft1_10LargeBiomeScheme extends Minecraft1_8LargeBiomeScheme {
     public Minecraft1_10LargeBiomeScheme(File minecraftJar, File libDir, Checksum md5Sum) {
         super(minecraftJar, libDir, md5Sum, HASHES_TO_CLASSNAMES);
     }
-
-    @Override
-    public Material decodeStructureMaterial(CompoundTag tag) {
-        return helper.decodeStructureMaterial(tag);
-    }
-
-    @Override
-    protected void init(String[] classNames, ClassLoader classLoader) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, NoSuchFieldException {
-        super.init(classNames, classLoader);
-
-        String blockDataClassName             = classNames[ 4];
-        String blockClassName                 = classNames[ 5];
-        String nbtTagClassName                = classNames[ 6];
-        String nbtCompoundTagClassName        = classNames[ 7];
-        String nbtListTagClassName            = classNames[ 8];
-        String nbtStringTagClassName          = classNames[ 9];
-        String gameProfileSerializerClassName = classNames[10];
-
-        Class<?> blockDataClass = classLoader.loadClass(blockDataClassName);
-        Class<?> blockClass = classLoader.loadClass(blockClassName);
-        Class<?> nbtTagClass = classLoader.loadClass(nbtTagClassName);
-        Class<?> nbtCompoundTagClass = classLoader.loadClass(nbtCompoundTagClassName);
-        Class<?> nbtListTagClass = classLoader.loadClass(nbtListTagClassName);
-        Class<?> nbtStringTagClass = classLoader.loadClass(nbtStringTagClassName);
-        Class<?> gameProfileSerializerClass = classLoader.loadClass(gameProfileSerializerClassName);
-
-        helper = new MC10InterfaceHelper(nbtCompoundTagClass,
-                nbtCompoundTagClass.getMethod("a", String.class, nbtTagClass),
-                nbtListTagClass,
-                nbtListTagClass.getMethod("a", nbtTagClass),
-                nbtStringTagClass.getConstructor(String.class),
-                gameProfileSerializerClass.getMethod("d", nbtCompoundTagClass),
-                blockDataClass.getMethod("t"),
-                blockClass.getMethod("a", blockClass),
-                blockClass.getMethod("e", blockDataClass));
-    }
-
-    private MC10InterfaceHelper helper;
 
     private static final Map<Checksum, String[]> HASHES_TO_CLASSNAMES = new HashMap<>();
 

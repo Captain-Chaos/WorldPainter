@@ -2,7 +2,6 @@ package org.pepsoft.worldpainter.layers.bo2;
 
 import org.jnbt.*;
 import org.pepsoft.minecraft.Entity;
-import org.pepsoft.minecraft.MCInterface;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.minecraft.TileEntity;
 import org.pepsoft.util.AttributeKey;
@@ -15,6 +14,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
 /**
@@ -118,15 +118,15 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
         return clone;
     }
 
-    public static Structure load(File file, MCInterface mcInterface) throws IOException {
+    public static Structure load(File file) throws IOException {
         String name = file.getName();
         if (name.toLowerCase().endsWith(".nbt")) {
             name = name.substring(0, name.length() - 4).trim();
         }
-        return load(name, new FileInputStream(file), mcInterface);
+        return load(name, new FileInputStream(file));
     }
 
-    public static Structure load(String objectName, InputStream inputStream, MCInterface mcInterface) throws IOException {
+    public static Structure load(String objectName, InputStream inputStream) throws IOException {
         CompoundTag root;
         try (NBTInputStream in = new NBTInputStream(new GZIPInputStream(new BufferedInputStream(inputStream)))) {
             root = (CompoundTag) in.readTag();
@@ -136,7 +136,13 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
         ListTag paletteTag = (ListTag) root.getTag("palette");
         Material[] palette = new Material[paletteTag.getValue().size()];
         for (int i = 0; i < palette.length; i++) {
-            palette[i] = mcInterface.decodeStructureMaterial((CompoundTag) paletteTag.getValue().get(i));
+            CompoundTag entryTag = (CompoundTag) paletteTag.getValue().get(i);
+            String name = ((StringTag) entryTag.getTag("Name")).getValue();
+            CompoundTag propertiesTag = (CompoundTag) entryTag.getTag("Properties");
+            Map<String, String> properties = (propertiesTag != null)
+                    ? propertiesTag.getValue().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> ((StringTag) entry.getValue()).getValue()))
+                    : null;
+            palette[i] = Material.get(name, properties);
         }
 
         // Load the blocks

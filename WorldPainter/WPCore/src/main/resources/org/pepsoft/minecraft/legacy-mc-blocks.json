@@ -42,10 +42,7 @@
   {
     "blockId": 2,
     "dataValue": 0,
-    "name": "minecraft:grass_block",
-    "properties": {
-      "snowy": "false"
-    }
+    "name": "minecraft:grass_block"
   },
   {
     "blockId": 3,
@@ -60,10 +57,7 @@
   {
     "blockId": 3,
     "dataValue": 2,
-    "name": "minecraft:podzol",
-    "properties": {
-      "snowy": "false"
-    }
+    "name": "minecraft:podzol"
   },
   {
     "blockId": 4,
@@ -842,36 +836,23 @@
   {
     "blockId": 17,
     "dataValue": 12,
-    "name": "minecraft:oak_wood",
-    "properties": {
-      "axis": "y"
-    }
+    "name": "minecraft:oak_wood"
   },
   {
     "blockId": 17,
     "dataValue": 13,
-    "name": "minecraft:spruce_wood",
-    "properties": {
-      "axis": "y"
-    }
+    "name": "minecraft:spruce_wood"
   },
   {
     "blockId": 17,
     "dataValue": 14,
-    "name": "minecraft:birch_wood",
-    "properties": {
-      "axis": "y"
-    }
+    "name": "minecraft:birch_wood"
   },
   {
     "blockId": 17,
     "dataValue": 15,
-    "name": "minecraft:jungle_wood",
-    "properties": {
-      "axis": "y"
-    }
+    "name": "minecraft:jungle_wood"
   },
-// TODO: should we be calculating the distance property?
   {
     "blockId": 18,
     "dataValue": 0,
@@ -962,24 +943,15 @@
       "persistent": "false"
     }
   },
-// TODO: these two are missing in the 1.13 scan:
   {
     "blockId": 18,
     "dataValue": 10,
-    "name": "minecraft:birch_leaves",
-    "properties": {
-      "check_decay": "true",
-      "decayable": "true"
-    }
+    "name": "minecraft:birch_leaves"
   },
   {
     "blockId": 18,
     "dataValue": 11,
-    "name": "minecraft:jungle_leaves",
-    "properties": {
-      "check_decay": "true",
-      "decayable": "true"
-    }
+    "name": "minecraft:jungle_leaves"
   },
   {
     "blockId": 18,
@@ -1168,14 +1140,8 @@
   {
     "blockId": 25,
     "dataValue": 0,
-    "name": "minecraft:note_block",
-    "properties": {
-      "note": "0",
-      "powered": "false",
-      "instrument": "harp"
-    }
+    "name": "minecraft:note_block"
   },
-// TODO: beds are missing from the latest scan; they probably popped off for being incomplete
   {
     "blockId": 26,
     "dataValue": 0,
@@ -1625,7 +1591,6 @@
     "dataValue": 0,
     "name": "minecraft:cobweb"
   },
-// TODO: missing; popped off?
   {
     "blockId": 31,
     "dataValue": 0,
@@ -1754,14 +1719,12 @@
       "extended": "true"
     }
   },
-// TODO: missing; popped off?
   {
     "blockId": 34,
     "dataValue": 0,
     "name": "minecraft:piston_head",
     "properties": {
       "facing": "down",
-      "short": "false",
       "type": "normal"
     }
   },
@@ -1771,7 +1734,6 @@
     "name": "minecraft:piston_head",
     "properties": {
       "facing": "up",
-      "short": "false",
       "type": "normal"
     }
   },
@@ -1781,7 +1743,6 @@
     "name": "minecraft:piston_head",
     "properties": {
       "facing": "north",
-      "short": "false",
       "type": "normal"
     }
   },
@@ -1791,7 +1752,6 @@
     "name": "minecraft:piston_head",
     "properties": {
       "facing": "south",
-      "short": "false",
       "type": "normal"
     }
   },
@@ -1801,7 +1761,6 @@
     "name": "minecraft:piston_head",
     "properties": {
       "facing": "west",
-      "short": "false",
       "type": "normal"
     }
   },
@@ -1811,7 +1770,6 @@
     "name": "minecraft:piston_head",
     "properties": {
       "facing": "east",
-      "short": "false",
       "type": "normal"
     }
   },
@@ -1821,7 +1779,6 @@
     "name": "minecraft:piston_head",
     "properties": {
       "facing": "down",
-      "short": "false",
       "type": "sticky"
     }
   },
@@ -1831,7 +1788,6 @@
     "name": "minecraft:piston_head",
     "properties": {
       "facing": "up",
-      "short": "false",
       "type": "sticky"
     }
   },
@@ -1841,7 +1797,6 @@
     "name": "minecraft:piston_head",
     "properties": {
       "facing": "north",
-      "short": "false",
       "type": "sticky"
     }
   },
@@ -1851,7 +1806,6 @@
     "name": "minecraft:piston_head",
     "properties": {
       "facing": "south",
-      "short": "false",
       "type": "sticky"
     }
   },
@@ -1861,7 +1815,6 @@
     "name": "minecraft:piston_head",
     "properties": {
       "facing": "west",
-      "short": "false",
       "type": "sticky"
     }
   },
@@ -1871,7 +1824,6 @@
     "name": "minecraft:piston_head",
     "properties": {
       "facing": "east",
-      "short": "false",
       "type": "sticky"
     }
   },
@@ -2005,7 +1957,6 @@
     "dataValue": 8,
     "name": "minecraft:oxeye_daisy"
   },
-// TODO: missing; popped off?
   {
     "blockId": 39,
     "dataValue": 0,
@@ -2031,7 +1982,6 @@
     "dataValue": 0,
     "name": "minecraft:stone_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "double"
     }
   },
@@ -2040,7 +1990,6 @@
     "dataValue": 1,
     "name": "minecraft:sandstone_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "double"
     }
   },
@@ -2049,7 +1998,6 @@
     "dataValue": 2,
     "name": "minecraft:petrified_oak_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "double"
     }
   },
@@ -2058,7 +2006,6 @@
     "dataValue": 3,
     "name": "minecraft:cobblestone_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "double"
     }
   },
@@ -2067,7 +2014,6 @@
     "dataValue": 4,
     "name": "minecraft:brick_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "double"
     }
   },
@@ -2076,7 +2022,6 @@
     "dataValue": 5,
     "name": "minecraft:stone_brick_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "double"
     }
   },
@@ -2085,7 +2030,6 @@
     "dataValue": 6,
     "name": "minecraft:nether_brick_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "double"
     }
   },
@@ -2094,7 +2038,6 @@
     "dataValue": 7,
     "name": "minecraft:quartz_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "double"
     }
   },
@@ -2113,7 +2056,6 @@
     "dataValue": 10,
     "name": "minecraft:petrified_oak_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "double"
     }
   },
@@ -2122,7 +2064,6 @@
     "dataValue": 11,
     "name": "minecraft:cobblestone_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "double"
     }
   },
@@ -2131,7 +2072,6 @@
     "dataValue": 12,
     "name": "minecraft:brick_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "double"
     }
   },
@@ -2140,7 +2080,6 @@
     "dataValue": 13,
     "name": "minecraft:stone_brick_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "double"
     }
   },
@@ -2149,7 +2088,6 @@
     "dataValue": 14,
     "name": "minecraft:nether_brick_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "double"
     }
   },
@@ -2163,7 +2101,6 @@
     "dataValue": 0,
     "name": "minecraft:stone_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "bottom"
     }
   },
@@ -2172,7 +2109,6 @@
     "dataValue": 1,
     "name": "minecraft:sandstone_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "bottom"
     }
   },
@@ -2181,7 +2117,6 @@
     "dataValue": 2,
     "name": "minecraft:petrified_oak_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "bottom"
     }
   },
@@ -2190,7 +2125,6 @@
     "dataValue": 3,
     "name": "minecraft:cobblestone_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "bottom"
     }
   },
@@ -2199,7 +2133,6 @@
     "dataValue": 4,
     "name": "minecraft:brick_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "bottom"
     }
   },
@@ -2208,7 +2141,6 @@
     "dataValue": 5,
     "name": "minecraft:stone_brick_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "bottom"
     }
   },
@@ -2217,7 +2149,6 @@
     "dataValue": 6,
     "name": "minecraft:nether_brick_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "bottom"
     }
   },
@@ -2226,7 +2157,6 @@
     "dataValue": 7,
     "name": "minecraft:quartz_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "bottom"
     }
   },
@@ -2235,7 +2165,6 @@
     "dataValue": 8,
     "name": "minecraft:stone_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "top"
     }
   },
@@ -2244,7 +2173,6 @@
     "dataValue": 9,
     "name": "minecraft:sandstone_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "top"
     }
   },
@@ -2253,7 +2181,6 @@
     "dataValue": 10,
     "name": "minecraft:petrified_oak_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "top"
     }
   },
@@ -2262,7 +2189,6 @@
     "dataValue": 11,
     "name": "minecraft:cobblestone_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "top"
     }
   },
@@ -2271,7 +2197,6 @@
     "dataValue": 12,
     "name": "minecraft:brick_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "top"
     }
   },
@@ -2280,7 +2205,6 @@
     "dataValue": 13,
     "name": "minecraft:stone_brick_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "top"
     }
   },
@@ -2289,7 +2213,6 @@
     "dataValue": 14,
     "name": "minecraft:nether_brick_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "top"
     }
   },
@@ -2298,7 +2221,6 @@
     "dataValue": 15,
     "name": "minecraft:quartz_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "top"
     }
   },
@@ -2374,11 +2296,6 @@
     "dataValue": 0,
     "name": "minecraft:fire",
     "properties": {
-      "east": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false",
-      "up": "false",
       "age": "0"
     }
   },
@@ -2387,11 +2304,6 @@
     "dataValue": 1,
     "name": "minecraft:fire",
     "properties": {
-      "east": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false",
-      "up": "false",
       "age": "1"
     }
   },
@@ -2400,11 +2312,6 @@
     "dataValue": 2,
     "name": "minecraft:fire",
     "properties": {
-      "east": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false",
-      "up": "false",
       "age": "2"
     }
   },
@@ -2413,11 +2320,6 @@
     "dataValue": 3,
     "name": "minecraft:fire",
     "properties": {
-      "east": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false",
-      "up": "false",
       "age": "3"
     }
   },
@@ -2426,11 +2328,6 @@
     "dataValue": 4,
     "name": "minecraft:fire",
     "properties": {
-      "east": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false",
-      "up": "false",
       "age": "4"
     }
   },
@@ -2439,11 +2336,6 @@
     "dataValue": 5,
     "name": "minecraft:fire",
     "properties": {
-      "east": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false",
-      "up": "false",
       "age": "5"
     }
   },
@@ -2452,11 +2344,6 @@
     "dataValue": 6,
     "name": "minecraft:fire",
     "properties": {
-      "east": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false",
-      "up": "false",
       "age": "6"
     }
   },
@@ -2465,11 +2352,6 @@
     "dataValue": 7,
     "name": "minecraft:fire",
     "properties": {
-      "east": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false",
-      "up": "false",
       "age": "7"
     }
   },
@@ -2478,11 +2360,6 @@
     "dataValue": 8,
     "name": "minecraft:fire",
     "properties": {
-      "east": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false",
-      "up": "false",
       "age": "8"
     }
   },
@@ -2491,11 +2368,6 @@
     "dataValue": 9,
     "name": "minecraft:fire",
     "properties": {
-      "east": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false",
-      "up": "false",
       "age": "9"
     }
   },
@@ -2504,11 +2376,6 @@
     "dataValue": 10,
     "name": "minecraft:fire",
     "properties": {
-      "east": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false",
-      "up": "false",
       "age": "10"
     }
   },
@@ -2517,11 +2384,6 @@
     "dataValue": 11,
     "name": "minecraft:fire",
     "properties": {
-      "east": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false",
-      "up": "false",
       "age": "11"
     }
   },
@@ -2530,11 +2392,6 @@
     "dataValue": 12,
     "name": "minecraft:fire",
     "properties": {
-      "east": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false",
-      "up": "false",
       "age": "12"
     }
   },
@@ -2543,11 +2400,6 @@
     "dataValue": 13,
     "name": "minecraft:fire",
     "properties": {
-      "east": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false",
-      "up": "false",
       "age": "13"
     }
   },
@@ -2556,11 +2408,6 @@
     "dataValue": 14,
     "name": "minecraft:fire",
     "properties": {
-      "east": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false",
-      "up": "false",
       "age": "14"
     }
   },
@@ -2569,11 +2416,6 @@
     "dataValue": 15,
     "name": "minecraft:fire",
     "properties": {
-      "east": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false",
-      "up": "false",
       "age": "15"
     }
   },
@@ -2588,8 +2430,6 @@
     "name": "minecraft:oak_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "east"
     }
   },
@@ -2599,8 +2439,6 @@
     "name": "minecraft:oak_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "west"
     }
   },
@@ -2610,8 +2448,6 @@
     "name": "minecraft:oak_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "south"
     }
   },
@@ -2621,8 +2457,6 @@
     "name": "minecraft:oak_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "north"
     }
   },
@@ -2632,8 +2466,6 @@
     "name": "minecraft:oak_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "east"
     }
   },
@@ -2643,8 +2475,6 @@
     "name": "minecraft:oak_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "west"
     }
   },
@@ -2654,8 +2484,6 @@
     "name": "minecraft:oak_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "south"
     }
   },
@@ -2665,8 +2493,6 @@
     "name": "minecraft:oak_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "north"
     }
   },
@@ -2675,9 +2501,7 @@
     "dataValue": 2,
     "name": "minecraft:chest",
     "properties": {
-      "waterlogged": "false",
-      "facing": "north",
-      "type": "single"
+      "facing": "north"
     }
   },
   {
@@ -2685,9 +2509,7 @@
     "dataValue": 3,
     "name": "minecraft:chest",
     "properties": {
-      "waterlogged": "false",
-      "facing": "south",
-      "type": "single"
+      "facing": "south"
     }
   },
   {
@@ -2695,9 +2517,7 @@
     "dataValue": 4,
     "name": "minecraft:chest",
     "properties": {
-      "waterlogged": "false",
-      "facing": "west",
-      "type": "single"
+      "facing": "west"
     }
   },
   {
@@ -2705,9 +2525,7 @@
     "dataValue": 5,
     "name": "minecraft:chest",
     "properties": {
-      "waterlogged": "false",
-      "facing": "east",
-      "type": "single"
+      "facing": "east"
     }
   },
   {
@@ -2715,10 +2533,6 @@
     "dataValue": 0,
     "name": "minecraft:redstone_wire",
     "properties": {
-      "east": "none",
-      "south": "none",
-      "north": "none",
-      "west": "none",
       "power": "0"
     }
   },
@@ -2727,10 +2541,6 @@
     "dataValue": 1,
     "name": "minecraft:redstone_wire",
     "properties": {
-      "east": "none",
-      "south": "none",
-      "north": "none",
-      "west": "none",
       "power": "1"
     }
   },
@@ -2739,10 +2549,6 @@
     "dataValue": 2,
     "name": "minecraft:redstone_wire",
     "properties": {
-      "east": "none",
-      "south": "none",
-      "north": "none",
-      "west": "none",
       "power": "2"
     }
   },
@@ -2751,10 +2557,6 @@
     "dataValue": 3,
     "name": "minecraft:redstone_wire",
     "properties": {
-      "east": "none",
-      "south": "none",
-      "north": "none",
-      "west": "none",
       "power": "3"
     }
   },
@@ -2763,10 +2565,6 @@
     "dataValue": 4,
     "name": "minecraft:redstone_wire",
     "properties": {
-      "east": "none",
-      "south": "none",
-      "north": "none",
-      "west": "none",
       "power": "4"
     }
   },
@@ -2775,10 +2573,6 @@
     "dataValue": 5,
     "name": "minecraft:redstone_wire",
     "properties": {
-      "east": "none",
-      "south": "none",
-      "north": "none",
-      "west": "none",
       "power": "5"
     }
   },
@@ -2787,10 +2581,6 @@
     "dataValue": 6,
     "name": "minecraft:redstone_wire",
     "properties": {
-      "east": "none",
-      "south": "none",
-      "north": "none",
-      "west": "none",
       "power": "6"
     }
   },
@@ -2799,10 +2589,6 @@
     "dataValue": 7,
     "name": "minecraft:redstone_wire",
     "properties": {
-      "east": "none",
-      "south": "none",
-      "north": "none",
-      "west": "none",
       "power": "7"
     }
   },
@@ -2811,10 +2597,6 @@
     "dataValue": 8,
     "name": "minecraft:redstone_wire",
     "properties": {
-      "east": "none",
-      "south": "none",
-      "north": "none",
-      "west": "none",
       "power": "8"
     }
   },
@@ -2823,10 +2605,6 @@
     "dataValue": 9,
     "name": "minecraft:redstone_wire",
     "properties": {
-      "east": "none",
-      "south": "none",
-      "north": "none",
-      "west": "none",
       "power": "9"
     }
   },
@@ -2835,10 +2613,6 @@
     "dataValue": 10,
     "name": "minecraft:redstone_wire",
     "properties": {
-      "east": "none",
-      "south": "none",
-      "north": "none",
-      "west": "none",
       "power": "10"
     }
   },
@@ -2847,10 +2621,6 @@
     "dataValue": 11,
     "name": "minecraft:redstone_wire",
     "properties": {
-      "east": "none",
-      "south": "none",
-      "north": "none",
-      "west": "none",
       "power": "11"
     }
   },
@@ -2859,10 +2629,6 @@
     "dataValue": 12,
     "name": "minecraft:redstone_wire",
     "properties": {
-      "east": "none",
-      "south": "none",
-      "north": "none",
-      "west": "none",
       "power": "12"
     }
   },
@@ -2871,10 +2637,6 @@
     "dataValue": 13,
     "name": "minecraft:redstone_wire",
     "properties": {
-      "east": "none",
-      "south": "none",
-      "north": "none",
-      "west": "none",
       "power": "13"
     }
   },
@@ -2883,10 +2645,6 @@
     "dataValue": 14,
     "name": "minecraft:redstone_wire",
     "properties": {
-      "east": "none",
-      "south": "none",
-      "north": "none",
-      "west": "none",
       "power": "14"
     }
   },
@@ -2895,10 +2653,6 @@
     "dataValue": 15,
     "name": "minecraft:redstone_wire",
     "properties": {
-      "east": "none",
-      "south": "none",
-      "north": "none",
-      "west": "none",
       "power": "15"
     }
   },
@@ -3122,7 +2876,6 @@
     "dataValue": 0,
     "name": "minecraft:sign",
     "properties": {
-      "waterlogged": "false",
       "rotation": "0"
     }
   },
@@ -3131,7 +2884,6 @@
     "dataValue": 1,
     "name": "minecraft:sign",
     "properties": {
-      "waterlogged": "false",
       "rotation": "1"
     }
   },
@@ -3140,7 +2892,6 @@
     "dataValue": 2,
     "name": "minecraft:sign",
     "properties": {
-      "waterlogged": "false",
       "rotation": "2"
     }
   },
@@ -3149,7 +2900,6 @@
     "dataValue": 3,
     "name": "minecraft:sign",
     "properties": {
-      "waterlogged": "false",
       "rotation": "3"
     }
   },
@@ -3158,7 +2908,6 @@
     "dataValue": 4,
     "name": "minecraft:sign",
     "properties": {
-      "waterlogged": "false",
       "rotation": "4"
     }
   },
@@ -3167,7 +2916,6 @@
     "dataValue": 5,
     "name": "minecraft:sign",
     "properties": {
-      "waterlogged": "false",
       "rotation": "5"
     }
   },
@@ -3176,7 +2924,6 @@
     "dataValue": 6,
     "name": "minecraft:sign",
     "properties": {
-      "waterlogged": "false",
       "rotation": "6"
     }
   },
@@ -3185,7 +2932,6 @@
     "dataValue": 7,
     "name": "minecraft:sign",
     "properties": {
-      "waterlogged": "false",
       "rotation": "7"
     }
   },
@@ -3194,7 +2940,6 @@
     "dataValue": 8,
     "name": "minecraft:sign",
     "properties": {
-      "waterlogged": "false",
       "rotation": "8"
     }
   },
@@ -3203,7 +2948,6 @@
     "dataValue": 9,
     "name": "minecraft:sign",
     "properties": {
-      "waterlogged": "false",
       "rotation": "9"
     }
   },
@@ -3212,7 +2956,6 @@
     "dataValue": 10,
     "name": "minecraft:sign",
     "properties": {
-      "waterlogged": "false",
       "rotation": "10"
     }
   },
@@ -3221,7 +2964,6 @@
     "dataValue": 11,
     "name": "minecraft:sign",
     "properties": {
-      "waterlogged": "false",
       "rotation": "11"
     }
   },
@@ -3230,7 +2972,6 @@
     "dataValue": 12,
     "name": "minecraft:sign",
     "properties": {
-      "waterlogged": "false",
       "rotation": "12"
     }
   },
@@ -3239,7 +2980,6 @@
     "dataValue": 13,
     "name": "minecraft:sign",
     "properties": {
-      "waterlogged": "false",
       "rotation": "13"
     }
   },
@@ -3248,7 +2988,6 @@
     "dataValue": 14,
     "name": "minecraft:sign",
     "properties": {
-      "waterlogged": "false",
       "rotation": "14"
     }
   },
@@ -3257,7 +2996,6 @@
     "dataValue": 15,
     "name": "minecraft:sign",
     "properties": {
-      "waterlogged": "false",
       "rotation": "15"
     }
   },
@@ -3266,9 +3004,7 @@
     "dataValue": 0,
     "name": "minecraft:oak_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "east",
       "open": "false"
     }
@@ -3278,9 +3014,7 @@
     "dataValue": 1,
     "name": "minecraft:oak_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "south",
       "open": "false"
     }
@@ -3290,9 +3024,7 @@
     "dataValue": 2,
     "name": "minecraft:oak_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "west",
       "open": "false"
     }
@@ -3302,9 +3034,7 @@
     "dataValue": 3,
     "name": "minecraft:oak_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "north",
       "open": "false"
     }
@@ -3314,9 +3044,7 @@
     "dataValue": 4,
     "name": "minecraft:oak_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "east",
       "open": "true"
     }
@@ -3326,9 +3054,7 @@
     "dataValue": 5,
     "name": "minecraft:oak_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "south",
       "open": "true"
     }
@@ -3338,9 +3064,7 @@
     "dataValue": 6,
     "name": "minecraft:oak_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "west",
       "open": "true"
     }
@@ -3350,9 +3074,7 @@
     "dataValue": 7,
     "name": "minecraft:oak_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "north",
       "open": "true"
     }
@@ -3364,9 +3086,7 @@
     "properties": {
       "hinge": "left",
       "half": "upper",
-      "powered": "false",
-      "facing": "east",
-      "open": "false"
+      "powered": "false"
     }
   },
   {
@@ -3376,9 +3096,7 @@
     "properties": {
       "hinge": "right",
       "half": "upper",
-      "powered": "false",
-      "facing": "east",
-      "open": "false"
+      "powered": "false"
     }
   },
   {
@@ -3388,9 +3106,7 @@
     "properties": {
       "hinge": "left",
       "half": "upper",
-      "powered": "true",
-      "facing": "east",
-      "open": "false"
+      "powered": "true"
     }
   },
   {
@@ -3400,9 +3116,7 @@
     "properties": {
       "hinge": "right",
       "half": "upper",
-      "powered": "true",
-      "facing": "east",
-      "open": "false"
+      "powered": "true"
     }
   },
   {
@@ -3410,7 +3124,6 @@
     "dataValue": 2,
     "name": "minecraft:ladder",
     "properties": {
-      "waterlogged": "false",
       "facing": "north"
     }
   },
@@ -3419,7 +3132,6 @@
     "dataValue": 3,
     "name": "minecraft:ladder",
     "properties": {
-      "waterlogged": "false",
       "facing": "south"
     }
   },
@@ -3428,7 +3140,6 @@
     "dataValue": 4,
     "name": "minecraft:ladder",
     "properties": {
-      "waterlogged": "false",
       "facing": "west"
     }
   },
@@ -3437,7 +3148,6 @@
     "dataValue": 5,
     "name": "minecraft:ladder",
     "properties": {
-      "waterlogged": "false",
       "facing": "east"
     }
   },
@@ -3527,8 +3237,6 @@
     "name": "minecraft:cobblestone_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "east"
     }
   },
@@ -3538,8 +3246,6 @@
     "name": "minecraft:cobblestone_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "west"
     }
   },
@@ -3549,8 +3255,6 @@
     "name": "minecraft:cobblestone_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "south"
     }
   },
@@ -3560,8 +3264,6 @@
     "name": "minecraft:cobblestone_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "north"
     }
   },
@@ -3571,8 +3273,6 @@
     "name": "minecraft:cobblestone_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "east"
     }
   },
@@ -3582,8 +3282,6 @@
     "name": "minecraft:cobblestone_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "west"
     }
   },
@@ -3593,8 +3291,6 @@
     "name": "minecraft:cobblestone_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "south"
     }
   },
@@ -3604,8 +3300,6 @@
     "name": "minecraft:cobblestone_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "north"
     }
   },
@@ -3614,7 +3308,6 @@
     "dataValue": 2,
     "name": "minecraft:wall_sign",
     "properties": {
-      "waterlogged": "false",
       "facing": "north"
     }
   },
@@ -3623,7 +3316,6 @@
     "dataValue": 3,
     "name": "minecraft:wall_sign",
     "properties": {
-      "waterlogged": "false",
       "facing": "south"
     }
   },
@@ -3632,7 +3324,6 @@
     "dataValue": 4,
     "name": "minecraft:wall_sign",
     "properties": {
-      "waterlogged": "false",
       "facing": "west"
     }
   },
@@ -3641,11 +3332,9 @@
     "dataValue": 5,
     "name": "minecraft:wall_sign",
     "properties": {
-      "waterlogged": "false",
       "facing": "east"
     }
   },
-// TODO: missing in 1.13; popped off?
   {
     "blockId": 69,
     "dataValue": 0,
@@ -3796,7 +3485,6 @@
       "facing": "west"
     }
   },
-// TODO: missing in 1.13; popped off?
   {
     "blockId": 69,
     "dataValue": 15,
@@ -3823,15 +3511,12 @@
       "powered": "true"
     }
   },
-// TODO: missing in 1.13; popped off?
   {
     "blockId": 71,
     "dataValue": 0,
     "name": "minecraft:iron_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "east",
       "open": "false"
     }
@@ -3841,9 +3526,7 @@
     "dataValue": 1,
     "name": "minecraft:iron_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "south",
       "open": "false"
     }
@@ -3853,9 +3536,7 @@
     "dataValue": 2,
     "name": "minecraft:iron_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "west",
       "open": "false"
     }
@@ -3865,9 +3546,7 @@
     "dataValue": 3,
     "name": "minecraft:iron_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "north",
       "open": "false"
     }
@@ -3877,9 +3556,7 @@
     "dataValue": 4,
     "name": "minecraft:iron_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "east",
       "open": "true"
     }
@@ -3889,9 +3566,7 @@
     "dataValue": 5,
     "name": "minecraft:iron_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "south",
       "open": "true"
     }
@@ -3901,9 +3576,7 @@
     "dataValue": 6,
     "name": "minecraft:iron_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "west",
       "open": "true"
     }
@@ -3913,9 +3586,7 @@
     "dataValue": 7,
     "name": "minecraft:iron_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "north",
       "open": "true"
     }
@@ -3927,9 +3598,7 @@
     "properties": {
       "hinge": "left",
       "half": "upper",
-      "powered": "false",
-      "facing": "east",
-      "open": "false"
+      "powered": "false"
     }
   },
   {
@@ -3939,9 +3608,7 @@
     "properties": {
       "hinge": "right",
       "half": "upper",
-      "powered": "false",
-      "facing": "east",
-      "open": "false"
+      "powered": "false"
     }
   },
   {
@@ -3951,9 +3618,7 @@
     "properties": {
       "hinge": "left",
       "half": "upper",
-      "powered": "true",
-      "facing": "east",
-      "open": "false"
+      "powered": "true"
     }
   },
   {
@@ -3963,9 +3628,7 @@
     "properties": {
       "hinge": "right",
       "half": "upper",
-      "powered": "true",
-      "facing": "east",
-      "open": "false"
+      "powered": "true"
     }
   },
   {
@@ -4088,7 +3751,6 @@
       "lit": "true"
     }
   },
-// TODO: missing in 1.13; popped off?
   {
     "blockId": 77,
     "dataValue": 0,
@@ -4109,7 +3771,6 @@
       "facing": "east"
     }
   },
-// TODO: next two missing in 1.13; popped off?
   {
     "blockId": 77,
     "dataValue": 2,
@@ -4170,7 +3831,6 @@
       "facing": "east"
     }
   },
-// TODO: next two missing in 1.13; popped off?
   {
     "blockId": 77,
     "dataValue": 10,
@@ -4285,7 +3945,6 @@
     "dataValue": 0,
     "name": "minecraft:snow_block"
   },
-// TODO: almost all cactus missing in 1.13; popped off?
   {
     "blockId": 81,
     "dataValue": 0,
@@ -4419,7 +4078,6 @@
     "dataValue": 0,
     "name": "minecraft:clay"
   },
-// TODO: all sugar_cane missing in 1.13; popped off because not next to water?
   {
     "blockId": 83,
     "dataValue": 0,
@@ -4567,14 +4225,7 @@
   {
     "blockId": 85,
     "dataValue": 0,
-    "name": "minecraft:oak_fence",
-    "properties": {
-      "east": "false",
-      "waterlogged": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false"
-    }
+    "name": "minecraft:oak_fence"
   },
   {
     "blockId": 86,
@@ -4734,8 +4385,7 @@
     "properties": {
       "delay": "1",
       "powered": "false",
-      "facing": "south",
-      "locked": "false"
+      "facing": "south"
     }
   },
   {
@@ -4745,8 +4395,7 @@
     "properties": {
       "delay": "1",
       "powered": "false",
-      "facing": "west",
-      "locked": "false"
+      "facing": "west"
     }
   },
   {
@@ -4756,8 +4405,7 @@
     "properties": {
       "delay": "1",
       "powered": "false",
-      "facing": "north",
-      "locked": "false"
+      "facing": "north"
     }
   },
   {
@@ -4767,8 +4415,7 @@
     "properties": {
       "delay": "1",
       "powered": "false",
-      "facing": "east",
-      "locked": "false"
+      "facing": "east"
     }
   },
   {
@@ -4778,8 +4425,7 @@
     "properties": {
       "delay": "2",
       "powered": "false",
-      "facing": "south",
-      "locked": "false"
+      "facing": "south"
     }
   },
   {
@@ -4789,8 +4435,7 @@
     "properties": {
       "delay": "2",
       "powered": "false",
-      "facing": "west",
-      "locked": "false"
+      "facing": "west"
     }
   },
   {
@@ -4800,8 +4445,7 @@
     "properties": {
       "delay": "2",
       "powered": "false",
-      "facing": "north",
-      "locked": "false"
+      "facing": "north"
     }
   },
   {
@@ -4811,8 +4455,7 @@
     "properties": {
       "delay": "2",
       "powered": "false",
-      "facing": "east",
-      "locked": "false"
+      "facing": "east"
     }
   },
   {
@@ -4822,8 +4465,7 @@
     "properties": {
       "delay": "3",
       "powered": "false",
-      "facing": "south",
-      "locked": "false"
+      "facing": "south"
     }
   },
   {
@@ -4833,8 +4475,7 @@
     "properties": {
       "delay": "3",
       "powered": "false",
-      "facing": "west",
-      "locked": "false"
+      "facing": "west"
     }
   },
   {
@@ -4844,8 +4485,7 @@
     "properties": {
       "delay": "3",
       "powered": "false",
-      "facing": "north",
-      "locked": "false"
+      "facing": "north"
     }
   },
   {
@@ -4855,8 +4495,7 @@
     "properties": {
       "delay": "3",
       "powered": "false",
-      "facing": "east",
-      "locked": "false"
+      "facing": "east"
     }
   },
   {
@@ -4866,8 +4505,7 @@
     "properties": {
       "delay": "4",
       "powered": "false",
-      "facing": "south",
-      "locked": "false"
+      "facing": "south"
     }
   },
   {
@@ -4877,8 +4515,7 @@
     "properties": {
       "delay": "4",
       "powered": "false",
-      "facing": "west",
-      "locked": "false"
+      "facing": "west"
     }
   },
   {
@@ -4888,8 +4525,7 @@
     "properties": {
       "delay": "4",
       "powered": "false",
-      "facing": "north",
-      "locked": "false"
+      "facing": "north"
     }
   },
   {
@@ -4899,9 +4535,7 @@
     "properties": {
       "delay": "4",
       "powered": "false",
-      "facing": "east",
-      // TODO: "true" in latest scan; block updated?
-      "locked": "false"
+      "facing": "east"
     }
   },
   {
@@ -4911,8 +4545,7 @@
     "properties": {
       "delay": "1",
       "powered": "true",
-      "facing": "south",
-      "locked": "false"
+      "facing": "south"
     }
   },
   {
@@ -4922,8 +4555,7 @@
     "properties": {
       "delay": "1",
       "powered": "true",
-      "facing": "west",
-      "locked": "false"
+      "facing": "west"
     }
   },
   {
@@ -4933,8 +4565,7 @@
     "properties": {
       "delay": "1",
       "powered": "true",
-      "facing": "north",
-      "locked": "false"
+      "facing": "north"
     }
   },
   {
@@ -4944,9 +4575,7 @@
     "properties": {
       "delay": "1",
       "powered": "true",
-      "facing": "east",
-      // TODO: "true" in latest scan; block updated?
-      "locked": "false"
+      "facing": "east"
     }
   },
   {
@@ -4956,8 +4585,7 @@
     "properties": {
       "delay": "2",
       "powered": "true",
-      "facing": "south",
-      "locked": "false"
+      "facing": "south"
     }
   },
   {
@@ -4967,8 +4595,7 @@
     "properties": {
       "delay": "2",
       "powered": "true",
-      "facing": "west",
-      "locked": "false"
+      "facing": "west"
     }
   },
   {
@@ -4978,8 +4605,7 @@
     "properties": {
       "delay": "2",
       "powered": "true",
-      "facing": "north",
-      "locked": "false"
+      "facing": "north"
     }
   },
   {
@@ -4989,9 +4615,7 @@
     "properties": {
       "delay": "2",
       "powered": "true",
-      "facing": "east",
-      // TODO: "true" in latest scan; block updated?
-      "locked": "false"
+      "facing": "east"
     }
   },
   {
@@ -5001,8 +4625,7 @@
     "properties": {
       "delay": "3",
       "powered": "true",
-      "facing": "south",
-      "locked": "false"
+      "facing": "south"
     }
   },
   {
@@ -5012,8 +4635,7 @@
     "properties": {
       "delay": "3",
       "powered": "true",
-      "facing": "west",
-      "locked": "false"
+      "facing": "west"
     }
   },
   {
@@ -5023,8 +4645,7 @@
     "properties": {
       "delay": "3",
       "powered": "true",
-      "facing": "north",
-      "locked": "false"
+      "facing": "north"
     }
   },
   {
@@ -5034,9 +4655,7 @@
     "properties": {
       "delay": "3",
       "powered": "true",
-      "facing": "east",
-      // TODO: "true" in latest scan; block updated?
-      "locked": "false"
+      "facing": "east"
     }
   },
   {
@@ -5046,8 +4665,7 @@
     "properties": {
       "delay": "4",
       "powered": "true",
-      "facing": "south",
-      "locked": "false"
+      "facing": "south"
     }
   },
   {
@@ -5057,8 +4675,7 @@
     "properties": {
       "delay": "4",
       "powered": "true",
-      "facing": "west",
-      "locked": "false"
+      "facing": "west"
     }
   },
   {
@@ -5068,8 +4685,7 @@
     "properties": {
       "delay": "4",
       "powered": "true",
-      "facing": "north",
-      "locked": "false"
+      "facing": "north"
     }
   },
   {
@@ -5079,9 +4695,7 @@
     "properties": {
       "delay": "4",
       "powered": "true",
-      "facing": "east",
-      // TODO: "true" in latest scan; block updated?
-      "locked": "false"
+      "facing": "east"
     }
   },
   {
@@ -5170,8 +4784,6 @@
     "name": "minecraft:oak_trapdoor",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "powered": "false",
       "facing": "north",
       "open": "false"
     }
@@ -5182,8 +4794,6 @@
     "name": "minecraft:oak_trapdoor",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "powered": "false",
       "facing": "south",
       "open": "false"
     }
@@ -5194,8 +4804,6 @@
     "name": "minecraft:oak_trapdoor",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "powered": "false",
       "facing": "west",
       "open": "false"
     }
@@ -5206,8 +4814,6 @@
     "name": "minecraft:oak_trapdoor",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "powered": "false",
       "facing": "east",
       "open": "false"
     }
@@ -5218,8 +4824,6 @@
     "name": "minecraft:oak_trapdoor",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "powered": "false",
       "facing": "north",
       "open": "true"
     }
@@ -5230,8 +4834,6 @@
     "name": "minecraft:oak_trapdoor",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "powered": "false",
       "facing": "south",
       "open": "true"
     }
@@ -5242,8 +4844,6 @@
     "name": "minecraft:oak_trapdoor",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "powered": "false",
       "facing": "west",
       "open": "true"
     }
@@ -5254,8 +4854,6 @@
     "name": "minecraft:oak_trapdoor",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "powered": "false",
       "facing": "east",
       "open": "true"
     }
@@ -5266,8 +4864,6 @@
     "name": "minecraft:oak_trapdoor",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "powered": "false",
       "facing": "north",
       "open": "false"
     }
@@ -5278,8 +4874,6 @@
     "name": "minecraft:oak_trapdoor",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "powered": "false",
       "facing": "south",
       "open": "false"
     }
@@ -5290,8 +4884,6 @@
     "name": "minecraft:oak_trapdoor",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "powered": "false",
       "facing": "west",
       "open": "false"
     }
@@ -5302,8 +4894,6 @@
     "name": "minecraft:oak_trapdoor",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "powered": "false",
       "facing": "east",
       "open": "false"
     }
@@ -5314,8 +4904,6 @@
     "name": "minecraft:oak_trapdoor",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "powered": "false",
       "facing": "north",
       "open": "true"
     }
@@ -5326,8 +4914,6 @@
     "name": "minecraft:oak_trapdoor",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "powered": "false",
       "facing": "south",
       "open": "true"
     }
@@ -5338,8 +4924,6 @@
     "name": "minecraft:oak_trapdoor",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "powered": "false",
       "facing": "west",
       "open": "true"
     }
@@ -5350,8 +4934,6 @@
     "name": "minecraft:oak_trapdoor",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "powered": "false",
       "facing": "east",
       "open": "true"
     }
@@ -5541,15 +5123,10 @@
     "dataValue": 10,
     "name": "minecraft:mushroom_stem",
     "properties": {
-      "east": "true",
-      "south": "true",
-      "north": "true",
-      "west": "true",
       "up": "false",
       "down": "false"
     }
   },
-// TODO: next three blocks missing in latest scan; is that correct?
   {
     "blockId": 99,
     "dataValue": 11,
@@ -5607,10 +5184,6 @@
     "dataValue": 15,
     "name": "minecraft:mushroom_stem",
     "properties": {
-      "east": "true",
-      "south": "true",
-      "north": "true",
-      "west": "true",
       "up": "true",
       "down": "true"
     }
@@ -5750,15 +5323,10 @@
     "dataValue": 10,
     "name": "minecraft:mushroom_stem",
     "properties": {
-      "east": "true",
-      "south": "true",
-      "north": "true",
-      "west": "true",
       "up": "false",
       "down": "false"
     }
   },
-// TODO: next three blocks missing in latest scan; is that correct?
   {
     "blockId": 100,
     "dataValue": 11,
@@ -5816,10 +5384,6 @@
     "dataValue": 15,
     "name": "minecraft:mushroom_stem",
     "properties": {
-      "east": "true",
-      "south": "true",
-      "north": "true",
-      "west": "true",
       "up": "true",
       "down": "true"
     }
@@ -5827,26 +5391,12 @@
   {
     "blockId": 101,
     "dataValue": 0,
-    "name": "minecraft:iron_bars",
-    "properties": {
-      "east": "false",
-      "waterlogged": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false"
-    }
+    "name": "minecraft:iron_bars"
   },
   {
     "blockId": 102,
     "dataValue": 0,
-    "name": "minecraft:glass_pane",
-    "properties": {
-      "east": "false",
-      "waterlogged": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false"
-    }
+    "name": "minecraft:glass_pane"
   },
   {
     "blockId": 103,
@@ -5981,7 +5531,6 @@
       "age": "7"
     }
   },
-// TODO: vine entirely missing; popped off?
   {
     "blockId": 106,
     "dataValue": 0,
@@ -5990,8 +5539,7 @@
       "east": "false",
       "south": "false",
       "north": "false",
-      "west": "false",
-      "up": "false"
+      "west": "false"
     }
   },
   {
@@ -6002,8 +5550,7 @@
       "east": "false",
       "south": "true",
       "north": "false",
-      "west": "false",
-      "up": "false"
+      "west": "false"
     }
   },
   {
@@ -6014,8 +5561,7 @@
       "east": "false",
       "south": "false",
       "north": "false",
-      "west": "true",
-      "up": "false"
+      "west": "true"
     }
   },
   {
@@ -6026,8 +5572,7 @@
       "east": "false",
       "south": "true",
       "north": "false",
-      "west": "true",
-      "up": "false"
+      "west": "true"
     }
   },
   {
@@ -6038,8 +5583,7 @@
       "east": "false",
       "south": "false",
       "north": "true",
-      "west": "false",
-      "up": "false"
+      "west": "false"
     }
   },
   {
@@ -6050,8 +5594,7 @@
       "east": "false",
       "south": "true",
       "north": "true",
-      "west": "false",
-      "up": "false"
+      "west": "false"
     }
   },
   {
@@ -6062,8 +5605,7 @@
       "east": "false",
       "south": "false",
       "north": "true",
-      "west": "true",
-      "up": "false"
+      "west": "true"
     }
   },
   {
@@ -6074,8 +5616,7 @@
       "east": "false",
       "south": "true",
       "north": "true",
-      "west": "true",
-      "up": "false"
+      "west": "true"
     }
   },
   {
@@ -6086,8 +5627,7 @@
       "east": "true",
       "south": "false",
       "north": "false",
-      "west": "false",
-      "up": "false"
+      "west": "false"
     }
   },
   {
@@ -6098,8 +5638,7 @@
       "east": "true",
       "south": "true",
       "north": "false",
-      "west": "false",
-      "up": "false"
+      "west": "false"
     }
   },
   {
@@ -6110,8 +5649,7 @@
       "east": "true",
       "south": "false",
       "north": "false",
-      "west": "true",
-      "up": "false"
+      "west": "true"
     }
   },
   {
@@ -6122,8 +5660,7 @@
       "east": "true",
       "south": "true",
       "north": "false",
-      "west": "true",
-      "up": "false"
+      "west": "true"
     }
   },
   {
@@ -6134,8 +5671,7 @@
       "east": "true",
       "south": "false",
       "north": "true",
-      "west": "false",
-      "up": "false"
+      "west": "false"
     }
   },
   {
@@ -6146,8 +5682,7 @@
       "east": "true",
       "south": "true",
       "north": "true",
-      "west": "false",
-      "up": "false"
+      "west": "false"
     }
   },
   {
@@ -6158,8 +5693,7 @@
       "east": "true",
       "south": "false",
       "north": "true",
-      "west": "true",
-      "up": "false"
+      "west": "true"
     }
   },
   {
@@ -6170,8 +5704,7 @@
       "east": "true",
       "south": "true",
       "north": "true",
-      "west": "true",
-      "up": "false"
+      "west": "true"
     }
   },
   {
@@ -6179,7 +5712,6 @@
     "dataValue": 0,
     "name": "minecraft:oak_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "south",
       "open": "false"
@@ -6190,7 +5722,6 @@
     "dataValue": 1,
     "name": "minecraft:oak_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "west",
       "open": "false"
@@ -6201,7 +5732,6 @@
     "dataValue": 2,
     "name": "minecraft:oak_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "north",
       "open": "false"
@@ -6212,7 +5742,6 @@
     "dataValue": 3,
     "name": "minecraft:oak_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "east",
       "open": "false"
@@ -6223,7 +5752,6 @@
     "dataValue": 4,
     "name": "minecraft:oak_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "south",
       "open": "true"
@@ -6234,7 +5762,6 @@
     "dataValue": 5,
     "name": "minecraft:oak_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "west",
       "open": "true"
@@ -6245,7 +5772,6 @@
     "dataValue": 6,
     "name": "minecraft:oak_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "north",
       "open": "true"
@@ -6256,7 +5782,6 @@
     "dataValue": 7,
     "name": "minecraft:oak_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "east",
       "open": "true"
@@ -6267,7 +5792,6 @@
     "dataValue": 8,
     "name": "minecraft:oak_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "south",
       "open": "false"
@@ -6278,7 +5802,6 @@
     "dataValue": 9,
     "name": "minecraft:oak_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "west",
       "open": "false"
@@ -6289,7 +5812,6 @@
     "dataValue": 10,
     "name": "minecraft:oak_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "north",
       "open": "false"
@@ -6300,7 +5822,6 @@
     "dataValue": 11,
     "name": "minecraft:oak_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "east",
       "open": "false"
@@ -6311,7 +5832,6 @@
     "dataValue": 12,
     "name": "minecraft:oak_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "south",
       "open": "true"
@@ -6322,7 +5842,6 @@
     "dataValue": 13,
     "name": "minecraft:oak_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "west",
       "open": "true"
@@ -6333,7 +5852,6 @@
     "dataValue": 14,
     "name": "minecraft:oak_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "north",
       "open": "true"
@@ -6344,7 +5862,6 @@
     "dataValue": 15,
     "name": "minecraft:oak_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "east",
       "open": "true"
@@ -6356,8 +5873,6 @@
     "name": "minecraft:brick_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "east"
     }
   },
@@ -6367,8 +5882,6 @@
     "name": "minecraft:brick_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "west"
     }
   },
@@ -6378,8 +5891,6 @@
     "name": "minecraft:brick_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "south"
     }
   },
@@ -6389,8 +5900,6 @@
     "name": "minecraft:brick_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "north"
     }
   },
@@ -6400,8 +5909,6 @@
     "name": "minecraft:brick_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "east"
     }
   },
@@ -6411,8 +5918,6 @@
     "name": "minecraft:brick_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "west"
     }
   },
@@ -6422,8 +5927,6 @@
     "name": "minecraft:brick_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "south"
     }
   },
@@ -6433,8 +5936,6 @@
     "name": "minecraft:brick_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "north"
     }
   },
@@ -6444,8 +5945,6 @@
     "name": "minecraft:stone_brick_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "east"
     }
   },
@@ -6455,8 +5954,6 @@
     "name": "minecraft:stone_brick_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "west"
     }
   },
@@ -6466,8 +5963,6 @@
     "name": "minecraft:stone_brick_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "south"
     }
   },
@@ -6477,8 +5972,6 @@
     "name": "minecraft:stone_brick_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "north"
     }
   },
@@ -6488,8 +5981,6 @@
     "name": "minecraft:stone_brick_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "east"
     }
   },
@@ -6499,8 +5990,6 @@
     "name": "minecraft:stone_brick_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "west"
     }
   },
@@ -6510,8 +5999,6 @@
     "name": "minecraft:stone_brick_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "south"
     }
   },
@@ -6521,20 +6008,14 @@
     "name": "minecraft:stone_brick_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "north"
     }
   },
   {
     "blockId": 110,
     "dataValue": 0,
-    "name": "minecraft:mycelium",
-    "properties": {
-      "snowy": "false"
-    }
+    "name": "minecraft:mycelium"
   },
-// TODO: missing; popped off due to no water?
   {
     "blockId": 111,
     "dataValue": 0,
@@ -6548,14 +6029,7 @@
   {
     "blockId": 113,
     "dataValue": 0,
-    "name": "minecraft:nether_brick_fence",
-    "properties": {
-      "east": "false",
-      "waterlogged": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false"
-    }
+    "name": "minecraft:nether_brick_fence"
   },
   {
     "blockId": 114,
@@ -6563,8 +6037,6 @@
     "name": "minecraft:nether_brick_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "east"
     }
   },
@@ -6574,8 +6046,6 @@
     "name": "minecraft:nether_brick_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "west"
     }
   },
@@ -6585,8 +6055,6 @@
     "name": "minecraft:nether_brick_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "south"
     }
   },
@@ -6596,8 +6064,6 @@
     "name": "minecraft:nether_brick_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "north"
     }
   },
@@ -6607,8 +6073,6 @@
     "name": "minecraft:nether_brick_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "east"
     }
   },
@@ -6618,8 +6082,6 @@
     "name": "minecraft:nether_brick_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "west"
     }
   },
@@ -6629,8 +6091,6 @@
     "name": "minecraft:nether_brick_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "south"
     }
   },
@@ -6640,12 +6100,9 @@
     "name": "minecraft:nether_brick_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "north"
     }
   },
-// TODO: nether_wart entirely missing; popped off due to no netherrack?
   {
     "blockId": 115,
     "dataValue": 0,
@@ -6903,7 +6360,6 @@
     "dataValue": 0,
     "name": "minecraft:oak_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "double"
     }
   },
@@ -6912,7 +6368,6 @@
     "dataValue": 1,
     "name": "minecraft:spruce_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "double"
     }
   },
@@ -6921,7 +6376,6 @@
     "dataValue": 2,
     "name": "minecraft:birch_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "double"
     }
   },
@@ -6930,7 +6384,6 @@
     "dataValue": 3,
     "name": "minecraft:jungle_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "double"
     }
   },
@@ -6939,7 +6392,6 @@
     "dataValue": 4,
     "name": "minecraft:acacia_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "double"
     }
   },
@@ -6948,7 +6400,6 @@
     "dataValue": 5,
     "name": "minecraft:dark_oak_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "double"
     }
   },
@@ -6957,7 +6408,6 @@
     "dataValue": 0,
     "name": "minecraft:oak_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "bottom"
     }
   },
@@ -6966,7 +6416,6 @@
     "dataValue": 1,
     "name": "minecraft:spruce_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "bottom"
     }
   },
@@ -6975,7 +6424,6 @@
     "dataValue": 2,
     "name": "minecraft:birch_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "bottom"
     }
   },
@@ -6984,7 +6432,6 @@
     "dataValue": 3,
     "name": "minecraft:jungle_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "bottom"
     }
   },
@@ -6993,7 +6440,6 @@
     "dataValue": 4,
     "name": "minecraft:acacia_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "bottom"
     }
   },
@@ -7002,7 +6448,6 @@
     "dataValue": 5,
     "name": "minecraft:dark_oak_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "bottom"
     }
   },
@@ -7011,7 +6456,6 @@
     "dataValue": 8,
     "name": "minecraft:oak_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "top"
     }
   },
@@ -7020,7 +6464,6 @@
     "dataValue": 9,
     "name": "minecraft:spruce_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "top"
     }
   },
@@ -7029,7 +6472,6 @@
     "dataValue": 10,
     "name": "minecraft:birch_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "top"
     }
   },
@@ -7038,7 +6480,6 @@
     "dataValue": 11,
     "name": "minecraft:jungle_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "top"
     }
   },
@@ -7047,7 +6488,6 @@
     "dataValue": 12,
     "name": "minecraft:acacia_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "top"
     }
   },
@@ -7056,11 +6496,9 @@
     "dataValue": 13,
     "name": "minecraft:dark_oak_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "top"
     }
   },
-// TODO cocoa entirely missing; popped off due to no jungle wood?
   {
     "blockId": 127,
     "dataValue": 0,
@@ -7175,8 +6613,6 @@
     "name": "minecraft:sandstone_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "east"
     }
   },
@@ -7186,8 +6622,6 @@
     "name": "minecraft:sandstone_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "west"
     }
   },
@@ -7197,8 +6631,6 @@
     "name": "minecraft:sandstone_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "south"
     }
   },
@@ -7208,8 +6640,6 @@
     "name": "minecraft:sandstone_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "north"
     }
   },
@@ -7219,8 +6649,6 @@
     "name": "minecraft:sandstone_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "east"
     }
   },
@@ -7230,8 +6658,6 @@
     "name": "minecraft:sandstone_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "west"
     }
   },
@@ -7241,8 +6667,6 @@
     "name": "minecraft:sandstone_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "south"
     }
   },
@@ -7252,8 +6676,6 @@
     "name": "minecraft:sandstone_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "north"
     }
   },
@@ -7267,7 +6689,6 @@
     "dataValue": 2,
     "name": "minecraft:ender_chest",
     "properties": {
-      "waterlogged": "false",
       "facing": "north"
     }
   },
@@ -7276,7 +6697,6 @@
     "dataValue": 3,
     "name": "minecraft:ender_chest",
     "properties": {
-      "waterlogged": "false",
       "facing": "south"
     }
   },
@@ -7285,7 +6705,6 @@
     "dataValue": 4,
     "name": "minecraft:ender_chest",
     "properties": {
-      "waterlogged": "false",
       "facing": "west"
     }
   },
@@ -7294,11 +6713,9 @@
     "dataValue": 5,
     "name": "minecraft:ender_chest",
     "properties": {
-      "waterlogged": "false",
       "facing": "east"
     }
   },
-// TODO missing; popped off?
   {
     "blockId": 131,
     "dataValue": 0,
@@ -7319,7 +6736,6 @@
       "facing": "west"
     }
   },
-  // TODO next three missing; popped off?
   {
     "blockId": 131,
     "dataValue": 2,
@@ -7360,7 +6776,6 @@
       "facing": "west"
     }
   },
-// TODO next six missing; popped off?
   {
     "blockId": 131,
     "dataValue": 6,
@@ -7467,12 +6882,8 @@
     "name": "minecraft:tripwire",
     "properties": {
       "disarmed": "false",
-      "east": "false",
       "powered": "false",
-      "south": "false",
-      "north": "false",
-      "attached": "false",
-      "west": "false"
+      "attached": "false"
     }
   },
   {
@@ -7481,12 +6892,8 @@
     "name": "minecraft:tripwire",
     "properties": {
       "disarmed": "false",
-      "east": "false",
       "powered": "true",
-      "south": "false",
-      "north": "false",
-      "attached": "false",
-      "west": "false"
+      "attached": "false"
     }
   },
   {
@@ -7495,12 +6902,8 @@
     "name": "minecraft:tripwire",
     "properties": {
       "disarmed": "false",
-      "east": "false",
       "powered": "false",
-      "south": "false",
-      "north": "false",
-      "attached": "false",
-      "west": "false"
+      "attached": "false"
     }
   },
   {
@@ -7509,12 +6912,8 @@
     "name": "minecraft:tripwire",
     "properties": {
       "disarmed": "false",
-      "east": "false",
       "powered": "true",
-      "south": "false",
-      "north": "false",
-      "attached": "false",
-      "west": "false"
+      "attached": "false"
     }
   },
   {
@@ -7523,12 +6922,8 @@
     "name": "minecraft:tripwire",
     "properties": {
       "disarmed": "false",
-      "east": "false",
       "powered": "false",
-      "south": "false",
-      "north": "false",
-      "attached": "true",
-      "west": "false"
+      "attached": "true"
     }
   },
   {
@@ -7537,12 +6932,8 @@
     "name": "minecraft:tripwire",
     "properties": {
       "disarmed": "false",
-      "east": "false",
       "powered": "true",
-      "south": "false",
-      "north": "false",
-      "attached": "true",
-      "west": "false"
+      "attached": "true"
     }
   },
   {
@@ -7551,12 +6942,8 @@
     "name": "minecraft:tripwire",
     "properties": {
       "disarmed": "false",
-      "east": "false",
       "powered": "false",
-      "south": "false",
-      "north": "false",
-      "attached": "true",
-      "west": "false"
+      "attached": "true"
     }
   },
   {
@@ -7565,12 +6952,8 @@
     "name": "minecraft:tripwire",
     "properties": {
       "disarmed": "false",
-      "east": "false",
       "powered": "true",
-      "south": "false",
-      "north": "false",
-      "attached": "true",
-      "west": "false"
+      "attached": "true"
     }
   },
   {
@@ -7579,12 +6962,8 @@
     "name": "minecraft:tripwire",
     "properties": {
       "disarmed": "true",
-      "east": "false",
       "powered": "false",
-      "south": "false",
-      "north": "false",
-      "attached": "false",
-      "west": "false"
+      "attached": "false"
     }
   },
   {
@@ -7593,12 +6972,8 @@
     "name": "minecraft:tripwire",
     "properties": {
       "disarmed": "true",
-      "east": "false",
       "powered": "true",
-      "south": "false",
-      "north": "false",
-      "attached": "false",
-      "west": "false"
+      "attached": "false"
     }
   },
   {
@@ -7607,12 +6982,8 @@
     "name": "minecraft:tripwire",
     "properties": {
       "disarmed": "true",
-      "east": "false",
       "powered": "false",
-      "south": "false",
-      "north": "false",
-      "attached": "false",
-      "west": "false"
+      "attached": "false"
     }
   },
   {
@@ -7621,12 +6992,8 @@
     "name": "minecraft:tripwire",
     "properties": {
       "disarmed": "true",
-      "east": "false",
       "powered": "true",
-      "south": "false",
-      "north": "false",
-      "attached": "false",
-      "west": "false"
+      "attached": "false"
     }
   },
   {
@@ -7635,12 +7002,8 @@
     "name": "minecraft:tripwire",
     "properties": {
       "disarmed": "true",
-      "east": "false",
       "powered": "false",
-      "south": "false",
-      "north": "false",
-      "attached": "true",
-      "west": "false"
+      "attached": "true"
     }
   },
   {
@@ -7649,12 +7012,8 @@
     "name": "minecraft:tripwire",
     "properties": {
       "disarmed": "true",
-      "east": "false",
       "powered": "true",
-      "south": "false",
-      "north": "false",
-      "attached": "true",
-      "west": "false"
+      "attached": "true"
     }
   },
   {
@@ -7663,12 +7022,8 @@
     "name": "minecraft:tripwire",
     "properties": {
       "disarmed": "true",
-      "east": "false",
       "powered": "false",
-      "south": "false",
-      "north": "false",
-      "attached": "true",
-      "west": "false"
+      "attached": "true"
     }
   },
   {
@@ -7682,8 +7037,6 @@
     "name": "minecraft:spruce_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "east"
     }
   },
@@ -7693,8 +7046,6 @@
     "name": "minecraft:spruce_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "west"
     }
   },
@@ -7704,8 +7055,6 @@
     "name": "minecraft:spruce_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "south"
     }
   },
@@ -7715,8 +7064,6 @@
     "name": "minecraft:spruce_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "north"
     }
   },
@@ -7726,8 +7073,6 @@
     "name": "minecraft:spruce_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "east"
     }
   },
@@ -7737,8 +7082,6 @@
     "name": "minecraft:spruce_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "west"
     }
   },
@@ -7748,8 +7091,6 @@
     "name": "minecraft:spruce_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "south"
     }
   },
@@ -7759,8 +7100,6 @@
     "name": "minecraft:spruce_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "north"
     }
   },
@@ -7770,8 +7109,6 @@
     "name": "minecraft:birch_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "east"
     }
   },
@@ -7781,8 +7118,6 @@
     "name": "minecraft:birch_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "west"
     }
   },
@@ -7792,8 +7127,6 @@
     "name": "minecraft:birch_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "south"
     }
   },
@@ -7803,8 +7136,6 @@
     "name": "minecraft:birch_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "north"
     }
   },
@@ -7814,8 +7145,6 @@
     "name": "minecraft:birch_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "east"
     }
   },
@@ -7825,8 +7154,6 @@
     "name": "minecraft:birch_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "west"
     }
   },
@@ -7836,8 +7163,6 @@
     "name": "minecraft:birch_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "south"
     }
   },
@@ -7847,8 +7172,6 @@
     "name": "minecraft:birch_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "north"
     }
   },
@@ -7858,8 +7181,6 @@
     "name": "minecraft:jungle_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "east"
     }
   },
@@ -7869,8 +7190,6 @@
     "name": "minecraft:jungle_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "west"
     }
   },
@@ -7880,8 +7199,6 @@
     "name": "minecraft:jungle_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "south"
     }
   },
@@ -7891,8 +7208,6 @@
     "name": "minecraft:jungle_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "north"
     }
   },
@@ -7902,8 +7217,6 @@
     "name": "minecraft:jungle_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "east"
     }
   },
@@ -7913,8 +7226,6 @@
     "name": "minecraft:jungle_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "west"
     }
   },
@@ -7924,8 +7235,6 @@
     "name": "minecraft:jungle_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "south"
     }
   },
@@ -7935,8 +7244,6 @@
     "name": "minecraft:jungle_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "north"
     }
   },
@@ -8056,28 +7363,12 @@
   {
     "blockId": 139,
     "dataValue": 0,
-    "name": "minecraft:cobblestone_wall",
-    "properties": {
-      "east": "false",
-      "waterlogged": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false",
-      "up": "false"
-    }
+    "name": "minecraft:cobblestone_wall"
   },
   {
     "blockId": 139,
     "dataValue": 1,
-    "name": "minecraft:mossy_cobblestone_wall",
-    "properties": {
-      "east": "false",
-      "waterlogged": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false",
-      "up": "false"
-    }
+    "name": "minecraft:mossy_cobblestone_wall"
   },
   {
     "blockId": 140,
@@ -8287,7 +7578,6 @@
       "age": "7"
     }
   },
-// TODO: missing; popped off?
   {
     "blockId": 143,
     "dataValue": 0,
@@ -8509,9 +7799,7 @@
     "dataValue": 2,
     "name": "minecraft:trapped_chest",
     "properties": {
-      "waterlogged": "false",
-      "facing": "north",
-      "type": "single"
+      "facing": "north"
     }
   },
   {
@@ -8519,9 +7807,7 @@
     "dataValue": 3,
     "name": "minecraft:trapped_chest",
     "properties": {
-      "waterlogged": "false",
-      "facing": "south",
-      "type": "single"
+      "facing": "south"
     }
   },
   {
@@ -8529,9 +7815,7 @@
     "dataValue": 4,
     "name": "minecraft:trapped_chest",
     "properties": {
-      "waterlogged": "false",
-      "facing": "west",
-      "type": "single"
+      "facing": "west"
     }
   },
   {
@@ -8539,9 +7823,7 @@
     "dataValue": 5,
     "name": "minecraft:trapped_chest",
     "properties": {
-      "waterlogged": "false",
-      "facing": "east",
-      "type": "single"
+      "facing": "east"
     }
   },
   {
@@ -9404,8 +8686,6 @@
     "name": "minecraft:quartz_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "east"
     }
   },
@@ -9415,8 +8695,6 @@
     "name": "minecraft:quartz_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "west"
     }
   },
@@ -9426,8 +8704,6 @@
     "name": "minecraft:quartz_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "south"
     }
   },
@@ -9437,8 +8713,6 @@
     "name": "minecraft:quartz_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "north"
     }
   },
@@ -9448,8 +8722,6 @@
     "name": "minecraft:quartz_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "east"
     }
   },
@@ -9459,8 +8731,6 @@
     "name": "minecraft:quartz_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "west"
     }
   },
@@ -9470,8 +8740,6 @@
     "name": "minecraft:quartz_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "south"
     }
   },
@@ -9481,8 +8749,6 @@
     "name": "minecraft:quartz_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "north"
     }
   },
@@ -9785,202 +9051,88 @@
   {
     "blockId": 160,
     "dataValue": 0,
-    "name": "minecraft:white_stained_glass_pane",
-    "properties": {
-      "east": "false",
-      "waterlogged": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false"
-    }
+    "name": "minecraft:white_stained_glass_pane"
   },
   {
     "blockId": 160,
     "dataValue": 1,
-    "name": "minecraft:orange_stained_glass_pane",
-    "properties": {
-      "east": "false",
-      "waterlogged": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false"
-    }
+    "name": "minecraft:orange_stained_glass_pane"
   },
   {
     "blockId": 160,
     "dataValue": 2,
-    "name": "minecraft:magenta_stained_glass_pane",
-    "properties": {
-      "east": "false",
-      "waterlogged": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false"
-    }
+    "name": "minecraft:magenta_stained_glass_pane"
   },
   {
     "blockId": 160,
     "dataValue": 3,
-    "name": "minecraft:light_blue_stained_glass_pane",
-    "properties": {
-      "east": "false",
-      "waterlogged": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false"
-    }
+    "name": "minecraft:light_blue_stained_glass_pane"
   },
   {
     "blockId": 160,
     "dataValue": 4,
-    "name": "minecraft:yellow_stained_glass_pane",
-    "properties": {
-      "east": "false",
-      "waterlogged": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false"
-    }
+    "name": "minecraft:yellow_stained_glass_pane"
   },
   {
     "blockId": 160,
     "dataValue": 5,
-    "name": "minecraft:lime_stained_glass_pane",
-    "properties": {
-      "east": "false",
-      "waterlogged": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false"
-    }
+    "name": "minecraft:lime_stained_glass_pane"
   },
   {
     "blockId": 160,
     "dataValue": 6,
-    "name": "minecraft:pink_stained_glass_pane",
-    "properties": {
-      "east": "false",
-      "waterlogged": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false"
-    }
+    "name": "minecraft:pink_stained_glass_pane"
   },
   {
     "blockId": 160,
     "dataValue": 7,
-    "name": "minecraft:gray_stained_glass_pane",
-    "properties": {
-      "east": "false",
-      "waterlogged": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false"
-    }
+    "name": "minecraft:gray_stained_glass_pane"
   },
   {
     "blockId": 160,
     "dataValue": 8,
-    "name": "minecraft:light_gray_stained_glass_pane",
-    "properties": {
-      "east": "false",
-      "waterlogged": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false"
-    }
+    "name": "minecraft:light_gray_stained_glass_pane"
   },
   {
     "blockId": 160,
     "dataValue": 9,
-    "name": "minecraft:cyan_stained_glass_pane",
-    "properties": {
-      "east": "false",
-      "waterlogged": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false"
-    }
+    "name": "minecraft:cyan_stained_glass_pane"
   },
   {
     "blockId": 160,
     "dataValue": 10,
-    "name": "minecraft:purple_stained_glass_pane",
-    "properties": {
-      "east": "false",
-      "waterlogged": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false"
-    }
+    "name": "minecraft:purple_stained_glass_pane"
   },
   {
     "blockId": 160,
     "dataValue": 11,
-    "name": "minecraft:blue_stained_glass_pane",
-    "properties": {
-      "east": "false",
-      "waterlogged": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false"
-    }
+    "name": "minecraft:blue_stained_glass_pane"
   },
   {
     "blockId": 160,
     "dataValue": 12,
-    "name": "minecraft:brown_stained_glass_pane",
-    "properties": {
-      "east": "false",
-      "waterlogged": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false"
-    }
+    "name": "minecraft:brown_stained_glass_pane"
   },
   {
     "blockId": 160,
     "dataValue": 13,
-    "name": "minecraft:green_stained_glass_pane",
-    "properties": {
-      "east": "false",
-      "waterlogged": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false"
-    }
+    "name": "minecraft:green_stained_glass_pane"
   },
   {
     "blockId": 160,
     "dataValue": 14,
-    "name": "minecraft:red_stained_glass_pane",
-    "properties": {
-      "east": "false",
-      "waterlogged": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false"
-    }
+    "name": "minecraft:red_stained_glass_pane"
   },
   {
     "blockId": 160,
     "dataValue": 15,
-    "name": "minecraft:black_stained_glass_pane",
-    "properties": {
-      "east": "false",
-      "waterlogged": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false"
-    }
+    "name": "minecraft:black_stained_glass_pane"
   },
-// TODO: should we be calculating these distances?
   {
     "blockId": 161,
     "dataValue": 0,
     "name": "minecraft:acacia_leaves",
     "properties": {
-      "distance": "7",
       "persistent": "false"
     }
   },
@@ -9989,7 +9141,6 @@
     "dataValue": 1,
     "name": "minecraft:dark_oak_leaves",
     "properties": {
-      "distance": "7",
       "persistent": "false"
     }
   },
@@ -9998,7 +9149,6 @@
     "dataValue": 4,
     "name": "minecraft:acacia_leaves",
     "properties": {
-      "distance": "7",
       "persistent": "true"
     }
   },
@@ -10007,7 +9157,6 @@
     "dataValue": 5,
     "name": "minecraft:dark_oak_leaves",
     "properties": {
-      "distance": "7",
       "persistent": "true"
     }
   },
@@ -10016,7 +9165,6 @@
     "dataValue": 8,
     "name": "minecraft:acacia_leaves",
     "properties": {
-      "distance": "7",
       "persistent": "false"
     }
   },
@@ -10025,7 +9173,6 @@
     "dataValue": 9,
     "name": "minecraft:dark_oak_leaves",
     "properties": {
-      "distance": "7",
       "persistent": "false"
     }
   },
@@ -10034,7 +9181,6 @@
     "dataValue": 12,
     "name": "minecraft:acacia_leaves",
     "properties": {
-      "distance": "7",
       "persistent": "true"
     }
   },
@@ -10043,7 +9189,6 @@
     "dataValue": 13,
     "name": "minecraft:dark_oak_leaves",
     "properties": {
-      "distance": "7",
       "persistent": "true"
     }
   },
@@ -10098,18 +9243,12 @@
   {
     "blockId": 162,
     "dataValue": 12,
-    "name": "minecraft:acacia_wood",
-    "properties": {
-      "axis": "y"
-    }
+    "name": "minecraft:acacia_wood"
   },
   {
     "blockId": 162,
     "dataValue": 13,
-    "name": "minecraft:dark_oak_wood",
-    "properties": {
-      "axis": "y"
-    }
+    "name": "minecraft:dark_oak_wood"
   },
   {
     "blockId": 163,
@@ -10117,8 +9256,6 @@
     "name": "minecraft:acacia_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "east"
     }
   },
@@ -10128,8 +9265,6 @@
     "name": "minecraft:acacia_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "west"
     }
   },
@@ -10139,8 +9274,6 @@
     "name": "minecraft:acacia_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "south"
     }
   },
@@ -10150,8 +9283,6 @@
     "name": "minecraft:acacia_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "north"
     }
   },
@@ -10161,8 +9292,6 @@
     "name": "minecraft:acacia_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "east"
     }
   },
@@ -10172,8 +9301,6 @@
     "name": "minecraft:acacia_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "west"
     }
   },
@@ -10183,8 +9310,6 @@
     "name": "minecraft:acacia_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "south"
     }
   },
@@ -10194,8 +9319,6 @@
     "name": "minecraft:acacia_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "north"
     }
   },
@@ -10205,8 +9328,6 @@
     "name": "minecraft:dark_oak_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "east"
     }
   },
@@ -10216,8 +9337,6 @@
     "name": "minecraft:dark_oak_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "west"
     }
   },
@@ -10227,8 +9346,6 @@
     "name": "minecraft:dark_oak_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "south"
     }
   },
@@ -10238,8 +9355,6 @@
     "name": "minecraft:dark_oak_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "north"
     }
   },
@@ -10249,8 +9364,6 @@
     "name": "minecraft:dark_oak_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "east"
     }
   },
@@ -10260,8 +9373,6 @@
     "name": "minecraft:dark_oak_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "west"
     }
   },
@@ -10271,8 +9382,6 @@
     "name": "minecraft:dark_oak_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "south"
     }
   },
@@ -10282,8 +9391,6 @@
     "name": "minecraft:dark_oak_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "north"
     }
   },
@@ -10303,8 +9410,6 @@
     "name": "minecraft:iron_trapdoor",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "powered": "false",
       "facing": "north",
       "open": "false"
     }
@@ -10315,8 +9420,6 @@
     "name": "minecraft:iron_trapdoor",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "powered": "false",
       "facing": "south",
       "open": "false"
     }
@@ -10327,8 +9430,6 @@
     "name": "minecraft:iron_trapdoor",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "powered": "false",
       "facing": "west",
       "open": "false"
     }
@@ -10339,8 +9440,6 @@
     "name": "minecraft:iron_trapdoor",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "powered": "false",
       "facing": "east",
       "open": "false"
     }
@@ -10351,8 +9450,6 @@
     "name": "minecraft:iron_trapdoor",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "powered": "false",
       "facing": "north",
       "open": "true"
     }
@@ -10363,8 +9460,6 @@
     "name": "minecraft:iron_trapdoor",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "powered": "false",
       "facing": "south",
       "open": "true"
     }
@@ -10375,8 +9470,6 @@
     "name": "minecraft:iron_trapdoor",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "powered": "false",
       "facing": "west",
       "open": "true"
     }
@@ -10387,8 +9480,6 @@
     "name": "minecraft:iron_trapdoor",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "powered": "false",
       "facing": "east",
       "open": "true"
     }
@@ -10399,8 +9490,6 @@
     "name": "minecraft:iron_trapdoor",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "powered": "false",
       "facing": "north",
       "open": "false"
     }
@@ -10411,8 +9500,6 @@
     "name": "minecraft:iron_trapdoor",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "powered": "false",
       "facing": "south",
       "open": "false"
     }
@@ -10423,8 +9510,6 @@
     "name": "minecraft:iron_trapdoor",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "powered": "false",
       "facing": "west",
       "open": "false"
     }
@@ -10435,8 +9520,6 @@
     "name": "minecraft:iron_trapdoor",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "powered": "false",
       "facing": "east",
       "open": "false"
     }
@@ -10447,8 +9530,6 @@
     "name": "minecraft:iron_trapdoor",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "powered": "false",
       "facing": "north",
       "open": "true"
     }
@@ -10459,8 +9540,6 @@
     "name": "minecraft:iron_trapdoor",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "powered": "false",
       "facing": "south",
       "open": "true"
     }
@@ -10471,8 +9550,6 @@
     "name": "minecraft:iron_trapdoor",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "powered": "false",
       "facing": "west",
       "open": "true"
     }
@@ -10483,8 +9560,6 @@
     "name": "minecraft:iron_trapdoor",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "powered": "false",
       "facing": "east",
       "open": "true"
     }
@@ -10628,54 +9703,35 @@
     "dataValue": 0,
     "name": "minecraft:packed_ice"
   },
-// TODO: missing; popped off?
   {
     "blockId": 175,
     "dataValue": 0,
-    "name": "minecraft:sunflower",
-    "properties": {
-      "half": "lower"
-    }
+    "name": "minecraft:sunflower"
   },
   {
     "blockId": 175,
     "dataValue": 1,
-    "name": "minecraft:lilac",
-    "properties": {
-      "half": "lower"
-    }
+    "name": "minecraft:lilac"
   },
   {
     "blockId": 175,
     "dataValue": 2,
-    "name": "minecraft:tall_grass",
-    "properties": {
-      "half": "lower"
-    }
+    "name": "minecraft:tall_grass"
   },
   {
     "blockId": 175,
     "dataValue": 3,
-    "name": "minecraft:large_fern",
-    "properties": {
-      "half": "lower"
-    }
+    "name": "minecraft:large_fern"
   },
   {
     "blockId": 175,
     "dataValue": 4,
-    "name": "minecraft:rose_bush",
-    "properties": {
-      "half": "lower"
-    }
+    "name": "minecraft:rose_bush"
   },
   {
     "blockId": 175,
     "dataValue": 5,
-    "name": "minecraft:peony",
-    "properties": {
-      "half": "lower"
-    }
+    "name": "minecraft:peony"
   },
   {
     "blockId": 176,
@@ -11002,8 +10058,6 @@
     "name": "minecraft:red_sandstone_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "east"
     }
   },
@@ -11013,8 +10067,6 @@
     "name": "minecraft:red_sandstone_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "west"
     }
   },
@@ -11024,8 +10076,6 @@
     "name": "minecraft:red_sandstone_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "south"
     }
   },
@@ -11035,8 +10085,6 @@
     "name": "minecraft:red_sandstone_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "north"
     }
   },
@@ -11046,8 +10094,6 @@
     "name": "minecraft:red_sandstone_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "east"
     }
   },
@@ -11057,8 +10103,6 @@
     "name": "minecraft:red_sandstone_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "west"
     }
   },
@@ -11068,8 +10112,6 @@
     "name": "minecraft:red_sandstone_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "south"
     }
   },
@@ -11079,8 +10121,6 @@
     "name": "minecraft:red_sandstone_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "north"
     }
   },
@@ -11089,7 +10129,6 @@
     "dataValue": 0,
     "name": "minecraft:red_sandstone_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "double"
     }
   },
@@ -11103,7 +10142,6 @@
     "dataValue": 0,
     "name": "minecraft:red_sandstone_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "bottom"
     }
   },
@@ -11112,7 +10150,6 @@
     "dataValue": 8,
     "name": "minecraft:red_sandstone_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "top"
     }
   },
@@ -11121,7 +10158,6 @@
     "dataValue": 0,
     "name": "minecraft:spruce_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "south",
       "open": "false"
@@ -11132,7 +10168,6 @@
     "dataValue": 1,
     "name": "minecraft:spruce_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "west",
       "open": "false"
@@ -11143,7 +10178,6 @@
     "dataValue": 2,
     "name": "minecraft:spruce_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "north",
       "open": "false"
@@ -11154,7 +10188,6 @@
     "dataValue": 3,
     "name": "minecraft:spruce_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "east",
       "open": "false"
@@ -11165,7 +10198,6 @@
     "dataValue": 4,
     "name": "minecraft:spruce_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "south",
       "open": "true"
@@ -11176,7 +10208,6 @@
     "dataValue": 5,
     "name": "minecraft:spruce_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "west",
       "open": "true"
@@ -11187,7 +10218,6 @@
     "dataValue": 6,
     "name": "minecraft:spruce_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "north",
       "open": "true"
@@ -11198,7 +10228,6 @@
     "dataValue": 7,
     "name": "minecraft:spruce_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "east",
       "open": "true"
@@ -11209,7 +10238,6 @@
     "dataValue": 8,
     "name": "minecraft:spruce_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "south",
       "open": "false"
@@ -11220,7 +10248,6 @@
     "dataValue": 9,
     "name": "minecraft:spruce_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "west",
       "open": "false"
@@ -11231,7 +10258,6 @@
     "dataValue": 10,
     "name": "minecraft:spruce_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "north",
       "open": "false"
@@ -11242,7 +10268,6 @@
     "dataValue": 11,
     "name": "minecraft:spruce_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "east",
       "open": "false"
@@ -11253,7 +10278,6 @@
     "dataValue": 12,
     "name": "minecraft:spruce_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "south",
       "open": "true"
@@ -11264,7 +10288,6 @@
     "dataValue": 13,
     "name": "minecraft:spruce_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "west",
       "open": "true"
@@ -11275,7 +10298,6 @@
     "dataValue": 14,
     "name": "minecraft:spruce_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "north",
       "open": "true"
@@ -11286,7 +10308,6 @@
     "dataValue": 15,
     "name": "minecraft:spruce_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "east",
       "open": "true"
@@ -11297,7 +10318,6 @@
     "dataValue": 0,
     "name": "minecraft:birch_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "south",
       "open": "false"
@@ -11308,7 +10328,6 @@
     "dataValue": 1,
     "name": "minecraft:birch_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "west",
       "open": "false"
@@ -11319,7 +10338,6 @@
     "dataValue": 2,
     "name": "minecraft:birch_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "north",
       "open": "false"
@@ -11330,7 +10348,6 @@
     "dataValue": 3,
     "name": "minecraft:birch_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "east",
       "open": "false"
@@ -11341,7 +10358,6 @@
     "dataValue": 4,
     "name": "minecraft:birch_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "south",
       "open": "true"
@@ -11352,7 +10368,6 @@
     "dataValue": 5,
     "name": "minecraft:birch_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "west",
       "open": "true"
@@ -11363,7 +10378,6 @@
     "dataValue": 6,
     "name": "minecraft:birch_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "north",
       "open": "true"
@@ -11374,7 +10388,6 @@
     "dataValue": 7,
     "name": "minecraft:birch_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "east",
       "open": "true"
@@ -11385,7 +10398,6 @@
     "dataValue": 8,
     "name": "minecraft:birch_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "south",
       "open": "false"
@@ -11396,7 +10408,6 @@
     "dataValue": 9,
     "name": "minecraft:birch_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "west",
       "open": "false"
@@ -11407,7 +10418,6 @@
     "dataValue": 10,
     "name": "minecraft:birch_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "north",
       "open": "false"
@@ -11418,7 +10428,6 @@
     "dataValue": 11,
     "name": "minecraft:birch_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "east",
       "open": "false"
@@ -11429,7 +10438,6 @@
     "dataValue": 12,
     "name": "minecraft:birch_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "south",
       "open": "true"
@@ -11440,7 +10448,6 @@
     "dataValue": 13,
     "name": "minecraft:birch_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "west",
       "open": "true"
@@ -11451,7 +10458,6 @@
     "dataValue": 14,
     "name": "minecraft:birch_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "north",
       "open": "true"
@@ -11462,7 +10468,6 @@
     "dataValue": 15,
     "name": "minecraft:birch_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "east",
       "open": "true"
@@ -11473,7 +10478,6 @@
     "dataValue": 0,
     "name": "minecraft:jungle_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "south",
       "open": "false"
@@ -11484,7 +10488,6 @@
     "dataValue": 1,
     "name": "minecraft:jungle_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "west",
       "open": "false"
@@ -11495,7 +10498,6 @@
     "dataValue": 2,
     "name": "minecraft:jungle_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "north",
       "open": "false"
@@ -11506,7 +10508,6 @@
     "dataValue": 3,
     "name": "minecraft:jungle_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "east",
       "open": "false"
@@ -11517,7 +10518,6 @@
     "dataValue": 4,
     "name": "minecraft:jungle_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "south",
       "open": "true"
@@ -11528,7 +10528,6 @@
     "dataValue": 5,
     "name": "minecraft:jungle_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "west",
       "open": "true"
@@ -11539,7 +10538,6 @@
     "dataValue": 6,
     "name": "minecraft:jungle_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "north",
       "open": "true"
@@ -11550,7 +10548,6 @@
     "dataValue": 7,
     "name": "minecraft:jungle_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "east",
       "open": "true"
@@ -11561,7 +10558,6 @@
     "dataValue": 8,
     "name": "minecraft:jungle_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "south",
       "open": "false"
@@ -11572,7 +10568,6 @@
     "dataValue": 9,
     "name": "minecraft:jungle_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "west",
       "open": "false"
@@ -11583,7 +10578,6 @@
     "dataValue": 10,
     "name": "minecraft:jungle_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "north",
       "open": "false"
@@ -11594,7 +10588,6 @@
     "dataValue": 11,
     "name": "minecraft:jungle_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "east",
       "open": "false"
@@ -11605,7 +10598,6 @@
     "dataValue": 12,
     "name": "minecraft:jungle_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "south",
       "open": "true"
@@ -11616,7 +10608,6 @@
     "dataValue": 13,
     "name": "minecraft:jungle_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "west",
       "open": "true"
@@ -11627,7 +10618,6 @@
     "dataValue": 14,
     "name": "minecraft:jungle_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "north",
       "open": "true"
@@ -11638,7 +10628,6 @@
     "dataValue": 15,
     "name": "minecraft:jungle_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "east",
       "open": "true"
@@ -11649,7 +10638,6 @@
     "dataValue": 0,
     "name": "minecraft:dark_oak_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "south",
       "open": "false"
@@ -11660,7 +10648,6 @@
     "dataValue": 1,
     "name": "minecraft:dark_oak_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "west",
       "open": "false"
@@ -11671,7 +10658,6 @@
     "dataValue": 2,
     "name": "minecraft:dark_oak_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "north",
       "open": "false"
@@ -11682,7 +10668,6 @@
     "dataValue": 3,
     "name": "minecraft:dark_oak_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "east",
       "open": "false"
@@ -11693,7 +10678,6 @@
     "dataValue": 4,
     "name": "minecraft:dark_oak_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "south",
       "open": "true"
@@ -11704,7 +10688,6 @@
     "dataValue": 5,
     "name": "minecraft:dark_oak_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "west",
       "open": "true"
@@ -11715,7 +10698,6 @@
     "dataValue": 6,
     "name": "minecraft:dark_oak_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "north",
       "open": "true"
@@ -11726,7 +10708,6 @@
     "dataValue": 7,
     "name": "minecraft:dark_oak_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "east",
       "open": "true"
@@ -11737,7 +10718,6 @@
     "dataValue": 8,
     "name": "minecraft:dark_oak_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "south",
       "open": "false"
@@ -11748,7 +10728,6 @@
     "dataValue": 9,
     "name": "minecraft:dark_oak_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "west",
       "open": "false"
@@ -11759,7 +10738,6 @@
     "dataValue": 10,
     "name": "minecraft:dark_oak_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "north",
       "open": "false"
@@ -11770,7 +10748,6 @@
     "dataValue": 11,
     "name": "minecraft:dark_oak_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "east",
       "open": "false"
@@ -11781,7 +10758,6 @@
     "dataValue": 12,
     "name": "minecraft:dark_oak_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "south",
       "open": "true"
@@ -11792,7 +10768,6 @@
     "dataValue": 13,
     "name": "minecraft:dark_oak_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "west",
       "open": "true"
@@ -11803,7 +10778,6 @@
     "dataValue": 14,
     "name": "minecraft:dark_oak_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "north",
       "open": "true"
@@ -11814,7 +10788,6 @@
     "dataValue": 15,
     "name": "minecraft:dark_oak_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "east",
       "open": "true"
@@ -11825,7 +10798,6 @@
     "dataValue": 0,
     "name": "minecraft:acacia_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "south",
       "open": "false"
@@ -11836,7 +10808,6 @@
     "dataValue": 1,
     "name": "minecraft:acacia_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "west",
       "open": "false"
@@ -11847,7 +10818,6 @@
     "dataValue": 2,
     "name": "minecraft:acacia_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "north",
       "open": "false"
@@ -11858,7 +10828,6 @@
     "dataValue": 3,
     "name": "minecraft:acacia_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "east",
       "open": "false"
@@ -11869,7 +10838,6 @@
     "dataValue": 4,
     "name": "minecraft:acacia_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "south",
       "open": "true"
@@ -11880,7 +10848,6 @@
     "dataValue": 5,
     "name": "minecraft:acacia_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "west",
       "open": "true"
@@ -11891,7 +10858,6 @@
     "dataValue": 6,
     "name": "minecraft:acacia_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "north",
       "open": "true"
@@ -11902,7 +10868,6 @@
     "dataValue": 7,
     "name": "minecraft:acacia_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "false",
       "facing": "east",
       "open": "true"
@@ -11913,7 +10878,6 @@
     "dataValue": 8,
     "name": "minecraft:acacia_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "south",
       "open": "false"
@@ -11924,7 +10888,6 @@
     "dataValue": 9,
     "name": "minecraft:acacia_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "west",
       "open": "false"
@@ -11935,7 +10898,6 @@
     "dataValue": 10,
     "name": "minecraft:acacia_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "north",
       "open": "false"
@@ -11946,7 +10908,6 @@
     "dataValue": 11,
     "name": "minecraft:acacia_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "east",
       "open": "false"
@@ -11957,7 +10918,6 @@
     "dataValue": 12,
     "name": "minecraft:acacia_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "south",
       "open": "true"
@@ -11968,7 +10928,6 @@
     "dataValue": 13,
     "name": "minecraft:acacia_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "west",
       "open": "true"
@@ -11979,7 +10938,6 @@
     "dataValue": 14,
     "name": "minecraft:acacia_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "north",
       "open": "true"
@@ -11990,7 +10948,6 @@
     "dataValue": 15,
     "name": "minecraft:acacia_fence_gate",
     "properties": {
-      "in_wall": "false",
       "powered": "true",
       "facing": "east",
       "open": "true"
@@ -11999,71 +10956,34 @@
   {
     "blockId": 188,
     "dataValue": 0,
-    "name": "minecraft:spruce_fence",
-    "properties": {
-      "east": "false",
-      "waterlogged": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false"
-    }
+    "name": "minecraft:spruce_fence"
   },
   {
     "blockId": 189,
     "dataValue": 0,
-    "name": "minecraft:birch_fence",
-    "properties": {
-      "east": "false",
-      "waterlogged": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false"
-    }
+    "name": "minecraft:birch_fence"
   },
   {
     "blockId": 190,
     "dataValue": 0,
-    "name": "minecraft:jungle_fence",
-    "properties": {
-      "east": "false",
-      "waterlogged": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false"
-    }
+    "name": "minecraft:jungle_fence"
   },
   {
     "blockId": 191,
     "dataValue": 0,
-    "name": "minecraft:dark_oak_fence",
-    "properties": {
-      "east": "false",
-      "waterlogged": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false"
-    }
+    "name": "minecraft:dark_oak_fence"
   },
   {
     "blockId": 192,
     "dataValue": 0,
-    "name": "minecraft:acacia_fence",
-    "properties": {
-      "east": "false",
-      "waterlogged": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false"
-    }
+    "name": "minecraft:acacia_fence"
   },
   {
     "blockId": 193,
     "dataValue": 0,
     "name": "minecraft:spruce_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "east",
       "open": "false"
     }
@@ -12073,9 +10993,7 @@
     "dataValue": 1,
     "name": "minecraft:spruce_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "south",
       "open": "false"
     }
@@ -12085,9 +11003,7 @@
     "dataValue": 2,
     "name": "minecraft:spruce_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "west",
       "open": "false"
     }
@@ -12097,9 +11013,7 @@
     "dataValue": 3,
     "name": "minecraft:spruce_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "north",
       "open": "false"
     }
@@ -12109,9 +11023,7 @@
     "dataValue": 4,
     "name": "minecraft:spruce_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "east",
       "open": "true"
     }
@@ -12121,9 +11033,7 @@
     "dataValue": 5,
     "name": "minecraft:spruce_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "south",
       "open": "true"
     }
@@ -12133,9 +11043,7 @@
     "dataValue": 6,
     "name": "minecraft:spruce_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "west",
       "open": "true"
     }
@@ -12145,9 +11053,7 @@
     "dataValue": 7,
     "name": "minecraft:spruce_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "north",
       "open": "true"
     }
@@ -12159,9 +11065,7 @@
     "properties": {
       "hinge": "left",
       "half": "upper",
-      "powered": "false",
-      "facing": "east",
-      "open": "false"
+      "powered": "false"
     }
   },
   {
@@ -12171,9 +11075,7 @@
     "properties": {
       "hinge": "right",
       "half": "upper",
-      "powered": "false",
-      "facing": "east",
-      "open": "false"
+      "powered": "false"
     }
   },
   {
@@ -12183,9 +11085,7 @@
     "properties": {
       "hinge": "left",
       "half": "upper",
-      "powered": "true",
-      "facing": "east",
-      "open": "false"
+      "powered": "true"
     }
   },
   {
@@ -12195,9 +11095,7 @@
     "properties": {
       "hinge": "right",
       "half": "upper",
-      "powered": "true",
-      "facing": "east",
-      "open": "false"
+      "powered": "true"
     }
   },
   {
@@ -12205,9 +11103,7 @@
     "dataValue": 0,
     "name": "minecraft:birch_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "east",
       "open": "false"
     }
@@ -12217,9 +11113,7 @@
     "dataValue": 1,
     "name": "minecraft:birch_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "south",
       "open": "false"
     }
@@ -12229,9 +11123,7 @@
     "dataValue": 2,
     "name": "minecraft:birch_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "west",
       "open": "false"
     }
@@ -12241,9 +11133,7 @@
     "dataValue": 3,
     "name": "minecraft:birch_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "north",
       "open": "false"
     }
@@ -12253,9 +11143,7 @@
     "dataValue": 4,
     "name": "minecraft:birch_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "east",
       "open": "true"
     }
@@ -12265,9 +11153,7 @@
     "dataValue": 5,
     "name": "minecraft:birch_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "south",
       "open": "true"
     }
@@ -12277,9 +11163,7 @@
     "dataValue": 6,
     "name": "minecraft:birch_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "west",
       "open": "true"
     }
@@ -12289,9 +11173,7 @@
     "dataValue": 7,
     "name": "minecraft:birch_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "north",
       "open": "true"
     }
@@ -12303,9 +11185,7 @@
     "properties": {
       "hinge": "left",
       "half": "upper",
-      "powered": "false",
-      "facing": "east",
-      "open": "false"
+      "powered": "false"
     }
   },
   {
@@ -12315,9 +11195,7 @@
     "properties": {
       "hinge": "right",
       "half": "upper",
-      "powered": "false",
-      "facing": "east",
-      "open": "false"
+      "powered": "false"
     }
   },
   {
@@ -12327,9 +11205,7 @@
     "properties": {
       "hinge": "left",
       "half": "upper",
-      "powered": "true",
-      "facing": "east",
-      "open": "false"
+      "powered": "true"
     }
   },
   {
@@ -12339,9 +11215,7 @@
     "properties": {
       "hinge": "right",
       "half": "upper",
-      "powered": "true",
-      "facing": "east",
-      "open": "false"
+      "powered": "true"
     }
   },
   {
@@ -12349,9 +11223,7 @@
     "dataValue": 0,
     "name": "minecraft:jungle_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "east",
       "open": "false"
     }
@@ -12361,9 +11233,7 @@
     "dataValue": 1,
     "name": "minecraft:jungle_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "south",
       "open": "false"
     }
@@ -12373,9 +11243,7 @@
     "dataValue": 2,
     "name": "minecraft:jungle_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "west",
       "open": "false"
     }
@@ -12385,9 +11253,7 @@
     "dataValue": 3,
     "name": "minecraft:jungle_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "north",
       "open": "false"
     }
@@ -12397,9 +11263,7 @@
     "dataValue": 4,
     "name": "minecraft:jungle_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "east",
       "open": "true"
     }
@@ -12409,9 +11273,7 @@
     "dataValue": 5,
     "name": "minecraft:jungle_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "south",
       "open": "true"
     }
@@ -12421,9 +11283,7 @@
     "dataValue": 6,
     "name": "minecraft:jungle_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "west",
       "open": "true"
     }
@@ -12433,9 +11293,7 @@
     "dataValue": 7,
     "name": "minecraft:jungle_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "north",
       "open": "true"
     }
@@ -12447,9 +11305,7 @@
     "properties": {
       "hinge": "left",
       "half": "upper",
-      "powered": "false",
-      "facing": "east",
-      "open": "false"
+      "powered": "false"
     }
   },
   {
@@ -12459,9 +11315,7 @@
     "properties": {
       "hinge": "right",
       "half": "upper",
-      "powered": "false",
-      "facing": "east",
-      "open": "false"
+      "powered": "false"
     }
   },
   {
@@ -12471,9 +11325,7 @@
     "properties": {
       "hinge": "left",
       "half": "upper",
-      "powered": "true",
-      "facing": "east",
-      "open": "false"
+      "powered": "true"
     }
   },
   {
@@ -12483,20 +11335,15 @@
     "properties": {
       "hinge": "right",
       "half": "upper",
-      "powered": "true",
-      "facing": "east",
-      "open": "false"
+      "powered": "true"
     }
   },
-// TODO: acacia door entirely missing; popped off? That's a very big coincidence...
   {
     "blockId": 196,
     "dataValue": 0,
     "name": "minecraft:acacia_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "east",
       "open": "false"
     }
@@ -12506,9 +11353,7 @@
     "dataValue": 1,
     "name": "minecraft:acacia_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "south",
       "open": "false"
     }
@@ -12518,9 +11363,7 @@
     "dataValue": 2,
     "name": "minecraft:acacia_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "west",
       "open": "false"
     }
@@ -12530,9 +11373,7 @@
     "dataValue": 3,
     "name": "minecraft:acacia_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "north",
       "open": "false"
     }
@@ -12542,9 +11383,7 @@
     "dataValue": 4,
     "name": "minecraft:acacia_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "east",
       "open": "true"
     }
@@ -12554,9 +11393,7 @@
     "dataValue": 5,
     "name": "minecraft:acacia_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "south",
       "open": "true"
     }
@@ -12566,9 +11403,7 @@
     "dataValue": 6,
     "name": "minecraft:acacia_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "west",
       "open": "true"
     }
@@ -12578,9 +11413,7 @@
     "dataValue": 7,
     "name": "minecraft:acacia_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "north",
       "open": "true"
     }
@@ -12592,9 +11425,7 @@
     "properties": {
       "hinge": "left",
       "half": "upper",
-      "powered": "false",
-      "facing": "east",
-      "open": "false"
+      "powered": "false"
     }
   },
   {
@@ -12604,9 +11435,7 @@
     "properties": {
       "hinge": "right",
       "half": "upper",
-      "powered": "false",
-      "facing": "east",
-      "open": "false"
+      "powered": "false"
     }
   },
   {
@@ -12616,9 +11445,7 @@
     "properties": {
       "hinge": "left",
       "half": "upper",
-      "powered": "true",
-      "facing": "east",
-      "open": "false"
+      "powered": "true"
     }
   },
   {
@@ -12628,9 +11455,7 @@
     "properties": {
       "hinge": "right",
       "half": "upper",
-      "powered": "true",
-      "facing": "east",
-      "open": "false"
+      "powered": "true"
     }
   },
   {
@@ -12638,9 +11463,7 @@
     "dataValue": 0,
     "name": "minecraft:dark_oak_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "east",
       "open": "false"
     }
@@ -12650,9 +11473,7 @@
     "dataValue": 1,
     "name": "minecraft:dark_oak_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "south",
       "open": "false"
     }
@@ -12662,9 +11483,7 @@
     "dataValue": 2,
     "name": "minecraft:dark_oak_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "west",
       "open": "false"
     }
@@ -12674,9 +11493,7 @@
     "dataValue": 3,
     "name": "minecraft:dark_oak_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "north",
       "open": "false"
     }
@@ -12686,9 +11503,7 @@
     "dataValue": 4,
     "name": "minecraft:dark_oak_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "east",
       "open": "true"
     }
@@ -12698,9 +11513,7 @@
     "dataValue": 5,
     "name": "minecraft:dark_oak_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "south",
       "open": "true"
     }
@@ -12710,9 +11523,7 @@
     "dataValue": 6,
     "name": "minecraft:dark_oak_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "west",
       "open": "true"
     }
@@ -12722,9 +11533,7 @@
     "dataValue": 7,
     "name": "minecraft:dark_oak_door",
     "properties": {
-      "hinge": "right",
       "half": "lower",
-      "powered": "false",
       "facing": "north",
       "open": "true"
     }
@@ -12736,9 +11545,7 @@
     "properties": {
       "hinge": "left",
       "half": "upper",
-      "powered": "false",
-      "facing": "east",
-      "open": "false"
+      "powered": "false"
     }
   },
   {
@@ -12748,9 +11555,7 @@
     "properties": {
       "hinge": "right",
       "half": "upper",
-      "powered": "false",
-      "facing": "east",
-      "open": "false"
+      "powered": "false"
     }
   },
   {
@@ -12760,9 +11565,7 @@
     "properties": {
       "hinge": "left",
       "half": "upper",
-      "powered": "true",
-      "facing": "east",
-      "open": "false"
+      "powered": "true"
     }
   },
   {
@@ -12772,9 +11575,7 @@
     "properties": {
       "hinge": "right",
       "half": "upper",
-      "powered": "true",
-      "facing": "east",
-      "open": "false"
+      "powered": "true"
     }
   },
   {
@@ -12825,21 +11626,11 @@
       "facing": "east"
     }
   },
-// TODO: missing; popped off due to lack of end stone?
   {
     "blockId": 199,
     "dataValue": 0,
-    "name": "minecraft:chorus_plant",
-    "properties": {
-      "east": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false",
-      "up": "false",
-      "down": "false"
-    }
+    "name": "minecraft:chorus_plant"
   },
-// TODO: chorus_flower entirely missing; popped off due to lack of chorus_plant?
   {
     "blockId": 200,
     "dataValue": 0,
@@ -12923,8 +11714,6 @@
     "name": "minecraft:purpur_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "east"
     }
   },
@@ -12934,8 +11723,6 @@
     "name": "minecraft:purpur_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "west"
     }
   },
@@ -12945,8 +11732,6 @@
     "name": "minecraft:purpur_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "south"
     }
   },
@@ -12956,8 +11741,6 @@
     "name": "minecraft:purpur_stairs",
     "properties": {
       "half": "bottom",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "north"
     }
   },
@@ -12967,8 +11750,6 @@
     "name": "minecraft:purpur_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "east"
     }
   },
@@ -12978,8 +11759,6 @@
     "name": "minecraft:purpur_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "west"
     }
   },
@@ -12989,8 +11768,6 @@
     "name": "minecraft:purpur_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "south"
     }
   },
@@ -13000,8 +11777,6 @@
     "name": "minecraft:purpur_stairs",
     "properties": {
       "half": "top",
-      "waterlogged": "false",
-      "shape": "straight",
       "facing": "north"
     }
   },
@@ -13010,7 +11785,6 @@
     "dataValue": 0,
     "name": "minecraft:purpur_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "double"
     }
   },
@@ -13019,7 +11793,6 @@
     "dataValue": 0,
     "name": "minecraft:purpur_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "bottom"
     }
   },
@@ -13028,7 +11801,6 @@
     "dataValue": 8,
     "name": "minecraft:purpur_slab",
     "properties": {
-      "waterlogged": "false",
       "type": "top"
     }
   },

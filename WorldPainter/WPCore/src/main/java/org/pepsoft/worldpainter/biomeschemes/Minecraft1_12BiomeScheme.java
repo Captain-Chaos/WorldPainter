@@ -1,19 +1,19 @@
 package org.pepsoft.worldpainter.biomeschemes;
 
-import org.pepsoft.minecraft.MCInterface;
 import org.pepsoft.util.Checksum;
+import org.pepsoft.worldpainter.BiomeScheme;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * An {@link MCInterface} which makes use of Minecraft 1.10 jar files to provide
+ * A {@link BiomeScheme} which makes use of Minecraft 1.10 jar files to provide
  * biomes according to the Default world type.
  *
  * Created by Pepijn on 26-6-2016.
  */
-public final class Minecraft1_12BiomeScheme extends Minecraft1_12JarBiomeScheme implements MCInterface {
+public final class Minecraft1_12BiomeScheme extends Minecraft1_12JarBiomeScheme {
     public Minecraft1_12BiomeScheme(File minecraftJar, File libDir, Checksum md5Sum) {
         super(minecraftJar, libDir, md5Sum, HASHES_TO_CLASSNAMES);
     }

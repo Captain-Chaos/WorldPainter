@@ -6,8 +6,12 @@ import org.dynmap.renderer.RenderPatchFactory;
 import org.dynmap.utils.BlockStep;
 import org.dynmap.utils.MapIterator;
 import org.pepsoft.minecraft.Chunk;
+import org.pepsoft.minecraft.MC113AnvilChunk;
 import org.pepsoft.minecraft.MC12AnvilChunk;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
+
+import static org.pepsoft.minecraft.Constants.BLK_WOOL;
+import static org.pepsoft.minecraft.Constants.DATA_MAGENTA;
 
 /**
  * Implementation of {@link MapIterator} used by {@link WPDynmapWorld}.
@@ -93,7 +97,8 @@ class WPMapIterator implements MapIterator {
     public int getBlockTypeIDAt(BlockStep s) {
         int steppedHeight = height + s.yoff;
         if ((steppedHeight >= 0) && (steppedHeight < maxHeight)) {
-            return world.getBlockTypeAt(x + s.xoff, y + s.zoff, height + s.yoff);
+            int blockType = world.getBlockTypeAt(x + s.xoff, y + s.zoff, height + s.yoff);
+            return (blockType >= 0) ? blockType : BLK_WOOL;
         } else {
             return 0;
         }
@@ -115,6 +120,8 @@ class WPMapIterator implements MapIterator {
         Chunk chunk = world.getChunk(x >> 4, y >> 4);
         if (chunk instanceof MC12AnvilChunk) {
             return ! ((MC12AnvilChunk) chunk).isSectionPresent(height >> 4);
+        } else if (chunk instanceof MC113AnvilChunk) {
+            return ! ((MC113AnvilChunk) chunk).isSectionPresent(height >> 4);
         } else {
             return chunk == null;
         }
@@ -134,11 +141,13 @@ class WPMapIterator implements MapIterator {
     }
 
     public int getBlockTypeID() {
-        return world.getBlockTypeAt(x, y ,height);
+        int blockType = world.getBlockTypeAt(x, y ,height);
+        return (blockType >= 0) ? blockType : BLK_WOOL;
     }
 
     public int getBlockData() {
-        return world.getDataAt(x, y ,height);
+        int data = world.getDataAt(x, y ,height);
+        return (data >= 0) ? data : DATA_MAGENTA;
     }
 
     public Object getBlockTileEntityField(String fieldId) {
@@ -148,7 +157,8 @@ class WPMapIterator implements MapIterator {
     public int getBlockTypeIDAt(int xoff, int yoff, int zoff) {
         int offsetHeight = height + yoff;
         if ((offsetHeight >= 0) && (offsetHeight < maxHeight)) {
-            return world.getBlockTypeAt(x + xoff, y + zoff, offsetHeight);
+            int blockType = world.getBlockTypeAt(x + xoff, y + zoff, offsetHeight);
+            return (blockType >= 0) ? blockType : BLK_WOOL;
         } else {
             return 0;
         }
@@ -157,7 +167,8 @@ class WPMapIterator implements MapIterator {
     public int getBlockDataAt(int xoff, int yoff, int zoff) {
         int offsetHeight = height + yoff;
         if ((offsetHeight >= 0) && (offsetHeight < maxHeight)) {
-            return world.getDataAt(x + xoff, y + zoff, offsetHeight);
+            int data = world.getDataAt(x + xoff, y + zoff, offsetHeight);
+            return (data >= 0) ? data : DATA_MAGENTA;
         } else {
             return 0;
         }
