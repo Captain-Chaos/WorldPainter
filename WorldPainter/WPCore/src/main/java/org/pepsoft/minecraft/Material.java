@@ -1862,10 +1862,10 @@ public final class Material implements Serializable {
     static final class Identity implements Serializable {
         Identity(String name, Map<String, String> properties) {
             if (name == null) {
-                throw new NullPointerException();
+                throw new NullPointerException("name");
             }
             if (name.indexOf(':') == -1) {
-                throw new IllegalArgumentException();
+                throw new IllegalArgumentException("name");
             }
             this.name = name.intern();
             this.properties = ((properties != null) && (! properties.isEmpty())) ? ImmutableMap.copyOf(properties) : null;
