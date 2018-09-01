@@ -9706,32 +9706,98 @@
   {
     "blockId": 175,
     "dataValue": 0,
-    "name": "minecraft:sunflower"
+    "name": "minecraft:sunflower",
+    "properties": {
+      "half": "lower"
+    }
   },
   {
     "blockId": 175,
     "dataValue": 1,
-    "name": "minecraft:lilac"
+    "name": "minecraft:lilac",
+    "properties": {
+      "half": "lower"
+    }
   },
   {
     "blockId": 175,
     "dataValue": 2,
-    "name": "minecraft:tall_grass"
+    "name": "minecraft:tall_grass",
+    "properties": {
+      "half": "lower"
+    }
   },
   {
     "blockId": 175,
     "dataValue": 3,
-    "name": "minecraft:large_fern"
+    "name": "minecraft:large_fern",
+    "properties": {
+      "half": "lower"
+    }
   },
   {
     "blockId": 175,
     "dataValue": 4,
-    "name": "minecraft:rose_bush"
+    "name": "minecraft:rose_bush",
+    "properties": {
+      "half": "lower"
+    }
   },
   {
     "blockId": 175,
     "dataValue": 5,
-    "name": "minecraft:peony"
+    "name": "minecraft:peony",
+    "properties": {
+      "half": "lower"
+    }
+  },
+  {
+    "blockId": 175,
+    "dataValue": 8,
+    "name": "minecraft:sunflower",
+    "properties": {
+      "half": "upper"
+    }
+  },
+  {
+    "blockId": 175,
+    "dataValue": 8,
+    "name": "minecraft:lilac",
+    "properties": {
+      "half": "upper"
+    }
+  },
+  {
+    "blockId": 175,
+    "dataValue": 8,
+    "name": "minecraft:tall_grass",
+    "properties": {
+      "half": "upper"
+    }
+  },
+  {
+    "blockId": 175,
+    "dataValue": 8,
+    "name": "minecraft:large_fern",
+    "properties": {
+      "half": "upper"
+    }
+  },
+  {
+    "blockId": 175,
+    "dataValue": 8,
+    "name": "minecraft:rose_bush",
+    "properties": {
+      "half": "upper"
+    }
+  },
+  {
+    "blockId": 175,
+    "dataValue": 8,
+    "name": "minecraft:peony",
+    "properties": {
+      "half": "upper"
+    }
   },
   {
     "blockId": 176,
