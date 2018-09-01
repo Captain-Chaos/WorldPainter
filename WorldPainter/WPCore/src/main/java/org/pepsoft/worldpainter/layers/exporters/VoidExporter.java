@@ -17,9 +17,9 @@ import org.pepsoft.worldpainter.layers.Void;
 import java.awt.*;
 import java.util.List;
 
-import static org.pepsoft.minecraft.Constants.BLK_STATIONARY_LAVA;
-import static org.pepsoft.minecraft.Constants.BLK_STATIONARY_WATER;
-import static org.pepsoft.minecraft.Material.AIR;
+import static org.pepsoft.minecraft.Constants.MC_LAVA;
+import static org.pepsoft.minecraft.Constants.MC_WATER;
+import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.SMALL_BLOBS;
 
 /**
@@ -78,30 +78,26 @@ public class VoidExporter extends AbstractLayerExporter<org.pepsoft.worldpainter
         // (but not for ceiling dimensions)
         if (dimension.getDim() >= 0) {
             for (int z = maxHeight - 1; z >= 0; z--) {
-                if ((minecraftWorld.getBlockTypeAt(x, y, z) == BLK_STATIONARY_WATER)
-                        || (minecraftWorld.getBlockTypeAt(x, y, z) == BLK_STATIONARY_LAVA)) {
+                if ((minecraftWorld.getMaterialAt(x, y, z).isNamed(MC_WATER))
+                        || (minecraftWorld.getMaterialAt(x, y, z).isNamed(MC_LAVA))) {
                     // A previous iteration already placed fluid here
                     break;
                 } else if (isWaterAndNotVoid(dimension, minecraftWorld, x - 1, y, z)
                         || isWaterAndNotVoid(dimension, minecraftWorld, x, y - 1, z)
                         || isWaterAndNotVoid(dimension, minecraftWorld, x + 1, y, z)
                         || isWaterAndNotVoid(dimension, minecraftWorld, x, y + 1, z)) {
-                    minecraftWorld.setBlockTypeAt(x, y, z, BLK_STATIONARY_WATER);
-                    minecraftWorld.setDataAt(x, y, z, 1);
+                    minecraftWorld.setMaterialAt(x, y, z, WATER.withProperty(LEVEL, 1));
                     for (z--; z >= 0; z--) {
-                        minecraftWorld.setBlockTypeAt(x, y, z, BLK_STATIONARY_WATER);
-                        minecraftWorld.setDataAt(x, y, z, 9);
+                        minecraftWorld.setMaterialAt( x, y, z, WATER.withProperty(LEVEL, 9));
                     }
                     break;
                 } else if (isLavaAndNotVoid(dimension, minecraftWorld, x - 1, y, z)
                         || isLavaAndNotVoid(dimension, minecraftWorld, x, y - 1, z)
                         || isLavaAndNotVoid(dimension, minecraftWorld, x + 1, y, z)
                         || isLavaAndNotVoid(dimension, minecraftWorld, x, y + 1, z)) {
-                    minecraftWorld.setBlockTypeAt(x, y, z, BLK_STATIONARY_LAVA);
-                    minecraftWorld.setDataAt(x, y, z, 2);
+                    minecraftWorld.setMaterialAt(x, y, z, LAVA.withProperty(LEVEL, 2));
                     for (z--; z >= 0; z--) {
-                        minecraftWorld.setBlockTypeAt(x, y, z, BLK_STATIONARY_LAVA);
-                        minecraftWorld.setDataAt(x, y, z, 10);
+                        minecraftWorld.setMaterialAt(x, y, z, LAVA.withProperty(LEVEL, 10));
                     }
                     break;
                 }
@@ -110,11 +106,11 @@ public class VoidExporter extends AbstractLayerExporter<org.pepsoft.worldpainter
     }
 
     private boolean isWaterAndNotVoid(Dimension dimension, MinecraftWorld minecraftWorld, int x, int y, int z) {
-        return (! dimension.getBitLayerValueAt(Void.INSTANCE, x, y)) && (minecraftWorld.getBlockTypeAt(x, y, z) == BLK_STATIONARY_WATER);
+        return (! dimension.getBitLayerValueAt(Void.INSTANCE, x, y)) && (minecraftWorld.getMaterialAt(x, y, z).isNamed(MC_WATER));
     }
 
     private boolean isLavaAndNotVoid(Dimension dimension, MinecraftWorld minecraftWorld, int x, int y, int z) {
-        return (! dimension.getBitLayerValueAt(Void.INSTANCE, x, y)) && (minecraftWorld.getBlockTypeAt(x, y, z) == BLK_STATIONARY_LAVA);
+        return (! dimension.getBitLayerValueAt(Void.INSTANCE, x, y)) && (minecraftWorld.getMaterialAt(x, y, z).isNamed(MC_LAVA));
     }
 
     private final PerlinNoise noise = new PerlinNoise(0);
