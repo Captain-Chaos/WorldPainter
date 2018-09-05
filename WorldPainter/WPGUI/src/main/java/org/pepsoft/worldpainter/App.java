@@ -324,6 +324,9 @@ public final class App extends JFrame implements RadiusControl,
 
             setDimension(null);
 
+            if (currentUndoManager != null) {
+                currentUndoManager.unregisterActions();
+            }
             undoManagers.clear();
 
             ACTION_EXPORT_WORLD.setEnabled(false);
@@ -457,7 +460,6 @@ public final class App extends JFrame implements RadiusControl,
                 }
             }
 
-            this.dimension.unregister();
             currentUndoManager.unregisterActions();
             currentUndoManager = null;
 
@@ -527,26 +529,24 @@ public final class App extends JFrame implements RadiusControl,
             view.moveTo(dimension.getLastViewPosition());
             
             setDimensionControlStates(world.getPlatform());
-            if ((! "true".equals(System.getProperty("org.pepsoft.worldpainter.disableUndo"))) && config.isUndoEnabled()) {
-                currentUndoManager = undoManagers.get(dimension.getDim());
-                if (currentUndoManager == null) {
+            currentUndoManager = undoManagers.get(dimension.getDim());
+            if (currentUndoManager == null) {
+                if ((! "true".equals(System.getProperty("org.pepsoft.worldpainter.disableUndo"))) && config.isUndoEnabled()) {
                     currentUndoManager = new UndoManager(ACTION_UNDO, ACTION_REDO, Math.max(config.getUndoLevels() + 1, 2));
-                    undoManagers.put(dimension.getDim(), currentUndoManager);
-                    currentUndoManager.setStopAtClasses(PropertyChangeListener.class, Tile.Listener.class, Biome.class, BetterAction.class);
-                    dimension.register(currentUndoManager);
                 } else {
-                    currentUndoManager.registerActions(ACTION_UNDO, ACTION_REDO);
+                    // Still install an undo manager, because some operations depend
+                    // on one level of undo being available
+                    currentUndoManager = new UndoManager(2);
+                    ACTION_UNDO.setEnabled(false);
+                    ACTION_REDO.setEnabled(false);
                 }
-                dimension.armSavePoint();
-            } else {
-                // Still install an undo manager, because some operations depend
-                // on one level of undo being available
-                currentUndoManager = new UndoManager(2);
                 currentUndoManager.setStopAtClasses(PropertyChangeListener.class, Tile.Listener.class, Biome.class, BetterAction.class);
+                undoManagers.put(dimension.getDim(), currentUndoManager);
                 dimension.register(currentUndoManager);
-                ACTION_UNDO.setEnabled(false);
-                ACTION_REDO.setEnabled(false);
+            } else if ((!"true".equals(System.getProperty("org.pepsoft.worldpainter.disableUndo"))) && config.isUndoEnabled()) {
+                currentUndoManager.registerActions(ACTION_UNDO, ACTION_REDO);
             }
+            dimension.armSavePoint();
             if (threeDeeFrame != null) {
                 threeDeeFrame.setDimension(dimension);
             }

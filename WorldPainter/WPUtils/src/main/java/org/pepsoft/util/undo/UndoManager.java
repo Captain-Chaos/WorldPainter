@@ -49,6 +49,7 @@ public class UndoManager {
     }
 
     public void unregisterActions() {
+        disableActions();
         undoAction = null;
         redoAction = null;
     }
@@ -458,7 +459,16 @@ public class UndoManager {
             redoAction.setEnabled(currentFrame < (history.size() - 1));
         }
     }
- 
+
+    private void disableActions() {
+        if (undoAction != null) {
+            undoAction.setEnabled(false);
+        }
+        if (redoAction != null) {
+            redoAction.setEnabled(false);
+        }
+    }
+
     private Action undoAction, redoAction;
     private final int maxFrames;
     private final LinkedList<Map<BufferKey<?>, Object>> history = new LinkedList<>();
