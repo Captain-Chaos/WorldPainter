@@ -1,3 +1,7 @@
+-- Version 2.5.7, released 5-9-2018
+
+ * Bug fix: fix a major bug in the undo/redo mechanism, which would break when adding a ceiling or another dimension. It is now once again possible to switch between dimensions while keeping the full undo/redo history of each dimension
+
 -- Version 2.5.6, released 28-7-2018
 
  * Work around an incompatibility with Minecraft 1.13 that caused Custom Object and Custom Layer previews to malfunction if it is installed. If you applied the workaround of configuring an advanced setting to point WorldPainter to a non-existent Minecraft installation, you can remove that workaround
