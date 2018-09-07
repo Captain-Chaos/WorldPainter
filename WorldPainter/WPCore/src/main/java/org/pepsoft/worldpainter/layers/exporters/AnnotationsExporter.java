@@ -20,8 +20,6 @@ import org.pepsoft.worldpainter.layers.Annotations;
 import java.awt.*;
 import java.util.List;
 
-import static org.pepsoft.minecraft.Block.BLOCKS;
-
 /**
  *
  * @author pepijn
@@ -46,8 +44,8 @@ public class AnnotationsExporter extends AbstractLayerExporter<Annotations> impl
                 final int value = dimension.getLayerValueAt(Annotations.INSTANCE, x, y);
                 if (value > 0) {
                     final int height = dimension.getIntHeightAt(x, y);
-                    final int existingBlockType = minecraftWorld.getBlockTypeAt(x, y, height + 1);
-                    if ((height < maxHeight) && (BLOCKS[existingBlockType].veryInsubstantial || existingBlockType == Constants.BLK_ICE)) {
+                    final Material existingMaterial = minecraftWorld.getMaterialAt(x, y, height + 1);
+                    if ((height < maxHeight) && (existingMaterial.veryInsubstantial || existingMaterial == Material.ICE)) {
                         minecraftWorld.setMaterialAt(x, y, height + 1, Material.get(Constants.BLK_WOOL, value - ((value < 8) ? 1 : 0)));
                     }
                 }
