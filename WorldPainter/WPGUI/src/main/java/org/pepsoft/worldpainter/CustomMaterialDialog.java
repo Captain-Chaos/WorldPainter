@@ -16,7 +16,8 @@ import org.pepsoft.worldpainter.MixedMaterial.Row;
 import org.pepsoft.worldpainter.themes.JSpinnerTableCellEditor;
 
 import javax.swing.*;
-import javax.swing.event.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import java.awt.*;
@@ -24,8 +25,8 @@ import java.awt.image.BufferedImage;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
-import static org.pepsoft.minecraft.Block.BLOCKS;
 
+import static org.pepsoft.minecraft.Block.BLOCKS;
 import static org.pepsoft.minecraft.Constants.HIGHEST_KNOWN_BLOCK_ID;
 import static org.pepsoft.worldpainter.MixedMaterialTableModel.*;
 
@@ -64,6 +65,7 @@ public class CustomMaterialDialog extends WorldPainterDialog {
                 }
             }
         });
+        tableMaterialRows.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
         tableMaterialRows.getSelectionModel().addListSelectionListener(e -> {
             if (! programmaticChange) {
                 setControlStates();
@@ -112,9 +114,6 @@ public class CustomMaterialDialog extends WorldPainterDialog {
                 break;
             case 1:
                 // Complex
-                if (! radioButtonLayered.isSelected()) {
-                    tableModel.normalise();
-                }
                 Row[] rows = tableModel.getRows();
                 if (rows.length == 1) {
                     material.edit(
@@ -183,9 +182,6 @@ public class CustomMaterialDialog extends WorldPainterDialog {
             case 1:
                 // Complex
                 MixedMaterialTableModel tableModelClone = tableModel.clone();
-                if (! radioButtonLayered.isSelected()) {
-                    tableModelClone.normalise();
-                }
                 Row[] rows = tableModelClone.getRows();
                 if (rows.length == 1) {
                     return new MixedMaterial(
@@ -279,7 +275,11 @@ public class CustomMaterialDialog extends WorldPainterDialog {
     }
     
     private void addMaterial() {
-        tableModel.addMaterial(new Row(Material.DIRT, radioButtonLayered.isSelected() ? 3 : (1000 / (tableModel.getRowCount() + 1)), 1.0f));
+        if (tableMaterialRows.isEditing()) {
+            tableMaterialRows.getCellEditor().stopCellEditing();
+        }
+
+        tableModel.addMaterial(new Row(Material.DIRT, tableModel.getAverageCount(), 1.0f));
     }
     
     private void removeMaterial() {
@@ -301,8 +301,8 @@ public class CustomMaterialDialog extends WorldPainterDialog {
                 break;
             case 1:
                 // Complex
-                boolean occurrenceValid = (Integer) tableModel.getValueAt(0, COLUMN_OCCURRENCE) >= 0;
-                buttonOK.setEnabled(nameSet && occurrenceValid);
+                boolean countValid = (Integer) tableModel.getValueAt(0, COLUMN_COUNT) >= 0;
+                buttonOK.setEnabled(nameSet && countValid);
                 buttonRemoveMaterial.setEnabled((tableModel.getRowCount() > 1) && (tableMaterialRows.getSelectedRows().length > 0));
                 spinnerScale.setEnabled(radioButtonBlobs.isSelected());
                 checkBoxLayeredRepeat.setEnabled(radioButtonLayered.isSelected());
@@ -385,8 +385,8 @@ public class CustomMaterialDialog extends WorldPainterDialog {
             blockIDColumn.setCellRenderer(new BlockIDTableCellRenderer());
             SpinnerModel dataValueSpinnerModel = new SpinnerNumberModel(0, 0, 15, 1);
             columnModel.getColumn(COLUMN_DATA_VALUE).setCellEditor(new JSpinnerTableCellEditor(dataValueSpinnerModel));
-            SpinnerModel occurrenceSpinnerModel = new SpinnerNumberModel(1000, 1, 1000, 1);
-            columnModel.getColumn(COLUMN_OCCURRENCE).setCellEditor(new JSpinnerTableCellEditor(occurrenceSpinnerModel));
+            SpinnerModel countSpinnerModel = new SpinnerNumberModel(1000, 1, 1000, 1);
+            columnModel.getColumn(COLUMN_COUNT).setCellEditor(new JSpinnerTableCellEditor(countSpinnerModel));
             if (tableModel.getMode() == MixedMaterial.Mode.BLOBS) {
                 SpinnerModel scaleSpinnerModel = new SpinnerNumberModel(100, 1, 9999, 1);
                 columnModel.getColumn(COLUMN_SCALE).setCellEditor(new JSpinnerTableCellEditor(scaleSpinnerModel));
@@ -1054,5 +1054,4 @@ public class CustomMaterialDialog extends WorldPainterDialog {
     
     private static final double DEGREES_TO_RADIANS = 180 / Math.PI;
     private static final long serialVersionUID = 1L;
-    private static final String[] BLOCK_TYPES = new String[256];
 }
