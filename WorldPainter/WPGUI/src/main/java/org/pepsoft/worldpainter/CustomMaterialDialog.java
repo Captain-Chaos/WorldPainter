@@ -68,6 +68,7 @@ public class CustomMaterialDialog extends WorldPainterDialog implements Property
                 }
             }
         });
+        tableMaterialRows.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
         tableMaterialRows.getSelectionModel().addListSelectionListener(e -> {
             if (! programmaticChange) {
                 setControlStates();
@@ -173,9 +174,6 @@ public class CustomMaterialDialog extends WorldPainterDialog implements Property
                 break;
             case 1:
                 // Complex
-                if (! radioButtonLayered.isSelected()) {
-                    tableModel.normalise();
-                }
                 Row[] rows = tableModel.getRows();
                 if (rows.length == 1) {
                     material.edit(
@@ -244,9 +242,6 @@ public class CustomMaterialDialog extends WorldPainterDialog implements Property
             case 1:
                 // Complex
                 MixedMaterialTableModel tableModelClone = tableModel.clone();
-                if (! radioButtonLayered.isSelected()) {
-                    tableModelClone.normalise();
-                }
                 Row[] rows = tableModelClone.getRows();
                 if (rows.length == 1) {
                     return new MixedMaterial(
@@ -343,7 +338,11 @@ public class CustomMaterialDialog extends WorldPainterDialog implements Property
     }
     
     private void addMaterial() {
-        tableModel.addMaterial(new Row(Material.DIRT, radioButtonLayered.isSelected() ? 3 : (1000 / (tableModel.getRowCount() + 1)), 1.0f));
+        if (tableMaterialRows.isEditing()) {
+            tableMaterialRows.getCellEditor().stopCellEditing();
+        }
+
+        tableModel.addMaterial(new Row(Material.DIRT, tableModel.getAverageCount(), 1.0f));
     }
     
     private void removeMaterial() {
@@ -365,8 +364,8 @@ public class CustomMaterialDialog extends WorldPainterDialog implements Property
                 break;
             case 1:
                 // Complex
-                boolean occurrenceValid = (Integer) tableModel.getValueAt(0, COLUMN_OCCURRENCE) >= 0;
-                buttonOK.setEnabled(nameSet && occurrenceValid);
+                boolean countValid = (Integer) tableModel.getValueAt(0, COLUMN_COUNT) >= 0;
+                buttonOK.setEnabled(nameSet && countValid);
                 buttonRemoveMaterial.setEnabled((tableModel.getRowCount() > 1) && (tableMaterialRows.getSelectedRows().length > 0));
                 spinnerScale.setEnabled(radioButtonBlobs.isSelected());
                 checkBoxLayeredRepeat.setEnabled(radioButtonLayered.isSelected());
@@ -448,8 +447,8 @@ public class CustomMaterialDialog extends WorldPainterDialog implements Property
             TableColumnModel columnModel = tableMaterialRows.getColumnModel();
             TableColumn materialColumn = columnModel.getColumn(COLUMN_MATERIAL);
             materialColumn.setCellRenderer(new MaterialTableCellRenderer(platform));
-            SpinnerModel occurrenceSpinnerModel = new SpinnerNumberModel(1000, 1, 1000, 1);
-            columnModel.getColumn(COLUMN_OCCURRENCE).setCellEditor(new JSpinnerTableCellEditor(occurrenceSpinnerModel));
+            SpinnerModel countSpinnerModel = new SpinnerNumberModel(1000, 1, 1000, 1);
+            columnModel.getColumn(COLUMN_COUNT).setCellEditor(new JSpinnerTableCellEditor(countSpinnerModel));
             if (tableModel.getMode() == MixedMaterial.Mode.BLOBS) {
                 SpinnerModel scaleSpinnerModel = new SpinnerNumberModel(100, 1, 9999, 1);
                 columnModel.getColumn(COLUMN_SCALE).setCellEditor(new JSpinnerTableCellEditor(scaleSpinnerModel));

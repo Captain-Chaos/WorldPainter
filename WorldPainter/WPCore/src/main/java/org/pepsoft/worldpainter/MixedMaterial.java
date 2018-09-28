@@ -10,7 +10,9 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 
 import static org.pepsoft.util.GUIUtils.UI_SCALE;
@@ -87,15 +89,6 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
     }
     
     MixedMaterial(final String name, final Row[] rows, final int biome, final Mode mode, final float scale, final Integer colour, final NoiseSettings variation, final double layerXSlope, final double layerYSlope, final boolean repeat) {
-        if ((mode != Mode.LAYERED) && (mode != Mode.SIMPLE)) {
-            int total = 0;
-            for (Row row: rows) {
-                total += row.occurrence;
-            }
-            if (total != 1000) {
-                throw new IllegalArgumentException("Total occurrence is not 1000");
-            }
-        }
         this.name = name;
         this.rows = rows;
         this.biome = biome;
@@ -228,7 +221,7 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
             case SIMPLE:
                 return simpleMaterial;
             case NOISE:
-                return materials[random.nextInt(1000)];
+                return materials[random.nextInt(totalCount)];
             case BLOBS:
                 double xx = x / Constants.TINY_BLOBS, yy = y / Constants.TINY_BLOBS, zz = z / Constants.TINY_BLOBS;
                 if (seed + 1 != noiseGenerators[0].getSeed()) {
@@ -301,15 +294,6 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
     }
 
     void edit(final String name, final Row[] rows, final int biome, final Mode mode, final float scale, final Integer colour, final NoiseSettings variation, final double layerXSlope, final double layerYSlope, final boolean repeat) {
-        if ((mode != Mode.LAYERED) && (mode != Mode.SIMPLE)) {
-            int total = 0;
-            for (Row row: rows) {
-                total += row.occurrence;
-            }
-            if (total != 1000) {
-                throw new IllegalArgumentException("Total occurrence is not 1000");
-            }
-        }
         this.name = name;
         this.rows = rows;
         this.biome = biome;
@@ -355,7 +339,7 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
 
     @Override
     public MixedMaterial clone() {
-        return new MixedMaterial(name.startsWith("Copy of") ? name : "Copy of " + name, rows, biome, mode, scale, colour, (variation != null) ? variation.clone() : null, layerXSlope, layerYSlope, repeat);
+        return new MixedMaterial(name.startsWith("Copy of ") ? name : "Copy of " + name, rows, biome, mode, scale, colour, (variation != null) ? variation.clone() : null, layerXSlope, layerYSlope, repeat);
     }
 
     /**
@@ -396,7 +380,7 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
      *     appropriate name
      */
     public static MixedMaterial create(final String name, final Material material) {
-        return new MixedMaterial(name, new Row(material, 1000, 1.0f), -1, null);
+        return new MixedMaterial(name, new Row(material, 3, 1.0f), -1, null);
     }
 
     /**
@@ -448,6 +432,10 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
     }
     
     private void init() {
+        totalCount = 0;
+        for (Row row: rows) {
+            totalCount += row.occurrence;
+        }
         switch (mode) {
             case SIMPLE:
                 if (rows.length != 1) {
@@ -460,7 +448,7 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
                 if (rows.length < 2) {
                     throw new IllegalArgumentException("Multiple rows required for NOISE mode");
                 }
-                materials = new Material[1000];
+                materials = new Material[totalCount];
                 int index = 0;
                 for (Row row: rows) {
                     for (int i = 0; i < row.occurrence; i++) {
@@ -477,10 +465,11 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
                 sortedRows = Arrays.copyOf(rows, rows.length);
                 Arrays.sort(sortedRows, (r1, r2) -> r1.occurrence - r2.occurrence);
                 noiseGenerators = new PerlinNoise[rows.length - 1];
-                int cumulativePermillage = 0;
+                float cumulativePermillage = 0f;
                 for (int i = 0; i < noiseGenerators.length; i++) {
                     noiseGenerators[i] = new PerlinNoise(0);
-                    cumulativePermillage += sortedRows[i].occurrence * (1000 - cumulativePermillage) / 1000;
+                    float permillage = sortedRows[i].occurrence * 1000f / totalCount;
+                    cumulativePermillage += permillage * (1000 - cumulativePermillage) / 1000;
                     sortedRows[i].chance = PerlinNoise.getLevelForPromillage(cumulativePermillage);
                 }
                 patternHeight = -1;
@@ -492,15 +481,13 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
                 if ((! repeat) && ((layerXSlope != 0) || (layerYSlope != 0))) {
                     throw new IllegalArgumentException("Angle may not be non-zero if repeat is false");
                 }
-                List<Material> tmpMaterials = new ArrayList<>(org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL);
-                patternHeight = 0;
-                for (int i = rows.length - 1; i >= 0; i--) {
-                    patternHeight += rows[i].occurrence;
-                    for (int j = 0; j < rows[i].occurrence; j++) {
-                        tmpMaterials.add(rows[i].material);
+                materials = new Material[totalCount];
+                index = 0;
+                for (Row row: rows) {
+                    for (int i = 0; i < row.occurrence; i++) {
+                        materials[index++] = row.material;
                     }
                 }
-                materials = tmpMaterials.toArray(new Material[tmpMaterials.size()]);
                 if (variation != null) {
                     layerNoiseheightMap = new NoiseHeightMap(variation, NOISE_SEED_OFFSET);
                     layerNoiseOffset = variation.getRange();
@@ -508,6 +495,7 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
                     layerNoiseheightMap = null;
                     layerNoiseOffset = 0;
                 }
+                patternHeight = totalCount;
                 break;
         }
     }
@@ -520,7 +508,7 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
     private final boolean noise = false;
     private float scale;
     private Integer colour;
-    private Mode mode = Mode.BLOBS;
+    private Mode mode;
     private NoiseSettings variation;
     private boolean repeat;
     private double layerXSlope, layerYSlope;
@@ -530,12 +518,12 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
     private transient Random random;
     private transient Material simpleMaterial;
     private transient NoiseHeightMap layerNoiseheightMap;
-    private transient int layerNoiseOffset, patternHeight;
+    private transient int layerNoiseOffset, patternHeight, totalCount;
 
     public static class Row implements Serializable {
-        public Row(Material material, int occurrence, float scale) {
+        public Row(Material material, int count, float scale) {
             this.material = material;
-            this.occurrence = occurrence;
+            this.occurrence = count;
             this.scale = scale;
         }
 
@@ -578,7 +566,7 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
         }
 
         public final Material material;
-        public final int occurrence;
+        public final int occurrence; // Now referred to as "count" and no longer required to be a permillage
         public final float scale;
         float chance;
 
