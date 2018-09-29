@@ -6,7 +6,6 @@
 
 package org.pepsoft.worldpainter.layers.plants;
 
-import org.pepsoft.minecraft.Constants;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Platform;
@@ -23,7 +22,9 @@ import java.awt.*;
 import java.util.List;
 import java.util.Random;
 
-import static org.pepsoft.minecraft.Block.BLOCKS;
+import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Material.AIR;
+import static org.pepsoft.minecraft.Material.FARMLAND;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 
@@ -42,7 +43,7 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
         final int tileX1 = exportedArea.x >> TILE_SIZE_BITS, tileX2 = (exportedArea.x + exportedArea.width - 1) >> TILE_SIZE_BITS;
         final int tileY1 = exportedArea.y >> TILE_SIZE_BITS, tileY2 = (exportedArea.y + exportedArea.height - 1) >> TILE_SIZE_BITS;
         final int maxY = minecraftWorld.getMaxHeight() - 1;
-        final boolean generateTilledDirt = layer.isGenerateTilledDirt();
+        final boolean generateTilledDirt = layer.isGenerateFarmland();
         final boolean blockRulesEnforced = ! "false".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.enforceBlockRules"));
         final Bo2ObjectProvider objectProvider = layer.getObjectProvider(platform);
         for (int tileX = tileX1; tileX <= tileX2; tileX++) {
@@ -71,20 +72,20 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
                                         if (! blockRulesEnforced) {
                                             renderObject(minecraftWorld, dimension, plant, worldX, worldY, height + 1, false);
                                             if (generateTilledDirt
-                                                    && (plant.getCategory() == Plant.Category.CROPS)
-                                                    && ((minecraftWorld.getBlockTypeAt(worldX, worldY, height) == Constants.BLK_GRASS)
-                                                    || (minecraftWorld.getBlockTypeAt(worldX, worldY, height) == Constants.BLK_DIRT))) {
-                                                minecraftWorld.setMaterialAt(worldX, worldY, height, TILLED_DIRT);
+                                                    && (plant.getCategory() == Plant.Category.CROPS)) {
+                                                if (minecraftWorld.getMaterialAt(worldX, worldY, height).isNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_COARSE_DIRT, MC_PODZOL)) {
+                                                    minecraftWorld.setMaterialAt(worldX, worldY, height, FARMLAND);
+                                                }
                                             }
                                         } else {
                                             if (plant.isValidFoundation(minecraftWorld, worldX, worldY, height)) {
                                                 renderObject(minecraftWorld, dimension, plant, worldX, worldY, height + 1, false);
                                             } else if (generateTilledDirt
-                                                    && (plant.getCategory() == Plant.Category.CROPS)
-                                                    && ((minecraftWorld.getBlockTypeAt(worldX, worldY, height) == Constants.BLK_GRASS)
-                                                    || (minecraftWorld.getBlockTypeAt(worldX, worldY, height) == Constants.BLK_DIRT))) {
-                                                minecraftWorld.setMaterialAt(worldX, worldY, height, TILLED_DIRT);
-                                                renderObject(minecraftWorld, dimension, plant, worldX, worldY, height + 1, false);
+                                                    && (plant.getCategory() == Plant.Category.CROPS)) {
+                                                if (minecraftWorld.getMaterialAt(worldX, worldY, height).isNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_COARSE_DIRT, MC_PODZOL)) {
+                                                    minecraftWorld.setMaterialAt(worldX, worldY, height, FARMLAND);
+                                                    renderObject(minecraftWorld, dimension, plant, worldX, worldY, height + 1, false);
+                                                }
                                             }
                                         }
                                     }
@@ -108,22 +109,21 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
             final Bo2ObjectProvider objectProvider = layer.getObjectProvider(platform);
             objectProvider.setSeed(seed);
             final Plant plant = (Plant) objectProvider.getObject();
-            final int existingBlockType = minecraftWorld.getBlockTypeAt(location.x, location.y, location.z);
+            final Material existingMaterial = minecraftWorld.getMaterialAt(location.x, location.y, location.z);
             if ((location.z < (minecraftWorld.getMaxHeight() - 1))
                     && ((plant.getCategory() == Plant.Category.WATER_PLANTS)
-                        ? ((existingBlockType == Constants.BLK_WATER) || (existingBlockType == Constants.BLK_STATIONARY_WATER))
-                        : (existingBlockType == Constants.BLK_AIR))) {
+                        ? existingMaterial.isNamed(MC_WATER)
+                        : (existingMaterial == AIR))) {
                 if (plant.isValidFoundation(minecraftWorld, location.x, location.y, location.z - 1)) {
                     if (plant.getCategory() == Plant.Category.WATER_PLANTS) {
                         possiblyRenderWaterPlant(minecraftWorld, dimension, plant, location.x, location.y, location.z + 1);
                     } else {
                         renderObject(minecraftWorld, dimension, plant, location.x, location.y, location.z, false);
                     }
-                } else if (layer.isGenerateTilledDirt()
+                } else if (layer.isGenerateFarmland()
                         && (plant.getCategory() == Plant.Category.CROPS)
-                        && ((minecraftWorld.getBlockTypeAt(location.x, location.y, location.z - 1) == Constants.BLK_GRASS)
-                            || (minecraftWorld.getBlockTypeAt(location.x, location.y, location.z - 1) == Constants.BLK_DIRT))) {
-                    minecraftWorld.setMaterialAt(location.x, location.y, location.z - 1, TILLED_DIRT);
+                        && minecraftWorld.getMaterialAt(location.x, location.y, location.z - 1).isNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_COARSE_DIRT, MC_PODZOL)) {
+                    minecraftWorld.setMaterialAt(location.x, location.y, location.z - 1, FARMLAND);
                     renderObject(minecraftWorld, dimension, plant, location.x, location.y, location.z, false);
                 }
             }
@@ -133,14 +133,14 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
     
     private void possiblyRenderWaterPlant(MinecraftWorld world, Dimension dimension, Plant plant, int x, int y, int z) {
         final int maxHeight = world.getMaxHeight();
-        int existingBlockType;
+        Material existingMaterial;
         do {
             z++;
-            existingBlockType = world.getBlockTypeAt(x, y, z);
-        } while ((z < maxHeight) && ((existingBlockType == Constants.BLK_STATIONARY_WATER) || (existingBlockType == Constants.BLK_WATER)));
+            existingMaterial = world.getMaterialAt(x, y, z);
+        } while ((z < maxHeight) && existingMaterial.isNamed(MC_WATER));
         if ((z < maxHeight)
-                && BLOCKS[existingBlockType].veryInsubstantial
-                && (! ((existingBlockType == Constants.BLK_LAVA) || (existingBlockType == Constants.BLK_STATIONARY_LAVA)))) {
+                && existingMaterial.veryInsubstantial
+                && (! existingMaterial.isNamed(MC_LAVA))) {
             renderObject(world, dimension, plant, x, y, z, false);
         }
     }
@@ -151,6 +151,4 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
             return new Random();
         }
     };
-
-    private static final Material TILLED_DIRT = Material.get(Constants.BLK_TILLED_DIRT, 4);
 }

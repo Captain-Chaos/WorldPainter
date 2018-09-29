@@ -17,6 +17,7 @@ import java.util.*;
 import java.util.List;
 
 import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.toSet;
 import static org.pepsoft.minecraft.Block.BLOCK_TYPE_NAMES;
 import static org.pepsoft.minecraft.Constants.*;
 
@@ -73,8 +74,8 @@ public final class Material implements Serializable {
             String name = ((String) blockSpec.get("name")).intern();
             int p = name.indexOf(':');
             if (p != -1) {
-                namespace = name.substring(0, p);
-                simpleName = name.substring(p + 1);
+                namespace = name.substring(0, p).intern();
+                simpleName = name.substring(p + 1).intern();
             } else {
                 namespace = null;
                 simpleName = name;
@@ -93,7 +94,7 @@ public final class Material implements Serializable {
             identity = new Identity(name, properties);
         } else {
             namespace = "legacy";
-            simpleName = "block_" + blockType;
+            simpleName = ("block_" + blockType).intern();
             identity = new Identity(namespace + ":" + simpleName, Collections.singletonMap("data_value", Integer.toString(data)));
         }
         name = identity.name;
@@ -123,20 +124,22 @@ public final class Material implements Serializable {
             blockSpecs:
             for (Map<String, Object> blockSpec: LEGACY_BLOCK_SPECS_BY_NAME.get(identity.name)) {
                 if (blockSpec.containsKey("properties")) {
-                    // The legacy block spec has properties; check if they all
-                    // match; if so we can use the corresponding block ID and
-                    // data value
-                    for (Map.Entry<String, String> entry: ((Map<String, String>) blockSpec.get("properties")).entrySet()) {
-                        if (! entry.getValue().equals(identity.properties.get(entry.getKey()))) {
-                            continue blockSpecs;
+                    if (identity.properties != null) {
+                        // The legacy block spec and supplied identify have
+                        // properties; check if they all match; if so we can use the
+                        // corresponding block ID and data value
+                        for (Map.Entry<String, String> entry: ((Map<String, String>) blockSpec.get("properties")).entrySet()) {
+                            if (!entry.getValue().equals(identity.properties.get(entry.getKey()))) {
+                                continue blockSpecs;
+                            }
                         }
+                        // If we reach here, all properties matched
+                        legacyIndex = (((Number) blockSpec.get("blockId")).intValue() << 4) | ((Number) blockSpec.get("dataValue")).intValue();
+                        break;
                     }
-                    // If we reach here, all properties matched
-                    legacyIndex = (((Number) blockSpec.get("blockId")).intValue() << 4) | ((Number) blockSpec.get("dataValue")).intValue();
-                    break;
                 } else {
                     // The legacy block spec has no properties, so the name
-                    // match should suffice. // TODO: what if it doesn't?
+                    // match should suffice. // TODO: what if it doesn't? What if the specified identity has properties?
                     legacyIndex = (((Number) blockSpec.get("blockId")).intValue() << 4) | ((Number) blockSpec.get("dataValue")).intValue();
                     break;
                 }
@@ -266,6 +269,22 @@ public final class Material implements Serializable {
             return (value != null) ? property.fromString(value) : defaultValue;
         } else {
             return defaultValue;
+        }
+    }
+
+    /**
+     * Convenience method to check whether a boolean-typed property is present
+     * and set.
+     *
+     * @param property  The property to check for.
+     * @return <code>true</code> if the property is present and set to
+     * <code>true</code>.
+     */
+    public boolean is(Property<Boolean> property) {
+        if (identity.properties != null) {
+            return "true".equals(identity.properties.get(property.name));
+        } else {
+            return false;
         }
     }
 
@@ -1225,6 +1244,100 @@ public final class Material implements Serializable {
     /**
      * Compare the material in name only, disregarding its properties.
      *
+     * @param name1 One name to test this material for.
+     * @param name2 Another name to test this material for.
+     * @return <code>true</code> if the material has one of the specified names.
+     */
+    @SuppressWarnings("StringEquality") // name is interned so there are many circumstances in which the comparison might work and be faster than equals()
+    public boolean isNamedOneOf(String name1, String name2) {
+        return (name1 == this.name)
+            || (name2 == this.name)
+            || name1.equals(this.name)
+            || name2.equals(this.name);
+    }
+
+    /**
+     * Compare the material in name only, disregarding its properties.
+     *
+     * @param name1 One name to test this material for.
+     * @param name2 Another name to test this material for.
+     * @param name3 Another name to test this material for.
+     * @return <code>true</code> if the material has one of the specified names.
+     */
+    @SuppressWarnings("StringEquality") // name is interned so there are many circumstances in which the comparison might work and be faster than equals()
+    public boolean isNamedOneOf(String name1, String name2, String name3) {
+        return (name1 == this.name)
+                || (name2 == this.name)
+                || (name3 == this.name)
+                || name1.equals(this.name)
+                || name2.equals(this.name)
+                || name3.equals(this.name);
+    }
+
+    /**
+     * Compare the material in name only, disregarding its properties.
+     *
+     * @param name1 One name to test this material for.
+     * @param name2 Another name to test this material for.
+     * @param name3 Another name to test this material for.
+     * @param name4 Another name to test this material for.
+     * @return <code>true</code> if the material has one of the specified names.
+     */
+    @SuppressWarnings("StringEquality") // name is interned so there are many circumstances in which the comparison might work and be faster than equals()
+    public boolean isNamedOneOf(String name1, String name2, String name3, String name4) {
+        return (name1 == this.name)
+                || (name2 == this.name)
+                || (name3 == this.name)
+                || (name4 == this.name)
+                || name1.equals(this.name)
+                || name2.equals(this.name)
+                || name3.equals(this.name)
+                || name4.equals(this.name);
+    }
+
+    /**
+     * Compare the material in name only, disregarding its properties.
+     *
+     * @param name1 One name to test this material for.
+     * @param name2 Another name to test this material for.
+     * @param name3 Another name to test this material for.
+     * @param name4 Another name to test this material for.
+     * @param name5 Another name to test this material for.
+     * @return <code>true</code> if the material has one of the specified names.
+     */
+    @SuppressWarnings("StringEquality") // name is interned so there are many circumstances in which the comparison might work and be faster than equals()
+    public boolean isNamedOneOf(String name1, String name2, String name3, String name4, String name5) {
+        return (name1 == this.name)
+                || (name2 == this.name)
+                || (name3 == this.name)
+                || (name4 == this.name)
+                || (name5 == this.name)
+                || name1.equals(this.name)
+                || name2.equals(this.name)
+                || name3.equals(this.name)
+                || name4.equals(this.name)
+                || name5.equals(this.name);
+    }
+
+    /**
+     * Compare the material in name only, disregarding its properties.
+     *
+     * @param names The names to test this material for.
+     * @return <code>true</code> if the material has one of the specified names.
+     */
+    @SuppressWarnings("StringEquality") // name is interned so there are many circumstances in which the comparison might work and be faster than equals()
+    public boolean isNamedOneOf(String... names) {
+        for (String name: names) {
+            if ((name == this.name) || name.equals(this.name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Compare the material in name only, disregarding its properties.
+     *
      * @param name The name to test this material for.
      * @return <code>true</code> if the material <em>does not</em> have the
      * specified name.
@@ -1448,8 +1561,12 @@ public final class Material implements Serializable {
         return SIMPLE_NAMES_BY_NAMESPACE.containsKey(namespace) ? Collections.unmodifiableSet(SIMPLE_NAMES_BY_NAMESPACE.get(namespace)) : Collections.EMPTY_SET;
     }
 
-    public static MaterialBuilder getAll() {
-        return new MaterialBuilder();
+    public static Set<String> getAllNames() {
+        return ALL_MATERIALS.values().stream().map(material -> material.name).collect(toSet());
+    }
+
+    public static Collection<Material> getAllMaterials() {
+        return Collections.unmodifiableCollection(ALL_MATERIALS.values());
     }
 
     // Object
@@ -1664,7 +1781,7 @@ public final class Material implements Serializable {
     public static final Material AIR = LEGACY_MATERIALS[(BLK_AIR) << 4];
     public static final Material DANDELION = LEGACY_MATERIALS[(BLK_DANDELION) << 4];
     public static final Material ROSE = LEGACY_MATERIALS[(BLK_ROSE) << 4];
-    public static final Material GRASS = LEGACY_MATERIALS[(BLK_GRASS) << 4];
+    public static final Material GRASS_BLOCK = LEGACY_MATERIALS[(BLK_GRASS) << 4];
     public static final Material DIRT = LEGACY_MATERIALS[(BLK_DIRT) << 4];
     public static final Material STONE = LEGACY_MATERIALS[(BLK_STONE) << 4];
     public static final Material GRANITE = LEGACY_MATERIALS[((BLK_STONE) << 4) | (DATA_STONE_GRANITE)];
@@ -1709,7 +1826,7 @@ public final class Material implements Serializable {
     public static final Material IRON_BLOCK = LEGACY_MATERIALS[(BLK_IRON_BLOCK) << 4];
     public static final Material LAPIS_LAZULI_BLOCK = LEGACY_MATERIALS[(BLK_LAPIS_LAZULI_BLOCK) << 4];
     public static final Material MYCELIUM = LEGACY_MATERIALS[(BLK_MYCELIUM) << 4];
-    public static final Material TILLED_DIRT = LEGACY_MATERIALS[(BLK_TILLED_DIRT) << 4];
+    public static final Material FARMLAND = LEGACY_MATERIALS[(BLK_TILLED_DIRT) << 4];
     public static final Material ICE = LEGACY_MATERIALS[(BLK_ICE) << 4];
     public static final Material FROSTED_ICE = LEGACY_MATERIALS[(BLK_FROSTED_ICE) << 4];
     public static final Material PACKED_ICE = LEGACY_MATERIALS[BLK_PACKED_ICE << 4];
@@ -1756,7 +1873,7 @@ public final class Material implements Serializable {
     public static final Material RED_SANDSTONE = LEGACY_MATERIALS[(BLK_RED_SANDSTONE) << 4];
     public static final Material QUARTZ_ORE = LEGACY_MATERIALS[BLK_QUARTZ_ORE << 4];
 
-    public static final Material TALL_GRASS = LEGACY_MATERIALS[((BLK_TALL_GRASS) << 4) | (DATA_TALL_GRASS)];
+    public static final Material GRASS = LEGACY_MATERIALS[((BLK_TALL_GRASS) << 4) | (DATA_TALL_GRASS)];
     public static final Material FERN = LEGACY_MATERIALS[((BLK_TALL_GRASS) << 4) | (DATA_FERN)];
 
     public static final Material WOOD_OAK = LEGACY_MATERIALS[((BLK_WOOD) << 4) | (DATA_OAK)];
@@ -1821,15 +1938,6 @@ public final class Material implements Serializable {
     public static final Material PUMPKIN_SOUTH_FACE = LEGACY_MATERIALS[((BLK_PUMPKIN) << 4) | (DATA_PUMPKIN_SOUTH_FACE)];
     public static final Material PUMPKIN_WEST_FACE = LEGACY_MATERIALS[((BLK_PUMPKIN) << 4) | (DATA_PUMPKIN_WEST_FACE)];
 
-    // Modern materials (based on MC 1.13 block names and properties)
-
-    /**
-     * A vine with no directions turned on, which is not a valid block in
-     * Minecraft, so you must set at least one direction.
-     */
-    public static final Material VINE = get(MC_VINE, MC_NORTH, false, MC_EAST, false, MC_SOUTH, false, MC_WEST, false, MC_UP, false);
-    public static final Material TERRACOTTA = get(MC_TERRACOTTA);
-
     // MC 1.13 block property access helpers
 
     public static final Property<Boolean> SNOWY       = new Property<>(MC_SNOWY,       Boolean.class);
@@ -1842,6 +1950,43 @@ public final class Material implements Serializable {
     public static final Property<String>  HALF        = new Property<>(MC_HALF,        String.class);
     public static final Property<Integer> LEVEL       = new Property<>(MC_LEVEL,       Integer.class);
     public static final Property<Boolean> WATERLOGGED = new Property<>(MC_WATERLOGGED, Boolean.class);
+    public static final Property<Integer> AGE         = new Property<>(MC_AGE,         Integer.class);
+
+    // Modern materials (based on MC 1.13 block names and properties)
+
+    /**
+     * A vine with no directions turned on, which is not a valid block in
+     * Minecraft, so you must set at least one direction.
+     */
+    public static final Material VINE = get(MC_VINE, MC_NORTH, false, MC_EAST, false, MC_SOUTH, false, MC_WEST, false, MC_UP, false);
+    public static final Material TERRACOTTA = get(MC_TERRACOTTA);
+    public static final Material BLUE_ORCHID = get(MC_BLUE_ORCHID);
+    public static final Material ALLIUM = get(MC_ALLIUM);
+    public static final Material AZURE_BLUET = get(MC_AZURE_BLUET);
+    public static final Material RED_TULIP = get(MC_RED_TULIP);
+    public static final Material ORANGE_TULIP = get(MC_ORANGE_TULIP);
+    public static final Material WHITE_TULIP = get(MC_WHITE_TULIP);
+    public static final Material PINK_TULIP = get(MC_PINK_TULIP);
+    public static final Material OXEYE_DAISY = get(MC_OXEYE_DAISY);
+    public static final Material SUNFLOWER = get(MC_SUNFLOWER, MC_HALF, "lower");
+    public static final Material LILAC = get(MC_LILAC, MC_HALF, "lower");
+    public static final Material TALL_GRASS = get(MC_TALL_GRASS, MC_HALF, "lower");
+    public static final Material LARGE_FERN = get(MC_LARGE_FERN, MC_HALF, "lower");
+    public static final Material ROSE_BUSH = get(MC_ROSE_BUSH, MC_HALF, "lower");
+    public static final Material PEONY = get(MC_PEONY, MC_HALF, "lower");
+    public static final Material OAK_SAPLING = get(MC_OAK_SAPLING, MC_STAGE, 0);
+    public static final Material DARK_OAK_SAPLING = get(MC_DARK_OAK_SAPLING, MC_STAGE, 0);
+    public static final Material PINE_SAPLING = get(MC_SPRUCE_SAPLING, MC_STAGE, 0);
+    public static final Material BIRCH_SAPLING = get(MC_BIRCH_SAPLING, MC_STAGE, 0);
+    public static final Material JUNGLE_SAPLING = get(MC_JUNGLE_SAPLING, MC_STAGE, 0);
+    public static final Material ACACIA_SAPLING = get(MC_ACACIA_SAPLING, MC_STAGE, 0);
+    public static final Material CARROTS = get(MC_CARROTS, MC_AGE, 0);
+    public static final Material POTATOES = get(MC_POTATOES, MC_AGE, 0);
+    public static final Material PUMPKIN_STEM = get(MC_PUMPKIN_STEM, MC_AGE, 0);
+    public static final Material MELON_STEM = get(MC_MELON_STEM, MC_AGE, 0);
+    public static final Material BEETROOTS = get(MC_BEETROOTS, MC_AGE, 0);
+    public static final Material NETHER_WART = get(MC_NETHER_WART, MC_AGE, 0);
+    public static final Material CHORUS_FLOWER = get(MC_CHORUS_FLOWER, MC_AGE, 0);
 
     // Namespaces
 

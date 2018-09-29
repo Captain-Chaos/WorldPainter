@@ -87,4 +87,5 @@ public final class Constants {
     public static final int BIOME_ALGORITHM_1_7_LARGE           = 10;
 
     public static final Version V_1_12_2 = new Version(1, 12, 2);
+    public static final Version V_1_13 = new Version(1, 13);
 }

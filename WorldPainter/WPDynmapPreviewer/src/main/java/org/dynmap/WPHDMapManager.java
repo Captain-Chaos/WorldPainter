@@ -29,7 +29,7 @@ class WPHDMapManager extends HDMapManager {
     void init(ConfigurationNode configNode) {
         DynmapCore core = new DynmapCore();
         perspectives.put("default", new IsoHDPerspective(core, configNode));
-        File minecraftJar = BiomeSchemeManager.getMinecraftJar(V_1_12_2);
+        File minecraftJar = BiomeSchemeManager.getMinecraftJarNoNewerThan(V_1_12_2);
         if (minecraftJar == null) {
             logger.info("No Minecraft jars found; falling back to solid shading for 3D dynmap previews");
             shaders.put("default", new DefaultHDShader(core, configNode));

@@ -80,7 +80,7 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
                                 // much of it, and leaving it in would look
                                 // strange. Also replace existing snow, as we
                                 // might want to place thicker snow
-                                if ((previousMaterial == AIR) || (previousMaterial == TALL_GRASS) || (previousMaterial == SNOW)) {
+                                if ((previousMaterial == AIR) || (previousMaterial == GRASS) || (previousMaterial == SNOW)) {
                                     if ((mode == FrostSettings.MODE_SMOOTH_AT_ALL_ELEVATIONS)
                                             || (height == dimension.getIntHeightAt(x, y))) {
                                         // Only vary the snow thickness if we're

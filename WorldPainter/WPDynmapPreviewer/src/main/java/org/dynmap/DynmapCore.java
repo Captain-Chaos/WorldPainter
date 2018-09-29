@@ -40,7 +40,7 @@ public class DynmapCore {
     }
 
     public File getPluginJarFile() {
-        return BiomeSchemeManager.getMinecraftJar(V_1_12_2);
+        return BiomeSchemeManager.getMinecraftJarNoNewerThan(V_1_12_2);
     }
 
     public boolean dumpMissingBlocks() {

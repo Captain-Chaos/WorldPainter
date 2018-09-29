@@ -463,6 +463,8 @@ public final class Constants {
     public static final String MC_LAYERS      = "layers";
     public static final String MC_LEVEL       = "level";
     public static final String MC_WATERLOGGED = "waterlogged";
+    public static final String MC_AGE         = "age";
+    public static final String MC_STAGE       = "stage";
 
     // Minecraft NBT tag names
 

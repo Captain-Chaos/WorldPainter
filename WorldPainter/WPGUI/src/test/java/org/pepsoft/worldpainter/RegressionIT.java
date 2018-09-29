@@ -25,7 +25,7 @@ public class RegressionIT {
             assertEquals(DIRT, terrain.getRows()[0].material);
             assertEquals(250, terrain.getRows()[0].occurrence);
             assertEquals(1f, terrain.getRows()[0].scale, 0);
-            assertEquals(GRASS, terrain.getRows()[1].material);
+            assertEquals(GRASS_BLOCK, terrain.getRows()[1].material);
             assertEquals(250, terrain.getRows()[1].occurrence);
             assertEquals(1f, terrain.getRows()[1].scale, 0);
             assertEquals(SAND, terrain.getRows()[2].material);

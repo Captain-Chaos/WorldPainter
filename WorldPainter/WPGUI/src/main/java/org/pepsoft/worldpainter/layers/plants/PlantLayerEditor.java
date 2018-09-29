@@ -85,7 +85,7 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
     public void reset() {
         fieldName.setText(layer.getName());
         selectedColour = layer.getColour();
-        checkBoxGenerateTilledDirt.setSelected(layer.isGenerateTilledDirt());
+        checkBoxGenerateTilledDirt.setSelected(layer.isGenerateFarmland());
         for (int i = 0; i < Plant.ALL_PLANTS.length; i++) {
             PlantLayer.PlantSettings settings = layer.getSettings(i);
             if (settings != null) {
@@ -232,7 +232,7 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
         }
         try {
             if (resourcesJar == null) {
-                resourcesJar = BiomeSchemeManager.getMinecraftJar(V_1_12_2);
+                resourcesJar = BiomeSchemeManager.getMinecraftJarNoNewerThan(V_1_12_2);
                 if (resourcesJar == null) {
                     logger.warn("Could not find Minecraft jar for loading plant icons");
                     resourcesJar = RESOURCES_NOT_AVAILABLE;
@@ -334,7 +334,7 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
         }
         layer.setName(fieldName.getText().trim());
         layer.setColour(selectedColour);
-        layer.setGenerateTilledDirt(checkBoxGenerateTilledDirt.isSelected());
+        layer.setGenerateFarmland(checkBoxGenerateTilledDirt.isSelected());
         for (int i = 0; i < Plant.ALL_PLANTS.length; i++) {
             PlantLayer.PlantSettings settings = new PlantLayer.PlantSettings();
             settings.occurrence = (short) ((int) ((Integer) spinners[i].getValue()));

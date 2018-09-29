@@ -34,12 +34,12 @@ public class PlantLayer extends CustomLayer {
         this.settings[plantIndex] = settings;
     }
 
-    public boolean isGenerateTilledDirt() {
+    public boolean isGenerateFarmland() {
         return generateTilledDirt;
     }
 
-    public void setGenerateTilledDirt(boolean generateTilledDirt) {
-        this.generateTilledDirt = generateTilledDirt;
+    public void setGenerateFarmland(boolean generateFarmland) {
+        this.generateTilledDirt = generateFarmland;
     }
 
     public Bo2ObjectProvider getObjectProvider(Platform platform) {
@@ -150,7 +150,7 @@ public class PlantLayer extends CustomLayer {
     }
     
     private PlantSettings[] settings = new PlantSettings[Plant.ALL_PLANTS.length];
-    private boolean generateTilledDirt = true;
+    private boolean generateTilledDirt = true; // Now referred to as generateFarmland
 
     private static final long serialVersionUID = -2758775044863488107L;
 }

@@ -127,7 +127,7 @@ public class BiomeSchemeManager {
      * the specified version, or <code>null</code> if no such Minecraft jar is
      * available.
      */
-    public static File getMinecraftJar(Version version) {
+    public static File getMinecraftJarNoNewerThan(Version version) {
         synchronized (initialisationLock) {
             if (! initialised) {
                 initialise();
@@ -138,6 +138,29 @@ public class BiomeSchemeManager {
                 .filter(e -> e.getKey().compareTo(version) <= 0)
                 .max(comparing(Map.Entry::getKey))
                 .map(Map.Entry::getValue).orElse(null);
+    }
+
+    /**
+     * Get the highest version Minecraft jar available of the specified version
+     * or higher.
+     *
+     * @param version The lowest version to return.
+     * @return The highest version Minecraft jar found that is not lower than
+     * the specified version, or <code>null</code> if no such Minecraft jar is
+     * available.
+     */
+    public static File getMinecraftJarNoOlderThan(Version version) {
+        synchronized (initialisationLock) {
+            if (! initialised) {
+                initialise();
+            }
+        }
+
+        if ((! ALL_JARS.isEmpty()) && ALL_JARS.lastKey().isAtLeast(version)) {
+            return ALL_JARS.get(ALL_JARS.lastKey());
+        } else {
+            return null;
+        }
     }
 
     public static BufferedImage createImage(BiomeScheme biomeScheme, int biome, ColourScheme colourScheme) {
@@ -264,6 +287,9 @@ public class BiomeSchemeManager {
         }
     }
 
+    /**
+     * Must be invoked while holding {@link #initialisationLock}.
+     */
     private static void doInitialisation() {
         synchronized (initialisationLock) {
             if (logger.isDebugEnabled()) {

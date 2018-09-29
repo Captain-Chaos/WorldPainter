@@ -130,14 +130,14 @@ public enum Terrain {
                                 if (rnd.nextInt(4) == 0) {
                                     return FERN;
                                 } else {
-                                    return TALL_GRASS;
+                                    return Material.GRASS;
                                 }
                             }
                         } else {
                             if (grassValue > FERN_CHANCE) {
                                 return FERN;
                             } else {
-                                return TALL_GRASS;
+                                return Material.GRASS;
                             }
                         }
                     } else {
@@ -147,7 +147,7 @@ public enum Terrain {
             } else {
                 // The post process step will take care of changing all covered
                 // grass blocks into dirt
-                return Material.GRASS;
+                return Material.GRASS_BLOCK;
             }
         }
 
@@ -425,7 +425,7 @@ public enum Terrain {
                     } else if (-noise >= BEACH_GRAVEL_CHANCE) {
                         return Material.GRAVEL;
                     } else if (dz == 0) {
-                        return Material.GRASS;
+                        return Material.GRASS_BLOCK;
                     } else {
                         return Material.DIRT;
                     }

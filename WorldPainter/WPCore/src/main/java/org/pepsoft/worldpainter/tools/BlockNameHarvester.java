@@ -86,7 +86,7 @@ public class BlockNameHarvester {
                         world.setMaterialAt(x, z, 0, BEDROCK);
                         world.setMaterialAt(x, z, 1, DIRT);
                         world.setMaterialAt(x, z, 2, DIRT);
-                        world.setMaterialAt(x, z, 3, GRASS);
+                        world.setMaterialAt(x, z, 3, GRASS_BLOCK);
                         int index = z + 32 + 64 * (x + 32);
                         int blockId = index >> 4;
                         if ((blockId != BLK_PISTON_EXTENSION) && (blockId != 253) && (blockId != 254)
@@ -97,7 +97,7 @@ public class BlockNameHarvester {
                             if (blockId == BLK_CACTUS) {
                                 world.setMaterialAt(x, z, 3, SAND);
                             } else if (BLOCKS[blockId].vegetation) {
-                                world.setMaterialAt(x, z, 3, TILLED_DIRT);
+                                world.setMaterialAt(x, z, 3, FARMLAND);
                             }
                         }
                     }

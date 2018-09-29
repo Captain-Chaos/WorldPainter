@@ -240,7 +240,7 @@ public class RiverExporter extends AbstractLayerExporter<River> implements Secon
         public RiverSettings() {
             riverBedMaterial = new MixedMaterial(
                 "Riverbed",
-                new Row[] {new Row(GRASS, 650, 1.0f),
+                new Row[] {new Row(GRASS_BLOCK, 650, 1.0f),
                     new Row(GRAVEL, 200, 1.0f),
                     new Row(CLAY, 50, 1.0f),
                     new Row(STONE, 100, 1.0f)},

@@ -232,7 +232,7 @@ public class Java1_13PostProcessor extends PostProcessor {
                         case MC_WHITE_TULIP:
                         case MC_PINK_TULIP:
                         case MC_OXEYE_DAISY:
-                            if ((materialBelow != GRASS) && (materialBelow != DIRT) && (materialBelow != PODZOL) && (materialBelow != PERMADIRT)) {
+                            if ((materialBelow != GRASS_BLOCK) && (materialBelow != DIRT) && (materialBelow != PODZOL) && (materialBelow != PERMADIRT)) {
                                 // Tall grass and flowers can only exist on Grass or Dirt blocks
                                 minecraftWorld.setMaterialAt(x, y, z, AIR);
                                 material = AIR;
@@ -240,7 +240,7 @@ public class Java1_13PostProcessor extends PostProcessor {
                             break;
                         case MC_RED_MUSHROOM:
                         case MC_BROWN_MUSHROOM:
-                            if ((materialBelow != GRASS) && (materialBelow != DIRT) && (materialBelow != PODZOL) && (materialBelow != PERMADIRT) && (materialBelow != MYCELIUM) && (materialBelow != STONE) && (materialBelow != GRANITE) && (materialBelow != DIORITE) && (materialBelow != ANDESITE)) {
+                            if ((materialBelow != GRASS_BLOCK) && (materialBelow != DIRT) && (materialBelow != PODZOL) && (materialBelow != PERMADIRT) && (materialBelow != MYCELIUM) && (materialBelow != STONE) && (materialBelow != GRANITE) && (materialBelow != DIORITE) && (materialBelow != ANDESITE)) {
                                 // Mushrooms can only exist on Grass, Dirt, Mycelium or Stone (in caves) blocks
                                 minecraftWorld.setMaterialAt(x, y, z, AIR);
                                 material = AIR;

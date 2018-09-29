@@ -20,8 +20,8 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
-import static org.pepsoft.minecraft.Block.BLOCKS;
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Material.AGE;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_13;
 import static org.pepsoft.worldpainter.layers.plants.Plant.Category.*;
 
@@ -34,17 +34,17 @@ public final class Plant implements WPObject {
         this.name = name;
         if (category == CROPS) {
             // Adjust the material for the specified maximum growth factor:
-            if ((material.blockType == BLK_CARROTS) || (material.blockType == BLK_POTATOES)) {
+            if (material.isNamed(MC_CARROTS) || material.isNamed(MC_POTATOES)) {
                 if (maxGrowth == 3) {
-                    this.material = Material.get(material.blockType, 7);
+                    this.material = material.withProperty(AGE, 7);
                 } else {
-                    this.material = Material.get(material.blockType, maxGrowth * 2);
+                    this.material = material.withProperty(AGE, maxGrowth * 2);
                 }
             } else {
-                this.material = Material.get(material.blockType, maxGrowth);
+                this.material =  material.withProperty(AGE, maxGrowth);
             }
         } else if (category == Category.NETHER) {
-            this.material = Material.get(BLK_NETHER_WART, maxGrowth + ((maxGrowth > 0) ? 1 : 0));
+            this.material = material.withProperty(AGE, maxGrowth + ((maxGrowth > 0) ? 1 : 0));
         } else {
             this.material = material;
         }
@@ -70,19 +70,19 @@ public final class Plant implements WPObject {
                 dimensions = new Point3i(1, 1, Math.min(growth + 1, plant.dimensions.z));
                 break;
             case CROPS:
-                if ((plant.material.blockType == BLK_CARROTS) || (plant.material.blockType == BLK_POTATOES)) {
+                if (plant.material.isNamed(MC_CARROTS) || plant.material.isNamed(MC_POTATOES)) {
                     if (growth == 3) {
-                        material = Material.get(plant.material.blockType, 7);
+                        material = plant.material.withProperty(AGE, 7);
                     } else {
-                        material = Material.get(plant.material.blockType, growth * 2);
+                        material = plant.material.withProperty(AGE, growth * 2);
                     }
                 } else {
-                    material = Material.get(plant.material.blockType, growth);
+                    material = plant.material.withProperty(AGE, growth);
                 }
                 dimensions = plant.dimensions;
                 break;
             case NETHER:
-                material = Material.get(BLK_NETHER_WART, growth + ((growth > 0) ? 1 : 0));
+                material = plant.material.withProperty(AGE, growth + ((growth > 0) ? 1 : 0));
                 dimensions = plant.dimensions;
                 break;
             default:
@@ -101,36 +101,43 @@ public final class Plant implements WPObject {
     }
     
     public boolean isValidFoundation(MinecraftWorld world, int x, int y, int height) {
-        final int blockType = world.getBlockTypeAt(x, y, height);
+        final Material material = world.getMaterialAt(x, y, height);
         switch (category) {
             case CACTUS:
-                return (blockType == BLK_SAND)
+                return (material.isNamed(MC_SAND) || material.isNamed(MC_RED_SAND))
                     && (! isSolid(world, x - 1, y, height + 1))
                     && (! isSolid(world, x, y - 1, height + 1))
                     && (! isSolid(world, x + 1, y, height + 1))
                     && (! isSolid(world, x, y + 1, height + 1));
             case CROPS:
-                return blockType == BLK_TILLED_DIRT;
+                return material.isNamed(MC_FARMLAND);
             case MUSHROOMS:
                 // If it's dark enough mushrooms can be placed on pretty much
                 // anything
-                return (! BLOCKS[blockType].veryInsubstantial)
-                    && (blockType != BLK_GLASS)
-                    && (blockType != BLK_ICE);
+                return (! material.veryInsubstantial)
+                    && (! material.isNamed(MC_GLASS))
+                    && (! material.isNamed(MC_ICE));
             case PLANTS_AND_FLOWERS:
-                return (blockType == BLK_GRASS)
-                    || (blockType == BLK_DIRT)
-                    || (blockType == BLK_TILLED_DIRT)
-                    || ((material.equals(Material.DEAD_SHRUBS)) && ((blockType == BLK_SAND) || (blockType == BLK_HARDENED_CLAY)));
+                return material.isNamed(MC_GRASS_BLOCK)
+                    || material.isNamed(MC_DIRT)
+                    || material.isNamed(MC_COARSE_DIRT)
+                    || material.isNamed(MC_PODZOL)
+                    || material.isNamed(MC_FARMLAND)
+                    || ((this.material == Material.DEAD_SHRUBS) && (material.isNamed(MC_SAND) || material.isNamed(MC_RED_SAND) || material.isNamed(MC_TERRACOTTA)));
             case SAPLINGS:
-                return (blockType == BLK_GRASS)
-                    || (blockType == BLK_DIRT)
-                    || (blockType == BLK_TILLED_DIRT);
+                return material.isNamed(MC_GRASS_BLOCK)
+                    || material.isNamed(MC_DIRT)
+                    || material.isNamed(MC_COARSE_DIRT)
+                    || material.isNamed(MC_PODZOL)
+                    || material.isNamed(MC_FARMLAND);
             case SUGAR_CANE:
-                return ((blockType == BLK_GRASS)
-                        || (blockType == BLK_DIRT)
-                        || (blockType == BLK_SAND)
-                        || (blockType == BLK_TILLED_DIRT))
+                return (material.isNamed(MC_GRASS_BLOCK)
+                        || material.isNamed(MC_DIRT)
+                        || material.isNamed(MC_COARSE_DIRT)
+                        || material.isNamed(MC_PODZOL)
+                        || material.isNamed(MC_SAND)
+                        || material.isNamed(MC_RED_SAND)
+                        || material.isNamed(MC_FARMLAND))
                     && (isWater(world, x - 1, y, height)
                         || isWater(world, x, y - 1, height)
                         || isWater(world, x + 1, y, height)
@@ -138,12 +145,11 @@ public final class Plant implements WPObject {
             case WATER_PLANTS:
                 // Just check whether the location is flooded; a special case in
                 // the exporter will check for the water surface
-                final int blockAbove = world.getBlockTypeAt(x, y, height + 1);
-                return (blockAbove == BLK_WATER) || (blockAbove == BLK_STATIONARY_WATER);
+                return isWater(world, x, y, height + 1);
             case NETHER:
-                return blockType == BLK_SOUL_SAND;
+                return material.isNamed(MC_SOUL_SAND);
             case END:
-                return (blockType == BLK_END_STONE) || (blockType == BLK_CHORUS_PLANT);
+                return material.isNamed(MC_END_STONE) || material.isNamed(MC_CHORUS_PLANT);
             default:
                 throw new InternalError();
         }
@@ -249,13 +255,12 @@ public final class Plant implements WPObject {
     }
     
     private boolean isSolid(MinecraftWorld world, int x, int y, int height) {
-        int blockType = world.getBlockTypeAt(x, y, height);
-        return (blockType == BLK_CACTUS) || (! BLOCKS[blockType].veryInsubstantial);
+        Material material = world.getMaterialAt(x, y, height);
+        return material.isNamed(MC_CACTUS) || (! material.veryInsubstantial);
     }
     
     private boolean isWater(MinecraftWorld world, int x, int y, int height) {
-        final int blockType = world.getBlockTypeAt(x, y, height);
-        return (blockType == BLK_WATER) || (blockType == BLK_STATIONARY_WATER);
+        return world.getMaterialAt(x, y, height).isNamed(MC_WATER);
     }
     
     public static void main(String[] args) {
@@ -275,44 +280,45 @@ public final class Plant implements WPObject {
     private final int maxData, growth;
     private final Platform platform;
     
+    @SuppressWarnings("deprecation") // Legacy support
     private static final Material UPPER_DOUBLE_HIGH_PLANT = Material.get(BLK_LARGE_FLOWERS, 8);
 
-    public static final Plant TALL_GRASS        = new Plant("Tall Grass",        Material.get(BLK_TALL_GRASS, 1),    1, 0, PLANTS_AND_FLOWERS, "blocks/tallgrass.png");
-    public static final Plant FERN              = new Plant("Fern",              Material.get(BLK_TALL_GRASS, 2),    1, 0, PLANTS_AND_FLOWERS, "blocks/fern.png");
-    public static final Plant DEAD_SHRUB        = new Plant("Dead Shrub",        Material.DEAD_SHRUBS,               1, 0, PLANTS_AND_FLOWERS, "blocks/deadbush.png");
-    public static final Plant DANDELION         = new Plant("Dandelion",         Material.DANDELION,                 1, 0, PLANTS_AND_FLOWERS, "blocks/flower_dandelion.png");
-    public static final Plant POPPY             = new Plant("Poppy",             Material.ROSE,                      1, 0, PLANTS_AND_FLOWERS, "blocks/flower_rose.png");
-    public static final Plant BLUE_ORCHID       = new Plant("Blue Orchid",       Material.get(BLK_ROSE, 1),          1, 0, PLANTS_AND_FLOWERS, "blocks/flower_blue_orchid.png");
-    public static final Plant ALLIUM            = new Plant("Allium",            Material.get(BLK_ROSE, 2),          1, 0, PLANTS_AND_FLOWERS, "blocks/flower_allium.png");
-    public static final Plant AZURE_BLUET       = new Plant("Azure Bluet",       Material.get(BLK_ROSE, 3),          1, 0, PLANTS_AND_FLOWERS, "blocks/flower_houstonia.png");
-    public static final Plant TULIP_RED         = new Plant("Red Tulip",         Material.get(BLK_ROSE, 4),          1, 0, PLANTS_AND_FLOWERS, "blocks/flower_tulip_red.png");
-    public static final Plant TULIP_ORANGE      = new Plant("Orange Tulip",      Material.get(BLK_ROSE, 5),          1, 0, PLANTS_AND_FLOWERS, "blocks/flower_tulip_orange.png");
-    public static final Plant TULIP_WHITE       = new Plant("White Tulip",       Material.get(BLK_ROSE, 6),          1, 0, PLANTS_AND_FLOWERS, "blocks/flower_tulip_white.png");
-    public static final Plant TULIP_PINK        = new Plant("Pink Tulip",        Material.get(BLK_ROSE, 7),          1, 0, PLANTS_AND_FLOWERS, "blocks/flower_tulip_pink.png");
-    public static final Plant OXEYE_DAISY       = new Plant("Oxeye Daisy",       Material.get(BLK_ROSE, 8),          1, 0, PLANTS_AND_FLOWERS, "blocks/flower_oxeye_daisy.png");
-    public static final Plant SUNFLOWER         = new Plant("Sunflower",         Material.get(BLK_LARGE_FLOWERS),    2, 0, PLANTS_AND_FLOWERS, "blocks/double_plant_sunflower_front.png");
-    public static final Plant LILAC             = new Plant("Lilac",             Material.get(BLK_LARGE_FLOWERS, 1), 2, 0, PLANTS_AND_FLOWERS, "blocks/double_plant_syringa_top.png");
-    public static final Plant DOUBLE_TALL_GRASS = new Plant("Double Tall Grass", Material.get(BLK_LARGE_FLOWERS, 2), 2, 0, PLANTS_AND_FLOWERS, "blocks/double_plant_grass_top.png");
-    public static final Plant LARGE_FERN        = new Plant("Large Fern",        Material.get(BLK_LARGE_FLOWERS, 3), 2, 0, PLANTS_AND_FLOWERS, "blocks/double_plant_fern_top.png");
-    public static final Plant ROSE_BUSH         = new Plant("Rose Bush",         Material.get(BLK_LARGE_FLOWERS, 4), 2, 0, PLANTS_AND_FLOWERS, "blocks/double_plant_rose_top.png");
-    public static final Plant PEONY             = new Plant("Peony",             Material.get(BLK_LARGE_FLOWERS, 5), 2, 0, PLANTS_AND_FLOWERS, "blocks/double_plant_paeonia_top.png");
+    public static final Plant GRASS        = new Plant("Grass",       Material.GRASS,       1, 0, PLANTS_AND_FLOWERS, "blocks/tallgrass.png");
+    public static final Plant FERN         = new Plant("Fern",        Material.FERN,        1, 0, PLANTS_AND_FLOWERS, "blocks/fern.png");
+    public static final Plant DEAD_SHRUB   = new Plant("Dead Shrub",  Material.DEAD_SHRUBS, 1, 0, PLANTS_AND_FLOWERS, "blocks/deadbush.png");
+    public static final Plant DANDELION    = new Plant("Dandelion",   Material.DANDELION,   1, 0, PLANTS_AND_FLOWERS, "blocks/flower_dandelion.png");
+    public static final Plant POPPY        = new Plant("Poppy",       Material.ROSE,        1, 0, PLANTS_AND_FLOWERS, "blocks/flower_rose.png");
+    public static final Plant BLUE_ORCHID  = new Plant("Blue Orchid", Material.BLUE_ORCHID, 1, 0, PLANTS_AND_FLOWERS, "blocks/flower_blue_orchid.png");
+    public static final Plant ALLIUM       = new Plant("Allium",      Material.ALLIUM,      1, 0, PLANTS_AND_FLOWERS, "blocks/flower_allium.png");
+    public static final Plant AZURE_BLUET  = new Plant("Azure Bluet", Material.AZURE_BLUET, 1, 0, PLANTS_AND_FLOWERS, "blocks/flower_houstonia.png");
+    public static final Plant TULIP_RED    = new Plant("Red Tulip",   Material.RED_TULIP,   1, 0, PLANTS_AND_FLOWERS, "blocks/flower_tulip_red.png");
+    public static final Plant TULIP_ORANGE = new Plant("Orange Tulip",Material.ORANGE_TULIP,1, 0, PLANTS_AND_FLOWERS, "blocks/flower_tulip_orange.png");
+    public static final Plant TULIP_WHITE  = new Plant("White Tulip", Material.WHITE_TULIP, 1, 0, PLANTS_AND_FLOWERS, "blocks/flower_tulip_white.png");
+    public static final Plant TULIP_PINK   = new Plant("Pink Tulip",  Material.PINK_TULIP,  1, 0, PLANTS_AND_FLOWERS, "blocks/flower_tulip_pink.png");
+    public static final Plant OXEYE_DAISY  = new Plant("Oxeye Daisy", Material.OXEYE_DAISY, 1, 0, PLANTS_AND_FLOWERS, "blocks/flower_oxeye_daisy.png");
+    public static final Plant SUNFLOWER    = new Plant("Sunflower",   Material.SUNFLOWER,   2, 0, PLANTS_AND_FLOWERS, "blocks/double_plant_sunflower_front.png");
+    public static final Plant LILAC        = new Plant("Lilac",       Material.LILAC,       2, 0, PLANTS_AND_FLOWERS, "blocks/double_plant_syringa_top.png");
+    public static final Plant TALL_GRASS   = new Plant("Tall Grass",  Material.TALL_GRASS,  2, 0, PLANTS_AND_FLOWERS, "blocks/double_plant_grass_top.png");
+    public static final Plant LARGE_FERN   = new Plant("Large Fern",  Material.LARGE_FERN,  2, 0, PLANTS_AND_FLOWERS, "blocks/double_plant_fern_top.png");
+    public static final Plant ROSE_BUSH    = new Plant("Rose Bush",   Material.ROSE_BUSH,   2, 0, PLANTS_AND_FLOWERS, "blocks/double_plant_rose_top.png");
+    public static final Plant PEONY        = new Plant("Peony",       Material.PEONY,       2, 0, PLANTS_AND_FLOWERS, "blocks/double_plant_paeonia_top.png");
 
-    public static final Plant SAPLING_OAK      = new Plant("Oak Sapling",      Material.get(BLK_SAPLING, DATA_OAK),      1, 0, SAPLINGS, "blocks/sapling_oak.png");
-    public static final Plant SAPLING_DARK_OAK = new Plant("Dark Oak Sapling", Material.get(BLK_SAPLING, DATA_DARK_OAK), 1, 0, SAPLINGS, "blocks/sapling_roofed_oak.png");
-    public static final Plant SAPLING_PINE     = new Plant("Pine Sapling",     Material.get(BLK_SAPLING, DATA_PINE),     1, 0, SAPLINGS, "blocks/sapling_spruce.png");
-    public static final Plant SAPLING_BIRCH    = new Plant("Birch Sapling",    Material.get(BLK_SAPLING, DATA_BIRCH),    1, 0, SAPLINGS, "blocks/sapling_birch.png");
-    public static final Plant SAPLING_JUNGLE   = new Plant("Jungle Sapling",   Material.get(BLK_SAPLING, DATA_JUNGLE),   1, 0, SAPLINGS, "blocks/sapling_jungle.png");
-    public static final Plant SAPLING_ACACIA   = new Plant("Acacia Sapling",   Material.get(BLK_SAPLING, DATA_ACACIA),   1, 0, SAPLINGS, "blocks/sapling_acacia.png");
+    public static final Plant SAPLING_OAK      = new Plant("Oak Sapling",      Material.OAK_SAPLING,      1, 0, SAPLINGS, "blocks/sapling_oak.png");
+    public static final Plant SAPLING_DARK_OAK = new Plant("Dark Oak Sapling", Material.DARK_OAK_SAPLING, 1, 0, SAPLINGS, "blocks/sapling_roofed_oak.png");
+    public static final Plant SAPLING_PINE     = new Plant("Pine Sapling",     Material.PINE_SAPLING,     1, 0, SAPLINGS, "blocks/sapling_spruce.png");
+    public static final Plant SAPLING_BIRCH    = new Plant("Birch Sapling",    Material.BIRCH_SAPLING,    1, 0, SAPLINGS, "blocks/sapling_birch.png");
+    public static final Plant SAPLING_JUNGLE   = new Plant("Jungle Sapling",   Material.JUNGLE_SAPLING,   1, 0, SAPLINGS, "blocks/sapling_jungle.png");
+    public static final Plant SAPLING_ACACIA   = new Plant("Acacia Sapling",   Material.ACACIA_SAPLING,   1, 0, SAPLINGS, "blocks/sapling_acacia.png");
 
     public static final Plant MUSHROOM_RED   = new Plant("Red Mushroom",   Material.RED_MUSHROOM,   1, 0, MUSHROOMS, "blocks/mushroom_red.png");
     public static final Plant MUSHROOM_BROWN = new Plant("Brown Mushroom", Material.BROWN_MUSHROOM, 1, 0, MUSHROOMS, "blocks/mushroom_brown.png");
 
-    public static final Plant WHEAT         = new Plant("Wheat",         Material.WHEAT,                 1, 7, CROPS, "items/wheat.png");
-    public static final Plant CARROTS       = new Plant("Carrots",       Material.get(BLK_CARROTS),      1, 3, CROPS, "items/carrot.png");
-    public static final Plant POTATOES      = new Plant("Potatoes",      Material.get(BLK_POTATOES),     1, 3, CROPS, "items/potato.png");
-    public static final Plant PUMPKIN_STEMS = new Plant("Pumpkin Stems", Material.get(BLK_PUMPKIN_STEM), 1, 7, CROPS, "blocks/pumpkin_side.png");
-    public static final Plant MELON_STEMS   = new Plant("Melon Stems",   Material.get(BLK_MELON_STEM),   1, 7, CROPS, "blocks/melon_side.png");
-    public static final Plant BEETROOTS     = new Plant("Beetroots",     Material.get(BLK_BEETROOTS),    1, 3, CROPS, "items/beetroot.png");
+    public static final Plant WHEAT         = new Plant("Wheat",         Material.WHEAT,        1, 7, CROPS, "items/wheat.png");
+    public static final Plant CARROTS       = new Plant("Carrots",       Material.CARROTS,      1, 3, CROPS, "items/carrot.png");
+    public static final Plant POTATOES      = new Plant("Potatoes",      Material.POTATOES,     1, 3, CROPS, "items/potato.png");
+    public static final Plant PUMPKIN_STEMS = new Plant("Pumpkin Stems", Material.PUMPKIN_STEM, 1, 7, CROPS, "blocks/pumpkin_side.png");
+    public static final Plant MELON_STEMS   = new Plant("Melon Stems",   Material.MELON_STEM,   1, 7, CROPS, "blocks/melon_side.png");
+    public static final Plant BEETROOTS     = new Plant("Beetroots",     Material.BEETROOTS,    1, 3, CROPS, "items/beetroot.png");
 
     public static final Plant CACTUS = new Plant("Cactus", Material.CACTUS, 3, 2, Category.CACTUS, "blocks/cactus_side.png");
 
@@ -320,15 +326,15 @@ public final class Plant implements WPObject {
 
     public static final Plant LILY_PAD = new Plant("Lily Pad", Material.LILY_PAD, 1, 0, Category.WATER_PLANTS, "blocks/waterlily.png");
 
-    public static final Plant NETHER_WART = new Plant("Nether Wart", Material.get(BLK_NETHER_WART), 1, 2, Category.NETHER, "items/nether_wart.png");
+    public static final Plant NETHER_WART = new Plant("Nether Wart", Material.NETHER_WART, 1, 2, Category.NETHER, "items/nether_wart.png");
 
-    public static final Plant CHORUS_PLANT = new Plant("Chorus Plant", Material.get(BLK_CHORUS_FLOWER), 1, 0, Category.END, "blocks/chorus_flower.png");
+    public static final Plant CHORUS_PLANT = new Plant("Chorus Plant", Material.CHORUS_FLOWER, 1, 0, Category.END, "blocks/chorus_flower.png");
 
     // The code which uses this assumes there will never be more than 128
     // plants. If that ever happens it needs to be overhauled!
     // IMPORTANT: indices into this array are stored in layer settings! New
     // entries MUST be added at the end, and the order MUST never be changed!
-    public static final Plant[] ALL_PLANTS = {TALL_GRASS, DOUBLE_TALL_GRASS,
+    public static final Plant[] ALL_PLANTS = {GRASS, TALL_GRASS,
         FERN, LARGE_FERN, DEAD_SHRUB, DANDELION, POPPY, BLUE_ORCHID, ALLIUM,
         AZURE_BLUET, TULIP_RED, TULIP_ORANGE, TULIP_WHITE, TULIP_PINK,
         OXEYE_DAISY, SUNFLOWER, LILAC, ROSE_BUSH, PEONY, SAPLING_OAK,
