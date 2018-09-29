@@ -66,7 +66,7 @@ public class ModernJavaMapImporter extends MapImporter {
         if (level.getVersion() != VERSION_ANVIL) {
             throw new UnsupportedOperationException("Level format version " + level.getVersion() + " not supported");
         }
-        if (level.getDataVersion() < DATA_VERSION_MC_1_13) {
+        if (level.getDataVersion() <= DATA_VERSION_MC_1_12_2) {
             throw new UnsupportedOperationException("Level data version " + level.getDataVersion() + " not supported");
         }
         String name = level.getName().trim();

@@ -572,7 +572,7 @@ public final class Constants {
     public static final int VERSION_ANVIL    = 0x4abd;
 
     public static final int DATA_VERSION_MC_1_12_2 = 1343;
-    public static final int DATA_VERSION_MC_1_13   = 1519;
+    public static final int DATA_VERSION_MC_1_13_1 = 1628;
 
     // Legacy (pre-MC 1.13) block IDs
 
