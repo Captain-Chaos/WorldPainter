@@ -488,9 +488,9 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
 
             // Read the region coordinates of the existing map
             final File backupRegionDir = new File(backupDimensionDir, "region");
-            final Pattern regionFilePattern = (platform == DefaultPlugin.JAVA_ANVIL)
-                ? Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mca")
-                : Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mcr");
+            final Pattern regionFilePattern = (platform == DefaultPlugin.JAVA_MCREGION)
+                ? Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mcr")
+                : Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mca");
             File[] existingRegionFiles = backupRegionDir.listFiles((dir, name) -> regionFilePattern.matcher(name).matches());
             Map<Point, File> existingRegions = new HashMap<>();
             for (File file: existingRegionFiles) {
@@ -559,7 +559,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
             }
             logger.info("Using " + threads + " thread(s) for merge (cores: " + runtime.availableProcessors() + ", available memory: " + (maxMemoryAvailable / 1048576L) + " MB)");
 
-            final Map<Point, List<Fixup> >fixups = new HashMap<>();
+            final Map<Point, List<Fixup>> fixups = new HashMap<>();
             final Set<Point> exportedRegions = new HashSet<>();
             ExecutorService executor = Executors.newFixedThreadPool(threads, new ThreadFactory() {
                 @Override
@@ -579,6 +579,9 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                     if (existingRegions.containsKey(regionCoords)) {
                         if (tilesByRegion.containsKey(regionCoords)) {
                             // Region exists in new and existing maps; merge it
+                            if (logger.isDebugEnabled()) {
+                                logger.debug("Region " + regionCoords + " will be merged");
+                            }
                             final Map<Point, Tile> tiles = tilesByRegion.get(regionCoords);
                             executor.execute(() -> {
                                 ProgressReceiver progressReceiver1 = (parallelProgressManager != null) ? parallelProgressManager.createProgressReceiver() : null;
@@ -625,6 +628,9 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                         } else {
                             // Region only exists in existing world. Copy it to the new
                             // world
+                            if (logger.isDebugEnabled()) {
+                                logger.debug("Region " + regionCoords + " does not exist in new world and will be copied from existing map");
+                            }
                             ProgressReceiver subProgressReceiver = (parallelProgressManager != null) ? parallelProgressManager.createProgressReceiver() : null;
                             if (subProgressReceiver != null) {
                                 subProgressReceiver.setMessage("Copying region " + regionCoords.x + "," + regionCoords.y + " unchanged");
@@ -639,6 +645,9 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                         }
                     } else {
                         // Region only exists in new world. Create it as new
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Region " + regionCoords + " does not exist in existing map and will be created as new");
+                        }
                         executor.execute(() -> {
                             ProgressReceiver progressReceiver1 = (parallelProgressManager != null) ? parallelProgressManager.createProgressReceiver() : null;
                             if (progressReceiver1 != null) {
@@ -688,7 +697,8 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
             }
 
             // It's possible for there to be fixups left, if thread A was
-            // performing fixups and thread B added new ones and then quit
+            // performing fixups and thread B added new ones and then quit, or
+            // if regions were copied from the existing map
             synchronized (fixups) {
                 if (! fixups.isEmpty()) {
                     if (progressReceiver != null) {
