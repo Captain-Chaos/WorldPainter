@@ -35,9 +35,11 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.*;
 
-import static org.pepsoft.minecraft.Block.BLOCKS;
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.worldpainter.Constants.*;
+
+import org.pepsoft.worldpainter.Dimension;
 
 /**
  * Created by Pepijn on 11-12-2016.
@@ -293,30 +295,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                                 }
                                 exportedRegions.add(regionCoords);
                             }
-                            // Apply all fixups which can be applied because
-                            // all surrounding regions have been exported
-                            // (or are not going to be), but only if another
-                            // thread is not already doing it
-                            if (performingFixups.tryAcquire()) {
-                                try {
-                                    Map<Point, List<Fixup>> myFixups = new HashMap<>();
-                                    synchronized (fixups) {
-                                        for (Iterator<Map.Entry<Point, List<Fixup>>> i = fixups.entrySet().iterator(); i.hasNext(); ) {
-                                            Map.Entry<Point, List<Fixup>> entry = i.next();
-                                            Point fixupRegionCoords = entry.getKey();
-                                            if (isReadyForFixups(regions, exportedRegions, fixupRegionCoords)) {
-                                                myFixups.put(fixupRegionCoords, entry.getValue());
-                                                i.remove();
-                                            }
-                                        }
-                                    }
-                                    if (! myFixups.isEmpty()) {
-                                        performFixups(worldDir, dimension, platform, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.9f, 0.1f) : null, myFixups);
-                                    }
-                                } finally {
-                                    performingFixups.release();
-                                }
-                            }
+                            performFixupsIfNecessary(worldDir, dimension, platform, regions, fixups, exportedRegions, progressReceiver1);
                         } catch (Throwable t) {
                             if (progressReceiver1 != null) {
                                 progressReceiver1.exceptionThrown(t);
@@ -443,7 +422,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         return exporters;
     }
 
-    protected ExportResults firstPass(MinecraftWorld minecraftWorld, Dimension dimension, Point regionCoords, Map<Point, Tile> tiles, boolean tileSelection, Map<Layer, LayerExporter> exporters, ChunkFactory chunkFactory, boolean ceiling, ProgressReceiver progressReceiver) throws OperationCancelled, IOException {
+    protected ExportResults firstPass(MinecraftWorld minecraftWorld, Dimension dimension, Point regionCoords, Map<Point, Tile> tiles, boolean tileSelection, Map<Layer, LayerExporter> exporters, ChunkFactory chunkFactory, boolean ceiling, ProgressReceiver progressReceiver) throws OperationCancelled {
         if (logger.isDebugEnabled()) {
             logger.debug("Start of first pass for region {},{}", regionCoords.x, regionCoords.y);
         }
@@ -515,13 +494,13 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         for (int y = 0; y < maxHeight; y++) {
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
-                    int destinationBlock = destination.getBlockType(x, y, z);
-                    if (! BLOCKS[destinationBlock].solid) {
+                    Material destinationMaterial = destination.getMaterial(x, y, z);
+                    if (! destinationMaterial.solid) {
                         // Insubstantial blocks in the destination are only
                         // replaced by solid ones; air is replaced by anything
                         // that's not air
-                        int sourceBlock = source.getBlockType(x, y, z);
-                        if ((destinationBlock == BLK_AIR) ? (sourceBlock != BLK_AIR) : BLOCKS[sourceBlock].solid) {
+                        Material sourceMaterial = source.getMaterial(x, y, z);
+                        if ((destinationMaterial == AIR) ? (sourceMaterial != AIR) : sourceMaterial.solid) {
                             destination.setMaterial(x, y, z, source.getMaterial(x, y, z));
                             destination.setBlockLightLevel(x, y, z, source.getBlockLightLevel(x, y, z));
                             destination.setSkyLightLevel(x, y, z, source.getSkyLightLevel(x, y, z));
@@ -856,6 +835,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
     }
 
     private Chest createGoodiesChest() {
+        // TODOMC13 migrate to Minecraft 1.13
         List<InventoryItem> list = new ArrayList<>();
         list.add(new InventoryItem(ITM_DIAMOND_SWORD,    0,  1,  0));
         list.add(new InventoryItem(ITM_DIAMOND_SHOVEL,   0,  1,  1));
@@ -901,6 +881,34 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             }
         }
         return true;
+    }
+
+    /**
+     * Apply all fixups which can be applied because all surrounding regions
+     * have been exported (or are not going to be), but only if another thread
+     * is not already doing it
+     */
+    protected void performFixupsIfNecessary(final File worldDir, final Dimension dimension, final Platform platform, final Set<Point> regionsToExport, final Map<Point, List<Fixup>> fixups, final Set<Point> exportedRegions, final ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
+        if (performingFixups.tryAcquire()) {
+            try {
+                Map<Point, List<Fixup>> myFixups = new HashMap<>();
+                synchronized (fixups) {
+                    for (Iterator<Map.Entry<Point, List<Fixup>>> i = fixups.entrySet().iterator(); i.hasNext(); ) {
+                        Map.Entry<Point, List<Fixup>> entry = i.next();
+                        Point fixupRegionCoords = entry.getKey();
+                        if (isReadyForFixups(regionsToExport, exportedRegions, fixupRegionCoords)) {
+                            myFixups.put(fixupRegionCoords, entry.getValue());
+                            i.remove();
+                        }
+                    }
+                }
+                if (! myFixups.isEmpty()) {
+                    performFixups(worldDir, dimension, platform, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.9f, 0.1f) : null, myFixups);
+                }
+            } finally {
+                performingFixups.release();
+            }
+        }
     }
 
     protected void performFixups(final File worldDir, final Dimension dimension, final Platform platform, final ProgressReceiver progressReceiver, final Map<Point, List<Fixup>> fixups) throws OperationCancelled {

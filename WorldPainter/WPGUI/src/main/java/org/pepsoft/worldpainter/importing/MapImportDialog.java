@@ -27,7 +27,8 @@ import java.util.*;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Constants.VERSION_ANVIL;
+import static org.pepsoft.minecraft.Constants.VERSION_MCREGION;
 
 /**
  *
@@ -391,9 +392,7 @@ public class MapImportDialog extends WorldPainterDialog {
                     if (checkBoxImportEnd.isSelected()) {
                         dimensionsToImport.add(Constants.DIM_END);
                     }
-                    final MapImporter importer = level.getDataVersion() <= DATA_VERSION_MC_1_12_2
-                        ? new LegacyJavaMapImporter(tileFactory, levelDatFile, false, chunksToSkip, readOnlyOption, dimensionsToImport)
-                        : new ModernJavaMapImporter(tileFactory, levelDatFile, false, chunksToSkip, readOnlyOption, dimensionsToImport);
+                    final MapImporter importer = new JavaMapImporter(tileFactory, levelDatFile, false, chunksToSkip, readOnlyOption, dimensionsToImport);
                     World2 world = importer.doImport(progressReceiver);
                     if (importer.getWarnings() != null) {
                         try {

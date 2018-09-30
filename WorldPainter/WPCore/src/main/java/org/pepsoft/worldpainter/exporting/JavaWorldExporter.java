@@ -218,7 +218,7 @@ public class JavaWorldExporter extends AbstractWorldExporter {
         return stats;
     }
 
-    protected ChunkFactory.Stats exportDimension(File worldDir, Dimension dimension, Platform platform, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled, IOException {
+    protected ChunkFactory.Stats exportDimension(File worldDir, Dimension dimension, Platform platform, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
         File dimensionDir;
         Dimension ceiling;
         switch (dimension.getDim()) {
@@ -247,7 +247,7 @@ public class JavaWorldExporter extends AbstractWorldExporter {
         ChunkFactory.Stats collectedStats = parallelExportRegions(dimension, platform, worldDir, progressReceiver);
 
         // Calculate total size of dimension
-        Set<Point> regions = new HashSet<>(), exportedRegions = new HashSet<>();
+        Set<Point> regions = new HashSet<>();
         if (selectedTiles != null) {
             for (Point tile: selectedTiles) {
                 regions.add(new Point(tile.x >> 2, tile.y >> 2));

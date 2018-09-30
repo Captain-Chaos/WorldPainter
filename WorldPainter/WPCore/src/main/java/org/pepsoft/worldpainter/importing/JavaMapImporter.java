@@ -4,13 +4,8 @@
  */
 package org.pepsoft.worldpainter.importing;
 
-import org.jnbt.CompoundTag;
 import org.jnbt.NBTInputStream;
-import org.jnbt.Tag;
-import org.pepsoft.minecraft.Level;
-import org.pepsoft.minecraft.MC113AnvilChunk;
-import org.pepsoft.minecraft.Material;
-import org.pepsoft.minecraft.RegionFile;
+import org.pepsoft.minecraft.*;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
 import org.pepsoft.worldpainter.*;
@@ -19,6 +14,7 @@ import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.exporters.FrostExporter.FrostSettings;
 import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter.ResourcesExporterSettings;
+import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.themes.SimpleTheme;
 import org.pepsoft.worldpainter.vo.EventVO;
 
@@ -30,22 +26,18 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 import static org.pepsoft.minecraft.Constants.*;
-import static org.pepsoft.minecraft.Material.LEVEL;
-import static org.pepsoft.minecraft.Material.WATERLOGGED;
+import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_13;
+import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.BIOME_NAMES;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.HIGHEST_BIOME_ID;
-
-// TODOMC13 migrate to modern materials
 
 /**
  *
  * @author pepijn
  */
-public class ModernJavaMapImporter extends MapImporter {
-    public ModernJavaMapImporter(TileFactory tileFactory, File levelDatFile, boolean populateNewChunks, Set<Point> chunksToSkip, ReadOnlyOption readOnlyOption, Set<Integer> dimensionsToImport) {
+public class JavaMapImporter extends MapImporter {
+    public JavaMapImporter(TileFactory tileFactory, File levelDatFile, boolean populateNewChunks, Set<Point> chunksToSkip, ReadOnlyOption readOnlyOption, Set<Integer> dimensionsToImport) {
         if ((tileFactory == null) || (levelDatFile == null) || (readOnlyOption == null) || (dimensionsToImport == null)) {
             throw new NullPointerException();
         }
@@ -65,15 +57,14 @@ public class ModernJavaMapImporter extends MapImporter {
 
         logger.info("Importing map from " + levelDatFile.getAbsolutePath());
         Level level = Level.load(levelDatFile);
-        if (level.getVersion() != VERSION_ANVIL) {
-            throw new UnsupportedOperationException("Level format version " + level.getVersion() + " not supported");
-        }
-        if (level.getDataVersion() <= DATA_VERSION_MC_1_12_2) {
-            throw new UnsupportedOperationException("Level data version " + level.getDataVersion() + " not supported");
+        int version = level.getVersion();
+        if ((version != VERSION_MCREGION) && (version != VERSION_ANVIL)) {
+            throw new UnsupportedOperationException("Level format version " + version + " not supported");
         }
         String name = level.getName().trim();
         int maxHeight = level.getMaxHeight();
-        World2 world = new World2(JAVA_ANVIL_1_13, maxHeight);
+        Platform platform = (version == VERSION_MCREGION) ? JAVA_MCREGION : ((level.getDataVersion() <= DATA_VERSION_MC_1_12_2) ? JAVA_ANVIL : JAVA_ANVIL_1_13);
+        World2 world = new World2(platform, maxHeight);
         world.addHistoryEntry(HistoryEntry.WORLD_IMPORTED_FROM_MINECRAFT_MAP, level.getName(), levelDatFile.getParentFile());
         world.setCreateGoodiesChest(false);
         world.setName(name);
@@ -92,8 +83,7 @@ public class ModernJavaMapImporter extends MapImporter {
             world.setGeneratorOptions(level.getGeneratorOptions());
         }
         world.setDifficulty(level.getDifficulty());
-        if (level.getBorderSize() > 0.0) {
-            // If the world is actually has border settings, load them
+        if ((version == VERSION_ANVIL) && (level.getBorderSize() > 0.0)) {
             world.getBorderSettings().setCentreX((int) (level.getBorderCenterX() + 0.5));
             world.getBorderSettings().setCentreY((int) (level.getBorderCenterZ() + 0.5));
             world.getBorderSettings().setSize((int) (level.getBorderSize() + 0.5));
@@ -131,12 +121,15 @@ public class ModernJavaMapImporter extends MapImporter {
             
             ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) dimension.getLayerSettings(Resources.INSTANCE);
             resourcesSettings.setMinimumLevel(0);
+            if (version == VERSION_MCREGION) {
+                resourcesSettings.setChance(EMERALD_ORE, 0);
+            }
             Configuration config = Configuration.getInstance();
             dimension.setGridEnabled(config.isDefaultGridEnabled());
             dimension.setGridSize(config.getDefaultGridSize());
             dimension.setContoursEnabled(config.isDefaultContoursEnabled());
             dimension.setContourSeparation(config.getDefaultContourSeparation());
-            String dimWarnings = importDimension(regionDir, dimension, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.0f, 1.0f / dimCount) : null);
+            String dimWarnings = importDimension(regionDir, dimension, platform, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.0f, 1.0f / dimCount) : null);
             if (dimWarnings != null) {
                 if (warnings == null) {
                     warnings = dimWarnings;
@@ -164,7 +157,10 @@ public class ModernJavaMapImporter extends MapImporter {
                 dimension.setSubsurfaceMaterial(Terrain.NETHERRACK);
                 ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) dimension.getLayerSettings(Resources.INSTANCE);
                 resourcesSettings.setMinimumLevel(0);
-                String dimWarnings = importDimension(netherDir, dimension, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) dimNo++ / dimCount, 1.0f / dimCount) : null);
+                if (version == VERSION_MCREGION) {
+                    resourcesSettings.setChance(QUARTZ_ORE, 0);
+                }
+                String dimWarnings = importDimension(netherDir, dimension, platform, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) dimNo++ / dimCount, 1.0f / dimCount) : null);
                 if (dimWarnings != null) {
                     if (warnings == null) {
                         warnings = dimWarnings;
@@ -190,7 +186,7 @@ public class ModernJavaMapImporter extends MapImporter {
             try {
                 dimension.setCoverSteepTerrain(false);
                 dimension.setSubsurfaceMaterial(Terrain.END_STONE);
-                String dimWarnings = importDimension(endDir, dimension, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) dimNo / dimCount, 1.0f / dimCount) : null);
+                String dimWarnings = importDimension(endDir, dimension, platform, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) dimNo / dimCount, 1.0f / dimCount) : null);
                 if (dimWarnings != null) {
                     if (warnings == null) {
                         warnings = dimWarnings;
@@ -230,13 +226,15 @@ public class ModernJavaMapImporter extends MapImporter {
     }
     
     @SuppressWarnings({"StringConcatenationInsideStringBufferAppend", "StringEquality"}) // Readability; Material names are interned
-    private String importDimension(File regionDir, Dimension dimension, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
+    private String importDimension(File regionDir, Dimension dimension, Platform platform, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
         if (progressReceiver != null) {
             progressReceiver.setMessage(dimension.getName() + " dimension");
         }
         final int maxHeight = dimension.getMaxHeight();
         final int maxY = maxHeight - 1;
-        final Pattern regionFilePattern = Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mca");
+        final Pattern regionFilePattern = (platform == JAVA_MCREGION)
+            ? Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mcr")
+            : Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mca");
         final File[] regionFiles = regionDir.listFiles((dir, name) -> regionFilePattern.matcher(name).matches());
         if ((regionFiles == null) || (regionFiles.length == 0)) {
             throw new RuntimeException("The " + dimension.getName() + " dimension of this map has no region files!");
@@ -248,6 +246,7 @@ public class ModernJavaMapImporter extends MapImporter {
         final int total = regionFiles.length * 1024;
         int count = 0;
         final StringBuilder reportBuilder = new StringBuilder();
+        final JavaPlatformProvider platformProvider = (JavaPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
         for (File file: regionFiles) {
             try {
                 try (RegionFile regionFile = new RegionFile(file, true)) {
@@ -262,7 +261,7 @@ public class ModernJavaMapImporter extends MapImporter {
                                 continue;
                             }
                             if (regionFile.containsChunk(x, z)) {
-                                final Tag tag;
+                                final Chunk chunk;
                                 try {
                                     final InputStream chunkData = regionFile.getChunkDataInputStream(x, z);
                                     if (chunkData == null) {
@@ -274,7 +273,7 @@ public class ModernJavaMapImporter extends MapImporter {
                                         continue;
                                     }
                                     try (NBTInputStream in = new NBTInputStream(chunkData)) {
-                                        tag = in.readTag();
+                                        chunk = platformProvider.createChunk(platform, in.readTag(), maxHeight);
                                     }
                                 } catch (IOException e) {
                                     reportBuilder.append("I/O error while reading chunk " + x + ", " + z + " from file " + file + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
@@ -288,10 +287,13 @@ public class ModernJavaMapImporter extends MapImporter {
                                     reportBuilder.append("Negative array size exception while reading chunk " + x + ", " + z + " from file " + file + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
                                     logger.error("Negative array size exception while reading chunk " + x + ", " + z + " from file " + file + "; skipping chunk", e);
                                     continue;
+                                } catch (ClassCastException e) {
+                                    reportBuilder.append("Class cast exception while reading chunk " + x + ", " + z + " from file " + file + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
+                                    logger.error("Class cast exception while reading chunk " + x + ", " + z + " from file " + file + "; skipping chunk", e);
+                                    continue;
                                 }
-                                final MC113AnvilChunk chunk = new MC113AnvilChunk((CompoundTag) tag, maxHeight);
 
-                                if (chunk.getStatus() == MC113AnvilChunk.Status.EMPTY) {
+                                if ((chunk instanceof MC113AnvilChunk) && (((MC113AnvilChunk) chunk).getStatus() == MC113AnvilChunk.Status.EMPTY)) {
                                     if (logger.isDebugEnabled()) {
                                         logger.debug("Skipping \"empty\" chunk at {},{}", chunk.getxPos(), chunk.getzPos());
                                     }
@@ -349,10 +351,12 @@ public class ModernJavaMapImporter extends MapImporter {
                                             }
                                             // Use smooth snow, if present, to better approximate world height, so smooth snow will survive merge
                                             final int intHeight = (int) (height + 0.5f);
-                                            if ((height != -1.0f) && (intHeight < maxY) && (chunk.getMaterial(xx, intHeight + 1, zz).name == MC_SNOW)) {
-                                                int data = chunk.getDataValue(xx, intHeight + 1, zz);
-                                                height += data * 0.125;
-
+                                            if ((height != -1.0f) && (intHeight < maxY)) {
+                                                Material materialAbove = chunk.getMaterial(xx, intHeight + 1, zz);
+                                                if (materialAbove.isNamed(MC_SNOW)) {
+                                                    int layers = materialAbove.getProperty(LAYERS);
+                                                    height += layers * 0.125;
+                                                }
                                             }
                                             if ((waterLevel == 0) && (height >= 61.5f)) {
                                                 waterLevel = 62;
@@ -375,13 +379,15 @@ public class ModernJavaMapImporter extends MapImporter {
                                             }
                                             if (importBiomes && chunk.isBiomesAvailable()) {
                                                 final int biome = chunk.getBiome(xx, zz);
-                                                if ((biome > HIGHEST_BIOME_ID) || (BIOME_NAMES[biome] == null)) {
+                                                if (((biome > HIGHEST_BIOME_ID) || (BIOME_NAMES[biome] == null)) && (biome != 255)) {
                                                     unknownBiomes.add(biome);
                                                 }
-                                                // Copy the biome to the dimension. However, if it matches what the
-                                                // automatic biome would be, don't copy it, so that WorldPainter will
-                                                // automatically adjust the biome when the user makes changes
-                                                if (biome != dimension.getAutoBiome(blockX, blockY)) {
+                                                // If the biome is set (around the edges of the map Minecraft sets it to
+                                                // 255, presumably as a marker that it has yet to be calculated), copy
+                                                // it to the dimension. However, if it matches what the automatic biome
+                                                // would be, don't copy it, so that WorldPainter will automatically
+                                                // adjust the biome when the user makes changes
+                                                if ((biome != 255) && (biome != dimension.getAutoBiome(blockX, blockY))) {
                                                     dimension.setLayerValueAt(Biome.INSTANCE, blockX, blockY, biome);
                                                 }
                                             }
@@ -442,7 +448,7 @@ public class ModernJavaMapImporter extends MapImporter {
     
     public static final Map<String, Terrain> TERRAIN_MAPPING = new HashMap<>();
 
-    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ModernJavaMapImporter.class);
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(JavaMapImporter.class);
     private static final String EOL = System.getProperty("line.separator");
     
     static {

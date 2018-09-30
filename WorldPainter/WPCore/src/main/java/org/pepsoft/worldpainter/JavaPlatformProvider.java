@@ -1,6 +1,8 @@
 package org.pepsoft.worldpainter;
 
 import com.google.common.collect.ImmutableList;
+import org.jnbt.CompoundTag;
+import org.jnbt.Tag;
 import org.pepsoft.minecraft.*;
 import org.pepsoft.minecraft.mapexplorer.JavaMapRecognizer;
 import org.pepsoft.worldpainter.exporting.*;
@@ -19,9 +21,21 @@ import static org.pepsoft.worldpainter.DefaultPlugin.*;
 /**
  * Created by Pepijn on 9-3-2017.
  */
-public class DefaultPlatformProvider extends AbstractPlugin implements BlockBasedPlatformProvider {
-    public DefaultPlatformProvider() {
+public class JavaPlatformProvider extends AbstractPlugin implements BlockBasedPlatformProvider {
+    public JavaPlatformProvider() {
         super("DefaultPlatforms", Version.VERSION);
+    }
+
+    public Chunk createChunk(Platform platform, Tag tag, int maxHeight) {
+        if ((platform == JAVA_MCREGION)) {
+            return new MCRegionChunk((CompoundTag) tag, maxHeight);
+        } else if ((platform == JAVA_ANVIL)) {
+            return new MC12AnvilChunk((CompoundTag) tag, maxHeight);
+        } else if ((platform == JAVA_ANVIL_1_13)) {
+            return new MC113AnvilChunk((CompoundTag) tag, maxHeight);
+        } else {
+            throw new IllegalArgumentException("Platform " + platform + " not supported");
+        }
     }
 
     @Override
