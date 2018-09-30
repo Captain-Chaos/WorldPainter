@@ -1430,6 +1430,8 @@ public final class Material implements Serializable {
      *
      * @param blockType The block ID.
      * @return The requested material.
+     * @deprecated Use {@link #get(Identity)}, {@link #get(String, Map)} or
+     * {@link #get(String, Object...)}.
      */
     public static Material get(int blockType) {
         return getByCombinedIndex(blockType << 4);
@@ -1441,6 +1443,8 @@ public final class Material implements Serializable {
      * @param blockType The block ID.
      * @param data The data value.
      * @return The requested material.
+     * @deprecated Use {@link #get(Identity)}, {@link #get(String, Map)} or
+     * {@link #get(String, Object...)}.
      */
     public static Material get(int blockType, int data) {
         return getByCombinedIndex((blockType << 4) | data);
@@ -1452,6 +1456,8 @@ public final class Material implements Serializable {
      *
      * @param blockType The block type.
      * @return The requested material.
+     * @deprecated Use {@link #get(Identity)}, {@link #get(String, Map)} or
+     * {@link #get(String, Object...)}.
      */
     public static Material get(Block blockType) {
         return getByCombinedIndex(blockType.id << 4);
@@ -1464,6 +1470,8 @@ public final class Material implements Serializable {
      * @param blockType The block type.
      * @param data The data value.
      * @return The requested material.
+     * @deprecated Use {@link #get(Identity)}, {@link #get(String, Map)} or
+     * {@link #get(String, Object...)}.
      */
     public static Material get(Block blockType, int data) {
         return getByCombinedIndex((blockType.id << 4) | data);
@@ -1477,6 +1485,8 @@ public final class Material implements Serializable {
      *
      * @param index The combined index of the material to get.
      * @return The indicated material.
+     * @deprecated Use {@link #get(Identity)}, {@link #get(String, Map)} or
+     * {@link #get(String, Object...)}.
      */
     public static Material getByCombinedIndex(int index) {
         if (index >= LEGACY_MATERIALS.length) {

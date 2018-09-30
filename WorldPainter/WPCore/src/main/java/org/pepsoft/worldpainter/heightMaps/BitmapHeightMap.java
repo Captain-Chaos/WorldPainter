@@ -197,13 +197,8 @@ public final class BitmapHeightMap extends AbstractHeightMap {
     /**
      * Cubic interpolation using Catmull-Rom splines.
      */
-    private float cubicInterpolate(float y0, float y1, float y2, float y3, float mu) {
-//        float a0 = -0.5f * y0 + 1.5f * y1 - 1.5f * y2 + 0.5f * y3;
-//        float a1 = y0 - 2.5f * y1 + 2 * y2 - 0.5f * y3;
-//        float a2 = -0.5f * y0 + 0.5f * y2;
-//        float mu2 = mu * mu;
-//        return a0 * mu * mu2 + a1 * mu2 + a2 * mu + y1;
-        return y1 + 0.5f * mu * (y2 - y0 + mu * (2.0f * y0 - 5.0f * y1 + 4.0f * y2 - y3 + mu * (3.0f * (y1 - y2) + y3 - y0)));
+    private float cubicInterpolate(float y0, float y1, float y2, float y3, float μ) {
+        return y1 + 0.5f * μ * (y2 - y0 + μ * (2.0f * y0 - 5.0f * y1 + 4.0f * y2 - y3 + μ * (3.0f * (y1 - y2) + y3 - y0)));
     }
 
     private BufferedImage image;
