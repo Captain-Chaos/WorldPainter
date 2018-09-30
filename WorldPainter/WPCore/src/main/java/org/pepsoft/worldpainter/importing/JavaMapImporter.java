@@ -502,4 +502,18 @@ public class JavaMapImporter extends MapImporter {
         TERRAIN_MAPPING.put(MC_RED_TERRACOTTA, Terrain.RED_STAINED_CLAY);
         TERRAIN_MAPPING.put(MC_BLACK_TERRACOTTA, Terrain.BLACK_STAINED_CLAY);
     }
+
+    static {
+        TERRAIN_MAPPING.forEach((name, terrain) -> {
+            if (! Material.getDefault(name).terrain) {
+                throw new IllegalStateException("Material named \"" + name + "\" not marked as terrain");
+            }
+        });
+        Material.getAllMaterials().forEach(material -> {
+            if (material.terrain && (material.namespace != LEGACY) && (! TERRAIN_MAPPING.containsKey(material.name))) {
+                // TODOMC13 once this is fixed, turn this into an exception:
+                System.err.printf("Material \"%s\" missing from terrain mapping%n", material);
+            }
+        });
+    }
 }

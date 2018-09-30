@@ -14,6 +14,7 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.List;
 
@@ -94,7 +95,7 @@ public final class Material implements Serializable {
             }
             identity = new Identity(name, properties);
         } else {
-            namespace = "legacy";
+            namespace = LEGACY;
             simpleName = ("block_" + blockType).intern();
             identity = new Identity(namespace + ":" + simpleName, Collections.singletonMap("data_value", Integer.toString(data)));
         }
@@ -1735,22 +1736,23 @@ public final class Material implements Serializable {
 
     static {
         // Read MC block database
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(Block.class.getResourceAsStream("legacy-mc-blocks.json")))) {
-            StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = in.readLine()) != null) {
-                if ((! line.trim().startsWith("#")) && (! line.trim().startsWith("//"))) {
-                    sb.append(line);
-                }
-            }
+        try (Reader in = new InputStreamReader(Block.class.getResourceAsStream("legacy-mc-blocks.json"), Charset.forName("UTF-8"))) {
             @SuppressWarnings("unchecked") // Guaranteed by contents of file
-            List<Map<String, Object>> blockSpecs = (List< Map<String, Object>>) new JSONParser().parse(sb.toString());
-            for (Map<String, Object> blockSpec: blockSpecs) {
-                String name = (String) blockSpec.get("name");
-                int blockId = ((Number) blockSpec.get("blockId")).intValue();
-                int dataValue = ((Number) blockSpec.get("dataValue")).intValue();
-                LEGACY_BLOCK_SPECS_BY_COMBINED_ID.put((blockId << 4) | dataValue, blockSpec);
-                LEGACY_BLOCK_SPECS_BY_NAME.computeIfAbsent(name, s -> new HashSet<>()).add(blockSpec);
+            List<Object> items = (List<Object>) new JSONParser().parse(in);
+            for (Object item: items) {
+                if ((item instanceof String) && (((String) item).trim().startsWith("#"))) {
+                    // Skip comment
+                } else if (item instanceof Map) {
+                    @SuppressWarnings("unchecked") // Guaranteed by contents of file
+                    Map<String, Object> blockSpec = (Map<String, Object>) item;
+                    String name = (String) blockSpec.get("name");
+                    int blockId = ((Number) blockSpec.get("blockId")).intValue();
+                    int dataValue = ((Number) blockSpec.get("dataValue")).intValue();
+                    LEGACY_BLOCK_SPECS_BY_COMBINED_ID.put((blockId << 4) | dataValue, blockSpec);
+                    LEGACY_BLOCK_SPECS_BY_NAME.computeIfAbsent(name, s -> new HashSet<>()).add(blockSpec);
+                } else {
+                    throw new IllegalArgumentException("Unexpected item encountered: " + item);
+                }
             }
         } catch (IOException e) {
             throw new RuntimeException("I/O error while reading Minecraft block database legacy-mc-blocks.json from classpath", e);
@@ -1992,6 +1994,7 @@ public final class Material implements Serializable {
     // Namespaces
 
     public static final String MINECRAFT = "minecraft";
+    public static final String LEGACY = "legacy";
 
     // Material type categories
 

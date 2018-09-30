@@ -853,7 +853,7 @@
     "dataValue": 15,
     "name": "minecraft:jungle_wood"
   },
-# What to do about the distance property?
+  "# What to do about the distance property?",
   {
     "blockId": 18,
     "dataValue": 0,
@@ -934,7 +934,7 @@
       "persistent": "false"
     }
   },
-# Missing properties for these two?
+  "# Missing properties for these two?",
   {
     "blockId": 18,
     "dataValue": 10,
@@ -9116,7 +9116,7 @@
     "dataValue": 15,
     "name": "minecraft:black_stained_glass_pane"
   },
-# What to do about the distance property?
+  "# What to do about the distance property?",
   {
     "blockId": 161,
     "dataValue": 0,
