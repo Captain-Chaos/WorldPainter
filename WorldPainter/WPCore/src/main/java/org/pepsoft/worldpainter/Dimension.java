@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.*;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.*;
 
 /**
  *

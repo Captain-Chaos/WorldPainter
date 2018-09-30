@@ -13,7 +13,7 @@ import java.awt.event.MouseEvent;
 import java.util.*;
 import java.util.List;
 
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.*;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.*;
 import static org.pepsoft.worldpainter.layers.BiomesPanel.BiomeOption.*;
 
 /**

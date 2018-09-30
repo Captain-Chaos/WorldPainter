@@ -18,7 +18,7 @@ import java.awt.image.BufferedImage;
 import java.util.Arrays;
 
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.*;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.*;
 
 /**
  *

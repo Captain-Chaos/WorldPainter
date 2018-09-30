@@ -5,6 +5,7 @@
 package org.pepsoft.minecraft;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
@@ -188,7 +189,7 @@ public final class Material implements Serializable {
             vegetation = false;
             blockLight = 0;
             lightSource = false;
-            natural = false;
+            natural = NATURAL_MATERIALS.contains(identity.name);
             category = CATEGORY_UNKNOWN;
             System.out.println("Did not match " + identity + " to legacy block");
         }
@@ -2001,6 +2002,11 @@ public final class Material implements Serializable {
     public static final int CATEGORY_RESOURCE      = 4;
     public static final int CATEGORY_NATURAL_SOLID = 5;
     public static final int CATEGORY_UNKNOWN       = 6;
+
+    // TODOMC13
+    private static final Set<String> NATURAL_MATERIALS = ImmutableSet.of(MC_TALL_SEAGRASS, MC_SEAGRASS, MC_CAVE_AIR,
+            MC_KELP_PLANT, MC_KELP, MC_BUBBLE_COLUMN, MC_PUMPKIN, MC_RED_MUSHROOM_BLOCK, MC_BROWN_MUSHROOM_BLOCK,
+            MC_BLUE_ICE);
 
     private static final long serialVersionUID = 2011101001L;
 

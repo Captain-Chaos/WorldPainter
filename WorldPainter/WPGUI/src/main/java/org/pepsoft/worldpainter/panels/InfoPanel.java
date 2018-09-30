@@ -6,10 +6,14 @@
 package org.pepsoft.worldpainter.panels;
 
 import org.pepsoft.util.IconUtils;
+import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.Terrain;
+import org.pepsoft.worldpainter.Tile;
+import org.pepsoft.worldpainter.WorldPainter;
 import org.pepsoft.worldpainter.biomeschemes.AutoBiomeScheme;
 import org.pepsoft.worldpainter.biomeschemes.BiomeHelper;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
-import org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes;
+import org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.selection.SelectionBlock;
 import org.pepsoft.worldpainter.selection.SelectionChunk;
@@ -27,10 +31,6 @@ import java.awt.event.MouseMotionListener;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.List;
-import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.Terrain;
-import org.pepsoft.worldpainter.Tile;
-import org.pepsoft.worldpainter.WorldPainter;
 
 import static org.pepsoft.worldpainter.Constants.*;
 
@@ -113,7 +113,7 @@ public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener
             biome = dim.getAutoBiome(tile, x, y);
         }
         if (biome < 0) {
-            biome = Minecraft1_7Biomes.BIOME_PLAINS;
+            biome = Minecraft1_13Biomes.BIOME_PLAINS;
         }
         if ((automaticBiome != currentAutomaticBiome) || (biome != currentBiome)) {
             labelBiome.setText(biomeHelper.getBiomeName(biome) + " (" + biome + ")");

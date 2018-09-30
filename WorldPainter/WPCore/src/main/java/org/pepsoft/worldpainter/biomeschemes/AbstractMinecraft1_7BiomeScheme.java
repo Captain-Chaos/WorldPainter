@@ -24,7 +24,7 @@ import static org.pepsoft.minecraft.Constants.*;
 
 /**
  * An abstract base class for {@link BiomeScheme}s which provide the biomes as
- * used in Minecraft 1.7 and later.
+ * used in Minecraft 1.7 to 1.12.1.
  *
  * @author pepijn
  */
@@ -192,7 +192,7 @@ public abstract class AbstractMinecraft1_7BiomeScheme extends AbstractBiomeSchem
         return new URLClassLoader(classpath.toArray(new URL[classpath.size()]));
     }
 
-    private static final boolean[][][] BIOME_PATTERNS = new boolean[168][][];
+    static final boolean[][][] BIOME_PATTERNS = new boolean[168][][];
     // We want all logging to be redirected to the slf4j API
     private static final Set<String> IGNORED_LIBRARY_NAMES = new HashSet<>(Arrays.asList("log4j-api", "log4j-core", "commons-logging"));
 

@@ -10,7 +10,7 @@ import org.pepsoft.worldpainter.Dimension;
  *
  * @author pepijn
  */
-public class AutoBiomeScheme extends AbstractMinecraft1_7BiomeScheme {
+public class AutoBiomeScheme extends AbstractMinecraft1_13BiomeScheme {
     public AutoBiomeScheme(Dimension dimension) {
         this.dimension = dimension;
     }

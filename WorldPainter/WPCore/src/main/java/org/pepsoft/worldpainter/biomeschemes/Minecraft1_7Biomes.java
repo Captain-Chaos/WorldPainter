@@ -50,20 +50,26 @@ public interface Minecraft1_7Biomes {
     int BIOME_MESA = 37;
     int BIOME_MESA_PLATEAU_F = 38;
     int BIOME_MESA_PLATEAU = 39;
+
     int BIOME_SUNFLOWER_PLAINS = 129;
     int BIOME_DESERT_M = 130;
     int BIOME_EXTREME_HILLS_M = 131;
     int BIOME_FLOWER_FOREST = 132;
     int BIOME_TAIGA_M = 133;
     int BIOME_SWAMPLAND_M = 134;
+
     int BIOME_ICE_PLAINS_SPIKES = 140;
     int BIOME_ICE_MOUNTAINS_SPIKES = 141;
+
     int BIOME_JUNGLE_M = 149;
+
     int BIOME_JUNGLE_EDGE_M = 151;
+
     int BIOME_BIRCH_FOREST_M = 155;
     int BIOME_BIRCH_FOREST_HILLS_M = 156;
     int BIOME_ROOFED_FOREST_M = 157;
     int BIOME_COLD_TAIGA_M = 158;
+
     int BIOME_MEGA_SPRUCE_TAIGA = 160;
     int BIOME_MEGA_SPRUCE_TAIGA_HILLS = 161;
     int BIOME_EXTREME_HILLS_PLUS_M = 162;
@@ -72,6 +78,7 @@ public interface Minecraft1_7Biomes {
     int BIOME_MESA_BRYCE = 165;
     int BIOME_MESA_PLATEAU_F_M = 166;
     int BIOME_MESA_PLATEAU_M = 167;
+
     int HIGHEST_BIOME_ID = BIOME_MESA_PLATEAU_M;
 
     String[] BIOME_NAMES = {

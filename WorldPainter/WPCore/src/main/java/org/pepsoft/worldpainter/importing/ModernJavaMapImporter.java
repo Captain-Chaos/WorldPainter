@@ -35,6 +35,8 @@ import static org.pepsoft.minecraft.Material.WATERLOGGED;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_13;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.BIOME_NAMES;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.HIGHEST_BIOME_ID;
 
 // TODOMC13 migrate to modern materials
 
@@ -240,7 +242,8 @@ public class ModernJavaMapImporter extends MapImporter {
             throw new RuntimeException("The " + dimension.getName() + " dimension of this map has no region files!");
         }
         final Set<Point> newChunks = new HashSet<>();
-        final Set<Material> manMadeBlockTypes = new HashSet<>();
+        final Set<String> manMadeBlockTypes = new HashSet<>();
+        final Set<Integer> unknownBiomes = new HashSet<>();
         final boolean importBiomes = dimension.getDim() == DIM_NORMAL;
         final int total = regionFiles.length * 1024;
         int count = 0;
@@ -325,13 +328,13 @@ public class ModernJavaMapImporter extends MapImporter {
                                                     } else {
                                                         manMadeStructuresBelowGround = true;
                                                     }
-                                                    manMadeBlockTypes.add(material);
+                                                    manMadeBlockTypes.add(material.name);
                                                 }
                                                 String name = material.name;
                                                 if ((name == MC_SNOW) || (name == MC_ICE)) {
                                                     frost = true;
                                                 }
-                                                if ((waterLevel == 0) && ((name == MC_ICE) || (name == MC_FROSTED_ICE) || material.getProperty(WATERLOGGED, false) || (((name == MC_WATER) || (name == MC_LAVA)) && (material.getProperty(LEVEL) == 0)))) {
+                                                if ((waterLevel == 0) && ((name == MC_ICE) || (name == MC_FROSTED_ICE) || (name == MC_BUBBLE_COLUMN) || (((name == MC_WATER) || (name == MC_LAVA)) && (material.getProperty(LEVEL) == 0)) || material.is(WATERLOGGED))) {
                                                     waterLevel = y;
                                                     if (name == MC_LAVA) {
                                                         floodWithLava = true;
@@ -339,7 +342,7 @@ public class ModernJavaMapImporter extends MapImporter {
                                                 } else if (height == -1.0f) {
                                                     if (TERRAIN_MAPPING.containsKey(name)) {
                                                         // Terrain found
-                                                        height = y - 0.4375f; // Value that falls in the middle of the lowest one eigthth which will still round to the same integer value and will receive a one layer thick smooth snow block (principle of least surprise)
+                                                        height = y - 0.4375f; // Value that falls in the middle of the lowest one eighth which will still round to the same integer value and will receive a one layer thick smooth snow block (principle of least surprise)
                                                         terrain = TERRAIN_MAPPING.get(name);
                                                     }
                                                 }
@@ -372,6 +375,9 @@ public class ModernJavaMapImporter extends MapImporter {
                                             }
                                             if (importBiomes && chunk.isBiomesAvailable()) {
                                                 final int biome = chunk.getBiome(xx, zz);
+                                                if ((biome > HIGHEST_BIOME_ID) || (BIOME_NAMES[biome] == null)) {
+                                                    unknownBiomes.add(biome);
+                                                }
                                                 // Copy the biome to the dimension. However, if it matches what the
                                                 // automatic biome would be, don't copy it, so that WorldPainter will
                                                 // automatically adjust the biome when the user makes changes
@@ -419,9 +425,9 @@ public class ModernJavaMapImporter extends MapImporter {
         }
         
         System.err.println("Man-made block types encountered:");
-        for (Material blockType: manMadeBlockTypes) {
-            System.err.println(blockType);
-        }
+        manMadeBlockTypes.forEach(System.err::println);
+        System.err.println("Unknown biome IDs encountered:");
+        unknownBiomes.forEach(System.err::println);
         
         return reportBuilder.length() != 0 ? reportBuilder.toString() : null;
     }

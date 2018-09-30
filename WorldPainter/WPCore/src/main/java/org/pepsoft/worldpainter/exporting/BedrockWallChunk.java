@@ -5,15 +5,14 @@
 
 package org.pepsoft.worldpainter.exporting;
 
-import static org.pepsoft.worldpainter.Platform.Capability.BIOMES;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
-
-import org.pepsoft.minecraft.*;
+import org.pepsoft.minecraft.ChunkFactory;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 
-import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Constants.BLK_BEDROCK;
+import static org.pepsoft.worldpainter.Platform.Capability.BIOMES;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.BIOME_PLAINS;
 
 /**
  *

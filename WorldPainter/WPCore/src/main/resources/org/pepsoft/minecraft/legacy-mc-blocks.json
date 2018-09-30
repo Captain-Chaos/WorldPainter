@@ -853,12 +853,12 @@
     "dataValue": 15,
     "name": "minecraft:jungle_wood"
   },
+# What to do about the distance property?
   {
     "blockId": 18,
     "dataValue": 0,
     "name": "minecraft:oak_leaves",
     "properties": {
-      "distance": "1",
       "persistent": "false"
     }
   },
@@ -867,7 +867,6 @@
     "dataValue": 1,
     "name": "minecraft:spruce_leaves",
     "properties": {
-      "distance": "2",
       "persistent": "false"
     }
   },
@@ -876,7 +875,6 @@
     "dataValue": 2,
     "name": "minecraft:birch_leaves",
     "properties": {
-      "distance": "3",
       "persistent": "false"
     }
   },
@@ -885,7 +883,6 @@
     "dataValue": 3,
     "name": "minecraft:jungle_leaves",
     "properties": {
-      "distance": "4",
       "persistent": "false"
     }
   },
@@ -894,7 +891,6 @@
     "dataValue": 4,
     "name": "minecraft:oak_leaves",
     "properties": {
-      "distance": "5",
       "persistent": "true"
     }
   },
@@ -903,7 +899,6 @@
     "dataValue": 5,
     "name": "minecraft:spruce_leaves",
     "properties": {
-      "distance": "6",
       "persistent": "true"
     }
   },
@@ -912,7 +907,6 @@
     "dataValue": 6,
     "name": "minecraft:birch_leaves",
     "properties": {
-      "distance": "7",
       "persistent": "true"
     }
   },
@@ -921,7 +915,6 @@
     "dataValue": 7,
     "name": "minecraft:jungle_leaves",
     "properties": {
-      "distance": "7",
       "persistent": "true"
     }
   },
@@ -930,7 +923,6 @@
     "dataValue": 8,
     "name": "minecraft:oak_leaves",
     "properties": {
-      "distance": "7",
       "persistent": "false"
     }
   },
@@ -939,10 +931,10 @@
     "dataValue": 9,
     "name": "minecraft:spruce_leaves",
     "properties": {
-      "distance": "7",
       "persistent": "false"
     }
   },
+# Missing properties for these two?
   {
     "blockId": 18,
     "dataValue": 10,
@@ -958,7 +950,6 @@
     "dataValue": 12,
     "name": "minecraft:oak_leaves",
     "properties": {
-      "distance": "7",
       "persistent": "true"
     }
   },
@@ -967,7 +958,6 @@
     "dataValue": 13,
     "name": "minecraft:spruce_leaves",
     "properties": {
-      "distance": "7",
       "persistent": "true"
     }
   },
@@ -976,7 +966,6 @@
     "dataValue": 14,
     "name": "minecraft:birch_leaves",
     "properties": {
-      "distance": "7",
       "persistent": "true"
     }
   },
@@ -985,7 +974,6 @@
     "dataValue": 15,
     "name": "minecraft:jungle_leaves",
     "properties": {
-      "distance": "7",
       "persistent": "true"
     }
   },
@@ -9128,6 +9116,7 @@
     "dataValue": 15,
     "name": "minecraft:black_stained_glass_pane"
   },
+# What to do about the distance property?
   {
     "blockId": 161,
     "dataValue": 0,

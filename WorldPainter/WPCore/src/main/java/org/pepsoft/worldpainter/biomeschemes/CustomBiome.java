@@ -33,7 +33,7 @@ public class CustomBiome implements Serializable {
     }
 
     public final void setId(int id) {
-        if (id <= Minecraft1_7Biomes.BIOME_JUNGLE_HILLS) {
+        if (id <= Minecraft1_13Biomes.BIOME_DEEP_FROZEN_OCEAN) {
             throw new IllegalArgumentException();
         }
         this.id = id;

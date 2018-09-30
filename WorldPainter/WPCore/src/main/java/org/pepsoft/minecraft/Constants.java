@@ -63,6 +63,7 @@ public final class Constants {
     public static final String MC_BLUE_CONCRETE = "minecraft:blue_concrete";
     public static final String MC_BLUE_CONCRETE_POWDER = "minecraft:blue_concrete_powder";
     public static final String MC_BLUE_GLAZED_TERRACOTTA = "minecraft:blue_glazed_terracotta";
+    public static final String MC_BLUE_ICE = "minecraft:blue_ice";
     public static final String MC_BLUE_ORCHID = "minecraft:blue_orchid";
     public static final String MC_BLUE_SHULKER_BOX = "minecraft:blue_shulker_box";
     public static final String MC_BLUE_STAINED_GLASS = "minecraft:blue_stained_glass";
@@ -86,10 +87,12 @@ public final class Constants {
     public static final String MC_BROWN_STAINED_GLASS_PANE = "minecraft:brown_stained_glass_pane";
     public static final String MC_BROWN_TERRACOTTA = "minecraft:brown_terracotta";
     public static final String MC_BROWN_WOOL = "minecraft:brown_wool";
+    public static final String MC_BUBBLE_COLUMN = "minecraft:bubble_column";
     public static final String MC_CACTUS = "minecraft:cactus";
     public static final String MC_CAKE = "minecraft:cake";
     public static final String MC_CARROTS = "minecraft:carrots";
     public static final String MC_CAULDRON = "minecraft:cauldron";
+    public static final String MC_CAVE_AIR = "minecraft:cave_air";
     public static final String MC_CHAIN_COMMAND_BLOCK = "minecraft:chain_command_block";
     public static final String MC_CHEST = "minecraft:chest";
     public static final String MC_CHIPPED_ANVIL = "minecraft:chipped_anvil";
@@ -217,6 +220,8 @@ public final class Constants {
     public static final String MC_JUNGLE_SAPLING = "minecraft:jungle_sapling";
     public static final String MC_JUNGLE_SLAB = "minecraft:jungle_slab";
     public static final String MC_JUNGLE_STAIRS = "minecraft:jungle_stairs";
+    public static final String MC_KELP_PLANT = "minecraft:kelp_plant";
+    public static final String MC_KELP = "minecraft:kelp";
     public static final String MC_LADDER = "minecraft:ladder";
     public static final String MC_LAPIS_BLOCK = "minecraft:lapis_block";
     public static final String MC_LAPIS_ORE = "minecraft:lapis_ore";
@@ -383,6 +388,7 @@ public final class Constants {
     public static final String MC_SANDSTONE_SLAB = "minecraft:sandstone_slab";
     public static final String MC_SANDSTONE_STAIRS = "minecraft:sandstone_stairs";
     public static final String MC_SEA_LANTERN = "minecraft:sea_lantern";
+    public static final String MC_SEAGRASS = "minecraft:seagrass";
     public static final String MC_SHULKER_BOX = "minecraft:shulker_box";
     public static final String MC_SIGN = "minecraft:sign";
     public static final String MC_SLIME_BLOCK = "minecraft:slime_block";
@@ -417,6 +423,7 @@ public final class Constants {
     public static final String MC_SUGAR_CANE = "minecraft:sugar_cane";
     public static final String MC_SUNFLOWER = "minecraft:sunflower";
     public static final String MC_TALL_GRASS = "minecraft:tall_grass";
+    public static final String MC_TALL_SEAGRASS = "minecraft:tall_seagrass";
     public static final String MC_TERRACOTTA = "minecraft:terracotta";
     public static final String MC_TNT = "minecraft:tnt";
     public static final String MC_TORCH = "minecraft:torch";

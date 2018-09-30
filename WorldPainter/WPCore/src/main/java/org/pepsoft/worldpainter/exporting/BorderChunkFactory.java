@@ -23,8 +23,8 @@ import static org.pepsoft.worldpainter.Constants.MEDIUM_BLOBS;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 import static org.pepsoft.worldpainter.Platform.Capability.BIOMES;
 import static org.pepsoft.worldpainter.Terrain.BEACHES;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_OCEAN;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.BIOME_OCEAN;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.BIOME_PLAINS;
 
 /**
  *

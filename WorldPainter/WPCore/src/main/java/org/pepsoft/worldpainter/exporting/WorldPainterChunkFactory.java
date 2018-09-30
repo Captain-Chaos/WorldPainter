@@ -21,12 +21,10 @@ import java.util.Random;
 import java.util.Set;
 
 import static org.pepsoft.minecraft.Constants.*;
-import static org.pepsoft.minecraft.Material.BEDROCK;
-import static org.pepsoft.minecraft.Material.STATIONARY_LAVA;
-import static org.pepsoft.minecraft.Material.STATIONARY_WATER;
+import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Platform.Capability.BIOMES;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.*;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.*;
 
 /**
  *
