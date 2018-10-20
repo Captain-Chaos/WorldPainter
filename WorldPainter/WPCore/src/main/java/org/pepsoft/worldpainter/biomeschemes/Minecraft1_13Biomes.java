@@ -22,6 +22,8 @@ public interface Minecraft1_13Biomes extends Minecraft1_7Biomes {
 
     int BIOME_VOID = 127;
 
+    int FIRST_UNALLOCATED_ID = BIOME_DEEP_FROZEN_OCEAN + 1;
+
     String[] BIOME_NAMES = {
             "Ocean",
             "Plains",

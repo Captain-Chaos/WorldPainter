@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.FIRST_UNALLOCATED_ID;
+
 /**
  * Coordinates loading, saving and editing of custom biomes.
  * 
@@ -42,7 +44,7 @@ public class CustomBiomeManager {
     public int getNextId() {
         if (customBiomes != null) {
             outer:
-            for (int i = 40; i < 256; i++) {
+            for (int i = FIRST_UNALLOCATED_ID; i < 256; i++) {
                 for (CustomBiome customBiome : customBiomes) {
                     if (customBiome.getId() == i) {
                         continue outer;
@@ -55,7 +57,7 @@ public class CustomBiomeManager {
             }
             return - 1;
         } else {
-            return 40;
+            return FIRST_UNALLOCATED_ID;
         }
     }
 

@@ -6,6 +6,8 @@ package org.pepsoft.worldpainter.biomeschemes;
 
 import java.io.Serializable;
 
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.FIRST_UNALLOCATED_ID;
+
 /**
  *
  * @author pepijn
@@ -33,7 +35,7 @@ public class CustomBiome implements Serializable {
     }
 
     public final void setId(int id) {
-        if (id <= Minecraft1_13Biomes.BIOME_DEEP_FROZEN_OCEAN) {
+        if (id < FIRST_UNALLOCATED_ID) {
             throw new IllegalArgumentException();
         }
         this.id = id;
