@@ -23,7 +23,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
-import java.util.regex.Pattern;
 
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
@@ -232,10 +231,8 @@ public class JavaMapImporter extends MapImporter {
         }
         final int maxHeight = dimension.getMaxHeight();
         final int maxY = maxHeight - 1;
-        final Pattern regionFilePattern = (platform == JAVA_MCREGION)
-            ? Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mcr")
-            : Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mca");
-        final File[] regionFiles = regionDir.listFiles((dir, name) -> regionFilePattern.matcher(name).matches());
+        final JavaPlatformProvider platformProvider = (JavaPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
+        final File[] regionFiles = platformProvider.getRegionFiles(platform, regionDir);
         if ((regionFiles == null) || (regionFiles.length == 0)) {
             throw new RuntimeException("The " + dimension.getName() + " dimension of this map has no region files!");
         }
@@ -246,7 +243,6 @@ public class JavaMapImporter extends MapImporter {
         final int total = regionFiles.length * 1024;
         int count = 0;
         final StringBuilder reportBuilder = new StringBuilder();
-        final JavaPlatformProvider platformProvider = (JavaPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
         for (File file: regionFiles) {
             try {
                 try (RegionFile regionFile = new RegionFile(file, true)) {

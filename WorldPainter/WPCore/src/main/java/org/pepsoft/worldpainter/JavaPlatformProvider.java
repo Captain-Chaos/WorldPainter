@@ -11,9 +11,11 @@ import org.pepsoft.worldpainter.plugins.AbstractPlugin;
 import org.pepsoft.worldpainter.plugins.BlockBasedPlatformProvider;
 import org.pepsoft.worldpainter.util.MinecraftUtil;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
@@ -37,6 +39,25 @@ public class JavaPlatformProvider extends AbstractPlugin implements BlockBasedPl
             throw new IllegalArgumentException("Platform " + platform + " not supported");
         }
     }
+
+    public File[] getRegionFiles(Platform platform, File regionDir) {
+        final Pattern regionFilePattern = (platform == JAVA_MCREGION)
+                ? Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mcr")
+                : Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mca");
+        return regionDir.listFiles((dir, name) -> regionFilePattern.matcher(name).matches());
+    }
+
+    public RegionFile getRegionFile(Platform platform, File regionDir, Point coords, boolean readOnly) throws IOException{
+        if ((platform == JAVA_MCREGION)) {
+            return new RegionFile(new File(regionDir, "r." + coords.x + "." + coords.y + ".mcr"), readOnly);
+        } else if ((platform == JAVA_ANVIL) || (platform == JAVA_ANVIL_1_13)) {
+            return new RegionFile(new File(regionDir, "r." + coords.x + "." + coords.y + ".mca"), readOnly);
+        } else {
+            throw new IllegalArgumentException("Platform " + platform + " not supported");
+        }
+    }
+
+    // BlockBasedPlatformProvider
 
     @Override
     public List<Platform> getKeys() {

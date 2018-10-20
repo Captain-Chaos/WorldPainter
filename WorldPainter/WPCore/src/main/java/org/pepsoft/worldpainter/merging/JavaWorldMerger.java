@@ -41,6 +41,7 @@ import static org.pepsoft.worldpainter.Constants.*;
  *
  * @author pepijn
  */
+@SuppressWarnings("StringConcatenationInsideStringBufferAppend") // Readability
 public class JavaWorldMerger extends JavaWorldExporter {
     public JavaWorldMerger(World2 world, File levelDatFile) {
         super(world);
@@ -892,10 +893,11 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
             progressReceiver.setMessage("Merging existing blocks with new");
         }
 
-        int lowestChunkX = (regionCoords.x << 5) - 1;
-        int highestChunkX = (regionCoords.x << 5) + 32;
-        int lowestChunkY = (regionCoords.y << 5) - 1;
-        int highestChunkY = (regionCoords.y << 5) + 32;
+        // TODO: we used to do one extra ring of chunks here. Not sure why, perhaps we'll rediscover it...
+        int lowestChunkX = regionCoords.x << 5;
+        int highestChunkX = (regionCoords.x << 5) + 31;
+        int lowestChunkY = regionCoords.y << 5;
+        int highestChunkY = (regionCoords.y << 5) + 31;
         Platform platform = dimension.getWorld().getPlatform();
         int maxHeight = dimension.getMaxHeight();
         Map<Point, RegionFile> regionFiles = new HashMap<>();
@@ -923,6 +925,9 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                         // The chunk exists in the new world, and replace all
                         // chunks has been requested, so leave the new chunk
                         // as is
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Using chunk from new world at " +chunkX + "," + chunkY);
+                        }
                         continue;
                     }
                     int regionX = chunkX >> 5;
@@ -935,13 +940,12 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                     }
                     RegionFile regionFile = regionFiles.get(coords);
                     if (regionFile == null) {
-                        File file = new File(oldRegionDir, "r." + regionX + "." + regionY + ((platform == DefaultPlugin.JAVA_ANVIL) ? ".mca" : ".mcr"));
                         try {
-                            regionFile = new RegionFile(file);
+                            regionFile = platformProvider.getRegionFile(platform, oldRegionDir, coords, true);
                             regionFiles.put(coords, regionFile);
                         } catch (IOException e) {
-                            reportBuilder.append("I/O error while opening region file " + file + " (message: \"" + e.getMessage() + "\"); skipping region" + EOL);
-                            logger.error("I/O error while opening region file " + file + "; skipping region", e);
+                            reportBuilder.append("I/O error while opening region " + regionX + "," + regionY + " (message: \"" + e.getMessage() + "\"); skipping region" + EOL);
+                            logger.error("I/O error while opening region " + regionX + "," + regionY + "; skipping region", e);
                             damagedRegions.add(coords);
                             continue;
                         }
@@ -999,6 +1003,9 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                         } else {
                             // Chunk exists in existing world, but not in new
                             // one, copy old to new
+                            if (logger.isDebugEnabled()) {
+                                logger.debug("Using chunk from existing map at " + chunkX + "," + chunkY);
+                            }
                             minecraftWorld.addChunk(existingChunk);
                         }
                     }
@@ -1210,6 +1217,9 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
     }
     
     private Chunk mergeChunk(Chunk existingChunk, Chunk newChunk, Dimension dimension) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Merging chunks at " + existingChunk.getxPos() + "," + existingChunk.getzPos());
+        }
         int maxY = existingChunk.getMaxHeight() - 1;
         int chunkX = existingChunk.getxPos() << 4, chunkZ = existingChunk.getzPos() << 4;
         List<Entity> newChunkEntities = newChunk.getEntities();
