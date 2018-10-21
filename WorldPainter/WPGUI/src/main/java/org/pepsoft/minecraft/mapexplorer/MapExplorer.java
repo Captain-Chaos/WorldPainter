@@ -273,6 +273,18 @@ public class MapExplorer {
         } else if (data instanceof long[]) {
             bitSet = BitSet.valueOf((long[]) data);
             lengthInWords = ((long[]) data).length * 64 / wordSize;
+        } else if (data instanceof int[]) {
+            int[] dataAsInts = (int[]) data;
+            if (dataAsInts.length % 2 == 0) {
+                long[] dataAsLongs = new long[dataAsInts.length / 2];
+                for (int i = 0; i < dataAsLongs.length; i++) {
+                    dataAsLongs[i] = (dataAsInts[i * 2] & 0x00000000ffffffffL) | ((long) dataAsInts[i * 2 + 1] << 32);
+                }
+                bitSet = BitSet.valueOf(dataAsLongs);
+                lengthInWords = dataAsLongs.length * 64 / wordSize;
+            } else {
+                throw new IllegalArgumentException("Don't know how to process data of type int[] and odd length");
+            }
         } else {
             throw new IllegalArgumentException("Don't know how to process data of type " + data.getClass());
         }
