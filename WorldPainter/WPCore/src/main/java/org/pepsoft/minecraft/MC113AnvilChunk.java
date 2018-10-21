@@ -25,7 +25,7 @@ import static org.pepsoft.minecraft.Material.AIR;
  * 
  * @author pepijn
  */
-public final class MC113AnvilChunk extends AbstractNBTItem implements Chunk, MinecraftWorld {
+public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
     public MC113AnvilChunk(int xPos, int zPos, int maxHeight) {
         super(new CompoundTag(TAG_LEVEL, new HashMap<>()));
         this.xPos = xPos;

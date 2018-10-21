@@ -5,6 +5,7 @@
 
 package org.pepsoft.worldpainter.exporting;
 
+import org.jnbt.XMLTransformer;
 import org.pepsoft.minecraft.ChunkFactory;
 import org.pepsoft.minecraft.Level;
 import org.pepsoft.util.FileUtils;
@@ -16,15 +17,13 @@ import org.pepsoft.worldpainter.util.FileInUseException;
 import org.pepsoft.worldpainter.vo.EventVO;
 
 import java.awt.*;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 import static org.pepsoft.minecraft.Constants.DIFFICULTY_HARD;
 import static org.pepsoft.minecraft.Constants.GAME_TYPE_SURVIVAL;
 import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.*;
 
 /**
  *
@@ -33,10 +32,10 @@ import static org.pepsoft.worldpainter.Constants.*;
 public class JavaWorldExporter extends AbstractWorldExporter {
     public JavaWorldExporter(World2 world) {
         super(world);
-        if ((! (world.getPlatform() == DefaultPlugin.JAVA_ANVIL))
-                && (! (world.getPlatform() == DefaultPlugin.JAVA_MCREGION))
-                && (! (world.getPlatform() == DefaultPlugin.JAVA_ANVIL_1_13))) {
-            throw new IllegalArgumentException("Unsupported platform " + world.getPlatform());
+        if ((! (platform == JAVA_ANVIL))
+                && (! (platform == JAVA_MCREGION))
+                && (! (platform == JAVA_ANVIL_1_13))) {
+            throw new IllegalArgumentException("Unsupported platform " + platform);
         }
     }
 
@@ -91,30 +90,35 @@ public class JavaWorldExporter extends AbstractWorldExporter {
         Dimension.Border dim0Border = dim0.getBorder();
         boolean endlessBorder = (dim0Border != null) && dim0Border.isEndless();
         if (endlessBorder) {
-            StringBuilder generatorOptions = new StringBuilder("3;");
-            switch (dim0Border) {
-                case ENDLESS_LAVA:
-                case ENDLESS_WATER:
-                    boolean bottomless = dim0.isBottomless();
-                    int borderLevel = dim0.getBorderLevel();
-                    int oceanDepth = Math.min(borderLevel / 2, 20);
-                    int dirtDepth = borderLevel - oceanDepth - (bottomless ? 1 : 0);
-                    if (! bottomless) {
-                        generatorOptions.append("1*minecraft:bedrock,");
-                    }
-                    generatorOptions.append(dirtDepth);
-                    generatorOptions.append("*minecraft:dirt,");
-                    generatorOptions.append(oceanDepth);
-                    generatorOptions.append((dim0Border == Dimension.Border.ENDLESS_WATER) ? "*minecraft:water;0;" : "*minecraft:lava;1;");
-                    break;
-                case ENDLESS_VOID:
-                    generatorOptions.append("1*minecraft:air;1;");
-                    break;
+            if (platform == JAVA_ANVIL_1_13) {
+                // TODOMC13
+                throw new UnsupportedOperationException("Endless border not yet supported for Minecraft 1.13");
+            } else {
+                StringBuilder generatorOptions = new StringBuilder("3;");
+                switch (dim0Border) {
+                    case ENDLESS_LAVA:
+                    case ENDLESS_WATER:
+                        boolean bottomless = dim0.isBottomless();
+                        int borderLevel = dim0.getBorderLevel();
+                        int oceanDepth = Math.min(borderLevel / 2, 20);
+                        int dirtDepth = borderLevel - oceanDepth - (bottomless ? 1 : 0);
+                        if (! bottomless) {
+                            generatorOptions.append("1*minecraft:bedrock,");
+                        }
+                        generatorOptions.append(dirtDepth);
+                        generatorOptions.append("*minecraft:dirt,");
+                        generatorOptions.append(oceanDepth);
+                        generatorOptions.append((dim0Border == Dimension.Border.ENDLESS_WATER) ? "*minecraft:water;0;" : "*minecraft:lava;1;");
+                        break;
+                    case ENDLESS_VOID:
+                        generatorOptions.append("1*minecraft:air;1;");
+                        break;
+                }
+                generatorOptions.append(DEFAULT_GENERATOR_OPTIONS);
+                level.setGeneratorOptions(XMLTransformer.fromXML(new StringReader(generatorOptions.toString())));
             }
-            generatorOptions.append(DEFAULT_GENERATOR_OPTIONS);
             level.setMapFeatures(false);
             level.setGenerator(Generator.FLAT);
-            level.setGeneratorOptions(generatorOptions.toString());
         } else {
             level.setMapFeatures(world.isMapFeatures());
             if (world.getGenerator() == Generator.CUSTOM) {
@@ -123,9 +127,9 @@ public class JavaWorldExporter extends AbstractWorldExporter {
                 level.setGenerator(world.getGenerator());
             }
         }
-        if ((world.getPlatform() == DefaultPlugin.JAVA_ANVIL)) {
+        if ((world.getPlatform() != JAVA_MCREGION)) {
             if ((! endlessBorder) && (world.getGenerator() == Generator.FLAT) && (world.getGeneratorOptions() != null)) {
-                level.setGeneratorOptions(world.getGeneratorOptions());
+                level.setGeneratorOptions(XMLTransformer.fromXML(new StringReader(world.getGeneratorOptions())));
             }
             World2.BorderSettings borderSettings = world.getBorderSettings();
             level.setBorderCenterX(borderSettings.getCentreX());
@@ -157,11 +161,11 @@ public class JavaWorldExporter extends AbstractWorldExporter {
                 } else if (progressReceiver != null) {
                     progressReceiver.reset();
                 }
-                stats.put(dimension.getDim(), exportDimension(worldDir, dimension, world.getPlatform(), progressReceiver));
+                stats.put(dimension.getDim(), exportDimension(worldDir, dimension, progressReceiver));
             }
         } else {
             selectedDimension = selectedDimensions.iterator().next();
-            stats.put(selectedDimension, exportDimension(worldDir, world.getDimension(selectedDimension), world.getPlatform(), progressReceiver));
+            stats.put(selectedDimension, exportDimension(worldDir, world.getDimension(selectedDimension), progressReceiver));
         }
         
         // Update the session.lock file, hopefully kicking out any Minecraft instances which may have tried to open the
@@ -189,7 +193,7 @@ public class JavaWorldExporter extends AbstractWorldExporter {
             event.setAttribute(ATTRIBUTE_KEY_GAME_TYPE_NAME, world.getGameType().name());
             event.setAttribute(ATTRIBUTE_KEY_ALLOW_CHEATS, world.isAllowCheats());
             event.setAttribute(ATTRIBUTE_KEY_GENERATOR, world.getGenerator().name());
-            if ((world.getPlatform() == DefaultPlugin.JAVA_ANVIL) && (world.getGenerator() == Generator.FLAT)) {
+            if ((world.getPlatform() == JAVA_ANVIL) && (world.getGenerator() == Generator.FLAT)) {
                 event.setAttribute(ATTRIBUTE_KEY_GENERATOR_OPTIONS, world.getGeneratorOptions());
             }
             Dimension dimension = world.getDimension(0);
@@ -218,7 +222,7 @@ public class JavaWorldExporter extends AbstractWorldExporter {
         return stats;
     }
 
-    protected ChunkFactory.Stats exportDimension(File worldDir, Dimension dimension, Platform platform, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
+    protected ChunkFactory.Stats exportDimension(File worldDir, Dimension dimension, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
         File dimensionDir;
         Dimension ceiling;
         switch (dimension.getDim()) {
@@ -244,7 +248,7 @@ public class JavaWorldExporter extends AbstractWorldExporter {
             }
         }
 
-        ChunkFactory.Stats collectedStats = parallelExportRegions(dimension, platform, worldDir, progressReceiver);
+        ChunkFactory.Stats collectedStats = parallelExportRegions(dimension, worldDir, progressReceiver);
 
         // Calculate total size of dimension
         Set<Point> regions = new HashSet<>();
@@ -271,7 +275,7 @@ public class JavaWorldExporter extends AbstractWorldExporter {
             }
         }
         for (Point region: regions) {
-            File file = new File(dimensionDir, "region/r." + region.x + "." + region.y + ((platform == DefaultPlugin.JAVA_ANVIL) ? ".mca" : ".mcr"));
+            File file = new File(dimensionDir, "region/r." + region.x + "." + region.y + ((platform == JAVA_ANVIL) ? ".mca" : ".mcr"));
             collectedStats.size += file.length();
         }
 

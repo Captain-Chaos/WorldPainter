@@ -1,17 +1,20 @@
 package org.pepsoft.worldpainter;
 
-import org.jnbt.CompoundTag;
 import org.jnbt.NBTInputStream;
 import org.jnbt.Tag;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.pepsoft.minecraft.*;
+import org.pepsoft.minecraft.Block;
+import org.pepsoft.minecraft.Chunk;
+import org.pepsoft.minecraft.Level;
+import org.pepsoft.minecraft.RegionFile;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.exporting.JavaMinecraftWorld;
 import org.pepsoft.worldpainter.exporting.JavaWorldExporter;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import org.pepsoft.worldpainter.layers.NotPresent;
+import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.pepsoft.worldpainter.util.MinecraftWorldUtils;
 import org.slf4j.Logger;
@@ -21,18 +24,15 @@ import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.BitSet;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 
@@ -165,6 +165,7 @@ public class RegressionIT {
                 throw new IllegalArgumentException();
         }
         Platform platform = world.getPlatform();
+        JavaPlatformProvider platformProvider = (JavaPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
         int maxHeight = dimension.getMaxHeight();
         Pattern regionFilePattern = (platform == DefaultPlugin.JAVA_MCREGION)
             ? Pattern.compile("r\\.(-?\\d+)\\.(-?\\d+)\\.mcr")
@@ -198,9 +199,7 @@ public class RegressionIT {
                                 Chunk chunk;
                                 try (NBTInputStream in = new NBTInputStream(regionFile.getChunkDataInputStream(chunkX, chunkZ))) {
                                     Tag tag = in.readTag();
-                                    chunk = (platform == DefaultPlugin.JAVA_MCREGION)
-                                            ? new MCRegionChunk((CompoundTag) tag, maxHeight, true)
-                                            : new MC12AnvilChunk((CompoundTag) tag, maxHeight, true);
+                                    chunk = platformProvider.createChunk(platform, tag, maxHeight, true);
                                 }
 
                                 // Iterate over all blocks to check whether the

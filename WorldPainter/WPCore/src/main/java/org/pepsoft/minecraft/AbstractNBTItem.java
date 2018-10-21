@@ -34,6 +34,14 @@ public abstract class AbstractNBTItem implements NBTItem, Serializable, Cloneabl
         return tag.containsTag(name);
     }
 
+    protected final Tag getTag(String name) {
+        return tag.getTag(name);
+    }
+
+    protected final void setTag(String name, Tag tag) {
+        this.tag.setTag(name, tag);
+    }
+
     protected final Map<String, Tag> getMap(String name) {
         CompoundTag compoundTag = (CompoundTag) tag.getTag(name);
         return (compoundTag != null) ? compoundTag.getValue() : null;

@@ -28,13 +28,17 @@ public class JavaPlatformProvider extends AbstractPlugin implements BlockBasedPl
         super("DefaultPlatforms", Version.VERSION);
     }
 
-    public Chunk createChunk(Platform platform, Tag tag, int maxHeight) {
+    public NBTChunk createChunk(Platform platform, Tag tag, int maxHeight) {
+        return createChunk(platform, tag, maxHeight, false);
+    }
+
+    public NBTChunk createChunk(Platform platform, Tag tag, int maxHeight, boolean readOnly) {
         if ((platform == JAVA_MCREGION)) {
-            return new MCRegionChunk((CompoundTag) tag, maxHeight);
+            return new MCRegionChunk((CompoundTag) tag, maxHeight, readOnly);
         } else if ((platform == JAVA_ANVIL)) {
-            return new MC12AnvilChunk((CompoundTag) tag, maxHeight);
+            return new MC12AnvilChunk((CompoundTag) tag, maxHeight, readOnly);
         } else if ((platform == JAVA_ANVIL_1_13)) {
-            return new MC113AnvilChunk((CompoundTag) tag, maxHeight);
+            return new MC113AnvilChunk((CompoundTag) tag, maxHeight, readOnly);
         } else {
             throw new IllegalArgumentException("Platform " + platform + " not supported");
         }
@@ -48,13 +52,12 @@ public class JavaPlatformProvider extends AbstractPlugin implements BlockBasedPl
     }
 
     public RegionFile getRegionFile(Platform platform, File regionDir, Point coords, boolean readOnly) throws IOException{
-        if ((platform == JAVA_MCREGION)) {
-            return new RegionFile(new File(regionDir, "r." + coords.x + "." + coords.y + ".mcr"), readOnly);
-        } else if ((platform == JAVA_ANVIL) || (platform == JAVA_ANVIL_1_13)) {
-            return new RegionFile(new File(regionDir, "r." + coords.x + "." + coords.y + ".mca"), readOnly);
-        } else {
-            throw new IllegalArgumentException("Platform " + platform + " not supported");
-        }
+        return new RegionFile(getRegionFileFile(platform, regionDir, coords), readOnly);
+    }
+
+    public RegionFile getRegionFileIfExists(Platform platform, File regionDir, Point coords, boolean readOnly) throws IOException{
+        File file = getRegionFileFile(platform, regionDir, coords);
+        return file.isFile() ? new RegionFile(file, readOnly) : null;
     }
 
     // BlockBasedPlatformProvider
@@ -137,6 +140,16 @@ public class JavaPlatformProvider extends AbstractPlugin implements BlockBasedPl
     @Override
     public MapRecognizer getMapRecognizer() {
         return new JavaMapRecognizer();
+    }
+
+    private File getRegionFileFile(Platform platform, File regionDir, Point coords) {
+        if ((platform == JAVA_MCREGION)) {
+            return new File(regionDir, "r." + coords.x + "." + coords.y + ".mcr");
+        } else if ((platform == JAVA_ANVIL) || (platform == JAVA_ANVIL_1_13)) {
+            return new File(regionDir, "r." + coords.x + "." + coords.y + ".mca");
+        } else {
+            throw new IllegalArgumentException("Platform " + platform + " not supported");
+        }
     }
 
     private static final List<Platform> PLATFORMS = ImmutableList.of(JAVA_ANVIL_1_13, JAVA_ANVIL, JAVA_MCREGION);

@@ -42,7 +42,9 @@ import static org.pepsoft.worldpainter.Constants.*;
 import org.pepsoft.worldpainter.Dimension;
 
 /**
- * Created by Pepijn on 11-12-2016.
+ * An abstract {@link WorldExporter} for block based platforms.
+ *
+ * <p>Created by Pepijn on 11-12-2016.
  */
 public abstract class AbstractWorldExporter implements WorldExporter {
     protected AbstractWorldExporter(World2 world) {
@@ -50,6 +52,8 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             throw new NullPointerException();
         }
         this.world = world;
+        this.platform = world.getPlatform();
+        platformProvider = (BlockBasedPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
         this.selectedTiles = world.getTilesToExport();
         this.selectedDimensions = world.getDimensionsToExport();
         if ((selectedTiles != null) && (selectedDimensions.size() != 1)) {
@@ -91,7 +95,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
      * @throws RuntimeException If an exception occurs during the export and no
      * progress receiver has been specified.
      */
-    protected ChunkFactory.Stats parallelExportRegions(Dimension dimension, Platform platform, File worldDir, ProgressReceiver progressReceiver) throws OperationCancelled {
+    protected ChunkFactory.Stats parallelExportRegions(Dimension dimension, File worldDir, ProgressReceiver progressReceiver) throws OperationCancelled {
         if (progressReceiver != null) {
             progressReceiver.setMessage("Exporting " + dimension.getName() + " dimension");
         }
@@ -269,7 +273,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                             WorldRegion worldRegion = new WorldRegion(regionCoords.x, regionCoords.y, dimension.getMaxHeight(), platform);
                             ExportResults exportResults = null;
                             try {
-                                exportResults = exportRegion(worldRegion, dimension, ceiling, platform, regionCoords, tileSelection, exporters, ceilingExporters, chunkFactory, ceilingChunkFactory, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.0f, 0.9f) : null);
+                                exportResults = exportRegion(worldRegion, dimension, ceiling, regionCoords, tileSelection, exporters, ceilingExporters, chunkFactory, ceilingChunkFactory, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.0f, 0.9f) : null);
                                 if (logger.isDebugEnabled()) {
                                     logger.debug("Generated region " + regionCoords.x + "," + regionCoords.y);
                                 }
@@ -295,7 +299,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                                 }
                                 exportedRegions.add(regionCoords);
                             }
-                            performFixupsIfNecessary(worldDir, dimension, platform, regions, fixups, exportedRegions, progressReceiver1);
+                            performFixupsIfNecessary(worldDir, dimension, regions, fixups, exportedRegions, progressReceiver1);
                         } catch (Throwable t) {
                             if (progressReceiver1 != null) {
                                 progressReceiver1.exceptionThrown(t);
@@ -333,7 +337,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                         progressReceiver.setMessage("Doing remaining fixups for " + dimension.getName());
                         progressReceiver.reset();
                     }
-                    performFixups(worldDir, dimension, platform, progressReceiver, fixups);
+                    performFixups(worldDir, dimension, progressReceiver, fixups);
                 }
             }
 
@@ -444,8 +448,6 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         ExportResults exportResults = new ExportResults();
         int chunkNo = 0;
         int ceilingDelta = dimension.getMaxHeight() - dimension.getCeilingHeight();
-        Platform platform = world.getPlatform();
-        BlockBasedPlatformProvider platformProvider = (BlockBasedPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
         for (int chunkX = lowestChunkX; chunkX <= highestChunkX; chunkX++) {
             for (int chunkY = lowestChunkY; chunkY <= highestChunkY; chunkY++) {
                 ChunkFactory.ChunkCreationResult chunkCreationResult = createChunk(dimension, chunkFactory, tiles, chunkX, chunkY, tileSelection, exporters, ceiling);
@@ -511,7 +513,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         }
     }
 
-    protected List<Fixup> secondPass(List<Layer> secondaryPassLayers, Dimension dimension, Platform platform, MinecraftWorld minecraftWorld, Map<Layer, LayerExporter> exporters, Collection<Tile> tiles, Point regionCoords, ProgressReceiver progressReceiver) throws OperationCancelled {
+    protected List<Fixup> secondPass(List<Layer> secondaryPassLayers, Dimension dimension, MinecraftWorld minecraftWorld, Map<Layer, LayerExporter> exporters, Collection<Tile> tiles, Point regionCoords, ProgressReceiver progressReceiver) throws OperationCancelled {
         // Apply other secondary pass layers
         if (logger.isDebugEnabled()) {
             logger.debug("Start of second pass for region {},{}", regionCoords.x, regionCoords.y);
@@ -592,7 +594,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         return fixups;
     }
 
-    protected void lightingPass(MinecraftWorld minecraftWorld, Platform platform, Point regionCoords, ProgressReceiver progressReceiver) throws OperationCancelled {
+    protected void lightingPass(MinecraftWorld minecraftWorld, Point regionCoords, ProgressReceiver progressReceiver) throws OperationCancelled {
         if (progressReceiver != null) {
             progressReceiver.setMessage("Calculating primary light");
         }
@@ -645,7 +647,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         }
     }
 
-    protected ExportResults exportRegion(MinecraftWorld minecraftWorld, Dimension dimension, Dimension ceiling, Platform platform, Point regionCoords, boolean tileSelection, Map<Layer, LayerExporter> exporters, Map<Layer, LayerExporter> ceilingExporters, ChunkFactory chunkFactory, ChunkFactory ceilingChunkFactory, ProgressReceiver progressReceiver) throws OperationCancelled, IOException {
+    protected ExportResults exportRegion(MinecraftWorld minecraftWorld, Dimension dimension, Dimension ceiling, Point regionCoords, boolean tileSelection, Map<Layer, LayerExporter> exporters, Map<Layer, LayerExporter> ceilingExporters, ChunkFactory chunkFactory, ChunkFactory ceilingChunkFactory, ProgressReceiver progressReceiver) throws OperationCancelled, IOException {
         if (progressReceiver != null) {
             progressReceiver.setMessage("Exporting region " + regionCoords.x + "," + regionCoords.y + " of " + dimension.getName());
         }
@@ -727,7 +729,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             // Second pass. Apply layers which need information from or apply
             // changes to neighbouring chunks
             long t2 = System.currentTimeMillis();
-            List<Fixup> myFixups = secondPass(secondaryPassLayers, dimension, platform, minecraftWorld, exporters, tiles.values(), regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.45f, (ceiling != null) ? 0.05f : 0.1f) : null);
+            List<Fixup> myFixups = secondPass(secondaryPassLayers, dimension, minecraftWorld, exporters, tiles.values(), regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.45f, (ceiling != null) ? 0.05f : 0.1f) : null);
             if ((myFixups != null) && (! myFixups.isEmpty())) {
                 exportResults.fixups = myFixups;
             }
@@ -736,7 +738,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 // Second pass for ceiling. Apply layers which need information
                 // from or apply changes to neighbouring chunks. Fixups are not
                 // supported for the ceiling for now. TODO: implement
-                secondPass(ceilingSecondaryPassLayers, ceiling, platform, new InvertedWorld(minecraftWorld, ceiling.getMaxHeight() - ceiling.getCeilingHeight()), ceilingExporters, ceilingTiles.values(), regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.4f, 0.05f) : null);
+                secondPass(ceilingSecondaryPassLayers, ceiling, new InvertedWorld(minecraftWorld, ceiling.getMaxHeight() - ceiling.getCeilingHeight()), ceilingExporters, ceilingTiles.values(), regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.4f, 0.05f) : null);
             }
 
             // Post processing. Fix covered grass blocks, things like that
@@ -745,7 +747,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
 
             // Third pass. Calculate lighting
             long t4 = System.currentTimeMillis();
-            lightingPass(minecraftWorld, platform, regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.65f, 0.35f) : null);
+            lightingPass(minecraftWorld, regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.65f, 0.35f) : null);
             long t5 = System.currentTimeMillis();
             if ("true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.devMode"))) {
                 String timingMessage = (t2 - t1) + ", " + (t3 - t2) + ", " + (t4 - t3) + ", " + (t5 - t4) + ", " + (t5 - t1);
@@ -802,6 +804,11 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 return null;
             }
         }
+    }
+
+    protected void setPlatform(Platform platform) {
+        world.setPlatform(platform);
+        this.platform = platform;
     }
 
     private boolean isWorldChunk(Dimension dimension, int x, int y) {
@@ -888,7 +895,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
      * have been exported (or are not going to be), but only if another thread
      * is not already doing it
      */
-    protected void performFixupsIfNecessary(final File worldDir, final Dimension dimension, final Platform platform, final Set<Point> regionsToExport, final Map<Point, List<Fixup>> fixups, final Set<Point> exportedRegions, final ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
+    protected void performFixupsIfNecessary(final File worldDir, final Dimension dimension, final Set<Point> regionsToExport, final Map<Point, List<Fixup>> fixups, final Set<Point> exportedRegions, final ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
         if (performingFixups.tryAcquire()) {
             try {
                 Map<Point, List<Fixup>> myFixups = new HashMap<>();
@@ -903,7 +910,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                     }
                 }
                 if (! myFixups.isEmpty()) {
-                    performFixups(worldDir, dimension, platform, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.9f, 0.1f) : null, myFixups);
+                    performFixups(worldDir, dimension, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.9f, 0.1f) : null, myFixups);
                 }
             } finally {
                 performingFixups.release();
@@ -911,7 +918,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         }
     }
 
-    protected void performFixups(final File worldDir, final Dimension dimension, final Platform platform, final ProgressReceiver progressReceiver, final Map<Point, List<Fixup>> fixups) throws OperationCancelled {
+    protected void performFixups(final File worldDir, final Dimension dimension, final ProgressReceiver progressReceiver, final Map<Point, List<Fixup>> fixups) throws OperationCancelled {
         long start = System.currentTimeMillis();
         int count = 0, total = 0;
         for (Map.Entry<Point, List<Fixup>> entry: fixups.entrySet()) {
@@ -941,9 +948,11 @@ public abstract class AbstractWorldExporter implements WorldExporter {
     }
 
     protected final World2 world;
+    protected final BlockBasedPlatformProvider platformProvider;
     protected final Set<Integer> selectedDimensions;
     protected final Set<Point> selectedTiles;
     protected final Semaphore performingFixups = new Semaphore(1);
+    protected Platform platform;
 
     private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMddHHmmss");
     private static final Object TIMING_FILE_LOCK = new Object();

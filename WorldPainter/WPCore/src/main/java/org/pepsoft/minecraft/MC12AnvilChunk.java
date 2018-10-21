@@ -23,7 +23,7 @@ import static org.pepsoft.minecraft.Constants.*;
  * 
  * @author pepijn
  */
-public final class MC12AnvilChunk extends AbstractNBTItem implements Chunk, MinecraftWorld {
+public final class MC12AnvilChunk extends NBTChunk implements MinecraftWorld {
     public MC12AnvilChunk(int xPos, int zPos, int maxHeight) {
         super(new CompoundTag(TAG_LEVEL, new HashMap<>()));
         this.xPos = xPos;

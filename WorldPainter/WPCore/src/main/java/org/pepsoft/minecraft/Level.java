@@ -216,8 +216,8 @@ public final class Level extends AbstractNBTItem {
         }
     }
     
-    public String getGeneratorOptions() {
-        return getString(TAG_GENERATOR_OPTIONS);
+    public Tag getGeneratorOptions() {
+        return getTag(TAG_GENERATOR_OPTIONS);
     }
     
     public boolean isAllowCommands() {
@@ -342,8 +342,8 @@ public final class Level extends AbstractNBTItem {
         }
     }
     
-    public void setGeneratorOptions(String generatorOptions) {
-        setString(TAG_GENERATOR_OPTIONS, generatorOptions);
+    public void setGeneratorOptions(Tag generatorOptions) {
+        setTag(TAG_GENERATOR_OPTIONS, generatorOptions);
     }
     
     public void setAllowCommands(boolean allowCommands) {

@@ -5,8 +5,10 @@ import org.jnbt.NBTInputStream;
 import org.jnbt.NBTOutputStream;
 import org.pepsoft.minecraft.*;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.JavaPlatformProvider;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.layers.ReadOnly;
+import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +33,7 @@ public class JavaChunkStore implements ChunkStore {
             throw new IllegalArgumentException("Unsupported platform " + platform);
         }
         this.platform = platform;
+        this.platformProvider = (JavaPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
         this.regionDir = regionDir;
         this.honourReadOnlyChunks = honourReadOnlyChunks;
         this.dimension = dimension;
@@ -156,13 +159,7 @@ public class JavaChunkStore implements ChunkStore {
                     CompoundTag tag = (CompoundTag) in.readTag();
 //                    timeSpentLoading += System.currentTimeMillis() - start;
                     boolean readOnly = honourReadOnlyChunks && dimension.getBitLayerValueAt(ReadOnly.INSTANCE, x << 4, z << 4);
-                    if (platform == JAVA_MCREGION) {
-                        return new MCRegionChunk(tag, maxHeight, readOnly);
-                    } else if (platform == JAVA_ANVIL) {
-                        return new MC12AnvilChunk(tag, maxHeight, readOnly);
-                    } else {
-                        return new MC113AnvilChunk(tag, maxHeight, readOnly);
-                    }
+                    return platformProvider.createChunk(platform, tag, maxHeight, readOnly);
                 }
             } else {
 //                timeSpentLoading += System.currentTimeMillis() - start;
@@ -197,7 +194,7 @@ public class JavaChunkStore implements ChunkStore {
     private RegionFile getRegionFile(Point regionCoords) throws IOException {
         RegionFile regionFile = regionFiles.get(regionCoords);
         if (regionFile == null) {
-            regionFile = openRegionFile(regionCoords);
+            regionFile = platformProvider.getRegionFileIfExists(platform, regionDir, regionCoords, false);
             if (regionFile != null) {
                 regionFiles.put(regionCoords, regionFile);
             }
@@ -208,23 +205,13 @@ public class JavaChunkStore implements ChunkStore {
     private RegionFile getOrCreateRegionFile(Point regionCoords) throws IOException {
         RegionFile regionFile = regionFiles.get(regionCoords);
         if (regionFile == null) {
-            regionFile = openOrCreateRegionFile(regionCoords);
+            regionFile = platformProvider.getRegionFile(platform, regionDir, regionCoords, false);
             regionFiles.put(regionCoords, regionFile);
         }
         return regionFile;
     }
 
-    private RegionFile openRegionFile(Point regionCoords) throws IOException {
-        File file = new File(regionDir, "r." + regionCoords.x + "." + regionCoords.y + ((platform == JAVA_MCREGION) ? ".mcr" : ".mca"));
-        return file.exists() ? new RegionFile(file) : null;
-    }
-
-    private RegionFile openOrCreateRegionFile(Point regionCoords) throws IOException {
-        File file = new File(regionDir, "r." + regionCoords.x + "." + regionCoords.y + ((platform == JAVA_MCREGION) ? ".mcr" : ".mca"));
-        return new RegionFile(file);
-    }
-
-//    private void updateStatistics() {
+    //    private void updateStatistics() {
 //        long now = System.currentTimeMillis();
 //        if ((now - lastStatisticsTimestamp) > 5000) {
 //            float elapsed = (now - lastStatisticsTimestamp) / 1000f;
@@ -253,6 +240,7 @@ public class JavaChunkStore implements ChunkStore {
 //    }
 
     private final Platform platform;
+    private final JavaPlatformProvider platformProvider;
     private final File regionDir;
     private final Map<Point, RegionFile> regionFiles = new HashMap<>();
     private final boolean honourReadOnlyChunks;

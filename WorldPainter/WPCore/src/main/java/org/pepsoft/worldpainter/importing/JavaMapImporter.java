@@ -4,7 +4,7 @@
  */
 package org.pepsoft.worldpainter.importing;
 
-import org.jnbt.NBTInputStream;
+import org.jnbt.*;
 import org.pepsoft.minecraft.*;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
@@ -22,6 +22,7 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
 import java.util.*;
 
 import static org.pepsoft.minecraft.Constants.*;
@@ -79,7 +80,16 @@ public class JavaMapImporter extends MapImporter {
         if (level.getGenerator() == Generator.CUSTOM) {
             world.setGeneratorOptions(level.getGeneratorName());
         } else {
-            world.setGeneratorOptions(level.getGeneratorOptions());
+            Tag generatorOptions = level.getGeneratorOptions();
+            if (generatorOptions instanceof StringTag) {
+                world.setGeneratorOptions(((StringTag) generatorOptions).getValue());
+            } else if (generatorOptions instanceof CompoundTag) {
+                StringWriter sw = new StringWriter();
+                XMLTransformer.toXML(generatorOptions, sw);
+                world.setGeneratorOptions(sw.toString());
+            } else {
+                throw new IllegalArgumentException("Unexpected type of generatorOptions encountered: " + generatorOptions);
+            }
         }
         world.setDifficulty(level.getDifficulty());
         if ((version == VERSION_ANVIL) && (level.getBorderSize() > 0.0)) {

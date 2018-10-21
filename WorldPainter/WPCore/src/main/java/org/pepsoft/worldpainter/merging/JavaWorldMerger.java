@@ -30,7 +30,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.pepsoft.minecraft.Constants.*;
@@ -199,7 +198,7 @@ public class JavaWorldMerger extends JavaWorldExporter {
             }
 
             // Dimension sanity checks
-            for (Dimension dimension : world.getDimensions()) {
+            for (Dimension dimension: world.getDimensions()) {
                 if (existingMaxHeight != dimension.getMaxHeight()) {
                     throw new IllegalArgumentException("Dimension " + dimension.getName() + " has different max height (" + dimension.getMaxHeight() + ") than existing map (" + existingMaxHeight + ")");
                 }
@@ -232,9 +231,8 @@ public class JavaWorldMerger extends JavaWorldExporter {
         // first pass
         int version = level.getVersion();
         int dataVersion = level.getDataVersion();
-        Platform platform = (version == VERSION_MCREGION) ? DefaultPlugin.JAVA_MCREGION
-                : ((dataVersion <= DATA_VERSION_MC_1_12_2) ? DefaultPlugin.JAVA_ANVIL : DefaultPlugin.JAVA_ANVIL_1_13);
-        world.setPlatform(platform);
+        setPlatform((version == VERSION_MCREGION) ? DefaultPlugin.JAVA_MCREGION
+                : ((dataVersion <= DATA_VERSION_MC_1_12_2) ? DefaultPlugin.JAVA_ANVIL : DefaultPlugin.JAVA_ANVIL_1_13));
         
         // Modify it if necessary and write it to the the new level
         if ((selectedDimensions == null) || selectedDimensions.contains(DIM_NORMAL)) {
@@ -273,13 +271,13 @@ public class JavaWorldMerger extends JavaWorldExporter {
         }
 
         if ((selectedDimensions == null) ? (world.getDimension(DIM_NORMAL) != null) : selectedDimensions.contains(DIM_NORMAL)) {
-            mergeDimension(worldDir, backupDir, world.getDimension(DIM_NORMAL), platform, progressReceiver);
+            mergeDimension(worldDir, backupDir, world.getDimension(DIM_NORMAL), progressReceiver);
         }
         if ((selectedDimensions == null) ? (world.getDimension(DIM_NETHER) != null) : selectedDimensions.contains(DIM_NETHER)) {
-            mergeDimension(worldDir, backupDir, world.getDimension(DIM_NETHER), platform, progressReceiver);
+            mergeDimension(worldDir, backupDir, world.getDimension(DIM_NETHER), progressReceiver);
         }
         if ((selectedDimensions == null) ? (world.getDimension(DIM_END) != null) : selectedDimensions.contains(DIM_END)) {
-            mergeDimension(worldDir, backupDir, world.getDimension(DIM_END), platform, progressReceiver);
+            mergeDimension(worldDir, backupDir, world.getDimension(DIM_END), progressReceiver);
         }
 
         // Update the session.lock file, hopefully kicking out any Minecraft instances which may have tried to open the
@@ -341,7 +339,7 @@ public class JavaWorldMerger extends JavaWorldExporter {
         return warnings;
     }
 
-    private void mergeDimension(final File worldDir, File backupWorldDir, final Dimension dimension, final Platform platform, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled, IOException {
+    private void mergeDimension(final File worldDir, File backupWorldDir, final Dimension dimension, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled, IOException {
         if (progressReceiver != null) {
             progressReceiver.setMessage("merging " + dimension.getName() + " dimension");
         }
@@ -489,10 +487,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
 
             // Read the region coordinates of the existing map
             final File backupRegionDir = new File(backupDimensionDir, "region");
-            final Pattern regionFilePattern = (platform == DefaultPlugin.JAVA_MCREGION)
-                ? Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mcr")
-                : Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mca");
-            File[] existingRegionFiles = backupRegionDir.listFiles((dir, name) -> regionFilePattern.matcher(name).matches());
+            File[] existingRegionFiles = ((JavaPlatformProvider) platformProvider).getRegionFiles(platform, backupRegionDir);
             Map<Point, File> existingRegions = new HashMap<>();
             for (File file: existingRegionFiles) {
                 String[] parts = file.getName().split("\\.");
@@ -597,7 +592,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                                     List<Fixup> regionFixups = new ArrayList<>();
                                     WorldRegion minecraftWorld = new WorldRegion(regionCoords.x, regionCoords.y, dimension.getMaxHeight(), platform);
                                     try {
-                                        String regionWarnings = mergeRegion(minecraftWorld, backupRegionDir, dimension, platform, regionCoords, tiles, tileSelection, exporters, chunkFactory, regionFixups, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.0f, 0.9f) : null);
+                                        String regionWarnings = mergeRegion(minecraftWorld, backupRegionDir, dimension, regionCoords, tiles, tileSelection, exporters, chunkFactory, regionFixups, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.0f, 0.9f) : null);
                                         if (regionWarnings != null) {
                                             if (warnings == null) {
                                                 warnings = regionWarnings;
@@ -617,7 +612,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                                         }
                                         exportedRegions.add(regionCoords);
                                     }
-                                    performFixupsIfNecessary(worldDir, dimension, platform, allRegionCoords, fixups, exportedRegions, progressReceiver1);
+                                    performFixupsIfNecessary(worldDir, dimension, allRegionCoords, fixups, exportedRegions, progressReceiver1);
                                 } catch (Throwable t) {
                                     if (progressReceiver1 != null) {
                                         progressReceiver1.exceptionThrown(t);
@@ -662,7 +657,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                                 WorldRegion minecraftWorld = new WorldRegion(regionCoords.x, regionCoords.y, dimension.getMaxHeight(), platform);
                                 ExportResults exportResults = null;
                                 try {
-                                    exportResults = exportRegion(minecraftWorld, dimension, null, platform, regionCoords, tileSelection, exporters, null, chunkFactory, null, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.9f, 0.1f) : null);
+                                    exportResults = exportRegion(minecraftWorld, dimension, null, regionCoords, tileSelection, exporters, null, chunkFactory, null, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.9f, 0.1f) : null);
                                     if (logger.isDebugEnabled()) {
                                         logger.debug("Generated region " + regionCoords.x + "," + regionCoords.y);
                                     }
@@ -677,7 +672,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                                     }
                                     exportedRegions.add(regionCoords);
                                 }
-                                performFixupsIfNecessary(worldDir, dimension, platform, allRegionCoords, fixups, exportedRegions, progressReceiver1);
+                                performFixupsIfNecessary(worldDir, dimension, allRegionCoords, fixups, exportedRegions, progressReceiver1);
                             } catch (Throwable t) {
                                 if (progressReceiver1 != null) {
                                     progressReceiver1.exceptionThrown(t);
@@ -706,7 +701,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                         progressReceiver.setMessage("doing remaining fixups for " + dimension.getName());
                         progressReceiver.reset();
                     }
-                    performFixups(worldDir, dimension, platform, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.9f, 0.1f) : null, fixups);
+                    performFixups(worldDir, dimension, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.9f, 0.1f) : null, fixups);
                 }
             }
 
@@ -725,7 +720,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         }
     }
 
-    private String mergeRegion(MinecraftWorld minecraftWorld, File oldRegionDir, Dimension dimension, Platform platform, Point regionCoords, Map<Point, Tile> tiles, boolean tileSelection, Map<Layer, LayerExporter> exporters, ChunkFactory chunkFactory, List<Fixup> fixups, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
+    private String mergeRegion(MinecraftWorld minecraftWorld, File oldRegionDir, Dimension dimension, Point regionCoords, Map<Point, Tile> tiles, boolean tileSelection, Map<Layer, LayerExporter> exporters, ChunkFactory chunkFactory, List<Fixup> fixups, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
         if (progressReceiver != null) {
             progressReceiver.setMessage("Merging region " + regionCoords.x + "," + regionCoords.y + " of " + dimension.getName());
         }
@@ -756,7 +751,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
             // Second pass. Apply layers which need information from or apply
             // changes to neighbouring chunks
             long t2 = System.currentTimeMillis();
-            List<Fixup> myFixups = secondPass(secondaryPassLayers, dimension, platform, minecraftWorld, exporters, tiles.values(), regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.3f, 0.1f) : null);
+            List<Fixup> myFixups = secondPass(secondaryPassLayers, dimension, minecraftWorld, exporters, tiles.values(), regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.3f, 0.1f) : null);
             if ((myFixups != null) && (! myFixups.isEmpty())) {
                 synchronized (fixups) {
                     fixups.addAll(myFixups);
@@ -773,7 +768,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
 
             // Third pass. Calculate lighting
             long t5 = System.currentTimeMillis();
-            lightingPass(minecraftWorld, platform, regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.75f, 0.25f) : null);
+            lightingPass(minecraftWorld, regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.75f, 0.25f) : null);
             long t6 = System.currentTimeMillis();
             if ("true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.devMode"))) {
                 String timingMessage = (t2 - t1) + ", " + (t3 - t2) + ", " + (t4 - t3) + ", " + (t5 - t4) + ", " + (t6 - t5) + ", " + (t6 - t1);
@@ -798,7 +793,11 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
     public void mergeBiomes(File backupDir, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
         // Read existing level.dat file and perform sanity checks
         Level level = performSanityChecks(true);
-        
+
+        int dataVersion = level.getDataVersion();
+        Platform platform = (dataVersion <= DATA_VERSION_MC_1_12_2) ? DefaultPlugin.JAVA_ANVIL : DefaultPlugin.JAVA_ANVIL_1_13;
+        JavaPlatformProvider platformProvider = (JavaPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
+
         // Backup existing level
         File worldDir = levelDatFile.getParentFile();
         if (! worldDir.renameTo(backupDir)) {
@@ -836,9 +835,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
             progressReceiver.setMessage("Merging biomes");
         }
         // Find all the region files of the existing level
-        File oldRegionDir = new File(backupDir, "region");
-        final Pattern regionFilePattern = Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mca");
-        File[] oldRegionFiles = oldRegionDir.listFiles((dir, name) -> regionFilePattern.matcher(name).matches());
+        File[] oldRegionFiles = platformProvider.getRegionFiles(platform, new File(backupDir, "region"));
 
         // Process each region file, copying every chunk unmodified, except
         // for the biomes
@@ -857,10 +854,10 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                     for (int x = 0; x < 32; x++) {
                         for (int z = 0; z < 32; z++) {
                             if (oldRegion.containsChunk(x, z)) {
-                                MC12AnvilChunk chunk;
+                                NBTChunk chunk;
                                 try (NBTInputStream in = new NBTInputStream(oldRegion.getChunkDataInputStream(x, z))) {
                                     CompoundTag tag = (CompoundTag) in.readTag();
-                                    chunk = new MC12AnvilChunk(tag, level.getMaxHeight());
+                                    chunk = platformProvider.createChunk(platform, tag, level.getMaxHeight());
                                 }
                                 int chunkX = chunk.getxPos(), chunkZ = chunk.getzPos();
                                 for (int xx = 0; xx < 16; xx++) {
@@ -898,12 +895,10 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         int highestChunkX = (regionCoords.x << 5) + 31;
         int lowestChunkY = regionCoords.y << 5;
         int highestChunkY = (regionCoords.y << 5) + 31;
-        Platform platform = dimension.getWorld().getPlatform();
         int maxHeight = dimension.getMaxHeight();
         Map<Point, RegionFile> regionFiles = new HashMap<>();
         Set<Point> damagedRegions = new HashSet<>();
         StringBuilder reportBuilder = new StringBuilder();
-        JavaPlatformProvider platformProvider = (JavaPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
         try {
             int chunkNo = 0;
             for (int chunkX = lowestChunkX; chunkX <= highestChunkX; chunkX++) {
@@ -941,7 +936,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                     RegionFile regionFile = regionFiles.get(coords);
                     if (regionFile == null) {
                         try {
-                            regionFile = platformProvider.getRegionFile(platform, oldRegionDir, coords, true);
+                            regionFile = ((JavaPlatformProvider) platformProvider).getRegionFile(platform, oldRegionDir, coords, true);
                             regionFiles.put(coords, regionFile);
                         } catch (IOException e) {
                             reportBuilder.append("I/O error while opening region " + regionX + "," + regionY + " (message: \"" + e.getMessage() + "\"); skipping region" + EOL);
@@ -965,7 +960,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                                 continue;
                             }
                             try (NBTInputStream in = new NBTInputStream(chunkData)) {
-                                existingChunk = platformProvider.createChunk(platform, in.readTag(), maxHeight);
+                                existingChunk = ((JavaPlatformProvider) platformProvider).createChunk(platform, in.readTag(), maxHeight);
                             }
                         } catch (IOException e) {
                             reportBuilder.append("I/O error while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
@@ -1138,7 +1133,6 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         int highestChunkX = (regionCoords.x << 5) + 31;
         int lowestChunkY = regionCoords.y << 5;
         int highestChunkY = (regionCoords.y << 5) + 31;
-        Platform platform = dimension.getWorld().getPlatform();
         int maxHeight = dimension.getMaxHeight();
         Map<Point, RegionFile> regionFiles = new HashMap<>();
         Set<Point> damagedRegions = new HashSet<>();
@@ -1161,13 +1155,12 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                     }
                     RegionFile regionFile = regionFiles.get(coords);
                     if (regionFile == null) {
-                        File file = new File(oldRegionDir, "r." + regionX + "." + regionY + ((platform == DefaultPlugin.JAVA_ANVIL) ? ".mca" : ".mcr"));
                         try {
-                            regionFile = new RegionFile(file);
+                            regionFile = ((JavaPlatformProvider) platformProvider).getRegionFile(platform, oldRegionDir, coords, true);
                             regionFiles.put(coords, regionFile);
                         } catch (IOException e) {
-                            reportBuilder.append("I/O error while opening region file " + file + " (message: \"" + e.getMessage() + "\"); skipping region" + EOL);
-                            logger.error("I/O error while opening region file " + file + "; skipping region", e);
+                            reportBuilder.append("I/O error while opening region " + regionX + "," + regionY + " (message: \"" + e.getMessage() + "\"); skipping region" + EOL);
+                            logger.error("I/O error while opening region " + regionX + "," + regionY + "; skipping region", e);
                             damagedRegions.add(coords);
                             continue;
                         }
@@ -1198,10 +1191,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                             logger.error("Illegal argument exception while reading chunk " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk", e);
                             continue;
                         }
-                        Chunk existingChunk = (platform == DefaultPlugin.JAVA_MCREGION)
-                            ? new MCRegionChunk((CompoundTag) tag, maxHeight)
-                            : new MC12AnvilChunk((CompoundTag) tag, maxHeight);
-                        minecraftWorld.addChunk(existingChunk);
+                        minecraftWorld.addChunk(((JavaPlatformProvider) platformProvider).createChunk(platform, tag, maxHeight));
                     }
                 }
             }
