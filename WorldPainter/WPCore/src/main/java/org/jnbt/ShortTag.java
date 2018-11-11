@@ -56,8 +56,7 @@ public final class ShortTag extends Tag {
         this.value = value;
     }
 
-    @Override
-    public Short getValue() {
+    public short getValue() {
         return value;
     }
 

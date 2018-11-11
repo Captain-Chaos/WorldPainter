@@ -202,7 +202,7 @@ public class MapExplorer {
                 } else {
                     data = null;
                     detailsArea.setIcon(null);
-                    detailsArea.setText("<html><pre>" + tag.getValue() + "</pre></html>");
+                    detailsArea.setText("<html><pre>" + tag + "</pre></html>");
                 }
             } else if (node instanceof FileSystemNode) {
                 if (node instanceof NBTFileNode) {

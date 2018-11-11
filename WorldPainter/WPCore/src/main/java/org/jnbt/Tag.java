@@ -64,13 +64,6 @@ public abstract class Tag implements Serializable, Cloneable {
         return name;
     }
 
-    /**
-     * Gets the value of this tag.
-     *
-     * @return The value of this tag.
-     */
-    public abstract Object getValue();
-
     @Override
     public Tag clone() {
         try {

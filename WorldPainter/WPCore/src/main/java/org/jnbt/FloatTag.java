@@ -56,8 +56,7 @@ public final class FloatTag extends Tag {
         this.value = value;
     }
 
-    @Override
-    public Float getValue() {
+    public float getValue() {
         return value;
     }
 

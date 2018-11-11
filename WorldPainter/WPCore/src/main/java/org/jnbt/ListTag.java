@@ -44,16 +44,16 @@ import java.util.stream.Collectors;
  * @author Graham Edgecombe
  *
  */
-public final class ListTag extends Tag {
+public final class ListTag<T extends Tag> extends Tag {
     /**
      * The type.
      */
-    private final Class<? extends Tag> type;
+    private final Class<T> type;
     
     /**
      * The value.
      */
-    private List<Tag> value;
+    private List<T> value;
 
     /**
      * Creates the tag.
@@ -62,7 +62,7 @@ public final class ListTag extends Tag {
      * @param type The type of item in the list.
      * @param value The value.
      */
-    public ListTag(String name, Class<? extends Tag> type, List<Tag> value) {
+    public ListTag(String name, Class<T> type, List<T> value) {
         super(name);
         this.type = type;
         this.value = Collections.unmodifiableList(value);
@@ -77,8 +77,7 @@ public final class ListTag extends Tag {
         return type;
     }
 
-    @Override
-    public List<Tag> getValue() {
+    public List<T> getValue() {
         return value;
     }
 
@@ -98,11 +97,12 @@ public final class ListTag extends Tag {
         return bldr.toString();
     }
 
+    @SuppressWarnings("unchecked") // Responsibility of caller
     @Override
     public ListTag clone() {
-        ListTag clone = (ListTag) super.clone();
+        ListTag<T> clone = (ListTag<T>) super.clone();
         clone.value = new ArrayList<>(value.size());
-        clone.value.addAll(value.stream().map(Tag::clone).collect(Collectors.toList()));
+        clone.value.addAll(value.stream().map(t -> (T) t.clone()).collect(Collectors.toList()));
         return clone;
     }
 

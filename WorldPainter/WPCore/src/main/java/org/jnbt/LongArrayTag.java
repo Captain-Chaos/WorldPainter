@@ -19,7 +19,6 @@ public final class LongArrayTag extends Tag {
         this.value = value;
     }
 
-    @Override
     public long[] getValue() {
         return value;
     }

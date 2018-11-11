@@ -43,7 +43,7 @@ public class TagNode extends Node {
         }
         if (tag instanceof StringTag) {
             sb.append(": \"");
-            sb.append(tag.getValue());
+            sb.append(((StringTag) tag).getValue());
             sb.append('"');
         } else if (tag instanceof ByteArrayTag) {
             sb.append(": ");
@@ -57,9 +57,24 @@ public class TagNode extends Node {
             sb.append(": ");
             sb.append(((LongArrayTag) tag).getValue().length * 8);
             sb.append(" bytes of data");
-        } else if (! ((tag instanceof CompoundTag) || (tag instanceof ListTag))) {
+        } else if (tag instanceof ByteTag) {
             sb.append(": ");
-            sb.append(tag.getValue());
+            sb.append(((ByteTag) tag).getValue());
+        } else if (tag instanceof ShortTag) {
+            sb.append(": ");
+            sb.append(((ShortTag) tag).getValue());
+        } else if (tag instanceof IntTag) {
+            sb.append(": ");
+            sb.append(((IntTag) tag).getValue());
+        } else if (tag instanceof FloatTag) {
+            sb.append(": ");
+            sb.append(((FloatTag) tag).getValue());
+        } else if (tag instanceof LongTag) {
+            sb.append(": ");
+            sb.append(((LongTag) tag).getValue());
+        } else if (tag instanceof DoubleTag) {
+            sb.append(": ");
+            sb.append(((DoubleTag) tag).getValue());
         }
         return sb.toString();
     }

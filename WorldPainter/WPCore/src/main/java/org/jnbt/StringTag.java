@@ -56,7 +56,6 @@ public final class StringTag extends Tag {
         this.value = value;
     }
 
-    @Override
     public String getValue() {
         return value;
     }

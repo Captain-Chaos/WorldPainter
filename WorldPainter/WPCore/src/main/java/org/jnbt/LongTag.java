@@ -56,8 +56,7 @@ public final class LongTag extends Tag {
         this.value = value;
     }
 
-    @Override
-    public Long getValue() {
+    public long getValue() {
         return value;
     }
 

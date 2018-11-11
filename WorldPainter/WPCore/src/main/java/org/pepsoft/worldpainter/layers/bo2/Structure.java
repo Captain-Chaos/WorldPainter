@@ -126,6 +126,7 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
         return load(name, new FileInputStream(file));
     }
 
+    @SuppressWarnings("unchecked") // Guaranteed by Minecraft
     public static Structure load(String objectName, InputStream inputStream) throws IOException {
         CompoundTag root;
         try (NBTInputStream in = new NBTInputStream(new GZIPInputStream(new BufferedInputStream(inputStream)))) {
@@ -147,11 +148,10 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
 
         // Load the blocks
         Map<Point3i, Material> blocks = new HashMap<>();
-        ListTag blocksTag = (ListTag) root.getTag("blocks");
-        for (Tag tag: blocksTag.getValue()) {
-            CompoundTag blockTag = (CompoundTag) tag;
-            List<Tag> posTags = ((ListTag) blockTag.getTag("pos")).getValue();
-            blocks.put(new Point3i(((IntTag) posTags.get(0)).getValue(), ((IntTag) posTags.get(2)).getValue(),((IntTag) posTags.get(1)).getValue()), palette[((IntTag) blockTag.getTag("state")).getValue()]);
+        ListTag<CompoundTag> blocksTag = (ListTag<CompoundTag>) root.getTag("blocks");
+        for (CompoundTag blockTag: blocksTag.getValue()) {
+            List<IntTag> posTags = ((ListTag<IntTag>) blockTag.getTag("pos")).getValue();
+            blocks.put(new Point3i(posTags.get(0).getValue(), posTags.get(2).getValue(), posTags.get(1).getValue()), palette[((IntTag) blockTag.getTag("state")).getValue()]);
         }
 
         // Remove palette and blocks from the tag so we don't waste space

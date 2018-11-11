@@ -56,8 +56,7 @@ public final class IntTag extends Tag {
         this.value = value;
     }
 
-    @Override
-    public Integer getValue() {
+    public int getValue() {
         return value;
     }
 

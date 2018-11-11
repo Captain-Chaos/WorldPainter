@@ -59,7 +59,6 @@ public final class CompoundTag extends Tag {
         this.value = new HashMap<>(value);
     }
 
-    @Override
     public Map<String, Tag> getValue() {
         return value;
     }

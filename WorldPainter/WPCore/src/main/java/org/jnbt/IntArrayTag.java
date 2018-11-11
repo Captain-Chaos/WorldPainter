@@ -19,7 +19,6 @@ public final class IntArrayTag extends Tag {
         this.value = value;
     }
 
-    @Override
     public int[] getValue() {
         return value;
     }

@@ -56,8 +56,7 @@ public final class DoubleTag extends Tag {
         this.value = value;
     }
 
-    @Override
-    public Double getValue() {
+    public double getValue() {
         return value;
     }
 
