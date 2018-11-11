@@ -2,6 +2,7 @@ package org.pepsoft.worldpainter;
 
 import com.google.common.collect.ImmutableList;
 import org.jnbt.CompoundTag;
+import org.jnbt.IntTag;
 import org.jnbt.Tag;
 import org.pepsoft.minecraft.*;
 import org.pepsoft.minecraft.mapexplorer.JavaMapRecognizer;
@@ -17,6 +18,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static org.pepsoft.minecraft.Constants.DATA_VERSION_MC_1_12_2;
+import static org.pepsoft.minecraft.Constants.TAG_DATA_VERSION;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 
@@ -35,10 +38,13 @@ public class JavaPlatformProvider extends AbstractPlugin implements BlockBasedPl
     public NBTChunk createChunk(Platform platform, Tag tag, int maxHeight, boolean readOnly) {
         if ((platform == JAVA_MCREGION)) {
             return new MCRegionChunk((CompoundTag) tag, maxHeight, readOnly);
-        } else if ((platform == JAVA_ANVIL)) {
-            return new MC12AnvilChunk((CompoundTag) tag, maxHeight, readOnly);
-        } else if ((platform == JAVA_ANVIL_1_13)) {
-            return new MC113AnvilChunk((CompoundTag) tag, maxHeight, readOnly);
+        } else if ((platform == JAVA_ANVIL) || (platform == JAVA_ANVIL_1_13)) {
+            Tag dataVersionTag = ((CompoundTag) tag).getTag(TAG_DATA_VERSION);
+            if ((dataVersionTag == null) || ((IntTag) dataVersionTag).getValue() <= DATA_VERSION_MC_1_12_2) {
+                return new MC12AnvilChunk((CompoundTag) tag, maxHeight, readOnly);
+            } else {
+                return new MC113AnvilChunk((CompoundTag) tag, maxHeight, readOnly);
+            }
         } else {
             throw new IllegalArgumentException("Platform " + platform + " not supported");
         }
