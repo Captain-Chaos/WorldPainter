@@ -5,6 +5,7 @@
 
 package org.pepsoft.worldpainter.exporting;
 
+import org.jnbt.StringTag;
 import org.jnbt.XMLTransformer;
 import org.pepsoft.minecraft.ChunkFactory;
 import org.pepsoft.minecraft.Level;
@@ -20,8 +21,7 @@ import java.awt.*;
 import java.io.*;
 import java.util.*;
 
-import static org.pepsoft.minecraft.Constants.DIFFICULTY_HARD;
-import static org.pepsoft.minecraft.Constants.GAME_TYPE_SURVIVAL;
+import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 
@@ -129,7 +129,9 @@ public class JavaWorldExporter extends AbstractWorldExporter {
         }
         if ((world.getPlatform() != JAVA_MCREGION)) {
             if ((! endlessBorder) && (world.getGenerator() == Generator.FLAT) && (world.getGeneratorOptions() != null)) {
-                level.setGeneratorOptions(XMLTransformer.fromXML(new StringReader(world.getGeneratorOptions())));
+                level.setGeneratorOptions((platform == JAVA_ANVIL)
+                        ? new StringTag(TAG_GENERATOR_OPTIONS, world.getGeneratorOptions())
+                        : XMLTransformer.fromXML(new StringReader(world.getGeneratorOptions())));
             }
             World2.BorderSettings borderSettings = world.getBorderSettings();
             level.setBorderCenterX(borderSettings.getCentreX());
@@ -193,7 +195,7 @@ public class JavaWorldExporter extends AbstractWorldExporter {
             event.setAttribute(ATTRIBUTE_KEY_GAME_TYPE_NAME, world.getGameType().name());
             event.setAttribute(ATTRIBUTE_KEY_ALLOW_CHEATS, world.isAllowCheats());
             event.setAttribute(ATTRIBUTE_KEY_GENERATOR, world.getGenerator().name());
-            if ((world.getPlatform() == JAVA_ANVIL) && (world.getGenerator() == Generator.FLAT)) {
+            if ((world.getPlatform() == JAVA_ANVIL) && (world.getGenerator() == Generator.FLAT) && (world.getGeneratorOptions() != null)) {
                 event.setAttribute(ATTRIBUTE_KEY_GENERATOR_OPTIONS, world.getGeneratorOptions());
             }
             Dimension dimension = world.getDimension(0);

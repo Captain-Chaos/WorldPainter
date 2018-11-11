@@ -87,7 +87,7 @@ public class JavaMapImporter extends MapImporter {
                 StringWriter sw = new StringWriter();
                 XMLTransformer.toXML(generatorOptions, sw);
                 world.setGeneratorOptions(sw.toString());
-            } else {
+            } else if (generatorOptions != null) {
                 throw new IllegalArgumentException("Unexpected type of generatorOptions encountered: " + generatorOptions);
             }
         }
@@ -220,7 +220,7 @@ public class JavaMapImporter extends MapImporter {
             event.setAttribute(ATTRIBUTE_KEY_GAME_TYPE_NAME, world.getGameType().name());
             event.setAttribute(ATTRIBUTE_KEY_ALLOW_CHEATS, world.isAllowCheats());
             event.setAttribute(ATTRIBUTE_KEY_GENERATOR, world.getGenerator().name());
-            if ((world.getPlatform() == JAVA_ANVIL) && (world.getGenerator() == Generator.FLAT)) {
+            if ((world.getPlatform() == JAVA_ANVIL) && (world.getGenerator() == Generator.FLAT) && (world.getGeneratorOptions() != null)) {
                 event.setAttribute(ATTRIBUTE_KEY_GENERATOR_OPTIONS, world.getGeneratorOptions());
             }
             event.setAttribute(ATTRIBUTE_KEY_TILES, dimension.getTiles().size());

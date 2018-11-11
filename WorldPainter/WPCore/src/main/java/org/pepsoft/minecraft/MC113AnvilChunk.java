@@ -7,6 +7,8 @@ package org.pepsoft.minecraft;
 
 import org.jnbt.*;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.io.IOException;
@@ -48,35 +50,48 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
 
     public MC113AnvilChunk(CompoundTag tag, int maxHeight, boolean readOnly) {
         super((CompoundTag) tag.getTag(TAG_LEVEL));
-        this.maxHeight = maxHeight;
-        this.readOnly = readOnly;
-        
-        sections = new Section[maxHeight >> 4];
-        List<CompoundTag> sectionTags = getList(TAG_SECTIONS);
-        for (CompoundTag sectionTag: sectionTags) {
-            Section section = new Section(sectionTag);
-            sections[section.level] = section;
-        }
-        biomes = getIntArray(TAG_BIOMES);
-        heightMaps = new EnumMap<>(HeightmapType.class);
-        Map<String, Tag> heightMapTags = getMap(TAG_HEIGHT_MAPS);
-        if (heightMapTags != null) {
-            for (Map.Entry<String, Tag> entry : heightMapTags.entrySet()) {
-                heightMaps.put(HeightmapType.valueOf(entry.getKey()), ((LongArrayTag) entry.getValue()).getValue());
+        try {
+            this.maxHeight = maxHeight;
+            this.readOnly = readOnly;
+
+            sections = new Section[maxHeight >> 4];
+            List<CompoundTag> sectionTags = getList(TAG_SECTIONS);
+            for (CompoundTag sectionTag: sectionTags) {
+                Section section = new Section(sectionTag);
+                sections[section.level] = section;
             }
+            biomes = getIntArray(TAG_BIOMES);
+            heightMaps = new EnumMap<>(HeightmapType.class);
+            Map<String, Tag> heightMapTags = getMap(TAG_HEIGHT_MAPS);
+            if (heightMapTags != null) {
+                for (Map.Entry<String, Tag> entry: heightMapTags.entrySet()) {
+                    heightMaps.put(HeightmapType.valueOf(entry.getKey()), ((LongArrayTag) entry.getValue()).getValue());
+                }
+            }
+            List<CompoundTag> entityTags = getList(TAG_ENTITIES);
+            if (entityTags != null) {
+                entities = new ArrayList<>(entityTags.size());
+                entities.addAll(entityTags.stream().map(Entity::fromNBT).collect(toList()));
+            } else {
+                entities = new ArrayList<>();
+            }
+            List<CompoundTag> tileEntityTags = getList(TAG_TILE_ENTITIES);
+            if (tileEntityTags != null) {
+                tileEntities = new ArrayList<>(tileEntityTags.size());
+                tileEntities.addAll(tileEntityTags.stream().map(TileEntity::fromNBT).collect(toList()));
+            } else {
+                tileEntities = new ArrayList<>();
+            }
+            // TODO: last update is ignored, is that correct?
+            xPos = getInt(TAG_X_POS);
+            zPos = getInt(TAG_Z_POS);
+            status = Status.valueOf(getString(TAG_STATUS).toUpperCase());
+            lightPopulated = getBoolean(TAG_LIGHT_POPULATED);
+            inhabitedTime = getLong(TAG_INHABITED_TIME);
+        } catch (RuntimeException e) {
+            logger.error("{} while creating chunk from NBT: {}", e.getClass().getSimpleName(), tag);
+            throw e;
         }
-        List<CompoundTag> entityTags = getList(TAG_ENTITIES);
-        entities = new ArrayList<>(entityTags.size());
-        entities.addAll(entityTags.stream().map(Entity::fromNBT).collect(toList()));
-        List<CompoundTag> tileEntityTags = getList(TAG_TILE_ENTITIES);
-        tileEntities = new ArrayList<>(tileEntityTags.size());
-        tileEntities.addAll(tileEntityTags.stream().map(TileEntity::fromNBT).collect(toList()));
-        // TODO: last update is ignored, is that correct?
-        xPos = getInt(TAG_X_POS);
-        zPos = getInt(TAG_Z_POS);
-        status = Status.valueOf(getString(TAG_STATUS).toUpperCase());
-        lightPopulated = getBoolean(TAG_LIGHT_POPULATED);
-        inhabitedTime = getLong(TAG_INHABITED_TIME);
     }
 
     public boolean isSectionPresent(int y) {
@@ -542,6 +557,8 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
     Status status;
     final Map<HeightmapType, long[]> heightMaps;
 
+    private static final Logger logger = LoggerFactory.getLogger(MC113AnvilChunk.class);
+
     public static class Section extends AbstractNBTItem {
         Section(CompoundTag tag) {
             super(tag);
@@ -549,38 +566,42 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
             materials = new Material[4096];
             long[] blockStates = getLongArray(TAG_BLOCK_STATES);
             List<CompoundTag> palette = getList(TAG_PALETTE);
-            int wordSize = blockStates.length * 64 / 4096;
-            if (wordSize == 4) {
-                // Optimised special case
-                for (int w = 0; w < 4096; w += 16) {
-                    long data = blockStates[w >> 4];
-                    materials[w]      = getMaterial(palette, (int) (data & 0xf));
-                    materials[w +  1] = getMaterial(palette, (int) ((data & 0xf0) >> 4));
-                    materials[w +  2] = getMaterial(palette, (int) ((data & 0xf00) >> 8));
-                    materials[w +  3] = getMaterial(palette, (int) ((data & 0xf000) >> 12));
-                    materials[w +  4] = getMaterial(palette, (int) ((data & 0xf0000) >> 16));
-                    materials[w +  5] = getMaterial(palette, (int) ((data & 0xf00000) >> 20));
-                    materials[w +  6] = getMaterial(palette, (int) ((data & 0xf000000) >> 24));
-                    materials[w +  7] = getMaterial(palette, (int) ((data & 0xf0000000L) >> 28));
-                    materials[w +  8] = getMaterial(palette, (int) ((data & 0xf00000000L) >> 32));
-                    materials[w +  9] = getMaterial(palette, (int) ((data & 0xf000000000L) >> 36));
-                    materials[w + 10] = getMaterial(palette, (int) ((data & 0xf0000000000L) >> 40));
-                    materials[w + 11] = getMaterial(palette, (int) ((data & 0xf00000000000L) >> 44));
-                    materials[w + 12] = getMaterial(palette, (int) ((data & 0xf000000000000L) >> 48));
-                    materials[w + 13] = getMaterial(palette, (int) ((data & 0xf0000000000000L) >> 52));
-                    materials[w + 14] = getMaterial(palette, (int) ((data & 0xf00000000000000L) >> 56));
-                    materials[w + 15] = getMaterial(palette, (int) ((data & 0xf000000000000000L) >>> 60));
+            if ((blockStates != null) && (palette != null)) {
+                int wordSize = blockStates.length * 64 / 4096;
+                if (wordSize == 4) {
+                    // Optimised special case
+                    for (int w = 0; w < 4096; w += 16) {
+                        long data = blockStates[w >> 4];
+                        materials[w] = getMaterial(palette, (int) (data & 0xf));
+                        materials[w + 1] = getMaterial(palette, (int) ((data & 0xf0) >> 4));
+                        materials[w + 2] = getMaterial(palette, (int) ((data & 0xf00) >> 8));
+                        materials[w + 3] = getMaterial(palette, (int) ((data & 0xf000) >> 12));
+                        materials[w + 4] = getMaterial(palette, (int) ((data & 0xf0000) >> 16));
+                        materials[w + 5] = getMaterial(palette, (int) ((data & 0xf00000) >> 20));
+                        materials[w + 6] = getMaterial(palette, (int) ((data & 0xf000000) >> 24));
+                        materials[w + 7] = getMaterial(palette, (int) ((data & 0xf0000000L) >> 28));
+                        materials[w + 8] = getMaterial(palette, (int) ((data & 0xf00000000L) >> 32));
+                        materials[w + 9] = getMaterial(palette, (int) ((data & 0xf000000000L) >> 36));
+                        materials[w + 10] = getMaterial(palette, (int) ((data & 0xf0000000000L) >> 40));
+                        materials[w + 11] = getMaterial(palette, (int) ((data & 0xf00000000000L) >> 44));
+                        materials[w + 12] = getMaterial(palette, (int) ((data & 0xf000000000000L) >> 48));
+                        materials[w + 13] = getMaterial(palette, (int) ((data & 0xf0000000000000L) >> 52));
+                        materials[w + 14] = getMaterial(palette, (int) ((data & 0xf00000000000000L) >> 56));
+                        materials[w + 15] = getMaterial(palette, (int) ((data & 0xf000000000000000L) >>> 60));
+                    }
+                } else {
+                    BitSet bitSet = BitSet.valueOf(blockStates);
+                    for (int w = 0; w < 4096; w++) {
+                        int wordOffset = w * wordSize;
+                        int index = 0;
+                        for (int b = 0; b < wordSize; b++) {
+                            index |= bitSet.get(wordOffset + b) ? 1 << b : 0;
+                        }
+                        materials[w] = getMaterial(palette, index);
+                    }
                 }
             } else {
-                BitSet bitSet = BitSet.valueOf(blockStates);
-                for (int w = 0; w < 4096; w++) {
-                    int wordOffset = w * wordSize;
-                    int index = 0;
-                    for (int b = 0; b < wordSize; b++) {
-                        index |= bitSet.get(wordOffset + b) ? 1 << b : 0;
-                    }
-                    materials[w] = getMaterial(palette, index);
-                }
+                logger.warn("Block states and/or palette missing from section @ y=" + level);
             }
             skyLight = getByteArray(TAG_SKY_LIGHT);
             blockLight = getByteArray(TAG_BLOCK_LIGHT);
@@ -600,7 +621,7 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
             setByte(TAG_Y2, level);
 
             // Create the palette. We have to do this first, because otherwise
-            // we don't know how many bits the indice will be and therefore how
+            // we don't know how many bits the indices will be and therefore how
             // big to make the blockStates array
             Map<Material, Integer> reversePalette = new HashMap<>();
             List<Material> palette = new LinkedList<>();
@@ -739,8 +760,8 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
     public enum HeightmapType {LIGHT, LIQUID, RAIN, SOLID, OCEAN_FLOOR, MOTION_BLOCKING_NO_LEAVES, LIGHT_BLOCKING, MOTION_BLOCKING, OCEAN_FLOOR_WG, WORLD_SURFACE_WG, WORLD_SURFACE}
 
     /**
-     * The chunk generation status. These are in the order Minecraft has been
-     * observed to generate them.
+     * The chunk generation status. These are <strong>no longer</strong> in the
+     * order Minecraft has been observed to generate them.
      */
-    public enum Status {EMPTY, CARVED, LIQUID_CARVED, DECORATED, LIGHTED, FULLCHUNK, POSTPROCESSED, FINALIZED}
+    public enum Status {EMPTY, CARVED, LIQUID_CARVED, DECORATED, LIGHTED, FULLCHUNK, POSTPROCESSED, FINALIZED, MOBS_SPAWNED}
 }
