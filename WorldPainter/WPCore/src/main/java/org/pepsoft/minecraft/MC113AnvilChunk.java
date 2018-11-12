@@ -140,7 +140,7 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
 
         CompoundTag tag = new CompoundTag("", Collections.emptyMap());
         tag.setTag(TAG_LEVEL, super.toNBT());
-        tag.setTag(TAG_DATA_VERSION, new IntTag(TAG_DATA_VERSION, DATA_VERSION_MC_1_13_1));
+        tag.setTag(TAG_DATA_VERSION, new IntTag(TAG_DATA_VERSION, DATA_VERSION_MC_1_13_2));
         return tag;
     }
 

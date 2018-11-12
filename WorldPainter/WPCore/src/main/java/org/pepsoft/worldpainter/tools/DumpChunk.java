@@ -43,7 +43,7 @@ public class DumpChunk {
         }
         Chunk chunk = (level.getVersion() == VERSION_MCREGION)
                 ? new MCRegionChunk(tag, level.getMaxHeight())
-                : (((level.getDataVersion() == DATA_VERSION_MC_1_12_2) || (level.getDataVersion() == 0))
+                : (((level.getDataVersion() <= DATA_VERSION_MC_1_12_2) || (level.getDataVersion() == 0))
                     ? new MC12AnvilChunk(tag, level.getMaxHeight())
                     : new MC113AnvilChunk(tag, level.getMaxHeight()));
 

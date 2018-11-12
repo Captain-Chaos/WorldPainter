@@ -43,7 +43,7 @@ public class MinecraftMapTileProvider implements TileProvider {
         dataVersion = level.getDataVersion();
         if (version == VERSION_MCREGION) {
             platform = JAVA_MCREGION;
-        } else if (dataVersion == DATA_VERSION_MC_1_12_2) {
+        } else if (dataVersion <= DATA_VERSION_MC_1_12_2) {
             platform = JAVA_ANVIL;
         } else {
             platform = JAVA_ANVIL_1_13;
