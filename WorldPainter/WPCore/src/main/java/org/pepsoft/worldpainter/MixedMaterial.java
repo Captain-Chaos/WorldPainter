@@ -170,7 +170,7 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
             case SIMPLE:
                 return simpleMaterial;
             case NOISE:
-                return materials[random.nextInt(1000)];
+                return materials[random.nextInt(totalCount)];
             case BLOBS:
                 double xx = x / Constants.TINY_BLOBS, yy = y / Constants.TINY_BLOBS, zz = z / Constants.TINY_BLOBS;
                 if (seed + 1 != noiseGenerators[0].getSeed()) {
@@ -482,10 +482,10 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
                     throw new IllegalArgumentException("Angle may not be non-zero if repeat is false");
                 }
                 materials = new Material[totalCount];
-                index = 0;
+                index = totalCount - 1;
                 for (Row row: rows) {
                     for (int i = 0; i < row.occurrence; i++) {
-                        materials[index++] = row.material;
+                        materials[index--] = row.material;
                     }
                 }
                 if (variation != null) {
