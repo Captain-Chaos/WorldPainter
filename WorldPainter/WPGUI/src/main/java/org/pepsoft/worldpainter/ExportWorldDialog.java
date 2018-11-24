@@ -33,6 +33,10 @@ import static java.util.stream.Collectors.toList;
 import static org.pepsoft.minecraft.Constants.DIFFICULTY_HARD;
 import static org.pepsoft.minecraft.Constants.DIFFICULTY_PEACEFUL;
 import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
+import static org.pepsoft.worldpainter.GameType.*;
+import static org.pepsoft.worldpainter.Generator.CUSTOM;
+import static org.pepsoft.worldpainter.Generator.DEFAULT;
 
 /**
  *
@@ -232,7 +236,7 @@ dims:   for (Dimension dim: world.getDimensions()) {
             JOptionPane.showMessageDialog(this, "No tiles have been selected for export.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        if ((comboBoxGenerator.getSelectedItem() == Generator.CUSTOM) && ((generatorOptions == null) || generatorOptions.trim().isEmpty())) {
+        if ((comboBoxGenerator.getSelectedItem() == CUSTOM) && ((generatorOptions == null) || generatorOptions.trim().isEmpty())) {
             buttonGeneratorOptions.requestFocusInWindow();
             Toolkit.getDefaultToolkit().beep();
             JOptionPane.showMessageDialog(this, "The custom world generator name has not been set.\nUse the [...] button to set it.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -408,9 +412,9 @@ dims:   for (Dimension dim: world.getDimensions()) {
             labelSelectTiles.setForeground(null);
             labelSelectTiles.setCursor(null);
         }
-        boolean notHardcore = comboBoxGameType.getSelectedItem() != GameType.HARDCORE;
-        checkBoxAllowCheats.setEnabled((comboBoxMinecraftVersion.getSelectedIndex() == 0) && notHardcore);
-        buttonGeneratorOptions.setEnabled((! endlessBorder) && ((comboBoxGenerator.getSelectedItem() == Generator.FLAT) || (comboBoxGenerator.getSelectedItem() == Generator.CUSTOM)));
+        boolean notHardcore = comboBoxGameType.getSelectedItem() != HARDCORE;
+        checkBoxAllowCheats.setEnabled((comboBoxMinecraftVersion.getSelectedItem() != JAVA_MCREGION) && notHardcore);
+        buttonGeneratorOptions.setEnabled((! endlessBorder) && ((comboBoxGenerator.getSelectedItem() == Generator.FLAT) || (comboBoxGenerator.getSelectedItem() == CUSTOM)));
         comboBoxDifficulty.setEnabled(notHardcore);
         checkBoxMapFeatures.setEnabled(! endlessBorder);
     }
@@ -744,18 +748,18 @@ dims:   for (Dimension dim: world.getDimensions()) {
             if (newPlatform.supportedGenerators.contains(generator)) {
                 comboBoxGenerator.setSelectedItem(generator);
             } else {
-                comboBoxGenerator.setSelectedItem(Generator.DEFAULT);
+                comboBoxGenerator.setSelectedItem(DEFAULT);
             }
             comboBoxGenerator.setEnabled(newPlatform.supportedGenerators.size() > 1);
             comboBoxGameType.setModel(new DefaultComboBoxModel<>(newPlatform.supportedGameTypes.toArray(new GameType[newPlatform.supportedGameTypes.size()])));
             if (newPlatform.supportedGameTypes.contains(gameType)) {
                 comboBoxGameType.setSelectedItem(gameType);
             } else {
-                comboBoxGameType.setSelectedItem(GameType.SURVIVAL);
+                comboBoxGameType.setSelectedItem(SURVIVAL);
             }
             comboBoxGameType.setEnabled(newPlatform.supportedGameTypes.size() > 1);
-            if (newPlatform == DefaultPlugin.JAVA_ANVIL) {
-                checkBoxAllowCheats.setSelected(gameType == GameType.CREATIVE);
+            if (newPlatform != JAVA_MCREGION) {
+                checkBoxAllowCheats.setSelected(gameType == CREATIVE);
             } else {
                 checkBoxAllowCheats.setSelected(false);
             }
@@ -772,10 +776,10 @@ dims:   for (Dimension dim: world.getDimensions()) {
     }//GEN-LAST:event_comboBoxMinecraftVersionActionPerformed
 
     private void comboBoxGameTypeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxGameTypeActionPerformed
-        if (comboBoxMinecraftVersion.getSelectedItem().equals(DefaultPlugin.JAVA_ANVIL) && (comboBoxGameType.getSelectedItem() == GameType.CREATIVE)) {
+        if ((comboBoxMinecraftVersion.getSelectedItem() != JAVA_MCREGION) && (comboBoxGameType.getSelectedItem() == CREATIVE)) {
             checkBoxAllowCheats.setSelected(true);
             comboBoxDifficulty.setSelectedIndex(DIFFICULTY_PEACEFUL);
-        } else if (comboBoxGameType.getSelectedItem() == GameType.HARDCORE) {
+        } else if (comboBoxGameType.getSelectedItem() == HARDCORE) {
             checkBoxAllowCheats.setSelected(false);
             comboBoxDifficulty.setSelectedIndex(DIFFICULTY_HARD);
         }
@@ -783,7 +787,7 @@ dims:   for (Dimension dim: world.getDimensions()) {
     }//GEN-LAST:event_comboBoxGameTypeActionPerformed
 
     private void buttonGeneratorOptionsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonGeneratorOptionsActionPerformed
-        String editedGeneratorOptions = JOptionPane.showInputDialog(this, comboBoxGenerator.getSelectedItem() == Generator.CUSTOM ? "Edit the custom world generator name:" : "Edit the Superflat mode preset:", generatorOptions);
+        String editedGeneratorOptions = JOptionPane.showInputDialog(this, comboBoxGenerator.getSelectedItem() == CUSTOM ? "Edit the custom world generator name:" : "Edit the Superflat mode preset:", generatorOptions);
         if (editedGeneratorOptions != null) {
             generatorOptions = editedGeneratorOptions;
         }
