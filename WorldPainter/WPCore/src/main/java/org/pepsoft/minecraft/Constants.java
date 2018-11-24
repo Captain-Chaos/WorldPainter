@@ -5,10 +5,6 @@
 
 package org.pepsoft.minecraft;
 
-import com.google.common.collect.ImmutableSet;
-
-import java.util.*;
-
 /**
  *
  * @author pepijn
@@ -163,6 +159,7 @@ public final class Constants {
     public static final String MC_FARMLAND = "minecraft:farmland";
     public static final String MC_FERN = "minecraft:fern";
     public static final String MC_FIRE = "minecraft:fire";
+    public static final String MC_FLOWER_POT = "minecraft:flower_pot";
     public static final String MC_FROSTED_ICE = "minecraft:frosted_ice";
     public static final String MC_FURNACE = "minecraft:furnace";
     public static final String MC_GLASS = "minecraft:glass";
@@ -270,7 +267,6 @@ public final class Constants {
     public static final String MC_MAGMA_BLOCK = "minecraft:magma_block";
     public static final String MC_MELON_BLOCK = "minecraft:melon_block";
     public static final String MC_MELON_STEM = "minecraft:melon_stem";
-    public static final String MC_MOB_SPAWNER = "minecraft:mob_spawner";
     public static final String MC_MOSSY_COBBLESTONE = "minecraft:mossy_cobblestone";
     public static final String MC_MOSSY_COBBLESTONE_WALL = "minecraft:mossy_cobblestone_wall";
     public static final String MC_MOSSY_STONE_BRICKS = "minecraft:mossy_stone_bricks";
@@ -343,6 +339,7 @@ public final class Constants {
     public static final String MC_PURPLE_CONCRETE = "minecraft:purple_concrete";
     public static final String MC_PURPLE_CONCRETE_POWDER = "minecraft:purple_concrete_powder";
     public static final String MC_PURPLE_GLAZED_TERRACOTTA = "minecraft:purple_glazed_terracotta";
+    public static final String MC_PURPLE_SHULKER_BOX = "minecraft:purple_shulker_box";
     public static final String MC_PURPLE_STAINED_GLASS = "minecraft:purple_stained_glass";
     public static final String MC_PURPLE_STAINED_GLASS_PANE = "minecraft:purple_stained_glass_pane";
     public static final String MC_PURPLE_TERRACOTTA = "minecraft:purple_terracotta";
@@ -391,6 +388,7 @@ public final class Constants {
     public static final String MC_SEAGRASS = "minecraft:seagrass";
     public static final String MC_SHULKER_BOX = "minecraft:shulker_box";
     public static final String MC_SIGN = "minecraft:sign";
+    public static final String MC_SKELETON_SKULL = "minecraft:mc_skeleton_skull";
     public static final String MC_SLIME_BLOCK = "minecraft:slime_block";
     public static final String MC_SMOOTH_QUARTZ = "minecraft:smooth_quartz";
     public static final String MC_SMOOTH_RED_SANDSTONE = "minecraft:smooth_red_sandstone";
@@ -399,6 +397,7 @@ public final class Constants {
     public static final String MC_SNOW = "minecraft:snow";
     public static final String MC_SNOW_BLOCK = "minecraft:snow_block";
     public static final String MC_SOUL_SAND = "minecraft:soul_sand";
+    public static final String MC_SPAWNER = "minecraft:spawner";
     public static final String MC_SPONGE = "minecraft:sponge";
     public static final String MC_SPRUCE_BARK = "minecraft:spruce_bark";
     public static final String MC_SPRUCE_DOOR = "minecraft:spruce_door";
@@ -472,6 +471,7 @@ public final class Constants {
     public static final String MC_WATERLOGGED = "waterlogged";
     public static final String MC_AGE         = "age";
     public static final String MC_STAGE       = "stage";
+    public static final String MC_PERSISTENT  = "persistent";
 
     // Minecraft NBT tag names
 
@@ -943,7 +943,7 @@ public final class Constants {
 
     /** @deprecated */ public static final int ITM_EYE_OF_ENDER    = 381;
 
-    // Legacy (pre-MC 1.13) tile entity IDs (TODOMC13: same for MC 1.13?)
+    // Legacy (pre-MC 1.13) tile entity IDs (TODOMC13: implement this for MC 1.13 also
 
     public static final String ID_CHEST        = "Chest";
     public static final String ID_VILLAGER     = "Villager";
@@ -1019,58 +1019,6 @@ public final class Constants {
 
     /** 2x2 paintings */
     public static final String[] LARGE_PAINTINGS = {MOTIVE_MATCH, MOTIVE_BUST, MOTIVE_STAGE, MOTIVE_VOID, MOTIVE_SKULL_AND_ROSES};
-    
-    /**
-     * A map from tile entity ID's to the corresponding block ID's. TODOMC13: migrate to modern materials
-     */
-    public static final Map<String, Set<Integer>> TILE_ENTITY_MAP = new HashMap<>();
-
-    static {
-        TILE_ENTITY_MAP.put(ID_AIRPORTAL, Collections.singleton(BLK_END_PORTAL));
-        TILE_ENTITY_MAP.put(ID_BEACON, Collections.singleton(BLK_BEACON));
-        TILE_ENTITY_MAP.put(ID_CAULDRON, Collections.singleton(BLK_BREWING_STAND));
-        TILE_ENTITY_MAP.put(ID_CHEST, ImmutableSet.of(BLK_CHEST, BLK_TRAPPED_CHEST));
-        TILE_ENTITY_MAP.put(ID_COMPARATOR, ImmutableSet.of(BLK_REDSTONE_COMPARATOR_UNPOWERED, BLK_REDSTONE_COMPARATOR_POWERED));
-        TILE_ENTITY_MAP.put(ID_CONTROL, ImmutableSet.of(BLK_COMMAND_BLOCK, BLK_CHAIN_COMMAND_BLOCK, BLK_REPEATING_COMMAND_BLOCK));
-        TILE_ENTITY_MAP.put(ID_DLDETECTOR, ImmutableSet.of(BLK_DAYLIGHT_SENSOR, BLK_DAYLIGHT_SENSOR_INVERTED));
-        TILE_ENTITY_MAP.put(ID_DROPPER, Collections.singleton(BLK_DROPPER));
-        TILE_ENTITY_MAP.put(ID_ENCHANTTABLE, Collections.singleton(BLK_ENCHANTMENT_TABLE));
-        TILE_ENTITY_MAP.put(ID_ENDERCHEST, Collections.singleton(BLK_ENDER_CHEST));
-        TILE_ENTITY_MAP.put(ID_FLOWERPOT, Collections.singleton(BLK_FLOWER_POT));
-        TILE_ENTITY_MAP.put(ID_FURNACE, ImmutableSet.of(BLK_FURNACE, BLK_BURNING_FURNACE));
-        TILE_ENTITY_MAP.put(ID_HOPPER, Collections.singleton(BLK_HOPPER));
-        TILE_ENTITY_MAP.put(ID_MOBSPAWNER, Collections.singleton(BLK_MONSTER_SPAWNER));
-        TILE_ENTITY_MAP.put(ID_MUSIC, Collections.singleton(BLK_NOTE_BLOCK));
-        TILE_ENTITY_MAP.put(ID_PISTON, Collections.singleton(BLK_PISTON_HEAD));
-        TILE_ENTITY_MAP.put(ID_RECORDPLAYER, Collections.singleton(BLK_JUKEBOX));
-        TILE_ENTITY_MAP.put(ID_SIGN, ImmutableSet.of(BLK_SIGN, BLK_WALL_SIGN));
-        TILE_ENTITY_MAP.put(ID_SKULL, Collections.singleton(BLK_HEAD));
-        TILE_ENTITY_MAP.put(ID_TRAP, Collections.singleton(BLK_DISPENSER));
-        TILE_ENTITY_MAP.put(ID_BANNER, ImmutableSet.of(BLK_STANDING_BANNER, BLK_WALL_BANNER));
-        TILE_ENTITY_MAP.put(ID_STRUCTURE, Collections.singleton(BLK_STRUCTURE_BLOCK));
-        TILE_ENTITY_MAP.put(ID_SHULKER_BOX, ImmutableSet.of(BLK_WHITE_SHULKER_BOX, BLK_ORANGE_SHULKER_BOX, BLK_MAGENTA_SHULKER_BOX, BLK_LIGHT_BLUE_SHULKER_BOX, BLK_YELLOW_SHULKER_BOX, BLK_LIME_SHULKER_BOX, BLK_PINK_SHULKER_BOX, BLK_GREY_SHULKER_BOX, BLK_LIGHT_GREY_SHULKER_BOX, BLK_CYAN_SHULKER_BOX, BLK_PURPLE_SHULKER_BOX, BLK_BLUE_SHULKER_BOX, BLK_BROWN_SHULKER_BOX, BLK_GREEN_SHULKER_BOX, BLK_RED_SHULKER_BOX, BLK_BLACK_SHULKER_BOX));
-
-        // Make sure the tile entity flag in the block database is consistent
-        // with the tile entity map:
-        Set<Integer> allTileEntityIds = new HashSet<>();
-        for (Set<Integer> blockIdSet: TILE_ENTITY_MAP.values()) {
-            allTileEntityIds.addAll(blockIdSet);
-            for (int blockId: blockIdSet) {
-                if (! Block.BLOCKS[blockId].tileEntity) {
-                    throw new AssertionError("Block " + blockId + " not marked as tile entity!");
-                }
-            }
-        }
-        for (Block block: Block.BLOCKS) {
-            if (block.tileEntity && (! allTileEntityIds.contains(block.id))) {
-                throw new AssertionError("Block " + block.id + " marked as tile entity but not present in tile entity map!");
-            }
-        }
-    }
-
-    public static void main(String[] args) {
-        System.out.println("All checks passed");
-    }
 
     public static final int DEFAULT_MAX_HEIGHT_MCREGION = 128;
     public static final int DEFAULT_MAX_HEIGHT_ANVIL = 256;

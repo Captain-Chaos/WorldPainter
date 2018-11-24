@@ -15,8 +15,8 @@ import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toSet;
@@ -1340,6 +1340,22 @@ public final class Material implements Serializable {
     /**
      * Compare the material in name only, disregarding its properties.
      *
+     * @param names The names to test this material for.
+     * @return <code>true</code> if the material has one of the specified names.
+     */
+    @SuppressWarnings("StringEquality") // name is interned so there are many circumstances in which the comparison might work and be faster than equals()
+    public boolean isNamedOneOf(Collection<String> names) {
+        for (String name: names) {
+            if ((name == this.name) || name.equals(this.name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Compare the material in name only, disregarding its properties.
+     *
      * @param name The name to test this material for.
      * @return <code>true</code> if the material <em>does not</em> have the
      * specified name.
@@ -1696,6 +1712,7 @@ public final class Material implements Serializable {
     /**
      * Whether the block is a tile entity.
      */
+    // TODOMC13 make this valid for MC 1.13 blocks
     public final transient boolean tileEntity;
 
     /**
@@ -1737,7 +1754,18 @@ public final class Material implements Serializable {
     /** @deprecated Use names and properties. */
     public final int data;
     public final transient int index;
-    public final transient String simpleName, namespace;
+
+    /**
+     * The simple name (excluding the namespace, i.e. the part after the colon)
+     * of this material.
+     */
+    public final transient String simpleName;
+
+    /**
+     * The namespace (i.e. the part before the colon) of this material.
+     */
+    public final transient String namespace;
+
     private final Identity identity;
     private final transient String stringRep, legacyStringRep;
 
@@ -1964,6 +1992,7 @@ public final class Material implements Serializable {
     public static final Property<Integer> LEVEL       = new Property<>(MC_LEVEL,       Integer.class);
     public static final Property<Boolean> WATERLOGGED = new Property<>(MC_WATERLOGGED, Boolean.class);
     public static final Property<Integer> AGE         = new Property<>(MC_AGE,         Integer.class);
+    public static final Property<Boolean> PERSISTENT  = new Property<>(MC_PERSISTENT,  Boolean.class);
 
     // Modern materials (based on MC 1.13 block names and properties)
 
@@ -2000,6 +2029,15 @@ public final class Material implements Serializable {
     public static final Material BEETROOTS = get(MC_BEETROOTS, MC_AGE, 0);
     public static final Material NETHER_WART = get(MC_NETHER_WART, MC_AGE, 0);
     public static final Material CHORUS_FLOWER = get(MC_CHORUS_FLOWER, MC_AGE, 0);
+    public static final Material OAK_FENCE = get(MC_OAK_FENCE);
+    public static final Material NETHER_BRICK_FENCE = get(MC_NETHER_BRICK_FENCE);
+    public static final Material SPRUCE_FENCE = get(MC_SPRUCE_FENCE);
+    public static final Material BIRCH_FENC = get(MC_BIRCH_FENCE);
+    public static final Material JUNGLE_FENCE = get(MC_JUNGLE_FENCE);
+    public static final Material DARK_OAK_FENCE = get(MC_DARK_OAK_FENCE);
+    public static final Material ACACIA_FENCE = get(MC_ACACIA_FENCE);
+    public static final Material COBBLESTONE_WALL = get(MC_COBBLESTONE_WALL);
+    public static final Material IRON_BARS = get(MC_IRON_BARS);
 
     // Namespaces
 

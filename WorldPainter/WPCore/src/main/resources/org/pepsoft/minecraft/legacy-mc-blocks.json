@@ -7361,47 +7361,47 @@
   {
     "blockId": 140,
     "dataValue": 0,
-    "name": "minecraft:potted_cactus"
+    "name": "minecraft:flower_pot"
   },
   {
     "blockId": 140,
     "dataValue": 1,
-    "name": "minecraft:potted_cactus"
+    "name": "minecraft:potted_poppy"
   },
   {
     "blockId": 140,
     "dataValue": 2,
-    "name": "minecraft:potted_cactus"
+    "name": "minecraft:potted_dandelion"
   },
   {
     "blockId": 140,
     "dataValue": 3,
-    "name": "minecraft:potted_cactus"
+    "name": "minecraft:potted_oak_sapling"
   },
   {
     "blockId": 140,
     "dataValue": 4,
-    "name": "minecraft:potted_cactus"
+    "name": "minecraft:potted_spruce_sapling"
   },
   {
     "blockId": 140,
     "dataValue": 5,
-    "name": "minecraft:potted_cactus"
+    "name": "minecraft:potted_birch_sapling"
   },
   {
     "blockId": 140,
     "dataValue": 6,
-    "name": "minecraft:potted_cactus"
+    "name": "minecraft:potted_jungle_sapling"
   },
   {
     "blockId": 140,
     "dataValue": 7,
-    "name": "minecraft:potted_cactus"
+    "name": "minecraft:potted_red_mushroom"
   },
   {
     "blockId": 140,
     "dataValue": 8,
-    "name": "minecraft:potted_cactus"
+    "name": "minecraft:potted_brown_mushroom"
   },
   {
     "blockId": 140,
@@ -7411,32 +7411,22 @@
   {
     "blockId": 140,
     "dataValue": 10,
-    "name": "minecraft:potted_cactus"
+    "name": "minecraft:potted_dead_bush"
   },
   {
     "blockId": 140,
     "dataValue": 11,
-    "name": "minecraft:potted_cactus"
+    "name": "minecraft:potted_fern"
   },
   {
     "blockId": 140,
     "dataValue": 12,
-    "name": "minecraft:potted_cactus"
+    "name": "minecraft:potted_acacia_sapling"
   },
   {
     "blockId": 140,
     "dataValue": 13,
-    "name": "minecraft:potted_cactus"
-  },
-  {
-    "blockId": 140,
-    "dataValue": 14,
-    "name": "minecraft:potted_cactus"
-  },
-  {
-    "blockId": 140,
-    "dataValue": 15,
-    "name": "minecraft:potted_cactus"
+    "name": "minecraft:potted_dark_oak_sapling"
   },
   {
     "blockId": 141,
