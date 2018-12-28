@@ -192,7 +192,7 @@ public final class Material implements Serializable {
             lightSource = false;
             natural = NATURAL_MATERIALS.contains(identity.name);
             category = CATEGORY_UNKNOWN;
-            System.out.println("Did not match " + identity + " to legacy block");
+            new Throwable("Did not match " + identity + " to legacy block").printStackTrace();
         }
 
         this.identity = identity;
