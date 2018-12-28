@@ -40,7 +40,7 @@ public abstract class TreeType implements Serializable {
     protected final Material getCapMaterial() {
         if (trunkMaterial.name.endsWith("_log")) {
             String woodType = trunkMaterial.name.substring(0, trunkMaterial.name.length() - 4);
-            return Material.get(woodType + "_bark", trunkMaterial.getProperties());
+            return Material.get(woodType + "_wood");
         } else {
             return trunkMaterial;
         }
