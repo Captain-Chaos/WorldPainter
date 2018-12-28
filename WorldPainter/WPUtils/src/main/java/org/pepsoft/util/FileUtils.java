@@ -7,6 +7,7 @@ package org.pepsoft.util;
 import java.awt.*;
 import java.io.*;
 import java.nio.charset.Charset;
+import java.nio.file.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
@@ -661,6 +662,42 @@ public class FileUtils {
         }
     }
 
+    /**
+     * Calculate the total size of the files in the specified directory,
+     * recursively. <em>Note</em> that this method does not take the size of
+     * directories into account, nor the block or sector size of the filesystem.
+     *
+     * @param dir The directory of which to calculate the total size.
+     * @return The total size of the files in the specified directory and all
+     * its subdirectories, in bytes.
+     */
+    @SuppressWarnings("ConstantConditions") // Responsibility of caller
+    public long getTreeSize(File dir) {
+        long totalSize = 0;
+        for (File entry: dir.listFiles()) {
+            if (entry.isFile()) {
+                totalSize += entry.length();
+            } else if (entry.isDirectory()) {
+                totalSize += getTreeSize(entry);
+            }
+        }
+        return totalSize;
+    }
+
+    /**
+     * Determine the free space on the file system containing a specific file or
+     * directory.
+     *
+     * @param path The file or directory for which to determine its containing
+     *             filesystem's free space.
+     * @return The free space on the specified path's filesystem in bytes.
+     * @throws IOException If an I/O error occurs while determining the free
+     * space.
+     */
+    public long getFreeSpace(File path) throws IOException {
+        return Files.getFileStore(path.toPath()).getUsableSpace();
+    }
+
     public static void main(String[] args) throws IOException {
         Checksum md5 = getMD5(new File(args[0]));
         System.out.print('{');
@@ -673,6 +710,22 @@ public class FileUtils {
             System.out.print(bytes[i]);
         }
         System.out.println('}');
+
+//        Set<FileStore> fileStores = new HashSet<>();
+//        for (File root: File.listRoots()) {
+//            Path rootPath = root.toPath();
+//            FileSystem fileSystem = rootPath.getFileSystem();
+//            fileSystem.getFileStores().forEach(fileStores::add);
+//        }
+//        for (FileStore fileStore: fileStores) {
+//            System.out.println(fileStore);
+//            System.out.println("Name: " + fileStore.name());
+//            System.out.println("Type: " + fileStore.type());
+//            System.out.println("Total space: " + fileStore.getTotalSpace());
+//            System.out.println("Usable space: " + fileStore.getUsableSpace());
+//            System.out.println("Unallocated space: " + fileStore.getUnallocatedSpace());
+//            System.out.println("Read only: " + fileStore.isReadOnly());
+//        }
     }
     
     private static final int BUFFER_SIZE = 32768;
