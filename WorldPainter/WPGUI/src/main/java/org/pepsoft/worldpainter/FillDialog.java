@@ -21,6 +21,7 @@ import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.layers.FloodWithLava;
 import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.layers.NotPresent;
 import org.pepsoft.worldpainter.operations.Filter;
 import org.pepsoft.worldpainter.panels.BrushOptions.Listener;
 import org.pepsoft.worldpainter.selection.SelectionBlock;
@@ -57,7 +58,7 @@ public class FillDialog extends WorldPainterDialog implements Listener {
         comboBoxSetLayer.setRenderer(new LayerListCellRenderer());
         
         Set<Layer> layersInUse = dimension.getAllLayers(false);
-        layersInUse.removeAll(Arrays.asList(Biome.INSTANCE, FloodWithLava.INSTANCE, SelectionBlock.INSTANCE, SelectionChunk.INSTANCE));
+        layersInUse.removeAll(Arrays.asList(Biome.INSTANCE, FloodWithLava.INSTANCE, SelectionBlock.INSTANCE, SelectionChunk.INSTANCE, NotPresent.INSTANCE));
         if (! layersInUse.isEmpty()) {
             comboBoxClearLayer.setModel(new DefaultComboBoxModel(layersInUse.toArray(new Layer[layersInUse.size()])));
             comboBoxClearLayer.setRenderer(new LayerListCellRenderer());
