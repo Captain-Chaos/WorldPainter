@@ -8,8 +8,8 @@ import org.jnbt.*;
 import org.pepsoft.minecraft.*;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
-import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.exporters.FrostExporter.FrostSettings;
@@ -342,7 +342,12 @@ public class JavaMapImporter extends MapImporter {
                                                 if ((name == MC_SNOW) || (name == MC_ICE)) {
                                                     frost = true;
                                                 }
-                                                if ((waterLevel == 0) && ((name == MC_ICE) || (name == MC_FROSTED_ICE) || (name == MC_BUBBLE_COLUMN) || (((name == MC_WATER) || (name == MC_LAVA)) && (material.getProperty(LEVEL) == 0)) || material.is(WATERLOGGED))) {
+                                                if ((waterLevel == 0) && ((name == MC_ICE)
+                                                                          || (name == MC_FROSTED_ICE)
+                                                                          || (name == MC_BUBBLE_COLUMN)
+                                                                          || (((name == MC_WATER) || (name == MC_LAVA))
+                                                                              && (material.getProperty(LEVEL) == 0))
+                                                                          || material.is(WATERLOGGED))) {
                                                     waterLevel = y;
                                                     if (name == MC_LAVA) {
                                                         floodWithLava = true;

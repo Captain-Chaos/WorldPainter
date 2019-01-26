@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.*;
 
 import static java.util.Collections.singleton;
+import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toSet;
 import static org.pepsoft.minecraft.Block.BLOCK_TYPE_NAMES;
 import static org.pepsoft.minecraft.Constants.*;
@@ -35,7 +36,7 @@ import static org.pepsoft.minecraft.Constants.*;
  *
  * @author pepijn
  */
-@SuppressWarnings({"PointlessBitwiseExpression", "deprecation"}) // legibility; only deprecated for client code
+@SuppressWarnings("deprecation") // only deprecated for client code
 public final class Material implements Serializable {
     /**
      * Legacy constructor, which creates a pre-Minecraft 1.13 block type from a
@@ -97,7 +98,7 @@ public final class Material implements Serializable {
         } else {
             namespace = LEGACY;
             simpleName = ("block_" + blockType).intern();
-            identity = new Identity(namespace + ":" + simpleName, Collections.singletonMap("data_value", Integer.toString(data)));
+            identity = new Identity(namespace + ":" + simpleName, singletonMap("data_value", Integer.toString(data)));
         }
         name = identity.name;
         stringRep = createStringRep();
@@ -199,8 +200,8 @@ public final class Material implements Serializable {
         name = identity.name;
         int p = name.indexOf(':');
         if (p != -1) {
-            namespace = name.substring(0, p);
-            simpleName = name.substring(p + 1);
+            namespace = name.substring(0, p).intern();
+            simpleName = name.substring(p + 1).intern();
         } else {
             namespace = null;
             simpleName = name;
@@ -208,8 +209,7 @@ public final class Material implements Serializable {
         stringRep = createStringRep();
         legacyStringRep = createLegacyStringRep();
         ALL_NAMESPACES.add(namespace);
-        Set<String> simpleNames = SIMPLE_NAMES_BY_NAMESPACE.computeIfAbsent(namespace, name -> new HashSet<>(singleton(name)));
-        simpleNames.add(simpleName);
+        SIMPLE_NAMES_BY_NAMESPACE.computeIfAbsent(namespace, name -> new HashSet<>(singleton(name))).add(simpleName);
         if (! DEFAULT_MATERIALS_BY_NAME.containsKey(name)) {
             DEFAULT_MATERIALS_BY_NAME.put(name, this);
         }
@@ -245,7 +245,6 @@ public final class Material implements Serializable {
      * @return The value of the specified property transformed to the specified
      * type.
      */
-    @SuppressWarnings("unchecked") // Responsibility of client
     public <T> T getProperty(Property<T> property) {
         return (identity.properties != null) ? property.fromString(identity.properties.get(property.name)) : null;
     }
@@ -1506,7 +1505,7 @@ public final class Material implements Serializable {
      */
     public static Material getByCombinedIndex(int index) {
         if (index >= LEGACY_MATERIALS.length) {
-            return get(new Identity("legacy:block_" + (index >> 4), Collections.singletonMap("data_value", Integer.toString(index & 0xf))));
+            return get(new Identity("legacy:block_" + (index >> 4), singletonMap("data_value", Integer.toString(index & 0xf))));
         } else {
             return LEGACY_MATERIALS[index];
         }
@@ -1573,12 +1572,7 @@ public final class Material implements Serializable {
      * <code>null</code> if no material by that name is known.
      */
     public static Material getDefault(String name) {
-        for (Material material: ALL_MATERIALS.values()) {
-            if (material.identity.name.equals(name)) {
-                return material;
-            }
-        }
-        return null;
+        return DEFAULT_MATERIALS_BY_NAME.get(name);
     }
 
     public static Set<String> getAllNamespaces() {
@@ -1640,7 +1634,7 @@ public final class Material implements Serializable {
         if (identity == null) {
             int index = (blockType << 4) | data;
             if (index >= LEGACY_MATERIALS.length) {
-                return get(new Identity("legacy:block_" + blockType, Collections.singletonMap("data_value", Integer.toString(data))));
+                return get(new Identity("legacy:block_" + blockType, singletonMap("data_value", Integer.toString(data))));
             } else {
                 return LEGACY_MATERIALS[index];
             }
@@ -2077,7 +2071,7 @@ public final class Material implements Serializable {
         @Override
         public boolean equals(Object o) {
             return (o instanceof Identity)
-                && name.equals(((Identity) o).name)
+                && (name == ((Identity) o).name)
                 && ((properties != null) ? properties.equals(((Identity) o).properties) : (((Identity) o).properties == null));
         }
 
