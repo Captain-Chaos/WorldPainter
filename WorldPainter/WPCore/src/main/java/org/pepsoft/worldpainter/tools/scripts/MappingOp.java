@@ -46,6 +46,7 @@ import static org.pepsoft.worldpainter.Constants.*;
  *
  * @author SchmitzP
  */
+@SuppressWarnings("unused") // Used from scripts
 public class MappingOp extends AbstractOperation<Void> {
     public MappingOp(ScriptingContext context, HeightMap heightMap) throws ScriptException {
         super(context);
@@ -157,33 +158,17 @@ public class MappingOp extends AbstractOperation<Void> {
     }
     
     public MappingOp fromColour(int red, int green, int blue) throws ScriptException {
-        if ((red < 0) || (red > 255)) {
-            throw new ScriptException("Invalid red value " + red + " specified");
-        }
-        if ((green < 0) || (green > 255)) {
-            throw new ScriptException("Invalid green value " + green + " specified");
-        }
-        if ((blue < 0) || (blue > 255)) {
-            throw new ScriptException("Invalid blue value " + blue + " specified");
-        }
-        storedColour = 0xff000000 | (red << 16) | (green << 8) | blue;
+        validateRGB(red, green, blue);
+        storedColour = 0xff000000L | (red << 16) | (green << 8) | blue;
         return this;
     }
-    
+
     public MappingOp fromColour(int alpha, int red, int green, int blue) throws ScriptException {
         if ((alpha < 0) || (alpha > 255)) {
             throw new ScriptException("Invalid alpha value " + alpha + " specified");
         }
-        if ((red < 0) || (red > 255)) {
-            throw new ScriptException("Invalid red value " + red + " specified");
-        }
-        if ((green < 0) || (green > 255)) {
-            throw new ScriptException("Invalid green value " + green + " specified");
-        }
-        if ((blue < 0) || (blue > 255)) {
-            throw new ScriptException("Invalid blue value " + blue + " specified");
-        }
-        storedColour = (alpha << 24) | (red << 16) | (green << 8) | blue;
+        validateRGB(red, green, blue);
+        storedColour = ((long) alpha << 24) | (red << 16) | (green << 8) | blue;
         return this;
     }
     
@@ -191,30 +176,16 @@ public class MappingOp extends AbstractOperation<Void> {
         if ((level < 0) || (level > 255)) {
             throw new ScriptException("Illegal value for layer: " + level);
         }
-        if (storedColour != -1) {
-            colourMapping.put(storedColour, level);
-            storedColour = -1;
-        } else {
-            for (int i = storedLowerFrom; i <= storedUpperFrom; i++) {
-                mapping[i] = level;
-            }
-        }
+        mapStoredValuesTo(level);
         layerValue = level;
         return this;
     }
-    
+
     public MappingOp toTerrain(int terrain) throws ScriptException {
         if ((terrain < 0) || (terrain >= Terrain.VALUES.length)) {
             throw new ScriptException("Illegal value for terrain index: " + terrain);
         }
-        if (storedColour != -1) {
-            colourMapping.put(storedColour, terrain);
-            storedColour = -1;
-        } else {
-            for (int i = storedLowerFrom; i <= storedUpperFrom; i++) {
-                mapping[i] = terrain;
-            }
-        }
+        mapStoredValuesTo(terrain);
         return this;
     }
     
@@ -456,12 +427,36 @@ public class MappingOp extends AbstractOperation<Void> {
         return null;
     }
 
+    private void validateRGB(int red, int green, int blue) throws ScriptException {
+        if ((red < 0) || (red > 255)) {
+            throw new ScriptException("Invalid red value " + red + " specified");
+        }
+        if ((green < 0) || (green > 255)) {
+            throw new ScriptException("Invalid green value " + green + " specified");
+        }
+        if ((blue < 0) || (blue > 255)) {
+            throw new ScriptException("Invalid blue value " + blue + " specified");
+        }
+    }
+
+    private void mapStoredValuesTo(int value) {
+        if (storedColour >= 0) {
+            colourMapping.put((int) storedColour, value);
+            storedColour = -1L;
+        } else {
+            for (int i = storedLowerFrom; i <= storedUpperFrom; i++) {
+                mapping[i] = value;
+            }
+        }
+    }
+
     private final int[] mapping = new int[65536];
     private final Map<Integer, Integer> colourMapping = new HashMap<>();
     private HeightMap heightMap;
     private Layer layer;
     private World2 world;
-    private int dimIndex, storedLowerFrom, storedUpperFrom, scale = 100, offsetX, offsetY, terrainIndex, layerValue, storedColour = -1;
+    private int dimIndex, storedLowerFrom, storedUpperFrom, scale = 100, offsetX, offsetY, terrainIndex, layerValue;
+    private long storedColour = -1L;
     private Mode mode = Mode.SET;
     private Filter filter;
    
