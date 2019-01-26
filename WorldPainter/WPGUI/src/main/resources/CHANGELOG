@@ -1,3 +1,7 @@
+-- Version 2.5.9, released ...
+
+ * Bug fix: allowing mapping from pure white colour (#ffffff) in scripts
+
 -- Version 2.5.8, released 18-11-2018
 
  * Bug fix: the order of layered Custom Materials is no longer reversed
