@@ -87,8 +87,8 @@ public class Java1_2PostProcessor extends PostProcessor {
 //                if ((minZ == 0) && (blockTypeAbove != BLK_BEDROCK) && (blockTypeAbove != BLK_AIR) && (blockTypeAbove != BLK_STATIONARY_WATER) && (blockTypeAbove != BLK_STATIONARY_LAVA)) {
 //                    logger.warn("Non-bedrock block @ " + x + "," + y + ",0: " + BLOCKS[blockTypeAbove].name);
 //                }
-                final int columnMaxX = Math.min(minecraftWorld.getHighestNonAirBlock(x, y), maxZ);
-                for (int z = minZ; z <= columnMaxX; z++) {
+                final int columnMaxZ = Math.min(minecraftWorld.getHighestNonAirBlock(x, y), maxZ);
+                for (int z = minZ; z <= columnMaxZ; z++) {
                     int blockType = blockTypeAbove;
                     blockTypeAbove = (z < worldMaxZ) ? minecraftWorld.getBlockTypeAt(x, y, z + 1) : BLK_AIR;
                     if (((blockTypeBelow == BLK_GRASS) || (blockTypeBelow == BLK_MYCELIUM) || (blockTypeBelow == BLK_TILLED_DIRT)) && ((blockType == BLK_WATER) || (blockType == BLK_STATIONARY_WATER) || (blockType == BLK_ICE) || ((blockType <= HIGHEST_KNOWN_BLOCK_ID) && (BLOCK_TRANSPARENCY[blockType] == 15)))) {
