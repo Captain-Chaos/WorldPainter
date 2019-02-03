@@ -98,7 +98,9 @@ public interface MinecraftWorld extends ChunkProvider {
 
     /**
      * Get the Z coordinate of the highest non-air (block ID zero, any data
-     * value) block in a specific column.
+     * value) block in a specific column. This is allowed to be an
+     * approximation, as long as it is the same or higher than the actual
+     * highest non-air block.
      *
      * @param x The X coordinate of the column.
      * @param y The Y coordinate of the column.
