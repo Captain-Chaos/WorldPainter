@@ -38,7 +38,7 @@ import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.*;
 
 @SuppressWarnings("ConstantConditions") // Future-proofing
 public enum Terrain {
-    GRASS    ("Grass", "grass with flowers, tall grass and ferns here and there", BIOME_PLAINS) {
+    GRASS ("Grass", "grass with flowers, tall grass and ferns here and there", BIOME_PLAINS, 2) {
         @Override
         public Material getMaterial(long seed, int x, int y, int z, int height) {
             final int dz = z - height;
@@ -142,7 +142,7 @@ public enum Terrain {
         private final PerlinNoise grassNoise = new PerlinNoise(0);
         private final RandomField flowerTypeField = new RandomField(4, SMALL_BLOBS, 0);
         private final PerlinNoise tallGrassNoise = new PerlinNoise(0);
-        
+
         private final Material[] FLOWER_TYPES = {
             DANDELION,
             ROSE,
@@ -161,7 +161,7 @@ public enum Terrain {
             DANDELION, // Again to make them a bit more common
             ROSE,      // Again to make them a bit more common
         };
-        
+
         private final Material DOUBLE_TALL_GRASS_BOTTOM = Material.get(BLK_LARGE_FLOWERS, 2);
         private final Material LARGE_FLOWER_TOP         = Material.get(BLK_LARGE_FLOWERS, 8);
         private final Material DOUBLE_TALL_FERN_BOTTOM  = Material.get(BLK_LARGE_FLOWERS, 3);
@@ -173,11 +173,11 @@ public enum Terrain {
         private static final long DOUBLE_TALL_GRASS_SEED_OFFSET = 31695680L;
         private static final int FLOWER_INCIDENCE = 10;
     },
-    DIRT     ("Dirt",      BLK_DIRT,      BLK_DIRT,       "bare dirt", BIOME_PLAINS),
-    SAND     ("Sand",      BLK_SAND,      BLK_SAND,       "bare sand", BIOME_PLAINS),
-    SANDSTONE("Sandstone", BLK_SANDSTONE, BLK_SANDSTONE,  "sandstone", BIOME_PLAINS),
-    STONE    ("Stone",     BLK_STONE,     BLK_STONE,      "bare stone", BIOME_PLAINS),
-    ROCK     ("Rock",                                     "a mix of stone and cobblestone", BIOME_PLAINS) {
+    DIRT("Dirt", BLK_DIRT, BLK_DIRT, "bare dirt", BIOME_PLAINS),
+    SAND("Sand", BLK_SAND, BLK_SAND, "bare sand", BIOME_PLAINS),
+    SANDSTONE("Sandstone", BLK_SANDSTONE, BLK_SANDSTONE, "sandstone", BIOME_PLAINS),
+    STONE("Stone", BLK_STONE, BLK_STONE, "bare stone", BIOME_PLAINS),
+    ROCK("Rock", "a mix of stone and cobblestone", BIOME_PLAINS) {
         @Override
         public Material getMaterial(long seed, int x, int y, int z, int height) {
             final int dz = z - height;
@@ -199,10 +199,10 @@ public enum Terrain {
 
         private static final int STONE_SEED_OFFSET = 188434540;
     },
-    WATER    ("Water",     BLK_WATER,     BLK_WATER,      "flowing water", BIOME_RIVER),
-    LAVA     ("Lava",      BLK_LAVA,      BLK_LAVA,       "flowing lava", BIOME_PLAINS),
+    WATER("Water", BLK_WATER, BLK_WATER, "flowing water", BIOME_RIVER),
+    LAVA("Lava", BLK_LAVA, BLK_LAVA, "flowing lava", BIOME_PLAINS),
     @Deprecated
-    SNOW     ("Snow on Rock",                             "a thin layer of snow on a mix of stone and cobblestone", BIOME_ICE_PLAINS) {
+    SNOW("Snow on Rock", "a thin layer of snow on a mix of stone and cobblestone", BIOME_ICE_PLAINS, 1) {
         @Override
         public Material getMaterial(long seed, int x, int y, int z, int height) {
             final int dz = z - height;
@@ -232,15 +232,15 @@ public enum Terrain {
         private static final int STONE_SEED_OFFSET = 188434540;
     },
     DEEP_SNOW("Deep Snow", BLK_SNOW_BLOCK, BLK_SNOW_BLOCK, "a thick layer of snow", BIOME_ICE_PLAINS),
-    GRAVEL("Gravel",       BLK_GRAVEL,    BLK_GRAVEL,     "gravel", BIOME_PLAINS),
-    CLAY("Clay",           BLK_CLAY,      BLK_CLAY,       "clay", BIOME_PLAINS),
+    GRAVEL("Gravel", BLK_GRAVEL, BLK_GRAVEL, "gravel", BIOME_PLAINS),
+    CLAY("Clay", BLK_CLAY, BLK_CLAY, "clay", BIOME_PLAINS),
     COBBLESTONE("Cobblestone", BLK_COBBLESTONE, BLK_COBBLESTONE, "cobblestone", BIOME_PLAINS),
     MOSSY_COBBLESTONE("Mossy Cobblestone", BLK_MOSSY_COBBLESTONE, BLK_MOSSY_COBBLESTONE, "mossy cobblestone", BIOME_PLAINS),
     NETHERRACK("Netherrack", BLK_NETHERRACK, BLK_NETHERRACK, "netherrack", BIOME_PLAINS),
-    SOUL_SAND("Soul Sand", BLK_SOUL_SAND, BLK_SOUL_SAND,  "soul sand", BIOME_PLAINS),
-    OBSIDIAN("Obsidian",   BLK_OBSIDIAN,  BLK_OBSIDIAN,   "extremely tough volcanic glass", BIOME_PLAINS),
-    BEDROCK("Bedrock",     BLK_BEDROCK,   BLK_BEDROCK,    "unbreakable bedrock", BIOME_PLAINS),
-    DESERT("Desert",                                      "sand with here and there a cactus or dead shrub", BIOME_DESERT) {
+    SOUL_SAND("Soul Sand", BLK_SOUL_SAND, BLK_SOUL_SAND, "soul sand", BIOME_PLAINS),
+    OBSIDIAN("Obsidian", BLK_OBSIDIAN, BLK_OBSIDIAN, "extremely tough volcanic glass", BIOME_PLAINS),
+    BEDROCK("Bedrock", BLK_BEDROCK, BLK_BEDROCK, "unbreakable bedrock", BIOME_PLAINS),
+    DESERT("Desert", "sand with here and there a cactus or dead shrub", BIOME_DESERT, 3) {
         @Override
         public Material getMaterial(long seed, int x, int y, int z, int height) {
             final int dz = z - height;
@@ -272,7 +272,7 @@ public enum Terrain {
 
         private static final int CACTUS_CHANCE = 1000;
     },
-    NETHERLIKE("Netherlike",                              "netherrack with pockets of lava, soul sand and glowstone and patches of fire on top", BIOME_HELL) {
+    NETHERLIKE("Netherlike", "netherrack with pockets of lava, soul sand and glowstone and patches of fire on top", BIOME_HELL, 1) {
         @Override
         public Material getMaterial(long seed, int x, int y, int z, int height) {
             final int dz = z - height;
@@ -313,7 +313,7 @@ public enum Terrain {
         private static final int FIRE_CHANCE           =       150;
     },
     @Deprecated
-    RESOURCES("Resources",                                "stone on the surface with pockets of coal, ores, gravel and dirt, lava and water, etc.", BIOME_PLAINS) {
+    RESOURCES("Resources", "stone on the surface with pockets of coal, ores, gravel and dirt, lava and water, etc.", BIOME_PLAINS) {
         @Override
         public Material getMaterial(long seed, int x, int y, int z, int height) {
             if (z > height) {
@@ -363,7 +363,6 @@ public enum Terrain {
                 }
             }
         }
-        
 
         private final PerlinNoise goldNoise        = new PerlinNoise(0);
         private final PerlinNoise ironNoise        = new PerlinNoise(0);
@@ -389,7 +388,7 @@ public enum Terrain {
         private static final long DIRT_SEED_OFFSET         = 193567846;
         private static final long GRAVEL_SEED_OFFSET       = 19951397;
     },
-    BEACHES("Beaches",                                    "grass with patches of sand, gravel and clay", BIOME_BEACH) {
+    BEACHES("Beaches", "grass with patches of sand, gravel and clay", BIOME_BEACH) {
         @Override
         public Material getMaterial(long seed, int x, int y, int z, int height) {
             final int dz = z - height;
@@ -418,7 +417,7 @@ public enum Terrain {
                 }
             }
         }
-        
+
         private final PerlinNoise sandNoise = new PerlinNoise(0);
         private final PerlinNoise clayNoise = new PerlinNoise(0);
 
@@ -429,7 +428,7 @@ public enum Terrain {
         @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
         @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}
-        
+
         @Override public String getName() {return helper.getName();}
 
         @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}
@@ -439,13 +438,13 @@ public enum Terrain {
         @Override public boolean isConfigured() {return helper.isConfigured();}
 
         @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
-        
+
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
         @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
-        
+
         private final CustomTerrainHelper helper = new CustomTerrainHelper(0);
     },
     CUSTOM_2("Custom 2",                                  "custom material two", BIOME_PLAINS) {
@@ -462,7 +461,7 @@ public enum Terrain {
         @Override public boolean isConfigured() {return helper.isConfigured();}
 
         @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
-        
+
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
         @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
@@ -485,7 +484,7 @@ public enum Terrain {
         @Override public boolean isConfigured() {return helper.isConfigured();}
 
         @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
-        
+
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
         @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
@@ -508,7 +507,7 @@ public enum Terrain {
         @Override public boolean isConfigured() {return helper.isConfigured();}
 
         @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
-        
+
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
         @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
@@ -531,7 +530,7 @@ public enum Terrain {
         @Override public boolean isConfigured() {return helper.isConfigured();}
 
         @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
-        
+
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
         @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
@@ -540,9 +539,9 @@ public enum Terrain {
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(4);
     },
-    MYCELIUM("Mycelium", BLK_MYCELIUM, BLK_DIRT,          "mycelium", BIOME_MUSHROOM_ISLAND),
-    END_STONE("End Stone", BLK_END_STONE, BLK_END_STONE,  "end stone", BIOME_SKY),
-    BARE_GRASS("Bare Grass", BLK_GRASS, BLK_GRASS,        "bare grass (no flowers, etc.)", BIOME_PLAINS),
+    MYCELIUM("Mycelium", BLK_MYCELIUM, BLK_DIRT, "mycelium", BIOME_MUSHROOM_ISLAND),
+    END_STONE("End Stone", BLK_END_STONE, BLK_END_STONE, "end stone", BIOME_SKY),
+    BARE_GRASS("Bare Grass", BLK_GRASS, BLK_GRASS, "bare grass (no flowers, etc.)", BIOME_PLAINS),
     CUSTOM_6("Custom 6",                                  "custom material six", BIOME_PLAINS) {
         @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
 
@@ -557,7 +556,7 @@ public enum Terrain {
         @Override public boolean isConfigured() {return helper.isConfigured();}
 
         @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
-        
+
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
         @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
@@ -580,7 +579,7 @@ public enum Terrain {
         @Override public boolean isConfigured() {return helper.isConfigured();}
 
         @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
-        
+
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
         @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
@@ -603,7 +602,7 @@ public enum Terrain {
         @Override public boolean isConfigured() {return helper.isConfigured();}
 
         @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
-        
+
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
         @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
@@ -626,7 +625,7 @@ public enum Terrain {
         @Override public boolean isConfigured() {return helper.isConfigured();}
 
         @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
-        
+
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
         @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
@@ -649,7 +648,7 @@ public enum Terrain {
         @Override public boolean isConfigured() {return helper.isConfigured();}
 
         @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
-        
+
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
         @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
@@ -672,7 +671,7 @@ public enum Terrain {
         @Override public boolean isConfigured() {return helper.isConfigured();}
 
         @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
-        
+
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
         @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
@@ -695,7 +694,7 @@ public enum Terrain {
         @Override public boolean isConfigured() {return helper.isConfigured();}
 
         @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
-        
+
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
         @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
@@ -718,7 +717,7 @@ public enum Terrain {
         @Override public boolean isConfigured() {return helper.isConfigured();}
 
         @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
-        
+
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
         @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
@@ -741,7 +740,7 @@ public enum Terrain {
         @Override public boolean isConfigured() {return helper.isConfigured();}
 
         @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
-        
+
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
         @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
@@ -764,7 +763,7 @@ public enum Terrain {
         @Override public boolean isConfigured() {return helper.isConfigured();}
 
         @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
-        
+
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
         @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
@@ -787,7 +786,7 @@ public enum Terrain {
         @Override public boolean isConfigured() {return helper.isConfigured();}
 
         @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
-        
+
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
         @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
@@ -810,7 +809,7 @@ public enum Terrain {
         @Override public boolean isConfigured() {return helper.isConfigured();}
 
         @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
-        
+
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
         @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
@@ -833,7 +832,7 @@ public enum Terrain {
         @Override public boolean isConfigured() {return helper.isConfigured();}
 
         @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
-        
+
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
         @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
@@ -856,7 +855,7 @@ public enum Terrain {
         @Override public boolean isConfigured() {return helper.isConfigured();}
 
         @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
-        
+
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
         @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
@@ -879,7 +878,7 @@ public enum Terrain {
         @Override public boolean isConfigured() {return helper.isConfigured();}
 
         @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
-        
+
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
         @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
@@ -902,7 +901,7 @@ public enum Terrain {
         @Override public boolean isConfigured() {return helper.isConfigured();}
 
         @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
-        
+
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
         @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
@@ -925,7 +924,7 @@ public enum Terrain {
         @Override public boolean isConfigured() {return helper.isConfigured();}
 
         @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
-        
+
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
         @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
@@ -948,7 +947,7 @@ public enum Terrain {
         @Override public boolean isConfigured() {return helper.isConfigured();}
 
         @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
-        
+
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
         @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
@@ -971,7 +970,7 @@ public enum Terrain {
         @Override public boolean isConfigured() {return helper.isConfigured();}
 
         @Override public int getDefaultBiome() {return helper.getDefaultBiome();}
-        
+
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
         @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
@@ -1000,12 +999,12 @@ public enum Terrain {
     GREEN_STAINED_CLAY("Green Stained Terracotta", Material.GREEN_CLAY, Material.GREEN_CLAY, "green stained terracotta", BIOME_PLAINS),
     RED_STAINED_CLAY("Red Stained Terracotta", Material.RED_CLAY, Material.RED_CLAY, "red stained terracotta", BIOME_MESA),
     BLACK_STAINED_CLAY("Black Stained Terracotta", Material.BLACK_CLAY, Material.BLACK_CLAY, "black stained terracotta", BIOME_PLAINS),
-    MESA("Mesa", "layers of red sand, hardened clay and stained clay, with here and there a cactus or a dead shrub", BIOME_MESA) {
+    MESA("Mesa", "layers of red sand, hardened clay and stained clay, with here and there a dead shrub", BIOME_MESA, 1) {
         @Override
         public Material getMaterial(final long seed, final int x, final int y, final int z, final int height) {
             return getMaterial(seed, x, y, (float) z, height);
         }
-        
+
         @Override
         public Material getMaterial(final long seed, final int x, final int y, final float z, final int height) {
             if (seed != this.seed) {
@@ -1023,7 +1022,7 @@ public enum Terrain {
                 }
             }
         }
-        
+
         private void init(long seed) {
             this.seed = seed;
             perlinNoise.setSeed(seed + NOISE_SEED_OFFSET);
@@ -1036,18 +1035,18 @@ public enum Terrain {
                 LAYERS[index + 1] = material;
             }
         }
-        
+
         private final Material[] LAYERS = new Material[LAYER_COUNT];
         private final PerlinNoise perlinNoise = new PerlinNoise(0);
         private long seed = Long.MIN_VALUE;
-        
+
         private final Material[] MATERIALS = {Material.RED_SAND, Material.HARDENED_CLAY, Material.WHITE_CLAY, Material.LIGHT_GREY_CLAY, Material.YELLOW_CLAY, Material.ORANGE_CLAY, Material.RED_CLAY, Material.BROWN_CLAY};
 
         private static final int LAYER_COUNT = 64;
         private static final int SHRUB_CHANCE = 500;
         private static final long NOISE_SEED_OFFSET = 110335839L;
     },
-    RED_DESERT("Red Desert", "red sand with here and there a cactus or dead shrub", BIOME_MESA) {
+    RED_DESERT("Red Desert", "red sand with here and there a cactus or dead shrub", BIOME_MESA, 3) {
         @Override
         public Material getMaterial(long seed, int x, int y, int z, int height) {
             final int dz = z - height;
@@ -2775,23 +2774,26 @@ public enum Terrain {
     };
 
     Terrain(String name, String description, int defaultBiome) {
-        this(name, Material.STONE, Material.STONE, AIR, description, defaultBiome);
+        this(name, Material.STONE, Material.STONE, description, defaultBiome, 0);
+    }
+
+    Terrain(String name, String description, int defaultBiome, int toppingHeight) {
+        this(name, Material.STONE, Material.STONE, description, defaultBiome, toppingHeight);
     }
 
     Terrain(String name, int topMaterial, int topLayerMaterial, String description, int defaultBiome) {
-        this(name, Material.get(topMaterial), Material.get(topLayerMaterial), AIR, description, defaultBiome);
+        this(name, Material.get(topMaterial), Material.get(topLayerMaterial), description, defaultBiome, 0);
     }
 
     Terrain(String name, Material topMaterial, Material topLayerMaterial, String description, int defaultBiome) {
-        this(name, topMaterial, topLayerMaterial, AIR, description, defaultBiome);
+        this(name, topMaterial, topLayerMaterial, description, defaultBiome, 0);
     }
-    
-    Terrain(String name, Material topMaterial, Material topLayerMaterial, Material topping, String description, int defaultBiome) {
+
+    Terrain(String name, Material topMaterial, Material topLayerMaterial, String description, int defaultBiome, int toppingHeight) {
         this.name = name;
         this.topMaterial = topMaterial;
         this.topLayerMaterial = topLayerMaterial;
-        this.topping = topping;
-        this.toppingHeight = (topping == AIR) ? 0 : 1;
+        this.toppingHeight = toppingHeight;
         this.description = description;
         this.defaultBiome = defaultBiome;
         icon = IconUtils.scaleIcon(IconUtils.loadUnscaledImage("org/pepsoft/worldpainter/icons/" + name().toLowerCase() + ".png"), 16);
@@ -2816,7 +2818,7 @@ public enum Terrain {
     public Material getMaterial(final long seed, final int x, final int y, final float z, final int height) {
         return getMaterial(seed, x, y, (int) (z + 0.5f), height);
     }
-    
+
     /**
      * Get the block type to use for this material at a specific location in the
      * world, relative to the surface.
@@ -2831,10 +2833,8 @@ public enum Terrain {
      */
     public Material getMaterial(final long seed, final int x, final int y, final int z, final int height) {
         final int dz = z - height;
-        if (dz > toppingHeight) {
+        if (dz > 0) {
             return Material.AIR;
-        } else if (dz > 0) {
-            return topping;
         } else if (dz == 0) {
             return topMaterial;
         } else {
@@ -2857,7 +2857,7 @@ public enum Terrain {
             throw new RuntimeException(e.getClass().getSimpleName() + " while getting colour of material " + getMaterial(seed, x, y, z, height) + " @ " + x + "," + y + "," + z + "," + height + " for terrain " + this, e);
         }
     }
-    
+
     public int getColour(final long seed, final int x, final int y, final int z, final int height, final ColourScheme colourScheme) {
         try {
             return colourScheme.getColour(getMaterial(seed, x, y, z, height));
@@ -2869,7 +2869,7 @@ public enum Terrain {
     public int getDefaultBiome() {
         return defaultBiome;
     }
-    
+
     public boolean isCustom() {
         return false;
     }
@@ -2877,11 +2877,15 @@ public enum Terrain {
     public boolean isConfigured() {
         return true;
     }
-    
+
     public int getCustomTerrainIndex() {
         throw new IllegalArgumentException("Not a custom terrain");
     }
-    
+
+    public int getToppingHeight() {
+        return toppingHeight;
+    }
+
     public static boolean isCustomMaterialConfigured(int index) {
         return customMaterials[index] != null;
     }
@@ -2916,7 +2920,7 @@ public enum Terrain {
         return values.toArray(new Terrain[values.size()]);
     }
 
-    private final Material topMaterial, topLayerMaterial, topping;
+    private final Material topMaterial, topLayerMaterial;
     private final int toppingHeight;
     private final String name, description;
     private final BufferedImage icon;

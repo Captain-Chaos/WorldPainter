@@ -163,7 +163,8 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                             Math.min(dimension.getIntHeightAt(worldX, worldY - 1, Integer.MAX_VALUE),
                             dimension.getIntHeightAt(worldX, worldY + 1, Integer.MAX_VALUE))));
                     }
-                    for (int y = bedrock ? 1 : 0; y <= maxY; y++) {
+                    int columnRenderHeight = Math.max(intHeight + Math.max(terrain.getToppingHeight(), 3), waterLevel);
+                    for (int y = bedrock ? 1 : 0; y <= columnRenderHeight; y++) {
                         if (y <= subsurfaceMaxHeight) {
                             // Sub surface
                             result.chunk.setMaterial(x, y, z, subsurfaceMaterial.getMaterial(seed, worldX, worldY, y + subSurfaceLayerOffset, intHeight + subSurfaceLayerOffset));
