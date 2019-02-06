@@ -44,8 +44,8 @@ import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayer;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayerDialog;
 import org.pepsoft.worldpainter.operations.*;
-import org.pepsoft.worldpainter.painting.*;
 import org.pepsoft.worldpainter.painting.Paint;
+import org.pepsoft.worldpainter.painting.*;
 import org.pepsoft.worldpainter.panels.BrushOptions;
 import org.pepsoft.worldpainter.panels.DefaultFilter;
 import org.pepsoft.worldpainter.panels.InfoPanel;
@@ -64,9 +64,9 @@ import org.pepsoft.worldpainter.vo.EventVO;
 import org.pepsoft.worldpainter.vo.UsageVO;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
 import javax.swing.Box;
 import javax.swing.Timer;
+import javax.swing.*;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileFilter;
@@ -88,8 +88,8 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -120,6 +120,11 @@ public final class App extends JFrame implements RadiusControl,
         PaletteManager.ButtonProvider, DockableHolder, PropertyChangeListener, Dimension.Listener, Tile.Listener {
     private App() {
         super((mode == Mode.WORLDPAINTER) ? "WorldPainter" : "MinecraftMapEditor"); // NOI18N
+
+        if (MainFrame.getMainFrame() != null) {
+            throw new IllegalArgumentException("Already instantiated");
+        }
+
         setIconImage(ICON);
 
         colourSchemes = new ColourScheme[] {
@@ -300,6 +305,8 @@ public final class App extends JFrame implements RadiusControl,
         if (GUIUtils.UI_SCALE > 1) {
             logger.info("High resolution display support enabled");
         }
+
+        MainFrame.setMainFrame(this);
     }
 
     public World2 getWorld() {
@@ -1326,16 +1333,16 @@ public final class App extends JFrame implements RadiusControl,
     }
     
     public static App getInstance() {
-        if (instance == null) {
-            instance = new App();
+        if (getInstanceIfExists() == null) {
+            new App();
         }
-        return instance;
+        return getInstanceIfExists();
     }
 
     public static App getInstanceIfExists() {
-        return instance;
+        return (App) MainFrame.getMainFrame();
     }
-    
+
     /**
      * Offer to save the current world, but only if is dirty.
      * 
@@ -1694,7 +1701,7 @@ public final class App extends JFrame implements RadiusControl,
                 }
 
                 @Override
-                public Void execute(ProgressReceiver progressReceiver) throws OperationCancelled {
+                public Void execute(ProgressReceiver progressReceiver) {
                     dimension.armSavePoint();
                     int customBiomeId = customBiome.getId();
                     boolean biomesChanged = false;
@@ -6911,7 +6918,6 @@ public final class App extends JFrame implements RadiusControl,
         }
     };
 
-    private static App instance;
     private static Mode mode = Mode.WORLDPAINTER;
 
     private static final String ACTION_NAME_INCREASE_RADIUS        = "increaseRadius"; // NOI18N
