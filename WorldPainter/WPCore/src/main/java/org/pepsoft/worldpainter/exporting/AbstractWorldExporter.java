@@ -31,15 +31,13 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.concurrent.*;
 
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.worldpainter.Constants.*;
-
-import org.pepsoft.worldpainter.Dimension;
 
 /**
  * An abstract {@link WorldExporter} for block based platforms.
@@ -631,7 +629,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             }
 
             // Calculate secondary light
-            Box originalDirtyArea = new Box((regionCoords.x << 9) - 16, ((regionCoords.x + 1) << 9) + 15, lightingLowMark, lightingHighMark, (regionCoords.y << 9) - 16, ((regionCoords.y + 1) << 9) + 15);
+            Box originalDirtyArea = new Box((regionCoords.x << 9) - 16, ((regionCoords.x + 1) << 9) + 16, lightingLowMark, lightingHighMark + 1, (regionCoords.y << 9) - 16, ((regionCoords.y + 1) << 9) + 16);
             int originalVolume = originalDirtyArea.getVolume();
             Box dirtyArea = originalDirtyArea.clone();
             lightingVolume.setDirtyArea(dirtyArea);
