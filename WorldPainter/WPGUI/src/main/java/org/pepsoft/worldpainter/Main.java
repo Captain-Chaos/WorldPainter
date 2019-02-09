@@ -43,13 +43,14 @@ import java.nio.file.StandardOpenOption;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import static org.pepsoft.worldpainter.Constants.ATTRIBUTE_KEY_PLUGINS;
 import static org.pepsoft.worldpainter.Constants.ATTRIBUTE_KEY_SAFE_MODE;
+import static org.pepsoft.worldpainter.plugins.WPPluginManager.FILENAME;
 
 /**
  *
@@ -267,7 +268,7 @@ public class Main {
         // Load the plugins
         if (! safeMode) {
             if (trustedCert != null) {
-                PluginManager.loadPlugins(new File(configDir, "plugins"), trustedCert.getPublicKey());
+                PluginManager.loadPlugins(new File(configDir, "plugins"), trustedCert.getPublicKey(), FILENAME);
             } else {
                 logger.error("Trusted root certificate not available; not loading plugins");
             }

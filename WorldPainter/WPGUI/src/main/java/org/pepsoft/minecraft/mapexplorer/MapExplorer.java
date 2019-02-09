@@ -42,6 +42,7 @@ import static java.awt.BorderLayout.CENTER;
 import static java.awt.BorderLayout.NORTH;
 import static javax.swing.SwingConstants.TOP;
 import static javax.swing.tree.TreeSelectionModel.SINGLE_TREE_SELECTION;
+import static org.pepsoft.worldpainter.plugins.WPPluginManager.FILENAME;
 
 /**
  *
@@ -87,7 +88,7 @@ public class MapExplorer {
 
         // Load the plugins
         if (trustedCert != null) {
-            PluginManager.loadPlugins(new File(configDir, "plugins"), trustedCert.getPublicKey());
+            PluginManager.loadPlugins(new File(configDir, "plugins"), trustedCert.getPublicKey(), FILENAME);
         } else {
             logger.error("Trusted root certificate not available; not loading plugins");
         }

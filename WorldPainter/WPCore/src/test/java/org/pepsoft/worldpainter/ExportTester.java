@@ -22,6 +22,8 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static org.pepsoft.worldpainter.plugins.WPPluginManager.FILENAME;
+
 public class ExportTester extends RegressionIT {
     public static void main(String[] args) throws IOException, ClassNotFoundException, UnloadableWorldException, ProgressReceiver.OperationCancelled {
         // Load or initialise configuration
@@ -48,7 +50,7 @@ public class ExportTester extends RegressionIT {
 
         // Load the plugins
         if (trustedCert != null) {
-            PluginManager.loadPlugins(new File(Configuration.getConfigDir(), "plugins"), trustedCert.getPublicKey());
+            PluginManager.loadPlugins(new File(Configuration.getConfigDir(), "plugins"), trustedCert.getPublicKey(), FILENAME);
         } else {
             logger.error("Trusted root certificate not available; not loading plugins");
         }

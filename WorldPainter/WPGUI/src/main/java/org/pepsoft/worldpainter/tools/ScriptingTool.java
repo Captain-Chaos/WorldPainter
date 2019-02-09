@@ -29,6 +29,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.pepsoft.worldpainter.plugins.WPPluginManager.FILENAME;
+
 /**
  *
  * @author SchmitzP
@@ -107,7 +109,7 @@ public class ScriptingTool {
         if (trustedCert != null) {
             File pluginsDir = new File(Configuration.getConfigDir(), "plugins");
             if (pluginsDir.isDirectory()) {
-                PluginManager.loadPlugins(pluginsDir, trustedCert.getPublicKey());
+                PluginManager.loadPlugins(pluginsDir, trustedCert.getPublicKey(), FILENAME);
             }
         } else {
             logger.error("Trusted root certificate not available; not loading plugins");
