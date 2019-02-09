@@ -29,6 +29,7 @@ import java.security.cert.X509Certificate;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
+import static org.pepsoft.worldpainter.plugins.WPPluginManager.FILENAME;
 
 /**
  * A component which can show isometric 3D views of arbitrary {@link WPObject}s
@@ -222,7 +223,7 @@ public class DynMapPreviewer extends TiledImageViewer {
 
         // Load the plugins
         if (trustedCert != null) {
-            PluginManager.loadPlugins(new File(Configuration.getConfigDir(), "plugins"), trustedCert.getPublicKey());
+            PluginManager.loadPlugins(new File(Configuration.getConfigDir(), "plugins"), trustedCert.getPublicKey(), FILENAME);
         } else {
             logger.error("Trusted root certificate not available; not loading plugins");
         }
