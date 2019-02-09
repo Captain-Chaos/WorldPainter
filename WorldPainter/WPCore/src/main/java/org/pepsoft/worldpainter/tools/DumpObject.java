@@ -21,6 +21,7 @@ import java.util.zip.GZIPInputStream;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
+import static org.pepsoft.worldpainter.plugins.WPPluginManager.FILENAME;
 
 /**
  * Created by Pepijn Schmitz on 02-09-15.
@@ -51,7 +52,7 @@ public class DumpObject {
 
         // Load the plugins
         if (trustedCert != null) {
-            PluginManager.loadPlugins(new File(Configuration.getConfigDir(), "plugins"), trustedCert.getPublicKey());
+            PluginManager.loadPlugins(new File(Configuration.getConfigDir(), "plugins"), trustedCert.getPublicKey(), FILENAME);
         } else {
             logger.error("Trusted root certificate not available; not loading plugins");
         }

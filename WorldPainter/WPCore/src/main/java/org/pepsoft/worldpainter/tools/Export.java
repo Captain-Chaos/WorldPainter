@@ -19,6 +19,8 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
+import static org.pepsoft.worldpainter.plugins.WPPluginManager.FILENAME;
+
 /**
  *
  * @author pepijn
@@ -54,7 +56,7 @@ public class Export {
         // Load the plugins
         File pluginsDir = new File(Configuration.getConfigDir(), "plugins");
         if (pluginsDir.isDirectory()) {
-            PluginManager.loadPlugins(pluginsDir, trustedCert.getPublicKey());
+            PluginManager.loadPlugins(pluginsDir, trustedCert.getPublicKey(), FILENAME);
         }
         WPPluginManager.initialise(config.getUuid());
 

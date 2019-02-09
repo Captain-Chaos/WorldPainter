@@ -69,8 +69,8 @@ public class WPPluginManager {
      * should be invoked only once, before {@link #getInstance()} is invoked.
      *
      * <p><strong>Please note!</strong> If plugins should be loaded from plugin
-     * jars, {@link PluginManager#loadPlugins(File, PublicKey)} must be invoked
-     * <em>before</em> this method, to ensure the jars are discovered.
+     * jars, {@link PluginManager#loadPlugins(File, PublicKey, String)} must be
+     * invoked <em>before</em> this method, to ensure the jars are discovered.
      *
      * @param uuid The unique identifier of the WorldPainter installation for
      *             which to initialise the WorldPainter plugin manager.
@@ -85,8 +85,8 @@ public class WPPluginManager {
      * only once, before {@link #getInstance()} is invoked.
      *
      * <p><strong>Please note!</strong> If plugins should be loaded from plugin
-     * jars, {@link PluginManager#loadPlugins(File, PublicKey)} must be invoked
-     * <em>before</em> this method, to ensure the jars are discovered.
+     * jars, {@link PluginManager#loadPlugins(File, PublicKey, String)} must be
+     * invoked <em>before</em> this method, to ensure the jars are discovered.
      *
      * @param uuid The unique identifier of the WorldPainter installation for
      *             which to initialise the WorldPainter plugin manager.
@@ -112,8 +112,14 @@ public class WPPluginManager {
     }
     
     private final List<Plugin> allPlugins;
-    
+
+    /**
+     * The resource filename in which WorldPainter plugin descriptors are
+     * stored. Pass this into the {@code filename} parameter of the
+     * {@link PluginManager#loadPlugins(File, PublicKey, String)} method.
+     */
+    public static final String FILENAME = "org.pepsoft.worldpainter.plugins";
+
     private static WPPluginManager instance;
-    private static final String FILENAME = "org.pepsoft.worldpainter.plugins";
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WPPluginManager.class);
 }
