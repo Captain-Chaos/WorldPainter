@@ -36,6 +36,34 @@ public class LightingCalculator {
 
     public void setDirtyArea(Box dirtyArea) {
         this.dirtyArea = dirtyArea;
+        maxHeightsXOffset = dirtyArea.getX1();
+        maxHeightsZOffset = dirtyArea.getZ1();
+        maxHeights = new int[dirtyArea.getWidth()][dirtyArea.getHeight()];
+        if (maxHeight > 256) {
+            // For tall worlds, for which processing the entire dirty volume on
+            // each iteration might be extremely inefficient, create a map of
+            // the highest block in each column that could possibly be affected
+            // (e.g. could have block light > 0 or sky light < 15)
+            // TODO optimise by going chunk by chunk
+            for (int x = dirtyArea.getX1(); x < dirtyArea.getX2(); x++) {
+                for (int z = dirtyArea.getZ1(); z < dirtyArea.getZ2(); z++) {
+                    int highestPossibleAffectedBlock = Math.min(world.getHighestNonAirBlock(x, z) + 15, maxHeight - 1);
+                    for (int dx = -15; dx <= 15; dx++) {
+                        for (int dz = -15; dz <= 15; dz++) {
+                            int xInMaxHeightsMap = x + dx - maxHeightsXOffset;
+                            int zInMaxHeightsMap = z + dz - maxHeightsZOffset;
+                            if ((xInMaxHeightsMap >= 0) && (zInMaxHeightsMap >= 0) && (zInMaxHeightsMap < maxHeights.length) && (xInMaxHeightsMap < maxHeights[0].length)) {
+                                maxHeights[zInMaxHeightsMap][xInMaxHeightsMap] = Math.max(maxHeights[zInMaxHeightsMap][xInMaxHeightsMap], highestPossibleAffectedBlock);
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            for (int[] row: maxHeights) {
+                Arrays.fill(row, maxHeight - 1);
+            }
+        }
     }
 
     /**
@@ -47,13 +75,15 @@ public class LightingCalculator {
     public boolean calculateSecondaryLight() {
         int lowestY = Integer.MAX_VALUE, highestY = Integer.MIN_VALUE;
         boolean changed = false;
-        for (int x = dirtyArea.getX1(); x <= dirtyArea.getX2(); x++) {
-            for (int z = dirtyArea.getZ1(); z <= dirtyArea.getZ2(); z++) {
+        for (int x = dirtyArea.getX1(); x < dirtyArea.getX2(); x++) {
+            for (int z = dirtyArea.getZ1(); z < dirtyArea.getZ2(); z++) {
+                // TODO go chunk by chunk so as not to have to do this check for each column of every chunk:
                 Chunk chunk = world.getChunk(x >> 4, z >> 4);
                 if (chunk == null) {
                     continue;
                 }
-                for (int y = dirtyArea.getY1(); y <= dirtyArea.getY2(); y++) {
+                int maxY = Math.min(dirtyArea.getY2() - 1, maxHeights[z - maxHeightsZOffset][x - maxHeightsXOffset]);
+                for (int y = dirtyArea.getY1(); y <= maxY; y++) {
                     int blockType = world.getBlockTypeAt(x, z, y);
                     int currentSkylightLevel = world.getSkyLightLevel(x, z, y);
                     int currentBlockLightLevel = world.getBlockLightLevel(x, z, y);
@@ -90,7 +120,7 @@ public class LightingCalculator {
         }
         if (changed) {
             dirtyArea.setY1(Math.max(lowestY, 0));
-            dirtyArea.setY2(Math.min(highestY, maxHeight - 1));
+            dirtyArea.setY2(Math.min(highestY + 1, maxHeight));
         }
         return changed;
     }
@@ -98,7 +128,7 @@ public class LightingCalculator {
     public int[] calculatePrimaryLight(Chunk chunk) {
         for (int x = 0; x < 16; x++) {
             Arrays.fill(DAYLIGHT[x], true);
-            Arrays.fill(HEIGHT[x], maxHeight - 1);
+            Arrays.fill(HEIGHT[x], Math.min(chunk.getHighestNonAirBlock(), maxHeight - 1));
         }
         // The point above which there are only transparent, non light source
         // blocks
@@ -106,7 +136,7 @@ public class LightingCalculator {
         // The point below which there are only non-transparent, non light
         // source blocks
         int lightingVolumeLowMark = maxHeight - 1;
-        for (int y = maxHeight - 1; y >= 0; y--) {
+        for (int y = Math.min(chunk.getHighestNonAirBlock(), maxHeight - 1); y >= 0; y--) { // TODO: will this leave dark areas above the starting level?
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
                     int blockType = chunk.getBlockType(x, y, z);
@@ -129,7 +159,7 @@ public class LightingCalculator {
                             if ((transparency > 0) && (y > lightingVolumeHighMark)) {
                                 lightingVolumeHighMark = y;
                             }
-                            newSkyLightLevel = 0;
+                            newSkyLightLevel = 0; // TODO adjust with transparency of block above and 1-per-block falloff rather than going straight to zero
                             DAYLIGHT[x][z] = false;
                         }
                     } else {
@@ -173,12 +203,14 @@ public class LightingCalculator {
     public void recalculatePrimaryLight() {
         for (int x = dirtyArea.getX1(); x <= dirtyArea.getX2(); x++) {
             for (int z = dirtyArea.getZ1(); z <= dirtyArea.getZ2(); z++) {
+                // TODO go chunk by chunk so as not to have to do this check for each column of every chunk:
                 Chunk chunk = world.getChunkForEditing(x >> 4, z >> 4);
                 if (chunk == null) {
                     continue;
                 }
-                boolean daylight = (dirtyArea.getY2() >= (world.getMaxHeight() - 1)) ? true : (world.getSkyLightLevel(x, z, dirtyArea.getY2() + 1) == 15);
-                for (int y = dirtyArea.getY2(); y >= dirtyArea.getY1(); y--) {
+                int maxY = Math.min(chunk.getHighestNonAirBlock(), dirtyArea.getY2());
+                int skyLightLevelAbove = (maxY >= (world.getMaxHeight() - 1)) ? 15 : world.getSkyLightLevel(x, z, maxY + 1);
+                for (int y = maxY; y >= dirtyArea.getY1(); y--) {
                     int blockType = chunk.getBlockType(x & 0xf, y, z & 0xf);
                     int blockLightLevel = chunk.getBlockLightLevel(x & 0xf, y, z & 0xf);
                     int skyLightLevel = chunk.getSkyLightLevel(x & 0xf, y, z & 0xf);
@@ -188,17 +220,16 @@ public class LightingCalculator {
                         // side of transparency for unknown blocks to try and
                         // cause less visible lighting bugs
                         int transparency = (blockType > HIGHEST_KNOWN_BLOCK_ID) ? 0 : BLOCK_TRANSPARENCY[blockType];
-                        if ((transparency == 0) && daylight) {
+                        if ((transparency == 0) && (skyLightLevelAbove == 15)) {
                             // Propagate daylight down
                             newSkyLightLevel = 15;
                         } else {
-                            newSkyLightLevel = 0;
-                            daylight = false;
+                            newSkyLightLevel = Math.max(skyLightLevelAbove - Math.max(transparency, 1), 0);
                         }
                     } else {
                         newSkyLightLevel = 0;
-                        daylight = false;
                     }
+                    skyLightLevelAbove = newSkyLightLevel;
                     if ((blockType <= HIGHEST_KNOWN_BLOCK_ID) && (LIGHT_SOURCES[blockType] > 0)) {
                         newBlockLightLevel = LIGHT_SOURCES[blockType];
                     } else {
@@ -300,6 +331,8 @@ public class LightingCalculator {
     private final MinecraftWorld world;
     private final int maxHeight;
     private Box dirtyArea;
+    private int[][] maxHeights;
+    private int maxHeightsXOffset, maxHeightsZOffset;
 
     private final boolean[][] DAYLIGHT = new boolean[16][16];
     private final int[][] HEIGHT = new int[16][16];
