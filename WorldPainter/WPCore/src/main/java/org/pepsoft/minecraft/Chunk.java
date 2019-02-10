@@ -84,7 +84,9 @@ public interface Chunk {
 
     /**
      * Get the Y coordinate of the highest non-air (block ID zero, any data
-     * value) block in a specific column.
+     * value) block in a specific column. This is allowed to be an
+     * approximation, as long as it is the same or higher than the actual
+     * highest non-air block.
      *
      * @param x The X coordinate of the column relative to the chunk.
      * @param z The Z coordinate of the column relative to the chunk.
@@ -96,7 +98,8 @@ public interface Chunk {
 
     /**
      * Get the Y coordinate of the highest non-air (block ID zero, any data
-     * value) block in the chunk.
+     * value) block in the chunk. This is allowed to be an approximation, as
+     * long as it is the same or higher than the actual highest non-air block.
      *
      * @return The Y coordinate of the highest non-air (block ID zero, any data
      *     value) block in the chunk or <code>-1</code> if the chunk is empty.
