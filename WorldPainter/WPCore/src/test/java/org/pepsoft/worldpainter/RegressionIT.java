@@ -21,18 +21,15 @@ import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.BitSet;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 
@@ -54,35 +51,32 @@ public class RegressionIT {
     public void test2_3_6World() throws IOException, UnloadableWorldException, ProgressReceiver.OperationCancelled {
         World2 world = loadWorld("/testset/test-v2.3.6-1.world");
         File tmpBaseDir = createTmpBaseDir();
-        try {
-            File worldDir = exportJavaWorld(world, tmpBaseDir);
-            try (ZipInputStream in = new ZipInputStream(RegressionIT.class.getResourceAsStream("/testset/test-v2.3.6-1-result.zip"))) {
-                ZipEntry zipEntry;
-                byte[] buffer = new byte[32768];
-                while ((zipEntry = in.getNextEntry()) != null) {
-                    if (zipEntry.isDirectory()) {
-                        new File(tmpBaseDir, zipEntry.getName()).mkdir();
-                    } else {
-                        try (FileOutputStream out = new FileOutputStream(new File(tmpBaseDir, zipEntry.getName()))) {
-                            int bytesRead;
-                            while ((bytesRead = in.read(buffer)) != -1) {
-                                out.write(buffer, 0, bytesRead);
-                            }
+        File worldDir = exportJavaWorld(world, tmpBaseDir);
+        try (ZipInputStream in = new ZipInputStream(RegressionIT.class.getResourceAsStream("/testset/test-v2.3.6-1-result.zip"))) {
+            ZipEntry zipEntry;
+            byte[] buffer = new byte[32768];
+            while ((zipEntry = in.getNextEntry()) != null) {
+                if (zipEntry.isDirectory()) {
+                    new File(tmpBaseDir, zipEntry.getName()).mkdir();
+                } else {
+                    try (FileOutputStream out = new FileOutputStream(new File(tmpBaseDir, zipEntry.getName()))) {
+                        int bytesRead;
+                        while ((bytesRead = in.read(buffer)) != -1) {
+                            out.write(buffer, 0, bytesRead);
                         }
                     }
                 }
             }
-            for (Dimension dimension: world.getDimensions()) {
-                logger.info("Comparing dimension " + dimension.getName());
-                Rectangle area = new Rectangle(dimension.getLowestX() << 5, dimension.getLowestY() << 5, dimension.getWidth() << 5, dimension.getHeight() << 5);
-                try (MinecraftWorld expectedWorld = new JavaMinecraftWorld(new File(tmpBaseDir, "test-v2.3.6-1-result"), dimension.getDim(), dimension.getMaxHeight(), JAVA_ANVIL, true, 256);
-                        MinecraftWorld actualWorld = new JavaMinecraftWorld(worldDir, dimension.getDim(), dimension.getMaxHeight(), JAVA_ANVIL, true, 256)) {
-                    MinecraftWorldUtils.assertEquals(expectedWorld, actualWorld, area);
-                }
-            }
-        } finally {
-            FileUtils.deleteDir(tmpBaseDir);
         }
+        for (Dimension dimension: world.getDimensions()) {
+            logger.info("Comparing dimension " + dimension.getName());
+            Rectangle area = new Rectangle(dimension.getLowestX() << 5, dimension.getLowestY() << 5, dimension.getWidth() << 5, dimension.getHeight() << 5);
+            try (MinecraftWorld expectedWorld = new JavaMinecraftWorld(new File(tmpBaseDir, "test-v2.3.6-1-result"), dimension.getDim(), dimension.getMaxHeight(), JAVA_ANVIL, true, 256);
+                    MinecraftWorld actualWorld = new JavaMinecraftWorld(worldDir, dimension.getDim(), dimension.getMaxHeight(), JAVA_ANVIL, true, 256)) {
+                MinecraftWorldUtils.assertEquals(expectedWorld, actualWorld, area);
+            }
+        }
+        FileUtils.deleteDir(tmpBaseDir);
     }
 
     protected File exportJavaWorld(World2 world, File baseDir) throws IOException, ProgressReceiver.OperationCancelled {
