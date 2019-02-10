@@ -57,18 +57,18 @@ public class LightingCalculator {
         this.dirtyArea = dirtyArea;
         maxHeightsXOffset = dirtyArea.getX1();
         maxHeightsZOffset = dirtyArea.getZ1();
-        maxHeights = new int[dirtyArea.getWidth()][dirtyArea.getHeight()];
+        maxHeights = new int[dirtyArea.getHeight()][dirtyArea.getWidth()];
         if (maxHeight > 256) {
             // For tall worlds, for which processing the entire dirty volume on
             // each iteration might be extremely inefficient, create a map of
             // the highest block in each column that could possibly be affected
             // (e.g. could have block light > 0 or sky light < 15)
             // TODO optimise by going chunk by chunk
-            for (int x = dirtyArea.getX1(); x < dirtyArea.getX2(); x++) {
-                for (int z = dirtyArea.getZ1(); z < dirtyArea.getZ2(); z++) {
+            for (int z = dirtyArea.getZ1(); z < dirtyArea.getZ2(); z++) {
+                for (int x = dirtyArea.getX1(); x < dirtyArea.getX2(); x++) {
                     int highestPossibleAffectedBlock = Math.min(world.getHighestNonAirBlock(x, z) + 15, maxHeight - 1);
-                    for (int dx = -15; dx <= 15; dx++) {
-                        for (int dz = -15; dz <= 15; dz++) {
+                    for (int dz = -15; dz <= 15; dz++) {
+                        for (int dx = -15; dx <= 15; dx++) {
                             int xInMaxHeightsMap = x + dx - maxHeightsXOffset;
                             int zInMaxHeightsMap = z + dz - maxHeightsZOffset;
                             if ((xInMaxHeightsMap >= 0) && (zInMaxHeightsMap >= 0) && (zInMaxHeightsMap < maxHeights.length) && (xInMaxHeightsMap < maxHeights[0].length)) {
