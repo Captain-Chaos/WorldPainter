@@ -24,10 +24,14 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
+import static org.pepsoft.worldpainter.Generator.DEFAULT;
+import static org.pepsoft.worldpainter.Generator.LARGE_BIOMES;
 
 /**
  *
@@ -232,12 +236,13 @@ public class TileSelector extends javax.swing.JPanel {
             if ((dimension.getDim() == DIM_NORMAL) && ((dimension.getBorder() == null) || (! dimension.getBorder().isEndless()))) {
                 World2 world = dimension.getWorld();
                 if (world != null) {
-                    if (world.getPlatform().equals(DefaultPlugin.JAVA_MCREGION)) {
+                    Platform platform = world.getPlatform();
+                    if (platform == JAVA_MCREGION) {
                         biomeAlgorithm = BIOME_ALGORITHM_1_1;
-                    } else if (world.getPlatform().equals(DefaultPlugin.JAVA_ANVIL)) {
-                        if (world.getGenerator() == Generator.DEFAULT) {
+                    } else if (platform == JAVA_ANVIL) {
+                        if (world.getGenerator() == DEFAULT) {
                             biomeAlgorithm = BIOME_ALGORITHM_1_7_DEFAULT;
-                        } else if (world.getGenerator() == Generator.LARGE_BIOMES) {
+                        } else if (world.getGenerator() == LARGE_BIOMES) {
                             biomeAlgorithm = BIOME_ALGORITHM_1_7_LARGE;
                         }
                     }
