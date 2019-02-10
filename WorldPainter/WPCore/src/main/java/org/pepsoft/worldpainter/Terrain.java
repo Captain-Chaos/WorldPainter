@@ -1013,13 +1013,15 @@ public enum Terrain {
             final int dz = (int) (z + 0.5f) - height;
             if (dz <= 0) {
                 return LAYERS[(int) (z + (perlinNoise.getPerlinNoise(x / GIGANTIC_BLOBS, y / GIGANTIC_BLOBS) * 4 + perlinNoise.getPerlinNoise(x / HUGE_BLOBS, y / HUGE_BLOBS) + perlinNoise.getPerlinNoise(x / LARGE_BLOBS, y / LARGE_BLOBS) + perlinNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS) / 4 + 3.125f) * 8) % LAYER_COUNT];
-            } else {
+            } else if (dz == 1) {
                 final int rnd = new Random(seed + (x * 65537) + (y * 4099)).nextInt(SHRUB_CHANCE);
                 if (rnd < 3) {
                     return DEAD_SHRUBS;
                 } else {
                     return AIR;
                 }
+            } else {
+                return AIR;
             }
         }
 
@@ -2884,6 +2886,13 @@ public enum Terrain {
 
     public int getToppingHeight() {
         return toppingHeight;
+    }
+
+    // Object
+
+    @Override
+    public String toString() {
+        return name;
     }
 
     public static boolean isCustomMaterialConfigured(int index) {
