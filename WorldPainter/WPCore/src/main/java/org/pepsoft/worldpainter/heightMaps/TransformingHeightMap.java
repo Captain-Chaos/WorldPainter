@@ -98,38 +98,63 @@ public class TransformingHeightMap extends DelegatingHeightMap {
     }
 
     @Override
+    public float doGetHeight(int x, int y) {
+        if (translateOnly) {
+            return children[0].getHeight(x - offsetX, y - offsetY);
+        } else {
+            Point2D.Float coords = new Point2D.Float(x, y);
+            transform.transform(coords, coords);
+            return children[0].getHeight(coords.x, coords.y);
+        }
+    }
+
+    @Override
     public float doGetHeight(float x, float y) {
-        Point2D.Float destPoint = (Point2D.Float) transform.transform(new Point2D.Float(x, y), null);
-        return children[0].getHeight(destPoint.x, destPoint.y);
+        if (translateOnly) {
+            return children[0].getHeight(x - offsetX, y - offsetY);
+        } else {
+            Point2D.Float coords = new Point2D.Float(x, y);
+            transform.transform(coords, coords);
+            return children[0].getHeight(coords.x, coords.y);
+        }
     }
 
     @Override
     public int doGetColour(int x, int y) {
-        Point2D.Float destPoint = (Point2D.Float) transform.transform(new Point2D.Float(x, y), null);
-        return children[0].getColour((int) (destPoint.x + 0.5f), (int) (destPoint.y + 0.5f));
+        if (translateOnly) {
+            return children[0].getColour(x - offsetX, y - offsetY);
+        } else {
+            Point2D.Float coords = new Point2D.Float(x, y);
+            transform.transform(coords, coords);
+            return children[0].getColour((int) (coords.x + 0.5f), (int) (coords.y + 0.5f));
+        }
     }
     
     @Override
     public Rectangle getExtent() {
         Rectangle extent = children[0].getExtent();
         if (extent != null) {
-            Point2D p1 = new Point2D.Double(extent.getMinX(), extent.getMinY());
-            Point2D p2 = new Point2D.Double(extent.getMinX(), extent.getMaxY());
-            Point2D p3 = new Point2D.Double(extent.getMaxX(), extent.getMinY());
-            Point2D p4 = new Point2D.Double(extent.getMaxX(), extent.getMaxY());
-            try {
-                transform.inverseTransform(p1, p1);
-                transform.inverseTransform(p2, p2);
-                transform.inverseTransform(p3, p3);
-                transform.inverseTransform(p4, p4);
-            } catch (NoninvertibleTransformException e) {
-                throw new RuntimeException(e);
+            if (translateOnly) {
+                return new Rectangle(extent.x + offsetX, extent.y + offsetY, extent.width, extent.height);
+            } else {
+                Point2D p1 = new Point2D.Double(extent.getMinX(), extent.getMinY());
+                Point2D p2 = new Point2D.Double(extent.getMinX(), extent.getMaxY());
+                Point2D p3 = new Point2D.Double(extent.getMaxX(), extent.getMinY());
+                Point2D p4 = new Point2D.Double(extent.getMaxX(), extent.getMaxY());
+                try {
+                    transform.inverseTransform(p1, p1);
+                    transform.inverseTransform(p2, p2);
+                    transform.inverseTransform(p3, p3);
+                    transform.inverseTransform(p4, p4);
+                } catch (NoninvertibleTransformException e) {
+                    throw new RuntimeException(e);
+                }
+                double minX = Math.min(Math.min(p1.getX(), p2.getX()), Math.min(p3.getX(), p4.getX()));
+                double maxX = Math.max(Math.max(p1.getX(), p2.getX()), Math.max(p3.getX(), p4.getX()));
+                double minY = Math.min(Math.min(p1.getY(), p2.getY()), Math.min(p3.getY(), p4.getY()));
+                double maxY = Math.max(Math.max(p1.getY(), p2.getY()), Math.max(p3.getY(), p4.getY()));
+                return new Rectangle((int) minX, (int) minY, (int) Math.ceil(maxX - minX), (int) Math.ceil(maxY - minY));
             }
-            double minX = Math.min(Math.min(p1.getX(), p2.getX()), Math.min(p3.getX(), p4.getX()));
-            double maxX = Math.max(Math.max(p1.getX(), p2.getX()), Math.max(p3.getX(), p4.getX()));
-            double minY = Math.min(Math.min(p1.getY(), p2.getY()), Math.min(p3.getY(), p4.getY()));
-            double maxY = Math.max(Math.max(p1.getY(), p2.getY()), Math.max(p3.getY(), p4.getY()));
-            return new Rectangle((int) minX, (int) minY, (int) Math.ceil(maxX - minX), (int) Math.ceil(maxY - minY));
         } else {
             return null;
         }
@@ -146,15 +171,21 @@ public class TransformingHeightMap extends DelegatingHeightMap {
     }
 
     private void recalculate() {
-        transform = new AffineTransform();
-        if ((scaleX != 1.0f) || (scaleY != 1.0f)) {
-            transform.scale(1 / scaleX, 1 / scaleY);
-        }
-        if ((offsetX != 0) || (offsetY != 0)) {
-            transform.translate(-offsetX, -offsetY);
-        }
-        if (rotation != 0) {
-            transform.rotate(-rotation / DOUBLE_PI);
+        if ((scaleX == 1.0f) && (scaleY == 1.0f) && (rotation == 0)) {
+            translateOnly = true;
+            transform = null;
+        } else {
+            translateOnly = false;
+            transform = new AffineTransform();
+            if ((scaleX != 1.0f) || (scaleY != 1.0f)) {
+                transform.scale(1 / scaleX, 1 / scaleY);
+            }
+            if ((offsetX != 0) || (offsetY != 0)) {
+                transform.translate(-offsetX, -offsetY);
+            }
+            if (rotation != 0) {
+                transform.rotate(-rotation / DOUBLE_PI);
+            }
         }
     }
 
@@ -165,6 +196,7 @@ public class TransformingHeightMap extends DelegatingHeightMap {
     private int offsetX, offsetY, rotation;
     private float scaleX, scaleY;
     private AffineTransform transform;
+    private boolean translateOnly;
 
     private static final long serialVersionUID = 1L;
     private static final double DOUBLE_PI = Math.PI * 2;

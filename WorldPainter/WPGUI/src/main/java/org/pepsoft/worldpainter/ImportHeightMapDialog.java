@@ -98,38 +98,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         if (currentDimension != null) {
             throw new IllegalStateException();
         }
-        final HeightMapImporter importer = new HeightMapImporter();
-        HeightMap heightMap = new BitmapHeightMap(selectedFile.getName(), image, 0, selectedFile, false, false);
-        int scale = (Integer) spinnerScale.getValue();
-        int offsetX = (Integer) spinnerOffsetX.getValue();
-        int offsetY = (Integer) spinnerOffsetY.getValue();
-        if ((scale != 100) || (offsetX != 0) || (offsetY != 0)) {
-            ((BitmapHeightMap) heightMap).setSmoothScaling(true);
-            heightMap = new TransformingHeightMap(heightMap.getName() + " transformed", heightMap, scale, scale, offsetX, offsetY, 0);
-        }
-        if (checkBoxInvert.isSelected()) {
-            if (image.getSampleModel().getSampleSize(0) == 16) {
-                heightMap = new DifferenceHeightMap(new ConstantHeightMap(65535f), heightMap);
-            } else {
-                heightMap = new DifferenceHeightMap(new ConstantHeightMap(255f), heightMap);
-            }
-        }
-        importer.setHeightMap(heightMap);
-        importer.setImageFile(selectedFile);
-        String name = selectedFile.getName();
-        int p = name.lastIndexOf('.');
-        if (p != -1) {
-            name = name.substring(0, p);
-        }
-        importer.setName(name);
-        importer.setTileFactory(tileFactory);
-        importer.setMaxHeight(Integer.parseInt((String) comboBoxHeight.getSelectedItem()));
-        importer.setImageLowLevel((Integer) spinnerImageLow.getValue());
-        importer.setImageHighLevel((Integer) spinnerImageHigh.getValue());
-        importer.setWorldLowLevel((Integer) spinnerWorldLow.getValue());
-        importer.setWorldWaterLevel((Integer) spinnerWorldMiddle.getValue());
-        importer.setWorldHighLevel((Integer) spinnerWorldHigh.getValue());
-        importer.setVoidBelowLevel(checkBoxVoid.isSelected() ? ((Integer) spinnerVoidBelow.getValue()) : 0);
+        final HeightMapImporter importer = createImporter();
         World2 world = ProgressDialog.executeTask(this, new ProgressTask<World2>() {
             @Override
             public String getName() {
@@ -171,6 +140,44 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         }
         buttonSaveAsDefaults.setEnabled(true);
         buttonLoadDefaults.setEnabled(true);
+    }
+
+    private HeightMapImporter createImporter() {
+        HeightMapImporter importer = new HeightMapImporter();
+        HeightMap heightMap = new BitmapHeightMap(selectedFile.getName(), image, 0, selectedFile, false, false);
+        int scale = (Integer) spinnerScale.getValue();
+        int offsetX = (Integer) spinnerOffsetX.getValue();
+        int offsetY = (Integer) spinnerOffsetY.getValue();
+        if ((scale != 100) || (offsetX != 0) || (offsetY != 0)) {
+            if (scale != 100) {
+                ((BitmapHeightMap) heightMap).setSmoothScaling(true);
+            }
+            heightMap = new TransformingHeightMap(heightMap.getName() + " transformed", heightMap, scale, scale, offsetX, offsetY, 0);
+        }
+        if (checkBoxInvert.isSelected()) {
+            if (image.getSampleModel().getSampleSize(0) == 16) {
+                heightMap = new DifferenceHeightMap(new ConstantHeightMap(65535f), heightMap);
+            } else {
+                heightMap = new DifferenceHeightMap(new ConstantHeightMap(255f), heightMap);
+            }
+        }
+        importer.setHeightMap(heightMap);
+        importer.setImageFile(selectedFile);
+        String name = selectedFile.getName();
+        int p = name.lastIndexOf('.');
+        if (p != -1) {
+            name = name.substring(0, p);
+        }
+        importer.setName(name);
+        importer.setTileFactory(tileFactory);
+        importer.setMaxHeight(Integer.parseInt((String) comboBoxHeight.getSelectedItem()));
+        importer.setImageLowLevel((Integer) spinnerImageLow.getValue());
+        importer.setImageHighLevel((Integer) spinnerImageHigh.getValue());
+        importer.setWorldLowLevel((Integer) spinnerWorldLow.getValue());
+        importer.setWorldWaterLevel((Integer) spinnerWorldMiddle.getValue());
+        importer.setWorldHighLevel((Integer) spinnerWorldHigh.getValue());
+        importer.setVoidBelowLevel(checkBoxVoid.isSelected() ? ((Integer) spinnerVoidBelow.getValue()) : 0);
+        return importer;
     }
 
     private void setControlStates() {
@@ -348,38 +355,7 @@ outer:          for (int x = 0; x < width; x++) {
         if (currentDimension == null) {
             throw new IllegalStateException();
         }
-        final HeightMapImporter importer = new HeightMapImporter();
-        HeightMap heightMap = new BitmapHeightMap(selectedFile.getName(), image, 0, selectedFile, false, false);
-        int scale = (Integer) spinnerScale.getValue();
-        int offsetX = (Integer) spinnerOffsetX.getValue();
-        int offsetY = (Integer) spinnerOffsetY.getValue();
-        if ((scale != 100) || (offsetX != 0) || (offsetY != 0)) {
-            ((BitmapHeightMap) heightMap).setSmoothScaling(true);
-            heightMap = new TransformingHeightMap(heightMap.getName() + " transformed", heightMap, scale, scale, offsetX, offsetY, 0);
-        }
-        if (checkBoxInvert.isSelected()) {
-            if (image.getSampleModel().getSampleSize(0) == 16) {
-                heightMap = new DifferenceHeightMap(new ConstantHeightMap(65535f), heightMap);
-            } else {
-                heightMap = new DifferenceHeightMap(new ConstantHeightMap(255f), heightMap);
-            }
-        }
-        importer.setHeightMap(heightMap);
-        importer.setImageFile(selectedFile);
-        String name = selectedFile.getName();
-        int p = name.lastIndexOf('.');
-        if (p != -1) {
-            name = name.substring(0, p);
-        }
-        importer.setName(name);
-        importer.setTileFactory(tileFactory);
-        importer.setMaxHeight(Integer.parseInt((String) comboBoxHeight.getSelectedItem()));
-        importer.setImageLowLevel((Integer) spinnerImageLow.getValue());
-        importer.setImageHighLevel((Integer) spinnerImageHigh.getValue());
-        importer.setWorldLowLevel((Integer) spinnerWorldLow.getValue());
-        importer.setWorldWaterLevel((Integer) spinnerWorldMiddle.getValue());
-        importer.setWorldHighLevel((Integer) spinnerWorldHigh.getValue());
-        importer.setVoidBelowLevel(checkBoxVoid.isSelected() ? ((Integer) spinnerVoidBelow.getValue()) : 0);
+        final HeightMapImporter importer = createImporter();
         importer.setOnlyRaise(checkBoxOnlyRaise.isSelected());
         ProgressDialog.executeTask(this, new ProgressTask<Void>() {
             @Override
