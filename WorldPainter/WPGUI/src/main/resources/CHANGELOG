@@ -1,4 +1,8 @@
--- Version 2.5.9, released ...
+-- Version 2.5.10, released 22-2-2019
+
+ * Never use bicubic interpolation when importing a height map at scale 100%, to prevent ringing artefacts in that case
+
+-- Version 2.5.9, released 10-2-2019
 
  * Bug fix: allowing mapping from pure white colour (#ffffff) in scripts
 
