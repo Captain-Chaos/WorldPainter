@@ -9,8 +9,8 @@ package org.pepsoft.worldpainter.importing;
 import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.util.ProgressReceiver;
-import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.heightMaps.BitmapHeightMap;
 import org.pepsoft.worldpainter.heightMaps.TransformingHeightMap;
 import org.pepsoft.worldpainter.history.HistoryEntry;
@@ -25,10 +25,7 @@ import java.io.File;
 import java.util.Map;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
-import static org.pepsoft.worldpainter.Constants.MEDIUM_BLOBS;
-import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
-import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
-import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.Constants.*;
 
 /**
  *
@@ -50,8 +47,8 @@ public class HeightMapImporter {
         Rectangle extent = heightMap.getExtent();
         logger.info("Importing world from height map {} (size: {}x{})", name, extent.width, extent.height);
 
-        final boolean highRes = (imageHighLevel >= maxHeight) && (worldHighLevel < maxHeight);
-        final World2 world = new World2((maxHeight == DEFAULT_MAX_HEIGHT_2) ? JAVA_ANVIL : JAVA_MCREGION, World2.DEFAULT_OCEAN_SEED, tileFactory, maxHeight);
+        calculateFlags();
+        final World2 world = new World2(platform, minecraftSeed, tileFactory, maxHeight);
         world.addHistoryEntry(HistoryEntry.WORLD_IMPORTED_FROM_HEIGHT_MAP, imageFile);
         int p = name.lastIndexOf('.');
         if (p != -1) {
@@ -222,6 +219,14 @@ public class HeightMapImporter {
     
     // Properties
 
+    public Platform getPlatform() {
+        return platform;
+    }
+
+    public void setPlatform(Platform platform) {
+        this.platform = platform;
+    }
+
     public HeightMap getHeightMap() {
         return heightMap;
     }
@@ -321,6 +326,14 @@ public class HeightMapImporter {
         this.onlyRaise = onlyRaise;
     }
 
+    public long getMinecraftSeed() {
+        return minecraftSeed;
+    }
+
+    public void setMinecraftSeed(long minecraftSeed) {
+        this.minecraftSeed = minecraftSeed;
+    }
+
     private void calculateFlags() {
         // If the height map is a bitmap height map, or a transforming height map with a scale of 100% and based on a
         // bitmap height map, then it is definitely unscaled, meaning we can apply a delta to the bitmap values to make
@@ -331,7 +344,7 @@ public class HeightMapImporter {
                     && (((TransformingHeightMap) heightMap).getScaleY() == 100)
                     && (((TransformingHeightMap) heightMap).getBaseHeightMap() instanceof BitmapHeightMap)));
         oneOnOne = (worldLowLevel == imageLowLevel) && (worldHighLevel == imageHighLevel);
-        highRes = (imageHighLevel > 2047) && (! oneOnOne);
+        highRes = (imageHighLevel >= maxHeight) && (worldHighLevel < maxHeight);
         levelScale = (float) (worldHighLevel - worldLowLevel) / (imageHighLevel - imageLowLevel);
         maxZ = maxHeight - 1;
     }
@@ -345,7 +358,8 @@ public class HeightMapImporter {
                 : ((imageLevel - imageLowLevel) * levelScale + worldLowLevel), maxZ);
         }
     }
-    
+
+    private Platform platform;
     private HeightMap heightMap;
     private int worldLowLevel, worldWaterLevel = 62, worldHighLevel = DEFAULT_MAX_HEIGHT_2 - 1, imageLowLevel, imageHighLevel = DEFAULT_MAX_HEIGHT_2 - 1, maxHeight = DEFAULT_MAX_HEIGHT_2, voidBelowLevel, maxZ;
     private TileFactory tileFactory;
@@ -353,6 +367,7 @@ public class HeightMapImporter {
     private boolean onlyRaise, oneOnOne, highRes, mayBeScaled;
     private File imageFile;
     private float levelScale;
+    private long minecraftSeed = World2.DEFAULT_OCEAN_SEED;
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(HeightMapImporter.class);
 }

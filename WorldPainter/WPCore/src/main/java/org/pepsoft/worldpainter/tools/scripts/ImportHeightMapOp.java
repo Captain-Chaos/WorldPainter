@@ -34,6 +34,7 @@ import org.pepsoft.worldpainter.themes.Theme;
 import java.util.Random;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_2;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 
 /**
  *
@@ -108,6 +109,8 @@ public class ImportHeightMapOp extends AbstractOperation<World2> {
             name = name.substring(0, p);
         }
         importer.setName(name);
+        // TODO autoselect this and make it configurable:
+        importer.setPlatform(JAVA_ANVIL);
         try {
             return importer.importToNewWorld(null);
         } catch (ProgressReceiver.OperationCancelled e) {
