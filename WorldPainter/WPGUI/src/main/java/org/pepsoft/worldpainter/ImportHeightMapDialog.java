@@ -37,8 +37,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.*;
 
-import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_MCREGION;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_MCREGION;
 import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
 import static org.pepsoft.util.swing.SpinnerUtils.setMaximum;
 import static org.pepsoft.worldpainter.Constants.MAX_HEIGHT;
@@ -83,7 +83,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             buttonLoadDefaults.setEnabled(true);
             buttonSaveAsDefaults.setEnabled(true);
         } else {
-            heightMapTileFactoryEditor1.setTheme((SimpleTheme) TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), Terrain.GRASS, DEFAULT_MAX_HEIGHT_2, 58, 62, false, true, 20, 1.0).getTheme());
+            heightMapTileFactoryEditor1.setTheme((SimpleTheme) TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), Terrain.GRASS, DEFAULT_MAX_HEIGHT_ANVIL, 58, 62, false, true, 20, 1.0).getTheme());
             comboBoxPlatform.setSelectedItem(JAVA_ANVIL);
             labelNoUndo.setText(" ");
             checkBoxCreateTiles.setEnabled(false);
@@ -400,7 +400,7 @@ outer:          for (int x = 0; x < width; x++) {
         setMaximum(spinnerWorldHigh, maxHeight - 1);
         updateImageWaterLevel();
 
-        labelWarning.setVisible((comboBoxPlatform.getSelectedItem() == JAVA_MCREGION) && (maxHeight != DEFAULT_MAX_HEIGHT_1));
+        labelWarning.setVisible((comboBoxPlatform.getSelectedItem() == JAVA_MCREGION) && (maxHeight != DEFAULT_MAX_HEIGHT_MCREGION));
     }
 
     /** This method is called from within the constructor to
