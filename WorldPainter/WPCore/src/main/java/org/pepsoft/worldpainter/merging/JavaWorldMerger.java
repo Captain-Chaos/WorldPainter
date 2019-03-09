@@ -1421,14 +1421,29 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                 || ((! frost) && existingMaterial.isNamed(MC_SNOW))
 
                 // the existing block is insubstantial and the new block is a fluid which would burn it or wash it away
-                || (newMaterial.isNamedOneOf(MC_WATER, MC_LAVA) && existingMaterial.insubstantial)) {
+                || (newMaterial.isNamedOneOf(MC_WATER, MC_LAVA) && existingMaterial.insubstantial) // TODOMC13: this removes under water plants!
+
+                // the existing block is a bubble column which would now be above the water
+                || (existingMaterial.isNamed(MC_BUBBLE_COLUMN) && (! newMaterial.isNamed(MC_WATER)))) {
             // Do nothing
         } else {
             if (existingMaterial.isNamed(MC_SNOW) && newMaterial.isNamed(MC_SNOW)) {
                 // If both the existing and new blocks are snow, use the highest snow level of the two, to leave smooth snow in the existing map intact
                 newChunk.setMaterial(x, y, z, SNOW.withProperty(LAYERS, Math.max(existingMaterial.getProperty(LAYERS), newMaterial.getProperty(LAYERS))));
             } else {
-                newChunk.setMaterial(x, y, z, existingMaterial);
+                if (existingMaterial.hasProperty(WATERLOGGED)) { // TODOMC13: this does not appear to work properly
+                    boolean existingMaterialIsWaterLogged = existingMaterial.getProperty(WATERLOGGED);
+                    boolean newMaterialIsWater = newMaterial.isNamed(MC_WATER);
+                    if (existingMaterialIsWaterLogged && (! newMaterialIsWater)) {
+                        newChunk.setMaterial(x, y, z, existingMaterial.withProperty(WATERLOGGED, false));
+                    } else if ((! existingMaterialIsWaterLogged) && newMaterialIsWater) {
+                        newChunk.setMaterial(x, y, z, existingMaterial.withProperty(WATERLOGGED, true));
+                    } else {
+                        newChunk.setMaterial(x, y, z, existingMaterial);
+                    }
+                } else {
+                    newChunk.setMaterial(x, y, z, existingMaterial);
+                }
                 if (existingMaterial.tileEntity) {
                     copyEntityTileData(existingChunk, newChunk, x, y, z, dy);
                 }
