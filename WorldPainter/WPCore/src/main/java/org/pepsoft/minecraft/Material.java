@@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.pepsoft.util.CSVDataSource;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -18,6 +19,7 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.*;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toSet;
@@ -53,25 +55,6 @@ public final class Material implements Serializable {
         this.data = data;
         index = (blockType << 4) | data;
 
-        // TODOMC13: migrate this information to this class
-        Block block = Block.BLOCKS[blockType];
-        transparency = block.transparency;
-        transparent = block.transparent;
-        translucent = block.translucent;
-        opaque = block.opaque;
-        terrain = block.terrain;
-        insubstantial = block.insubstantial;
-        veryInsubstantial = block.veryInsubstantial;
-        solid = block.solid;
-        resource = block.resource;
-        tileEntity = block.tileEntity;
-        treeRelated = block.treeRelated;
-        vegetation = block.vegetation;
-        blockLight = block.blockLight;
-        lightSource = block.lightSource;
-        natural = block.natural;
-        category = block.category;
-
         Map<String, Object> blockSpec = LEGACY_BLOCK_SPECS_BY_COMBINED_ID.get(index);
         if (blockSpec != null) {
             String name = ((String) blockSpec.get("name")).intern();
@@ -103,6 +86,45 @@ public final class Material implements Serializable {
         name = identity.name;
         stringRep = createStringRep();
         legacyStringRep = createLegacyStringRep();
+
+        Map<String, Object> spec = MATERIAL_SPECS.get(name);
+        if (spec != null) {
+            transparency = (int) spec.get("transparency");
+            transparent = (transparency == 0);
+            translucent = (transparency < 15);
+            opaque = (transparency == 15);
+            terrain = (boolean) spec.get("terrain");
+            insubstantial = (boolean) spec.get("insubstantial");
+            veryInsubstantial = (boolean) spec.get("veryInsubstantial");
+            solid = !veryInsubstantial;
+            resource = (boolean) spec.get("resource");
+            tileEntity = (boolean) spec.get("tileEntity");
+            treeRelated = (boolean) spec.get("treeRelated");
+            vegetation = (boolean) spec.get("vegetation");
+            blockLight = (int) spec.get("blockLight");
+            lightSource = (blockLight > 0);
+            natural = (boolean) spec.get("natural");
+            category = determineCategory();
+        } else {
+            // Use reasonable defaults for unknown blocks
+            transparency = 0;
+            transparent = true;
+            translucent = true;
+            opaque = false;
+            terrain = false;
+            insubstantial = false;
+            veryInsubstantial = false;
+            solid = true;
+            resource = false;
+            tileEntity = false;
+            treeRelated = false;
+            vegetation = false;
+            blockLight = 0;
+            lightSource = false;
+            natural = false;
+            category = CATEGORY_UNKNOWN;
+        }
+
         if (namespace != null) {
             ALL_NAMESPACES.add(namespace);
             SIMPLE_NAMES_BY_NAMESPACE.computeIfAbsent(namespace, name -> new HashSet<>(singleton(name))).add(simpleName);
@@ -152,47 +174,10 @@ public final class Material implements Serializable {
         if (index != -1) {
             blockType = index >> 4;
             data = index & 0xf;
-
-            // TODOMC13: migrate this information to this class
-            Block block = Block.BLOCKS[blockType];
-            transparency = block.transparency;
-            transparent = block.transparent;
-            translucent = block.translucent;
-            opaque = block.opaque;
-            terrain = block.terrain;
-            insubstantial = block.insubstantial;
-            veryInsubstantial = block.veryInsubstantial;
-            solid = block.solid;
-            resource = block.resource;
-            tileEntity = block.tileEntity;
-            treeRelated = block.treeRelated;
-            vegetation = block.vegetation;
-            blockLight = block.blockLight;
-            lightSource = block.lightSource;
-            natural = block.natural;
-            category = block.category;
             System.out.println("Matched " + identity + " to " + BLOCK_TYPE_NAMES[blockType] + "(" + blockType + "):" + data);
         } else {
             blockType = -1;
             data = -1;
-            // Use reasonable defaults for unknown blocks
-            // TODOMC13: don't guess at this information, if possible
-            transparency = 0;
-            transparent = true;
-            translucent = true;
-            opaque = false;
-            terrain = false;
-            insubstantial = false;
-            veryInsubstantial = false;
-            solid = true;
-            resource = false;
-            tileEntity = false;
-            treeRelated = false;
-            vegetation = false;
-            blockLight = 0;
-            lightSource = false;
-            natural = NATURAL_MATERIALS.contains(identity.name);
-            category = CATEGORY_UNKNOWN;
             new Throwable("Did not match " + identity + " to legacy block").printStackTrace();
         }
 
@@ -208,6 +193,45 @@ public final class Material implements Serializable {
         }
         stringRep = createStringRep();
         legacyStringRep = createLegacyStringRep();
+
+        Map<String, Object> spec = MATERIAL_SPECS.get(name);
+        if (spec != null) {
+            transparency = (int) spec.get("transparency");
+            transparent = (transparency == 0);
+            translucent = (transparency < 15);
+            opaque = (transparency == 15);
+            terrain = (boolean) spec.get("terrain");
+            insubstantial = (boolean) spec.get("insubstantial");
+            veryInsubstantial = (boolean) spec.get("veryInsubstantial");
+            solid = !veryInsubstantial;
+            resource = (boolean) spec.get("resource");
+            tileEntity = (boolean) spec.get("tileEntity");
+            treeRelated = (boolean) spec.get("treeRelated");
+            vegetation = (boolean) spec.get("vegetation");
+            blockLight = (int) spec.get("blockLight");
+            lightSource = (blockLight > 0);
+            natural = (boolean) spec.get("natural");
+            category = determineCategory();
+        } else {
+            // Use reasonable defaults for unknown blocks
+            transparency = 0;
+            transparent = true;
+            translucent = true;
+            opaque = false;
+            terrain = false;
+            insubstantial = false;
+            veryInsubstantial = false;
+            solid = true;
+            resource = false;
+            tileEntity = false;
+            treeRelated = false;
+            vegetation = false;
+            blockLight = 0;
+            lightSource = false;
+            natural = false;
+            category = CATEGORY_UNKNOWN;
+        }
+
         ALL_NAMESPACES.add(namespace);
         SIMPLE_NAMES_BY_NAMESPACE.computeIfAbsent(namespace, name -> new HashSet<>(singleton(name))).add(simpleName);
         if (! DEFAULT_MATERIALS_BY_NAME.containsKey(name)) {
@@ -1388,6 +1412,24 @@ public final class Material implements Serializable {
         return (material.name != this.name) && (! material.name.equals(this.name));
     }
 
+    @SuppressWarnings("StringEquality") // interned
+    private int determineCategory() {
+        // Determine the category
+        if (name == MC_AIR) {
+            return CATEGORY_AIR;
+        } else if ((name == MC_WATER) || (name == MC_LAVA)) {
+            return CATEGORY_FLUID;
+        } else if (veryInsubstantial) {
+            return CATEGORY_INSUBSTANTIAL;
+        } else if (! natural) {
+            return CATEGORY_MAN_MADE;
+        } else if (resource) {
+            return CATEGORY_RESOURCE;
+        } else {
+            return CATEGORY_NATURAL_SOLID;
+        }
+    }
+
     private String createStringRep() {
         StringBuilder sb = new StringBuilder();
         if (! namespace.equals(MINECRAFT)) {
@@ -1631,15 +1673,10 @@ public final class Material implements Serializable {
         // If identity is not set this is a legacy material with only a block ID
         // and data value, so in that case return the corresponding legacy
         // instance
-        if (identity == null) {
-            int index = (blockType << 4) | data;
-            if (index >= LEGACY_MATERIALS.length) {
-                return get(new Identity("legacy:block_" + blockType, singletonMap("data_value", Integer.toString(data))));
-            } else {
-                return LEGACY_MATERIALS[index];
-            }
-        } else {
+        if (identity != null) {
             return get(identity);
+        } else {
+            return get(blockType, data);
         }
     }
 
@@ -1765,9 +1802,10 @@ public final class Material implements Serializable {
 
     private static final Map<Integer, Map<String, Object>> LEGACY_BLOCK_SPECS_BY_COMBINED_ID = new HashMap<>();
     private static final Map<String, Set<Map<String, Object>>> LEGACY_BLOCK_SPECS_BY_NAME = new HashMap<>();
+    private static final Map<String, Map<String, Object>> MATERIAL_SPECS = new HashMap<>();
 
     static {
-        // Read MC block database
+        // Read legacy MC block database
         try (Reader in = new InputStreamReader(Block.class.getResourceAsStream("legacy-mc-blocks.json"), Charset.forName("UTF-8"))) {
             @SuppressWarnings("unchecked") // Guaranteed by contents of file
             List<Object> items = (List<Object>) new JSONParser().parse(in);
@@ -1790,6 +1828,35 @@ public final class Material implements Serializable {
             throw new RuntimeException("I/O error while reading Minecraft block database legacy-mc-blocks.json from classpath", e);
         } catch (ParseException e) {
             throw new RuntimeException("JSON parsing error while reading Minecraft block database legacy-mc-blocks.json from classpath", e);
+        }
+
+        // Read MC materials database
+        try (Reader in = new InputStreamReader(Block.class.getResourceAsStream("mc-materials.csv"), Charset.forName("UTF-8"))) {
+            CSVDataSource csvDataSource = new CSVDataSource();
+            csvDataSource.openForReading(in);
+            do {
+                Map<String, Object> materialSpecs = new HashMap<>();
+                String name = csvDataSource.getString("name");
+                materialSpecs.put("name", name);
+                String str = csvDataSource.getString("persistent_properties");
+                if (! isNullOrEmpty(str)) {
+                    materialSpecs.put("persistentProperties", ImmutableSet.copyOf(str.split(",")));
+                }
+                materialSpecs.put("transparency", csvDataSource.getInt("transparency"));
+                materialSpecs.put("terrain", csvDataSource.getBoolean("terrain"));
+                materialSpecs.put("insubstantial", csvDataSource.getBoolean("insubstantial"));
+                materialSpecs.put("veryInsubstantial", csvDataSource.getBoolean("veryInsubstantial"));
+                materialSpecs.put("resource", csvDataSource.getBoolean("resource"));
+                materialSpecs.put("tileEntity", csvDataSource.getBoolean("tileEntity"));
+                materialSpecs.put("treeRelated", csvDataSource.getBoolean("treeRelated"));
+                materialSpecs.put("vegetation", csvDataSource.getBoolean("vegetation"));
+                materialSpecs.put("blockLight", csvDataSource.getInt("blockLight"));
+                materialSpecs.put("natural", csvDataSource.getBoolean("natural"));
+                MATERIAL_SPECS.put(name, materialSpecs);
+                csvDataSource.next();
+            } while (! csvDataSource.isEndOfFile());
+        } catch (IOException e) {
+            throw new RuntimeException("I/O error while reading Minecraft materials database materials.csv from classpath", e);
         }
     }
 
@@ -2047,11 +2114,6 @@ public final class Material implements Serializable {
     public static final int CATEGORY_RESOURCE      = 4;
     public static final int CATEGORY_NATURAL_SOLID = 5;
     public static final int CATEGORY_UNKNOWN       = 6;
-
-    // TODOMC13
-    private static final Set<String> NATURAL_MATERIALS = ImmutableSet.of(MC_TALL_SEAGRASS, MC_SEAGRASS, MC_CAVE_AIR,
-            MC_KELP_PLANT, MC_KELP, MC_BUBBLE_COLUMN, MC_PUMPKIN, MC_RED_MUSHROOM_BLOCK, MC_BROWN_MUSHROOM_BLOCK,
-            MC_BLUE_ICE);
 
     private static final long serialVersionUID = 2011101001L;
 

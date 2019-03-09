@@ -522,8 +522,7 @@ public class JavaMapImporter extends MapImporter {
         });
         Material.getAllMaterials().forEach(material -> {
             if (material.terrain && (material.namespace != LEGACY) && (! TERRAIN_MAPPING.containsKey(material.name))) {
-                // TODOMC13 once this is fixed, turn this into an exception:
-                System.err.printf("Material \"%s\" missing from terrain mapping%n", material);
+                throw new IllegalStateException("Material \"" + material + "\" missing from terrain mapping%n");
             }
         });
     }
