@@ -115,6 +115,9 @@ public final class MCRegionChunk extends NBTChunk {
 
     @Override
     public void setBlockType(int x, int y, int z, int blockType) {
+        if (blockType < 0) {
+            throw new IllegalArgumentException("Cannot store modern material without block ID in pre-1.13 Anvil chunk");
+        }
         if (readOnly) {
             return;
         }
@@ -218,6 +221,9 @@ public final class MCRegionChunk extends NBTChunk {
 
     @Override
     public void setMaterial(int x, int y, int z, Material material) {
+        if (material.blockType < 0) {
+            throw new IllegalArgumentException("Cannot store modern material " + material + " without block ID in MCRegion chunk");
+        }
         setBlockType(x, y, z, material.blockType);
         setDataValue(x, y, z, material.data);
     }

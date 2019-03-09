@@ -5,7 +5,8 @@
 
 package org.pepsoft.minecraft;
 
-import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Constants.VERSION_MCREGION;
+import static org.pepsoft.minecraft.Material.*;
 
 /**
  *
@@ -32,13 +33,13 @@ public abstract class HeightMapChunkFactory implements ChunkFactory {
                 int height = getHeight(chunkX * 16 + x, chunkZ * 16 + z);
                 for (int y = 0; y <= maxY; y++) {
                     if (y == 0) {
-                        result.chunk.setBlockType(x, y, z, BLK_BEDROCK);
+                        result.chunk.setMaterial(x, y, z, BEDROCK);
                     } else if (y <= (height - 3)) {
-                        result.chunk.setBlockType(x, y, z, BLK_STONE);
+                        result.chunk.setMaterial(x, y, z, STONE);
                     } else if (y < height) {
-                        result.chunk.setBlockType(x, y, z, BLK_DIRT);
+                        result.chunk.setMaterial(x, y, z, DIRT);
                     } else if (y == height) {
-                        result.chunk.setBlockType(x, y, z, BLK_GRASS);
+                        result.chunk.setMaterial(x, y, z, GRASS);
                     } else {
                         result.chunk.setSkyLightLevel(x, y, z, 15);
                     }

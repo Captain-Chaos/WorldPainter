@@ -10,7 +10,7 @@ import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 
-import static org.pepsoft.minecraft.Constants.BLK_BEDROCK;
+import static org.pepsoft.minecraft.Material.BEDROCK;
 import static org.pepsoft.worldpainter.Platform.Capability.BIOMES;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.BIOME_PLAINS;
 
@@ -31,7 +31,7 @@ public class BedrockWallChunk {
                     result.chunk.setBiome(x, z, BIOME_PLAINS);
                 }
                 for (int y = 0; y <= maxY; y++) {
-                    result.chunk.setBlockType(x, y, z, BLK_BEDROCK);
+                    result.chunk.setMaterial(x, y, z, BEDROCK);
                 }
                 result.chunk.setHeight(x, z, maxY);
             }

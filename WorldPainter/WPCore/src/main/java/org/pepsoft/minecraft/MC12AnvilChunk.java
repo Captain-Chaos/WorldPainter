@@ -168,6 +168,9 @@ public final class MC12AnvilChunk extends NBTChunk implements MinecraftWorld {
 
     @Override
     public void setBlockType(int x, int y, int z, int blockType) {
+        if (blockType < 0) {
+            throw new IllegalArgumentException("Cannot store modern material without block ID in pre-1.13 Anvil chunk");
+        }
         if (readOnly) {
             return;
         }
@@ -369,6 +372,9 @@ public final class MC12AnvilChunk extends NBTChunk implements MinecraftWorld {
             sections[level] = section;
         }
         int blockType = material.blockType;
+        if (blockType < 0) {
+            throw new IllegalArgumentException("Cannot store modern material " + material + " without block ID in pre-1.13 Anvil chunk");
+        }
         section.blocks[blockOffset(x, y, z)] = (byte) blockType;
         if (blockType > 255) {
             if (section.add == null) {
@@ -574,6 +580,9 @@ public final class MC12AnvilChunk extends NBTChunk implements MinecraftWorld {
     }
 
     private void setDataByte(byte[] array, int x, int y, int z, int dataValue) {
+        if (dataValue < 0) {
+            throw new IllegalArgumentException("Cannot store modern material without data value in pre-1.13 Anvil chunk");
+        }
         int blockOffset = blockOffset(x, y, z);
         int offset = blockOffset / 2;
         byte dataByte = array[offset];

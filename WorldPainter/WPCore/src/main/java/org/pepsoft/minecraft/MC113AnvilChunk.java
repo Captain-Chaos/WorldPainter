@@ -173,7 +173,7 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
      * Not supported. Always throws {@link UnsupportedOperationException}.
      *
      * @deprecated Use {@link #setMaterial(int, int, int, Material)}
-     * @throws UnsupportedOperationException
+     * @throws UnsupportedOperationException Always
      */
     @Override
     public void setBlockType(int x, int y, int z, int blockType) {
@@ -189,7 +189,7 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
      * Not supported. Always throws {@link UnsupportedOperationException}.
      *
      * @deprecated Use {@link #setMaterial(int, int, int, Material)}
-     * @throws UnsupportedOperationException
+     * @throws UnsupportedOperationException Always
      */
     @Override
     public void setDataValue(int x, int y, int z, int dataValue) {
@@ -403,14 +403,26 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
         return getMaterial(x, height, y);
     }
 
+    /**
+     * Not supported. Always throws {@link UnsupportedOperationException}.
+     *
+     * @deprecated Use {@link #setMaterial(int, int, int, Material)}
+     * @throws UnsupportedOperationException Always
+     */
     @Override
     public void setBlockTypeAt(int x, int y, int height, int blockType) {
-        setBlockType(x, height, y, blockType);
+        throw new UnsupportedOperationException();
     }
 
+    /**
+     * Not supported. Always throws {@link UnsupportedOperationException}.
+     *
+     * @deprecated Use {@link #setMaterial(int, int, int, Material)}
+     * @throws UnsupportedOperationException Always
+     */
     @Override
     public void setDataAt(int x, int y, int height, int data) {
-        setDataValue(x, height, y, data);
+        throw new UnsupportedOperationException();
     }
 
     @Override
