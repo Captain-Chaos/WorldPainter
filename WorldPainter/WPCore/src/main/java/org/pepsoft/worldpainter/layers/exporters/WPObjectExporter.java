@@ -440,13 +440,24 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
     private static void placeBlock(MinecraftWorld world, int x, int y, int z, Material material, int leafDecayMode) {
         if (material.name.endsWith("_leaves") && (leafDecayMode != LEAF_DECAY_NO_CHANGE)) {
             if (leafDecayMode == LEAF_DECAY_ON) {
-                world.setMaterialAt(x, y, z, material.withProperty(PERSISTENT, false));
+                material = material.withProperty(PERSISTENT, false);
             } else {
-                world.setMaterialAt(x, y, z, material.withProperty(PERSISTENT, true));
+                material = material.withProperty(PERSISTENT, true);
             }
-        } else {
-            world.setMaterialAt(x, y, z, material);
         }
+        if ((! material.opaque) && (! material.veryInsubstantial) && material.isNotNamed(MC_CAVE_AIR)) {
+            // Assume that any material that is not opaque (and not
+            // insubstantial, so that it could exist under water) can be
+            // waterlogged. TODO: is this good enough?
+            // Check if the block is under water and set the waterlogged property accordingly
+            Material existingMaterial = world.getMaterialAt(x, y, z);
+            if (existingMaterial.isNamed(MC_WATER) && (existingMaterial.getProperty(LEVEL) == 7)) {
+                material = material.withProperty(WATERLOGGED, true);
+            } else {
+                material = material.withProperty(WATERLOGGED, false);
+            }
+        }
+        world.setMaterialAt(x, y, z, material);
     }
 
     private static final String[] AIR_AND_FLUIDS = {MC_AIR, MC_WATER, MC_LAVA};
