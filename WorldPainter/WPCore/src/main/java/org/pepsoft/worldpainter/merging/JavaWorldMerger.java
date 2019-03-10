@@ -1430,7 +1430,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
             if (existingMaterial.isNamed(MC_SNOW) && newMaterial.isNamed(MC_SNOW)) {
                 // If both the existing and new blocks are snow, use the highest snow level of the two, to leave smooth snow in the existing map intact
                 newChunk.setMaterial(x, y, z, SNOW.withProperty(LAYERS, Math.max(existingMaterial.getProperty(LAYERS), newMaterial.getProperty(LAYERS))));
-            } else {
+            } else { // TODOMC13: underwater plants don't have a waterlogged property; manage them separately
                 if (existingMaterial.hasProperty(WATERLOGGED)) { // TODOMC13: this does not appear to work properly
                     boolean existingMaterialIsWaterLogged = existingMaterial.getProperty(WATERLOGGED);
                     boolean newMaterialIsWater = newMaterial.isNamed(MC_WATER);
