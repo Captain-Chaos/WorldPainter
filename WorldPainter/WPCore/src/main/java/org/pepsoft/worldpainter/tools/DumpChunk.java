@@ -11,7 +11,7 @@ import org.pepsoft.minecraft.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
+import java.util.*;
 
 import static org.pepsoft.minecraft.Constants.DATA_VERSION_MC_1_12_2;
 import static org.pepsoft.minecraft.Constants.VERSION_MCREGION;
@@ -29,11 +29,11 @@ public class DumpChunk {
         int chunkX = blockX >> 4;
         int chunkZ = blockZ >> 4;
         Level level = Level.load(levelDatFile);
-        CompoundTag tag;
+        CompoundTag chunkTag;
         try (InputStream chunkIn = RegionFileCache.getChunkDataInputStream(levelDatFile.getParentFile(), chunkX, chunkZ, level.getVersion())) {
             if (chunkIn != null) {
                 try (NBTInputStream in = new NBTInputStream(chunkIn)) {
-                    tag = (CompoundTag) in.readTag();
+                    chunkTag = (CompoundTag) in.readTag();
                 }
             } else {
                 System.err.printf("Chunk %d,%d not present!%n", chunkX, chunkZ);
@@ -42,10 +42,10 @@ public class DumpChunk {
             }
         }
         Chunk chunk = (level.getVersion() == VERSION_MCREGION)
-                ? new MCRegionChunk(tag, level.getMaxHeight())
+                ? new MCRegionChunk(chunkTag, level.getMaxHeight())
                 : (((level.getDataVersion() <= DATA_VERSION_MC_1_12_2) || (level.getDataVersion() == 0))
-                    ? new MC12AnvilChunk(tag, level.getMaxHeight())
-                    : new MC113AnvilChunk(tag, level.getMaxHeight()));
+                    ? new MC12AnvilChunk(chunkTag, level.getMaxHeight())
+                    : new MC113AnvilChunk(chunkTag, level.getMaxHeight()));
 
         if (! (chunk instanceof MCRegionChunk)) {
             System.out.println("Biomes");
@@ -81,48 +81,64 @@ x:          for (int x = 0; x < 16; x++) {
                 continue;
             }
             System.out.println("X-->");
+            SortedMap<String, Set<Material>> materialsInSlice = new TreeMap<>();
             for (int z = 0; z < 16; z++) {
                 for (int x = 0; x < 16; x++) {
                     Material material = chunk.getMaterial(x, y, z);
                     if (material != AIR) {
                         String name = material.name;
                         name = name.substring(name.indexOf(':') + 1);
-//                        String property;
-//                        Map<String, String> propertyMap = material.getProperties();
-//                        if ((propertyMap != null) && (! propertyMap.isEmpty())) {
-//                            property = propertyMap.entrySet().iterator().next().getValue();
-//                        } else {
-//                            property = "";
-//                        }
-//                        if ((material.blockType >= 0) && BLOCKS[material.blockType].tileEntity) {
-//                            int count = 0;
-//                            for (Iterator<TileEntity> i = tileEntities.iterator(); i.hasNext(); ) {
-//                                TileEntity tileEntity = i.next();
-//                                if ((tileEntity.getX() == x) && (tileEntity.getY() == y) && (tileEntity.getZ() == z)) {
-//                                    count++;
-//                                    i.remove();
-//                                }
-//                            }
-//                            if (count == 1) {
-//                                System.out.printf("[%3.3s:%2.2s]", name, property);
-//                            } else {
-//                                System.out.printf("!%3.3s!%2d!", name, count);
-//                            }
-//                        } else {
-//                            System.out.printf("[%3.3s:%2.2s]", name, property);
-//                        }
-                        if (chunk.getBlockLightLevel(x, y, z) == 0) {
-                            System.out.printf("[%3.3s:  ]", name);
-                        } else {
-                            System.out.printf("[%3.3s:%2d]", name, chunk.getBlockLightLevel(x, y, z));
+                        String property = "";
+                        Map<String, String> propertyMap = material.getProperties();
+                        if (propertyMap != null) {
+                            for (Map.Entry<String, String> entry: propertyMap.entrySet()) {
+                                String value = entry.getValue();
+                                if (value.equals("true")) {
+                                    property = entry.getKey();
+                                    break;
+                                } else if (! value.equals("false")) {
+                                    property = value;
+                                    break;
+                                }
+                            }
                         }
+                        String tag;
+                        if (material.tileEntity) {
+                            int count = 0;
+                            for (Iterator<TileEntity> i = tileEntities.iterator(); i.hasNext(); ) {
+                                TileEntity tileEntity = i.next();
+                                if ((tileEntity.getX() == x) && (tileEntity.getY() == y) && (tileEntity.getZ() == z)) {
+                                    count++;
+                                    i.remove();
+                                }
+                            }
+                            if (count == 1) {
+                                tag = String.format("[%3.3s:%2.2s]", name, property);
+                            } else {
+                                tag = String.format("!%3.3s!%2d!", name, count);
+                            }
+                        } else {
+                            tag = String.format("[%3.3s:%2.2s]", name, property);
+                        }
+                        System.out.print(tag);
+                        materialsInSlice.computeIfAbsent(tag, materialsForTag -> new HashSet<>()).add(material);
+//                        if (chunk.getBlockLightLevel(x, y, z) == 0) {
+//                            System.out.printf("[%3.3s:  ]", name);
+//                        } else {
+//                            System.out.printf("[%3.3s:%2d]", name, chunk.getBlockLightLevel(x, y, z));
+//                        }
 //                        System.out.printf("[%3.3s:%2d]", name, chunk.getBlockLightLevel(x, y, z));
                     } else {
-                        if (chunk.getBlockLightLevel(x, y, z) == 0) {
+                        if (chunk.getSkyLightLevel(x, y, z) == 15) {
                             System.out.print("[   :  ]");
                         } else {
-                            System.out.printf("[   :%2d]", chunk.getBlockLightLevel(x, y, z));
+                            System.out.printf("[   :%2d]", chunk.getSkyLightLevel(x, y, z));
                         }
+//                        if (chunk.getBlockLightLevel(x, y, z) == 0) {
+//                            System.out.print("[   :  ]");
+//                        } else {
+//                            System.out.printf("[   :%2d]", chunk.getBlockLightLevel(x, y, z));
+//                        }
                     }
                 }
                 if (z == 0) {
@@ -136,6 +152,7 @@ x:          for (int x = 0; x < 16; x++) {
                 }
                 System.out.println();
             }
+            materialsInSlice.forEach((tag, materials) -> System.out.println(tag + ": " + materials));
         }
         if (! tileEntities.isEmpty()) {
             System.out.println("Unmatched tile entities!");
