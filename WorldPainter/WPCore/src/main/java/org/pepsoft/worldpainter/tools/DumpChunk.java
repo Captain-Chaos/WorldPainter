@@ -66,6 +66,7 @@ public class DumpChunk {
         }
 
         System.out.println("Blocks:");
+        List<Entity> entities = chunk.getEntities();
         List<TileEntity> tileEntities = chunk.getTileEntities();
         for (int y = 0; y < level.getMaxHeight(); y++) {
             boolean blockFound = false;
@@ -153,6 +154,12 @@ x:          for (int x = 0; x < 16; x++) {
                 System.out.println();
             }
             materialsInSlice.forEach((tag, materials) -> System.out.println(tag + ": " + materials));
+
+            for (Entity entity: entities) {
+                if ((entity.getPos()[1] >= y) && (entity.getPos()[1] < (y + 1))) {
+                    System.out.println("Entity " + entity.getId() + ": " + entity.toString().replaceAll("[\\r\\n]", ""));
+                }
+            }
         }
         if (! tileEntities.isEmpty()) {
             System.out.println("Unmatched tile entities!");
