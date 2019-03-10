@@ -1673,10 +1673,15 @@ public final class Material implements Serializable {
         // If identity is not set this is a legacy material with only a block ID
         // and data value, so in that case return the corresponding legacy
         // instance
-        if (identity != null) {
-            return get(identity);
+        if (blockType >= 0) {
+            int index = (blockType << 4) | data;
+            if (index >= LEGACY_MATERIALS.length) {
+                return get(new Identity("legacy:block_" + blockType, singletonMap("data_value", Integer.toString(data))));
+            } else {
+                return LEGACY_MATERIALS[index];
+            }
         } else {
-            return get(blockType, data);
+            return get(identity);
         }
     }
 
@@ -1780,10 +1785,18 @@ public final class Material implements Serializable {
      */
     public final transient int category;
 
-    /** @deprecated Use names and properties. */
+    /**
+     * The legacy (pre-Minecraft 1.13) block ID of the material. For modern
+     * materials which don't correspond to a pre-1.13 block this is -1.
+     */
     public final int blockType;
-    /** @deprecated Use names and properties. */
+
+    /**
+     * The legacy (pre-Minecraft 1.13) data value of the material. For modern
+     * materials which don't correspond to a pre-1.13 block this is -1.
+     */
     public final int data;
+
     public final transient int index;
 
     /**
@@ -2117,6 +2130,11 @@ public final class Material implements Serializable {
 
     private static final long serialVersionUID = 2011101001L;
 
+    /**
+     * Note that an identity does <em>not</em> uniquely identify one material,
+     * since it does not include the block ID and data value of legacy
+     * materials, multiple ones of which map map to the same modern identity.
+     */
     static final class Identity implements Serializable {
         Identity(String name, Map<String, String> properties) {
             if (name == null) {
