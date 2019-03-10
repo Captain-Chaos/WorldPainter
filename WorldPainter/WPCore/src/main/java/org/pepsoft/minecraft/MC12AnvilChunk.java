@@ -560,11 +560,11 @@ public final class MC12AnvilChunk extends NBTChunk implements MinecraftWorld {
     }
     
     /**
-     * @throws UnsupportedOperationException
+     * @throws UnsupportedOperationException Always
      */
     @Override
-    public MCRegionChunk clone() {
-        throw new UnsupportedOperationException("ChunkImlp2.clone() not supported");
+    public MC12AnvilChunk clone() {
+        throw new UnsupportedOperationException("MC12AnvilChunk.clone() not supported");
     }
     
     private int getDataByte(byte[] array, int x, int y, int z) {

@@ -370,7 +370,13 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
     public int getHighestNonAirBlock(int x, int z) {
         for (int yy = sections.length - 1; yy >= 0; yy--) {
             if (sections[yy] != null) {
-                throw new UnsupportedOperationException(); // TODO
+                final Material[] materials = sections[yy].materials;
+                final int base = blockOffset(x, 0, z);
+                for (int i = blockOffset(x, 15, z); i >= base; i -= 256) {
+                    if ((materials[i] != null) && (materials[i] != AIR)) {
+                        return (yy << 4) | ((i - base) >> 8);
+                    }
+                }
             }
         }
         return -1;
@@ -380,7 +386,12 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
     public int getHighestNonAirBlock() {
         for (int yy = sections.length - 1; yy >= 0; yy--) {
             if (sections[yy] != null) {
-                throw new UnsupportedOperationException(); // TODO
+                final Material[] materials = sections[yy].materials;
+                for (int i = materials.length - 1; i >= 0; i--) {
+                    if ((materials[i] != null) && (materials[i] != AIR)) {
+                        return (yy << 4) | (i >> 8);
+                    }
+                }
             }
         }
         return -1;
@@ -435,9 +446,14 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
         return ((x == xPos) && (y == zPos));
     }
 
+    /**
+     * Not supported. Always throws {@link UnsupportedOperationException}.
+     *
+     * @throws UnsupportedOperationException Always
+     */
     @Override
     public void addChunk(Chunk chunk) {
-        throw new UnsupportedOperationException("Not supported");
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -513,11 +529,11 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
     }
     
     /**
-     * @throws UnsupportedOperationException
+     * @throws UnsupportedOperationException Always
      */
     @Override
-    public MCRegionChunk clone() {
-        throw new UnsupportedOperationException("ChunkImlp3.clone() not supported");
+    public MC113AnvilChunk clone() {
+        throw new UnsupportedOperationException("MC113AnvilChunk.clone() not supported");
     }
     
     private int getDataByte(byte[] array, int x, int y, int z) {
