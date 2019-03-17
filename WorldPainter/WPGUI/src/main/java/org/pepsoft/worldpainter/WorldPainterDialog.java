@@ -5,8 +5,7 @@
 package org.pepsoft.worldpainter;
 
 import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
@@ -37,6 +36,16 @@ public class WorldPainterDialog extends JDialog {
 
     public WorldPainterDialog(Window parent, boolean enableHelpKey) {
         super(parent, ModalityType.APPLICATION_MODAL);
+
+        if (parent instanceof App) {
+            ((App) parent).pauseAutosave();
+            addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosed(WindowEvent e) {
+                    ((App) parent).resumeAutosave();
+                }
+            });
+        }
 
         ActionMap actionMap = rootPane.getActionMap();
         actionMap.put("cancel", new AbstractAction("cancel") {

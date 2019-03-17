@@ -198,22 +198,6 @@ public final class App extends JFrame implements RadiusControl,
                 if (config.isAutosaveEnabled() && (! config.isAutosaveInhibited())) {
                     autosaveTimer.start();
                 }
-
-                // Show mini map here because we only know our location now
-//                JDialog miniMapDialog = new JDialog(App.this, "Mini Map");
-//                final MiniMap miniMap = new MiniMap();
-//                miniMap.setView(view);
-//                miniMapDialog.getContentPane().add(miniMap, BorderLayout.CENTER);
-//                miniMapDialog.setSize(300, 300);
-//                miniMapDialog.setLocation(getX() + getWidth() - 300, getY());
-//                miniMapDialog.setAlwaysOnTop(true);
-//                miniMapDialog.addWindowListener(new WindowAdapter() {
-//                    @Override
-//                    public void windowClosing(WindowEvent e) {
-//                        miniMap.setView(null);
-//                    }
-//                });
-//                miniMapDialog.setVisible(true);
             }
 
             @Override
@@ -1120,6 +1104,27 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
 
+    /**
+     * Stop autosaving temporarily (until {@link #resumeAutosave()} is called).
+     * Can be called multiple times; autosaving will not be resumed until
+     * {@link #resumeAutosave()} has been called as many times as this method
+     * was. Must be called on the event thread.
+     */
+    void pauseAutosave() {
+        pauseAutosave++;
+    }
+
+    /**
+     * Resume autosaving (if it is enabled and not otherwise inhibited, only
+     * after calling the method as many times as {@link #pauseAutosave()} was,
+     * and only after the configured guard time). Must be called on the event
+     * thread.
+     */
+    void resumeAutosave() {
+        autosaveInhibitedUntil = System.currentTimeMillis() + Configuration.getInstance().getAutosaveDelay();
+        pauseAutosave = Math.max(pauseAutosave - 1, 0);
+    }
+
     private void addRecentlyUsedWorld(File file) {
         // For some reason (Java bug? Java 8 bug?) the files passed in are
         // sometimes Win32ShellFolder2 instances, instead of Files, which causes
@@ -1357,7 +1362,7 @@ public final class App extends JFrame implements RadiusControl,
         if (logger.isDebugEnabled()) {
             logger.debug("Last saved state: {}", lastSavedState);
         }
-        pauseAutosave = true;
+        pauseAutosave();
         try {
             if ((world != null) && (world.getChangeNo() != lastSavedState)) {
                 int action = showConfirmDialog(this, (lastSelectedFile != null) ? (MessageFormat.format(strings.getString("there.are.unsaved.changes.do.you.want.to.save.the.world.to.0"), lastSelectedFile.getName())) : strings.getString("there.are.unsaved.changes"));
@@ -1384,8 +1389,7 @@ public final class App extends JFrame implements RadiusControl,
             }
             return true;
         } finally {
-            // save() may have done this already, but that's fine
-            pauseAutosave = false;
+            resumeAutosave();
         }
     }
 
@@ -1986,7 +1990,7 @@ public final class App extends JFrame implements RadiusControl,
      * @return <code>true</code> if the file was saved.
      */
     private boolean saveAs() {
-        pauseAutosave = true;
+        pauseAutosave();
         try {
             Configuration config = Configuration.getInstance();
             File file = lastSelectedFile;
@@ -2023,7 +2027,7 @@ public final class App extends JFrame implements RadiusControl,
             }
             return false;
         } finally {
-            pauseAutosave = false;
+            resumeAutosave();
         }
     }
     
@@ -2034,7 +2038,7 @@ public final class App extends JFrame implements RadiusControl,
      * @param file The file to which to save the world.
      */
     private boolean save(File file) {
-        pauseAutosave = true;
+        pauseAutosave();
         try {
             // Check for write access to directory
             if (! file.getParentFile().isDirectory()) {
@@ -2193,7 +2197,7 @@ public final class App extends JFrame implements RadiusControl,
 
             return true;
         } finally {
-            pauseAutosave = false;
+            resumeAutosave();
         }
     }
 
@@ -2213,31 +2217,39 @@ public final class App extends JFrame implements RadiusControl,
      * number and the time since the last autosave, and if so, perform one.
      */
     private void maybeAutosave() {
-        if (logger.isDebugEnabled()) {
-            logger.debug("[AUTOSAVE] maybeAutosave() invoked");
-        }
         Configuration config = Configuration.getInstance();
-        if (config.isAutosaveEnabled() && (world != null) && (! pauseAutosave) && (world.getChangeNo() != lastAutosavedState)) {
-            // Autosave is enabled and not paused, a world is loaded, and it has changed since it was last (auto)saved
-            if (logger.isDebugEnabled()) {
-                logger.debug("[AUTOSAVE] Autosave is enabled and not paused, a world is loaded, and it has changed since it was last (auto)saved");
-            }
-            long now = System.currentTimeMillis();
-            long timeSinceLastChange = now - lastChangeTimestamp;
-            if (timeSinceLastChange > config.getAutosaveDelay()) {
-                // The last change was longer than the autosave delay ago
-                if (logger.isDebugEnabled()) {
-                    logger.debug("[AUTOSAVE] The last change ({}) was longer than the autosave delay ({}) ago", new Date(lastChangeTimestamp), config.getAutosaveDelay());
-                }
-                long timeSinceLastSave = now - lastSaveTimestamp;
-                if (timeSinceLastSave > config.getAutosaveInterval()) {
-                    // The last save was longer than the autosave interval ago
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("[AUTOSAVE] The last save ({}) was longer than the autosave interval ({}) ago", new Date(lastSaveTimestamp), config.getAutosaveInterval());
+        long now = System.currentTimeMillis();
+        if (config.isAutosaveEnabled() && (! config.isAutosaveInhibited()) && (world != null) && (pauseAutosave == 0) && (now >= autosaveInhibitedUntil)) {
+            if (world.getChangeNo() != lastAutosavedState) {
+                // Autosave is enabled and not paused, a world is loaded, and it has changed since it was last (auto)saved
+                long timeSinceLastChange = now - lastChangeTimestamp;
+                if (timeSinceLastChange > config.getAutosaveDelay()) {
+                    // The last change was longer than the autosave delay ago
+                    long timeSinceLastSave = now - lastSaveTimestamp;
+                    if (timeSinceLastSave > config.getAutosaveInterval()) {
+                        // The last save was longer than the autosave interval ago.
+                        // Do the autosave
+                        autosave();
+                    } else if (logger.isDebugEnabled()) {
+                        logger.debug("[AUTOSAVE] World changed, but waiting for autosave interval to expire (since last save: " + timeSinceLastSave + " ms");
                     }
-                    // Do the autosave
-                    autosave();
+                } else if (logger.isDebugEnabled()) {
+                    logger.debug("[AUTOSAVE] World changed, but waiting for guard time to expire (time since last change: " + timeSinceLastChange + " ms)");
                 }
+            } else {
+                logger.debug("[AUTOSAVE] World not changed since last save");
+            }
+        } else if (logger.isDebugEnabled()) {
+            if (! config.isAutosaveEnabled()) {
+                logger.debug("[AUTOSAVE] Autosave disabled in configuration");
+            } else if (config.isAutosaveInhibited()) {
+                logger.debug("[AUTOSAVE] Autosave inhibited (e.g. due to another instance of WorldPainter running)");
+            } else if (world == null) {
+                logger.debug("[AUTOSAVE] No world loaded");
+            } else if (pauseAutosave != 0) {
+                logger.debug("[AUTOSAVE] Autosave paused");
+            } else {
+                logger.debug("[AUTOSAVE] Autosave temporarily inhibited");
             }
         }
     }
@@ -2387,7 +2399,7 @@ public final class App extends JFrame implements RadiusControl,
     }
     
     private void merge() {
-        pauseAutosave = true;
+        pauseAutosave();
         try {
             if ((world.getImportedFrom() != null) && (!world.isAllowMerging())) {
                 showMessageDialog(this, strings.getString("this.world.was.imported.before.the.great.coordinate.shift"), strings.getString("merge.not.allowed"), ERROR_MESSAGE);
@@ -2403,7 +2415,7 @@ public final class App extends JFrame implements RadiusControl,
             MergeWorldDialog dialog = new MergeWorldDialog(this, world, autoBiomeScheme, selectedColourScheme, customBiomeManager, hiddenLayers, false, 10, view.getLightOrigin(), view);
             dialog.setVisible(true);
         } finally {
-            pauseAutosave = false;
+            resumeAutosave();
         }
     }
 
@@ -6189,7 +6201,7 @@ public final class App extends JFrame implements RadiusControl,
         
         @Override
         public void performAction(ActionEvent e) {
-            pauseAutosave = true;
+            pauseAutosave();
             try {
                 if (world.getImportedFrom() != null) {
                     DesktopUtils.beep();
@@ -6206,7 +6218,7 @@ public final class App extends JFrame implements RadiusControl,
                     }
                 }
             } finally {
-                pauseAutosave = false;
+                resumeAutosave();
             }
         }
 
@@ -6894,7 +6906,7 @@ public final class App extends JFrame implements RadiusControl,
     private Layer soloLayer;
     private final PaletteManager paletteManager = new PaletteManager(this);
     private DockingManager dockingManager;
-    private boolean hideAbout, hidePreferences, hideExit, pauseAutosave;
+    private boolean hideAbout, hidePreferences, hideExit;
     private Paint paint = PaintFactory.NULL_PAINT;
     private PaintUpdater paintUpdater = () -> {
         // Do nothing
@@ -6904,6 +6916,8 @@ public final class App extends JFrame implements RadiusControl,
     private JPanel toolSettingsPanel, customTerrainPanel;
     private final ObservableBoolean selectionState = new ObservableBoolean(true);
     private Timer autosaveTimer;
+    private int pauseAutosave;
+    private long autosaveInhibitedUntil;
 
     public static final Image ICON = IconUtils.loadScaledImage("org/pepsoft/worldpainter/icons/shovel-icon.png");
     
