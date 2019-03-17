@@ -39,13 +39,9 @@ public final class SpinnerUtils {
      * {@link Number}.
      */
     public static void setMaximum(SpinnerNumberModel model, Comparable<?> newMaximum) {
-        boolean valueWasMaximum = model.getValue().equals(model.getMaximum());
         if (((Number) model.getValue()).doubleValue() > ((Number) newMaximum).doubleValue()) {
             model.setValue(newMaximum);
         }
         model.setMaximum(newMaximum);
-        if (valueWasMaximum) {
-            model.setValue(newMaximum);
-        }
     }
 }

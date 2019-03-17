@@ -54,13 +54,18 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         mixedMaterialSelectorWall.setExtendedBlockIds(extendedBlockIds);
         mixedMaterialSelectorWall.setColourScheme(colourScheme);
         labelPreview.setPreferredSize(new Dimension(128, 0));
-        ((SpinnerNumberModel) spinnerFloorLevel.getModel()).setMaximum(maxHeight - 1);
-        ((SpinnerNumberModel) spinnerRoofLevel.getModel()).setMaximum(maxHeight - 1);
-        ((SpinnerNumberModel) spinnerFloorMin.getModel()).setMaximum(maxHeight - 1);
-        ((SpinnerNumberModel) spinnerFloorMax.getModel()).setMaximum(maxHeight - 1);
-        ((SpinnerNumberModel) spinnerRoofMin.getModel()).setMaximum(maxHeight - 1);
-        ((SpinnerNumberModel) spinnerRoofMax.getModel()).setMaximum(maxHeight - 1);
-        ((SpinnerNumberModel) spinnerFloodLevel.getModel()).setMaximum(maxHeight - 1);
+        programmaticChange = true;
+        try {
+            ((SpinnerNumberModel) spinnerFloorLevel.getModel()).setMaximum(maxHeight - 1);
+            ((SpinnerNumberModel) spinnerRoofLevel.getModel()).setMaximum(maxHeight - 1);
+            ((SpinnerNumberModel) spinnerFloorMin.getModel()).setMaximum(maxHeight - 1);
+            ((SpinnerNumberModel) spinnerFloorMax.getModel()).setMaximum(maxHeight - 1);
+            ((SpinnerNumberModel) spinnerRoofMin.getModel()).setMaximum(maxHeight - 1);
+            ((SpinnerNumberModel) spinnerRoofMax.getModel()).setMaximum(maxHeight - 1);
+            ((SpinnerNumberModel) spinnerFloodLevel.getModel()).setMaximum(maxHeight - 1);
+        } finally {
+            programmaticChange = false;
+        }
         
         loadSettings();
         
@@ -975,6 +980,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
 
     private void buttonResetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonResetActionPerformed
         loadSettings();
+        updatePreview();
     }//GEN-LAST:event_buttonResetActionPerformed
 
     private void radioButtonRoofInverseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonRoofInverseActionPerformed
