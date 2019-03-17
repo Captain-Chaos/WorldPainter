@@ -111,7 +111,6 @@ public final class Constants {
     public static final int SUPPORTED_VERSION_2 = 0x4abd;
 
     public static final int DATA_VERSION_MC_1_12_2 = 1343;
-    public static final int DATA_VERSION_MC_1_13   = 1478;
 
     public static final int BLK_AIR                   =   0;
     public static final int BLK_STONE                 =   1;

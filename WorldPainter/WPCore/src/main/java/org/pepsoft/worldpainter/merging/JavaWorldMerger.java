@@ -180,21 +180,26 @@ public class JavaWorldMerger extends JavaWorldExporter {
         Level level = Level.load(levelDatFile);
 
         // Sanity checks
+        int version = level.getVersion();
+        int dataVersion = level.getDataVersion();
         if (biomesOnly) {
-            int version = level.getVersion();
             if (version == SUPPORTED_VERSION_1) {
                 throw new IllegalArgumentException("MCRegion (Minecraft 1.1) maps do not support biomes");
             } else if (version != SUPPORTED_VERSION_2) {
                 throw new IllegalArgumentException("Version of existing map not supported: 0x" + Integer.toHexString(version));
+            } else if (dataVersion > DATA_VERSION_MC_1_12_2) {
+                throw new IllegalArgumentException("Unsupported Minecraft version of existing map: " + dataVersion);
             }
         } else {
             int existingMaxHeight = level.getMaxHeight();
             if (existingMaxHeight != world.getMaxHeight()) {
                 throw new IllegalArgumentException("Existing map has different max height (" + existingMaxHeight + ") than WorldPainter world (" + world.getMaxHeight() + ")");
             }
-            int version = level.getVersion();
             if ((version != SUPPORTED_VERSION_1) && (version != SUPPORTED_VERSION_2)) {
                 throw new IllegalArgumentException("Version of existing map not supported: 0x" + Integer.toHexString(version));
+            }
+            if ((version == SUPPORTED_VERSION_2) && (dataVersion > DATA_VERSION_MC_1_12_2)) {
+                throw new IllegalArgumentException("Unsupported Minecraft version of existing map: " + dataVersion);
             }
 
             // Dimension sanity checks
