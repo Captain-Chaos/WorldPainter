@@ -72,25 +72,24 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         rootPane.setDefaultButton(buttonOk);
         
         if (currentDimension != null) {
-            SimpleTheme theme = (SimpleTheme) ((HeightMapTileFactory) currentDimension.getTileFactory()).getTheme().clone();
-            heightMapTileFactoryEditor1.setTheme(theme);
+            jTabbedPane1.setEnabledAt(1, false);
             comboBoxPlatform.setSelectedItem(currentDimension.getWorld().getPlatform());
             comboBoxPlatform.setEnabled(false);
-            comboBoxHeight.setSelectedItem(Integer.toString(currentDimension.getMaxHeight()));
+            comboBoxHeight.setSelectedItem(currentDimension.getMaxHeight());
             comboBoxHeight.setEnabled(false);
             buttonResetDefaults.setEnabled(false);
-            spinnerWorldMiddle.setValue(theme.getWaterHeight());
+            spinnerWorldMiddle.setValue(((HeightMapTileFactory) currentDimension.getTileFactory()).getTheme().clone().getWaterHeight());
             buttonLoadDefaults.setEnabled(true);
             buttonSaveAsDefaults.setEnabled(true);
         } else {
             heightMapTileFactoryEditor1.setTheme((SimpleTheme) TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), Terrain.GRASS, DEFAULT_MAX_HEIGHT_ANVIL, 58, 62, false, true, 20, 1.0).getTheme());
+            heightMapTileFactoryEditor1.setChangeListener(this);
             comboBoxPlatform.setSelectedItem(JAVA_ANVIL);
             labelNoUndo.setText(" ");
             checkBoxCreateTiles.setEnabled(false);
             checkBoxOnlyRaise.setEnabled(false);
             loadDefaults();
         }
-        heightMapTileFactoryEditor1.setChangeListener(this);
 
         pack();
         setLocationRelativeTo(parent);
@@ -174,17 +173,19 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
 
         int waterLevel = (int) spinnerWorldMiddle.getValue();
         int maxHeight = (int) comboBoxHeight.getSelectedItem();
-        SimpleTheme theme = heightMapTileFactoryEditor1.getTheme();
-        theme.setMaxHeight(maxHeight);
 
         HeightMapImporter importer = new HeightMapImporter();
         importer.setPlatform((Platform) comboBoxPlatform.getSelectedItem());
         importer.setHeightMap(heightMap);
         importer.setImageFile(selectedFile);
         importer.setName(name);
-        importer.setTileFactory((currentDimension != null)
-                ? (HeightMapTileFactory) currentDimension.getTileFactory()
-                : new HeightMapTileFactory(seed, new SumHeightMap(new ConstantHeightMap(waterLevel - 4), new NoiseHeightMap((float) 20, 1.0, 1, 0)), maxHeight, false, theme));
+        if (currentDimension != null) {
+            importer.setTileFactory(currentDimension.getTileFactory());
+        } else {
+            SimpleTheme theme = heightMapTileFactoryEditor1.getTheme();
+            theme.setMaxHeight(maxHeight);
+            importer.setTileFactory(new HeightMapTileFactory(seed, new SumHeightMap(new ConstantHeightMap(waterLevel - 4), new NoiseHeightMap((float) 20, 1.0, 1, 0)), maxHeight, false, theme));
+        }
         importer.setMaxHeight(maxHeight);
         importer.setImageLowLevel((Integer) spinnerImageLow.getValue());
         importer.setImageHighLevel((Integer) spinnerImageHigh.getValue());
@@ -235,7 +236,8 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
                 bitDepth = image.getSampleModel().getSampleSize(0);
                 WritableRaster raster = image.getRaster();
                 int imageLowValue = Integer.MAX_VALUE;
-                int imageHighValue = Integer.MIN_VALUE;
+                imageHighValue = Integer.MIN_VALUE;
+                int imageMaxHeight = (int) Math.pow(2, bitDepth) - 1;
 outer:          for (int x = 0; x < width; x++) {
                     for (int y = 0; y < height; y++) {
                         int value = raster.getSample(x, y, 0);
@@ -245,25 +247,20 @@ outer:          for (int x = 0; x < width; x++) {
                         if (value > imageHighValue) {
                             imageHighValue = value;
                         }
-                        if ((imageLowValue == 0) && ((bitDepth == 16) ? (imageHighValue == 65535) : (imageHighValue == 255))) {
+                        if ((imageLowValue == 0) && (imageHighValue == imageMaxHeight)) {
                             // No point in looking any further!
                             break outer;
                         }
                     }
                 }
-                int maxHeight = (bitDepth == 16) ? 65535 : 255;
-                setMaximum(spinnerImageLow, maxHeight);
-                setMaximum(spinnerImageHigh, maxHeight);
+                setMaximum(spinnerImageLow, imageMaxHeight);
+                setMaximum(spinnerImageHigh, imageMaxHeight);
 
                 // Set levels to reasonable defaults
-                spinnerImageLow.setValue(0);
-                spinnerImageHigh.setValue(maxHeight);
-                spinnerWorldLow.setValue(0);
-                spinnerWorldHigh.setValue(Math.min(maxHeight, (int) comboBoxHeight.getSelectedItem() - 1));
+                selectDefaultVerticalScaling();
 
                 labelImageDimensions.setText(String.format("Image size: %d x %d, %d bits, lowest value: %d, highest value: %d", width, height, bitDepth, imageLowValue, imageHighValue));
                 updateWorldDimensions();
-                updateImageWaterLevel();
             }
         } catch (IOException e) {
             logger.error("I/O error loading image " + selectedFile, e);
@@ -271,6 +268,29 @@ outer:          for (int x = 0; x < width; x++) {
             labelImageDimensions.setText(String.format("I/O error loading image (message: %s)!", e.getMessage()));
             selectedFile = null;
         }
+    }
+
+    private void selectDefaultVerticalScaling() {
+        int imageMaxHeight = (int) Math.pow(2, bitDepth) - 1;
+        int platformMaxHeight = (int) comboBoxHeight.getSelectedItem();
+        spinnerImageLow.setValue(0);
+        if (imageHighValue < platformMaxHeight) {
+            // The image fits beneath the maximum platform height
+            // unscaled; set default vertical scale to 1:1
+            spinnerImageHigh.setValue(Math.min(imageMaxHeight, platformMaxHeight - 1));
+        } else if ((bitDepth == 16) && (imageHighValue < (platformMaxHeight << 8))) {
+            // The image is 16-bit and fits beneath the maximum platform
+            // height when divided by 256; set default vertical scale
+            // to 256:1
+            spinnerImageHigh.setValue(Math.min(imageMaxHeight, (platformMaxHeight << 8) - 1));
+        } else {
+            // The image does not fit beneath the maximum platform
+            // height so just set the high mark to the maximum
+            spinnerImageHigh.setValue(imageMaxHeight);
+        }
+        spinnerWorldLow.setValue(0);
+        spinnerWorldHigh.setValue(Math.min(imageMaxHeight, platformMaxHeight - 1));
+        updateImageWaterLevel();
     }
 
     private void updateWorldDimensions() {
@@ -394,13 +414,15 @@ outer:          for (int x = 0; x < width; x++) {
     }
 
     private void maxHeightChanged() {
-        int maxHeight = (int) comboBoxHeight.getSelectedItem();
-        setMaximum(spinnerWorldLow, maxHeight - 1);
-        setMaximum(spinnerWorldMiddle, maxHeight - 1);
-        setMaximum(spinnerWorldHigh, maxHeight - 1);
-        updateImageWaterLevel();
+        int platformMaxHeight = (int) comboBoxHeight.getSelectedItem();
+        setMaximum(spinnerWorldLow, platformMaxHeight - 1);
+        setMaximum(spinnerWorldMiddle, platformMaxHeight - 1);
+        setMaximum(spinnerWorldHigh, platformMaxHeight - 1);
 
-        labelWarning.setVisible((comboBoxPlatform.getSelectedItem() == JAVA_MCREGION) && (maxHeight != DEFAULT_MAX_HEIGHT_MCREGION));
+        // Set levels to reasonable defaults
+        selectDefaultVerticalScaling();
+
+        labelWarning.setVisible((comboBoxPlatform.getSelectedItem() == JAVA_MCREGION) && (platformMaxHeight != DEFAULT_MAX_HEIGHT_MCREGION));
     }
 
     /** This method is called from within the constructor to
@@ -980,7 +1002,14 @@ outer:          for (int x = 0; x < width; x++) {
     }//GEN-LAST:event_spinnerScaleStateChanged
 
     private void buttonOkActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonOkActionPerformed
-        if ((jTabbedPane1.getSelectedIndex() == 0) || heightMapTileFactoryEditor1.save()) {
+        if (jTabbedPane1.getSelectedIndex() == 0) {
+            heightMapTileFactoryEditor1.setWaterHeight((int) spinnerWorldMiddle.getValue());
+            if (heightMapTileFactoryEditor1.save()) {
+                ok();
+            } else {
+                jTabbedPane1.setSelectedIndex(1);
+            }
+        } else if (heightMapTileFactoryEditor1.save()) {
             spinnerWorldMiddle.setValue(heightMapTileFactoryEditor1.getTheme().getWaterHeight());
             ok();
         }
@@ -996,6 +1025,9 @@ outer:          for (int x = 0; x < width; x++) {
                 case 0:
                     heightMapTileFactoryEditor1.save();
                     spinnerWorldMiddle.setValue(heightMapTileFactoryEditor1.getTheme().getWaterHeight());
+                    break;
+                case 1:
+                    heightMapTileFactoryEditor1.setWaterHeight((int) spinnerWorldMiddle.getValue());
                     break;
             }
         }
@@ -1087,7 +1119,7 @@ outer:          for (int x = 0; x < width; x++) {
     private final Dimension currentDimension;
     private File selectedFile, heightMapDir;
     private volatile BufferedImage image;
-    private int bitDepth = 8;
+    private int bitDepth = 8, imageHighValue = 255;
     private boolean initialising = true;
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ImportHeightMapDialog.class);

@@ -134,6 +134,10 @@ public class SimpleThemeEditor extends javax.swing.JPanel implements ButtonPress
         this.changeListener = changeListener;
     }
 
+    public void setWaterHeight(int waterHeight) {
+        spinnerWaterLevel.setValue(waterHeight);
+    }
+
     // ButtonPressListener
 
     @Override
