@@ -104,8 +104,10 @@ public final class Material implements Serializable {
             blockLight = (int) spec.get("blockLight");
             lightSource = (blockLight > 0);
             natural = (boolean) spec.get("natural");
+            dry = (boolean) spec.get("dry");
             category = determineCategory();
         } else {
+            System.out.println("Legacy material " + blockType + ":" + data + " not found in materials database");
             // Use reasonable defaults for unknown blocks
             transparency = 0;
             transparent = true;
@@ -122,6 +124,7 @@ public final class Material implements Serializable {
             blockLight = 0;
             lightSource = false;
             natural = false;
+            dry = true;
             category = CATEGORY_UNKNOWN;
         }
 
@@ -211,8 +214,10 @@ public final class Material implements Serializable {
             blockLight = (int) spec.get("blockLight");
             lightSource = (blockLight > 0);
             natural = (boolean) spec.get("natural");
+            dry = (boolean) spec.get("dry");
             category = determineCategory();
         } else {
+            System.out.println("Modern material " + identity + " not found in materials database");
             // Use reasonable defaults for unknown blocks
             transparency = 0;
             transparent = true;
@@ -229,6 +234,7 @@ public final class Material implements Serializable {
             blockLight = 0;
             lightSource = false;
             natural = false;
+            dry = true;
             category = CATEGORY_UNKNOWN;
         }
 
@@ -1389,6 +1395,23 @@ public final class Material implements Serializable {
     }
 
     /**
+     * Compare the material in name only, disregarding its properties.
+     *
+     * @param names The names to test this material for.
+     * @return <code>true</code> if the material <em>does not</em> have any of
+     * the specified names.
+     */
+    @SuppressWarnings("StringEquality") // name is interned so there are many circumstances in which the comparison might work and be faster than equals()
+    public boolean isNotNamedOneOf(String... names) {
+        for (String name: names) {
+            if ((name == this.name) || name.equals(this.name)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Compare two materials in name only, disregarding their properties.
      *
      * @param material The material to compare this material with.
@@ -1781,6 +1804,11 @@ public final class Material implements Serializable {
     public final transient boolean natural;
 
     /**
+     * Whether the block can occur out of water.
+     */
+    public final transient boolean dry;
+
+    /**
      * Type of block encoded in a single category
      */
     public final transient int category;
@@ -1865,6 +1893,7 @@ public final class Material implements Serializable {
                 materialSpecs.put("vegetation", csvDataSource.getBoolean("vegetation"));
                 materialSpecs.put("blockLight", csvDataSource.getInt("blockLight"));
                 materialSpecs.put("natural", csvDataSource.getBoolean("natural"));
+                materialSpecs.put("dry", csvDataSource.getBoolean("dry"));
                 MATERIAL_SPECS.put(name, materialSpecs);
                 csvDataSource.next();
             } while (! csvDataSource.isEndOfFile());

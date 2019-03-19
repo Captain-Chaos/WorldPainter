@@ -1390,7 +1390,8 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
     /**
      * Merge one above ground block. Supports a changed surface height by
      * specifying a delta between the Y coordinate of the block to merge in the
-     * existing and new chunks.
+     * existing and new chunks. This method assumes that {@code newChunk} will
+     * end up in the final map, so will merge the change into that chunk.
      * 
      * <p>Coordinates are in Minecraft coordinate system.
      * 
@@ -1410,28 +1411,31 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         if  (((existingMaterial == AIR) // replace *all* fluids (and ice) from the existing map with fluids (or lack thereof) from the new map
                     || existingMaterial.isNamedOneOf(MC_ICE, MC_WATER, MC_LAVA))
 
-                || ((existingMaterial.insubstantial // the existing block is insubstantial and the new block is not
+                || (existingMaterial.insubstantial // the existing block is insubstantial and the new block is not (but treat water and lava separately below)
                         && (newMaterial != AIR)
+                        && newMaterial.isNotNamedOneOf(MC_WATER, MC_LAVA)
                         && (! newMaterial.insubstantial))
-                    && (! (frost // the existing block is not snow or the Frost layer has not been applied to the current column or the new block is solid
-                        && existingMaterial.isNamed(MC_SNOW)
-                        && newMaterial.insubstantial))) // TODO: IntelliJ says this clause is always true!
 
                 // the Frost layer has not been applied and the existing block is snow
                 || ((! frost) && existingMaterial.isNamed(MC_SNOW))
 
-                // the existing block is insubstantial and the new block is a fluid which would burn it or wash it away
-                || (newMaterial.isNamedOneOf(MC_WATER, MC_LAVA) && existingMaterial.insubstantial) // TODOMC13: this removes under water plants!
+                // the existing block is insubstantial and the new block would wash it away
+                || (newMaterial.isNamedOneOf(MC_WATER) && existingMaterial.insubstantial && existingMaterial.dry)
 
-                // the existing block is a bubble column which would now be above the water
-                || (existingMaterial.isNamed(MC_BUBBLE_COLUMN) && (! newMaterial.isNamed(MC_WATER)))) {
-            // Do nothing
+                // the existing block is insubstantial and the new block would burn it away
+                || (newMaterial.isNamedOneOf(MC_LAVA) && existingMaterial.insubstantial)
+
+                // the existing block is an underwater block which would now be above the water
+                || ((! existingMaterial.dry) && (! newMaterial.isNamed(MC_WATER)))) {
+            // Leave the new block in place
         } else {
+            // Copy the existing block over the new block, modifying it if necessary
             if (existingMaterial.isNamed(MC_SNOW) && newMaterial.isNamed(MC_SNOW)) {
                 // If both the existing and new blocks are snow, use the highest snow level of the two, to leave smooth snow in the existing map intact
                 newChunk.setMaterial(x, y, z, SNOW.withProperty(LAYERS, Math.max(existingMaterial.getProperty(LAYERS), newMaterial.getProperty(LAYERS))));
-            } else { // TODOMC13: underwater plants don't have a waterlogged property; manage them separately
-                if (existingMaterial.hasProperty(WATERLOGGED)) { // TODOMC13: this does not appear to work properly
+            } else {
+                if (existingMaterial.hasProperty(WATERLOGGED)) {
+                    // The block has a waterlogged property; manage it correctly
                     boolean existingMaterialIsWaterLogged = existingMaterial.getProperty(WATERLOGGED);
                     boolean newMaterialIsWater = newMaterial.isNamed(MC_WATER);
                     if (existingMaterialIsWaterLogged && (! newMaterialIsWater)) {
@@ -1442,17 +1446,18 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                         newChunk.setMaterial(x, y, z, existingMaterial);
                     }
                 } else {
+                    // Just use the existing block as-is
                     newChunk.setMaterial(x, y, z, existingMaterial);
                 }
                 if (existingMaterial.tileEntity) {
-                    copyEntityTileData(existingChunk, newChunk, x, y, z, dy);
+                    copyEntityTileData(existingChunk, newChunk, x, y, z, dy); // TODOMC13 this doesn't seem to be working?
                 }
             }
             newChunk.setSkyLightLevel(x, y, z, existingChunk.getSkyLightLevel(  x, y - dy, z));
             newChunk.setBlockLightLevel(x, y, z, existingChunk.getBlockLightLevel(x, y - dy, z));
         }
     }
-    
+
     // Coordinates are in Minecraft coordinate system
     private void copyEntityTileData(Chunk fromChunk, Chunk toChunk, int x, int y, int z, int dy) {
         int existingBlockDX = fromChunk.getxPos() << 4, existingBlockDZ = fromChunk.getzPos() << 4;
