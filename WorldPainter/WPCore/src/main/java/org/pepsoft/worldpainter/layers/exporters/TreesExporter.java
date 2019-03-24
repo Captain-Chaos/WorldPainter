@@ -24,7 +24,6 @@ import java.io.ObjectStreamException;
 import java.util.List;
 import java.util.Random;
 
-import static org.pepsoft.minecraft.Block.BLOCKS;
 import static org.pepsoft.minecraft.Constants.MC_LAVA;
 import static org.pepsoft.minecraft.Constants.MC_WATER;
 import static org.pepsoft.minecraft.Material.*;
@@ -74,8 +73,7 @@ public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T>
                             if ((blockTypeUnderTree == AIR)
                                     || (blockTypeUnderTree.isNamed(MC_WATER))
                                     || (blockTypeAtTree.isNamed(MC_LAVA))
-                                    // TODOMC13: migrate this information to Material:
-                                    || ((blockTypeAtTree.blockType >= 0) && (! BLOCKS[blockTypeAtTree.blockType].veryInsubstantial))) {
+                                    || (! blockTypeAtTree.veryInsubstantial)) {
                                 continue;
                             }
                             // Don't build trees directly next to each other, or

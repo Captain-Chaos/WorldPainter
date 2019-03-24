@@ -4,12 +4,7 @@
  */
 package org.pepsoft.worldpainter.layers.bo2;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Stroke;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.RescaleOp;
 import java.io.IOException;
@@ -149,9 +144,9 @@ public class OffsetViewer extends JComponent {
         if (texturePack != null) {
             if (depth > 0) {
                 RescaleOp rescaleOp = new RescaleOp(new float[] {1.0f, 1.0f, 1.0f, (float) Math.pow(2.0, -depth)}, new float[] {0.0f, 0.0f, 0.0f, 0.0f}, null);
-                g2.drawImage(material.getImage(texturePack), rescaleOp, middle + x * 16 - 8, baseLine - y * 16 - 8);
+                g2.drawImage(getImage(material, texturePack), rescaleOp, middle + x * 16 - 8, baseLine - y * 16 - 8);
             } else {
-                g2.drawImage(material.getImage(texturePack), middle + x * 16 - 8, baseLine - y * 16 - 8, null);
+                g2.drawImage(getImage(material, texturePack), middle + x * 16 - 8, baseLine - y * 16 - 8, null);
             }
         } else {
             int colour = colourScheme.getColour(material);
@@ -161,6 +156,11 @@ public class OffsetViewer extends JComponent {
             g2.setColor(new Color(colour));
             g2.fillRect(middle + x * 16 - 8, baseLine - y * 16 - 8, 16, 16);
         }
+    }
+
+    private BufferedImage getImage(Material material, BufferedImage texturePack) {
+        // TODO
+        throw new UnsupportedOperationException("Not implemented yet");
     }
     
     private BufferedImage texturePack;

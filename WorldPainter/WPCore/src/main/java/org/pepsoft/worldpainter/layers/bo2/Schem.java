@@ -25,7 +25,7 @@ import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.minecraft.Material.MINECRAFT;
 
 /**
- * A Sponge schematc according to the specification at
+ * A Sponge schematic according to the specification at
  * <a href="https://github.com/SpongePowered/Schematic-Specification/blob/master/versions/schematic-1.md">https://github.com/SpongePowered/Schematic-Specification/blob/master/versions/schematic-1.md</a>.
  */
 public final class Schem extends AbstractNBTItem implements WPObject {

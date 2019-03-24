@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * A {@link BiomeScheme} which makes use of Minecraft 1.10 jar files to provide
+ * A {@link BiomeScheme} which makes use of Minecraft 1.12 jar files to provide
  * biomes according to the Large Biomes world type.
  *
  * <p>Created by Pepijn on 26-6-2016.
@@ -47,9 +47,9 @@ public final class Minecraft1_12LargeBiomeScheme extends Minecraft1_12JarBiomeSc
     private static final Map<Checksum, String[]> HASHES_TO_CLASSNAMES = new HashMap<>();
 
     static {
-//                                                                                                                                                                                                                                                                    Landscape            Initialiser         NBT tag           NBT list tag
-//                                                                                                                                                                                                                                                                           Buffer manager      Block data          NBT compound tag  Game profile serializer
-//                                                                                                                                                                                                                                                                                  World generator     Block              NBT list tag      Generator settings
-        HASHES_TO_CLASSNAMES.put(new Checksum(new byte[] {(byte) -116, (byte) 4, (byte) 67, (byte) -122, (byte) -117, (byte) -98, (byte) 70, (byte) -57, (byte) 125, (byte) 57, (byte) -37, (byte) 97, (byte) -57, (byte) 85, (byte) 103, (byte) -99}), new String[] {"bdq", "bdo", "amz", "ni", "awt", "aow", "gn", "fy", "ge", "gm", "gj", "ayx"}); // 1.12.2
+//                                                                                                                                                                                                                                                                    Landscape            Initialiser
+//                                                                                                                                                                                                                                                                           Buffer manager      Generator settings
+//                                                                                                                                                                                                                                                                                  World generator
+        HASHES_TO_CLASSNAMES.put(new Checksum(new byte[] {(byte) -116, (byte) 4, (byte) 67, (byte) -122, (byte) -117, (byte) -98, (byte) 70, (byte) -57, (byte) 125, (byte) 57, (byte) -37, (byte) 97, (byte) -57, (byte) 85, (byte) 103, (byte) -99}), new String[] {"bdq", "bdo", "amz", "ni", "ayx"}); // 1.12.2
     }
 }

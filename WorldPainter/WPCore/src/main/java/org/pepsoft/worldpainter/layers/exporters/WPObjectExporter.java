@@ -396,7 +396,9 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
      * (forming a fence, for instance).
      */
     private static boolean wouldConnect(Material blockTypeOne, Material blockTypeTwo) {
-        if (blockTypeOne.solid) {
+        if ((blockTypeOne == AIR) || (blockTypeTwo == AIR)) {
+            return false;
+        } else if (blockTypeOne.solid) {
             if (blockTypeTwo.solid) {
                 return false;
             } else {
@@ -406,23 +408,25 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
             // TODO encode this into a "connects" property on the material and just check the name
             switch (blockTypeOne.name) {
                 case MC_OAK_FENCE:
-                    return (blockTypeTwo == OAK_FENCE) || blockTypeTwo.solid;
+                    return blockTypeTwo.isNamed(MC_OAK_FENCE) || blockTypeTwo.solid;
                 case MC_NETHER_BRICK_FENCE:
-                    return (blockTypeTwo == NETHER_BRICK_FENCE) || blockTypeTwo.solid;
+                    return blockTypeTwo.isNamed(MC_NETHER_BRICK_FENCE) || blockTypeTwo.solid;
                 case MC_SPRUCE_FENCE:
-                    return (blockTypeTwo == SPRUCE_FENCE) || blockTypeTwo.solid;
+                    return blockTypeTwo.isNamed(MC_SPRUCE_FENCE) || blockTypeTwo.solid;
                 case MC_JUNGLE_FENCE:
-                    return (blockTypeTwo == JUNGLE_FENCE) || blockTypeTwo.solid;
+                    return blockTypeTwo.isNamed(MC_JUNGLE_FENCE) || blockTypeTwo.solid;
                 case MC_DARK_OAK_FENCE:
-                    return (blockTypeTwo == DARK_OAK_FENCE) || blockTypeTwo.solid;
+                    return blockTypeTwo.isNamed(MC_DARK_OAK_FENCE) || blockTypeTwo.solid;
                 case MC_ACACIA_FENCE:
-                    return (blockTypeTwo == ACACIA_FENCE) || blockTypeTwo.solid;
+                    return blockTypeTwo.isNamed(MC_ACACIA_FENCE) || blockTypeTwo.solid;
+                case MC_BIRCH_FENCE:
+                    return blockTypeTwo.isNamed(MC_BIRCH_FENCE) || blockTypeTwo.solid;
                 case MC_COBBLESTONE_WALL:
-                    return (blockTypeTwo == COBBLESTONE_WALL) || blockTypeTwo.solid;
+                    return blockTypeTwo.isNamed(MC_COBBLESTONE_WALL) || blockTypeTwo.solid;
                 case MC_IRON_BARS:
-                    return (blockTypeTwo == IRON_BARS) || blockTypeTwo.solid;
+                    return blockTypeTwo.isNamed(MC_IRON_BARS) || blockTypeTwo.solid;
                 case MC_GLASS_PANE:
-                    return (blockTypeTwo == GLASS_PANE) || blockTypeTwo.solid;
+                    return blockTypeTwo.isNamed(MC_GLASS_PANE) || blockTypeTwo.solid;
                 default:
                     return false;
             }

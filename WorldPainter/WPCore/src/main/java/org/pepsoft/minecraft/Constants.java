@@ -472,6 +472,9 @@ public final class Constants {
     public static final String MC_AGE         = "age";
     public static final String MC_STAGE       = "stage";
     public static final String MC_PERSISTENT  = "persistent";
+    public static final String MC_FACING      = "facing";
+    public static final String MC_TYPE        = "type";
+    public static final String MC_AXIS        = "axis";
 
     // Minecraft NBT tag names
 

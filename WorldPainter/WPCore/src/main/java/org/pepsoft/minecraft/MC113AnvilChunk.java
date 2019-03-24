@@ -110,6 +110,10 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
         return status;
     }
 
+    public Map<HeightmapType, long[]> getHeightMaps() {
+        return heightMaps;
+    }
+
     // Chunk
 
     @Override
@@ -785,11 +789,20 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
         final Material[] materials;
     }
 
-    public enum HeightmapType {LIGHT, LIQUID, RAIN, SOLID, OCEAN_FLOOR, MOTION_BLOCKING_NO_LEAVES, LIGHT_BLOCKING, MOTION_BLOCKING, OCEAN_FLOOR_WG, WORLD_SURFACE_WG, WORLD_SURFACE}
+    public enum HeightmapType {
+        // Observed in generated Minecraft maps. Uses unknown:
+        LIGHT, LIQUID, RAIN, SOLID, OCEAN_FLOOR, MOTION_BLOCKING_NO_LEAVES, LIGHT_BLOCKING, MOTION_BLOCKING,
+        OCEAN_FLOOR_WG, WORLD_SURFACE_WG, WORLD_SURFACE
+    }
 
     /**
-     * The chunk generation status. These are <strong>no longer</strong> in the
-     * order Minecraft has been observed to generate them.
+     * The chunk generation status.
      */
-    public enum Status {EMPTY, CARVED, LIQUID_CARVED, DECORATED, LIGHTED, FULLCHUNK, POSTPROCESSED, FINALIZED, MOBS_SPAWNED}
+    public enum Status {
+        // These have lately been observed to occur in this order of generation:
+        EMPTY, CARVED, LIQUID_CARVED, DECORATED, FULLCHUNK, POSTPROCESSED,
+
+        // These have not lately been observed and may not (longer) be in use by Minecraft:
+        LIGHTED, FINALIZED, MOBS_SPAWNED
+    }
 }

@@ -5,7 +5,6 @@
  */
 package org.pepsoft.worldpainter.layers.tunnel;
 
-import org.pepsoft.minecraft.Constants;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.PerlinNoise;
@@ -22,8 +21,6 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import static org.pepsoft.minecraft.Block.BLOCKS;
 
 /**
  *
@@ -379,9 +376,9 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
     private void setIfSolid(MinecraftWorld world, int x, int y, int z, int minZ, int maxZ, MixedMaterial material, boolean flooded, int terrainHeight, int waterLevel, boolean removeWater) {
         if ((z >= minZ) && (z <= maxZ)) {
             if (removeWater || (! flooded) || (z <= terrainHeight) || (z > waterLevel)) {
-                final int existingBlock = world.getBlockTypeAt(x, y, z);
-                if ((existingBlock != Constants.BLK_AIR)
-                        && (! BLOCKS[existingBlock].insubstantial)) {
+                final Material existingBlock = world.getMaterialAt(x, y, z);
+                if ((existingBlock != Material.AIR)
+                        && (! existingBlock.insubstantial)) {
                     // The coordinates are within bounds and the existing block is solid
                     world.setMaterialAt(x, y, z, material.getMaterial(MATERIAL_SEED, x, y, z));
                 }

@@ -8,7 +8,6 @@ import org.pepsoft.worldpainter.layers.Layer;
 
 import java.util.Random;
 
-import static org.pepsoft.minecraft.Block.BLOCKS;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 
@@ -145,8 +144,7 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
             }
         } else if (state.previousBlockInCavern
                 && (y >= state.waterLevel)
-                // TODO: migrate this information to Material:
-                && (! BLOCKS[chunk.getBlockType(x, y, z)].veryInsubstantial)) {
+                && (! chunk.getMaterial(x, y, z).veryInsubstantial)) {
 //            Material material = subsurfaceMaterial.getMaterial(seed, worldX, worldY, 1);
 //            if (material == Material.AIR) {
             int worldX = (chunk.getxPos() << 4) | x;

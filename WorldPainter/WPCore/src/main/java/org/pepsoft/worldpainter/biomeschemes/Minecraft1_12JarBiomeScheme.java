@@ -18,9 +18,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
 
+import static org.pepsoft.worldpainter.biomeschemes.MinecraftRuntimeUtils.getClassLoader;
+
 /**
  * An abstract base class for {@link BiomeScheme}s which can invoke Minecraft
- * code from a Minecraft jar file for version 1.12 and later to calculate biomes.
+ * code from a Minecraft jar file for version 1.12 to calculate biomes.
  *
  * @author pepijn
  */
@@ -75,11 +77,11 @@ public abstract class Minecraft1_12JarBiomeScheme extends AbstractMinecraft1_7Bi
     }
 
     protected void init(String[] classNames, ClassLoader classLoader) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
-        String landscapeClassName             = classNames[ 0];
-        String bufferManagerClassName         = classNames[ 1];
-        String worldGeneratorClassName        = classNames[ 2];
-        String initClassName                  = classNames[ 3];
-        String generatorSettingsClassName     = classNames[11];
+        String landscapeClassName             = classNames[0];
+        String bufferManagerClassName         = classNames[1];
+        String worldGeneratorClassName        = classNames[2];
+        String initClassName                  = classNames[3];
+        String generatorSettingsClassName     = classNames[4];
         Class<?> landscapeClass = classLoader.loadClass(landscapeClassName);
         worldGeneratorClass = classLoader.loadClass(worldGeneratorClassName);
         Class<?> generatorSettingsClass = classLoader.loadClass(generatorSettingsClassName);

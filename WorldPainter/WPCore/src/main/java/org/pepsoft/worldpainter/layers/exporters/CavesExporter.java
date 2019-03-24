@@ -22,7 +22,6 @@ import java.awt.*;
 import java.util.List;
 import java.util.Random;
 
-import static org.pepsoft.minecraft.Block.BLOCKS;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
@@ -175,21 +174,21 @@ public class CavesExporter extends AbstractLayerExporter<Caves> implements Secon
     }
 
     static void checkForFloatingBlock(MinecraftWorld world, int x, int y, int z, int maxZ) {
-        int blockType = world.getBlockTypeAt(x, y, z);
-        if ((blockType == BLK_DIRT) || (blockType == BLK_SAND) || (blockType == BLK_GRAVEL)) {
-            if (((z > 0) && (! BLOCKS[world.getBlockTypeAt(x, y, z - 1)].solid))
-                    && ((z < maxZ) && (! BLOCKS[world.getBlockTypeAt(x, y, z + 1)].solid))) {
+        Material material = world.getMaterialAt(x, y, z);
+        if (material.isNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_PODZOL, MC_FARMLAND, MC_GRASS_PATH, MC_SAND, MC_RED_SAND, MC_GRAVEL)) {
+            if (((z > 0) && (!world.getMaterialAt(x, y, z - 1).solid))
+                    && ((z < maxZ) && (!world.getMaterialAt(x, y, z + 1).solid))) {
                 // The block is only one layer thick
                 world.setMaterialAt(x, y, z, Material.AIR);
                 // TODO: this isn't removing nearly all one-block thick dirt. Why?
             }
-        } else if ((blockType != BLK_AIR) && (blockType != BLK_WATER) && (blockType != BLK_STATIONARY_WATER) && (blockType != BLK_LAVA) && (blockType != BLK_STATIONARY_LAVA)) {
-            if ((! BLOCKS[world.getBlockTypeAt(x - 1, y, z)].solid)
-                    && (! BLOCKS[world.getBlockTypeAt(x, y - 1, z)].solid)
-                    && (! BLOCKS[world.getBlockTypeAt(x + 1, y, z)].solid)
-                    && (! BLOCKS[world.getBlockTypeAt(x, y + 1, z)].solid)
-                    && ((z > 0) && (! BLOCKS[world.getBlockTypeAt(x, y, z - 1)].solid))
-                    && ((z < maxZ) && (! BLOCKS[world.getBlockTypeAt(x, y, z + 1)].solid))) {
+        } else if (material.isNotNamedOneOf(MC_AIR, MC_WATER, MC_LAVA)) {
+            if ((! world.getMaterialAt(x - 1, y, z).solid)
+                    && (! world.getMaterialAt(x, y - 1, z).solid)
+                    && (! world.getMaterialAt(x + 1, y, z).solid)
+                    && (! world.getMaterialAt(x, y + 1, z).solid)
+                    && ((z > 0) && (! world.getMaterialAt(x, y, z - 1).solid))
+                    && ((z < maxZ) && (! world.getMaterialAt(x, y, z + 1).solid))) {
                 // The block is floating in the air
                 // TODO: this does not take leaves into account, which count as an insubstantial block but can be attached to other leaves!
                 world.setMaterialAt(x, y, z, Material.AIR);

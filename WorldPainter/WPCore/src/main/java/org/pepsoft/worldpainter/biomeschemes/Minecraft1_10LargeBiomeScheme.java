@@ -21,9 +21,9 @@ public final class Minecraft1_10LargeBiomeScheme extends Minecraft1_8LargeBiomeS
     private static final Map<Checksum, String[]> HASHES_TO_CLASSNAMES = new HashMap<>();
 
     static {
-//                                                                                                                                                                                                                                                                    Landscape            Initialiser         NBT tag           NBT list tag
-//                                                                                                                                                                                                                                                                           Buffer manager      Block data          NBT compound tag  Game profile serialzer
-//                                                                                                                                                                                                                                                                                  World generator     Block              NBT list tag
-        HASHES_TO_CLASSNAMES.put(new Checksum(new byte[] {(byte) 55, (byte) -8, (byte) 13, (byte) 38, (byte) 104, (byte) 114, (byte) -20, (byte) 17, (byte) 86, (byte) 10, (byte) -80, (byte) -119, (byte) 95, (byte) 124, (byte) -10, (byte) 59}),     new String[] {"ayo", "aym", "aii", "kq", "ars", "akf", "ef", "dr", "dx", "ee", "eb"}); // 1.10.2
+//                                                                                                                                                                                                                                                                    Landscape            Initialiser
+//                                                                                                                                                                                                                                                                           Buffer manager
+//                                                                                                                                                                                                                                                                                  World generator
+        HASHES_TO_CLASSNAMES.put(new Checksum(new byte[] {(byte) 55, (byte) -8, (byte) 13, (byte) 38, (byte) 104, (byte) 114, (byte) -20, (byte) 17, (byte) 86, (byte) 10, (byte) -80, (byte) -119, (byte) 95, (byte) 124, (byte) -10, (byte) 59}),     new String[] {"ayo", "aym", "aii", "kq"}); // 1.10.2
     }
 }

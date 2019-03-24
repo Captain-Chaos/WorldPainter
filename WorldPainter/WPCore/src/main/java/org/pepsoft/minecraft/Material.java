@@ -10,21 +10,20 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.pepsoft.util.CSVDataSource;
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
-import java.util.List;
 import java.util.*;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toSet;
 import static org.pepsoft.minecraft.Block.BLOCK_TYPE_NAMES;
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Material.HorizontalOrientationScheme.CARDINAL_DIRECTIONS;
 
 /**
  * A representation of a Minecraft material, or one possible in- game block
@@ -86,6 +85,8 @@ public final class Material implements Serializable {
         name = identity.name;
         stringRep = createStringRep();
         legacyStringRep = createLegacyStringRep();
+        horizontalOrientationScheme = determineHorizontalOrientation(identity);
+        verticalOrientationScheme = determineVerticalOrientation(identity);
 
         Map<String, Object> spec = MATERIAL_SPECS.get(name);
         if (spec != null) {
@@ -196,6 +197,8 @@ public final class Material implements Serializable {
         }
         stringRep = createStringRep();
         legacyStringRep = createLegacyStringRep();
+        horizontalOrientationScheme = determineHorizontalOrientation(identity);
+        verticalOrientationScheme = determineVerticalOrientation(identity);
 
         Map<String, Object> spec = MATERIAL_SPECS.get(name);
         if (spec != null) {
@@ -338,6 +341,34 @@ public final class Material implements Serializable {
     }
 
     /**
+     * Returns a material identical to this one, except with the specified
+     * properties set to the specified values. This variant takes four
+     * properties.
+     *
+     * @param property1 The first property that should be set.
+     * @param value1 The value to which the first property should be set.
+     * @param property2 The second property that should be set.
+     * @param value2 The value to which the second property should be set.
+     * @param property3 The third property that should be set.
+     * @param value3 The value to which the third property should be set.
+     * @param property4 The fourth property that should be set.
+     * @param value4 The value to which the fourth property should be set.
+     * @return A material identical to this one, except with the specified
+     * properties set.
+     */
+    public <T1, T2, T3, T4> Material withProperties(Property<T1> property1, T1 value1, Property<T2> property2, T2 value2, Property<T3> property3, T3 value3, Property<T4> property4, T4 value4) {
+        Map<String, String> newProperties = new HashMap<>();
+        if (identity.properties != null) {
+            newProperties.putAll(identity.properties);
+        }
+        newProperties.put(property1.name, value1.toString());
+        newProperties.put(property2.name, value2.toString());
+        newProperties.put(property3.name, value3.toString());
+        newProperties.put(property4.name, value4.toString());
+        return get(identity.name, newProperties);
+    }
+
+    /**
      * Indicates whether a specific property is present on this material.
      *
      * @param name The name of the property to check for presence.
@@ -383,282 +414,25 @@ public final class Material implements Serializable {
      *     cardinal direction (but for instance up or down)
      */
     public Direction getDirection() {
-        switch (blockType) {
-            case BLK_BRICK_STAIRS:
-            case BLK_COBBLESTONE_STAIRS:
-            case BLK_NETHER_BRICK_STAIRS:
-            case BLK_STONE_BRICK_STAIRS:
-            case BLK_WOODEN_STAIRS:
-            case BLK_SANDSTONE_STAIRS:
-            case BLK_PINE_WOOD_STAIRS:
-            case BLK_BIRCH_WOOD_STAIRS:
-            case BLK_JUNGLE_WOOD_STAIRS:
-            case BLK_QUARTZ_STAIRS:
-            case BLK_ACACIA_WOOD_STAIRS:
-            case BLK_DARK_OAK_WOOD_STAIRS:
-            case BLK_RED_SANDSTONE_STAIRS:
-            case BLK_PURPUR_STAIRS:
-                switch (data & 0x03) {
-                    case 0:
-                        return Direction.EAST;
-                    case 1:
-                        return Direction.WEST;
-                    case 2:
-                        return Direction.SOUTH;
-                    case 3:
-                        return Direction.NORTH;
-                }
-                break;
-            case BLK_TORCH:
-            case BLK_REDSTONE_TORCH_OFF:
-            case BLK_REDSTONE_TORCH_ON:
-                switch (data) {
-                    case 1:
-                        return Direction.EAST;
-                    case 2:
-                        return Direction.WEST;
-                    case 3:
-                        return Direction.SOUTH;
-                    case 4:
-                        return Direction.NORTH;
-                }
-                break;
-            case BLK_RAILS:
-                switch (data & 0x0F) {
-                    case 0:
-                        return Direction.NORTH;
-                    case 1:
-                        return Direction.EAST;
-                    case 2:
-                        return Direction.EAST;
-                    case 3:
-                        return Direction.WEST;
-                    case 4:
-                        return Direction.NORTH;
-                    case 5:
-                        return Direction.SOUTH;
-                    case 6:
-                        return Direction.EAST;
-                    case 7:
-                        return Direction.WEST;
-                    case 8:
-                        return Direction.NORTH;
-                    case 9:
-                        return Direction.SOUTH;
-                }
-                break;
-            case BLK_POWERED_RAILS:
-            case BLK_DETECTOR_RAILS:
-                switch (data & 0x07) {
-                    case 0:
-                        return Direction.NORTH;
-                    case 1:
-                        return Direction.EAST;
-                    case 2:
-                        return Direction.EAST;
-                    case 3:
-                        return Direction.WEST;
-                    case 4:
-                        return Direction.NORTH;
-                    case 5:
-                        return Direction.SOUTH;
-                }
-                break;
-            case BLK_LEVER:
-                switch (data & 0x07) {
-                    case 1:
-                        return Direction.EAST;
-                    case 2:
-                        return Direction.WEST;
-                    case 3:
-                        return Direction.SOUTH;
-                    case 4:
-                        return Direction.NORTH;
-                    case 5:
-                        return Direction.NORTH;
-                    case 6:
-                        return Direction.EAST;
-                }
-                break;
-            case BLK_WOODEN_DOOR:
-            case BLK_IRON_DOOR:
-            case BLK_PINE_WOOD_DOOR:
-            case BLK_BIRCH_WOOD_DOOR:
-            case BLK_JUNGLE_WOOD_DOOR:
-            case BLK_ACACIA_WOOD_DOOR:
-            case BLK_DARK_OAK_WOOD_DOOR:
-                switch (data & 0x0B) {
-                    case 0:
-                        return Direction.WEST;
-                    case 1:
-                        return Direction.NORTH;
-                    case 2:
-                        return Direction.EAST;
-                    case 3:
-                        return Direction.SOUTH;
-                }
-                break;
-            case BLK_STONE_BUTTON:
-            case BLK_WOODEN_BUTTON:
-                switch (data & 0x07) {
-                    case 1:
-                        return Direction.EAST;
-                    case 2:
-                        return Direction.WEST;
-                    case 3:
-                        return Direction.SOUTH;
-                    case 4:
-                        return Direction.NORTH;
-                }
-                break;
-            case BLK_SIGN:
-            case BLK_STANDING_BANNER:
-                switch (data & 0x0C) {
-                    case 0:
-                        return Direction.SOUTH;
-                    case 4:
-                        return Direction.WEST;
-                    case 8:
-                        return Direction.NORTH;
-                    case 12:
-                        return Direction.EAST;
-                }
-                break;
-            case BLK_LADDER:
-            case BLK_WALL_SIGN:
-            case BLK_FURNACE:
-            case BLK_DISPENSER:
-            case BLK_CHEST:
-            case BLK_WALL_BANNER:
-            case BLK_OBSERVER:
-            case BLK_WHITE_SHULKER_BOX: // TODO: check assumption!
-            case BLK_ORANGE_SHULKER_BOX: // TODO: check assumption!
-            case BLK_MAGENTA_SHULKER_BOX: // TODO: check assumption!
-            case BLK_LIGHT_BLUE_SHULKER_BOX: // TODO: check assumption!
-            case BLK_YELLOW_SHULKER_BOX: // TODO: check assumption!
-            case BLK_LIME_SHULKER_BOX: // TODO: check assumption!
-            case BLK_PINK_SHULKER_BOX: // TODO: check assumption!
-            case BLK_GREY_SHULKER_BOX: // TODO: check assumption!
-            case BLK_LIGHT_GREY_SHULKER_BOX: // TODO: check assumption!
-            case BLK_CYAN_SHULKER_BOX: // TODO: check assumption!
-            case BLK_PURPLE_SHULKER_BOX: // TODO: check assumption!
-            case BLK_BLUE_SHULKER_BOX: // TODO: check assumption!
-            case BLK_BROWN_SHULKER_BOX: // TODO: check assumption!
-            case BLK_GREEN_SHULKER_BOX: // TODO: check assumption!
-            case BLK_RED_SHULKER_BOX: // TODO: check assumption!
-            case BLK_BLACK_SHULKER_BOX: // TODO: check assumption!
-                switch (data) {
-                    case 2:
-                        return Direction.NORTH;
-                    case 3:
-                        return Direction.SOUTH;
-                    case 4:
-                        return Direction.WEST;
-                    case 5:
-                        return Direction.EAST;
-                }
-                break;
-            case BLK_PUMPKIN:
-            case BLK_JACK_O_LANTERN:
-            case BLK_BED:
-            case BLK_FENCE_GATE:
-            case BLK_PINE_WOOD_FENCE_GATE:
-            case BLK_BIRCH_WOOD_FENCE_GATE:
-            case BLK_JUNGLE_WOOD_FENCE_GATE:
-            case BLK_DARK_OAK_WOOD_FENCE_GATE:
-            case BLK_ACACIA_WOOD_FENCE_GATE:
-            case BLK_TRIPWIRE_HOOK:
-            case BLK_WHITE_GLAZED_TERRACOTTA:
-            case BLK_ORANGE_GLAZED_TERRACOTTA:
-            case BLK_MAGENTA_GLAZED_TERRACOTTA:
-            case BLK_LIGHT_BLUE_GLAZED_TERRACOTTA:
-            case BLK_YELLOW_GLAZED_TERRACOTTA:
-            case BLK_LIME_GLAZED_TERRACOTTA:
-            case BLK_PINK_GLAZED_TERRACOTTA:
-            case BLK_GREY_GLAZED_TERRACOTTA:
-            case BLK_LIGHT_GREY_GLAZED_TERRACOTTA:
-            case BLK_CYAN_GLAZED_TERRACOTTA:
-            case BLK_PURPLE_GLAZED_TERRACOTTA:
-            case BLK_BLUE_GLAZED_TERRACOTTA:
-            case BLK_BROWN_GLAZED_TERRACOTTA:
-            case BLK_GREEN_GLAZED_TERRACOTTA:
-            case BLK_RED_GLAZED_TERRACOTTA:
-            case BLK_BLACK_GLAZED_TERRACOTTA:
-                switch (data & 0x03) {
-                    case 0:
-                        return Direction.SOUTH;
-                    case 1:
-                        return Direction.WEST;
-                    case 2:
-                        return Direction.NORTH;
-                    case 3:
-                        return Direction.EAST;
-                }
-                break;
-            case BLK_REDSTONE_REPEATER_OFF:
-            case BLK_REDSTONE_REPEATER_ON:
-            case BLK_REDSTONE_COMPARATOR_UNPOWERED:
-                switch (data & 0x03) {
-                    case 0:
-                        return Direction.NORTH;
-                    case 1:
-                        return Direction.EAST;
-                    case 2:
-                        return Direction.SOUTH;
-                    case 3:
-                        return Direction.WEST;
-                }
-                break;
-            case BLK_TRAPDOOR:
-            case BLK_IRON_TRAPDOOR: // TODO: assumption
-                switch (data & 0x03) {
-                    case 0:
-                        return Direction.SOUTH;
-                    case 1:
-                        return Direction.NORTH;
-                    case 2:
-                        return Direction.EAST;
-                    case 3:
-                        return Direction.WEST;
-                }
-                break;
-            case BLK_PISTON:
-            case BLK_PISTON_HEAD:
-                switch (data & 0x07) {
-                    case 2:
-                        return Direction.NORTH;
-                    case 3:
-                        return Direction.SOUTH;
-                    case 4:
-                        return Direction.WEST;
-                    case 5:
-                        return Direction.EAST;
-                }
-                break;
-            case BLK_WOOD:
-            case BLK_WOOD2:
-            case BLK_BONE_BLOCK: // TODO: assumption!
-                switch (data & 0xC) {
-                    case 0x4:
-                        return Direction.EAST;
-                    case 0x8:
-                        return Direction.NORTH;
-                    default:
-                        return null;
-                }
-            case BLK_COCOA_PLANT:
-                switch (data & 0x3) {
-                    case 0x0:
-                        return Direction.SOUTH;
-                    case 0x1:
-                        return Direction.WEST;
-                    case 0x2:
-                        return Direction.NORTH;
-                    case 0x3:
-                        return Direction.EAST;
-                }
+        if (horizontalOrientationScheme != null) {
+            switch (horizontalOrientationScheme) {
+                case FACING:
+                    return getProperty(FACING);
+                case AXIS:
+                    switch (getProperty(AXIS)) {
+                        case "x":
+                            return Direction.EAST;
+                        case "z":
+                            return Direction.SOUTH;
+                        default:
+                            return null;
+                    }
+                default:
+                    return null;
+            }
+        } else {
+            return null;
         }
-        return null;
     }
     
     /**
@@ -673,293 +447,22 @@ public final class Material implements Serializable {
      *     concept of direction
      */
     public Material setDirection(Direction direction) {
-        switch (blockType) {
-            case BLK_BRICK_STAIRS:
-            case BLK_COBBLESTONE_STAIRS:
-            case BLK_NETHER_BRICK_STAIRS:
-            case BLK_STONE_BRICK_STAIRS:
-            case BLK_WOODEN_STAIRS:
-            case BLK_SANDSTONE_STAIRS:
-            case BLK_PINE_WOOD_STAIRS:
-            case BLK_BIRCH_WOOD_STAIRS:
-            case BLK_JUNGLE_WOOD_STAIRS:
-            case BLK_QUARTZ_STAIRS:
-            case BLK_ACACIA_WOOD_STAIRS:
-            case BLK_DARK_OAK_WOOD_STAIRS:
-            case BLK_RED_SANDSTONE_STAIRS:
-                switch (direction) {
-                    case EAST:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (data & 0x0C)];
-                    case WEST:
-                        return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0x0C) | 1)];
-                    case SOUTH:
-                        return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0x0C) | 2)];
-                    case NORTH:
-                        return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0x0C) | 3)];
-                }
-                break;
-            case BLK_TORCH:
-            case BLK_REDSTONE_TORCH_OFF:
-            case BLK_REDSTONE_TORCH_ON:
-                switch (direction) {
-                    case EAST:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (1)];
-                    case WEST:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (2)];
-                    case SOUTH:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (3)];
-                    case NORTH:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (4)];
-                }
-                break;
-            case BLK_RAILS:
-                if (data < 2) {
-                    // Straight
+        if (horizontalOrientationScheme != null) {
+            switch (horizontalOrientationScheme) {
+                case FACING:
+                    return withProperty(FACING, direction);
+                case AXIS:
                     switch (direction) {
                         case NORTH:
                         case SOUTH:
-                            return LEGACY_MATERIALS[((blockType) << 4) | (0)];
+                            return withProperty(AXIS, "z");
                         case EAST:
                         case WEST:
-                            return LEGACY_MATERIALS[((blockType) << 4) | (1)];
+                            return withProperty(AXIS, "x");
+                        default:
+                            throw new InternalError();
                     }
-                } else {
-                    // Sloped or round
-                    boolean round = data > 5;
-                    switch (direction) {
-                        case EAST:
-                            return LEGACY_MATERIALS[((blockType) << 4) | (round ? 6 : 2)];
-                        case WEST:
-                            return LEGACY_MATERIALS[((blockType) << 4) | (round ? 7 : 3)];
-                        case NORTH:
-                            return LEGACY_MATERIALS[((blockType) << 4) | (round ? 8 : 4)];
-                        case SOUTH:
-                            return LEGACY_MATERIALS[((blockType) << 4) | (round ? 9 : 5)];
-                    }
-                }
-                break;
-            case BLK_POWERED_RAILS:
-            case BLK_DETECTOR_RAILS:
-                if (data < 2) {
-                    // Straight
-                    switch (direction) {
-                        case NORTH:
-                        case SOUTH:
-                            return LEGACY_MATERIALS[((blockType) << 4) | (data & 0x08)];
-                        case EAST:
-                        case WEST:
-                            return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0x08) | 1)];
-                    }
-                } else {
-                    // Sloped
-                    switch (direction) {
-                        case EAST:
-                            return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0x08) | 2)];
-                        case WEST:
-                            return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0x08) | 3)];
-                        case NORTH:
-                            return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0x08) | 4)];
-                        case SOUTH:
-                            return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0x08) | 5)];
-                    }
-                }
-                break;
-            case BLK_LEVER:
-                boolean ground = (data & 0x07) > 4;
-                switch (direction) {
-                    case EAST:
-                        return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0x08) | (ground ? 6 : 1))];
-                    case WEST:
-                        return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0x08) | (ground ? 6 : 2))];
-                    case SOUTH:
-                        return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0x08) | (ground ? 5 : 3))];
-                    case NORTH:
-                        return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0x08) | (ground ? 5 : 4))];
-                }
-                break;
-            case BLK_WOODEN_DOOR:
-            case BLK_IRON_DOOR:
-            case BLK_PINE_WOOD_DOOR:
-            case BLK_BIRCH_WOOD_DOOR:
-            case BLK_JUNGLE_WOOD_DOOR:
-            case BLK_ACACIA_WOOD_DOOR:
-            case BLK_DARK_OAK_WOOD_DOOR:
-                if ((data & 0x8) != 0) {
-                    return this;
-                } else {
-                    switch (direction) {
-                        case WEST:
-                            return LEGACY_MATERIALS[((blockType) << 4) | (data & 0xC)];
-                        case NORTH:
-                            return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0xC) | 1)];
-                        case EAST:
-                            return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0xC) | 2)];
-                        case SOUTH:
-                            return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0xC) | 3)];
-                    }
-                }
-                break;
-            case BLK_STONE_BUTTON:
-            case BLK_WOODEN_BUTTON:
-                switch (direction) {
-                    case EAST:
-                        return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0x8) | 1)];
-                    case WEST:
-                        return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0x8) | 2)];
-                    case SOUTH:
-                        return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0x8) | 3)];
-                    case NORTH:
-                        return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0x8) | 4)];
-                }
-                break;
-            case BLK_SIGN:
-            case BLK_STANDING_BANNER:
-                switch (direction) {
-                    case SOUTH:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (data & 0x03)];
-                    case WEST:
-                        return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0x03) | 4)];
-                    case NORTH:
-                        return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0x03) | 8)];
-                    case EAST:
-                        return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0x03) | 12)];
-                }
-                break;
-            case BLK_LADDER:
-            case BLK_WALL_SIGN:
-            case BLK_FURNACE:
-            case BLK_DISPENSER:
-            case BLK_CHEST:
-            case BLK_WALL_BANNER:
-            case BLK_OBSERVER:
-            case BLK_WHITE_SHULKER_BOX: // TODO: check assumption!
-            case BLK_ORANGE_SHULKER_BOX: // TODO: check assumption!
-            case BLK_MAGENTA_SHULKER_BOX: // TODO: check assumption!
-            case BLK_LIGHT_BLUE_SHULKER_BOX: // TODO: check assumption!
-            case BLK_YELLOW_SHULKER_BOX: // TODO: check assumption!
-            case BLK_LIME_SHULKER_BOX: // TODO: check assumption!
-            case BLK_PINK_SHULKER_BOX: // TODO: check assumption!
-            case BLK_GREY_SHULKER_BOX: // TODO: check assumption!
-            case BLK_LIGHT_GREY_SHULKER_BOX: // TODO: check assumption!
-            case BLK_CYAN_SHULKER_BOX: // TODO: check assumption!
-            case BLK_PURPLE_SHULKER_BOX: // TODO: check assumption!
-            case BLK_BLUE_SHULKER_BOX: // TODO: check assumption!
-            case BLK_BROWN_SHULKER_BOX: // TODO: check assumption!
-            case BLK_GREEN_SHULKER_BOX: // TODO: check assumption!
-            case BLK_RED_SHULKER_BOX: // TODO: check assumption!
-            case BLK_BLACK_SHULKER_BOX: // TODO: check assumption!
-                switch (direction) {
-                    case NORTH:
-                        return LEGACY_MATERIALS[((blockType) << 4) | 2];
-                    case SOUTH:
-                        return LEGACY_MATERIALS[((blockType) << 4) | 3];
-                    case WEST:
-                        return LEGACY_MATERIALS[((blockType) << 4) | 4];
-                    case EAST:
-                        return LEGACY_MATERIALS[((blockType) << 4) | 5];
-                }
-                break;
-            case BLK_PUMPKIN:
-            case BLK_JACK_O_LANTERN:
-            case BLK_BED:
-            case BLK_FENCE_GATE:
-            case BLK_PINE_WOOD_FENCE_GATE:
-            case BLK_BIRCH_WOOD_FENCE_GATE:
-            case BLK_JUNGLE_WOOD_FENCE_GATE:
-            case BLK_DARK_OAK_WOOD_FENCE_GATE:
-            case BLK_ACACIA_WOOD_FENCE_GATE:
-            case BLK_TRIPWIRE_HOOK:
-            case BLK_WHITE_GLAZED_TERRACOTTA:
-            case BLK_ORANGE_GLAZED_TERRACOTTA:
-            case BLK_MAGENTA_GLAZED_TERRACOTTA:
-            case BLK_LIGHT_BLUE_GLAZED_TERRACOTTA:
-            case BLK_YELLOW_GLAZED_TERRACOTTA:
-            case BLK_LIME_GLAZED_TERRACOTTA:
-            case BLK_PINK_GLAZED_TERRACOTTA:
-            case BLK_GREY_GLAZED_TERRACOTTA:
-            case BLK_LIGHT_GREY_GLAZED_TERRACOTTA:
-            case BLK_CYAN_GLAZED_TERRACOTTA:
-            case BLK_PURPLE_GLAZED_TERRACOTTA:
-            case BLK_BLUE_GLAZED_TERRACOTTA:
-            case BLK_BROWN_GLAZED_TERRACOTTA:
-            case BLK_GREEN_GLAZED_TERRACOTTA:
-            case BLK_RED_GLAZED_TERRACOTTA:
-            case BLK_BLACK_GLAZED_TERRACOTTA:
-                switch (direction) {
-                    case SOUTH:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (data & 0x0C)];
-                    case WEST:
-                        return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0x0C) | 1)];
-                    case NORTH:
-                        return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0x0C) | 2)];
-                    case EAST:
-                        return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0x0C) | 3)];
-                }
-                break;
-            case BLK_REDSTONE_REPEATER_OFF:
-            case BLK_REDSTONE_REPEATER_ON:
-            case BLK_REDSTONE_COMPARATOR_UNPOWERED:
-                switch (direction) {
-                    case NORTH:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (data & 0x0C)];
-                    case EAST:
-                        return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0x0C) | 1)];
-                    case SOUTH:
-                        return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0x0C) | 2)];
-                    case WEST:
-                        return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0x0C) | 3)];
-                }
-                break;
-            case BLK_TRAPDOOR:
-            case BLK_IRON_TRAPDOOR: // TODO: assumption
-                switch (direction) {
-                    case SOUTH:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (data & 0x0C)];
-                    case NORTH:
-                        return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0x0C) | 1)];
-                    case EAST:
-                        return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0x0C) | 2)];
-                    case WEST:
-                        return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0x0C) | 3)];
-                }
-                break;
-            case BLK_PISTON:
-            case BLK_PISTON_HEAD:
-                switch (direction) {
-                    case NORTH:
-                        return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0x08) | 2)];
-                    case SOUTH:
-                        return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0x08) | 3)];
-                    case WEST:
-                        return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0x08) | 4)];
-                    case EAST:
-                        return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0x08) | 5)];
-                }
-                break;
-            case BLK_WOOD:
-            case BLK_WOOD2:
-            case BLK_BONE_BLOCK: // TODO: assumption!
-                switch (direction) {
-                    case NORTH:
-                    case SOUTH:
-                        return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0x3) | 0x8)];
-                    case EAST:
-                    case WEST:
-                        return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0x3) | 0x4)];
-                }
-                break;
-            case BLK_COCOA_PLANT:
-                switch (direction) {
-                    case SOUTH:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (data & 0xC)];
-                    case WEST:
-                        return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0xC) | 0x1)];
-                    case NORTH:
-                        return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0xC) | 0x2)];
-                    case EAST:
-                        return LEGACY_MATERIALS[((blockType) << 4) | ((data & 0xC) | 0x3)];
-                }
-                break;
+            }
         }
         throw new IllegalArgumentException("Block type " + blockType + " has no direction");
     }
@@ -968,66 +471,46 @@ public final class Material implements Serializable {
      * If applicable, return a Material that is rotated a specific number of
      * quarter turns.
      * 
-     * @param steps The number of 90 degree turns to turn the material
-     *     clockwise. May be negative to turn the material anti clockwise
+     * @param steps The number of 90 degree turns to turn the material clockwise
+     *              (when viewed from above). May be negative to turn the
+     *              material anti clockwise
      * @return The rotated material (or the same one if rotation does not apply
-     *     to this material)
+     * to this material)
      */
     public Material rotate(int steps) {
-        switch (blockType) {
-            case BLK_VINES:
-                int bitMask = (data << 4) | data;
-                steps = steps & 0x3;
-                if (steps > 0) {
-                    return LEGACY_MATERIALS[((blockType) << 4) | (((bitMask << steps) & 0xF0) >> 4)];
-                } else {
-                    return this;
-                }
-            case BLK_HUGE_BROWN_MUSHROOM:
-            case BLK_HUGE_RED_MUSHROOM:
-                Direction direction;
-                switch (data) {
-                    case 1:
-                    case 2:
-                        direction = Direction.NORTH;
-                        break;
-                    case 3:
-                    case 6:
-                        direction = Direction.EAST;
-                        break;
-                    case 9:
-                    case 8:
-                        direction = Direction.SOUTH;
-                        break;
-                    case 7:
-                    case 4:
-                        direction = Direction.WEST;
-                        break;
-                    default:
-                        return this;
-                }
-                boolean corner = (data & 0x01) != 0;
-                direction = direction.rotate(steps);
-                switch (direction) {
-                    case NORTH:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (corner ? 1 : 2)];
-                    case EAST:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (corner ? 3 : 6)];
-                    case SOUTH:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (corner ? 9 : 8)];
-                    case WEST:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (corner ? 7 : 4)];
-                    default:
-                        throw new InternalError();
-                }
-            default:
-                direction = getDirection();
-                if (direction != null) {
-                    return setDirection(direction.rotate(steps));
-                } else {
-                    return this;
-                }
+        if (horizontalOrientationScheme != null) {
+            switch (horizontalOrientationScheme) {
+                case CARDINAL_DIRECTIONS:
+                    Boolean[] directions = {
+                            getProperty(NORTH),
+                            getProperty(EAST),
+                            getProperty(SOUTH),
+                            getProperty(WEST)
+                    };
+                    Collections.rotate(asList(directions), steps);
+                    return withProperties(
+                            NORTH, directions[0],
+                            EAST, directions[1],
+                            SOUTH, directions[2],
+                            WEST, directions[3]
+                    );
+                case FACING:
+                    return withProperty(FACING, getProperty(FACING).rotate(steps));
+                case AXIS:
+                    if (steps % 2 != 0) {
+                        String axis = getProperty(MC_AXIS);
+                        if (axis.equals("x")) {
+                            return withProperty(MC_AXIS, "z");
+                        } else if (axis.equals("z")) {
+                            return withProperty(MC_AXIS, "x");
+                        }
+                    }
+                    break;
+                default:
+                    throw new InternalError();
+            }
         }
+        return this;
     }
     
     /**
@@ -1039,161 +522,37 @@ public final class Material implements Serializable {
      *     apply to this material)
      */
     public Material mirror(Direction axis) {
-        if (blockType == BLK_VINES) {
-            boolean north = (data & 4) != 0;
-            boolean east =  (data & 8) != 0;
-            boolean south = (data & 1) != 0;
-            boolean west =  (data & 2) != 0;
-            if ((axis == Direction.EAST) || (axis == Direction.WEST)) {
-            // TODO: this is wrong. Probably a leftover from the coordinate shift. It should be:
-//            if ((axis == Direction.NORTH) || (axis == Direction.SOUTH)) {
-                boolean tmp = east;
-                east = west;
-                west = tmp;
-            } else {
-                boolean tmp = north;
-                north = south;
-                south = tmp;
-            }
-            return LEGACY_MATERIALS[((blockType) << 4) | ((north ? 4 : 0)
-                    | (east  ? 8 : 0)
-                    | (south ? 1 : 0)
-                    | (west  ? 2 : 0))];
-        } else if ((blockType == BLK_HUGE_BROWN_MUSHROOM) || (blockType == BLK_HUGE_RED_MUSHROOM)) {
-            if ((axis == Direction.EAST) || (axis == Direction.WEST)) {
-            // TODO: this is wrong. Probably a leftover from the coordinate shift. It should be:
-//            if ((axis == Direction.NORTH) || (axis == Direction.SOUTH)) {
-                switch (data) {
-                    case 1:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (3)];
-                    case 3:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (1)];
-                    case 4:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (6)];
-                    case 6:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (4)];
-                    case 7:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (9)];
-                    case 9:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (7)];
-                    default:
-                        return this;
-                }
-            } else {
-                switch (data) {
-                    case 1:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (7)];
-                    case 2:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (8)];
-                    case 3:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (9)];
-                    case 7:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (1)];
-                    case 8:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (2)];
-                    case 9:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (3)];
-                    default:
-                        return this;
-                }
-            }
-        } else if ((blockType == BLK_SIGN) || (blockType == BLK_STANDING_BANNER)) {
-            if ((axis == Direction.EAST) || (axis == Direction.WEST)) {
-            // TODO: this is wrong. Probably a leftover from the coordinate shift. It should be:
-//            if ((axis == Direction.NORTH) || (axis == Direction.SOUTH)) {
-                switch (data) {
-                    case 1:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (15)];
-                    case 2:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (14)];
-                    case 3:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (13)];
-                    case 4:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (12)];
-                    case 5:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (11)];
-                    case 6:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (10)];
-                    case 7:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (9)];
-                    case 9:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (7)];
-                    case 10:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (6)];
-                    case 11:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (5)];
-                    case 12:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (4)];
-                    case 13:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (3)];
-                    case 14:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (2)];
-                    case 15:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (1)];
-                    default:
-                        return this;
-                }
-            } else {
-                switch (data) {
-                    case 0:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (8)];
-                    case 1:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (7)];
-                    case 2:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (6)];
-                    case 3:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (5)];
-                    case 5:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (3)];
-                    case 6:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (2)];
-                    case 7:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (1)];
-                    case 8:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (0)];
-                    case 9:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (15)];
-                    case 10:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (14)];
-                    case 11:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (13)];
-                    case 13:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (11)];
-                    case 14:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (10)];
-                    case 15:
-                        return LEGACY_MATERIALS[((blockType) << 4) | (9)];
-                    default:
-                        return this;
-                }
-            }
-        } else {
-            Direction direction = getDirection();
-            switch (axis) {
-                case EAST:
-                case WEST:
-                // TODO: this is wrong. Probably a leftover from the coordinate shift. It should be:
-//                case NORTH:
-//                case SOUTH:
-                    if ((direction == Direction.EAST) || (direction == Direction.WEST)) {
-                        return rotate(2);
+        if (horizontalOrientationScheme != null) {
+            switch (horizontalOrientationScheme) {
+                case CARDINAL_DIRECTIONS:
+                    boolean north = getProperty(NORTH);
+                    boolean east = getProperty(EAST);
+                    boolean south = getProperty(SOUTH);
+                    boolean west = getProperty(WEST);
+                    if ((axis == Direction.WEST) || (axis == Direction.EAST)) {
+                        boolean tmp = north;
+                        north = south;
+                        south = tmp;
                     } else {
-                        return this;
+                        boolean tmp = west;
+                        west = east;
+                        east = tmp;
                     }
-                case NORTH:
-                case SOUTH:
-                // TODO: this is wrong. Probably a leftover from the coordinate shift. It should be:
-//                case EAST:
-//                case WEST:
-                    if ((direction == Direction.NORTH) || (direction == Direction.SOUTH)) {
-                        return rotate(2);
-                    } else {
-                        return this;
-                    }
+                    return withProperties(
+                            NORTH, north,
+                            EAST, east,
+                            SOUTH, south,
+                            WEST, west
+                    );
+                case FACING:
+                    return withProperty(FACING, getProperty(FACING).mirror(axis));
+                case AXIS:
+                    return this;
                 default:
                     throw new InternalError();
             }
         }
+        return this;
     }
 
     /**
@@ -1202,63 +561,19 @@ public final class Material implements Serializable {
      * @return A vertically mirrored version of the material.
      */
     public Material invert() {
-        switch (blockType) {
-            case BLK_BRICK_STAIRS:
-            case BLK_COBBLESTONE_STAIRS:
-            case BLK_NETHER_BRICK_STAIRS:
-            case BLK_STONE_BRICK_STAIRS:
-            case BLK_WOODEN_STAIRS:
-            case BLK_SANDSTONE_STAIRS:
-            case BLK_PINE_WOOD_STAIRS:
-            case BLK_BIRCH_WOOD_STAIRS:
-            case BLK_JUNGLE_WOOD_STAIRS:
-            case BLK_QUARTZ_STAIRS:
-            case BLK_ACACIA_WOOD_STAIRS:
-            case BLK_DARK_OAK_WOOD_STAIRS:
-            case BLK_RED_SANDSTONE_STAIRS:
-            case BLK_PURPUR_STAIRS:
-                return LEGACY_MATERIALS[((blockType) << 4) | (data ^ 0x4)];
-            case BLK_SLAB:
-            case BLK_RED_SANDSTONE_SLAB:
-            case BLK_WOODEN_SLAB:
-            case BLK_PURPUR_SLAB:
-                return LEGACY_MATERIALS[((blockType) << 4) | (data ^ 0x8)];
-            default:
-                return this;
+        if (verticalOrientationScheme != null) {
+            switch (verticalOrientationScheme) {
+                case HALF:
+                    return withProperty(HALF, getProperty(HALF).equals("top") ? "bottom" : "top");
+                case TYPE:
+                    return withProperty(TYPE, getProperty(TYPE).equals("top") ? "bottom" : "top");
+                case UP:
+                    return withProperty(UP, ! getProperty(UP));
+                default:
+                    throw new InternalError();
+            }
         }
-    }
-
-    /**
-     * Indicates whether the material has an associated image which can be
-     * retrieved with the {@link #getImage(BufferedImage)} or painted with the
-     * {@link #paintImage(Graphics2D, int, int, BufferedImage)} method.
-     * 
-     * @return <code>true</code> if this material has an associated image. 
-     */
-    public boolean hasImage() {
-        return false; // TODO
-    }
-    
-    /**
-     * Gets the relevant image for this material from the specified Minecraft
-     * texture pack terrain image.
-     */
-    public BufferedImage getImage(BufferedImage terrain) {
-        throw new UnsupportedOperationException("Not supported yet"); // TODO
-    }
-    
-    /**
-     * Paints the relevant image for this material from the specified Minecraft
-     * texture pack terrain image to the specified location on a graphics
-     * canvas.
-     * 
-     * @param g2 The graphics canvas to paint the image on.
-     * @param x The X coordinate to paint the image to.
-     * @param y The Y coordinate to paint the image to.
-     * @param terrain The texture pack terrain image to get the image from.
-     */
-    public void paintImage(Graphics2D g2, int x, int y, BufferedImage terrain) {
-        throw new UnsupportedOperationException("Not supported yet"); // TODO
+        return this;
     }
 
     /**
@@ -1435,10 +750,37 @@ public final class Material implements Serializable {
         return (material.name != this.name) && (! material.name.equals(this.name));
     }
 
+    private HorizontalOrientationScheme determineHorizontalOrientation(Identity identity) {
+        if (identity.containsPropertyWithValues("north", "true", "false")
+                && identity.containsPropertyWithValues("east", "true", "false")
+                && identity.containsPropertyWithValues("south", "true", "false")
+                && identity.containsPropertyWithValues("west", "true", "false")) {
+            return CARDINAL_DIRECTIONS;
+        } else if (identity.containsPropertyWithValues("axis", "x", "y", "z")) {
+            return HorizontalOrientationScheme.AXIS;
+        } else if (identity.containsPropertyWithValues("facing", "north", "east", "south", "west")) {
+            return HorizontalOrientationScheme.FACING;
+        } else {
+            return null;
+        }
+    }
+
+    private VerticalOrientationScheme determineVerticalOrientation(Identity identity) {
+        if (identity.containsPropertyWithValues("half", "top", "bottom")) {
+            return VerticalOrientationScheme.HALF;
+        } else if (identity.containsPropertyWithValues("up", "true", "false")) {
+            return VerticalOrientationScheme.UP;
+        } else if (identity.containsPropertyWithValues("type", "top", "bottom")) {
+            return VerticalOrientationScheme.TYPE;
+        } else {
+            return null;
+        }
+    }
+
     @SuppressWarnings("StringEquality") // interned
     private int determineCategory() {
         // Determine the category
-        if (name == MC_AIR) {
+        if ((name == MC_AIR) || (name == MC_CAVE_AIR)) {
             return CATEGORY_AIR;
         } else if ((name == MC_WATER) || (name == MC_LAVA)) {
             return CATEGORY_FLUID;
@@ -1809,6 +1151,20 @@ public final class Material implements Serializable {
     public final transient boolean dry;
 
     /**
+     * The horizontal orientation scheme detected for this material, or
+     * {@code null} if this material has no horizontal orientation, or one could
+     * not be determined.
+     */
+    public final transient HorizontalOrientationScheme horizontalOrientationScheme;
+
+    /**
+     * The vertical orientation scheme detected for this material, or
+     * {@code null} if this material has no vertical orientation, or one could
+     * not be determined.
+     */
+    public final transient VerticalOrientationScheme verticalOrientationScheme;
+
+    /**
      * Type of block encoded in a single category
      */
     public final transient int category;
@@ -2084,18 +1440,21 @@ public final class Material implements Serializable {
 
     // MC 1.13 block property access helpers
 
-    public static final Property<Boolean> SNOWY       = new Property<>(MC_SNOWY,       Boolean.class);
-    public static final Property<Boolean> NORTH       = new Property<>(MC_NORTH,       Boolean.class);
-    public static final Property<Boolean> EAST        = new Property<>(MC_EAST,        Boolean.class);
-    public static final Property<Boolean> SOUTH       = new Property<>(MC_SOUTH,       Boolean.class);
-    public static final Property<Boolean> WEST        = new Property<>(MC_WEST,        Boolean.class);
-    public static final Property<Boolean> UP          = new Property<>(MC_UP,          Boolean.class);
-    public static final Property<Integer> LAYERS      = new Property<>(MC_LAYERS,      Integer.class);
-    public static final Property<String>  HALF        = new Property<>(MC_HALF,        String.class);
-    public static final Property<Integer> LEVEL       = new Property<>(MC_LEVEL,       Integer.class);
-    public static final Property<Boolean> WATERLOGGED = new Property<>(MC_WATERLOGGED, Boolean.class);
-    public static final Property<Integer> AGE         = new Property<>(MC_AGE,         Integer.class);
-    public static final Property<Boolean> PERSISTENT  = new Property<>(MC_PERSISTENT,  Boolean.class);
+    public static final Property<Boolean>   SNOWY       = new Property<>(MC_SNOWY,       Boolean.class);
+    public static final Property<Boolean>   NORTH       = new Property<>(MC_NORTH,       Boolean.class);
+    public static final Property<Boolean>   EAST        = new Property<>(MC_EAST,        Boolean.class);
+    public static final Property<Boolean>   SOUTH       = new Property<>(MC_SOUTH,       Boolean.class);
+    public static final Property<Boolean>   WEST        = new Property<>(MC_WEST,        Boolean.class);
+    public static final Property<Boolean>   UP          = new Property<>(MC_UP,          Boolean.class);
+    public static final Property<Integer>   LAYERS      = new Property<>(MC_LAYERS,      Integer.class);
+    public static final Property<String>    HALF        = new Property<>(MC_HALF,        String.class);
+    public static final Property<Integer>   LEVEL       = new Property<>(MC_LEVEL,       Integer.class);
+    public static final Property<Boolean>   WATERLOGGED = new Property<>(MC_WATERLOGGED, Boolean.class);
+    public static final Property<Integer>   AGE         = new Property<>(MC_AGE,         Integer.class);
+    public static final Property<Boolean>   PERSISTENT  = new Property<>(MC_PERSISTENT,  Boolean.class);
+    public static final Property<Direction> FACING      = new Property<>(MC_FACING,      Direction.class);
+    public static final Property<String>    AXIS        = new Property<>(MC_AXIS,        String.class);
+    public static final Property<String>    TYPE        = new Property<>(MC_TYPE,        String.class);
 
     // Modern materials (based on MC 1.13 block names and properties)
 
@@ -2135,7 +1494,7 @@ public final class Material implements Serializable {
     public static final Material OAK_FENCE = get(MC_OAK_FENCE);
     public static final Material NETHER_BRICK_FENCE = get(MC_NETHER_BRICK_FENCE);
     public static final Material SPRUCE_FENCE = get(MC_SPRUCE_FENCE);
-    public static final Material BIRCH_FENC = get(MC_BIRCH_FENCE);
+    public static final Material BIRCH_FENCE = get(MC_BIRCH_FENCE);
     public static final Material JUNGLE_FENCE = get(MC_JUNGLE_FENCE);
     public static final Material DARK_OAK_FENCE = get(MC_DARK_OAK_FENCE);
     public static final Material ACACIA_FENCE = get(MC_ACACIA_FENCE);
@@ -2176,12 +1535,29 @@ public final class Material implements Serializable {
             this.properties = ((properties != null) && (! properties.isEmpty())) ? ImmutableMap.copyOf(properties) : null;
         }
 
+        /**
+         * Determines whether the identity contains a property with a specific
+         * name and one of a specific number of values.
+         *
+         * @param propertyName The property name to check for.
+         * @param values The list of values to check for.
+         * @return {@code true} if the identity contains a property with the
+         * specified name, set to one of the specified values.
+         */
+        boolean containsPropertyWithValues(String propertyName, String... values) {
+            if (properties == null) {
+                return false;
+            }
+            String value = properties.get(propertyName);
+            return (value != null) && asList(values).contains(value);
+        }
+
         @SuppressWarnings("StringEquality") // Interned string
         @Override
         public boolean equals(Object o) {
             return (o instanceof Identity)
                 && (name == ((Identity) o).name)
-                && ((properties != null) ? properties.equals(((Identity) o).properties) : (((Identity) o).properties == null));
+                && Objects.equals(properties, ((Identity) o).properties);
         }
 
         @Override
@@ -2207,9 +1583,13 @@ public final class Material implements Serializable {
             Method method = null;
             if (type != String.class) {
                 try {
-                    method = type.getMethod("valueOf", String.class);
+                    method = type.getMethod("parse", String.class);
                 } catch (NoSuchMethodException e) {
-                    throw new IllegalArgumentException("Type " + type + " has no valueOf(String) method");
+                    try {
+                        method = type.getMethod("valueOf", String.class);
+                    } catch (NoSuchMethodException e2) {
+                        throw new IllegalArgumentException("Type " + type + " has no parse(String) or valueOf(String) methods");
+                    }
                 }
             }
             valueOfMethod = method;
@@ -2231,5 +1611,44 @@ public final class Material implements Serializable {
         public final String name;
         public final Class<T> type;
         private final Method valueOfMethod;
+    }
+
+    /**
+     * Horizontal orientation schemes recognized by this class.
+     */
+    enum HorizontalOrientationScheme {
+        /**
+         * {@code axis} property containing {@code x}, {@code y} or {@code z}
+         */
+        AXIS,
+
+        /**
+         * {@code north}, {@code east}, {@code south} <em>and</em> {@code west} properties, each containing {@code true} or {@code false}
+         */
+        CARDINAL_DIRECTIONS,
+
+        /**
+         * {@code facing} property containing the cardinal direction {@code north}, {@code east}, {@code south} or {@code west}
+         */
+        FACING}
+
+    /**
+     * Vertical orientation schemes recognized by this class.
+     */
+    enum VerticalOrientationScheme {
+        /**
+         * {@code half} property containing {@code top} or {@code bottom}
+         */
+        HALF,
+
+        /**
+         * {@code up} property containing {@code true} or {@code false}
+         */
+        UP,
+
+        /**
+         * {@code type} property containing {@code bottom} or {@code top}
+         */
+        TYPE
     }
 }

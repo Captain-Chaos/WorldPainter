@@ -94,11 +94,10 @@ public class MapImportDialog extends WorldPainterDialog {
         final File worldDir = levelDatFile.getParentFile();
 
         // Check if it's a valid level.dat file before we commit
-        int version, dataVersion;
+        int version;
         try {
             Level testLevel = Level.load(levelDatFile);
             version = testLevel.getVersion();
-            dataVersion = testLevel.getDataVersion();
         } catch (IOException e) {
             logger.error("IOException while analysing map " + levelDatFile, e);
             JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("selected.file.is.not.a.valid.level.dat.file"), strings.getString("invalid.file"), JOptionPane.ERROR_MESSAGE);

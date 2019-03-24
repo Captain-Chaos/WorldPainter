@@ -81,18 +81,18 @@ public class Theme implements Serializable {
         try {
             // Floor
             for (int x = 1; x < 8; x++) {
-                floorMaterial.paintImage(g2, x * 16, 4 * 16, texturePack);
+                paintImage(floorMaterial, g2, x * 16, 4 * 16, texturePack);
             }
             
             // Beams
             for (int y = 1; y < 5; y++) {
-                beamMaterial.paintImage(g2, 0, y * 16, texturePack);
-                beamMaterial.paintImage(g2, 8 * 16, y * 16, texturePack);
+                paintImage(beamMaterial, g2, 0, y * 16, texturePack);
+                paintImage(beamMaterial, g2, 8 * 16, y * 16, texturePack);
             }
             
             // Interior wall
             for (int y = 1; y < 4; y++) {
-                interiorWallMaterial.paintImage(g2, 4 * 16, y * 16, texturePack);
+                paintImage(interiorWallMaterial, g2, 4 * 16, y * 16, texturePack);
             }
             
             // Walls and windows
@@ -100,24 +100,28 @@ public class Theme implements Serializable {
                 for (int dy = 0; dy < 3; dy++) {
                     if ((dx == 1) && (dy == 1)) {
                         // Window
-                        windowMaterial.paintImage(g2, (1 + dx) * 16, (1 + dy) * 16, texturePack);
-                        windowMaterial.paintImage(g2, (5 + dx) * 16, (1 + dy) * 16, texturePack);
+                        paintImage(windowMaterial, g2, (1 + dx) * 16, (1 + dy) * 16, texturePack);
+                        paintImage(windowMaterial, g2, (5 + dx) * 16, (1 + dy) * 16, texturePack);
                     } else {
                         // Wall
-                        wallMaterial.paintImage(g2, (1 + dx) * 16, (1 + dy) * 16, texturePack);
-                        wallMaterial.paintImage(g2, (5 + dx) * 16, (1 + dy) * 16, texturePack);
+                        paintImage(wallMaterial, g2, (1 + dx) * 16, (1 + dy) * 16, texturePack);
+                        paintImage(wallMaterial, g2, (5 + dx) * 16, (1 + dy) * 16, texturePack);
                     }
                 }
             }
             
             // Roof
             for (int x = 0; x < 9; x++) {
-                roofMaterial.paintImage(g2, x * 16, 0, texturePack);
+                paintImage(roofMaterial, g2, x * 16, 0, texturePack);
             }
         } finally {
             g2.dispose();
         }
         preview = tmp;
+    }
+
+    private void paintImage(Material material, Graphics2D g2, int x, int y, BufferedImage texturePack) {
+        // TODO
     }
     
     public final Material floorMaterial, beamMaterial, wallMaterial, roofMaterial, windowMaterial, interiorWallMaterial;

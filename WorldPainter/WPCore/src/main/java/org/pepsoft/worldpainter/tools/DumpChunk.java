@@ -7,6 +7,7 @@ package org.pepsoft.worldpainter.tools;
 import org.jnbt.CompoundTag;
 import org.jnbt.NBTInputStream;
 import org.pepsoft.minecraft.*;
+import org.pepsoft.util.DataUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -62,6 +63,27 @@ public class DumpChunk {
                     System.out.print(" v");
                 }
                 System.out.println();
+            }
+        }
+
+        if (chunk instanceof MC113AnvilChunk) {
+            for (Map.Entry<MC113AnvilChunk.HeightmapType, long[]> entry: ((MC113AnvilChunk) chunk).getHeightMaps().entrySet()) {
+                System.out.println("Heightmap (type: " + entry.getKey() + ")");
+                System.out.println("X-->");
+                long[][] data = DataUtils.unpackDataArray(entry.getValue(), 9, 16);
+                for (int z = 0; z < 16; z++) {
+                    for (int x = 0; x < 16; x++) {
+                        System.out.printf("[%3d]", data[z][x]);
+                    }
+                    if (z == 0) {
+                        System.out.print(" Z");
+                    } else if (z == 1) {
+                        System.out.print(" |");
+                    } else if (z == 2) {
+                        System.out.print(" v");
+                    }
+                    System.out.println();
+                }
             }
         }
 
