@@ -100,6 +100,11 @@
                               <EmptySpace max="-2" attributes="0"/>
                               <Component id="checkBoxImportEnd" min="-2" max="-2" attributes="0"/>
                           </Group>
+                          <Group type="102" alignment="0" attributes="0">
+                              <Component id="jLabel6" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="labelPlatform" min="-2" max="-2" attributes="0"/>
+                          </Group>
                       </Group>
                       <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                   </Group>
@@ -118,7 +123,12 @@
                   <Component id="fieldFilename" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="buttonSelectFile" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="jLabel6" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="labelPlatform" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="jLabel2" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="labelOutliers1" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -339,6 +349,13 @@
         <Property name="text" type="java.lang.String" value="Import End"/>
         <Property name="enabled" type="boolean" value="false"/>
       </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="jLabel6">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Map format:"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="labelPlatform">
     </Component>
   </SubComponents>
 </Form>
