@@ -250,7 +250,7 @@ public class JavaMapImporter extends MapImporter {
         final Set<Integer> unknownBiomes = new HashSet<>();
         final boolean importBiomes = dimension.getDim() == DIM_NORMAL;
         final ChunkStore chunkStore = PlatformManager.getInstance().getChunkStore(platform, worldDir, dimension.getDim());
-        final long total = chunkStore.getChunkCount();
+        final int total = chunkStore.getChunkCount();
         final AtomicInteger count = new AtomicInteger();
         final StringBuilder reportBuilder = new StringBuilder();
         if (! chunkStore.visitChunks(chunk -> {

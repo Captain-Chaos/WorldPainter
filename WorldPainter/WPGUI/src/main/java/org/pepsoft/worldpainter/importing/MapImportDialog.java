@@ -152,14 +152,6 @@ public class MapImportDialog extends WorldPainterDialog {
             JOptionPane.showMessageDialog(MapImportDialog.this, "This map has no surface dimension; this is not supported by WorldPainter", "Missing Surface Dimension", ERROR_MESSAGE);
             return;
         }
-        final ChunkStore surfaceChunkStore = platformProvider.getChunkStore(platform, worldDir, DIM_NORMAL);
-        // TODO this can take very long for large maps; use a progress dialog
-        final long surfaceChunkCount = surfaceChunkStore.getChunkCount();
-        if (surfaceChunkCount == 0) {
-            logger.error("Surface dimension does not contain any chunks: " + levelDatFile);
-            JOptionPane.showMessageDialog(MapImportDialog.this, "This map has an empty surface dimension; this is not supported by WorldPainter", "Empty Surface Dimension", ERROR_MESSAGE);
-            return;
-        }
 
         // Check for Nether and End
         final boolean netherPresent = dimensions.contains(DIM_NETHER), endPresent = dimensions.contains(DIM_END);
@@ -177,11 +169,12 @@ public class MapImportDialog extends WorldPainterDialog {
             @Override
             public MapInfo execute(ProgressReceiver progressReceiver) throws OperationCancelled {
                 final MapInfo stats = new MapInfo();
-                stats.chunkCount = surfaceChunkCount;
 
                 // TODO do this for the other dimensions as well
                 final List<Integer> xValues = new ArrayList<>(), zValues = new ArrayList<>();
-                final Set<MinecraftCoords> allChunkCoords = surfaceChunkStore.getChunkCoords();
+                final ChunkStore chunkStore = platformProvider.getChunkStore(platform, worldDir, DIM_NORMAL);
+                final Set<MinecraftCoords> allChunkCoords = chunkStore.getChunkCoords();
+                stats.chunkCount = allChunkCoords.size();
                 for (MinecraftCoords chunkCoords: allChunkCoords) {
                     // TODO update the progress receiver
                     if (chunkCoords.x < stats.lowestChunkX) {
@@ -263,10 +256,10 @@ public class MapImportDialog extends WorldPainterDialog {
             labelPlatform.setText(platform.displayName);
             int width = mapInfo.highestChunkXNoOutliers - mapInfo.lowestChunkXNoOutliers + 1;
             int length = mapInfo.highestChunkZNoOutliers - mapInfo.lowestChunkZNoOutliers + 1;
-            long area = (mapInfo.chunkCount - mapInfo.outlyingChunks.size());
+            int area = (mapInfo.chunkCount - mapInfo.outlyingChunks.size());
             labelWidth.setText(FORMATTER.format(width * 16) + " blocks (from " + FORMATTER.format(mapInfo.lowestChunkXNoOutliers << 4) + " to " + FORMATTER.format((mapInfo.highestChunkXNoOutliers << 4) + 15) + "; " + FORMATTER.format(width) + " chunks)");
             labelLength.setText(FORMATTER.format(length * 16) + " blocks (from " + FORMATTER.format(mapInfo.lowestChunkZNoOutliers << 4) + " to " + FORMATTER.format((mapInfo.highestChunkZNoOutliers << 4) + 15) + "; " + FORMATTER.format(length) + " chunks)");
-            labelArea.setText(FORMATTER.format(area * 256L) + " blocks² (" + FORMATTER.format(area) + " chunks)");
+            labelArea.setText(FORMATTER.format(area * 256L) + " blocks (" + FORMATTER.format(area) + " chunks)");
             if (! mapInfo.outlyingChunks.isEmpty()) {
                 // There are outlying chunks
                 int widthWithOutliers = mapInfo.highestChunkX - mapInfo.lowestChunkX + 1;
@@ -280,7 +273,7 @@ public class MapImportDialog extends WorldPainterDialog {
                 labelLengthWithOutliers.setText(FORMATTER.format(lengthWithOutliers * 16) + " blocks (" + FORMATTER.format(lengthWithOutliers) + " chunks)");
                 labelLengthWithOutliers.setVisible(true);
                 labelOutliers4.setVisible(true);
-                labelAreaOutliers.setText(FORMATTER.format(areaOfOutliers * 256L) + " blocks² (" + FORMATTER.format(areaOfOutliers) + " chunks)");
+                labelAreaOutliers.setText(FORMATTER.format(areaOfOutliers * 256L) + " blocks (" + FORMATTER.format(areaOfOutliers) + " chunks)");
                 labelAreaOutliers.setVisible(true);
                 checkBoxImportOutliers.setVisible(true);
                 // The dialog may need to become bigger:
@@ -731,7 +724,7 @@ public class MapImportDialog extends WorldPainterDialog {
         Platform platform;
         int lowestChunkX = Integer.MAX_VALUE, lowestChunkZ = Integer.MAX_VALUE, highestChunkX = Integer.MIN_VALUE, highestChunkZ = Integer.MIN_VALUE;
         int lowestChunkXNoOutliers = Integer.MAX_VALUE, lowestChunkZNoOutliers = Integer.MAX_VALUE, highestChunkXNoOutliers = Integer.MIN_VALUE, highestChunkZNoOutliers = Integer.MIN_VALUE;
-        long chunkCount;
+        int chunkCount;
         final Set<MinecraftCoords> outlyingChunks = new HashSet<>();
         String errorMessage;
     }

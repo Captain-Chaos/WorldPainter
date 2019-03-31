@@ -13,7 +13,7 @@ public interface ChunkStore extends ChunkProvider {
      *
      * @return The count of all the chunks currently in the store.
      */
-    long getChunkCount();
+    int getChunkCount();
 
     /**
      * Returns the coordinates of all the chunks that currently exist in the
