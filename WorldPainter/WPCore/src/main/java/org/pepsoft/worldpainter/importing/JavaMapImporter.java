@@ -109,7 +109,6 @@ public class JavaMapImporter extends MapImporter {
             world.getBorderSettings().setDamagePerBlock((int) (level.getBorderDamagePerBlock() + 0.5));
         }
         File worldDir = levelDatFile.getParentFile();
-        File regionDir = new File(worldDir, "region");
         File netherDir = new File(worldDir, "DIM-1/region");
         File endDir = new File(worldDir, "DIM1/region");
         int dimCount = 1;
@@ -143,7 +142,7 @@ public class JavaMapImporter extends MapImporter {
             dimension.setGridSize(config.getDefaultGridSize());
             dimension.setContoursEnabled(config.isDefaultContoursEnabled());
             dimension.setContourSeparation(config.getDefaultContourSeparation());
-            String dimWarnings = importDimension(regionDir, dimension, platform, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.0f, 1.0f / dimCount) : null);
+            String dimWarnings = importDimension(worldDir, dimension, platform, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.0f, 1.0f / dimCount) : null);
             if (dimWarnings != null) {
                 if (warnings == null) {
                     warnings = dimWarnings;
@@ -238,9 +237,9 @@ public class JavaMapImporter extends MapImporter {
     public String getWarnings() {
         return warnings;
     }
-    
+
     @SuppressWarnings({"StringConcatenationInsideStringBufferAppend", "StringEquality"}) // Readability; Material names are interned
-    private String importDimension(File regionDir, Dimension dimension, Platform platform, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
+    private String importDimension(File worldDir, Dimension dimension, Platform platform, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
         if (progressReceiver != null) {
             progressReceiver.setMessage(dimension.getName() + " dimension");
         }
@@ -250,7 +249,7 @@ public class JavaMapImporter extends MapImporter {
         final Set<String> manMadeBlockTypes = new HashSet<>();
         final Set<Integer> unknownBiomes = new HashSet<>();
         final boolean importBiomes = dimension.getDim() == DIM_NORMAL;
-        final ChunkStore chunkStore = PlatformManager.getInstance().getChunkStore(platform, regionDir, dimension.getDim());
+        final ChunkStore chunkStore = PlatformManager.getInstance().getChunkStore(platform, worldDir, dimension.getDim());
         final long total = chunkStore.getChunkCount();
         final AtomicInteger count = new AtomicInteger();
         final StringBuilder reportBuilder = new StringBuilder();
