@@ -1,5 +1,7 @@
 package org.pepsoft.minecraft;
 
+import java.util.Set;
+
 /**
  * A provider of Minecraft chunk storage.
  *
@@ -12,6 +14,17 @@ public interface ChunkStore extends ChunkProvider {
      * @return The count of all the chunks currently in the store.
      */
     long getChunkCount();
+
+    /**
+     * Returns the coordinates of all the chunks that currently exist in the
+     * store. This is intended to be more efficient and faster than actually
+     * visiting all the chunks for use cases where only the existence and/or
+     * coordinates are needed.
+     *
+     * @return A set of the coordinates of all the chunks that currently exist
+     * in the store.
+     */
+    Set<MinecraftCoords> getChunkCoords();
 
     /**
      * Visit all known chunks. Note that the order is undefined, allowing the

@@ -14,6 +14,20 @@ import java.io.File;
  */
 public interface BlockBasedPlatformProvider extends PlatformProvider {
     /**
+     * Determine which dimensions are present in the map specified by a
+     * particular {@link Platform} and directory.
+     *
+     * @param platform The platform for which to determine the dimensions.
+     * @param worldDir The map base directory for which to determine the
+     *                 dimensions.
+     * @return An array of dimension numbers corresponding to the constants
+     * {@link Constants#DIM_NORMAL}, {@link Constants#DIM_NETHER} and
+     * {@link Constants#DIM_END} for dimensions which correspond to vanilla
+     * Minecraft dimensions.
+     */
+    int[] getDimensions(Platform platform, File worldDir);
+
+    /**
      * Create a new, empty chunk for a platform supported by this provider.
      *
      * @param platform The platform for which to create a chunk.

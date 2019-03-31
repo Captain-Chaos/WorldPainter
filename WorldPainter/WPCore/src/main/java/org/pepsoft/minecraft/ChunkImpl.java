@@ -8,7 +8,6 @@ package org.pepsoft.minecraft;
 import org.jnbt.CompoundTag;
 import org.jnbt.Tag;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -102,8 +101,8 @@ public final class ChunkImpl extends AbstractNBTItem implements Chunk {
     }
 
     @Override
-    public Point getCoords() {
-        return new Point(xPos, zPos);
+    public MinecraftCoords getCoords() {
+        return new MinecraftCoords(xPos, zPos);
     }
 
     @Override

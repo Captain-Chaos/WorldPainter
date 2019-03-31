@@ -9,9 +9,7 @@ import org.jnbt.CompoundTag;
 import org.jnbt.Tag;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 
-import java.awt.*;
 import java.util.*;
-import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 import static org.pepsoft.minecraft.Constants.*;
@@ -146,8 +144,8 @@ public final class ChunkImpl2 extends AbstractNBTItem implements Chunk, Minecraf
     }
 
     @Override
-    public Point getCoords() {
-        return new Point(xPos, zPos);
+    public MinecraftCoords getCoords() {
+        return new MinecraftCoords(xPos, zPos);
     }
 
     @Override

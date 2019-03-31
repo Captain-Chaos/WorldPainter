@@ -48,6 +48,26 @@ public class JavaChunkStore implements ChunkStore {
     }
 
     @Override
+    public Set<MinecraftCoords> getChunkCoords() {
+        Set<MinecraftCoords> coords = new HashSet<>();
+        try {
+            visitRegions(region -> {
+                for (int x = 0; x < 32; x++) {
+                    for (int z = 0; z < 32; z++) {
+                        if (region.containsChunk(x, z)) {
+                            coords.add(new MinecraftCoords(x, z));
+                        }
+                    }
+                }
+                return true;
+            }, true);
+        } catch (IOException e) {
+            throw new RuntimeException("I/O error while visiting regions of " + regionDir, e);
+        }
+        return coords;
+    }
+
+    @Override
     public boolean visitChunks(ChunkVisitor visitor) {
         return visitChunks(visitor, true);
     }

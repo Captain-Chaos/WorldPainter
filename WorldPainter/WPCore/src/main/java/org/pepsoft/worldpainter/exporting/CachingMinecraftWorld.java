@@ -353,7 +353,7 @@ public class CachingMinecraftWorld implements MinecraftWorld {
         @Override public boolean isTerrainPopulated() {return false;}
         @Override public void setBlockLightLevel(int x, int y, int z, int blockLightLevel) {}
         @Override public void setHeight(int x, int z, int height) {}
-        @Override public Point getCoords() {return null;}
+        @Override public MinecraftCoords getCoords() {return null;}
         @Override public void setSkyLightLevel(int x, int y, int z, int skyLightLevel) {}
         @Override public Material getMaterial(int x, int y, int z) {return null;}
         @Override public void setMaterial(int x, int y, int z, Material material) {}

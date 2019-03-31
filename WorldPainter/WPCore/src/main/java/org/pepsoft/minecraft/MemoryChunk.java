@@ -1,14 +1,13 @@
 package org.pepsoft.minecraft;
 
-import static org.pepsoft.minecraft.Constants.BLK_AIR;
+import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 
-import java.awt.Point;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.pepsoft.worldpainter.exporting.MinecraftWorld;
+import static org.pepsoft.minecraft.Constants.BLK_AIR;
 
 /**
  * A platform-independent, in-memory chunk.
@@ -53,8 +52,8 @@ public class MemoryChunk implements Chunk, MinecraftWorld, Serializable {
     }
 
     @Override
-    public Point getCoords() {
-        return new Point(xPos, zPos);
+    public MinecraftCoords getCoords() {
+        return new MinecraftCoords(xPos, zPos);
     }
 
     @Override
