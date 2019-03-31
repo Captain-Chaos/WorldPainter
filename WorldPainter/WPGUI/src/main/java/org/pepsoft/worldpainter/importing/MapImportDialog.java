@@ -4,14 +4,16 @@
  */
 package org.pepsoft.worldpainter.importing;
 
+import org.pepsoft.minecraft.ChunkStore;
 import org.pepsoft.minecraft.Level;
-import org.pepsoft.minecraft.RegionFile;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.swing.ProgressDialog;
 import org.pepsoft.util.swing.ProgressTask;
 import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.plugins.BlockBasedPlatformProvider;
+import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.util.MinecraftUtil;
 
 import javax.swing.*;
@@ -23,12 +25,17 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.text.NumberFormat;
-import java.util.*;
 import java.util.List;
-import java.util.regex.Pattern;
+import java.util.*;
 
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toSet;
+import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import static org.pepsoft.minecraft.Constants.VERSION_ANVIL;
 import static org.pepsoft.minecraft.Constants.VERSION_MCREGION;
+import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 
 /**
  *
@@ -87,7 +94,7 @@ public class MapImportDialog extends WorldPainterDialog {
     }
     
     private void analyseMap() {
-        mapStatistics = null;
+        mapInfo = null;
         resetStats();
         
         File levelDatFile = new File(fieldFilename.getText());
@@ -100,117 +107,100 @@ public class MapImportDialog extends WorldPainterDialog {
             version = testLevel.getVersion();
         } catch (IOException e) {
             logger.error("IOException while analysing map " + levelDatFile, e);
-            JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("selected.file.is.not.a.valid.level.dat.file"), strings.getString("invalid.file"), JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("selected.file.is.not.a.valid.level.dat.file"), strings.getString("invalid.file"), ERROR_MESSAGE);
             return;
         } catch (IllegalArgumentException e) {
             logger.error("IllegalArgumentException while analysing map " + levelDatFile, e);
-            JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("selected.file.is.not.a.valid.level.dat.file"), strings.getString("invalid.file"), JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("selected.file.is.not.a.valid.level.dat.file"), strings.getString("invalid.file"), ERROR_MESSAGE);
             return;
         } catch (NullPointerException e) {
             logger.error("NullPointerException while analysing map " + levelDatFile, e);
-            JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("selected.file.is.not.a.valid.level.dat.file"), strings.getString("invalid.file"), JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("selected.file.is.not.a.valid.level.dat.file"), strings.getString("invalid.file"), ERROR_MESSAGE);
             return;
         }
 
         // Other sanity checks
         if ((version != VERSION_MCREGION) && (version != VERSION_ANVIL)) {
             logger.error("Unsupported Minecraft version while analysing map " + levelDatFile);
-            JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("unsupported.minecraft.version"), strings.getString("unsupported.version"), JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("unsupported.minecraft.version"), strings.getString("unsupported.version"), ERROR_MESSAGE);
             return;
         }
-        File regionDir = new File(worldDir, "region");
-        if (! regionDir.isDirectory()) {
-            logger.error("Region directory missing while analysing map " + levelDatFile);
-            JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("the.region.folder.is.missing"), strings.getString("region.folder.missing"), JOptionPane.ERROR_MESSAGE);
+
+        // Determine the platform
+        Platform platform;
+        // TODO handle non-block based platform provider matching more gracefully
+        BlockBasedPlatformProvider platformProvider = (BlockBasedPlatformProvider) PlatformManager.getInstance().identifyMap(worldDir);
+        // TODO migrate this so that the map recognizer returns the actual platform and this ugly business isn't needed
+        if (platformProvider.getName().equals("DefaultPlatforms")) {
+            platform = (version == SUPPORTED_VERSION_1) ? JAVA_MCREGION : JAVA_ANVIL;
+        } else {
+            Collection<Platform> platforms = platformProvider.getKeys();
+            if (platforms.size() == 1) {
+                platform = platforms.iterator().next();
+            } else {
+                logger.error("Could not determine single matching platform for " + levelDatFile + "(matching platforms: " + platforms + ")");
+                JOptionPane.showMessageDialog(MapImportDialog.this, "Could not determine single matching platform for " + levelDatFile + "(matching platforms: " + platforms + ")", "Multiple Matching Platforms", ERROR_MESSAGE);
+                return;
+            }
+        }
+
+        // Sanity checks for the surface dimension
+        Set<Integer> dimensions = stream(platformProvider.getDimensions(platform, worldDir)).boxed().collect(toSet());
+        if (! dimensions.contains(DIM_NORMAL)) {
+            logger.error("Map has no surface dimension: " + levelDatFile);
+            JOptionPane.showMessageDialog(MapImportDialog.this, "This map has no surface dimension; this is not supported by WorldPainter", "Missing Surface Dimension", ERROR_MESSAGE);
             return;
         }
-        final Pattern regionFilePattern = (version == VERSION_MCREGION)
-            ? Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mcr")
-            : Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mca");
-        final File[] regionFiles = regionDir.listFiles((dir, name) -> regionFilePattern.matcher(name).matches());
-        if ((regionFiles == null) || (regionFiles.length == 0)) {
-            logger.error("Region files missing while analysing map " + levelDatFile);
-            JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("the.region.folder.contains.no.region.files"), strings.getString("region.files.missing"), JOptionPane.ERROR_MESSAGE);
+        final ChunkStore surfaceChunkStore = platformProvider.getChunkStore(platform, worldDir, DIM_NORMAL);
+        final long surfaceChunkCount = surfaceChunkStore.getChunkCount();
+        if (surfaceChunkCount == 0) {
+            logger.error("Surface dimension does not contain any chunks: " + levelDatFile);
+            JOptionPane.showMessageDialog(MapImportDialog.this, "This map has an empty surface dimension; this is not supported by WorldPainter", "Empty Surface Dimension", ERROR_MESSAGE);
             return;
         }
-        
+
         // Check for Nether and End
-        boolean netherPresent = false, endPresent = false;
-        File netherRegionDir = new File(worldDir, "DIM-1/region");
-        if (netherRegionDir.isDirectory()) {
-            File[] netherRegionFiles = netherRegionDir.listFiles((dir, name) -> regionFilePattern.matcher(name).matches());
-            if ((netherRegionFiles != null) && (netherRegionFiles.length > 0)) {
-                netherPresent = true;
-            }
-        }
-        File endRegionDir = new File(worldDir, "DIM1/region");
-        if (endRegionDir.isDirectory()) {
-            File[] endRegionFiles = endRegionDir.listFiles((dir, name) -> regionFilePattern.matcher(name).matches());
-            if ((endRegionFiles != null) && (endRegionFiles.length > 0)) {
-                endPresent = true;
-            }
-        }
+        final boolean netherPresent = dimensions.contains(DIM_NETHER), endPresent = dimensions.contains(DIM_END);
         checkBoxImportNether.setEnabled(netherPresent);
         checkBoxImportNether.setSelected(netherPresent);
         checkBoxImportEnd.setEnabled(endPresent);
         checkBoxImportEnd.setSelected(endPresent);
 
-        mapStatistics = ProgressDialog.executeTask(this, new ProgressTask<MapStatistics>() {
+        mapInfo = ProgressDialog.executeTask(this, new ProgressTask<MapInfo>() {
             @Override
             public String getName() {
                 return "Analyzing map...";
             }
             
             @Override
-            public MapStatistics execute(ProgressReceiver progressReceiver) throws OperationCancelled {
-                MapStatistics stats = new MapStatistics();
-                
-                int chunkCount = 0;
-                List<Integer> xValues = new ArrayList<>(), zValues = new ArrayList<>();
-                List<Point> chunks = new ArrayList<>();
-                int count = 0;
-                for (File file: regionFiles) {
-                    String[] nameFrags = file.getName().split("\\.");
-                    int regionX = Integer.parseInt(nameFrags[1]);
-                    int regionZ = Integer.parseInt(nameFrags[2]);
-                    try {
-                        RegionFile regionFile = new RegionFile(file);
-                        try {
-                            for (int x = 0; x < 32; x++) {
-                                for (int z = 0; z < 32; z++) {
-                                    if (regionFile.containsChunk(x, z)) {
-                                        chunkCount++;
-                                        int chunkX = regionX * 32 + x, chunkZ = regionZ * 32 + z;
-                                        if (chunkX < stats.lowestChunkX) {
-                                            stats.lowestChunkX = chunkX;
-                                        }
-                                        if (chunkX > stats.highestChunkX) {
-                                            stats.highestChunkX = chunkX;
-                                        }
-                                        if (chunkZ < stats.lowestChunkZ) {
-                                            stats.lowestChunkZ = chunkZ;
-                                        }
-                                        if (chunkZ > stats.highestChunkZ) {
-                                            stats.highestChunkZ = chunkZ;
-                                        }
-                                        xValues.add(chunkX);
-                                        zValues.add(chunkZ);
-                                        chunks.add(new Point(chunkX, chunkZ));
-                                    }
-                                }
-                            }
-                        } finally {
-                            regionFile.close();
-                        }
-                    } catch (IOException e) {
-                        throw new RuntimeException("I/O error while analyzing map " + worldDir, e);
-                    }
-                    count++;
-                    progressReceiver.setProgress((float) count / (regionFiles.length + 1));
-                }
-                stats.chunkCount = chunkCount;
+            public MapInfo execute(ProgressReceiver progressReceiver) throws OperationCancelled {
+                final MapInfo stats = new MapInfo();
+                stats.chunkCount = surfaceChunkCount;
 
-                if (chunkCount == 0) {
+                // TODO do this for the other dimensions as well
+                final List<Integer> xValues = new ArrayList<>(), zValues = new ArrayList<>();
+                final List<Point> chunks = new ArrayList<>();
+                surfaceChunkStore.visitChunks(chunk -> {
+                    final Point coords = chunk.getCoords();
+                    if (coords.x < stats.lowestChunkX) {
+                        stats.lowestChunkX = coords.x;
+                    }
+                    if (coords.x > stats.highestChunkX) {
+                        stats.highestChunkX = coords.x;
+                    }
+                    if (coords.y < stats.lowestChunkZ) {
+                        stats.lowestChunkZ = coords.y;
+                    }
+                    if (coords.y > stats.highestChunkZ) {
+                        stats.highestChunkZ = coords.y;
+                    }
+                    xValues.add(coords.x);
+                    zValues.add(coords.y);
+                    chunks.add(coords);
+                    return true;
+                });
+
+                if (stats.chunkCount == 0) {
                     // Completely empty map (wrong region file format)?
                     progressReceiver.setProgress(1.0f);
                     return stats;
@@ -274,18 +264,20 @@ public class MapImportDialog extends WorldPainterDialog {
                 return stats;
             }
         });
-        if ((mapStatistics != null) && (mapStatistics.chunkCount > 0)) {
-            int width = mapStatistics.highestChunkXNoOutliers - mapStatistics.lowestChunkXNoOutliers + 1;
-            int length = mapStatistics.highestChunkZNoOutliers - mapStatistics.lowestChunkZNoOutliers + 1;
-            int area = (mapStatistics.chunkCount - mapStatistics.outlyingChunks.size());
-            labelWidth.setText(FORMATTER.format(width * 16) + " blocks (from " + FORMATTER.format(mapStatistics.lowestChunkXNoOutliers << 4) + " to " + FORMATTER.format((mapStatistics.highestChunkXNoOutliers << 4) + 15) + "; " + FORMATTER.format(width) + " chunks)");
-            labelLength.setText(FORMATTER.format(length * 16) + " blocks (from " + FORMATTER.format(mapStatistics.lowestChunkZNoOutliers << 4) + " to " + FORMATTER.format((mapStatistics.highestChunkZNoOutliers << 4) + 15) + "; " + FORMATTER.format(length) + " chunks)");
+        if ((mapInfo != null) && (mapInfo.chunkCount > 0)) {
+            mapInfo.platform = platform;
+            labelPlatform.setText(platform.displayName);
+            int width = mapInfo.highestChunkXNoOutliers - mapInfo.lowestChunkXNoOutliers + 1;
+            int length = mapInfo.highestChunkZNoOutliers - mapInfo.lowestChunkZNoOutliers + 1;
+            long area = (mapInfo.chunkCount - mapInfo.outlyingChunks.size());
+            labelWidth.setText(FORMATTER.format(width * 16) + " blocks (from " + FORMATTER.format(mapInfo.lowestChunkXNoOutliers << 4) + " to " + FORMATTER.format((mapInfo.highestChunkXNoOutliers << 4) + 15) + "; " + FORMATTER.format(width) + " chunks)");
+            labelLength.setText(FORMATTER.format(length * 16) + " blocks (from " + FORMATTER.format(mapInfo.lowestChunkZNoOutliers << 4) + " to " + FORMATTER.format((mapInfo.highestChunkZNoOutliers << 4) + 15) + "; " + FORMATTER.format(length) + " chunks)");
             labelArea.setText(FORMATTER.format(area * 256L) + " blocks² (" + FORMATTER.format(area) + " chunks)");
-            if (! mapStatistics.outlyingChunks.isEmpty()) {
+            if (! mapInfo.outlyingChunks.isEmpty()) {
                 // There are outlying chunks
-                int widthWithOutliers = mapStatistics.highestChunkX - mapStatistics.lowestChunkX + 1;
-                int lengthWithOutliers = mapStatistics.highestChunkZ - mapStatistics.lowestChunkZ + 1;
-                int areaOfOutliers = mapStatistics.outlyingChunks.size();
+                int widthWithOutliers = mapInfo.highestChunkX - mapInfo.lowestChunkX + 1;
+                int lengthWithOutliers = mapInfo.highestChunkZ - mapInfo.lowestChunkZ + 1;
+                int areaOfOutliers = mapInfo.outlyingChunks.size();
                 labelOutliers1.setVisible(true);
                 labelOutliers2.setVisible(true);
                 labelWidthWithOutliers.setText(FORMATTER.format(widthWithOutliers * 16) + " blocks (" + FORMATTER.format(widthWithOutliers) + " chunks)");
@@ -306,7 +298,7 @@ public class MapImportDialog extends WorldPainterDialog {
     private void setControlStates() {
         String fileStr = fieldFilename.getText().trim();
         File file = (! fileStr.isEmpty()) ? new File(fileStr) : null;
-        if ((mapStatistics == null) || (mapStatistics.chunkCount == 0) || (file == null) || (! file.isFile())) {
+        if ((mapInfo == null) || (mapInfo.chunkCount == 0) || (file == null) || (! file.isFile())) {
             buttonOK.setEnabled(false);
         } else {
             buttonOK.setEnabled(true);
@@ -352,7 +344,7 @@ public class MapImportDialog extends WorldPainterDialog {
     
     private void importWorld() {
         final File levelDatFile = new File(fieldFilename.getText());
-        final Set<Point> chunksToSkip = checkBoxImportOutliers.isSelected() ? null : mapStatistics.outlyingChunks;
+        final Set<Point> chunksToSkip = checkBoxImportOutliers.isSelected() ? null : mapInfo.outlyingChunks;
         final MapImporter.ReadOnlyOption readOnlyOption;
         if (radioButtonReadOnlyAll.isSelected()) {
             readOnlyOption = MapImporter.ReadOnlyOption.ALL;
@@ -384,14 +376,14 @@ public class MapImportDialog extends WorldPainterDialog {
                     int terrainLevel = waterLevel - 4;
                     TileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(0, Terrain.GRASS, maxHeight, terrainLevel, waterLevel, false, true, 20, 1.0);
                     Set<Integer> dimensionsToImport = new HashSet<>(3);
-                    dimensionsToImport.add(Constants.DIM_NORMAL);
+                    dimensionsToImport.add(DIM_NORMAL);
                     if (checkBoxImportNether.isSelected()) {
                         dimensionsToImport.add(Constants.DIM_NETHER);
                     }
                     if (checkBoxImportEnd.isSelected()) {
                         dimensionsToImport.add(Constants.DIM_END);
                     }
-                    final MapImporter importer = new JavaMapImporter(tileFactory, levelDatFile, false, chunksToSkip, readOnlyOption, dimensionsToImport);
+                    final MapImporter importer = new JavaMapImporter(mapInfo.platform, tileFactory, levelDatFile, false, chunksToSkip, readOnlyOption, dimensionsToImport);
                     World2 world = importer.doImport(progressReceiver);
                     if (importer.getWarnings() != null) {
                         try {
@@ -465,6 +457,8 @@ public class MapImportDialog extends WorldPainterDialog {
         checkBoxImportSurface = new javax.swing.JCheckBox();
         checkBoxImportNether = new javax.swing.JCheckBox();
         checkBoxImportEnd = new javax.swing.JCheckBox();
+        jLabel6 = new javax.swing.JLabel();
+        labelPlatform = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Import Existing Minecraft Map");
@@ -549,6 +543,8 @@ public class MapImportDialog extends WorldPainterDialog {
         checkBoxImportEnd.setText("Import End");
         checkBoxImportEnd.setEnabled(false);
 
+        jLabel6.setText("Map format:");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -611,7 +607,11 @@ public class MapImportDialog extends WorldPainterDialog {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(checkBoxImportNether)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(checkBoxImportEnd)))
+                                .addComponent(checkBoxImportEnd))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel6)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(labelPlatform)))
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -624,7 +624,11 @@ public class MapImportDialog extends WorldPainterDialog {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(fieldFilename, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(buttonSelectFile))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel6)
+                    .addComponent(labelPlatform))
+                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
                     .addComponent(labelOutliers1))
@@ -700,6 +704,7 @@ public class MapImportDialog extends WorldPainterDialog {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel labelArea;
     private javax.swing.JLabel labelAreaOutliers;
@@ -709,6 +714,7 @@ public class MapImportDialog extends WorldPainterDialog {
     private javax.swing.JLabel labelOutliers2;
     private javax.swing.JLabel labelOutliers3;
     private javax.swing.JLabel labelOutliers4;
+    private javax.swing.JLabel labelPlatform;
     private javax.swing.JLabel labelWidth;
     private javax.swing.JLabel labelWidthWithOutliers;
     private javax.swing.JRadioButton radioButtonReadOnlyAll;
@@ -719,7 +725,7 @@ public class MapImportDialog extends WorldPainterDialog {
 
     private final App app;
     private File previouslySelectedFile;
-    private MapStatistics mapStatistics;
+    private MapInfo mapInfo;
     private World2 importedWorld;
     
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MapImportDialog.class);
@@ -727,10 +733,11 @@ public class MapImportDialog extends WorldPainterDialog {
     private static final NumberFormat FORMATTER = NumberFormat.getIntegerInstance();
     private static final long serialVersionUID = 1L;
     
-    static class MapStatistics {
+    static class MapInfo {
+        Platform platform;
         int lowestChunkX = Integer.MAX_VALUE, lowestChunkZ = Integer.MAX_VALUE, highestChunkX = Integer.MIN_VALUE, highestChunkZ = Integer.MIN_VALUE;
         int lowestChunkXNoOutliers = Integer.MAX_VALUE, lowestChunkZNoOutliers = Integer.MAX_VALUE, highestChunkXNoOutliers = Integer.MIN_VALUE, highestChunkZNoOutliers = Integer.MIN_VALUE;
-        int chunkCount;
+        long chunkCount;
         final Set<Point> outlyingChunks = new HashSet<>();
         String errorMessage;
     }

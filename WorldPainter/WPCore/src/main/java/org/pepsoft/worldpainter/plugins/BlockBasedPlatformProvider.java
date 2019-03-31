@@ -2,6 +2,7 @@ package org.pepsoft.worldpainter.plugins;
 
 import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.minecraft.ChunkStore;
+import org.pepsoft.worldpainter.Constants;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.exporting.PostProcessor;
 

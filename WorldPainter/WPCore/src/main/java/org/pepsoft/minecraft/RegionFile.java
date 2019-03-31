@@ -276,6 +276,16 @@ public final class RegionFile implements AutoCloseable {
         return readOnly;
     }
 
+    public int getChunkCount() {
+        int count = 0;
+        for (int offset: offsets) {
+            if (offset != 0) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     @Override
     public String toString() {
         return fileName.getPath();

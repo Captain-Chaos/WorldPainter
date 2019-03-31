@@ -4,7 +4,9 @@
  */
 package org.pepsoft.worldpainter.importing;
 
-import org.jnbt.*;
+import org.jnbt.CompoundTag;
+import org.jnbt.NBTInputStream;
+import org.jnbt.Tag;
 import org.pepsoft.minecraft.*;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
@@ -14,7 +16,6 @@ import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.exporters.FrostExporter.FrostSettings;
 import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter.ResourcesExporterSettings;
-import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.themes.SimpleTheme;
 import org.pepsoft.worldpainter.vo.EventVO;
 
@@ -22,28 +23,32 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringWriter;
 import java.util.*;
+import java.util.regex.Pattern;
 
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.BIOME_NAMES;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.HIGHEST_BIOME_ID;
 
 /**
+ * An importer of Minecraft-like maps (with Minecraft-compatible
+ * {@code level.dat} files and based on {@link BlockBasedPlatformProvider}s.
  *
  * @author pepijn
  */
 public class JavaMapImporter extends MapImporter {
-    public JavaMapImporter(TileFactory tileFactory, File levelDatFile, boolean populateNewChunks, Set<Point> chunksToSkip, ReadOnlyOption readOnlyOption, Set<Integer> dimensionsToImport) {
+    public JavaMapImporter(Platform platform, TileFactory tileFactory, File levelDatFile, boolean populateNewChunks, Set<Point> chunksToSkip, ReadOnlyOption readOnlyOption, Set<Integer> dimensionsToImport) {
         if ((tileFactory == null) || (levelDatFile == null) || (readOnlyOption == null) || (dimensionsToImport == null)) {
             throw new NullPointerException();
         }
         if (! levelDatFile.isFile()) {
             throw new IllegalArgumentException(levelDatFile + " does not exist or is not a regular file");
         }
+        this.platform = platform;
         this.tileFactory = tileFactory;
         this.levelDatFile = levelDatFile;
         this.populateNewChunks = populateNewChunks;
@@ -51,7 +56,7 @@ public class JavaMapImporter extends MapImporter {
         this.readOnlyOption = readOnlyOption;
         this.dimensionsToImport = dimensionsToImport;
     }
-    
+
     public World2 doImport(ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
         long start = System.currentTimeMillis();
 
@@ -241,108 +246,63 @@ public class JavaMapImporter extends MapImporter {
         }
         final int maxHeight = dimension.getMaxHeight();
         final int maxY = maxHeight - 1;
-        final JavaPlatformProvider platformProvider = (JavaPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
-        final File[] regionFiles = platformProvider.getRegionFiles(platform, regionDir);
-        if ((regionFiles == null) || (regionFiles.length == 0)) {
-            throw new RuntimeException("The " + dimension.getName() + " dimension of this map has no region files!");
-        }
         final Set<Point> newChunks = new HashSet<>();
         final Set<String> manMadeBlockTypes = new HashSet<>();
         final Set<Integer> unknownBiomes = new HashSet<>();
         final boolean importBiomes = dimension.getDim() == DIM_NORMAL;
-        final int total = regionFiles.length * 1024;
-        int count = 0;
+        final ChunkStore chunkStore = PlatformManager.getInstance().getChunkStore(platform, regionDir, dimension.getDim());
+        final long total = chunkStore.getChunkCount();
+        final AtomicInteger count = new AtomicInteger();
         final StringBuilder reportBuilder = new StringBuilder();
-        for (File file: regionFiles) {
+        if (! chunkStore.visitChunks(chunk -> {
             try {
-                try (RegionFile regionFile = new RegionFile(file, true)) {
-                    for (int x = 0; x < 32; x++) {
-                        for (int z = 0; z < 32; z++) {
-                            if (progressReceiver != null) {
-                                progressReceiver.setProgress((float) count / total);
-                                count++;
-                            }
-                            final Point chunkCoords = new Point((regionFile.getX() << 5) | x, (regionFile.getZ() << 5) | z);
-                            if ((chunksToSkip != null) && chunksToSkip.contains(chunkCoords)) {
-                                continue;
-                            }
-                            if (regionFile.containsChunk(x, z)) {
-                                final Chunk chunk;
-                                try {
-                                    final InputStream chunkData = regionFile.getChunkDataInputStream(x, z);
-                                    if (chunkData == null) {
-                                        // This should never happen, since we checked
-                                        // with isChunkPresent(), but in practice it
-                                        // does. Perhaps corrupted data?
-                                        reportBuilder.append("Missing chunk data for chunk " + x + ", " + z + " in " + file + "; skipping chunk" + EOL);
-                                        logger.warn("Missing chunk data for chunk " + x + ", " + z + " in " + file + "; skipping chunk");
-                                        continue;
-                                    }
-                                    try (NBTInputStream in = new NBTInputStream(chunkData)) {
-                                        chunk = platformProvider.createChunk(platform, in.readTag(), maxHeight);
-                                    }
-                                } catch (IOException e) {
-                                    reportBuilder.append("I/O error while reading chunk " + x + ", " + z + " from file " + file + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
-                                    logger.error("I/O error while reading chunk " + x + ", " + z + " from file " + file + "; skipping chunk", e);
-                                    continue;
-                                } catch (IllegalArgumentException e) {
-                                    reportBuilder.append("Illegal argument exception while reading chunk " + x + ", " + z + " from file " + file + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
-                                    logger.error("Illegal argument exception while reading chunk " + x + ", " + z + " from file " + file + "; skipping chunk", e);
-                                    continue;
-                                } catch (NegativeArraySizeException e) {
-                                    reportBuilder.append("Negative array size exception while reading chunk " + x + ", " + z + " from file " + file + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
-                                    logger.error("Negative array size exception while reading chunk " + x + ", " + z + " from file " + file + "; skipping chunk", e);
-                                    continue;
-                                } catch (ClassCastException e) {
-                                    reportBuilder.append("Class cast exception while reading chunk " + x + ", " + z + " from file " + file + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
-                                    logger.error("Class cast exception while reading chunk " + x + ", " + z + " from file " + file + "; skipping chunk", e);
-                                    continue;
-                                }
+                if (progressReceiver != null) {
+                    progressReceiver.setProgress((float) count.getAndIncrement() / total);
+                }
+                final Point chunkCoords = chunk.getCoords();
+                if ((chunksToSkip != null) && chunksToSkip.contains(chunkCoords)) {
+                    return true;
+                }
 
-                                if ((chunk instanceof MC113AnvilChunk) && (((MC113AnvilChunk) chunk).getStatus() == MC113AnvilChunk.Status.EMPTY)) {
-                                    if (logger.isDebugEnabled()) {
-                                        logger.debug("Skipping \"empty\" chunk at {},{}", chunk.getxPos(), chunk.getzPos());
-                                    }
-                                    continue;
-                                }
+                final int chunkX = chunkCoords.x;
+                final int chunkZ = chunkCoords.y;
+                final Point tileCoords = new Point(chunkX >> 3, chunkZ >> 3);
+                Tile tile = dimension.getTile(tileCoords);
+                if (tile == null) {
+                    tile = dimension.getTileFactory().createTile(tileCoords.x, tileCoords.y);
+                    for (int xx = 0; xx < 8; xx++) {
+                        for (int yy = 0; yy < 8; yy++) {
+                            newChunks.add(new Point((tileCoords.x << TILE_SIZE_BITS) | (xx << 4), (tileCoords.y << TILE_SIZE_BITS) | (yy << 4)));
+                        }
+                    }
+                    dimension.addTile(tile);
+                }
+                newChunks.remove(new Point(chunkX << 4, chunkZ << 4));
 
-                                final Point tileCoords = new Point(chunk.getxPos() >> 3, chunk.getzPos() >> 3);
-                                Tile tile = dimension.getTile(tileCoords);
-                                if (tile == null) {
-                                    tile = dimension.getTileFactory().createTile(tileCoords.x, tileCoords.y);
-                                    for (int xx = 0; xx < 8; xx++) {
-                                        for (int yy = 0; yy < 8; yy++) {
-                                            newChunks.add(new Point((tileCoords.x << TILE_SIZE_BITS) | (xx << 4), (tileCoords.y << TILE_SIZE_BITS) | (yy << 4)));
-                                        }
-                                    }
-                                    dimension.addTile(tile);
-                                }
-                                newChunks.remove(new Point(chunk.getxPos() << 4, chunk.getzPos() << 4));
-
-                                boolean manMadeStructuresBelowGround = false;
-                                boolean manMadeStructuresAboveGround = false;
-                                try {
-                                    for (int xx = 0; xx < 16; xx++) {
-                                        for (int zz = 0; zz < 16; zz++) {
-                                            float height = -1.0f;
-                                            int waterLevel = 0;
-                                            boolean floodWithLava = false, frost = false;
-                                            Terrain terrain = Terrain.BEDROCK;
-                                            for (int y = maxY; y >= 0; y--) {
-                                                Material material = chunk.getMaterial(xx, y, zz);
+                boolean manMadeStructuresBelowGround = false;
+                boolean manMadeStructuresAboveGround = false;
+                try {
+                    for (int xx = 0; xx < 16; xx++) {
+                        for (int zz = 0; zz < 16; zz++) {
+                            float height = -1.0f;
+                            int waterLevel = 0;
+                            boolean floodWithLava = false, frost = false;
+                            Terrain terrain = Terrain.BEDROCK;
+                            for (int y = Math.min(maxY, chunk.getHighestNonAirBlock(xx, zz)); y >= 0; y--) {
+                                Material material = chunk.getMaterial(xx, y, zz);
                                                 if (!material.natural) {
-                                                    if (height == -1.0f) {
-                                                        manMadeStructuresAboveGround = true;
-                                                    } else {
-                                                        manMadeStructuresBelowGround = true;
-                                                    }
+                                    if (height == -1.0f) {
+                                        manMadeStructuresAboveGround = true;
+                                    } else {
+                                        manMadeStructuresBelowGround = true;
+                                    }
                                                     manMadeBlockTypes.add(material.name);
                                                 }
-                                                String name = material.name;
-                                                if ((name == MC_SNOW) || (name == MC_ICE)) {
-                                                    frost = true;
-                                                }
-                                                if ((waterLevel == 0) && ((name == MC_ICE)
+                                String name = material.name;
+                                if ((name == MC_SNOW) || (name == MC_ICE)) {
+                                    frost = true;
+                                }
+                                if ((waterLevel == 0) && ((name == MC_ICE)
                                                                           || (name == MC_FROSTED_ICE)
                                                                           || (name == MC_BUBBLE_COLUMN)
                                                                           || (((name == MC_WATER) || (name == MC_LAVA))
@@ -354,9 +314,9 @@ public class JavaMapImporter extends MapImporter {
                                                     }
                                                 } else if (height == -1.0f) {
                                                     if (TERRAIN_MAPPING.containsKey(name)) {
-                                                        // Terrain found
-                                                        height = y - 0.4375f; // Value that falls in the middle of the lowest one eighth which will still round to the same integer value and will receive a one layer thick smooth snow block (principle of least surprise)
-                                                        terrain = TERRAIN_MAPPING.get(name);
+                                        // Terrain found
+                                        height = y - 0.4375f; // Value that falls in the middle of the lowest one eighth which will still round to the same integer value and will receive a one layer thick smooth snow block (principle of least surprise)
+                                        terrain = TERRAIN_MAPPING.get(name);
                                                     }
                                                 }
                                             }
@@ -367,30 +327,30 @@ public class JavaMapImporter extends MapImporter {
                                                 if (materialAbove.isNamed(MC_SNOW)) {
                                                     int layers = materialAbove.getProperty(LAYERS);
                                                     height += layers * 0.125;
-                                                }
-                                            }
-                                            if ((waterLevel == 0) && (height >= 61.5f)) {
-                                                waterLevel = 62;
-                                            }
+}
+                            }
+                            if ((waterLevel == 0) && (height >= 61.5f)) {
+                                waterLevel = 62;
+                            }
 
-                                            final int blockX = (chunk.getxPos() << 4) | xx;
-                                            final int blockY = (chunk.getzPos() << 4) | zz;
-                                            final Point coords = new Point(blockX, blockY);
-                                            dimension.setTerrainAt(coords, terrain);
-                                            dimension.setHeightAt(coords, Math.max(height, 0.0f));
-                                            dimension.setWaterLevelAt(blockX, blockY, waterLevel);
-                                            if (frost) {
-                                                dimension.setBitLayerValueAt(Frost.INSTANCE, blockX, blockY, true);
-                                            }
-                                            if (floodWithLava) {
-                                                dimension.setBitLayerValueAt(FloodWithLava.INSTANCE, blockX, blockY, true);
-                                            }
-                                            if (height == -1.0f) {
-                                                dimension.setBitLayerValueAt(org.pepsoft.worldpainter.layers.Void.INSTANCE, blockX, blockY, true);
-                                            }
-                                            if (importBiomes && chunk.isBiomesAvailable()) {
-                                                final int biome = chunk.getBiome(xx, zz);
-                                                if (((biome > HIGHEST_BIOME_ID) || (BIOME_NAMES[biome] == null)) && (biome != 255)) {
+                            final int blockX = (chunkX << 4) | xx;
+                            final int blockY = (chunkZ << 4) | zz;
+                            final Point coords = new Point(blockX, blockY);
+                            dimension.setTerrainAt(coords, terrain);
+                            dimension.setHeightAt(coords, Math.max(height, 0.0f));
+                            dimension.setWaterLevelAt(blockX, blockY, waterLevel);
+                            if (frost) {
+                                dimension.setBitLayerValueAt(Frost.INSTANCE, blockX, blockY, true);
+                            }
+                            if (floodWithLava) {
+                                dimension.setBitLayerValueAt(FloodWithLava.INSTANCE, blockX, blockY, true);
+                            }
+                            if (height == -1.0f) {
+                                dimension.setBitLayerValueAt(org.pepsoft.worldpainter.layers.Void.INSTANCE, blockX, blockY, true);
+                            }
+                            if (importBiomes && chunk.isBiomesAvailable()) {
+                                final int biome = chunk.getBiome(xx, zz);
+                                if (((biome > HIGHEST_BIOME_ID) || (BIOME_NAMES[biome] == null)) && (biome != 255)) {
                                                     unknownBiomes.add(biome);
                                                 }
                                                 // If the biome is set (around the edges of the map Minecraft sets it to
@@ -405,28 +365,27 @@ public class JavaMapImporter extends MapImporter {
                                         }
                                     }
                                 } catch (NullPointerException e) {
-                                    reportBuilder.append("Null pointer exception while reading chunk " + x + ", " + z + " from file " + file + "; skipping chunk" + EOL);
-                                    logger.error("Null pointer exception while reading chunk " + x + ", " + z + " from file " + file + "; skipping chunk", e);
-                                    continue;
-                                } catch (ArrayIndexOutOfBoundsException e) {
-                                    reportBuilder.append("Array index out of bounds while reading chunk " + x + ", " + z + " from file " + file + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
-                                    logger.error("Array index out of bounds while reading chunk " + x + ", " + z + " from file " + file + "; skipping chunk", e);
-                                    continue;
-                                }
-
-                                if (((readOnlyOption == ReadOnlyOption.MAN_MADE) && (manMadeStructuresBelowGround || manMadeStructuresAboveGround))
-                                        || ((readOnlyOption == ReadOnlyOption.MAN_MADE_ABOVE_GROUND) && manMadeStructuresAboveGround)
-                                        || (readOnlyOption == ReadOnlyOption.ALL)) {
-                                    dimension.setBitLayerValueAt(ReadOnly.INSTANCE, chunk.getxPos() << 4, chunk.getzPos() << 4, true);
-                                }
-                            }
-                        }
-                    }
+                                    reportBuilder.append("Null pointer exception while reading chunk " + chunkX + "," + chunkZ + "; skipping chunk" + EOL);
+                    logger.error("Null pointer exception while reading chunk " + chunkX + "," + chunkZ + "; skipping chunk", e);
+                    return true;
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    reportBuilder.append("Array index out of bounds while reading chunk " + chunkX + "," + chunkZ + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
+                    logger.error("Array index out of bounds while reading chunk " + chunkX + "," + chunkZ + "; skipping chunk", e);
+                    return true;
                 }
-            } catch (IOException e) {
-                reportBuilder.append("I/O error while opening region file " + file + " (message: \"" + e.getMessage() + "\"); skipping region" + EOL);
-                logger.error("I/O error while opening region file " + file + "; skipping region", e);
+
+                if (((readOnlyOption == ReadOnlyOption.MAN_MADE) && (manMadeStructuresBelowGround || manMadeStructuresAboveGround))
+                        || ((readOnlyOption == ReadOnlyOption.MAN_MADE_ABOVE_GROUND) && manMadeStructuresAboveGround)
+                        || (readOnlyOption == ReadOnlyOption.ALL)) {
+                    dimension.setBitLayerValueAt(ReadOnly.INSTANCE, chunkX << 4, chunkZ << 4, true);
+                }
+            } catch (ProgressReceiver.OperationCancelled e) {
+                return false;
             }
+
+            return true;
+        })) {
+            throw new ProgressReceiver.OperationCancelled("Operation cancelled");
         }
         
         // Process chunks that were only added to fill out a tile
@@ -448,7 +407,8 @@ public class JavaMapImporter extends MapImporter {
         
         return reportBuilder.length() != 0 ? reportBuilder.toString() : null;
     }
-    
+
+    private final Platform platform;
     private final TileFactory tileFactory;
     private final File levelDatFile;
     private final boolean populateNewChunks;

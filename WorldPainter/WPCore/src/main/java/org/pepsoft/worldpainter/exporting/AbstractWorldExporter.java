@@ -973,8 +973,4 @@ public abstract class AbstractWorldExporter implements WorldExporter {
          */
         public List<Fixup> fixups;
     }
-
-    interface RegionVisitor {
-        void visitRegion(WorldRegion region);
-    }
 }

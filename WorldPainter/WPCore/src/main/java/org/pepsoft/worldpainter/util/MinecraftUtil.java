@@ -4,10 +4,6 @@
  */
 package org.pepsoft.worldpainter.util;
 
-import org.jnbt.CompoundTag;
-import org.jnbt.NBTInputStream;
-import org.jnbt.Tag;
-import org.pepsoft.minecraft.*;
 import org.pepsoft.util.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +15,8 @@ import java.util.regex.Pattern;
 
 import static org.pepsoft.minecraft.Constants.DATA_VERSION_MC_1_12_2;
 import static org.pepsoft.minecraft.Constants.VERSION_MCREGION;
+import static org.pepsoft.worldpainter.Constants.*;
+
 import static org.pepsoft.worldpainter.Constants.*;
 
 /**
@@ -89,19 +87,9 @@ public class MinecraftUtil {
         return null;
     }
 
-    /**
-     * Visit all the chunks of a Minecraft map.
-     *
-     * @param worldDir The map directory.
-     * @param dimension The ordinal of the dimension to visit.
-     * @param visitor The visitor to invoke for each chunk.
-     * @throws IOException If an I/O error occurs while reading the chunks.
-     */
-    public static void visitChunks(File worldDir, int dimension, ChunkVisitor visitor) throws IOException {
-        final File levelDatFile = new File(worldDir, "level.dat");
-        final Level level = Level.load(levelDatFile);
-        final int version = level.getVersion(), maxHeight = level.getMaxHeight(), dataVersion = level.getDataVersion();
-        final File regionDir;
+    @NotNull
+    public static File getRegionDir(File worldDir, int dimension) {
+        File regionDir;
         switch (dimension) {
             case DIM_NORMAL:
                 regionDir = new File(worldDir, "region");
@@ -113,45 +101,9 @@ public class MinecraftUtil {
                 regionDir = new File(worldDir, "DIM1/region");
                 break;
             default:
-                throw new IllegalArgumentException("Don't know where to find dimension " + dimension);
+                throw new IllegalArgumentException("Dimension " + dimension + " not supported");
         }
-        final Pattern regionFilePattern = (version == VERSION_MCREGION)
-                ? Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mcr")
-                : Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mca");
-        final File[] regionFiles = regionDir.listFiles((dir, name) -> regionFilePattern.matcher(name).matches());
-        for (File file: regionFiles) {
-            try (RegionFile regionFile = new RegionFile(file, true)) {
-                for (int x = 0; x < 32; x++) {
-                    for (int z = 0; z < 32; z++) {
-                        if (regionFile.containsChunk(x, z)) {
-                            final Tag tag;
-                            final InputStream chunkData = regionFile.getChunkDataInputStream(x, z);
-                            try (NBTInputStream in = new NBTInputStream(chunkData)) {
-                                tag = in.readTag();
-                            } catch (RuntimeException e) {
-                                logger.error("{} while reading tag for chunk {},{}", e.getClass().getSimpleName(), x, z);
-                                e.printStackTrace();
-                                continue;
-                            }
-                            final Chunk chunk;
-                            try {
-                                chunk = (version == VERSION_MCREGION)
-                                    ? new MCRegionChunk((CompoundTag) tag, maxHeight)
-                                    : ((dataVersion > DATA_VERSION_MC_1_12_2)
-                                        ? new MC113AnvilChunk((CompoundTag) tag, maxHeight)
-                                        : new MC12AnvilChunk((CompoundTag) tag, maxHeight));
-                            } catch (RuntimeException e) {
-                                logger.error("{} while parsing tag for chunk {},{}", e.getClass().getSimpleName(), x, z);
-                                e.printStackTrace();
-                                logger.error(tag.toString());
-                                continue;
-                            }
-                            visitor.visitChunk(chunk);
-                        }
-                    }
-                }
-            }
-        }
+        return regionDir;
     }
 
     private static final Logger logger = LoggerFactory.getLogger(MinecraftUtil.class);

@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.regex.Pattern;
 
 import static org.pepsoft.minecraft.Block.BLOCK_TYPE_NAMES;
 import static org.pepsoft.minecraft.Constants.*;
@@ -38,6 +39,30 @@ public class JavaChunkStore implements ChunkStore {
         this.honourReadOnlyChunks = honourReadOnlyChunks;
         this.dimension = dimension;
         this.maxHeight = maxHeight;
+    }
+
+    @Override
+    public long getChunkCount() {
+        long[] chunkCount = {0L};
+        try {
+            visitRegions(region -> {
+                chunkCount[0] += region.getChunkCount();
+                return true;
+            }, true);
+        } catch (IOException e) {
+            throw new RuntimeException("I/O error while visiting regions of " + regionDir, e);
+        }
+        return chunkCount[0];
+    }
+
+    @Override
+    public boolean visitChunks(ChunkVisitor visitor) {
+        return visitChunks(visitor, true);
+    }
+
+    @Override
+    public boolean visitChunksForEditing(ChunkVisitor visitor) {
+        return visitChunks(visitor, false);
     }
 
     @Override
@@ -215,7 +240,58 @@ public class JavaChunkStore implements ChunkStore {
         return regionFile;
     }
 
-    //    private void updateStatistics() {
+    private RegionFile openRegionFile(Point regionCoords) throws IOException {
+        File file = new File(regionDir, "r." + regionCoords.x + "." + regionCoords.y + (platform.equals(JAVA_MCREGION) ? ".mcr" : ".mca"));
+        return file.exists() ? new RegionFile(file) : null;
+    }
+
+    private RegionFile openOrCreateRegionFile(Point regionCoords) throws IOException {
+        File file = new File(regionDir, "r." + regionCoords.x + "." + regionCoords.y + (platform.equals(JAVA_MCREGION) ? ".mcr" : ".mca"));
+        return new RegionFile(file);
+    }
+
+    @FunctionalInterface interface RegionVisitor {
+        boolean visitRegion(RegionFile region) throws IOException;
+    }
+
+    private boolean visitRegions(RegionVisitor visitor, boolean readOnly) throws IOException {
+        final Pattern regionFilePattern = (platform == JAVA_MCREGION)
+                ? Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mcr")
+                : Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mca");
+        for (File file: regionDir.listFiles((dir, name) -> regionFilePattern.matcher(name).matches())) {
+            try (RegionFile regionFile = new RegionFile(file, readOnly)) {
+                if (! visitor.visitRegion(regionFile)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private boolean visitChunks(ChunkVisitor visitor, boolean readOnly) {
+        try {
+            return visitRegions(region -> {
+                for (int x = 0; x < 32; x++) {
+                    for (int z = 0; z < 32; z++) {
+                        if (region.containsChunk(x, z)) {
+                            try (NBTInputStream in = new NBTInputStream(region.getChunkDataInputStream(x & 31, z & 31))) {
+                                CompoundTag tag = (CompoundTag) in.readTag();
+                                Chunk chunk = platform.equals(JAVA_MCREGION) ? new ChunkImpl(tag, maxHeight, readOnly) : new ChunkImpl2(tag, maxHeight, readOnly);
+                                if (! visitor.visitChunk(chunk)) {
+                                    return false;
+                                }
+                            }
+                        }
+                    }
+                }
+                return true;
+            }, readOnly);
+        } catch (IOException e) {
+            throw new RuntimeException("I/O error while visiting regions of " + regionDir, e);
+        }
+    }
+
+//    private void updateStatistics() {
 //        long now = System.currentTimeMillis();
 //        if ((now - lastStatisticsTimestamp) > 5000) {
 //            float elapsed = (now - lastStatisticsTimestamp) / 1000f;
