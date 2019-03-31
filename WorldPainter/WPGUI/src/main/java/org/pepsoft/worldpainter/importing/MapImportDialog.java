@@ -6,6 +6,7 @@ package org.pepsoft.worldpainter.importing;
 
 import org.pepsoft.minecraft.ChunkStore;
 import org.pepsoft.minecraft.Level;
+import org.pepsoft.minecraft.MinecraftCoords;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
@@ -152,6 +153,7 @@ public class MapImportDialog extends WorldPainterDialog {
             return;
         }
         final ChunkStore surfaceChunkStore = platformProvider.getChunkStore(platform, worldDir, DIM_NORMAL);
+        // TODO this can take very long for large maps; use a progress dialog
         final long surfaceChunkCount = surfaceChunkStore.getChunkCount();
         if (surfaceChunkCount == 0) {
             logger.error("Surface dimension does not contain any chunks: " + levelDatFile);
@@ -179,33 +181,25 @@ public class MapImportDialog extends WorldPainterDialog {
 
                 // TODO do this for the other dimensions as well
                 final List<Integer> xValues = new ArrayList<>(), zValues = new ArrayList<>();
-                final List<Point> chunks = new ArrayList<>();
-                surfaceChunkStore.visitChunks(chunk -> {
-                    final Point coords = chunk.getCoords();
-                    if (coords.x < stats.lowestChunkX) {
-                        stats.lowestChunkX = coords.x;
+                final Set<MinecraftCoords> allChunkCoords = surfaceChunkStore.getChunkCoords();
+                for (MinecraftCoords chunkCoords: allChunkCoords) {
+                    // TODO update the progress receiver
+                    if (chunkCoords.x < stats.lowestChunkX) {
+                        stats.lowestChunkX = chunkCoords.x;
                     }
-                    if (coords.x > stats.highestChunkX) {
-                        stats.highestChunkX = coords.x;
+                    if (chunkCoords.x > stats.highestChunkX) {
+                        stats.highestChunkX = chunkCoords.x;
                     }
-                    if (coords.y < stats.lowestChunkZ) {
-                        stats.lowestChunkZ = coords.y;
+                    if (chunkCoords.z < stats.lowestChunkZ) {
+                        stats.lowestChunkZ = chunkCoords.z;
                     }
-                    if (coords.y > stats.highestChunkZ) {
-                        stats.highestChunkZ = coords.y;
+                    if (chunkCoords.z > stats.highestChunkZ) {
+                        stats.highestChunkZ = chunkCoords.z;
                     }
-                    xValues.add(coords.x);
-                    zValues.add(coords.y);
-                    chunks.add(coords);
-                    return true;
-                });
-
-                if (stats.chunkCount == 0) {
-                    // Completely empty map (wrong region file format)?
-                    progressReceiver.setProgress(1.0f);
-                    return stats;
+                    xValues.add(chunkCoords.x);
+                    zValues.add(chunkCoords.z);
                 }
-                
+
                 Collections.sort(xValues);
                 int p1 = xValues.size() / 4;
                 float q1 = xValues.get(p1) * 0.75f + xValues.get(p1 + 1) * 0.25f;
@@ -216,9 +210,9 @@ public class MapImportDialog extends WorldPainterDialog {
                 float iqr = q3 - q1;
                 int lowerLimit = (int) (q2 - iqr * 1.5f);
                 int upperLimit = (int) (q2 + iqr * 1.5f);
-                for (Point chunk: chunks) {
-                    if ((chunk.x < lowerLimit) || (chunk.x > upperLimit)) {
-                        stats.outlyingChunks.add(chunk);
+                for (MinecraftCoords chunkCoords: allChunkCoords) {
+                    if ((chunkCoords.x < lowerLimit) || (chunkCoords.x > upperLimit)) {
+                        stats.outlyingChunks.add(chunkCoords);
                     }
                 }
 
@@ -232,25 +226,25 @@ public class MapImportDialog extends WorldPainterDialog {
                 iqr = q3 - q1;
                 lowerLimit = (int) (q2 - iqr * 1.5f);
                 upperLimit = (int) (q2 + iqr * 1.5f);
-                for (Point chunk: chunks) {
-                    if ((chunk.y < lowerLimit) || (chunk.y > upperLimit)) {
-                        stats.outlyingChunks.add(chunk);
+                for (MinecraftCoords chunkCoords: allChunkCoords) {
+                    if ((chunkCoords.z < lowerLimit) || (chunkCoords.z > upperLimit)) {
+                        stats.outlyingChunks.add(chunkCoords);
                     }
                 }
                 
                 if (! stats.outlyingChunks.isEmpty()) {
-                    chunks.stream().filter(chunk -> !stats.outlyingChunks.contains(chunk)).forEach(chunk -> {
+                    allChunkCoords.stream().filter(chunk -> !stats.outlyingChunks.contains(chunk)).forEach(chunk -> {
                         if (chunk.x < stats.lowestChunkXNoOutliers) {
                             stats.lowestChunkXNoOutliers = chunk.x;
                         }
                         if (chunk.x > stats.highestChunkXNoOutliers) {
                             stats.highestChunkXNoOutliers = chunk.x;
                         }
-                        if (chunk.y < stats.lowestChunkZNoOutliers) {
-                            stats.lowestChunkZNoOutliers = chunk.y;
+                        if (chunk.z < stats.lowestChunkZNoOutliers) {
+                            stats.lowestChunkZNoOutliers = chunk.z;
                         }
-                        if (chunk.y > stats.highestChunkZNoOutliers) {
-                            stats.highestChunkZNoOutliers = chunk.y;
+                        if (chunk.z > stats.highestChunkZNoOutliers) {
+                            stats.highestChunkZNoOutliers = chunk.z;
                         }
                     });
                 } else {
@@ -344,7 +338,7 @@ public class MapImportDialog extends WorldPainterDialog {
     
     private void importWorld() {
         final File levelDatFile = new File(fieldFilename.getText());
-        final Set<Point> chunksToSkip = checkBoxImportOutliers.isSelected() ? null : mapInfo.outlyingChunks;
+        final Set<MinecraftCoords> chunksToSkip = checkBoxImportOutliers.isSelected() ? null : mapInfo.outlyingChunks;
         final MapImporter.ReadOnlyOption readOnlyOption;
         if (radioButtonReadOnlyAll.isSelected()) {
             readOnlyOption = MapImporter.ReadOnlyOption.ALL;
@@ -738,7 +732,7 @@ public class MapImportDialog extends WorldPainterDialog {
         int lowestChunkX = Integer.MAX_VALUE, lowestChunkZ = Integer.MAX_VALUE, highestChunkX = Integer.MIN_VALUE, highestChunkZ = Integer.MIN_VALUE;
         int lowestChunkXNoOutliers = Integer.MAX_VALUE, lowestChunkZNoOutliers = Integer.MAX_VALUE, highestChunkXNoOutliers = Integer.MIN_VALUE, highestChunkZNoOutliers = Integer.MIN_VALUE;
         long chunkCount;
-        final Set<Point> outlyingChunks = new HashSet<>();
+        final Set<MinecraftCoords> outlyingChunks = new HashSet<>();
         String errorMessage;
     }
 }

@@ -9,8 +9,6 @@ import org.jnbt.CompoundTag;
 import org.jnbt.Tag;
 
 import java.awt.*;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -104,8 +102,8 @@ public final class MCRegionChunk extends NBTChunk {
     }
 
     @Override
-    public Point getCoords() {
-        return new Point(xPos, zPos);
+    public MinecraftCoords getCoords() {
+        return new MinecraftCoords(xPos, zPos);
     }
 
     @Override

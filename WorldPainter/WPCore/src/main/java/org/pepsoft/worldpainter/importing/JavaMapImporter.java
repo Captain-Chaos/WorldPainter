@@ -4,10 +4,10 @@
  */
 package org.pepsoft.worldpainter.importing;
 
-import org.jnbt.CompoundTag;
-import org.jnbt.NBTInputStream;
-import org.jnbt.Tag;
-import org.pepsoft.minecraft.*;
+import org.pepsoft.minecraft.Block;
+import org.pepsoft.minecraft.ChunkStore;
+import org.pepsoft.minecraft.Level;
+import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
 import org.pepsoft.worldpainter.Dimension;
@@ -41,7 +41,7 @@ import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.HIGHEST_
  * @author pepijn
  */
 public class JavaMapImporter extends MapImporter {
-    public JavaMapImporter(Platform platform, TileFactory tileFactory, File levelDatFile, boolean populateNewChunks, Set<Point> chunksToSkip, ReadOnlyOption readOnlyOption, Set<Integer> dimensionsToImport) {
+    public JavaMapImporter(Platform platform, TileFactory tileFactory, File levelDatFile, boolean populateNewChunks, Set<MinecraftCoords> chunksToSkip, ReadOnlyOption readOnlyOption, Set<Integer> dimensionsToImport) {
         if ((tileFactory == null) || (levelDatFile == null) || (readOnlyOption == null) || (dimensionsToImport == null)) {
             throw new NullPointerException();
         }
@@ -258,13 +258,13 @@ public class JavaMapImporter extends MapImporter {
                 if (progressReceiver != null) {
                     progressReceiver.setProgress((float) count.getAndIncrement() / total);
                 }
-                final Point chunkCoords = chunk.getCoords();
+                final MinecraftCoords chunkCoords = chunk.getCoords();
                 if ((chunksToSkip != null) && chunksToSkip.contains(chunkCoords)) {
                     return true;
                 }
 
                 final int chunkX = chunkCoords.x;
-                final int chunkZ = chunkCoords.y;
+                final int chunkZ = chunkCoords.z;
                 final Point tileCoords = new Point(chunkX >> 3, chunkZ >> 3);
                 Tile tile = dimension.getTile(tileCoords);
                 if (tile == null) {
@@ -411,7 +411,7 @@ public class JavaMapImporter extends MapImporter {
     private final TileFactory tileFactory;
     private final File levelDatFile;
     private final boolean populateNewChunks;
-    private final Set<Point> chunksToSkip;
+    private final Set<MinecraftCoords> chunksToSkip;
     private final ReadOnlyOption readOnlyOption;
     private final Set<Integer> dimensionsToImport;
     private String warnings;

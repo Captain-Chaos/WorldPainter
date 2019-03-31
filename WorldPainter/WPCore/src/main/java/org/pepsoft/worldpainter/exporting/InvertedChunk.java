@@ -20,7 +20,6 @@ package org.pepsoft.worldpainter.exporting;
 
 import org.pepsoft.minecraft.*;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -122,7 +121,7 @@ public class InvertedChunk implements Chunk {
     }
 
     @Override
-    public Point getCoords() {
+    public MinecraftCoords getCoords() {
         return chunk.getCoords();
     }
 
