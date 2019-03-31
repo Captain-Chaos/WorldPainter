@@ -243,7 +243,7 @@ public class JavaMapImporter {
 //        final SortedSet<Material> manMadeBlockTypes = new TreeSet<Material>();
         final boolean importBiomes = (version == SUPPORTED_VERSION_2) && (dimension.getDim() == DIM_NORMAL);
         final ChunkStore chunkStore = PlatformManager.getInstance().getChunkStore(platform, worldDir, dimension.getDim());
-        final long total = chunkStore.getChunkCount();
+        final int total = chunkStore.getChunkCount();
         final AtomicInteger count = new AtomicInteger();
         final StringBuilder reportBuilder = new StringBuilder();
         if (! chunkStore.visitChunks(chunk -> {

@@ -34,8 +34,8 @@ public class JavaChunkStore implements ChunkStore {
     }
 
     @Override
-    public long getChunkCount() {
-        long[] chunkCount = {0L};
+    public int getChunkCount() {
+        int[] chunkCount = {0};
         try {
             visitRegions(region -> {
                 chunkCount[0] += region.getChunkCount();

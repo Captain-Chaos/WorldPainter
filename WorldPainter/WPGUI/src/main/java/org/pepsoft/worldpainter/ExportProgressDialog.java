@@ -147,12 +147,12 @@ public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, Chunk
         final NumberFormat formatter = NumberFormat.getIntegerInstance();
         final long duration = stats.time / 1000;
         if (stats.landArea > 0) {
-            sb.append("Land area: " + formatter.format(stats.landArea) + " blocks²<br>");
+            sb.append("Land area: " + formatter.format(stats.landArea) + " blocks<br>");
         }
         if (stats.waterArea > 0) {
-            sb.append("Water or lava area: " + formatter.format(stats.waterArea) + " blocks²<br>");
+            sb.append("Water or lava area: " + formatter.format(stats.waterArea) + " blocks<br>");
             if (stats.landArea > 0) {
-                sb.append("Total surface area: " + formatter.format(stats.landArea + stats.waterArea) + " blocks²<br>");
+                sb.append("Total surface area: " + formatter.format(stats.landArea + stats.waterArea) + " blocks<br>");
             }
         }
         final long totalBlocks = stats.surfaceArea * world.getMaxHeight();
