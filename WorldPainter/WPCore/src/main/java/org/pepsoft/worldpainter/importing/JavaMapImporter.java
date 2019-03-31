@@ -107,7 +107,6 @@ public class JavaMapImporter {
             world.getBorderSettings().setDamagePerBlock((int) (level.getBorderDamagePerBlock() + 0.5));
         }
         File worldDir = levelDatFile.getParentFile();
-        File regionDir = new File(worldDir, "region");
         File netherDir = new File(worldDir, "DIM-1/region");
         File endDir = new File(worldDir, "DIM1/region");
         int dimCount = 1;
@@ -141,7 +140,7 @@ public class JavaMapImporter {
             dimension.setGridSize(config.getDefaultGridSize());
             dimension.setContoursEnabled(config.isDefaultContoursEnabled());
             dimension.setContourSeparation(config.getDefaultContourSeparation());
-            String dimWarnings = importDimension(regionDir, dimension, version, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.0f, 1.0f / dimCount) : null);
+            String dimWarnings = importDimension(worldDir, dimension, version, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.0f, 1.0f / dimCount) : null);
             if (dimWarnings != null) {
                 if (warnings == null) {
                     warnings = dimWarnings;
@@ -237,7 +236,7 @@ public class JavaMapImporter {
         return warnings;
     }
 
-    private String importDimension(File regionDir, Dimension dimension, int version, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
+    private String importDimension(File worldDir, Dimension dimension, int version, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
         if (progressReceiver != null) {
             progressReceiver.setMessage(dimension.getName() + " dimension");
         }
@@ -246,7 +245,7 @@ public class JavaMapImporter {
         final Set<Point> newChunks = new HashSet<>();
 //        final SortedSet<Material> manMadeBlockTypes = new TreeSet<Material>();
         final boolean importBiomes = (version == SUPPORTED_VERSION_2) && (dimension.getDim() == DIM_NORMAL);
-        final ChunkStore chunkStore = PlatformManager.getInstance().getChunkStore(platform, regionDir, dimension.getDim());
+        final ChunkStore chunkStore = PlatformManager.getInstance().getChunkStore(platform, worldDir, dimension.getDim());
         final long total = chunkStore.getChunkCount();
         final AtomicInteger count = new AtomicInteger();
         final StringBuilder reportBuilder = new StringBuilder();
