@@ -109,15 +109,7 @@ public class JavaMapImporter extends MapImporter {
             world.getBorderSettings().setDamagePerBlock((int) (level.getBorderDamagePerBlock() + 0.5));
         }
         File worldDir = levelDatFile.getParentFile();
-        File netherDir = new File(worldDir, "DIM-1/region");
-        File endDir = new File(worldDir, "DIM1/region");
-        int dimCount = 1;
-        if (netherDir.isDirectory() && dimensionsToImport.contains(DIM_NETHER)) {
-            dimCount++;
-        }
-        if (endDir.isDirectory() && dimensionsToImport.contains(DIM_END)) {
-            dimCount++;
-        }
+        int dimCount = dimensionsToImport.size();
         long minecraftSeed = level.getSeed();
         tileFactory.setSeed(minecraftSeed);
         Dimension dimension = new Dimension(world, minecraftSeed, tileFactory, DIM_NORMAL, maxHeight);
@@ -142,7 +134,7 @@ public class JavaMapImporter extends MapImporter {
             dimension.setGridSize(config.getDefaultGridSize());
             dimension.setContoursEnabled(config.isDefaultContoursEnabled());
             dimension.setContourSeparation(config.getDefaultContourSeparation());
-            String dimWarnings = importDimension(worldDir, dimension, platform, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.0f, 1.0f / dimCount) : null);
+            String dimWarnings = importDimension(worldDir, dimension, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.0f, 1.0f / dimCount) : null);
             if (dimWarnings != null) {
                 if (warnings == null) {
                     warnings = dimWarnings;
@@ -155,7 +147,7 @@ public class JavaMapImporter extends MapImporter {
         }
         world.addDimension(dimension);
         int dimNo = 1;
-        if (netherDir.isDirectory() && dimensionsToImport.contains(DIM_NETHER)) {
+        if (dimensionsToImport.contains(DIM_NETHER)) {
             HeightMapTileFactory netherTileFactory = TileFactoryFactory.createNoiseTileFactory(minecraftSeed + 1, Terrain.NETHERRACK, maxHeight, 188, 192, true, false, 20f, 1.0);
             SimpleTheme theme = (SimpleTheme) netherTileFactory.getTheme();
             SortedMap<Integer, Terrain> terrainRanges = theme.getTerrainRanges();
@@ -173,7 +165,7 @@ public class JavaMapImporter extends MapImporter {
                 if (version == VERSION_MCREGION) {
                     resourcesSettings.setChance(QUARTZ_ORE, 0);
                 }
-                String dimWarnings = importDimension(netherDir, dimension, platform, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) dimNo++ / dimCount, 1.0f / dimCount) : null);
+                String dimWarnings = importDimension(worldDir, dimension, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) dimNo++ / dimCount, 1.0f / dimCount) : null);
                 if (dimWarnings != null) {
                     if (warnings == null) {
                         warnings = dimWarnings;
@@ -186,7 +178,7 @@ public class JavaMapImporter extends MapImporter {
             }
             world.addDimension(dimension);
         }
-        if (endDir.isDirectory() && dimensionsToImport.contains(DIM_END)) {
+        if (dimensionsToImport.contains(DIM_END)) {
             HeightMapTileFactory endTileFactory = TileFactoryFactory.createNoiseTileFactory(minecraftSeed + 2, Terrain.END_STONE, maxHeight, 32, 0, false, false, 20f, 1.0);
             SimpleTheme theme = (SimpleTheme) endTileFactory.getTheme();
             SortedMap<Integer, Terrain> terrainRanges = theme.getTerrainRanges();
@@ -199,7 +191,7 @@ public class JavaMapImporter extends MapImporter {
             try {
                 dimension.setCoverSteepTerrain(false);
                 dimension.setSubsurfaceMaterial(Terrain.END_STONE);
-                String dimWarnings = importDimension(endDir, dimension, platform, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) dimNo / dimCount, 1.0f / dimCount) : null);
+                String dimWarnings = importDimension(worldDir, dimension, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) dimNo / dimCount, 1.0f / dimCount) : null);
                 if (dimWarnings != null) {
                     if (warnings == null) {
                         warnings = dimWarnings;
@@ -238,8 +230,7 @@ public class JavaMapImporter extends MapImporter {
         return warnings;
     }
 
-    @SuppressWarnings({"StringConcatenationInsideStringBufferAppend", "StringEquality"}) // Readability; Material names are interned
-    private String importDimension(File worldDir, Dimension dimension, Platform platform, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
+    private String importDimension(File worldDir, Dimension dimension, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
         if (progressReceiver != null) {
             progressReceiver.setMessage(dimension.getName() + " dimension");
         }
@@ -248,7 +239,7 @@ public class JavaMapImporter extends MapImporter {
         final Set<Point> newChunks = new HashSet<>();
         final Set<String> manMadeBlockTypes = new HashSet<>();
         final Set<Integer> unknownBiomes = new HashSet<>();
-        final boolean importBiomes = dimension.getDim() == DIM_NORMAL;
+        final boolean importBiomes = (platform != JAVA_MCREGION) && (dimension.getDim() == DIM_NORMAL);
         final ChunkStore chunkStore = PlatformManager.getInstance().getChunkStore(platform, worldDir, dimension.getDim());
         final int total = chunkStore.getChunkCount();
         final AtomicInteger count = new AtomicInteger();
