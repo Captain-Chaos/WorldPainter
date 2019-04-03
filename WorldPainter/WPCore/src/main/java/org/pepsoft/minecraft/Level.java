@@ -17,6 +17,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.worldpainter.Constants.MAX_HEIGHT;
 
 /**
  *
@@ -402,6 +403,7 @@ public final class Level extends AbstractNBTItem {
         
         int version = ((IntTag) ((CompoundTag) ((CompoundTag) tag).getTag(TAG_DATA)).getTag(TAG_VERSION)).getValue();
         int maxHeight = (version == SUPPORTED_VERSION_1) ? DEFAULT_MAX_HEIGHT_1 : DEFAULT_MAX_HEIGHT_2;
+        // TODO get rid of this hardcoded stuff and move it into the platform provider plugin API
         if (version == SUPPORTED_VERSION_1) {
             if (((CompoundTag) ((CompoundTag) tag).getTag(TAG_DATA)).getTag(TAG_MAP_HEIGHT) != null) {
                 maxHeight = ((IntTag) ((CompoundTag) ((CompoundTag) tag).getTag(TAG_DATA)).getTag(TAG_MAP_HEIGHT)).getValue();
@@ -423,6 +425,8 @@ public final class Level extends AbstractNBTItem {
                     }
                 }
             }
+        } else if (new File(levelDatFile.getParentFile(), "region3d").isDirectory()) {
+            maxHeight = MAX_HEIGHT;
         }
         
         return new Level((CompoundTag) tag, maxHeight);
