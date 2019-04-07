@@ -11,7 +11,12 @@ package org.pepsoft.minecraft;
  */
 public enum Direction {
     NORTH, EAST, SOUTH, WEST;
-    
+
+    @Override
+    public String toString() {
+        return name().toLowerCase();
+    }
+
     public Direction rotate(int steps) {
         int direction = ordinal();
         direction = (direction + steps) & 0x03;
