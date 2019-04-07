@@ -13,8 +13,8 @@ import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ParallelProgressManager;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
-import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.*;
@@ -24,8 +24,8 @@ import org.pepsoft.worldpainter.vo.EventVO;
 
 import java.awt.*;
 import java.io.*;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -487,7 +487,8 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
 
             // Read the region coordinates of the existing map
             final File backupRegionDir = new File(backupDimensionDir, "region");
-            File[] existingRegionFiles = ((JavaPlatformProvider) platformProvider).getRegionFiles(platform, backupRegionDir);
+            // TODO: support any platform
+            File[] existingRegionFiles = ((DefaultPlatformProvider) platformProvider).getRegionFiles(platform, backupRegionDir);
             Map<Point, File> existingRegions = new HashMap<>();
             for (File file: existingRegionFiles) {
                 String[] parts = file.getName().split("\\.");
@@ -796,7 +797,8 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
 
         int dataVersion = level.getDataVersion();
         Platform platform = (dataVersion <= DATA_VERSION_MC_1_12_2) ? DefaultPlugin.JAVA_ANVIL : DefaultPlugin.JAVA_ANVIL_1_13;
-        JavaPlatformProvider platformProvider = (JavaPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
+        // TODO support any platform
+        DefaultPlatformProvider platformProvider = (DefaultPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
 
         // Backup existing level
         File worldDir = levelDatFile.getParentFile();
@@ -936,7 +938,8 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                     RegionFile regionFile = regionFiles.get(coords);
                     if (regionFile == null) {
                         try {
-                            regionFile = ((JavaPlatformProvider) platformProvider).getRegionFile(platform, oldRegionDir, coords, true);
+                            // TODO support any platform
+                            regionFile = ((DefaultPlatformProvider) platformProvider).getRegionFile(platform, oldRegionDir, coords, true);
                             regionFiles.put(coords, regionFile);
                         } catch (IOException e) {
                             reportBuilder.append("I/O error while opening region " + regionX + "," + regionY + " (message: \"" + e.getMessage() + "\"); skipping region" + EOL);
@@ -960,7 +963,8 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                                 continue;
                             }
                             try (NBTInputStream in = new NBTInputStream(chunkData)) {
-                                existingChunk = ((JavaPlatformProvider) platformProvider).createChunk(platform, in.readTag(), maxHeight);
+                                // TODO: support any platform
+                                existingChunk = ((DefaultPlatformProvider) platformProvider).createChunk(platform, in.readTag(), maxHeight);
                             }
                         } catch (IOException e) {
                             reportBuilder.append("I/O error while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
@@ -1156,7 +1160,8 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                     RegionFile regionFile = regionFiles.get(coords);
                     if (regionFile == null) {
                         try {
-                            regionFile = ((JavaPlatformProvider) platformProvider).getRegionFile(platform, oldRegionDir, coords, true);
+                            // TODO: support any platform
+                            regionFile = ((DefaultPlatformProvider) platformProvider).getRegionFile(platform, oldRegionDir, coords, true);
                             regionFiles.put(coords, regionFile);
                         } catch (IOException e) {
                             reportBuilder.append("I/O error while opening region " + regionX + "," + regionY + " (message: \"" + e.getMessage() + "\"); skipping region" + EOL);
@@ -1191,7 +1196,8 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                             logger.error("Illegal argument exception while reading chunk " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk", e);
                             continue;
                         }
-                        minecraftWorld.addChunk(((JavaPlatformProvider) platformProvider).createChunk(platform, tag, maxHeight));
+                        // TODO: support any platform
+                        minecraftWorld.addChunk(((DefaultPlatformProvider) platformProvider).createChunk(platform, tag, maxHeight));
                     }
                 }
             }

@@ -5,8 +5,8 @@ import org.jnbt.CompoundTag;
 import org.jnbt.NBTInputStream;
 import org.jnbt.NBTOutputStream;
 import org.pepsoft.minecraft.*;
+import org.pepsoft.worldpainter.DefaultPlatformProvider;
 import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.JavaPlatformProvider;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.layers.ReadOnly;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
@@ -34,7 +34,7 @@ public class JavaChunkStore implements ChunkStore {
             throw new IllegalArgumentException("Unsupported platform " + platform);
         }
         this.platform = platform;
-        this.platformProvider = (JavaPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
+        this.platformProvider = (DefaultPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
         this.regionDir = regionDir;
         this.honourReadOnlyChunks = honourReadOnlyChunks;
         this.dimension = dimension;
@@ -260,16 +260,6 @@ public class JavaChunkStore implements ChunkStore {
         return regionFile;
     }
 
-    private RegionFile openRegionFile(Point regionCoords) throws IOException {
-        File file = new File(regionDir, "r." + regionCoords.x + "." + regionCoords.y + (platform.equals(JAVA_MCREGION) ? ".mcr" : ".mca"));
-        return file.exists() ? new RegionFile(file) : null;
-    }
-
-    private RegionFile openOrCreateRegionFile(Point regionCoords) throws IOException {
-        File file = new File(regionDir, "r." + regionCoords.x + "." + regionCoords.y + (platform.equals(JAVA_MCREGION) ? ".mcr" : ".mca"));
-        return new RegionFile(file);
-    }
-
     @FunctionalInterface interface RegionVisitor {
         boolean visitRegion(RegionFile region) throws IOException;
     }
@@ -296,7 +286,7 @@ public class JavaChunkStore implements ChunkStore {
                         if (region.containsChunk(x, z)) {
                             try (NBTInputStream in = new NBTInputStream(region.getChunkDataInputStream(x & 31, z & 31))) {
                                 CompoundTag tag = (CompoundTag) in.readTag();
-                                Chunk chunk = platform.equals(JAVA_MCREGION) ? new ChunkImpl(tag, maxHeight, readOnly) : new ChunkImpl2(tag, maxHeight, readOnly);
+                                Chunk chunk = platformProvider.createChunk(platform, tag, maxHeight, readOnly);
                                 if (! visitor.visitChunk(chunk)) {
                                     return false;
                                 }
@@ -340,7 +330,7 @@ public class JavaChunkStore implements ChunkStore {
 //    }
 
     private final Platform platform;
-    private final JavaPlatformProvider platformProvider;
+    private final DefaultPlatformProvider platformProvider;
     private final File regionDir;
     private final Map<Point, RegionFile> regionFiles = new HashMap<>();
     private final boolean honourReadOnlyChunks;

@@ -4,10 +4,14 @@
  */
 package org.pepsoft.worldpainter.importing;
 
-import org.pepsoft.minecraft.Block;
+import org.jnbt.CompoundTag;
+import org.jnbt.StringTag;
+import org.jnbt.Tag;
+import org.jnbt.XMLTransformer;
 import org.pepsoft.minecraft.ChunkStore;
 import org.pepsoft.minecraft.Level;
 import org.pepsoft.minecraft.Material;
+import org.pepsoft.minecraft.MinecraftCoords;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
 import org.pepsoft.worldpainter.Dimension;
@@ -16,21 +20,21 @@ import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.exporters.FrostExporter.FrostSettings;
 import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter.ResourcesExporterSettings;
+import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.themes.SimpleTheme;
 import org.pepsoft.worldpainter.vo.EventVO;
 
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.StringWriter;
 import java.util.*;
-import java.util.regex.Pattern;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
+import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.BIOME_NAMES;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.HIGHEST_BIOME_ID;
 

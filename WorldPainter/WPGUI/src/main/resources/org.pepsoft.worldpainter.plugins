@@ -1,1 +1,5 @@
-org.pepsoft.worldpainter.layers.DefaultLayerEditorProvider
+{
+  "classes": [
+    "org.pepsoft.worldpainter.layers.DefaultLayerEditorProvider"
+  ]
+}

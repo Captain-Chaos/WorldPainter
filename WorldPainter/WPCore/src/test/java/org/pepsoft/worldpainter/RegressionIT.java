@@ -162,7 +162,7 @@ public class RegressionIT {
                 throw new IllegalArgumentException();
         }
         Platform platform = world.getPlatform();
-        JavaPlatformProvider platformProvider = (JavaPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
+        DefaultPlatformProvider platformProvider = (DefaultPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
         int maxHeight = dimension.getMaxHeight();
         Pattern regionFilePattern = (platform == DefaultPlugin.JAVA_MCREGION)
             ? Pattern.compile("r\\.(-?\\d+)\\.(-?\\d+)\\.mcr")

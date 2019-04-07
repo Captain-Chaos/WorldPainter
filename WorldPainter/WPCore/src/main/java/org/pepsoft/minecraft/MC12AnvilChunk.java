@@ -9,7 +9,8 @@ import org.jnbt.CompoundTag;
 import org.jnbt.Tag;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 
-import java.awt.*;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.*;
 
 import static java.util.stream.Collectors.toList;

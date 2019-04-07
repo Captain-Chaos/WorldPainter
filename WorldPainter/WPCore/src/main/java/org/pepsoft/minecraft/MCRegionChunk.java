@@ -8,7 +8,8 @@ package org.pepsoft.minecraft;
 import org.jnbt.CompoundTag;
 import org.jnbt.Tag;
 
-import java.awt.*;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;

@@ -1,3 +1,7 @@
-org.pepsoft.worldpainter.DefaultPlugin
-org.pepsoft.worldpainter.JavaPlatformProvider
-org.pepsoft.worldpainter.DefaultCustomObjectProvider
+{
+  "classes": [
+    "org.pepsoft.worldpainter.DefaultPlugin",
+    "org.pepsoft.worldpainter.DefaultPlatformProvider",
+    "org.pepsoft.worldpainter.DefaultCustomObjectProvider"
+  ]
+}

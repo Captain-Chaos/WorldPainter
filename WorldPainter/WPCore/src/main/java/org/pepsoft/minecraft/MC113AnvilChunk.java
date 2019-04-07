@@ -10,11 +10,9 @@ import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.awt.*;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.*;
-import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 import static org.pepsoft.minecraft.Constants.*;
@@ -164,8 +162,8 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
     }
 
     @Override
-    public Point getCoords() {
-        return new Point(xPos, zPos);
+    public MinecraftCoords getCoords() {
+        return new MinecraftCoords(xPos, zPos);
     }
 
     @Override

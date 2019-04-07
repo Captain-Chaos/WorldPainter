@@ -4,18 +4,13 @@
  */
 package org.pepsoft.worldpainter.util;
 
+import org.jetbrains.annotations.NotNull;
+import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.util.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.regex.Pattern;
-
-import static org.pepsoft.minecraft.Constants.DATA_VERSION_MC_1_12_2;
-import static org.pepsoft.minecraft.Constants.VERSION_MCREGION;
-import static org.pepsoft.worldpainter.Constants.*;
 
 import static org.pepsoft.worldpainter.Constants.*;
 
