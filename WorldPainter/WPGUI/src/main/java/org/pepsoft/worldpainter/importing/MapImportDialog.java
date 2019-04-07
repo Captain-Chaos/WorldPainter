@@ -35,8 +35,6 @@ import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import static org.pepsoft.minecraft.Constants.VERSION_ANVIL;
 import static org.pepsoft.minecraft.Constants.VERSION_MCREGION;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 
 /**
  *
@@ -128,21 +126,13 @@ public class MapImportDialog extends WorldPainterDialog {
         }
 
         // Determine the platform
-        Platform platform;
+        Platform platform = PlatformManager.getInstance().identifyMap(worldDir);
         // TODO handle non-block based platform provider matching more gracefully
-        BlockBasedPlatformProvider platformProvider = (BlockBasedPlatformProvider) PlatformManager.getInstance().identifyMap(worldDir);
-        // TODO migrate this so that the map recognizer returns the actual platform and this ugly business isn't needed
-        if (platformProvider.getName().equals("DefaultPlatforms")) {
-            platform = (version == SUPPORTED_VERSION_1) ? JAVA_MCREGION : JAVA_ANVIL;
-        } else {
-            Collection<Platform> platforms = platformProvider.getKeys();
-            if (platforms.size() == 1) {
-                platform = platforms.iterator().next();
-            } else {
-                logger.error("Could not determine single matching platform for " + levelDatFile + "(matching platforms: " + platforms + ")");
-                JOptionPane.showMessageDialog(MapImportDialog.this, "Could not determine single matching platform for " + levelDatFile + "(matching platforms: " + platforms + ")", "Multiple Matching Platforms", ERROR_MESSAGE);
-                return;
-            }
+        BlockBasedPlatformProvider platformProvider = (BlockBasedPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
+        if (platform == null) {
+            logger.error("Could not determine platform for " + levelDatFile);
+            JOptionPane.showMessageDialog(MapImportDialog.this, "Could not determine map format for " + levelDatFile, "Unidentified Map Format", ERROR_MESSAGE);
+            return;
         }
 
         // Sanity checks for the surface dimension

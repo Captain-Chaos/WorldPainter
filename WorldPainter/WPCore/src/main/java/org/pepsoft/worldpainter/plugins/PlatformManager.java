@@ -13,6 +13,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static java.util.Arrays.asList;
+import static org.pepsoft.worldpainter.DefaultPlugin.*;
+
 /**
  * Created by Pepijn on 12-2-2017.
  */
@@ -50,18 +53,21 @@ public class PlatformManager extends AbstractProviderManager<Platform, PlatformP
     }
 
     /**
-     * Identify the platform provider for a map.
+     * Identify the platform of a map.
      *
      * @param worldDir The directory to identify.
-     * @return The platform provider which supports the format of the specified
-     * map, or {@code null} if no platform provider claimed support.
+     * @return The platform of the specified map, or {@code null} if no platform
+     * provider claimed support.
      */
-    public PlatformProvider identifyMap(File worldDir) {
-        Set<PlatformProvider> candidates = new HashSet<>();
+    public Platform identifyMap(File worldDir) {
+        Set<Platform> candidates = new HashSet<>();
         for (PlatformProvider provider: getImplementations()) {
             MapRecognizer mapRecognizer = provider.getMapRecognizer();
-            if ((mapRecognizer != null) && mapRecognizer.isMap(worldDir)) {
-                candidates.add(provider);
+            if (mapRecognizer != null) {
+                Platform platform = mapRecognizer.identifyPlatform(worldDir);
+                if (platform != null) {
+                    candidates.add(platform);
+                }
             }
         }
         if (candidates.isEmpty()) {
@@ -71,7 +77,7 @@ public class PlatformManager extends AbstractProviderManager<Platform, PlatformP
         } else {
             // If one of the candidates is ourselves, discount it, assuming that
             // the plugin did a more specific check and is probably right
-            candidates.removeIf(provider -> provider.getName().equals("DefaultPlatforms"));
+            candidates.removeAll(asList(JAVA_MCREGION, JAVA_ANVIL, JAVA_ANVIL_1_13));
             if (candidates.size() == 1) {
                 return candidates.iterator().next();
             } else {

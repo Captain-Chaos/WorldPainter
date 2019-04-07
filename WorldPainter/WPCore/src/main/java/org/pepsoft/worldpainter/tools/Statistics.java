@@ -4,9 +4,11 @@
  */
 package org.pepsoft.worldpainter.tools;
 
+import org.pepsoft.minecraft.ChunkStore;
 import org.pepsoft.minecraft.Level;
 import org.pepsoft.minecraft.Material;
-import org.pepsoft.worldpainter.util.MinecraftUtil;
+import org.pepsoft.worldpainter.Platform;
+import org.pepsoft.worldpainter.plugins.PlatformManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,7 +35,10 @@ public class Statistics {
         int[][] blockTypeTotals = new int[maxHeight >> 4][4096];
 //        int totalBlockCount = 0, totalBlocksPerLevel = 0;
         System.out.println("Scanning " + worldDir);
-        MinecraftUtil.visitChunks(new File(args[0]), DIM_NORMAL, chunk -> {
+        PlatformManager platformManager = PlatformManager.getInstance();
+        Platform platform = platformManager.identifyMap(worldDir);
+        ChunkStore chunkStore = platformManager.getChunkStore(platform, worldDir, DIM_NORMAL);
+        chunkStore.visitChunks(chunk -> {
             for (int xx = 0; xx < 16; xx++) {
                 for (int zz = 0; zz < 16; zz++) {
                     for (int y = maxY; y >= 0; y--) {
@@ -45,6 +50,7 @@ public class Statistics {
                     }
                 }
             }
+            return true;
         });
 
         System.out.println("\tGranite\tDiorite\tAndesite");
