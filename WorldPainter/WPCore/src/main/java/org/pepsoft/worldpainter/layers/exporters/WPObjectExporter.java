@@ -449,13 +449,13 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                 material = material.withProperty(PERSISTENT, true);
             }
         }
-        if ((! material.opaque) && (! material.veryInsubstantial) && material.isNotNamed(MC_CAVE_AIR)) {
-            // Assume that any material that is not opaque (and not
+        if ((! material.opaque) && ((! material.veryInsubstantial) || (! material.dry)) && material.isNotNamed(MC_CAVE_AIR)) {
+            // Assume that any material that is not solid (and not
             // insubstantial, so that it could exist under water) can be
             // waterlogged. TODO: is this good enough?
             // Check if the block is under water and set the waterlogged property accordingly
             Material existingMaterial = world.getMaterialAt(x, y, z);
-            if (existingMaterial.isNamed(MC_WATER) && (existingMaterial.getProperty(LEVEL) == 7)) {
+            if (existingMaterial.isNamed(MC_WATER) && (existingMaterial.getProperty(LEVEL) == 0)) {
                 material = material.withProperty(WATERLOGGED, true);
             } else {
                 material = material.withProperty(WATERLOGGED, false);

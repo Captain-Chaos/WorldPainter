@@ -268,7 +268,7 @@ public class LightingCalculator {
         if ((platform == JAVA_ANVIL_1_13) && material.isNamed(MC_WATER)) {
             return 1;
         } else {
-            return material.transparency;
+            return material.opacity;
         }
     }
 

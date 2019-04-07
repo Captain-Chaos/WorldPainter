@@ -1443,7 +1443,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                 if (existingMaterial.hasProperty(WATERLOGGED)) {
                     // The block has a waterlogged property; manage it correctly
                     boolean existingMaterialIsWaterLogged = existingMaterial.getProperty(WATERLOGGED);
-                    boolean newMaterialIsWater = newMaterial.isNamed(MC_WATER);
+                    boolean newMaterialIsWater = newMaterial.isNamed(MC_WATER) || newMaterial.getProperty(WATERLOGGED, false);
                     if (existingMaterialIsWaterLogged && (! newMaterialIsWater)) {
                         newChunk.setMaterial(x, y, z, existingMaterial.withProperty(WATERLOGGED, false));
                     } else if ((! existingMaterialIsWaterLogged) && newMaterialIsWater) {

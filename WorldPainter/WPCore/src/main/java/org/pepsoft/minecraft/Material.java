@@ -88,12 +88,12 @@ public final class Material implements Serializable {
         horizontalOrientationScheme = determineHorizontalOrientation(identity);
         verticalOrientationScheme = determineVerticalOrientation(identity);
 
-        Map<String, Object> spec = MATERIAL_SPECS.get(name);
+        Map<String, Object> spec = findSpec(identity);
         if (spec != null) {
-            transparency = (int) spec.get("transparency");
-            transparent = (transparency == 0);
-            translucent = (transparency < 15);
-            opaque = (transparency == 15);
+            opacity = (int) spec.get("opacity");
+            transparent = (opacity == 0);
+            translucent = (opacity < 15);
+            opaque = (opacity == 15);
             terrain = (boolean) spec.get("terrain");
             insubstantial = (boolean) spec.get("insubstantial");
             veryInsubstantial = (boolean) spec.get("veryInsubstantial");
@@ -110,7 +110,7 @@ public final class Material implements Serializable {
         } else {
             System.out.println("Legacy material " + blockType + ":" + data + " not found in materials database");
             // Use reasonable defaults for unknown blocks
-            transparency = 0;
+            opacity = 0;
             transparent = true;
             translucent = true;
             opaque = false;
@@ -200,12 +200,12 @@ public final class Material implements Serializable {
         horizontalOrientationScheme = determineHorizontalOrientation(identity);
         verticalOrientationScheme = determineVerticalOrientation(identity);
 
-        Map<String, Object> spec = MATERIAL_SPECS.get(name);
+        Map<String, Object> spec = findSpec(identity);
         if (spec != null) {
-            transparency = (int) spec.get("transparency");
-            transparent = (transparency == 0);
-            translucent = (transparency < 15);
-            opaque = (transparency == 15);
+            opacity = (int) spec.get("opacity");
+            transparent = (opacity == 0);
+            translucent = (opacity < 15);
+            opaque = (opacity == 15);
             terrain = (boolean) spec.get("terrain");
             insubstantial = (boolean) spec.get("insubstantial");
             veryInsubstantial = (boolean) spec.get("veryInsubstantial");
@@ -222,7 +222,7 @@ public final class Material implements Serializable {
         } else {
             System.out.println("Modern material " + identity + " not found in materials database");
             // Use reasonable defaults for unknown blocks
-            transparency = 0;
+            opacity = 0;
             transparent = true;
             translucent = true;
             opaque = false;
@@ -245,6 +245,52 @@ public final class Material implements Serializable {
         SIMPLE_NAMES_BY_NAMESPACE.computeIfAbsent(namespace, name -> new HashSet<>(singleton(name))).add(simpleName);
         if (! DEFAULT_MATERIALS_BY_NAME.containsKey(name)) {
             DEFAULT_MATERIALS_BY_NAME.put(name, this);
+        }
+    }
+
+    @SuppressWarnings("unchecked") // Guaranteed by code
+    private Map<String, Object> findSpec(Identity identity) {
+        Set<Map<String, Object>> specs = MATERIAL_SPECS.get(identity.name);
+        if (specs != null) {
+            if (specs.size() == 1) {
+                return specs.iterator().next();
+            } else {
+                // There are multiple specs; find a matching one
+                specs:
+                for (Map<String, Object> spec: specs) {
+                    // The spec must specify properties (otherwise there could
+                    // not be multiple for the same name), make sure they match
+                    // the identity
+                    Set<String> properties = (Set<String>) spec.get("properties");
+                    for (String property: properties) {
+                        int p = property.indexOf('=');
+                        if (p != -1) {
+                            // The spec specifies a specific value; check that
+                            // the identity has the property and it is set to
+                            // that value
+                            String key = property.substring(0, p);
+                            String value = property.substring(p + 1);
+                            if (!identity.containsPropertyWithValue(key, value)) {
+                                continue specs;
+                            }
+                        } else {
+                            // The spec just specifies a property name; check
+                            // that the identity has that property
+                            if (!identity.properties.containsKey(property)) {
+                                continue specs;
+                            }
+                        }
+                    }
+                    // If we reach here all properties matched
+                    return spec;
+                }
+                // If we reach here none of the specs matched
+                new Throwable("There were multiple specs for identity " + identity + " but its properties did not match any of them").printStackTrace();
+                return null;
+            }
+        } else {
+            // If we reach here there are no specs for this identity's name
+            return null;
         }
     }
 
@@ -1051,9 +1097,10 @@ public final class Material implements Serializable {
     }
 
     /**
-     * How much light the block blocks.
+     * How much light the block blocks from 0 (fully transparent) to 15 (fully
+     * opaque).
      */
-    public final transient int transparency;
+    public final transient int opacity;
 
     /**
      * The name of the block. This value is guaranteed to be interned, so that
@@ -1063,17 +1110,17 @@ public final class Material implements Serializable {
     public final transient String name;
 
     /**
-     * Whether the block is fully transparent ({@link #transparency} == 0)
+     * Whether the block is fully transparent ({@link #opacity} == 0)
      */
     public final transient boolean transparent;
 
     /**
-     * Whether the block is translucent ({@link #transparency} < 15)
+     * Whether the block is translucent ({@link #opacity} < 15)
      */
     public final transient boolean translucent;
 
     /**
-     * Whether the block is fully opaque ({@link #transparency} == 15)
+     * Whether the block is fully opaque ({@link #opacity} == 15)
      */
     public final transient boolean opaque;
 
@@ -1199,7 +1246,7 @@ public final class Material implements Serializable {
 
     private static final Map<Integer, Map<String, Object>> LEGACY_BLOCK_SPECS_BY_COMBINED_ID = new HashMap<>();
     private static final Map<String, Set<Map<String, Object>>> LEGACY_BLOCK_SPECS_BY_NAME = new HashMap<>();
-    private static final Map<String, Map<String, Object>> MATERIAL_SPECS = new HashMap<>();
+    private static final Map<String, Set<Map<String, Object>>> MATERIAL_SPECS = new HashMap<>();
 
     static {
         // Read legacy MC block database
@@ -1235,11 +1282,11 @@ public final class Material implements Serializable {
                 Map<String, Object> materialSpecs = new HashMap<>();
                 String name = csvDataSource.getString("name");
                 materialSpecs.put("name", name);
-                String str = csvDataSource.getString("persistent_properties");
+                String str = csvDataSource.getString("properties");
                 if (! isNullOrEmpty(str)) {
-                    materialSpecs.put("persistentProperties", ImmutableSet.copyOf(str.split(",")));
+                    materialSpecs.put("properties", ImmutableSet.copyOf(str.split(",")));
                 }
-                materialSpecs.put("transparency", csvDataSource.getInt("transparency"));
+                materialSpecs.put("opacity", csvDataSource.getInt("opacity"));
                 materialSpecs.put("terrain", csvDataSource.getBoolean("terrain"));
                 materialSpecs.put("insubstantial", csvDataSource.getBoolean("insubstantial"));
                 materialSpecs.put("veryInsubstantial", csvDataSource.getBoolean("veryInsubstantial"));
@@ -1250,7 +1297,7 @@ public final class Material implements Serializable {
                 materialSpecs.put("blockLight", csvDataSource.getInt("blockLight"));
                 materialSpecs.put("natural", csvDataSource.getBoolean("natural"));
                 materialSpecs.put("dry", csvDataSource.getBoolean("dry"));
-                MATERIAL_SPECS.put(name, materialSpecs);
+                MATERIAL_SPECS.computeIfAbsent(name, s -> new HashSet<>()).add(materialSpecs);
                 csvDataSource.next();
             } while (! csvDataSource.isEndOfFile());
         } catch (IOException e) {
@@ -1472,11 +1519,29 @@ public final class Material implements Serializable {
     public static final Material WHITE_TULIP = get(MC_WHITE_TULIP);
     public static final Material PINK_TULIP = get(MC_PINK_TULIP);
     public static final Material OXEYE_DAISY = get(MC_OXEYE_DAISY);
+    /**
+     * Lower half of a sunflower.
+     */
     public static final Material SUNFLOWER = get(MC_SUNFLOWER, MC_HALF, "lower");
+    /**
+     * Lower half of a lilac.
+     */
     public static final Material LILAC = get(MC_LILAC, MC_HALF, "lower");
+    /**
+     * Lower half of tall grass.
+     */
     public static final Material TALL_GRASS = get(MC_TALL_GRASS, MC_HALF, "lower");
+    /**
+     * Lower half of a large fern.
+     */
     public static final Material LARGE_FERN = get(MC_LARGE_FERN, MC_HALF, "lower");
+    /**
+     * Lower half of a rose bush.
+     */
     public static final Material ROSE_BUSH = get(MC_ROSE_BUSH, MC_HALF, "lower");
+    /**
+     * Lower half of a peony.
+     */
     public static final Material PEONY = get(MC_PEONY, MC_HALF, "lower");
     public static final Material OAK_SAPLING = get(MC_OAK_SAPLING, MC_STAGE, 0);
     public static final Material DARK_OAK_SAPLING = get(MC_DARK_OAK_SAPLING, MC_STAGE, 0);
@@ -1500,6 +1565,60 @@ public final class Material implements Serializable {
     public static final Material ACACIA_FENCE = get(MC_ACACIA_FENCE);
     public static final Material COBBLESTONE_WALL = get(MC_COBBLESTONE_WALL);
     public static final Material IRON_BARS = get(MC_IRON_BARS);
+    public static final Material TUBE_CORAL = get(MC_TUBE_CORAL);
+    public static final Material BRAIN_CORAL = get(MC_BRAIN_CORAL);
+    public static final Material BUBBLE_CORAL = get(MC_BUBBLE_CORAL);
+    public static final Material FIRE_CORAL = get(MC_FIRE_CORAL);
+    public static final Material HORN_CORAL = get(MC_HORN_CORAL);
+    public static final Material DEAD_TUBE_CORAL = get(MC_DEAD_TUBE_CORAL);
+    public static final Material DEAD_BRAIN_CORAL = get(MC_DEAD_BRAIN_CORAL);
+    public static final Material DEAD_BUBBLE_CORAL = get(MC_DEAD_BUBBLE_CORAL);
+    public static final Material DEAD_FIRE_CORAL = get(MC_DEAD_FIRE_CORAL);
+    public static final Material DEAD_HORN_CORAL = get(MC_DEAD_HORN_CORAL);
+    public static final Material TUBE_CORAL_BLOCK = get(MC_TUBE_CORAL_BLOCK);
+    public static final Material BRAIN_CORAL_BLOCK = get(MC_BRAIN_CORAL_BLOCK);
+    public static final Material BUBBLE_CORAL_BLOCK = get(MC_BUBBLE_CORAL_BLOCK);
+    public static final Material FIRE_CORAL_BLOCK = get(MC_FIRE_CORAL_BLOCK);
+    public static final Material HORN_CORAL_BLOCK = get(MC_HORN_CORAL_BLOCK);
+    public static final Material DEAD_TUBE_CORAL_BLOCK = get(MC_DEAD_TUBE_CORAL_BLOCK);
+    public static final Material DEAD_BRAIN_CORAL_BLOCK = get(MC_DEAD_BRAIN_CORAL_BLOCK);
+    public static final Material DEAD_BUBBLE_CORAL_BLOCK = get(MC_DEAD_BUBBLE_CORAL_BLOCK);
+    public static final Material DEAD_FIRE_CORAL_BLOCK = get(MC_DEAD_FIRE_CORAL_BLOCK);
+    public static final Material DEAD_HORN_CORAL_BLOCK = get(MC_DEAD_HORN_CORAL_BLOCK);
+    public static final Material TUBE_CORAL_FAN = get(MC_TUBE_CORAL_FAN);
+    public static final Material BRAIN_CORAL_FAN = get(MC_BRAIN_CORAL_FAN);
+    public static final Material BUBBLE_CORAL_FAN = get(MC_BUBBLE_CORAL_FAN);
+    public static final Material FIRE_CORAL_FAN = get(MC_FIRE_CORAL_FAN);
+    public static final Material HORN_CORAL_FAN = get(MC_HORN_CORAL_FAN);
+    public static final Material DEAD_TUBE_CORAL_FAN = get(MC_DEAD_TUBE_CORAL_FAN);
+    public static final Material DEAD_BRAIN_CORAL_FAN = get(MC_DEAD_BRAIN_CORAL_FAN);
+    public static final Material DEAD_BUBBLE_CORAL_FAN = get(MC_DEAD_BUBBLE_CORAL_FAN);
+    public static final Material DEAD_FIRE_CORAL_FAN = get(MC_DEAD_FIRE_CORAL_FAN);
+    public static final Material DEAD_HORN_CORAL_FAN = get(MC_DEAD_HORN_CORAL_FAN);
+    public static final Material TUBE_CORAL_WALL_FAN = get(MC_TUBE_CORAL_WALL_FAN);
+    public static final Material BRAIN_CORAL_WALL_FAN = get(MC_BRAIN_CORAL_WALL_FAN);
+    public static final Material BUBBLE_CORAL_WALL_FAN = get(MC_BUBBLE_CORAL_WALL_FAN);
+    public static final Material FIRE_CORAL_WALL_FAN = get(MC_FIRE_CORAL_WALL_FAN);
+    public static final Material HORN_CORAL_WALL_FAN = get(MC_HORN_CORAL_WALL_FAN);
+    public static final Material DEAD_TUBE_CORAL_WALL_FAN = get(MC_DEAD_TUBE_CORAL_WALL_FAN);
+    public static final Material DEAD_BRAIN_CORAL_WALL_FAN = get(MC_DEAD_BRAIN_CORAL_WALL_FAN);
+    public static final Material DEAD_BUBBLE_CORAL_WALL_FAN = get(MC_DEAD_BUBBLE_CORAL_WALL_FAN);
+    public static final Material DEAD_FIRE_CORAL_WALL_FAN = get(MC_DEAD_FIRE_CORAL_WALL_FAN);
+    public static final Material DEAD_HORN_CORAL_WALL_FAN = get(MC_DEAD_HORN_CORAL_WALL_FAN);
+    /**
+     * Kelp with age 0. For older kelp, set the "age" property up to 25.
+     */
+    public static final Material KELP = get(MC_KELP, MC_AGE, 0);
+    public static final Material KELP_PLANT = get(MC_KELP_PLANT);
+    public static final Material SEAGRASS = get(MC_SEAGRASS);
+    /**
+     * Lower half of tall sea grass.
+     */
+    public static final Material TALL_SEAGRASS = get(MC_TALL_SEAGRASS, MC_HALF, "lower");
+    /**
+     * One sea pickle. Set the "pickles" property up to 4 for more pickles.
+     */
+    public static final Material SEA_PICKLE = get(MC_SEA_PICKLE, MC_WATERLOGGED, true, MC_PICKLES, 1);
 
     // Namespaces
 
@@ -1533,6 +1652,19 @@ public final class Material implements Serializable {
             }
             this.name = name.intern();
             this.properties = ((properties != null) && (! properties.isEmpty())) ? ImmutableMap.copyOf(properties) : null;
+        }
+
+        /**
+         * Determines whether the identity contains a property with a specific
+         * name value.
+         *
+         * @param propertyName The property name to check for.
+         * @param value The value to check for.
+         * @return {@code true} if the identity contains a property with the
+         * specified name, set to the specified value.
+         */
+        boolean containsPropertyWithValue(String propertyName, String value) {
+            return (properties != null) && value.equals(properties.get(propertyName));
         }
 
         /**

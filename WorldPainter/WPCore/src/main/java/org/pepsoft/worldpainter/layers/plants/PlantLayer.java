@@ -17,6 +17,8 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Random;
 
+import static org.pepsoft.worldpainter.layers.plants.Plants.ALL_PLANTS;
+
 /**
  *
  * @author pepijn
@@ -69,11 +71,11 @@ public class PlantLayer extends CustomLayer {
             @Override
             public WPObject getObject() {
                 final int index = random.nextInt(pool.length);
-                final Plant plant = Plant.ALL_PLANTS[pool[index]];
+                final Plant plant = ALL_PLANTS[pool[index]];
                 if (growthRange[index] == 0) {
-                    return plant.getPlant(growthOffset[index], platform);
+                    return plant.withGrowth(growthOffset[index], platform);
                 } else {
-                    return plant.getPlant(growthOffset[index] + random.nextInt(growthRange[index] + 1), platform);
+                    return plant.withGrowth(growthOffset[index] + random.nextInt(growthRange[index] + 1), platform);
                 }
             }
 
@@ -125,9 +127,9 @@ public class PlantLayer extends CustomLayer {
         in.defaultReadObject();
 
         // Legacy
-        if (settings.length < Plant.ALL_PLANTS.length) {
+        if (settings.length < ALL_PLANTS.length) {
             // (A) new plant(s) has been added
-            PlantSettings[] newSettings = new PlantSettings[Plant.ALL_PLANTS.length];
+            PlantSettings[] newSettings = new PlantSettings[ALL_PLANTS.length];
             System.arraycopy(settings, 0, newSettings, 0, settings.length);
             settings = newSettings;
         }
@@ -149,7 +151,7 @@ public class PlantLayer extends CustomLayer {
         private static final long serialVersionUID = 1L;
     }
     
-    private PlantSettings[] settings = new PlantSettings[Plant.ALL_PLANTS.length];
+    private PlantSettings[] settings = new PlantSettings[ALL_PLANTS.length];
     private boolean generateTilledDirt = true; // Now referred to as generateFarmland
 
     private static final long serialVersionUID = -2758775044863488107L;

@@ -456,6 +456,47 @@ public final class Constants {
     public static final String MC_YELLOW_STAINED_GLASS_PANE = "minecraft:yellow_stained_glass_pane";
     public static final String MC_YELLOW_TERRACOTTA = "minecraft:yellow_terracotta";
     public static final String MC_YELLOW_WOOL = "minecraft:yellow_wool";
+    public static final String MC_TUBE_CORAL = "minecraft:tube_coral";
+    public static final String MC_BRAIN_CORAL = "minecraft:brain_coral";
+    public static final String MC_BUBBLE_CORAL = "minecraft:bubble_coral";
+    public static final String MC_FIRE_CORAL = "minecraft:fire_coral";
+    public static final String MC_HORN_CORAL = "minecraft:horn_coral";
+    public static final String MC_DEAD_TUBE_CORAL = "minecraft:dead_tube_coral";
+    public static final String MC_DEAD_BRAIN_CORAL = "minecraft:dead_brain_coral";
+    public static final String MC_DEAD_BUBBLE_CORAL = "minecraft:dead_bubble_coral";
+    public static final String MC_DEAD_FIRE_CORAL = "minecraft:dead_fire_coral";
+    public static final String MC_DEAD_HORN_CORAL = "minecraft:dead_horn_coral";
+    public static final String MC_TUBE_CORAL_BLOCK = "minecraft:tube_coral_block";
+    public static final String MC_BRAIN_CORAL_BLOCK = "minecraft:brain_coral_block";
+    public static final String MC_BUBBLE_CORAL_BLOCK = "minecraft:bubble_coral_block";
+    public static final String MC_FIRE_CORAL_BLOCK = "minecraft:fire_coral_block";
+    public static final String MC_HORN_CORAL_BLOCK = "minecraft:horn_coral_block";
+    public static final String MC_DEAD_TUBE_CORAL_BLOCK = "minecraft:dead_tube_coral_block";
+    public static final String MC_DEAD_BRAIN_CORAL_BLOCK = "minecraft:dead_brain_coral_block";
+    public static final String MC_DEAD_BUBBLE_CORAL_BLOCK = "minecraft:dead_bubble_coral_block";
+    public static final String MC_DEAD_FIRE_CORAL_BLOCK = "minecraft:dead_fire_coral_block";
+    public static final String MC_DEAD_HORN_CORAL_BLOCK = "minecraft:dead_horn_coral_block";
+    public static final String MC_TUBE_CORAL_FAN = "minecraft:tube_coral_fan";
+    public static final String MC_BRAIN_CORAL_FAN = "minecraft:brain_coral_fan";
+    public static final String MC_BUBBLE_CORAL_FAN = "minecraft:bubble_coral_fan";
+    public static final String MC_FIRE_CORAL_FAN = "minecraft:fire_coral_fan";
+    public static final String MC_HORN_CORAL_FAN = "minecraft:horn_coral_fan";
+    public static final String MC_DEAD_TUBE_CORAL_FAN = "minecraft:dead_tube_coral_fan";
+    public static final String MC_DEAD_BRAIN_CORAL_FAN = "minecraft:dead_brain_coral_fan";
+    public static final String MC_DEAD_BUBBLE_CORAL_FAN = "minecraft:dead_bubble_coral_fan";
+    public static final String MC_DEAD_FIRE_CORAL_FAN = "minecraft:dead_fire_coral_fan";
+    public static final String MC_DEAD_HORN_CORAL_FAN = "minecraft:dead_horn_coral_fan";
+    public static final String MC_TUBE_CORAL_WALL_FAN = "minecraft:tube_coral_wall_fan";
+    public static final String MC_BRAIN_CORAL_WALL_FAN = "minecraft:brain_coral_wall_fan";
+    public static final String MC_BUBBLE_CORAL_WALL_FAN = "minecraft:bubble_coral_wall_fan";
+    public static final String MC_FIRE_CORAL_WALL_FAN = "minecraft:fire_coral_wall_fan";
+    public static final String MC_HORN_CORAL_WALL_FAN = "minecraft:horn_coral_wall_fan";
+    public static final String MC_DEAD_TUBE_CORAL_WALL_FAN = "minecraft:dead_tube_coral_wall_fan";
+    public static final String MC_DEAD_BRAIN_CORAL_WALL_FAN = "minecraft:dead_brain_coral_wall_fan";
+    public static final String MC_DEAD_BUBBLE_CORAL_WALL_FAN = "minecraft:dead_bubble_coral_wall_fan";
+    public static final String MC_DEAD_FIRE_CORAL_WALL_FAN = "minecraft:dead_fire_coral_wall_fan";
+    public static final String MC_DEAD_HORN_CORAL_WALL_FAN = "minecraft:dead_horn_coral_wall_fan";
+    public static final String MC_SEA_PICKLE = "minecraft:sea_pickle";
 
     // MC 1.13 property names
 
@@ -475,6 +516,7 @@ public final class Constants {
     public static final String MC_FACING      = "facing";
     public static final String MC_TYPE        = "type";
     public static final String MC_AXIS        = "axis";
+    public static final String MC_PICKLES     = "pickles";
 
     // Minecraft NBT tag names
 
