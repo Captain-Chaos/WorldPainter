@@ -108,7 +108,7 @@ public final class BitmapHeightMap extends AbstractHeightMap {
     }
 
     /**
-     * Private version of {@link #getHeight(float, float)}} which extends the
+     * Private version of {@link #getHeight(int, int)}} which extends the
      * edge pixels of the image if it is non-repeating, to make the bicubic
      * interpolation work correctly around the edges.
      */

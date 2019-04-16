@@ -35,6 +35,7 @@ import static org.pepsoft.worldpainter.Version.VERSION;
  *
  * @author SchmitzP
  */
+@SuppressWarnings("unused") // Used from scripts
 public class ScriptingContext {
     public ScriptingContext(boolean commandLine) {
         this.commandLine = commandLine;

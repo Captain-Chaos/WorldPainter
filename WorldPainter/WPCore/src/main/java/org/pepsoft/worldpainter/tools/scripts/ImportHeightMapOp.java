@@ -40,6 +40,7 @@ import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
  *
  * @author SchmitzP
  */
+@SuppressWarnings("unused") // Used from scripts
 public class ImportHeightMapOp extends AbstractOperation<World2> {
     protected ImportHeightMapOp(ScriptingContext context) {
         super(context);
