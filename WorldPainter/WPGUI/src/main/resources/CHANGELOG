@@ -1,3 +1,8 @@
+-- Version 2.5.13, released ...
+
+ * Bug fix: actually place dark oak and acacia saplings from the Custom Plants layer when selected, rather than pine and oak saplings instead
+ * Add support for importing maps with formats supported by plugins
+
 -- Version 2.5.12, released 17-3-2019
 
  * Bug fix: don't ignore the water level when importing height maps
