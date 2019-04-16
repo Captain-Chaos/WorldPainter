@@ -121,6 +121,7 @@ public class ChasmsExporter extends AbstractLayerExporter<Chasms> implements Fir
 //                                }
                                 if (glassCeiling) {
                                     for (int yy = y + 1; yy <= terrainheight; yy++) {
+                                        // TODO this method forgets to set the data value as well; fix in this branch?
                                         chunk.setBlockType(x, yy, z, BLK_GLASS);
                                     }
                                 }

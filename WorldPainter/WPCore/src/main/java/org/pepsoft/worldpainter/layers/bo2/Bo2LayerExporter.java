@@ -160,8 +160,10 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
         final Point3i offset = object.getOffset();
         // Check whether the objects fits completely inside the exported area.
         // This is to avoid objects getting cut off at area boundaries
-        return ! ((x + offset.x < exportedArea.x) || (x + offset.x + dimensions.x > exportedArea.x + exportedArea.width)
-            || (y + offset.y < exportedArea.y) || (y + offset.y + dimensions.y > exportedArea.y + exportedArea.height));
+        return ! ((x + offset.x < exportedArea.x)
+                || (x + offset.x + dimensions.x - 1 > exportedArea.x + exportedArea.width - 1)
+                || (y + offset.y < exportedArea.y)
+                || (y + offset.y + dimensions.y - 1 > exportedArea.y + exportedArea.height - 1));
     }
 
     /**
