@@ -95,7 +95,7 @@ public final class PluginManager {
             for (JarFile pluginJar: jarClassLoaders.keySet()) {
                 try {
                     findPlugins(type, filename, pluginJar, plugins);
-                } catch (ParseException | ClassNotFoundException | IllegalAccessException | InstantiationException e) {
+                } catch (ParseException | ClassNotFoundException | IllegalAccessException | InstantiationException | NoClassDefFoundError e) {
                     logger.error("{} while instantiating plugin {} (message: {}); skipping plugin", e.getClass().getSimpleName(), pluginJar.getName(), e.getMessage(), e);
                 }
             }

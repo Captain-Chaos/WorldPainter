@@ -5,7 +5,7 @@ package org.pepsoft.worldpainter.layers;
  */
 public class Caves extends Layer {
     private Caves() {
-        super("org.pepsoft.Caves", "Caves", "Generate underground tunnel-like caves of varying size", DataSize.NIBBLE, 23);
+        super("org.pepsoft.Caves", "[BETA] Caves", "Generate underground tunnel-like caves of varying size", DataSize.NIBBLE, 23);
     }
 
     public static final Caves INSTANCE = new Caves();

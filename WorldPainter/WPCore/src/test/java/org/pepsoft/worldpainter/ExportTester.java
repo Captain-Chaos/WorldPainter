@@ -1,7 +1,7 @@
 package org.pepsoft.worldpainter;
 
-import com.google.common.primitives.Ints;
 import org.pepsoft.minecraft.Constants;
+import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.PluginManager;
 import org.pepsoft.util.ProgressReceiver;
@@ -22,10 +22,22 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
+import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.plugins.WPPluginManager.FILENAME;
 
 public class ExportTester extends RegressionIT {
     public static void main(String[] args) throws IOException, ClassNotFoundException, UnloadableWorldException, ProgressReceiver.OperationCancelled {
+        // Load the default platform descriptors so that they don't get blocked
+        // by older versions of them which might be contained in the
+        // configuration. Do this by loading and initialising (but not
+        // instantiating) the DefaultPlugin class
+        try {
+            Class.forName("org.pepsoft.worldpainter.DefaultPlugin");
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+
         // Load or initialise configuration
         Configuration config = Configuration.load(); // This will migrate the configuration directory if necessary
         if (config == null) {
@@ -70,12 +82,31 @@ public class ExportTester extends RegressionIT {
         for (File file: worldDir.listFiles()) {
             if (file.isFile() && WORLD_PATTERN.matcher(file.getName()).matches() && (! WORLD_BACKUP_PATTERN.matcher(file.getName()).matches())) {
                 World2 world = loadWorld(file);
-                if ((! (world.getPlatform() == DefaultPlugin.JAVA_ANVIL)) && (! (world.getPlatform() == DefaultPlugin.JAVA_MCREGION))) {
+                if ((! (world.getPlatform() == JAVA_ANVIL))
+                        && (! (world.getPlatform() == JAVA_MCREGION))
+                        && (! (world.getPlatform() == JAVA_ANVIL_1_13))) {
                     logger.warn("Don't know how to export platform {}; skipping", world.getPlatform().displayName);
                     continue;
                 }
-                File mapDir = exportJavaWorld(world, baseDir);
-                verifyJavaMap(world, mapDir);
+
+                File mapDir;
+                try {
+                    mapDir = exportJavaWorld(world, baseDir);
+                    verifyJavaMap(world, mapDir);
+                } catch (Throwable t) {
+                    logger.error(t.getClass().getSimpleName() + ": " + t.getMessage(), t);
+                }
+
+                if ((world.getPlatform() != JAVA_ANVIL_1_13) && (world.getMaxHeight() == DEFAULT_MAX_HEIGHT_ANVIL)) {
+                    // Also test the new Minecraft 1.13 support
+                    world.setPlatform(JAVA_ANVIL_1_13);
+                    try {
+                        mapDir = exportJavaWorld(world, baseDir);
+                        verifyJavaMap(world, mapDir);
+                    } catch (Throwable t) {
+                        logger.error(t.getClass().getSimpleName() + ": " + t.getMessage(), t);
+                    }
+                }
             }
         }
     }
@@ -89,7 +120,7 @@ public class ExportTester extends RegressionIT {
     }
 
     private void verifyJavaMap(World2 world, File mapDir) throws IOException {
-        verifyJavaWorld(mapDir, (world.getPlatform() == DefaultPlugin.JAVA_MCREGION)? Constants.VERSION_MCREGION : Constants.VERSION_ANVIL);
+        verifyJavaWorld(mapDir, (world.getPlatform() == JAVA_MCREGION)? Constants.VERSION_MCREGION : Constants.VERSION_ANVIL);
         Collection<Dimension> dimensions;
         if (world.getDimensionsToExport() != null) {
             dimensions = world.getDimensionsToExport().stream().map(world::getDimension).collect(Collectors.toSet());
@@ -98,19 +129,18 @@ public class ExportTester extends RegressionIT {
         }
         for (Dimension dimension: dimensions) {
             // Gather some blocks which really should exist in the exported map. This is a bit of a gamble though
-            Set<Integer> blockTypes = new HashSet<>();
+            Set<Material> expectedMaterials = new HashSet<>();
             Terrain subsurfaceTerrain = dimension.getSubsurfaceMaterial();
             Terrain surfaceTerrain = dimension.getTiles().iterator().next().getTerrain(0, 0);
             for (int x = 0; x < 16; x++) {
                 for (int y = 0; y < 16; y++) {
                     for (int z = 0; z < 16; z++) {
-                        blockTypes.add(subsurfaceTerrain.getMaterial(dimension.getSeed(), x, y, z, 8).blockType);
-                        blockTypes.add(surfaceTerrain.getMaterial(dimension.getSeed(), x, y, z, 8).blockType);
+                        expectedMaterials.add(subsurfaceTerrain.getMaterial(dimension.getSeed(), x, y, z, 8));
+                        expectedMaterials.add(surfaceTerrain.getMaterial(dimension.getSeed(), x, y, z, 8));
                     }
                 }
             }
-            int[] expectedBlockTypes = Ints.toArray(blockTypes);
-            verifyJavaDimension(mapDir, dimension, expectedBlockTypes);
+            verifyJavaDimension(mapDir, dimension, expectedMaterials);
         }
     }
 

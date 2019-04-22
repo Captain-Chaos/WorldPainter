@@ -41,6 +41,8 @@ import static org.pepsoft.minecraft.Material.HorizontalOrientationScheme.CARDINA
  */
 @SuppressWarnings("deprecation") // only deprecated for client code
 public final class Material implements Serializable {
+    private static final Logger logger = LoggerFactory.getLogger(Material.class);
+
     /**
      * Legacy constructor, which creates a pre-Minecraft 1.13 block type from a
      * block ID and data value.
@@ -1653,7 +1655,6 @@ public final class Material implements Serializable {
     public static final int CATEGORY_NATURAL_SOLID = 5;
     public static final int CATEGORY_UNKNOWN       = 6;
 
-    private static final Logger logger = LoggerFactory.getLogger(Material.class);
     private static final long serialVersionUID = 2011101001L;
 
     /**

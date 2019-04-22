@@ -1,13 +1,10 @@
 package org.pepsoft.worldpainter;
 
-import org.jnbt.NBTInputStream;
-import org.jnbt.Tag;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.pepsoft.minecraft.Block;
-import org.pepsoft.minecraft.Chunk;
+import org.pepsoft.minecraft.ChunkStore;
 import org.pepsoft.minecraft.Level;
-import org.pepsoft.minecraft.RegionFile;
+import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.exporting.JavaMinecraftWorld;
@@ -23,14 +20,12 @@ import org.slf4j.LoggerFactory;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.BitSet;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_13;
 
@@ -105,7 +100,7 @@ public class RegressionIT {
         assertEquals(expectedVersion, level.getVersion());
     }
 
-    protected void verifyJavaDimension(File worldDir, Dimension dimension, int... expectedBlocks) throws IOException {
+    protected void verifyJavaDimension(File worldDir, Dimension dimension, Set<Material> expectedMaterials) {
         World2 world = dimension.getWorld();
         logger.info("Verifying dimension {} of map {}", dimension.getName(), world.getName());
 
@@ -149,82 +144,47 @@ public class RegressionIT {
             logger.warn("Skipping bounds check for dimension which contains the NotReady layer");
         }
 
-        File regionDir;
-        switch (dimension.getDim()) {
-            case DIM_NORMAL:
-                regionDir = new File(worldDir, "region");
-                break;
-            case DIM_NETHER:
-                regionDir = new File(worldDir, "DIM-1/region");
-                break;
-            case DIM_END:
-                regionDir = new File(worldDir, "DIM1/region");
-                break;
-            default:
-                throw new IllegalArgumentException();
-        }
         Platform platform = world.getPlatform();
         DefaultPlatformProvider platformProvider = (DefaultPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
         int maxHeight = dimension.getMaxHeight();
-        Pattern regionFilePattern = (platform == DefaultPlugin.JAVA_MCREGION)
-            ? Pattern.compile("r\\.(-?\\d+)\\.(-?\\d+)\\.mcr")
-            : Pattern.compile("r\\.(-?\\d+)\\.(-?\\d+)\\.mca");
-        int lowestChunkX = Integer.MAX_VALUE, highestChunkX = Integer.MIN_VALUE;
-        int lowestChunkZ = Integer.MAX_VALUE, highestChunkZ = Integer.MIN_VALUE;
-        BitSet blockTypes = new BitSet(256);
-        for (File file: regionDir.listFiles()) {
-            Matcher matcher = regionFilePattern.matcher(file.getName());
-            if (matcher.matches()) {
-                int regionX = Integer.parseInt(matcher.group(1));
-                int regionZ = Integer.parseInt(matcher.group(2));
-                try (RegionFile regionFile = new RegionFile(file, true)) {
-                    for (int chunkX = 0; chunkX < 32; chunkX++) {
-                        for (int chunkZ = 0; chunkZ < 32; chunkZ++) {
-                            if (regionFile.containsChunk(chunkX, chunkZ)) {
-                                int absChunkX = (regionX << 5) + chunkX;
-                                int absChunkZ = (regionZ << 5) + chunkZ;
-                                if (absChunkX < lowestChunkX) {
-                                    lowestChunkX = absChunkX;
-                                }
-                                if (absChunkX > highestChunkX) {
-                                    highestChunkX = absChunkX;
-                                }
-                                if (absChunkZ < lowestChunkZ) {
-                                    lowestChunkZ = absChunkZ;
-                                }
-                                if (absChunkZ > highestChunkZ) {
-                                    highestChunkZ = absChunkZ;
-                                }
-                                Chunk chunk;
-                                try (NBTInputStream in = new NBTInputStream(regionFile.getChunkDataInputStream(chunkX, chunkZ))) {
-                                    Tag tag = in.readTag();
-                                    chunk = platformProvider.createChunk(platform, tag, maxHeight, true);
-                                }
+        int[] lowestChunkX = {Integer.MAX_VALUE}, highestChunkX = {Integer.MIN_VALUE};
+        int[] lowestChunkZ = {Integer.MAX_VALUE}, highestChunkZ = {Integer.MIN_VALUE};
+        Set<Material> materials = new HashSet<>();
+        ChunkStore chunkStore = platformProvider.getChunkStore(platform, worldDir, dimension.getDim());
+        chunkStore.visitChunks(chunk -> {
+            if (chunk.getxPos() < lowestChunkX[0]) {
+                lowestChunkX[0] = chunk.getxPos();
+            }
+            if (chunk.getxPos() > highestChunkX[0]) {
+                highestChunkX[0] = chunk.getxPos();
+            }
+            if (chunk.getzPos() < lowestChunkZ[0]) {
+                lowestChunkZ[0] = chunk.getzPos();
+            }
+            if (chunk.getzPos() > highestChunkZ[0]) {
+                highestChunkZ[0] = chunk.getzPos();
+            }
 
-                                // Iterate over all blocks to check whether the
-                                // basic data structure are present, and inventory
-                                // all block types present
-                                for (int x = 0; x < 16; x++) {
-                                    for (int y = 0; y < maxHeight; y++) {
-                                        for (int z = 0; z < 16; z++) {
-                                            blockTypes.set(chunk.getBlockType(x, y, z));
-                                        }
-                                    }
-                                }
-                            }
-                        }
+            // Iterate over all blocks to check whether the
+            // basic data structure are present, and inventory
+            // all block types present
+            for (int x = 0; x < 16; x++) {
+                for (int y = 0; y < maxHeight; y++) {
+                    for (int z = 0; z < 16; z++) {
+                        materials.add(chunk.getMaterial(x, y, z));
                     }
                 }
             }
-        }
+            return true;
+        });
         if (checkBounds) {
-            assertEquals(expectedBounds, new Rectangle(lowestChunkX, lowestChunkZ, highestChunkX - lowestChunkX + 1, highestChunkZ - lowestChunkZ + 1));
+            assertEquals(expectedBounds, new Rectangle(lowestChunkX[0], lowestChunkZ[0], highestChunkX[0] - lowestChunkX[0] + 1, highestChunkZ[0] - lowestChunkZ[0] + 1));
         }
 
         // Check blocks we know should definitely be present due to the terrain
         // types and layers used
-        for (int expectedBlock: expectedBlocks) {
-            assertTrue("expected block type " + Block.BLOCKS[expectedBlock].name + " missing", blockTypes.get(expectedBlock));
+        for (Material expectedMaterial: expectedMaterials) {
+            assertTrue("expected block type " + expectedMaterial + " missing", materials.contains(expectedMaterial));
         }
     }
 
