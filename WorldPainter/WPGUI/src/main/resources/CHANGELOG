@@ -1,3 +1,18 @@
+-- Version 2.6.0.RC1, released 22-4-2019
+
+ * Add support for Minecraft 1.13
+   + You can now Export, Import and Merge maps directly to Minecraft 1.13 format
+   + For worlds in Minecraft 1.13 format, block type selection is now by name rather than by numerical ID
+     - Similar to how you can select custom IDs for the Minecraft 1.2 to 1.12 format, for Minecraft 1.13 you can supply your own namespace, name and properties in order to use modded blocks
+   + This support is still in beta, and has known and unknown bugs
+     - Keep your own backups of your Minecraft maps and your .world files!
+     - Please file issues on GitHub for any bugs you encounter: https://github.com/Captain-Chaos/WorldPainter/issues
+     - When you file an issue, make sure to include all the details I need to reproduce the issue myself. Issues of type "it doesn't work" will be closed
+   + Because it is still in beta, it is not yet the default. You can select it from the 'Map format' drop-down on the Export or New World screens
+ * Add new Caves layer
+   + The new Caves layer creates worm-like tunnels that are more similar (although still different) to Minecraft's native caves than the Caverns and Chasms layers
+   + This new layer is still in beta. The layout and appearance of the caves may change in later releases, so don't rely too much on the exact results of the current version just yet
+
 -- Version 2.5.12, released 17-3-2019
 
  * Bug fix: don't ignore the water level when importing height maps

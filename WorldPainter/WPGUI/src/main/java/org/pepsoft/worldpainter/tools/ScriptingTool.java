@@ -87,7 +87,17 @@ public class ScriptingTool {
             System.exit(1);
         }
         scriptEngine.put(ScriptEngine.FILENAME, scriptFileName);
-        
+
+        // Load the default platform descriptors so that they don't get blocked
+        // by older versions of them which might be contained in the
+        // configuration. Do this by loading and initialising (but not
+        // instantiating) the DefaultPlugin class
+        try {
+            Class.forName("org.pepsoft.worldpainter.DefaultPlugin");
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+
         // Initialise WorldPainter configuration
         Configuration config = Configuration.load();
         if (config == null) {
