@@ -141,7 +141,6 @@ public class CustomMaterialDialog extends WorldPainterDialog implements Property
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         if (evt.getPropertyName().equals("material")) {
-            System.out.println(evt.getNewValue());
             updateName();
             schedulePreviewUpdate();
         }

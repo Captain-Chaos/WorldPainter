@@ -15,8 +15,8 @@ import java.awt.image.ImageObserver;
 import java.awt.image.VolatileImage;
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -941,7 +941,6 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
 
     public void setTileProviderOffset(TileProvider tileProvider, Point offset) {
         if (! offset.equals(offsets.get(tileProvider))) {
-            System.out.println("Offset -> " + offset);
             offsets.put(tileProvider, offset);
             fireViewChangedEvent();
             repaint();

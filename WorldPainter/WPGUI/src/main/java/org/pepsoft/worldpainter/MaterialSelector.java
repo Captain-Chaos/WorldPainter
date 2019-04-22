@@ -86,7 +86,6 @@ public class MaterialSelector extends javax.swing.JPanel {
     }
     
     public Material getMaterial() {
-        System.out.println("Returning: " + material);
         return material;
     }
 

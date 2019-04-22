@@ -9,6 +9,8 @@ import com.google.common.collect.ImmutableSet;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.pepsoft.util.CSVDataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
@@ -108,7 +110,9 @@ public final class Material implements Serializable {
             dry = (boolean) spec.get("dry");
             category = determineCategory();
         } else {
-            System.out.println("Legacy material " + blockType + ":" + data + " not found in materials database");
+            if (logger.isDebugEnabled()) {
+                logger.debug("Legacy material " + blockType + ":" + data + " not found in materials database");
+            }
             // Use reasonable defaults for unknown blocks
             opacity = 0;
             transparent = true;
@@ -178,11 +182,15 @@ public final class Material implements Serializable {
         if (index != -1) {
             blockType = index >> 4;
             data = index & 0xf;
-            System.out.println("Matched " + identity + " to " + BLOCK_TYPE_NAMES[blockType] + "(" + blockType + "):" + data);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Matched " + identity + " to " + BLOCK_TYPE_NAMES[blockType] + "(" + blockType + "):" + data);
+            }
         } else {
             blockType = -1;
             data = -1;
-            new Throwable("Did not match " + identity + " to legacy block").printStackTrace();
+            if (logger.isDebugEnabled()) {
+                logger.debug("Did not match " + identity + " to legacy block", new Throwable("Stack trace"));
+            }
         }
 
         this.identity = identity;
@@ -220,7 +228,9 @@ public final class Material implements Serializable {
             dry = (boolean) spec.get("dry");
             category = determineCategory();
         } else {
-            System.out.println("Modern material " + identity + " not found in materials database");
+            if (logger.isDebugEnabled()) {
+                logger.debug("Modern material " + identity + " not found in materials database");
+            }
             // Use reasonable defaults for unknown blocks
             opacity = 0;
             transparent = true;
@@ -285,7 +295,9 @@ public final class Material implements Serializable {
                     return spec;
                 }
                 // If we reach here none of the specs matched
-                new Throwable("There were multiple specs for identity " + identity + " but its properties did not match any of them").printStackTrace();
+                if (logger.isDebugEnabled()) {
+                    logger.debug("There were multiple specs for identity " + identity + " but its properties did not match any of them", new Throwable("Stack trace"));
+                }
                 return null;
             }
         } else {
@@ -1641,6 +1653,7 @@ public final class Material implements Serializable {
     public static final int CATEGORY_NATURAL_SOLID = 5;
     public static final int CATEGORY_UNKNOWN       = 6;
 
+    private static final Logger logger = LoggerFactory.getLogger(Material.class);
     private static final long serialVersionUID = 2011101001L;
 
     /**

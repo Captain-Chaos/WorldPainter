@@ -10,6 +10,12 @@
  */
 package org.pepsoft.util.swing;
 
+import org.pepsoft.util.FileUtils;
+import org.pepsoft.util.ProgressReceiver;
+import org.pepsoft.util.SubProgressReceiver;
+import org.pepsoft.util.swing.ProgressComponent.Listener;
+
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -19,12 +25,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import javax.swing.*;
-
-import org.pepsoft.util.FileUtils;
-import org.pepsoft.util.ProgressReceiver;
-import org.pepsoft.util.SubProgressReceiver;
-import org.pepsoft.util.swing.ProgressComponent.Listener;
 
 import static org.pepsoft.util.AwtUtils.doOnEventThread;
 
@@ -243,13 +243,7 @@ public class MultiProgressComponent<T> extends javax.swing.JPanel implements Pro
                     do {
                         for (int i = 0; i < scrollablePanel1.getComponentCount(); i++) {
                             Component component = scrollablePanel1.getComponent(i);
-                            ProgressViewer parentViewer;
-                            try {
-                                parentViewer = (ProgressViewer) ((component instanceof ProgressViewer) ? component : ((JPanel) component).getComponent(1));
-                            } catch (ArrayIndexOutOfBoundsException e) {
-                                System.out.println("Component " + i + " is a " + component.getClass());
-                                throw e;
-                            }
+                            ProgressViewer parentViewer = (ProgressViewer) ((component instanceof ProgressViewer) ? component : ((JPanel) component).getComponent(1));
                             if (parentViewer.getSubProgressReceiver() == parent) {
                                 // Progress viewer for parent found; insert below
                                 Integer parentIndentation = (Integer) parentViewer.getClientProperty(CLIENT_PROPERTY_INDENTATION);
