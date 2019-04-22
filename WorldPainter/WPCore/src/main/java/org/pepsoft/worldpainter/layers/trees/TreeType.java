@@ -105,19 +105,19 @@ public abstract class TreeType implements Serializable {
         if ((existingBlock == null) || ((existingBlock != AIR) && (existingBlock.isNotNamed(MC_VINE)))) {
             return false;
         }
-        Material vine;
+        Material vine = existingBlock.isNamed(MC_VINE) ? existingBlock : VINE;
         switch (direction) {
             case NORTH:
-                vine = VINE.withProperty(NORTH, true);
+                vine = vine.withProperty(NORTH, true);
                 break;
             case EAST:
-                vine = VINE.withProperty(EAST, true);
+                vine = vine.withProperty(EAST, true);
                 break;
             case SOUTH:
-                vine = VINE.withProperty(SOUTH, true);
+                vine = vine.withProperty(SOUTH, true);
                 break;
             case WEST:
-                vine = VINE.withProperty(WEST, true);
+                vine = vine.withProperty(WEST, true);
                 break;
             default:
                 throw new InternalError();

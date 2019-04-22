@@ -217,6 +217,7 @@ public final class Constants {
     public static final String MC_JUNGLE_SAPLING = "minecraft:jungle_sapling";
     public static final String MC_JUNGLE_SLAB = "minecraft:jungle_slab";
     public static final String MC_JUNGLE_STAIRS = "minecraft:jungle_stairs";
+    public static final String MC_JUNGLE_WOOD = "minecraft:jungle_wood";
     public static final String MC_KELP_PLANT = "minecraft:kelp_plant";
     public static final String MC_KELP = "minecraft:kelp";
     public static final String MC_LADDER = "minecraft:ladder";
@@ -517,6 +518,7 @@ public final class Constants {
     public static final String MC_TYPE        = "type";
     public static final String MC_AXIS        = "axis";
     public static final String MC_PICKLES     = "pickles";
+    public static final String MC_MOISTURE    = "moisture";
 
     // Minecraft NBT tag names
 

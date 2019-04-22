@@ -45,7 +45,7 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
                     activeMaterials.add(material);
                 }
             }
-            this.activeMaterials = activeMaterials.toArray(new Material[0]);
+            this.activeMaterials = activeMaterials.toArray(new Material[activeMaterials.size()]);
             noiseGenerators = new PerlinNoise[this.activeMaterials.length];
             seedOffsets = new long[this.activeMaterials.length];
             minLevels = new int[this.activeMaterials.length];
@@ -120,8 +120,7 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
                             if ((chance <= 0.5f)
                                     && (y >= minLevels[i])
                                     && (y <= maxLevels[i])
-                                    // TODO: migrate this information to Material:
-                                    && (((activeMaterials[i].blockType == BLK_DIRT) || (activeMaterials[i].blockType == BLK_GRAVEL))
+                                    && (activeMaterials[i].isNamedOneOf(MC_DIRT, MC_GRAVEL)
                                         ? (noiseGenerators[i].getPerlinNoise(dirtX, dirtY, dirtZ) >= chance)
                                         : (noiseGenerators[i].getPerlinNoise(dx, dy, dz) >= chance))) {
 //                                counts[oreType]++;
@@ -158,18 +157,18 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
         
         public ResourcesExporterSettings(int maxHeight, boolean nether) {
             Random random = new Random();
+            settings.put(DIRT,             new ResourceSettings(DIRT,             0, maxHeight - 1, nether ? 0 : 57, random.nextLong()));
+            settings.put(GRAVEL,           new ResourceSettings(GRAVEL,           0, maxHeight - 1, nether ? 0 : 28, random.nextLong()));
             settings.put(GOLD_ORE,         new ResourceSettings(GOLD_ORE,         0,            31, nether ? 0 :  1, random.nextLong()));
             settings.put(IRON_ORE,         new ResourceSettings(IRON_ORE,         0,            63, nether ? 0 :  6, random.nextLong()));
             settings.put(COAL,             new ResourceSettings(COAL,             0, maxHeight - 1, nether ? 0 : 10, random.nextLong()));
             settings.put(LAPIS_LAZULI_ORE, new ResourceSettings(LAPIS_LAZULI_ORE, 0,            31, nether ? 0 :  1, random.nextLong()));
             settings.put(DIAMOND_ORE,      new ResourceSettings(DIAMOND_ORE,      0,            15, nether ? 0 :  1, random.nextLong()));
             settings.put(REDSTONE_ORE,     new ResourceSettings(REDSTONE_ORE,     0,            15, nether ? 0 :  8, random.nextLong()));
-            settings.put(WATER,            new ResourceSettings(WATER,            0, maxHeight - 1, nether ? 0 :  1, random.nextLong()));
-            settings.put(LAVA,             new ResourceSettings(LAVA,             0,            15, nether ? 0 :  2, random.nextLong()));
-            settings.put(DIRT,             new ResourceSettings(DIRT,             0, maxHeight - 1, nether ? 0 : 57, random.nextLong()));
-            settings.put(GRAVEL,           new ResourceSettings(GRAVEL,           0, maxHeight - 1, nether ? 0 : 28, random.nextLong()));
             settings.put(EMERALD_ORE,      new ResourceSettings(EMERALD_ORE,      0,            31, nether ? 0 : ((maxHeight != DEFAULT_MAX_HEIGHT_ANVIL) ? 0 : 1), random.nextLong()));
             settings.put(QUARTZ_ORE,       new ResourceSettings(QUARTZ_ORE,       0, maxHeight - 1, nether ? ((maxHeight != DEFAULT_MAX_HEIGHT_ANVIL) ? 0 : 6) : 0, random.nextLong()));
+            settings.put(WATER,            new ResourceSettings(WATER,            0, maxHeight - 1, nether ? 0 :  1, random.nextLong()));
+            settings.put(LAVA,             new ResourceSettings(LAVA,             0,            15, nether ? 0 :  2, random.nextLong()));
         }
 
         @Override
@@ -226,7 +225,8 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
         public ResourcesExporterSettings clone() {
             try {
                 ResourcesExporterSettings clone = (ResourcesExporterSettings) super.clone();
-                // TODO clone settings
+                clone.settings = new LinkedHashMap<>();
+                settings.forEach((material, settings) -> clone.settings.put(material, settings.clone()));
                 return clone;
             } catch (CloneNotSupportedException e) {
                 throw new RuntimeException(e);
@@ -277,11 +277,10 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
                 }
 
                 // Convert integer-based settings to material-based settings
-                settings = new HashMap<>();
-                for (Map.Entry<Integer, Integer> entry: minLevels.entrySet()) {
-                    int blockType = entry.getKey();
+                settings = new LinkedHashMap<>();
+                for (int blockType: maxLevels.keySet()) {
                     Material material = get(blockType);
-                    settings.put(material, new ResourceSettings(material, entry.getValue(), maxLevels.get(blockType),
+                    settings.put(material, new ResourceSettings(material, minLevels.get(blockType), maxLevels.get(blockType),
                             chances.get(blockType), seedOffsets.get(blockType)));
                 }
                 minLevels = null;
@@ -293,7 +292,7 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
         }
         
         private int minimumLevel = 8;
-        private Map<Material, ResourceSettings> settings = new HashMap<>();
+        private Map<Material, ResourceSettings> settings = new LinkedHashMap<>();
         /** @deprecated */
         private Map<Integer, Integer> maxLevels = null;
         /** @deprecated */
@@ -315,6 +314,15 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
             this.maxLevel = maxLevel;
             this.chance = chance;
             this.seedOffset = seedOffset;
+        }
+
+        @Override
+        public ResourceSettings clone() {
+            try {
+                return (ResourceSettings) super.clone();
+            } catch (CloneNotSupportedException e) {
+                throw new InternalError(e);
+            }
         }
 
         Material material;

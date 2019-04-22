@@ -23,8 +23,7 @@ import java.util.List;
 import java.util.Random;
 
 import static org.pepsoft.minecraft.Constants.*;
-import static org.pepsoft.minecraft.Material.AIR;
-import static org.pepsoft.minecraft.Material.FARMLAND;
+import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 import static org.pepsoft.worldpainter.layers.plants.Category.*;
@@ -78,7 +77,7 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
                                                 if (newHeight < 1) {
                                                     continue;
                                                 } else {
-                                                    plant = plant.withGrowth(newHeight, platform);
+                                                    plant = plant.realise(newHeight, platform);
                                                 }
                                             }
                                             renderObject(minecraftWorld, dimension, plant, worldX, worldY, height + 1, false);
@@ -90,7 +89,7 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
                                             renderObject(minecraftWorld, dimension, plant, worldX, worldY, height + 1, false);
                                             if (generateTilledDirt && (category == CROPS)) {
                                                 if (minecraftWorld.getMaterialAt(worldX, worldY, height).isNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_COARSE_DIRT, MC_PODZOL)) {
-                                                    minecraftWorld.setMaterialAt(worldX, worldY, height, FARMLAND);
+                                                    minecraftWorld.setMaterialAt(worldX, worldY, height, TILLED_DIRT);
                                                 }
                                             }
                                         } else {
@@ -98,7 +97,7 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
                                                 renderObject(minecraftWorld, dimension, plant, worldX, worldY, height + 1, false);
                                             } else if (generateTilledDirt && (category == CROPS)) {
                                                 if (minecraftWorld.getMaterialAt(worldX, worldY, height).isNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_COARSE_DIRT, MC_PODZOL)) {
-                                                    minecraftWorld.setMaterialAt(worldX, worldY, height, FARMLAND);
+                                                    minecraftWorld.setMaterialAt(worldX, worldY, height, TILLED_DIRT);
                                                     renderObject(minecraftWorld, dimension, plant, worldX, worldY, height + 1, false);
                                                 }
                                             }
@@ -140,7 +139,7 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
                 } else if (layer.isGenerateFarmland()
                         && (category == CROPS)
                         && minecraftWorld.getMaterialAt(location.x, location.y, location.z - 1).isNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_COARSE_DIRT, MC_PODZOL)) {
-                    minecraftWorld.setMaterialAt(location.x, location.y, location.z - 1, FARMLAND);
+                    minecraftWorld.setMaterialAt(location.x, location.y, location.z - 1, TILLED_DIRT);
                     renderObject(minecraftWorld, dimension, plant, location.x, location.y, location.z, false);
                 }
             }
@@ -168,4 +167,6 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
             return new Random();
         }
     };
+
+    private static final Material TILLED_DIRT = FARMLAND.withProperty(MOISTURE, 4);
 }

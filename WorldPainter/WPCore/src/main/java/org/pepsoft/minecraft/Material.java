@@ -1103,9 +1103,10 @@ public final class Material implements Serializable {
     public final transient int opacity;
 
     /**
-     * The name of the block. This value is guaranteed to be interned, so that
-     * it is valid to compare it with <code>String</code> literals or constants
-     * using the <code>==</code> operator.
+     * The name of the block, including the namespace (if present; separated by
+     * a colon). This value is guaranteed to be interned, so that it is valid to
+     * compare it with <code>String</code> literals or constants using the
+     * <code>==</code> operator.
      */
     public final transient String name;
 
@@ -1502,6 +1503,8 @@ public final class Material implements Serializable {
     public static final Property<Direction> FACING      = new Property<>(MC_FACING,      Direction.class);
     public static final Property<String>    AXIS        = new Property<>(MC_AXIS,        String.class);
     public static final Property<String>    TYPE        = new Property<>(MC_TYPE,        String.class);
+    public static final Property<Integer>   PICKLES     = new Property<>(MC_PICKLES,     Integer.class);
+    public static final Property<Integer>   MOISTURE    = new Property<>(MC_MOISTURE,    Integer.class);
 
     // Modern materials (based on MC 1.13 block names and properties)
 
@@ -1551,6 +1554,9 @@ public final class Material implements Serializable {
     public static final Material ACACIA_SAPLING = get(MC_ACACIA_SAPLING, MC_STAGE, 0);
     public static final Material CARROTS = get(MC_CARROTS, MC_AGE, 0);
     public static final Material POTATOES = get(MC_POTATOES, MC_AGE, 0);
+    /**
+     * A pumpkin stem without direction; set the facing property before use.
+     */
     public static final Material PUMPKIN_STEM = get(MC_PUMPKIN_STEM, MC_AGE, 0);
     public static final Material MELON_STEM = get(MC_MELON_STEM, MC_AGE, 0);
     public static final Material BEETROOTS = get(MC_BEETROOTS, MC_AGE, 0);

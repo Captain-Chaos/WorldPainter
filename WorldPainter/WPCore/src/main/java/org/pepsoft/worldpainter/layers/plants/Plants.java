@@ -1,11 +1,24 @@
 package org.pepsoft.worldpainter.layers.plants;
 
+import org.pepsoft.minecraft.Direction;
 import org.pepsoft.minecraft.Material;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 
+import java.util.Optional;
+import java.util.Random;
+
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.layers.plants.Category.*;
 
+/**
+ * A collection of Minecraft plants. These are prototypes which cannot be
+ * actually be rendered; you must always invoke
+ * {@link Plant#realise(int, Platform)} to obtain a concrete instances of the
+ * plant which can be rendered. The dimensions of the prototypes indicate the
+ * maximum dimensions of the plant.
+ */
 public class Plants {
     public static void main(String[] args) {
         for (Plant plant: ALL_PLANTS) {
@@ -13,64 +26,84 @@ public class Plants {
         }
     }
 
-    public static final Plant GRASS = new Plant("Grass", Material.GRASS, PLANTS_AND_FLOWERS, "blocks/tallgrass.png");
-    public static final Plant FERN = new Plant("Fern", Material.FERN, PLANTS_AND_FLOWERS, "blocks/fern.png");
-    public static final Plant DEAD_SHRUB = new Plant("Dead Shrub", Material.DEAD_SHRUBS, PLANTS_AND_FLOWERS, "blocks/deadbush.png") {
+    public static final Plant GRASS = new SimplePlant("Grass", Material.GRASS, PLANTS_AND_FLOWERS, "blocks/tallgrass.png");
+    public static final Plant FERN = new SimplePlant("Fern", Material.FERN, PLANTS_AND_FLOWERS, "blocks/fern.png");
+    public static final Plant DEAD_SHRUB = new SimplePlant("Dead Shrub", Material.DEAD_SHRUBS, PLANTS_AND_FLOWERS, "blocks/deadbush.png") {
         @Override
         public boolean isValidFoundation(MinecraftWorld world, int x, int y, int z) {
             final Material material = world.getMaterialAt(x, y, z);
             return material.isNamed(MC_SAND) || material.isNamed(MC_RED_SAND) || material.isNamed(MC_TERRACOTTA);
         }
     };
-    public static final Plant DANDELION = new Plant("Dandelion", Material.DANDELION, PLANTS_AND_FLOWERS, "blocks/flower_dandelion.png");
-    public static final Plant POPPY = new Plant("Poppy", Material.ROSE, PLANTS_AND_FLOWERS, "blocks/flower_rose.png");
-    public static final Plant BLUE_ORCHID = new Plant("Blue Orchid", Material.BLUE_ORCHID, PLANTS_AND_FLOWERS, "blocks/flower_blue_orchid.png");
-    public static final Plant ALLIUM = new Plant("Allium", Material.ALLIUM, PLANTS_AND_FLOWERS, "blocks/flower_allium.png");
-    public static final Plant AZURE_BLUET = new Plant("Azure Bluet", Material.AZURE_BLUET, PLANTS_AND_FLOWERS, "blocks/flower_houstonia.png");
-    public static final Plant TULIP_RED = new Plant("Red Tulip", Material.RED_TULIP, PLANTS_AND_FLOWERS, "blocks/flower_tulip_red.png");
-    public static final Plant TULIP_ORANGE = new Plant("Orange Tulip", Material.ORANGE_TULIP, PLANTS_AND_FLOWERS, "blocks/flower_tulip_orange.png");
-    public static final Plant TULIP_WHITE = new Plant("White Tulip", Material.WHITE_TULIP, PLANTS_AND_FLOWERS, "blocks/flower_tulip_white.png");
-    public static final Plant TULIP_PINK = new Plant("Pink Tulip", Material.PINK_TULIP, PLANTS_AND_FLOWERS, "blocks/flower_tulip_pink.png");
-    public static final Plant OXEYE_DAISY = new Plant("Oxeye Daisy", Material.OXEYE_DAISY, PLANTS_AND_FLOWERS, "blocks/flower_oxeye_daisy.png");
+    public static final Plant DANDELION = new SimplePlant("Dandelion", Material.DANDELION, PLANTS_AND_FLOWERS, "blocks/flower_dandelion.png");
+    public static final Plant POPPY = new SimplePlant("Poppy", Material.ROSE, PLANTS_AND_FLOWERS, "blocks/flower_rose.png");
+    public static final Plant BLUE_ORCHID = new SimplePlant("Blue Orchid", Material.BLUE_ORCHID, PLANTS_AND_FLOWERS, "blocks/flower_blue_orchid.png");
+    public static final Plant ALLIUM = new SimplePlant("Allium", Material.ALLIUM, PLANTS_AND_FLOWERS, "blocks/flower_allium.png");
+    public static final Plant AZURE_BLUET = new SimplePlant("Azure Bluet", Material.AZURE_BLUET, PLANTS_AND_FLOWERS, "blocks/flower_houstonia.png");
+    public static final Plant TULIP_RED = new SimplePlant("Red Tulip", Material.RED_TULIP, PLANTS_AND_FLOWERS, "blocks/flower_tulip_red.png");
+    public static final Plant TULIP_ORANGE = new SimplePlant("Orange Tulip", Material.ORANGE_TULIP, PLANTS_AND_FLOWERS, "blocks/flower_tulip_orange.png");
+    public static final Plant TULIP_WHITE = new SimplePlant("White Tulip", Material.WHITE_TULIP, PLANTS_AND_FLOWERS, "blocks/flower_tulip_white.png");
+    public static final Plant TULIP_PINK = new SimplePlant("Pink Tulip", Material.PINK_TULIP, PLANTS_AND_FLOWERS, "blocks/flower_tulip_pink.png");
+    public static final Plant OXEYE_DAISY = new SimplePlant("Oxeye Daisy", Material.OXEYE_DAISY, PLANTS_AND_FLOWERS, "blocks/flower_oxeye_daisy.png");
     public static final Plant SUNFLOWER = new DoubleHighPlant("Sunflower", Material.SUNFLOWER, PLANTS_AND_FLOWERS, "blocks/double_plant_sunflower_front.png");
     public static final Plant LILAC = new DoubleHighPlant("Lilac", Material.LILAC, PLANTS_AND_FLOWERS, "blocks/double_plant_syringa_top.png");
     public static final Plant TALL_GRASS = new DoubleHighPlant("Tall Grass", Material.TALL_GRASS, PLANTS_AND_FLOWERS, "blocks/double_plant_grass_top.png");
     public static final Plant LARGE_FERN = new DoubleHighPlant("Large Fern", Material.LARGE_FERN, PLANTS_AND_FLOWERS, "blocks/double_plant_fern_top.png");
     public static final Plant ROSE_BUSH = new DoubleHighPlant("Rose Bush", Material.ROSE_BUSH, PLANTS_AND_FLOWERS, "blocks/double_plant_rose_top.png");
     public static final Plant PEONY = new DoubleHighPlant("Peony", Material.PEONY, PLANTS_AND_FLOWERS, "blocks/double_plant_paeonia_top.png");
-    public static final Plant SAPLING_OAK = new Plant("Oak Sapling", Material.OAK_SAPLING, SAPLINGS, "blocks/sapling_oak.png");
-    public static final Plant SAPLING_DARK_OAK = new Plant("Dark Oak Sapling", Material.DARK_OAK_SAPLING, SAPLINGS, "blocks/sapling_roofed_oak.png");
-    public static final Plant SAPLING_PINE = new Plant("Pine Sapling", Material.PINE_SAPLING, SAPLINGS, "blocks/sapling_spruce.png");
-    public static final Plant SAPLING_BIRCH = new Plant("Birch Sapling", Material.BIRCH_SAPLING, SAPLINGS, "blocks/sapling_birch.png");
-    public static final Plant SAPLING_JUNGLE = new Plant("Jungle Sapling", Material.JUNGLE_SAPLING, SAPLINGS, "blocks/sapling_jungle.png");
-    public static final Plant SAPLING_ACACIA = new Plant("Acacia Sapling", Material.ACACIA_SAPLING, SAPLINGS, "blocks/sapling_acacia.png");
-    public static final Plant MUSHROOM_RED = new Plant("Red Mushroom", Material.RED_MUSHROOM, MUSHROOMS, "blocks/mushroom_red.png");
-    public static final Plant MUSHROOM_BROWN = new Plant("Brown Mushroom", Material.BROWN_MUSHROOM, MUSHROOMS, "blocks/mushroom_brown.png");
-    public static final Plant WHEAT = new Plant("Wheat", Material.WHEAT, 1, 7, CROPS, "items/wheat.png");
-    public static final Plant CARROTS = new Plant("Carrots", Material.CARROTS, 1, 3, CROPS, "items/carrot.png");
-    public static final Plant POTATOES = new Plant("Potatoes", Material.POTATOES, 1, 3, CROPS, "items/potato.png");
-    public static final Plant PUMPKIN_STEMS = new Plant("Pumpkin Stems", Material.PUMPKIN_STEM, 1, 7, CROPS, "blocks/pumpkin_side.png");
-    public static final Plant MELON_STEMS = new Plant("Melon Stems", Material.MELON_STEM, 1, 7, CROPS, "blocks/melon_side.png");
-    public static final Plant BEETROOTS = new Plant("Beetroots", Material.BEETROOTS, 1, 3, CROPS, "items/beetroot.png");
-    public static final Plant CACTUS = new Plant("Cactus", Material.CACTUS, 3, 2, Category.CACTUS, "blocks/cactus_side.png");
-    public static final Plant SUGAR_CANE = new Plant("Sugar Cane", Material.SUGAR_CANE, 3, 2, Category.SUGAR_CANE, "items/reeds.png");
-    public static final Plant LILY_PAD = new Plant("Lily Pad", Material.LILY_PAD, Category.FLOATING_PLANTS, "blocks/waterlily.png");
-    public static final Plant NETHER_WART = new Plant("Nether Wart", Material.NETHER_WART, 1, 2, Category.NETHER, "items/nether_wart.png");
-    public static final Plant CHORUS_PLANT = new Plant("Chorus Plant", Material.CHORUS_FLOWER, Category.END, "blocks/chorus_flower.png");
-    public static final Plant TUBE_CORAL = new Plant("Tube Coral", Material.TUBE_CORAL, WATER_PLANTS, "blocks/tube_coral.png");
-    public static final Plant BRAIN_CORAL = new Plant("Brain Coral", Material.BRAIN_CORAL, WATER_PLANTS, "blocks/brain_coral.png");
-    public static final Plant BUBBLE_CORAL = new Plant("Bubble Coral", Material.BUBBLE_CORAL, WATER_PLANTS, "blocks/bubble_coral.png");
-    public static final Plant FIRE_CORAL = new Plant("Fire Coral", Material.FIRE_CORAL, WATER_PLANTS, "blocks/fire_coral.png");
-    public static final Plant HORN_CORAL = new Plant("Horn Coral", Material.HORN_CORAL, WATER_PLANTS, "blocks/horn_coral.png");
-    public static final Plant TUBE_CORAL_FAN = new Plant("Tube Coral Fan", Material.TUBE_CORAL_FAN, WATER_PLANTS, "blocks/tube_coral_fan.png");
-    public static final Plant BRAIN_CORAL_FAN = new Plant("Brain Coral Fan", Material.BRAIN_CORAL_FAN, WATER_PLANTS, "blocks/brain_coral_fan.png");
-    public static final Plant BUBBLE_CORAL_FAN = new Plant("Bubble Coral Fan", Material.BUBBLE_CORAL_FAN, WATER_PLANTS, "blocks/bubble_coral_fan.png");
-    public static final Plant FIRE_CORAL_FAN = new Plant("Fire Coral Fan", Material.FIRE_CORAL_FAN, WATER_PLANTS, "blocks/fire_coral_fan.png");
-    public static final Plant HORN_CORAL_FAN = new Plant("Horn Coral Fan", Material.HORN_CORAL_FAN, WATER_PLANTS, "blocks/horn_coral_fan.png");
-    public static final Plant KELP = new Plant("Kelp", Material.KELP, 26, 25, WATER_PLANTS, "blocks/horn_coral_fan.png");
-    public static final Plant SEAGRASS = new Plant("Seagrass", Material.SEAGRASS, WATER_PLANTS, "blocks/horn_coral_fan.png");
-    public static final Plant TALL_SEAGRASS = new DoubleHighPlant("Tall Seagrass", Material.TALL_SEAGRASS, WATER_PLANTS, "blocks/horn_coral_fan.png");
-    public static final Plant SEA_PICKLE = new Plant("Sea Pickle", Material.SEA_PICKLE, 1, 3, WATER_PLANTS, "blocks/horn_coral_fan.png");
+    public static final Plant SAPLING_OAK = new SimplePlant("Oak Sapling", Material.OAK_SAPLING, SAPLINGS, "blocks/sapling_oak.png");
+    public static final Plant SAPLING_DARK_OAK = new SimplePlant("Dark Oak Sapling", Material.DARK_OAK_SAPLING, SAPLINGS, "blocks/sapling_roofed_oak.png");
+    public static final Plant SAPLING_PINE = new SimplePlant("Pine Sapling", Material.PINE_SAPLING, SAPLINGS, "blocks/sapling_spruce.png");
+    public static final Plant SAPLING_BIRCH = new SimplePlant("Birch Sapling", Material.BIRCH_SAPLING, SAPLINGS, "blocks/sapling_birch.png");
+    public static final Plant SAPLING_JUNGLE = new SimplePlant("Jungle Sapling", Material.JUNGLE_SAPLING, SAPLINGS, "blocks/sapling_jungle.png");
+    public static final Plant SAPLING_ACACIA = new SimplePlant("Acacia Sapling", Material.ACACIA_SAPLING, SAPLINGS, "blocks/sapling_acacia.png");
+    public static final Plant MUSHROOM_RED = new SimplePlant("Red Mushroom", Material.RED_MUSHROOM, MUSHROOMS, "blocks/mushroom_red.png");
+    public static final Plant MUSHROOM_BROWN = new SimplePlant("Brown Mushroom", Material.BROWN_MUSHROOM, MUSHROOMS, "blocks/mushroom_brown.png");
+    public static final Plant WHEAT = new AgingPlant("Wheat", Material.WHEAT, CROPS, "items/wheat.png", 8);
+    public static final Plant CARROTS = new AgingPlant("Carrots", Material.CARROTS, CROPS, "items/carrot.png", 8);
+    public static final Plant POTATOES = new AgingPlant("Potatoes", Material.POTATOES, CROPS, "items/potato.png", 8);
+    public static final Plant PUMPKIN_STEMS = new AgingPlant("Pumpkin Stems", Material.PUMPKIN_STEM, CROPS, "blocks/pumpkin_side.png", 8) {
+        @Override
+        public Material getMaterial(int x, int y, int z) {
+            return material.withProperty(FACING, Direction.values()[RANDOM.nextInt(4)]);
+        }
+    };
+    public static final Plant MELON_STEMS = new AgingPlant("Melon Stems", Material.MELON_STEM, CROPS, "blocks/melon_side.png", 8) {
+        @Override
+        public Material getMaterial(int x, int y, int z) {
+            return material.withProperty(FACING, Direction.values()[RANDOM.nextInt(4)]);
+        }
+    };
+    public static final Plant BEETROOTS = new AgingPlant("Beetroots", Material.BEETROOTS, CROPS, "items/beetroot.png", 4);
+    public static final Plant CACTUS = new VariableHeightPlant("Cactus", Material.CACTUS, Category.CACTUS, "blocks/cactus_side.png", 3);
+    public static final Plant SUGAR_CANE = new VariableHeightPlant("Sugar Cane", Material.SUGAR_CANE, Category.SUGAR_CANE, "items/reeds.png", 3);
+    public static final Plant LILY_PAD = new SimplePlant("Lily Pad", Material.LILY_PAD, Category.FLOATING_PLANTS, "blocks/waterlily.png");
+    public static final Plant NETHER_WART = new AgingPlant("Nether Wart", Material.NETHER_WART, Category.NETHER, "items/nether_wart.png", 4);
+    public static final Plant CHORUS_PLANT = new VariableHeightPlant("Chorus Plant", Material.CHORUS_PLANT, Material.CHORUS_FLOWER, Category.END, "blocks/chorus_flower.png", 5);
+    public static final Plant TUBE_CORAL = new SimplePlant("Tube Coral", Material.TUBE_CORAL, WATER_PLANTS, "blocks/tube_coral.png");
+    public static final Plant BRAIN_CORAL = new SimplePlant("Brain Coral", Material.BRAIN_CORAL, WATER_PLANTS, "blocks/brain_coral.png");
+    public static final Plant BUBBLE_CORAL = new SimplePlant("Bubble Coral", Material.BUBBLE_CORAL, WATER_PLANTS, "blocks/bubble_coral.png");
+    public static final Plant FIRE_CORAL = new SimplePlant("Fire Coral", Material.FIRE_CORAL, WATER_PLANTS, "blocks/fire_coral.png");
+    public static final Plant HORN_CORAL = new SimplePlant("Horn Coral", Material.HORN_CORAL, WATER_PLANTS, "blocks/horn_coral.png");
+    public static final Plant TUBE_CORAL_FAN = new SimplePlant("Tube Coral Fan", Material.TUBE_CORAL_FAN, WATER_PLANTS, "blocks/tube_coral_fan.png");
+    public static final Plant BRAIN_CORAL_FAN = new SimplePlant("Brain Coral Fan", Material.BRAIN_CORAL_FAN, WATER_PLANTS, "blocks/brain_coral_fan.png");
+    public static final Plant BUBBLE_CORAL_FAN = new SimplePlant("Bubble Coral Fan", Material.BUBBLE_CORAL_FAN, WATER_PLANTS, "blocks/bubble_coral_fan.png");
+    public static final Plant FIRE_CORAL_FAN = new SimplePlant("Fire Coral Fan", Material.FIRE_CORAL_FAN, WATER_PLANTS, "blocks/fire_coral_fan.png");
+    public static final Plant HORN_CORAL_FAN = new SimplePlant("Horn Coral Fan", Material.HORN_CORAL_FAN, WATER_PLANTS, "blocks/horn_coral_fan.png");
+    public static final Plant KELP = new VariableHeightPlant("Kelp", Material.KELP_PLANT, Material.KELP, WATER_PLANTS, "blocks/kelp.png", 26) {
+        @Override
+        Optional<Material> getTopMaterial() {
+            return Optional.of(Material.KELP.withProperty(AGE, RANDOM.nextInt(26)));
+        }
+    };
+    public static final Plant SEAGRASS = new SimplePlant("Seagrass", Material.SEAGRASS, WATER_PLANTS, "blocks/seagrass.png");
+    public static final Plant TALL_SEAGRASS = new DoubleHighPlant("Tall Seagrass", Material.TALL_SEAGRASS, WATER_PLANTS, "blocks/tall_seagrass.png");
+    public static final AgingPlant SEA_PICKLE = new AgingPlant("Sea Pickle", Material.SEA_PICKLE, WATER_PLANTS, "blocks/sea_pickle.png", 4) {
+        @Override
+        public AgingPlant realise(int growth, Platform platform) {
+            return new AgingPlant(name, material.withProperty(PICKLES, growth), category, iconName, maxGrowth);
+        }
+    };
 
     // The code which uses this assumes there will never be more than 128
     // plants. If that ever happens it needs to be overhauled!
@@ -87,4 +120,6 @@ public class Plants {
             FIRE_CORAL, HORN_CORAL, TUBE_CORAL_FAN, BRAIN_CORAL_FAN,
             BUBBLE_CORAL_FAN, FIRE_CORAL_FAN, HORN_CORAL_FAN, KELP, SEAGRASS,
             TALL_SEAGRASS, SEA_PICKLE};
+
+    private static final Random RANDOM = new Random();
 }

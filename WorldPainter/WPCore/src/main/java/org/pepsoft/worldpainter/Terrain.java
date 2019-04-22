@@ -3022,11 +3022,11 @@ public enum Terrain {
     static final float FERN_CHANCE         = PerlinNoise.getLevelForPromillage(10);
     static final float GRASS_CHANCE        = PerlinNoise.getLevelForPromillage(100);
 
-    static final float DOUBLE_TALL_GRASS_CHANCE        = PerlinNoise.getLevelForPromillage(50);
+    static final float DOUBLE_TALL_GRASS_CHANCE = PerlinNoise.getLevelForPromillage(50);
     
     static final float BEACH_SAND_CHANCE   = PerlinNoise.getLevelForPromillage(400) * 1.5f;
     static final float BEACH_GRAVEL_CHANCE = PerlinNoise.getLevelForPromillage(200) * 1.5f;
-    static final float BEACH_CLAY_CHANCE =   PerlinNoise.getLevelForPromillage(40);
+    static final float BEACH_CLAY_CHANCE   = PerlinNoise.getLevelForPromillage(40);
 
     static final float GRANITE_CHANCE  = PerlinNoise.getLevelForPromillage(45);
     static final float DIORITE_CHANCE  = PerlinNoise.getLevelForPromillage(45);

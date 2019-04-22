@@ -22,19 +22,17 @@ import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.BitSet;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_13;
 
 /**
  * Created by Pepijn Schmitz on 09-01-17.
@@ -47,36 +45,39 @@ public class RegressionIT {
     }
 
     /**
-     * Test whether a version 2.3.6-era world can still be loaded and exported.
-     * Check whether the result is the same as when version 2.5.1 exported it.
+     * Test whether a version 2.3.6-era world can still be loaded and exported,
+     * in 1.12 and in 1.13 format. Check whether the result is the same as when
+     * version 2.6.0 exported it, and that they are the same as each other.
      */
     @Test
     public void test2_3_6World() throws IOException, UnloadableWorldException, ProgressReceiver.OperationCancelled {
         World2 world = loadWorld("/testset/test-v2.3.6-1.world");
         File tmpBaseDir = createTmpBaseDir();
-        File worldDir = exportJavaWorld(world, tmpBaseDir);
-        try (ZipInputStream in = new ZipInputStream(RegressionIT.class.getResourceAsStream("/testset/test-v2.3.6-1-result.zip"))) {
-            ZipEntry zipEntry;
-            byte[] buffer = new byte[32768];
-            while ((zipEntry = in.getNextEntry()) != null) {
-                if (zipEntry.isDirectory()) {
-                    new File(tmpBaseDir, zipEntry.getName()).mkdir();
-                } else {
-                    try (FileOutputStream out = new FileOutputStream(new File(tmpBaseDir, zipEntry.getName()))) {
-                        int bytesRead;
-                        while ((bytesRead = in.read(buffer)) != -1) {
-                            out.write(buffer, 0, bytesRead);
-                        }
-                    }
-                }
-            }
-        }
+        File anvil12worldDir = exportJavaWorld(world, tmpBaseDir);
+        world.setPlatform(JAVA_ANVIL_1_13);
+        File anvil113worldDir = exportJavaWorld(world, tmpBaseDir);
+//        try (ZipInputStream in = new ZipInputStream(RegressionIT.class.getResourceAsStream("/testset/test-v2.3.6-1-result.zip"))) {
+//            ZipEntry zipEntry;
+//            byte[] buffer = new byte[32768];
+//            while ((zipEntry = in.getNextEntry()) != null) {
+//                if (zipEntry.isDirectory()) {
+//                    new File(tmpBaseDir, zipEntry.getName()).mkdir();
+//                } else {
+//                    try (FileOutputStream out = new FileOutputStream(new File(tmpBaseDir, zipEntry.getName()))) {
+//                        int bytesRead;
+//                        while ((bytesRead = in.read(buffer)) != -1) {
+//                            out.write(buffer, 0, bytesRead);
+//                        }
+//                    }
+//                }
+//            }
+//        }
         for (Dimension dimension: world.getDimensions()) {
             logger.info("Comparing dimension " + dimension.getName());
             Rectangle area = new Rectangle(dimension.getLowestX() << 5, dimension.getLowestY() << 5, dimension.getWidth() << 5, dimension.getHeight() << 5);
-            try (MinecraftWorld expectedWorld = new JavaMinecraftWorld(new File(tmpBaseDir, "test-v2.3.6-1-result"), dimension.getDim(), dimension.getMaxHeight(), JAVA_ANVIL, true, 256);
-                    MinecraftWorld actualWorld = new JavaMinecraftWorld(worldDir, dimension.getDim(), dimension.getMaxHeight(), JAVA_ANVIL, true, 256)) {
-                MinecraftWorldUtils.assertEquals(expectedWorld, actualWorld, area);
+            try (MinecraftWorld anvil12World = new JavaMinecraftWorld(anvil12worldDir, dimension.getDim(), dimension.getMaxHeight(), JAVA_ANVIL, true, 256);
+                    MinecraftWorld anvil113World = new JavaMinecraftWorld(anvil113worldDir, dimension.getDim(), dimension.getMaxHeight(), JAVA_ANVIL_1_13, true, 256)) {
+                MinecraftWorldUtils.assertEquals("Anvil 1.2", anvil12World, "Anvil 1.13", anvil113World, area);
             }
         }
         FileUtils.deleteDir(tmpBaseDir);
@@ -92,10 +93,11 @@ public class RegressionIT {
         // Export
         logger.info("Exporting world {}", world.getName());
         JavaWorldExporter worldExporter = new JavaWorldExporter(world);
-        worldExporter.export(baseDir, world.getName(), null, null);
+        String name = world.getName() + "-" + world.getPlatform().id;
+        worldExporter.export(baseDir, name, null, null);
 
         // Return the directory into which the world was exported
-        return new File(baseDir, FileUtils.sanitiseName(world.getName()));
+        return new File(baseDir, FileUtils.sanitiseName(name));
     }
 
     protected void verifyJavaWorld(File worldDir, int expectedVersion) throws IOException {

@@ -5527,7 +5527,8 @@
       "east": "false",
       "south": "false",
       "north": "false",
-      "west": "false"
+      "west": "false",
+      "up": "true"
     }
   },
   {
@@ -5538,7 +5539,8 @@
       "east": "false",
       "south": "true",
       "north": "false",
-      "west": "false"
+      "west": "false",
+      "up": "false"
     }
   },
   {
@@ -5549,7 +5551,8 @@
       "east": "false",
       "south": "false",
       "north": "false",
-      "west": "true"
+      "west": "true",
+      "up": "false"
     }
   },
   {
@@ -5560,7 +5563,8 @@
       "east": "false",
       "south": "true",
       "north": "false",
-      "west": "true"
+      "west": "true",
+      "up": "false"
     }
   },
   {
@@ -5571,7 +5575,8 @@
       "east": "false",
       "south": "false",
       "north": "true",
-      "west": "false"
+      "west": "false",
+      "up": "false"
     }
   },
   {
@@ -5582,7 +5587,8 @@
       "east": "false",
       "south": "true",
       "north": "true",
-      "west": "false"
+      "west": "false",
+      "up": "false"
     }
   },
   {
@@ -5593,7 +5599,8 @@
       "east": "false",
       "south": "false",
       "north": "true",
-      "west": "true"
+      "west": "true",
+      "up": "false"
     }
   },
   {
@@ -5604,7 +5611,8 @@
       "east": "false",
       "south": "true",
       "north": "true",
-      "west": "true"
+      "west": "true",
+      "up": "false"
     }
   },
   {
@@ -5615,7 +5623,8 @@
       "east": "true",
       "south": "false",
       "north": "false",
-      "west": "false"
+      "west": "false",
+      "up": "false"
     }
   },
   {
@@ -5626,7 +5635,8 @@
       "east": "true",
       "south": "true",
       "north": "false",
-      "west": "false"
+      "west": "false",
+      "up": "false"
     }
   },
   {
@@ -5637,7 +5647,8 @@
       "east": "true",
       "south": "false",
       "north": "false",
-      "west": "true"
+      "west": "true",
+      "up": "false"
     }
   },
   {
@@ -5648,7 +5659,8 @@
       "east": "true",
       "south": "true",
       "north": "false",
-      "west": "true"
+      "west": "true",
+      "up": "false"
     }
   },
   {
@@ -5659,7 +5671,8 @@
       "east": "true",
       "south": "false",
       "north": "true",
-      "west": "false"
+      "west": "false",
+      "up": "false"
     }
   },
   {
@@ -5670,7 +5683,8 @@
       "east": "true",
       "south": "true",
       "north": "true",
-      "west": "false"
+      "west": "false",
+      "up": "false"
     }
   },
   {
@@ -5681,7 +5695,8 @@
       "east": "true",
       "south": "false",
       "north": "true",
-      "west": "true"
+      "west": "true",
+      "up": "false"
     }
   },
   {
@@ -5692,7 +5707,8 @@
       "east": "true",
       "south": "true",
       "north": "true",
-      "west": "true"
+      "west": "true",
+      "up": "false"
     }
   },
   {
@@ -9733,49 +9749,9 @@
   {
     "blockId": 175,
     "dataValue": 8,
-    "name": "minecraft:sunflower",
+    "name": "legacy:block_175",
     "properties": {
-      "half": "upper"
-    }
-  },
-  {
-    "blockId": 175,
-    "dataValue": 8,
-    "name": "minecraft:lilac",
-    "properties": {
-      "half": "upper"
-    }
-  },
-  {
-    "blockId": 175,
-    "dataValue": 8,
-    "name": "minecraft:tall_grass",
-    "properties": {
-      "half": "upper"
-    }
-  },
-  {
-    "blockId": 175,
-    "dataValue": 8,
-    "name": "minecraft:large_fern",
-    "properties": {
-      "half": "upper"
-    }
-  },
-  {
-    "blockId": 175,
-    "dataValue": 8,
-    "name": "minecraft:rose_bush",
-    "properties": {
-      "half": "upper"
-    }
-  },
-  {
-    "blockId": 175,
-    "dataValue": 8,
-    "name": "minecraft:peony",
-    "properties": {
-      "half": "upper"
+      "data_value": "8"
     }
   },
   {

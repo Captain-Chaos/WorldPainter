@@ -43,9 +43,14 @@ public class DirectoryNode extends FileSystemNode {
             for (int i = 0; i < contents.length; i++) {
                 if (contents[i].isDirectory()) {
                     for (MapRecognizer mapRecognizer: MAP_RECOGNIZERS) {
-                        if (mapRecognizer.identifyPlatform(contents[i]) != null) {
-                            children[i] = mapRecognizer.getMapNode(contents[i]);
-                            break;
+                        try {
+                            if (mapRecognizer.identifyPlatform(contents[i]) != null) {
+                                children[i] = mapRecognizer.getMapNode(contents[i]);
+                                break;
+                            }
+                        } catch (RuntimeException e) {
+                            e.printStackTrace();
+                            // Continue the loop
                         }
                     }
                     if (children[i] == null) {

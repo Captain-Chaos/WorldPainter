@@ -92,14 +92,14 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
             if (settings != null) {
                 spinners[i].setValue((int) settings.occurrence);
                 if (growthFromSpinners[i] != null) {
-                    growthFromSpinners[i].setValue(settings.dataValueFrom + 1);
-                    growthToSpinners[i].setValue(settings.dataValueTo + 1);
+                    growthFromSpinners[i].setValue(settings.growthFrom);
+                    growthToSpinners[i].setValue(settings.growthTo);
                 }
             } else {
                 spinners[i].setValue(0);
                 if (growthFromSpinners[i] != null) {
-                    growthFromSpinners[i].setValue(ALL_PLANTS[i].getMaxData() + 1);
-                    growthToSpinners[i].setValue(ALL_PLANTS[i].getMaxData() + 1);
+                    growthFromSpinners[i].setValue(ALL_PLANTS[i].getMaxGrowth());
+                    growthToSpinners[i].setValue(ALL_PLANTS[i].getMaxGrowth());
                 }
             }
         }
@@ -204,10 +204,10 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
         percentageLabels[index] = new JLabel("100%");
         panel.add(percentageLabels[index], constraints);
 
-        if (plant.getMaxData() > 0) {
+        if (plant.getMaxGrowth() > 1) {
             panel.add(new JLabel("Growth:"), constraints);
             
-            spinnerModel = new SpinnerNumberModel(plant.getMaxData() + 1, 1, plant.getMaxData() + 1, 1);
+            spinnerModel = new SpinnerNumberModel(plant.getMaxGrowth(), 1, plant.getMaxGrowth(), 1);
             growthFromSpinners[index] = new JSpinner(spinnerModel);
             growthFromSpinners[index].addChangeListener(e -> {
                 int newValue = (Integer) growthFromSpinners[index].getValue();
@@ -220,7 +220,7 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
             panel.add(new JLabel("-"));
 
             constraints.gridwidth = GridBagConstraints.REMAINDER;
-            spinnerModel = new SpinnerNumberModel(plant.getMaxData() + 1, 1, plant.getMaxData() + 1, 1);
+            spinnerModel = new SpinnerNumberModel(plant.getMaxGrowth(), 1, plant.getMaxGrowth(), 1);
             growthToSpinners[index] = new JSpinner(spinnerModel);
             growthToSpinners[index].addChangeListener(e -> {
                 int newValue = (Integer) growthToSpinners[index].getValue();
@@ -354,11 +354,11 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
             PlantLayer.PlantSettings settings = new PlantLayer.PlantSettings();
             settings.occurrence = (short) ((int) ((Integer) spinners[i].getValue()));
             if (growthFromSpinners[i] != null) {
-                settings.dataValueFrom = (byte) ((Integer) growthFromSpinners[i].getValue() - 1);
-                settings.dataValueTo = (byte) ((Integer) growthToSpinners[i].getValue() - 1);
+                settings.growthFrom = (Integer) growthFromSpinners[i].getValue();
+                settings.growthTo = (Integer) growthToSpinners[i].getValue();
             } else {
-                settings.dataValueFrom = 0;
-                settings.dataValueTo = 0;
+                settings.growthFrom = 1;
+                settings.growthTo = 1;
             }
             layer.setSettings(i, settings);
         }
@@ -369,8 +369,8 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
         for (int i = 0; i < ALL_PLANTS.length; i++) {
             spinners[i].setValue(0);
             if (growthFromSpinners[i] != null) {
-                growthFromSpinners[i].setValue(ALL_PLANTS[i].getMaxData() + 1);
-                growthToSpinners[i].setValue(ALL_PLANTS[i].getMaxData() + 1);
+                growthFromSpinners[i].setValue(ALL_PLANTS[i].getMaxGrowth());
+                growthToSpinners[i].setValue(ALL_PLANTS[i].getMaxGrowth());
             }
         }
         updatePercentages();

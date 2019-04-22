@@ -6,7 +6,6 @@
 package org.pepsoft.worldpainter.layers.exporters;
 
 import org.pepsoft.minecraft.Material;
-import org.pepsoft.util.CollectionUtils;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.exporting.AbstractLayerExporter;
@@ -16,11 +15,11 @@ import org.pepsoft.worldpainter.exporting.SecondPassLayerExporter;
 import org.pepsoft.worldpainter.layers.Frost;
 
 import java.awt.*;
-import java.util.BitSet;
 import java.util.List;
 import java.util.Random;
 
-import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Constants.MC_SNOW;
+import static org.pepsoft.minecraft.Constants.MC_WATER;
 import static org.pepsoft.minecraft.Material.*;
 
 /**
@@ -40,15 +39,9 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
         final boolean snowUnderTrees = settings.isSnowUnderTrees();
         final int maxHeight = dimension.getMaxHeight();
         final Random random = new Random(); // Only used for random snow height, so it's not a big deal if it's different every time
-        final BitSet noSnowOn = (BitSet) NO_SNOW_ON.clone();
         String customNoSnowOnIds = System.getProperty("org.pepsoft.worldpainter.noSnowOn");
         if ((customNoSnowOnIds != null) && (! customNoSnowOnIds.trim().isEmpty())) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("Not placing snow on the following additional block IDs: \"" + customNoSnowOnIds + "\"");
-            }
-            for (String id: customNoSnowOnIds.split("[,;]")) {
-                noSnowOn.set(Integer.parseInt(id.trim()));
-            }
+            throw new IllegalArgumentException("The org.pepsoft.worldpainter.noSnowOn property is no longer supported; please let the author know if you need it");
         }
         for (int x = area.x; x < area.x + area.width; x++) {
             for (int y = area.y; y < area.y + area.height; y++) {
@@ -58,11 +51,9 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
                     int leafBlocksEncountered = 0;
                     for (int height = Math.min(highestNonAirBlock, maxHeight - 2); height >= 0; height--) {
                         Material material = minecraftWorld.getMaterialAt(x, y, height);
-                        // TODOMC13: migrate this to modern materials:
-                        if ((material.blockType >= 0) && noSnowOn.get(material.blockType)) {
-                            previousMaterial = material;
-                            continue;
-                        } else {
+                        if (material.name.endsWith("_leaves")
+                                || (material.solid
+                                    && material.opaque)) {
                             if (material.isNamed(MC_WATER)) {
                                 minecraftWorld.setMaterialAt(x, y, height, ICE);
                                 break;
@@ -81,7 +72,7 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
                                 // much of it, and leaving it in would look
                                 // strange. Also replace existing snow, as we
                                 // might want to place thicker snow
-                                if ((previousMaterial == AIR) || (previousMaterial == GRASS) || (previousMaterial == SNOW)) {
+                                if ((previousMaterial == AIR) || (previousMaterial == GRASS) || (previousMaterial == FERN) || (previousMaterial == SNOW)) {
                                     if ((mode == FrostSettings.MODE_SMOOTH_AT_ALL_ELEVATIONS)
                                             || (height == dimension.getIntHeightAt(x, y))) {
                                         // Only vary the snow thickness if we're
@@ -111,6 +102,9 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
                                 }
                                 break;
                             }
+                        } else {
+                            previousMaterial = material;
+                            continue;
                         }
                         previousMaterial = material;
                     }
@@ -136,34 +130,6 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
         minecraftWorld.setMaterialAt(x, y, height + 1, SNOW.withProperty(LAYERS, layers));
     }
 
-    private static final BitSet NO_SNOW_ON = CollectionUtils.bitSetOf(
-        BLK_AIR, BLK_ICE, BLK_LAVA, BLK_STATIONARY_LAVA, BLK_TORCH,
-        BLK_DANDELION, BLK_ROSE, BLK_BROWN_MUSHROOM, BLK_RED_MUSHROOM,
-        BLK_FIRE, BLK_TALL_GRASS, BLK_DEAD_SHRUBS, BLK_WOODEN_STAIRS,
-        BLK_COBBLESTONE_STAIRS, BLK_BRICK_STAIRS, BLK_NETHER_BRICK_STAIRS,
-        BLK_STONE_BRICK_STAIRS, BLK_SLAB, BLK_FENCE, BLK_FENCE_GATE,
-        BLK_NETHER_BRICK_FENCE, BLK_WALL_SIGN, BLK_SIGN, BLK_VINES, BLK_SAPLING,
-        BLK_WATER, BLK_BED, BLK_POWERED_RAILS, BLK_RAILS, BLK_DETECTOR_RAILS,
-        BLK_COBWEB, BLK_PISTON_HEAD, BLK_CHEST, BLK_REDSTONE_WIRE,
-        BLK_WHEAT, BLK_BURNING_FURNACE, BLK_WOODEN_DOOR, BLK_IRON_DOOR,
-        BLK_IRON_BARS, BLK_LADDER, BLK_LEVER, BLK_STONE_PRESSURE_PLATE,
-        BLK_WOODEN_PRESSURE_PLATE, BLK_REDSTONE_TORCH_OFF,
-        BLK_REDSTONE_TORCH_ON, BLK_STONE_BUTTON, BLK_SNOW, BLK_CACTUS,
-        BLK_SUGAR_CANE, BLK_CAKE, BLK_REDSTONE_REPEATER_OFF,
-        BLK_REDSTONE_REPEATER_ON, BLK_TRAPDOOR, BLK_GLASS_PANE,
-        BLK_PUMPKIN_STEM, BLK_MELON_STEM, BLK_LILY_PAD, BLK_NETHER_WART,
-        BLK_ENCHANTMENT_TABLE, BLK_BREWING_STAND, BLK_END_PORTAL,
-        BLK_END_PORTAL_FRAME, BLK_DRAGON_EGG, BLK_WOODEN_SLAB, BLK_COCOA_PLANT,
-        BLK_SANDSTONE_STAIRS, BLK_ENDER_CHEST, BLK_TRIPWIRE_HOOK, BLK_TRIPWIRE,
-        BLK_PINE_WOOD_STAIRS, BLK_BIRCH_WOOD_STAIRS, BLK_JUNGLE_WOOD_STAIRS,
-        BLK_COBBLESTONE_WALL, BLK_FLOWER_POT, BLK_CARROTS, BLK_POTATOES,
-        BLK_WOODEN_BUTTON, BLK_HEAD, BLK_ANVIL, BLK_TRAPPED_CHEST,
-        BLK_WEIGHTED_PRESSURE_PLATE_HEAVY, BLK_WEIGHTED_PRESSURE_PLATE_LIGHT,
-        BLK_REDSTONE_COMPARATOR_UNPOWERED, BLK_DAYLIGHT_SENSOR,
-        BLK_ACTIVATOR_RAIL, BLK_STAINED_GLASS_PANE, BLK_ACACIA_WOOD_STAIRS,
-        BLK_DARK_OAK_WOOD_STAIRS, BLK_CARPET, BLK_LARGE_FLOWERS, BLK_PACKED_ICE);
-    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(FrostExporter.class);
-    
     public static class FrostSettings implements ExporterSettings {
         @Override
         public boolean isApplyEverywhere() {

@@ -99,7 +99,7 @@ public final class ListTag<T extends Tag> extends Tag {
 
     @SuppressWarnings("unchecked") // Responsibility of caller
     @Override
-    public ListTag clone() {
+    public ListTag<T> clone() {
         ListTag<T> clone = (ListTag<T>) super.clone();
         clone.value = new ArrayList<>(value.size());
         clone.value.addAll(value.stream().map(t -> (T) t.clone()).collect(Collectors.toList()));

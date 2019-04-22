@@ -347,11 +347,16 @@ public final class MC12AnvilChunk extends NBTChunk implements MinecraftWorld {
         if (section == null) {
             return Material.AIR;
         } else {
+            int blockType;
             if (section.add != null) {
-                return Material.get((section.blocks[blockOffset(x, y, z)] & 0xFF) | (getDataByte(section.add, x, y, z) << 8), getDataByte(section.data, x, y, z));
+                blockType = (section.blocks[blockOffset(x, y, z)] & 0xFF) | (getDataByte(section.add, x, y, z) << 8);
             } else {
-                return Material.get(section.blocks[blockOffset(x, y, z)] & 0xFF, getDataByte(section.data, x, y, z));
+                blockType = section.blocks[blockOffset(x, y, z)] & 0xFF;
             }
+            // Special case: map block ID zero to air always, regardless of the data
+            // value, among other things because WorldPainter has produced maps with
+            // non-zero data values for air in the past
+            return (blockType != 0) ? Material.get(blockType, getDataByte(section.data, x, y, z)) : Material.AIR;
         }
     }
 

@@ -27,8 +27,8 @@ import org.pepsoft.worldpainter.vo.EventVO;
 
 import java.awt.*;
 import java.io.*;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.minecraft.Material.DIRT;
@@ -950,6 +950,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
             // Do nothing; this only exists to signal Dynmap metadata removal
             // because it may be corrupted
         }
+        // TODOMC13 once it's out of beta: migrate default platform to 1.13 if it's currently set to Anvil
         version = CURRENT_VERSION;
         
         // Bug fix: make sure terrain ranges map conforms to surface material setting
@@ -1132,7 +1133,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private boolean java10onMacMessageDisplayed;
     private boolean autosaveEnabled = true;
     private int autosaveDelay = 10000, autosaveInterval = 300000; // Ten seconds delay; five minutes interval
-    private String defaultPlatformId = DefaultPlugin.JAVA_ANVIL_1_13.id;
+    private String defaultPlatformId = DefaultPlugin.JAVA_ANVIL.id; // TODOMC13 set this to 1.13 once it's out of beta
     private Map<String, File> exportDirectoriesById = new HashMap<>();
     private boolean snapshotWarningDisplayed;
 

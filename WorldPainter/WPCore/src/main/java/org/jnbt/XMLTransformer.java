@@ -105,7 +105,7 @@ public class XMLTransformer {
         } else if (tag instanceof FloatTag) {
             element = textElement(document, "float", Float.toString(((FloatTag) tag).getValue()));
         } else if (tag instanceof IntArrayTag) {
-            element = textElement(document, "ints", encodeBytes(((IntArrayTag) tag).getValue()));
+            element = textElement(document, "ints", encodeInts(((IntArrayTag) tag).getValue()));
         } else if (tag instanceof IntTag) {
             element = textElement(document, "int", Integer.toString(((IntTag) tag).getValue()));
         } else if (tag instanceof ListTag) {
@@ -114,7 +114,7 @@ public class XMLTransformer {
                 element.appendChild(toElement(document, childTag));
             }
         } else if (tag instanceof LongArrayTag) {
-            element = textElement(document, "longs", encodeBytes(((LongArrayTag) tag).getValue()));
+            element = textElement(document, "longs", encodeLongs(((LongArrayTag) tag).getValue()));
         } else if (tag instanceof LongTag) {
             element = textElement(document, "long", Long.toString(((LongTag) tag).getValue()));
         } else if (tag instanceof ShortTag) {
@@ -149,7 +149,7 @@ public class XMLTransformer {
         }
     }
 
-    private static String encodeBytes(int[] ints) throws IOException {
+    private static String encodeInts(int[] ints) throws IOException {
         ByteArrayOutputStream outputStore = new ByteArrayOutputStream();
         try (GZIPOutputStream compressor = new GZIPOutputStream(outputStore)) {
             for (int i: ints) {
@@ -163,7 +163,7 @@ public class XMLTransformer {
         return "g" + Base64.getEncoder().encodeToString(compressedBytes);
     }
 
-    private static String encodeBytes(long[] longs) throws IOException {
+    private static String encodeLongs(long[] longs) throws IOException {
         ByteArrayOutputStream outputStore = new ByteArrayOutputStream();
         try (GZIPOutputStream compressor = new GZIPOutputStream(outputStore)) {
             for (long l: longs) {

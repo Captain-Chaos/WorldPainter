@@ -269,6 +269,7 @@ public class Java1_13PostProcessor extends PostProcessor {
                         case MC_LARGE_FERN:
                         case MC_ROSE_BUSH:
                         case MC_PEONY:
+                            // TODOMC13 recognise legacy "top half" block and replace it with the proper block
                             if (material.getProperty(HALF).equals("upper")) {
                                 // Top half of double high plant.
                                 if (materialBelow.isNotNamedSameAs(material)
