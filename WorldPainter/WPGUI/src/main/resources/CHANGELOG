@@ -1,3 +1,9 @@
+-- Version 2.6.0.RC2, released 28-4-2019
+
+ * Implement proper rotation and mirroring for Minecraft 1.13 blocks in Custom Objects
+ * Make support for .schem files more robust
+ * Load the icons for the plants in the Custom Plants layer from the Minecraft 1.13 (or later) jar (and not older jars any more)
+
 -- Version 2.6.0.RC1, released 22-4-2019
 
  * Add support for Minecraft 1.13
