@@ -41,7 +41,7 @@ public class DefaultCustomObjectProvider extends AbstractPlugin implements Custo
         } else if (name.endsWith(".schematic")) {
             return Schematic.load(file);
         } else if (name.endsWith(".schem")) {
-            return Schem.load(new FileInputStream(file));
+            return Schem.load(new FileInputStream(file), file.getName().substring(0, name.lastIndexOf('.')));
         } else {
             throw new IllegalArgumentException("Not a supported filename extension: \"" + file.getName() + "\"");
         }

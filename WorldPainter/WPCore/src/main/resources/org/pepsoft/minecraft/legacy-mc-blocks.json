@@ -5111,45 +5111,10 @@
     "dataValue": 10,
     "name": "minecraft:mushroom_stem",
     "properties": {
-      "up": "false",
-      "down": "false"
-    }
-  },
-  {
-    "blockId": 99,
-    "dataValue": 11,
-    "name": "minecraft:brown_mushroom_block",
-    "properties": {
-      "east": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false",
-      "up": "false",
-      "down": "false"
-    }
-  },
-  {
-    "blockId": 99,
-    "dataValue": 12,
-    "name": "minecraft:brown_mushroom_block",
-    "properties": {
-      "east": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false",
-      "up": "false",
-      "down": "false"
-    }
-  },
-  {
-    "blockId": 99,
-    "dataValue": 13,
-    "name": "minecraft:brown_mushroom_block",
-    "properties": {
-      "east": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false",
+      "east": "true",
+      "south": "true",
+      "north": "true",
+      "west": "true",
       "up": "false",
       "down": "false"
     }
@@ -5172,6 +5137,10 @@
     "dataValue": 15,
     "name": "minecraft:mushroom_stem",
     "properties": {
+      "east": "true",
+      "south": "true",
+      "north": "true",
+      "west": "true",
       "up": "true",
       "down": "true"
     }
@@ -5311,45 +5280,10 @@
     "dataValue": 10,
     "name": "minecraft:mushroom_stem",
     "properties": {
-      "up": "false",
-      "down": "false"
-    }
-  },
-  {
-    "blockId": 100,
-    "dataValue": 11,
-    "name": "minecraft:red_mushroom_block",
-    "properties": {
-      "east": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false",
-      "up": "false",
-      "down": "false"
-    }
-  },
-  {
-    "blockId": 100,
-    "dataValue": 12,
-    "name": "minecraft:red_mushroom_block",
-    "properties": {
-      "east": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false",
-      "up": "false",
-      "down": "false"
-    }
-  },
-  {
-    "blockId": 100,
-    "dataValue": 13,
-    "name": "minecraft:red_mushroom_block",
-    "properties": {
-      "east": "false",
-      "south": "false",
-      "north": "false",
-      "west": "false",
+      "east": "true",
+      "south": "true",
+      "north": "true",
+      "west": "true",
       "up": "false",
       "down": "false"
     }
@@ -5372,6 +5306,10 @@
     "dataValue": 15,
     "name": "minecraft:mushroom_stem",
     "properties": {
+      "east": "true",
+      "south": "true",
+      "north": "true",
+      "west": "true",
       "up": "true",
       "down": "true"
     }

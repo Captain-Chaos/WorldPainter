@@ -29,9 +29,10 @@ import static org.pepsoft.minecraft.Material.MINECRAFT;
  * <a href="https://github.com/SpongePowered/Schematic-Specification/blob/master/versions/schematic-1.md">https://github.com/SpongePowered/Schematic-Specification/blob/master/versions/schematic-1.md</a>.
  */
 public final class Schem extends AbstractNBTItem implements WPObject {
-    public Schem(CompoundTag tag) {
+    public Schem(CompoundTag tag, String fallBackName) {
         super(tag);
-        this.name = ((StringTag) getMap(TAG_METADATA).get(TAG_NAME)).getValue();
+        StringTag nameTag = (StringTag) getMap(TAG_METADATA).get(TAG_NAME);
+        this.name = (nameTag != null) ? nameTag.getValue() : fallBackName;
         width = getShort(TAG_WIDTH);
         height = getShort(TAG_HEIGHT);
         length = getShort(TAG_LENGTH);
@@ -42,10 +43,36 @@ public final class Schem extends AbstractNBTItem implements WPObject {
             paletteList.set(((IntTag) value).getValue(), material);
         });
         palette = paletteList.toArray(new Material[paletteList.size()]);
-        blocks = getIntArray(TAG_BLOCK_DATA);
+        Tag blocksTag = getTag(TAG_BLOCK_DATA);
+        if (blocksTag instanceof IntArrayTag) {
+            blocks = ((IntArrayTag) blocksTag).getValue();
+        } else if (blocksTag instanceof ByteArrayTag) {
+            byte[] bytes = ((ByteArrayTag) blocksTag).getValue();
+            blocks = new int[bytes.length];
+            for (int i = 0; i < bytes.length; i++) {
+                blocks[i] = bytes[i] & 0xff;
+            }
+        } else {
+            throw new IllegalArgumentException("Unsupported tag type for BlockData: " + blocksTag.getClass().getSimpleName());
+        }
         // Save memory
         removeTag(TAG_PALETTE);
         removeTag(TAG_BLOCK_DATA);
+
+        Point3i offset;
+        int[] schemOffset = getIntArray(TAG_OFFSET);
+        if ((schemOffset[0] > -width) && (schemOffset[0] <= 0) && (schemOffset[2]> -length) && (schemOffset[2] <= 0) && (schemOffset[1] > -height) && (schemOffset[1] <= 0)) {
+            // Schematic offset points inside the object; use it as the default
+            offset = new Point3i(schemOffset[0], schemOffset[2], schemOffset[1]);
+        } else {
+            offset = guestimateOffset();
+        }
+        if ((offset.x != 0) || (offset.y != 0) || (offset.z != 0)) {
+            if (attributes == null) {
+                attributes = new HashMap<>();
+            }
+            attributes.put(ATTRIBUTE_OFFSET.key, offset);
+        }
     }
 
     // WPObject
@@ -67,8 +94,7 @@ public final class Schem extends AbstractNBTItem implements WPObject {
 
     @Override
     public Point3i getOffset() {
-        int[] offset = getIntArray(TAG_OFFSET);
-        return new Point3i(offset[0], offset[2], offset[1]);
+        return getAttribute(ATTRIBUTE_OFFSET);
     }
 
     @Override
@@ -78,7 +104,8 @@ public final class Schem extends AbstractNBTItem implements WPObject {
 
     @Override
     public boolean getMask(int x, int y, int z) {
-        return palette[blocks[x + y * width + z * width * length]] != AIR;
+        Material material = palette[blocks[x + y * width + z * width * length]];
+        return material != AIR;
     }
 
     @Override
@@ -135,9 +162,9 @@ public final class Schem extends AbstractNBTItem implements WPObject {
         return (Schem) super.clone();
     }
 
-    public static Schem load(InputStream stream) throws IOException {
+    public static Schem load(InputStream stream, String fallBackName) throws IOException {
         try (NBTInputStream in = new NBTInputStream(new GZIPInputStream(stream))) {
-            return new Schem((CompoundTag) in.readTag());
+            return new Schem((CompoundTag) in.readTag(), fallBackName);
         }
     }
 
