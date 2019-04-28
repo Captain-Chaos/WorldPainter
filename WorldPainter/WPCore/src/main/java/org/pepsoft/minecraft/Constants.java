@@ -519,6 +519,9 @@ public final class Constants {
     public static final String MC_AXIS        = "axis";
     public static final String MC_PICKLES     = "pickles";
     public static final String MC_MOISTURE    = "moisture";
+    public static final String MC_ROTATION    = "rotation";
+    public static final String MC_SHAPE       = "shape";
+    public static final String MC_HINGE       = "hinge";
 
     // Minecraft NBT tag names
 

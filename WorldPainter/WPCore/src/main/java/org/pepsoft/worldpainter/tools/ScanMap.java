@@ -4,6 +4,7 @@ import org.pepsoft.minecraft.ChunkStore;
 import org.pepsoft.minecraft.MC113AnvilChunk;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
+import org.pepsoft.worldpainter.plugins.WPPluginManager;
 
 import java.awt.*;
 import java.io.File;
@@ -13,6 +14,8 @@ import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 
 public class ScanMap {
     public static void main(String[] args) {
+        WPPluginManager.initialise(null);
+
         int[] bounds = {Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE};
         Map<Point, MC113AnvilChunk.Status> statusMap = new HashMap<>();
         Set<MC113AnvilChunk.HeightmapType> heightmapTypes = new HashSet<>();

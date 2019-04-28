@@ -51,8 +51,8 @@ public class MirroredObject extends AbstractObject {
     @Override
     public Material getMaterial(int x, int y, int z) {
         return mirrorYAxis
-            ? object.getMaterial(x, dimensions.y - y - 1, z).mirror(Direction.NORTH)
-            : object.getMaterial(dimensions.x - x - 1, y, z).mirror(Direction.EAST);
+            ? object.getMaterial(x, dimensions.y - y - 1, z).mirror(Direction.EAST)
+            : object.getMaterial(dimensions.x - x - 1, y, z).mirror(Direction.SOUTH);
     }
 
     @Override

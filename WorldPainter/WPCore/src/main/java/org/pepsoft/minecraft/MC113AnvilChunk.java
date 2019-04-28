@@ -56,7 +56,11 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
             List<CompoundTag> sectionTags = getList(TAG_SECTIONS);
             for (CompoundTag sectionTag: sectionTags) {
                 Section section = new Section(sectionTag);
-                sections[section.level] = section;
+                if (section.level >= 0) {
+                    // MC 1.14 has sections with y == -1; we're not sure yet if
+                    // this is a bug
+                    sections[section.level] = section;
+                }
             }
             biomes = getIntArray(TAG_BIOMES);
             heightMaps = new EnumMap<>(HeightmapType.class);
@@ -801,6 +805,9 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
         EMPTY, CARVED, LIQUID_CARVED, DECORATED, FULLCHUNK, POSTPROCESSED,
 
         // These have not lately been observed and may not (longer) be in use by Minecraft:
-        LIGHTED, FINALIZED, MOBS_SPAWNED
+        LIGHTED, FINALIZED, MOBS_SPAWNED,
+
+        // New for 1.14 (do they replace the ones from 1.13?)
+        FULL, STRUCTURE_STARTS, LIQUID_CARVERS, FEATURES, HEIGHTMAPS
     }
 }

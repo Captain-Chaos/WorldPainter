@@ -75,6 +75,11 @@ public final class Platform implements Serializable {
         return id.hashCode();
     }
 
+    @Override
+    public String toString() {
+        return displayName;
+    }
+
     public static Platform getById(String id) {
         return ALL_PLATFORMS.get(id);
     }

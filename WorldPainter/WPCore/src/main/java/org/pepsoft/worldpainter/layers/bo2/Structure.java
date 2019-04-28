@@ -1,5 +1,6 @@
 package org.pepsoft.worldpainter.layers.bo2;
 
+import com.google.common.collect.ImmutableList;
 import org.jnbt.*;
 import org.pepsoft.minecraft.Entity;
 import org.pepsoft.minecraft.Material;
@@ -10,21 +11,22 @@ import org.pepsoft.worldpainter.objects.WPObject;
 
 import javax.vecmath.Point3i;
 import java.io.*;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
+
+import static org.pepsoft.minecraft.Material.AIR;
 
 /**
  * Created by Pepijn on 26-6-2016.
  */
 public class Structure extends AbstractObject implements Bo2ObjectProvider {
-    private Structure(CompoundTag root, String name, Map<Point3i, Material> blocks) {
+    private Structure(CompoundTag root, String name, Map<Point3i, Material> blocks, List<Entity> entities, List<TileEntity> tileEntities) {
         this.root = root;
         this.name = name;
         this.blocks = blocks;
+        this.entities = entities;
+        this.tileEntities = tileEntities;
     }
 
     @Override
@@ -67,19 +69,22 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
 
     @Override
     public boolean getMask(int x, int y, int z) {
-        return blocks.containsKey(new Point3i(x, y, z));
+        if (getAttribute(ATTRIBUTE_IGNORE_AIR)) {
+            Material material = blocks.get(new Point3i(x, y, z));
+            return (material != null) && (material != AIR);
+        } else {
+            return blocks.containsKey(new Point3i(x, y, z));
+        }
     }
 
     @Override
     public List<Entity> getEntities() {
-        // TODO
-        return null;
+        return entities;
     }
 
     @Override
     public List<TileEntity> getTileEntities() {
-        // TODO
-        return null;
+        return tileEntities;
     }
 
     @Override
@@ -146,25 +151,50 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
             palette[i] = Material.get(name, properties);
         }
 
-        // Load the blocks
+        // Load the blocks and tile entities
         Map<Point3i, Material> blocks = new HashMap<>();
         ListTag<CompoundTag> blocksTag = (ListTag<CompoundTag>) root.getTag("blocks");
+        List<TileEntity> tileEntities = new ArrayList<>();
         for (CompoundTag blockTag: blocksTag.getValue()) {
             List<IntTag> posTags = ((ListTag<IntTag>) blockTag.getTag("pos")).getValue();
-            blocks.put(new Point3i(posTags.get(0).getValue(), posTags.get(2).getValue(), posTags.get(1).getValue()), palette[((IntTag) blockTag.getTag("state")).getValue()]);
+            int x = posTags.get(0).getValue();
+            int y = posTags.get(2).getValue();
+            int z = posTags.get(1).getValue();
+            blocks.put(new Point3i(x, y, z), palette[((IntTag) blockTag.getTag("state")).getValue()]);
+            CompoundTag nbtTag = (CompoundTag) blockTag.getTag("nbt");
+            if (nbtTag != null) {
+                // This block is a tile entity
+                TileEntity tileEntity = TileEntity.fromNBT(nbtTag);
+                tileEntity.setX(x);
+                tileEntity.setY(z);
+                tileEntity.setZ(y);
+                tileEntities.add(tileEntity);
+            }
         }
 
-        // Remove palette and blocks from the tag so we don't waste space
+        // Load the entities
+        ListTag<CompoundTag> entitiesTag = (ListTag<CompoundTag>) root.getTag("entities");
+        List<Entity> entities = new ArrayList<>(entitiesTag.getValue().size());
+        for (CompoundTag entityTag: entitiesTag.getValue()) {
+            entities.add(Entity.fromNBT(entityTag));
+        }
+
+        // Remove palette, blocks and entities from the tag so we don't waste space
         root.setTag("palette", null);
         root.setTag("blocks", null);
+        root.setTag("entities", null);
 
-        return new Structure(root, objectName, blocks);
+        return new Structure(root, objectName, blocks, (! entities.isEmpty()) ? ImmutableList.copyOf(entities) : null, (! tileEntities.isEmpty()) ? ImmutableList.copyOf(tileEntities) : null);
     }
 
     private final CompoundTag root;
     private final Map<Point3i, Material> blocks;
     private String name;
     private Map<String, Serializable> attributes;
+    private final List<Entity> entities;
+    private final List<TileEntity> tileEntities;
+
+    public static final AttributeKey<Boolean> ATTRIBUTE_IGNORE_AIR = new AttributeKey<>("Structure.ignoreAir", true);
 
     private static final long serialVersionUID = 1L;
 }

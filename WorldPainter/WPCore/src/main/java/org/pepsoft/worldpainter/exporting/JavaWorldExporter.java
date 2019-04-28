@@ -51,7 +51,7 @@ public class JavaWorldExporter extends AbstractWorldExporter {
         
         // Backup existing level
         File worldDir = new File(baseDir, FileUtils.sanitiseName(name));
-        logger.info("Exporting world " + world.getName() + " to map at " + worldDir);
+        logger.info("Exporting world " + world.getName() + " to map at " + worldDir + " in " + platform.displayName + " format");
         if (worldDir.isDirectory()) {
             if (backupDir != null) {
                 logger.info("Directory already exists; backing up to " + backupDir);

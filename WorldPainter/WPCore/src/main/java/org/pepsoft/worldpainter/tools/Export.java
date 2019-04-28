@@ -97,7 +97,7 @@ public class Export {
         WorldExporter exporter = platformManager.getExporter(world);
         exporter.export(exportDir, world.getName(), exporter.selectBackupDir(new File(exportDir, FileUtils.sanitiseName(world.getName()))), new ProgressReceiver() {
             @Override
-            public void setProgress(float progressFraction) throws OperationCancelled {
+            public void setProgress(float progressFraction) {
                 int progress = (int) (progressFraction * 50);
                 while (progress > previousProgress) {
                     System.out.print('.');
@@ -117,9 +117,9 @@ public class Export {
             }
             
             @Override public void done() {}
-            @Override public void setMessage(String message) throws OperationCancelled {}
-            @Override public void checkForCancellation() throws OperationCancelled {}
-            @Override public void subProgressStarted(SubProgressReceiver subProgressReceiver) throws OperationCancelled {}
+            @Override public void setMessage(String message) {}
+            @Override public void checkForCancellation() {}
+            @Override public void subProgressStarted(SubProgressReceiver subProgressReceiver) {}
             
             private int previousProgress = -1;
         });

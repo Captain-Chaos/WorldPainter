@@ -13,8 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.util.*;
 
@@ -25,7 +23,9 @@ import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toSet;
 import static org.pepsoft.minecraft.Block.BLOCK_TYPE_NAMES;
 import static org.pepsoft.minecraft.Constants.*;
-import static org.pepsoft.minecraft.Material.HorizontalOrientationScheme.CARDINAL_DIRECTIONS;
+import static org.pepsoft.minecraft.HorizontalOrientationScheme.CARDINAL_DIRECTIONS;
+import static org.pepsoft.minecraft.HorizontalOrientationScheme.STAIR_CORNER;
+import static org.pepsoft.util.MathUtils.mod;
 
 /**
  * A representation of a Minecraft material, or one possible in- game block
@@ -89,7 +89,7 @@ public final class Material implements Serializable {
         name = identity.name;
         stringRep = createStringRep();
         legacyStringRep = createLegacyStringRep();
-        horizontalOrientationScheme = determineHorizontalOrientation(identity);
+        horizontalOrientationSchemes = determineHorizontalOrientations(identity);
         verticalOrientationScheme = determineVerticalOrientation(identity);
 
         Map<String, Object> spec = findSpec(identity);
@@ -191,7 +191,7 @@ public final class Material implements Serializable {
             blockType = -1;
             data = -1;
             if (logger.isDebugEnabled()) {
-                logger.debug("Did not match " + identity + " to legacy block", new Throwable("Stack trace"));
+                logger.debug("Did not match " + identity + " to legacy block");
             }
         }
 
@@ -207,7 +207,7 @@ public final class Material implements Serializable {
         }
         stringRep = createStringRep();
         legacyStringRep = createLegacyStringRep();
-        horizontalOrientationScheme = determineHorizontalOrientation(identity);
+        horizontalOrientationSchemes = determineHorizontalOrientations(identity);
         verticalOrientationScheme = determineVerticalOrientation(identity);
 
         Map<String, Object> spec = findSpec(identity);
@@ -298,7 +298,7 @@ public final class Material implements Serializable {
                 }
                 // If we reach here none of the specs matched
                 if (logger.isDebugEnabled()) {
-                    logger.debug("There were multiple specs for identity " + identity + " but its properties did not match any of them", new Throwable("Stack trace"));
+                    logger.debug("There were multiple specs for identity " + identity + " but its properties did not match any of them");
                 }
                 return null;
             }
@@ -401,34 +401,6 @@ public final class Material implements Serializable {
     }
 
     /**
-     * Returns a material identical to this one, except with the specified
-     * properties set to the specified values. This variant takes four
-     * properties.
-     *
-     * @param property1 The first property that should be set.
-     * @param value1 The value to which the first property should be set.
-     * @param property2 The second property that should be set.
-     * @param value2 The value to which the second property should be set.
-     * @param property3 The third property that should be set.
-     * @param value3 The value to which the third property should be set.
-     * @param property4 The fourth property that should be set.
-     * @param value4 The value to which the fourth property should be set.
-     * @return A material identical to this one, except with the specified
-     * properties set.
-     */
-    public <T1, T2, T3, T4> Material withProperties(Property<T1> property1, T1 value1, Property<T2> property2, T2 value2, Property<T3> property3, T3 value3, Property<T4> property4, T4 value4) {
-        Map<String, String> newProperties = new HashMap<>();
-        if (identity.properties != null) {
-            newProperties.putAll(identity.properties);
-        }
-        newProperties.put(property1.name, value1.toString());
-        newProperties.put(property2.name, value2.toString());
-        newProperties.put(property3.name, value3.toString());
-        newProperties.put(property4.name, value4.toString());
-        return get(identity.name, newProperties);
-    }
-
-    /**
      * Indicates whether a specific property is present on this material.
      *
      * @param name The name of the property to check for presence.
@@ -467,6 +439,34 @@ public final class Material implements Serializable {
     }
 
     /**
+     * Returns a material identical to this one, except with the specified
+     * properties set to the specified values. This variant takes four
+     * properties.
+     *
+     * @param name1 The name of the first property that should be set.
+     * @param value1 The value to which the first property should be set.
+     * @param name2 The name of the second property that should be set.
+     * @param value2 The value to which the second property should be set.
+     * @param name3 The name of the third property that should be set.
+     * @param value3 The value to which the third property should be set.
+     * @param name4 The name of the fourth property that should be set.
+     * @param value4 The value to which the fourth property should be set.
+     * @return A material identical to this one, except with the specified
+     * properties set.
+     */
+    public Material withProperties(String name1, String value1, String name2, String value2, String name3, String value3, String name4, String value4) {
+        Map<String, String> newProperties = new HashMap<>();
+        if (identity.properties != null) {
+            newProperties.putAll(identity.properties);
+        }
+        newProperties.put(name1, value1);
+        newProperties.put(name2, value2);
+        newProperties.put(name3, value3);
+        newProperties.put(name4, value4);
+        return get(identity.name, newProperties);
+    }
+
+    /**
      * Get the cardinal direction this block is pointing, if applicable.
      * 
      * @return The cardinal direction in which this block is pointing, or
@@ -474,25 +474,15 @@ public final class Material implements Serializable {
      *     cardinal direction (but for instance up or down)
      */
     public Direction getDirection() {
-        if (horizontalOrientationScheme != null) {
-            switch (horizontalOrientationScheme) {
-                case FACING:
-                    return getProperty(FACING);
-                case AXIS:
-                    switch (getProperty(AXIS)) {
-                        case "x":
-                            return Direction.EAST;
-                        case "z":
-                            return Direction.SOUTH;
-                        default:
-                            return null;
-                    }
-                default:
-                    return null;
+        if (horizontalOrientationSchemes != null) {
+            for (HorizontalOrientationScheme horizontalOrientationScheme: horizontalOrientationSchemes) {
+                Direction direction = horizontalOrientationScheme.getDirection(this);
+                if (direction != null) {
+                    return direction;
+                }
             }
-        } else {
-            return null;
         }
+        return null;
     }
     
     /**
@@ -507,22 +497,12 @@ public final class Material implements Serializable {
      *     concept of direction
      */
     public Material setDirection(Direction direction) {
-        if (horizontalOrientationScheme != null) {
-            switch (horizontalOrientationScheme) {
-                case FACING:
-                    return withProperty(FACING, direction);
-                case AXIS:
-                    switch (direction) {
-                        case NORTH:
-                        case SOUTH:
-                            return withProperty(AXIS, "z");
-                        case EAST:
-                        case WEST:
-                            return withProperty(AXIS, "x");
-                        default:
-                            throw new InternalError();
-                    }
+        if (horizontalOrientationSchemes != null) {
+            Material material = this;
+            for (HorizontalOrientationScheme horizontalOrientationScheme: horizontalOrientationSchemes) {
+                material = horizontalOrientationScheme.setDirection(material, direction);
             }
+            return material;
         }
         throw new IllegalArgumentException("Block type " + blockType + " has no direction");
     }
@@ -538,37 +518,12 @@ public final class Material implements Serializable {
      * to this material)
      */
     public Material rotate(int steps) {
-        if (horizontalOrientationScheme != null) {
-            switch (horizontalOrientationScheme) {
-                case CARDINAL_DIRECTIONS:
-                    Boolean[] directions = {
-                            getProperty(NORTH),
-                            getProperty(EAST),
-                            getProperty(SOUTH),
-                            getProperty(WEST)
-                    };
-                    Collections.rotate(asList(directions), steps);
-                    return withProperties(
-                            NORTH, directions[0],
-                            EAST, directions[1],
-                            SOUTH, directions[2],
-                            WEST, directions[3]
-                    );
-                case FACING:
-                    return withProperty(FACING, getProperty(FACING).rotate(steps));
-                case AXIS:
-                    if (steps % 2 != 0) {
-                        String axis = getProperty(MC_AXIS);
-                        if (axis.equals("x")) {
-                            return withProperty(MC_AXIS, "z");
-                        } else if (axis.equals("z")) {
-                            return withProperty(MC_AXIS, "x");
-                        }
-                    }
-                    break;
-                default:
-                    throw new InternalError();
+        if ((horizontalOrientationSchemes != null) && ((steps % 4) != 0)) {
+            Material material = this;
+            for (HorizontalOrientationScheme horizontalOrientationScheme: horizontalOrientationSchemes) {
+                material = horizontalOrientationScheme.rotate(material, steps);
             }
+            return material;
         }
         return this;
     }
@@ -582,35 +537,12 @@ public final class Material implements Serializable {
      *     apply to this material)
      */
     public Material mirror(Direction axis) {
-        if (horizontalOrientationScheme != null) {
-            switch (horizontalOrientationScheme) {
-                case CARDINAL_DIRECTIONS:
-                    boolean north = getProperty(NORTH);
-                    boolean east = getProperty(EAST);
-                    boolean south = getProperty(SOUTH);
-                    boolean west = getProperty(WEST);
-                    if ((axis == Direction.WEST) || (axis == Direction.EAST)) {
-                        boolean tmp = north;
-                        north = south;
-                        south = tmp;
-                    } else {
-                        boolean tmp = west;
-                        west = east;
-                        east = tmp;
-                    }
-                    return withProperties(
-                            NORTH, north,
-                            EAST, east,
-                            SOUTH, south,
-                            WEST, west
-                    );
-                case FACING:
-                    return withProperty(FACING, getProperty(FACING).mirror(axis));
-                case AXIS:
-                    return this;
-                default:
-                    throw new InternalError();
+        if (horizontalOrientationSchemes != null) {
+            Material material = this;
+            for (HorizontalOrientationScheme horizontalOrientationScheme: horizontalOrientationSchemes) {
+                material = horizontalOrientationScheme.mirror(material, axis);
             }
+            return material;
         }
         return this;
     }
@@ -810,16 +742,38 @@ public final class Material implements Serializable {
         return (material.name != this.name) && (! material.name.equals(this.name));
     }
 
-    private HorizontalOrientationScheme determineHorizontalOrientation(Identity identity) {
-        if (identity.containsPropertyWithValues("north", "true", "false")
-                && identity.containsPropertyWithValues("east", "true", "false")
-                && identity.containsPropertyWithValues("south", "true", "false")
-                && identity.containsPropertyWithValues("west", "true", "false")) {
-            return CARDINAL_DIRECTIONS;
-        } else if (identity.containsPropertyWithValues("axis", "x", "y", "z")) {
-            return HorizontalOrientationScheme.AXIS;
-        } else if (identity.containsPropertyWithValues("facing", "north", "east", "south", "west")) {
-            return HorizontalOrientationScheme.FACING;
+    private HorizontalOrientationScheme[] determineHorizontalOrientations(Identity identity) {
+        if (identity.properties != null) {
+            List<HorizontalOrientationScheme> horizontalOrientationSchemes = new ArrayList<>();
+            if (identity.properties.keySet().containsAll(ImmutableSet.of("north", "east", "south", "west"))) {
+                horizontalOrientationSchemes.add(CARDINAL_DIRECTIONS);
+            }
+            if (identity.containsPropertyWithValues(MC_AXIS, "x", "y", "z")) {
+                horizontalOrientationSchemes.add(HorizontalOrientationScheme.AXIS);
+            }
+            if (identity.containsPropertyWithValues(MC_FACING, "north", "east", "south", "west")) {
+                horizontalOrientationSchemes.add(HorizontalOrientationScheme.FACING);
+            }
+            if (identity.containsPropertyWithValues(MC_ROTATION, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15")) {
+                horizontalOrientationSchemes.add(HorizontalOrientationScheme.ROTATION);
+            }
+            if (identity.containsPropertyWithValues(MC_SHAPE, "east_west", "south_west", "north_south", "north_east", "north_west", "south_east", "ascending_north", "ascending_east", "ascending_south", "ascending_west")) {
+                horizontalOrientationSchemes.add(HorizontalOrientationScheme.SHAPE);
+            }
+            if (identity.containsPropertyWithValues(MC_SHAPE, "inner_left", "inner_right", "outer_left", "outer_right")) {
+                horizontalOrientationSchemes.add(STAIR_CORNER);
+            }
+            if (identity.containsPropertyWithValues(MC_TYPE, "left", "right")) {
+                horizontalOrientationSchemes.add(HorizontalOrientationScheme.TYPE);
+            }
+            if (identity.containsPropertyWithValues(MC_HINGE, "left", "right")) {
+                horizontalOrientationSchemes.add(HorizontalOrientationScheme.HINGE);
+            }
+            if (horizontalOrientationSchemes.isEmpty()) {
+                return null;
+            } else {
+                return horizontalOrientationSchemes.toArray(new HorizontalOrientationScheme[horizontalOrientationSchemes.size()]);
+            }
         } else {
             return null;
         }
@@ -904,6 +858,10 @@ public final class Material implements Serializable {
         } else {
             return Integer.toString(blockType);
         }
+    }
+
+    private String rotateValue(List<String> values, int index, int steps) {
+        return values.get(mod(index + steps, values.size()));
     }
 
     /**
@@ -1098,15 +1056,15 @@ public final class Material implements Serializable {
         // If identity is not set this is a legacy material with only a block ID
         // and data value, so in that case return the corresponding legacy
         // instance
-        if (blockType >= 0) {
+        if (identity != null) {
+            return get(identity);
+        } else {
             int index = (blockType << 4) | data;
             if (index >= LEGACY_MATERIALS.length) {
                 return get(new Identity("legacy:block_" + blockType, singletonMap("data_value", Integer.toString(data))));
             } else {
                 return LEGACY_MATERIALS[index];
             }
-        } else {
-            return get(identity);
         }
     }
 
@@ -1213,11 +1171,11 @@ public final class Material implements Serializable {
     public final transient boolean dry;
 
     /**
-     * The horizontal orientation scheme detected for this material, or
+     * The horizontal orientation scheme(s) detected for this material, or
      * {@code null} if this material has no horizontal orientation, or one could
      * not be determined.
      */
-    public final transient HorizontalOrientationScheme horizontalOrientationScheme;
+    public final transient HorizontalOrientationScheme[] horizontalOrientationSchemes;
 
     /**
      * The vertical orientation scheme detected for this material, or
@@ -1519,6 +1477,9 @@ public final class Material implements Serializable {
     public static final Property<String>    TYPE        = new Property<>(MC_TYPE,        String.class);
     public static final Property<Integer>   PICKLES     = new Property<>(MC_PICKLES,     Integer.class);
     public static final Property<Integer>   MOISTURE    = new Property<>(MC_MOISTURE,    Integer.class);
+    public static final Property<Integer>   ROTATION    = new Property<>(MC_ROTATION,    Integer.class);
+    public static final Property<String>    SHAPE       = new Property<>(MC_SHAPE,       String.class);
+    public static final Property<String>    HINGE       = new Property<>(MC_HINGE,       String.class);
 
     // Modern materials (based on MC 1.13 block names and properties)
 
@@ -1726,81 +1687,5 @@ public final class Material implements Serializable {
         final Map<String, String> properties;
 
         private static final long serialVersionUID = 1L;
-    }
-
-    public static final class Property<T> {
-        public Property(String name, Class<T> type) {
-            this.name = name;
-            this.type = type;
-            Method method = null;
-            if (type != String.class) {
-                try {
-                    method = type.getMethod("parse", String.class);
-                } catch (NoSuchMethodException e) {
-                    try {
-                        method = type.getMethod("valueOf", String.class);
-                    } catch (NoSuchMethodException e2) {
-                        throw new IllegalArgumentException("Type " + type + " has no parse(String) or valueOf(String) methods");
-                    }
-                }
-            }
-            valueOfMethod = method;
-        }
-
-        @SuppressWarnings("unchecked") // Responsibility of client
-        public T fromString(String str) {
-            if (valueOfMethod == null) {
-                return (T) str;
-            } else {
-                try {
-                    return (T) valueOfMethod.invoke(null, str);
-                } catch (IllegalAccessException | InvocationTargetException e) {
-                    throw new RuntimeException(e.getClass().getSimpleName() + " when trying to parse\"" + str + "\" to " + type, e);
-                }
-            }
-        }
-
-        public final String name;
-        public final Class<T> type;
-        private final Method valueOfMethod;
-    }
-
-    /**
-     * Horizontal orientation schemes recognized by this class.
-     */
-    enum HorizontalOrientationScheme {
-        /**
-         * {@code axis} property containing {@code x}, {@code y} or {@code z}
-         */
-        AXIS,
-
-        /**
-         * {@code north}, {@code east}, {@code south} <em>and</em> {@code west} properties, each containing {@code true} or {@code false}
-         */
-        CARDINAL_DIRECTIONS,
-
-        /**
-         * {@code facing} property containing the cardinal direction {@code north}, {@code east}, {@code south} or {@code west}
-         */
-        FACING}
-
-    /**
-     * Vertical orientation schemes recognized by this class.
-     */
-    enum VerticalOrientationScheme {
-        /**
-         * {@code half} property containing {@code top} or {@code bottom}
-         */
-        HALF,
-
-        /**
-         * {@code up} property containing {@code true} or {@code false}
-         */
-        UP,
-
-        /**
-         * {@code type} property containing {@code bottom} or {@code top}
-         */
-        TYPE
     }
 }
