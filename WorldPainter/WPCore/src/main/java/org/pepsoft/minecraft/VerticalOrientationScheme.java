@@ -15,7 +15,7 @@ enum VerticalOrientationScheme {
     UP,
 
     /**
-     * {@code type} property containing {@code bottom} or {@code top}
+     * {@code type} property containing {@code top} or {@code bottom}
      */
     TYPE
 }

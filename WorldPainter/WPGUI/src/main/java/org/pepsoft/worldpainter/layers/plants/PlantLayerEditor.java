@@ -23,7 +23,7 @@ import java.io.InputStream;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-import static org.pepsoft.worldpainter.Constants.V_1_12_2;
+import static org.pepsoft.worldpainter.Constants.V_1_13;
 import static org.pepsoft.worldpainter.layers.plants.Category.*;
 import static org.pepsoft.worldpainter.layers.plants.Plants.ALL_PLANTS;
 import static org.pepsoft.worldpainter.util.I18nHelper.m;
@@ -247,11 +247,13 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
         }
         try {
             if (resourcesJar == null) {
-                resourcesJar = BiomeSchemeManager.getMinecraftJarNoNewerThan(V_1_12_2);
+                resourcesJar = BiomeSchemeManager.getMinecraftJarNoOlderThan(V_1_13);
                 if (resourcesJar == null) {
                     logger.warn("Could not find Minecraft jar for loading plant icons");
                     resourcesJar = RESOURCES_NOT_AVAILABLE;
                     return null;
+                } else {
+                    logger.info("Loading plant icons from {}", resourcesJar);
                 }
             }
             try (JarFile jarFile = new JarFile(resourcesJar)) {
@@ -261,7 +263,12 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
                         logger.debug("Loading plant icon " + name + " from " + resourcesJar);
                     }
                     try (InputStream in = jarFile.getInputStream(entry)) {
-                        return ImageIO.read(in);
+                        BufferedImage icon = ImageIO.read(in);
+                        if (icon.getHeight() > icon.getWidth()) {
+                            // Assume this is an animation strip; take the top square of it
+                            icon = icon.getSubimage(0, 0, icon.getWidth(), icon.getWidth());
+                        }
+                        return icon;
                     }
                 } else {
                     if (logger.isDebugEnabled()) {
