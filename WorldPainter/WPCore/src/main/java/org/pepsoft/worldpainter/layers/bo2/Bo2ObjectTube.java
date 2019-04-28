@@ -60,7 +60,7 @@ public final class Bo2ObjectTube implements Bo2ObjectProvider {
     @Override
     public Bo2ObjectTube clone() {
         List<WPObject> clonedObjects = new ArrayList<>(objects.size());
-        clonedObjects.forEach(object -> clonedObjects.add(object.clone()));
+        objects.forEach(object -> clonedObjects.add(object.clone()));
         return new Bo2ObjectTube(name, clonedObjects);
     }
 

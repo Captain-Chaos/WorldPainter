@@ -159,7 +159,11 @@ public final class Schem extends AbstractNBTItem implements WPObject {
 
     @Override
     public Schem clone() {
-        return (Schem) super.clone();
+        Schem clone = (Schem) super.clone();
+        if (attributes != null) {
+            clone.attributes = new HashMap<>(attributes);
+        }
+        return clone;
     }
 
     public static Schem load(InputStream stream, String fallBackName) throws IOException {
