@@ -1631,7 +1631,7 @@ public final class Material implements Serializable {
             if (name.indexOf(':') == -1) {
                 throw new IllegalArgumentException("name");
             }
-            this.name = name.intern();
+            this.name = name;
             this.properties = ((properties != null) && (! properties.isEmpty())) ? ImmutableMap.copyOf(properties) : null;
         }
 
@@ -1665,11 +1665,10 @@ public final class Material implements Serializable {
             return (value != null) && asList(values).contains(value);
         }
 
-        @SuppressWarnings("StringEquality") // Interned string
         @Override
         public boolean equals(Object o) {
             return (o instanceof Identity)
-                && (name == ((Identity) o).name)
+                && name.equals(((Identity) o).name)
                 && Objects.equals(properties, ((Identity) o).properties);
         }
 
