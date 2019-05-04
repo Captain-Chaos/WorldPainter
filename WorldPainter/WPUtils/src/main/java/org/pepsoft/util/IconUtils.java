@@ -69,7 +69,7 @@ public final class IconUtils {
      */
     public static BufferedImage loadUnscaledImage(String path) {
         try {
-            URL url = ClassLoader.getSystemResource(path);
+            URL url = ClassLoader.getSystemResource(path.startsWith("/") ? path.substring(1) : path);
             if (url != null) {
                 return ImageIO.read(url);
             } else {

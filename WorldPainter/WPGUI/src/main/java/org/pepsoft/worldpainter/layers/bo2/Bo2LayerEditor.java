@@ -11,6 +11,7 @@ import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.worldpainter.App;
 import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.Configuration;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.layers.AbstractLayerEditor;
 import org.pepsoft.worldpainter.layers.Bo2Layer;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
@@ -31,9 +32,10 @@ import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.NumberFormat;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
+import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 import static org.pepsoft.worldpainter.objects.WPObject.*;
 
 /**
@@ -61,7 +63,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
     
     @Override
     public Bo2Layer createLayer() {
-        return new Bo2Layer(new Bo2ObjectTube("My Custom Objects", Collections.emptyList()), "Custom (e.g. bo2, bo3 and/or schematic) objects", Color.ORANGE.getRGB());
+        return new Bo2Layer(new Bo2ObjectTube("My Custom Objects", Collections.emptyList()), "Custom (e.g. bo2, bo3, nbt, schem and/or schematic) objects", Color.ORANGE.getRGB());
     }
 
     @Override
@@ -258,8 +260,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
         fileChooser.setDialogTitle("Select File(s) or Directory");
         fileChooser.setMultiSelectionEnabled(true);
         fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-        CustomObjectManager customObjectManager = CustomObjectManager.getInstance();
-        CustomObjectManager.UniversalFileFilter fileFilter = customObjectManager.getFileFilter();
+        CustomObjectManager.UniversalFileFilter fileFilter = CustomObjectManager.getInstance().getFileFilter();
         fileChooser.setFileFilter(fileFilter);
         WPObjectPreviewer previewer = new WPObjectPreviewer();
         previewer.setDimension(App.getInstance().getDimension());
@@ -268,6 +269,9 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
         if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             File[] selectedFiles = fileChooser.getSelectedFiles();
             if (selectedFiles.length > 0) {
+                Platform platform = context.getDimension().getWorld().getPlatform();
+                boolean checkForNameOnlyMaterials = ! platform.capabilities.contains(NAME_BASED);
+                Set<String> nameOnlyMaterialsNames = checkForNameOnlyMaterials ? new HashSet<>() : null;
                 config.setCustomObjectsDirectory(selectedFiles[0].getParentFile());
                 for (File selectedFile: selectedFiles) {
                     if (selectedFile.isDirectory()) {
@@ -284,12 +288,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                             JOptionPane.showMessageDialog(this, "Directory " + selectedFile.getName() + " does not contain any supported custom object files.", "No Custom Object Files", JOptionPane.ERROR_MESSAGE);
                         } else {
                             for (File file: files) {
-                                try {
-                                    listModel.addElement(customObjectManager.loadObject(file));
-                                } catch (IOException e) {
-                                    logger.error("I/O error while trying to load custom object " + file, e);
-                                    JOptionPane.showMessageDialog(this, "I/O error while loading " + file.getName() + "; it was not added", "I/O Error", JOptionPane.ERROR_MESSAGE);
-                                }
+                                addFile(checkForNameOnlyMaterials, nameOnlyMaterialsNames, file);
                             }
                         }
                     } else {
@@ -304,20 +303,56 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                             }
                             fieldName.setText(name);
                         }
-                        try {
-                            listModel.addElement(customObjectManager.loadObject(selectedFile));
-                        } catch (IOException e) {
-                            logger.error("I/O error while trying to load custom object " + selectedFile, e);
-                            JOptionPane.showMessageDialog(this, "I/O error while loading " + selectedFile.getName() + "; it was not added", "I/O Error", JOptionPane.ERROR_MESSAGE);
-                        }
+                        addFile(checkForNameOnlyMaterials, nameOnlyMaterialsNames, selectedFile);
                     }
                 }
                 settingsChanged();
                 refreshLeafDecaySettings();
+                if (checkForNameOnlyMaterials && (! nameOnlyMaterialsNames.isEmpty())) {
+                    String message;
+                    if (nameOnlyMaterialsNames.size() > 4) {
+                        message = String.format("One or more added objects contain block types that are\n" +
+                                "incompatible with the current map format (%s):\n" +
+                                "%s and %d more\n" +
+                                "You will not be able to export this world in this format if you use this layer.",
+                                platform.displayName, String.join(", ", new ArrayList<>(nameOnlyMaterialsNames).subList(0, 3)),
+                                nameOnlyMaterialsNames.size() - 3);
+                    } else {
+                        message = String.format("One or more added objects contain block types that are\n" +
+                                "incompatible with the current map format (%s):\n" +
+                                "%s\n" +
+                                "You will not be able to export this world in this format if you use this layer.",
+                                platform.displayName, String.join(", ", nameOnlyMaterialsNames));
+                    }
+                    Toolkit.getDefaultToolkit().beep();
+                    JOptionPane.showMessageDialog(this, message, "Map Format Not Compatible", JOptionPane.WARNING_MESSAGE);
+                }
             }
         }
     }
-    
+
+    private void addFile(boolean checkForNameOnlyMaterials, Set<String> nameOnlyMaterialsNames, File file) {
+        try {
+            WPObject object = CustomObjectManager.getInstance().loadObject(file);
+            if (checkForNameOnlyMaterials) {
+                Set<String> materialNamesEncountered = new HashSet<>();
+                object.visitBlocks((o, x, y, z, material) -> {
+                    if (! materialNamesEncountered.contains(material.name)) {
+                        materialNamesEncountered.add(material.name);
+                        if (material.blockType == -1) {
+                            nameOnlyMaterialsNames.add(material.name);
+                        }
+                    }
+                    return true;
+                });
+            }
+            listModel.addElement(object);
+        } catch (IOException e) {
+            logger.error("I/O error while trying to load custom object " + file, e);
+            JOptionPane.showMessageDialog(this, "I/O error while loading " + file.getName() + "; it was not added", "I/O Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     private void removeFiles() {
         int[] selectedIndices = listObjects.getSelectedIndices();
         for (int i = selectedIndices.length - 1; i >= 0; i--) {

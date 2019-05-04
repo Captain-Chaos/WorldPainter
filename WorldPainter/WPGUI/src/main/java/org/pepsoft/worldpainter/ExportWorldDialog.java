@@ -12,10 +12,13 @@
 package org.pepsoft.worldpainter;
 
 import org.pepsoft.util.DesktopUtils;
+import org.pepsoft.util.IconUtils;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
+import org.pepsoft.worldpainter.layers.Bo2Layer;
 import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.Populate;
+import org.pepsoft.worldpainter.objects.WPObject;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.util.EnumListCellRenderer;
 
@@ -24,12 +27,11 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.pepsoft.minecraft.Constants.DIFFICULTY_HARD;
 import static org.pepsoft.minecraft.Constants.DIFFICULTY_PEACEFUL;
 import static org.pepsoft.worldpainter.Constants.*;
@@ -37,6 +39,7 @@ import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.GameType.*;
 import static org.pepsoft.worldpainter.Generator.CUSTOM;
 import static org.pepsoft.worldpainter.Generator.DEFAULT;
+import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 
 /**
  *
@@ -84,6 +87,46 @@ public class ExportWorldDialog extends WorldPainterDialog {
         }
         fieldName.setText(world.getName());
 
+        // Check for materials that have no block IDs
+        // TODO: anything else?
+        // Check custom materials
+        Arrays.stream(MixedMaterialManager.getInstance().getMaterials()).forEach(material -> {
+            for (MixedMaterial.Row row: material.getRows()) {
+                if (row.material.blockType == -1) {
+                    nameOnlyMaterials.computeIfAbsent(row.material.name, m -> new HashSet<>()).add("custom material " + material.getName());
+                }
+            }
+        });
+        // Check custom object layers
+        for (Dimension dimension: world.getDimensions()) {
+            for (Layer layer: dimension.getAllLayers(true)) {
+                if (layer instanceof Bo2Layer) {
+                    Map<String, List<WPObject>> nameOnlyMaterialsForLayer = new HashMap<>();
+                    for (WPObject object: ((Bo2Layer) layer).getObjectProvider().getAllObjects()) {
+                        Set<String> materialNamesEncounteredInObject = new HashSet<>();
+                        object.visitBlocks((o, x, y, z, material) -> {
+                            if (! materialNamesEncounteredInObject.contains(material.name)) {
+                                materialNamesEncounteredInObject.add(material.name);
+                                if (material.blockType == -1) {
+                                    nameOnlyMaterialsForLayer.computeIfAbsent(material.name, m -> new ArrayList<>()).add(object);
+                                }
+                            }
+                            return true;
+                        });
+                    }
+                    nameOnlyMaterialsForLayer.forEach((name, objects) -> {
+                        if (objects.size() == 1) {
+                            nameOnlyMaterials.computeIfAbsent(name, m -> new HashSet<>()).add("object " + objects.iterator().next().getName() + " in layer " + layer.getName());
+                        } else if (objects.size() <= 3) {
+                            nameOnlyMaterials.computeIfAbsent(name, m -> new HashSet<>()).add("objects " + objects.stream().map(WPObject::getName).collect(Collectors.joining(", ")) + " in layer " + layer.getName());
+                        } else {
+                            nameOnlyMaterials.computeIfAbsent(name, m -> new HashSet<>()).add("objects " + objects.subList(0, 2).stream().map(WPObject::getName).collect(Collectors.joining(", ")) + " and " + (objects.size() - 2) + " more in layer " + layer.getName());
+                        }
+                    });
+                }
+            }
+        }
+
         Dimension dim0 = world.getDimension(0);
         surfacePropertiesEditor.setColourScheme(colourScheme);
         surfacePropertiesEditor.setMode(DimensionPropertiesEditor.Mode.EXPORT);
@@ -125,9 +168,10 @@ public class ExportWorldDialog extends WorldPainterDialog {
             jTabbedPane1.setEnabledAt(5, false);
         }
         checkBoxGoodies.setSelected(world.isCreateGoodiesChest());
-        List<Platform> availablePlatforms = PlatformManager.getInstance().getAllPlatforms().stream()
-                .filter(p -> p.isCompatible(world))
-                .collect(toList());
+        List<Platform> availablePlatforms = PlatformManager.getInstance().getAllPlatforms();
+        Set<Platform> incompatiblePlatforms = availablePlatforms.stream().filter(availablePlatform ->
+                    (! availablePlatform.isCompatible(world))
+                || ((! nameOnlyMaterials.isEmpty()) && (! availablePlatform.capabilities.contains(NAME_BASED)))).collect(toSet());
         comboBoxMinecraftVersion.setToolTipText("Only map formats compatible with this world are displayed");
         comboBoxMinecraftVersion.setModel(new DefaultComboBoxModel<>(availablePlatforms.toArray(new Platform[availablePlatforms.size()])));
         comboBoxMinecraftVersion.setRenderer(new DefaultListCellRenderer() {
@@ -135,6 +179,13 @@ public class ExportWorldDialog extends WorldPainterDialog {
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 if (value instanceof Platform) {
+                    if (! incompatiblePlatforms.isEmpty()) {
+                        if (incompatiblePlatforms.contains(value)) {
+                            setIcon(WARNING_ICON);
+                        } else {
+                            setIcon(SPACER_ICON);
+                        }
+                    }
                     setText(((Platform) value).displayName);
                 }
                 return this;
@@ -216,6 +267,42 @@ dims:   for (Dimension dim: world.getDimensions()) {
         }
     }
 
+    /**
+     * Check whether a platform is compatible with the loaded world. If not,
+     * reports the reason to the user with a popup and returns {@code false},
+     * otherwise returns {@code true}.
+     *
+     * @param platform The platform to check for compatibility.
+     * @return {@code true} is the platform is compatible with the loaded world.
+     */
+    private boolean checkCompatibility(Platform platform) {
+        if ((! nameOnlyMaterials.isEmpty()) && (! platform.capabilities.contains(NAME_BASED))) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("<html>");
+            sb.append("<p>The world cannot be exported in format ").append(platform.displayName).append(" because it contains the following incompatible block types:");
+            sb.append("<table><tr><th align='left'>Block Type</th><th align='left'>Source</th></tr>");
+            nameOnlyMaterials.forEach((name, sources) ->
+                    sb.append("<tr><td>").append(name).append("</td><td>").append(String.join(",", sources)).append("</td></tr>"));
+            sb.append("</table>");
+            Toolkit.getDefaultToolkit().beep();
+            JOptionPane.showMessageDialog(this, sb.toString(), "Map Format Not Compatible", JOptionPane.ERROR_MESSAGE);
+            comboBoxMinecraftVersion.requestFocusInWindow();
+            return false;
+        }
+        if (! platform.isCompatible(world)) {
+            Toolkit.getDefaultToolkit().beep();
+            JOptionPane.showMessageDialog(this, String.format(/* language=HTML */ "<html>" +
+                    "<p>The world cannot be exported in format %s because it is not compatible, for one of these reasons:" +
+                    "<ul><li>The format does not support the world height of %d blocks" +
+                    "<li>The format does not support one or more of the dimensions in this world" +
+                    "</ul>" +
+                    "</html>", platform.displayName, world.getMaxHeight()), "Map Format Not Compatible", JOptionPane.ERROR_MESSAGE);
+            comboBoxMinecraftVersion.requestFocusInWindow();
+            return false;
+        }
+        return true;
+    }
+
     private void export() {
         // Check for errors
         if (! new File(fieldDirectory.getText().trim()).isDirectory()) {
@@ -240,6 +327,10 @@ dims:   for (Dimension dim: world.getDimensions()) {
             buttonGeneratorOptions.requestFocusInWindow();
             Toolkit.getDefaultToolkit().beep();
             JOptionPane.showMessageDialog(this, "The custom world generator name has not been set.\nUse the [...] button to set it.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        Platform platform = (Platform) comboBoxMinecraftVersion.getSelectedItem();
+        if (! checkCompatibility(platform)) {
             return;
         }
 
@@ -345,7 +436,6 @@ dims:   for (Dimension dim: world.getDimensions()) {
                 return;
             }
         }
-        Platform platform = (Platform) comboBoxMinecraftVersion.getSelectedItem();
         world.setPlatform(platform);
         world.setCreateGoodiesChest(checkBoxGoodies.isSelected());
         world.setGameType((GameType) comboBoxGameType.getSelectedItem());
@@ -770,6 +860,8 @@ dims:   for (Dimension dim: world.getDimensions()) {
             if ((exportDir != null) && exportDir.isDirectory()) {
                 fieldDirectory.setText(exportDir.getAbsolutePath());
             }
+            // Otherwise the JComboBox malfunctions:
+            SwingUtilities.invokeLater(() -> buttonExport.setEnabled(checkCompatibility(newPlatform)));
             pack();
         }
         setControlStates();
@@ -844,6 +936,9 @@ dims:   for (Dimension dim: world.getDimensions()) {
     private Set<Point> selectedTiles;
     private boolean disableTileSelectionWarning, disableDisabledLayersWarning, endlessBorder, savedMapFeatures;
     private String generatorOptions;
-    
+    private final Map<String, Set<String>> nameOnlyMaterials = new HashMap<>();
+
+    private static final Icon WARNING_ICON = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/error.png");
+    private static final Icon SPACER_ICON = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/spacer.png");
     private static final long serialVersionUID = 1L;
 }
