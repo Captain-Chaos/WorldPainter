@@ -54,12 +54,16 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
 
             sections = new Section[maxHeight >> 4];
             List<CompoundTag> sectionTags = getList(TAG_SECTIONS);
-            for (CompoundTag sectionTag: sectionTags) {
-                Section section = new Section(sectionTag);
-                if (section.level >= 0) {
-                    // MC 1.14 has sections with y == -1; we're not sure yet if
-                    // this is a bug
-                    sections[section.level] = section;
+            // MC 1.13 has chunks without any sections; we're not sure yet if
+            // this is a bug
+            if (sectionTags != null) {
+                for (CompoundTag sectionTag: sectionTags) {
+                    Section section = new Section(sectionTag);
+                    if (section.level >= 0) {
+                        // MC 1.14 has sections with y == -1; we're not sure yet
+                        // if this is a bug
+                        sections[section.level] = section;
+                    }
                 }
             }
             biomes = getIntArray(TAG_BIOMES);
@@ -120,13 +124,15 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
 
     @Override
     public Tag toNBT() {
-        List<Tag> sectionTags = new ArrayList<>(maxHeight >> 4);
-        for (Section section: sections) {
-            if ((section != null) && (! section.isEmpty())) {
-                sectionTags.add(section.toNBT());
+        if (sections != null) {
+            List<Tag> sectionTags = new ArrayList<>(maxHeight >> 4);
+            for (Section section: sections) {
+                if ((section != null) && (!section.isEmpty())) {
+                    sectionTags.add(section.toNBT());
+                }
             }
+            setList(TAG_SECTIONS, CompoundTag.class, sectionTags);
         }
-        setList(TAG_SECTIONS, CompoundTag.class, sectionTags);
         if (biomes != null) {
             setIntArray(TAG_BIOMES, biomes);
         }

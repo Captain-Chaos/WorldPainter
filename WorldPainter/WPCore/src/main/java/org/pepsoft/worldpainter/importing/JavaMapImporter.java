@@ -8,10 +8,7 @@ import org.jnbt.CompoundTag;
 import org.jnbt.StringTag;
 import org.jnbt.Tag;
 import org.jnbt.XMLTransformer;
-import org.pepsoft.minecraft.ChunkStore;
-import org.pepsoft.minecraft.Level;
-import org.pepsoft.minecraft.Material;
-import org.pepsoft.minecraft.MinecraftCoords;
+import org.pepsoft.minecraft.*;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
 import org.pepsoft.worldpainter.Dimension;
@@ -260,6 +257,13 @@ public class JavaMapImporter extends MapImporter {
 
                 final int chunkX = chunkCoords.x;
                 final int chunkZ = chunkCoords.z;
+
+                // Sanity checks
+                if ((chunk instanceof MC113AnvilChunk) && (((MC113AnvilChunk) chunk).getSections() == null)) {
+                    logger.warn("Skipping chunk " + chunkX + "," + chunkZ + " because it has no sections");
+                    return true;
+                }
+
                 final Point tileCoords = new Point(chunkX >> 3, chunkZ >> 3);
                 Tile tile = dimension.getTile(tileCoords);
                 if (tile == null) {
@@ -284,44 +288,44 @@ public class JavaMapImporter extends MapImporter {
                             Terrain terrain = Terrain.BEDROCK;
                             for (int y = Math.min(maxY, chunk.getHighestNonAirBlock(xx, zz)); y >= 0; y--) {
                                 Material material = chunk.getMaterial(xx, y, zz);
-                                                if (!material.natural) {
+                                if (!material.natural) {
                                     if (height == -1.0f) {
                                         manMadeStructuresAboveGround = true;
                                     } else {
                                         manMadeStructuresBelowGround = true;
                                     }
-                                                    manMadeBlockTypes.add(material.name);
-                                                }
+                                    manMadeBlockTypes.add(material.name);
+                                }
                                 String name = material.name;
                                 if ((name == MC_SNOW) || (name == MC_ICE)) {
                                     frost = true;
                                 }
                                 if ((waterLevel == 0) && ((name == MC_ICE)
-                                                                          || (name == MC_FROSTED_ICE)
-                                                                          || (name == MC_BUBBLE_COLUMN)
-                                                                          || (((name == MC_WATER) || (name == MC_LAVA))
-                                                                              && (material.getProperty(LEVEL) == 0))
-                                                                          || material.is(WATERLOGGED))) {
-                                                    waterLevel = y;
-                                                    if (name == MC_LAVA) {
-                                                        floodWithLava = true;
-                                                    }
-                                                } else if (height == -1.0f) {
-                                                    if (TERRAIN_MAPPING.containsKey(name)) {
+                                        || (name == MC_FROSTED_ICE)
+                                        || (name == MC_BUBBLE_COLUMN)
+                                        || (((name == MC_WATER) || (name == MC_LAVA))
+                                        && (material.getProperty(LEVEL) == 0))
+                                        || material.is(WATERLOGGED))) {
+                                    waterLevel = y;
+                                    if (name == MC_LAVA) {
+                                        floodWithLava = true;
+                                    }
+                                } else if (height == -1.0f) {
+                                    if (TERRAIN_MAPPING.containsKey(name)) {
                                         // Terrain found
                                         height = y - 0.4375f; // Value that falls in the middle of the lowest one eighth which will still round to the same integer value and will receive a one layer thick smooth snow block (principle of least surprise)
                                         terrain = TERRAIN_MAPPING.get(name);
-                                                    }
-                                                }
-                                            }
-                                            // Use smooth snow, if present, to better approximate world height, so smooth snow will survive merge
-                                            final int intHeight = (int) (height + 0.5f);
-                                            if ((height != -1.0f) && (intHeight < maxY)) {
-                                                Material materialAbove = chunk.getMaterial(xx, intHeight + 1, zz);
-                                                if (materialAbove.isNamed(MC_SNOW)) {
-                                                    int layers = materialAbove.getProperty(LAYERS);
-                                                    height += layers * 0.125;
-}
+                                    }
+                                }
+                            }
+                            // Use smooth snow, if present, to better approximate world height, so smooth snow will survive merge
+                            final int intHeight = (int) (height + 0.5f);
+                            if ((height != -1.0f) && (intHeight < maxY)) {
+                                Material materialAbove = chunk.getMaterial(xx, intHeight + 1, zz);
+                                if (materialAbove.isNamed(MC_SNOW)) {
+                                    int layers = materialAbove.getProperty(LAYERS);
+                                    height += layers * 0.125;
+                                }
                             }
                             if ((waterLevel == 0) && (height >= 61.5f)) {
                                 waterLevel = 62;
@@ -345,21 +349,21 @@ public class JavaMapImporter extends MapImporter {
                             if (importBiomes && chunk.isBiomesAvailable()) {
                                 final int biome = chunk.getBiome(xx, zz);
                                 if (((biome > HIGHEST_BIOME_ID) || (BIOME_NAMES[biome] == null)) && (biome != 255)) {
-                                                    unknownBiomes.add(biome);
-                                                }
-                                                // If the biome is set (around the edges of the map Minecraft sets it to
-                                                // 255, presumably as a marker that it has yet to be calculated), copy
-                                                // it to the dimension. However, if it matches what the automatic biome
-                                                // would be, don't copy it, so that WorldPainter will automatically
-                                                // adjust the biome when the user makes changes
-                                                if ((biome != 255) && (biome != dimension.getAutoBiome(blockX, blockY))) {
-                                                    dimension.setLayerValueAt(Biome.INSTANCE, blockX, blockY, biome);
-                                                }
-                                            }
-                                        }
-                                    }
-                                } catch (NullPointerException e) {
-                                    reportBuilder.append("Null pointer exception while reading chunk " + chunkX + "," + chunkZ + "; skipping chunk" + EOL);
+                                    unknownBiomes.add(biome);
+                                }
+                                // If the biome is set (around the edges of the map Minecraft sets it to
+                                // 255, presumably as a marker that it has yet to be calculated), copy
+                                // it to the dimension. However, if it matches what the automatic biome
+                                // would be, don't copy it, so that WorldPainter will automatically
+                                // adjust the biome when the user makes changes
+                                if ((biome != 255) && (biome != dimension.getAutoBiome(blockX, blockY))) {
+                                    dimension.setLayerValueAt(Biome.INSTANCE, blockX, blockY, biome);
+                                }
+                            }
+                        }
+                    }
+                } catch (NullPointerException e) {
+                    reportBuilder.append("Null pointer exception while reading chunk " + chunkX + "," + chunkZ + "; skipping chunk" + EOL);
                     logger.error("Null pointer exception while reading chunk " + chunkX + "," + chunkZ + "; skipping chunk", e);
                     return true;
                 } catch (ArrayIndexOutOfBoundsException e) {
