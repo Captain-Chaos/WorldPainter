@@ -15,6 +15,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
+import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.AIR;
 
 /**
@@ -139,12 +140,12 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
         }
 
         // Load the palette
-        ListTag paletteTag = (ListTag) root.getTag("palette");
+        ListTag paletteTag = (ListTag) root.getTag(TAG_PALETTE_);
         Material[] palette = new Material[paletteTag.getValue().size()];
         for (int i = 0; i < palette.length; i++) {
             CompoundTag entryTag = (CompoundTag) paletteTag.getValue().get(i);
-            String name = ((StringTag) entryTag.getTag("Name")).getValue();
-            CompoundTag propertiesTag = (CompoundTag) entryTag.getTag("Properties");
+            String name = ((StringTag) entryTag.getTag(TAG_NAME)).getValue();
+            CompoundTag propertiesTag = (CompoundTag) entryTag.getTag(TAG_PROPERTIES);
             Map<String, String> properties = (propertiesTag != null)
                     ? propertiesTag.getValue().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> ((StringTag) entry.getValue()).getValue()))
                     : null;
@@ -153,15 +154,15 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
 
         // Load the blocks and tile entities
         Map<Point3i, Material> blocks = new HashMap<>();
-        ListTag<CompoundTag> blocksTag = (ListTag<CompoundTag>) root.getTag("blocks");
+        ListTag<CompoundTag> blocksTag = (ListTag<CompoundTag>) root.getTag(TAG_BLOCKS_);
         List<TileEntity> tileEntities = new ArrayList<>();
         for (CompoundTag blockTag: blocksTag.getValue()) {
-            List<IntTag> posTags = ((ListTag<IntTag>) blockTag.getTag("pos")).getValue();
+            List<IntTag> posTags = ((ListTag<IntTag>) blockTag.getTag(TAG_POS_)).getValue();
             int x = posTags.get(0).getValue();
             int y = posTags.get(2).getValue();
             int z = posTags.get(1).getValue();
-            blocks.put(new Point3i(x, y, z), palette[((IntTag) blockTag.getTag("state")).getValue()]);
-            CompoundTag nbtTag = (CompoundTag) blockTag.getTag("nbt");
+            blocks.put(new Point3i(x, y, z), palette[((IntTag) blockTag.getTag(TAG_STATE_)).getValue()]);
+            CompoundTag nbtTag = (CompoundTag) blockTag.getTag(TAG_NBT_);
             if (nbtTag != null) {
                 // This block is a tile entity
                 TileEntity tileEntity = TileEntity.fromNBT(nbtTag);
@@ -173,16 +174,16 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
         }
 
         // Load the entities
-        ListTag<CompoundTag> entitiesTag = (ListTag<CompoundTag>) root.getTag("entities");
+        ListTag<CompoundTag> entitiesTag = (ListTag<CompoundTag>) root.getTag(TAG_ENTITIES_);
         List<Entity> entities = new ArrayList<>(entitiesTag.getValue().size());
         for (CompoundTag entityTag: entitiesTag.getValue()) {
             entities.add(Entity.fromNBT(entityTag));
         }
 
         // Remove palette, blocks and entities from the tag so we don't waste space
-        root.setTag("palette", null);
-        root.setTag("blocks", null);
-        root.setTag("entities", null);
+        root.setTag(TAG_PALETTE_, null);
+        root.setTag(TAG_BLOCKS_, null);
+        root.setTag(TAG_ENTITIES_, null);
 
         return new Structure(root, objectName, blocks, (! entities.isEmpty()) ? ImmutableList.copyOf(entities) : null, (! tileEntities.isEmpty()) ? ImmutableList.copyOf(tileEntities) : null);
     }

@@ -74,8 +74,8 @@ public final class MC12AnvilChunk extends NBTChunk implements MinecraftWorld {
         tileEntities = new ArrayList<>(tileEntityTags.size());
         tileEntities.addAll(tileEntityTags.stream().map(TileEntity::fromNBT).collect(toList()));
         // TODO: last update is ignored, is that correct?
-        xPos = getInt(TAG_X_POS);
-        zPos = getInt(TAG_Z_POS);
+        xPos = getInt(TAG_X_POS_);
+        zPos = getInt(TAG_Z_POS_);
         terrainPopulated = getBoolean(TAG_TERRAIN_POPULATED);
         lightPopulated = getBoolean(TAG_LIGHT_POPULATED);
         inhabitedTime = getLong(TAG_INHABITED_TIME);
@@ -121,8 +121,8 @@ public final class MC12AnvilChunk extends NBTChunk implements MinecraftWorld {
         tileEntities.stream().map(TileEntity::toNBT).forEach(tileEntityTags::add);
         setList(TAG_TILE_ENTITIES, CompoundTag.class, tileEntityTags);
         setLong(TAG_LAST_UPDATE, System.currentTimeMillis()); // TODO: is this correct?
-        setInt(TAG_X_POS, xPos);
-        setInt(TAG_Z_POS, zPos);
+        setInt(TAG_X_POS_, xPos);
+        setInt(TAG_Z_POS_, zPos);
         setBoolean(TAG_TERRAIN_POPULATED, terrainPopulated);
         setBoolean(TAG_LIGHT_POPULATED, lightPopulated);
         setLong(TAG_INHABITED_TIME, inhabitedTime);
@@ -624,7 +624,7 @@ public final class MC12AnvilChunk extends NBTChunk implements MinecraftWorld {
     public static class Section extends AbstractNBTItem {
         Section(CompoundTag tag) {
             super(tag);
-            level = getByte(TAG_Y2);
+            level = getByte(TAG_Y);
             blocks = getByteArray(TAG_BLOCKS);
             if (containsTag(TAG_ADD)) {
                 add = getByteArray(TAG_ADD);
@@ -646,7 +646,7 @@ public final class MC12AnvilChunk extends NBTChunk implements MinecraftWorld {
 
         @Override
         public Tag toNBT() {
-            setByte(TAG_Y2, level);
+            setByte(TAG_Y, level);
             setByteArray(TAG_BLOCKS, blocks);
             if (add != null) {
                 for (byte b: add) {

@@ -56,11 +56,11 @@ public class InventoryItem extends AbstractNBTItem {
     }
 
     public final int getType() {
-        return getShort(TAG_ID);
+        return getShort(TAG_ID_);
     }
 
     public final void setType(int type) {
-        setShort(TAG_ID, (short) type);
+        setShort(TAG_ID_, (short) type);
     }
 
     private static final long serialVersionUID = 1L;

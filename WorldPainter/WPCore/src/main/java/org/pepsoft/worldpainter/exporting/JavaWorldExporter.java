@@ -130,7 +130,7 @@ public class JavaWorldExporter extends AbstractWorldExporter {
         if ((world.getPlatform() != JAVA_MCREGION)) {
             if ((! endlessBorder) && (world.getGenerator() == Generator.FLAT) && (world.getGeneratorOptions() != null)) {
                 level.setGeneratorOptions((platform == JAVA_ANVIL)
-                        ? new StringTag(TAG_GENERATOR_OPTIONS, world.getGeneratorOptions())
+                        ? new StringTag(TAG_GENERATOR_OPTIONS_, world.getGeneratorOptions())
                         : XMLTransformer.fromXML(new StringReader(world.getGeneratorOptions())));
             }
             World2.BorderSettings borderSettings = world.getBorderSettings();

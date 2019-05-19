@@ -39,16 +39,16 @@ public final class Level extends AbstractNBTItem {
         }
         this.maxHeight = mapHeight;
         extraTags = null;
-        setInt(TAG_VERSION, (platform == JAVA_MCREGION) ? VERSION_MCREGION : VERSION_ANVIL);
+        setInt(TAG_VERSION_, (platform == JAVA_MCREGION) ? VERSION_MCREGION : VERSION_ANVIL);
         // TODO: make this dynamic?
         if (platform != JAVA_MCREGION) {
             int dataVersion = (platform == JAVA_ANVIL) ? DATA_VERSION_MC_1_12_2 : DATA_VERSION_MC_1_13_2;
             setInt(TAG_DATA_VERSION, dataVersion);
             Map<String, Tag> versionTag = new HashMap<>();
-            versionTag.put(TAG_ID_, new IntTag(TAG_ID_, dataVersion));
+            versionTag.put(TAG_ID, new IntTag(TAG_ID, dataVersion));
             versionTag.put(TAG_NAME, new StringTag(TAG_NAME, "WorldPainter"));
             versionTag.put(TAG_SNAPSHOT, new ByteTag(TAG_SNAPSHOT, (byte) 0));
-            setMap(TAG_VERSION_, versionTag);
+            setMap(TAG_VERSION, versionTag);
         }
         addDimension(0);
     }
@@ -58,7 +58,7 @@ public final class Level extends AbstractNBTItem {
         if ((mapHeight & (mapHeight - 1)) != 0) {
             throw new IllegalArgumentException("mapHeight " + mapHeight + " not a power of two");
         }
-        int version = getInt(TAG_VERSION);
+        int version = getInt(TAG_VERSION_);
         if ((version != VERSION_MCREGION) && (version != VERSION_ANVIL)) {
             throw new IllegalArgumentException("Not a supported version: 0x" + Integer.toHexString(version));
         }
@@ -170,7 +170,7 @@ public final class Level extends AbstractNBTItem {
     }
     
     public int getVersion() {
-        return getInt(TAG_VERSION);
+        return getInt(TAG_VERSION_);
     }
 
     /**
@@ -194,15 +194,15 @@ public final class Level extends AbstractNBTItem {
     }
     
     public boolean isHardcore() {
-        return getBoolean(TAG_HARDCORE);
+        return getBoolean(TAG_HARDCORE_);
     }
     
     public String getGeneratorName() {
-        return getString(TAG_GENERATOR_NAME);
+        return getString(TAG_GENERATOR_NAME_);
     }
 
     public int getGeneratorVersion() {
-        return getInt(TAG_GENERATOR_VERSION);
+        return getInt(TAG_GENERATOR_VERSION_);
     }
     
     public Generator getGenerator() {
@@ -218,11 +218,11 @@ public final class Level extends AbstractNBTItem {
     }
     
     public Tag getGeneratorOptions() {
-        return getTag(TAG_GENERATOR_OPTIONS);
+        return getTag(TAG_GENERATOR_OPTIONS_);
     }
     
     public boolean isAllowCommands() {
-        return getBoolean(TAG_ALLOW_COMMANDS);
+        return getBoolean(TAG_ALLOW_COMMANDS_);
     }
 
     public int getMaxHeight() {
@@ -306,36 +306,36 @@ public final class Level extends AbstractNBTItem {
     }
     
     public void setHardcore(boolean hardcore) {
-        setBoolean(TAG_HARDCORE, hardcore);
+        setBoolean(TAG_HARDCORE_, hardcore);
     }
 
     public void setGeneratorName(String generatorName) {
-        setString(TAG_GENERATOR_NAME, generatorName);
+        setString(TAG_GENERATOR_NAME_, generatorName);
     }
 
     public void setGenerator(Generator generator) {
         switch (generator) {
             case DEFAULT:
                 if (getVersion() == VERSION_MCREGION) {
-                    setString(TAG_GENERATOR_NAME, "DEFAULT");
+                    setString(TAG_GENERATOR_NAME_, "DEFAULT");
                 } else {
-                    setString(TAG_GENERATOR_NAME, "default");
-                    setInt(TAG_GENERATOR_VERSION, 1);
+                    setString(TAG_GENERATOR_NAME_, "default");
+                    setInt(TAG_GENERATOR_VERSION_, 1);
                 }
                 break;
             case FLAT:
                 if (getVersion() == VERSION_MCREGION) {
-                    setString(TAG_GENERATOR_NAME, "FLAT");
+                    setString(TAG_GENERATOR_NAME_, "FLAT");
                 } else {
-                    setString(TAG_GENERATOR_NAME, "flat");
+                    setString(TAG_GENERATOR_NAME_, "flat");
                 }
                 break;
             case LARGE_BIOMES:
                 if (getVersion() == VERSION_MCREGION) {
                     throw new IllegalArgumentException("Large biomes not supported for Minecraft 1.1 maps");
                 } else {
-                    setString(TAG_GENERATOR_NAME, "largeBiomes");
-                    setInt(TAG_GENERATOR_VERSION, 0);
+                    setString(TAG_GENERATOR_NAME_, "largeBiomes");
+                    setInt(TAG_GENERATOR_VERSION_, 0);
                 }
                 break;
             default:
@@ -344,11 +344,11 @@ public final class Level extends AbstractNBTItem {
     }
     
     public void setGeneratorOptions(Tag generatorOptions) {
-        setTag(TAG_GENERATOR_OPTIONS, generatorOptions);
+        setTag(TAG_GENERATOR_OPTIONS_, generatorOptions);
     }
     
     public void setAllowCommands(boolean allowCommands) {
-        setBoolean(TAG_ALLOW_COMMANDS, allowCommands);
+        setBoolean(TAG_ALLOW_COMMANDS_, allowCommands);
     }
     
     public void setDifficulty(int difficulty) {
@@ -413,7 +413,7 @@ public final class Level extends AbstractNBTItem {
             tag = in.readTag();
         }
         
-        int version = ((IntTag) ((CompoundTag) ((CompoundTag) tag).getTag(TAG_DATA)).getTag(TAG_VERSION)).getValue();
+        int version = ((IntTag) ((CompoundTag) ((CompoundTag) tag).getTag(TAG_DATA)).getTag(TAG_VERSION_)).getValue();
         int maxHeight = (version == VERSION_MCREGION) ? DEFAULT_MAX_HEIGHT_MCREGION : DEFAULT_MAX_HEIGHT_ANVIL;
         // TODO get rid of this hardcoded stuff and move it into the platform provider plugin API
         if (version == VERSION_MCREGION) {

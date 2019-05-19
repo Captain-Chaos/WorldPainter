@@ -21,7 +21,7 @@ public class TileEntity extends AbstractNBTItem {
         if (id == null) {
             throw new NullPointerException();
         }
-        setString(TAG_ID, id);
+        setString(TAG_ID_, id);
     }
 
     protected TileEntity(CompoundTag tag) {
@@ -29,35 +29,35 @@ public class TileEntity extends AbstractNBTItem {
     }
 
     public String getId() {
-        return getString(TAG_ID);
+        return getString(TAG_ID_);
     }
 
     public int getX() {
-        return getInt(TAG_X);
+        return getInt(TAG_X_);
     }
 
     public void setX(int x) {
-        setInt(TAG_X, x);
+        setInt(TAG_X_, x);
     }
 
     public int getY() {
-        return getInt(TAG_Y);
+        return getInt(TAG_Y_);
     }
 
     public void setY(int y) {
-        setInt(TAG_Y, y);
+        setInt(TAG_Y_, y);
     }
 
     public int getZ() {
-        return getInt(TAG_Z);
+        return getInt(TAG_Z_);
     }
 
     public void setZ(int z) {
-        setInt(TAG_Z, z);
+        setInt(TAG_Z_, z);
     }
 
     public static TileEntity fromNBT(CompoundTag tileEntityTag) {
-        String id = ((StringTag) tileEntityTag.getTag(TAG_ID)).getValue();
+        String id = ((StringTag) tileEntityTag.getTag(TAG_ID_)).getValue();
         switch (id) {
             case ID_CHEST:
                 return new Chest(tileEntityTag);

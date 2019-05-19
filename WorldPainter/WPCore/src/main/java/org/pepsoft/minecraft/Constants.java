@@ -523,21 +523,28 @@ public final class Constants {
     public static final String MC_SHAPE       = "shape";
     public static final String MC_HINGE       = "hinge";
 
-    // Minecraft NBT tag names
+    // Minecraft NBT tag names. An underscore at the end signifies a lower case
+    // initial
 
     public static final String TAG_LEVEL                   = "Level";
+    /** Upper case variant. */
     public static final String TAG_BLOCKS                  = "Blocks";
+    /** Lower case variant. */
+    public static final String TAG_BLOCKS_                 = "blocks";
     public static final String TAG_BLOCK_STATES            = "BlockStates";
     public static final String TAG_DATA                    = "Data";
     public static final String TAG_SKY_LIGHT               = "SkyLight";
     public static final String TAG_BLOCK_LIGHT             = "BlockLight";
     public static final String TAG_HEIGHT_MAP              = "HeightMap";
     public static final String TAG_HEIGHT_MAPS             = "Heightmaps";
+    /** Upper case variant. */
     public static final String TAG_ENTITIES                = "Entities";
+    /** Lower case variant. */
+    public static final String TAG_ENTITIES_               = "entities";
     public static final String TAG_TILE_ENTITIES           = "TileEntities";
     public static final String TAG_LAST_UPDATE             = "LastUpdate";
-    public static final String TAG_X_POS                   = "xPos";
-    public static final String TAG_Z_POS                   = "zPos";
+    public static final String TAG_X_POS_                  = "xPos";
+    public static final String TAG_Z_POS_                  = "zPos";
     public static final String TAG_TERRAIN_POPULATED       = "TerrainPopulated";
     public static final String TAG_TIME                    = "Time";
     public static final String TAG_LAST_PLAYED             = "LastPlayed";
@@ -551,15 +558,18 @@ public final class Constants {
     public static final String TAG_SIZE_ON_DISK            = "SizeOnDisk";
     public static final String TAG_RANDOM_SEED             = "RandomSeed";
     /** Lower case variant. */
-    public static final String TAG_VERSION                 = "version";
+    public static final String TAG_VERSION_                = "version";
     /** Upper case variant. */
-    public static final String TAG_VERSION_                = "Version";
+    public static final String TAG_VERSION                 = "Version";
     public static final String TAG_LEVEL_NAME              = "LevelName";
     /** Lower case variant. */
-    public static final String TAG_ID                      = "id";
+    public static final String TAG_ID_                     = "id";
     /** Upper case variant. */
-    public static final String TAG_ID_                     = "Id";
+    public static final String TAG_ID                      = "Id";
+    /** Upper case variant. */
     public static final String TAG_POS                     = "Pos";
+    /** Lower case variant. */
+    public static final String TAG_POS_                    = "pos";
     public static final String TAG_MOTION                  = "Motion";
     public static final String TAG_ROTATION                = "Rotation";
     public static final String TAG_FALL_DISTANCE           = "FallDistance";
@@ -573,18 +583,18 @@ public final class Constants {
     public static final String TAG_DAMAGE                  = "Damage";
     public static final String TAG_COUNT                   = "Count";
     public static final String TAG_SLOT                    = "Slot";
-    public static final String TAG_X                       = "x";
-    public static final String TAG_Y                       = "y";
-    public static final String TAG_Z                       = "z";
+    public static final String TAG_X_                      = "x";
+    public static final String TAG_Y_                      = "y";
+    public static final String TAG_Z_                      = "z";
     public static final String TAG_ITEMS                   = "Items";
     public static final String TAG_MAP_FEATURES            = "MapFeatures";
     public static final String TAG_GAME_TYPE               = "GameType";
-    public static final String TAG_GENERATOR_NAME          = "generatorName";
-    public static final String TAG_Y2                      = "Y";
+    public static final String TAG_GENERATOR_NAME_         = "generatorName";
+    public static final String TAG_Y                       = "Y";
     public static final String TAG_SECTIONS                = "Sections";
     public static final String TAG_ADD                     = "Add";
     public static final String TAG_BIOMES                  = "Biomes";
-    public static final String TAG_GENERATOR_VERSION       = "generatorVersion";
+    public static final String TAG_GENERATOR_VERSION_      = "generatorVersion";
     public static final String TAG_PROFESSION              = "Profession";
     public static final String TAG_TEXT1                   = "Text1";
     public static final String TAG_TEXT2                   = "Text2";
@@ -595,9 +605,9 @@ public final class Constants {
     public static final String TAG_TILE_X                  = "TileX";
     public static final String TAG_TILE_Y                  = "TileY";
     public static final String TAG_TILE_Z                  = "TileZ";
-    public static final String TAG_ALLOW_COMMANDS          = "allowCommands";
-    public static final String TAG_GENERATOR_OPTIONS       = "generatorOptions";
-    public static final String TAG_HARDCORE                = "hardcore";
+    public static final String TAG_ALLOW_COMMANDS_         = "allowCommands";
+    public static final String TAG_GENERATOR_OPTIONS_      = "generatorOptions";
+    public static final String TAG_HARDCORE_               = "hardcore";
     public static final String TAG_DIFFICULTY              = "Difficulty";
     public static final String TAG_DIFFICULTY_LOCKED       = "DifficultyLocked";
     public static final String TAG_LIGHT_POPULATED         = "LightPopulated";
@@ -616,10 +626,15 @@ public final class Constants {
     public static final String TAG_UUID_LEAST              = "UUIDLeast";
     public static final String TAG_DATA_VERSION            = "DataVersion";
     public static final String TAG_STATUS                  = "Status";
+    /** Upper case variant. */
     public static final String TAG_PALETTE                 = "Palette";
+    /** Lower case variant. */
+    public static final String TAG_PALETTE_                = "palette";
     public static final String TAG_NAME                    = "Name";
     public static final String TAG_PROPERTIES              = "Properties";
     public static final String TAG_SNAPSHOT                = "Snapshot";
+    public static final String TAG_NBT_                    = "nbt";
+    public static final String TAG_STATE_                  = "state";
     /**
      * Possibly unofficial, SpoutCraft-specific
      */

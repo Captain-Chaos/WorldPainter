@@ -61,8 +61,8 @@ public final class MCRegionChunk extends NBTChunk {
         tileEntities = new ArrayList<>(tileEntityTags.size());
         tileEntities.addAll(tileEntityTags.stream().map(TileEntity::fromNBT).collect(toList()));
         // TODO: last update is ignored, is that correct?
-        xPos = getInt(TAG_X_POS);
-        zPos = getInt(TAG_Z_POS);
+        xPos = getInt(TAG_X_POS_);
+        zPos = getInt(TAG_Z_POS_);
         terrainPopulated = getBoolean(TAG_TERRAIN_POPULATED);
     }
 
@@ -80,8 +80,8 @@ public final class MCRegionChunk extends NBTChunk {
         tileEntityTags.addAll(tileEntities.stream().map(TileEntity::toNBT).collect(toList()));
         setList(TAG_TILE_ENTITIES, CompoundTag.class, tileEntityTags);
         setLong(TAG_LAST_UPDATE, System.currentTimeMillis());
-        setInt(TAG_X_POS, xPos);
-        setInt(TAG_Z_POS, zPos);
+        setInt(TAG_X_POS_, xPos);
+        setInt(TAG_Z_POS_, zPos);
         setBoolean(TAG_TERRAIN_POPULATED, terrainPopulated);
 
         return new CompoundTag("", Collections.singletonMap("", super.toNBT()));

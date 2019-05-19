@@ -89,8 +89,8 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
                 tileEntities = new ArrayList<>();
             }
             // TODO: last update is ignored, is that correct?
-            xPos = getInt(TAG_X_POS);
-            zPos = getInt(TAG_Z_POS);
+            xPos = getInt(TAG_X_POS_);
+            zPos = getInt(TAG_Z_POS_);
             status = Status.valueOf(getString(TAG_STATUS).toUpperCase());
             lightPopulated = getBoolean(TAG_LIGHT_POPULATED);
             inhabitedTime = getLong(TAG_INHABITED_TIME);
@@ -144,8 +144,8 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
         tileEntities.stream().map(TileEntity::toNBT).forEach(tileEntityTags::add);
         setList(TAG_TILE_ENTITIES, CompoundTag.class, tileEntityTags);
         setLong(TAG_LAST_UPDATE, System.currentTimeMillis()); // TODO: is this correct?
-        setInt(TAG_X_POS, xPos);
-        setInt(TAG_Z_POS, zPos);
+        setInt(TAG_X_POS_, xPos);
+        setInt(TAG_Z_POS_, zPos);
         setString(TAG_STATUS, status.name().toLowerCase());
         setBoolean(TAG_LIGHT_POPULATED, lightPopulated);
         setLong(TAG_INHABITED_TIME, inhabitedTime);
@@ -602,7 +602,7 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
     public static class Section extends AbstractNBTItem {
         Section(CompoundTag tag) {
             super(tag);
-            level = getByte(TAG_Y2);
+            level = getByte(TAG_Y);
             materials = new Material[4096];
             long[] blockStates = getLongArray(TAG_BLOCK_STATES);
             List<CompoundTag> palette = getList(TAG_PALETTE);
@@ -658,7 +658,7 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
 
         @Override
         public Tag toNBT() {
-            setByte(TAG_Y2, level);
+            setByte(TAG_Y, level);
 
             // Create the palette. We have to do this first, because otherwise
             // we don't know how many bits the indices will be and therefore how

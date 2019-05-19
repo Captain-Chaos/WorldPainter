@@ -23,7 +23,7 @@ public class Entity extends AbstractNBTItem {
         if (id == null) {
             throw new NullPointerException();
         }
-        setString(TAG_ID, id);
+        setString(TAG_ID_, id);
         setShort(TAG_FIRE, (short) -20);
         setShort(TAG_AIR, (short) 300);
         setBoolean(TAG_ON_GROUND, true);
@@ -37,7 +37,7 @@ public class Entity extends AbstractNBTItem {
     }
 
     public final String getId() {
-        return getString(TAG_ID);
+        return getString(TAG_ID_);
     }
 
     public final double[] getPos() {
@@ -92,7 +92,11 @@ public class Entity extends AbstractNBTItem {
     }
 
     public static Entity fromNBT(CompoundTag entityTag) {
-        String id = ((StringTag) entityTag.getTag(TAG_ID)).getValue();
+        if (entityTag.getTag(TAG_NBT_) instanceof CompoundTag) {
+            // Pre-1.13 style entity from .nbt file
+            entityTag = (CompoundTag) entityTag.getTag(TAG_NBT_);
+        }
+        String id = ((StringTag) entityTag.getTag(TAG_ID_)).getValue();
         switch (id) {
             case ID_PLAYER:
                 return new Player(entityTag);
