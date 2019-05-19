@@ -114,6 +114,8 @@ public final class RegionFile implements AutoCloseable {
 
         if (path.exists()) {
             lastModified = path.lastModified();
+        } else if (readOnly) {
+            throw new IllegalStateException("Can't open non-existent region file in read only mode");
         }
 
         file = readOnly ? new RandomAccessFile(path, "r") : new RandomAccessFile(path, "rw");
@@ -148,22 +150,25 @@ public final class RegionFile implements AutoCloseable {
             sectorFree.add(true);
         }
 
-        sectorFree.set(0, false); // chunk offset table
-        sectorFree.set(1, false); // for the last modified info
-
         file.seek(0);
-        for (int i = 0; i < SECTOR_INTS; ++i) {
-            int offset = file.readInt();
-            offsets[i] = offset;
-            if (offset != 0 && (offset >> 8) + (offset & 0xFF) <= sectorFree.size()) {
-                for (int sectorNum = 0; sectorNum < (offset & 0xFF); ++sectorNum) {
-                    sectorFree.set((offset >> 8) + sectorNum, false);
+        if (sectorFree.size() > 0) {
+            sectorFree.set(0, false); // chunk offset table
+            for (int i = 0; i < SECTOR_INTS; ++i) {
+                int offset = file.readInt();
+                offsets[i] = offset;
+                if (offset != 0 && (offset >> 8) + (offset & 0xFF) <= sectorFree.size()) {
+                    for (int sectorNum = 0; sectorNum < (offset & 0xFF); ++sectorNum) {
+                        sectorFree.set((offset >> 8) + sectorNum, false);
+                    }
                 }
             }
         }
-        for (int i = 0; i < SECTOR_INTS; ++i) {
-            int lastModValue = file.readInt();
-            chunkTimestamps[i] = lastModValue;
+        if (sectorFree.size() > 1) {
+            sectorFree.set(1, false); // for the last modified info
+            for (int i = 0; i < SECTOR_INTS; ++i) {
+                int lastModValue = file.readInt();
+                chunkTimestamps[i] = lastModValue;
+            }
         }
     }
 
