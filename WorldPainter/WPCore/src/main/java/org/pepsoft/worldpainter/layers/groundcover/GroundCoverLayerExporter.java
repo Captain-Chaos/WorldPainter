@@ -162,6 +162,7 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                                             && ((! material.veryInsubstantial)
                                             || (existingMaterial == AIR)
                                             || existingMaterial.insubstantial)) {
+                                        // TODOMC13 don't forget to make this work for 1.12 worlds also still:
                                         if (layerHeight < 8) {
                                             // Top layer, smooth enabled
                                             chunk.setMaterial(x, y, z, material.withProperty(LAYERS, layerHeight));
