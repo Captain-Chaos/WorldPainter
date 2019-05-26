@@ -7,6 +7,7 @@ package org.pepsoft.minecraft;
 
 import org.jnbt.CompoundTag;
 import org.jnbt.Tag;
+import org.pepsoft.minecraft.exception.IncompatibleMaterialException;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -115,7 +116,7 @@ public final class MCRegionChunk extends NBTChunk {
     @Override
     public void setBlockType(int x, int y, int z, int blockType) {
         if (blockType < 0) {
-            throw new IllegalArgumentException("Cannot store modern material without block ID in pre-1.13 Anvil chunk");
+            throw new IncompatibleMaterialException("Cannot store modern material without block ID in MCRegion chunk", null);
         }
         if (readOnly) {
             return;
@@ -130,6 +131,9 @@ public final class MCRegionChunk extends NBTChunk {
 
     @Override
     public void setDataValue(int x, int y, int z, int dataValue) {
+        if (dataValue < 0) {
+            throw new IncompatibleMaterialException("Cannot store modern material without data value in MCRegion chunk", null);
+        }
         if (readOnly) {
             return;
         }
@@ -221,7 +225,7 @@ public final class MCRegionChunk extends NBTChunk {
     @Override
     public void setMaterial(int x, int y, int z, Material material) {
         if (material.blockType < 0) {
-            throw new IllegalArgumentException("Cannot store modern material " + material + " without block ID in MCRegion chunk");
+            throw new IncompatibleMaterialException("Cannot store modern material " + material + " without block ID in MCRegion chunk", null);
         }
         setBlockType(x, y, z, material.blockType);
         setDataValue(x, y, z, material.data);
