@@ -18,6 +18,8 @@ import org.pepsoft.worldpainter.layers.Bo2Layer;
 import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.Populate;
+import org.pepsoft.worldpainter.layers.plants.Plant;
+import org.pepsoft.worldpainter.layers.plants.PlantLayer;
 import org.pepsoft.worldpainter.objects.WPObject;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.util.EnumListCellRenderer;
@@ -87,45 +89,7 @@ public class ExportWorldDialog extends WorldPainterDialog {
         }
         fieldName.setText(world.getName());
 
-        // Check for materials that have no block IDs
-        // TODO: anything else?
-        // Check custom materials
-        Arrays.stream(MixedMaterialManager.getInstance().getMaterials()).forEach(material -> {
-            for (MixedMaterial.Row row: material.getRows()) {
-                if (row.material.blockType == -1) {
-                    nameOnlyMaterials.computeIfAbsent(row.material.name, m -> new HashSet<>()).add("custom material " + material.getName());
-                }
-            }
-        });
-        // Check custom object layers
-        for (Dimension dimension: world.getDimensions()) {
-            for (Layer layer: dimension.getAllLayers(true)) {
-                if (layer instanceof Bo2Layer) {
-                    Map<String, List<WPObject>> nameOnlyMaterialsForLayer = new HashMap<>();
-                    for (WPObject object: ((Bo2Layer) layer).getObjectProvider().getAllObjects()) {
-                        Set<String> materialNamesEncounteredInObject = new HashSet<>();
-                        object.visitBlocks((o, x, y, z, material) -> {
-                            if (! materialNamesEncounteredInObject.contains(material.name)) {
-                                materialNamesEncounteredInObject.add(material.name);
-                                if (material.blockType == -1) {
-                                    nameOnlyMaterialsForLayer.computeIfAbsent(material.name, m -> new ArrayList<>()).add(object);
-                                }
-                            }
-                            return true;
-                        });
-                    }
-                    nameOnlyMaterialsForLayer.forEach((name, objects) -> {
-                        if (objects.size() == 1) {
-                            nameOnlyMaterials.computeIfAbsent(name, m -> new HashSet<>()).add("object " + objects.iterator().next().getName() + " in layer " + layer.getName());
-                        } else if (objects.size() <= 3) {
-                            nameOnlyMaterials.computeIfAbsent(name, m -> new HashSet<>()).add("objects " + objects.stream().map(WPObject::getName).collect(Collectors.joining(", ")) + " in layer " + layer.getName());
-                        } else {
-                            nameOnlyMaterials.computeIfAbsent(name, m -> new HashSet<>()).add("objects " + objects.subList(0, 2).stream().map(WPObject::getName).collect(Collectors.joining(", ")) + " and " + (objects.size() - 2) + " more in layer " + layer.getName());
-                        }
-                    });
-                }
-            }
-        }
+        nameOnlyMaterials = gatherNamedBlocks(world, platform);
 
         Dimension dim0 = world.getDimension(0);
         surfacePropertiesEditor.setColourScheme(colourScheme);
@@ -169,9 +133,15 @@ public class ExportWorldDialog extends WorldPainterDialog {
         }
         checkBoxGoodies.setSelected(world.isCreateGoodiesChest());
         List<Platform> availablePlatforms = PlatformManager.getInstance().getAllPlatforms();
-        Set<Platform> incompatiblePlatforms = availablePlatforms.stream().filter(availablePlatform ->
-                    (! availablePlatform.isCompatible(world))
-                || ((! nameOnlyMaterials.isEmpty()) && (! availablePlatform.capabilities.contains(NAME_BASED)))).collect(toSet());
+        Set<Platform> incompatiblePlatforms = availablePlatforms.stream().filter(availablePlatform -> {
+            if (! availablePlatform.isCompatible(world)) {
+                return false;
+            } else {
+                Map<String, Set<String>> namedBlocks = gatherNamedBlocks(world, availablePlatform);
+                return (! namedBlocks.isEmpty()) && (! availablePlatform.capabilities.contains(NAME_BASED));
+            }
+
+        }).collect(toSet());
         comboBoxMinecraftVersion.setToolTipText("Only map formats compatible with this world are displayed");
         comboBoxMinecraftVersion.setModel(new DefaultComboBoxModel<>(availablePlatforms.toArray(new Platform[availablePlatforms.size()])));
         comboBoxMinecraftVersion.setRenderer(new DefaultListCellRenderer() {
@@ -185,8 +155,12 @@ public class ExportWorldDialog extends WorldPainterDialog {
                         } else {
                             setIcon(SPACER_ICON);
                         }
+                    } else {
+                        setIcon(SPACER_ICON);
                     }
                     setText(((Platform) value).displayName);
+                } else {
+                    setIcon(SPACER_ICON);
                 }
                 return this;
             }
@@ -248,6 +222,63 @@ dims:   for (Dimension dim: world.getDimensions()) {
         
         pack();
         setLocationRelativeTo(parent);
+    }
+
+    private Map<String, Set<String>> gatherNamedBlocks(World2 world, Platform platform) {
+        // Check for materials that have no block IDs
+        // TODO: anything else?
+        // Check custom materials
+        final Map<String, Set<String>> nameOnlyMaterials = new HashMap<>();
+        Arrays.stream(MixedMaterialManager.getInstance().getMaterials()).forEach(material -> {
+            for (MixedMaterial.Row row: material.getRows()) {
+                if (row.material.blockType == -1) {
+                    nameOnlyMaterials.computeIfAbsent(row.material.name, m -> new HashSet<>()).add("custom material " + material.getName());
+                }
+            }
+        });
+        // Check custom object layers
+        for (Dimension dimension: world.getDimensions()) {
+            for (Layer layer: dimension.getAllLayers(true)) {
+                if (layer instanceof Bo2Layer) {
+                    Map<String, List<WPObject>> nameOnlyMaterialsForLayer = new HashMap<>();
+                    for (WPObject object: ((Bo2Layer) layer).getObjectProvider().getAllObjects()) {
+                        object.getAllMaterials().forEach(material -> {
+                            if (material.blockType == -1) {
+                                nameOnlyMaterialsForLayer.computeIfAbsent(material.name, m -> new ArrayList<>()).add(object);
+                            }
+                        });
+                    }
+                    nameOnlyMaterialsForLayer.forEach((name, objects) -> {
+                        if (objects.size() == 1) {
+                            nameOnlyMaterials.computeIfAbsent(name, m -> new HashSet<>()).add("object " + objects.iterator().next().getName() + " in layer " + layer.getName());
+                        } else if (objects.size() <= 3) {
+                            nameOnlyMaterials.computeIfAbsent(name, m -> new HashSet<>()).add("objects " + objects.stream().map(WPObject::getName).collect(Collectors.joining(", ")) + " in layer " + layer.getName());
+                        } else {
+                            nameOnlyMaterials.computeIfAbsent(name, m -> new HashSet<>()).add("objects " + objects.subList(0, 2).stream().map(WPObject::getName).collect(Collectors.joining(", ")) + " and " + (objects.size() - 2) + " more in layer " + layer.getName());
+                        }
+                    });
+                } else if (layer instanceof PlantLayer) {
+                    Map<String, List<Plant>> nameOnlyMaterialsForLayer = new HashMap<>();
+                    for (Plant plant: ((PlantLayer) layer).getConfiguredPlants().keySet()) {
+                        plant.realise(plant.getMaxGrowth(), platform).getAllMaterials().forEach(material -> {
+                            if (material.blockType == -1) {
+                                nameOnlyMaterialsForLayer.computeIfAbsent(material.name, m -> new ArrayList<>()).add(plant);
+                            }
+                        });
+                    }
+                    nameOnlyMaterialsForLayer.forEach((name, plants) -> {
+                        if (plants.size() == 1) {
+                            nameOnlyMaterials.computeIfAbsent(name, m -> new HashSet<>()).add("plant " + plants.iterator().next().getName() + " in layer " + layer.getName());
+                        } else if (plants.size() <= 3) {
+                            nameOnlyMaterials.computeIfAbsent(name, m -> new HashSet<>()).add("plants " + plants.stream().map(WPObject::getName).collect(Collectors.joining(", ")) + " in layer " + layer.getName());
+                        } else {
+                            nameOnlyMaterials.computeIfAbsent(name, m -> new HashSet<>()).add("plants " + plants.subList(0, 2).stream().map(WPObject::getName).collect(Collectors.joining(", ")) + " and " + (plants.size() - 2) + " more in layer " + layer.getName());
+                        }
+                    });
+                }
+            }
+        }
+        return nameOnlyMaterials;
     }
 
     private void borderChanged(Dimension.Border border) {
@@ -860,6 +891,9 @@ dims:   for (Dimension dim: world.getDimensions()) {
             if ((exportDir != null) && exportDir.isDirectory()) {
                 fieldDirectory.setText(exportDir.getAbsolutePath());
             }
+
+            nameOnlyMaterials = gatherNamedBlocks(world, newPlatform);
+
             // Otherwise the JComboBox malfunctions:
             SwingUtilities.invokeLater(() -> buttonExport.setEnabled(checkCompatibility(newPlatform)));
             pack();
@@ -936,7 +970,7 @@ dims:   for (Dimension dim: world.getDimensions()) {
     private Set<Point> selectedTiles;
     private boolean disableTileSelectionWarning, disableDisabledLayersWarning, endlessBorder, savedMapFeatures;
     private String generatorOptions;
-    private final Map<String, Set<String>> nameOnlyMaterials = new HashMap<>();
+    private Map<String, Set<String>> nameOnlyMaterials = new HashMap<>();
 
     private static final Icon WARNING_ICON = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/error.png");
     private static final Icon SPACER_ICON = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/spacer.png");

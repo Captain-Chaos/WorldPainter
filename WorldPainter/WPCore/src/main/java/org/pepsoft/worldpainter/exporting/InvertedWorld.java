@@ -158,7 +158,17 @@ public class InvertedWorld implements MinecraftWorld {
 
     @Override
     public int getHighestNonAirBlock(int x, int y) {
-        throw new UnsupportedOperationException("Not supported yet");
+        int worldHighestNonAirBlock = world.getHighestNonAirBlock(x, y);
+        if (worldHighestNonAirBlock >= 0) {
+            for (int z = 0; z < worldHighestNonAirBlock; z++) {
+                if (world.getMaterialAt(x, y, z) != Material.AIR) {
+                    return maxZ - z;
+                }
+            }
+            return maxZ - worldHighestNonAirBlock;
+        } else {
+            return -1;
+        }
     }
 
     @Override
