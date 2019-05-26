@@ -6,8 +6,10 @@ package org.pepsoft.worldpainter.objects;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.vecmath.Point3i;
 import org.pepsoft.minecraft.Entity;
 import org.pepsoft.minecraft.Material;
@@ -68,7 +70,18 @@ public interface WPObject extends Serializable, Cloneable {
      * @return The material to place at the specified relative coordinates.
      */
     Material getMaterial(int x, int y, int z);
-    
+
+    /**
+     * Return all unique materials contained in this object.
+     *
+     * @return All unique materials contained in this object.
+     */
+    default Set<Material> getAllMaterials() {
+        Set<Material> allMaterials = new HashSet<>();
+        visitBlocks((object, x, y, z, material) -> allMaterials.add(material));
+        return allMaterials;
+    }
+
     /**
      * Determine whether a block should be placed at the specified relative
      * coordinates.

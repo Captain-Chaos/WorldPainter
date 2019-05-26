@@ -14,12 +14,10 @@ import javax.vecmath.Point3i;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.zip.GZIPInputStream;
 
+import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toMap;
 import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.minecraft.Material.MINECRAFT;
@@ -106,6 +104,11 @@ public final class Schem extends AbstractNBTItem implements WPObject {
     public boolean getMask(int x, int y, int z) {
         Material material = palette[blocks[x + y * width + z * width * length]];
         return material != AIR;
+    }
+
+    @Override
+    public Set<Material> getAllMaterials() {
+        return new HashSet<>(asList(palette));
     }
 
     @Override

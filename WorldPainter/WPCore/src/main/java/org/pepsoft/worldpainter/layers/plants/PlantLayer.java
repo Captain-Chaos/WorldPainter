@@ -14,8 +14,11 @@ import org.pepsoft.worldpainter.objects.WPObject;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.stream.IntStream;
 
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.layers.plants.Plants.ALL_PLANTS;
@@ -43,6 +46,12 @@ public class PlantLayer extends CustomLayer {
 
     public void setGenerateFarmland(boolean generateFarmland) {
         this.generateTilledDirt = generateFarmland;
+    }
+
+    public Map<Plant, PlantSettings> getConfiguredPlants() {
+        return IntStream.range(0, settings.length)
+                .filter(i -> settings[i] != null)
+                .collect(HashMap::new, (map, i) -> map.put(ALL_PLANTS[i], settings[i]), HashMap::putAll);
     }
 
     public Bo2ObjectProvider getObjectProvider(Platform platform) {

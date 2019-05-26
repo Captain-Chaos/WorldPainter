@@ -65,13 +65,13 @@ public class Plants {
     public static final Plant PUMPKIN_STEMS = new AgingPlant("Pumpkin Stems", Material.PUMPKIN_STEM, CROPS, "block/pumpkin_side.png", 8) {
         @Override
         public Material getMaterial(int x, int y, int z) {
-            return material.withProperty(FACING, Direction.values()[RANDOM.nextInt(4)]);
+            return super.getMaterial(x, y, z).withProperty(FACING, Direction.values()[RANDOM.nextInt(4)]);
         }
     };
     public static final Plant MELON_STEMS = new AgingPlant("Melon Stems", Material.MELON_STEM, CROPS, "block/melon_side.png", 8) {
         @Override
         public Material getMaterial(int x, int y, int z) {
-            return material.withProperty(FACING, Direction.values()[RANDOM.nextInt(4)]);
+            return super.getMaterial(x, y, z).withProperty(FACING, Direction.values()[RANDOM.nextInt(4)]);
         }
     };
     public static final Plant BEETROOTS = new AgingPlant("Beetroots", Material.BEETROOTS, CROPS, "block/beetroots_stage3.png", 4);

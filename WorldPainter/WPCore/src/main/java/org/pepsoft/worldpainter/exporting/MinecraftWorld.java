@@ -97,16 +97,15 @@ public interface MinecraftWorld extends ChunkProvider {
     void addChunk(Chunk chunk);
 
     /**
-     * Get the Z coordinate of the highest non-air (block ID zero, any data
-     * value) block in a specific column. This is allowed to be an
-     * approximation, as long as it is the same or higher than the actual
-     * highest non-air block.
+     * Get the Z coordinate of the highest non-air block in a specific column.
+     * This is allowed to be an approximation, as long as it is the same or
+     * higher than the actual highest non-air block.
      *
      * @param x The X coordinate of the column.
      * @param y The Y coordinate of the column.
-     * @return The Z coordinate of the highest non-air (block ID zero, any data
-     *     value) block in the specified column or <code>-1</code> if the column
-     *     is empty or no data is present for the specified coordinates.
+     * @return The Z coordinate of the highest non-air block in the specified
+     * column or <code>-1</code> if the column is empty or no data is present
+     * for the specified coordinates.
      */
     int getHighestNonAirBlock(int x, int y);
 }
