@@ -37,6 +37,7 @@ import static java.util.stream.Collectors.toSet;
 import static org.pepsoft.minecraft.Constants.DIFFICULTY_HARD;
 import static org.pepsoft.minecraft.Constants.DIFFICULTY_PEACEFUL;
 import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_13;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.GameType.*;
 import static org.pepsoft.worldpainter.Generator.CUSTOM;
@@ -368,6 +369,15 @@ dims:   for (Dimension dim: world.getDimensions()) {
         // Check for warnings
         StringBuilder sb = new StringBuilder("<html>Please confirm that you want to export the world<br>notwithstanding the following warnings:<br><ul>");
         boolean showWarning = false;
+        Configuration config = Configuration.getInstance();
+        if ((platform == JAVA_ANVIL_1_13) && (! config.isBeta113WarningDisplayed())) {
+            sb.append("<li><strong>Minecraft 1.13 support is still in beta!</strong><br>" +
+                    "Be careful and keep backups. If you encounter<br>" +
+                    "problems, please report them on GitHub:<br>" +
+                    "https://www.worldpainter.net/issues<br>" +
+                    "This warning will only be displayed once.");
+            showWarning = true;
+        }
         Generator generator = Generator.values()[comboBoxGenerator.getSelectedIndex()];
         if ((! radioButtonExportSelection.isSelected()) || (selectedDimension == DIM_NORMAL)) {
             // The surface dimension is going to be exported
@@ -425,8 +435,11 @@ dims:   for (Dimension dim: world.getDimensions()) {
             showWarning = showWarning || (! disableDisabledLayersWarning);
         }
         sb.append("</ul>Do you want to continue with the export?</html>");
-        if (showWarning && (JOptionPane.showConfirmDialog(this, sb.toString(), "Review Warnings", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION)) {
-            return;
+        if (showWarning) {
+            Toolkit.getDefaultToolkit().beep();
+            if (JOptionPane.showConfirmDialog(this, sb.toString(), "Review Warnings", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION) {
+                return;
+            }
         }
 
         File baseDir = new File(fieldDirectory.getText().trim());
@@ -510,9 +523,9 @@ dims:   for (Dimension dim: world.getDimensions()) {
         checkBoxMapFeatures.setEnabled(false);
         comboBoxDifficulty.setEnabled(false);
 
-        Configuration config = Configuration.getInstance();
-        if (config != null) {
-            config.setExportDirectory(world.getPlatform(), baseDir);
+        config.setExportDirectory(world.getPlatform(), baseDir);
+        if (platform == JAVA_ANVIL_1_13) {
+            config.setBeta113WarningDisplayed(true);
         }
 
         ExportProgressDialog dialog = new ExportProgressDialog(this, world, baseDir, name);

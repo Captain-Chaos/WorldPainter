@@ -684,6 +684,14 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         this.snapshotWarningDisplayed = snapshotWarningDisplayed;
     }
 
+    public boolean isBeta113WarningDisplayed() {
+        return beta113WarningDisplayed;
+    }
+
+    public void setBeta113WarningDisplayed(boolean beta113WarningDisplayed) {
+        this.beta113WarningDisplayed = beta113WarningDisplayed;
+    }
+
     // Transient settings which aren't stored on disk
 
     public boolean isAutosaveInhibited() {
@@ -1136,6 +1144,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private String defaultPlatformId = DefaultPlugin.JAVA_ANVIL.id; // TODOMC13 set this to 1.13 once it's out of beta
     private Map<String, File> exportDirectoriesById = new HashMap<>();
     private boolean snapshotWarningDisplayed;
+    private boolean beta113WarningDisplayed;
 
     /**
      * The acceleration type is only stored here at runtime. It is saved to disk
