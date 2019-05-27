@@ -11,6 +11,7 @@
 
 package org.pepsoft.worldpainter;
 
+import org.pepsoft.minecraft.SuperflatPreset;
 import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
@@ -34,6 +35,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toSet;
+import static javax.swing.JOptionPane.INFORMATION_MESSAGE;
 import static org.pepsoft.minecraft.Constants.DIFFICULTY_HARD;
 import static org.pepsoft.minecraft.Constants.DIFFICULTY_PEACEFUL;
 import static org.pepsoft.worldpainter.Constants.*;
@@ -56,6 +58,7 @@ public class ExportWorldDialog extends WorldPainterDialog {
         selectedTiles = world.getTilesToExport();
         selectedDimension = (selectedTiles != null) ? world.getDimensionsToExport().iterator().next() : DIM_NORMAL;
         generatorOptions = world.getGeneratorOptions();
+        superflatPreset = world.getSuperflatPreset();
         this.biomeScheme = biomeScheme;
         this.colourScheme = colourScheme;
         this.hiddenLayers = hiddenLayers;
@@ -550,7 +553,6 @@ dims:   for (Dimension dim: world.getDimensions()) {
         checkBoxAllowCheats.setEnabled((comboBoxMinecraftVersion.getSelectedItem() != JAVA_MCREGION) && notHardcore);
         buttonGeneratorOptions.setEnabled((! endlessBorder) && ((comboBoxGenerator.getSelectedItem() == Generator.FLAT) || (comboBoxGenerator.getSelectedItem() == CUSTOM)));
         comboBoxDifficulty.setEnabled(notHardcore);
-        checkBoxMapFeatures.setEnabled(! endlessBorder);
     }
 
     private void selectDir() {
@@ -926,9 +928,29 @@ dims:   for (Dimension dim: world.getDimensions()) {
     }//GEN-LAST:event_comboBoxGameTypeActionPerformed
 
     private void buttonGeneratorOptionsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonGeneratorOptionsActionPerformed
-        String editedGeneratorOptions = JOptionPane.showInputDialog(this, comboBoxGenerator.getSelectedItem() == CUSTOM ? "Edit the custom world generator name:" : "Edit the Superflat mode preset:", generatorOptions);
-        if (editedGeneratorOptions != null) {
-            generatorOptions = editedGeneratorOptions;
+        if (comboBoxGenerator.getSelectedItem() == CUSTOM) {
+            String editedGeneratorOptions = JOptionPane.showInputDialog(this, "Edit the custom world generator name:", generatorOptions);
+            if (editedGeneratorOptions != null) {
+                generatorOptions = editedGeneratorOptions;
+            }
+        } else {
+            if (generatorOptions != null) {
+                String editedGeneratorOptions = JOptionPane.showInputDialog(this, "Edit the Superflat mode preset:", generatorOptions);
+                if (editedGeneratorOptions != null) {
+                    generatorOptions = editedGeneratorOptions;
+                }
+            } else {
+                // TODOMC13
+                JOptionPane.showMessageDialog(this, "Coming soon: superflat preset editing!", "Temporarily Disabled", INFORMATION_MESSAGE);
+//                if (superflatPreset == null) {
+//                    superflatPreset = SuperflatPreset.builder(BIOME_PLAINS).addLayer(MC_BEDROCK, 1).addLayer(MC_DIRT, 2).addLayer(MC_GRASS_BLOCK, 1).build();
+//                }
+//                EditSuperflatPresetDialog dialog = new EditSuperflatPresetDialog(this, world.getPlatform(), superflatPreset, checkBoxMapFeatures.isSelected());
+//                dialog.setVisible(true);
+//                if (! dialog.isCancelled()) {
+//                    // TODO
+//                }
+            }
         }
     }//GEN-LAST:event_buttonGeneratorOptionsActionPerformed
 
@@ -983,6 +1005,7 @@ dims:   for (Dimension dim: world.getDimensions()) {
     private Set<Point> selectedTiles;
     private boolean disableTileSelectionWarning, disableDisabledLayersWarning, endlessBorder, savedMapFeatures;
     private String generatorOptions;
+    private SuperflatPreset superflatPreset;
     private Map<String, Set<String>> nameOnlyMaterials = new HashMap<>();
 
     private static final Icon WARNING_ICON = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/error.png");

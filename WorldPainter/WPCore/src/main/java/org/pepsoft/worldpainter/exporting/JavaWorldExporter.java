@@ -6,24 +6,32 @@
 package org.pepsoft.worldpainter.exporting;
 
 import org.jnbt.StringTag;
-import org.jnbt.XMLTransformer;
 import org.pepsoft.minecraft.ChunkFactory;
 import org.pepsoft.minecraft.Level;
+import org.pepsoft.minecraft.SuperflatPreset;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ProgressReceiver;
-import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.util.FileInUseException;
 import org.pepsoft.worldpainter.vo.EventVO;
 
 import java.awt.*;
-import java.io.*;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.*;
 
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.SuperflatPreset.Structure.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.Dimension.Border.ENDLESS_WATER;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.BIOME_VOID;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_OCEAN;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
 
 /**
  *
@@ -90,48 +98,59 @@ public class JavaWorldExporter extends AbstractWorldExporter {
         Dimension.Border dim0Border = dim0.getBorder();
         boolean endlessBorder = (dim0Border != null) && dim0Border.isEndless();
         if (endlessBorder) {
-            if (platform == JAVA_ANVIL_1_13) {
-                // TODOMC13
-                throw new UnsupportedOperationException("Endless border not yet supported for Minecraft 1.13");
-            } else {
-                StringBuilder generatorOptions = new StringBuilder("3;");
-                switch (dim0Border) {
-                    case ENDLESS_LAVA:
-                    case ENDLESS_WATER:
-                        boolean bottomless = dim0.isBottomless();
-                        int borderLevel = dim0.getBorderLevel();
-                        int oceanDepth = Math.min(borderLevel / 2, 20);
-                        int dirtDepth = borderLevel - oceanDepth - (bottomless ? 1 : 0);
-                        if (! bottomless) {
-                            generatorOptions.append("1*minecraft:bedrock,");
-                        }
-                        generatorOptions.append(dirtDepth);
-                        generatorOptions.append("*minecraft:dirt,");
-                        generatorOptions.append(oceanDepth);
-                        generatorOptions.append((dim0Border == Dimension.Border.ENDLESS_WATER) ? "*minecraft:water;0;" : "*minecraft:lava;1;");
-                        break;
-                    case ENDLESS_VOID:
-                        generatorOptions.append("1*minecraft:air;1;");
-                        break;
-                }
-                generatorOptions.append(DEFAULT_GENERATOR_OPTIONS);
-                level.setGeneratorOptions(XMLTransformer.fromXML(new StringReader(generatorOptions.toString())));
+            SuperflatPreset.Builder superflatPresetBuilder;
+            switch (dim0Border) {
+                case ENDLESS_LAVA:
+                case ENDLESS_WATER:
+                    superflatPresetBuilder = SuperflatPreset.builder((dim0Border == ENDLESS_WATER) ? BIOME_OCEAN : BIOME_PLAINS, MINESHAFT, BIOME_1, DUNGEON, DECORATION, OCEANMONUMENT);
+                    boolean bottomless = dim0.isBottomless();
+                    int borderLevel = dim0.getBorderLevel() + 1;
+                    int oceanDepth = Math.max(Math.min(borderLevel / 2, 20), 1);
+                    int stoneDepth = Math.max(borderLevel - oceanDepth - (bottomless ? 0 : 1) - 5, 0);
+                    int dirtDepth = Math.max(borderLevel - oceanDepth - (bottomless ? 0 : 1) - stoneDepth, 0);
+                    if (! bottomless) {
+                        superflatPresetBuilder.addLayer(MC_BEDROCK, 1);
+                    }
+                    if (stoneDepth > 0) {
+                        superflatPresetBuilder.addLayer(MC_STONE, stoneDepth);
+                    }
+                    if (dirtDepth > 0) {
+                        superflatPresetBuilder.addLayer(MC_DIRT, dirtDepth);
+                    }
+                    if (oceanDepth > 0) {
+                        superflatPresetBuilder.addLayer((dim0Border == ENDLESS_WATER) ? MC_WATER : MC_LAVA, oceanDepth);
+                    }
+                    break;
+                case ENDLESS_VOID:
+                    superflatPresetBuilder = SuperflatPreset.builder((platform == JAVA_ANVIL_1_13) ? BIOME_VOID : BIOME_PLAINS);
+                    superflatPresetBuilder.addLayer(MC_AIR, 1);
+                    break;
+                default:
+                    throw new InternalError();
             }
-            level.setMapFeatures(false);
+            if (platform != JAVA_ANVIL_1_13) {
+                level.setGeneratorOptions(new StringTag(TAG_GENERATOR_OPTIONS_, superflatPresetBuilder.build().toMinecraft1_12_2()));
+            } else {
+                level.setGeneratorOptions(superflatPresetBuilder.build().toMinecraft1_13_2());
+            }
             level.setGenerator(Generator.FLAT);
         } else {
-            level.setMapFeatures(world.isMapFeatures());
             if (world.getGenerator() == Generator.CUSTOM) {
                 level.setGeneratorName(world.getGeneratorOptions());
             } else {
                 level.setGenerator(world.getGenerator());
             }
         }
+        level.setMapFeatures(world.isMapFeatures());
         if ((world.getPlatform() != JAVA_MCREGION)) {
-            if ((! endlessBorder) && (world.getGenerator() == Generator.FLAT) && (world.getGeneratorOptions() != null)) {
-                level.setGeneratorOptions((platform == JAVA_ANVIL)
-                        ? new StringTag(TAG_GENERATOR_OPTIONS_, world.getGeneratorOptions())
-                        : XMLTransformer.fromXML(new StringReader(world.getGeneratorOptions())));
+            if ((! endlessBorder) && (world.getGenerator() == Generator.FLAT) && ((world.getGeneratorOptions() != null) || (world.getSuperflatPreset() != null))) {
+                if (world.getSuperflatPreset() != null) {
+                    level.setGeneratorOptions((platform == JAVA_ANVIL)
+                            ? new StringTag(TAG_GENERATOR_OPTIONS_, world.getSuperflatPreset().toMinecraft1_12_2())
+                            : world.getSuperflatPreset().toMinecraft1_13_2());
+                } else {
+                    level.setGeneratorOptions(new StringTag(TAG_GENERATOR_OPTIONS_, world.getGeneratorOptions()));
+                }
             }
             World2.BorderSettings borderSettings = world.getBorderSettings();
             level.setBorderCenterX(borderSettings.getCentreX());

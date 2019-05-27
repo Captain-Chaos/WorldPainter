@@ -7,11 +7,8 @@ package org.pepsoft.worldpainter.exporting;
 
 import org.pepsoft.minecraft.ChunkFactory;
 import org.pepsoft.util.PerlinNoise;
-import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.Dimension.Border;
-import org.pepsoft.worldpainter.Platform;
-import org.pepsoft.worldpainter.Terrain;
-import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 
@@ -21,10 +18,10 @@ import java.util.Set;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.MEDIUM_BLOBS;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_13;
 import static org.pepsoft.worldpainter.Platform.Capability.BIOMES;
 import static org.pepsoft.worldpainter.Terrain.BEACHES;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.BIOME_OCEAN;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.BIOME_PLAINS;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.*;
 
 /**
  *
@@ -57,24 +54,24 @@ public class BorderChunkFactory {
         result.chunk = PlatformManager.getInstance().createChunk(platform, chunkX, chunkZ, maxHeight);
         final int maxY = maxHeight - 1;
         if (platform.capabilities.contains(BIOMES)) {
+            int biome;
             switch(border) {
                 case VOID:
+                    biome = (platform == JAVA_ANVIL_1_13) ? BIOME_VOID : BIOME_PLAINS;
+                    break;
                 case LAVA:
-                    for (int x = 0; x < 16; x++) {
-                        for (int z = 0; z < 16; z++) {
-                            result.chunk.setBiome(x, z, BIOME_PLAINS);
-                        }
-                    }
+                    biome = BIOME_PLAINS;
                     break;
                 case WATER:
-                    for (int x = 0; x < 16; x++) {
-                        for (int z = 0; z < 16; z++) {
-                            result.chunk.setBiome(x, z, BIOME_OCEAN);
-                        }
-                    }
+                    biome = BIOME_OCEAN;
                     break;
                 default:
                     throw new InternalError();
+            }
+            for (int x = 0; x < 16; x++) {
+                for (int z = 0; z < 16; z++) {
+                    result.chunk.setBiome(x, z, biome);
+                }
             }
         }
         for (int x = 0; x < 16; x++) {

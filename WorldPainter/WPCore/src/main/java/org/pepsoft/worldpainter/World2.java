@@ -5,8 +5,11 @@
 
 package org.pepsoft.worldpainter;
 
+import org.jnbt.CompoundTag;
+import org.jnbt.XMLTransformer;
 import org.pepsoft.minecraft.Direction;
 import org.pepsoft.minecraft.Material;
+import org.pepsoft.minecraft.SuperflatPreset;
 import org.pepsoft.util.AttributeKey;
 import org.pepsoft.util.MemoryUtils;
 import org.pepsoft.util.ProgressReceiver;
@@ -19,10 +22,7 @@ import org.pepsoft.worldpainter.layers.Layer;
 import java.awt.*;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.io.File;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.Serializable;
+import java.io.*;
 import java.util.List;
 import java.util.*;
 
@@ -372,6 +372,19 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         }
     }
 
+    public SuperflatPreset getSuperflatPreset() {
+        return superflatPreset;
+    }
+
+    public void setSuperflatPreset(SuperflatPreset superflatPreset) {
+        if (! Objects.equals(superflatPreset, this.superflatPreset)) {
+            SuperflatPreset oldSuperflatPreset = this.superflatPreset;
+            this.superflatPreset = superflatPreset;
+            changeNo++;
+            propertyChangeSupport.firePropertyChange("superflatPreset", oldSuperflatPreset, superflatPreset);
+        }
+    }
+
     public List<HistoryEntry> getHistory() {
         synchronized (history) {
             return history;
@@ -653,6 +666,24 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
             gameTypeObj = GameType.values()[gameType];
             gameType = -1;
         }
+        if (wpVersion < 7) {
+            if ((generatorOptions != null) && (! generatorOptions.trim().isEmpty())) {
+                // Is it in version 3 string format?
+                try {
+                    superflatPreset = SuperflatPreset.fromMinecraft1_12_2(generatorOptions.trim());
+                    generatorOptions = null;
+                } catch (IllegalArgumentException e) {
+                    // Is it in XML format from the alpha/beta?
+                    try {
+                        CompoundTag tag = (CompoundTag) XMLTransformer.fromXML(new StringReader(generatorOptions));
+                        superflatPreset = SuperflatPreset.fromMinecraft1_13_2(tag);
+                        generatorOptions = null;
+                    } catch (ClassCastException | IOException e2) {
+                        // It's not recognisable; give up
+                    }
+                }
+            }
+        }
         wpVersion = CURRENT_WP_VERSION;
         
         // Bug fix: fix the maxHeight of the dimensions, which somehow is not
@@ -714,6 +745,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     private Platform platform;
     private GameType gameTypeObj = GameType.SURVIVAL;
     private Map<String, Object> attributes;
+    private SuperflatPreset superflatPreset;
     private transient Set<Warning> warnings;
     private transient Map<String, Object> metadata;
     private transient long changeNo;
@@ -756,7 +788,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
      */
     public static final String METADATA_KEY_PLUGINS = "org.pepsoft.worldpainter.plugins";
 
-    private static final int CURRENT_WP_VERSION = 6;
+    private static final int CURRENT_WP_VERSION = 7;
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(World2.class);
     private static final long serialVersionUID = 2011062401L;

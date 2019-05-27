@@ -164,7 +164,7 @@ public interface Minecraft1_13Biomes extends Minecraft1_7Biomes {
             null,
             null,
             null,
-            "Void",
+            "The Void",
             null,
             "Sunflower Plains",
 

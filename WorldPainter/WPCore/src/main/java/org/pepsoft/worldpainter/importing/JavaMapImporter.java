@@ -24,7 +24,6 @@ import org.pepsoft.worldpainter.vo.EventVO;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -88,11 +87,20 @@ public class JavaMapImporter extends MapImporter {
         } else {
             Tag generatorOptions = level.getGeneratorOptions();
             if (generatorOptions instanceof StringTag) {
-                world.setGeneratorOptions(((StringTag) generatorOptions).getValue());
+                String generatorOptionsStr = ((StringTag) generatorOptions).getValue();
+                try {
+                    world.setSuperflatPreset(SuperflatPreset.fromMinecraft1_12_2(generatorOptionsStr));
+                } catch (IllegalArgumentException e) {
+                    // Note that we have no idea if this even occurs in practice
+                    try {
+                        world.setSuperflatPreset(SuperflatPreset.fromMinecraft1_13_2(generatorOptionsStr));
+                    } catch (IllegalArgumentException e2) {
+                        // We can't parse the string as a superflat preset, so just store it as-is
+                        world.setGeneratorOptions(generatorOptionsStr);
+                    }
+                }
             } else if (generatorOptions instanceof CompoundTag) {
-                StringWriter sw = new StringWriter();
-                XMLTransformer.toXML(generatorOptions, sw);
-                world.setGeneratorOptions(sw.toString());
+                world.setSuperflatPreset(SuperflatPreset.fromMinecraft1_13_2((CompoundTag) generatorOptions));
             } else if (generatorOptions != null) {
                 throw new IllegalArgumentException("Unexpected type of generatorOptions encountered: " + generatorOptions);
             }
