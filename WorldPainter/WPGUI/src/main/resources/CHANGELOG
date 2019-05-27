@@ -1,3 +1,10 @@
+-- Version 2.6.1, released 27-5-2019
+
+ * Bug fix: don't give errors about non-vanilla legacy blocks when exporting to Minecraft 1.12.
+ * Bug fix: make the endless border setting work again for Minecraft 1.12.
+ * Endless borders now also work for Minecraft 1.13.
+ * The "edit Superflat preset" button has been temporarily disabled as part of this fix; it will be implemented in the near future with a bespoke Superflat preset editing screen rather than a simple text field
+
 -- Version 2.6.0, released 26-5-2019
 
  * Add support for Minecraft 1.13
