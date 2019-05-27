@@ -187,6 +187,14 @@ public final class Material implements Serializable {
             if (logger.isDebugEnabled()) {
                 logger.debug("Matched " + identity + " to " + BLOCK_TYPE_NAMES[blockType] + "(" + blockType + "):" + data);
             }
+        } else if (identity.name.startsWith("legacy:block_") && (identity.properties != null) && identity.properties.containsKey("data_value")) {
+            // Legacy non-vanilla block; decode block ID and data value from
+            // name and properties
+            blockType = Integer.parseInt(identity.name.substring(13));
+            data = Integer.parseInt(identity.properties.get("data_value"));
+            if (logger.isDebugEnabled()) {
+                logger.debug("Matched " + identity + " to legacy non-vanilla block with ID " + blockType + " and data value " + data);
+            }
         } else {
             blockType = -1;
             data = -1;
