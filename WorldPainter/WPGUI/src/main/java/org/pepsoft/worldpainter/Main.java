@@ -14,7 +14,7 @@ import com.jidesoft.utils.Lm;
 import org.intellij.lang.annotations.Language;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.GUIUtils;
-import org.pepsoft.util.PluginManager;
+import org.pepsoft.util.plugins.PluginManager;
 import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
 import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
 import org.pepsoft.worldpainter.operations.MouseOrTabletOperation;
@@ -50,7 +50,7 @@ import java.util.prefs.Preferences;
 
 import static org.pepsoft.worldpainter.Constants.ATTRIBUTE_KEY_PLUGINS;
 import static org.pepsoft.worldpainter.Constants.ATTRIBUTE_KEY_SAFE_MODE;
-import static org.pepsoft.worldpainter.plugins.WPPluginManager.FILENAME;
+import static org.pepsoft.worldpainter.plugins.WPPluginManager.DESCRIPTOR_PATH;
 
 /**
  *
@@ -268,7 +268,7 @@ public class Main {
         // Load the plugins
         if (! safeMode) {
             if (trustedCert != null) {
-                PluginManager.loadPlugins(new File(configDir, "plugins"), trustedCert.getPublicKey(), FILENAME);
+                PluginManager.loadPlugins(new File(configDir, "plugins"), trustedCert.getPublicKey(), DESCRIPTOR_PATH);
             } else {
                 logger.error("Trusted root certificate not available; not loading plugins");
             }

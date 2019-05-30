@@ -6,7 +6,7 @@
 package org.pepsoft.worldpainter.layers;
 
 import org.pepsoft.util.IconUtils;
-import org.pepsoft.util.PluginManager;
+import org.pepsoft.util.plugins.PluginManager;
 import org.pepsoft.worldpainter.exporting.LayerExporter;
 import org.pepsoft.worldpainter.layers.renderers.LayerRenderer;
 

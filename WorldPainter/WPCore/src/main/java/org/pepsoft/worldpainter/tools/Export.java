@@ -7,6 +7,7 @@ package org.pepsoft.worldpainter.tools;
 import org.pepsoft.minecraft.Constants;
 import org.pepsoft.util.*;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
+import org.pepsoft.util.plugins.PluginManager;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.exporting.WorldExporter;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
@@ -19,14 +20,14 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
-import static org.pepsoft.worldpainter.plugins.WPPluginManager.FILENAME;
+import static org.pepsoft.worldpainter.plugins.WPPluginManager.DESCRIPTOR_PATH;
 
 /**
  *
  * @author pepijn
  */
 public class Export {
-    public static void main(String args[]) throws IOException, ClassNotFoundException, OperationCancelled, CertificateException, UnloadableWorldException {
+    public static void main(String[] args) throws IOException, ClassNotFoundException, OperationCancelled, CertificateException, UnloadableWorldException {
 //        Logger rootLogger = Logger.getLogger("");
 //        rootLogger.setLevel(Level.OFF);
 
@@ -56,7 +57,7 @@ public class Export {
         // Load the plugins
         File pluginsDir = new File(Configuration.getConfigDir(), "plugins");
         if (pluginsDir.isDirectory()) {
-            PluginManager.loadPlugins(pluginsDir, trustedCert.getPublicKey(), FILENAME);
+            PluginManager.loadPlugins(pluginsDir, trustedCert.getPublicKey(), DESCRIPTOR_PATH);
         }
         WPPluginManager.initialise(config.getUuid());
 

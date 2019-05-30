@@ -10,7 +10,7 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
-import org.pepsoft.util.PluginManager;
+import org.pepsoft.util.plugins.PluginManager;
 import org.pepsoft.worldpainter.Configuration;
 import org.pepsoft.worldpainter.Version;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
@@ -29,7 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.pepsoft.worldpainter.plugins.WPPluginManager.FILENAME;
+import static org.pepsoft.worldpainter.plugins.WPPluginManager.DESCRIPTOR_PATH;
 
 /**
  *
@@ -119,7 +119,7 @@ public class ScriptingTool {
         if (trustedCert != null) {
             File pluginsDir = new File(Configuration.getConfigDir(), "plugins");
             if (pluginsDir.isDirectory()) {
-                PluginManager.loadPlugins(pluginsDir, trustedCert.getPublicKey(), FILENAME);
+                PluginManager.loadPlugins(pluginsDir, trustedCert.getPublicKey(), DESCRIPTOR_PATH);
             }
         } else {
             logger.error("Trusted root certificate not available; not loading plugins");

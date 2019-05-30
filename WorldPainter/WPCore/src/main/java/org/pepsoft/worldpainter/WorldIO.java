@@ -1,7 +1,7 @@
 package org.pepsoft.worldpainter;
 
 import org.pepsoft.minecraft.Direction;
-import org.pepsoft.util.PluginManager;
+import org.pepsoft.util.plugins.PluginManager;
 import org.pepsoft.util.WPCustomObjectInputStream;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.Layer;

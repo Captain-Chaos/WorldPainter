@@ -3,7 +3,7 @@ package org.pepsoft.worldpainter;
 import org.pepsoft.minecraft.Constants;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.FileUtils;
-import org.pepsoft.util.PluginManager;
+import org.pepsoft.util.plugins.PluginManager;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.slf4j.Logger;
@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
-import static org.pepsoft.worldpainter.plugins.WPPluginManager.FILENAME;
+import static org.pepsoft.worldpainter.plugins.WPPluginManager.DESCRIPTOR_PATH;
 
 public class ExportTester extends RegressionIT {
     public static void main(String[] args) throws IOException, ClassNotFoundException, UnloadableWorldException, ProgressReceiver.OperationCancelled {
@@ -62,7 +62,7 @@ public class ExportTester extends RegressionIT {
 
         // Load the plugins
         if (trustedCert != null) {
-            PluginManager.loadPlugins(new File(Configuration.getConfigDir(), "plugins"), trustedCert.getPublicKey(), FILENAME);
+            PluginManager.loadPlugins(new File(Configuration.getConfigDir(), "plugins"), trustedCert.getPublicKey(), DESCRIPTOR_PATH);
         } else {
             logger.error("Trusted root certificate not available; not loading plugins");
         }
@@ -71,7 +71,7 @@ public class ExportTester extends RegressionIT {
         new ExportTester().run(args);
     }
 
-    private void run(String[] args) throws IOException, UnloadableWorldException, ProgressReceiver.OperationCancelled {
+    private void run(String[] args) throws IOException, UnloadableWorldException {
         File worldDir = new File(args[0]);
         File baseDir = new File(System.getProperty("java.io.tmpdir"), "WPExportTesterMaps");
         if (baseDir.exists()) {

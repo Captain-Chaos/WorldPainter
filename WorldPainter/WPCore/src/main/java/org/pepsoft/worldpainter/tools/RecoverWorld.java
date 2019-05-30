@@ -4,7 +4,7 @@
  */
 package org.pepsoft.worldpainter.tools;
 
-import org.pepsoft.util.PluginManager;
+import org.pepsoft.util.plugins.PluginManager;
 import org.pepsoft.util.WPCustomObjectInputStream;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.history.HistoryEntry;
@@ -28,7 +28,7 @@ import java.util.zip.GZIPInputStream;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
-import static org.pepsoft.worldpainter.plugins.WPPluginManager.FILENAME;
+import static org.pepsoft.worldpainter.plugins.WPPluginManager.DESCRIPTOR_PATH;
 
 /**
  *
@@ -67,7 +67,7 @@ public class RecoverWorld {
 
         // Load the plugins
         if (trustedCert != null) {
-            PluginManager.loadPlugins(new File(Configuration.getConfigDir(), "plugins"), trustedCert.getPublicKey(), FILENAME);
+            PluginManager.loadPlugins(new File(Configuration.getConfigDir(), "plugins"), trustedCert.getPublicKey(), DESCRIPTOR_PATH);
         } else {
             logger.error("Trusted root certificate not available; not loading plugins");
         }

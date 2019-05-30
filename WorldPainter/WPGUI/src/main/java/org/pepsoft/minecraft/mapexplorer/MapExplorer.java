@@ -10,7 +10,7 @@ import org.jnbt.ByteArrayTag;
 import org.jnbt.IntArrayTag;
 import org.jnbt.LongArrayTag;
 import org.jnbt.Tag;
-import org.pepsoft.util.PluginManager;
+import org.pepsoft.util.plugins.PluginManager;
 import org.pepsoft.worldpainter.Configuration;
 import org.pepsoft.worldpainter.Main;
 import org.pepsoft.worldpainter.MouseAdapter;
@@ -42,7 +42,7 @@ import static java.awt.BorderLayout.CENTER;
 import static java.awt.BorderLayout.NORTH;
 import static javax.swing.SwingConstants.TOP;
 import static javax.swing.tree.TreeSelectionModel.SINGLE_TREE_SELECTION;
-import static org.pepsoft.worldpainter.plugins.WPPluginManager.FILENAME;
+import static org.pepsoft.worldpainter.plugins.WPPluginManager.DESCRIPTOR_PATH;
 
 /**
  *
@@ -88,7 +88,7 @@ public class MapExplorer {
 
         // Load the plugins
         if (trustedCert != null) {
-            PluginManager.loadPlugins(new File(configDir, "plugins"), trustedCert.getPublicKey(), FILENAME);
+            PluginManager.loadPlugins(new File(configDir, "plugins"), trustedCert.getPublicKey(), DESCRIPTOR_PATH);
         } else {
             logger.error("Trusted root certificate not available; not loading plugins");
         }

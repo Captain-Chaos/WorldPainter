@@ -4,12 +4,15 @@
  */
 package org.pepsoft.worldpainter.plugins;
 
-import org.pepsoft.util.PluginManager;
+import org.jetbrains.annotations.NotNull;
+import org.pepsoft.util.plugins.PluginManager;
 
 import java.io.File;
 import java.security.PublicKey;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.util.Collections.unmodifiableList;
 
 /**
  * A manager of WorldPainter {@link Plugin}s.
@@ -18,12 +21,15 @@ import java.util.stream.Collectors;
  */
 public class WPPluginManager {
     private WPPluginManager(UUID uuid, ClassLoader classLoader) {
-        allPlugins = PluginManager.findPlugins(Plugin.class, FILENAME, classLoader);
+        allPlugins = PluginManager.findPlugins(Plugin.class, DESCRIPTOR_PATH, classLoader);
+        errors.addAll(PluginManager.getErrors());
         Set<String> namesEncountered = new HashSet<>();
         for (Iterator<Plugin> i = allPlugins.iterator(); i.hasNext(); ) {
             Plugin plugin = i.next();
             if ((plugin.getUUIDs() != null) && (uuid != null) && (! plugin.getUUIDs().contains(uuid))) {
-                logger.error(plugin.getName() + " plugin is not authorised for this installation; not loading it");
+                String message = plugin.getName() + " plugin is not authorised for this installation";
+                errors.add(message);
+                logger.error(message + "; not loading it");
                 i.remove();
                 continue;
             }
@@ -43,7 +49,7 @@ public class WPPluginManager {
      * @return A list of all loaded WorldPainter plugins.
      */
     public List<Plugin> getAllPlugins() {
-        return Collections.unmodifiableList(allPlugins);
+        return unmodifiableList(allPlugins);
     }
 
     /**
@@ -61,6 +67,16 @@ public class WPPluginManager {
             .filter(plugin -> type.isAssignableFrom(plugin.getClass()))
             .map(plugin -> (T) plugin)
             .collect(Collectors.toList());
+    }
+
+    /**
+     * Get the list of errors, if any, that occurred while loading the plugins.
+     *
+     * @return The list of errors, if any, that occurred while loading the
+     * plugins. May be empty, but is never {@code null}.
+     */
+    public @NotNull List<String> getErrors() {
+        return unmodifiableList(errors);
     }
 
     /**
@@ -112,13 +128,14 @@ public class WPPluginManager {
     }
     
     private final List<Plugin> allPlugins;
+    private final List<String> errors = new ArrayList<>();
 
     /**
      * The resource filename in which WorldPainter plugin descriptors are
      * stored. Pass this into the {@code filename} parameter of the
      * {@link PluginManager#loadPlugins(File, PublicKey, String)} method.
      */
-    public static final String FILENAME = "org.pepsoft.worldpainter.plugins";
+    public static final String DESCRIPTOR_PATH = "org.pepsoft.worldpainter.plugins";
 
     private static WPPluginManager instance;
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WPPluginManager.class);
