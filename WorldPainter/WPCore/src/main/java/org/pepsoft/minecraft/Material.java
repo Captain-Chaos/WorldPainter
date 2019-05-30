@@ -1028,11 +1028,13 @@ public final class Material implements Serializable {
 
     public boolean equals(Object o) {
         return (o instanceof Material)
-            && identity.equals(((Material) o).identity);
+                && ((blockType == -1)
+                ? identity.equals(((Material) o).identity)
+                : ((blockType == ((Material) o).blockType) && (data == ((Material) o).data)));
     }
 
     public int hashCode() {
-        return identity.hashCode();
+        return (blockType == -1) ? identity.hashCode() : ((blockType * 17) + data);
     }
 
     /**
