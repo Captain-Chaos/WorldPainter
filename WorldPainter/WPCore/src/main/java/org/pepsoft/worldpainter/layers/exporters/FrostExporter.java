@@ -23,14 +23,13 @@ import static org.pepsoft.minecraft.Constants.MC_WATER;
 import static org.pepsoft.minecraft.Material.*;
 
 /**
- *
  * @author pepijn
  */
 public class FrostExporter extends AbstractLayerExporter<Frost> implements SecondPassLayerExporter {
     public FrostExporter() {
         super(Frost.INSTANCE, new FrostSettings());
     }
-    
+
     @Override
     public List<Fixup> render(final Dimension dimension, final Rectangle area, final Rectangle exportedArea, final MinecraftWorld minecraftWorld, Platform platform) {
         final FrostSettings settings = (FrostSettings) getSettings();
@@ -51,20 +50,20 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
                     int leafBlocksEncountered = 0;
                     for (int height = Math.min(highestNonAirBlock, maxHeight - 2); height >= 0; height--) {
                         Material material = minecraftWorld.getMaterialAt(x, y, height);
-                        if (material.name.endsWith("_leaves")
+                        if (material.isNamed(MC_WATER) && (material.getProperty(LAYERS, 0) == 0)) {
+                            minecraftWorld.setMaterialAt(x, y, height, ICE);
+                            break;
+                        } else if (material.name.endsWith("_leaves")
                                 || (material.solid
-                                    && material.opaque)) {
-                            if (material.isNamed(MC_WATER)) {
-                                minecraftWorld.setMaterialAt(x, y, height, ICE);
-                                break;
-                            } else if ((material.name.endsWith("_leaves"))
+                                && material.opaque)) {
+                            if ((material.name.endsWith("_leaves"))
                                     || (material.name.endsWith("_log"))
                                     || (material.name.endsWith("_bark"))) {
                                 if (previousMaterial == AIR) {
                                     minecraftWorld.setMaterialAt(x, y, height + 1, SNOW);
                                 }
                                 leafBlocksEncountered++;
-                                if ((! snowUnderTrees) && (leafBlocksEncountered > 1)) {
+                                if ((!snowUnderTrees) && (leafBlocksEncountered > 1)) {
                                     break;
                                 }
                             } else {
@@ -88,7 +87,7 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
                                             case FrostSettings.MODE_SMOOTH:
                                             case FrostSettings.MODE_SMOOTH_AT_ALL_ELEVATIONS:
                                                 int layers = (int) ((dimension.getHeightAt(x, y) + 0.5f - dimension.getIntHeightAt(x, y)) / 0.125f) + 1;
-                                                if ((layers > 1) && (! frostEverywhere)) {
+                                                if ((layers > 1) && (!frostEverywhere)) {
                                                     layers = Math.max(Math.min(layers, dimension.getBitLayerCount(Frost.INSTANCE, x, y, 1) - 1), 1);
                                                 }
                                                 placeSnow(minecraftWorld, x, y, height, layers);
@@ -203,16 +202,16 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
                 throw new RuntimeException(e);
             }
         }
-        
+
         private boolean frostEverywhere;
         private int mode = MODE_SMOOTH;
         private boolean snowUnderTrees = true;
-        
-        public static final int MODE_FLAT                     = 0; // Always place thin snow blocks
-        public static final int MODE_RANDOM                   = 1; // Place random height snow blocks on the surface
-        public static final int MODE_SMOOTH                   = 2; // Place smooth snow blocks on the surface
+
+        public static final int MODE_FLAT = 0; // Always place thin snow blocks
+        public static final int MODE_RANDOM = 1; // Place random height snow blocks on the surface
+        public static final int MODE_SMOOTH = 2; // Place smooth snow blocks on the surface
         public static final int MODE_SMOOTH_AT_ALL_ELEVATIONS = 3; // Place smooth snow blocks at any elevation
-        
+
         private static final long serialVersionUID = 2011060801L;
     }
 }
