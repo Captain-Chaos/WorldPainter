@@ -653,7 +653,7 @@ public class FileUtils {
      * its subdirectories, in bytes.
      */
     @SuppressWarnings("ConstantConditions") // Responsibility of caller
-    public long getTreeSize(File dir) {
+    public static long getTreeSize(File dir) {
         long totalSize = 0;
         for (File entry: dir.listFiles()) {
             if (entry.isFile()) {
@@ -675,8 +675,40 @@ public class FileUtils {
      * @throws IOException If an I/O error occurs while determining the free
      * space.
      */
-    public long getFreeSpace(File path) throws IOException {
+    public static long getFreeSpace(File path) throws IOException {
         return Files.getFileStore(path.toPath()).getUsableSpace();
+    }
+
+    /**
+     * Strip the extension off a filename, if any.
+     * 
+     * @param filename The filename to strip.
+     * @return The filename without its extension, or the original filename if
+     * it has no extension.
+     */
+    public static String stripExtension(String filename) {
+        int p = filename.lastIndexOf('.');
+        if (p != -1) {
+            return filename.substring(0, p);
+        } else {
+            return filename;
+        }
+    }
+
+    /**
+     * Strip the directory from a path, if any.
+     *
+     * @param path The path to strip.
+     * @return The path without the directory, or the original path if it was
+     * not in a directory.
+     */
+    public static String stripDirectory(String path) {
+        int p = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
+        if (p != -1) {
+            return path.substring(p + 1);
+        } else {
+            return path;
+        }
     }
 
     public static void main(String[] args) throws IOException {
