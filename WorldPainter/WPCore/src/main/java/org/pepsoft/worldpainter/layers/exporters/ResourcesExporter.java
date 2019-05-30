@@ -5,6 +5,7 @@
 package org.pepsoft.worldpainter.layers.exporters;
 
 import org.pepsoft.minecraft.Chunk;
+import org.pepsoft.minecraft.MC113AnvilChunk;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.Dimension;
@@ -125,6 +126,11 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
                                         : (noiseGenerators[i].getPerlinNoise(dx, dy, dz) >= chance))) {
 //                                counts[oreType]++;
                                 chunk.setMaterial(x, y, z, activeMaterials[i]);
+                                // TODOMC13: solve this more generically (in the post processor?):
+                                if (activeMaterials[i].isNamedOneOf(MC_WATER, MC_LAVA) && (chunk instanceof MC113AnvilChunk)) {
+                                    // Make sure the fluid will actually flow
+                                    ((MC113AnvilChunk) chunk).addLiquidTick(x, y, z);
+                                }
                                 break;
                             }
                         }
@@ -289,6 +295,18 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
                 seedOffsets = null;
             }
             version = 1;
+
+            // Not sure how, but the liquids are reverting to the stationary
+            // variants (something to do with the Minecraft 1.13 migration?).
+            // Just keep changing them back
+            if (settings.containsKey(STATIONARY_WATER)) {
+                settings.put(WATER, settings.get(STATIONARY_WATER));
+                settings.remove(STATIONARY_WATER);
+            }
+            if (settings.containsKey(STATIONARY_LAVA)) {
+                settings.put(LAVA, settings.get(STATIONARY_LAVA));
+                settings.remove(STATIONARY_LAVA);
+            }
         }
         
         private int minimumLevel = 8;

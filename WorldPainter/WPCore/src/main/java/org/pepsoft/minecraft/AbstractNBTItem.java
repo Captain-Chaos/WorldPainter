@@ -26,7 +26,7 @@ public abstract class AbstractNBTItem implements NBTItem, Serializable, Cloneabl
     }
 
     @Override
-    public Tag toNBT() {
+    public CompoundTag toNBT() {
         return tag;
     }
     
@@ -164,7 +164,7 @@ public abstract class AbstractNBTItem implements NBTItem, Serializable, Cloneabl
         return (listTag != null) ? (List<T>) listTag.getValue() : null;
     }
 
-    protected final <T extends Tag> void setList(String name, Class<T> type, List<Tag> list) {
+    protected final <T extends Tag> void setList(String name, Class<T> type, List<T> list) {
         tag.setTag(name, new ListTag(name, type, list));
     }
     

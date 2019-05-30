@@ -5,6 +5,7 @@
 
 package org.pepsoft.minecraft;
 
+import com.google.common.collect.ImmutableMap;
 import org.jnbt.*;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import org.slf4j.Logger;
@@ -38,6 +39,7 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
         tileEntities = new ArrayList<>();
         readOnly = false;
         lightPopulated = true;
+        liquidTicks = new ArrayList<>();
 
         setTerrainPopulated(false);
     }
@@ -94,6 +96,7 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
             status = Status.valueOf(getString(TAG_STATUS).toUpperCase());
             lightPopulated = getBoolean(TAG_LIGHT_POPULATED);
             inhabitedTime = getLong(TAG_INHABITED_TIME);
+            liquidTicks = getList(TAG_LIQUID_TICKS);
         } catch (RuntimeException e) {
             logger.error("{} while creating chunk from NBT: {}", e.getClass().getSimpleName(), tag);
             throw e;
@@ -120,12 +123,33 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
         return heightMaps;
     }
 
+    public void addLiquidTick(int x, int y, int z) {
+        // Liquid ticks are in world coordinates for some reason
+        x = (xPos << 4) | x;
+        z = (zPos << 4) | z;
+        for (CompoundTag liquidTick: liquidTicks) {
+            if ((x == ((IntTag) liquidTick.getTag(TAG_X_)).getValue())
+                    && (y == ((IntTag) liquidTick.getTag(TAG_Y_)).getValue())
+                    && (z == ((IntTag) liquidTick.getTag(TAG_Z_)).getValue())) {
+                // There is already a liquid tick scheduled for this block
+                return;
+            }
+        }
+        liquidTicks.add(new CompoundTag("", ImmutableMap.<String, Tag>builder()
+                .put(TAG_X_, new IntTag(TAG_X_, x))
+                .put(TAG_Y_, new IntTag(TAG_Y_, y))
+                .put(TAG_Z_, new IntTag(TAG_Z_, z))
+                .put(TAG_I_, new StringTag(TAG_I_, getMaterial(x & 0xf, y, z & 0xf).name))
+                .put(TAG_P_, new IntTag(TAG_P_, 0))
+                .put(TAG_T_, new IntTag(TAG_T_, RANDOM.nextInt(30) + 1)).build()));
+    }
+
     // Chunk
 
     @Override
-    public Tag toNBT() {
+    public CompoundTag toNBT() {
         if (sections != null) {
-            List<Tag> sectionTags = new ArrayList<>(maxHeight >> 4);
+            List<CompoundTag> sectionTags = new ArrayList<>(maxHeight >> 4);
             for (Section section: sections) {
                 if ((section != null) && (!section.isEmpty())) {
                     sectionTags.add(section.toNBT());
@@ -137,10 +161,10 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
             setIntArray(TAG_BIOMES, biomes);
         }
         // TODO heightMaps
-        List<Tag> entityTags = new ArrayList<>(entities.size());
+        List<CompoundTag> entityTags = new ArrayList<>(entities.size());
         entities.stream().map(Entity::toNBT).forEach(entityTags::add);
         setList(TAG_ENTITIES, CompoundTag.class, entityTags);
-        List<Tag> tileEntityTags = new ArrayList<>(entities.size());
+        List<CompoundTag> tileEntityTags = new ArrayList<>(entities.size());
         tileEntities.stream().map(TileEntity::toNBT).forEach(tileEntityTags::add);
         setList(TAG_TILE_ENTITIES, CompoundTag.class, tileEntityTags);
         setLong(TAG_LAST_UPDATE, System.currentTimeMillis()); // TODO: is this correct?
@@ -149,6 +173,7 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
         setString(TAG_STATUS, status.name().toLowerCase());
         setBoolean(TAG_LIGHT_POPULATED, lightPopulated);
         setLong(TAG_INHABITED_TIME, inhabitedTime);
+        setList(TAG_LIQUID_TICKS, CompoundTag.class, liquidTicks);
 
         CompoundTag tag = new CompoundTag("", Collections.emptyMap());
         tag.setTag(TAG_LEVEL, super.toNBT());
@@ -187,6 +212,7 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
      * @deprecated Use {@link #setMaterial(int, int, int, Material)}
      * @throws UnsupportedOperationException Always
      */
+    @Deprecated
     @Override
     public void setBlockType(int x, int y, int z, int blockType) {
         throw new UnsupportedOperationException();
@@ -203,6 +229,7 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
      * @deprecated Use {@link #setMaterial(int, int, int, Material)}
      * @throws UnsupportedOperationException Always
      */
+    @Deprecated
     @Override
     public void setDataValue(int x, int y, int z, int dataValue) {
         throw new UnsupportedOperationException();
@@ -432,6 +459,7 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
      * @deprecated Use {@link #setMaterial(int, int, int, Material)}
      * @throws UnsupportedOperationException Always
      */
+    @Deprecated
     @Override
     public void setBlockTypeAt(int x, int y, int height, int blockType) {
         throw new UnsupportedOperationException();
@@ -443,6 +471,7 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
      * @deprecated Use {@link #setMaterial(int, int, int, Material)}
      * @throws UnsupportedOperationException Always
      */
+    @Deprecated
     @Override
     public void setDataAt(int x, int y, int height, int data) {
         throw new UnsupportedOperationException();
@@ -596,7 +625,9 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
     long inhabitedTime;
     Status status;
     final Map<HeightmapType, long[]> heightMaps;
+    final List<CompoundTag> liquidTicks;
 
+    private static final Random RANDOM = new Random();
     private static final Logger logger = LoggerFactory.getLogger(MC113AnvilChunk.class);
 
     public static class Section extends AbstractNBTItem {
@@ -657,7 +688,7 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
         }
 
         @Override
-        public Tag toNBT() {
+        public CompoundTag toNBT() {
             setByte(TAG_Y, level);
 
             // Create the palette. We have to do this first, because otherwise
@@ -674,7 +705,7 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
                     palette.add(material);
                 }
             }
-            List<Tag> paletteList = new ArrayList<>(palette.size());
+            List<CompoundTag> paletteList = new ArrayList<>(palette.size());
             for (Material material: palette) {
                 CompoundTag paletteEntry = new CompoundTag("", Collections.emptyMap());
                 paletteEntry.setTag(TAG_NAME, new StringTag(TAG_NAME, material.name));
@@ -740,7 +771,7 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
 
             setByteArray(TAG_SKY_LIGHT, skyLight);
             setByteArray(TAG_BLOCK_LIGHT, blockLight);
-            return super.toNBT();
+            return (CompoundTag) super.toNBT();
         }
 
         /**

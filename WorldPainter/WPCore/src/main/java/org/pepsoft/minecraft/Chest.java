@@ -5,13 +5,14 @@
 
 package org.pepsoft.minecraft;
 
+import org.jnbt.CompoundTag;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.jnbt.CompoundTag;
-import org.jnbt.Tag;
-import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Constants.ID_CHEST;
+import static org.pepsoft.minecraft.Constants.TAG_ITEMS;
 
 /**
  *
@@ -39,7 +40,7 @@ public class Chest extends TileEntity implements ItemContainer {
     }
 
     public void setItems(List<InventoryItem> items) {
-        List<Tag> list = new ArrayList<>(items.size());
+        List<CompoundTag> list = new ArrayList<>(items.size());
         list.addAll(items.stream().map(InventoryItem::toNBT).collect(Collectors.toList()));
         setList(TAG_ITEMS, CompoundTag.class, list);
     }

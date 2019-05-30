@@ -68,16 +68,16 @@ public final class MCRegionChunk extends NBTChunk {
     }
 
     @Override
-    public Tag toNBT() {
+    public CompoundTag toNBT() {
         setByteArray(TAG_BLOCKS, blocks);
         setByteArray(TAG_DATA, data);
         setByteArray(TAG_SKY_LIGHT, skyLight);
         setByteArray(TAG_BLOCK_LIGHT, blockLight);
         setByteArray(TAG_HEIGHT_MAP, heightMap);
-        List<Tag> entityTags = new ArrayList<>(entities.size());
+        List<CompoundTag> entityTags = new ArrayList<>(entities.size());
         entityTags.addAll(entities.stream().map(Entity::toNBT).collect(toList()));
         setList(TAG_ENTITIES, CompoundTag.class, entityTags);
-        List<Tag> tileEntityTags = new ArrayList<>(entities.size());
+        List<CompoundTag> tileEntityTags = new ArrayList<>(entities.size());
         tileEntityTags.addAll(tileEntities.stream().map(TileEntity::toNBT).collect(toList()));
         setList(TAG_TILE_ENTITIES, CompoundTag.class, tileEntityTags);
         setLong(TAG_LAST_UPDATE, System.currentTimeMillis());

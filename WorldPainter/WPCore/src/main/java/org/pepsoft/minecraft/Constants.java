@@ -635,6 +635,11 @@ public final class Constants {
     public static final String TAG_SNAPSHOT                = "Snapshot";
     public static final String TAG_NBT_                    = "nbt";
     public static final String TAG_STATE_                  = "state";
+    public static final String TAG_LIQUID_TICKS            = "LiquidTicks";
+    public static final String TAG_P_                      = "p"; // Used in liquid ticks. Unknown purpose. Always seems to be 0
+    public static final String TAG_T_                      = "t"; // Used in liquid ticks. Number of ticks before update, or between updates? Seems to always be 2 for water and 13 for lava
+    public static final String TAG_I_                      = "i"; // Used in liquid ticks. Some kind of identifier of the liquid. Seems to always be "minecraft:flowing_water" for water and "minecraft:flowing_lava" for lava
+
     /**
      * Possibly unofficial, SpoutCraft-specific
      */

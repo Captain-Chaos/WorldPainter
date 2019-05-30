@@ -6,7 +6,6 @@
 package org.pepsoft.minecraft;
 
 import org.jnbt.CompoundTag;
-import org.jnbt.Tag;
 import org.pepsoft.minecraft.exception.IncompatibleMaterialException;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 
@@ -91,8 +90,8 @@ public final class MC12AnvilChunk extends NBTChunk implements MinecraftWorld {
     }
 
     @Override
-    public Tag toNBT() {
-        List<Tag> sectionTags = new ArrayList<>(maxHeight >> 4);
+    public CompoundTag toNBT() {
+        List<CompoundTag> sectionTags = new ArrayList<>(maxHeight >> 4);
         for (Section section: sections) {
 //            if (section != null) {
 //                for (byte skyLightLevelByte: section.skyLight) {
@@ -115,10 +114,10 @@ public final class MC12AnvilChunk extends NBTChunk implements MinecraftWorld {
             setByteArray(TAG_BIOMES, biomes);
         }
         setIntArray(TAG_HEIGHT_MAP, heightMap);
-        List<Tag> entityTags = new ArrayList<>(entities.size());
+        List<CompoundTag> entityTags = new ArrayList<>(entities.size());
         entities.stream().map(Entity::toNBT).forEach(entityTags::add);
         setList(TAG_ENTITIES, CompoundTag.class, entityTags);
-        List<Tag> tileEntityTags = new ArrayList<>(entities.size());
+        List<CompoundTag> tileEntityTags = new ArrayList<>(entities.size());
         tileEntities.stream().map(TileEntity::toNBT).forEach(tileEntityTags::add);
         setList(TAG_TILE_ENTITIES, CompoundTag.class, tileEntityTags);
         setLong(TAG_LAST_UPDATE, System.currentTimeMillis()); // TODO: is this correct?
@@ -646,7 +645,7 @@ public final class MC12AnvilChunk extends NBTChunk implements MinecraftWorld {
         }
 
         @Override
-        public Tag toNBT() {
+        public CompoundTag toNBT() {
             setByte(TAG_Y, level);
             setByteArray(TAG_BLOCKS, blocks);
             if (add != null) {

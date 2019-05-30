@@ -5,9 +5,10 @@
 
 package org.pepsoft.minecraft;
 
-import java.util.Collections;
 import org.jnbt.CompoundTag;
-import org.jnbt.Tag;
+
+import java.util.Collections;
+
 import static org.pepsoft.minecraft.Constants.*;
 
 /**
@@ -17,7 +18,7 @@ import static org.pepsoft.minecraft.Constants.*;
 public class Player extends Mob {
     public Player() {
         super(ID_PLAYER);
-        setList(TAG_INVENTORY, CompoundTag.class, Collections.<Tag>emptyList());
+        setList(TAG_INVENTORY, CompoundTag.class, Collections.emptyList());
         setInt(TAG_SCORE, 0);
         setInt(TAG_DIMENSION, 0);
     }

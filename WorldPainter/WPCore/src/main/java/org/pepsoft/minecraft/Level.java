@@ -396,7 +396,7 @@ public final class Level extends AbstractNBTItem {
     }
     
     @Override
-    public Tag toNBT() {
+    public CompoundTag toNBT() {
         Map<String, Tag> values = new HashMap<>();
         values.put(TAG_DATA, super.toNBT());
         if (extraTags != null) {
