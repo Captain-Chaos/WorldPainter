@@ -1,3 +1,7 @@
+-- Version 2.6.2, released ...
+
+ * Bug fix: don't give errors about unselected plants in Custom Plant Layers when exporting to Minecraft 1.12.
+
 -- Version 2.6.1, released 27-5-2019
 
  * Bug fix: don't give errors about non-vanilla legacy blocks when exporting to Minecraft 1.12.

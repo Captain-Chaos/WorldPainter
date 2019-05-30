@@ -50,7 +50,7 @@ public class PlantLayer extends CustomLayer {
 
     public Map<Plant, PlantSettings> getConfiguredPlants() {
         return IntStream.range(0, settings.length)
-                .filter(i -> settings[i] != null)
+                .filter(i -> (settings[i] != null) && (settings[i].occurrence > 0))
                 .collect(HashMap::new, (map, i) -> map.put(ALL_PLANTS[i], settings[i]), HashMap::putAll);
     }
 
