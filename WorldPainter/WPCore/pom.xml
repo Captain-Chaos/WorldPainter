@@ -60,6 +60,7 @@
                 <directory>src/main/resources</directory>
                 <includes>
                     <include>org.pepsoft.worldpainter.properties</include>
+                    <include>org.pepsoft.worldpainter.plugins</include>
                 </includes>
                 <filtering>true</filtering>
             </resource>
@@ -67,6 +68,7 @@
                 <directory>src/main/resources</directory>
                 <excludes>
                     <exclude>org.pepsoft.worldpainter.properties</exclude>
+                    <exclude>org.pepsoft.worldpainter.plugins</exclude>
                 </excludes>
                 <filtering>false</filtering>
             </resource>
