@@ -149,7 +149,7 @@ public final class IconUtils {
      * @return The scaled icon.
      */
     public static ImageIcon scaleIcon(ImageIcon icon, int size) {
-        return new ImageIcon(scaleIcon(icon.getImage(), size));
+        return (icon != null) ? new ImageIcon(scaleIcon(icon.getImage(), size)) : null;
     }
 
     /**
