@@ -810,6 +810,9 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
         // These have lately been observed to occur in this order of generation:
         EMPTY, CARVED, LIQUID_CARVED, DECORATED, FULLCHUNK, POSTPROCESSED,
 
+        // Reported by users (TODOMC13: 1.13 or 1.14?):
+        LIGHT, CARVERS,
+
         // These have not lately been observed and may not (longer) be in use by Minecraft:
         LIGHTED, FINALIZED, MOBS_SPAWNED,
 
