@@ -16,15 +16,17 @@ import org.pepsoft.minecraft.Material;
 import org.pepsoft.minecraft.TileEntity;
 import org.pepsoft.util.AttributeKey;
 import org.pepsoft.util.MathUtils;
+import org.pepsoft.worldpainter.Platform;
 
 /**
  *
  * @author pepijn
  */
 public class MirroredObject extends AbstractObject {
-    public MirroredObject(WPObject object, boolean mirrorYAxis) {
+    public MirroredObject(WPObject object, boolean mirrorYAxis, Platform platform) {
         this.object = object;
         this.mirrorYAxis = mirrorYAxis;
+        this.platform = platform;
         dimensions = object.getDimensions();
         Map<String, Serializable> attributes = (object.getAttributes() != null) ? new HashMap<>(object.getAttributes()) : new HashMap<>();
         Point3i offset = object.getOffset();
@@ -51,8 +53,8 @@ public class MirroredObject extends AbstractObject {
     @Override
     public Material getMaterial(int x, int y, int z) {
         return mirrorYAxis
-            ? object.getMaterial(x, dimensions.y - y - 1, z).mirror(Direction.EAST)
-            : object.getMaterial(dimensions.x - x - 1, y, z).mirror(Direction.SOUTH);
+            ? object.getMaterial(x, dimensions.y - y - 1, z).mirror(Direction.EAST, platform)
+            : object.getMaterial(dimensions.x - x - 1, y, z).mirror(Direction.SOUTH, platform);
     }
 
     @Override
@@ -138,6 +140,7 @@ public class MirroredObject extends AbstractObject {
     
     private final WPObject object;
     private final boolean mirrorYAxis;
+    private final Platform platform;
     private final Point3i dimensions;
     private final Map<String, Serializable> attributes;
 

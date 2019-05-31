@@ -9,6 +9,7 @@ import com.google.common.collect.ImmutableSet;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.pepsoft.util.CSVDataSource;
+import org.pepsoft.worldpainter.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +27,7 @@ import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.HorizontalOrientationScheme.CARDINAL_DIRECTIONS;
 import static org.pepsoft.minecraft.HorizontalOrientationScheme.STAIR_CORNER;
 import static org.pepsoft.util.MathUtils.mod;
+import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 
 /**
  * A representation of a Minecraft material, or one possible in- game block
@@ -522,14 +524,33 @@ public final class Material implements Serializable {
      * @param steps The number of 90 degree turns to turn the material clockwise
      *              (when viewed from above). May be negative to turn the
      *              material anti clockwise
+     * @param platform The platform for which to perform the transformation.
+     *                 This ensures that only materials compatible with the
+     *                 specified platform will be returned, and may mean that
+     *                 the transformation is not performed to avoid returning an
+     *                 incompatible material.
      * @return The rotated material (or the same one if rotation does not apply
      * to this material)
      */
-    public Material rotate(int steps) {
-        if ((horizontalOrientationSchemes != null) && ((steps % 4) != 0)) {
+    public Material rotate(int steps, Platform platform) {
+        if (((horizontalOrientationSchemes != null) || (legacyHorizontalOrientationSchemesForRotating != null)) && ((steps % 4) != 0)) {
             Material material = this;
-            for (HorizontalOrientationScheme horizontalOrientationScheme: horizontalOrientationSchemes) {
-                material = horizontalOrientationScheme.rotate(material, steps);
+            if (platform.capabilities.contains(NAME_BASED)) {
+                if (horizontalOrientationSchemes != null) {
+                    for (HorizontalOrientationScheme horizontalOrientationScheme: horizontalOrientationSchemes) {
+                        material = horizontalOrientationScheme.rotate(material, steps);
+                    }
+                }
+            } else {
+                if (! legacyHorizontalOrientationSchemesForRotatingSet) {
+                    legacyHorizontalOrientationSchemesForRotating = determineLegacyHorizontalOrientationsForRotating();
+                    legacyHorizontalOrientationSchemesForRotatingSet = true;
+                }
+                if (legacyHorizontalOrientationSchemesForRotating != null) {
+                    for (HorizontalOrientationScheme horizontalOrientationScheme: legacyHorizontalOrientationSchemesForRotating) {
+                        material = horizontalOrientationScheme.rotate(material, steps);
+                    }
+                }
             }
             return material;
         }
@@ -541,14 +562,33 @@ public final class Material implements Serializable {
      * a specific axis.
      * 
      * @param axis Indicates the axis in which to mirror the material.
+     * @param platform The platform for which to perform the transformation.
+     *                 This ensures that only materials compatible with the
+     *                 specified platform will be returned, and may mean that
+     *                 the transformation is not performed to avoid returning an
+     *                 incompatible material.
      * @return The mirrored material (or the same one if mirroring does not
      *     apply to this material)
      */
-    public Material mirror(Direction axis) {
-        if (horizontalOrientationSchemes != null) {
+    public Material mirror(Direction axis, Platform platform) {
+        if ((horizontalOrientationSchemes != null) || (legacyHorizontalOrientationSchemesForMirroring != null)) {
             Material material = this;
-            for (HorizontalOrientationScheme horizontalOrientationScheme: horizontalOrientationSchemes) {
-                material = horizontalOrientationScheme.mirror(material, axis);
+            if (platform.capabilities.contains(NAME_BASED)) {
+                if (horizontalOrientationSchemes != null) {
+                    for (HorizontalOrientationScheme horizontalOrientationScheme: horizontalOrientationSchemes) {
+                        material = horizontalOrientationScheme.mirror(material, axis);
+                    }
+                }
+            } else {
+                if (! legacyHorizontalOrientationSchemesForMirroringSet) {
+                    legacyHorizontalOrientationSchemesForMirroring = determineLegacyHorizontalOrientationsForMirroring();
+                    legacyHorizontalOrientationSchemesForMirroringSet = true;
+                }
+                if (legacyHorizontalOrientationSchemesForMirroring != null) {
+                    for (HorizontalOrientationScheme horizontalOrientationScheme: legacyHorizontalOrientationSchemesForMirroring) {
+                        material = horizontalOrientationScheme.mirror(material, axis);
+                    }
+                }
             }
             return material;
         }
@@ -558,19 +598,36 @@ public final class Material implements Serializable {
     /**
      * Gets a vertically mirrored version of the material.
      *
+     * @param platform The platform for which to perform the transformation.
+     *                 This ensures that only materials compatible with the
+     *                 specified platform will be returned, and may mean that
+     *                 the transformation is not performed to avoid returning an
+     *                 incompatible material.
      * @return A vertically mirrored version of the material.
      */
-    public Material invert() {
-        if (verticalOrientationScheme != null) {
-            switch (verticalOrientationScheme) {
-                case HALF:
-                    return withProperty(HALF, getProperty(HALF).equals("top") ? "bottom" : "top");
-                case TYPE:
-                    return withProperty(TYPE, getProperty(TYPE).equals("top") ? "bottom" : "top");
-                case UP:
-                    return withProperty(UP, ! getProperty(UP));
-                default:
-                    throw new InternalError();
+    public Material invert(Platform platform) {
+        if ((verticalOrientationScheme != null) || (legacyVerticalOrientationScheme != null)) {
+            VerticalOrientationScheme scheme;
+            if (platform.capabilities.contains(NAME_BASED)) {
+                scheme = verticalOrientationScheme;
+            } else {
+                if (! legacyVerticalOrientationSchemeSet) {
+                    legacyVerticalOrientationScheme = determineLegacyVerticalOrientation();
+                    legacyVerticalOrientationSchemeSet = true;
+                }
+                scheme = legacyVerticalOrientationScheme;
+            }
+            if (scheme != null) {
+                switch (scheme) {
+                    case HALF:
+                        return withProperty(HALF, getProperty(HALF).equals("top") ? "bottom" : "top");
+                    case TYPE:
+                        return withProperty(TYPE, getProperty(TYPE).equals("top") ? "bottom" : "top");
+                    case UP:
+                        return withProperty(UP, !getProperty(UP));
+                    default:
+                        throw new InternalError();
+                }
             }
         }
         return this;
@@ -785,6 +842,72 @@ public final class Material implements Serializable {
         } else {
             return null;
         }
+    }
+
+    private HorizontalOrientationScheme[] determineLegacyHorizontalOrientationsForRotating() {
+        if (horizontalOrientationSchemes != null) {
+            List<HorizontalOrientationScheme> legacySchemes = new ArrayList<>(horizontalOrientationSchemes.length);
+            for (HorizontalOrientationScheme horizontalOrientationScheme: horizontalOrientationSchemes) {
+                if (isLegacyMaterial(horizontalOrientationScheme.rotate(this, 1))
+                        && isLegacyMaterial(horizontalOrientationScheme.rotate(this, 2))
+                        && isLegacyMaterial(horizontalOrientationScheme.rotate(this, 3))) {
+                    legacySchemes.add(horizontalOrientationScheme);
+                } else {
+                    logger.info("Disabling horizontal orientation scheme " + horizontalOrientationScheme + " for rotating legacy material " + name);
+                }
+            }
+            return legacySchemes.isEmpty() ? null : legacySchemes.toArray(new HorizontalOrientationScheme[legacySchemes.size()]);
+        } else {
+            return null;
+        }
+    }
+
+    private HorizontalOrientationScheme[] determineLegacyHorizontalOrientationsForMirroring() {
+        if (horizontalOrientationSchemes != null) {
+            List<HorizontalOrientationScheme> legacySchemes = new ArrayList<>(horizontalOrientationSchemes.length);
+            for (HorizontalOrientationScheme horizontalOrientationScheme: horizontalOrientationSchemes) {
+                if (isLegacyMaterial(horizontalOrientationScheme.mirror(this, Direction.NORTH))
+                        && isLegacyMaterial(horizontalOrientationScheme.mirror(this, Direction.EAST))) {
+                    legacySchemes.add(horizontalOrientationScheme);
+                } else {
+                    logger.info("Disabling horizontal orientation scheme " + horizontalOrientationScheme + " for mirroring legacy material " + name);
+                }
+            }
+            return legacySchemes.isEmpty() ? null : legacySchemes.toArray(new HorizontalOrientationScheme[legacySchemes.size()]);
+        } else {
+            return null;
+        }
+    }
+
+    private VerticalOrientationScheme determineLegacyVerticalOrientation() {
+        if (verticalOrientationScheme != null) {
+            Material invertedMaterial;
+            switch (verticalOrientationScheme) {
+                case HALF:
+                    invertedMaterial = withProperty(HALF, getProperty(HALF).equals("top") ? "bottom" : "top");
+                    break;
+                case TYPE:
+                    invertedMaterial =  withProperty(TYPE, getProperty(TYPE).equals("top") ? "bottom" : "top");
+                    break;
+                case UP:
+                    invertedMaterial =  withProperty(UP, !getProperty(UP));
+                    break;
+                default:
+                    throw new InternalError();
+            }
+            if (isLegacyMaterial(invertedMaterial)) {
+                return verticalOrientationScheme;
+            } else {
+                logger.info("Disabling vertical orientation scheme " + verticalOrientationScheme + " for legacy material " + name);
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    private boolean isLegacyMaterial(Material material) {
+        return material.blockType != -1;
     }
 
     private VerticalOrientationScheme determineVerticalOrientation(Identity identity) {
@@ -1067,8 +1190,14 @@ public final class Material implements Serializable {
         // and data value, so in that case return the corresponding legacy
         // instance
         if (identity != null) {
+            if (identity.name.equals("minecraft:oak_button")) {
+                System.out.println("Resolving oak button");
+            }
             return get(identity);
         } else {
+            if (blockType == 143) {
+                System.out.println("Resolving oak button");
+            }
             int index = (blockType << 4) | data;
             if (index >= LEGACY_MATERIALS.length) {
                 return get(new Identity("legacy:block_" + blockType, singletonMap("data_value", Integer.toString(data))));
@@ -1226,6 +1355,13 @@ public final class Material implements Serializable {
 
     private final Identity identity;
     private final transient String stringRep, legacyStringRep;
+
+    private transient HorizontalOrientationScheme[] legacyHorizontalOrientationSchemesForMirroring;
+    private transient boolean legacyHorizontalOrientationSchemesForMirroringSet;
+    private transient HorizontalOrientationScheme[] legacyHorizontalOrientationSchemesForRotating;
+    private transient boolean legacyHorizontalOrientationSchemesForRotatingSet;
+    private transient VerticalOrientationScheme legacyVerticalOrientationScheme;
+    private transient boolean legacyVerticalOrientationSchemeSet;
 
     private static final Map<Integer, Map<String, Object>> LEGACY_BLOCK_SPECS_BY_COMBINED_ID = new HashMap<>();
     private static final Map<String, Set<Map<String, Object>>> LEGACY_BLOCK_SPECS_BY_NAME = new HashMap<>();
@@ -1625,6 +1761,11 @@ public final class Material implements Serializable {
     public static final int CATEGORY_RESOURCE      = 4;
     public static final int CATEGORY_NATURAL_SOLID = 5;
     public static final int CATEGORY_UNKNOWN       = 6;
+
+    /**
+     * Marker instance to indicate the value has not been set.
+     */
+    private static final HorizontalOrientationScheme[] NOT_SET = new HorizontalOrientationScheme[0];
 
     private static final long serialVersionUID = 2011101001L;
 

@@ -9,6 +9,7 @@ import org.pepsoft.minecraft.Material;
 import org.pepsoft.minecraft.TileEntity;
 import org.pepsoft.util.AttributeKey;
 import org.pepsoft.util.MathUtils;
+import org.pepsoft.worldpainter.Platform;
 
 import javax.vecmath.Point3i;
 import java.io.Serializable;
@@ -29,12 +30,13 @@ public class RotatedObject extends AbstractObject {
      * @param steps The number of 90 degree steps to rotate clockwise. Must be
      *     between 0 and 3 (inclusive).
      */
-    public RotatedObject(WPObject object, int steps) {
+    public RotatedObject(WPObject object, int steps, Platform platform) {
         if ((steps < 0) || (steps > 3)) {
             throw new IllegalArgumentException(Integer.toString(steps));
         }
         this.object = object;
         this.steps = steps;
+        this.platform = platform;
         Point3i origDim = object.getDimensions();
         Map<String, Serializable> attributes = (object.getAttributes() != null) ? new HashMap<>(object.getAttributes()) : new HashMap<>();
         Point3i offset = object.getOffset();
@@ -80,11 +82,11 @@ public class RotatedObject extends AbstractObject {
             case 0:
                 return object.getMaterial(x, y, z);
             case 1:
-                return object.getMaterial(y, dimensions.x - x - 1, z).rotate(1);
+                return object.getMaterial(y, dimensions.x - x - 1, z).rotate(1, platform);
             case 2:
-                return object.getMaterial(dimensions.x - x - 1, dimensions.y - y - 1, z).rotate(2);
+                return object.getMaterial(dimensions.x - x - 1, dimensions.y - y - 1, z).rotate(2, platform);
             case 3:
-                return object.getMaterial(dimensions.y - y - 1, x, z).rotate(3);
+                return object.getMaterial(dimensions.y - y - 1, x, z).rotate(3, platform);
             default:
                 throw new InternalError();
         }
@@ -208,6 +210,7 @@ public class RotatedObject extends AbstractObject {
 
     private final WPObject object;
     private final int steps;
+    private final Platform platform;
     private final Point3i dimensions;
     private final Map<String, Serializable> attributes;
 

@@ -78,121 +78,125 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
      *     depending on what is already there.
      */
     public static void renderObject(MinecraftWorld world, Dimension dimension, WPObject object, int x, int y, int z, boolean obliterate) {
-        final Point3i dim = object.getDimensions();
-        final Point3i offset = object.getOffset();
-        final int undergroundMode = object.getAttribute(ATTRIBUTE_UNDERGROUND_MODE);
-        final int leafDecayMode = object.getAttribute(ATTRIBUTE_LEAF_DECAY_MODE);
-        final boolean bottomless = dimension.isBottomless();
-        final Material replaceMaterial;
-        if (object.hasAttribute(ATTRIBUTE_REPLACE_WITH_AIR_MATERIAL)) {
-            replaceMaterial = object.getAttribute(ATTRIBUTE_REPLACE_WITH_AIR_MATERIAL);
-        } else if (object.hasAttribute(ATTRIBUTE_REPLACE_WITH_AIR)) {
-            int[] ids = object.getAttribute(ATTRIBUTE_REPLACE_WITH_AIR);
-            replaceMaterial = Material.get(ids[0], ids[1]);
-        } else {
-            replaceMaterial = null;
-        }
-        final boolean replaceBlocks = replaceMaterial != null;
-        final boolean extendFoundation = object.getAttribute(ATTRIBUTE_EXTEND_FOUNDATION);
-        if ((z + offset.z + dim.z - 1) >= world.getMaxHeight()) {
-            // Object doesn't fit in the world vertically
-            return;
-        }
-//        System.out.println("Object dimensions: " + dim + ", origin: " + orig);
-        for (int dx = 0; dx < dim.x; dx++) {
-            for (int dy = 0; dy < dim.y; dy++) {
-                final int worldX = x + dx + offset.x;
-                final int worldY = y + dy + offset.y;
-                final int terrainHeight = dimension.getIntHeightAt(worldX, worldY);
-                for (int dz = 0; dz < dim.z; dz++) {
-                    if (object.getMask(dx, dy, dz)) {
-                        final Material objectMaterial = object.getMaterial(dx, dy, dz);
-                        final Material finalMaterial = (replaceBlocks && (objectMaterial == replaceMaterial)) ? AIR : objectMaterial;
-                        final int worldZ = z + dz + offset.z;
-                        if ((bottomless || obliterate) ? (worldZ < 0) : (worldZ < 1)) {
-                            continue;
-                        } else if (obliterate) {
-                            placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode);
-                        } else {
-                            final Material existingMaterial = world.getMaterialAt(worldX, worldY, worldZ);
-                            if (worldZ <= terrainHeight) {
-                                switch (undergroundMode) {
-                                    case COLLISION_MODE_ALL:
-                                        // Replace every block
-                                        placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode);
-                                        break;
-                                    case COLLISION_MODE_SOLID:
-                                        // Only replace if object block is solid
-                                        if (! objectMaterial.veryInsubstantial) {
-                                            placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode);
-                                        }
-                                        break;
-                                    case COLLISION_MODE_NONE:
-                                        // Only replace less solid blocks
-                                        if (existingMaterial.veryInsubstantial) {
-                                            placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode);
-                                        }
-                                        break;
-                                }
+        try {
+            final Point3i dim = object.getDimensions();
+            final Point3i offset = object.getOffset();
+            final int undergroundMode = object.getAttribute(ATTRIBUTE_UNDERGROUND_MODE);
+            final int leafDecayMode = object.getAttribute(ATTRIBUTE_LEAF_DECAY_MODE);
+            final boolean bottomless = dimension.isBottomless();
+            final Material replaceMaterial;
+            if (object.hasAttribute(ATTRIBUTE_REPLACE_WITH_AIR_MATERIAL)) {
+                replaceMaterial = object.getAttribute(ATTRIBUTE_REPLACE_WITH_AIR_MATERIAL);
+            } else if (object.hasAttribute(ATTRIBUTE_REPLACE_WITH_AIR)) {
+                int[] ids = object.getAttribute(ATTRIBUTE_REPLACE_WITH_AIR);
+                replaceMaterial = Material.get(ids[0], ids[1]);
+            } else {
+                replaceMaterial = null;
+            }
+            final boolean replaceBlocks = replaceMaterial != null;
+            final boolean extendFoundation = object.getAttribute(ATTRIBUTE_EXTEND_FOUNDATION);
+            if ((z + offset.z + dim.z - 1) >= world.getMaxHeight()) {
+                // Object doesn't fit in the world vertically
+                return;
+            }
+            //        System.out.println("Object dimensions: " + dim + ", origin: " + orig);
+            for (int dx = 0; dx < dim.x; dx++) {
+                for (int dy = 0; dy < dim.y; dy++) {
+                    final int worldX = x + dx + offset.x;
+                    final int worldY = y + dy + offset.y;
+                    final int terrainHeight = dimension.getIntHeightAt(worldX, worldY);
+                    for (int dz = 0; dz < dim.z; dz++) {
+                        if (object.getMask(dx, dy, dz)) {
+                            final Material objectMaterial = object.getMaterial(dx, dy, dz);
+                            final Material finalMaterial = (replaceBlocks && (objectMaterial == replaceMaterial)) ? AIR : objectMaterial;
+                            final int worldZ = z + dz + offset.z;
+                            if ((bottomless || obliterate) ? (worldZ < 0) : (worldZ < 1)) {
+                                continue;
+                            } else if (obliterate) {
+                                placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode);
                             } else {
-                                // Above ground only replace less solid blocks
-                                if (existingMaterial.veryInsubstantial) {
-                                    placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode);
+                                final Material existingMaterial = world.getMaterialAt(worldX, worldY, worldZ);
+                                if (worldZ <= terrainHeight) {
+                                    switch (undergroundMode) {
+                                        case COLLISION_MODE_ALL:
+                                            // Replace every block
+                                            placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode);
+                                            break;
+                                        case COLLISION_MODE_SOLID:
+                                            // Only replace if object block is solid
+                                            if (!objectMaterial.veryInsubstantial) {
+                                                placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode);
+                                            }
+                                            break;
+                                        case COLLISION_MODE_NONE:
+                                            // Only replace less solid blocks
+                                            if (existingMaterial.veryInsubstantial) {
+                                                placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode);
+                                            }
+                                            break;
+                                    }
+                                } else {
+                                    // Above ground only replace less solid blocks
+                                    if (existingMaterial.veryInsubstantial) {
+                                        placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode);
+                                    }
+                                }
+                            }
+                            if (extendFoundation && (dz == 0) && (terrainHeight != -1) && (worldZ > terrainHeight) && (!finalMaterial.veryInsubstantial)) {
+                                int legZ = worldZ - 1;
+                                while ((legZ >= 0) && world.getMaterialAt(worldX, worldY, legZ).veryInsubstantial) {
+                                    placeBlock(world, worldX, worldY, legZ, finalMaterial, leafDecayMode);
+                                    legZ--;
                                 }
                             }
                         }
-                        if (extendFoundation && (dz == 0) && (terrainHeight != -1) && (worldZ > terrainHeight) && (! finalMaterial.veryInsubstantial)) {
-                            int legZ = worldZ - 1;
-                            while ((legZ >= 0) && world.getMaterialAt(worldX, worldY, legZ).veryInsubstantial) {
-                                placeBlock(world, worldX, worldY, legZ, finalMaterial, leafDecayMode);
-                                legZ--;
-                            }
+                    }
+                }
+            }
+            List<Entity> entities = object.getEntities();
+            if (entities != null) {
+                for (Entity entity: entities) {
+                    double[] pos = entity.getPos();
+                    double entityX = x + pos[0] + offset.x,
+                            entityY = y + pos[2] + offset.y,
+                            entityZ = z + pos[1] + offset.z;
+                    if ((entityZ < 0) || (entityY > (world.getMaxHeight() - 1))) {
+                        if (logger.isTraceEnabled()) {
+                            logger.trace("NOT adding entity " + entity.getId() + " @ " + entityX + "," + entityY + "," + entityZ + " because z coordinate is out of range!");
                         }
+                    } else {
+                        if (logger.isTraceEnabled()) {
+                            logger.trace("Adding entity " + entity.getId() + " @ " + entityX + "," + entityY + "," + entityZ);
+                        }
+                        // Make sure each entity has a unique ID, otherwise
+                        // Minecraft will see them all as duplicates and remove
+                        // them:
+                        entity.setUUID(UUID.randomUUID());
+                        world.addEntity(entityX, entityY, entityZ, entity);
                     }
                 }
             }
-        }
-        List<Entity> entities = object.getEntities();
-        if (entities != null) {
-            for (Entity entity: entities) {
-                double[] pos = entity.getPos();
-                double entityX = x + pos[0] + offset.x,
-                        entityY = y + pos[2] + offset.y,
-                        entityZ = z + pos[1] + offset.z;
-                if ((entityZ < 0) || (entityY > (world.getMaxHeight() - 1))) {
-                    if (logger.isTraceEnabled()) {
-                        logger.trace("NOT adding entity " + entity.getId() + " @ " + entityX + "," + entityY + "," + entityZ + " because z coordinate is out of range!");
+            List<TileEntity> tileEntities = object.getTileEntities();
+            if (tileEntities != null) {
+                for (TileEntity tileEntity: tileEntities) {
+                    final int tileEntityX = x + tileEntity.getX() + offset.x,
+                            tileEntityY = y + tileEntity.getZ() + offset.y,
+                            tileEntityZ = z + tileEntity.getY() + offset.z;
+                    final String entityId = tileEntity.getId();
+                    if ((tileEntityZ < 0) || (tileEntityZ >= world.getMaxHeight())) {
+                        if (logger.isTraceEnabled()) {
+                            logger.trace("NOT adding tile entity " + entityId + " @ " + tileEntityX + "," + tileEntityY + "," + tileEntityZ + " because z coordinate is out of range!");
+                        }
+                    } else {
+                        if (logger.isTraceEnabled()) {
+                            logger.trace("Adding tile entity " + entityId + " @ " + tileEntityX + "," + tileEntityY + "," + tileEntityZ);
+                        }
+                        world.addTileEntity(tileEntityX, tileEntityY, tileEntityZ, tileEntity);
                     }
-                } else {
-                    if (logger.isTraceEnabled()) {
-                        logger.trace("Adding entity " + entity.getId() + " @ " + entityX + "," + entityY + "," + entityZ);
-                    }
-                    // Make sure each entity has a unique ID, otherwise
-                    // Minecraft will see them all as duplicates and remove
-                    // them:
-                    entity.setUUID(UUID.randomUUID());
-                    world.addEntity(entityX, entityY, entityZ, entity);
                 }
             }
-        }
-        List<TileEntity> tileEntities = object.getTileEntities();
-        if (tileEntities != null) {
-            for (TileEntity tileEntity: tileEntities) {
-                final int tileEntityX = x + tileEntity.getX() + offset.x,
-                    tileEntityY = y + tileEntity.getZ() + offset.y,
-                    tileEntityZ = z + tileEntity.getY() + offset.z;
-                final String entityId = tileEntity.getId();
-                if ((tileEntityZ < 0) || (tileEntityZ >= world.getMaxHeight())) {
-                    if (logger.isTraceEnabled()) {
-                        logger.trace("NOT adding tile entity " + entityId + " @ " + tileEntityX + "," + tileEntityY + "," + tileEntityZ + " because z coordinate is out of range!");
-                    }
-                } else {
-                    if (logger.isTraceEnabled()) {
-                        logger.trace("Adding tile entity " + entityId + " @ " + tileEntityX + "," + tileEntityY + "," + tileEntityZ);
-                    }
-                    world.addTileEntity(tileEntityX, tileEntityY, tileEntityZ, tileEntity);
-                }
-            }
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getMessage() + " (object: " + object.getName() + " at " + x + "," + y + "," + z + ")", e);
         }
     }
     

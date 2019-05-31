@@ -45,67 +45,71 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
     
     @Override
     public List<Fixup> render(final Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
-        final Bo2ObjectProvider objectProvider = layer.getObjectProvider();
-        final int maxHeight = dimension.getMaxHeight();
-        final int maxZ = maxHeight - 1;
-        final List<Fixup> fixups = new ArrayList<>();
-        final int density = layer.getDensity() * 64;
-        for (int chunkX = area.x; chunkX < area.x + area.width; chunkX += 16) {
-            for (int chunkY = area.y; chunkY < area.y + area.height; chunkY += 16) {
-                // Set the seed and randomizer according to the chunk
-                // coordinates to make sure the chunk is always rendered the
-                // same, no matter how often it is rendered
-                final long seed = dimension.getSeed() + (chunkX >> 4) * 65537 + (chunkY >> 4) * 4099;
-                final Random random = new Random(seed);
-                objectProvider.setSeed(seed);
-                for (int x = chunkX; x < chunkX + 16; x++) {
-                    for (int y = chunkY; y < chunkY + 16; y++) {
-                        final int height = dimension.getIntHeightAt(x, y);
-                        if ((height == -1) || (height >= maxZ)) {
-                            // height == -1 means no tile present
-                            continue;
-                        }
-                        final int strength = dimension.getLayerValueAt(layer, x, y);
-                        if ((strength > 0) && (random.nextInt(density) <= strength * strength)) {
-                            WPObject object = objectProvider.getObject();
-                            final Placement placement = getPlacement(minecraftWorld, dimension, x, y, height + 1, object, random);
-                            if (placement == Placement.NONE) {
+        try {
+            final Bo2ObjectProvider objectProvider = layer.getObjectProvider();
+            final int maxHeight = dimension.getMaxHeight();
+            final int maxZ = maxHeight - 1;
+            final List<Fixup> fixups = new ArrayList<>();
+            final int density = layer.getDensity() * 64;
+            for (int chunkX = area.x; chunkX < area.x + area.width; chunkX += 16) {
+                for (int chunkY = area.y; chunkY < area.y + area.height; chunkY += 16) {
+                    // Set the seed and randomizer according to the chunk
+                    // coordinates to make sure the chunk is always rendered the
+                    // same, no matter how often it is rendered
+                    final long seed = dimension.getSeed() + (chunkX >> 4) * 65537 + (chunkY >> 4) * 4099;
+                    final Random random = new Random(seed);
+                    objectProvider.setSeed(seed);
+                    for (int x = chunkX; x < chunkX + 16; x++) {
+                        for (int y = chunkY; y < chunkY + 16; y++) {
+                            final int height = dimension.getIntHeightAt(x, y);
+                            if ((height == -1) || (height >= maxZ)) {
+                                // height == -1 means no tile present
                                 continue;
                             }
-                            if (object.getAttribute(ATTRIBUTE_RANDOM_ROTATION)) {
-                                if (random.nextBoolean()) {
-                                    object = new MirroredObject(object, false);
+                            final int strength = dimension.getLayerValueAt(layer, x, y);
+                            if ((strength > 0) && (random.nextInt(density) <= strength * strength)) {
+                                WPObject object = objectProvider.getObject();
+                                final Placement placement = getPlacement(minecraftWorld, dimension, x, y, height + 1, object, random);
+                                if (placement == Placement.NONE) {
+                                    continue;
                                 }
-                                int rotateSteps = random.nextInt(4);
-                                if (rotateSteps > 0) {
-                                    object = new RotatedObject(object, rotateSteps);
+                                if (object.getAttribute(ATTRIBUTE_RANDOM_ROTATION)) {
+                                    if (random.nextBoolean()) {
+                                        object = new MirroredObject(object, false, platform);
+                                    }
+                                    int rotateSteps = random.nextInt(4);
+                                    if (rotateSteps > 0) {
+                                        object = new RotatedObject(object, rotateSteps, platform);
+                                    }
                                 }
+                                final int z = (placement == Placement.ON_LAND) ? height + 1 : dimension.getWaterLevelAt(x, y) + 1;
+                                if (!isSane(object, x, y, z, maxHeight)) {
+                                    continue;
+                                }
+                                prepareForExport(object, dimension);
+                                if (!isRoom(minecraftWorld, dimension, object, x, y, z, placement)) {
+                                    continue;
+                                }
+                                if (!fitsInExportedArea(exportedArea, object, x, y)) {
+                                    // There is room on our side of the border, but
+                                    // the object extends outside the exported area,
+                                    // so it might clash with an object from another
+                                    // area. Schedule a fixup to retest whether
+                                    // there is room after all the objects have been
+                                    // placed on both sides of the border
+                                    fixups.add(new WPObjectFixup(object, x, y, z, placement));
+                                    continue;
+                                }
+                                renderObject(minecraftWorld, dimension, object, x, y, z);
                             }
-                            final int z = (placement == Placement.ON_LAND) ? height + 1 : dimension.getWaterLevelAt(x, y) + 1;
-                            if (! isSane(object, x, y, z, maxHeight)) {
-                                continue;
-                            }
-                            prepareForExport(object, dimension);
-                            if (! isRoom(minecraftWorld, dimension, object, x, y, z, placement)) {
-                                continue;
-                            }
-                            if (! fitsInExportedArea(exportedArea, object, x, y)) {
-                                // There is room on our side of the border, but
-                                // the object extends outside the exported area,
-                                // so it might clash with an object from another
-                                // area. Schedule a fixup to retest whether
-                                // there is room after all the objects have been
-                                // placed on both sides of the border
-                                fixups.add(new WPObjectFixup(object, x, y, z, placement));
-                                continue;
-                            }
-                            renderObject(minecraftWorld, dimension, object, x, y, z);
                         }
                     }
                 }
             }
+            return fixups;
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getMessage() + " (layer: " + layer.getName() + ")", e);
         }
-        return fixups;
     }
 
     @Override
@@ -124,11 +128,11 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
                     || (! object.getAttribute(ATTRIBUTE_NEEDS_FOUNDATION) && materialBelow.veryInsubstantial)) {
                 if (object.getAttribute(ATTRIBUTE_RANDOM_ROTATION)) {
                     if (applyRandom.nextBoolean()) {
-                        object = new MirroredObject(object, false);
+                        object = new MirroredObject(object, false, platform);
                     }
                     int rotateSteps = applyRandom.nextInt(4);
                     if (rotateSteps > 0) {
-                        object = new RotatedObject(object, rotateSteps);
+                        object = new RotatedObject(object, rotateSteps, platform);
                     }
                 }
                 if (! isSane(object, location.x, location.y, location.z, minecraftWorld.getMaxHeight())) {

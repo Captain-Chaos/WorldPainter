@@ -19,6 +19,7 @@
 package org.pepsoft.worldpainter.exporting;
 
 import org.pepsoft.minecraft.*;
+import org.pepsoft.worldpainter.Platform;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,8 +31,9 @@ import java.util.List;
  * Created by pepijn on 21-04-15.
  */
 public class InvertedChunk implements Chunk {
-    public InvertedChunk(Chunk chunk, int delta) {
+    public InvertedChunk(Chunk chunk, int delta, Platform platform) {
         this.chunk = chunk;
+        this.platform = platform;
         maxHeight = chunk.getMaxHeight();
         maxY = maxHeight - delta - 1;
     }
@@ -140,14 +142,14 @@ public class InvertedChunk implements Chunk {
         if (y > maxY) {
             return Material.AIR;
         } else {
-            return chunk.getMaterial(x, maxY - y, z).invert();
+            return chunk.getMaterial(x, maxY - y, z).invert(platform);
         }
     }
 
     @Override
     public void setMaterial(int x, int y, int z, Material material) {
         if (y <= maxY) {
-            chunk.setMaterial(x, maxY - y, z, material.invert());
+            chunk.setMaterial(x, maxY - y, z, material.invert(platform));
         }
     }
 
@@ -258,5 +260,6 @@ public class InvertedChunk implements Chunk {
     }
 
     private final Chunk chunk;
+    private final Platform platform;
     private final int maxHeight, maxY;
 }

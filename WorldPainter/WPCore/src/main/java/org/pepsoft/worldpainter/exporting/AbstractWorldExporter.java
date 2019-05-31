@@ -457,7 +457,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                         exportResults.stats.waterArea += chunkCreationResult.stats.waterArea;
                     }
                     if (ceiling) {
-                        Chunk invertedChunk = new InvertedChunk(chunkCreationResult.chunk, ceilingDelta);
+                        Chunk invertedChunk = new InvertedChunk(chunkCreationResult.chunk, ceilingDelta, platform);
                         Chunk existingChunk = minecraftWorld.getChunkForEditing(chunkX, chunkY);
                         if (existingChunk == null) {
                             existingChunk = platformProvider.createChunk(platform, chunkX, chunkY, world.getMaxHeight());
@@ -646,119 +646,123 @@ public abstract class AbstractWorldExporter implements WorldExporter {
     }
 
     protected ExportResults exportRegion(MinecraftWorld minecraftWorld, Dimension dimension, Dimension ceiling, Point regionCoords, boolean tileSelection, Map<Layer, LayerExporter> exporters, Map<Layer, LayerExporter> ceilingExporters, ChunkFactory chunkFactory, ChunkFactory ceilingChunkFactory, ProgressReceiver progressReceiver) throws OperationCancelled, IOException {
-        if (progressReceiver != null) {
-            progressReceiver.setMessage("Exporting region " + regionCoords.x + "," + regionCoords.y + " of " + dimension.getName());
-        }
-        int lowestTileX = (regionCoords.x << 2) - 1;
-        int highestTileX = lowestTileX + 5;
-        int lowestTileY = (regionCoords.y << 2) - 1;
-        int highestTileY = lowestTileY + 5;
-        Map<Point, Tile> tiles = new HashMap<>(), ceilingTiles = new HashMap<>();
-        for (int tileX = lowestTileX; tileX <= highestTileX; tileX++) {
-            for (int tileY = lowestTileY; tileY <= highestTileY; tileY++) {
-                Point tileCoords = new Point(tileX, tileY);
-                Tile tile = dimension.getTile(tileCoords);
-                if ((tile != null) && ((! tileSelection) || dimension.getWorld().getTilesToExport().contains(tileCoords))) {
-                    tiles.put(tileCoords, tile);
-                }
-                if (ceiling != null) {
-                    tile = ceiling.getTile(tileCoords);
-                    if ((tile != null) && ((! tileSelection) || dimension.getWorld().getTilesToExport().contains(tileCoords))) {
-                        ceilingTiles.put(tileCoords, tile);
+        try {
+            if (progressReceiver != null) {
+                progressReceiver.setMessage("Exporting region " + regionCoords.x + "," + regionCoords.y + " of " + dimension.getName());
+            }
+            int lowestTileX = (regionCoords.x << 2) - 1;
+            int highestTileX = lowestTileX + 5;
+            int lowestTileY = (regionCoords.y << 2) - 1;
+            int highestTileY = lowestTileY + 5;
+            Map<Point, Tile> tiles = new HashMap<>(), ceilingTiles = new HashMap<>();
+            for (int tileX = lowestTileX; tileX <= highestTileX; tileX++) {
+                for (int tileY = lowestTileY; tileY <= highestTileY; tileY++) {
+                    Point tileCoords = new Point(tileX, tileY);
+                    Tile tile = dimension.getTile(tileCoords);
+                    if ((tile != null) && ((!tileSelection) || dimension.getWorld().getTilesToExport().contains(tileCoords))) {
+                        tiles.put(tileCoords, tile);
+                    }
+                    if (ceiling != null) {
+                        tile = ceiling.getTile(tileCoords);
+                        if ((tile != null) && ((!tileSelection) || dimension.getWorld().getTilesToExport().contains(tileCoords))) {
+                            ceilingTiles.put(tileCoords, tile);
+                        }
                     }
                 }
             }
-        }
 
-        Set<Layer> allLayers = new HashSet<>(), allCeilingLayers = new HashSet<>();
-        for (Tile tile: tiles.values()) {
-            allLayers.addAll(tile.getLayers());
-        }
-
-        // Add layers that have been configured to be applied everywhere
-        Set<Layer> minimumLayers = dimension.getMinimumLayers(), ceilingMinimumLayers = (ceiling != null) ? ceiling.getMinimumLayers() : null;
-        allLayers.addAll(minimumLayers);
-
-        // Remove layers which have been excluded for export
-        allLayers.removeIf(layer -> (layer instanceof CustomLayer) && (!((CustomLayer) layer).isExport()));
-
-        List<Layer> secondaryPassLayers = new ArrayList<>(), ceilingSecondaryPassLayers = new ArrayList<>();
-        for (Layer layer: allLayers) {
-            LayerExporter exporter = layer.getExporter();
-            if (exporter instanceof SecondPassLayerExporter) {
-                secondaryPassLayers.add(layer);
-            }
-        }
-        Collections.sort(secondaryPassLayers);
-
-        // Set up export of ceiling
-        if (ceiling != null) {
-            for (Tile tile: ceilingTiles.values()) {
-                allCeilingLayers.addAll(tile.getLayers());
+            Set<Layer> allLayers = new HashSet<>(), allCeilingLayers = new HashSet<>();
+            for (Tile tile: tiles.values()) {
+                allLayers.addAll(tile.getLayers());
             }
 
-            allCeilingLayers.addAll(ceilingMinimumLayers);
+            // Add layers that have been configured to be applied everywhere
+            Set<Layer> minimumLayers = dimension.getMinimumLayers(), ceilingMinimumLayers = (ceiling != null) ? ceiling.getMinimumLayers() : null;
+            allLayers.addAll(minimumLayers);
 
             // Remove layers which have been excluded for export
-            allCeilingLayers.removeIf(layer -> (layer instanceof CustomLayer) && (!((CustomLayer) layer).isExport()));
+            allLayers.removeIf(layer -> (layer instanceof CustomLayer) && (!((CustomLayer) layer).isExport()));
 
-            for (Layer layer: allCeilingLayers) {
+            List<Layer> secondaryPassLayers = new ArrayList<>(), ceilingSecondaryPassLayers = new ArrayList<>();
+            for (Layer layer: allLayers) {
                 LayerExporter exporter = layer.getExporter();
                 if (exporter instanceof SecondPassLayerExporter) {
-                    ceilingSecondaryPassLayers.add(layer);
+                    secondaryPassLayers.add(layer);
                 }
             }
-            Collections.sort(ceilingSecondaryPassLayers);
-        }
+            Collections.sort(secondaryPassLayers);
 
-        long t1 = System.currentTimeMillis();
-        // First pass. Create terrain and apply layers which don't need access
-        // to neighbouring chunks
-        ExportResults exportResults = firstPass(minecraftWorld, dimension, regionCoords, tiles, tileSelection, exporters, chunkFactory, false, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.0f, ((ceiling != null) ? 0.225f : 0.45f)) : null);
-
-        ExportResults ceilingExportResults = null;
-        if (ceiling != null) {
-            // First pass for the ceiling. Create terrain and apply layers which
-            // don't need access to neighbouring chunks
-            ceilingExportResults = firstPass(minecraftWorld, ceiling, regionCoords, ceilingTiles, tileSelection, ceilingExporters, ceilingChunkFactory, true, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.225f, 0.225f) : null);
-        }
-
-        if (exportResults.chunksGenerated || ((ceiling != null) && ceilingExportResults.chunksGenerated)) {
-            // Second pass. Apply layers which need information from or apply
-            // changes to neighbouring chunks
-            long t2 = System.currentTimeMillis();
-            List<Fixup> myFixups = secondPass(secondaryPassLayers, dimension, minecraftWorld, exporters, tiles.values(), regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.45f, (ceiling != null) ? 0.05f : 0.1f) : null);
-            if ((myFixups != null) && (! myFixups.isEmpty())) {
-                exportResults.fixups = myFixups;
-            }
-
+            // Set up export of ceiling
             if (ceiling != null) {
-                // Second pass for ceiling. Apply layers which need information
-                // from or apply changes to neighbouring chunks. Fixups are not
-                // supported for the ceiling for now. TODO: implement
-                secondPass(ceilingSecondaryPassLayers, ceiling, new InvertedWorld(minecraftWorld, ceiling.getMaxHeight() - ceiling.getCeilingHeight()), ceilingExporters, ceilingTiles.values(), regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.4f, 0.05f) : null);
+                for (Tile tile: ceilingTiles.values()) {
+                    allCeilingLayers.addAll(tile.getLayers());
+                }
+
+                allCeilingLayers.addAll(ceilingMinimumLayers);
+
+                // Remove layers which have been excluded for export
+                allCeilingLayers.removeIf(layer -> (layer instanceof CustomLayer) && (!((CustomLayer) layer).isExport()));
+
+                for (Layer layer: allCeilingLayers) {
+                    LayerExporter exporter = layer.getExporter();
+                    if (exporter instanceof SecondPassLayerExporter) {
+                        ceilingSecondaryPassLayers.add(layer);
+                    }
+                }
+                Collections.sort(ceilingSecondaryPassLayers);
             }
 
-            // Post processing. Fix covered grass blocks, things like that
-            long t3 = System.currentTimeMillis();
-            PlatformManager.getInstance().getPostProcessor(platform).postProcess(minecraftWorld, new Rectangle(regionCoords.x << 9, regionCoords.y << 9, 512, 512), (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.55f, 0.1f) : null);
+            long t1 = System.currentTimeMillis();
+            // First pass. Create terrain and apply layers which don't need access
+            // to neighbouring chunks
+            ExportResults exportResults = firstPass(minecraftWorld, dimension, regionCoords, tiles, tileSelection, exporters, chunkFactory, false, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.0f, ((ceiling != null) ? 0.225f : 0.45f)) : null);
 
-            // Third pass. Calculate lighting
-            long t4 = System.currentTimeMillis();
-            lightingPass(minecraftWorld, regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.65f, 0.35f) : null);
-            long t5 = System.currentTimeMillis();
-            if ("true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.devMode"))) {
-                String timingMessage = (t2 - t1) + ", " + (t3 - t2) + ", " + (t4 - t3) + ", " + (t5 - t4) + ", " + (t5 - t1);
-//                System.out.println("Export timing: " + timingMessage);
-                synchronized (TIMING_FILE_LOCK) {
-                    try (PrintWriter out = new PrintWriter(new FileOutputStream("exporttimings.csv", true))) {
-                        out.println(timingMessage);
+            ExportResults ceilingExportResults = null;
+            if (ceiling != null) {
+                // First pass for the ceiling. Create terrain and apply layers which
+                // don't need access to neighbouring chunks
+                ceilingExportResults = firstPass(minecraftWorld, ceiling, regionCoords, ceilingTiles, tileSelection, ceilingExporters, ceilingChunkFactory, true, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.225f, 0.225f) : null);
+            }
+
+            if (exportResults.chunksGenerated || ((ceiling != null) && ceilingExportResults.chunksGenerated)) {
+                // Second pass. Apply layers which need information from or apply
+                // changes to neighbouring chunks
+                long t2 = System.currentTimeMillis();
+                List<Fixup> myFixups = secondPass(secondaryPassLayers, dimension, minecraftWorld, exporters, tiles.values(), regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.45f, (ceiling != null) ? 0.05f : 0.1f) : null);
+                if ((myFixups != null) && (!myFixups.isEmpty())) {
+                    exportResults.fixups = myFixups;
+                }
+
+                if (ceiling != null) {
+                    // Second pass for ceiling. Apply layers which need information
+                    // from or apply changes to neighbouring chunks. Fixups are not
+                    // supported for the ceiling for now. TODO: implement
+                    secondPass(ceilingSecondaryPassLayers, ceiling, new InvertedWorld(minecraftWorld, ceiling.getMaxHeight() - ceiling.getCeilingHeight(), platform), ceilingExporters, ceilingTiles.values(), regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.4f, 0.05f) : null);
+                }
+
+                // Post processing. Fix covered grass blocks, things like that
+                long t3 = System.currentTimeMillis();
+                PlatformManager.getInstance().getPostProcessor(platform).postProcess(minecraftWorld, new Rectangle(regionCoords.x << 9, regionCoords.y << 9, 512, 512), (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.55f, 0.1f) : null);
+
+                // Third pass. Calculate lighting
+                long t4 = System.currentTimeMillis();
+                lightingPass(minecraftWorld, regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.65f, 0.35f) : null);
+                long t5 = System.currentTimeMillis();
+                if ("true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.devMode"))) {
+                    String timingMessage = (t2 - t1) + ", " + (t3 - t2) + ", " + (t4 - t3) + ", " + (t5 - t4) + ", " + (t5 - t1);
+                    //                System.out.println("Export timing: " + timingMessage);
+                    synchronized (TIMING_FILE_LOCK) {
+                        try (PrintWriter out = new PrintWriter(new FileOutputStream("exporttimings.csv", true))) {
+                            out.println(timingMessage);
+                        }
                     }
                 }
             }
-        }
 
-        return exportResults;
+            return exportResults;
+        }  catch (RuntimeException e) {
+            throw new RuntimeException(e.getMessage() + " (region: " + regionCoords + ")", e);
+        }
     }
 
     protected ChunkFactory.ChunkCreationResult createChunk(Dimension dimension, ChunkFactory chunkFactory, Map<Point, Tile> tiles, int chunkX, int chunkY, boolean tileSelection, Map<Layer, LayerExporter> exporters, boolean ceiling) {

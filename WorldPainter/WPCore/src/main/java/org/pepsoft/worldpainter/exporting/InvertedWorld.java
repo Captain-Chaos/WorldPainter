@@ -19,6 +19,7 @@
 package org.pepsoft.worldpainter.exporting;
 
 import org.pepsoft.minecraft.*;
+import org.pepsoft.worldpainter.Platform;
 
 /**
  * A Minecraft world wrapper which inverts the wrapped world vertically. Does
@@ -27,9 +28,10 @@ import org.pepsoft.minecraft.*;
  * Created by pepijn on 21-04-15.
  */
 public class InvertedWorld implements MinecraftWorld {
-    public InvertedWorld(MinecraftWorld world, int delta) {
+    public InvertedWorld(MinecraftWorld world, int delta, Platform platform) {
         this.world = world;
         this.delta = delta;
+        this.platform = platform;
         maxHeight = world.getMaxHeight();
         maxZ = maxHeight - delta - 1;
     }
@@ -57,7 +59,7 @@ public class InvertedWorld implements MinecraftWorld {
         if (height > maxZ) {
             return Material.AIR;
         } else {
-            return world.getMaterialAt(x, y, maxZ - height).invert();
+            return world.getMaterialAt(x, y, maxZ - height).invert(platform);
         }
     }
 
@@ -78,7 +80,7 @@ public class InvertedWorld implements MinecraftWorld {
     @Override
     public void setMaterialAt(int x, int y, int height, Material material) {
         if (height <= maxZ) {
-            world.setMaterialAt(x, y, maxZ - height, material.invert());
+            world.setMaterialAt(x, y, maxZ - height, material.invert(platform));
         }
     }
 
@@ -174,13 +176,13 @@ public class InvertedWorld implements MinecraftWorld {
     @Override
     public Chunk getChunk(int x, int z) {
         Chunk chunk = world.getChunk(x, z);
-        return (chunk != null) ? new InvertedChunk(chunk, delta) : null;
+        return (chunk != null) ? new InvertedChunk(chunk, delta, platform) : null;
     }
 
     @Override
     public Chunk getChunkForEditing(int x, int z) {
         Chunk chunk = world.getChunkForEditing(x, z);
-        return (chunk != null) ? new InvertedChunk(chunk, delta) : null;
+        return (chunk != null) ? new InvertedChunk(chunk, delta, platform) : null;
     }
 
     /**
@@ -194,4 +196,5 @@ public class InvertedWorld implements MinecraftWorld {
 
     private final MinecraftWorld world;
     private final int maxHeight, maxZ, delta;
+    private final Platform platform;
 }
