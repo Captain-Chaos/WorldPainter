@@ -1,12 +1,15 @@
--- Version 2.6.2, released ...
+-- Version 2.6.2, released 30-5-2019
 
- * Bug fix: don't give errors about unselected plants in Custom Plant Layers when exporting to Minecraft 1.12.
+ * Bug fix: don't give errors about unselected plants in Custom Plant Layers when exporting to Minecraft 1.12
+ * Bug fix: the Frost layer will once again turn water into ice
+ * The beta Caves layer now honours the "breaks the surface" settings (but not yet the "remove water above openings" and "flood the caves" settings; that will come in the near future)
+ * Fluids placed by the Resources layer will now flow in Minecraft 1.13 (this may cause Minecraft to be slow when first loading the chunks)
 
 -- Version 2.6.1, released 27-5-2019
 
- * Bug fix: don't give errors about non-vanilla legacy blocks when exporting to Minecraft 1.12.
- * Bug fix: make the endless border setting work again for Minecraft 1.12.
- * Endless borders now also work for Minecraft 1.13.
+ * Bug fix: don't give errors about non-vanilla legacy blocks when exporting to Minecraft 1.12
+ * Bug fix: make the endless border setting work again for Minecraft 1.12
+ * Endless borders now also work for Minecraft 1.13
  * The "edit Superflat preset" button has been temporarily disabled as part of this fix; it will be implemented in the near future with a bespoke Superflat preset editing screen rather than a simple text field
 
 -- Version 2.6.0, released 26-5-2019
