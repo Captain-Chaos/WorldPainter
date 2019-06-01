@@ -48,7 +48,7 @@ public abstract class AbstractNBTItem implements NBTItem, Serializable, Cloneabl
     }
 
     protected final void setMap(String name, Map<String, Tag> value) {
-        tag.setTag(name, new CompoundTag(name, value));
+        tag.setTag(name, (value != null) ? new CompoundTag(name, value) : null);
     }
 
     protected final long getLong(String name) {
@@ -165,7 +165,7 @@ public abstract class AbstractNBTItem implements NBTItem, Serializable, Cloneabl
     }
 
     protected final <T extends Tag> void setList(String name, Class<T> type, List<T> list) {
-        tag.setTag(name, new ListTag(name, type, list));
+        tag.setTag(name, (list != null) ? new ListTag(name, type, list) : null);
     }
     
     protected final double[] getDoubleList(String name) {
@@ -182,11 +182,15 @@ public abstract class AbstractNBTItem implements NBTItem, Serializable, Cloneabl
     }
 
     protected final void setDoubleList(String name, double[] values) {
-        List<Tag> list = new ArrayList<>(values.length);
-        for (double value : values) {
-            list.add(new DoubleTag(null, value));
+        if (values != null) {
+            List<Tag> list = new ArrayList<>(values.length);
+            for (double value: values) {
+                list.add(new DoubleTag(null, value));
+            }
+            tag.setTag(name, new ListTag(name, DoubleTag.class, list));
+        } else {
+            tag.setTag(name, null);
         }
-        tag.setTag(name, new ListTag(name, DoubleTag.class, list));
     }
 
     protected final float[] getFloatList(String name) {
@@ -203,11 +207,15 @@ public abstract class AbstractNBTItem implements NBTItem, Serializable, Cloneabl
     }
 
     protected final void setFloatList(String name, float[] values) {
-        List<Tag> list = new ArrayList<>(values.length);
-        for (float value : values) {
-            list.add(new FloatTag(null, value));
+        if (values != null) {
+            List<Tag> list = new ArrayList<>(values.length);
+            for (float value: values) {
+                list.add(new FloatTag(null, value));
+            }
+            tag.setTag(name, new ListTag(name, FloatTag.class, list));
+        } else {
+            tag.setTag(name, null);
         }
-        tag.setTag(name, new ListTag(name, FloatTag.class, list));
     }
 
     protected final byte[] getByteArray(String name) {
@@ -216,7 +224,7 @@ public abstract class AbstractNBTItem implements NBTItem, Serializable, Cloneabl
     }
 
     protected final void setByteArray(String name, byte[] bytes) {
-        tag.setTag(name, new ByteArrayTag(name, bytes));
+        tag.setTag(name, (bytes != null) ? new ByteArrayTag(name, bytes) : null);
     }
 
     protected final int[] getIntArray(String name) {
@@ -225,7 +233,7 @@ public abstract class AbstractNBTItem implements NBTItem, Serializable, Cloneabl
     }
 
     protected final void setIntArray(String name, int[] values) {
-        tag.setTag(name, new IntArrayTag(name, values));
+        tag.setTag(name, (values != null) ? new IntArrayTag(name, values) : null);
     }
 
     protected final long[] getLongArray(String name) {
@@ -234,7 +242,7 @@ public abstract class AbstractNBTItem implements NBTItem, Serializable, Cloneabl
     }
 
     protected final void setLongArray(String name, long[] values) {
-        tag.setTag(name, new LongArrayTag(name, values));
+        tag.setTag(name, (values != null) ? new LongArrayTag(name, values) : null);
     }
 
     protected final void removeTag(String name) {
