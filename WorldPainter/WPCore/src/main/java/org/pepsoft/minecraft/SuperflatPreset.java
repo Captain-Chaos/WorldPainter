@@ -128,7 +128,7 @@ public class SuperflatPreset implements Serializable {
     public static SuperflatPreset fromMinecraft1_13_2(CompoundTag tag) {
         String biomeName = ((StringTag) tag.getTag("biome")).getValue();
         List<Layer> layers = ((ListTag<CompoundTag>) tag.getTag("layers")).getValue().stream()
-                .map(layerTag -> new Layer(((StringTag) layerTag.getTag("block")).getValue(), (layerTag.getTag("height") instanceof ByteTag) ? ((ByteTag) layerTag.getTag("height")).getValue() : ((ShortTag) layerTag.getTag("height")).getValue()))
+                .map(layerTag -> new Layer(((StringTag) layerTag.getTag("block")).getValue(), ((NumberTag) layerTag.getTag("height")).intValue()))
                 .collect(toList());
         Set<Structure> structures = EnumSet.noneOf(Structure.class);
         ((CompoundTag) tag.getTag("structures")).getValue().forEach((name, structureTag) -> {

@@ -39,7 +39,7 @@ package org.jnbt;
  * @author Graham Edgecombe
  *
  */
-public final class LongTag extends Tag {
+public final class LongTag extends NumberTag {
     /**
      * The value.
      */
@@ -58,6 +58,13 @@ public final class LongTag extends Tag {
 
     public long getValue() {
         return value;
+    }
+
+    // NumberTag
+
+    @Override
+    public int intValue() {
+        return (int) value;
     }
 
     @Override

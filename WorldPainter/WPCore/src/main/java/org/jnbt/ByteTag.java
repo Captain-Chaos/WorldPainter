@@ -39,7 +39,7 @@ package org.jnbt;
  * @author Graham Edgecombe
  *
  */
-public final class ByteTag extends Tag {
+public final class ByteTag extends NumberTag {
     /**
      * The value.
      */
@@ -57,6 +57,13 @@ public final class ByteTag extends Tag {
     }
 
     public byte getValue() {
+        return value;
+    }
+
+    // NumberTag
+
+    @Override
+    public int intValue() {
         return value;
     }
 
