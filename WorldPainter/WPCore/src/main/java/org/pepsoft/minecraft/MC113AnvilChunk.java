@@ -842,7 +842,7 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
         EMPTY, CARVED, LIQUID_CARVED, DECORATED, FULLCHUNK, POSTPROCESSED,
 
         // Reported by users (TODOMC13: 1.13 or 1.14?):
-        LIGHT, CARVERS,
+        LIGHT, CARVERS, BIOMES, SPAWN,
 
         // These have not lately been observed and may not (longer) be in use by Minecraft:
         LIGHTED, FINALIZED, MOBS_SPAWNED,
