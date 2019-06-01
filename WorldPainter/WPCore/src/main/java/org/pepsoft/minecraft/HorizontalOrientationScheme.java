@@ -132,21 +132,21 @@ enum HorizontalOrientationScheme {
     ROTATION {
         @Override
         public Material mirror(Material material, Direction axis) {
+            int rotation = material.getProperty(Material.ROTATION);
             switch (axis) {
                 case NORTH:
                 case SOUTH:
                     // Axis runs north-south, so mirror east to west and vice versa
-                    return material.withProperty(Material.ROTATION, 16 - material.getProperty(Material.ROTATION));
+                    return ((rotation == 0) || (rotation == 8)) ? material : material.withProperty(Material.ROTATION, 16 - rotation);
                 case EAST:
                 case WEST:
                     // Axis runs east-west, so mirror north to south and vice versa
-                    int rotation = material.getProperty(Material.ROTATION);
-                    if ((rotation > 0) && (rotation < 8)) {
-                        return material.withProperty(Material.ROTATION, 8 - rotation);
-                    } else if (rotation > 8) {
-                        return material.withProperty(Material.ROTATION, 24 - rotation);
-                    } else {
+                    if ((rotation == 4) || (rotation == 12)) {
                         return material;
+                    } else if (rotation <= 8) {
+                        return material.withProperty(Material.ROTATION, 8 - rotation);
+                    } else {
+                        return material.withProperty(Material.ROTATION, 24 - rotation);
                     }
                 default:
                     throw new InternalError();
@@ -160,18 +160,7 @@ enum HorizontalOrientationScheme {
 
         @Override
         public Direction getDirection(Material material) {
-            switch ((material.getProperty(Material.ROTATION) + 1) / 4) {
-                case 0:
-                    return Direction.SOUTH;
-                case 1:
-                    return Direction.WEST;
-                case 2:
-                    return Direction.NORTH;
-                case 3:
-                    return Direction.EAST;
-                default:
-                    return null;
-            }
+            return null;
         }
 
         @Override
