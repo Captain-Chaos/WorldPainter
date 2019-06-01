@@ -1,3 +1,7 @@
+-- Version 2.6.3, released 31-5-2019
+
+ * Bug fix: don't try to mirror, rotate or invert materials for legacy platforms when there is no legacy equivalent of the transformed material
+
 -- Version 2.6.2, released 30-5-2019
 
  * Bug fix: don't give errors about unselected plants in Custom Plant Layers when exporting to Minecraft 1.12
