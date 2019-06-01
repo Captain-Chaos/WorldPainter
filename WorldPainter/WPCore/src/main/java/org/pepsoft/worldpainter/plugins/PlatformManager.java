@@ -7,6 +7,8 @@ import org.pepsoft.worldpainter.World2;
 import org.pepsoft.worldpainter.exporting.PostProcessor;
 import org.pepsoft.worldpainter.exporting.WorldExporter;
 import org.pepsoft.worldpainter.mapexplorer.MapRecognizer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.HashSet;
@@ -64,9 +66,13 @@ public class PlatformManager extends AbstractProviderManager<Platform, PlatformP
         for (PlatformProvider provider: getImplementations()) {
             MapRecognizer mapRecognizer = provider.getMapRecognizer();
             if (mapRecognizer != null) {
-                Platform platform = mapRecognizer.identifyPlatform(worldDir);
-                if (platform != null) {
-                    candidates.add(platform);
+                try {
+                    Platform platform = mapRecognizer.identifyPlatform(worldDir);
+                    if (platform != null) {
+                        candidates.add(platform);
+                    }
+                } catch (RuntimeException e) {
+                    logger.warn("{} while asking provider {} to identify {}; skipping platform", e.getClass().getSimpleName(), provider.getClass().getName(), worldDir, e);
                 }
             }
         }
@@ -77,6 +83,7 @@ public class PlatformManager extends AbstractProviderManager<Platform, PlatformP
         } else {
             // If one of the candidates is ourselves, discount it, assuming that
             // the plugin did a more specific check and is probably right
+            // TODO: make this more generic
             candidates.removeAll(asList(JAVA_MCREGION, JAVA_ANVIL, JAVA_ANVIL_1_13));
             if (candidates.size() == 1) {
                 return candidates.iterator().next();
@@ -91,4 +98,5 @@ public class PlatformManager extends AbstractProviderManager<Platform, PlatformP
     }
 
     private static final PlatformManager INSTANCE = new PlatformManager();
+    private static final Logger logger = LoggerFactory.getLogger(PlatformManager.class);
 }
