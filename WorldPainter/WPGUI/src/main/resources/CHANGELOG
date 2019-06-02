@@ -1,3 +1,7 @@
+-- Version 2.6.5, released 2-6-2019
+
+ * Bug fix: make rotation of glass panes, etc. work again
+
 -- Version 2.6.4, released 1-6-2019
 
  * Bug fix: correct the way materials with a "rotation" property were being mirrored. It was causing errors, or in the last release, mirroring to be disabled
