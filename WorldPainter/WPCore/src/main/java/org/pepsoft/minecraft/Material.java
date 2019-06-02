@@ -1150,14 +1150,17 @@ public final class Material implements Serializable {
     // Object
 
     public boolean equals(Object o) {
-        return (o instanceof Material)
-                && ((blockType == -1)
-                ? identity.equals(((Material) o).identity)
-                : ((blockType == ((Material) o).blockType) && (data == ((Material) o).data)));
+        if (! (o instanceof Material)) {
+            return false;
+        }
+        if ((blockType != -1) && ((blockType != ((Material) o).blockType) || (data != ((Material) o).data))) {
+            return false;
+        }
+        return identity.equals(((Material) o).identity);
     }
 
     public int hashCode() {
-        return (blockType == -1) ? identity.hashCode() : ((blockType * 17) + data);
+        return ((blockType != -1) ? ((blockType * 17) + data) : 1) * 4099 + identity.hashCode();
     }
 
     /**
