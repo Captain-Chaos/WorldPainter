@@ -241,7 +241,7 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
         if (sections[level] == null) {
             return 15;
         } else {
-            return (sections[level].skyLight != null) ? getDataByte(sections[level].skyLight, x, y, z) : 15;
+            return getDataByte(sections[level].skyLight, x, y, z);
         }
     }
 
@@ -259,13 +259,6 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
             section = new Section((byte) level);
             sections[level] = section;
         }
-        if (section.skyLight == null) {
-            if (skyLightLevel == 15) {
-                return;
-            }
-            section.skyLight = new byte[128 * 16];
-            Arrays.fill(section.skyLight, (byte) 0xff);
-        }
         setDataByte(section.skyLight, x, y, z, skyLightLevel);
     }
 
@@ -275,7 +268,7 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
         if (sections[level] == null) {
             return 0;
         } else {
-            return (sections[level].blockLight != null) ? getDataByte(sections[level].blockLight, x, y, z) : 0;
+            return getDataByte(sections[level].blockLight, x, y, z);
         }
     }
 
@@ -292,12 +285,6 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
             }
             section = new Section((byte) level);
             sections[level] = section;
-        }
-        if (section.blockLight == null) {
-            if (blockLightLevel == 0) {
-                return;
-            }
-            section.blockLight = new byte[128 * 16];
         }
         setDataByte(section.blockLight, x, y, z, blockLightLevel);
     }
@@ -687,14 +674,26 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
             } else {
                 logger.warn("Block states and/or palette missing from section @ y=" + level);
             }
-            skyLight = getByteArray(TAG_SKY_LIGHT);
-            blockLight = getByteArray(TAG_BLOCK_LIGHT);
+            byte[] skyLightBytes = getByteArray(TAG_SKY_LIGHT);
+            if (skyLightBytes == null) {
+                skyLightBytes = new byte[128 * 16];
+                Arrays.fill(skyLightBytes, (byte) 0xff);
+            }
+            skyLight = skyLightBytes;
+            byte[] blockLightBytes = getByteArray(TAG_BLOCK_LIGHT);
+            if (blockLightBytes == null) {
+                blockLightBytes = new byte[128 * 16];
+            }
+            blockLight = blockLightBytes;
         }
 
         Section(byte level) {
             super(new CompoundTag("", new HashMap<>()));
             this.level = level;
             materials = new Material[4096];
+            skyLight = new byte[128 * 16];
+            Arrays.fill(skyLight, (byte) 0xff);
+            blockLight = new byte[128 * 16];
         }
 
         @Override
@@ -788,7 +787,7 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
          * Indicates whether the section is empty, meaning all block ID's, data
          * values and block light values are 0, and all sky light values are 15.
          * 
-         * @return {@code true} if the section is empty
+         * @return <code>true</code> if the section is empty
          */
         boolean isEmpty() {
             for (Material material: materials) {
@@ -796,18 +795,14 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
                     return false;
                 }
             }
-            if (skyLight != null) {
-                for (byte b: skyLight) {
-                    if (b != (byte) -1) {
-                        return false;
-                    }
+            for (byte b: skyLight) {
+                if (b != (byte) -1) {
+                    return false;
                 }
             }
-            if (blockLight != null) {
-                for (byte b: blockLight) {
-                    if (b != (byte) 0) {
-                        return false;
-                    }
+            for (byte b: blockLight) {
+                if (b != (byte) 0) {
+                    return false;
                 }
             }
             return true;
@@ -837,9 +832,9 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
         }
 
         final byte level;
+        final byte[] skyLight;
+        final byte[] blockLight;
         final Material[] materials;
-        byte[] skyLight;
-        byte[] blockLight;
     }
 
     public enum HeightmapType {
