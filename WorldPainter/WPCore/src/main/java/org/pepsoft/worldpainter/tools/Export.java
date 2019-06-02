@@ -5,8 +5,10 @@
 package org.pepsoft.worldpainter.tools;
 
 import org.pepsoft.minecraft.Constants;
-import org.pepsoft.util.*;
+import org.pepsoft.util.DesktopUtils;
+import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
+import org.pepsoft.util.TextProgressReceiver;
 import org.pepsoft.util.plugins.PluginManager;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.exporting.WorldExporter;
@@ -96,34 +98,7 @@ public class Export {
         System.out.println("Exporting to " + exportDir);
         System.out.println("+---------+---------+---------+---------+---------+");
         WorldExporter exporter = platformManager.getExporter(world);
-        exporter.export(exportDir, world.getName(), exporter.selectBackupDir(new File(exportDir, FileUtils.sanitiseName(world.getName()))), new ProgressReceiver() {
-            @Override
-            public void setProgress(float progressFraction) {
-                int progress = (int) (progressFraction * 50);
-                while (progress > previousProgress) {
-                    System.out.print('.');
-                    previousProgress++;
-                }
-            }
-
-            @Override
-            public void exceptionThrown(Throwable exception) {
-                exception.printStackTrace();
-                System.exit(1);
-            }
-
-            @Override public void reset() {
-                System.out.println();
-                previousProgress = -1;
-            }
-            
-            @Override public void done() {}
-            @Override public void setMessage(String message) {}
-            @Override public void checkForCancellation() {}
-            @Override public void subProgressStarted(SubProgressReceiver subProgressReceiver) {}
-            
-            private int previousProgress = -1;
-        });
+        exporter.export(exportDir, world.getName(), exporter.selectBackupDir(new File(exportDir, FileUtils.sanitiseName(world.getName()))), new TextProgressReceiver());
         System.out.println();
         System.out.println("World " + world.getName() + " exported successfully");
     }
