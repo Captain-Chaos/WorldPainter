@@ -6,10 +6,10 @@
 package org.pepsoft.minecraft.mapexplorer;
 
 import org.jnbt.*;
+import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.worldpainter.mapexplorer.Node;
 
 import javax.swing.*;
-import java.awt.*;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -134,7 +134,7 @@ public class TagNode extends Node {
                 System.out.println();
             }
         } else {
-            Toolkit.getDefaultToolkit().beep();
+            DesktopUtils.beep();
         }
     }
 

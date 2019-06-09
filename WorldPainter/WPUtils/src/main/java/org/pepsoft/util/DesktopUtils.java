@@ -55,7 +55,7 @@ public final class DesktopUtils {
             }
         } catch (IOException e) {
             logger.error("I/O error while trying to open " + file, e);
-            Toolkit.getDefaultToolkit().beep();
+            beep();
             return false;
         }
     }
@@ -84,6 +84,12 @@ public final class DesktopUtils {
         return homeDir;
     }
 
+    /**
+     * Get the default images folder of the current user.
+     *
+     * @return The default images folder of the current user, or the user's
+     *     documents folder if an images folder could not be determined.
+     */
     public static File getPicturesFolder() {
         if (XDG.XDG_PICTURES_DIR_FILE != null) {
             // Should cover most Linuxes
@@ -98,28 +104,14 @@ public final class DesktopUtils {
         if (potentialDocsDir.isDirectory()) {
             return potentialDocsDir;
         }
-        return getDocumentsFolder();
-    }
-
-    /**
-     * Get the default images folder of the current user.
-     *
-     * @return The default images folder of the current user, or the user's
-     *     documents folder if an images folder could not be determined.
-     */
-    public static File getImagesFolder() {
-        if (XDG.XDG_PICTURES_DIR_FILE != null) {
-            // Should cover most Linuxes
-            return XDG.XDG_PICTURES_DIR_FILE;
-        }
         File docsDir = getDocumentsFolder();
-        File candidate = new File(docsDir.getParentFile(), "Pictures");
-        if (candidate.isDirectory() && candidate.canRead()) {
-            return candidate;
+        potentialDocsDir = new File(docsDir, "Pictures");
+        if (potentialDocsDir.isDirectory()) {
+            return potentialDocsDir;
         }
-        candidate = new File(docsDir, "Pictures");
-        if (candidate.isDirectory() && candidate.canRead()) {
-            return candidate;
+        potentialDocsDir = new File(docsDir, "Photos");
+        if (potentialDocsDir.isDirectory()) {
+            return potentialDocsDir;
         }
         return docsDir;
     }
@@ -136,7 +128,7 @@ public final class DesktopUtils {
             return true;
         } catch (URISyntaxException e) {
             logger.error("URI syntax exception while trying to open " + url, e);
-            Toolkit.getDefaultToolkit().beep();
+            beep();
             return false;
         } catch (IOException e) {
             if (SystemUtils.isLinux()) {
@@ -147,7 +139,7 @@ public final class DesktopUtils {
                 return ProcessUtils.runAndWait("start", url.toExternalForm()) == 0;
             } else {
                 logger.error("I/O error while trying to open " + url, e);
-                Toolkit.getDefaultToolkit().beep();
+                beep();
                 return false;
             }
         }

@@ -117,10 +117,11 @@ public class MergeWorldDialog extends WorldPainterDialog {
     }
 
     private void merge() {
+        // TODOMC13 elegantly prevent merging with incompatible platform, just like Export screen
         // Check for errors
         if (levelDatFile == null) {
             fieldLevelDatFile.requestFocusInWindow();
-            Toolkit.getDefaultToolkit().beep();
+            DesktopUtils.beep();
             JOptionPane.showMessageDialog(this, "No level.dat of an existing Minecraft map selected.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -128,13 +129,13 @@ public class MergeWorldDialog extends WorldPainterDialog {
         if (! biomesOnly) {
             if ((!radioButtonExportEverything.isSelected()) && ((selectedTiles == null) || selectedTiles.isEmpty())) {
                 radioButtonExportEverything.requestFocusInWindow();
-                Toolkit.getDefaultToolkit().beep();
+                DesktopUtils.beep();
                 JOptionPane.showMessageDialog(this, "No tiles selected for merging.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             if ((!checkBoxSurface.isSelected()) && (!checkBoxNether.isSelected()) && (!checkBoxEnd.isSelected())) {
                 checkBoxSurface.requestFocusInWindow();
-                Toolkit.getDefaultToolkit().beep();
+                DesktopUtils.beep();
                 JOptionPane.showMessageDialog(this, "No dimension selected for merging.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
@@ -144,7 +145,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
             merger.performSanityChecks(biomesOnly);
         } catch (IllegalArgumentException e) {
             logger.error(e.getClass().getSimpleName() + ": " + e.getMessage(), e);
-            Toolkit.getDefaultToolkit().beep();
+            DesktopUtils.beep();
             JOptionPane.showMessageDialog(this, e.getLocalizedMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             return;
         } catch (IOException e) {
@@ -264,7 +265,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
         synchronized (merger) {
             if (merger.getWarnings() != null) {
                 Icon warningIcon = UIManager.getIcon("OptionPane.warningIcon");
-                Toolkit.getDefaultToolkit().beep();
+                DesktopUtils.beep();
                 int selectedOption = JOptionPane.showOptionDialog(MergeWorldDialog.this, "The merge process generated warnings! The existing map may have had pre-\nexisting damage or corruption. Not all chunks may have been merged correctly.", "Merge Warnings", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, warningIcon, new Object[] {"Review warnings", "OK"}, null);
                 if (selectedOption == 0) {
                     ImportWarningsDialog warningsDialog = new ImportWarningsDialog(MergeWorldDialog.this, "Merge Warnings");

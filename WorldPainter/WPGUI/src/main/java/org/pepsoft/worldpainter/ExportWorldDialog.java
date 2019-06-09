@@ -319,13 +319,13 @@ dims:   for (Dimension dim: world.getDimensions()) {
             nameOnlyMaterials.forEach((name, sources) ->
                     sb.append("<tr><td>").append(name).append("</td><td>").append(String.join(",", sources)).append("</td></tr>"));
             sb.append("</table>");
-            Toolkit.getDefaultToolkit().beep();
+            DesktopUtils.beep();
             JOptionPane.showMessageDialog(this, sb.toString(), "Map Format Not Compatible", JOptionPane.ERROR_MESSAGE);
             comboBoxMinecraftVersion.requestFocusInWindow();
             return false;
         }
         if (! platform.isCompatible(world)) {
-            Toolkit.getDefaultToolkit().beep();
+            DesktopUtils.beep();
             JOptionPane.showMessageDialog(this, String.format(/* language=HTML */ "<html>" +
                     "<p>The world cannot be exported in format %s because it is not compatible, for one of these reasons:" +
                     "<ul><li>The format does not support the world height of %d blocks" +
@@ -342,25 +342,25 @@ dims:   for (Dimension dim: world.getDimensions()) {
         // Check for errors
         if (! new File(fieldDirectory.getText().trim()).isDirectory()) {
             fieldDirectory.requestFocusInWindow();
-            Toolkit.getDefaultToolkit().beep();
+            DesktopUtils.beep();
             JOptionPane.showMessageDialog(this, "The selected output directory does not exist or is not a directory.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
         if (fieldName.getText().trim().isEmpty()) {
             fieldName.requestFocusInWindow();
-            Toolkit.getDefaultToolkit().beep();
+            DesktopUtils.beep();
             JOptionPane.showMessageDialog(this, "You have not specified a name for the map.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
         if ((! radioButtonExportEverything.isSelected()) && ((selectedTiles == null) || selectedTiles.isEmpty())) {
             radioButtonExportEverything.requestFocusInWindow();
-            Toolkit.getDefaultToolkit().beep();
+            DesktopUtils.beep();
             JOptionPane.showMessageDialog(this, "No tiles have been selected for export.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
         if ((comboBoxGenerator.getSelectedItem() == CUSTOM) && ((generatorOptions == null) || generatorOptions.trim().isEmpty())) {
             buttonGeneratorOptions.requestFocusInWindow();
-            Toolkit.getDefaultToolkit().beep();
+            DesktopUtils.beep();
             JOptionPane.showMessageDialog(this, "The custom world generator name has not been set.\nUse the [...] button to set it.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -439,7 +439,7 @@ dims:   for (Dimension dim: world.getDimensions()) {
         }
         sb.append("</ul>Do you want to continue with the export?</html>");
         if (showWarning) {
-            Toolkit.getDefaultToolkit().beep();
+            DesktopUtils.beep();
             if (JOptionPane.showConfirmDialog(this, sb.toString(), "Review Warnings", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION) {
                 return;
             }

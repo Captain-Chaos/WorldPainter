@@ -324,7 +324,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                                 "You will not be able to export this world in this format if you use this layer.",
                                 platform.displayName, String.join(", ", nameOnlyMaterialsNames));
                     }
-                    Toolkit.getDefaultToolkit().beep();
+                    DesktopUtils.beep();
                     JOptionPane.showMessageDialog(this, message, "Map Format Not Compatible", JOptionPane.WARNING_MESSAGE);
                 }
             }

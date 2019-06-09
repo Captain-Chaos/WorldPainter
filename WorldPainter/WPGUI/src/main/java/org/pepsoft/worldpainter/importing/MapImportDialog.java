@@ -7,6 +7,7 @@ package org.pepsoft.worldpainter.importing;
 import org.pepsoft.minecraft.ChunkStore;
 import org.pepsoft.minecraft.Level;
 import org.pepsoft.minecraft.MinecraftCoords;
+import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
@@ -21,12 +22,10 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileFilter;
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.text.NumberFormat;
-import java.util.List;
 import java.util.*;
 
 import static java.util.Arrays.stream;
@@ -366,7 +365,7 @@ public class MapImportDialog extends WorldPainterDialog {
                         try {
                             SwingUtilities.invokeAndWait(() -> {
                                 Icon warningIcon = UIManager.getIcon("OptionPane.warningIcon");
-                                Toolkit.getDefaultToolkit().beep();
+                                DesktopUtils.beep();
                                 int selectedOption = JOptionPane.showOptionDialog(MapImportDialog.this, strings.getString("the.import.process.generated.warnings"), strings.getString("import.warnings"), JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, warningIcon, new Object[] {strings.getString("review.warnings"), strings.getString("ok")}, null);
                                 if (selectedOption == 0) {
                                     ImportWarningsDialog warningsDialog = new ImportWarningsDialog(MapImportDialog.this, strings.getString("import.warnings"));

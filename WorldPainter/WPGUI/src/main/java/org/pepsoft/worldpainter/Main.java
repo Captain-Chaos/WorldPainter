@@ -12,6 +12,7 @@ import ch.qos.logback.core.util.StatusPrinter;
 import com.jidesoft.plaf.LookAndFeelFactory;
 import com.jidesoft.utils.Lm;
 import org.intellij.lang.annotations.Language;
+import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.GUIUtils;
 import org.pepsoft.util.plugins.PluginManager;
@@ -469,7 +470,7 @@ public class Main {
                         System.exit(0);
                     }
                     while (! result.toLowerCase().replace(" ", "").equals("iunderstand")) {
-                        Toolkit.getDefaultToolkit().beep();
+                        DesktopUtils.beep();
                         result = JOptionPane.showInputDialog(app, SNAPSHOT_MESSAGE, "Snapshot Release", JOptionPane.WARNING_MESSAGE);
                         if (result == null) {
                             // Cancel was pressed
@@ -486,7 +487,7 @@ public class Main {
                 } else if ((! autosaveInhibited) && myConfig.isAutosaveEnabled() && autosaveFile.isFile()) {
                     logger.info("Recovering autosaved world");
                     app.open(autosaveFile);
-                    Toolkit.getDefaultToolkit().beep();
+                    DesktopUtils.beep();
                     JOptionPane.showMessageDialog(app, "WorldPainter was not shut down correctly.\nYour world has been recovered from the most recent autosave.\nMake sure to Save it if you want to keep it!", "World Recovered", JOptionPane.WARNING_MESSAGE);
                 } else {
                     app.open(file);
