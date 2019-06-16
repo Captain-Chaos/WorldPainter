@@ -98,6 +98,7 @@ import static com.jidesoft.docking.DockContext.DOCK_SIDE_EAST;
 import static com.jidesoft.docking.DockContext.DOCK_SIDE_WEST;
 import static com.jidesoft.docking.DockableFrame.*;
 import static java.awt.event.KeyEvent.*;
+import static java.util.Collections.emptyList;
 import static javax.swing.JOptionPane.*;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.util.GUIUtils.UI_SCALE;
@@ -481,7 +482,7 @@ public final class App extends JFrame implements RadiusControl,
                 layerSoloCheckBoxes.clear();
                 this.dimension.setCustomLayers(customLayers);
             } else {
-                this.dimension.setCustomLayers(Collections.EMPTY_LIST);
+                this.dimension.setCustomLayers(emptyList());
             }
             layersWithNoButton.clear();
 
@@ -591,12 +592,7 @@ public final class App extends JFrame implements RadiusControl,
             // biomes
             List<CustomBiome> customBiomes = dimension.getCustomBiomes();
             if (customBiomes != null) {
-                for (Iterator<CustomBiome> i = customBiomes.iterator(); i.hasNext(); ) {
-                    CustomBiome customBiome = i.next();
-                    if (autoBiomeScheme.isBiomePresent(customBiome.getId())) {
-                        i.remove();
-                    }
-                }
+                customBiomes.removeIf(customBiome -> autoBiomeScheme.isBiomePresent(customBiome.getId()));
                 if (customBiomes.isEmpty()) {
                     customBiomes = null;
                 }
@@ -839,7 +835,7 @@ public final class App extends JFrame implements RadiusControl,
             }
 
             @Override
-            public World2 execute(ProgressReceiver progressReceiver) throws OperationCancelled {
+            public World2 execute(ProgressReceiver progressReceiver) {
                 try {
                     WorldIO worldIO = new WorldIO();
                     worldIO.load(new FileInputStream(file));
@@ -1351,10 +1347,10 @@ public final class App extends JFrame implements RadiusControl,
     /**
      * Offer to save the current world, but only if is dirty.
      * 
-     * @return <code>true</code> if there are no unsaved changes, the user saved
+     * @return {@code true} if there are no unsaved changes, the user saved
      *     the changes, or the user indicated that unsaved changes may be
      *     discarded (in other words, a destructive operation may proceed),
-     *     <code>false</code> if there were unsaved changes and the user did not
+     *     {@code false} if there were unsaved changes and the user did not
      *     save them or indicate that they may be discarded (in other words, a
      *     destructive operation should be cancelled).
      */
@@ -1456,7 +1452,7 @@ public final class App extends JFrame implements RadiusControl,
     /**
      * Gets all currently loaded custom layers, including hidden ones (from the
      * panel or the view), regardless of whether they are used on the map, by
-     * palette (which will be <code>null</code> for hidden layers). For the
+     * palette (which will be {@code null} for hidden layers). For the
      * visible layers the collections will be in the order they are displayed on
      * the palette.
      */
@@ -1784,11 +1780,11 @@ public final class App extends JFrame implements RadiusControl,
      * {@link JLabel#setText(String)} does not check whether the new value is
      * different. On the other hand {@link JLabel#getText()} is a very simple
      * method which just returns a field. So if the text will frequently not
-     * have changed, it is cheaper to check with <code>getText()</code> whether
-     * the text is different and only invoke <code>setText()</code> if it is,
+     * have changed, it is cheaper to check with {@code getText()} whether
+     * the text is different and only invoke {@code setText()} if it is,
      * which is what this method does.
      *
-     * @param label The label on which to set the <code>text</code> property.
+     * @param label The label on which to set the {@code text} property.
      * @param text The text to set.
      */
     private void setTextIfDifferent(JLabel label, String text) {
@@ -1972,7 +1968,7 @@ public final class App extends JFrame implements RadiusControl,
      * Otherwise do the same thing as {@link #saveAs()}. Shows a progress
      * indicator while saving.
      * 
-     * @return <code>true</code> if the file was saved.
+     * @return {@code true} if the file was saved.
      */
     private boolean save() {
         if (lastSelectedFile == null) {
@@ -1987,7 +1983,7 @@ public final class App extends JFrame implements RadiusControl,
      * with the name, ask for confirmation to overwrite it. Shows a progress
      * indicator while saving, and a confirmation when it is saved.
      * 
-     * @return <code>true</code> if the file was saved.
+     * @return {@code true} if the file was saved.
      */
     private boolean saveAs() {
         pauseAutosave();
@@ -2097,7 +2093,7 @@ public final class App extends JFrame implements RadiusControl,
                 }
                 dimension.setCustomLayers(customLayers);
             } else {
-                dimension.setCustomLayers(Collections.EMPTY_LIST);
+                dimension.setCustomLayers(emptyList());
             }
 
             if (dimension != null) {
@@ -2272,7 +2268,7 @@ public final class App extends JFrame implements RadiusControl,
                 }
                 dimension.setCustomLayers(customLayers);
             } else {
-                dimension.setCustomLayers(Collections.EMPTY_LIST);
+                dimension.setCustomLayers(emptyList());
             }
 
             if (dimension != null) {
@@ -2726,8 +2722,8 @@ public final class App extends JFrame implements RadiusControl,
      * Does nothing if it is not showing.
      *
      * @param key The key of the callout to close.
-     * @return <code>true</code> if the callout was showing and was closed;
-     * <code>false</code> otherwise.
+     * @return {@code true} if the callout was showing and was closed;
+     * {@code false} otherwise.
      */
     private boolean closeCallout(String key) {
         if (callouts.containsKey(key)) {
@@ -3477,8 +3473,6 @@ public final class App extends JFrame implements RadiusControl,
 
     /**
      * Update the image of a single brush button
-     * @param brush
-     * @param button
      */
     private void updateBrushRotation(Brush brush, JToggleButton button) {
         button.setIcon(createBrushIcon(brush, button.isSelected() ? ((activeOperation instanceof PaintOperation) ? brushRotation : toolBrushRotation) : 0));
@@ -3618,7 +3612,7 @@ public final class App extends JFrame implements RadiusControl,
                 CustomLayer duplicate = layer.clone();
                 duplicate.setName("Copy of " + layer.getName());
                 Color colour = new Color(layer.getColour());
-                float hsb[] = Color.RGBtoHSB(colour.getRed(), colour.getGreen(), colour.getBlue(), null);
+                float[] hsb = Color.RGBtoHSB(colour.getRed(), colour.getGreen(), colour.getBlue(), null);
                 hsb[0] += 1f / 12;
                 if (hsb[0] > 1f) {
                     hsb[0] -= 1f;
@@ -3955,9 +3949,7 @@ public final class App extends JFrame implements RadiusControl,
         JMenu importMenu = new JMenu("Import");
         menuItem = new JMenuItem("Custom items from existing world...");
         menuItem.setMnemonic('i');
-        menuItem.addActionListener(e -> {
-            importCustomItemsFromWorld(CustomItemsTreeModel.ItemType.ALL);
-        });
+        menuItem.addActionListener(e -> importCustomItemsFromWorld(CustomItemsTreeModel.ItemType.ALL));
         importMenu.add(menuItem);
 
         menuItem = new JMenuItem(ACTION_IMPORT_LAYER);
@@ -4394,9 +4386,7 @@ public final class App extends JFrame implements RadiusControl,
 //        menu.add(menuItem);
 
         menuItem = new JMenuItem("Run script...");
-        menuItem.addActionListener(e -> {
-            new ScriptRunner(this, world, dimension, undoManagers.values()).setVisible(true);
-        });
+        menuItem.addActionListener(e -> new ScriptRunner(this, world, dimension, undoManagers.values()).setVisible(true));
         menu.add(menuItem);
         menu.putClientProperty(HELP_KEY_KEY, "Menu/Tools");
         return menu;
@@ -4681,7 +4671,7 @@ public final class App extends JFrame implements RadiusControl,
             if (subElement instanceof JPopupMenu) {
                 addStatisticsTo(subElement, key, eventLogger);
             } else if (subElement instanceof JMenuItem) {
-                addStatisticsTo(subElement, key + "." + ((JMenuItem) subElement).getText().replaceAll("[ \\t\\n\\x0B\\f\\r\\.]", ""), eventLogger);
+                addStatisticsTo(subElement, key + "." + ((JMenuItem) subElement).getText().replaceAll("[ \\t\\n\\x0B\\f\\r.]", ""), eventLogger);
             }
         }
     }
@@ -5533,7 +5523,7 @@ public final class App extends JFrame implements RadiusControl,
         Configuration config = Configuration.getInstance();
         File dir = config.getHeightMapsDirectory();
         if ((dir == null) || (! dir.isDirectory())) {
-            dir = DesktopUtils.getImagesFolder();
+            dir = DesktopUtils.getPicturesFolder();
         }
         File defaultFile = new File(dir, defaultname);
         File selectedFile = FileUtils.selectFileForSave(App.this, highRes ? "Export as high resolution height map image file" : "Export as height map image file", defaultFile, new FileFilter() {
@@ -5581,7 +5571,7 @@ public final class App extends JFrame implements RadiusControl,
                         }
 
                         @Override
-                        public Boolean execute(ProgressReceiver progressReceiver) throws OperationCancelled {
+                        public Boolean execute(ProgressReceiver progressReceiver) {
                             // Leave the progress receiver indeterminate, since
                             // by *far* the most time goes into actually writing
                             // the file, and we can't report progress for that
@@ -5814,12 +5804,11 @@ public final class App extends JFrame implements RadiusControl,
                 }
 
                 @Override
-                public World2 execute(ProgressReceiver progressReceiver) throws OperationCancelled {
+                public World2 execute(ProgressReceiver progressReceiver) {
                     try {
                         WorldIO worldIO = new WorldIO();
                         worldIO.load(new FileInputStream(selectedFile));
-                        World2 world = worldIO.getWorld();
-                        return world;
+                        return worldIO.getWorld();
                     } catch (UnloadableWorldException e) {
                         logger.error("Could not load world from file " + selectedFile, e);
                         if (e.getMetadata() != null) {
