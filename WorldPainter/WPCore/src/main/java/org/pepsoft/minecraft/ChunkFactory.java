@@ -19,7 +19,7 @@ public interface ChunkFactory {
      * @param z The Z coordinate in the Minecraft coordinate space of the chunk
      *     to generate.
      * @return The generated chunk, in a data structure along with some
-     *     statistics about it, or <code>null</code> if no chunk is present at
+     *     statistics about it, or {@code null} if no chunk is present at
      *     the specified coordinates.
      */
     ChunkCreationResult createChunk(int x, int z);

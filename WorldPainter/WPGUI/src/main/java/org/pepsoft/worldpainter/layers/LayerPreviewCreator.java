@@ -255,13 +255,13 @@ public class LayerPreviewCreator {
     }
 
     /**
-     * Create a new <code>LayerPrevierCreator</code> configured with some
+     * Create a new {@code LayerPrevierCreator} configured with some
      * sensible defaults for a particular layer and dimension.
      *
      * @param layer The layer with which to configure the
-     *              <code>LayerPrevierCreator</code>.
+     *              {@code LayerPrevierCreator}.
      * @param dimension The dimension from which to take some defaults.
-     * @return A <code>LayerPrevierCreator</code> configured with the
+     * @return A {@code LayerPrevierCreator} configured with the
      * specified layer and some sensible defaults.
      */
     public static LayerPreviewCreator createPreviewerForLayer(Layer layer, Dimension dimension) {

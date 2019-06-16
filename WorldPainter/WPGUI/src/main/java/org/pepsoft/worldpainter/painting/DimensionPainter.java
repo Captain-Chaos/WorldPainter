@@ -53,7 +53,7 @@ public final class DimensionPainter {
      *
      * @param x The x coordinate at which to paint the impression.
      * @param y The y coordinate at which to paint the impression.
-     * @param dynamicLevel The dynamic level between <code>0.0f</code> and <code>1.0f</code> (inclusive) with which to
+     * @param dynamicLevel The dynamic level between {@code 0.0f} and {@code 1.0f} (inclusive) with which to
      *                     multiply the brush.
      */
     public void drawPoint(Dimension dimension, int x, int y, float dynamicLevel) {
@@ -121,7 +121,7 @@ public final class DimensionPainter {
      * @param y1 The y coordinate at which to start the line.
      * @param x2 The x coordinate at which to end the line.
      * @param y2 The y coordinate at which to end the line.
-     * @param dynamicLevel The dynamic level between <code>0.0f</code> and <code>1.0f</code> (inclusive) with which to
+     * @param dynamicLevel The dynamic level between {@code 0.0f} and {@code 1.0f} (inclusive) with which to
      *                     multiply the brush.
      */
     public void drawLine(Dimension dimension, int x1, int y1, int x2, int y2, float dynamicLevel) {
@@ -381,8 +381,8 @@ public final class DimensionPainter {
      * Configure whether the paint is <em>applied</em> or <em>removed</em> by the operations. What constitutes
      * "application" or "removal" is defined by the paint.
      *
-     * @param undo Whether the paint is <em>applied</em> (when <code>false</code>) or <em>removed</em> (when
-     *             <code>true</code>) by the operations.
+     * @param undo Whether the paint is <em>applied</em> (when {@code false}) or <em>removed</em> (when
+     *             {@code true}) by the operations.
      */
     public void setUndo(boolean undo) {
         this.undo = undo;
@@ -392,8 +392,8 @@ public final class DimensionPainter {
      * Determine whether the paint is <em>applied</em> or <em>removed</em> by the operations. What constitutes
      * "application" or "removal" is defined by the paint.
      *
-     * @return Whether the paint is <em>applied</em> (when <code>false</code>) or <em>removed</em> (when
-     * <code>true</code>) by the operations.
+     * @return Whether the paint is <em>applied</em> (when {@code false}) or <em>removed</em> (when
+     * {@code true}) by the operations.
      */
     public boolean isUndo() {
         return undo;

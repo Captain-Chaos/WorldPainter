@@ -182,11 +182,11 @@ public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener
      * {@link JLabel#setText(String)} does not check whether the new value is
      * different. On the other hand {@link JLabel#getText()} is a very simple
      * method which just returns a field. So if the text will frequently not
-     * have changed, it is cheaper to check with <code>getText()</code> whether
-     * the text is different and only invoke <code>setText()</code> if it is,
+     * have changed, it is cheaper to check with {@code getText()} whether
+     * the text is different and only invoke {@code setText()} if it is,
      * which is what this method does.
      *
-     * @param label The label on which to set the <code>text</code> property.
+     * @param label The label on which to set the {@code text} property.
      * @param text The text to set.
      */
     private void setTextIfDifferent(JLabel label, String text) {

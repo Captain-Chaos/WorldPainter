@@ -69,11 +69,11 @@ public interface BiomeScheme {
     /**
      * The two dimensional pattern to use for painting the specified biome, if
      * any. May be null. If not null, must be a 16 by 16 array of booleans,
-     * where <code>true</code> indicates a foreground pixel.
+     * where {@code true} indicates a foreground pixel.
      * 
      * @param biome The biome for which to return the pattern.
      * @return The pattern to use for painting the specified biome, or
-     *     <code>null</code> if no pattern should be used.
+     *     {@code null} if no pattern should be used.
      */
     boolean[][] getPattern(int biome);
     
@@ -91,7 +91,7 @@ public interface BiomeScheme {
      * invoked for that ID.
      * 
      * @param biome The biome ID to check.
-     * @return <code>true</code> if this biome scheme contains the specified
+     * @return {@code true} if this biome scheme contains the specified
      *     biome.
      */
     boolean isBiomePresent(int biome);

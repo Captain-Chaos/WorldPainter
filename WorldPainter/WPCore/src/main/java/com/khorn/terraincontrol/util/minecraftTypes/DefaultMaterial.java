@@ -278,7 +278,7 @@ public enum DefaultMaterial
 
     /**
      * Gets whether this material is solid. Materials that aren't solid are
-     * nonexistant for <code>LocalWorld.getSolidHeight(int, int)</code>. Note: this
+     * nonexistant for {@code LocalWorld.getSolidHeight(int, int)}. Note: this
      * isn't always equal to what Minecraft calls solid.
      *
      * @return boolean Whether or not the material is considered solid

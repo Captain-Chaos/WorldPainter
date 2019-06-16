@@ -18,7 +18,7 @@ public interface Plugin {
      * Get the name of the plugin. Convenience method for (and must return the
      * same as):
      * 
-     * <p><code>getPoperties().getProperty(Plugin.PROPERTY_NAME)</code>
+     * <p>{@code getPoperties().getProperty(Plugin.PROPERTY_NAME)}
      * 
      * @return The name of the plugin.
      */
@@ -28,18 +28,18 @@ public interface Plugin {
      * Get the version number of the plugin. Convenience method for (and must
      * return the same as):
      * 
-     * <p><code>getPoperties().getProperty(Plugin.PROPERTY_VERSION)</code>
+     * <p>{@code getPoperties().getProperty(Plugin.PROPERTY_VERSION)}
      * 
      * @return The name of the plugin.
      */
     String getVersion();
     
     /**
-     * Get the set of UUIDs this plugin is locked to, or <code>null</code> if
+     * Get the set of UUIDs this plugin is locked to, or {@code null} if
      * the plugin can be used by anyone. Convenience method for parsing the
      * result of:
      * 
-     * <p><code>getPoperties().getProperty(Plugin.PROPERTY_UUIDS)</code>
+     * <p>{@code getPoperties().getProperty(Plugin.PROPERTY_UUIDS)}
      * 
      * @return The set of UUIDs this plugin is locked to, or </code>null</code>
      *     if the plugin can be used by anyone.
@@ -50,7 +50,7 @@ public interface Plugin {
      * Get the minimum supported WorldPainter version of the plugin. Convenience
      * method for (and must return the same as):
      * 
-     * <p><code>getPoperties().getProperty(Plugin.PROPERTY_MINIMUM_WORLDPAINTER_VERSION)</code>
+     * <p>{@code getPoperties().getProperty(Plugin.PROPERTY_MINIMUM_WORLDPAINTER_VERSION)}
      * 
      * @return The minimum supported WorldPainter version of the plugin.
      */

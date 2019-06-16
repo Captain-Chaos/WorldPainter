@@ -37,7 +37,7 @@ public interface ProgressReceiver {
     
     /**
      * Check whether the operation has been canceled. An
-     * <code>OperationCancelled</code> exception will be thrown if it has.
+     * {@code OperationCancelled} exception will be thrown if it has.
      * 
      * @throws org.pepsoft.util.ProgressReceiver.OperationCancelled If the
      *     operation has been canceled, for instance by the user, or because

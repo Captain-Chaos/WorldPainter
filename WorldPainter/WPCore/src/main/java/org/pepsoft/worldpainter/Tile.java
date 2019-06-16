@@ -402,7 +402,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
      * @param x The X location for which to retrieve all layers.
      * @param y The Y location for which to retrieve all layers.
      * @return A map with all layers set at the specified location, mapped to
-     *     their intensities at that location. May either be <code>null</code>
+     *     their intensities at that location. May either be {@code null}
      *     or an empty map if no layers are present.
      */
     public Map<Layer, Integer> getLayersAt(int x, int y) {
@@ -459,8 +459,8 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
      * @param y The Y coordinate (local to the tile) of the location around
      *     which to count flooded blocks.
      * @param r The radius of the square.
-     * @param lava Whether to check for lava (when <code>true</code>) or water
-     *     (when <code>false</code>).
+     * @param lava Whether to check for lava (when {@code true}) or water
+     *     (when {@code false}).
      * @return The number of blocks in the specified square that are flooded.
      */
     public synchronized int getFloodedCount(final int x, final int y, final int r, final boolean lava) {
@@ -740,7 +740,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
      * @param x The X coordinate of the location to clear of layer data.
      * @param y The Y coordinate of the location to clear of layer data.
      * @param excludedLayers The layers to exclude, if any. May be
-     *                       <code>null</code>.
+     *                       {@code null}.
      */
     public void clearLayerData(int x, int y, Set<Layer> excludedLayers) {
         ensureWriteable(BIT_LAYER_DATA);
@@ -843,7 +843,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
 
     /**
      * Stop firing events when the tile is modified, until {@link #releaseEvents()} is invoked. Make sure that
-     * <code>releaseEvents()</code> is always invoked, even if an exception is thrown, by using a try-finally statement:
+     * {@code releaseEvents()} is always invoked, even if an exception is thrown, by using a try-finally statement:
      *
      * <p><code>tile.inhibitEvents();<br>
      * try {<br>
@@ -853,7 +853,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
      * }</code>
      *
      * <p><strong>Note</strong> that calls to these methods may be nested, and if so, events will only be released after
-     * the final invocation of <code>releaseEvents()</code>.
+     * the final invocation of {@code releaseEvents()}.
      */
     public synchronized void inhibitEvents() {
         eventInhibitionCounter++;
@@ -862,7 +862,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
     /**
      * Release an inhibition on firing events. Will fire all appropriate events at this time, if the tile was modified
      * since the first invocation of {@link #inhibitEvents()}, but only if this is the last invocation of
-     * <code>releaseEvents()</code> in a nested set.
+     * {@code releaseEvents()} in a nested set.
      */
     public synchronized void releaseEvents() {
         if (eventInhibitionCounter > 0) {

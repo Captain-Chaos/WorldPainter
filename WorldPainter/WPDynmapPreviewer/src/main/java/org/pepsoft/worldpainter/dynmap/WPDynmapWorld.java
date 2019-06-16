@@ -22,7 +22,7 @@ import java.util.List;
  * use with the dynmap API.
  *
  * <p>Use the static factory methods to obtain correctly configured instances
- * for various kinds of <code>MinecraftWorld</code>
+ * for various kinds of {@code MinecraftWorld}
  *
  * <p>Created by Pepijn Schmitz on 05-06-15.
  */

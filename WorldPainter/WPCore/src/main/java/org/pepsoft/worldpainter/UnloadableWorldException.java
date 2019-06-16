@@ -30,7 +30,7 @@ public class UnloadableWorldException extends Exception {
      * stored in this property.
      *
      * @return The metadata from the file, if it was present and could be
-     *     loaded; <code>null</code> otherwise.
+     *     loaded; {@code null} otherwise.
      */
     public Map<String, Object> getMetadata() {
         return metadata;

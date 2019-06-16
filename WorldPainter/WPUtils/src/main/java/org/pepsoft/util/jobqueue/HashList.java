@@ -8,8 +8,8 @@ import java.util.*;
 
 /**
  * A combination of the List and Set interfaces. A List which can only contain
- * equal objects once (according to their <code>equals()</code> and
- * <code>hashCode()</code> methods). Or in other words an ordered Set.
+ * equal objects once (according to their {@code equals()} and
+ * {@code hashCode()} methods). Or in other words an ordered Set.
  * 
  * <p>This collection's iterator is read-only and does not support the add(),
  * etc. methods. It is also <i>not</i> fail-fast! If you modify the collection

@@ -36,11 +36,11 @@ public abstract class MacUtils {
     /**
      * When the user requests to quit the application, invokes the specified
      * handler on the event dispatch thread and allows the quit to proceed if it
-     * returns <code>true</code> or cancels it otherwise.
+     * returns {@code true} or cancels it otherwise.
      *
      * @param quitHandler The handler to invoke.
-     * @return <code>true</code> if the handler was successfully installed;
-     *     <code>false</code> if the Apple Java extensions cannot be found or
+     * @return {@code true} if the handler was successfully installed;
+     *     {@code false} if the Apple Java extensions cannot be found or
      *     are too old.
      */
     public static boolean installQuitHandler(final QuitHandler quitHandler) {
@@ -52,8 +52,8 @@ public abstract class MacUtils {
      * handler on the event dispatch thread.
      *
      * @param aboutHandler The handler to invoke.
-     * @return <code>true</code> if the handler was successfully installed;
-     *     <code>false</code> if the Apple Java extensions cannot be found or
+     * @return {@code true} if the handler was successfully installed;
+     *     {@code false} if the Apple Java extensions cannot be found or
      *     are too old.
      */
     public static boolean installAboutHandler(final AboutHandler aboutHandler) {
@@ -65,8 +65,8 @@ public abstract class MacUtils {
      * application, invokes the specified handler on the event dispatch thread.
      *
      * @param openFilesHandler The handler to invoke.
-     * @return <code>true</code> if the handler was successfully installed;
-     *     <code>false</code> if the Apple Java extensions cannot be found or
+     * @return {@code true} if the handler was successfully installed;
+     *     {@code false} if the Apple Java extensions cannot be found or
      *     are too old.
      */
     public static boolean installOpenFilesHandler(final OpenFilesHandler openFilesHandler) {
@@ -86,7 +86,7 @@ public abstract class MacUtils {
         /**
          * Invoked when the user has requested to quit the application.
          *
-         * @return <code>true</code> if the quit should proceed.
+         * @return {@code true} if the quit should proceed.
          */
         boolean quitRequested();
     }

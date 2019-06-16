@@ -167,8 +167,8 @@ public class JavaWorldMerger extends JavaWorldExporter {
      * convenience.
      *
      * @param biomesOnly Whether to check sanity for a biomes only merge (when
-     *                   <code>true</code>) or a full merge (when
-     *                   <code>false</code>).
+     *                   {@code true}) or a full merge (when
+     *                   {@code false}).
      * @return The loaded Minecraft level object, for convenience.
      * @throws IllegalArgumentException If there is a problem that would prevent
      * the merge from completing.

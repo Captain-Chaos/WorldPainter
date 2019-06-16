@@ -19,13 +19,13 @@ public final class GeometryUtil {
      * Visit all the points along the outline of a circle in an integer
      * coordinate space with the centre at 0,0. The order in which the points
      * are visited is not defined. The visitor may abort the process at any
-     * point by returning <code>false</code>.
+     * point by returning {@code false}.
      *
      * @param radius The radius of the circle to visit.
      * @param visitor The visitor to invoke for each point.
-     * @return <code>true</code> if the visitor returned true for each point
-     *     (and therefore every point was visited). <code>false</code> if the
-     *     visitor returned <code>false</code> for some point and the process
+     * @return {@code true} if the visitor returned true for each point
+     *     (and therefore every point was visited). {@code false} if the
+     *     visitor returned {@code false} for some point and the process
      *     was aborted.
      */
     public static boolean visitCircle(int radius, PlaneVisitor visitor) {
@@ -58,13 +58,13 @@ public final class GeometryUtil {
      * Visit all the points on the face of a filled circular disk in an integer
      * coordinate space with the centre at 0,0. The order in which the points
      * are visited is not defined. The visitor may abort the process at any
-     * point by returning <code>false</code>.
+     * point by returning {@code false}.
      *
      * @param radius The radius of the circle to visit.
      * @param visitor The visitor to invoke for each point.
-     * @return <code>true</code> if the visitor returned true for each point
-     *     (and therefore every point was visited). <code>false</code> if the
-     *     visitor returned <code>false</code> for some point and the process
+     * @return {@code true} if the visitor returned true for each point
+     *     (and therefore every point was visited). {@code false} if the
+     *     visitor returned {@code false} for some point and the process
      *     was aborted.
      */
     public static boolean visitFilledCircle(int radius, PlaneVisitor visitor) {
@@ -108,13 +108,13 @@ public final class GeometryUtil {
      * Visit all the points inside a spherical volume in an integer coordinate
      * space with the centre at 0,0,0. The order in which the points are visited
      * is not defined. The visitor may abort the process at any point by
-     * returning <code>false</code>.
+     * returning {@code false}.
      *
      * @param radius The radius of the sphere to visit.
      * @param visitor The visitor to invoke for each point.
-     * @return <code>true</code> if the visitor returned true for each point
-     *     (and therefore every point was visited). <code>false</code> if the
-     *     visitor returned <code>false</code> for some point and the process
+     * @return {@code true} if the visitor returned true for each point
+     *     (and therefore every point was visited). {@code false} if the
+     *     visitor returned {@code false} for some point and the process
      *     was aborted.
      */
     public static boolean visitFilledSphere(int radius, VolumeVisitor visitor) {
@@ -133,16 +133,16 @@ public final class GeometryUtil {
 
     /**
      * Visit all the points along a straight line on a 2D plane. The visitor may
-     * abort the process at any point by returning <code>false</code>.
+     * abort the process at any point by returning {@code false}.
      *
      * @param x1 The X coordinate of the start of the line.
      * @param y1 The Y coordinate of the start of the line.
      * @param x2 The X coordinate of the end of the line.
      * @param y2 The Y coordinate of the end of the line.
      * @param visitor The visitor to invoke for each point.
-     * @return <code>true</code> if the visitor returned true for each point
-     *     (and therefore every point was visited). <code>false</code> if the
-     *     visitor returned <code>false</code> for some point and the process
+     * @return {@code true} if the visitor returned true for each point
+     *     (and therefore every point was visited). {@code false} if the
+     *     visitor returned {@code false} for some point and the process
      *     was aborted.
      */
     public static boolean visitLine(int x1, int y1, int x2, int y2, LineVisitor visitor) {
@@ -179,8 +179,8 @@ public final class GeometryUtil {
 
     /**
      * Visit all the points along a straight line on a 2D plane. The visitor may
-     * abort the process at any point by returning <code>false</code>. Points on
-     * the line can optionally be skipped by specifying the <code>every</code>
+     * abort the process at any point by returning {@code false}. Points on
+     * the line can optionally be skipped by specifying the {@code every}
      * parameter larger than one.
      *
      * @param x1 The X coordinate of the start of the line.
@@ -189,9 +189,9 @@ public final class GeometryUtil {
      * @param y2 The Y coordinate of the end of the line.
      * @param every The interval between performances of the specified task.
      * @param visitor The visitor to invoke for each point.
-     * @return <code>true</code> if the visitor returned true for each point
-     *     (and therefore every point was visited). <code>false</code> if the
-     *     visitor returned <code>false</code> for some point and the process
+     * @return {@code true} if the visitor returned true for each point
+     *     (and therefore every point was visited). {@code false} if the
+     *     visitor returned {@code false} for some point and the process
      *     was aborted.
      */
     public static boolean visitLine(int x1, int y1, int x2, int y2, int every, LineVisitor visitor) {
@@ -238,8 +238,8 @@ public final class GeometryUtil {
          * @param x The absolute X coordinate to visit.
          * @param y The absolute Y coordinate to visit.
          * @param d The distance from the start of the line.
-         * @return <code>true</code> if the process should continue;
-         * <code>false</code> if no more points should be visited on the line.
+         * @return {@code true} if the process should continue;
+         * {@code false} if no more points should be visited on the line.
          */
         boolean visit(int x, int y, float d);
     }
@@ -254,8 +254,8 @@ public final class GeometryUtil {
          * @param dy The y coordinate to visit relative to the origin of the
          *     plane.
          * @param d The distance from the origin.
-         * @return <code>true</code> if the process should continue;
-         * <code>false</code> if no more points should be visited on the plane.
+         * @return {@code true} if the process should continue;
+         * {@code false} if no more points should be visited on the plane.
          */
         boolean visit(int dx, int dy, float d);
     }
@@ -272,8 +272,8 @@ public final class GeometryUtil {
          * @param dz The z coordinate to visit relative to the origin of the
          *     volume.
          * @param d The distance from the origin.
-         * @return <code>true</code> if the process should continue;
-         * <code>false</code> if no more points should be visited in the volume.
+         * @return {@code true} if the process should continue;
+         * {@code false} if no more points should be visited in the volume.
          */
         boolean visit(int dx, int dy, int dz, float d);
     }

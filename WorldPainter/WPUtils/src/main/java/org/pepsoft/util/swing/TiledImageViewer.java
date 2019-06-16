@@ -319,7 +319,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
      * all the tile providers, in component coordinates.
      * 
      * @return The combined and zoom-corrected extent or main area of interest
-     *     of all the tile providers, or <code>null</code> if there are no tile
+     *     of all the tile providers, or {@code null} if there are no tile
      *     providers configured, or none of them indicate an extent.
      * @see TileProvider#getExtent()
      */
@@ -425,7 +425,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
      * crosshair), if configured.
      *
      * @return The coordinates in image coordinates of the marker, or
-     * <code>null</code> if no marker is configured.
+     * {@code null} if no marker is configured.
      */
     public Point getMarkerCoords() {
         return paintMarker ? new Point(markerX, markerY) : null;
@@ -437,7 +437,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
      *
      * @param markerCoords The coordinates in image coordinates where a red
      *                     crosshair marker should be displayed, or
-     *                     <code>null</code> if no marker should be displayed.
+     *                     {@code null} if no marker should be displayed.
      */
     public void setMarkerCoords(Point markerCoords) {
         if (markerCoords != null) {
@@ -453,7 +453,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
     /**
      * Determine whether the grid is currently painted.
      *
-     * @return <code>true</code> if the grid is currently painted.
+     * @return {@code true} if the grid is currently painted.
      */
     public boolean isPaintGrid() {
         return paintGrid;
@@ -462,7 +462,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
     /**
      * Set whether the gid should be painted.
      *
-     * @param paintGrid <code>true</code> if the grid should be painted.
+     * @param paintGrid {@code true} if the grid should be painted.
      */
     public void setPaintGrid(boolean paintGrid) {
         if (paintGrid != this.paintGrid) {
@@ -895,7 +895,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
      * Get the currently configured view listener, if any.
      *
      * @param viewListener The currently configured view listener, or
-     *                     <code>null</code> if there is none.
+     *                     {@code null} if there is none.
      */
     public void setViewListener(ViewListener viewListener) {
         this.viewListener = viewListener;
@@ -1015,7 +1015,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
      * @param x The X coordinate of the tile to check for visibility.
      * @param y The Y coordinate of the tile to check for visibility.
      * @param effectiveZoom The zoom level to take into account.
-     * @return <code>true</code> if any part of the specified tile intersects
+     * @return {@code true} if any part of the specified tile intersects
      * the viewport.
      */
     protected final boolean isTileVisible(int x, int y, int effectiveZoom) {
@@ -1494,7 +1494,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
      * tile is available it will be returned. Otherwise the tile will be
      * scheduled for repainting in the background, unless the tile provider
      * indicates that the tile is not present. If a stale version of the tile is
-     * available that will be returned, otherwise <code>null</code> will be
+     * available that will be returned, otherwise {@code null} will be
      * returned.
      *
      * @param tileProvider The tile provider.
@@ -1506,7 +1506,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
      * @param gc The graphics configuration to use for volatile (accelerated)
      *           image management.
      * @return The freshest copy of the tile available from the cache, or
-     * <code>null</code> if no version of the tile is available, or if the tile
+     * {@code null} if no version of the tile is available, or if the tile
      * is not present according to the tile provider.
      */
     private Image getTile(TileProvider tileProvider, int x, int y, int effectiveZoom, GraphicsConfiguration gc) {
@@ -1583,7 +1583,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
      * @param dirtyTileCache The cache from which to get the stale tile.
      * @param gc The graphics configuration to use for volatile (accelerated)
      *           image management.
-     * @return The stale copy of the tile from the cache, or <code>null</code>
+     * @return The stale copy of the tile from the cache, or {@code null}
      * if the tile is not available from the cache, or if the tile is not
      * present according to the tile provider.
      */

@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 
 /**
  * The
- * <code>TAG_List</code> tag.
+ * {@code TAG_List} tag.
  *
  * @author Graham Edgecombe
  *

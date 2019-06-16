@@ -207,7 +207,7 @@ chunks:         for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
      * Calculate the bounding rectangle of the current selection.
      *
      * @return The bounding rectangle of the current selection, or
-     * <code>null</code> if there is no active selection.
+     * {@code null} if there is no active selection.
      */
     public Rectangle getSelectionBounds() {
         int[] lowestX = {Integer.MAX_VALUE};

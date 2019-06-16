@@ -34,7 +34,7 @@ package org.jnbt;
  */
 /**
  * The
- * <code>TAG_Short</code> tag.
+ * {@code TAG_Short} tag.
  *
  * @author Graham Edgecombe
  *

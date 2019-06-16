@@ -1,7 +1,7 @@
 package org.jnbt;
 
 /**
- * The <code>TAG_Int_Array</code> tag.
+ * The {@code TAG_Int_Array} tag.
  */
 public final class IntArrayTag extends Tag {
     /**

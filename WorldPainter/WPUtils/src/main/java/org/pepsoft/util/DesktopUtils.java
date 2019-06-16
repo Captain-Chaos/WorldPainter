@@ -34,7 +34,7 @@ public final class DesktopUtils {
      * file manager.
      *
      * @param file The file or directory to open.
-     * @return <code>true</code> if the file or directory was successfully
+     * @return {@code true} if the file or directory was successfully
      *     opened.
      */
     public static boolean open(File file) {
@@ -120,7 +120,7 @@ public final class DesktopUtils {
      * Open a URL in the default browser.
      *
      * @param url The URL to open.
-     * @return <code>true</code> if the URL was successfully opened.
+     * @return {@code true} if the URL was successfully opened.
      */
     public static boolean open(URL url) {
         try {

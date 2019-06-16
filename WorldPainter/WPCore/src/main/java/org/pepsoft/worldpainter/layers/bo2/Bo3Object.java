@@ -164,7 +164,7 @@ public final class Bo3Object extends AbstractObject implements Bo2ObjectProvider
      * will be the name of the file, minus the extension.
      *
      * @param file The file from which to load the object.
-     * @return A new <code>Bo3Object</code> containing the contents of the
+     * @return A new {@code Bo3Object} containing the contents of the
      *     specified file.
      * @throws IOException If an I/O error occurred while reading the file.
      */
@@ -182,7 +182,7 @@ public final class Bo3Object extends AbstractObject implements Bo2ObjectProvider
      *
      * @param objectName The name of the object.
      * @param file The file from which to load the object.
-     * @return A new <code>Bo3Object</code> containing the contents of the
+     * @return A new {@code Bo3Object} containing the contents of the
      *     specified file.
      * @throws IOException If an I/O error occurred while reading the file.
      */

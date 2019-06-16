@@ -37,11 +37,11 @@ final class MacUtilsJava8 extends MacUtils {
     /**
      * When the user requests to quit the application, invokes the specified
      * handler on the event dispatch thread and allows the quit to proceed if it
-     * returns <code>true</code> or cancels it otherwise.
+     * returns {@code true} or cancels it otherwise.
      *
      * @param quitHandler The handler to invoke.
-     * @return <code>true</code> if the handler was successfully installed;
-     *     <code>false</code> if the Apple Java extensions cannot be found or
+     * @return {@code true} if the handler was successfully installed;
+     *     {@code false} if the Apple Java extensions cannot be found or
      *     are too old.
      */
     protected boolean doInstallQuitHandler(final MacUtils.QuitHandler quitHandler) {
@@ -62,8 +62,8 @@ final class MacUtilsJava8 extends MacUtils {
      * handler on the event dispatch thread.
      *
      * @param aboutHandler The handler to invoke.
-     * @return <code>true</code> if the handler was successfully installed;
-     *     <code>false</code> if the Apple Java extensions cannot be found or
+     * @return {@code true} if the handler was successfully installed;
+     *     {@code false} if the Apple Java extensions cannot be found or
      *     are too old.
      */
     protected boolean doInstallAboutHandler(final MacUtils.AboutHandler aboutHandler) {
@@ -77,8 +77,8 @@ final class MacUtilsJava8 extends MacUtils {
      * application, invokes the specified handler on the event dispatch thread.
      *
      * @param openFilesHandler The handler to invoke.
-     * @return <code>true</code> if the handler was successfully installed;
-     *     <code>false</code> if the Apple Java extensions cannot be found or
+     * @return {@code true} if the handler was successfully installed;
+     *     {@code false} if the Apple Java extensions cannot be found or
      *     are too old.
      */
     protected boolean doInstallOpenFilesHandler(final MacUtils.OpenFilesHandler openFilesHandler) {

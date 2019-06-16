@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 /**
- * A <code>DirectoryNode</code> which is part of a Minecraft map and can contain
+ * A {@code DirectoryNode} which is part of a Minecraft map and can contain
  * region files, NBT files and other special node types.
  *
  * <p>Created by Pepijn on 15-6-2016.

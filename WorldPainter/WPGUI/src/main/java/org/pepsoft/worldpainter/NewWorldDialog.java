@@ -223,7 +223,7 @@ public class NewWorldDialog extends WorldPainterDialog {
      * their own risk.
      * 
      * @param parent The parent to use for the dialog, if necessary.
-     * @return <code>true</code> if there is enough memory, or the user
+     * @return {@code true} if there is enough memory, or the user
      *     indicated they want to continue at their own risk.
      */
     public boolean checkMemoryRequirements(Window parent) {

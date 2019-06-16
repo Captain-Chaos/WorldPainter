@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Private implementation of <code>MapManager</code> from dynmap in order to work offline.
+ * Private implementation of {@code MapManager} from dynmap in order to work offline.
  *
  * <p>Created by Pepijn Schmitz on 05-06-15.
  */

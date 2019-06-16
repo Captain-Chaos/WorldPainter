@@ -72,8 +72,8 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
      * @param x The X coordinate at which to export the object.
      * @param y The Y coordinate at which to export the object.
      * @param z The Z coordinate at which to export the object.
-     * @param obliterate When <code>true</code>, all blocks of the object are
-     *     placed regardless of what is already there. When <code>false</code>,
+     * @param obliterate When {@code true}, all blocks of the object are
+     *     placed regardless of what is already there. When {@code false},
      *     rules are followed and some or all blocks may not be placed,
      *     depending on what is already there.
      */
@@ -205,7 +205,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
      * other words: whether it could potentially be placeable at all given its
      * dimensions and location.
      *
-     * @return <code>true</code> if the object could potentially be placeable
+     * @return {@code true} if the object could potentially be placeable
      *     and the caller can proceed with further checks.
      */
     public static boolean isSane(WPObject object, int x, int y, int z, int maxHeight) {
@@ -237,7 +237,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
      * {@link #isSane(WPObject, int, int, int, int)} first to weed out objects
      * for which this check does not even apply.
      *
-     * @return <code>true</code> if the object may be placed at the specified
+     * @return {@code true} if the object may be placed at the specified
      *     location according to its collision mode attributes.
      */
     public static boolean isRoom(final MinecraftWorld world, final Dimension dimension, final WPObject object, final int x, final int y, final int z, final Placement placement) {

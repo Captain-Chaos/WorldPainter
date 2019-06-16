@@ -18,14 +18,14 @@ import org.pepsoft.worldpainter.layers.LayerEditor;
 public interface LayerEditorProvider extends Plugin {
     /**
      * Create a layer editor for the specified layer type and target platform.
-     * May return <code>null</code> in case this provider does not support the
+     * May return {@code null} in case this provider does not support the
      * specified layer type.
      * 
      * @param <L> The type of layer for which an editor is requested.
      * @param platform The target platform for which to configure the layer.
      * @param layerType The class object of the layer type for which an editor
      *     is requested.
-     * @return A new editor for the specified layer type, or <code>null</code>
+     * @return A new editor for the specified layer type, or {@code null}
      *     if this provider does not support the specified layer type.
      */
     <L extends Layer> LayerEditor<L> createLayerEditor(Platform platform, Class<L> layerType);

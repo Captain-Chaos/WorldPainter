@@ -476,7 +476,7 @@ public class MemoryChunk implements Chunk, MinecraftWorld, Serializable {
          * Indicates whether the section is empty, meaning all block ID's, data
          * values and block light values are 0, and all sky light values are 15.
          * 
-         * @return <code>true</code> if the section is empty
+         * @return {@code true} if the section is empty
          */
         boolean isEmpty() {
             for (Material b: blocks) {

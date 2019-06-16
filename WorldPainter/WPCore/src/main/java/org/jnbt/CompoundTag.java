@@ -37,7 +37,7 @@ import java.util.Map;
 
 /**
  * The
- * <code>TAG_Compound</code> tag.
+ * {@code TAG_Compound} tag.
  *
  * @author Graham Edgecombe
  *

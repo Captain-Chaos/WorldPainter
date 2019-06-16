@@ -26,7 +26,7 @@ public interface Bo2ObjectProvider extends Serializable, Cloneable {
      * Obtain one {@link WPObject}, which may be the same one every time, or a
      * different one from a random collection or sequence every time.
      *
-     * @return One <code>WPObject</code>.
+     * @return One {@code WPObject}.
      */
     WPObject getObject();
 

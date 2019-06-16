@@ -113,7 +113,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
 
     /**
      * Update the change number; for use when some aspect of a dimension changes
-     * which the <code>Dimension</code> class itself does not track.
+     * which the {@code Dimension} class itself does not track.
      */
     public void changed() {
         changeNo++;
@@ -223,7 +223,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
      *     present.
      * @param y The world Y coordinate for which to determine whether a tile is
      *     present.
-     * @return <code>true</code> if the dimension contains a tile at the
+     * @return {@code true} if the dimension contains a tile at the
      *     specified location.
      */
     @Override
@@ -238,7 +238,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
      *     border tile.
      * @param y The Y coordinate of the tile for which to check whether it is a
      *     border tile.
-     * @return <code>true</code> if it is a border tile.
+     * @return {@code true} if it is a border tile.
      */
     public synchronized boolean isBorderTile(int x, int y) {
         if ((border == null)
@@ -282,7 +282,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
      * @param x The world X coordinate for which to get the tile.
      * @param y The world Y coordinate for which to get the tile.
      * @return The tile on which the specified coordinates lie, or
-     *     <code>null</code> if there is no tile for those coordinates
+     *     {@code null} if there is no tile for those coordinates
      */
     @Override
     public synchronized Tile getTile(final int x, final int y) {
@@ -296,13 +296,13 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     /**
      * Get the tile for a particular set of world or absolute block coordinates with the intention of modifying it. This
      * is intended to be used in combination with {@link #setEventsInhibited(boolean)}. Whenever
-     * <code>eventsInhibited</code> is <code>true</code>, the dimension will automatically inhibit events on the tile,
-     * mark it as dirty and fire an event for it when <code>eventsInhibited</code> is set to <code>false</code>.
+     * {@code eventsInhibited} is {@code true}, the dimension will automatically inhibit events on the tile,
+     * mark it as dirty and fire an event for it when {@code eventsInhibited} is set to {@code false}.
      *
      * @param x The world X coordinate for which to get the tile.
      * @param y The world Y coordinate for which to get the tile.
      * @return The tile on which the specified coordinates lie, or
-     *     <code>null</code> if there is no tile for those coordinates
+     *     {@code null} if there is no tile for those coordinates
      */
     public synchronized Tile getTileForEditing(final int x, final int y) {
         Tile tile = tiles.get(new Point(x, y));
@@ -316,12 +316,12 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     /**
      * Get the tile for a particular set of world or absolute block coordinates with the intention of modifying it. This
      * is intended to be used in combination with {@link #setEventsInhibited(boolean)}. Whenever
-     * <code>eventsInhibited</code> is <code>true</code>, the dimension will automatically inhibit events on the tile,
-     * mark it as dirty and fire an event for it when <code>eventsInhibited</code> is set to <code>false</code>.
+     * {@code eventsInhibited} is {@code true}, the dimension will automatically inhibit events on the tile,
+     * mark it as dirty and fire an event for it when {@code eventsInhibited} is set to {@code false}.
      *
      * @param coords The world coordinates for which to get the tile.
      * @return The tile on which the specified coordinates lie, or
-     *     <code>null</code> if there is no tile for those coordinates
+     *     {@code null} if there is no tile for those coordinates
      */
     public synchronized Tile getTileForEditing(final Point coords) {
         Tile tile = tiles.get(coords);
@@ -663,7 +663,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
      * @param x The X location for which to retrieve all layers.
      * @param y The Y location for which to retrieve all layers.
      * @return A map with all layers set at the specified location, mapped to
-     *     their intensities at that location. May either be <code>null</code>
+     *     their intensities at that location. May either be {@code null}
      *     or an empty map if no layers are present.
      */
     public Map<Layer, Integer> getLayersAt(int x, int y) {
@@ -684,8 +684,8 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
      * @param y The global Y coordinate of the location around which to count
      *     flooded blocks.
      * @param r The radius of the square.
-     * @param lava Whether to check for lava (when <code>true</code>) or water
-     *     (when <code>false</code>).
+     * @param lava Whether to check for lava (when {@code true}) or water
+     *     (when {@code false}).
      * @return The number of blocks in the specified square that are flooded.
      */
     public synchronized int getFloodedCount(final int x, final int y, final int r, final boolean lava) {
@@ -804,7 +804,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
      * @param x The X coordinate of the location to clear of layer data.
      * @param y The Y coordinate of the location to clear of layer data.
      * @param excludedLayers The layers to exclude, if any. May be
-     *                       <code>null</code>.
+     *                       {@code null}.
      */
     public void clearLayerData(int x, int y, Set<Layer> excludedLayers) {
         Tile tile = getTileForEditing(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
@@ -1381,7 +1381,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
      * @param progressReceiver An optional progress receiver to which progress
      *                         of the operation will be reported.
      * @throws OperationCancelled If the progress receiver threw an
-     * <code>OperationCancelled</code> exception indicating that the user wished
+     * {@code OperationCancelled} exception indicating that the user wished
      * to cancel the operation.
      */
     public void transform(CoordinateTransform transform, ProgressReceiver progressReceiver) throws OperationCancelled {

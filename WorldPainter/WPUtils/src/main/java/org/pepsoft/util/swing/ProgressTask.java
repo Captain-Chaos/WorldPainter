@@ -26,12 +26,12 @@ public interface ProgressTask<T> {
      * and optionally returning a value.
      *
      * @param progressReceiver The progress receiver to which to report
-     *                         progress. May be <code>null</code>.
-     * @return The result of the task, or <code>null</code> if it does not
+     *                         progress. May be {@code null}.
+     * @return The result of the task, or {@code null} if it does not
      *     return a result.
      * @throws ProgressReceiver.OperationCancelled If the user cancelled the
      *     operation, as indicated by the progress receiver throwing an
-     *     <code>OperationCancelled</code> exception.
+     *     {@code OperationCancelled} exception.
      */
     T execute(ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled;
 }

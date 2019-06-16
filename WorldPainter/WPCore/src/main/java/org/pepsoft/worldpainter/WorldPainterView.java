@@ -48,7 +48,7 @@ public abstract class WorldPainterView extends TiledImageViewer {
     /**
      * Determine whether the brush radius is currently being displayed.
      *
-     * @return <code>true</code> if the brush radius is currently being
+     * @return {@code true} if the brush radius is currently being
      * displayed.
      */
     public abstract boolean isDrawBrush();

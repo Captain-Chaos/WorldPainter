@@ -54,7 +54,7 @@ public interface Garden {
      * @param x The X coordinate to mark.
      * @param y The Y coordinate to mark.
      * @param category The category with which to mark the location as one
-     *     of the <code>CATEGORY_*</code> constants in the
+     *     of the {@code CATEGORY_*} constants in the
      *     {@link GardenCategory} class.
      */
     void setCategory(int x, int y, int category);
@@ -65,7 +65,7 @@ public interface Garden {
      * @param x The X coordinate to get.
      * @param y The Y coordinate to get.
      * @return The category of seed that occupies the specified location as one
-     *     of the <code>CATEGORY_*</code> constants in the
+     *     of the {@code CATEGORY_*} constants in the
      *     {@link GardenCategory} class, or 0 if it is unoccupied.
      */
     int getCategory(int x, int y);
@@ -88,7 +88,7 @@ public interface Garden {
      * @param radius The radius of the square.
      * @param <T> The type of seed to locate.
      * @return A list of the existent seeds of the specified type in the
-     *     specified square. May be empty, but not <code>null</code>.
+     *     specified square. May be empty, but not {@code null}.
      */
     <T extends Seed> List<T> findSeeds(Class<T> type, int x, int y, int radius);
 
@@ -98,7 +98,7 @@ public interface Garden {
      *
      * @param x The X coordinate of the location.
      * @param y The Y coordinate of the location.
-     * @return <code>true</code> if the location is marked as occupied, or is
+     * @return {@code true} if the location is marked as occupied, or is
      *     flooded.
      */
     boolean isOccupied(int x, int y);
@@ -109,7 +109,7 @@ public interface Garden {
      *
      * @param x The X coordinate of the location.
      * @param y The Y coordinate of the location.
-     * @return <code>true</code> if the location is marked as occupied with
+     * @return {@code true} if the location is marked as occupied with
      *     water, or is actually under water.
      */
     boolean isWater(int x, int y);
@@ -119,7 +119,7 @@ public interface Garden {
      *
      * @param x The X coordinate of the location.
      * @param y The Y coordinate of the location.
-     * @return <code>true</code> if the location is flooded with lava.
+     * @return {@code true} if the location is flooded with lava.
      */
     boolean isLava(int x, int y);
 
@@ -127,7 +127,7 @@ public interface Garden {
      * Plant a seed in the garden.
      *
      * @param seed The seed to plant.
-     * @return <code>true</code> if the seed was planted; <code>false</code> if
+     * @return {@code true} if the seed was planted; {@code false} if
      * it could not be planted for some reason.
      */
     boolean plantSeed(Seed seed);
@@ -167,10 +167,10 @@ public interface Garden {
      * steady state until new seeds are planted, and does not need to be ticked
      * over anymore.
      *
-     * @return <code>true</code> if all seeds have either sprouted or died,
+     * @return {@code true} if all seeds have either sprouted or died,
      *     meaning that the garden is in a steady state until new seeds are
      *     planted, and does not need to be ticked over anymore.
-     *     <code>false</code> if there are still living seeds and the garden
+     *     {@code false} if there are still living seeds and the garden
      *     needs further ticking over.
      */
     boolean tick();

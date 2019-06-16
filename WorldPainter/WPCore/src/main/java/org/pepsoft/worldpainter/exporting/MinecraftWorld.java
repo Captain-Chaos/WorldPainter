@@ -84,7 +84,7 @@ public interface MinecraftWorld extends ChunkProvider {
      *
      * @param x The X coordinate in chunk coordinates.
      * @param y The Y coordinate in chunk coordinates.
-     * @return <code>true</code> if data is present for the specified chunk.
+     * @return {@code true} if data is present for the specified chunk.
      */
     boolean isChunkPresent(int x, int y);
 
@@ -104,7 +104,7 @@ public interface MinecraftWorld extends ChunkProvider {
      * @param x The X coordinate of the column.
      * @param y The Y coordinate of the column.
      * @return The Z coordinate of the highest non-air block in the specified
-     * column or <code>-1</code> if the column is empty or no data is present
+     * column or {@code -1} if the column is empty or no data is present
      * for the specified coordinates.
      */
     int getHighestNonAirBlock(int x, int y);

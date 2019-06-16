@@ -19,7 +19,7 @@ public final class DataUtils {
      *
      * @param in The stream to read from.
      * @return The next four bytes in the stream as an unsigned 32-bit integer.
-     * @throws IOException If the stream throws an <code>IOException</code>
+     * @throws IOException If the stream throws an {@code IOException}
      * while reading the bytes.
      */
     public static long readUnsignedInt(DataInput in) throws IOException {

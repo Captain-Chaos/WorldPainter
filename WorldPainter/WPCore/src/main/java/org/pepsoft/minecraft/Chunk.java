@@ -90,7 +90,7 @@ public interface Chunk {
      * @param x The X coordinate of the column relative to the chunk.
      * @param z The Z coordinate of the column relative to the chunk.
      * @return The Y coordinate of the highest non-air (block ID zero, any data
-     *     value) block in the specified column or <code>-1</code> if the column
+     *     value) block in the specified column or {@code -1} if the column
      *     is empty.
      */
     int getHighestNonAirBlock(int x, int z);
@@ -101,7 +101,7 @@ public interface Chunk {
      * long as it is the same or higher than the actual highest non-air block.
      *
      * @return The Y coordinate of the highest non-air (block ID zero, any data
-     *     value) block in the chunk or <code>-1</code> if the chunk is empty.
+     *     value) block in the chunk or {@code -1} if the chunk is empty.
      */
     int getHighestNonAirBlock();
 }

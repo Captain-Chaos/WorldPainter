@@ -124,7 +124,7 @@ public class BiomeSchemeManager {
      *
      * @param version The highest version to return.
      * @return The highest version Minecraft jar found that is not higher than
-     * the specified version, or <code>null</code> if no such Minecraft jar is
+     * the specified version, or {@code null} if no such Minecraft jar is
      * available.
      */
     public static File getMinecraftJarNoNewerThan(Version version) {
@@ -146,7 +146,7 @@ public class BiomeSchemeManager {
      *
      * @param version The lowest version to return.
      * @return The highest version Minecraft jar found that is not lower than
-     * the specified version, or <code>null</code> if no such Minecraft jar is
+     * the specified version, or {@code null} if no such Minecraft jar is
      * available.
      */
     public static File getMinecraftJarNoOlderThan(Version version) {
@@ -193,7 +193,7 @@ public class BiomeSchemeManager {
 
     /**
      * Starts background initialisation of the biome scheme manager, so that
-     * subsequent invocations of the <code>getSharedBiomeScheme</code> methods won't
+     * subsequent invocations of the {@code getSharedBiomeScheme} methods won't
      * have to wait for initialisation.
      */
     public static void initialiseInBackground() {

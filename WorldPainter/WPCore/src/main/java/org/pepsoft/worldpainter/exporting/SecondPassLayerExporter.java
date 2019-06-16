@@ -24,7 +24,7 @@ public interface SecondPassLayerExporter extends LayerExporter {
      *
      * @param dimension The dimension that is being exported.
      * @param area The area to process.
-     * @param exportedArea The area which will actually be exported. May be smaller than <code>area</code>. May be used to for instance avoid objects getting cut off at area boundaries.
+     * @param exportedArea The area which will actually be exported. May be smaller than {@code area}. May be used to for instance avoid objects getting cut off at area boundaries.
      * @param minecraftWorld The {@link MinecraftWorld} to which to export the layer.
      * @param platform The platform for which the layer is being exported.
      * @return An optional list of fixups which should be executed after all regions have been exported.

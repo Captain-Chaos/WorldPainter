@@ -36,11 +36,11 @@ final class MacUtilsJava9 extends MacUtils {
     /**
      * When the user requests to quit the application, invokes the specified
      * handler on the event dispatch thread and allows the quit to proceed if it
-     * returns <code>true</code> or cancels it otherwise.
+     * returns {@code true} or cancels it otherwise.
      *
      * @param quitHandler The handler to invoke.
-     * @return <code>true</code> if the handler was successfully installed;
-     *     <code>false</code> if not.
+     * @return {@code true} if the handler was successfully installed;
+     *     {@code false} if not.
      */
     protected boolean doInstallQuitHandler(final MacUtils.QuitHandler quitHandler) {
         Desktop.getDesktop().setQuitHandler((quitEvent, quitResponse) -> {
@@ -59,8 +59,8 @@ final class MacUtilsJava9 extends MacUtils {
      * handler on the event dispatch thread.
      *
      * @param aboutHandler The handler to invoke.
-     * @return <code>true</code> if the handler was successfully installed;
-     *     <code>false</code> if not.
+     * @return {@code true} if the handler was successfully installed;
+     *     {@code false} if not.
      */
     protected boolean doInstallAboutHandler(final MacUtils.AboutHandler aboutHandler) {
         Desktop.getDesktop().setAboutHandler(aboutEvent -> AwtUtils.doLaterOnEventThread(aboutHandler::aboutRequested));
@@ -72,12 +72,11 @@ final class MacUtilsJava9 extends MacUtils {
      * application, invokes the specified handler on the event dispatch thread.
      *
      * @param openFilesHandler The handler to invoke.
-     * @return <code>true</code> if the handler was successfully installed;
-     *     <code>false</code> if not.
+     * @return {@code true} if the handler was successfully installed;
+     *     {@code false} if not.
      */
     protected boolean doInstallOpenFilesHandler(final MacUtils.OpenFilesHandler openFilesHandler) {
         Desktop.getDesktop().setOpenFileHandler(openFilesEvent -> {
-            @SuppressWarnings("unchecked") // Guaranteed by Java reflection
             final List<File> files = openFilesEvent.getFiles();
             AwtUtils.doLaterOnEventThread(() -> openFilesHandler.filesOpened(files));
         });

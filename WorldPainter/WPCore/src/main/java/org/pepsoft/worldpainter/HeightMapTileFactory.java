@@ -95,7 +95,7 @@ public class HeightMapTileFactory extends AbstractTileFactory {
     }
 
     /**
-     * Always returns <code>true</code> since height map tile factories are
+     * Always returns {@code true} since height map tile factories are
      * endless.
      */
     @Override

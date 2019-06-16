@@ -24,12 +24,12 @@ public abstract class PostProcessor {
      * Post process (part of) a {@link MinecraftWorld} to make sure it conforms
      * to platform rules.
      *
-     * @param minecraftWorld The <code>MinecraftWorld</code> to post process.
+     * @param minecraftWorld The {@code MinecraftWorld} to post process.
      * @param area The area of the world to post process from top to bottom.
      * @param progressReceiver The optional progress receiver to which to report
-     *                         progress. May be <code>null</code>.
+     *                         progress. May be {@code null}.
      * @throws ProgressReceiver.OperationCancelled If the progress receiver
-     * threw an <code>OperationCancelled</code> exception.
+     * threw an {@code OperationCancelled} exception.
      */
     public void postProcess(MinecraftWorld minecraftWorld, Rectangle area, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
         postProcess(minecraftWorld, new Box(area.x, area.x + area.width, area.y, area.y + area.height, 0, minecraftWorld.getMaxHeight()), progressReceiver);
@@ -39,12 +39,12 @@ public abstract class PostProcessor {
      * Post process (part of) a {@link MinecraftWorld} to make sure it conforms
      * to platform rules.
      *
-     * @param minecraftWorld The <code>MinecraftWorld</code> to post process.
+     * @param minecraftWorld The {@code MinecraftWorld} to post process.
      * @param volume The three dimensional area of the world to post process.
      * @param progressReceiver The optional progress receiver to which to report
-     *                         progress. May be <code>null</code>.
+     *                         progress. May be {@code null}.
      * @throws ProgressReceiver.OperationCancelled If the progress receiver
-     * threw an <code>OperationCancelled</code> exception.
+     * threw an {@code OperationCancelled} exception.
      */
     public abstract void postProcess(MinecraftWorld minecraftWorld, Box volume, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled;
 

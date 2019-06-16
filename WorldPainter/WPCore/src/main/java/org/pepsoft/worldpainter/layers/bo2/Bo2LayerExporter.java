@@ -160,7 +160,7 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
      * Determines whether an object fits completely into the area currently
      * being rendere in the horizontal dimensions.
      *
-     * @return <code>true</code> if the object fits.
+     * @return {@code true} if the object fits.
      */
     private boolean fitsInExportedArea(final Rectangle exportedArea, final WPObject object, final int x, final int y) {
         final Point3i dimensions = object.getDimensions();

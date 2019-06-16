@@ -32,21 +32,21 @@ import static org.pepsoft.minecraft.Material.AIR;
  * operations, which will throw an {@link UnsupportedOperationException}. The
  * exception is adding chunks, which works by copying the block data over.
  * 
- * <p>For the <code>MinecraftWorld</code> interface the supported coordinates
- * are those specified by the <code>volume</code> parameter. For the
- * <code>WPObject</code> interface, the coordinates are translated so that the
+ * <p>For the {@code MinecraftWorld} interface the supported coordinates
+ * are those specified by the {@code volume} parameter. For the
+ * {@code WPObject} interface, the coordinates are translated so that the
  * lower north west corner is at 0,0,0. In other words, the
- * <code>WPObject</code> has no offset and all the coordinates are positive.
+ * {@code WPObject} has no offset and all the coordinates are positive.
  *
  * <p>An offset may in fact be specified but it has no effect on the coordinates
  * used by this object; it is purely meant to communicate to a consumer of the
- * <code>WPObject</code> that the object should be shifted when placed.
+ * {@code WPObject} that the object should be shifted when placed.
  * 
  * @author SchmitzP
  */
 public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
     /**
-     * Create a new <code>MinecraftWorldObject</code> which is initialised with
+     * Create a new {@code MinecraftWorldObject} which is initialised with
      * all air and has no offset.
      *
      * @param name The name of the world/object.
@@ -61,7 +61,7 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
     }
 
     /**
-     * Create a new <code>MinecraftWorldObject</code>.
+     * Create a new {@code MinecraftWorldObject}.
      *
      * @param name The name of the world/object.
      * @param volume The volume of blocks in world coordinates which the object should encompass. Blocks outside this
@@ -70,7 +70,7 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
      *                  be higher than the volume; that just means the blocks between the top of the volume and
      *                  maxHeight won't be stored.
      * @param lowestBlocks An optional column of materials with which the bottom of the volume should be filled. All
-     *                     other blocks will be initialised as air. May be <code>null</code>, in which case all blocks
+     *                     other blocks will be initialised as air. May be {@code null}, in which case all blocks
      *                     will be initialised as air.
      * @param offset The offset to return from {@link WPObject#getOffset()}.
      */

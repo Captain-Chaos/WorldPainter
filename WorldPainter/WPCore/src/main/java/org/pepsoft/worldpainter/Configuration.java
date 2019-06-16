@@ -734,7 +734,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
      * during load.
      *
      * @return The previous version of the configuration data as it existed on
-     * disk before loading, or <code>-1</code> if this configuration was not
+     * disk before loading, or {@code -1} if this configuration was not
      * loaded from disk.
      */
     public int getPreviousVersion() {

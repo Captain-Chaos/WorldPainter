@@ -23,7 +23,7 @@ public interface Operation {
      * associate. Will be invoked once by WorldPainter when the operation is
      * initialised.
      *
-     * @param view The <code>WorldPainterView</code> with which the operation
+     * @param view The {@code WorldPainterView} with which the operation
      *             should associate.
      */
     void setView(WorldPainterView view);
@@ -46,7 +46,7 @@ public interface Operation {
     /**
      * Determine whether the operation is currently active.
      *
-     * @return <code>true</code> if the operation is currently active.
+     * @return {@code true} if the operation is currently active.
      */
     boolean isActive();
 
@@ -61,8 +61,8 @@ public interface Operation {
      * deactivated.
      *
      * @param active Whether the operation should activatate itself (when
-     *               <code>true</code>) or deactivate itself (when
-     *               <code>false</code>).
+     *               {@code true}) or deactivate itself (when
+     *               {@code false}).
      * @throws PropertyVetoException If the operation failed to activate for
      * some reason, for instance because some dependency is not met, or some
      * state is inappropriate.
@@ -80,7 +80,7 @@ public interface Operation {
     /**
      * Get the options panel of the operation, if any. Should be a live and
      * modifiable view of the current options of the operation. May be
-     * <code>null</code> if the operation has no options.
+     * {@code null} if the operation has no options.
      */
     JPanel getOptionsPanel();
 }

@@ -787,7 +787,7 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
          * Indicates whether the section is empty, meaning all block ID's, data
          * values and block light values are 0, and all sky light values are 15.
          * 
-         * @return <code>true</code> if the section is empty
+         * @return {@code true} if the section is empty
          */
         boolean isEmpty() {
             for (Material material: materials) {
@@ -847,16 +847,19 @@ public final class MC113AnvilChunk extends NBTChunk implements MinecraftWorld {
      * The chunk generation status.
      */
     public enum Status {
-        // These have lately been observed to occur in this order of generation:
+        // 1.13, in this order of generation:
         EMPTY, CARVED, LIQUID_CARVED, DECORATED, FULLCHUNK, POSTPROCESSED,
 
+        // 1.14.2, in order of generation:
+        STRUCTURE_STARTS, NOISE, LIQUID_CARVERS, FEATURES, LIGHT, FULL,
+
+        // Others:
+        HEIGHTMAPS,
+
         // Reported by users (TODOMC13: 1.13 or 1.14?):
-        LIGHT, CARVERS, BIOMES, SPAWN,
+        CARVERS, BIOMES, SPAWN,
 
         // These have not lately been observed and may not (longer) be in use by Minecraft:
         LIGHTED, FINALIZED, MOBS_SPAWNED,
-
-        // New for 1.14 (do they replace the ones from 1.13?)
-        FULL, STRUCTURE_STARTS, LIQUID_CARVERS, FEATURES, HEIGHTMAPS
     }
 }

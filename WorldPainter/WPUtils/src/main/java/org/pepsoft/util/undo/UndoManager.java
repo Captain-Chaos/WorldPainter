@@ -127,7 +127,7 @@ public class UndoManager {
      * Indicates whether the current history frame is dirty (meaning that
      * buffers have been checked out for editing from it).
      * 
-     * @return <code>true</code> if the current history frame is dirty.
+     * @return {@code true} if the current history frame is dirty.
      */
     public boolean isDirty() {
         return ! writeableBufferCache.isEmpty();
@@ -137,7 +137,7 @@ public class UndoManager {
      * Rolls back all buffers to the previous save point, if there is one still
      * available.
      *
-     * @return <code>true</code> if the undo was succesful.
+     * @return {@code true} if the undo was succesful.
      */
     public boolean undo() {
         if (currentFrame > 0) {
@@ -172,7 +172,7 @@ public class UndoManager {
      * Rolls forward all buffers to the next save point, if there is one
      * available, and no edits have been performed since the last undo.
      *
-     * @return <code>true</code> if the redo was succesful.
+     * @return {@code true} if the redo was succesful.
      */
     public boolean redo() {
         if (currentFrame < (history.size() - 1)) {

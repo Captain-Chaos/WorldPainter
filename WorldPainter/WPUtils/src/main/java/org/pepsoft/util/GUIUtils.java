@@ -19,7 +19,7 @@ public class GUIUtils {
      * is used, in other words no smoothing or interpolation is applied.
      *
      * @param image The image to scale.
-     * @return The original image if <code>UI_SCALE</code> is 1, or an
+     * @return The original image if {@code UI_SCALE} is 1, or an
      * appropriately scaled copy otherwise.
      */
     public static BufferedImage scaleToUI(BufferedImage image) {

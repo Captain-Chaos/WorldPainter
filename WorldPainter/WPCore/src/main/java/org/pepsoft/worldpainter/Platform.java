@@ -13,7 +13,7 @@ import java.util.Set;
 /**
  * A descriptor for a WorldPainter-supported map storage format. Implements the
  * Enumeration pattern, meaning there is only ever one instance of each unique
- * platform, allowing the <code>==</code> operator to be used with it.
+ * platform, allowing the {@code ==} operator to be used with it.
  *
  * <p>Created by Pepijn on 11-12-2016.
  */
@@ -47,7 +47,7 @@ public final class Platform implements Serializable {
      * requiring any changes or edits.
      * 
      * @param world The world to check for compatibility.
-     * @return <code>true</code> if the world could be trivially retargeted to
+     * @return {@code true} if the world could be trivially retargeted to
      * this platform.
      */
     public boolean isCompatible(World2 world) {

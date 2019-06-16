@@ -207,7 +207,7 @@ public class GeneralQueueLinearFloodFiller {
          *
          * @param x The X coordinate to check.
          * @param y The Y coordinate to check.
-         * @return <code>true</code> if the specified coordinates are a boundary beyond which the fill operation should
+         * @return {@code true} if the specified coordinates are a boundary beyond which the fill operation should
          * not proceed.
          */
         boolean isBoundary(int x, int y);

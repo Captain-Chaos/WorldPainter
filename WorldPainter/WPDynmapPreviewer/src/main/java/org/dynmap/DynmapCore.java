@@ -10,7 +10,7 @@ import java.io.File;
 import static org.pepsoft.worldpainter.Constants.V_1_12_2;
 
 /**
- * Private implementation of <code>DynmapCore</code> from dynmap in order to work offline.
+ * Private implementation of {@code DynmapCore} from dynmap in order to work offline.
  *
  * Created by Pepijn Schmitz on 01-09-15.
  */

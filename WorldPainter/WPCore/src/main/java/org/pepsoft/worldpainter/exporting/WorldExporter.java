@@ -24,7 +24,7 @@ public interface WorldExporter {
 
     /**
      * Indicate into which directory the existing map, if any, will be backed up
-     * that is going to be exported into <code>worldDir</code>.
+     * that is going to be exported into {@code worldDir}.
      *
      * @param worldDir The directory into which the world is going to be
      *                 exported.
@@ -45,7 +45,7 @@ public interface WorldExporter {
      * @param backupDir The directory to which to backup the existing map
      *                  directory, if any.
      * @param progressReceiver An optional progress receiver to which to report
-     *                         the progress of the export. May be <code>null</code>.
+     *                         the progress of the export. May be {@code null}.
      * @return Per-dimension statistics about the export process and result.
      * @throws IOException If an I/O error occurs while exporting the world.
      * @throws ProgressReceiver.OperationCancelled If the progress receiver has

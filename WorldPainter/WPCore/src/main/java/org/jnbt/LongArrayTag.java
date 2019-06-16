@@ -1,7 +1,7 @@
 package org.jnbt;
 
 /**
- * The <code>TAG_Long_Array</code> tag.
+ * The {@code TAG_Long_Array} tag.
  */
 public final class LongArrayTag extends Tag {
     /**

@@ -12,16 +12,16 @@ import javax.swing.*;
 /**
  * A heightmap creating a square with rounded corners, with a smoothly descending border on the outside.
  *
- * <p>The <code>innerSize</code> is the inner size of the square (from the centre, so half the actual width) without the rounded corners.<br>
- * The <code>borderSize</code> is the radius of the rounded corners.<br>
- * The <code>coastSize</code> is the distance over which the height decreases to zero outside the border.<br>
- * The <code>height</code> is the height of the part described by <code>innerSize + borderSize</code>. From there the height sinuously decreases to zero over <code>coastSize</code> pixels.
+ * <p>The {@code innerSize} is the inner size of the square (from the centre, so half the actual width) without the rounded corners.<br>
+ * The {@code borderSize} is the radius of the rounded corners.<br>
+ * The {@code coastSize} is the distance over which the height decreases to zero outside the border.<br>
+ * The {@code height} is the height of the part described by {@code innerSize + borderSize}. From there the height sinuously decreases to zero over {@code coastSize} pixels.
  *
  * <p><img src="doc-files/ninepatch.png"/>
  *
- * <p>By setting the <code>innerSize</code> to zero you can create a completely circular shape. The two constructors that take only two <code>int</code>s are convenience constructors to do that.
+ * <p>By setting the {@code innerSize} to zero you can create a completely circular shape. The two constructors that take only two {@code int}s are convenience constructors to do that.
  *
- * <p>To have entirely sharp, perpendicular corners, set the <code>borderSize</code> to zero.
+ * <p>To have entirely sharp, perpendicular corners, set the {@code borderSize} to zero.
  *
  * @author pepijn
  */

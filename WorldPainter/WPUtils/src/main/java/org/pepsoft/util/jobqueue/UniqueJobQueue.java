@@ -42,7 +42,7 @@ public class UniqueJobQueue<T extends Job> {
      * queue yet.
      * 
      * @param job The job to schedule.
-     * @return <code>true</code> if the job was scheduled, <code>false</code> if
+     * @return {@code true} if the job was scheduled, {@code false} if
      *     it already was on the queue.
      */
     public synchronized boolean scheduleJobIfNotScheduled(T job) {
@@ -66,8 +66,8 @@ public class UniqueJobQueue<T extends Job> {
      * the existing instance is removed.
      * 
      * @param job The job to schedule.
-     * @return <code>true</code> if the job already existed on the queue,
-     *     <code>false</code> if it did not.
+     * @return {@code true} if the job already existed on the queue,
+     *     {@code false} if it did not.
      */
     public synchronized boolean rescheduleJob(T job) {
         if (queue.contains(job)) {
@@ -91,7 +91,7 @@ public class UniqueJobQueue<T extends Job> {
      * Remove a job from the queue if it has not already been executed.
      * 
      * @param job The job to remove.
-     * @return <code>true</code> if the job was still on the queue and has been
+     * @return {@code true} if the job was still on the queue and has been
      *     removed.
      */
     public synchronized boolean removeJob(T job) {

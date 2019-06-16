@@ -128,8 +128,8 @@ public final class Version implements Comparable<Version>, Serializable {
     }
 
     /**
-     * Create a new <code>Version</code> from a string of the form
-     * <code>x.y.z</code> or <code>x.y.z-EXT</code> (with any number of parts).
+     * Create a new {@code Version} from a string of the form
+     * {@code x.y.z} or {@code x.y.z-EXT} (with any number of parts).
      *
      * @param str The string to parse.
      * @return The resulting Version object.

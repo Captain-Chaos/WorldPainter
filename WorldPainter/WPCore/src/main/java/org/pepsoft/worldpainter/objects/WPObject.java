@@ -52,7 +52,7 @@ public interface WPObject extends Serializable, Cloneable {
      * object.
      *
      * <p>This is a convenience method which must return the same as invoking
-     * <code>getAttribute(ATTRIBUTE_OFFSET)</code>. See
+     * {@code getAttribute(ATTRIBUTE_OFFSET)}. See
      * {@link #getAttribute(AttributeKey)} and {@link #ATTRIBUTE_OFFSET}.
      *
      * @return The offset to apply to this object when placing it.
@@ -62,7 +62,7 @@ public interface WPObject extends Serializable, Cloneable {
     /**
      * Get the material to place at the specified relative coordinates. Should
      * only be invoked for coordinates for which {@link #getMask(int, int, int)}
-     * returns <code>true</code>.
+     * returns {@code true}.
      * 
      * @param x The relative X coordinate.
      * @param y The relative Y coordinate.
@@ -89,7 +89,7 @@ public interface WPObject extends Serializable, Cloneable {
      * @param x The relative X coordinate.
      * @param y The relative Y coordinate.
      * @param z The relative Z coordinate.
-     * @return <code>true</code> if a block should be placed at the specified
+     * @return {@code true} if a block should be placed at the specified
      *     relative coordinates.
      */
     boolean getMask(int x, int y, int z);
@@ -98,7 +98,7 @@ public interface WPObject extends Serializable, Cloneable {
      * Get any entities contained in the object. The entities' coordinates
      * should be relative to the object, not absolute.
      * 
-     * @return Any entities contained in the object. May be <code>null</code>.
+     * @return Any entities contained in the object. May be {@code null}.
      */
     List<Entity> getEntities();
     
@@ -107,7 +107,7 @@ public interface WPObject extends Serializable, Cloneable {
      * should be relative to the object, not absolute.
      * 
      * @return Any tile entities contained in the object. May be
-     *     <code>null</code>.
+     *     {@code null}.
      */
     List<TileEntity> getTileEntities();
 
@@ -124,7 +124,7 @@ public interface WPObject extends Serializable, Cloneable {
     /**
      * Get a live view of the object metadata.
      * 
-     * @return A live view of the object metadata. May be <code>null</code>.
+     * @return A live view of the object metadata. May be {@code null}.
      */
     Map<String, Serializable> getAttributes();
 
@@ -132,7 +132,7 @@ public interface WPObject extends Serializable, Cloneable {
      * Determine whether the object contains a value for a particular attribute.
      *
      * @param attributeKey The attribute key to check.
-     * @return <code>true</code> if a value is set for the specified attribute.
+     * @return {@code true} if a value is set for the specified attribute.
      */
     default boolean hasAttribute(AttributeKey<?> attributeKey) {
         Map<String, Serializable> attributes = getAttributes();
@@ -142,7 +142,7 @@ public interface WPObject extends Serializable, Cloneable {
     /**
      * Convencience method for getting the value of an attribute stored in the
      * external metadata, if any. Should return the value of the attribute if it
-     * is present, or a default value (which may be <code>null</code>) if it is
+     * is present, or a default value (which may be {@code null}) if it is
      * not.
      * 
      * @param <T> The type of the attribute.
@@ -161,13 +161,13 @@ public interface WPObject extends Serializable, Cloneable {
     
     /**
      * Convenience method for setting the value of an attribute stored in the
-     * external metadata, if any. Setting the value to <code>null</code> will
+     * external metadata, if any. Setting the value to {@code null} will
      * delete the attribute from the store. If the store becomes empty it is
      * deleted entirely.
      * 
      * @param <T> The type of the attribute.
      * @param key The key of the attribute to set or delete.
-     * @param value The value of the attribute to set, or <code>null</code> to
+     * @param value The value of the attribute to set, or {@code null} to
      *     delete it.
      */
     <T extends Serializable> void setAttribute(AttributeKey<T> key, T value);
@@ -183,7 +183,7 @@ public interface WPObject extends Serializable, Cloneable {
 
     /**
      * Guestimate an offset for the object. If an offset cannot be calculated
-     * because the object is entirely empty, <code>null</code> will be returned.
+     * because the object is entirely empty, {@code null} will be returned.
      *
      * <p><strong>Note</strong> that this method calls {@link #getDimensions()}
      * and {@link #getMask(int, int, int)}, so they must return valid values.
@@ -223,9 +223,9 @@ public interface WPObject extends Serializable, Cloneable {
      * is undefined.
      * 
      * @param visitor The visitor to invoke for each block. If the visitor
-     * returns <code>false</code> the operation is aborted.
-     * @return <code>true</code> if all blocks were visited or
-     * <code>false</code> if the visitor returned <code>false</code> at some
+     * returns {@code false} the operation is aborted.
+     * @return {@code true} if all blocks were visited or
+     * {@code false} if the visitor returned {@code false} at some
      * point.
      */
     default boolean visitBlocks(BlockVisitor visitor) {

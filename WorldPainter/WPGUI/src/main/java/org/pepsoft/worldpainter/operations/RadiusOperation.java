@@ -41,7 +41,7 @@ import org.pepsoft.worldpainter.brushes.Brush;
  */
 public abstract class RadiusOperation extends MouseOrTabletOperation implements BrushOperation {
     /**
-     * Create a new <code>RadiusOperation</code>.
+     * Create a new {@code RadiusOperation}.
      *
      * @param name The short name of the operation. May be displayed on the operation's tool button.
      * @param description A longer description of the operation. May be displayed to the user as a tooltip.
@@ -61,7 +61,7 @@ public abstract class RadiusOperation extends MouseOrTabletOperation implements 
     }
 
     /**
-     * Create a new <code>RadiusOperation</code>.
+     * Create a new {@code RadiusOperation}.
      *
      * @param name The short name of the operation. May be displayed on the operation's tool button.
      * @param description A longer description of the operation. May be displayed to the user as a tooltip.
@@ -82,7 +82,7 @@ public abstract class RadiusOperation extends MouseOrTabletOperation implements 
     }
 
     /**
-     * Create a new <code>RadiusOperation</code>.
+     * Create a new {@code RadiusOperation}.
      *
      * @param name The short name of the operation. May be displayed on the operation's tool button.
      * @param description A longer description of the operation. May be displayed to the user as a tooltip.
@@ -104,7 +104,7 @@ public abstract class RadiusOperation extends MouseOrTabletOperation implements 
     }
 
     /**
-     * Create a new <code>RadiusOperation</code>.
+     * Create a new {@code RadiusOperation}.
      *
      * @param name The short name of the operation. May be displayed on the operation's tool button.
      * @param description A longer description of the operation. May be displayed to the user as a tooltip.

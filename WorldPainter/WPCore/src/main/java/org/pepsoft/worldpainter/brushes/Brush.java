@@ -29,9 +29,9 @@ public interface Brush {
     /**
      * Get the maximum brush strength at a specific point on the brush, in other
      * words the strength if the level was set to 1.0f. Synonymous with invoking
-     * <code>setLevel(1.0f); getStrength(dx, dy)</code>, but possibly more
+     * {@code setLevel(1.0f); getStrength(dx, dy)}, but possibly more
      * efficient and without actually changing the value of the
-     * <code>level</code> property.
+     * {@code level} property.
      * 
      * @param dx The X coordinate relative to the center of the brush.
      * @param dy The Y coordinate relative to the center of the brush.

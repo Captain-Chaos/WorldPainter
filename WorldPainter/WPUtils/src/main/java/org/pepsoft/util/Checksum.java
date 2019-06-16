@@ -7,9 +7,9 @@ package org.pepsoft.util;
 import java.util.Arrays;
 
 /**
- * A utility class that wraps a byte array, making the <code>equals()</code> and
- * <code>hashCode()</code> methods work as expected, so that it can be used as
- * a key in <code>Set</code>s and <code>Map</code>s.
+ * A utility class that wraps a byte array, making the {@code equals()} and
+ * {@code hashCode()} methods work as expected, so that it can be used as
+ * a key in {@code Set}s and {@code Map}s.
  *
  * @author pepijn
  */

@@ -43,7 +43,7 @@ import java.util.BitSet;
  * <p>All invocations on {@link ProgressReceiver#setMessage(String)} are passed
  * through unaltered to the parent progress receiver.
  * 
- * <p>If the parent progress receiver throws an <code>OperationCancelled</code>
+ * <p>If the parent progress receiver throws an {@code OperationCancelled}
  * exception at any time, it is stored and rethrown to every task whenever they
  * next invoke a method (that declares it) on their sub progress receivers. It
  * is immediately rethrown to the calling task.

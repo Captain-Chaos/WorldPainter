@@ -18,31 +18,31 @@ public interface ChunkProvider extends AutoCloseable {
      *
      * @param x The X coordinate to check.
      * @param z The Z coordinate to check.
-     * @return <code>true</code> if the chunk provider contains a chunk at the
+     * @return {@code true} if the chunk provider contains a chunk at the
      * specified coordinates.
      */
     boolean isChunkPresent(int x, int z);
 
     /**
-     * Retrieve a chunk. If the chunk does not exist, <code>null</code> is
+     * Retrieve a chunk. If the chunk does not exist, {@code null} is
      * returned. The returned chunk <em>may</em> be read-only.
      *
      * @param x The X coordinate of the chunk to retrieve.
      * @param z The Z coordinate of the chunk to retrieve.
-     * @return The specified chunk, or <code>null</code> if there is no chunk at
+     * @return The specified chunk, or {@code null} if there is no chunk at
      * the specified coordinates.
      */
     Chunk getChunk(int x, int z);
 
     /**
      * Retrieve a chunk for editing. If the chunk does not exist,
-     * <code>null</code> <em>may</em> be returned, or the provider <em>may</em>
+     * {@code null} <em>may</em> be returned, or the provider <em>may</em>
      * create a new, empty chunk. The returned chunk is guaranteed not to be
      * read-only.
      *
      * @param x The X coordinate of the chunk to retrieve.
      * @param z The Z coordinate of the chunk to retrieve.
-     * @return The specified chunk, or <code>null</code> if there is no chunk at
+     * @return The specified chunk, or {@code null} if there is no chunk at
      * the specified coordinates, and this chunk provider does not create new
      * chunks.
      */

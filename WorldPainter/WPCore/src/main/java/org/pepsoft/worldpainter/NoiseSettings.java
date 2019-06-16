@@ -27,7 +27,7 @@ public class NoiseSettings implements Serializable, Cloneable {
 
     /**
      * The range of the noise generator. Values returned by the generator will
-     * be between 0 (inclusive) and <code>range</code> (exclusive).
+     * be between 0 (inclusive) and {@code range} (exclusive).
      */
     public int getRange() {
         return range;

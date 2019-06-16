@@ -130,7 +130,7 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
      * contain layers for both phases.
      *
      * @return A dummy exporter which always throws
-     * <code>UnsupportedOperationException</code>.
+     * {@code UnsupportedOperationException}.
      */
     @Override
     public LayerExporter getExporter() {
@@ -166,18 +166,18 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
      * type, assuming a slot is available. Should be invoked once, after a
      * combined layer has been loaded.
      *
-     * <p>Returns <code>false</code> if a custom terrain was present
+     * <p>Returns {@code false} if a custom terrain was present
      * but it could not be restored because all custom terrain slots are in use,
-     * <code>true</code> in all other circumstances.
+     * {@code true} in all other circumstances.
      *
-     * <p><strong>Please note:</strong> if this returns <code>true</code> a new
+     * <p><strong>Please note:</strong> if this returns {@code true} a new
      * custom terrain <em>may</em> have been installed, so in that case the
      * invoker MUST check whether a button already exists for the custom terrain
      * used by this combined layer, and add one if not.
      *
-     * @return <code>false</code> if a custom terrain was present but it could
+     * @return {@code false} if a custom terrain was present but it could
      *     not be restored because all custom terrain slots are in use,
-     *     <code>true</code> otherwise.
+     *     {@code true} otherwise.
      */
     public boolean restoreCustomTerrain() {
         if (customTerrainPresent) {

@@ -81,12 +81,12 @@ public final class Bo2ObjectTube implements Bo2ObjectProvider {
     }
 
     /**
-     * Create a new <code>Bo2ObjectTube</code> containing all supported custom
+     * Create a new {@code Bo2ObjectTube} containing all supported custom
      * objects from a specific directory. The name of the
-     * <code>Bo2ObjectTube</code> will be set to the name of the directory.
+     * {@code Bo2ObjectTube} will be set to the name of the directory.
      *
      * @param dir The directory containing the objects to load.
-     * @return A new <code>Bo2ObjectTube</code> containing the supported objects
+     * @return A new {@code Bo2ObjectTube} containing the supported objects
      *     from the specified directory.
      * @throws IOException If there was an I/O error reading one of the files.
      */
@@ -95,12 +95,12 @@ public final class Bo2ObjectTube implements Bo2ObjectProvider {
     }
     
     /**
-     * Create a new <code>Bo2ObjectTube</code> with a specific name, containing
+     * Create a new {@code Bo2ObjectTube} with a specific name, containing
      * all supported custom objects from a specific directory.
      *
-     * @param name The name of the new <code>Bo2ObjectTube</code>.
+     * @param name The name of the new {@code Bo2ObjectTube}.
      * @param dir The directory containing the objects to load.
-     * @return A new <code>Bo2ObjectTube</code> containing the supported objects
+     * @return A new {@code Bo2ObjectTube} containing the supported objects
      *     from the specified directory.
      * @throws IOException If there was an I/O error reading one of the files.
      */
@@ -111,12 +111,12 @@ public final class Bo2ObjectTube implements Bo2ObjectProvider {
     }
     
     /**
-     * Create a new <code>Bo2ObjectTube</code> with a specific name from a list
+     * Create a new {@code Bo2ObjectTube} with a specific name from a list
      * of specific custom object files.
      *
-     * @param name The name of the new <code>Bo2ObjectTube</code>.
+     * @param name The name of the new {@code Bo2ObjectTube}.
      * @param files The list of files containing the objects to load.
-     * @return A new <code>Bo2ObjectTube</code> containing the custom objects
+     * @return A new {@code Bo2ObjectTube} containing the custom objects
      *     from the specified file(s).
      * @throws IOException If there was an I/O error reading one of the files.
      */

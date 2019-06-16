@@ -220,7 +220,7 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
      * object will be the name of the file, minus the extension.
      *
      * @param file The file from which to load the object.
-     * @return A new <code>Schematic</code> containing the contents of the
+     * @return A new {@code Schematic} containing the contents of the
      *     specified file.
      * @throws IOException If an I/O error occurred while reading the file.
      */
@@ -238,7 +238,7 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
      *
      * @param name The name of the object.
      * @param file The file from which to load the object.
-     * @return A new <code>Schematic</code> containing the contents of the
+     * @return A new {@code Schematic} containing the contents of the
      *     specified file.
      * @throws IOException If an I/O error occurred while reading the file.
      */
@@ -254,7 +254,7 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
      *
      * @param name The name of the object.
      * @param stream The input stream from which to load the object.
-     * @return A new <code>Schematic</code> containing the contents of the
+     * @return A new {@code Schematic} containing the contents of the
      *     specified stream.
      * @throws IOException If an I/O error occurred while reading the stream.
      */

@@ -30,8 +30,8 @@ public class SubProgressReceiver implements ProgressReceiver {
      * {@link #setProgress(float)}, {@link #setMessage(java.lang.String)},
      * {@link #done()} and {@link #exceptionThrown(java.lang.Throwable)} methods
      * will be forwarded (without remapping the progress). Note that recursive
-     * invocations of <code>setMessage()</code>, </code><code>exceptionThrown()</code>
-     * and <code>done()</code> are not reported.
+     * invocations of {@code setMessage()}, </code>{@code exceptionThrown()}
+     * and {@code done()} are not reported.
      * 
      * @param listener 
      */

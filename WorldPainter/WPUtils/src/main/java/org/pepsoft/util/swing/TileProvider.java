@@ -26,7 +26,7 @@ public interface TileProvider {
      *
      * @param x The X coordinate (in tiles) to check for the presence of a tile.
      * @param y The Y coordinate (in tiles) to check for the presence of a tile.
-     * @return <code>true</code> if there is a tile there.
+     * @return {@code true} if there is a tile there.
      */
     boolean isTilePresent(int x, int y);
 
@@ -44,14 +44,14 @@ public interface TileProvider {
      *
      * <p>The provider may fail to paint the tile for some reason, for example
      * because a dependency is not met, in which case it should return
-     * <code>false</code> and leave the image unaltered.
+     * {@code false} and leave the image unaltered.
      *
      * @param image The image on which to paint the tile
      * @param x The X coordinate (in tiles) of the tile to paint.
      * @param y The Y coordinate (in tiles) of the tile to paint.
      * @param dx The X coordinate at which to paint the tile in the image.
      * @param dy The Y coordinate at which to paint the tile in the image.
-     * @return <code>true</code> if the tile was painted; <code>false</code> if
+     * @return {@code true} if the tile was painted; {@code false} if
      * it could not be painted for some reason.
      */
     boolean paintTile(Image image, int x, int y, int dx, int dy);
@@ -97,11 +97,11 @@ public interface TileProvider {
     
     /**
      * Indicates whether the tile provider implements zooming itself (when
-     * <code>true</code>) or whether the tile consumer should implement it (when
-     * <code>false</code>). In the latter case {@link #getZoom()} and
+     * {@code true}) or whether the tile consumer should implement it (when
+     * {@code false}). In the latter case {@link #getZoom()} and
      * {@link #setZoom(int)} will never be invoked.
      * 
-     * @return <code>true</code> if the tile provider implements zooming.
+     * @return {@code true} if the tile provider implements zooming.
      */
     boolean isZoomSupported();
     

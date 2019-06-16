@@ -137,8 +137,8 @@ public class Pencil extends AbstractPaintOperation {
      * @param y1 THe Y coordinate of the point defining the line.
      * @param x2 The X coordinate of the point to snap to the line.
      * @param y2 The Y coordinate of the point to snap to the line.
-     * @param axis The axis through <code>x1,y2</code> defining the line to snap to.
-     * @return An array containing the coordinates of the closest point on the specified line to <code>x2,y2</code>.
+     * @param axis The axis through {@code x1,y2} defining the line to snap to.
+     * @return An array containing the coordinates of the closest point on the specified line to {@code x2,y2}.
      *     Index 0 contains the x coordinate and index 1 the y coordinate.
      */
     private int[] snapCoords(int x1, int y1, int x2, int y2, Axis axis) {

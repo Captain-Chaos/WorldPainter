@@ -179,14 +179,14 @@ public class JavaChunkStore implements ChunkStore {
     }
 
     /**
-     * Load a chunk. Returns <code>null</code> if the chunk is outside the
+     * Load a chunk. Returns {@code null} if the chunk is outside the
      * WorldPainter world boundaries.
      *
      * @param x The X coordinate in the Minecraft coordinate system of the chunk
      *     to load.
      * @param z The Z coordinate in the Minecraft coordinate system of the chunk
      *     to load.
-     * @return The specified chunk, or <code>null</code> if the coordinates are
+     * @return The specified chunk, or {@code null} if the coordinates are
      *     outside the WorldPainter world boundaries.
      */
     @Override
@@ -220,14 +220,14 @@ public class JavaChunkStore implements ChunkStore {
     }
 
     /**
-     * Load a chunk. Returns <code>null</code> if the chunk is outside the
+     * Load a chunk. Returns {@code null} if the chunk is outside the
      * WorldPainter world boundaries.
      *
      * @param x The X coordinate in the Minecraft coordinate system of the chunk
      *     to load.
      * @param z The Z coordinate in the Minecraft coordinate system of the chunk
      *     to load.
-     * @return The specified chunk, or <code>null</code> if the coordinates are
+     * @return The specified chunk, or {@code null} if the coordinates are
      *     outside the WorldPainter world boundaries.
      */
     @Override

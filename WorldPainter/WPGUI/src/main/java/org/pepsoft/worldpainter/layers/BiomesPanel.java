@@ -278,7 +278,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
      *
      * @param baseId The ID of the base biome.
      * @return The total available options for the specified base biome. May be
-     * empty, but not <code>null</code>.
+     * empty, but not {@code null}.
      */
     private static Set<BiomeOption> findAvailableOptions(int baseId) {
         if (BIOME_SCHEME.isBiomePresent(baseId)) {

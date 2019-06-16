@@ -78,7 +78,7 @@ public class FileUtils {
      * 
      * @param dir The directory to copy. Must exist.
      * @param destDir The directory into which to copy the contents of
-     *                <code>dir</code>. Must not exist yet and will be created.
+     *                {@code dir}. Must not exist yet and will be created.
      * @throws IOException If there is an I/O error while performing the copy.
      */
     public static void copyDir(File dir, File destDir) throws IOException {
@@ -109,16 +109,16 @@ public class FileUtils {
      * Copy a file to another file.
      *
      * @param file The file to copy.
-     * @param destFile The file to copy the file to. If <code>overwrite</code>
-     *                 is <code>false</code> it must not exist yet. In either
+     * @param destFile The file to copy the file to. If {@code overwrite}
+     *                 is {@code false} it must not exist yet. In either
      *                 case it may not be an existing directory.
-     * @param overwrite Whether <code>destFile</code> should be overwritten if
+     * @param overwrite Whether {@code destFile} should be overwritten if
      *                  it already exists. If this is false and the file does
      *                  already exist an {@link IllegalStateException} will be
      *                  thrown.
      * @throws IOException If there is an I/O error while performing the copy.
-     * @throws IllegalStateException If <code>overwrite</code> was
-     * <code>false</code> and <code>destFile</code> already existed.
+     * @throws IllegalStateException If {@code overwrite} was
+     * {@code false} and {@code destFile} already existed.
      */
     public static void copyFileToFile(File file, File destFile, boolean overwrite) throws IOException {
         if ((! overwrite) && destFile.isFile()) {
@@ -154,7 +154,7 @@ public class FileUtils {
      * @param destDir The directory to copy the file into, using the same name
      *     as the source file.
      * @param progressReceiver The progress receiver to report copying progress
-     *     to. May be <code>null</code>.
+     *     to. May be {@code null}.
      * @throws IOException If there is an I/O error while performing the copy.
      */
     public static void copyFileToDir(File file, File destDir, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
@@ -170,7 +170,7 @@ public class FileUtils {
      * Recursively delete a directory and all its contents.
      * 
      * @param dir The directory to delete.
-     * @return <code>true</code> if and only if the directory is successfully deleted; <code>false</code> otherwise
+     * @return {@code true} if and only if the directory is successfully deleted; {@code false} otherwise
      */
     public static boolean deleteDir(File dir) {
         if (! dir.isDirectory()) {
@@ -192,8 +192,8 @@ public class FileUtils {
      * Recursively delete all contents of a directory.
      *
      * @param dir The directory to empty.
-     * @return <code>true</code> if and only if all contents of the directory
-     * were successfully deleted; <code>false</code> otherwise
+     * @return {@code true} if and only if all contents of the directory
+     * were successfully deleted; {@code false} otherwise
      */
     public static boolean emptyDir(File dir) {
         if (! dir.isDirectory()) {
@@ -262,7 +262,7 @@ public class FileUtils {
      * @param fileOrDir A file or directory to preselect.
      * @param fileFilter A filter limiting which files and/or directories can be
      *                   selected.
-     * @return The selected file, or <code>null</code> if the user cancelled the
+     * @return The selected file, or {@code null} if the user cancelled the
      * dialog.
      */
     public static File selectFileForOpen(Window parent, String title, File fileOrDir, final FileFilter fileFilter) {
@@ -325,7 +325,7 @@ public class FileUtils {
      * @param fileOrDir A file or directory to preselect.
      * @param fileFilter A filter limiting which files and/or directories can be
      *                   selected.
-     * @return The selected file(s), or <code>null</code> if the user cancelled
+     * @return The selected file(s), or {@code null} if the user cancelled
      * the dialog.
      */
     public static File[] selectFilesForOpen(Window parent, String title, File fileOrDir, final FileFilter fileFilter) {
@@ -389,7 +389,7 @@ public class FileUtils {
      * @param fileOrDir An existing file or directory to preselect.
      * @param fileFilter A filter limiting which files and/or directories can be
      *                   selected.
-     * @return The selected file, or <code>null</code> if the user cancelled the
+     * @return The selected file, or {@code null} if the user cancelled the
      * dialog.
      */
     public static File selectFileForSave(Window parent, String title, File fileOrDir, final FileFilter fileFilter) {
@@ -442,13 +442,13 @@ public class FileUtils {
     }
 
     /**
-     * Checks if a <code>File</code> is really a <code>java.io.File</code>, and
+     * Checks if a {@code File} is really a {@code java.io.File}, and
      * if not converts it to one using {@link File#getAbsolutePath()}.
      *
-     * @param file The file to absolutise. May be <code>null</code>.
+     * @param file The file to absolutise. May be {@code null}.
      * @return A file with the same absolute path as the input and guaranteed to
-     *     be of class <code>java.io.File</code>, or <code>null</code> if the input was
-     *     <code>null</code>.
+     *     be of class {@code java.io.File}, or {@code null} if the input was
+     *     {@code null}.
      */
     public static File absolutise(File file) {
         return ((file != null) && (file.getClass() != File.class))
@@ -458,7 +458,7 @@ public class FileUtils {
 
     /**
      * Ensures that a collection of {@link File}s only contains instances of
-     * <code>java.io.File</code> and not subclasses, by converting subclasses
+     * {@code java.io.File} and not subclasses, by converting subclasses
      * using {@link #absolutise(File)}. The collection is transformed in-place
      * if possible; otherwise a new collection with the same basic
      * characteristics is created.
@@ -510,7 +510,7 @@ public class FileUtils {
 
     /**
      * Ensures that a map with {@link File}s as keys and/or values only contains
-     * instances of <code>java.io.File</code> and not subclasses, by converting
+     * instances of {@code java.io.File} and not subclasses, by converting
      * subclasses using {@link #absolutise(File)}. The map is transformed
      * in-place if possible; otherwise a new map with the same basic
      * characteristics is created.
@@ -562,7 +562,7 @@ public class FileUtils {
      *
      * @param file        The file to rotate or delete.
      * @param namePattern The pattern to use to create an indexed filename. Must
-     *                    contain a <code>"{0}"</code> which will be replaced
+     *                    contain a {@code "{0}"} which will be replaced
      *                    with the index number.
      * @param index       The index of the current file.
      * @param maxIndex    The maximum index which should exist. Beyond this the

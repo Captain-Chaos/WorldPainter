@@ -43,7 +43,7 @@ import java.util.Map;
 /**
  * <p>This class reads <strong>NBT</strong>, or
  * <strong>Named Binary Tag</strong> streams, and produces an object graph of
- * subclasses of the <code>Tag</code> object.</p>
+ * subclasses of the {@code Tag} object.</p>
  * 
  * <p>The NBT format was created by Markus Persson, and the specification may
  * be found at <a href="http://www.minecraft.net/docs/NBT.txt">
@@ -59,7 +59,7 @@ public final class NBTInputStream implements Closeable {
     private final DataInput is;
 
     /**
-     * Creates a new <code>NBTInputStream</code>, which will source its data
+     * Creates a new {@code NBTInputStream}, which will source its data
      * from the specified input stream, which is assumed to contain big
      * endian data, or if the input stream is already a {@link DataInput}
      * stream, the stream's default byte order.
@@ -75,7 +75,7 @@ public final class NBTInputStream implements Closeable {
     }
 
     /**
-     * Creates a new <code>NBTInputStream</code>, which will source its data
+     * Creates a new {@code NBTInputStream}, which will source its data
      * from the specified input stream.
      *
      * @param is The input stream.

@@ -26,9 +26,9 @@ public final class DynMapColourScheme implements ColourScheme {
      * stream.
      *
      * @param in The input stream from which to read the colours.
-     * @param bright Whether to use the brightest colours. When <code>false</code> the two block side colours are
+     * @param bright Whether to use the brightest colours. When {@code false} the two block side colours are
      *               averaged and used instead. The brightest colours usually most approximate the colours as
-     *               experienced in Minecraft, so when in doubt, use <code>true</code>.
+     *               experienced in Minecraft, so when in doubt, use {@code true}.
      */
     public DynMapColourScheme(InputStream in, boolean bright) { 
         loadColours(in, bright);
@@ -36,14 +36,14 @@ public final class DynMapColourScheme implements ColourScheme {
 
     /**
      * Create a new Dynmap colour scheme, reading the Dynamp "classic" colour scheme-formatted colour map from a file
-     * on the classpath. The file should be named <code><em>name</em>.txt</code> and be in the
-     * <code>org.pepsoft.worldpainter.colourschemes</code> package.
+     * on the classpath. The file should be named {@code <em>name</em>.txt} and be in the
+     * {@code org.pepsoft.worldpainter.colourschemes} package.
      *
      * @param name The name of the Dynmap "classic" colour map file to read from the classpath, without
-     *             <code>.txt</code> extension.
-     * @param bright Whether to use the brightest colours. When <code>false</code> the two block side colours are
+     *             {@code .txt} extension.
+     * @param bright Whether to use the brightest colours. When {@code false} the two block side colours are
      *               averaged and used instead. The brightest colours usually most approximate the colours as
-     *               experienced in Minecraft, so when in doubt, use <code>true</code>.
+     *               experienced in Minecraft, so when in doubt, use {@code true}.
      */
     public DynMapColourScheme(@NonNls String name, boolean bright) {
         loadColours(DynMapColourScheme.class.getResourceAsStream(name + ".txt"), bright);

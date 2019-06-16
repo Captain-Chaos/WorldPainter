@@ -38,7 +38,7 @@ public abstract class Seed implements Serializable, org.pepsoft.util.undo.Clonea
      * @param garden The garden in which the seed will be planted.
      * @param seed The random seed which it may use for seeding pseudo random
      *             number generators.
-     * @param parent The parent of this seed, if any. May be <code>null</code>.
+     * @param parent The parent of this seed, if any. May be {@code null}.
      * @param location The location of the seed. The z coordinate may be -1,
      *                 meaning "on the surface", or it may be zero or higher to
      *                 indicate a specific height.
@@ -48,7 +48,7 @@ public abstract class Seed implements Serializable, org.pepsoft.util.undo.Clonea
      *                        positive <em>without</em> applying a random
      *                        deviation.
      * @param category The category of seed, as one of the
-     *                 <code>CATEGORY_*</code> constants in the {@link
+     *                 {@code CATEGORY_*} constants in the {@link
      *                 GardenCategory} class.
      */
     public Seed(Garden garden, long seed, Seed parent, Point3i location, int germinationTime, int category) {
@@ -80,7 +80,7 @@ public abstract class Seed implements Serializable, org.pepsoft.util.undo.Clonea
     /**
      * Get this seed's parent, if any,
      *
-     * @return This seed's parent, or <code>null</code> if it has none.
+     * @return This seed's parent, or {@code null} if it has none.
      */
     public final Seed getParent() {
         return parent;
@@ -128,7 +128,7 @@ public abstract class Seed implements Serializable, org.pepsoft.util.undo.Clonea
     /**
      * Determine whether the seed is "alive", i.e. has not tried to sprout yet.
      *
-     * @return <code>true</code> if the seed is dead, i.e. it has attempted to
+     * @return {@code true} if the seed is dead, i.e. it has attempted to
      *     sprout, which either succeeded or failed.
      */
     public final boolean isFinished() {
@@ -138,7 +138,7 @@ public abstract class Seed implements Serializable, org.pepsoft.util.undo.Clonea
     /**
      * Determine whether the seed has successfully sprouted.
      *
-     * @return <code>true</code> if the seed has successfully sprouted.
+     * @return {@code true} if the seed has successfully sprouted.
      */
     public final boolean isSprouted() {
         return sprouted;
@@ -231,11 +231,11 @@ public abstract class Seed implements Serializable, org.pepsoft.util.undo.Clonea
      * Try to sprout the seed. This may fail if not all conditions are met, such
      * as if there is no space for it to sprout. Will only be invoked once,
      * after the parent seed (if any) has sprouted and the germination time has
-     * elapsed. If it returns <code>false</code>, the seed will be considered to
+     * elapsed. If it returns {@code false}, the seed will be considered to
      * have died, and be removed from the garden automatically.
      * 
-     * @return <code>true</code> if the seed sprouted successfully,
-     *     <code>false</code> if it could not sprout for whatever reason.
+     * @return {@code true} if the seed sprouted successfully,
+     *     {@code false} if it could not sprout for whatever reason.
      */
     protected abstract boolean sprout();
     
@@ -253,7 +253,7 @@ public abstract class Seed implements Serializable, org.pepsoft.util.undo.Clonea
      * @param stopWhenOccupied Whether to stop drawing the line upon reaching a
      *                         location which is already occupied.
      * @param category The seed category with which to mark the line, as one of
-     *                 the <code>CATEGORY_*</code> constants in the
+     *                 the {@code CATEGORY_*} constants in the
      *                 {@link GardenCategory} class.
      */
     protected final void drawLine(Point location1, Point location2, int diameter, boolean stopWhenOccupied, int category) {
@@ -274,7 +274,7 @@ public abstract class Seed implements Serializable, org.pepsoft.util.undo.Clonea
      * @param stopWhenOccupied Whether to stop drawing the line upon reaching a
      *                         location which is already occupied.
      * @param category The seed category with which to mark the line, as one of
-     *                 the <code>CATEGORY_*</code> constants in the
+     *                 the {@code CATEGORY_*} constants in the
      *                 {@link GardenCategory} class.
      */
     protected final void drawLine(Point3i location1, Point3i location2, int diameter, boolean stopWhenOccupied, int category) {
@@ -293,12 +293,12 @@ public abstract class Seed implements Serializable, org.pepsoft.util.undo.Clonea
      * @param location2 The end location of the line.
      * @param diameter The thickness of the line.
      * @param maxLength The maximum lengh of the line. If this is shorter than
-     *                  the distance between <code>location1</code> and
-     *                  <code>location2</code>, only the first
-     *                  <code>maxLength</code> blocks of the line will be
+     *                  the distance between {@code location1} and
+     *                  {@code location2}, only the first
+     *                  {@code maxLength} blocks of the line will be
      *                  painted.
      * @param category The seed category with which to mark the line, as one of
-     *                 the <code>CATEGORY_*</code> constants in the
+     *                 the {@code CATEGORY_*} constants in the
      *                 {@link GardenCategory} class.
      */
     protected final void drawLine(Point location1, Point location2, int diameter, int maxLength, int category) {
@@ -324,12 +324,12 @@ public abstract class Seed implements Serializable, org.pepsoft.util.undo.Clonea
      * @param location2 The end location of the line.
      * @param diameter The thickness of the line.
      * @param maxLength The maximum lengh of the line. If this is shorter than
-     *                  the distance between <code>location1</code> and
-     *                  <code>location2</code>, only the first
-     *                  <code>maxLength</code> blocks of the line will be
+     *                  the distance between {@code location1} and
+     *                  {@code location2}, only the first
+     *                  {@code maxLength} blocks of the line will be
      *                  painted.
      * @param category The seed category with which to mark the line, as one of
-     *                 the <code>CATEGORY_*</code> constants in the
+     *                 the {@code CATEGORY_*} constants in the
      *                 {@link GardenCategory} class.
      */
     protected final void drawLine(Point3i location1, Point3i location2, int diameter, int maxLength, int category) {
@@ -388,12 +388,12 @@ public abstract class Seed implements Serializable, org.pepsoft.util.undo.Clonea
      * @param x2 The X coordinate of the end of the line.
      * @param y2 The Y coordinate of the end of the line.
      * @param maxLength The maximum lengh of the line. If this is shorter than
-     *                  the distance between <code>location1</code> and
-     *                  <code>location2</code>, only the first
-     *                  <code>maxLength</code> blocks of the line will be
+     *                  the distance between {@code location1} and
+     *                  {@code location2}, only the first
+     *                  {@code maxLength} blocks of the line will be
      *                  painted.
      * @param category The seed category with which to mark the line, as one of
-     *                 the <code>CATEGORY_*</code> constants in the
+     *                 the {@code CATEGORY_*} constants in the
      *                 {@link GardenCategory} class.
      */
     protected final void drawLine(int x1, int y1, int x2, int y2, int maxLength, int category) {
@@ -414,7 +414,7 @@ public abstract class Seed implements Serializable, org.pepsoft.util.undo.Clonea
      * @param location1 The start location of the line.
      * @param location2 The end location of the line.
      * @param category The seed category with which to mark the line, as one of
-     *                 the <code>CATEGORY_*</code> constants in the
+     *                 the {@code CATEGORY_*} constants in the
      *                 {@link GardenCategory} class.
      */
     protected final void drawLine(Point location1, Point location2, int category) {
@@ -502,9 +502,9 @@ public abstract class Seed implements Serializable, org.pepsoft.util.undo.Clonea
      * @param y2 The Y coordinate of the end of the line.
      * @param maxLength The maximum length for which to perform the task. If
      *                  this is shorter than the distance between
-     *                  <code>location1</code> and <code>location2</code>, the
+     *                  {@code location1} and {@code location2}, the
      *                  task will only be performed for the first
-     *                  <code>maxLength</code> blocks of the line.
+     *                  {@code maxLength} blocks of the line.
      * @param task The task to perform at each location along the specified
      *             line.
      */
@@ -522,9 +522,9 @@ public abstract class Seed implements Serializable, org.pepsoft.util.undo.Clonea
      * @param y2 The Y coordinate of the end of the line.
      * @param maxLength The maximum length for which to perform the task. If
      *                  this is shorter than the distance between
-     *                  <code>location1</code> and <code>location2</code>, the
+     *                  {@code location1} and {@code location2}, the
      *                  task will only be performed for the first
-     *                  <code>maxLength</code> blocks of the line.
+     *                  {@code maxLength} blocks of the line.
      * @param task The task to perform at each specified interval along the
      *             specified line.
      * @param every The interval between performances of the specified task.

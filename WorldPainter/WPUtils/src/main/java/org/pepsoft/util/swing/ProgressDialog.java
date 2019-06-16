@@ -43,12 +43,12 @@ public class ProgressDialog<T> extends javax.swing.JDialog implements ComponentL
     }
 
     /**
-     * When invoked with <code>true</code>, displays the dialog and starts the
+     * When invoked with {@code true}, displays the dialog and starts the
      * configured {@link ProgressTask} in a background thread, then blocks until
      * the task has completed and the dialog is disposed of. Events are
      * dispatched while this method is blocked.
      *
-     * @param b <code>true</code> to show the dialog and start the task in a
+     * @param b {@code true} to show the dialog and start the task in a
      *          background thread.
      */
     @Override
@@ -73,7 +73,7 @@ public class ProgressDialog<T> extends javax.swing.JDialog implements ComponentL
      *     don't return a value.
      * @param options Optional modifiers to change the behaviour. See
      * {@link #NOT_CANCELABLE} and {@link #NO_FOCUS_STEALING}.
-     * @return The result of the task, or <code>null</code> if the task does not
+     * @return The result of the task, or {@code null} if the task does not
      *     return a result or if it was cancelled.
      * @throws Error If the task threw an {@link Error}.
      * @throws RuntimeException If the task threw a {@link RuntimeException}.

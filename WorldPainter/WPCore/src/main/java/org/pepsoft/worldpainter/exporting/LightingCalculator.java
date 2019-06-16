@@ -88,7 +88,7 @@ public class LightingCalculator {
     /**
      * For the selected chunk and the chunks around it, calculate the secondary
      * light, if necessary. The dirty area is constricted to the blocks that
-     * were actually changed, and <code>false</code> is returned if no changes
+     * were actually changed, and {@code false} is returned if no changes
      * were made at all (indicating that lighting is complete).
      */
     public boolean calculateSecondaryLight() {

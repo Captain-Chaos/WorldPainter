@@ -34,7 +34,7 @@ public final class IconUtils {
      * <p>The icon will automatically be scaled up for HiDPI displays.
      *
      * @param path The path of the image to load.
-     * @return The specified icon, or <code>null</code> if the specified path
+     * @return The specified icon, or {@code null} if the specified path
      *     did not contain a resource.
      */
     public static ImageIcon loadScaledIcon(String path) {
@@ -49,7 +49,7 @@ public final class IconUtils {
      *
      * @param classLoader The class loader to use to load the image.
      * @param path The path of the image to load.
-     * @return The specified icon, or <code>null</code> if the specified path
+     * @return The specified icon, or {@code null} if the specified path
      *     did not contain a resource.
      */
     public static ImageIcon loadScaledIcon(ClassLoader classLoader, String path) {
@@ -64,7 +64,7 @@ public final class IconUtils {
      * rescaled.
      *
      * @param path The path of the image to load.
-     * @return The specified image, or <code>null</code> if the specified path
+     * @return The specified image, or {@code null} if the specified path
      *     did not contain a resource.
      */
     public static BufferedImage loadUnscaledImage(String path) {
@@ -86,7 +86,7 @@ public final class IconUtils {
      * <p>The image will automatically be scaled up for HiDPI displays.
      *
      * @param path The path of the image to load.
-     * @return The specified image, or <code>null</code> if the specified path
+     * @return The specified image, or {@code null} if the specified path
      *     did not contain a resource.
      */
     public static BufferedImage loadScaledImage(String path) {
@@ -105,7 +105,7 @@ public final class IconUtils {
      *
      * @param classLoader The class loader to use to load the image.
      * @param path The path of the image to load.
-     * @return The specified image, or <code>null</code> if the specified path
+     * @return The specified image, or {@code null} if the specified path
      *     did not contain a resource.
      */
     public static BufferedImage loadScaledImage(ClassLoader classLoader, String path) {

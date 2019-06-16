@@ -154,7 +154,7 @@ public final class Bo2Object extends AbstractObject implements Bo2ObjectProvider
      * Load a custom object in bo2 format from a file.
      *
      * @param file The file from which to load the object.
-     * @return A new <code>Bo2Object</code> containing the contents of the
+     * @return A new {@code Bo2Object} containing the contents of the
      *     specified file.
      * @throws IOException If an I/O error occurred while reading the file.
      */
@@ -207,7 +207,7 @@ public final class Bo2Object extends AbstractObject implements Bo2ObjectProvider
      *
      * @param objectName The name of the object.
      * @param file The file from which to load the object.
-     * @return A new <code>Bo2Object</code> containing the contents of the
+     * @return A new {@code Bo2Object} containing the contents of the
      *     specified file.
      * @throws IOException If an I/O error occurred while reading the file.
      */
@@ -223,7 +223,7 @@ public final class Bo2Object extends AbstractObject implements Bo2ObjectProvider
      *
      * @param objectName The name of the object.
      * @param stream The input stream from which to load the object.
-     * @return A new <code>Bo2Object</code> containing the contents of the
+     * @return A new {@code Bo2Object} containing the contents of the
      *     specified stream.
      * @throws IOException If an I/O error occurred while reading the stream.
      */

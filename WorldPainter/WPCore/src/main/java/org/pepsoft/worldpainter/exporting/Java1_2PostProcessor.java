@@ -29,12 +29,12 @@ public class Java1_2PostProcessor extends PostProcessor {
      * <li>Change covered grass and mycelium blocks to dirt.
      * </ul>
      *
-     * @param minecraftWorld The <code>MinecraftWorld</code> to post process.
+     * @param minecraftWorld The {@code MinecraftWorld} to post process.
      * @param volume The three dimensional area of the world to post process.
      * @param progressReceiver The optional progress receiver to which to report
-     *                         progress. May be <code>null</code>.
+     *                         progress. May be {@code null}.
      * @throws ProgressReceiver.OperationCancelled If the progress receiver
-     * threw an <code>OperationCancelled</code> exception.
+     * threw an {@code OperationCancelled} exception.
      */
     @Override
     public void postProcess(MinecraftWorld minecraftWorld, Box volume, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {

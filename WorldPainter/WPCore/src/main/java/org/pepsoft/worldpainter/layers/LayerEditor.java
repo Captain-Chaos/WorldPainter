@@ -22,9 +22,9 @@ import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 public interface LayerEditor<L extends Layer> {
     /**
      * Get the actual layer editor component. Must be a singleton which is
-     * backed by this <code>LayerEditor</code>, in other words it should be
+     * backed by this {@code LayerEditor}, in other words it should be
      * possible to reuse the instance by invoking the other methods on the
-     * <code>LayerEditor</code> to set a layer, etc.
+     * {@code LayerEditor} to set a layer, etc.
      * 
      * @return The actual layer editor component.
      */
@@ -83,7 +83,7 @@ public interface LayerEditor<L extends Layer> {
      * therefore be committed. If not, a {@link #commit()} and
      * {@link #getSettings()} will result in an {@link IllegalStateException}.
      * 
-     * @return <code>true</code> if the current settings are valid and complete
+     * @return {@code true} if the current settings are valid and complete
      *     and can be committed.
      */
     boolean isCommitAvailable();
@@ -112,10 +112,10 @@ public interface LayerEditor<L extends Layer> {
         /**
          * Indicates whether to support extended (12-bit) block IDs. If the
          * layer editor supports selecting block IDs anywhere and this returns
-         * <code>true</code> then it should allow selection of IDs up to and
+         * {@code true} then it should allow selection of IDs up to and
          * including 4095.
          * 
-         * @return <code>true</code> if extended block IDs must be supported.
+         * @return {@code true} if extended block IDs must be supported.
          */
         boolean isExtendedBlockIds();
         

@@ -48,7 +48,7 @@ public final class XDG {
     // Base dirs
     /**
      * The current user's home directory. Set to the value of the
-     * <code>user.home</code> system property.
+     * {@code user.home} system property.
      */
     public static final String HOME = System.getProperty("user.home");
 
@@ -93,88 +93,88 @@ public final class XDG {
      * Defines the base directory relative to which user-specific non-essential
      * runtime files and other file objects (such as sockets, named pipes, ...)
      * should be stored. Set to the contents of the XDG_RUNTIME_DIR environment
-     * variable, or <code>null</code> if that variable is not present.
+     * variable, or {@code null} if that variable is not present.
      */
     public static final String XDG_RUNTIME_DIR = System.getenv("XDG_RUNTIME_DIR");
 
     /**
      * {@link #XDG_DATA_HOME} as a {@link File} object, but only if that
-     * directory actually exists. <code>null</code> otherwise.
+     * directory actually exists. {@code null} otherwise.
      */
     public static final File XDG_DATA_HOME_FILE = new File(XDG_DATA_HOME).isDirectory() ? new File(XDG_DATA_HOME) : null;
 
     /**
      * {@link #XDG_CONFIG_HOME} as a {@link File} object, but only if that
-     * directory actually exists. <code>null</code> otherwise.
+     * directory actually exists. {@code null} otherwise.
      */
     public static final File XDG_CONFIG_HOME_FILE = new File(XDG_CONFIG_HOME).isDirectory() ? new File(XDG_CONFIG_HOME) : null;
 
     /**
      * {@link #XDG_CACHE_HOME} as a {@link File} object, but only if that
-     * directory actually exists. <code>null</code> otherwise.
+     * directory actually exists. {@code null} otherwise.
      */
     public static final File XDG_CACHE_HOME_FILE = new File(XDG_CACHE_HOME).isDirectory() ? new File(XDG_CACHE_HOME) : null;
 
     /**
      * {@link #XDG_RUNTIME_DIR} as a {@link File} object, but only if
-     * <code>XDG_RUNTIME_DIR</code> is not <code>null</code> <em>and</em> that
-     * directory actually exists. <code>null</code> otherwise.
+     * {@code XDG_RUNTIME_DIR} is not {@code null} <em>and</em> that
+     * directory actually exists. {@code null} otherwise.
      */
     public static final File XDG_RUNTIME_DIR_FILE = XDG_RUNTIME_DIR != null ? (new File(XDG_RUNTIME_DIR).isDirectory() ? new File(XDG_RUNTIME_DIR) : null) : null;
 
     // User dirs
     /**
      * The location of the "desktop" well known user directory, as specified
-     * in the appropriate system or user config file, or <code>null</code> if
+     * in the appropriate system or user config file, or {@code null} if
      * it is not configured.
      */
     public static final String XDG_DESKTOP_DIR;
 
     /**
      * The location of the "documents" well known user directory, as specified
-     * in the appropriate system or user config file, or <code>null</code> if
+     * in the appropriate system or user config file, or {@code null} if
      * it is not configured.
      */
     public static final String XDG_DOCUMENTS_DIR;
 
     /**
      * The location of the "download" well known user directory, as specified
-     * in the appropriate system or user config file, or <code>null</code> if
+     * in the appropriate system or user config file, or {@code null} if
      * it is not configured.
      */
     public static final String XDG_DOWNLOAD_DIR;
 
     /**
      * The location of the "music" well known user directory, as specified
-     * in the appropriate system or user config file, or <code>null</code> if
+     * in the appropriate system or user config file, or {@code null} if
      * it is not configured.
      */
     public static final String XDG_MUSIC_DIR;
 
     /**
      * The location of the "pictures" well known user directory, as specified
-     * in the appropriate system or user config file, or <code>null</code> if
+     * in the appropriate system or user config file, or {@code null} if
      * it is not configured.
      */
     public static final String XDG_PICTURES_DIR;
 
     /**
      * The location of the "public share" well known user directory, as specified
-     * in the appropriate system or user config file, or <code>null</code> if
+     * in the appropriate system or user config file, or {@code null} if
      * it is not configured.
      */
     public static final String XDG_PUBLICSHARE_DIR;
 
     /**
      * The location of the "templates" well known user directory, as specified
-     * in the appropriate system or user config file, or <code>null</code> if
+     * in the appropriate system or user config file, or {@code null} if
      * it is not configured.
      */
     public static final String XDG_TEMPLATES_DIR;
 
     /**
      * The location of the "videos" well known user directory, as specified
-     * in the appropriate system or user config file, or <code>null</code> if
+     * in the appropriate system or user config file, or {@code null} if
      * it is not configured.
      */
     public static final String XDG_VIDEOS_DIR;
@@ -204,57 +204,57 @@ public final class XDG {
 
     /**
      * {@link #XDG_DESKTOP_DIR} as a {@link File} object, but only if
-     * <code>XDG_DESKTOP_DIR</code> is not <code>null</code> <em>and</em> that
-     * directory actually exists. <code>null</code> otherwise.
+     * {@code XDG_DESKTOP_DIR} is not {@code null} <em>and</em> that
+     * directory actually exists. {@code null} otherwise.
      */
     public static final File XDG_DESKTOP_DIR_FILE = ((XDG_DESKTOP_DIR != null) && new File(XDG_DESKTOP_DIR).isDirectory()) ? new File(XDG_DESKTOP_DIR) : null;
 
     /**
      * {@link #XDG_DOCUMENTS_DIR} as a {@link File} object, but only if
-     * <code>XDG_DOCUMENTS_DIR</code> is not <code>null</code> <em>and</em> that
-     * directory actually exists. <code>null</code> otherwise.
+     * {@code XDG_DOCUMENTS_DIR} is not {@code null} <em>and</em> that
+     * directory actually exists. {@code null} otherwise.
      */
     public static final File XDG_DOCUMENTS_DIR_FILE = ((XDG_DOCUMENTS_DIR != null) && new File(XDG_DOCUMENTS_DIR).isDirectory()) ? new File(XDG_DOCUMENTS_DIR) : null;
 
     /**
      * {@link #XDG_DOWNLOAD_DIR} as a {@link File} object, but only if
-     * <code>XDG_DOWNLOAD_DIR</code> is not <code>null</code> <em>and</em> that
-     * directory actually exists. <code>null</code> otherwise.
+     * {@code XDG_DOWNLOAD_DIR} is not {@code null} <em>and</em> that
+     * directory actually exists. {@code null} otherwise.
      */
     public static final File XDG_DOWNLOAD_DIR_FILE = ((XDG_DOWNLOAD_DIR != null) && new File(XDG_DOWNLOAD_DIR).isDirectory()) ? new File(XDG_DOWNLOAD_DIR) : null;
 
     /**
      * {@link #XDG_MUSIC_DIR} as a {@link File} object, but only if
-     * <code>XDG_MUSIC_DIR</code> is not <code>null</code> <em>and</em> that
-     * directory actually exists. <code>null</code> otherwise.
+     * {@code XDG_MUSIC_DIR} is not {@code null} <em>and</em> that
+     * directory actually exists. {@code null} otherwise.
      */
     public static final File XDG_MUSIC_DIR_FILE = ((XDG_MUSIC_DIR != null) && new File(XDG_MUSIC_DIR).isDirectory()) ? new File(XDG_MUSIC_DIR) : null;
 
     /**
      * {@link #XDG_PICTURES_DIR} as a {@link File} object, but only if
-     * <code>XDG_PICTURES_DIR</code> is not <code>null</code> <em>and</em> that
-     * directory actually exists. <code>null</code> otherwise.
+     * {@code XDG_PICTURES_DIR} is not {@code null} <em>and</em> that
+     * directory actually exists. {@code null} otherwise.
      */
     public static final File XDG_PICTURES_DIR_FILE = ((XDG_PICTURES_DIR != null) && new File(XDG_PICTURES_DIR).isDirectory()) ? new File(XDG_PICTURES_DIR) : null;
 
     /**
      * {@link #XDG_PUBLICSHARE_DIR} as a {@link File} object, but only if
-     * <code>XDG_PUBLICSHARE_DIR</code> is not <code>null</code> <em>and</em> that
-     * directory actually exists. <code>null</code> otherwise.
+     * {@code XDG_PUBLICSHARE_DIR} is not {@code null} <em>and</em> that
+     * directory actually exists. {@code null} otherwise.
      */
     public static final File XDG_PUBLICSHARE_DIR_FILE = ((XDG_PUBLICSHARE_DIR != null) && new File(XDG_PUBLICSHARE_DIR).isDirectory()) ? new File(XDG_PUBLICSHARE_DIR) : null;
 
     /**
      * {@link #XDG_TEMPLATES_DIR} as a {@link File} object, but only if
-     * <code>XDG_TEMPLATES_DIR</code> is not <code>null</code> <em>and</em> that
-     * directory actually exists. <code>null</code> otherwise.
+     * {@code XDG_TEMPLATES_DIR} is not {@code null} <em>and</em> that
+     * directory actually exists. {@code null} otherwise.
      */
     public static final File XDG_TEMPLATES_DIR_FILE = ((XDG_TEMPLATES_DIR != null) && new File(XDG_TEMPLATES_DIR).isDirectory()) ? new File(XDG_TEMPLATES_DIR) : null;
 
     /**
      * {@link #XDG_VIDEOS_DIR} as a {@link File} object, but only if
-     * <code>XDG_VIDEOS_DIR</code> is not <code>null</code> <em>and</em> that
-     * directory actually exists. <code>null</code> otherwise.
+     * {@code XDG_VIDEOS_DIR} is not {@code null} <em>and</em> that
+     * directory actually exists. {@code null} otherwise.
      */
     public static final File XDG_VIDEOS_DIR_FILE = ((XDG_VIDEOS_DIR != null) && new File(XDG_VIDEOS_DIR).isDirectory()) ? new File(XDG_VIDEOS_DIR) : null;
 

@@ -71,9 +71,9 @@ public interface HeightMap extends Serializable {
     /**
      * Get the extent of the height map, if any. The extent is the area it
      * covers and for which it can return meaningful values. A height map may
-     * be unbounded in which case this should return <code>null</code>.
+     * be unbounded in which case this should return {@code null}.
      *
-     * @return The extent of the height map, or <code>null</code> if it is
+     * @return The extent of the height map, or {@code null} if it is
      * unbounded.
      */
     Rectangle getExtent();
@@ -93,7 +93,7 @@ public interface HeightMap extends Serializable {
      * Indicate whether the height map is constant, i.e. it always returns the
      * same value regardless of the location.
      *
-     * @return <code>true</code> if the height map is constant.
+     * @return {@code true} if the height map is constant.
      */
     boolean isConstant();
 

@@ -63,9 +63,9 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
 
     /**
      * Creates a new continuous operation (an operation which is continually performed while e.g. the mouse button is
-     * held down). {@link #tick(int, int, boolean, boolean, float)} will be invoked every <code>delay</code>
-     * milliseconds during each activation of these operations, with the <code>first</code> parameter set to
-     * <code>true</code> for the first invocation per activation, and set to <code>false</code> for all subsequent
+     * held down). {@link #tick(int, int, boolean, boolean, float)} will be invoked every {@code delay}
+     * milliseconds during each activation of these operations, with the {@code first} parameter set to
+     * {@code true} for the first invocation per activation, and set to {@code false} for all subsequent
      * invocations per activation.
      *
      * @param name The short name of the operation. May be displayed on the operation's tool button.
@@ -84,9 +84,9 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
 
     /**
      * Creates a new continuous operation (an operation which is continually performed while e.g. the mouse button is
-     * held down). {@link #tick(int, int, boolean, boolean, float)} will be invoked every <code>delay</code>
-     * milliseconds during each activation of these operations, with the <code>first</code> parameter set to
-     * <code>true</code> for the first invocation per activation, and set to <code>false</code> for all subsequent
+     * held down). {@link #tick(int, int, boolean, boolean, float)} will be invoked every {@code delay}
+     * milliseconds during each activation of these operations, with the {@code first} parameter set to
+     * {@code true} for the first invocation per activation, and set to {@code false} for all subsequent
      * invocations per activation.
      *
      * @param name The short name of the operation. May be displayed on the operation's tool button.
@@ -120,9 +120,9 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
 
     /**
      * Creates a new continuous operation (an operation which is continually performed while e.g. the mouse button is
-     * held down). {@link #tick(int, int, boolean, boolean, float)} will be invoked every <code>delay</code>
-     * milliseconds during each activation of these operations, with the <code>first</code> parameter set to
-     * <code>true</code> for the first invocation per activation, and set to <code>false</code> for all subsequent
+     * held down). {@link #tick(int, int, boolean, boolean, float)} will be invoked every {@code delay}
+     * milliseconds during each activation of these operations, with the {@code first} parameter set to
+     * {@code true} for the first invocation per activation, and set to {@code false} for all subsequent
      * invocations per activation.
      *
      * @param name The short name of the operation. May be displayed on the operation's tool button.
@@ -376,15 +376,15 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
      *     regular operation, if applicable. If the operation has no inverse it
      *     should just apply the normal operation.
      * @param first Whether this is the first tick of a continuous operation.
-     *     For a one shot operation this will always be <code>true</code>.
+     *     For a one shot operation this will always be {@code true}.
      * @param dynamicLevel The dynamic level (from 0.0f to 1.0f inclusive) to
-     *     apply in addition to the <code>level</code> property, for instance
+     *     apply in addition to the {@code level} property, for instance
      *     due to a pressure sensitive stylus being used. In other words,
      *     <strong>not</strong> the total level at which to apply the operation!
      *     Operations are free to ignore this if it is not applicable. If the
      *     operation is being applied through a means which doesn't provide a
      *     dynamic level (for instance the mouse), this will be <em>exactly</em>
-     *     <code>1.0f</code>.
+     *     {@code 1.0f}.
      */
     protected abstract void tick(int centreX, int centreY, boolean inverse, boolean first, float dynamicLevel);
 
@@ -403,7 +403,7 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
      * invert operations! It is probably a bad idea to overload it with anything
      * else.
      *
-     * @return <code>true</code> if the Alt, AltGr or Option key is currently
+     * @return {@code true} if the Alt, AltGr or Option key is currently
      * depressed.
      */
     protected final boolean isAltDown() {
@@ -414,7 +414,7 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
      * Determine whether the Ctrl (PC/Mac), Windows (PC) or Command (Mac) key is
      * currently depressed.
      *
-     * @return <code>true</code> if the Ctrl (PC/Mac), Windows (PC) or
+     * @return {@code true} if the Ctrl (PC/Mac), Windows (PC) or
      * Command (Mac) key is currently depressed.
      */
     protected final boolean isCtrlDown() {
@@ -424,7 +424,7 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
     /**
      * Determine whether the Shift key is currently depressed.
      *
-     * @return <code>true</code> if the Shift key is currently depressed.
+     * @return {@code true} if the Shift key is currently depressed.
      */
     protected final boolean isShiftDown() {
         return shiftDown;

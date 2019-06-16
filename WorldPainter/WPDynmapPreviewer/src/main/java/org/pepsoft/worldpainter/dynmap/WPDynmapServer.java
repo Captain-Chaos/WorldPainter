@@ -14,7 +14,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
 /**
- * Implementation of <code>DynmapServerInterface</code> in support of the
+ * Implementation of {@code DynmapServerInterface} in support of the
  * private implementations of dynmap classes in this module. This is
  * <em>NOT</em> a general purpose implementation and most methods throw an
  * {@link UnsupportedOperationException}!

@@ -29,7 +29,7 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
      * @param biome The default biome associated with this mixed material, or -1
      *     for no default biome.
      * @param colour The colour associated with this mixed material, or
-     *     <code>null</code> for no default colour.
+     *     {@code null} for no default colour.
      */
     public MixedMaterial(final String name, final Row row, final int biome, final Integer colour) {
         this(name, new Row[] {row}, biome, Mode.SIMPLE, 1.0f, colour, null, 0, 0, false);
@@ -44,7 +44,7 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
      * @param biome The default biome associated with this mixed material, or -1
      *     for no default biome.
      * @param colour The colour associated with this mixed material, or
-     *     <code>null</code> for no default colour.
+     *     {@code null} for no default colour.
      */
     public MixedMaterial(final String name, final Row[] rows, final int biome, final Integer colour) {
         this(name, rows, biome, Mode.NOISE, 1.0f, colour, null, 0, 0, false);
@@ -59,8 +59,8 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
      * @param biome The default biome associated with this mixed material, or -1
      *     for no default biome.
      * @param colour The colour associated with this mixed material, or
-     *     <code>null</code> for no default colour.
-     * @param scale The scale of the blobs. <code>1.0f</code> for default size.
+     *     {@code null} for no default colour.
+     * @param scale The scale of the blobs. {@code 1.0f} for default size.
      */
     public MixedMaterial(final String name, final Row[] rows, final int biome, final Integer colour, final float scale) {
         this(name, rows, biome, Mode.BLOBS, scale, colour, null, 0, 0, false);
@@ -75,13 +75,13 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
      * @param biome The default biome associated with this mixed material, or -1
      *     for no default biome.
      * @param colour The colour associated with this mixed material, or
-     *     <code>null</code> for no default colour.
+     *     {@code null} for no default colour.
      * @param variation The variation in layer height which should be applied,
-     *     or <code>null</code> for no variation.
+     *     or {@code null} for no variation.
      * @param layerXSlope The slope of the layer for the x-axis.
-     *     Must be zero if <code>repeat</code> is false.
+     *     Must be zero if {@code repeat} is false.
      * @param layerYSlope The slope of the layer for the y-axis.
-     *     Must be zero if <code>repeat</code> is false.
+     *     Must be zero if {@code repeat} is false.
      * @param repeat Whether the layers should repeat vertically.
      */
     public MixedMaterial(final String name, final Row[] rows, final int biome, final Integer colour, final NoiseSettings variation, final double layerXSlope, final double layerYSlope, final boolean repeat) {
@@ -270,10 +270,10 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
 
     /**
      * Get the single material of which this mixed material consists, or
-     * <code>null</code> if it contains more than one material.
+     * {@code null} if it contains more than one material.
      *
      * @return The single material of which this mixed material consists, or
-     * <code>null</code> if it contains more than one material.
+     * {@code null} if it contains more than one material.
      */
     public Material getSingleMaterial() {
         return simpleMaterial;
@@ -392,10 +392,10 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
      * @param task The task to perform.
      * @param <V> The return type of the task. May be {@link Void} for tasks
      *           which do not return a value.
-     * @return The return value of the task or <code>null</code> if it does not
+     * @return The return value of the task or {@code null} if it does not
      *     return a value.
      * @throws RuntimeException If the task throws a checked exception it will
-     * be wrapped in a <code>RuntimeException</code>.
+     * be wrapped in a {@code RuntimeException}.
      */
     public static <V> V duplicateNewMaterialsWhile(Callable<V> task) {
         DUPLICATE_MATERIALS.set(true);

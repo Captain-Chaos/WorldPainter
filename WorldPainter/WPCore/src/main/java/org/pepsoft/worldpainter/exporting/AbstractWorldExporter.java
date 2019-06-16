@@ -89,7 +89,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
      * exception rethrown.
      *
      * @throws OperationCancelled If the progress receiver threw an
-     * <code>OperationCancelled</code> exception.
+     * {@code OperationCancelled} exception.
      * @throws RuntimeException If an exception occurs during the export and no
      * progress receiver has been specified.
      */

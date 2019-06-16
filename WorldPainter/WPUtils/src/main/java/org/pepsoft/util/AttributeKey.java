@@ -50,7 +50,7 @@ public class AttributeKey<T> {
     /**
      * Convert an instance of {@link T} to a string.
      *
-     * @param value The value to convert. Will never be <code>null</code>.
+     * @param value The value to convert. Will never be {@code null}.
      * @return A string representation of the value.
      */
     public String toString(T value) {
@@ -65,7 +65,7 @@ public class AttributeKey<T> {
      * method to implement it.
      *
      * @param str The string representation to convert. Will never be
-     *            <code>null</code>.
+     *            {@code null}.
      * @return A corresponding instance of {@link T}.
      */
     public T toValue(String str) {

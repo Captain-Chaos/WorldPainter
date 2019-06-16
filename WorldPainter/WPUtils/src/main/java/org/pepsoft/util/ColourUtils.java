@@ -35,8 +35,8 @@ public final class ColourUtils {
     }
     
     /**
-     * Multiplies each of component of <code>colour</code> with
-     * <code>amount</code> and divides the result by 256.
+     * Multiplies each of component of {@code colour} with
+     * {@code amount} and divides the result by 256.
      * 
      * @param colour The RGB colour to multiply.
      * @param amount The amount to multiply each colour band with, where 256

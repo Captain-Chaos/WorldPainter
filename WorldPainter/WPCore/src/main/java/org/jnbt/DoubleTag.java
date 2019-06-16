@@ -34,7 +34,7 @@ package org.jnbt;
  */
 /**
  * The
- * <code>TAG_Double</code> tag.
+ * {@code TAG_Double} tag.
  *
  * @author Graham Edgecombe
  *

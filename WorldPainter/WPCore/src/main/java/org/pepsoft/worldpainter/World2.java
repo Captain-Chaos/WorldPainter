@@ -521,7 +521,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
      * Get the set of warnings generated during loading, if any.
      * 
      * @return The set of warnings generated during loading, if any. May be
-     *     <code>null</code>.
+     *     {@code null}.
      */
     Set<Warning> getWarnings() {
         return warnings;
@@ -784,7 +784,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
      * row per plugin, which each row containing two elements, the first being
      * the plugin name, the second being the plugin version.
      *
-     * <p>May be <code>null</code> if no non-standard plugins were present.
+     * <p>May be {@code null} if no non-standard plugins were present.
      */
     public static final String METADATA_KEY_PLUGINS = "org.pepsoft.worldpainter.plugins";
 

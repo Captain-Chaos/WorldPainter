@@ -114,7 +114,7 @@ public abstract class CustomLayer extends Layer implements Cloneable {
      * <p>The {@link #KEY_DIMENSION} value of the action will be set to the
      * current dimension, if any, before the action is invoked.
      * 
-     * @return Any custom actions for this layer, or <code>null</code> if there
+     * @return Any custom actions for this layer, or {@code null} if there
      * aren't any.
      */
     public List<Action> getActions() {

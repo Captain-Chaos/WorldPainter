@@ -34,7 +34,7 @@ package org.jnbt;
  */
 /**
  * The
- * <code>TAG_Byte_Array</code> tag.
+ * {@code TAG_Byte_Array} tag.
  *
  * @author Graham Edgecombe
  *

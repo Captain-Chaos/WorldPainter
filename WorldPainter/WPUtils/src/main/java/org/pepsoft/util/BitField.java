@@ -6,8 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * An unlimited (except by the range of the <code>int</code> type)
- * two-dimensional field of bits, initially <code>false</code>.
+ * An unlimited (except by the range of the {@code int} type)
+ * two-dimensional field of bits, initially {@code false}.
  *
  * <p>This class is <strong>not</strong> thread-safe.
  */
@@ -55,7 +55,7 @@ public class BitField {
      *
      * @param x The X coordinate of the bit to get.
      * @param y The Y coordinate of the bit to get.
-     * @return <code>true</code> if the bit is set, <code>false</code>
+     * @return {@code true} if the bit is set, {@code false}
      * otherwise.
      */
     public boolean get(int x, int y) {
@@ -75,7 +75,7 @@ public class BitField {
      * Get the bounding box of all the bits that are set.
      *
      * @return The bounding box of all the bits that are set, or
-     * <code>null</code> if <em>no</em> bits are set.
+     * {@code null} if <em>no</em> bits are set.
      */
     public Rectangle getBoundingBox() {
         // TODO
@@ -86,9 +86,9 @@ public class BitField {
      * Perform a task for all bits that are set.
      *
      * @param visitor The task to perform.
-     * @return <code>true</code> if the visitor returned <code>true</code> for
-     * every bit and every bit was therefore visited. <code>false</code> if the
-     * visitor returned <code>false</code> for some bit and not all bits may
+     * @return {@code true} if the visitor returned {@code true} for
+     * every bit and every bit was therefore visited. {@code false} if the
+     * visitor returned {@code false} for some bit and not all bits may
      * have been visited.
      */
     public boolean visitSetBits(BitVisitor visitor) {
@@ -123,8 +123,8 @@ public class BitField {
          * @param x The X coordinate of the bit on the 2D plane.
          * @param y The Y coordinate of the bit on the 2D plane.
          * @param bit Whether the bit is set.
-         * @return Should return <code>true</code> to indicate that processing
-         * should continue, or <code>false</code> to indicate that processing
+         * @return Should return {@code true} to indicate that processing
+         * should continue, or {@code false} to indicate that processing
          * may be aborted.
          */
         boolean visitBit(int x, int y, boolean bit);
