@@ -2,6 +2,7 @@ package org.pepsoft.worldpainter.tools;
 
 import org.pepsoft.minecraft.ChunkStore;
 import org.pepsoft.minecraft.Material;
+import org.pepsoft.worldpainter.AbstractMain;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 
@@ -14,8 +15,10 @@ import java.util.Set;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 
-public class DumpBlockData {
+public class DumpBlockData extends AbstractMain {
     public static void main(String[] args) {
+        initialisePlatform();
+
         Set<Material> allMaterials = new HashSet<>();
         Map<String, Map<String, Set<String>>> allProperties = new HashMap<>();
         File worldDir = new File(args[0]);

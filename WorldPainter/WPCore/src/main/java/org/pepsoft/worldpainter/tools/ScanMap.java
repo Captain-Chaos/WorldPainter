@@ -2,19 +2,20 @@ package org.pepsoft.worldpainter.tools;
 
 import org.pepsoft.minecraft.ChunkStore;
 import org.pepsoft.minecraft.MC113AnvilChunk;
+import org.pepsoft.worldpainter.AbstractMain;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
-import org.pepsoft.worldpainter.plugins.WPPluginManager;
 
 import java.awt.*;
 import java.io.File;
 import java.util.*;
 
+import static java.util.Comparator.comparing;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 
-public class ScanMap {
+public class ScanMap extends AbstractMain {
     public static void main(String[] args) {
-        WPPluginManager.initialise(null);
+        initialisePlatform();
 
         int[] bounds = {Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE};
         Map<Point, MC113AnvilChunk.Status> statusMap = new HashMap<>();
@@ -58,6 +59,8 @@ public class ScanMap {
             }
             System.out.println(String.valueOf(line));
         }
+        System.out.println("Statuses:");
+        statusMap.values().stream().sorted(comparing(Enum::name)).distinct().forEach(status -> System.out.println(status.name().substring(0, 3) + " -> " + status));
         System.out.println("Height map types encountered: " + heightmapTypes);
     }
 }
