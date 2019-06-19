@@ -119,6 +119,24 @@ public class BiomeSchemeManager {
     }
 
     /**
+     * Get the highest version Minecraft jar available.
+     *
+     * @return The highest version Minecraft jar available, or {@code null} if
+     * no Minecraft jar is available.
+     */
+    public static File getLatestMinecraftJar() {
+        synchronized (initialisationLock) {
+            if (! initialised) {
+                initialise();
+            }
+        }
+
+        return ALL_JARS.entrySet().stream()
+                .max(comparing(Map.Entry::getKey))
+                .map(Map.Entry::getValue).orElse(null);
+    }
+
+    /**
      * Get the highest version Minecraft jar available of the specified version
      * or lower.
      *
@@ -156,11 +174,10 @@ public class BiomeSchemeManager {
             }
         }
 
-        if ((! ALL_JARS.isEmpty()) && ALL_JARS.lastKey().isAtLeast(version)) {
-            return ALL_JARS.get(ALL_JARS.lastKey());
-        } else {
-            return null;
-        }
+        return ALL_JARS.entrySet().stream()
+                .filter(e -> e.getKey().compareTo(version) >= 0)
+                .max(comparing(Map.Entry::getKey))
+                .map(Map.Entry::getValue).orElse(null);
     }
 
     public static BufferedImage createImage(BiomeScheme biomeScheme, int biome, ColourScheme colourScheme) {
