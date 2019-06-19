@@ -5,7 +5,7 @@
 package org.pepsoft.worldpainter.layers.exporters;
 
 import org.pepsoft.minecraft.Chunk;
-import org.pepsoft.minecraft.MC113AnvilChunk;
+import org.pepsoft.minecraft.MC114AnvilChunk;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.Dimension;
@@ -127,9 +127,9 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
 //                                counts[oreType]++;
                                 chunk.setMaterial(x, y, z, activeMaterials[i]);
                                 // TODOMC13: solve this more generically (in the post processor?):
-                                if (activeMaterials[i].isNamedOneOf(MC_WATER, MC_LAVA) && (chunk instanceof MC113AnvilChunk)) {
+                                if (activeMaterials[i].isNamedOneOf(MC_WATER, MC_LAVA) && (chunk instanceof MC114AnvilChunk)) {
                                     // Make sure the fluid will actually flow
-                                    ((MC113AnvilChunk) chunk).addLiquidTick(x, y, z);
+                                    ((MC114AnvilChunk) chunk).addLiquidTick(x, y, z);
                                 }
                                 break;
                             }

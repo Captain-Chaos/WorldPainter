@@ -19,7 +19,7 @@ import java.util.Random;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_13;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_14;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.*;
 
 /**
@@ -61,7 +61,7 @@ public enum Terrain {
                             || (roseNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, 1 / SMALL_BLOBS) > FLOWER_CHANCE)) {
                         Material flower = FLOWER_TYPES[flowerTypeField.getValue(x, y)];
                         if (flower.blockType == BLK_LARGE_FLOWERS) {
-                            if (platform == JAVA_ANVIL_1_13) {
+                            if (platform == JAVA_ANVIL_1_14) {
                                 return flower.withProperty(HALF, "upper");
                             } else {
                                 return LARGE_FLOWER_TOP;
@@ -81,7 +81,7 @@ public enum Terrain {
                     // Keep the "1 / SMALLBLOBS" for consistency with existing maps
                     final float grassValue = grassNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, 1 / SMALL_BLOBS) + (rnd.nextFloat() * 0.3f - 0.15f);
                     if ((grassValue > DOUBLE_TALL_GRASS_CHANCE) && (tallGrassNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, 1 / SMALL_BLOBS) > 0)) {
-                        if (platform == JAVA_ANVIL_1_13) {
+                        if (platform == JAVA_ANVIL_1_14) {
                             if (rnd.nextInt(4) == 0) {
                                 return DOUBLE_TALL_FERN_BOTTOM.withProperty(HALF, "upper");
                             } else {
@@ -2835,7 +2835,7 @@ public enum Terrain {
      * @return The material at the specified location in the terrain.
      */
     public Material getMaterial(final long seed, final int x, final int y, final float z, final int height) {
-        return getMaterial(JAVA_ANVIL_1_13, seed, x, y, (int) (z + 0.5f), height);
+        return getMaterial(JAVA_ANVIL_1_14, seed, x, y, (int) (z + 0.5f), height);
     }
 
     /**
@@ -2854,7 +2854,7 @@ public enum Terrain {
      * @return The material at the specified location in the terrain.
      */
     public Material getMaterial(final long seed, final int x, final int y, final int z, final int height) {
-        return getMaterial(JAVA_ANVIL_1_13, seed, x, y, z, height);
+        return getMaterial(JAVA_ANVIL_1_14, seed, x, y, z, height);
     }
 
     /**

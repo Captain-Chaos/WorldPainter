@@ -14,7 +14,7 @@ public final class Constants {
         // Prevent instantiation
     }
 
-    // MC 1.13 block names
+    // MC 1.14 block names
 
     public static final String MC_ACACIA_BARK = "minecraft:acacia_bark";
     public static final String MC_ACACIA_DOOR = "minecraft:acacia_door";
@@ -498,8 +498,12 @@ public final class Constants {
     public static final String MC_DEAD_FIRE_CORAL_WALL_FAN = "minecraft:dead_fire_coral_wall_fan";
     public static final String MC_DEAD_HORN_CORAL_WALL_FAN = "minecraft:dead_horn_coral_wall_fan";
     public static final String MC_SEA_PICKLE = "minecraft:sea_pickle";
+    public static final String MC_CORNFLOWER = "minecraft:cornflower";
+    public static final String MC_LILY_OF_THE_VALLEY = "minecraft:lily_of_the_valley";
+    public static final String MC_WITHER_ROSE = "minecraft:wither_rose";
+    public static final String MC_SWEET_BERRY_BUSH = "minecraft:sweet_berry_bush";
 
-    // MC 1.13 property names
+    // MC 1.14 property names
 
     public static final String MC_SNOWY       = "snowy";
     public static final String MC_NORTH       = "north";
@@ -649,7 +653,7 @@ public final class Constants {
     public static final int VERSION_ANVIL    = 0x4abd;
 
     public static final int DATA_VERSION_MC_1_12_2 = 1343;
-    public static final int DATA_VERSION_MC_1_13_2 = 1631;
+    public static final int DATA_VERSION_MC_1_14_2 = 1963;
 
     // Legacy (pre-MC 1.13) block IDs
 
@@ -1013,7 +1017,7 @@ public final class Constants {
 
     /** @deprecated */ public static final int ITM_EYE_OF_ENDER    = 381;
 
-    // Legacy (pre-MC 1.13) tile entity IDs (TODOMC13: implement this for MC 1.13 also
+    // Legacy (pre-MC 1.13) tile entity IDs (TODOMC13: implement this for MC 1.14 also
 
     public static final String ID_CHEST        = "Chest";
     public static final String ID_VILLAGER     = "Villager";

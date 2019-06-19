@@ -232,7 +232,7 @@ public class JavaWorldMerger extends JavaWorldExporter {
         int version = level.getVersion();
         int dataVersion = level.getDataVersion();
         setPlatform((version == VERSION_MCREGION) ? DefaultPlugin.JAVA_MCREGION
-                : ((dataVersion <= DATA_VERSION_MC_1_12_2) ? DefaultPlugin.JAVA_ANVIL : DefaultPlugin.JAVA_ANVIL_1_13));
+                : ((dataVersion <= DATA_VERSION_MC_1_12_2) ? DefaultPlugin.JAVA_ANVIL : DefaultPlugin.JAVA_ANVIL_1_14));
         
         // Modify it if necessary and write it to the the new level
         if ((selectedDimensions == null) || selectedDimensions.contains(DIM_NORMAL)) {
@@ -796,7 +796,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         Level level = performSanityChecks(true);
 
         int dataVersion = level.getDataVersion();
-        Platform platform = (dataVersion <= DATA_VERSION_MC_1_12_2) ? DefaultPlugin.JAVA_ANVIL : DefaultPlugin.JAVA_ANVIL_1_13;
+        Platform platform = (dataVersion <= DATA_VERSION_MC_1_12_2) ? DefaultPlugin.JAVA_ANVIL : DefaultPlugin.JAVA_ANVIL_1_14;
         // TODO support any platform
         DefaultPlatformProvider platformProvider = (DefaultPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
 

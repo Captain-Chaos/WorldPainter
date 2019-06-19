@@ -1,7 +1,7 @@
 package org.pepsoft.worldpainter.tools;
 
 import org.pepsoft.minecraft.ChunkStore;
-import org.pepsoft.minecraft.MC113AnvilChunk;
+import org.pepsoft.minecraft.MC114AnvilChunk;
 import org.pepsoft.worldpainter.AbstractMain;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
@@ -18,14 +18,14 @@ public class ScanMap extends AbstractMain {
         initialisePlatform();
 
         int[] bounds = {Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE};
-        Map<Point, MC113AnvilChunk.Status> statusMap = new HashMap<>();
-        Set<MC113AnvilChunk.HeightmapType> heightmapTypes = new HashSet<>();
+        Map<Point, MC114AnvilChunk.Status> statusMap = new HashMap<>();
+        Set<MC114AnvilChunk.HeightmapType> heightmapTypes = new HashSet<>();
         File worldDir = new File(args[0]);
         PlatformManager platformManager = PlatformManager.getInstance();
         Platform platform = platformManager.identifyMap(worldDir);
         ChunkStore chunkStore = platformManager.getChunkStore(platform, worldDir, DIM_NORMAL);
         chunkStore.visitChunks(chunk -> {
-            MC113AnvilChunk.Status status = ((MC113AnvilChunk) chunk).getStatus();
+            MC114AnvilChunk.Status status = ((MC114AnvilChunk) chunk).getStatus();
             if (chunk.getxPos() < bounds[0]) {
                 bounds[0] = chunk.getxPos();
             }
@@ -39,7 +39,7 @@ public class ScanMap extends AbstractMain {
                 bounds[3] = chunk.getzPos();
             }
             statusMap.put(new Point(chunk.getxPos(), chunk.getzPos()), status);
-            heightmapTypes.addAll(((MC113AnvilChunk) chunk).getHeightMaps().keySet());
+            heightmapTypes.addAll(((MC114AnvilChunk) chunk).getHeightMaps().keySet());
             return true;
         });
         char[] line = new char[(bounds[1] - bounds[0]) * 4 + 3];
@@ -49,18 +49,27 @@ public class ScanMap extends AbstractMain {
                 if (x >  bounds[0]) {
                     line[(x - bounds[0]) * 4 - 1] = '|';
                 }
-                MC113AnvilChunk.Status status = statusMap.get(new Point(x, z));
-                if (status != null) {
-                    String name = status.name();
-                    line[(x - bounds[0]) * 4]     = name.charAt(0);
-                    line[(x - bounds[0]) * 4 + 1] = name.charAt(1);
-                    line[(x - bounds[0]) * 4 + 2] = name.charAt(2);
+
+                Point coords = new Point(x, z);
+                if (statusMap.containsKey(coords)) {
+                    MC114AnvilChunk.Status status = statusMap.get(coords);
+                    if (status != null) {
+                        String name = status.name();
+                        line[(x - bounds[0]) * 4] = name.charAt(0);
+                        line[(x - bounds[0]) * 4 + 1] = name.charAt(1);
+                        line[(x - bounds[0]) * 4 + 2] = name.charAt(2);
+                    } else {
+                        line[(x - bounds[0]) * 4] = 'X';
+                        line[(x - bounds[0]) * 4 + 1] = 'X';
+                        line[(x - bounds[0]) * 4 + 2] = 'X';
+                    }
                 }
             }
             System.out.println(String.valueOf(line));
         }
         System.out.println("Statuses:");
         statusMap.values().stream().sorted(comparing(Enum::name)).distinct().forEach(status -> System.out.println(status.name().substring(0, 3) + " -> " + status));
+        System.out.println("XXX -> Chunk present but no status");
         System.out.println("Height map types encountered: " + heightmapTypes);
     }
 }

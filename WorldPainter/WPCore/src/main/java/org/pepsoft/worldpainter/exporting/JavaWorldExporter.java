@@ -42,7 +42,7 @@ public class JavaWorldExporter extends AbstractWorldExporter {
         super(world);
         if ((! (platform == JAVA_ANVIL))
                 && (! (platform == JAVA_MCREGION))
-                && (! (platform == JAVA_ANVIL_1_13))) {
+                && (! (platform == JAVA_ANVIL_1_14))) {
             throw new IllegalArgumentException("Unsupported platform " + platform);
         }
     }
@@ -122,13 +122,13 @@ public class JavaWorldExporter extends AbstractWorldExporter {
                     }
                     break;
                 case ENDLESS_VOID:
-                    superflatPresetBuilder = SuperflatPreset.builder((platform == JAVA_ANVIL_1_13) ? BIOME_VOID : BIOME_PLAINS);
+                    superflatPresetBuilder = SuperflatPreset.builder((platform == JAVA_ANVIL_1_14) ? BIOME_VOID : BIOME_PLAINS);
                     superflatPresetBuilder.addLayer(MC_AIR, 1);
                     break;
                 default:
                     throw new InternalError();
             }
-            if (platform != JAVA_ANVIL_1_13) {
+            if (platform != JAVA_ANVIL_1_14) {
                 level.setGeneratorOptions(new StringTag(TAG_GENERATOR_OPTIONS_, superflatPresetBuilder.build().toMinecraft1_12_2()));
             } else {
                 level.setGeneratorOptions(superflatPresetBuilder.build().toMinecraft1_13_2());

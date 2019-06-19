@@ -22,7 +22,7 @@ import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_13;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_14;
 
 /**
  * A tool for obtaining a mapping of MC 1.12.2 block IDs and data values to
@@ -109,7 +109,7 @@ public class BlockNameHarvester {
             List<Object> blockSpecs = new ArrayList<>();
             File savesDir = new File(MinecraftUtil.findMinecraftDir(), "saves");
             File worldDir = new File(savesDir, "BlockNames");
-            JavaMinecraftWorld world = new JavaMinecraftWorld(worldDir, DIM_NORMAL, DEFAULT_MAX_HEIGHT_ANVIL, JAVA_ANVIL_1_13, true, 256);
+            JavaMinecraftWorld world = new JavaMinecraftWorld(worldDir, DIM_NORMAL, DEFAULT_MAX_HEIGHT_ANVIL, JAVA_ANVIL_1_14, true, 256);
             for (int x = -32; x < 32; x++) {
                 for (int z = -32; z < 32; z++) {
                     int index = z + 32 + 64 * (x + 32);

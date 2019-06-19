@@ -27,7 +27,7 @@ import java.util.UUID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_13;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_14;
 
 /**
  * Created by Pepijn Schmitz on 09-01-17.
@@ -49,7 +49,7 @@ public class RegressionIT {
         World2 world = loadWorld("/testset/test-v2.3.6-1.world");
         File tmpBaseDir = createTmpBaseDir();
         File anvil12worldDir = exportJavaWorld(world, tmpBaseDir);
-        world.setPlatform(JAVA_ANVIL_1_13);
+        world.setPlatform(JAVA_ANVIL_1_14);
         File anvil113worldDir = exportJavaWorld(world, tmpBaseDir);
 //        try (ZipInputStream in = new ZipInputStream(RegressionIT.class.getResourceAsStream("/testset/test-v2.3.6-1-result.zip"))) {
 //            ZipEntry zipEntry;
@@ -71,7 +71,7 @@ public class RegressionIT {
             logger.info("Comparing dimension " + dimension.getName());
             Rectangle area = new Rectangle(dimension.getLowestX() << 5, dimension.getLowestY() << 5, dimension.getWidth() << 5, dimension.getHeight() << 5);
             try (MinecraftWorld anvil12World = new JavaMinecraftWorld(anvil12worldDir, dimension.getDim(), dimension.getMaxHeight(), JAVA_ANVIL, true, 256);
-                    MinecraftWorld anvil113World = new JavaMinecraftWorld(anvil113worldDir, dimension.getDim(), dimension.getMaxHeight(), JAVA_ANVIL_1_13, true, 256)) {
+                    MinecraftWorld anvil113World = new JavaMinecraftWorld(anvil113worldDir, dimension.getDim(), dimension.getMaxHeight(), JAVA_ANVIL_1_14, true, 256)) {
                 MinecraftWorldUtils.assertEquals("Anvil 1.2", anvil12World, "Anvil 1.13", anvil113World, area);
             }
         }

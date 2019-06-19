@@ -18,7 +18,7 @@ import java.util.Set;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.MEDIUM_BLOBS;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_13;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_14;
 import static org.pepsoft.worldpainter.Platform.Capability.BIOMES;
 import static org.pepsoft.worldpainter.Terrain.BEACHES;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.*;
@@ -57,7 +57,7 @@ public class BorderChunkFactory {
             int biome;
             switch(border) {
                 case VOID:
-                    biome = (platform == JAVA_ANVIL_1_13) ? BIOME_VOID : BIOME_PLAINS;
+                    biome = (platform == JAVA_ANVIL_1_14) ? BIOME_VOID : BIOME_PLAINS;
                     break;
                 case LAVA:
                     biome = BIOME_PLAINS;

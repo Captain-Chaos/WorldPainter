@@ -50,7 +50,7 @@ public class MinecraftWorldUtils {
                             && material1.getProperty("data_value").equals("8")
                             && material2.isNamedOneOf(MC_PEONY, MC_SUNFLOWER, MC_LILAC, MC_TALL_GRASS, MC_LARGE_FERN, MC_ROSE_BUSH)
                             && material2.getProperty(MC_HALF).equals("upper")) {
-                        // Double high plant upper half block, which is a different block in 1.2 and 1.13
+                        // Double high plant upper half block, which is a different block in 1.2 and 1.14
                     } else {
                         assertEquals(material1, role2, material2, "material", offsetX + x, y, offsetZ + z, reportBuilder);
                     }

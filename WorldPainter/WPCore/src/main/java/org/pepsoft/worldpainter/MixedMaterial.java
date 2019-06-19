@@ -367,7 +367,7 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
      *     appropriate name
      */
     public static MixedMaterial create(final Platform platform, final Material material) {
-        return create((platform == DefaultPlugin.JAVA_ANVIL_1_13) /* TODO make dynamic */ ? material.toString() : material.toLegacyString(), material);
+        return create((platform == DefaultPlugin.JAVA_ANVIL_1_14) /* TODO make dynamic */ ? material.toString() : material.toLegacyString(), material);
     }
 
     /**

@@ -28,7 +28,7 @@ public class JavaMapRecognizer implements MapRecognizer {
                     if (level.getDataVersion() <= DATA_VERSION_MC_1_12_2) {
                         return JAVA_ANVIL;
                     } else {
-                        return JAVA_ANVIL_1_13;
+                        return JAVA_ANVIL_1_14;
                     }
                 } else {
                     return null;

@@ -84,7 +84,7 @@ public class PlatformManager extends AbstractProviderManager<Platform, PlatformP
             // If one of the candidates is ourselves, discount it, assuming that
             // the plugin did a more specific check and is probably right
             // TODO: make this more generic
-            candidates.removeAll(asList(JAVA_MCREGION, JAVA_ANVIL, JAVA_ANVIL_1_13));
+            candidates.removeAll(asList(JAVA_MCREGION, JAVA_ANVIL, JAVA_ANVIL_1_14));
             if (candidates.size() == 1) {
                 return candidates.iterator().next();
             } else {

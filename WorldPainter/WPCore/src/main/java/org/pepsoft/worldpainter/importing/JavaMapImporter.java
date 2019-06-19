@@ -7,7 +7,6 @@ package org.pepsoft.worldpainter.importing;
 import org.jnbt.CompoundTag;
 import org.jnbt.StringTag;
 import org.jnbt.Tag;
-import org.jnbt.XMLTransformer;
 import org.pepsoft.minecraft.*;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
@@ -68,7 +67,7 @@ public class JavaMapImporter extends MapImporter {
         }
         String name = level.getName().trim();
         int maxHeight = level.getMaxHeight();
-        Platform platform = (version == VERSION_MCREGION) ? JAVA_MCREGION : ((level.getDataVersion() <= DATA_VERSION_MC_1_12_2) ? JAVA_ANVIL : JAVA_ANVIL_1_13);
+        Platform platform = (version == VERSION_MCREGION) ? JAVA_MCREGION : ((level.getDataVersion() <= DATA_VERSION_MC_1_12_2) ? JAVA_ANVIL : JAVA_ANVIL_1_14);
         World2 world = new World2(platform, maxHeight);
         world.addHistoryEntry(HistoryEntry.WORLD_IMPORTED_FROM_MINECRAFT_MAP, level.getName(), levelDatFile.getParentFile());
         world.setCreateGoodiesChest(false);
@@ -267,7 +266,7 @@ public class JavaMapImporter extends MapImporter {
                 final int chunkZ = chunkCoords.z;
 
                 // Sanity checks
-                if ((chunk instanceof MC113AnvilChunk) && (((MC113AnvilChunk) chunk).getSections() == null)) {
+                if ((chunk instanceof MC114AnvilChunk) && (((MC114AnvilChunk) chunk).getSections() == null)) {
                     logger.warn("Skipping chunk " + chunkX + "," + chunkZ + " because it has no sections");
                     return true;
                 }

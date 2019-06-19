@@ -30,7 +30,7 @@ import static org.pepsoft.worldpainter.DefaultPlugin.*;
  */
 public class JavaChunkStore implements ChunkStore {
     public JavaChunkStore(Platform platform, File regionDir, boolean honourReadOnlyChunks, Dimension dimension, int maxHeight) {
-        if (! ((platform == JAVA_MCREGION) || (platform == JAVA_ANVIL) || (platform == JAVA_ANVIL_1_13))) {
+        if (! ((platform == JAVA_MCREGION) || (platform == JAVA_ANVIL) || (platform == JAVA_ANVIL_1_14))) {
             throw new IllegalArgumentException("Unsupported platform " + platform);
         }
         this.platform = platform;
@@ -127,7 +127,7 @@ public class JavaChunkStore implements ChunkStore {
                     occupiedCoords.add(coords);
                 }
             }
-        } else if (platform == JAVA_ANVIL_1_13) {
+        } else if (platform == JAVA_ANVIL_1_14) {
             // TODOMC13: similar sanity checks
         }
 

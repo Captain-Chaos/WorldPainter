@@ -41,12 +41,12 @@ public class DefaultPlatformProvider extends AbstractPlugin implements BlockBase
     public NBTChunk createChunk(Platform platform, Tag tag, int maxHeight, boolean readOnly) {
         if ((platform == JAVA_MCREGION)) {
             return new MCRegionChunk((CompoundTag) tag, maxHeight, readOnly);
-        } else if ((platform == JAVA_ANVIL) || (platform == JAVA_ANVIL_1_13)) {
+        } else if ((platform == JAVA_ANVIL) || (platform == JAVA_ANVIL_1_14)) {
             Tag dataVersionTag = ((CompoundTag) tag).getTag(TAG_DATA_VERSION);
             if ((dataVersionTag == null) || ((IntTag) dataVersionTag).getValue() <= DATA_VERSION_MC_1_12_2) {
                 return new MC12AnvilChunk((CompoundTag) tag, maxHeight, readOnly);
             } else {
-                return new MC113AnvilChunk((CompoundTag) tag, maxHeight, readOnly);
+                return new MC114AnvilChunk((CompoundTag) tag, maxHeight, readOnly);
             }
         } else {
             throw new IllegalArgumentException("Platform " + platform + " not supported");
@@ -72,7 +72,7 @@ public class DefaultPlatformProvider extends AbstractPlugin implements BlockBase
     private File getRegionFileFile(Platform platform, File regionDir, Point coords) {
         if ((platform == JAVA_MCREGION)) {
             return new File(regionDir, "r." + coords.x + "." + coords.y + ".mcr");
-        } else if ((platform == JAVA_ANVIL) || (platform == JAVA_ANVIL_1_13)) {
+        } else if ((platform == JAVA_ANVIL) || (platform == JAVA_ANVIL_1_14)) {
             return new File(regionDir, "r." + coords.x + "." + coords.y + ".mca");
         } else {
             throw new IllegalArgumentException("Platform " + platform + " not supported");
@@ -104,8 +104,8 @@ public class DefaultPlatformProvider extends AbstractPlugin implements BlockBase
             return new MCRegionChunk(x, z, maxHeight);
         } else if (platform == JAVA_ANVIL) {
             return new MC12AnvilChunk(x, z, maxHeight);
-        } else if (platform == JAVA_ANVIL_1_13) {
-            return new MC113AnvilChunk(x, z, maxHeight);
+        } else if (platform == JAVA_ANVIL_1_14) {
+            return new MC114AnvilChunk(x, z, maxHeight);
         } else {
             throw new IllegalArgumentException("Platform " + platform + " not supported");
         }
@@ -141,7 +141,7 @@ public class DefaultPlatformProvider extends AbstractPlugin implements BlockBase
     public PostProcessor getPostProcessor(Platform platform) {
         if ((platform == JAVA_MCREGION) || (platform == JAVA_ANVIL)) {
             return new Java1_2PostProcessor();
-        } else if (platform == JAVA_ANVIL_1_13) {
+        } else if (platform == JAVA_ANVIL_1_14) {
             return new Java1_13PostProcessor();
         } else {
             throw new IllegalArgumentException("Platform " + platform + " not supported");
@@ -164,5 +164,5 @@ public class DefaultPlatformProvider extends AbstractPlugin implements BlockBase
         return dir.isDirectory() && (dir.listFiles().length > 0);
     }
 
-    private static final List<Platform> PLATFORMS = ImmutableList.of(JAVA_ANVIL_1_13, JAVA_ANVIL, JAVA_MCREGION);
+    private static final List<Platform> PLATFORMS = ImmutableList.of(JAVA_ANVIL_1_14, JAVA_ANVIL, JAVA_MCREGION);
 }

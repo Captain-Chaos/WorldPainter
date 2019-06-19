@@ -46,7 +46,7 @@ public class DumpChunk {
                 ? new MCRegionChunk(chunkTag, level.getMaxHeight())
                 : (((level.getDataVersion() <= DATA_VERSION_MC_1_12_2) || (level.getDataVersion() == 0))
                     ? new MC12AnvilChunk(chunkTag, level.getMaxHeight())
-                    : new MC113AnvilChunk(chunkTag, level.getMaxHeight()));
+                    : new MC114AnvilChunk(chunkTag, level.getMaxHeight()));
 
         if (! (chunk instanceof MCRegionChunk)) {
             System.out.println("Biomes");
@@ -66,8 +66,8 @@ public class DumpChunk {
             }
         }
 
-        if (chunk instanceof MC113AnvilChunk) {
-            for (Map.Entry<MC113AnvilChunk.HeightmapType, long[]> entry: ((MC113AnvilChunk) chunk).getHeightMaps().entrySet()) {
+        if (chunk instanceof MC114AnvilChunk) {
+            for (Map.Entry<MC114AnvilChunk.HeightmapType, long[]> entry: ((MC114AnvilChunk) chunk).getHeightMaps().entrySet()) {
                 System.out.println("Heightmap (type: " + entry.getKey() + ")");
                 System.out.println("X-->");
                 long[][] data = DataUtils.unpackDataArray(entry.getValue(), 9, 16);
