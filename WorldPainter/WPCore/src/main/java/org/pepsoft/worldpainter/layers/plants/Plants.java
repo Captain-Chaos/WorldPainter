@@ -45,6 +45,9 @@ public class Plants {
     public static final Plant TULIP_WHITE = new SimplePlant("White Tulip", Material.WHITE_TULIP, PLANTS_AND_FLOWERS);
     public static final Plant TULIP_PINK = new SimplePlant("Pink Tulip", Material.PINK_TULIP, PLANTS_AND_FLOWERS);
     public static final Plant OXEYE_DAISY = new SimplePlant("Oxeye Daisy", Material.OXEYE_DAISY, PLANTS_AND_FLOWERS);
+    public static final Plant CORNFLOWER = new SimplePlant("Cornflower", Material.CORNFLOWER, PLANTS_AND_FLOWERS);
+    public static final Plant LILY_OF_THE_VALLEY = new SimplePlant("Lily of the Valley", Material.LILY_OF_THE_VALLEY, PLANTS_AND_FLOWERS);
+    public static final Plant WITHER_ROSE = new SimplePlant("Wither Rose", Material.WITHER_ROSE, PLANTS_AND_FLOWERS);
     public static final Plant SUNFLOWER = new DoubleHighPlant("Sunflower", Material.SUNFLOWER, PLANTS_AND_FLOWERS, "block/sunflower_front.png");
     public static final Plant LILAC = new DoubleHighPlant("Lilac", Material.LILAC, PLANTS_AND_FLOWERS);
     public static final Plant TALL_GRASS = new DoubleHighPlant("Tall Grass", Material.TALL_GRASS, PLANTS_AND_FLOWERS);
@@ -75,6 +78,7 @@ public class Plants {
         }
     };
     public static final Plant BEETROOTS = new AgingPlant("Beetroots", Material.BEETROOTS, CROPS, "block/beetroots_stage3.png", 4);
+    public static final Plant SWEET_BERRY_BUSH = new AgingPlant("Sweet Berry Bush", Material.SWEET_BERRY_BUSH, PLANTS_AND_FLOWERS, "block/sweet_berry_bush_stage3.png", 4);
     public static final Plant CACTUS = new VariableHeightPlant("Cactus", Material.CACTUS, Category.CACTUS, "block/cactus_side.png", 3);
     public static final Plant SUGAR_CANE = new VariableHeightPlant("Sugar Cane", Material.SUGAR_CANE, Category.SUGAR_CANE, 3);
     public static final Plant LILY_PAD = new SimplePlant("Lily Pad", Material.LILY_PAD, Category.FLOATING_PLANTS);
@@ -119,7 +123,8 @@ public class Plants {
             NETHER_WART, CHORUS_PLANT, TUBE_CORAL, BRAIN_CORAL, BUBBLE_CORAL,
             FIRE_CORAL, HORN_CORAL, TUBE_CORAL_FAN, BRAIN_CORAL_FAN,
             BUBBLE_CORAL_FAN, FIRE_CORAL_FAN, HORN_CORAL_FAN, KELP, SEAGRASS,
-            TALL_SEAGRASS, SEA_PICKLE};
+            TALL_SEAGRASS, SEA_PICKLE, CORNFLOWER, LILY_OF_THE_VALLEY,
+            WITHER_ROSE, SWEET_BERRY_BUSH};
 
     private static final Random RANDOM = new Random();
 }

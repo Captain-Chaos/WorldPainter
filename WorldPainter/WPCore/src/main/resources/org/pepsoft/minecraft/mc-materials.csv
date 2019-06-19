@@ -538,3 +538,8 @@ minecraft:zombie_wall_head,"facing",0,false,false,false,false,true,false,false,0
 minecraft:player_wall_head,"facing",0,false,false,false,false,true,false,false,0,false,true
 minecraft:creeper_wall_head,"facing",0,false,false,false,false,true,false,false,0,false,true
 minecraft:dragon_wall_head,"facing",0,false,false,false,false,true,false,false,0,false,true
+minecraft:cornflower,,0,false,true,true,false,false,false,true,0,true,true
+minecraft:lily_of_the_valley,,0,false,true,true,false,false,false,true,0,true,true
+minecraft:wither_rose,,0,false,true,true,false,false,false,true,0,false,true
+minecraft:sweet_berry_bush,,0,false,true,true,false,false,false,true,0,true,true
+minecraft:lantern,,0,false,false,false,false,false,false,false,15,false,true

@@ -1749,6 +1749,13 @@ public final class Material implements Serializable {
      * One sea pickle. Set the "pickles" property up to 4 for more pickles.
      */
     public static final Material SEA_PICKLE = get(MC_SEA_PICKLE, MC_WATERLOGGED, true, MC_PICKLES, 1);
+    public static final Material CORNFLOWER = get(MC_CORNFLOWER);
+    public static final Material LILY_OF_THE_VALLEY = get(MC_LILY_OF_THE_VALLEY);
+    public static final Material WITHER_ROSE = get(MC_WITHER_ROSE);
+    /**
+     * Sweet Berry Bush with age 0. For older Sweet Berry Bush, set the "age" property up to 3.
+     */
+    public static final Material SWEET_BERRY_BUSH = get(MC_SWEET_BERRY_BUSH, MC_AGE, 0);
 
     // Namespaces
 

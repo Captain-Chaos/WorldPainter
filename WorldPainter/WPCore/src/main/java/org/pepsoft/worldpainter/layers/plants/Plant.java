@@ -33,18 +33,57 @@ public abstract class Plant implements WPObject {
         this.iconName = iconName;
     }
 
+    /**
+     * Get the category of the plant.
+     *
+     * @return The category of the plant.
+     */
     public final Category getCategory() {
         return category;
     }
 
+    /**
+     * Determine whether the block at a particular location in a particular map
+     * is a valid foundation on which to place this plant. This will always be
+     * invoked by {@link PlantLayerExporter} before exporting a plant.
+     *
+     * @param world The map in which to check the foundation.
+     * @param x The X coordinate (in the WorldPainter coordinate system) to
+     *          check.
+     * @param y The Y coordinate (in the WorldPainter coordinate system) to
+     *          check.
+     * @param height The Z coordinate (in the WorldPainter coordinate system) to
+     *               check.
+     * @return {@code true} if this plant may be placed on the block at the
+     * specified location; {@code false} otherwise.
+     */
     public boolean isValidFoundation(MinecraftWorld world, int x, int y, int height) {
         return category.isValidFoundation(world, x, y, height);
     }
 
+    /**
+     * Get the maximum growth stage of this plant, where 1 is the minimum growth
+     * stage. Should be 1 for plants without growth stages.
+     *
+     * @return The maximum growth stage of this plant.
+     */
     public int getMaxGrowth() {
         return 1;
     }
-    
+
+    /**
+     * Obtain a version of the plant suitable for actually placing in a map.
+     * This will always be invoked by {@link PlantLayerExporter} before
+     * exporting a plant. It is meant for plants with varying growth stages and/
+     * or which will return different materials for different platforms.
+     * Implementations to which neither applies may simply return themselves.
+     *
+     * @param growth The growth stage of the plant to export. Always 1 for
+     *               plants without growth stages.
+     * @param platform The platform for which the plant is being exported.
+     * @return A version of the plant configured for the specified growth stage
+     * and platform.
+     */
     public Plant realise(int growth, Platform platform) {
         return this;
     }
