@@ -23,7 +23,6 @@ import java.io.InputStream;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-import static org.pepsoft.worldpainter.Constants.V_1_13;
 import static org.pepsoft.worldpainter.layers.plants.Category.*;
 import static org.pepsoft.worldpainter.layers.plants.Plants.ALL_PLANTS;
 import static org.pepsoft.worldpainter.util.I18nHelper.m;
@@ -247,7 +246,7 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
         }
         try {
             if (resourcesJar == null) {
-                resourcesJar = BiomeSchemeManager.getMinecraftJarNoOlderThan(V_1_13);
+                resourcesJar = BiomeSchemeManager.getLatestMinecraftJar();
                 if (resourcesJar == null) {
                     logger.warn("Could not find Minecraft jar for loading plant icons");
                     resourcesJar = RESOURCES_NOT_AVAILABLE;
