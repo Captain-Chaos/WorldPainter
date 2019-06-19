@@ -321,7 +321,7 @@ public final class Material implements Serializable {
     /**
      * Get the properties of this material.
      *
-     * @return The properties of this material. May be <code>null</code>.
+     * @return The properties of this material. May be {@code null}.
      */
     public Map<String, String> getProperties() {
         return identity.properties;
@@ -331,7 +331,7 @@ public final class Material implements Serializable {
      * Indicates whether a specific property is present on this material.
      *
      * @param property The property to check for presence.
-     * @return <code>true</code> if the specified property is present.
+     * @return {@code true} if the specified property is present.
      */
     public boolean hasProperty(Property<?> property) {
         return (identity.properties != null) && identity.properties.containsKey(property.name);
@@ -381,8 +381,8 @@ public final class Material implements Serializable {
      * and set.
      *
      * @param property  The property to check for.
-     * @return <code>true</code> if the property is present and set to
-     * <code>true</code>.
+     * @return {@code true} if the property is present and set to
+     * {@code true}.
      */
     public boolean is(Property<Boolean> property) {
         if (identity.properties != null) {
@@ -414,7 +414,7 @@ public final class Material implements Serializable {
      * Indicates whether a specific property is present on this material.
      *
      * @param name The name of the property to check for presence.
-     * @return <code>true</code> if the specified property is present.
+     * @return {@code true} if the specified property is present.
      */
     public boolean hasProperty(String name) {
         return (identity.properties != null) && identity.properties.containsKey(name);
@@ -480,7 +480,7 @@ public final class Material implements Serializable {
      * Get the cardinal direction this block is pointing, if applicable.
      * 
      * @return The cardinal direction in which this block is pointing, or
-     *     <code>null</code> if it has no direction, or is not pointing in a
+     *     {@code null} if it has no direction, or is not pointing in a
      *     cardinal direction (but for instance up or down)
      */
     public Direction getDirection() {
@@ -637,7 +637,7 @@ public final class Material implements Serializable {
      * Compare the material in name only, disregarding its properties.
      *
      * @param name The name to test this material for.
-     * @return <code>true</code> if the material has the specified name.
+     * @return {@code true} if the material has the specified name.
      */
     @SuppressWarnings("StringEquality") // name is interned so there are many circumstances in which the comparison might work and be faster than equals()
     public boolean isNamed(String name) {
@@ -649,7 +649,7 @@ public final class Material implements Serializable {
      *
      * @param name1 One name to test this material for.
      * @param name2 Another name to test this material for.
-     * @return <code>true</code> if the material has one of the specified names.
+     * @return {@code true} if the material has one of the specified names.
      */
     @SuppressWarnings("StringEquality") // name is interned so there are many circumstances in which the comparison might work and be faster than equals()
     public boolean isNamedOneOf(String name1, String name2) {
@@ -665,7 +665,7 @@ public final class Material implements Serializable {
      * @param name1 One name to test this material for.
      * @param name2 Another name to test this material for.
      * @param name3 Another name to test this material for.
-     * @return <code>true</code> if the material has one of the specified names.
+     * @return {@code true} if the material has one of the specified names.
      */
     @SuppressWarnings("StringEquality") // name is interned so there are many circumstances in which the comparison might work and be faster than equals()
     public boolean isNamedOneOf(String name1, String name2, String name3) {
@@ -684,7 +684,7 @@ public final class Material implements Serializable {
      * @param name2 Another name to test this material for.
      * @param name3 Another name to test this material for.
      * @param name4 Another name to test this material for.
-     * @return <code>true</code> if the material has one of the specified names.
+     * @return {@code true} if the material has one of the specified names.
      */
     @SuppressWarnings("StringEquality") // name is interned so there are many circumstances in which the comparison might work and be faster than equals()
     public boolean isNamedOneOf(String name1, String name2, String name3, String name4) {
@@ -706,7 +706,7 @@ public final class Material implements Serializable {
      * @param name3 Another name to test this material for.
      * @param name4 Another name to test this material for.
      * @param name5 Another name to test this material for.
-     * @return <code>true</code> if the material has one of the specified names.
+     * @return {@code true} if the material has one of the specified names.
      */
     @SuppressWarnings("StringEquality") // name is interned so there are many circumstances in which the comparison might work and be faster than equals()
     public boolean isNamedOneOf(String name1, String name2, String name3, String name4, String name5) {
@@ -726,7 +726,7 @@ public final class Material implements Serializable {
      * Compare the material in name only, disregarding its properties.
      *
      * @param names The names to test this material for.
-     * @return <code>true</code> if the material has one of the specified names.
+     * @return {@code true} if the material has one of the specified names.
      */
     @SuppressWarnings("StringEquality") // name is interned so there are many circumstances in which the comparison might work and be faster than equals()
     public boolean isNamedOneOf(String... names) {
@@ -742,7 +742,7 @@ public final class Material implements Serializable {
      * Compare the material in name only, disregarding its properties.
      *
      * @param names The names to test this material for.
-     * @return <code>true</code> if the material has one of the specified names.
+     * @return {@code true} if the material has one of the specified names.
      */
     @SuppressWarnings("StringEquality") // name is interned so there are many circumstances in which the comparison might work and be faster than equals()
     public boolean isNamedOneOf(Collection<String> names) {
@@ -758,7 +758,7 @@ public final class Material implements Serializable {
      * Compare the material in name only, disregarding its properties.
      *
      * @param name The name to test this material for.
-     * @return <code>true</code> if the material <em>does not</em> have the
+     * @return {@code true} if the material <em>does not</em> have the
      * specified name.
      */
     @SuppressWarnings("StringEquality") // name is interned so there are many circumstances in which the comparison might work and be faster than equals()
@@ -770,7 +770,7 @@ public final class Material implements Serializable {
      * Compare the material in name only, disregarding its properties.
      *
      * @param names The names to test this material for.
-     * @return <code>true</code> if the material <em>does not</em> have any of
+     * @return {@code true} if the material <em>does not</em> have any of
      * the specified names.
      */
     @SuppressWarnings("StringEquality") // name is interned so there are many circumstances in which the comparison might work and be faster than equals()
@@ -787,7 +787,7 @@ public final class Material implements Serializable {
      * Compare two materials in name only, disregarding their properties.
      *
      * @param material The material to compare this material with.
-     * @return <code>true</code> if the specified material has the same name as
+     * @return {@code true} if the specified material has the same name as
      * this one.
      */
     @SuppressWarnings("StringEquality") // name is interned so there are many circumstances in which the comparison might work and be faster than equals()
@@ -799,7 +799,7 @@ public final class Material implements Serializable {
      * Compare two materials in name only, disregarding their properties.
      *
      * @param material The material to compare this material with.
-     * @return <code>true</code> if the specified material <em>does not</em>
+     * @return {@code true} if the specified material <em>does not</em>
      * have the same name as this one.
      */
     @SuppressWarnings("StringEquality") // name is interned so there are many circumstances in which the comparison might work and be faster than equals()
@@ -1090,7 +1090,7 @@ public final class Material implements Serializable {
      *
      * @param name The name of the material to get.
      * @param properties The properties of the material to get. May be
-     *                   <code>null</code>.
+     *                   {@code null}.
      * @return The single instance of the specified material.
      */
     public static Material get(String name, Map<String, String> properties) {
@@ -1103,8 +1103,8 @@ public final class Material implements Serializable {
      *
      * @param name The name of the material to get.
      * @param properties The properties of the material to get, as a list of
-     *                   key-value pairs. The keys must be <code>String</code>s.
-     *                   May be <code>null</code>.
+     *                   key-value pairs. The keys must be {@code String}s.
+     *                   May be {@code null}.
      * @return The single instance of the specified material.
      */
     public static Material get(String name, Object... properties) {
@@ -1125,7 +1125,7 @@ public final class Material implements Serializable {
      *
      * @param name The name of the material to get.
      * @return A material with the specified name and unspecified properties, or
-     * <code>null</code> if no material by that name is known.
+     * {@code null} if no material by that name is known.
      */
     public static Material getDefault(String name) {
         return DEFAULT_MATERIALS_BY_NAME.get(name);
@@ -1165,8 +1165,8 @@ public final class Material implements Serializable {
 
     /**
      * Get the modern style (name and property-based) name of this material. For
-     * brevity, the namespace is omitted if it isn't <code>minecraft</code> and
-     * properties with value <code>"false"</code> or <code>"0"</code> are also
+     * brevity, the namespace is omitted if it isn't {@code minecraft} and
+     * properties with value {@code "false"} or {@code "0"} are also
      * omitted.
      *
      * @return The modern style name of this material.
@@ -1219,8 +1219,8 @@ public final class Material implements Serializable {
     /**
      * The name of the block, including the namespace (if present; separated by
      * a colon). This value is guaranteed to be interned, so that it is valid to
-     * compare it with <code>String</code> literals or constants using the
-     * <code>==</code> operator.
+     * compare it with {@code String} literals or constants using the
+     * {@code ==} operator.
      */
     public final transient String name;
 
@@ -1771,11 +1771,6 @@ public final class Material implements Serializable {
     public static final int CATEGORY_RESOURCE      = 4;
     public static final int CATEGORY_NATURAL_SOLID = 5;
     public static final int CATEGORY_UNKNOWN       = 6;
-
-    /**
-     * Marker instance to indicate the value has not been set.
-     */
-    private static final HorizontalOrientationScheme[] NOT_SET = new HorizontalOrientationScheme[0];
 
     private static final long serialVersionUID = 2011101001L;
 

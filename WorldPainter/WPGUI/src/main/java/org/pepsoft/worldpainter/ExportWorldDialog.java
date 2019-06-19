@@ -39,7 +39,7 @@ import static javax.swing.JOptionPane.INFORMATION_MESSAGE;
 import static org.pepsoft.minecraft.Constants.DIFFICULTY_HARD;
 import static org.pepsoft.minecraft.Constants.DIFFICULTY_PEACEFUL;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_13;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_14;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.GameType.*;
 import static org.pepsoft.worldpainter.Generator.CUSTOM;
@@ -373,8 +373,8 @@ dims:   for (Dimension dim: world.getDimensions()) {
         StringBuilder sb = new StringBuilder("<html>Please confirm that you want to export the world<br>notwithstanding the following warnings:<br><ul>");
         boolean showWarning = false;
         Configuration config = Configuration.getInstance();
-        if ((platform == JAVA_ANVIL_1_13) && (! config.isBeta113WarningDisplayed())) {
-            sb.append("<li><strong>Minecraft 1.13 support is still in beta!</strong><br>" +
+        if ((platform == JAVA_ANVIL_1_14) && (! config.isBeta113WarningDisplayed())) {
+            sb.append("<li><strong>Minecraft 1.14 support is still in beta!</strong><br>" +
                     "Be careful and keep backups. If you encounter<br>" +
                     "problems, please report them on GitHub:<br>" +
                     "https://www.worldpainter.net/issues<br>" +
@@ -527,7 +527,7 @@ dims:   for (Dimension dim: world.getDimensions()) {
         comboBoxDifficulty.setEnabled(false);
 
         config.setExportDirectory(world.getPlatform(), baseDir);
-        if (platform == JAVA_ANVIL_1_13) {
+        if (platform == JAVA_ANVIL_1_14) {
             config.setBeta113WarningDisplayed(true);
         }
 

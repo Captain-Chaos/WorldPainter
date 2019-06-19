@@ -18,7 +18,7 @@ public class MaterialTableCellRenderer extends DefaultTableCellRenderer {
             if (! isSelected) {
                 setForeground(Color.BLUE);
             }
-            if ((platform == DefaultPlugin.JAVA_ANVIL_1_13) /* TODO make dynamic */) {
+            if ((platform == DefaultPlugin.JAVA_ANVIL_1_14) /* TODO make dynamic */) {
                 setText("<html><u>" + value + "</u></html>");
             } else {
                 setText("<html><u>" + ((Material) value).toLegacyString() + "</u></html>");

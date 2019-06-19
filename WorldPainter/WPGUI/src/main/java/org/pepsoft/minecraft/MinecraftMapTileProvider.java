@@ -46,7 +46,7 @@ public class MinecraftMapTileProvider implements TileProvider {
         } else if (dataVersion <= DATA_VERSION_MC_1_12_2) {
             platform = JAVA_ANVIL;
         } else {
-            platform = JAVA_ANVIL_1_13;
+            platform = JAVA_ANVIL_1_14;
         }
 
         // Scan the region files to determine a rough extent
@@ -127,7 +127,7 @@ public class MinecraftMapTileProvider implements TileProvider {
                     }
                     DataInputStream dataIn = region.getChunkDataInputStream(chunkX & 0x1f, chunkY & 0x1f);
                     if (dataIn != null) {
-                        MC113AnvilChunk.Status status = null;
+                        MC114AnvilChunk.Status status = null;
                         Chunk chunk;
                         try (NBTInputStream in = new NBTInputStream(dataIn)) {
                             if ((platform == JAVA_MCREGION)) {
@@ -135,8 +135,8 @@ public class MinecraftMapTileProvider implements TileProvider {
                             } else if ((platform == JAVA_ANVIL)) {
                                 chunk = new MC12AnvilChunk((CompoundTag) in.readTag(), maxHeight);
                             } else {
-                                chunk = new MC113AnvilChunk((CompoundTag) in.readTag(), maxHeight);
-                                status = ((MC113AnvilChunk) chunk).status;
+                                chunk = new MC114AnvilChunk((CompoundTag) in.readTag(), maxHeight);
+                                status = ((MC114AnvilChunk) chunk).status;
                             }
                         }
                         for (int blockX = 0; blockX < 16; blockX += scale) {
