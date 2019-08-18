@@ -208,6 +208,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
         checkBoxSurface.setEnabled(false);
         checkBoxNether.setEnabled(false);
         checkBoxEnd.setEnabled(false);
+        checkBoxIncludeUnderground.setEnabled(false);
 
         Configuration config = Configuration.getInstance();
         config.setSavesDirectory(levelDatFile.getParentFile().getParentFile());
