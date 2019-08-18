@@ -1,3 +1,7 @@
+-- Version 2.7.0, released 18-8-2019
+
+ * Implement support for Minecraft 1.14 (1.14.4 to be precise) and remove support for 1.13
+
 -- Version 2.6.5, released 2-6-2019
 
  * Bug fix: make rotation of glass panes, etc. work again

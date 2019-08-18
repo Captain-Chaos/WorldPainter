@@ -51,6 +51,9 @@ public class MinecraftWorldUtils {
                             && material2.isNamedOneOf(MC_PEONY, MC_SUNFLOWER, MC_LILAC, MC_TALL_GRASS, MC_LARGE_FERN, MC_ROSE_BUSH)
                             && material2.getProperty(MC_HALF).equals("upper")) {
                         // Double high plant upper half block, which is a different block in 1.2 and 1.14
+                    } else if (material1.isNamed(MC_CHEST)) {
+                        // A goodies chest is temporarily not generated for Minecraft 1.14
+                        // TODO remove this exemption once the chest is once again generated
                     } else {
                         assertEquals(material1, role2, material2, "material", offsetX + x, y, offsetZ + z, reportBuilder);
                     }
