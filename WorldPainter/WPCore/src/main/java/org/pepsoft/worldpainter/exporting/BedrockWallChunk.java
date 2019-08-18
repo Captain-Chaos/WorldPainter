@@ -19,9 +19,8 @@ import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.BIOME_PL
  * @author pepijn
  */
 public class BedrockWallChunk {
-    public static ChunkFactory.ChunkCreationResult create(int chunkX, int chunkZ, Dimension dimension) {
+    public static ChunkFactory.ChunkCreationResult create(int chunkX, int chunkZ, Dimension dimension, Platform platform) {
         final int maxHeight = dimension.getMaxHeight();
-        final Platform platform = dimension.getWorld().getPlatform();
         final ChunkFactory.ChunkCreationResult result = new ChunkFactory.ChunkCreationResult();
         result.chunk = PlatformManager.getInstance().createChunk(platform, chunkX, chunkZ, maxHeight);
         final int maxY = maxHeight - 1;

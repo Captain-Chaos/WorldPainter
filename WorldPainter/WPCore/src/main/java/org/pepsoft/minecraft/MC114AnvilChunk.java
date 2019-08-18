@@ -6,6 +6,7 @@
 package org.pepsoft.minecraft;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.jnbt.*;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import org.slf4j.Logger;
@@ -17,7 +18,6 @@ import java.util.*;
 
 import static java.util.stream.Collectors.toList;
 import static org.pepsoft.minecraft.Constants.*;
-import static org.pepsoft.minecraft.MC114AnvilChunk.Status.*;
 import static org.pepsoft.minecraft.Material.AIR;
 
 /**
@@ -33,7 +33,7 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
         this.maxHeight = maxHeight;
 
         sections = new Section[maxHeight >> 4];
-        heightMaps = new EnumMap<>(HeightmapType.class);
+        heightMaps = new HashMap<>();
         entities = new ArrayList<>();
         tileEntities = new ArrayList<>();
         readOnly = false;
@@ -55,7 +55,7 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
 
             sections = new Section[maxHeight >> 4];
             List<CompoundTag> sectionTags = getList(TAG_SECTIONS);
-            // MC 1.13 has chunks without any sections; we're not sure yet if
+            // MC 1.14 has chunks without any sections; we're not sure yet if
             // this is a bug
             if (sectionTags != null) {
                 for (CompoundTag sectionTag: sectionTags) {
@@ -68,11 +68,11 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
                 }
             }
             biomes = getIntArray(TAG_BIOMES);
-            heightMaps = new EnumMap<>(HeightmapType.class);
+            heightMaps = new HashMap<>();
             Map<String, Tag> heightMapTags = getMap(TAG_HEIGHT_MAPS);
             if (heightMapTags != null) {
                 for (Map.Entry<String, Tag> entry: heightMapTags.entrySet()) {
-                    heightMaps.put(HeightmapType.valueOf(entry.getKey()), ((LongArrayTag) entry.getValue()).getValue());
+                    heightMaps.put(entry.getKey().intern(), ((LongArrayTag) entry.getValue()).getValue());
                 }
             }
             List<CompoundTag> entityTags = getList(TAG_ENTITIES);
@@ -92,7 +92,7 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
             // TODO: last update is ignored, is that correct?
             xPos = getInt(TAG_X_POS_);
             zPos = getInt(TAG_Z_POS_);
-            status = Status.valueOf(getString(TAG_STATUS).toUpperCase());
+            status = getString(TAG_STATUS).intern();
             lightPopulated = getBoolean(TAG_LIGHT_POPULATED);
             inhabitedTime = getLong(TAG_INHABITED_TIME);
             liquidTicks = getList(TAG_LIQUID_TICKS);
@@ -110,15 +110,15 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
         return sections;
     }
 
-    public void setStatus(Status status) {
-        this.status = status;
+    public void setStatus(String status) {
+        this.status = status.intern();
     }
 
-    public Status getStatus() {
+    public String getStatus() {
         return status;
     }
 
-    public Map<HeightmapType, long[]> getHeightMaps() {
+    public Map<String, long[]> getHeightMaps() {
         return heightMaps;
     }
 
@@ -169,14 +169,14 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
         setLong(TAG_LAST_UPDATE, System.currentTimeMillis()); // TODO: is this correct?
         setInt(TAG_X_POS_, xPos);
         setInt(TAG_Z_POS_, zPos);
-        setString(TAG_STATUS, status.name().toLowerCase());
+        setString(TAG_STATUS, status);
         setBoolean(TAG_LIGHT_POPULATED, lightPopulated);
         setLong(TAG_INHABITED_TIME, inhabitedTime);
         setList(TAG_LIQUID_TICKS, CompoundTag.class, liquidTicks);
 
         CompoundTag tag = new CompoundTag("", Collections.emptyMap());
         tag.setTag(TAG_LEVEL, super.toNBT());
-        tag.setTag(TAG_DATA_VERSION, new IntTag(TAG_DATA_VERSION, DATA_VERSION_MC_1_14_2));
+        tag.setTag(TAG_DATA_VERSION, new IntTag(TAG_DATA_VERSION, DATA_VERSION_MC_1_14_4));
         return tag;
     }
 
@@ -325,7 +325,7 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
 
     @Override
     public boolean isTerrainPopulated() {
-        return status.ordinal() > LIQUID_CARVED.ordinal();
+        return ! populatedStatuses.contains(status);
     }
 
     @Override
@@ -335,9 +335,9 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
         }
         // TODO: this is a guess, is this useful?
         if (terrainPopulated) {
-            status = FULL;
+            status = STATUS_FULL;
         } else {
-            status = LIQUID_CARVERS;
+            status = STATUS_LIQUID_CARVERS;
         }
     }
 
@@ -573,7 +573,7 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
      */
     @Override
     public MC114AnvilChunk clone() {
-        throw new UnsupportedOperationException("MC114AnvilChunk.clone() not supported");
+        throw new UnsupportedOperationException("MC113AnvilChunk.clone() not supported");
     }
     
     private int getDataByte(byte[] array, int x, int y, int z) {
@@ -605,7 +605,7 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
     }
 
     private void writeObject(ObjectOutputStream out) throws IOException {
-        throw new IOException("MC114AnvilChunk is not serializable");
+        throw new IOException("MC113AnvilChunk is not serializable");
     }
 
     static int blockOffset(int x, int y, int z) {
@@ -622,8 +622,8 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
     final List<TileEntity> tileEntities;
     final int maxHeight;
     long inhabitedTime;
-    Status status;
-    final Map<HeightmapType, long[]> heightMaps;
+    String status;
+    final Map<String, long[]> heightMaps;
     final List<CompoundTag> liquidTicks;
 
     private static final Random RANDOM = new Random();
@@ -808,7 +808,7 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
         }
 
         private void writeObject(ObjectOutputStream out) throws IOException {
-            throw new IOException("MC114AnvilChunk.Section is not serializable");
+            throw new IOException("MC113AnvilChunk.Section is not serializable");
         }
 
         private Material getMaterial(List<CompoundTag> palette, int index) {
@@ -830,32 +830,16 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
             return Material.get(name, properties);
         }
 
-        final byte level;
+        public final byte level;
         final byte[] skyLight;
         final byte[] blockLight;
         final Material[] materials;
     }
 
-    public enum HeightmapType {
-        // Observed in generated Minecraft maps. Uses unknown:
-        LIGHT, LIQUID, RAIN, SOLID, OCEAN_FLOOR, MOTION_BLOCKING_NO_LEAVES, LIGHT_BLOCKING, MOTION_BLOCKING,
-        OCEAN_FLOOR_WG, WORLD_SURFACE_WG, WORLD_SURFACE
-    }
+    private static final Set<String> populatedStatuses = ImmutableSet.of(
+            // 1.14:
+            "features", "light", "full",
 
-    /**
-     * The chunk generation status.
-     */
-    public enum Status {
-        // 1.13, in this order of generation:
-        EMPTY, CARVED, LIQUID_CARVED, DECORATED, FULLCHUNK, POSTPROCESSED,
-
-        // 1.14.2, in order of generation:
-        STRUCTURE_STARTS, NOISE, LIQUID_CARVERS, FEATURES, LIGHT, FULL,
-
-        // Reported by users (TODOMC13: 1.13 or 1.14?):
-        CARVERS, BIOMES, SPAWN,
-
-        // These have not lately been observed and may not (longer) be in use by Minecraft:
-        HEIGHTMAPS, LIGHTED, FINALIZED, MOBS_SPAWNED
-    }
+            // 1.13:
+            "decorated", "fullchunk", "postprocessed");
 }

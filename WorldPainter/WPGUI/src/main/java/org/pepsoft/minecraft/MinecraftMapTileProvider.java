@@ -127,7 +127,7 @@ public class MinecraftMapTileProvider implements TileProvider {
                     }
                     DataInputStream dataIn = region.getChunkDataInputStream(chunkX & 0x1f, chunkY & 0x1f);
                     if (dataIn != null) {
-                        MC114AnvilChunk.Status status = null;
+                        String status = null;
                         Chunk chunk;
                         try (NBTInputStream in = new NBTInputStream(dataIn)) {
                             if ((platform == JAVA_MCREGION)) {
@@ -149,7 +149,7 @@ public class MinecraftMapTileProvider implements TileProvider {
                             try {
                                 g2.setFont(font);
                                 g2.setRenderingHint(KEY_TEXT_ANTIALIASING, VALUE_TEXT_ANTIALIAS_DEFAULT);
-                                g2.drawString(status.name(), (((chunkX - chunkX1) << 4) + 1) / scale, (((chunkY - chunkY1) << 4) + 15) / scale);
+                                g2.drawString(status, (((chunkX - chunkX1) << 4) + 1) / scale, (((chunkY - chunkY1) << 4) + 15) / scale);
                             } finally {
                                 g2.dispose();
                             }

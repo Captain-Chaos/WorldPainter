@@ -297,7 +297,7 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
             version = 1;
 
             // Not sure how, but the liquids are reverting to the stationary
-            // variants (something to do with the Minecraft 1.13 migration?).
+            // variants (something to do with the Minecraft 1.14 migration?).
             // Just keep changing them back
             if (settings.containsKey(STATIONARY_WATER)) {
                 settings.put(WATER, settings.get(STATIONARY_WATER));

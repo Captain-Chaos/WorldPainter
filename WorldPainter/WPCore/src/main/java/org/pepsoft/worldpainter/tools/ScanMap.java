@@ -10,7 +10,6 @@ import java.awt.*;
 import java.io.File;
 import java.util.*;
 
-import static java.util.Comparator.comparing;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 
 public class ScanMap extends AbstractMain {
@@ -18,14 +17,14 @@ public class ScanMap extends AbstractMain {
         initialisePlatform();
 
         int[] bounds = {Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE};
-        Map<Point, MC114AnvilChunk.Status> statusMap = new HashMap<>();
-        Set<MC114AnvilChunk.HeightmapType> heightmapTypes = new HashSet<>();
+        Map<Point, String> statusMap = new HashMap<>();
+        Set<String> heightmapTypes = new HashSet<>();
         File worldDir = new File(args[0]);
         PlatformManager platformManager = PlatformManager.getInstance();
         Platform platform = platformManager.identifyMap(worldDir);
         ChunkStore chunkStore = platformManager.getChunkStore(platform, worldDir, DIM_NORMAL);
         chunkStore.visitChunks(chunk -> {
-            MC114AnvilChunk.Status status = ((MC114AnvilChunk) chunk).getStatus();
+            String status = ((MC114AnvilChunk) chunk).getStatus();
             if (chunk.getxPos() < bounds[0]) {
                 bounds[0] = chunk.getxPos();
             }
@@ -52,12 +51,11 @@ public class ScanMap extends AbstractMain {
 
                 Point coords = new Point(x, z);
                 if (statusMap.containsKey(coords)) {
-                    MC114AnvilChunk.Status status = statusMap.get(coords);
+                    String status = statusMap.get(coords);
                     if (status != null) {
-                        String name = status.name();
-                        line[(x - bounds[0]) * 4] = name.charAt(0);
-                        line[(x - bounds[0]) * 4 + 1] = name.charAt(1);
-                        line[(x - bounds[0]) * 4 + 2] = name.charAt(2);
+                        line[(x - bounds[0]) * 4] = status.charAt(0);
+                        line[(x - bounds[0]) * 4 + 1] = status.charAt(1);
+                        line[(x - bounds[0]) * 4 + 2] = status.charAt(2);
                     } else {
                         line[(x - bounds[0]) * 4] = 'X';
                         line[(x - bounds[0]) * 4 + 1] = 'X';
@@ -68,7 +66,7 @@ public class ScanMap extends AbstractMain {
             System.out.println(String.valueOf(line));
         }
         System.out.println("Statuses:");
-        statusMap.values().stream().sorted(comparing(Enum::name)).distinct().forEach(status -> System.out.println(status.name().substring(0, 3) + " -> " + status));
+        statusMap.values().stream().sorted().distinct().forEach(status -> System.out.println(status.substring(0, 3) + " -> " + status));
         System.out.println("XXX -> Chunk present but no status");
         System.out.println("Height map types encountered: " + heightmapTypes);
     }

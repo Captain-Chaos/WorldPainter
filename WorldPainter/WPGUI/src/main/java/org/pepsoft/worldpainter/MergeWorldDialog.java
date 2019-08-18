@@ -17,6 +17,8 @@ import org.pepsoft.util.FileUtils;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.merging.JavaWorldMerger;
+import org.pepsoft.worldpainter.plugins.PlatformManager;
+import org.pepsoft.worldpainter.util.MaterialUtils;
 import org.pepsoft.worldpainter.util.MinecraftUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,12 +30,10 @@ import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 
 /**
  *
@@ -124,6 +124,14 @@ public class MergeWorldDialog extends WorldPainterDialog {
             DesktopUtils.beep();
             JOptionPane.showMessageDialog(this, "No level.dat of an existing Minecraft map selected.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
+        } else if (platform == null) {
+            fieldLevelDatFile.requestFocusInWindow();
+            DesktopUtils.beep();
+            JOptionPane.showMessageDialog(this, "Selected Minecraft map does not have a supported format.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (! checkCompatibility(platform)) {
+            return;
         }
         final boolean biomesOnly = radioButtonBiomes.isSelected();
         if (! biomesOnly) {
@@ -140,7 +148,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
                 return;
             }
         }
-        JavaWorldMerger merger = new JavaWorldMerger(world, levelDatFile);
+        JavaWorldMerger merger = new JavaWorldMerger(world, levelDatFile, platform);
         try {
             merger.performSanityChecks(biomesOnly);
         } catch (IllegalArgumentException e) {
@@ -284,21 +292,29 @@ public class MergeWorldDialog extends WorldPainterDialog {
         if (levelDatSelected) {
             levelDatFile = file;
             try {
-                Level level = Level.load(levelDatFile);
-                if (level.getVersion() != org.pepsoft.minecraft.Constants.VERSION_ANVIL) {
-                    if (radioButtonBiomes.isSelected()) {
-                        radioButtonAll.setSelected(true);
+                platform = PlatformManager.getInstance().identifyMap(file.getParentFile());
+                if (platform != null) {
+                    Level level = Level.load(levelDatFile);
+                    if (level.getVersion() != org.pepsoft.minecraft.Constants.VERSION_ANVIL) {
+                        if (radioButtonBiomes.isSelected()) {
+                            radioButtonAll.setSelected(true);
+                        }
+                        radioButtonBiomes.setEnabled(false);
+                    } else {
+                        radioButtonBiomes.setEnabled(true);
                     }
-                    radioButtonBiomes.setEnabled(false);
+                    labelPlatform.setText(platform.displayName);
                 } else {
-                    radioButtonBiomes.setEnabled(true);
+                    labelPlatform.setText("no supported format detected");
                 }
             } catch (IOException e) {
                 levelDatFile = null;
+                labelPlatform.setText(null);
                 throw new RuntimeException("I/O error while loading level.dat", e);
             }
         } else {
             levelDatFile = null;
+            labelPlatform.setText(null);
         }
         boolean mergeAll = radioButtonAll.isSelected();
         boolean mergeBiomesOnly = radioButtonBiomes.isSelected();
@@ -363,6 +379,44 @@ public class MergeWorldDialog extends WorldPainterDialog {
         }
     }
 
+    /**
+     * Check whether a platform is compatible with the loaded world. If not,
+     * reports the reason to the user with a popup and returns {@code false},
+     * otherwise returns {@code true}.
+     *
+     * @param platform The platform to check for compatibility.
+     * @return {@code true} is the platform is compatible with the loaded world.
+     */
+    private boolean checkCompatibility(Platform platform) {
+        Map<String, Set<String>> nameOnlyMaterials = MaterialUtils.gatherBlocksWithoutIds(world, platform);
+        if ((! nameOnlyMaterials.isEmpty()) && (! platform.capabilities.contains(NAME_BASED))) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("<html>");
+            sb.append("<p>The selected map's format ").append(platform.displayName).append(" is not compatible with this world because this world contains the following incompatible block types:");
+            sb.append("<table><tr><th align='left'>Block Type</th><th align='left'>Source</th></tr>");
+            nameOnlyMaterials.forEach((name, sources) ->
+                    sb.append("<tr><td>").append(name).append("</td><td>").append(String.join(",", sources)).append("</td></tr>"));
+            sb.append("</table>");
+            DesktopUtils.beep();
+            JOptionPane.showMessageDialog(this, sb.toString(), "Map Format Not Compatible", JOptionPane.ERROR_MESSAGE);
+            fieldLevelDatFile.requestFocusInWindow();
+            return false;
+        }
+        // TODO check maxHeight, but be smarter about checking dimensions
+//        if (! platform.isCompatible(world)) {
+//            DesktopUtils.beep();
+//            JOptionPane.showMessageDialog(this, String.format(/* language=HTML */ "<html>" +
+//                    "<p>The selected map's format %s is not compatible with this world, for one of these reasons:" +
+//                    "<ul><li>The format does not support the world height of %d blocks" +
+//                    "<li>The format does not support one or more of the dimensions in this world" +
+//                    "</ul>" +
+//                    "</html>", platform.displayName, world.getMaxHeight()), "Map Format Not Compatible", JOptionPane.ERROR_MESSAGE);
+//            fieldLevelDatFile.requestFocusInWindow();
+//            return false;
+//        }
+        return true;
+    }
+
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -403,11 +457,13 @@ public class MergeWorldDialog extends WorldPainterDialog {
         checkBoxNether = new javax.swing.JCheckBox();
         checkBoxEnd = new javax.swing.JCheckBox();
         checkBoxIncludeUnderground = new javax.swing.JCheckBox();
+        jLabel10 = new javax.swing.JLabel();
+        labelPlatform = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Merging");
 
-        jLabel2.setText("Existing map to merge with:");
+        jLabel2.setText("Select the level.dat file of an existing Minecraft map:");
 
         fieldLevelDatFile.setText("jTextField1");
 
@@ -538,6 +594,8 @@ public class MergeWorldDialog extends WorldPainterDialog {
 
         checkBoxIncludeUnderground.setText("including underground portion)");
 
+        jLabel10.setText("Map format:");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -605,7 +663,11 @@ public class MergeWorldDialog extends WorldPainterDialog {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(checkBoxNether)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(checkBoxEnd)))
+                                .addComponent(checkBoxEnd))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel10)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(labelPlatform)))
                         .addGap(0, 0, Short.MAX_VALUE))))
         );
         layout.setVerticalGroup(
@@ -617,6 +679,10 @@ public class MergeWorldDialog extends WorldPainterDialog {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(fieldLevelDatFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(buttonSelectDirectory))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel10)
+                    .addComponent(labelPlatform))
                 .addGap(18, 18, 18)
                 .addComponent(jLabel4)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -736,6 +802,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
     private javax.swing.JCheckBox checkBoxSurface;
     private javax.swing.JTextField fieldLevelDatFile;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -744,6 +811,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
+    private javax.swing.JLabel labelPlatform;
     private javax.swing.JLabel labelSelectTiles;
     private javax.swing.JRadioButton radioButtonAll;
     private javax.swing.JRadioButton radioButtonBiomes;
@@ -763,6 +831,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
     private final CustomBiomeManager customBiomeManager;
     private final WorldPainter view;
     private File levelDatFile;
+    private Platform platform;
     private volatile File backupDir;
     private int selectedDimension;
     private Set<Point> selectedTiles;

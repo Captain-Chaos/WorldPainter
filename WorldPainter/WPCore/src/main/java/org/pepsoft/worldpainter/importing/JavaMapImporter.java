@@ -16,6 +16,7 @@ import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.exporters.FrostExporter.FrostSettings;
 import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter.ResourcesExporterSettings;
+import org.pepsoft.worldpainter.plugins.BlockBasedPlatformProvider;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.themes.SimpleTheme;
 import org.pepsoft.worldpainter.vo.EventVO;
@@ -26,6 +27,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static java.util.Arrays.stream;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
@@ -266,9 +268,12 @@ public class JavaMapImporter extends MapImporter {
                 final int chunkZ = chunkCoords.z;
 
                 // Sanity checks
-                if ((chunk instanceof MC114AnvilChunk) && (((MC114AnvilChunk) chunk).getSections() == null)) {
-                    logger.warn("Skipping chunk " + chunkX + "," + chunkZ + " because it has no sections");
-                    return true;
+                if (chunk instanceof MC114AnvilChunk) {
+                    MC114AnvilChunk mc113Chunk = (MC114AnvilChunk) chunk;
+                    if ((mc113Chunk.getSections() == null) || (stream(mc113Chunk.getSections()).anyMatch(s -> (s != null) && (s.level >= 0)))) {
+                        logger.warn("Skipping chunk " + chunkX + "," + chunkZ + " because it has no sections, or no sections with y >= 0");
+                        return true;
+                    }
                 }
 
                 final Point tileCoords = new Point(chunkX >> 3, chunkZ >> 3);

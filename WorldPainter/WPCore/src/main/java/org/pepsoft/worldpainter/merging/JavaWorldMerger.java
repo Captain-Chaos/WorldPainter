@@ -41,9 +41,9 @@ import static org.pepsoft.worldpainter.Constants.*;
  * @author pepijn
  */
 @SuppressWarnings("StringConcatenationInsideStringBufferAppend") // Readability
-public class JavaWorldMerger extends JavaWorldExporter {
-    public JavaWorldMerger(World2 world, File levelDatFile) {
-        super(world);
+public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be made a BlockBasedPlatformProviderWorldMerger?
+    public JavaWorldMerger(World2 world, File levelDatFile, Platform platform) {
+        super(world, platform);
         if (levelDatFile == null) {
             throw new NullPointerException();
         }
@@ -188,6 +188,7 @@ public class JavaWorldMerger extends JavaWorldExporter {
                 throw new IllegalArgumentException("Version of existing map not supported: 0x" + Integer.toHexString(version));
             }
         } else {
+            // TODO support different map heights; just give a warning
             int existingMaxHeight = level.getMaxHeight();
             if (existingMaxHeight != world.getMaxHeight()) {
                 throw new IllegalArgumentException("Existing map has different max height (" + existingMaxHeight + ") than WorldPainter world (" + world.getMaxHeight() + ")");
@@ -225,14 +226,6 @@ public class JavaWorldMerger extends JavaWorldExporter {
         if (! worldDir.mkdirs()) {
             throw new IOException("Could not create " + worldDir);
         }
-        
-        // Set the world to the same Minecraft version as the existing map, in
-        // case it has changed. This affects the type of chunks created in the
-        // first pass
-        int version = level.getVersion();
-        int dataVersion = level.getDataVersion();
-        setPlatform((version == VERSION_MCREGION) ? DefaultPlugin.JAVA_MCREGION
-                : ((dataVersion <= DATA_VERSION_MC_1_12_2) ? DefaultPlugin.JAVA_ANVIL : DefaultPlugin.JAVA_ANVIL_1_14));
         
         // Modify it if necessary and write it to the the new level
         if ((selectedDimensions == null) || selectedDimensions.contains(DIM_NORMAL)) {
@@ -315,12 +308,12 @@ public class JavaWorldMerger extends JavaWorldExporter {
             EventVO event = new EventVO(EVENT_KEY_ACTION_MERGE_WORLD).duration(System.currentTimeMillis() - start);
             event.setAttribute(EventVO.ATTRIBUTE_TIMESTAMP, new Date(start));
             event.setAttribute(ATTRIBUTE_KEY_MAX_HEIGHT, world.getMaxHeight());
-            event.setAttribute(ATTRIBUTE_KEY_PLATFORM, world.getPlatform().displayName);
+            event.setAttribute(ATTRIBUTE_KEY_PLATFORM, platform.displayName);
             event.setAttribute(ATTRIBUTE_KEY_MAP_FEATURES, world.isMapFeatures());
             event.setAttribute(ATTRIBUTE_KEY_GAME_TYPE_NAME, world.getGameType().name());
             event.setAttribute(ATTRIBUTE_KEY_ALLOW_CHEATS, world.isAllowCheats());
             event.setAttribute(ATTRIBUTE_KEY_GENERATOR, world.getGenerator().name());
-            if ((world.getPlatform() == DefaultPlugin.JAVA_ANVIL) && (world.getGenerator() == Generator.FLAT) && (world.getGeneratorOptions() != null)) {
+            if ((platform == DefaultPlugin.JAVA_ANVIL) && (world.getGenerator() == Generator.FLAT) && (world.getGeneratorOptions() != null)) {
                 event.setAttribute(ATTRIBUTE_KEY_GENERATOR_OPTIONS, world.getGeneratorOptions());
             }
             if ((selectedDimensions == null) || selectedDimensions.contains(DIM_NORMAL)) {
@@ -538,7 +531,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
             }
 
             // Merge each individual region
-            final WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(dimension, exporters, world.getPlatform(), world.getMaxHeight());
+            final WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(dimension, exporters, platform, world.getMaxHeight());
 
             Runtime runtime = Runtime.getRuntime();
             runtime.gc();
@@ -795,11 +788,6 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         // Read existing level.dat file and perform sanity checks
         Level level = performSanityChecks(true);
 
-        int dataVersion = level.getDataVersion();
-        Platform platform = (dataVersion <= DATA_VERSION_MC_1_12_2) ? DefaultPlugin.JAVA_ANVIL : DefaultPlugin.JAVA_ANVIL_1_14;
-        // TODO support any platform
-        DefaultPlatformProvider platformProvider = (DefaultPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
-
         // Backup existing level
         File worldDir = levelDatFile.getParentFile();
         if (! worldDir.renameTo(backupDir)) {
@@ -837,11 +825,11 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
             progressReceiver.setMessage("Merging biomes");
         }
         // Find all the region files of the existing level
-        File[] oldRegionFiles = platformProvider.getRegionFiles(platform, new File(backupDir, "region"));
+        // TODO make this work with other platforms, or at least more generic
+        File[] oldRegionFiles = ((DefaultPlatformProvider) platformProvider).getRegionFiles(platform, new File(backupDir, "region"));
 
         // Process each region file, copying every chunk unmodified, except
         // for the biomes
-        @SuppressWarnings("ConstantConditions") // Can only happen for corrupted maps
         int totalChunkCount = oldRegionFiles.length * 32 * 32, chunkCount = 0;
         File newRegionDir = new File(worldDir, "region");
         newRegionDir.mkdirs();
@@ -859,7 +847,8 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                                 NBTChunk chunk;
                                 try (NBTInputStream in = new NBTInputStream(oldRegion.getChunkDataInputStream(x, z))) {
                                     CompoundTag tag = (CompoundTag) in.readTag();
-                                    chunk = platformProvider.createChunk(platform, tag, level.getMaxHeight());
+                                    // TODO make this work with other platforms, or at least more generic
+                                    chunk = ((DefaultPlatformProvider) platformProvider).createChunk(platform, tag, level.getMaxHeight());
                                 }
                                 int chunkX = chunk.getxPos(), chunkZ = chunk.getzPos();
                                 for (int xx = 0; xx < 16; xx++) {
@@ -950,8 +939,8 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                     }
                     int chunkXInRegion = chunkX & 0x1f;
                     int chunkYInRegion = chunkY & 0x1f;
+                    Chunk existingChunk = null;
                     if (regionFile.containsChunk(chunkXInRegion, chunkYInRegion)) {
-                        Chunk existingChunk;
                         try {
                             DataInputStream chunkData = regionFile.getChunkDataInputStream(chunkXInRegion, chunkYInRegion);
                             if (chunkData == null) {
@@ -965,6 +954,14 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                             try (NBTInputStream in = new NBTInputStream(chunkData)) {
                                 // TODO: support any platform
                                 existingChunk = ((DefaultPlatformProvider) platformProvider).createChunk(platform, in.readTag(), maxHeight);
+
+                                // Sanity checks
+                                if ((existingChunk instanceof MC114AnvilChunk)
+                                        && ((MC114AnvilChunk) existingChunk).getStatus().equals(STATUS_STRUCTURE_STARTS)
+                                        && (newChunk != null)) {
+                                    logger.warn("Replacing chunk " + chunkX + "," + chunkY + "from existing map because it has status structure_starts");
+                                    existingChunk = null;
+                                }
                             }
                         } catch (IOException e) {
                             reportBuilder.append("I/O error while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
@@ -979,6 +976,8 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                             logger.error("Class cast exception while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk", e);
                             continue;
                         }
+                    }
+                    if (existingChunk != null) {
                         if (newChunk != null) {
                             // Chunk exists in existing and new world; merge it
                             // Do any necessary processing of the existing chunk
@@ -1337,6 +1336,8 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
             }
         }
         newChunk.setInhabitedTime(existingChunk.getInhabitedTime());
+        // TODO: merge other NBT tags (?)
+        //  (in which case *do* merge 1.14 structure_starts chunks)
         return newChunk;
     }
 

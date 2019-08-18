@@ -276,7 +276,7 @@ public class LightingCalculator {
         int skyLightLevel = getSkyLightLevelAt(x, y + 1, z);
         // TODOMC13: make this generic:
         if ((skyLightLevel == 15) && (platform == JAVA_ANVIL_1_14) && (material.isNamed(MC_WATER)) && ((y >= maxHeight - 1) || (world.getMaterialAt(x, z, y + 1) == AIR))) {
-            // This seems to be a special case in MC 1.13. TODO: keep an eye on whether this was a bug or intended behaviour!
+            // This seems to be a special case in MC 1.14. TODO: keep an eye on whether this was a bug or intended behaviour!
             return 15;
         }
         int highestSurroundingSkyLight = skyLightLevel;

@@ -653,7 +653,7 @@ public final class Constants {
     public static final int VERSION_ANVIL    = 0x4abd;
 
     public static final int DATA_VERSION_MC_1_12_2 = 1343;
-    public static final int DATA_VERSION_MC_1_14_2 = 1963;
+    public static final int DATA_VERSION_MC_1_14_4 = 1976;
 
     // Legacy (pre-MC 1.13) block IDs
 
@@ -1101,4 +1101,8 @@ public final class Constants {
     public static final int DIFFICULTY_EASY     = 1;
     public static final int DIFFICULTY_NORMAL   = 2;
     public static final int DIFFICULTY_HARD     = 3;
+
+    public static final String STATUS_FULL = "full";
+    public static final String STATUS_LIQUID_CARVERS = "liquid_carvers";
+    public static final String STATUS_STRUCTURE_STARTS = "structure_starts";
 }

@@ -67,7 +67,7 @@ public class DumpChunk {
         }
 
         if (chunk instanceof MC114AnvilChunk) {
-            for (Map.Entry<MC114AnvilChunk.HeightmapType, long[]> entry: ((MC114AnvilChunk) chunk).getHeightMaps().entrySet()) {
+            for (Map.Entry<String, long[]> entry: ((MC114AnvilChunk) chunk).getHeightMaps().entrySet()) {
                 System.out.println("Heightmap (type: " + entry.getKey() + ")");
                 System.out.println("X-->");
                 long[][] data = DataUtils.unpackDataArray(entry.getValue(), 9, 16);

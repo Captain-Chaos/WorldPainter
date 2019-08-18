@@ -9,12 +9,12 @@ import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 
 /**
- * Helper class which can post process a fully rendered Minecraft 1.13 or later
+ * Helper class which can post process a fully rendered Minecraft 1.14 or later
  * map to make sure it doesn't violate any Minecraft rules.
  *
  * Created by Pepijn Schmitz on 15-06-15.
  */
-public class Java1_13PostProcessor extends PostProcessor {
+public class Java1_14PostProcessor extends PostProcessor {
     /**
      * Post process (part of) a {@link MinecraftWorld} to make sure it conforms
      * to Minecraft's rules. For instance:

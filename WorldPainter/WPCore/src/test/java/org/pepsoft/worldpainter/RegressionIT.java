@@ -41,7 +41,7 @@ public class RegressionIT {
 
     /**
      * Test whether a version 2.3.6-era world can still be loaded and exported,
-     * in 1.12 and in 1.13 format. Check whether the result is the same as when
+     * in 1.12 and in 1.14 format. Check whether the result is the same as when
      * version 2.6.0 exported it, and that they are the same as each other.
      */
     @Test
@@ -50,7 +50,7 @@ public class RegressionIT {
         File tmpBaseDir = createTmpBaseDir();
         File anvil12worldDir = exportJavaWorld(world, tmpBaseDir);
         world.setPlatform(JAVA_ANVIL_1_14);
-        File anvil113worldDir = exportJavaWorld(world, tmpBaseDir);
+        File anvil114worldDir = exportJavaWorld(world, tmpBaseDir);
 //        try (ZipInputStream in = new ZipInputStream(RegressionIT.class.getResourceAsStream("/testset/test-v2.3.6-1-result.zip"))) {
 //            ZipEntry zipEntry;
 //            byte[] buffer = new byte[32768];
@@ -71,8 +71,8 @@ public class RegressionIT {
             logger.info("Comparing dimension " + dimension.getName());
             Rectangle area = new Rectangle(dimension.getLowestX() << 5, dimension.getLowestY() << 5, dimension.getWidth() << 5, dimension.getHeight() << 5);
             try (MinecraftWorld anvil12World = new JavaMinecraftWorld(anvil12worldDir, dimension.getDim(), dimension.getMaxHeight(), JAVA_ANVIL, true, 256);
-                    MinecraftWorld anvil113World = new JavaMinecraftWorld(anvil113worldDir, dimension.getDim(), dimension.getMaxHeight(), JAVA_ANVIL_1_14, true, 256)) {
-                MinecraftWorldUtils.assertEquals("Anvil 1.2", anvil12World, "Anvil 1.13", anvil113World, area);
+                    MinecraftWorld anvil114World = new JavaMinecraftWorld(anvil114worldDir, dimension.getDim(), dimension.getMaxHeight(), JAVA_ANVIL_1_14, true, 256)) {
+                MinecraftWorldUtils.assertEquals("Anvil 1.2", anvil12World, "Anvil 1.14", anvil114World, area);
             }
         }
         FileUtils.deleteDir(tmpBaseDir);

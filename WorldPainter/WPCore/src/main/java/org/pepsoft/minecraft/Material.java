@@ -1607,7 +1607,7 @@ public final class Material implements Serializable {
     public static final Material PUMPKIN_SOUTH_FACE = LEGACY_MATERIALS[((BLK_PUMPKIN) << 4) | (DATA_PUMPKIN_SOUTH_FACE)];
     public static final Material PUMPKIN_WEST_FACE = LEGACY_MATERIALS[((BLK_PUMPKIN) << 4) | (DATA_PUMPKIN_WEST_FACE)];
 
-    // MC 1.14 block property access helpers
+    // MC 1.13 block property access helpers
 
     public static final Property<Boolean>   SNOWY       = new Property<>(MC_SNOWY,       Boolean.class);
     public static final Property<Boolean>   NORTH       = new Property<>(MC_NORTH,       Boolean.class);
@@ -1630,7 +1630,7 @@ public final class Material implements Serializable {
     public static final Property<String>    SHAPE       = new Property<>(MC_SHAPE,       String.class);
     public static final Property<String>    HINGE       = new Property<>(MC_HINGE,       String.class);
 
-    // Modern materials (based on MC 1.14 block names and properties)
+    // Modern materials (based on MC 1.13 block names and properties)
 
     /**
      * A vine with no directions turned on, which is not a valid block in

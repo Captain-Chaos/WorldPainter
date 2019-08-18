@@ -42,7 +42,7 @@ public final class Level extends AbstractNBTItem {
         setInt(TAG_VERSION_, (platform == JAVA_MCREGION) ? VERSION_MCREGION : VERSION_ANVIL);
         // TODO: make this dynamic?
         if (platform != JAVA_MCREGION) {
-            int dataVersion = (platform == JAVA_ANVIL) ? DATA_VERSION_MC_1_12_2 : DATA_VERSION_MC_1_14_2;
+            int dataVersion = (platform == JAVA_ANVIL) ? DATA_VERSION_MC_1_12_2 : DATA_VERSION_MC_1_14_4;
             setInt(TAG_DATA_VERSION, dataVersion);
             Map<String, Tag> versionTag = new HashMap<>();
             versionTag.put(TAG_ID, new IntTag(TAG_ID, dataVersion));

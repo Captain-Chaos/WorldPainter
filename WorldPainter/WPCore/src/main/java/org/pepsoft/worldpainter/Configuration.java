@@ -1141,7 +1141,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private boolean java10onMacMessageDisplayed;
     private boolean autosaveEnabled = true;
     private int autosaveDelay = 10000, autosaveInterval = 300000; // Ten seconds delay; five minutes interval
-    private String defaultPlatformId = DefaultPlugin.JAVA_ANVIL.id; // TODOMC13 set this to 1.13 once it's out of beta
+    private String defaultPlatformId = DefaultPlugin.JAVA_ANVIL.id; // TODOMC13 set this to 1.14 once it's out of beta
     private Map<String, File> exportDirectoriesById = new HashMap<>();
     private boolean snapshotWarningDisplayed;
     private boolean beta113WarningDisplayed;

@@ -109,6 +109,11 @@
                               <EmptySpace max="-2" attributes="0"/>
                               <Component id="checkBoxEnd" min="-2" max="-2" attributes="0"/>
                           </Group>
+                          <Group type="102" alignment="0" attributes="0">
+                              <Component id="jLabel10" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="labelPlatform" min="-2" max="-2" attributes="0"/>
+                          </Group>
                       </Group>
                       <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                   </Group>
@@ -125,6 +130,11 @@
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="fieldLevelDatFile" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="buttonSelectDirectory" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="jLabel10" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="labelPlatform" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace type="separate" max="-2" attributes="0"/>
               <Component id="jLabel4" min="-2" max="-2" attributes="0"/>
@@ -190,7 +200,7 @@
   <SubComponents>
     <Component class="javax.swing.JLabel" name="jLabel2">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Existing map to merge with:"/>
+        <Property name="text" type="java.lang.String" value="Select the level.dat file of an existing Minecraft map:"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JTextField" name="fieldLevelDatFile">
@@ -397,6 +407,13 @@
       <Properties>
         <Property name="text" type="java.lang.String" value="including underground portion)"/>
       </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="jLabel10">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Map format:"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="labelPlatform">
     </Component>
   </SubComponents>
 </Form>

@@ -142,7 +142,7 @@ public class DefaultPlatformProvider extends AbstractPlugin implements BlockBase
         if ((platform == JAVA_MCREGION) || (platform == JAVA_ANVIL)) {
             return new Java1_2PostProcessor();
         } else if (platform == JAVA_ANVIL_1_14) {
-            return new Java1_13PostProcessor();
+            return new Java1_14PostProcessor();
         } else {
             throw new IllegalArgumentException("Platform " + platform + " not supported");
         }

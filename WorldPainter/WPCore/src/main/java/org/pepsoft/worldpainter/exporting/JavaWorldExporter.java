@@ -37,14 +37,18 @@ import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLA
  *
  * @author pepijn
  */
-public class JavaWorldExporter extends AbstractWorldExporter {
+public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this be made a BlockBasedPlatformProviderWorldExporter?
     public JavaWorldExporter(World2 world) {
-        super(world);
+        super(world, world.getPlatform());
         if ((! (platform == JAVA_ANVIL))
                 && (! (platform == JAVA_MCREGION))
                 && (! (platform == JAVA_ANVIL_1_14))) {
             throw new IllegalArgumentException("Unsupported platform " + platform);
         }
+    }
+
+    protected JavaWorldExporter(World2 world, Platform platform) {
+        super(world, platform);
     }
 
     @Override
@@ -76,7 +80,7 @@ public class JavaWorldExporter extends AbstractWorldExporter {
         
         // Export dimensions
         Dimension dim0 = world.getDimension(0);
-        Level level = new Level(world.getMaxHeight(), world.getPlatform());
+        Level level = new Level(world.getMaxHeight(), platform);
         level.setSeed(dim0.getMinecraftSeed());
         level.setName(name);
         Point spawnPoint = world.getSpawnPoint();
@@ -142,7 +146,7 @@ public class JavaWorldExporter extends AbstractWorldExporter {
             }
         }
         level.setMapFeatures(world.isMapFeatures());
-        if ((world.getPlatform() != JAVA_MCREGION)) {
+        if ((platform != JAVA_MCREGION)) {
             if ((! endlessBorder) && (world.getGenerator() == Generator.FLAT) && ((world.getGeneratorOptions() != null) || (world.getSuperflatPreset() != null))) {
                 if (world.getSuperflatPreset() != null) {
                     level.setGeneratorOptions((platform == JAVA_ANVIL)
@@ -209,12 +213,12 @@ public class JavaWorldExporter extends AbstractWorldExporter {
             EventVO event = new EventVO(EVENT_KEY_ACTION_EXPORT_WORLD).duration(System.currentTimeMillis() - start);
             event.setAttribute(EventVO.ATTRIBUTE_TIMESTAMP, new Date(start));
             event.setAttribute(ATTRIBUTE_KEY_MAX_HEIGHT, world.getMaxHeight());
-            event.setAttribute(ATTRIBUTE_KEY_PLATFORM, world.getPlatform().displayName);
+            event.setAttribute(ATTRIBUTE_KEY_PLATFORM, platform.displayName);
             event.setAttribute(ATTRIBUTE_KEY_MAP_FEATURES, world.isMapFeatures());
             event.setAttribute(ATTRIBUTE_KEY_GAME_TYPE_NAME, world.getGameType().name());
             event.setAttribute(ATTRIBUTE_KEY_ALLOW_CHEATS, world.isAllowCheats());
             event.setAttribute(ATTRIBUTE_KEY_GENERATOR, world.getGenerator().name());
-            if ((world.getPlatform() == JAVA_ANVIL) && (world.getGenerator() == Generator.FLAT) && (world.getGeneratorOptions() != null)) {
+            if ((platform == JAVA_ANVIL) && (world.getGenerator() == Generator.FLAT) && (world.getGeneratorOptions() != null)) {
                 event.setAttribute(ATTRIBUTE_KEY_GENERATOR_OPTIONS, world.getGeneratorOptions());
             }
             Dimension dimension = world.getDimension(0);

@@ -228,9 +228,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                 }
             }
         }
-        if (! populate) {
-            result.chunk.setTerrainPopulated(true);
-        }
+        result.chunk.setTerrainPopulated(! populate);
         for (Layer layer: tile.getLayers(minimumLayers)) {
             LayerExporter layerExporter = exporters.get(layer);
             if (layerExporter instanceof FirstPassLayerExporter) {

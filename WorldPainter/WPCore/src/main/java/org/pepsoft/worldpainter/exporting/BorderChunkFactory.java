@@ -28,9 +28,8 @@ import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.*;
  * @author pepijn
  */
 public class BorderChunkFactory {
-    public static ChunkFactory.ChunkCreationResult create(int chunkX, int chunkZ, Dimension dimension, Map<Layer, LayerExporter> exporters) {
+    public static ChunkFactory.ChunkCreationResult create(int chunkX, int chunkZ, Dimension dimension, Platform platform, Map<Layer, LayerExporter> exporters) {
         final int maxHeight = dimension.getMaxHeight();
-        final Platform platform = dimension.getWorld().getPlatform();
         final Border border = dimension.getBorder();
         final int borderLevel = dimension.getBorderLevel();
         final boolean dark = dimension.isDarkLevel();

@@ -15,13 +15,9 @@ import org.pepsoft.minecraft.SuperflatPreset;
 import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
-import org.pepsoft.worldpainter.layers.Bo2Layer;
 import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.Populate;
-import org.pepsoft.worldpainter.layers.plants.Plant;
-import org.pepsoft.worldpainter.layers.plants.PlantLayer;
-import org.pepsoft.worldpainter.objects.WPObject;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.util.EnumListCellRenderer;
 
@@ -32,7 +28,6 @@ import java.awt.*;
 import java.io.File;
 import java.util.List;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toSet;
 import static javax.swing.JOptionPane.INFORMATION_MESSAGE;
@@ -45,6 +40,7 @@ import static org.pepsoft.worldpainter.GameType.*;
 import static org.pepsoft.worldpainter.Generator.CUSTOM;
 import static org.pepsoft.worldpainter.Generator.DEFAULT;
 import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
+import static org.pepsoft.worldpainter.util.MaterialUtils.gatherBlocksWithoutIds;
 
 /**
  *
@@ -93,7 +89,7 @@ public class ExportWorldDialog extends WorldPainterDialog {
         }
         fieldName.setText(world.getName());
 
-        nameOnlyMaterials = gatherNamedBlocks(world, platform);
+        nameOnlyMaterials = gatherBlocksWithoutIds(world, platform);
 
         Dimension dim0 = world.getDimension(0);
         surfacePropertiesEditor.setColourScheme(colourScheme);
@@ -141,7 +137,7 @@ public class ExportWorldDialog extends WorldPainterDialog {
             if (! availablePlatform.isCompatible(world)) {
                 return false;
             } else {
-                Map<String, Set<String>> namedBlocks = gatherNamedBlocks(world, availablePlatform);
+                Map<String, Set<String>> namedBlocks = gatherBlocksWithoutIds(world, availablePlatform);
                 return (! namedBlocks.isEmpty()) && (! availablePlatform.capabilities.contains(NAME_BASED));
             }
 
@@ -226,63 +222,6 @@ dims:   for (Dimension dim: world.getDimensions()) {
         
         pack();
         setLocationRelativeTo(parent);
-    }
-
-    private Map<String, Set<String>> gatherNamedBlocks(World2 world, Platform platform) {
-        // Check for materials that have no block IDs
-        // TODO: anything else?
-        // Check custom materials
-        final Map<String, Set<String>> nameOnlyMaterials = new HashMap<>();
-        Arrays.stream(MixedMaterialManager.getInstance().getMaterials()).forEach(material -> {
-            for (MixedMaterial.Row row: material.getRows()) {
-                if (row.material.blockType == -1) {
-                    nameOnlyMaterials.computeIfAbsent(row.material.name, m -> new HashSet<>()).add("custom material " + material.getName());
-                }
-            }
-        });
-        // Check custom object layers
-        for (Dimension dimension: world.getDimensions()) {
-            for (Layer layer: dimension.getAllLayers(true)) {
-                if (layer instanceof Bo2Layer) {
-                    Map<String, List<WPObject>> nameOnlyMaterialsForLayer = new HashMap<>();
-                    for (WPObject object: ((Bo2Layer) layer).getObjectProvider().getAllObjects()) {
-                        object.getAllMaterials().forEach(material -> {
-                            if (material.blockType == -1) {
-                                nameOnlyMaterialsForLayer.computeIfAbsent(material.name, m -> new ArrayList<>()).add(object);
-                            }
-                        });
-                    }
-                    nameOnlyMaterialsForLayer.forEach((name, objects) -> {
-                        if (objects.size() == 1) {
-                            nameOnlyMaterials.computeIfAbsent(name, m -> new HashSet<>()).add("object " + objects.iterator().next().getName() + " in layer " + layer.getName());
-                        } else if (objects.size() <= 3) {
-                            nameOnlyMaterials.computeIfAbsent(name, m -> new HashSet<>()).add("objects " + objects.stream().map(WPObject::getName).collect(Collectors.joining(", ")) + " in layer " + layer.getName());
-                        } else {
-                            nameOnlyMaterials.computeIfAbsent(name, m -> new HashSet<>()).add("objects " + objects.subList(0, 2).stream().map(WPObject::getName).collect(Collectors.joining(", ")) + " and " + (objects.size() - 2) + " more in layer " + layer.getName());
-                        }
-                    });
-                } else if (layer instanceof PlantLayer) {
-                    Map<String, List<Plant>> nameOnlyMaterialsForLayer = new HashMap<>();
-                    for (Plant plant: ((PlantLayer) layer).getConfiguredPlants().keySet()) {
-                        plant.realise(plant.getMaxGrowth(), platform).getAllMaterials().forEach(material -> {
-                            if (material.blockType == -1) {
-                                nameOnlyMaterialsForLayer.computeIfAbsent(material.name, m -> new ArrayList<>()).add(plant);
-                            }
-                        });
-                    }
-                    nameOnlyMaterialsForLayer.forEach((name, plants) -> {
-                        if (plants.size() == 1) {
-                            nameOnlyMaterials.computeIfAbsent(name, m -> new HashSet<>()).add("plant " + plants.iterator().next().getName() + " in layer " + layer.getName());
-                        } else if (plants.size() <= 3) {
-                            nameOnlyMaterials.computeIfAbsent(name, m -> new HashSet<>()).add("plants " + plants.stream().map(WPObject::getName).collect(Collectors.joining(", ")) + " in layer " + layer.getName());
-                        } else {
-                            nameOnlyMaterials.computeIfAbsent(name, m -> new HashSet<>()).add("plants " + plants.subList(0, 2).stream().map(WPObject::getName).collect(Collectors.joining(", ")) + " and " + (plants.size() - 2) + " more in layer " + layer.getName());
-                        }
-                    });
-                }
-            }
-        }
-        return nameOnlyMaterials;
     }
 
     private void borderChanged(Dimension.Border border) {
@@ -496,7 +435,6 @@ dims:   for (Dimension dim: world.getDimensions()) {
                 world.setGeneratorOptions(null);
             }
         }
-        world.setPlatform((Platform) comboBoxMinecraftVersion.getSelectedItem());
         if (radioButtonExportEverything.isSelected()) {
             world.setDimensionsToExport(null);
             world.setTilesToExport(null);
@@ -907,7 +845,16 @@ dims:   for (Dimension dim: world.getDimensions()) {
                 fieldDirectory.setText(exportDir.getAbsolutePath());
             }
 
-            nameOnlyMaterials = gatherNamedBlocks(world, newPlatform);
+            nameOnlyMaterials = gatherBlocksWithoutIds(world, newPlatform);
+
+            // Temporary workaround TODO make the chest work again
+            if (newPlatform == JAVA_ANVIL_1_14) {
+                checkBoxGoodies.setEnabled(false);
+                checkBoxGoodies.setSelected(false);
+            } else {
+                checkBoxGoodies.setEnabled(true);
+                checkBoxGoodies.setSelected(world.isCreateGoodiesChest());
+            }
 
             // Otherwise the JComboBox malfunctions:
             SwingUtilities.invokeLater(() -> buttonExport.setEnabled(checkCompatibility(newPlatform)));

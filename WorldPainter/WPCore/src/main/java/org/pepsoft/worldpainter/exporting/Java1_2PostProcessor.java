@@ -11,8 +11,8 @@ import static org.pepsoft.minecraft.Block.*;
 import static org.pepsoft.minecraft.Constants.*;
 
 /**
- * Helper class which can post process a fully rendered Minecraft 1.2 to 1.13
- * (not inclusive) map to make sure it doesn't violate any Minecraft rules.
+ * Helper class which can post process a fully rendered Minecraft 1.2 to 1.12.2
+ * map to make sure it doesn't violate any Minecraft rules.
  *
  * Created by Pepijn Schmitz on 15-06-15.
  */

@@ -38,6 +38,7 @@ import java.util.concurrent.*;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_14;
 
 /**
  * An abstract {@link WorldExporter} for block based platforms.
@@ -45,12 +46,12 @@ import static org.pepsoft.worldpainter.Constants.*;
  * <p>Created by Pepijn on 11-12-2016.
  */
 public abstract class AbstractWorldExporter implements WorldExporter {
-    protected AbstractWorldExporter(World2 world) {
+    protected AbstractWorldExporter(World2 world, Platform platform) {
         if (world == null) {
             throw new NullPointerException();
         }
         this.world = world;
-        this.platform = world.getPlatform();
+        this.platform = platform;
         platformProvider = (BlockBasedPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
         this.selectedTiles = world.getTilesToExport();
         this.selectedDimensions = world.getDimensionsToExport();
@@ -571,7 +572,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
 
         // TODO: trying to do this for every region should work but is not very
         // elegant
-        if ((dimension.getDim() == 0) && world.isCreateGoodiesChest()) {
+        if ((platform != JAVA_ANVIL_1_14) && (dimension.getDim() == 0) && world.isCreateGoodiesChest()) { // Temporary workaround TODO make the chest work again
             Point goodiesPoint = (Point) world.getSpawnPoint().clone();
             goodiesPoint.translate(3, 3);
             int height = Math.min(dimension.getIntHeightAt(goodiesPoint) + 1, dimension.getMaxHeight() - 1);
@@ -786,7 +787,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 // Might be a border or bedrock wall chunk (but not if this is a
                 // ceiling dimension or the border is an endless border)
                 if (border && isBorderChunk(dimension, chunkX, chunkY)) {
-                    return BorderChunkFactory.create(chunkX, chunkY, dimension, exporters);
+                    return BorderChunkFactory.create(chunkX, chunkY, dimension, platform, exporters);
                 } else if (dimension.isBedrockWall()
                         && (border
                             ? (isBorderChunk(dimension, chunkX - 1, chunkY) || isBorderChunk(dimension, chunkX, chunkY - 1) || isBorderChunk(dimension, chunkX + 1, chunkY) || isBorderChunk(dimension, chunkX, chunkY + 1))
@@ -794,7 +795,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                     // Bedrock wall is turned on and a neighbouring chunk is a
                     // border chunk (if there is a border), or a world chunk (if
                     // there is no border)
-                    return BedrockWallChunk.create(chunkX, chunkY, dimension);
+                    return BedrockWallChunk.create(chunkX, chunkY, dimension, platform);
                 } else {
                     // Outside known space
                     return null;
@@ -806,11 +807,6 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 return null;
             }
         }
-    }
-
-    protected void setPlatform(Platform platform) {
-        world.setPlatform(platform);
-        this.platform = platform;
     }
 
     private boolean isWorldChunk(Dimension dimension, int x, int y) {
@@ -844,7 +840,8 @@ public abstract class AbstractWorldExporter implements WorldExporter {
     }
 
     private Chest createGoodiesChest() {
-        // TODOMC13 migrate to Minecraft 1.13
+        // TODOMC13 migrate to Minecraft 1.14
+        // TODOMC13 this makes Minecraft 1.14 crash!
         List<InventoryItem> list = new ArrayList<>();
         list.add(new InventoryItem(ITM_DIAMOND_SWORD,    0,  1,  0));
         list.add(new InventoryItem(ITM_DIAMOND_SHOVEL,   0,  1,  1));
@@ -954,7 +951,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
     protected final Set<Integer> selectedDimensions;
     protected final Set<Point> selectedTiles;
     protected final Semaphore performingFixups = new Semaphore(1);
-    protected Platform platform;
+    protected final Platform platform;
 
     private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMddHHmmss");
     private static final Object TIMING_FILE_LOCK = new Object();
