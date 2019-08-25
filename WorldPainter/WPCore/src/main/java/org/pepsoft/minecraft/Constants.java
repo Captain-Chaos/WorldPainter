@@ -649,6 +649,7 @@ public final class Constants {
      */
     public static final String TAG_MAP_HEIGHT = "MapHeight";
 
+    public static final int VERSION_UNKNOWN  = 0;
     public static final int VERSION_MCREGION = 0x4abc;
     public static final int VERSION_ANVIL    = 0x4abd;
 

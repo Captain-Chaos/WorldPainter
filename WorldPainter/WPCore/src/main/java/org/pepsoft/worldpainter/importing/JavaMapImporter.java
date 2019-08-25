@@ -8,6 +8,7 @@ import org.jnbt.CompoundTag;
 import org.jnbt.StringTag;
 import org.jnbt.Tag;
 import org.pepsoft.minecraft.*;
+import org.pepsoft.util.LongAttributeKey;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
 import org.pepsoft.worldpainter.Dimension;
@@ -31,7 +32,9 @@ import static java.util.Arrays.stream;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
+import static org.pepsoft.worldpainter.Platform.Capability.BLOCK_BASED;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.BIOME_NAMES;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.HIGHEST_BIOME_ID;
 
@@ -49,6 +52,9 @@ public class JavaMapImporter extends MapImporter {
         if (! levelDatFile.isFile()) {
             throw new IllegalArgumentException(levelDatFile + " does not exist or is not a regular file");
         }
+        if (! platform.capabilities.contains(BLOCK_BASED)) {
+            throw new IllegalArgumentException("Non block based platform " + platform + " not supported");
+        }
         this.platform = platform;
         this.tileFactory = tileFactory;
         this.levelDatFile = levelDatFile;
@@ -62,14 +68,129 @@ public class JavaMapImporter extends MapImporter {
         long start = System.currentTimeMillis();
 
         logger.info("Importing map from " + levelDatFile.getAbsolutePath());
-        Level level = Level.load(levelDatFile);
-        int version = level.getVersion();
-        if ((version != VERSION_MCREGION) && (version != VERSION_ANVIL)) {
-            throw new UnsupportedOperationException("Level format version " + version + " not supported");
+        File worldDir = levelDatFile.getParentFile();
+        int dimCount = dimensionsToImport.size();
+        World2 world = importWorld(levelDatFile);
+        long minecraftSeed = world.getAttribute(SEED).orElse(new Random().nextLong());
+        tileFactory.setSeed(minecraftSeed);
+        Dimension dimension = new Dimension(world, minecraftSeed, tileFactory, DIM_NORMAL, world.getMaxHeight());
+        dimension.setEventsInhibited(true);
+        try {
+            dimension.setCoverSteepTerrain(false);
+            dimension.setSubsurfaceMaterial(Terrain.STONE);
+            dimension.setBorderLevel(62);
+            
+            // Turn off smooth snow
+            FrostSettings frostSettings = new FrostSettings();
+            frostSettings.setMode(FrostSettings.MODE_FLAT);
+            dimension.setLayerSettings(Frost.INSTANCE, frostSettings);
+            
+            ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) dimension.getLayerSettings(Resources.INSTANCE);
+            resourcesSettings.setMinimumLevel(0);
+            if (platform == JAVA_MCREGION) {
+                resourcesSettings.setChance(EMERALD_ORE, 0);
+            }
+            Configuration config = Configuration.getInstance();
+            dimension.setGridEnabled(config.isDefaultGridEnabled());
+            dimension.setGridSize(config.getDefaultGridSize());
+            dimension.setContoursEnabled(config.isDefaultContoursEnabled());
+            dimension.setContourSeparation(config.getDefaultContourSeparation());
+            String dimWarnings = importDimension(worldDir, dimension, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.0f, 1.0f / dimCount) : null);
+            if (dimWarnings != null) {
+                if (warnings == null) {
+                    warnings = dimWarnings;
+                } else {
+                    warnings = warnings + dimWarnings;
+                }
+            }
+        } finally {
+            dimension.setEventsInhibited(false);
         }
+        world.addDimension(dimension);
+        int dimNo = 1;
+        if (dimensionsToImport.contains(DIM_NETHER)) {
+            HeightMapTileFactory netherTileFactory = TileFactoryFactory.createNoiseTileFactory(minecraftSeed + 1, Terrain.NETHERRACK, world.getMaxHeight(), 188, 192, true, false, 20f, 1.0);
+            SimpleTheme theme = (SimpleTheme) netherTileFactory.getTheme();
+            SortedMap<Integer, Terrain> terrainRanges = theme.getTerrainRanges();
+            terrainRanges.clear();
+            terrainRanges.put(-1, Terrain.NETHERRACK);
+            theme.setTerrainRanges(terrainRanges);
+            theme.setLayerMap(null);
+            dimension = new Dimension(world, minecraftSeed + 1, netherTileFactory, DIM_NETHER, world.getMaxHeight());
+            dimension.setEventsInhibited(true);
+            try {
+                dimension.setCoverSteepTerrain(false);
+                dimension.setSubsurfaceMaterial(Terrain.NETHERRACK);
+                ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) dimension.getLayerSettings(Resources.INSTANCE);
+                resourcesSettings.setMinimumLevel(0);
+                if (platform == JAVA_MCREGION) {
+                    resourcesSettings.setChance(QUARTZ_ORE, 0);
+                }
+                String dimWarnings = importDimension(worldDir, dimension, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) dimNo++ / dimCount, 1.0f / dimCount) : null);
+                if (dimWarnings != null) {
+                    if (warnings == null) {
+                        warnings = dimWarnings;
+                    } else {
+                        warnings = warnings + dimWarnings;
+                    }
+                }
+            } finally {
+                dimension.setEventsInhibited(false);
+            }
+            world.addDimension(dimension);
+        }
+        if (dimensionsToImport.contains(DIM_END)) {
+            HeightMapTileFactory endTileFactory = TileFactoryFactory.createNoiseTileFactory(minecraftSeed + 2, Terrain.END_STONE, world.getMaxHeight(), 32, 0, false, false, 20f, 1.0);
+            SimpleTheme theme = (SimpleTheme) endTileFactory.getTheme();
+            SortedMap<Integer, Terrain> terrainRanges = theme.getTerrainRanges();
+            terrainRanges.clear();
+            terrainRanges.put(-1, Terrain.END_STONE);
+            theme.setTerrainRanges(terrainRanges);
+            theme.setLayerMap(Collections.emptyMap());
+            dimension = new Dimension(world, minecraftSeed + 2, endTileFactory, DIM_END, world.getMaxHeight());
+            dimension.setEventsInhibited(true);
+            try {
+                dimension.setCoverSteepTerrain(false);
+                dimension.setSubsurfaceMaterial(Terrain.END_STONE);
+                String dimWarnings = importDimension(worldDir, dimension, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) dimNo / dimCount, 1.0f / dimCount) : null);
+                if (dimWarnings != null) {
+                    if (warnings == null) {
+                        warnings = dimWarnings;
+                    } else {
+                        warnings = warnings + dimWarnings;
+                    }
+                }
+            } finally {
+                dimension.setEventsInhibited(false);
+            }
+            world.addDimension(dimension);
+        }
+        
+        // Log an event
+        Configuration config = Configuration.getInstance();
+        if (config != null) {
+            EventVO event = new EventVO(EVENT_KEY_ACTION_IMPORT_MAP).duration(System.currentTimeMillis() - start);
+            event.setAttribute(EventVO.ATTRIBUTE_TIMESTAMP, new Date(start));
+            event.setAttribute(ATTRIBUTE_KEY_MAX_HEIGHT, world.getMaxHeight());
+            event.setAttribute(ATTRIBUTE_KEY_PLATFORM, world.getPlatform().displayName);
+            event.setAttribute(ATTRIBUTE_KEY_MAP_FEATURES, world.isMapFeatures());
+            event.setAttribute(ATTRIBUTE_KEY_GAME_TYPE_NAME, world.getGameType().name());
+            event.setAttribute(ATTRIBUTE_KEY_ALLOW_CHEATS, world.isAllowCheats());
+            event.setAttribute(ATTRIBUTE_KEY_GENERATOR, world.getGenerator().name());
+            if ((world.getPlatform() == JAVA_ANVIL) && (world.getGenerator() == Generator.FLAT) && (world.getGeneratorOptions() != null)) {
+                event.setAttribute(ATTRIBUTE_KEY_GENERATOR_OPTIONS, world.getGeneratorOptions());
+            }
+            event.setAttribute(ATTRIBUTE_KEY_TILES, dimension.getTiles().size());
+            config.logEvent(event);
+        }
+        
+        return world;
+    }
+
+    protected World2 importWorld(File levelDatFile) throws IOException {
+        Level level = Level.load(levelDatFile);
         String name = level.getName().trim();
         int maxHeight = level.getMaxHeight();
-        Platform platform = (version == VERSION_MCREGION) ? JAVA_MCREGION : ((level.getDataVersion() <= DATA_VERSION_MC_1_12_2) ? JAVA_ANVIL : JAVA_ANVIL_1_14);
         World2 world = new World2(platform, maxHeight);
         world.addHistoryEntry(HistoryEntry.WORLD_IMPORTED_FROM_MINECRAFT_MAP, level.getName(), levelDatFile.getParentFile());
         world.setCreateGoodiesChest(false);
@@ -107,7 +228,7 @@ public class JavaMapImporter extends MapImporter {
             }
         }
         world.setDifficulty(level.getDifficulty());
-        if ((version == VERSION_ANVIL) && (level.getBorderSize() > 0.0)) {
+        if ((platform != JAVA_MCREGION) && (level.getBorderSize() > 0.0)) {
             world.getBorderSettings().setCentreX((int) (level.getBorderCenterX() + 0.5));
             world.getBorderSettings().setCentreY((int) (level.getBorderCenterZ() + 0.5));
             world.getBorderSettings().setSize((int) (level.getBorderSize() + 0.5));
@@ -118,121 +239,7 @@ public class JavaMapImporter extends MapImporter {
             world.getBorderSettings().setSizeLerpTime((int) level.getBorderSizeLerpTime());
             world.getBorderSettings().setDamagePerBlock((int) (level.getBorderDamagePerBlock() + 0.5));
         }
-        File worldDir = levelDatFile.getParentFile();
-        int dimCount = dimensionsToImport.size();
-        long minecraftSeed = level.getSeed();
-        tileFactory.setSeed(minecraftSeed);
-        Dimension dimension = new Dimension(world, minecraftSeed, tileFactory, DIM_NORMAL, maxHeight);
-        dimension.setEventsInhibited(true);
-        try {
-            dimension.setCoverSteepTerrain(false);
-            dimension.setSubsurfaceMaterial(Terrain.STONE);
-            dimension.setBorderLevel(62);
-            
-            // Turn off smooth snow
-            FrostSettings frostSettings = new FrostSettings();
-            frostSettings.setMode(FrostSettings.MODE_FLAT);
-            dimension.setLayerSettings(Frost.INSTANCE, frostSettings);
-            
-            ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) dimension.getLayerSettings(Resources.INSTANCE);
-            resourcesSettings.setMinimumLevel(0);
-            if (version == VERSION_MCREGION) {
-                resourcesSettings.setChance(EMERALD_ORE, 0);
-            }
-            Configuration config = Configuration.getInstance();
-            dimension.setGridEnabled(config.isDefaultGridEnabled());
-            dimension.setGridSize(config.getDefaultGridSize());
-            dimension.setContoursEnabled(config.isDefaultContoursEnabled());
-            dimension.setContourSeparation(config.getDefaultContourSeparation());
-            String dimWarnings = importDimension(worldDir, dimension, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.0f, 1.0f / dimCount) : null);
-            if (dimWarnings != null) {
-                if (warnings == null) {
-                    warnings = dimWarnings;
-                } else {
-                    warnings = warnings + dimWarnings;
-                }
-            }
-        } finally {
-            dimension.setEventsInhibited(false);
-        }
-        world.addDimension(dimension);
-        int dimNo = 1;
-        if (dimensionsToImport.contains(DIM_NETHER)) {
-            HeightMapTileFactory netherTileFactory = TileFactoryFactory.createNoiseTileFactory(minecraftSeed + 1, Terrain.NETHERRACK, maxHeight, 188, 192, true, false, 20f, 1.0);
-            SimpleTheme theme = (SimpleTheme) netherTileFactory.getTheme();
-            SortedMap<Integer, Terrain> terrainRanges = theme.getTerrainRanges();
-            terrainRanges.clear();
-            terrainRanges.put(-1, Terrain.NETHERRACK);
-            theme.setTerrainRanges(terrainRanges);
-            theme.setLayerMap(null);
-            dimension = new Dimension(world, minecraftSeed + 1, netherTileFactory, DIM_NETHER, maxHeight);
-            dimension.setEventsInhibited(true);
-            try {
-                dimension.setCoverSteepTerrain(false);
-                dimension.setSubsurfaceMaterial(Terrain.NETHERRACK);
-                ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) dimension.getLayerSettings(Resources.INSTANCE);
-                resourcesSettings.setMinimumLevel(0);
-                if (version == VERSION_MCREGION) {
-                    resourcesSettings.setChance(QUARTZ_ORE, 0);
-                }
-                String dimWarnings = importDimension(worldDir, dimension, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) dimNo++ / dimCount, 1.0f / dimCount) : null);
-                if (dimWarnings != null) {
-                    if (warnings == null) {
-                        warnings = dimWarnings;
-                    } else {
-                        warnings = warnings + dimWarnings;
-                    }
-                }
-            } finally {
-                dimension.setEventsInhibited(false);
-            }
-            world.addDimension(dimension);
-        }
-        if (dimensionsToImport.contains(DIM_END)) {
-            HeightMapTileFactory endTileFactory = TileFactoryFactory.createNoiseTileFactory(minecraftSeed + 2, Terrain.END_STONE, maxHeight, 32, 0, false, false, 20f, 1.0);
-            SimpleTheme theme = (SimpleTheme) endTileFactory.getTheme();
-            SortedMap<Integer, Terrain> terrainRanges = theme.getTerrainRanges();
-            terrainRanges.clear();
-            terrainRanges.put(-1, Terrain.END_STONE);
-            theme.setTerrainRanges(terrainRanges);
-            theme.setLayerMap(Collections.emptyMap());
-            dimension = new Dimension(world, minecraftSeed + 2, endTileFactory, DIM_END, maxHeight);
-            dimension.setEventsInhibited(true);
-            try {
-                dimension.setCoverSteepTerrain(false);
-                dimension.setSubsurfaceMaterial(Terrain.END_STONE);
-                String dimWarnings = importDimension(worldDir, dimension, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) dimNo / dimCount, 1.0f / dimCount) : null);
-                if (dimWarnings != null) {
-                    if (warnings == null) {
-                        warnings = dimWarnings;
-                    } else {
-                        warnings = warnings + dimWarnings;
-                    }
-                }
-            } finally {
-                dimension.setEventsInhibited(false);
-            }
-            world.addDimension(dimension);
-        }
-        
-        // Log an event
-        Configuration config = Configuration.getInstance();
-        if (config != null) {
-            EventVO event = new EventVO(EVENT_KEY_ACTION_IMPORT_MAP).duration(System.currentTimeMillis() - start);
-            event.setAttribute(EventVO.ATTRIBUTE_TIMESTAMP, new Date(start));
-            event.setAttribute(ATTRIBUTE_KEY_MAX_HEIGHT, world.getMaxHeight());
-            event.setAttribute(ATTRIBUTE_KEY_PLATFORM, world.getPlatform().displayName);
-            event.setAttribute(ATTRIBUTE_KEY_MAP_FEATURES, world.isMapFeatures());
-            event.setAttribute(ATTRIBUTE_KEY_GAME_TYPE_NAME, world.getGameType().name());
-            event.setAttribute(ATTRIBUTE_KEY_ALLOW_CHEATS, world.isAllowCheats());
-            event.setAttribute(ATTRIBUTE_KEY_GENERATOR, world.getGenerator().name());
-            if ((world.getPlatform() == JAVA_ANVIL) && (world.getGenerator() == Generator.FLAT) && (world.getGeneratorOptions() != null)) {
-                event.setAttribute(ATTRIBUTE_KEY_GENERATOR_OPTIONS, world.getGeneratorOptions());
-            }
-            event.setAttribute(ATTRIBUTE_KEY_TILES, dimension.getTiles().size());
-            config.logEvent(event);
-        }
-        
+        world.setAttribute(SEED, level.getSeed()); // TODO include this in more generic refactored map import mechanism
         return world;
     }
 
@@ -431,7 +438,8 @@ public class JavaMapImporter extends MapImporter {
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(JavaMapImporter.class);
     private static final String EOL = System.getProperty("line.separator");
-    
+    private static final LongAttributeKey SEED = new LongAttributeKey("seed");
+
     static {
         TERRAIN_MAPPING.put(MC_STONE, Terrain.STONE);
         TERRAIN_MAPPING.put(MC_ANDESITE, Terrain.STONE);

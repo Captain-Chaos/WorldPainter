@@ -15,6 +15,7 @@ import java.util.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import static java.nio.charset.StandardCharsets.US_ASCII;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.MAX_HEIGHT;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
@@ -59,7 +60,8 @@ public final class Level extends AbstractNBTItem {
             throw new IllegalArgumentException("mapHeight " + mapHeight + " not a power of two");
         }
         int version = getInt(TAG_VERSION_);
-        if ((version != VERSION_MCREGION) && (version != VERSION_ANVIL)) {
+        if ((version != VERSION_UNKNOWN) && (version != VERSION_MCREGION) && (version != VERSION_ANVIL)) {
+            // TODO refactor support for non-vanilla level.dat files (VERSION_UNKNOWN) out of here
             throw new IllegalArgumentException("Not a supported version: 0x" + Integer.toHexString(version));
         }
         if (mapHeight != ((version == VERSION_MCREGION) ? DEFAULT_MAX_HEIGHT_MCREGION : DEFAULT_MAX_HEIGHT_ANVIL)) {
@@ -412,33 +414,40 @@ public final class Level extends AbstractNBTItem {
         try (NBTInputStream in = new NBTInputStream(new GZIPInputStream(new FileInputStream(levelDatFile)))) {
             tag = in.readTag();
         }
-        
-        int version = ((IntTag) ((CompoundTag) ((CompoundTag) tag).getTag(TAG_DATA)).getTag(TAG_VERSION_)).getValue();
-        int maxHeight = (version == VERSION_MCREGION) ? DEFAULT_MAX_HEIGHT_MCREGION : DEFAULT_MAX_HEIGHT_ANVIL;
-        // TODO get rid of this hardcoded stuff and move it into the platform provider plugin API
-        if (version == VERSION_MCREGION) {
-            if (((CompoundTag) ((CompoundTag) tag).getTag(TAG_DATA)).getTag(TAG_MAP_HEIGHT) != null) {
-                maxHeight = ((IntTag) ((CompoundTag) ((CompoundTag) tag).getTag(TAG_DATA)).getTag(TAG_MAP_HEIGHT)).getValue();
-            } else {
-                File maxheightFile = new File(levelDatFile.getParentFile(), "maxheight.txt");
-                if (! maxheightFile.isFile()) {
-                    maxheightFile = new File(levelDatFile.getParentFile(), "Height.txt");
-                }
-                if (maxheightFile.isFile()) {
-                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(maxheightFile), "US-ASCII"))) {
-                        String line;
-                        while ((line = reader.readLine()) != null) {
-                            if (line.startsWith("height=")) {
-                                int exp = Integer.parseInt(line.substring(7));
-                                maxHeight = 1 << exp;
-                                break;
+
+        CompoundTag data = (CompoundTag) ((CompoundTag) tag).getTag(TAG_DATA);
+        int maxHeight;
+        if (data.containsTag(TAG_VERSION_)) {
+            int version = ((IntTag) data.getTag(TAG_VERSION_)).getValue();
+            maxHeight = (version == VERSION_MCREGION) ? DEFAULT_MAX_HEIGHT_MCREGION : DEFAULT_MAX_HEIGHT_ANVIL;
+            // TODO get rid of this hardcoded stuff and move it into the platform provider plugin API
+            if (version == VERSION_MCREGION) {
+                if (data.getTag(TAG_MAP_HEIGHT) != null) {
+                    maxHeight = ((IntTag) data.getTag(TAG_MAP_HEIGHT)).getValue();
+                } else {
+                    File maxheightFile = new File(levelDatFile.getParentFile(), "maxheight.txt");
+                    if (! maxheightFile.isFile()) {
+                        maxheightFile = new File(levelDatFile.getParentFile(), "Height.txt");
+                    }
+                    if (maxheightFile.isFile()) {
+                        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(maxheightFile), US_ASCII))) {
+                            String line;
+                            while ((line = reader.readLine()) != null) {
+                                if (line.startsWith("height=")) {
+                                    int exp = Integer.parseInt(line.substring(7));
+                                    maxHeight = 1 << exp;
+                                    break;
+                                }
                             }
                         }
                     }
                 }
             }
-        } else if (new File(levelDatFile.getParentFile(), "region3d").isDirectory()) {
+        } else if (new File(levelDatFile.getParentFile(), "region3d").isDirectory()) { // TODO hardcoded support for CC plugin; make this dynamic
             maxHeight = MAX_HEIGHT;
+        } else {
+            // TODO refactor map importing
+            throw new UnsupportedOperationException("Don't know how to determine height of this map");
         }
         
         return new Level((CompoundTag) tag, maxHeight);

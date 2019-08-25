@@ -31,9 +31,9 @@ import java.util.*;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toSet;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
-import static org.pepsoft.minecraft.Constants.VERSION_ANVIL;
-import static org.pepsoft.minecraft.Constants.VERSION_MCREGION;
+import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.Platform.Capability.BLOCK_BASED;
 
 /**
  *
@@ -99,10 +99,9 @@ public class MapImportDialog extends WorldPainterDialog {
         final File worldDir = levelDatFile.getParentFile();
 
         // Check if it's a valid level.dat file before we commit
-        int version;
+        Level levelDat;
         try {
-            Level testLevel = Level.load(levelDatFile);
-            version = testLevel.getVersion();
+            levelDat = Level.load(levelDatFile);
         } catch (IOException e) {
             logger.error("IOException while analysing map " + levelDatFile, e);
             JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("selected.file.is.not.a.valid.level.dat.file"), strings.getString("invalid.file"), ERROR_MESSAGE);
@@ -118,19 +117,29 @@ public class MapImportDialog extends WorldPainterDialog {
         }
 
         // Other sanity checks
-        if ((version != VERSION_MCREGION) && (version != VERSION_ANVIL)) {
+        int version = levelDat.getVersion();
+        if (version == VERSION_UNKNOWN) {
+            logger.error("Modded maps are not (yet) supported while analysing map " + levelDatFile);
+            JOptionPane.showMessageDialog(MapImportDialog.this, "Modded maps are not (yet) supported for Importing", "Modded Map", ERROR_MESSAGE);
+            return;
+        } else if ((version != VERSION_MCREGION) && (version != VERSION_ANVIL)) {
             logger.error("Unsupported Minecraft version while analysing map " + levelDatFile);
             JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("unsupported.minecraft.version"), strings.getString("unsupported.version"), ERROR_MESSAGE);
             return;
         }
 
         // Determine the platform
-        Platform platform = PlatformManager.getInstance().identifyMap(worldDir);
+        PlatformManager platformManager = PlatformManager.getInstance();
+        Platform platform = platformManager.identifyMap(worldDir);
         // TODO handle non-block based platform provider matching more gracefully
-        BlockBasedPlatformProvider platformProvider = (BlockBasedPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
+        BlockBasedPlatformProvider platformProvider = (BlockBasedPlatformProvider) platformManager.getPlatformProvider(platform);
         if (platform == null) {
             logger.error("Could not determine platform for " + levelDatFile);
             JOptionPane.showMessageDialog(MapImportDialog.this, "Could not determine map format for " + levelDatFile, "Unidentified Map Format", ERROR_MESSAGE);
+            return;
+        } else if (! platform.capabilities.contains(BLOCK_BASED)) {
+            logger.error("Non block based platform " + platform + " not supported for " + levelDatFile);
+            JOptionPane.showMessageDialog(MapImportDialog.this, "Non block based map format " + platform + " not (yet) supported", "Unsupported Map Format", ERROR_MESSAGE);
             return;
         }
 
@@ -242,6 +251,7 @@ public class MapImportDialog extends WorldPainterDialog {
         });
         if ((mapInfo != null) && (mapInfo.chunkCount > 0)) {
             mapInfo.platform = platform;
+            mapInfo.levelDat = levelDat;
             labelPlatform.setText(platform.displayName);
             int width = mapInfo.highestChunkXNoOutliers - mapInfo.lowestChunkXNoOutliers + 1;
             int length = mapInfo.highestChunkZNoOutliers - mapInfo.lowestChunkZNoOutliers + 1;
@@ -341,12 +351,16 @@ public class MapImportDialog extends WorldPainterDialog {
             @Override
             public World2 execute(ProgressReceiver progressReceiver) throws OperationCancelled {
                 try {
-                    Level level = Level.load(levelDatFile);
-                    int maxHeight = level.getMaxHeight();
-                    int waterLevel;
-                    if (level.getVersion() == VERSION_MCREGION) {
-                        waterLevel = maxHeight / 2 - 2;
+                    int maxHeight, waterLevel;
+                    if (mapInfo.levelDat != null) {
+                        maxHeight = mapInfo.levelDat.getMaxHeight();
+                        if (mapInfo.levelDat.getVersion() == VERSION_MCREGION) {
+                            waterLevel = maxHeight / 2 - 2;
+                        } else {
+                            waterLevel = 62;
+                        }
                     } else {
+                        maxHeight = mapInfo.platform.maxMaxHeight;
                         waterLevel = 62;
                     }
                     int terrainLevel = waterLevel - 4;
@@ -711,6 +725,7 @@ public class MapImportDialog extends WorldPainterDialog {
     
     static class MapInfo {
         Platform platform;
+        Level levelDat;
         int lowestChunkX = Integer.MAX_VALUE, lowestChunkZ = Integer.MAX_VALUE, highestChunkX = Integer.MIN_VALUE, highestChunkZ = Integer.MIN_VALUE;
         int lowestChunkXNoOutliers = Integer.MAX_VALUE, lowestChunkZNoOutliers = Integer.MAX_VALUE, highestChunkXNoOutliers = Integer.MIN_VALUE, highestChunkZNoOutliers = Integer.MIN_VALUE;
         int chunkCount;

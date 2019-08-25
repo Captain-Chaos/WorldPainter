@@ -435,12 +435,11 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         }
     }
 
-    public <T> T getAttribute(AttributeKey<T> key) {
-        if (attributes != null) {
-            return attributes.containsKey(key.key) ? (T) attributes.get(key.key) : key.defaultValue;
-        } else {
-            return key.defaultValue;
-        }
+    public <T> Optional<T> getAttribute(AttributeKey<T> key) {
+        return Optional.ofNullable(
+                (attributes != null)
+                        ? (attributes.containsKey(key.key) ? (T) attributes.get(key.key) : key.defaultValue)
+                        : key.defaultValue);
     }
 
     public <T> void setAttribute(AttributeKey<T> key, T value) {
