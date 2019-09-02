@@ -1,3 +1,9 @@
+-- Version 2.7.1, released ...
+
+ * Since it unfortunately transpires that Minecraft 1.14 no longer supports populating the map after generation, the Populate and Structures options will be disabled for the Minecraft 1.14 format
+ * The "Caves everywhere" option now works
+ * The Frost layer once again places snow on Deep Snow blocks
+
 -- Version 2.7.0, released 18-8-2019
 
  * Implement support for Minecraft 1.14 (1.14.4 to be precise) and remove support for 1.13

@@ -54,8 +54,8 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
                             minecraftWorld.setMaterialAt(x, y, height, ICE);
                             break;
                         } else if (material.name.endsWith("_leaves")
-                                || (material.solid
-                                && material.opaque)) {
+                                || (material.solid && material.opaque)
+                                || (material == SNOW_BLOCK)) {
                             if ((material.name.endsWith("_leaves"))
                                     || (material.name.endsWith("_log"))
                                     || (material.name.endsWith("_bark"))) {

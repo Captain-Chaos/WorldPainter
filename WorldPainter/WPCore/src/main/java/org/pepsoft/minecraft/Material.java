@@ -802,9 +802,8 @@ public final class Material implements Serializable {
      * @return {@code true} if the specified material <em>does not</em>
      * have the same name as this one.
      */
-    @SuppressWarnings("StringEquality") // name is interned so there are many circumstances in which the comparison might work and be faster than equals()
     public boolean isNotNamedSameAs(Material material) {
-        return (material.name != this.name) && (! material.name.equals(this.name));
+        return ! material.name.equals(this.name);
     }
 
     private HorizontalOrientationScheme[] determineHorizontalOrientations(Identity identity) {

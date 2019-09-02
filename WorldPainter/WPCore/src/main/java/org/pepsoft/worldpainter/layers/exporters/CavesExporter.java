@@ -37,41 +37,42 @@ public class CavesExporter extends AbstractLayerExporter<Caves> implements Secon
 
     @Override
     public List<Fixup> render(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
-        CavesSettings settings = (CavesSettings) getSettings();
-        int minZ = Math.max(settings.getMinimumLevel(), dimension.isBottomless() ? 0 : 1),
-                maxZForWorld = Math.min(settings.getMaximumLevel(), minecraftWorld.getMaxHeight() - 1);
-        boolean surfaceBreaking = settings.isSurfaceBreaking();
-        Random random = new Random();
-        CaveSettings caveSettings = new CaveSettings();
+        final CavesSettings settings = (CavesSettings) getSettings();
+        final int minZ = Math.max(settings.getMinimumLevel(), dimension.isBottomless() ? 0 : 1),
+                maxZForWorld = Math.min(settings.getMaximumLevel(), minecraftWorld.getMaxHeight() - 1),
+                minimumLevel = settings.getCavesEverywhereLevel();
+        final boolean surfaceBreaking = settings.isSurfaceBreaking();
+        final Random random = new Random();
+        final CaveSettings caveSettings = new CaveSettings();
         caveSettings.minZ = minZ;
         // Grow the area we will check for spawning caves, such that parts of
         // caves which start outside the exported area are still rendered inside
         // the exported area
-        Rectangle spawnArea = (Rectangle) exportedArea.clone();
+        final Rectangle spawnArea = (Rectangle) exportedArea.clone();
         spawnArea.grow(MAX_CAVE_LENGTH, MAX_CAVE_LENGTH);
         // Go tile by tile, so we can quickly check whether the tile even
         // exists and contains the layer and if not skip it entirely
-        int tileX1 = spawnArea.x >> TILE_SIZE_BITS, tileX2 = (spawnArea.x + spawnArea.width - 1) >> TILE_SIZE_BITS;
-        int tileY1 = spawnArea.y >> TILE_SIZE_BITS, tileY2 = (spawnArea.y + spawnArea.height - 1) >> TILE_SIZE_BITS;
+        final int tileX1 = spawnArea.x >> TILE_SIZE_BITS, tileX2 = (spawnArea.x + spawnArea.width - 1) >> TILE_SIZE_BITS;
+        final int tileY1 = spawnArea.y >> TILE_SIZE_BITS, tileY2 = (spawnArea.y + spawnArea.height - 1) >> TILE_SIZE_BITS;
         for (int tileX = tileX1; tileX <= tileX2; tileX++) {
             for (int tileY = tileY1; tileY <= tileY2; tileY++) {
-                Tile tile = dimension.getTile(tileX, tileY);
-                if ((tile == null) || (! tile.hasLayer(Caves.INSTANCE))) {
+                final Tile tile = dimension.getTile(tileX, tileY);
+                if ((tile == null) || ((minimumLevel == 0) && (! tile.hasLayer(Caves.INSTANCE)))) {
                     continue;
                 }
                 for (int xInTile = 0; xInTile < TILE_SIZE; xInTile++) {
                     for (int yInTile = 0; yInTile < TILE_SIZE; yInTile++) {
-                        int x = (tileX << TILE_SIZE_BITS) | xInTile, y = (tileY << TILE_SIZE_BITS) | yInTile;
-                        int value = tile.getLayerValue(Caves.INSTANCE, xInTile, yInTile);
-                        if (value > 0) {
-                            int height = tile.getIntHeight(xInTile, yInTile);
-                            int maxZ = Math.min(maxZForWorld, height - (surfaceBreaking ? 0 : dimension.getTopLayerDepth(x, y, height)));
+                        final int x = (tileX << TILE_SIZE_BITS) | xInTile, y = (tileY << TILE_SIZE_BITS) | yInTile;
+                        final int cavesValue = Math.max(minimumLevel, tile.getLayerValue(Caves.INSTANCE, xInTile, yInTile));
+                        if (cavesValue > 0) {
+                            final int height = tile.getIntHeight(xInTile, yInTile);
+                            final int maxZ = Math.min(maxZForWorld, height - (surfaceBreaking ? 0 : dimension.getTopLayerDepth(x, y, height)));
                             random.setSeed(dimension.getSeed() + x * 65537 + y);
                             for (int z = minZ; z <= maxZ; z++) {
-                                if (value > random.nextInt(CAVE_CHANCE)) {
+                                if (cavesValue > random.nextInt(CAVE_CHANCE)) {
                                     caveSettings.start = new Point3i(x, y, z);
                                     caveSettings.length = MathUtils.clamp(0, (int) ((random.nextGaussian() + 2.0) * (MAX_CAVE_LENGTH / 3.0) + 0.5), MAX_CAVE_LENGTH);
-                                    createTunnel(minecraftWorld, dimension, new Random(random.nextLong()), caveSettings, surfaceBreaking);
+                                    createTunnel(minecraftWorld, dimension, new Random(random.nextLong()), caveSettings, surfaceBreaking, minimumLevel);
                                 }
                             }
                         }
@@ -82,26 +83,27 @@ public class CavesExporter extends AbstractLayerExporter<Caves> implements Secon
         return null;
     }
 
-    private void createTunnel(MinecraftWorld world, Dimension dimension, Random random, CaveSettings tunnelSettings, boolean surfaceBreaking) {
+    private void createTunnel(MinecraftWorld world, Dimension dimension, Random random, CaveSettings tunnelSettings, boolean surfaceBreaking, int minimumLevel) {
         Point3d location = new Point3d(tunnelSettings.start.x, tunnelSettings.start.y, tunnelSettings.start.z);
         Vector3d direction = getRandomDirection(random);
-        double length = 0.0, minRadius = tunnelSettings.minRadius, maxRadius = tunnelSettings.maxRadius,
-                radius = (maxRadius + minRadius) / 2.0, radiusDelta = 0.0, radiusChangeSpeed = tunnelSettings.radiusChangeSpeed;
-        int maxLength = tunnelSettings.length, twistiness = tunnelSettings.twistiness;
+        final double minRadius = tunnelSettings.minRadius, maxRadius = tunnelSettings.maxRadius,
+                radiusChangeSpeed = tunnelSettings.radiusChangeSpeed;
+        double length = 0.0, radius = (maxRadius + minRadius) / 2.0, radiusDelta = 0.0;
+        final int maxLength = tunnelSettings.length, twistiness = tunnelSettings.twistiness;
         if (logger.isTraceEnabled()) {
             logger.trace("Creating tunnel @ {},{},{} of length {}; radius: {} - {} (variability: {}); twistiness: {}",
                     tunnelSettings.start.x, tunnelSettings.start.y, tunnelSettings.start.z, maxLength, tunnelSettings.minRadius, tunnelSettings.maxRadius,
                     radiusChangeSpeed, twistiness);
         }
         while (length < maxLength) {
-            if (dimension.getLayerValueAt(Caves.INSTANCE, (int) location.x, (int) location.y) < 1) {
+            if ((minimumLevel == 0) && (dimension.getLayerValueAt(Caves.INSTANCE, (int) location.x, (int) location.y) < 1)) {
                 // Don't stray into areas where the layer isn't present at all
                 return;
             }
             excavate(world, dimension, random, tunnelSettings, location, radius, surfaceBreaking);
             length += direction.length();
             location.add(direction);
-            Vector3d dirChange = getRandomDirection(random);
+            final Vector3d dirChange = getRandomDirection(random);
             dirChange.scale(random.nextDouble() / (5 - twistiness));
             direction.add(dirChange);
             direction.normalize();
