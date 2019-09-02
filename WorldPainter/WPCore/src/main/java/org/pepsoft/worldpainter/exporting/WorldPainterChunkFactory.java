@@ -24,6 +24,7 @@ import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Platform.Capability.BIOMES;
+import static org.pepsoft.worldpainter.Platform.Capability.POPULATE;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.*;
 
 /**
@@ -82,7 +83,8 @@ public class WorldPainterChunkFactory implements ChunkFactory {
         final int xOffsetInTile = (chunkX & 7) << 4;
         final int yOffsetInTile = (chunkZ & 7) << 4;
         final Random random = new Random(seed + xOffsetInTile * 3 + yOffsetInTile * 5);
-        final boolean populate = dimension.isPopulate() || tile.getBitLayerValue(Populate.INSTANCE, xOffsetInTile, yOffsetInTile);
+        final boolean populate = platform.capabilities.contains(POPULATE)
+                && (dimension.isPopulate() || tile.getBitLayerValue(Populate.INSTANCE, xOffsetInTile, yOffsetInTile));
         final ChunkCreationResult result = new ChunkCreationResult();
         result.chunk = platformProvider.createChunk(platform, chunkX, chunkZ, maxHeight);
         final int maxY = maxHeight - 1;

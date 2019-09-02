@@ -28,6 +28,7 @@ import javax.swing.event.ListSelectionEvent;
 import java.util.*;
 
 import static org.pepsoft.minecraft.Material.*;
+import static org.pepsoft.worldpainter.Platform.Capability.POPULATE;
 
 /**
  *
@@ -155,7 +156,26 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     public void setDimension(Dimension dimension) {
         this.dimension = dimension;
         if (dimension != null) {
+            setPlatform(dimension.getWorld().getPlatform());
             loadSettings();
+        }
+    }
+
+    public Platform getPlatform() {
+        return platform;
+    }
+
+    public void setPlatform(Platform platform) {
+        if (platform != this.platform) {
+            this.platform = platform;
+            if ((platform == null) || platform.capabilities.contains(POPULATE)) {
+                checkBoxPopulate.setSelected(dimension.isPopulate());
+                checkBoxPopulate.setToolTipText(null);
+            } else {
+                checkBoxPopulate.setSelected(false);
+                checkBoxPopulate.setToolTipText("Automatic population not support by format " + platform);
+            }
+            setControlStates();
         }
     }
 
@@ -860,7 +880,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         jSlider6.setEnabled(enabled && checkBoxSwamplandEverywhere.isSelected());
         jSlider4.setEnabled(enabled && jCheckBox8.isSelected());
         spinnerMinecraftSeed.setEnabled((mode != Mode.DEFAULT_SETTINGS) && enabled && dim0);
-        checkBoxPopulate.setEnabled(enabled && dim0);
+        checkBoxPopulate.setEnabled(((platform == null) || platform.capabilities.contains(POPULATE)) && enabled && dim0);
         checkBoxCavernsRemoveWater.setEnabled(enabled && (checkBoxCavesBreakSurface.isSelected() || checkBoxCavernsBreakSurface.isSelected() || checkBoxChasmsBreakSurface.isSelected()));
         spinnerCeilingHeight.setEnabled(enabled && ceiling);
         int selectedRow = tableCustomLayers.getSelectedRow();
@@ -1168,7 +1188,6 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
         jLabel6.setText("Underground material:");
 
-        comboBoxSubsurfaceMaterial.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
         comboBoxSubsurfaceMaterial.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 comboBoxSubsurfaceMaterialActionPerformed(evt);
@@ -3128,6 +3147,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     // End of variables declaration//GEN-END:variables
 
     private Dimension dimension;
+    private Platform platform;
     private CustomLayersTableModel customLayersTableModel;
     private Mode mode;
     private List<BorderListener> borderListeners = new ArrayList<>();

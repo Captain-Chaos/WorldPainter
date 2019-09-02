@@ -40,6 +40,7 @@ import static org.pepsoft.worldpainter.GameType.*;
 import static org.pepsoft.worldpainter.Generator.CUSTOM;
 import static org.pepsoft.worldpainter.Generator.DEFAULT;
 import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
+import static org.pepsoft.worldpainter.Platform.Capability.POPULATE;
 import static org.pepsoft.worldpainter.util.MaterialUtils.gatherBlocksWithoutIds;
 
 /**
@@ -96,10 +97,12 @@ public class ExportWorldDialog extends WorldPainterDialog {
         surfacePropertiesEditor.setMode(DimensionPropertiesEditor.Mode.EXPORT);
         surfacePropertiesEditor.setDimension(dim0);
         surfacePropertiesEditor.addBorderListener(this::borderChanged);
+        dimensionPropertiesEditors.put(DIM_NORMAL, surfacePropertiesEditor);
         if (world.getDimension(DIM_NETHER) != null) {
             netherPropertiesEditor.setColourScheme(colourScheme);
             netherPropertiesEditor.setMode(DimensionPropertiesEditor.Mode.EXPORT);
             netherPropertiesEditor.setDimension(world.getDimension(DIM_NETHER));
+            dimensionPropertiesEditors.put(DIM_NETHER, netherPropertiesEditor);
         } else {
             jTabbedPane1.setEnabledAt(2, false);
         }
@@ -107,6 +110,7 @@ public class ExportWorldDialog extends WorldPainterDialog {
             endPropertiesEditor.setColourScheme(colourScheme);
             endPropertiesEditor.setMode(DimensionPropertiesEditor.Mode.EXPORT);
             endPropertiesEditor.setDimension(world.getDimension(DIM_END));
+            dimensionPropertiesEditors.put(DIM_END, endPropertiesEditor);
         } else {
             jTabbedPane1.setEnabledAt(4, false);
         }
@@ -114,6 +118,7 @@ public class ExportWorldDialog extends WorldPainterDialog {
             surfaceCeilingPropertiesEditor.setColourScheme(colourScheme);
             surfaceCeilingPropertiesEditor.setMode(DimensionPropertiesEditor.Mode.EXPORT);
             surfaceCeilingPropertiesEditor.setDimension(world.getDimension(DIM_NORMAL_CEILING));
+            dimensionPropertiesEditors.put(DIM_NORMAL_CEILING, surfaceCeilingPropertiesEditor);
         } else {
             jTabbedPane1.setEnabledAt(1, false);
         }
@@ -121,6 +126,7 @@ public class ExportWorldDialog extends WorldPainterDialog {
             netherCeilingPropertiesEditor.setColourScheme(colourScheme);
             netherCeilingPropertiesEditor.setMode(DimensionPropertiesEditor.Mode.EXPORT);
             netherCeilingPropertiesEditor.setDimension(world.getDimension(DIM_NETHER_CEILING));
+            dimensionPropertiesEditors.put(DIM_NETHER_CEILING, netherCeilingPropertiesEditor);
         } else {
             jTabbedPane1.setEnabledAt(3, false);
         }
@@ -128,6 +134,7 @@ public class ExportWorldDialog extends WorldPainterDialog {
             endCeilingPropertiesEditor.setColourScheme(colourScheme);
             endCeilingPropertiesEditor.setMode(DimensionPropertiesEditor.Mode.EXPORT);
             endCeilingPropertiesEditor.setDimension(world.getDimension(DIM_END_CEILING));
+            dimensionPropertiesEditors.put(DIM_END_CEILING, endCeilingPropertiesEditor);
         } else {
             jTabbedPane1.setEnabledAt(5, false);
         }
@@ -321,7 +328,13 @@ dims:   for (Dimension dim: world.getDimensions()) {
             showWarning = true;
         }
         Generator generator = Generator.values()[comboBoxGenerator.getSelectedIndex()];
-        if ((! radioButtonExportSelection.isSelected()) || (selectedDimension == DIM_NORMAL)) {
+        if ((surfacePropertiesEditor.isPopulateSelected()
+                || world.getDimension(DIM_NORMAL).getAllLayers(true).contains(Populate.INSTANCE)
+                || checkBoxMapFeatures.isSelected())
+                && (!platform.capabilities.contains(POPULATE))) {
+            sb.append("<li>Population and structure generation not supported for<br>map format " + platform.displayName + "; they will be disabled");
+            showWarning = true;
+        } else if ((! radioButtonExportSelection.isSelected()) || (selectedDimension == DIM_NORMAL)) {
             // The surface dimension is going to be exported
             if ((generator == Generator.FLAT) && (surfacePropertiesEditor.isPopulateSelected() || world.getDimension(DIM_NORMAL).getAllLayers(true).contains(Populate.INSTANCE))) {
                 sb.append("<li>The Superflat world type is selected and Populate is in use.<br>Minecraft will <em>not</em> populate any chunks for Superflat maps.");
@@ -428,7 +441,7 @@ dims:   for (Dimension dim: world.getDimensions()) {
         world.setAllowCheats(checkBoxAllowCheats.isSelected());
         if (! endlessBorder) {
             world.setGenerator(generator);
-            world.setMapFeatures(checkBoxMapFeatures.isSelected());
+            world.setMapFeatures(platform.capabilities.contains(POPULATE) && checkBoxMapFeatures.isSelected());
             if ((generatorOptions != null) && (! generatorOptions.trim().isEmpty())) {
                 world.setGeneratorOptions(generatorOptions.trim());
             } else {
@@ -480,6 +493,8 @@ dims:   for (Dimension dim: world.getDimensions()) {
     }
 
     private void setControlStates() {
+        boolean notHardcore = comboBoxGameType.getSelectedItem() != HARDCORE;
+        Platform platform = (Platform) comboBoxMinecraftVersion.getSelectedItem();
         if (radioButtonExportSelection.isSelected()) {
             labelSelectTiles.setForeground(Color.BLUE);
             labelSelectTiles.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -487,10 +502,10 @@ dims:   for (Dimension dim: world.getDimensions()) {
             labelSelectTiles.setForeground(null);
             labelSelectTiles.setCursor(null);
         }
-        boolean notHardcore = comboBoxGameType.getSelectedItem() != HARDCORE;
         checkBoxAllowCheats.setEnabled((comboBoxMinecraftVersion.getSelectedItem() != JAVA_MCREGION) && notHardcore);
         buttonGeneratorOptions.setEnabled((! endlessBorder) && ((comboBoxGenerator.getSelectedItem() == Generator.FLAT) || (comboBoxGenerator.getSelectedItem() == CUSTOM)));
         comboBoxDifficulty.setEnabled(notHardcore);
+        checkBoxMapFeatures.setEnabled(platform.capabilities.contains(POPULATE));
     }
 
     private void selectDir() {
@@ -856,6 +871,8 @@ dims:   for (Dimension dim: world.getDimensions()) {
                 checkBoxGoodies.setSelected(world.isCreateGoodiesChest());
             }
 
+            dimensionPropertiesEditors.forEach((dim, editor) -> editor.setPlatform(newPlatform));
+
             // Otherwise the JComboBox malfunctions:
             SwingUtilities.invokeLater(() -> buttonExport.setEnabled(checkCompatibility(newPlatform)));
             pack();
@@ -948,6 +965,7 @@ dims:   for (Dimension dim: world.getDimensions()) {
     private final TileRenderer.LightOrigin lightOrigin;
     private final CustomBiomeManager customBiomeManager;
     private final WorldPainter view;
+    private final Map<Integer, DimensionPropertiesEditor> dimensionPropertiesEditors = new HashMap<>();
     private int selectedDimension, savedGenerator;
     private Set<Point> selectedTiles;
     private boolean disableTileSelectionWarning, disableDisabledLayersWarning, endlessBorder, savedMapFeatures;

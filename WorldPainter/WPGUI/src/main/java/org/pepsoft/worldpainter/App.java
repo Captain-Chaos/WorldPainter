@@ -101,12 +101,12 @@ import static java.awt.event.KeyEvent.*;
 import static java.util.Collections.emptyList;
 import static javax.swing.JOptionPane.*;
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.util.AwtUtils.doOnEventThread;
 import static org.pepsoft.util.GUIUtils.UI_SCALE;
 import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
 import static org.pepsoft.util.swing.ProgressDialog.NO_FOCUS_STEALING;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.Platform.Capability.BIOMES;
-import static org.pepsoft.worldpainter.Platform.Capability.SET_SPAWN_POINT;
+import static org.pepsoft.worldpainter.Platform.Capability.*;
 import static org.pepsoft.worldpainter.Terrain.*;
 import static org.pepsoft.worldpainter.TileRenderer.FLUIDS_AS_LAYER;
 import static org.pepsoft.worldpainter.TileRenderer.TERRAIN_AS_LAYER;
@@ -404,6 +404,17 @@ public final class App extends JFrame implements RadiusControl,
                 ACTION_EXPORT_WORLD.setEnabled(true);
                 ACTION_MERGE_WORLD.setEnabled(true);
             }
+
+            loadPlatformSettings();
+        }
+    }
+
+    private void loadPlatformSettings() {
+        Platform platform = world.getPlatform();
+        if (! platform.capabilities.contains(POPULATE)) {
+            layerControls.get(Populate.INSTANCE).disable("Automatic population not support by format " + platform);
+        } else {
+            layerControls.get(Populate.INSTANCE).setEnabled(true);
         }
     }
 
@@ -1181,12 +1192,12 @@ public final class App extends JFrame implements RadiusControl,
             lastChangeTimestamp = System.currentTimeMillis();
             if (evt.getPropertyName().equals("maxHeight")) {
                 boolean enableHighResHeightMapMenuItem = (Integer) evt.getNewValue() <= 256;
-                AwtUtils.doOnEventThread(() -> exportHighResHeightMapMenuItem.setEnabled(enableHighResHeightMapMenuItem));
+                doOnEventThread(() -> exportHighResHeightMapMenuItem.setEnabled(enableHighResHeightMapMenuItem));
             }
         } else if (evt.getSource() == world) {
             lastChangeTimestamp = System.currentTimeMillis();
             if (evt.getPropertyName().equals("platform")) {
-                AwtUtils.doOnEventThread(() -> configureForPlatform((Platform) evt.getNewValue()));
+                doOnEventThread(() -> configureForPlatform((Platform) evt.getNewValue()));
             }
         }
     }
@@ -1431,7 +1442,7 @@ public final class App extends JFrame implements RadiusControl,
     public Set<Layer> getAllLayers() {
         Set<Layer> allLayers = new HashSet<>(layers);
         allLayers.add(Populate.INSTANCE);
-        if (readOnlyToggleButton.isEnabled()) {
+        if (layerControls.get(ReadOnly.INSTANCE).isEnabled()) {
             allLayers.add(ReadOnly.INSTANCE);
         }
         allLayers.addAll(getCustomLayers());
@@ -2955,11 +2966,11 @@ public final class App extends JFrame implements RadiusControl,
         Configuration config = Configuration.getInstance();
         constraints.anchor = GridBagConstraints.FIRST_LINE_START;
         constraints.weightx = 0.0;
-        biomesCheckBox = new JCheckBox("Show:");
-        biomesCheckBox.setHorizontalTextPosition(SwingConstants.LEADING);
-        biomesCheckBox.setToolTipText("Uncheck to hide biomes from view (it will still be exported)");
-        biomesCheckBox.addActionListener(e -> {
-            if (biomesCheckBox.isSelected()) {
+        JCheckBox checkBox = new JCheckBox("Show:");
+        checkBox.setHorizontalTextPosition(SwingConstants.LEADING);
+        checkBox.setToolTipText("Uncheck to hide biomes from view (it will still be exported)");
+        checkBox.addActionListener(e -> {
+            if (checkBox.isSelected()) {
                 hiddenLayers.remove(Biome.INSTANCE);
             } else {
                 hiddenLayers.add(Biome.INSTANCE);
@@ -2969,17 +2980,17 @@ public final class App extends JFrame implements RadiusControl,
         if (! config.isEasyMode()) {
             constraints.gridwidth = 1;
             constraints.weightx = 0.0;
-            biomesPanel.add(biomesCheckBox, constraints);
+            biomesPanel.add(checkBox, constraints);
         }
-        
-        biomesSoloCheckBox = new JCheckBox("Solo:");
-        biomesSoloCheckBox.setHorizontalTextPosition(SwingConstants.LEADING);
-        biomesSoloCheckBox.setToolTipText("<html>Check to show <em>only</em> the biomes (the other layers are still exported)</html>");
-        biomesSoloCheckBox.addActionListener(new SoloCheckboxHandler(biomesSoloCheckBox, Biome.INSTANCE));
-        layerSoloCheckBoxes.put(Biome.INSTANCE, biomesSoloCheckBox);
+
+        JCheckBox soloCheckBox = new JCheckBox("Solo:");
+        soloCheckBox.setHorizontalTextPosition(SwingConstants.LEADING);
+        soloCheckBox.setToolTipText("<html>Check to show <em>only</em> the biomes (the other layers are still exported)</html>");
+        soloCheckBox.addActionListener(new SoloCheckboxHandler(soloCheckBox, Biome.INSTANCE));
+        layerSoloCheckBoxes.put(Biome.INSTANCE, soloCheckBox);
         if (! config.isEasyMode()) {
             constraints.gridwidth = GridBagConstraints.REMAINDER;
-            biomesPanel.add(biomesSoloCheckBox, constraints);
+            biomesPanel.add(soloCheckBox, constraints);
         }
 
         biomesPanel.add(new BiomesPanel(defaultColourScheme, customBiomeManager, biomeId -> {
@@ -2989,6 +3000,8 @@ public final class App extends JFrame implements RadiusControl,
             };
             paintUpdater.updatePaint();
         }, paintButtonGroup), constraints);
+
+        layerControls.put(Biome.INSTANCE, new LayerControls(Biome.INSTANCE, checkBox, soloCheckBox, null));
 
         return biomesPanel;
     }
@@ -3002,12 +3015,12 @@ public final class App extends JFrame implements RadiusControl,
         Configuration config = Configuration.getInstance();
         constraints.anchor = GridBagConstraints.FIRST_LINE_START;
         constraints.weightx = 0.0;
-        annotationsCheckBox = new JCheckBox("Show:");
-        annotationsCheckBox.setHorizontalTextPosition(SwingConstants.LEADING);
-        annotationsCheckBox.setSelected(true);
-        annotationsCheckBox.setToolTipText("Uncheck to hide annotations from view");
-        annotationsCheckBox.addActionListener(e -> {
-            if (annotationsCheckBox.isSelected()) {
+        JCheckBox checkBox = new JCheckBox("Show:");
+        checkBox.setHorizontalTextPosition(SwingConstants.LEADING);
+        checkBox.setSelected(true);
+        checkBox.setToolTipText("Uncheck to hide annotations from view");
+        checkBox.addActionListener(e -> {
+            if (checkBox.isSelected()) {
                 hiddenLayers.remove(Annotations.INSTANCE);
             } else {
                 hiddenLayers.add(Annotations.INSTANCE);
@@ -3017,17 +3030,17 @@ public final class App extends JFrame implements RadiusControl,
         if (! config.isEasyMode()) {
             constraints.gridwidth = 1;
             constraints.weightx = 0.0;
-            layerPanel.add(annotationsCheckBox, constraints);
+            layerPanel.add(checkBox, constraints);
         }
-        
-        annotationsSoloCheckBox = new JCheckBox("Solo:");
-        annotationsSoloCheckBox.setHorizontalTextPosition(SwingConstants.LEADING);
-        annotationsSoloCheckBox.setToolTipText("<html>Check to show <em>only</em> the annotations (the other layers are still exported)</html>");
-        annotationsSoloCheckBox.addActionListener(new SoloCheckboxHandler(annotationsSoloCheckBox, Annotations.INSTANCE));
-        layerSoloCheckBoxes.put(Annotations.INSTANCE, annotationsSoloCheckBox);
+
+        JCheckBox soloCheckBox = new JCheckBox("Solo:");
+        soloCheckBox.setHorizontalTextPosition(SwingConstants.LEADING);
+        soloCheckBox.setToolTipText("<html>Check to show <em>only</em> the annotations (the other layers are still exported)</html>");
+        soloCheckBox.addActionListener(new SoloCheckboxHandler(soloCheckBox, Annotations.INSTANCE));
+        layerSoloCheckBoxes.put(Annotations.INSTANCE, soloCheckBox);
         if (! config.isEasyMode()) {
             constraints.gridwidth = GridBagConstraints.REMAINDER;
-            layerPanel.add(annotationsSoloCheckBox, constraints);
+            layerPanel.add(soloCheckBox, constraints);
         }
 
         JPanel colourGrid = new JPanel(new GridLayout(0, 4));
@@ -3050,6 +3063,8 @@ public final class App extends JFrame implements RadiusControl,
             colourGrid.add(button);
         }
         layerPanel.add(colourGrid, constraints);
+
+        layerControls.put(Annotations.INSTANCE, new LayerControls(Annotations.INSTANCE, checkBox, soloCheckBox));
 
         return layerPanel;
     }
@@ -4938,13 +4953,9 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private List<Component> createLayerButton(final Layer layer, char mnemonic, boolean createSoloCheckbox, boolean createButton) {
-        boolean readOnlyOperation = layer.equals(ReadOnly.INSTANCE);
         List<Component> components = new ArrayList<>(3);
 
         final JCheckBox checkBox = new JCheckBox();
-        if (readOnlyOperation) {
-            readOnlyCheckBox = checkBox;
-        }
         checkBox.setToolTipText(strings.getString("whether.or.not.to.display.this.layer"));
         checkBox.setSelected(true);
         checkBox.addChangeListener(e -> {
@@ -4957,24 +4968,21 @@ public final class App extends JFrame implements RadiusControl,
         });
         components.add(checkBox);
 
+        final JCheckBox soloCheckBox;
         if (createSoloCheckbox) {
-            final JCheckBox soloCheckBox = new JCheckBox();
-            if (readOnlyOperation) {
-                readOnlySoloCheckBox = soloCheckBox;
-            }
+            soloCheckBox = new JCheckBox();
             layerSoloCheckBoxes.put(layer, soloCheckBox);
             soloCheckBox.setToolTipText("<html>Check to show <em>only</em> this layer (the other layers are still exported)</html>");
             soloCheckBox.addActionListener(new SoloCheckboxHandler(soloCheckBox, layer));
             components.add(soloCheckBox);
         } else {
+            soloCheckBox = null;
             components.add(Box.createGlue());
         }
 
+        final JToggleButton button;
         if (createButton) {
-            final JToggleButton button = new JToggleButton();
-            if (readOnlyOperation) {
-                readOnlyToggleButton = button;
-            }
+            button = new JToggleButton();
             button.setMargin(new Insets(2, 2, 2, 2));
             if (layer.getIcon() != null) {
                 button.setIcon(new ImageIcon(layer.getIcon()));
@@ -4998,10 +5006,13 @@ public final class App extends JFrame implements RadiusControl,
             button.putClientProperty(HELP_KEY_KEY, "Layer/" + layer.getId());
             components.add(button);
         } else {
+            button = null;
             JLabel label = new JLabel(layer.getName(), new ImageIcon(layer.getIcon()), JLabel.LEADING);
             label.putClientProperty(HELP_KEY_KEY, "Layer/" + layer.getId());
             components.add(label);
         }
+
+        layerControls.put(layer, new LayerControls(layer, checkBox, soloCheckBox, button));
 
         return components;
     }
@@ -5170,9 +5181,7 @@ public final class App extends JFrame implements RadiusControl,
     
     private void enableImportedWorldOperation() {
         if (! alwaysEnableReadOnly) {
-            readOnlyCheckBox.setEnabled(true);
-            readOnlyToggleButton.setEnabled(true);
-            readOnlySoloCheckBox.setEnabled(true);
+            layerControls.get(ReadOnly.INSTANCE).setEnabled(true);
         }
     }
 
@@ -5181,11 +5190,10 @@ public final class App extends JFrame implements RadiusControl,
             deselectPaint();
         }
         if (! alwaysEnableReadOnly) {
-            readOnlyCheckBox.setEnabled(false);
-            readOnlyToggleButton.setEnabled(false);
-            readOnlySoloCheckBox.setEnabled(false);
-            if (readOnlySoloCheckBox.isSelected()) {
-                readOnlySoloCheckBox.setSelected(false);
+            LayerControls readOnlyControls = layerControls.get(ReadOnly.INSTANCE);
+            readOnlyControls.setEnabled(true);
+            if (readOnlyControls.isSolo()) {
+                readOnlyControls.setSolo(false);
                 soloLayer = null;
                 updateLayerVisibility();
             }
@@ -5221,8 +5229,7 @@ public final class App extends JFrame implements RadiusControl,
                     setSpawnPointToggleButton.setEnabled(platform.capabilities.contains(SET_SPAWN_POINT));
                     ACTION_MOVE_TO_SPAWN.setEnabled(platform.capabilities.contains(SET_SPAWN_POINT));
                     biomesPanel.setEnabled(platform.capabilities.contains(BIOMES));
-                    biomesCheckBox.setEnabled(platform.capabilities.contains(BIOMES));
-                    biomesSoloCheckBox.setEnabled(platform.capabilities.contains(BIOMES));
+                    layerControls.get(Biome.INSTANCE).setEnabled(platform.capabilities.contains(BIOMES));
                     break;
                 case DIM_NORMAL_CEILING:
                     if ((paint instanceof DiscreteLayerPaint) && ((DiscreteLayerPaint) paint).getLayer().equals(Biome.INSTANCE)) {
@@ -5231,8 +5238,7 @@ public final class App extends JFrame implements RadiusControl,
                     setSpawnPointToggleButton.setEnabled(platform.capabilities.contains(SET_SPAWN_POINT));
                     ACTION_MOVE_TO_SPAWN.setEnabled(platform.capabilities.contains(SET_SPAWN_POINT));
                     biomesPanel.setEnabled(false);
-                    biomesCheckBox.setEnabled(false);
-                    biomesSoloCheckBox.setEnabled(false);
+                    layerControls.get(Biome.INSTANCE).setEnabled(false);
                     break;
                 default:
                     if (activeOperation instanceof SetSpawnPoint) {
@@ -5243,8 +5249,7 @@ public final class App extends JFrame implements RadiusControl,
                     setSpawnPointToggleButton.setEnabled(false);
                     ACTION_MOVE_TO_SPAWN.setEnabled(false);
                     biomesPanel.setEnabled(false);
-                    biomesCheckBox.setEnabled(false);
-                    biomesSoloCheckBox.setEnabled(false);
+                    layerControls.get(Biome.INSTANCE).setEnabled(false);
                     break;
             }
             boolean enableHighResHeightMapMenuItem = dimension.getMaxHeight() <= 256;
@@ -6205,6 +6210,7 @@ public final class App extends JFrame implements RadiusControl,
                     if (threeDeeFrame != null) {
                         threeDeeFrame.refresh();
                     }
+                    loadPlatformSettings();
                 }
             } finally {
                 resumeAutosave();
@@ -6868,8 +6874,8 @@ public final class App extends JFrame implements RadiusControl,
     private Set<Layer> hiddenLayers = new HashSet<>();
     private int maxRadius = DEFAULT_MAX_RADIUS, brushRotation = 0, toolBrushRotation = 0, previousBrushRotation = 0;
     private GlassPane glassPane;
-    private JCheckBox readOnlyCheckBox, biomesCheckBox, annotationsCheckBox, readOnlySoloCheckBox, biomesSoloCheckBox, annotationsSoloCheckBox, terrainCheckBox, terrainSoloCheckBox;
-    private JToggleButton readOnlyToggleButton, setSpawnPointToggleButton;
+    private JCheckBox terrainCheckBox, terrainSoloCheckBox;
+    private JToggleButton setSpawnPointToggleButton;
     private JMenuItem addNetherMenuItem, removeNetherMenuItem, addEndMenuItem, removeEndMenuItem, addSurfaceCeilingMenuItem, removeSurfaceCeilingMenuItem, addNetherCeilingMenuItem, removeNetherCeilingMenuItem, addEndCeilingMenuItem, removeEndCeilingMenuItem, exportHighResHeightMapMenuItem;
     private JCheckBoxMenuItem viewSurfaceMenuItem, viewNetherMenuItem, viewEndMenuItem, extendedBlockIdsMenuItem, viewSurfaceCeilingMenuItem, viewNetherCeilingMenuItem, viewEndCeilingMenuItem;
     private final JToggleButton[] customMaterialButtons = new JToggleButton[CUSTOM_TERRAIN_COUNT];
@@ -6907,6 +6913,7 @@ public final class App extends JFrame implements RadiusControl,
     private Timer autosaveTimer;
     private int pauseAutosave;
     private long autosaveInhibitedUntil;
+    private final Map<Layer, LayerControls> layerControls = new HashMap<>();
 
     public static final Image ICON = IconUtils.loadScaledImage("org/pepsoft/worldpainter/icons/shovel-icon.png");
     
@@ -7159,6 +7166,118 @@ public final class App extends JFrame implements RadiusControl,
 
         private final JCheckBox checkBox;
         private final Layer layer;
+    }
+
+    class LayerControls {
+        LayerControls(Layer layer, JCheckBox checkBox, JCheckBox soloCheckBox) {
+            this(layer, checkBox, soloCheckBox, null);
+        }
+
+        LayerControls(Layer layer, JCheckBox checkBox, JCheckBox soloCheckBox, AbstractButton button) {
+            this.layer = layer;
+            this.checkBox = checkBox;
+            this.soloCheckBox = soloCheckBox;
+            this.button = button;
+            defaultCheckBoxToolTip = checkBox.getToolTipText();
+            defaultSoloCheckBoxToolTip = (soloCheckBox != null) ? soloCheckBox.getToolTipText() : null;
+            defaultButtonToolTip = (button != null) ? button.getToolTipText() : null;
+        }
+
+        /**
+         * Indicate whether the controls for the layer are currently enabled.
+         *
+         * @return {@code true} if the controls for the layer are currently
+         * enabled.
+         */
+        boolean isEnabled() {
+            return checkBox.isEnabled();
+        }
+
+        /**
+         * Enable or disable the controls for the layer.
+         *
+         * @param enabled Whether the controls should be enabled.
+         */
+        void setEnabled(boolean enabled) {
+            doOnEventThread(() -> {
+                if (! enabled) {
+                    if ((paint instanceof LayerPaint) && ((LayerPaint) paint).getLayer().equals(layer)) {
+                        deselectPaint();
+                    }
+                    if ((soloCheckBox != null) && (soloCheckBox.isSelected())) {
+                        soloCheckBox.setSelected(false);
+                        soloLayer = null;
+                        updateLayerVisibility();
+                    }
+                }
+                checkBox.setEnabled(enabled);
+                if (enabled) {
+                    checkBox.setToolTipText(defaultCheckBoxToolTip);
+                }
+                if (soloCheckBox != null) {
+                    soloCheckBox.setEnabled(enabled);
+                    if (enabled) {
+                        soloCheckBox.setToolTipText(defaultSoloCheckBoxToolTip);
+                    }
+                }
+                if (button != null) {
+                    button.setEnabled(enabled);
+                    if (enabled) {
+                        button.setToolTipText(defaultButtonToolTip);
+                    }
+                }
+            });
+        }
+
+        /**
+         * Disable the controls, and set a temporary tooltip text. When the
+         * controls are reenabled the previous tooltip text will automatically
+         * be restored.
+         *
+         * @param toolTipText The temporary tooltip text.
+         */
+        void disable(String toolTipText) {
+            if (isEnabled()) {
+                setEnabled(false);
+                checkBox.setToolTipText(toolTipText);
+                if (soloCheckBox != null) {
+                    soloCheckBox.setToolTipText(toolTipText);
+                }
+                if (button != null) {
+                    button.setToolTipText(toolTipText);
+                }
+            }
+        }
+
+        /**
+         * Indicate whether the "solo" checkbox for the layer is currently
+         * checked.
+         *
+         * @return {@code true} if the "solo" checkbox for the layer is
+         * currently checked.
+         */
+        boolean isSolo() {
+            return (soloCheckBox != null) && soloCheckBox.isSelected();
+        }
+
+        /**
+         * Set or reset the "solo" checkbox for the layer.
+         *
+         * @param solo {@code true} to set the "solo" checkbox for the layer.
+         */
+        void setSolo(boolean solo) {
+            if (soloCheckBox != null) {
+                soloCheckBox.setSelected(solo);
+            } else {
+                throw new IllegalArgumentException("Layer " + layer + " has no solo control");
+            }
+        }
+
+        protected final Layer layer;
+        protected final JCheckBox checkBox;
+        protected final JCheckBox soloCheckBox;
+        protected final AbstractButton button;
+        protected final String defaultCheckBoxToolTip, defaultSoloCheckBoxToolTip, defaultButtonToolTip;
     }
 
     public enum Mode {WORLDPAINTER, MINECRAFTMAPEDITOR}

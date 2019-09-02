@@ -201,6 +201,13 @@ public final class Platform implements Serializable {
          * The platform uses a numerical world seed to procedurally generate
          * deterministic maps.
          */
-        SEED
+        SEED,
+
+        /**
+         * The platform supports the "populate" flag to indicate that chunks
+         * should be populated by the game according to the biome painted in
+         * WorldPainter.
+         */
+        POPULATE
     }
 }

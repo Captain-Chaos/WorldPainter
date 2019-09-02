@@ -40,7 +40,7 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
         lightPopulated = true;
         liquidTicks = new ArrayList<>();
 
-        setTerrainPopulated(false);
+        setTerrainPopulated(true);
     }
 
     public MC114AnvilChunk(CompoundTag tag, int maxHeight) {
@@ -325,7 +325,7 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
 
     @Override
     public boolean isTerrainPopulated() {
-        return ! populatedStatuses.contains(status);
+        return true;
     }
 
     @Override
@@ -333,11 +333,24 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
         if (readOnly) {
             return;
         }
+        String[] statuses = {"empty",   // -> biomes reset; bottom part of chunks completely regenerated; spawn buried; no proper generation
+                "structure_starts",     // -> biomes reset; bottom part of chunks completely regenerated; spawn buried; no proper generation
+                "structure_references", // -> biomes reset; bottom part of chunks completely regenerated; spawn buried; no proper generation
+                "biomes",               // -> bottom part of chunks completely regenerated; no proper generation
+                "noise",                // -> no proper generation
+                "surface",              // -> no proper generation
+                "carvers",              // -> no proper generation
+                "liquid_carvers",       // -> no proper generation
+                "features",             // -> no generation
+                "light",                // -> no generation
+                "spawn",                // -> no generation
+                "heightmaps",           // -> no generation
+                "full"};                // -> no generation
         // TODO: this is a guess, is this useful?
         if (terrainPopulated) {
             status = STATUS_FULL;
         } else {
-            status = STATUS_LIQUID_CARVERS;
+            throw new UnsupportedOperationException("Terrain population not support for Minecraft 1.14");
         }
     }
 
