@@ -1,4 +1,4 @@
--- Version 2.7.1, released ...
+-- Version 2.7.1, released 3-9-2019
 
  * Since it unfortunately transpires that Minecraft 1.14 no longer supports populating the map after generation, the Populate and Structures options will be disabled for the Minecraft 1.14 format
  * The "Caves everywhere" option now works
