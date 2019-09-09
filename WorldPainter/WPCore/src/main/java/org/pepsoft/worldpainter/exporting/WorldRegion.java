@@ -10,7 +10,6 @@ import org.pepsoft.worldpainter.plugins.BlockBasedPlatformProvider;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 
 import java.io.File;
-import java.io.IOException;
 
 import static org.pepsoft.minecraft.Constants.BLK_AIR;
 
@@ -27,7 +26,7 @@ public class WorldRegion implements MinecraftWorld {
         platformProvider = (BlockBasedPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
     }
     
-    public WorldRegion(File worldDir, int dimension, int regionX, int regionZ, int maxHeight, Platform platform) throws IOException {
+    public WorldRegion(File worldDir, int dimension, int regionX, int regionZ, int maxHeight, Platform platform) {
         this.regionX = regionX;
         this.regionZ = regionZ;
         this.maxHeight = maxHeight;

@@ -21,7 +21,6 @@ final class DoubleHighPlant extends Plant {
      *                      automatically provide the correct matching upper
      *                      block for the type of plant and the platform.
      * @param category      The category of the plant.
-     * @param iconName      The name of the icon of the plant.
      */
     DoubleHighPlant(String name, Material lowerMaterial, Category category) {
         super(name, lowerMaterial, category, "block/" + lowerMaterial.simpleName + "_top.png");
