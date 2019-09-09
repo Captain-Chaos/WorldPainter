@@ -78,7 +78,7 @@ public class Java1_14PostProcessor extends PostProcessor {
         }
         for (int x = x1; x <= x2; x ++) {
             for (int y = y1; y <= y2; y++) {
-                Material materialBelow = AIR;
+                Material materialBelow = (minZ <= 0) ? AIR : minecraftWorld.getMaterialAt(x, y, minZ - 1);
                 Material materialAbove = minecraftWorld.getMaterialAt(x, y, minZ);
                 // TODO: only do this for non-bottomless worlds:
 //                if ((minZ == 0) && (blockTypeAbove != BLK_BEDROCK) && (blockTypeAbove != BLK_AIR) && (blockTypeAbove != BLK_STATIONARY_WATER) && (blockTypeAbove != BLK_STATIONARY_LAVA)) {
