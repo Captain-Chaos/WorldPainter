@@ -81,7 +81,7 @@ public class Java1_2PostProcessor extends PostProcessor {
         final boolean traceEnabled = logger.isTraceEnabled();
         for (int x = x1; x <= x2; x ++) {
             for (int y = y1; y <= y2; y++) {
-                int blockTypeBelow = BLK_AIR;
+                int blockTypeBelow = (minZ <= 0) ? BLK_AIR : minecraftWorld.getBlockTypeAt(x, y, minZ - 1);
                 int blockTypeAbove = minecraftWorld.getBlockTypeAt(x, y, minZ);
                 // TODO: only do this for non-bottomless worlds:
 //                if ((minZ == 0) && (blockTypeAbove != BLK_BEDROCK) && (blockTypeAbove != BLK_AIR) && (blockTypeAbove != BLK_STATIONARY_WATER) && (blockTypeAbove != BLK_STATIONARY_LAVA)) {
