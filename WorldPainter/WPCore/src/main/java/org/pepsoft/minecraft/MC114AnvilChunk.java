@@ -62,9 +62,10 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
             if (sectionTags != null) {
                 for (CompoundTag sectionTag: sectionTags) {
                     Section section = new Section(sectionTag);
-                    if (section.level >= 0) {
-                        // MC 1.14 has sections with y == -1; we're not sure yet
-                        // if this is a bug
+                    if ((section.level >= 0) && (! section.isEmpty())) {
+                        // MC 1.14 has superfluous sections above and below with
+                        // just daylight values in them; skip these (and other
+                        // empty sections)
                         sections[section.level] = section;
                     }
                 }
