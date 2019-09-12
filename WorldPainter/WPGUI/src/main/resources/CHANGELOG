@@ -1,3 +1,7 @@
+-- Version 2.7.3, released ...
+
+ * Bug fix: don't display an error message while creating the preview for a Custom Ground Cover layer with a modern material
+
 -- Version 2.7.2, released 11-9-2019
 
  * Bug fix: when placing custom objects the post processing step sometimes accidentally removed vegetation around them; this has been fixed

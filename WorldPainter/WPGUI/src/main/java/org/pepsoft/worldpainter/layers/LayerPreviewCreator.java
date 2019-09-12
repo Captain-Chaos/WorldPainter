@@ -10,8 +10,8 @@ import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.util.Box;
 import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.ProgressReceiver;
-import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.dynmap.DynMapPreviewer;
 import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
@@ -28,10 +28,11 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_14;
 
 /**
  * A utility class for generating previews of layers. It renders a layer to a
@@ -173,7 +174,7 @@ public class LayerPreviewCreator {
 
         // Phase three: generate terrain and render first pass layers, if any
         timestamp = now;
-        WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(dimension, pass1Exporters, DefaultPlugin.JAVA_ANVIL, previewHeight);
+        WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(dimension, pass1Exporters, JAVA_ANVIL_1_14, previewHeight);
         for (int x = 0; x < 8; x++) {
             for (int y = 0; y < 8; y++) {
                 Chunk chunk = chunkFactory.createChunk(x, y).chunk;
@@ -190,7 +191,7 @@ public class LayerPreviewCreator {
             timestamp = now;
             Rectangle area = new Rectangle(128, 128);
             for (SecondPassLayerExporter exporter: pass2Exporters.values()) {
-                exporter.render(dimension, area, area, minecraftWorldObject, DefaultPlugin.JAVA_ANVIL);
+                exporter.render(dimension, area, area, minecraftWorldObject, JAVA_ANVIL_1_14);
             }
             now = System.currentTimeMillis();
             if (logger.isDebugEnabled()) {
