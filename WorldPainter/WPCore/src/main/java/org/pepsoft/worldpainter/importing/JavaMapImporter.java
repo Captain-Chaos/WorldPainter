@@ -247,6 +247,7 @@ public class JavaMapImporter extends MapImporter {
         return warnings;
     }
 
+    @SuppressWarnings("StringEquality") // Interned strings
     private String importDimension(File worldDir, Dimension dimension, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
         if (progressReceiver != null) {
             progressReceiver.setMessage(dimension.getName() + " dimension");
@@ -316,7 +317,7 @@ public class JavaMapImporter extends MapImporter {
                                     manMadeBlockTypes.add(material.name);
                                 }
                                 String name = material.name;
-                                if ((name == MC_SNOW) || (name == MC_ICE)) {
+                                if ((name == MC_SNOW) || (name == MC_ICE)|| (name == MC_FROSTED_ICE)) {
                                     frost = true;
                                 }
                                 if ((waterLevel == 0) && ((name == MC_ICE)

@@ -88,7 +88,7 @@ public final class Material implements Serializable {
             simpleName = ("block_" + blockType).intern();
             identity = new Identity(namespace + ":" + simpleName, singletonMap("data_value", Integer.toString(data)));
         }
-        name = identity.name;
+        name = identity.name.intern();
         stringRep = createStringRep();
         legacyStringRep = createLegacyStringRep();
         horizontalOrientationSchemes = determineHorizontalOrientations(identity);
@@ -206,7 +206,7 @@ public final class Material implements Serializable {
         }
 
         this.identity = identity;
-        name = identity.name;
+        name = identity.name.intern();
         int p = name.indexOf(':');
         if (p != -1) {
             namespace = name.substring(0, p).intern();
