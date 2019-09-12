@@ -1,3 +1,7 @@
+-- Version 2.7.2, released 11-9-2019
+
+ * Bug fix: when placing custom objects the post processing step sometimes accidentally removed vegetation around them; this has been fixed
+
 -- Version 2.7.1, released 3-9-2019
 
  * Since it unfortunately transpires that Minecraft 1.14 no longer supports populating the map after generation, the Populate and Structures options will be disabled for the Minecraft 1.14 format
