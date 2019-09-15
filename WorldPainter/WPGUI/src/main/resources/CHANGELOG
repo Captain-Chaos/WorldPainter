@@ -1,4 +1,4 @@
--- Version 2.7.3, released ...
+-- Version 2.7.3, released 12-9-2019
 
  * Bug fix: don't display an error message while creating the preview for a Custom Ground Cover layer with a modern material
  * Bug fix: don't choke on Importing Minecraft 1.14 maps in which Minecraft has created out of bounds empty sections above or below the map
