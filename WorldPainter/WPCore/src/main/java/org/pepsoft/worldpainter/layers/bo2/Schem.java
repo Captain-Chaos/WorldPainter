@@ -1,10 +1,7 @@
 package org.pepsoft.worldpainter.layers.bo2;
 
 import org.jnbt.*;
-import org.pepsoft.minecraft.AbstractNBTItem;
-import org.pepsoft.minecraft.Entity;
-import org.pepsoft.minecraft.Material;
-import org.pepsoft.minecraft.TileEntity;
+import org.pepsoft.minecraft.*;
 import org.pepsoft.util.AttributeKey;
 import org.pepsoft.util.DynamicList;
 import org.pepsoft.worldpainter.Dimension;
@@ -19,6 +16,8 @@ import java.util.zip.GZIPInputStream;
 
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toMap;
+import static org.pepsoft.minecraft.Constants.TAG_ID;
+import static org.pepsoft.minecraft.Constants.TAG_ID_;
 import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.minecraft.Material.MINECRAFT;
 
@@ -27,6 +26,7 @@ import static org.pepsoft.minecraft.Material.MINECRAFT;
  * <a href="https://github.com/SpongePowered/Schematic-Specification/blob/master/versions/schematic-1.md">https://github.com/SpongePowered/Schematic-Specification/blob/master/versions/schematic-1.md</a>.
  */
 public final class Schem extends AbstractNBTItem implements WPObject {
+    @SuppressWarnings("unchecked") // Guaranteed by Minecraft
     public Schem(CompoundTag tag, String fallBackName) {
         super(tag);
         StringTag nameTag = (StringTag) getMap(TAG_METADATA).get(TAG_NAME);
@@ -53,13 +53,31 @@ public final class Schem extends AbstractNBTItem implements WPObject {
         } else {
             throw new IllegalArgumentException("Unsupported tag type for BlockData: " + blocksTag.getClass().getSimpleName());
         }
+        Tag tileEntitiesTag = getTag(TAG_BLOCK_ENTITIES);
+        if (tileEntitiesTag instanceof ListTag) {
+            tileEntities = new ArrayList<>(((ListTag<?>) tileEntitiesTag).getValue().size());
+            for (CompoundTag tileEntityTag: ((ListTag<CompoundTag>) tileEntitiesTag).getValue()) {
+                // It appears that schems contain the ID in the wrong case; fix that TODO what's going on here?
+                if ((tileEntityTag.getTag(TAG_ID_) == null) && (tileEntityTag.getTag(TAG_ID) != null)) {
+                    tileEntityTag.setTag(TAG_ID_, new StringTag(TAG_ID_, ((StringTag) tileEntityTag.getTag(TAG_ID)).getValue()));
+                    tileEntityTag.setTag(TAG_ID, null);
+                }
+                TileEntity tileEntity = TileEntity.fromNBT(tileEntityTag);
+                tileEntities.add(tileEntity);
+            }
+        } else if (tileEntitiesTag != null) {
+            throw new IllegalArgumentException("Unsupported tag type for BlockEntities: " + tileEntitiesTag.getClass().getSimpleName());
+        } else {
+            tileEntities = null;
+        }
         // Save memory
         removeTag(TAG_PALETTE);
         removeTag(TAG_BLOCK_DATA);
+        removeTag(TAG_BLOCK_ENTITIES);
 
         Point3i offset;
         int[] schemOffset = getIntArray(TAG_OFFSET);
-        if ((schemOffset[0] > -width) && (schemOffset[0] <= 0) && (schemOffset[2]> -length) && (schemOffset[2] <= 0) && (schemOffset[1] > -height) && (schemOffset[1] <= 0)) {
+        if ((schemOffset != null) && (schemOffset[0] > -width) && (schemOffset[0] <= 0) && (schemOffset[2]> -length) && (schemOffset[2] <= 0) && (schemOffset[1] > -height) && (schemOffset[1] <= 0)) {
             // Schematic offset points inside the object; use it as the default
             offset = new Point3i(schemOffset[0], schemOffset[2], schemOffset[1]);
         } else {
@@ -118,8 +136,7 @@ public final class Schem extends AbstractNBTItem implements WPObject {
 
     @Override
     public List<TileEntity> getTileEntities() {
-        // TODO
-        return null;
+        return tileEntities;
     }
 
     @Override
@@ -199,6 +216,7 @@ public final class Schem extends AbstractNBTItem implements WPObject {
     private final int width, height, length;
     private final Material[] palette;
     private final int[] blocks;
+    private final List<TileEntity> tileEntities;
     private String name;
     private Map<String, Serializable> attributes;
 
@@ -210,6 +228,7 @@ public final class Schem extends AbstractNBTItem implements WPObject {
     private static final String TAG_METADATA = "Metadata";
     private static final String TAG_NAME = "Name";
     private static final String TAG_BLOCK_DATA = "BlockData";
+    private static final String TAG_BLOCK_ENTITIES = "BlockEntities";
 
     private static final long serialVersionUID = 1L;
 }

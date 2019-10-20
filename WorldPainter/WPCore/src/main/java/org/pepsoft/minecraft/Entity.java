@@ -97,12 +97,12 @@ public class Entity extends AbstractNBTItem {
             entityTag = (CompoundTag) entityTag.getTag(TAG_NBT_);
         }
         String id = ((StringTag) entityTag.getTag(TAG_ID_)).getValue();
-        switch (id) {
-            case ID_PLAYER:
+        switch (id) { // TODO add MC 1.14 support
+            case LEGACY_ID_PLAYER:
                 return new Player(entityTag);
-            case ID_VILLAGER:
+            case LEGACY_ID_VILLAGER:
                 return new Villager(entityTag);
-            case ID_PAINTING:
+            case LEGACY_ID_PAINTING:
                 return new Painting(entityTag);
             default:
                 return new Entity(entityTag);

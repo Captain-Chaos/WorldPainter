@@ -13,7 +13,7 @@ import static org.pepsoft.minecraft.Constants.*;
  */
 public class WallSign extends TileEntity {
     public WallSign() {
-        super(ID_SIGN);
+        super(LEGACY_ID_SIGN); // TODO add MC 1.14 support
     }
 
     public WallSign(CompoundTag tag) {

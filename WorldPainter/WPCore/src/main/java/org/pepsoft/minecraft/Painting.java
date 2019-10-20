@@ -13,7 +13,7 @@ import static org.pepsoft.minecraft.Constants.*;
  */
 public class Painting extends Entity {
     public Painting() {
-        super(ID_PAINTING);
+        super(LEGACY_ID_PAINTING); // TODO add MC 1.14 support
     }
 
     public Painting(CompoundTag tag) {

@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.pepsoft.minecraft.Constants.ID_CHEST;
+import static org.pepsoft.minecraft.Constants.LEGACY_ID_CHEST;
 import static org.pepsoft.minecraft.Constants.TAG_ITEMS;
 
 /**
@@ -20,7 +20,7 @@ import static org.pepsoft.minecraft.Constants.TAG_ITEMS;
  */
 public class Chest extends TileEntity implements ItemContainer {
     public Chest() {
-        super(ID_CHEST);
+        super(LEGACY_ID_CHEST); // TODO add MC 1.14 support
     }
 
     public Chest(CompoundTag tag) {

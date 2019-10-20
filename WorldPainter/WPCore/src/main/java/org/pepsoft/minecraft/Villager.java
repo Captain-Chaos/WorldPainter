@@ -5,7 +5,9 @@
 package org.pepsoft.minecraft;
 
 import org.jnbt.CompoundTag;
-import static org.pepsoft.minecraft.Constants.*;
+
+import static org.pepsoft.minecraft.Constants.LEGACY_ID_VILLAGER;
+import static org.pepsoft.minecraft.Constants.TAG_PROFESSION;
 
 /**
  *
@@ -13,7 +15,7 @@ import static org.pepsoft.minecraft.Constants.*;
  */
 public class Villager extends Mob {
     public Villager() {
-        super(Constants.ID_VILLAGER);
+        super(LEGACY_ID_VILLAGER); // TODO add MC 1.14 support
     }
     
     public Villager(CompoundTag tag) {
@@ -21,7 +23,7 @@ public class Villager extends Mob {
     }
     
     public Villager(int profession) {
-        super(Constants.ID_VILLAGER);
+        super(LEGACY_ID_VILLAGER); // TODO add MC 1.14 support
         setProfession(profession);
     }
     

@@ -29,7 +29,7 @@ public class TileEntity extends AbstractNBTItem {
     }
 
     public String getId() {
-        return getString(TAG_ID_);
+        return getString(TAG_ID_, getString(TAG_ID));
     }
 
     public int getX() {
@@ -57,15 +57,20 @@ public class TileEntity extends AbstractNBTItem {
     }
 
     public static TileEntity fromNBT(CompoundTag tileEntityTag) {
-        String id = ((StringTag) tileEntityTag.getTag(TAG_ID_)).getValue();
-        switch (id) {
-            case ID_CHEST:
-                return new Chest(tileEntityTag);
-            case ID_SIGN:
-                return new WallSign(tileEntityTag);
-            default:
-                return new TileEntity(tileEntityTag);
+        StringTag idTag = (StringTag) tileEntityTag.getTag(TAG_ID_);
+        if (idTag == null) {
+            idTag = (StringTag) tileEntityTag.getTag(TAG_ID);
         }
+        if (idTag != null) {
+            switch (idTag.getValue()) {
+                case LEGACY_ID_CHEST:
+                case ID_CHEST:
+                    return new Chest(tileEntityTag);
+                case LEGACY_ID_SIGN: // TODO add MC 1.14 support
+                    return new WallSign(tileEntityTag);
+            }
+        }
+        return new TileEntity(tileEntityTag);
     }
     
     private static final long serialVersionUID = 1L;
