@@ -14,6 +14,17 @@ import java.util.Objects;
  * @author SchmitzP
  */
 public class NoiseSettings implements Serializable, Cloneable {
+    public NoiseSettings() {
+        // Do nothing
+    }
+
+    public NoiseSettings(long seed, int range, int roughness, float scale) {
+        this.seed = seed;
+        this.range = range;
+        this.roughness = roughness;
+        this.scale = scale;
+    }
+
     /**
      * The seed to use to initialise the noise generator.
      */

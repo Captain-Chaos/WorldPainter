@@ -10,6 +10,11 @@
  */
 package org.pepsoft.util.swing;
 
+import org.pepsoft.util.FileUtils;
+import org.pepsoft.util.ProgressReceiver;
+import org.pepsoft.util.SubProgressReceiver;
+
+import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -18,11 +23,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import javax.swing.SwingUtilities;
-import javax.swing.Timer;
-import org.pepsoft.util.FileUtils;
-import org.pepsoft.util.ProgressReceiver;
-import org.pepsoft.util.SubProgressReceiver;
 
 import static org.pepsoft.util.AwtUtils.doOnEventThread;
 

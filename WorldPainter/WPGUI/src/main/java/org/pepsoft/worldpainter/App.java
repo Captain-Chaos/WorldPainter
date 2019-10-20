@@ -304,7 +304,8 @@ public final class App extends JFrame implements RadiusControl,
      *
      * <p>This is for historical reasons: it was introduced to make sure that
      * the custom materials, which are registered when loaded, are not then
-     * immediately cleared when invoking this method.*/
+     * immediately cleared when invoking this method.
+     */
     public void clearWorld() {
         if (world != null) {
             for (Dimension dimension: world.getDimensions()) {
