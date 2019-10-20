@@ -62,11 +62,12 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
             if (sectionTags != null) {
                 for (CompoundTag sectionTag: sectionTags) {
                     Section section = new Section(sectionTag);
-                    if ((section.level >= 0) && (! section.isEmpty())) {
-                        // MC 1.14 has superfluous sections above and below with
-                        // just daylight values in them; skip these (and other
-                        // empty sections)
-                        sections[section.level] = section;
+                    if (! section.isEmpty()) {
+                        if ((section.level >= 0) && (section.level < sections.length)) {
+                            sections[section.level] = section;
+                        } else {
+                            logger.warn("Ignoring non-empty out of bounds chunk section @ " + getxPos() + "," + section.level + "," + getzPos());
+                        }
                     }
                 }
             }
