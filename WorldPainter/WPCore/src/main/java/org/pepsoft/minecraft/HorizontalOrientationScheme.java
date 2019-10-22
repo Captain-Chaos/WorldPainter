@@ -18,9 +18,9 @@ enum HorizontalOrientationScheme {
         public Material rotate(Material material, int steps) {
             if (steps % 2 != 0) {
                 String axis = material.getProperty(MC_AXIS);
-                if (axis.equals("x")) {
+                if ("x".equals(axis)) {
                     return material.withProperty(MC_AXIS, "z");
-                } else if (axis.equals("z")) {
+                } else if ("z".equals(axis)) {
                     return material.withProperty(MC_AXIS, "x");
                 }
             }
