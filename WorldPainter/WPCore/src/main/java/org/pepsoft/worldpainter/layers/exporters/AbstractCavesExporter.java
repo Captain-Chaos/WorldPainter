@@ -11,6 +11,17 @@ import java.util.Random;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 
+/**
+ * Abstract base class for cave carving exporters, providing common
+ * functionality for excavating caves. Intended use:
+ *
+ * <ul><li>For each column (x and y coordinate):
+ *     <li>Invoke {@link #setupForColumn(long, Tile, int, int, boolean, boolean, boolean, boolean)} once
+ *     <li>Going from the top to the bottom of the cave for that column, invoke {@link #processBlock(Chunk, int, int, int, boolean)}
+ * </ul>
+ *
+ * @param <L> The cave layer type.
+ */
 public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLayerExporter<L> {
     public AbstractCavesExporter(L layer, ExporterSettings defaultSettings) {
         super(layer, defaultSettings);
@@ -44,11 +55,6 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
         if (excavate) {
             // In a cavern
             if ((! state.breachedCeiling) && (y < state.maxY)) {
-//                System.out.println("Cavern for value: " + cavernsValue);
-//                if (cavernsValue < lowestValueCavern) {
-//                    lowestValueCavern = cavernsValue;
-//                    System.out.println("Lowest cavern value with caverns: " + lowestValueCavern);
-//                }
                 if (state.glassCeiling) {
                     int terrainheight = state.tile.getIntHeight(x, z);
                     for (int yy = y + 1; yy <= terrainheight; yy++) {
@@ -130,7 +136,6 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
                     chunk.setMaterial(x, y + 1, z, STONE);
                 }
             }
-//            System.out.println("Cavern at " + x + ", " + y + ", " + z);
             if (y > state.waterLevel) {
                 chunk.setMaterial(x, y, z, AIR);
                 state.previousBlockInCavern = true;
@@ -145,19 +150,12 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
         } else if (state.previousBlockInCavern
                 && (y >= state.waterLevel)
                 && (! chunk.getMaterial(x, y, z).veryInsubstantial)) {
-//            Material material = subsurfaceMaterial.getMaterial(seed, worldX, worldY, 1);
-//            if (material == Material.AIR) {
             int worldX = (chunk.getxPos() << 4) | x;
             int worldZ = (chunk.getzPos() << 4) | z;
             final int rnd = new Random(state.seed + (worldX * 65537) + (worldZ * 4099)).nextInt(MUSHROOM_CHANCE);
-            if (rnd == 0) {
+            if ((rnd == 0) && (y < state.maxY)) {
                 chunk.setMaterial(x, y + 1, z, BROWN_MUSHROOM);
-//                System.out.println("Cave shroom @ " + worldX + ", " + worldY + "!");
             }
-//            } else {
-//                chunk.setMaterial(x, y + 1, z, material);
-//            }
-//            chunk.setMaterial(x, y, z, subsurfaceMaterial.getMaterial(seed, worldX, worldY, 0));
             state.previousBlockInCavern = false;
         }
     }

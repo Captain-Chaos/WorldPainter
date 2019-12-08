@@ -1,3 +1,8 @@
+-- Version 2.7.5, released 1-12-2019
+
+ * Improvement in managing the "waterlogged" property of Minecraft 1.14 blocks, to prevent air pockets under water. Please keep letting me know of instances where blocks are inappropriately waterlogged, or not waterlogged
+ * Bug fix: fix an export error that could occur with Chasms or Caverns that reach all the way to the top of the map
+
 -- Version 2.7.4, released 20-10-2019
 
  * Add support for tile entities in schem files
