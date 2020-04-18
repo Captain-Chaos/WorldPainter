@@ -1,3 +1,7 @@
+-- Version 2.7.6, released 5-4-2020
+
+ * Bug fix: fix a compilation error that had inadvertently been introduced when re-releasing version 2.7.5 and which broke 3D object previews
+
 -- Version 2.7.5, released 1-12-2019
 
  * Improvement in managing the "waterlogged" property of Minecraft 1.14 blocks, to prevent air pockets under water. Please keep letting me know of instances where blocks are inappropriately waterlogged, or not waterlogged
