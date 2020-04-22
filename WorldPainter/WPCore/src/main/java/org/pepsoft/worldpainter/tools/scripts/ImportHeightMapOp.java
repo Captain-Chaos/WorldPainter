@@ -82,7 +82,7 @@ public class ImportHeightMapOp extends AbstractOperation<World2> {
         return this;
     }
 
-    public ImportHeightMapOp withWaterLevel(int level) throws ScriptException {
+    public ImportHeightMapOp withWaterLevel(int level) {
         waterLevel = level;
         importer.setWorldWaterLevel(level);
         return this;
