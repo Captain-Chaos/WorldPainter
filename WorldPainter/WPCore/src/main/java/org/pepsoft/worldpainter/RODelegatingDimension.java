@@ -19,6 +19,15 @@ import java.util.*;
 import java.util.List;
 
 /**
+ * A read-only implementation of {@link Dimension} which wraps another
+ * {@code Dimension} and delegates all read  calls to it. All write calls throw
+ * an {@link UnsupportedOperationException}.
+ *
+ * <p>In addition the methods which return tiles wrap the returned tiles in
+ * {@link RODelegatingTile}s.
+ *
+ * <p>Intended to change the behaviour of one or more read calls by overriding
+ * them.
  *
  * @author pepijn
  */

@@ -14,6 +14,12 @@ import org.pepsoft.worldpainter.gardenofeden.Seed;
 import org.pepsoft.worldpainter.layers.Layer;
 
 /**
+ * A read-only implementation of {@link Tile} which wraps another {@code Tile}
+ * and delegates all read  calls to it. All write calls throw an
+ * {@link UnsupportedOperationException}.
+ *
+ * <p>Intended to change the behaviour of one or more read calls by overriding
+ * them.
  *
  * @author pepijn
  */

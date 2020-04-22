@@ -1454,7 +1454,8 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
                 cachedLayers = null;
             }
         }
-layerLoop: for (Iterator<Map.Entry<Layer, byte[]>> i = layerData.entrySet().iterator(); i.hasNext(); ) {
+        layerLoop:
+        for (Iterator<Map.Entry<Layer, byte[]>> i = layerData.entrySet().iterator(); i.hasNext(); ) {
             Map.Entry<Layer, byte[]> entry = i.next();
             final Layer layer = entry.getKey();
             final byte[] buffer = entry.getValue();

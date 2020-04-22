@@ -9,6 +9,7 @@ package org.pepsoft.minecraft;
  *
  * @author pepijn
  */
+@SuppressWarnings("unused") // Public API
 public final class Constants {
     private Constants() {
         // Prevent instantiation

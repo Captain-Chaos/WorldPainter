@@ -14,10 +14,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.nio.charset.Charset;
 import java.util.*;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonMap;
@@ -26,7 +26,6 @@ import static org.pepsoft.minecraft.Block.BLOCK_TYPE_NAMES;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.HorizontalOrientationScheme.CARDINAL_DIRECTIONS;
 import static org.pepsoft.minecraft.HorizontalOrientationScheme.STAIR_CORNER;
-import static org.pepsoft.util.MathUtils.mod;
 import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 
 /**
@@ -41,7 +40,7 @@ import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
  *
  * @author pepijn
  */
-@SuppressWarnings("deprecation") // only deprecated for client code
+@SuppressWarnings({"deprecation", "unused"}) // only deprecated for client code, public API
 public final class Material implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(Material.class);
 
@@ -366,7 +365,6 @@ public final class Material implements Serializable {
      * @return The value of the specified property transformed to the specified
      * type.
      */
-    @SuppressWarnings("unchecked") // Responsibility of client
     public <T> T getProperty(Property<T> property, T defaultValue) {
         if (identity.properties != null) {
             String value = identity.properties.get(property.name);
@@ -605,6 +603,7 @@ public final class Material implements Serializable {
      *                 incompatible material.
      * @return A vertically mirrored version of the material.
      */
+    @SuppressWarnings("ConstantConditions") // Responsibility of client; we don't want to add expensive checks
     public Material invert(Platform platform) {
         if ((verticalOrientationScheme != null) || (legacyVerticalOrientationScheme != null)) {
             VerticalOrientationScheme scheme;
@@ -836,7 +835,7 @@ public final class Material implements Serializable {
             if (horizontalOrientationSchemes.isEmpty()) {
                 return null;
             } else {
-                return horizontalOrientationSchemes.toArray(new HorizontalOrientationScheme[horizontalOrientationSchemes.size()]);
+                return horizontalOrientationSchemes.toArray(new HorizontalOrientationScheme[0]);
             }
         } else {
             return null;
@@ -855,7 +854,7 @@ public final class Material implements Serializable {
                     logger.info("Disabling horizontal orientation scheme " + horizontalOrientationScheme + " for rotating legacy material " + name);
                 }
             }
-            return legacySchemes.isEmpty() ? null : legacySchemes.toArray(new HorizontalOrientationScheme[legacySchemes.size()]);
+            return legacySchemes.isEmpty() ? null : legacySchemes.toArray(new HorizontalOrientationScheme[0]);
         } else {
             return null;
         }
@@ -872,12 +871,13 @@ public final class Material implements Serializable {
                     logger.info("Disabling horizontal orientation scheme " + horizontalOrientationScheme + " for mirroring legacy material " + name);
                 }
             }
-            return legacySchemes.isEmpty() ? null : legacySchemes.toArray(new HorizontalOrientationScheme[legacySchemes.size()]);
+            return legacySchemes.isEmpty() ? null : legacySchemes.toArray(new HorizontalOrientationScheme[0]);
         } else {
             return null;
         }
     }
 
+    @SuppressWarnings("ConstantConditions") // Responsibility of client; we don't want to add expensive checks
     private VerticalOrientationScheme determineLegacyVerticalOrientation() {
         if (verticalOrientationScheme != null) {
             Material invertedMaterial;
@@ -990,17 +990,12 @@ public final class Material implements Serializable {
         }
     }
 
-    private String rotateValue(List<String> values, int index, int steps) {
-        return values.get(mod(index + steps, values.size()));
-    }
-
     /**
      * Get a legacy (pre-1.13) material by block ID. The data value is assumed
      * to be zero.
      *
      * @param blockType The block ID.
      * @return The requested material.
-     * @deprecated Use {@link #get(Identity)}, {@link #get(String, Map)} or
      * {@link #get(String, Object...)}.
      */
     public static Material get(int blockType) {
@@ -1013,38 +1008,10 @@ public final class Material implements Serializable {
      * @param blockType The block ID.
      * @param data The data value.
      * @return The requested material.
-     * @deprecated Use {@link #get(Identity)}, {@link #get(String, Map)} or
      * {@link #get(String, Object...)}.
      */
     public static Material get(int blockType, int data) {
         return getByCombinedIndex((blockType << 4) | data);
-    }
-
-    /**
-     * Get a legacy (pre-1.13) material by {@link Block} reference. The data
-     * value is assumed to be zero.
-     *
-     * @param blockType The block type.
-     * @return The requested material.
-     * @deprecated Use {@link #get(Identity)}, {@link #get(String, Map)} or
-     * {@link #get(String, Object...)}.
-     */
-    public static Material get(Block blockType) {
-        return getByCombinedIndex(blockType.id << 4);
-    }
-
-    /**
-     * Get a legacy (pre-1.13) material by {@link Block} reference and data
-     * value.
-     *
-     * @param blockType The block type.
-     * @param data The data value.
-     * @return The requested material.
-     * @deprecated Use {@link #get(Identity)}, {@link #get(String, Map)} or
-     * {@link #get(String, Object...)}.
-     */
-    public static Material get(Block blockType, int data) {
-        return getByCombinedIndex((blockType.id << 4) | data);
     }
 
     /**
@@ -1055,7 +1022,6 @@ public final class Material implements Serializable {
      *
      * @param index The combined index of the material to get.
      * @return The indicated material.
-     * @deprecated Use {@link #get(Identity)}, {@link #get(String, Map)} or
      * {@link #get(String, Object...)}.
      */
     public static Material getByCombinedIndex(int index) {
@@ -1135,7 +1101,7 @@ public final class Material implements Serializable {
     }
 
     public static Set<String> getAllSimpleNamesForNamespace(String namespace) {
-        return SIMPLE_NAMES_BY_NAMESPACE.containsKey(namespace) ? Collections.unmodifiableSet(SIMPLE_NAMES_BY_NAMESPACE.get(namespace)) : Collections.EMPTY_SET;
+        return SIMPLE_NAMES_BY_NAMESPACE.containsKey(namespace) ? Collections.unmodifiableSet(SIMPLE_NAMES_BY_NAMESPACE.get(namespace)) : Collections.emptySet();
     }
 
     public static Set<String> getAllNames() {
@@ -1371,7 +1337,7 @@ public final class Material implements Serializable {
 
     static {
         // Read legacy MC block database
-        try (Reader in = new InputStreamReader(Block.class.getResourceAsStream("legacy-mc-blocks.json"), Charset.forName("UTF-8"))) {
+        try (Reader in = new InputStreamReader(Material.class.getResourceAsStream("legacy-mc-blocks.json"), UTF_8)) {
             @SuppressWarnings("unchecked") // Guaranteed by contents of file
             List<Object> items = (List<Object>) new JSONParser().parse(in);
             for (Object item: items) {
@@ -1396,7 +1362,7 @@ public final class Material implements Serializable {
         }
 
         // Read MC materials database
-        try (Reader in = new InputStreamReader(Block.class.getResourceAsStream("mc-materials.csv"), Charset.forName("UTF-8"))) {
+        try (Reader in = new InputStreamReader(Material.class.getResourceAsStream("mc-materials.csv"), UTF_8)) {
             CSVDataSource csvDataSource = new CSVDataSource();
             csvDataSource.openForReading(in);
             do {
