@@ -40,7 +40,7 @@ import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
  *
  * @author pepijn
  */
-@SuppressWarnings({"deprecation", "unused"}) // only deprecated for client code, public API
+@SuppressWarnings({"unused"}) // Public API
 public final class Material implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(Material.class);
 
