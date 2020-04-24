@@ -18,6 +18,7 @@ import static org.pepsoft.minecraft.Constants.*;
  *
  * @deprecated Use {@link Material}
  */
+@Deprecated
 public final class Block implements Serializable {
     private Block(int id, int transparency, String name, boolean terrain,
                  boolean insubstantial, boolean veryInsubstantial, boolean resource, boolean tileEntity, boolean treeRelated,
