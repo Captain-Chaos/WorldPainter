@@ -3,3 +3,4 @@
 logs
 exporttimings.csv
 target
+*.code-workspace
