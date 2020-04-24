@@ -24,7 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static org.pepsoft.util.GUIUtils.UI_SCALE;
+import static org.pepsoft.util.GUIUtils.getUIScaleInt;
 
 /**
  *
@@ -34,7 +34,7 @@ public class GlassPane extends javax.swing.JPanel {
     /** Creates new form GlassPane */
     public GlassPane() {
         initComponents();
-        if (UI_SCALE > 1) {
+        if (getUIScaleInt() >= 1) {
             jLabel1.setIcon(IconUtils.loadScaledIcon("org/pepsoft/worldpainter/scale_bar.png")); // NOI18N
             jLabel2.setIcon(IconUtils.loadScaledIcon("org/pepsoft/worldpainter/north_arrow_up.png")); // NOI18N
         }
@@ -42,7 +42,7 @@ public class GlassPane extends javax.swing.JPanel {
     }
     
     public void setScale(float scale) {
-        int scaleBarSize = (int) (100 / scale);
+        int scaleBarSize = (int) (100 / scale * getUIScaleInt());
         jLabel1.setText(SCALE_FORMAT.format(scaleBarSize));
         repaint();
     }
@@ -76,11 +76,11 @@ public class GlassPane extends javax.swing.JPanel {
     }
     
     private JLabel createLabel(Layer layer) {
-        BufferedImage image = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(20 * UI_SCALE, 20 * UI_SCALE, Transparency.TRANSLUCENT);
+        BufferedImage image = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(20 * getUIScaleInt(), 20 * getUIScaleInt(), Transparency.TRANSLUCENT);
         Graphics2D g2 = image.createGraphics();
         try {
             g2.drawImage(PROHIBITED_SIGN_BACKGROUND, 0, 0, null);
-            g2.drawImage(layer.getIcon(), 2 * UI_SCALE, 2 * UI_SCALE, null);
+            g2.drawImage(layer.getIcon(), 2 * getUIScaleInt(), 2 * getUIScaleInt(), null);
             g2.drawImage(PROHIBITED_SIGN_FOREGROUND, 0, 0, null);
         } finally {
             g2.dispose();

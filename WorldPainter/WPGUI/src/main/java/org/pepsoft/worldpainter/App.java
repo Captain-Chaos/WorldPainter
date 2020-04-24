@@ -99,10 +99,12 @@ import static com.jidesoft.docking.DockContext.DOCK_SIDE_WEST;
 import static com.jidesoft.docking.DockableFrame.*;
 import static java.awt.event.KeyEvent.*;
 import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toSet;
 import static javax.swing.JOptionPane.*;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.util.AwtUtils.doOnEventThread;
-import static org.pepsoft.util.GUIUtils.UI_SCALE;
+import static org.pepsoft.util.GUIUtils.getUIScale;
+import static org.pepsoft.util.GUIUtils.getUIScaleInt;
 import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
 import static org.pepsoft.util.swing.ProgressDialog.NO_FOCUS_STEALING;
 import static org.pepsoft.worldpainter.Constants.*;
@@ -287,8 +289,8 @@ public final class App extends JFrame implements RadiusControl,
                 imageCapabilities.isAccelerated() ? "yes" : "no",
                 imageCapabilities.isTrueVolatile() ? "yes" : "no"
         );
-        if (GUIUtils.UI_SCALE > 1) {
-            logger.info("High resolution display support enabled");
+        if (getUIScale() != 1.0) {
+            logger.info("High resolution display support enabled. Scale: {}", getUIScale());
         }
 
         MainFrame.setMainFrame(this);
@@ -2464,7 +2466,7 @@ public final class App extends JFrame implements RadiusControl,
         }
         view.setRadius(radius);
         view.setBrushShape(brush.getBrushShape());
-        final Cursor cursor = Toolkit.getDefaultToolkit().createCustomCursor(IconUtils.loadScaledImage("org/pepsoft/worldpainter/cursor.png"), new Point(15 * UI_SCALE, 15 * UI_SCALE), "Custom Crosshair");
+        final Cursor cursor = Toolkit.getDefaultToolkit().createCustomCursor(IconUtils.loadScaledImage("org/pepsoft/worldpainter/cursor.png"), new Point(15 * getUIScaleInt(), 15 * getUIScaleInt()), "Custom Crosshair");
         view.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
@@ -5157,7 +5159,7 @@ public final class App extends JFrame implements RadiusControl,
     
     private Icon createBrushIcon(Brush brush, int degrees) {
         brush = brush.clone();
-        brush.setRadius(16 * UI_SCALE - 1);
+        brush.setRadius((int) (16 * getUIScale()) - 1);
         if (degrees != 0) {
             brush = RotatedBrush.rotate(brush, degrees);
         }
@@ -5165,12 +5167,13 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private BufferedImage createBrushImage(Brush brush) {
-        BufferedImage image = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(32 * UI_SCALE, 32 * UI_SCALE, Transparency.TRANSLUCENT);
-        for (int dx = -16 * UI_SCALE + 1; dx < 16 * UI_SCALE; dx++) {
-            for (int dy = -16 * UI_SCALE + 1; dy < 16 * UI_SCALE; dy++) {
+        int r = (int) (16 * getUIScale());
+        BufferedImage image = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(r * 2, r * 2, Transparency.TRANSLUCENT);
+        for (int dx = -r + 1; dx < r; dx++) {
+            for (int dy = -r + 1; dy < r; dy++) {
                 float strength = brush.getFullStrength(dx, dy);
                 int alpha = (int) (strength * 255f + 0.5f);
-                image.setRGB(dx + 16 * UI_SCALE - 1, dy + 16 * UI_SCALE - 1, alpha << 24);
+                image.setRGB(dx + r - 1, dy + r - 1, alpha << 24);
             }
         }
         return image;
@@ -6019,16 +6022,16 @@ public final class App extends JFrame implements RadiusControl,
             if ((icon == null) && (component instanceof Container)) {
                 icon = findIcon((Container) component);
                 if (icon != null) {
-                    if (((icon.getIconHeight() > 16 * UI_SCALE) || (icon.getIconWidth() > 16 * UI_SCALE))
+                    if (((icon.getIconHeight() > 16 * getUIScaleInt()) || (icon.getIconWidth() > 16 * getUIScaleInt()))
                             && (icon instanceof ImageIcon)
                             && (((ImageIcon) icon).getImage() instanceof BufferedImage)) {
                         float s;
                         if (icon.getIconWidth() > icon.getIconHeight()) {
                             // Wide icon
-                            s = 16f * UI_SCALE / icon.getIconWidth();
+                            s = 16f * getUIScaleInt() / icon.getIconWidth();
                         } else {
                             // Tall (or square) icon
-                            s = 16f * UI_SCALE / icon.getIconHeight();
+                            s = 16f * getUIScaleInt() / icon.getIconHeight();
                         }
                         BufferedImageOp op = new AffineTransformOp(AffineTransform.getScaleInstance(s, s), AffineTransformOp.TYPE_BICUBIC);
                         BufferedImage iconImage = op.filter((BufferedImage) ((ImageIcon) icon).getImage(), null);

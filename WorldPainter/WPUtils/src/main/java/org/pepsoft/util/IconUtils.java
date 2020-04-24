@@ -13,7 +13,7 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import org.jetbrains.annotations.NonNls;
 
-import static org.pepsoft.util.GUIUtils.UI_SCALE;
+import static org.pepsoft.util.GUIUtils.getUIScaleInt;
 import static org.pepsoft.util.GUIUtils.scaleToUI;
 
 /**
@@ -130,9 +130,9 @@ public final class IconUtils {
      * @return A 16x16 icon of the specified colour.
      */
     public static Icon createScaledColourIcon(int colour) {
-        BufferedImage image = new BufferedImage(16 * UI_SCALE, 16 * UI_SCALE, BufferedImage.TYPE_INT_RGB);
-        for (int x = 1; x < 16 * UI_SCALE - 1; x++) {
-            for (int y = 1; y < 16 * UI_SCALE - 1; y++) {
+        BufferedImage image = new BufferedImage(16 * getUIScaleInt(), 16 * getUIScaleInt(), BufferedImage.TYPE_INT_RGB);
+        for (int x = 1; x < 16 * getUIScaleInt() - 1; x++) {
+            for (int y = 1; y < 16 * getUIScaleInt() - 1; y++) {
                 image.setRGB(x, y, colour);
             }
         }
@@ -162,11 +162,11 @@ public final class IconUtils {
      * @return The scaled icon.
      */
     public static BufferedImage scaleIcon(Image iconImage, int size) {
-        BufferedImage newImage = new BufferedImage(size * UI_SCALE, size * UI_SCALE, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage newImage = new BufferedImage(size * getUIScaleInt(), size * getUIScaleInt(), BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2 = newImage.createGraphics();
         try {
             g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-            g2.drawImage(iconImage, 0, 0, size * UI_SCALE, size * UI_SCALE, null);
+            g2.drawImage(iconImage, 0, 0, size * getUIScaleInt(), size * getUIScaleInt(), null);
         } finally {
             g2.dispose();
         }

@@ -28,7 +28,10 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import javax.swing.*;
+import javax.swing.plaf.FontUIResource;
+import javax.swing.plaf.InsetsUIResource;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,6 +52,9 @@ import java.util.*;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
+import static java.awt.Image.SCALE_SMOOTH;
+import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
+import static org.pepsoft.util.GUIUtils.getUIScale;
 import static org.pepsoft.worldpainter.Constants.ATTRIBUTE_KEY_PLUGINS;
 import static org.pepsoft.worldpainter.Constants.ATTRIBUTE_KEY_SAFE_MODE;
 import static org.pepsoft.worldpainter.plugins.WPPluginManager.DESCRIPTOR_PATH;
@@ -410,7 +416,7 @@ public class Main {
                 // Install configured look and feel
                 try {
                     String laf;
-                    if (GUIUtils.UI_SCALE > 1) {
+                    if (getUIScale() > 1.0f) {
                         laf = UIManager.getSystemLookAndFeelClassName();
                     } else {
                         switch (lookAndFeel) {
@@ -436,7 +442,7 @@ public class Main {
                     logger.debug("Installing look and feel: " + laf);
                     UIManager.setLookAndFeel(laf);
                     LookAndFeelFactory.installJideExtension();
-                    if ((GUIUtils.UI_SCALE == 1) && ((lookAndFeel == Configuration.LookAndFeel.DARK_METAL)
+                    if ((getUIScale() == 1.0f) && ((lookAndFeel == Configuration.LookAndFeel.DARK_METAL)
                             || (lookAndFeel == Configuration.LookAndFeel.DARK_NIMBUS))) {
                         // Patch some things to make dark themes look better
                         VoidRenderer.setColour(UIManager.getColor("Panel.background").getRGB());
@@ -447,6 +453,77 @@ public class Main {
                     }
                 } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
                     logger.warn("Could not install selected look and feel", e);
+                }
+            }
+
+            if (myConfig.getUiScale() != 0.0f) {
+                GUIUtils.setUIScale(myConfig.getUiScale());
+            }
+            if (getUIScale() != 1.0f) {
+                // Scale the look and feel to the UI
+                for (Map.Entry<Object, Object> entry: UIManager.getDefaults().entrySet()) {
+                    Object key = entry.getKey();
+                    Object value = UIManager.get(key);
+                    if (value instanceof FontUIResource) {
+                        FontUIResource previousResource = (FontUIResource) value;
+                        FontUIResource newResource = new FontUIResource(previousResource.getFamily(), previousResource.getStyle(), (int) (previousResource.getSize() * getUIScale() + 0.5f));
+                        UIManager.put(key, newResource);
+                        logger.debug("Scaled FontUIResource {}", key);
+                    } else if (value instanceof InsetsUIResource) {
+                        InsetsUIResource oldResource = (InsetsUIResource) value;
+                        InsetsUIResource newResource = new InsetsUIResource((int) (oldResource.top * getUIScale() + 0.5f),
+                                (int) (oldResource.left * getUIScale() + 0.5f),
+                                (int) (oldResource.bottom * getUIScale() + 0.5f),
+                                (int) (oldResource.right * getUIScale() + 0.5f));
+                        UIManager.put(key, newResource);
+                        logger.debug("Scaled InsetsUIResource {}", key);
+                    } else if (value instanceof Insets) {
+                        Insets oldResource = (Insets) value;
+                        Insets newResource = new Insets((int) (oldResource.top * getUIScale() + 0.5f),
+                                (int) (oldResource.left * getUIScale() + 0.5f),
+                                (int) (oldResource.bottom * getUIScale() + 0.5f),
+                                (int) (oldResource.right * getUIScale() + 0.5f));
+                        UIManager.put(key, newResource);
+                        logger.debug("Scaled Insets {}", key);
+                    } else if ((value instanceof Integer) && (key instanceof String) &&
+                            (((String) key).toLowerCase().contains("margin")
+                                    || ((String) key).toLowerCase().contains("thickness")
+                                    || ((String) key).toLowerCase().contains("gap")
+                                    || ((String) key).toLowerCase().contains("width")
+                                    || ((String) key).toLowerCase().contains("height")
+                                    || ((String) key).toLowerCase().contains("spacing")
+                                    || ((String) key).toLowerCase().contains("size")
+                                    || ((String) key).toLowerCase().contains("length")
+                                    || ((String) key).toLowerCase().contains("offset")
+                                    || ((String) key).toLowerCase().contains("shift")
+                                    || ((String) key).toLowerCase().contains("indent")
+                                    || ((String) key).toLowerCase().contains("padding"))) {
+                        int oldValue = (Integer) value;
+                        int newValue = (int) (oldValue * getUIScale() + 0.5f);
+                        UIManager.put(key, newValue);
+                        logger.debug("Scaled integer {}", key);
+                    } else if (value instanceof ImageIcon) {
+                        ImageIcon icon = (ImageIcon) value;
+                        Image scaledImage = icon.getImage().getScaledInstance((int) (icon.getIconWidth() * getUIScale() + 0.5f + 0.5f), -1, SCALE_SMOOTH);
+                        UIManager.put(key, new ImageIcon(scaledImage));
+                        logger.debug("Scaled ImageIcon {}", key);
+                    } else if (value instanceof Icon) {
+                        Icon icon = (Icon) value;
+                        BufferedImage image = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(), TYPE_INT_ARGB);
+                        Graphics2D g2 = image.createGraphics();
+                        try {
+                            icon.paintIcon(null, g2, 0, 0);
+                            Image scaledImage = image.getScaledInstance((int) (icon.getIconWidth() * getUIScale() + 0.5f + 0.5f), -1, SCALE_SMOOTH);
+                            UIManager.put(key, new ImageIcon(scaledImage));
+                            logger.debug("Scaled Icon {}", key);
+                        } catch (NullPointerException e) {
+                            logger.debug("Did NOT scale Icon {} due to NullPointerException", key);
+                        }
+                    } else if ((value instanceof Color) || (value instanceof Boolean)) {
+                        // Ignore silently
+                    } else {
+                        logger.debug("Did NOT scale {}: {}} ({}})", key, value, (value != null) ? value.getClass().getSimpleName() : "null");
+                    }
                 }
             }
 

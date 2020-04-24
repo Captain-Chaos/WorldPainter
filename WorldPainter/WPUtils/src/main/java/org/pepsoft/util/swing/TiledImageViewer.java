@@ -20,7 +20,8 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static org.pepsoft.util.GUIUtils.UI_SCALE;
+import static org.pepsoft.util.GUIUtils.getUIScale;
+import static org.pepsoft.util.GUIUtils.getUIScaleInt;
 
 /**
  * A generic visual component which can display one or more layers of large or
@@ -417,7 +418,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
     }
 
     public void resetZoom() {
-        setZoom((UI_SCALE == 1) ? 0 : 1);
+        setZoom((getUIScaleInt() == 1) ? 0 : 1);
     }
 
     /**
@@ -1290,7 +1291,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
 
         g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
         GraphicsConfiguration gc = getGraphicsConfiguration();
-        for (TileProvider tileProvider : tileProviders) {
+        for (TileProvider tileProvider: tileProviders) {
             final int effectiveZoom = (tileProvider.isZoomSupported() && (zoom < 0)) ? 0 : zoom;
             final Point topLeftTileCoords = viewToWorld(tileProvider, clipBounds.getLocation(), effectiveZoom);
             final int leftTile = topLeftTileCoords.x >> TILE_SIZE_BITS;
@@ -1357,7 +1358,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         synchronized (TILE_CACHE_LOCK) {
             for (Iterator<Runnable> i = queue.iterator(); i.hasNext(); ) {
                 TileRenderJob job = (TileRenderJob) i.next();
-                if (! getTileBounds(job.tileProvider, job.coords.x, job.coords.y, job.effectiveZoom).intersects(viewBounds)) {
+                if (!getTileBounds(job.tileProvider, job.coords.x, job.coords.y, job.effectiveZoom).intersects(viewBounds)) {
                     i.remove();
                     // Remove the RENDERING flag for this tile from the cache,
                     // otherwise it won't be rendered the next time it becomes
@@ -1839,7 +1840,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
      * <p>The default zoom is 1 (200%) for HiDPI displays and 0 (100%) for
      * regular displays.
      */
-    private int zoom = (UI_SCALE == 1) ? 0 : 1;
+    private int zoom = (getUIScale() < 1.5f) ? 0 : 1;
     /**
      * The size in image coordinates of the grid to paint, if any.
      */
@@ -1896,8 +1897,8 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         @Override public int getHeight(ImageObserver observer) {return 0;}
         @Override public Object getProperty(String name, ImageObserver observer) {return null;}
     };
-    private static final Font NORMAL_FONT = new Font("SansSerif", Font.PLAIN, 10 * UI_SCALE);
-    private static final Font BOLD_FONT = new Font("SansSerif", Font.BOLD, 10 * UI_SCALE);
+    private static final Font NORMAL_FONT = new Font("SansSerif", Font.PLAIN, (int) (10 * getUIScale()));
+    private static final Font BOLD_FONT = new Font("SansSerif", Font.BOLD, (int) (10 * getUIScale()));
     private static final long serialVersionUID = 1L;
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(TiledImageViewer.class);
 
