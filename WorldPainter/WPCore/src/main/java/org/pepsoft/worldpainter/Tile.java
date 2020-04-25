@@ -5,44 +5,27 @@
 
 package org.pepsoft.worldpainter;
 
-import java.awt.Point;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.PrintStream;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
 import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.undo.BufferKey;
 import org.pepsoft.util.undo.UndoListener;
 import org.pepsoft.util.undo.UndoManager;
-
-import static org.pepsoft.util.ObjectUtils.copyObject;
-import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import org.pepsoft.worldpainter.gardenofeden.Seed;
+import org.pepsoft.worldpainter.layers.Biome;
+import org.pepsoft.worldpainter.layers.FloodWithLava;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.Layer.DataSize;
 
-import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
-import static org.pepsoft.worldpainter.Constants.TILE_SIZE_MASK;
-import org.pepsoft.worldpainter.layers.Biome;
-import org.pepsoft.worldpainter.layers.FloodWithLava;
+import java.awt.*;
+import java.io.*;
+import java.util.List;
+import java.util.*;
 
+import static java.util.stream.Collectors.toSet;
+import static org.pepsoft.util.ObjectUtils.copyObject;
+import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Tile.TileBuffer.*;
-import static org.pepsoft.worldpainter.layers.Layer.DataSize.*;
+import static org.pepsoft.worldpainter.layers.Layer.DataSize.BYTE;
+import static org.pepsoft.worldpainter.layers.Layer.DataSize.NIBBLE;
 
 /**
  *
@@ -244,6 +227,15 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
         ensureWriteable(TERRAIN);
         this.terrain[x | (y << TILE_SIZE_BITS)] = (byte) terrain.ordinal();
         terrainChanged();
+    }
+
+    public synchronized Set<Terrain> getAllTerrains() {
+        ensureReadable(TERRAIN);
+        BitSet terrainIndices = new BitSet(256);
+        for (byte terrainIndex: terrain) {
+            terrainIndices.set(terrainIndex & 0xff);
+        }
+        return terrainIndices.stream().mapToObj(i -> TERRAIN_VALUES[i]).collect(toSet());
     }
 
     public synchronized int getWaterLevel(int x, int y) {

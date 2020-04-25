@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toSet;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.*;
@@ -554,6 +555,10 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         if (tile != null) {
             tile.setTerrain(x & TILE_SIZE_MASK, y & TILE_SIZE_MASK, terrain);
         }
+    }
+
+    public Set<Terrain> getAllTerrains() {
+        return tiles.values().parallelStream().flatMap(tile -> tile.getAllTerrains().parallelStream()).collect(toSet());
     }
 
     public void setTerrainAt(Point coords, Terrain terrain) {
@@ -1140,7 +1145,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
      *     everywhere.
      */
     public Set<Layer> getMinimumLayers() {
-        Set<Layer> layers = layerSettings.values().stream().filter(ExporterSettings::isApplyEverywhere).map(ExporterSettings::getLayer).collect(Collectors.toSet());
+        Set<Layer> layers = layerSettings.values().stream().filter(ExporterSettings::isApplyEverywhere).map(ExporterSettings::getLayer).collect(toSet());
         return layers;
     }
 

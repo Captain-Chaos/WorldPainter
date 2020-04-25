@@ -24,7 +24,18 @@ public class MixedMaterialManager {
     public synchronized void clear() {
         materialsById.clear();
     }
-    
+
+    /**
+     * Forget one registered material.
+     */
+    public synchronized void clear(MixedMaterial material) {
+        if (materialsById.containsKey(material.getId())) {
+            materialsById.remove(material.getId());
+        } else {
+            throw new IllegalArgumentException("Material " + material + " not registered");
+        }
+    }
+
     /**
      * Register a new material; used among others by the readObject() method
      * of MixedMaterial to automatically register materials from existing

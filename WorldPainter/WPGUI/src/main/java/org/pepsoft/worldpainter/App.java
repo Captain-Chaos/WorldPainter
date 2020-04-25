@@ -576,7 +576,7 @@ public final class App extends JFrame implements RadiusControl,
                         // sure it has a button
                         Terrain terrain = ((CombinedLayer) customLayer).getTerrain();
                         if ((terrain != null) && terrain.isCustom() && (customMaterialButtons[terrain.getCustomTerrainIndex()] == null)) {
-                            addButtonForNewCustomTerrain(terrain.getCustomTerrainIndex(), Terrain.getCustomMaterial(terrain.getCustomTerrainIndex()), false);
+                            addButtonForNewCustomTerrain(terrain.getCustomTerrainIndex(), getCustomMaterial(terrain.getCustomTerrainIndex()), false);
                         }
                     }
                 }
@@ -1593,6 +1593,10 @@ public final class App extends JFrame implements RadiusControl,
 
         if (button != null) {
             if (material != null) {
+                menuItem = new JMenuItem("Remove...");
+                menuItem.addActionListener(e -> removeCustomMaterial(customMaterialIndex));
+                popupMenu.add(menuItem);
+
                 menuItem = new JMenuItem("Export to file...");
                 menuItem.addActionListener(e -> exportCustomMaterial(customMaterialIndex));
                 popupMenu.add(menuItem);
@@ -5330,11 +5334,36 @@ public final class App extends JFrame implements RadiusControl,
         MixedMaterialHelper.save(this, getCustomMaterial(customMaterialIndex));
     }
 
+    private void removeCustomMaterial(int index) {
+        Terrain customTerrain = Terrain.getCustomTerrain(index);
+        MixedMaterial mixedMaterial = getCustomMaterial(index);
+        String name = mixedMaterial.getName();
+        Set<Terrain> allTerrains = ProgressDialog.executeTask(this, "Checking whether terrain is in use", () -> Arrays.stream(world.getDimensions())
+                .parallel()
+                .flatMap(dim -> dim.getAllTerrains().parallelStream())
+                .collect(toSet()), NOT_CANCELABLE);
+        if (allTerrains.contains(customTerrain)) {
+            Toolkit.getDefaultToolkit().beep();
+            JOptionPane.showMessageDialog(this, "Custom terrain \"" + name + "\" is still in use.\nUse the Global Operations tool to replace it.", "Terrain In Use", ERROR_MESSAGE);
+            return;
+        }
+        if (JOptionPane.showConfirmDialog(this, "Are you sure you want to delete custom terrain \"" + name + "\"?\nThis operation cannot be undone.", "Confirm Deletion", YES_NO_OPTION) == YES_OPTION) {
+            MixedMaterialManager.getInstance().clear(mixedMaterial);
+            setCustomMaterial(index, null);
+            if (customMaterialButtons[index].isSelected()) {
+                deselectPaint();
+            }
+            customTerrainPanel.remove(customMaterialButtons[index]);
+            customTerrainPanel.validate();
+            JOptionPane.showMessageDialog(this, "Custom terrain \"" + name + "\" was successfully deleted.", "Custom Terrain Deleted", INFORMATION_MESSAGE);
+        }
+    }
+
     private void clearCustomTerrains() {
-        for (int i = 0; i < CUSTOM_TERRAIN_COUNT; i++) {
-            if (getCustomMaterial(i) != null) {
-                setCustomMaterial(i, null);
-                if (customMaterialButtons[i].isSelected()) {
+        for (int index = 0; index < CUSTOM_TERRAIN_COUNT; index++) {
+            if (getCustomMaterial(index) != null) {
+                setCustomMaterial(index, null);
+                if (customMaterialButtons[index].isSelected()) {
                     deselectPaint();
                 }
             }
@@ -5660,7 +5689,7 @@ public final class App extends JFrame implements RadiusControl,
                                 if ((terrain != null) && terrain.isCustom()) {
                                     updateCustomTerrainButtons = true;
                                     if (customMaterialButtons[terrain.getCustomTerrainIndex()] == null) {
-                                        addButtonForNewCustomTerrain(terrain.getCustomTerrainIndex(), Terrain.getCustomMaterial(terrain.getCustomTerrainIndex()), false);
+                                        addButtonForNewCustomTerrain(terrain.getCustomTerrainIndex(), getCustomMaterial(terrain.getCustomTerrainIndex()), false);
                                     }
                                 }
                             }

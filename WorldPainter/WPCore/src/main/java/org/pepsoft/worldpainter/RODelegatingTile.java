@@ -85,6 +85,11 @@ public class RODelegatingTile extends Tile {
     }
 
     @Override
+    public synchronized Set<Terrain> getAllTerrains() {
+        return tile.getAllTerrains();
+    }
+
+    @Override
     public int getWaterLevel(int x, int y) {
         return tile.getWaterLevel(x, y); //To change body of generated methods, choose Tools | Templates.
     }

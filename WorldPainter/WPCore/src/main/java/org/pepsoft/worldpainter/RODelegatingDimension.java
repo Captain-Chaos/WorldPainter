@@ -31,7 +31,7 @@ import java.util.List;
  *
  * @author pepijn
  */
-public class RODelegatingDimension extends Dimension {
+public abstract class RODelegatingDimension extends Dimension {
     public RODelegatingDimension(Dimension dimension) {
         super(dimension.getWorld(), dimension.getMinecraftSeed(), dimension.getTileFactory(), dimension.getDim(), dimension.getMaxHeight());
         this.dimension = dimension;
@@ -165,6 +165,11 @@ public class RODelegatingDimension extends Dimension {
     @Override
     public Terrain getTerrainAt(int x, int y) {
         return super.getTerrainAt(x, y);
+    }
+
+    @Override
+    public Set<Terrain> getAllTerrains() {
+        return dimension.getAllTerrains();
     }
 
     @Override
