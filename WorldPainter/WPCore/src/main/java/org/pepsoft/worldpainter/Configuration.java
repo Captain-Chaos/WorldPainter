@@ -710,6 +710,14 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         this.safeMode = safeMode;
     }
 
+    public float getUiScale() {
+        return uiScale;
+    }
+
+    public void setUiScale(float uiScale) {
+        this.uiScale = uiScale;
+    }
+
     public <T> T getAdvancedSetting(AttributeKey<T> key) {
         String value = System.getProperty(ADVANCED_SETTING_PREFIX + '.' + key.key);
         if (value != null) {
@@ -1106,7 +1114,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private Dimension defaultTerrainAndLayerSettings = new World2(DefaultPlugin.JAVA_ANVIL_1_14, World2.DEFAULT_OCEAN_SEED, TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), surface, defaultMaxHeight, level, waterLevel, lava, beaches, 20, 1.0), defaultMaxHeight).getDimension(Constants.DIM_NORMAL);
     private boolean toolbarsLocked;
     private int version = CURRENT_VERSION, worldFileBackups = 3;
-    private float defaultRange = 20;
+    private float defaultRange = 20, uiScale;
     private double defaultScale = 1.0;
     private LightOrigin defaultLightOrigin = LightOrigin.NORTHWEST;
     private int maximumBrushSize = 300;

@@ -15,7 +15,7 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
-import static org.pepsoft.util.GUIUtils.UI_SCALE;
+import static org.pepsoft.util.GUIUtils.getUIScaleInt;
 
 /**
  * @author SchmitzP
@@ -144,17 +144,17 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
 
     public BufferedImage getIcon(ColourScheme colourScheme) {
         if (colourScheme != null) {
-            final BufferedImage icon = new BufferedImage(16 * UI_SCALE, 16 * UI_SCALE, BufferedImage.TYPE_INT_RGB);
+            final BufferedImage icon = new BufferedImage(16 * getUIScaleInt(), 16 * getUIScaleInt(), BufferedImage.TYPE_INT_RGB);
             // Draw the terrain
             if (colour != null) {
-                for (int x = 1; x < 16 * UI_SCALE - 1; x++) {
-                    for (int y = 1; y < 16 * UI_SCALE - 1; y++) {
+                for (int x = 1; x < 16 * getUIScaleInt() - 1; x++) {
+                    for (int y = 1; y < 16 * getUIScaleInt() - 1; y++) {
                         icon.setRGB(x, y, colour);
                     }
                 }
             } else {
-                for (int x = 1; x < 16 * UI_SCALE - 1; x++) {
-                    for (int y = 1; y < 16 * UI_SCALE - 1; y++) {
+                for (int x = 1; x < 16 * getUIScaleInt() - 1; x++) {
+                    for (int y = 1; y < 16 * getUIScaleInt() - 1; y++) {
                         icon.setRGB(x, y, colourScheme.getColour(getMaterial(0, x * 2, 0, 15 - y * 2f)));
                     }
                 }
