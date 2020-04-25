@@ -137,6 +137,7 @@ public class ThreeDeeFrame extends JFrame implements WindowListener {
         inputMap.put(KeyStroke.getKeyStroke('+'), "zoomIn");
         
         setSize(800, 600);
+        setDefaultSizeAndLocation(this, 60);
         
         setDimension(dimension);
         
