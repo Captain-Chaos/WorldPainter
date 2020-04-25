@@ -10,6 +10,16 @@
  */
 package org.pepsoft.worldpainter;
 
+import org.pepsoft.util.DesktopUtils;
+import org.pepsoft.util.FileUtils;
+import org.pepsoft.util.undo.UndoManager;
+import org.pepsoft.worldpainter.plugins.Plugin;
+import org.pepsoft.worldpainter.plugins.WPPluginManager;
+import org.pepsoft.worldpainter.util.MinecraftUtil;
+import org.pepsoft.worldpainter.vo.EventVO;
+
+import javax.swing.*;
+import javax.swing.event.HyperlinkEvent.EventType;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -27,20 +37,6 @@ import java.text.MessageFormat;
 import java.util.List;
 import java.util.Properties;
 import java.util.ResourceBundle;
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
-import javax.swing.InputMap;
-import javax.swing.JComponent;
-import javax.swing.JOptionPane;
-import javax.swing.KeyStroke;
-import javax.swing.event.HyperlinkEvent.EventType;
-import org.pepsoft.util.DesktopUtils;
-import org.pepsoft.util.FileUtils;
-import org.pepsoft.util.undo.UndoManager;
-import org.pepsoft.worldpainter.plugins.Plugin;
-import org.pepsoft.worldpainter.plugins.WPPluginManager;
-import org.pepsoft.worldpainter.util.MinecraftUtil;
-import org.pepsoft.worldpainter.vo.EventVO;
 
 /**
  *
@@ -164,25 +160,6 @@ public class AboutDialog extends javax.swing.JDialog implements WindowListener {
         }
     }
 
-    private void donateBitcoin() {
-        try {
-            DesktopUtils.copyToClipboard("1NK8PFYFetTiWReujPsQXDcarXKJuYtqgF");
-            if (DesktopUtils.open(new URL("bitcoin:1NK8PFYFetTiWReujPsQXDcarXKJuYtqgF?label=pepsoft.org&message=WorldPainter%20donation"))) {
-                JOptionPane.showMessageDialog(this, "The bitcoin address for donations has been copied to your clipboard. In addition,\n"
-                                                  + "if you have a Bitcoin client installed, it may have been opened with the required information filled in.\n"
-                                                  + "Thank you very much for donating!", strings.getString("thank.you"), JOptionPane.INFORMATION_MESSAGE);
-            } else {
-                JOptionPane.showMessageDialog(this, "The bitcoin address for donations has been copied to your clipboard.\n"
-                                                  + "Thank you very much for donating!", strings.getString("thank.you"), JOptionPane.INFORMATION_MESSAGE);
-            }
-            Configuration config = Configuration.getInstance();
-            config.setDonationStatus(Configuration.DonationStatus.DONATED);
-            config.logEvent(new EventVO(Constants.EVENT_KEY_DONATION_DONATE_BITCOIN).addTimestamp());
-        } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-    
     private String loadTechInfo(World2 world, WorldPainter view, UndoManager undoManager) {
         File installDir = null;
         ClassLoader classLoader = AboutDialog.class.getClassLoader();
@@ -342,8 +319,6 @@ public class AboutDialog extends javax.swing.JDialog implements WindowListener {
                 String action = url.getPath().toLowerCase().trim();
                 if (action.equals("/donate")) { // NOI18N
                     donate();
-                } else if (action.equals("/donatebitcoin")) {
-                    donateBitcoin();
                 }
             } else {
                 DesktopUtils.open(url);

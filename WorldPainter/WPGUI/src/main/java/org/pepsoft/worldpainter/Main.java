@@ -359,17 +359,10 @@ public class Main {
             }
         });
         
-        // Make the "action:" and "bitcoin:" URLs used in various places work:
+        // Make the "action:" URLs used in various places work:
         URL.setURLStreamHandlerFactory(protocol -> {
             switch (protocol) {
                 case "action":
-                    return new URLStreamHandler() {
-                        @Override
-                        protected URLConnection openConnection(URL u) throws IOException {
-                            throw new UnsupportedOperationException("Not supported");
-                        }
-                    };
-                case "bitcoin":
                     return new URLStreamHandler() {
                         @Override
                         protected URLConnection openConnection(URL u) throws IOException {
