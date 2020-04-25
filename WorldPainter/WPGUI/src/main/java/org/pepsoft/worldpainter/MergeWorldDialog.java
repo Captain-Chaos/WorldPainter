@@ -42,10 +42,9 @@ import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 // TODO: add support for multiple dimensions
 public class MergeWorldDialog extends WorldPainterDialog {
     /** Creates new form ExportWorldDialog */
-    public MergeWorldDialog(Window parent, World2 world, BiomeScheme biomeScheme, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Collection<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin, WorldPainter view) {
+    public MergeWorldDialog(Window parent, World2 world, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Collection<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin, WorldPainter view) {
         super(parent);
         this.world = world;
-        this.biomeScheme = biomeScheme;
         this.colourScheme = colourScheme;
         this.hiddenLayers = hiddenLayers;
         this.contourLines = contourLines;
@@ -366,7 +365,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
 
     private void selectTiles() {
         if (radioButtonExportSelection.isSelected() && (! radioButtonBiomes.isSelected())) {
-            ExportTileSelectionDialog dialog = new ExportTileSelectionDialog(this, world, selectedDimension, selectedTiles, colourScheme, biomeScheme, customBiomeManager, hiddenLayers, contourLines, contourSeparation, lightOrigin);
+            ExportTileSelectionDialog dialog = new ExportTileSelectionDialog(this, world, selectedDimension, selectedTiles, colourScheme, customBiomeManager, hiddenLayers, contourLines, contourSeparation, lightOrigin);
             dialog.setVisible(true);
             selectedDimension = dialog.getSelectedDimension();
             checkBoxSurface.setSelected(selectedDimension == DIM_NORMAL);
@@ -823,7 +822,6 @@ public class MergeWorldDialog extends WorldPainterDialog {
     // End of variables declaration//GEN-END:variables
 
     private final World2 world;
-    private final BiomeScheme biomeScheme;
     private final ColourScheme colourScheme;
     private final Collection<Layer> hiddenLayers;
     private final boolean contourLines;

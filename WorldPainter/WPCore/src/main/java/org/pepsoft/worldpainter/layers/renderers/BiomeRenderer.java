@@ -4,30 +4,27 @@
  */
 package org.pepsoft.worldpainter.layers.renderers;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.pepsoft.util.ColourUtils;
-import org.pepsoft.worldpainter.BiomeScheme;
 import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiome;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager.CustomBiomeListener;
+import org.pepsoft.worldpainter.biomeschemes.StaticBiomeInfo;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  *
  * @author pepijn
  */
 public class BiomeRenderer implements ByteLayerRenderer, ColourSchemeRenderer, CustomBiomeListener {
-    public BiomeRenderer(BiomeScheme biomeScheme, CustomBiomeManager customBiomeManager) {
-        if (biomeScheme == null) {
-            throw new NullPointerException();
-        }
-        this.biomeScheme = biomeScheme;
-        int count = biomeScheme.getBiomeCount();
+    public BiomeRenderer(CustomBiomeManager customBiomeManager) {
+        int count = StaticBiomeInfo.INSTANCE.getBiomeCount();
         patterns = new boolean[count][][];
         for (int i = 0; i < count; i++) {
-            patterns[i] = biomeScheme.getPattern(i);
+            patterns[i] = StaticBiomeInfo.INSTANCE.getPattern(i);
         }
         if (customBiomeManager != null) {
             List<CustomBiome> customBiomes = customBiomeManager.getCustomBiomes();
@@ -53,10 +50,6 @@ public class BiomeRenderer implements ByteLayerRenderer, ColourSchemeRenderer, C
         resetColours();
     }
     
-    public BiomeScheme getBiomeScheme() {
-        return biomeScheme;
-    }
-
     @Override
     public int getPixelColour(int x, int y, int underlyingColour, int value) {
         if (value == 255) {
@@ -90,8 +83,8 @@ public class BiomeRenderer implements ByteLayerRenderer, ColourSchemeRenderer, C
     
     private void resetColours() {
         for (int i = 0; i < 256; i++) {
-            if (biomeScheme.isBiomePresent(i) && (colourScheme != null)) {
-                colours[i] = biomeScheme.getColour(i, colourScheme);
+            if (StaticBiomeInfo.INSTANCE.isBiomePresent(i) && (colourScheme != null)) {
+                colours[i] = StaticBiomeInfo.INSTANCE.getColour(i, colourScheme);
             } else if (customColours.containsKey(i)) {
                 colours[i] = customColours.get(i);
             } else {
@@ -111,7 +104,6 @@ public class BiomeRenderer implements ByteLayerRenderer, ColourSchemeRenderer, C
 
     private final int[] colours = new int[256];
     private final Map<Integer, Integer> customColours = new HashMap<>();
-    private final BiomeScheme biomeScheme;
     private final boolean[][][] patterns;
     private ColourScheme colourScheme;
     

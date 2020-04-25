@@ -31,7 +31,7 @@ import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
  */
 public class TileEditor extends WorldPainterDialog implements TileSelector.Listener {
     /** Creates new form TileEditor */
-    public TileEditor(java.awt.Frame parent, Dimension dimension, ColourScheme colourScheme, BiomeScheme biomeScheme, CustomBiomeManager customBiomeManager, Collection<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin) {
+    public TileEditor(java.awt.Frame parent, Dimension dimension, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Collection<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin) {
         super(parent);
         this.dimension = dimension;
         initComponents();
@@ -42,7 +42,6 @@ public class TileEditor extends WorldPainterDialog implements TileSelector.Liste
         ((HTMLDocument) jTextPane1.getDocument()).getStyleSheet().addRule(bodyRule);
         
         tileSelector1.setColourScheme(colourScheme);
-        tileSelector1.setBiomeScheme(biomeScheme);
         tileSelector1.setHiddenLayers(hiddenLayers);
         tileSelector1.setContourLines(contourLines);
         tileSelector1.setContourSeparation(contourSeparation);

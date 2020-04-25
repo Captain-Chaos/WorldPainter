@@ -5,8 +5,8 @@
 package org.pepsoft.worldpainter.threedeeview;
 
 import org.pepsoft.minecraft.Material;
-import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.*;
 
@@ -27,12 +27,12 @@ import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
  */
 // TODO: adapt for new dynamic maximum level height
 public class Tile3DRenderer {
-    public Tile3DRenderer(Dimension dimension, ColourScheme colourScheme, BiomeScheme biomeScheme, CustomBiomeManager customBiomeManager, int rotation) {
+    public Tile3DRenderer(Dimension dimension, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, int rotation) {
         this.dimension = dimension;
         maxHeight = dimension.getMaxHeight();
         this.colourScheme = colourScheme;
         this.rotation = rotation;
-        tileRenderer = new TileRenderer(dimension, colourScheme, biomeScheme, customBiomeManager, 0);
+        tileRenderer = new TileRenderer(dimension, colourScheme, customBiomeManager, 0);
         tileRenderer.addHiddenLayers(DEFAULT_HIDDEN_LAYERS);
         tileRenderer.setContourLines(false);
     }

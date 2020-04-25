@@ -4,31 +4,23 @@
  */
 package org.pepsoft.worldpainter.tools;
 
-import java.awt.BorderLayout;
-import java.awt.Point;
-import java.awt.Rectangle;
+import org.pepsoft.minecraft.Constants;
+import org.pepsoft.minecraft.Material;
+import org.pepsoft.util.swing.TiledImageViewer;
+import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.MixedMaterial.Row;
+import org.pepsoft.worldpainter.biomeschemes.Minecraft1_2BiomeScheme;
+import org.pepsoft.worldpainter.colourschemes.DynMapColourScheme;
+import org.pepsoft.worldpainter.layers.Biome;
+
+import javax.swing.*;
+import java.awt.*;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
-import javax.swing.JFrame;
-import org.pepsoft.minecraft.Constants;
-import org.pepsoft.minecraft.Material;
-import org.pepsoft.util.swing.TiledImageViewer;
+
 //import org.pepsoft.worldpainter.ExperimentalTileFactory;
-import org.pepsoft.worldpainter.Tile;
-import org.pepsoft.worldpainter.WPTileProvider;
-import org.pepsoft.worldpainter.colourschemes.DynMapColourScheme;
-import org.pepsoft.worldpainter.layers.Biome;
-import org.pepsoft.worldpainter.layers.Layer;
-import org.pepsoft.worldpainter.HeightMapTileFactory;
-import org.pepsoft.worldpainter.MixedMaterial;
-import org.pepsoft.worldpainter.MixedMaterial.Row;
-import org.pepsoft.worldpainter.Terrain;
-import org.pepsoft.worldpainter.TileFactoryFactory;
-import org.pepsoft.worldpainter.TileRenderer;
-import org.pepsoft.worldpainter.biomeschemes.AutoBiomeScheme;
-import org.pepsoft.worldpainter.biomeschemes.Minecraft1_2BiomeScheme;
 
 /**
  *
@@ -104,7 +96,7 @@ public class TileFactoryPreviewer {
         Terrain.setCustomMaterial(1, new MixedMaterial("Stone/Gravel", new Row[] {new Row(Material.STONE, 750, 1.0f), new Row(Material.GRAVEL, 250, 1.0f)}, Minecraft1_2BiomeScheme.BIOME_PLAINS, null, 1.0f));
         TiledImageViewer viewer = new TiledImageViewer();
         JFrame frame = new JFrame("TileFactory Previewer");
-        viewer.setTileProvider(new WPTileProvider(tileProvider, new DynMapColourScheme("default", true), new AutoBiomeScheme(null), null, Collections.singleton((Layer) Biome.INSTANCE), true, 10, TileRenderer.LightOrigin.NORTHWEST, false, null));
+        viewer.setTileProvider(new WPTileProvider(tileProvider, new DynMapColourScheme("default", true), null, Collections.singleton(Biome.INSTANCE), true, 10, TileRenderer.LightOrigin.NORTHWEST, false, null));
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().add(viewer, BorderLayout.CENTER);
         frame.setSize(1000, 800);

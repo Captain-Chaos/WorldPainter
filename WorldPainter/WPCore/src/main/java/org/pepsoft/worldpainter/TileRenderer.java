@@ -14,8 +14,8 @@ import org.pepsoft.worldpainter.layers.renderers.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
@@ -26,8 +26,8 @@ import static org.pepsoft.worldpainter.Constants.*;
  * @author pepijn
  */
 public final class TileRenderer {
-    public TileRenderer(TileProvider tileProvider, ColourScheme colourScheme, BiomeScheme biomeScheme, CustomBiomeManager customBiomeManager, int zoom) {
-        biomeRenderer = new BiomeRenderer(biomeScheme, customBiomeManager);
+    public TileRenderer(TileProvider tileProvider, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, int zoom) {
+        biomeRenderer = new BiomeRenderer(customBiomeManager);
         setTileProvider(tileProvider);
         if ((tileProvider instanceof Dimension) && (((Dimension) tileProvider).getWorld() != null)) {
             Dimension oppositeDimension = null;
@@ -271,9 +271,9 @@ public final class TileRenderer {
 //        }
     }
 
-    public static TileRenderer forWorld(World2 world, int dim, ColourScheme colourScheme, BiomeScheme biomeScheme, CustomBiomeManager customBiomeManager, int zoom) {
+    public static TileRenderer forWorld(World2 world, int dim, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, int zoom) {
         Dimension dimension = world.getDimension(dim);
-        return new TileRenderer(dimension, colourScheme, biomeScheme, customBiomeManager, zoom);
+        return new TileRenderer(dimension, colourScheme, customBiomeManager, zoom);
     }
 
     /**

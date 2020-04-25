@@ -21,7 +21,7 @@ public class BiomeListCellRenderer extends DefaultListCellRenderer {
     
     public BiomeListCellRenderer(ColourScheme colourScheme, CustomBiomeManager customBiomeManager, String nullLabel) {
         this.nullLabel = nullLabel;
-        biomeHelper = new BiomeHelper(null, colourScheme, customBiomeManager);
+        biomeHelper = new BiomeHelper(colourScheme, customBiomeManager);
     }
     
     @Override

@@ -4,48 +4,35 @@
  */
 package org.pepsoft.worldpainter.threedeeview;
 
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.HierarchyEvent;
-import java.awt.event.HierarchyListener;
-import java.awt.image.BufferedImage;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import javax.swing.JComponent;
-import javax.swing.JViewport;
-import javax.swing.Scrollable;
-import javax.swing.SwingUtilities;
-import javax.swing.Timer;
 import org.pepsoft.util.ProgressReceiver;
-import org.pepsoft.worldpainter.BiomeScheme;
 import org.pepsoft.worldpainter.ColourScheme;
-import static org.pepsoft.worldpainter.Constants.*;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.HeightMapTileFactory;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.Layer;
 
+import javax.swing.Timer;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
+import java.awt.image.BufferedImage;
+import java.util.List;
+import java.util.*;
+
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
+
 /**
  *
  * @author pepijn
  */
 public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile.Listener, HierarchyListener, ActionListener, Scrollable {
-    public ThreeDeeView(Dimension dimension, ColourScheme colourScheme, BiomeScheme biomeScheme, CustomBiomeManager customBiomeManager, int rotation, int zoom) {
+    public ThreeDeeView(Dimension dimension, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, int rotation, int zoom) {
         this.dimension = dimension;
         this.colourScheme = colourScheme;
-        this.biomeScheme = biomeScheme;
         this.customBiomeManager = customBiomeManager;
         this.rotation = rotation;
         this.zoom = zoom;
@@ -99,7 +86,7 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
                 throw new IllegalArgumentException();
         }
         zSortedTiles.addAll(dimension.getTiles());
-        threeDeeRenderManager = new ThreeDeeRenderManager(dimension, colourScheme, biomeScheme, customBiomeManager, rotation);
+        threeDeeRenderManager = new ThreeDeeRenderManager(dimension, colourScheme, customBiomeManager, rotation);
 
         dimension.addDimensionListener(this);
         for (Tile tile: dimension.getTiles()) {
@@ -153,7 +140,7 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
     }
 
     public BufferedImage getImage(ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
-        Tile3DRenderer renderer = new Tile3DRenderer(dimension, colourScheme, biomeScheme, customBiomeManager, rotation);
+        Tile3DRenderer renderer = new Tile3DRenderer(dimension, colourScheme, customBiomeManager, rotation);
 
         // Paint the complete image
         java.awt.Dimension preferredSize = unzoom(getPreferredSize());
@@ -632,7 +619,6 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
     private final Map<Tile, BufferedImage> renderedTiles = new HashMap<>();
     private final ThreeDeeRenderManager threeDeeRenderManager;
     private final ColourScheme colourScheme;
-    private final BiomeScheme biomeScheme;
     private final List<Tile> tilesWaitingToBeRendered = new LinkedList<>();
     private final int maxHeight;
     private final int xOffset, yOffset, maxX, maxY;

@@ -20,7 +20,7 @@ import org.pepsoft.worldpainter.colourschemes.DynMapColourScheme;
 public class WorldMorph {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            final WorldPainter view = new WorldPainter(createNewWorld().getDimension(0), new DynMapColourScheme("default", true), null, null);
+            final WorldPainter view = new WorldPainter(createNewWorld().getDimension(0), new DynMapColourScheme("default", true), null);
             JFrame frame = new JFrame("WorldMorph");
             frame.getContentPane().add(view, BorderLayout.CENTER);
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

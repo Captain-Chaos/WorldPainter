@@ -49,14 +49,13 @@ import static org.pepsoft.worldpainter.util.MaterialUtils.gatherBlocksWithoutIds
  */
 public class ExportWorldDialog extends WorldPainterDialog {
     /** Creates new form ExportWorldDialog */
-    public ExportWorldDialog(java.awt.Frame parent, World2 world, BiomeScheme biomeScheme, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Collection<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin, WorldPainter view) {
+    public ExportWorldDialog(java.awt.Frame parent, World2 world, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Collection<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin, WorldPainter view) {
         super(parent);
         this.world = world;
         selectedTiles = world.getTilesToExport();
         selectedDimension = (selectedTiles != null) ? world.getDimensionsToExport().iterator().next() : DIM_NORMAL;
         generatorOptions = world.getGeneratorOptions();
         superflatPreset = world.getSuperflatPreset();
-        this.biomeScheme = biomeScheme;
         this.colourScheme = colourScheme;
         this.hiddenLayers = hiddenLayers;
         this.contourLines = contourLines;
@@ -521,7 +520,7 @@ dims:   for (Dimension dim: world.getDimensions()) {
     
     private void selectTiles() {
         if (radioButtonExportSelection.isSelected()) {
-            ExportTileSelectionDialog dialog = new ExportTileSelectionDialog(this, world, selectedDimension, selectedTiles, colourScheme, biomeScheme, customBiomeManager, hiddenLayers, contourLines, contourSeparation, lightOrigin);
+            ExportTileSelectionDialog dialog = new ExportTileSelectionDialog(this, world, selectedDimension, selectedTiles, colourScheme, customBiomeManager, hiddenLayers, contourLines, contourSeparation, lightOrigin);
             dialog.setVisible(true);
             selectedDimension = dialog.getSelectedDimension();
             selectedTiles = dialog.getSelectedTiles();
@@ -957,7 +956,6 @@ dims:   for (Dimension dim: world.getDimensions()) {
     // End of variables declaration//GEN-END:variables
 
     private final World2 world;
-    private final BiomeScheme biomeScheme;
     private final ColourScheme colourScheme;
     private final Collection<Layer> hiddenLayers;
     private final boolean contourLines;
@@ -970,7 +968,7 @@ dims:   for (Dimension dim: world.getDimensions()) {
     private Set<Point> selectedTiles;
     private boolean disableTileSelectionWarning, disableDisabledLayersWarning, endlessBorder, savedMapFeatures;
     private String generatorOptions;
-    private SuperflatPreset superflatPreset;
+    private SuperflatPreset superflatPreset; // TODO: finish
     private Map<String, Set<String>> nameOnlyMaterials = new HashMap<>();
 
     private static final Icon WARNING_ICON = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/error.png");

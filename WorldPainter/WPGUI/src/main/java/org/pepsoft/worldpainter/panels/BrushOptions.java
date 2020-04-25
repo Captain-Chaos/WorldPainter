@@ -7,12 +7,14 @@ package org.pepsoft.worldpainter.panels;
 import org.pepsoft.minecraft.Constants;
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.util.ObservableBoolean;
-import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.App;
+import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.biomeschemes.AutoBiomeScheme;
+import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.biomeschemes.BiomeHelper;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiome;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
+import org.pepsoft.worldpainter.biomeschemes.StaticBiomeInfo;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.operations.Filter;
 import org.pepsoft.worldpainter.panels.DefaultFilter.LevelType;
@@ -23,8 +25,8 @@ import javax.swing.*;
 import javax.swing.JSpinner.NumberEditor;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 /**
  *
@@ -104,7 +106,7 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
                 switch (filter.onlyOnObjectType) {
                     case BIOME:
                         int biome = filter.onlyOnValue;
-                        BiomeHelper biomeHelper = new BiomeHelper(autoBiomeScheme, app.getColourScheme(), app.getCustomBiomeManager());
+                        BiomeHelper biomeHelper = new BiomeHelper(app.getColourScheme(), app.getCustomBiomeManager());
                         onlyOn = biome;
                         buttonReplace.setText(biomeHelper.getBiomeName(biome));
                         buttonReplace.setIcon(biomeHelper.getBiomeIcon(biome));
@@ -150,7 +152,7 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
                 switch (filter.exceptOnObjectType) {
                     case BIOME:
                         int biome = filter.exceptOnValue;
-                        BiomeHelper biomeHelper = new BiomeHelper(autoBiomeScheme, app.getColourScheme(), app.getCustomBiomeManager());
+                        BiomeHelper biomeHelper = new BiomeHelper(app.getColourScheme(), app.getCustomBiomeManager());
                         exceptOn = biome;
                         buttonExceptOn.setText(biomeHelper.getBiomeName(biome));
                         buttonExceptOn.setIcon(biomeHelper.getBiomeIcon(biome));
@@ -330,7 +332,7 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
 
         final JMenu biomeMenu = new JMenu("Biome");
         final CustomBiomeManager customBiomeManager = app.getCustomBiomeManager();
-        final BiomeHelper biomeHelper = new BiomeHelper(autoBiomeScheme, colourScheme, customBiomeManager);
+        final BiomeHelper biomeHelper = new BiomeHelper(colourScheme, customBiomeManager);
         List<CustomBiome> customBiomes = customBiomeManager.getCustomBiomes();
         if ((customBiomes != null) && (! customBiomes.isEmpty())) {
             JMenu customBiomeMenu = new JMenu("Custom");
@@ -344,8 +346,8 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
             }
             biomeMenu.add(customBiomeMenu);
         }
-        for (int i = 0; i < autoBiomeScheme.getBiomeCount(); i++) {
-            if (autoBiomeScheme.isBiomePresent(i)) {
+        for (int i = 0; i < StaticBiomeInfo.INSTANCE.getBiomeCount(); i++) {
+            if (StaticBiomeInfo.INSTANCE.isBiomePresent(i)) {
                 final int selectedBiome = i;
                 final String name = biomeHelper.getBiomeName(i) + " (" + selectedBiome + ")";
                 final Icon icon = biomeHelper.getBiomeIcon(i);
@@ -488,8 +490,6 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
             inputMap.put(app.ACTION_INTENSITY_90_PERCENT.getAcceleratorKey(), "doNothing");
             inputMap.put(app.ACTION_INTENSITY_100_PERCENT.getAcceleratorKey(), "doNothing");
 
-            autoBiomeScheme = new AutoBiomeScheme(null);
-            
             initialised = true;
         }
     }
@@ -812,7 +812,6 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
     // End of variables declaration//GEN-END:variables
 
     private Object onlyOn, exceptOn;
-    private BiomeScheme autoBiomeScheme;
     private Listener listener;
     private boolean initialised;
     private ObservableBoolean selectionState;

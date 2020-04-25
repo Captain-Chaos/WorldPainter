@@ -6,10 +6,8 @@
 
 package org.pepsoft.worldpainter;
 
-import org.pepsoft.worldpainter.biomeschemes.AutoBiomeScheme;
 import org.pepsoft.worldpainter.heightMaps.*;
 import org.pepsoft.worldpainter.layers.Biome;
-import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.themes.SimpleTheme;
 import org.pepsoft.worldpainter.themes.Theme;
 
@@ -59,7 +57,7 @@ public class NewWorldDialog2 extends javax.swing.JDialog {
             private final Map<Point, Tile> cache = new HashMap<>();
         };
         Configuration config = Configuration.getInstance();
-        tiledImageViewer1.setTileProvider(new WPTileProvider(tileProvider, app.getColourScheme(config.getColourschemeIndex()), autoBiomeScheme, app.getCustomBiomeManager(), Collections.singleton((Layer) Biome.INSTANCE), config.isDefaultContoursEnabled(), config.getDefaultContourSeparation(), config.getDefaultLightOrigin(), false, null));
+        tiledImageViewer1.setTileProvider(new WPTileProvider(tileProvider, app.getColourScheme(config.getColourschemeIndex()), app.getCustomBiomeManager(), Collections.singleton(Biome.INSTANCE), config.isDefaultContoursEnabled(), config.getDefaultContourSeparation(), config.getDefaultLightOrigin(), false, null));
     }
     
     private TileFactory createTileFactory() {
@@ -545,5 +543,4 @@ public class NewWorldDialog2 extends javax.swing.JDialog {
     // End of variables declaration//GEN-END:variables
 
     private final App app;
-    private final AutoBiomeScheme autoBiomeScheme = new AutoBiomeScheme(null);
 }

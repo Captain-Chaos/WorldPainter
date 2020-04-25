@@ -15,7 +15,6 @@ import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.swing.ProgressDialog;
 import org.pepsoft.util.swing.ProgressTask;
-import org.pepsoft.worldpainter.biomeschemes.AutoBiomeScheme;
 import org.pepsoft.worldpainter.biomeschemes.BiomeHelper;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.Biome;
@@ -46,7 +45,7 @@ public class FillDialog extends WorldPainterDialog implements Listener {
         this.dimension = dimension;
         this.colourScheme = colourScheme;
         this.view = view;
-        biomeHelper = new BiomeHelper(new AutoBiomeScheme(null), colourScheme, customBiomeManager);
+        biomeHelper = new BiomeHelper(colourScheme, customBiomeManager);
         
         initComponents();
         brushOptions1.setSelectionState(selectionState);

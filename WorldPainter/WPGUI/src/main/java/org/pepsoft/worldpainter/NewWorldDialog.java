@@ -15,7 +15,6 @@ import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.Dimension.Border;
-import org.pepsoft.worldpainter.biomeschemes.AutoBiomeScheme;
 import org.pepsoft.worldpainter.biomeschemes.Minecraft1_2BiomeScheme;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.Biome;
@@ -33,8 +32,8 @@ import org.pepsoft.worldpainter.themes.impl.simple.EditSimpleThemeDialog;
 import javax.swing.*;
 import javax.swing.JSpinner.DefaultEditor;
 import java.awt.*;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -47,6 +46,7 @@ import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.Platform.Capability.SEED;
 import static org.pepsoft.worldpainter.Terrain.*;
+import static org.pepsoft.worldpainter.util.MinecraftUtil.blocksToWalkingTime;
 
 /**
  *
@@ -598,7 +598,7 @@ public class NewWorldDialog extends WorldPainterDialog {
             private final Map<Point, Tile> cache = new HashMap<>();
         };
         Configuration config = Configuration.getInstance();
-        tiledImageViewer1.setTileProvider(new WPTileProvider(tileProvider, app.getColourScheme(config.getColourschemeIndex()), autoBiomeScheme, app.getCustomBiomeManager(), Collections.singleton((Layer) Biome.INSTANCE), config.isDefaultContoursEnabled(), config.getDefaultContourSeparation(), config.getDefaultLightOrigin(), false, null));
+        tiledImageViewer1.setTileProvider(new WPTileProvider(tileProvider, app.getColourScheme(config.getColourschemeIndex()), app.getCustomBiomeManager(), Collections.singleton(Biome.INSTANCE), config.isDefaultContoursEnabled(), config.getDefaultContourSeparation(), config.getDefaultLightOrigin(), false, null));
     }
     
     private TileFactory createTileFactory(long seed) {
@@ -670,21 +670,6 @@ public class NewWorldDialog extends WorldPainterDialog {
         }
     }
     
-    private String blocksToWalkingTime(int blocks) {
-        int mins = (int) (blocks / 256f + 0.5f);
-        if (mins < 60) {
-            return mins + " min.";
-        } else {
-            int hours = mins / 60;
-            mins -= 60 * hours;
-            if (mins == 0) {
-                return hours + "hr.";
-            } else {
-                return hours + "hr., " + mins + " min.";
-            }
-        }
-    }
-
     private void editTheme() {
         theme.setWaterHeight((Integer) spinnerWaterLevel.getValue());
         theme.setBeaches(checkBoxBeaches.isSelected());
@@ -1524,7 +1509,6 @@ public class NewWorldDialog extends WorldPainterDialog {
 
     private final App app;
     private final Set<Point> tiles;
-    private final AutoBiomeScheme autoBiomeScheme = new AutoBiomeScheme(null);
     private Platform platform;
     private int previousExp = -1, dim, savedTerrainLevel;
     private long worldpainterSeed;

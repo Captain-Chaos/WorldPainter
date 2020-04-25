@@ -16,8 +16,6 @@ import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
 import org.pepsoft.worldpainter.tools.BiomesTileProvider;
 import org.pepsoft.worldpainter.tools.WPTileSelectionViewer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -181,14 +179,6 @@ public class TileSelector extends javax.swing.JPanel {
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, KeyEvent.SHIFT_DOWN_MASK), "zoomIn");
     }
 
-    public BiomeScheme getBiomeScheme() {
-        return biomeScheme;
-    }
-
-    public void setBiomeScheme(BiomeScheme biomeScheme) {
-        this.biomeScheme = biomeScheme;
-    }
-
     public ColourScheme getColourScheme() {
         return colourScheme;
     }
@@ -248,7 +238,7 @@ public class TileSelector extends javax.swing.JPanel {
                     }
                 }
             }
-            WPTileProvider tileProvider = new WPTileProvider(dimension, colourScheme, biomeScheme, customBiomeManager, hiddenLayers, contourLines, contourSeparation, lightOrigin, true, (biomeAlgorithm != -1) ? new BiomesTileProvider(biomeAlgorithm, dimension.getMinecraftSeed(), colourScheme, 0, true) : null);
+            WPTileProvider tileProvider = new WPTileProvider(dimension, colourScheme, customBiomeManager, hiddenLayers, contourLines, contourSeparation, lightOrigin, true, (biomeAlgorithm != -1) ? new BiomesTileProvider(biomeAlgorithm, dimension.getMinecraftSeed(), colourScheme, 0, true) : null);
 //            tileProvider.setZoom(zoom);
             viewer.setTileProvider(tileProvider);
             viewer.setMarkerCoords(((dimension.getDim() == DIM_NORMAL) || (dimension.getDim() == DIM_NORMAL_CEILING)) ? dimension.getWorld().getSpawnPoint() : null);
@@ -502,14 +492,12 @@ public class TileSelector extends javax.swing.JPanel {
     private final List<Listener> listeners = new ArrayList<>();
     private Dimension dimension;
     private ColourScheme colourScheme;
-    private BiomeScheme biomeScheme;
     private Collection<Layer> hiddenLayers;
     private int contourSeparation = 10;
     private boolean contourLines, allowNonExistentTileSelection = false;
     private TileRenderer.LightOrigin lightOrigin;
     private CustomBiomeManager customBiomeManager;
 
-    private static final Logger logger = LoggerFactory.getLogger(TileSelector.class);
     private static final long serialVersionUID = 1L;
     
     public interface Listener {

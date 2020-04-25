@@ -10,7 +10,6 @@ import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.WorldPainter;
-import org.pepsoft.worldpainter.biomeschemes.AutoBiomeScheme;
 import org.pepsoft.worldpainter.biomeschemes.BiomeHelper;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes;
@@ -29,8 +28,8 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.text.NumberFormat;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 import static org.pepsoft.worldpainter.Constants.*;
 
@@ -45,7 +44,7 @@ public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener
     public InfoPanel(WorldPainter view, CustomBiomeManager customBiomeManager) {
         this.view = view;
         tableModel = new LayerTableModel();
-        biomeHelper = new BiomeHelper(new AutoBiomeScheme(null), view.getColourScheme(), customBiomeManager);
+        biomeHelper = new BiomeHelper(view.getColourScheme(), customBiomeManager);
         heightFormatter = NumberFormat.getInstance();
         heightFormatter.setMaximumFractionDigits(3);
 

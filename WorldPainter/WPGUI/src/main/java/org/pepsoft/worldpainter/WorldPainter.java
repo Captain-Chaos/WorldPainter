@@ -6,7 +6,6 @@
 package org.pepsoft.worldpainter;
 
 import org.pepsoft.util.MemoryUtils;
-import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.TileRenderer.LightOrigin;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.brushes.BrushShape;
@@ -40,18 +39,17 @@ import static org.pepsoft.worldpainter.Generator.LARGE_BIOMES;
  * @author pepijn
  */
 public class WorldPainter extends WorldPainterView implements MouseMotionListener, PropertyChangeListener {
-    public WorldPainter(ColourScheme colourScheme, BiomeScheme biomeScheme, CustomBiomeManager customBiomeManager) {
+    public WorldPainter(ColourScheme colourScheme, CustomBiomeManager customBiomeManager) {
         super(false, false);
         this.colourScheme = colourScheme;
-        this.biomeScheme = biomeScheme;
         this.customBiomeManager = customBiomeManager;
         setOpaque(true);
         addMouseMotionListener(this);
         enableInputMethods(false);
     }
 
-    public WorldPainter(Dimension dimension, ColourScheme colourScheme, BiomeScheme biomeScheme, CustomBiomeManager customBiomeManager) {
-        this(colourScheme, biomeScheme, customBiomeManager);
+    public WorldPainter(Dimension dimension, ColourScheme colourScheme, CustomBiomeManager customBiomeManager) {
+        this(colourScheme, customBiomeManager);
         setDimension(dimension);
     }
 
@@ -103,17 +101,6 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     public void setColourScheme(ColourScheme colourScheme) {
         this.colourScheme = colourScheme;
         refreshTiles();
-    }
-
-    public BiomeScheme getBiomeScheme() {
-        return biomeScheme;
-    }
-
-    public void setBiomeScheme(BiomeScheme biomeScheme) {
-        this.biomeScheme = biomeScheme;
-        if (! hiddenLayers.contains(Biome.INSTANCE)) {
-            refreshTiles();
-        }
     }
 
     public boolean isDrawBrush() {
@@ -388,7 +375,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
                     }
                 }
             }
-            tileProvider = new WPTileProvider(dimension, colourScheme, biomeScheme, customBiomeManager, hiddenLayers, drawContours, contourSeparation, lightOrigin, drawBorders, (biomeAlgorithm != -1) ? new BiomesTileProvider(biomeAlgorithm, dimension.getMinecraftSeed(), colourScheme, 0, true) : null, true);
+            tileProvider = new WPTileProvider(dimension, colourScheme, customBiomeManager, hiddenLayers, drawContours, contourSeparation, lightOrigin, drawBorders, (biomeAlgorithm != -1) ? new BiomesTileProvider(biomeAlgorithm, dimension.getMinecraftSeed(), colourScheme, 0, true) : null, true);
             if (getTileProviderCount() == 0) {
                 addTileProvider(tileProvider);
             } else {
@@ -428,11 +415,11 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         App.getInstance().updateStatusBar(x, y);
     }
 
-    public BufferedImage getImage() throws ProgressReceiver.OperationCancelled {
+    public BufferedImage getImage() {
         if (dimension == null) {
             return null;
         }
-        TileRenderer tileRenderer = new TileRenderer(dimension, colourScheme, biomeScheme, customBiomeManager, 0);
+        TileRenderer tileRenderer = new TileRenderer(dimension, colourScheme, customBiomeManager, 0);
         tileRenderer.setContourLines(drawContours);
         tileRenderer.setContourSeparation(contourSeparation);
         tileRenderer.setHiddenLayers(hiddenLayers);
@@ -611,7 +598,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     }
 
     int getOverlayImageSize() {
-        return (overlay != null) ? MemoryUtils.getSize(overlay, Collections.<Class<?>>emptySet()) : 0;
+        return (overlay != null) ? MemoryUtils.getSize(overlay, Collections.emptySet()) : 0;
     }
     
     @Override
@@ -901,7 +888,6 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     private float overlayScale = 1.0f;
     private float overlayTransparency = 0.5f;
     private ColourScheme colourScheme;
-    private BiomeScheme biomeScheme;
     private BufferedImage overlay;
     private LightOrigin lightOrigin = LightOrigin.NORTHWEST;
     private WPTileProvider tileProvider;

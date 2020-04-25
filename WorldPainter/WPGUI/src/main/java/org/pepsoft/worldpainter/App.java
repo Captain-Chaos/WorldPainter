@@ -18,11 +18,11 @@ import org.pepsoft.util.swing.ProgressTask;
 import org.pepsoft.util.swing.RemoteJCheckBox;
 import org.pepsoft.util.swing.TiledImageViewerContainer;
 import org.pepsoft.util.undo.UndoManager;
-import org.pepsoft.worldpainter.biomeschemes.AutoBiomeScheme;
 import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiome;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager.CustomBiomeListener;
+import org.pepsoft.worldpainter.biomeschemes.StaticBiomeInfo;
 import org.pepsoft.worldpainter.brushes.BitmapBrush;
 import org.pepsoft.worldpainter.brushes.Brush;
 import org.pepsoft.worldpainter.brushes.RotatedBrush;
@@ -167,10 +167,10 @@ public final class App extends JFrame implements RadiusControl,
         // Initialize various things
         customBiomeManager.addListener(this);
         
-        int biomeCount = autoBiomeScheme.getBiomeCount();
+        int biomeCount = StaticBiomeInfo.INSTANCE.getBiomeCount();
         for (int i = 0; i < biomeCount; i++) {
-            if (autoBiomeScheme.isBiomePresent(i)) {
-                biomeNames[i] = autoBiomeScheme.getBiomeName(i) + " (ID " + i + ")";
+            if (StaticBiomeInfo.INSTANCE.isBiomePresent(i)) {
+                biomeNames[i] = StaticBiomeInfo.INSTANCE.getBiomeName(i) + " (ID " + i + ")";
             }
         }
         
@@ -606,7 +606,7 @@ public final class App extends JFrame implements RadiusControl,
             // biomes
             List<CustomBiome> customBiomes = dimension.getCustomBiomes();
             if (customBiomes != null) {
-                customBiomes.removeIf(customBiome -> autoBiomeScheme.isBiomePresent(customBiome.getId()));
+                customBiomes.removeIf(customBiome -> StaticBiomeInfo.INSTANCE.isBiomePresent(customBiome.getId()));
                 if (customBiomes.isEmpty()) {
                     customBiomes = null;
                 }
@@ -2354,7 +2354,7 @@ public final class App extends JFrame implements RadiusControl,
     }
     
     private void addRemoveTiles() {
-        TileEditor tileEditor = new TileEditor(this, dimension, selectedColourScheme, autoBiomeScheme, customBiomeManager, hiddenLayers, false, 10, view.getLightOrigin());
+        TileEditor tileEditor = new TileEditor(this, dimension, selectedColourScheme, customBiomeManager, hiddenLayers, false, 10, view.getLightOrigin());
         tileEditor.setVisible(true);
     }
     
@@ -2381,7 +2381,7 @@ public final class App extends JFrame implements RadiusControl,
         if (! saveIfNecessary()) {
             return;
         }
-        ImportHeightMapDialog dialog = new ImportHeightMapDialog(this, selectedColourScheme);
+        ImportHeightMapDialog dialog = new ImportHeightMapDialog(this, selectedColourScheme, view.isDrawContours(), view.getContourSeparation(), view.getLightOrigin());
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             clearWorld();
@@ -2437,7 +2437,7 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void initComponents() {
-        view = new WorldPainter(selectedColourScheme, autoBiomeScheme, customBiomeManager);
+        view = new WorldPainter(selectedColourScheme, customBiomeManager);
         Configuration config = Configuration.getInstance();
         if (config.getBackgroundColour() == -1) {
             view.setBackground(new Color(VoidRenderer.getColour()));
@@ -5422,9 +5422,9 @@ public final class App extends JFrame implements RadiusControl,
     private void showGlobalOperations() {
         Set<Layer> allLayers = getAllLayers();
         List<Integer> allBiomes = new ArrayList<>();
-        final int biomeCount = autoBiomeScheme.getBiomeCount();
+        final int biomeCount = StaticBiomeInfo.INSTANCE.getBiomeCount();
         for (int biome = 0; biome < biomeCount; biome++) {
-            if (autoBiomeScheme.isBiomePresent(biome)) {
+            if (StaticBiomeInfo.INSTANCE.isBiomePresent(biome)) {
                 allBiomes.add(biome);
             }
         }
@@ -6207,7 +6207,7 @@ public final class App extends JFrame implements RadiusControl,
                         return;
                     }
                 }
-                ExportWorldDialog dialog = new ExportWorldDialog(App.this, world, autoBiomeScheme, selectedColourScheme, customBiomeManager, hiddenLayers, false, 10, view.getLightOrigin(), view);
+                ExportWorldDialog dialog = new ExportWorldDialog(App.this, world, selectedColourScheme, customBiomeManager, hiddenLayers, false, 10, view.getLightOrigin(), view);
                 dialog.setVisible(true);
                 if (! dialog.isCancelled()) {
                     view.refreshTiles();
@@ -6895,7 +6895,6 @@ public final class App extends JFrame implements RadiusControl,
     private MapDragControl mapDragControl;
     private DockableFrame biomesPanel;
     private final boolean alwaysEnableReadOnly = ! "false".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.alwaysEnableReadOnly")); // NOI18N
-    private final BiomeScheme autoBiomeScheme = new AutoBiomeScheme(null);
 //    private JScrollPane scrollPane = new JScrollPane();
     private Filter filter, toolFilter;
     private final BrushOptions brushOptions;

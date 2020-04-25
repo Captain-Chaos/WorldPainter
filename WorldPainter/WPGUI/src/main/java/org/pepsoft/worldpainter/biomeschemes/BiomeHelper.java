@@ -7,7 +7,6 @@
 package org.pepsoft.worldpainter.biomeschemes;
 
 import org.pepsoft.util.IconUtils;
-import org.pepsoft.worldpainter.BiomeScheme;
 import org.pepsoft.worldpainter.ColourScheme;
 
 import javax.swing.*;
@@ -18,8 +17,7 @@ import javax.swing.*;
  * @author pepijn
  */
 public class BiomeHelper {
-    public BiomeHelper(BiomeScheme biomeScheme, ColourScheme colourScheme, CustomBiomeManager customBiomeManager) {
-        this.biomeScheme = (biomeScheme != null) ? biomeScheme : new AutoBiomeScheme(null);
+    public BiomeHelper(ColourScheme colourScheme, CustomBiomeManager customBiomeManager) {
         this.colourScheme = colourScheme;
         this.customBiomeManager = customBiomeManager;
     }
@@ -28,8 +26,8 @@ public class BiomeHelper {
         if (biomeID == 255) {
             return "Auto";
         } else if (names[biomeID] == null) {
-            if (biomeScheme.isBiomePresent(biomeID)) {
-                names[biomeID] = biomeScheme.getBiomeName(biomeID);
+            if (StaticBiomeInfo.INSTANCE.isBiomePresent(biomeID)) {
+                names[biomeID] = StaticBiomeInfo.INSTANCE.getBiomeName(biomeID);
             } else if (customBiomeManager.getCustomBiomes() != null) {
                 for (CustomBiome customBiome: customBiomeManager.getCustomBiomes()) {
                     if (customBiome.getId() == biomeID) {
@@ -47,8 +45,8 @@ public class BiomeHelper {
     
     public Icon getBiomeIcon(int biomeID) {
         if (icons[biomeID] == null) {
-            if (biomeScheme.isBiomePresent(biomeID)) {
-                icons[biomeID] = new ImageIcon(BiomeSchemeManager.createImage(biomeScheme, biomeID, colourScheme));
+            if (StaticBiomeInfo.INSTANCE.isBiomePresent(biomeID)) {
+                icons[biomeID] = new ImageIcon(BiomeSchemeManager.createImage(StaticBiomeInfo.INSTANCE, biomeID, colourScheme));
             } else if (customBiomeManager.getCustomBiomes() != null) {
                 for (CustomBiome customBiome: customBiomeManager.getCustomBiomes()) {
                     if (customBiome.getId() == biomeID) {
@@ -61,7 +59,6 @@ public class BiomeHelper {
         return icons[biomeID];
     }
  
-    private final BiomeScheme biomeScheme;
     private final CustomBiomeManager customBiomeManager;
     private final ColourScheme colourScheme;
     private final String[] names = new String[256];

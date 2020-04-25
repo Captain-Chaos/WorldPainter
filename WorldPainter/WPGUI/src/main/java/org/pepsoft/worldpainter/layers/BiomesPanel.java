@@ -9,8 +9,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 import static javax.swing.BoxLayout.PAGE_AXIS;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.*;
@@ -24,7 +24,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         this.customBiomeManager = customBiomeManager;
         this.listener = listener;
         this.buttonGroup = buttonGroup;
-        biomeHelper = new BiomeHelper(BIOME_SCHEME, colourScheme, customBiomeManager);
+        biomeHelper = new BiomeHelper(colourScheme, customBiomeManager);
 
         initComponents(colourScheme);
 
@@ -77,11 +77,11 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         add(label2);
 
         for (final int biome: BIOME_ORDER) {
-            final JToggleButton button = new JToggleButton(new ImageIcon(BiomeSchemeManager.createImage(BIOME_SCHEME, biome, colourScheme)));
+            final JToggleButton button = new JToggleButton(new ImageIcon(BiomeSchemeManager.createImage(StaticBiomeInfo.INSTANCE, biome, colourScheme)));
             button.putClientProperty(KEY_BIOME, biome);
             button.setMargin(App.BUTTON_INSETS);
             StringBuilder tooltip = new StringBuilder();
-            tooltip.append(AutoBiomeScheme.BIOME_NAMES[biome]);
+            tooltip.append(StaticBiomeInfo.BIOME_NAMES[biome]);
             tooltip.append(" (");
             List<Integer> variantIds = findVariants(biome);
             boolean first = true;
@@ -281,7 +281,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
      * empty, but not {@code null}.
      */
     private static Set<BiomeOption> findAvailableOptions(int baseId) {
-        if (BIOME_SCHEME.isBiomePresent(baseId)) {
+        if (StaticBiomeInfo.INSTANCE.isBiomePresent(baseId)) {
             Set<BiomeOption> availableOptions = EnumSet.noneOf(BiomeOption.class);
             for (BiomeDescriptor descriptor: DESCRIPTORS) {
                 if (descriptor.getBaseId() == baseId) {
@@ -325,7 +325,6 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
     private final Listener listener;
     private int selectedBiome = BIOME_PLAINS, selectedBaseBiome = BIOME_PLAINS;
 
-    private static final AutoBiomeScheme BIOME_SCHEME = new AutoBiomeScheme(null);
     private static final int[] BIOME_ORDER = {
         BIOME_PLAINS, BIOME_FOREST, BIOME_SWAMPLAND, BIOME_JUNGLE,
         BIOME_BIRCH_FOREST, BIOME_ROOFED_FOREST, BIOME_EXTREME_HILLS, BIOME_MUSHROOM_ISLAND,
@@ -432,7 +431,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
             this.name = name;
             this.id = id;
             this.baseId = baseId;
-            this.options = ((options != null) && (options.length > 0)) ? EnumSet.copyOf(Arrays.asList(options)) : Collections.EMPTY_SET;
+            this.options = ((options != null) && (options.length > 0)) ? EnumSet.copyOf(Arrays.asList(options)) : Collections.emptySet();
         }
 
         public String getName() {

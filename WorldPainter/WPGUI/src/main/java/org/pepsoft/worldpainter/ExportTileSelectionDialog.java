@@ -10,8 +10,11 @@
  */
 package org.pepsoft.worldpainter;
 
-import java.awt.Component;
-import java.awt.Point;
+import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
+import org.pepsoft.worldpainter.layers.Layer;
+
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
@@ -20,17 +23,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.InputMap;
-import javax.swing.JComponent;
-import javax.swing.JList;
-import javax.swing.KeyStroke;
-import org.pepsoft.worldpainter.layers.Layer;
+
 import static org.pepsoft.worldpainter.Constants.*;
-import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 
 /**
  *
@@ -38,7 +32,7 @@ import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
  */
 public class ExportTileSelectionDialog extends javax.swing.JDialog implements WindowListener {
     /** Creates new form ExportTileSelectionDialog */
-    public ExportTileSelectionDialog(java.awt.Dialog parent, World2 world, int selectedDimension, Set<Point> selectedTiles, ColourScheme colourScheme, BiomeScheme biomeScheme, CustomBiomeManager customBiomeManager, Collection<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin) {
+    public ExportTileSelectionDialog(java.awt.Dialog parent, World2 world, int selectedDimension, Set<Point> selectedTiles, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Collection<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin) {
         super(parent, true);
         this.world = world;
         initComponents();
@@ -92,7 +86,6 @@ public class ExportTileSelectionDialog extends javax.swing.JDialog implements Wi
         });
         
         tileSelector1.setColourScheme(colourScheme);
-        tileSelector1.setBiomeScheme(biomeScheme);
         tileSelector1.setHiddenLayers(hiddenLayers);
         tileSelector1.setContourLines(contourLines);
         tileSelector1.setContourSeparation(contourSeparation);

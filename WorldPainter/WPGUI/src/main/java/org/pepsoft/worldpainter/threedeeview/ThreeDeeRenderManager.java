@@ -4,24 +4,23 @@
  */
 package org.pepsoft.worldpainter.threedeeview;
 
-import java.util.HashSet;
-import java.util.Set;
 import org.pepsoft.util.jobqueue.UniqueJobQueue;
-import org.pepsoft.worldpainter.BiomeScheme;
 import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  *
  * @author pepijn
  */
 public class ThreeDeeRenderManager {
-    public ThreeDeeRenderManager(Dimension dimension, ColourScheme colourScheme, BiomeScheme biomeScheme, CustomBiomeManager customBiomeManager, int rotation) {
+    public ThreeDeeRenderManager(Dimension dimension, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, int rotation) {
         this.dimension = dimension;
         this.colourScheme = colourScheme;
-        this.biomeScheme = biomeScheme;
         this.customBiomeManager = customBiomeManager;
         this.rotation = rotation;
     }
@@ -83,14 +82,13 @@ public class ThreeDeeRenderManager {
         int noOfThreads = Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
         renderThreads = new Background3DTileRenderer[noOfThreads];
         for (int i = 0; i < noOfThreads; i++) {
-            renderThreads[i] = new Background3DTileRenderer(dimension, colourScheme, biomeScheme, customBiomeManager, rotation, jobQueue, this);
+            renderThreads[i] = new Background3DTileRenderer(dimension, colourScheme, customBiomeManager, rotation, jobQueue, this);
             renderThreads[i].start();
         }
     }
  
     private final Dimension dimension;
     private final ColourScheme colourScheme;
-    private final BiomeScheme biomeScheme;
     private final CustomBiomeManager customBiomeManager;
     private final int rotation;
     private HashSet<RenderResult> results = new HashSet<>();
