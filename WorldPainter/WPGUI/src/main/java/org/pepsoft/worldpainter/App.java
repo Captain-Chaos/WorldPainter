@@ -2396,7 +2396,7 @@ public final class App extends JFrame implements RadiusControl,
     }
     
     private void importHeightMapIntoCurrentDimension() {
-        ImportHeightMapDialog dialog = new ImportHeightMapDialog(this, dimension, selectedColourScheme);
+        ImportHeightMapDialog dialog = new ImportHeightMapDialog(this, dimension, selectedColourScheme, view.isDrawContours(), view.getContourSeparation(), view.getLightOrigin());
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             view.refreshTiles();
