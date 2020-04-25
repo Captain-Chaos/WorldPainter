@@ -1,3 +1,11 @@
+-- Version 2.7.7, released 24-4-2020
+
+ * High resolution displays are better supported. WorldPainter should now scale its UI automatically according to your operating system setting. You can also adjust the UI scale manually on the Preferences screen. Note that visual themes are only supported at 100% scale
+ * When importing height maps a preview of the selected settings is now displayed, to make it easier to judge the result and faster to experiment with settings
+ * Custom Terrains can now be deleted, once they are no longer in use, by right-clicking on them and selecting "Remove...". If they are still in use, first use the Global Operations tool to replace them with another terrain type (by using "fill with terrain type" and "only on")
+ * Coral blocks now count as solid blocks, solving some issues with using them in custom objects under water
+ * Bug fix: when a custom terrain type is missing from a .world file this is now correctly reported, instead of generating a secondary error
+
 -- Version 2.7.6, released 5-4-2020
 
  * Bug fix: fix a compilation error that had inadvertently been introduced when re-releasing version 2.7.5 and which broke 3D object previews
@@ -771,7 +779,7 @@
    - Added new terrain types for the new Minecraft 1.7 biomes. The simple terrain types (which consist of a single block type throughout) added are: Permadirt (Dirt on which grass won't grow), Podzol, Red Sand, Hardened Clay and all sixteen colours of Stained Clay. When Importing a Minecraft map WorldPainter will now use these new terrain types
    - In addition, two new complex terrain types have been added: Mesa and Red Desert. Mesa consist of random horizontal layers of Hardened Clay, Red Sand and White, Yellow, Orange, Light Grey, Red and Brown Stained Clay. The layers vary up and down randomly and on top are many dead shrubs. The associated Automatic Biome is Mesa. The second complex terrain type is Red Desert, which is very similar to Desert, except that it places Red Sand, has fewer cactuses and the associated Automatic Biome is also Mesa
    - The Terrains panel has changed to accomodate the new terrain types. Dirt has been replaced with Permadirt (the idea is that if you are placing Dirt manually you most likely want it to stay Dirt). Podzol, Red Sand and Hardened Clay have been added, as well as Mesa and Red Desert. Resources has been removed. An extra More Terrains panel has been added, which can be opened with the new + button on the Terrains panel, and which contains all the Stained Clays
- * You can now donate bitcoins! If you find WorldPainter fun or useful, or you make money with it, please consider donating an amount of your choice. The bitcoin address for donations is: 1NK8PFYFetTiWReujPsQXDcarXKJuYtqgF
+ * You can now donate bitcoins! If you find WorldPainter fun or useful, or you make money with it, please consider donating an amount of your choice. The bitcoin address for donations is: XXX
  * WorldPainter now targets Minecraft 1.7 in principle. While the map format has not changed and it can still generate Minecraft 1.6 compatible maps in principle, you have to make sure yourself not to use any block types or biomes which Minecraft 1.6 does not support, if you are targeting Minecraft 1.6. Note that Automatic Biomes (which is used by default on new worlds) *will* choose biomes which Minecraft 1.6 does not support, so you will have to paint the biomes manually. See http://www.worldpainter.net/trac/wiki/NewAutomaticBiomes for more information. WorldPainter 1.6.7 will also remain available
  * Bug fix: make painting custom terrain types work correctly again (the wrong terrain was being painted)
  * Bug fix: some small zoom related bugs were fixed in tile selection screens
