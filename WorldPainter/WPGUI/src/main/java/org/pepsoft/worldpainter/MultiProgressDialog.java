@@ -97,7 +97,7 @@ public abstract class MultiProgressDialog<T> extends javax.swing.JDialog impleme
             JOptionPane.showMessageDialog(MultiProgressDialog.this, "Could not " + getVerb().toLowerCase() + " the world because the existing map directory is in use.\nPlease close Minecraft and all other windows and try again.", "Map In Use", JOptionPane.ERROR_MESSAGE);
         } else if (cause instanceof MissingCustomTerrainException) {
             JOptionPane.showMessageDialog(MultiProgressDialog.this,
-                "Custom Terrain " + ((MissingCustomTerrainException) exception).getIndex() + " not configured!\n" +
+                "Custom Terrain " + ((MissingCustomTerrainException) cause).getIndex() + " not configured!\n" +
                 "Please configure it on the Custom Terrain panel.\n" +
                 "\n" +
                 "The partially processed map is now probably corrupted.\n" +
