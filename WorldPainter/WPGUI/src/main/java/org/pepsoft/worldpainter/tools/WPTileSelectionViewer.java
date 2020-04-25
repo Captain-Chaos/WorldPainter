@@ -4,20 +4,15 @@
  */
 package org.pepsoft.worldpainter.tools;
 
-import java.awt.AlphaComposite;
-import java.awt.Color;
-import java.awt.Composite;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
+import org.pepsoft.util.swing.TiledImageViewer;
+
+import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import javax.imageio.ImageIO;
-import org.pepsoft.util.swing.TiledImageViewer;
 
 /**
  *

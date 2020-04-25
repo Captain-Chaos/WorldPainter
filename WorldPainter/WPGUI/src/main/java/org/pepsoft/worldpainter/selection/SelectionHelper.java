@@ -7,9 +7,7 @@ import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.brushes.Brush;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.operations.Filter;
-import org.pepsoft.worldpainter.panels.DefaultFilter;
 
-import javax.vecmath.Point3i;
 import java.awt.*;
 import java.util.*;
 
