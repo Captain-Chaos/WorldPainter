@@ -6,9 +6,7 @@
 
 package org.pepsoft.worldpainter.util;
 
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.GridBagConstraints;
+import java.awt.*;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -51,5 +49,31 @@ public final class LayoutUtils {
             }
             container.add(component, constraints, index++);
         }
-    }    
+    }
+
+    /**
+     * Increases the size of the specified window to be the specified percentage
+     * of the screen (in width and height, not in area) and places it centered
+     * relative to its parent.
+     *
+     * @param window The window to size and place.
+     * @param percentageOfScreen The percentage of the screen width and height
+     *                           it should take up.
+     */
+    public static void setDefaultSizeAndLocation(Window window, int percentageOfScreen) {
+        Window parent = window.getOwner();
+        if (parent != null) {
+            DisplayMode displayMode = parent.getGraphicsConfiguration().getDevice().getDisplayMode();
+            window.setSize(
+                    Math.max(window.getWidth(), displayMode.getWidth() * percentageOfScreen / 100),
+                    Math.max(window.getHeight(), displayMode.getHeight() * percentageOfScreen / 100));
+            window.setLocationRelativeTo(parent);
+        } else {
+            DisplayMode displayMode = window.getGraphicsConfiguration().getDevice().getDisplayMode();
+            window.setSize(
+                    Math.max(window.getWidth(), displayMode.getWidth() * percentageOfScreen / 100),
+                    Math.max(window.getHeight(), displayMode.getHeight() * percentageOfScreen / 100));
+            window.setLocationRelativeTo(null);
+        }
+    }
 }

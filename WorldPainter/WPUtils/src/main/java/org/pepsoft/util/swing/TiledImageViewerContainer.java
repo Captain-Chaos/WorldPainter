@@ -6,6 +6,7 @@
 
 package org.pepsoft.util.swing;
 
+import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Rectangle;
@@ -29,15 +30,13 @@ import javax.swing.JScrollBar;
  * @author pepijn
  */
 public class TiledImageViewerContainer extends JPanel implements TiledImageViewer.ViewListener, AdjustmentListener {
-    public TiledImageViewerContainer(TiledImageViewer view) {
-        this.view = view;
-
+    public TiledImageViewerContainer() {
         setLayout(new GridBagLayout());
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.weightx = 1.0f;
         constraints.weighty = 1.0f;
         constraints.fill = GridBagConstraints.BOTH;
-        add(view, constraints);
+        add(viewContainer, constraints);
         constraints.weightx = 0.0f;
         constraints.gridwidth = GridBagConstraints.REMAINDER;
         add(verticalScrollbar, constraints);
@@ -48,8 +47,27 @@ public class TiledImageViewerContainer extends JPanel implements TiledImageViewe
         
         horizontalScrollbar.addAdjustmentListener(this);
         verticalScrollbar.addAdjustmentListener(this);
+    }
+
+    public TiledImageViewerContainer(TiledImageViewer view) {
+        this();
+        setView(view);
+    }
     
-        view.setViewListener(this);
+    public TiledImageViewer getView() {
+        return view;
+    }
+
+    public void setView(TiledImageViewer view) {
+        if (this.view != null) {
+            this.view.setViewListener(null);
+            viewContainer.remove(this.view);
+        }
+        this.view = view;
+        if (view != null) {
+            view.setViewListener(this);
+            viewContainer.add(view, BorderLayout.CENTER);
+        }
     }
 
     /**
@@ -165,8 +183,9 @@ public class TiledImageViewerContainer extends JPanel implements TiledImageViewe
         }
     }
     
-    private final TiledImageViewer view;
+    private final JPanel viewContainer = new JPanel(new BorderLayout());
     private final JScrollBar horizontalScrollbar = new JScrollBar(JScrollBar.HORIZONTAL), verticalScrollbar = new JScrollBar();
+    private TiledImageViewer view;
     private int previousHorizontalValue, previousVerticalValue;
     private boolean scrollingEnabled = true, programmaticChange, inhibitUpdates;
 }

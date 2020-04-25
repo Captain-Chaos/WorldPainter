@@ -20,6 +20,8 @@ package org.pepsoft.util;
 
 import javax.swing.*;
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 /**
@@ -133,4 +135,39 @@ public class AwtUtils {
     public static void doLaterOnEventThread(Runnable task) {
         SwingUtilities.invokeLater(task);
     }
+
+    /**
+     * Schedule a task for later execution on the even dispatch thread and
+     * return immediately. The task <em>may</em> be executed on a different
+     * thread, so it must be thread-safe. Since it will block the event thread
+     * it should be short and to the point.
+     *
+     * <p>If a task with the same key is already scheduled and has not yet
+     * executed that will be superseded.
+     *
+     * @param key The unique key of the task. Scheduling a task will supersede
+     *            a task with the same key that is already scheduled.
+     * @param delay The minimum number of milliseconds after which the task
+     *              should be executed.
+     * @param task The task to execute.
+     */
+    public static void doLaterOnEventThread(String key, int delay, Runnable task) {
+        doOnEventThread(() -> {
+            if (TIMERS.containsKey(key)) {
+                TIMERS.get(key).restart();
+            } else {
+                Timer timer = new Timer(delay, e -> {
+                    task.run();
+                    synchronized (TIMERS) {
+                        TIMERS.remove(key);
+                    }
+                });
+                timer.setRepeats(false);
+                TIMERS.put(key, timer);
+                timer.start();
+            }
+        });
+    }
+
+    private static final Map<String, Timer> TIMERS = new HashMap<>();
 }

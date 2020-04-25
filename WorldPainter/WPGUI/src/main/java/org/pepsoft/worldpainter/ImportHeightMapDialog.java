@@ -15,6 +15,7 @@ import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.swing.ProgressDialog;
 import org.pepsoft.util.swing.ProgressTask;
+import org.pepsoft.util.swing.TileProvider;
 import org.pepsoft.worldpainter.heightMaps.*;
 import org.pepsoft.worldpainter.importing.HeightMapImporter;
 import org.pepsoft.worldpainter.layers.Void;
@@ -39,28 +40,37 @@ import java.util.*;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_MCREGION;
+import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
 import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
 import static org.pepsoft.util.swing.SpinnerUtils.setMaximum;
 import static org.pepsoft.worldpainter.Constants.MAX_HEIGHT;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
+import static org.pepsoft.worldpainter.util.LayoutUtils.setDefaultSizeAndLocation;
+import static org.pepsoft.worldpainter.util.MinecraftUtil.blocksToWalkingTime;
 
 /**
  *
  * @author pepijn
  */
 public class ImportHeightMapDialog extends WorldPainterDialog implements DocumentListener, SimpleThemeEditor.ChangeListener {
-    public ImportHeightMapDialog(Window parent, ColourScheme colourScheme) {
-        this(parent, null, colourScheme);
+    public ImportHeightMapDialog(Window parent, ColourScheme colourScheme, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin) {
+        this(parent, null, colourScheme, contourLines, contourSeparation, lightOrigin);
     }
 
-    public ImportHeightMapDialog(Window parent, Dimension currentDimension, ColourScheme colourScheme) {
+    public ImportHeightMapDialog(Window parent, Dimension currentDimension, ColourScheme colourScheme, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin) {
         super(parent);
         this.currentDimension = currentDimension;
+        this.colourScheme = colourScheme;
+        this.contourLines = contourLines;
+        this.contourSeparation = contourSeparation;
+        this.lightOrigin = lightOrigin;
 
         initComponents();
+        tiledImageViewer2.setZoom(0);
+        tiledImageViewerContainer1.setView(tiledImageViewer2);
         
-        heightMapTileFactoryEditor1.setColourScheme(colourScheme);
+        themeEditor.setColourScheme(colourScheme);
         spinnerOffsetX.setEditor(new NumberEditor(spinnerOffsetX, "0"));
         spinnerOffsetY.setEditor(new NumberEditor(spinnerOffsetY, "0"));
         checkBoxCreateTiles.setSelected(true);
@@ -82,8 +92,8 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             buttonLoadDefaults.setEnabled(true);
             buttonSaveAsDefaults.setEnabled(true);
         } else {
-            heightMapTileFactoryEditor1.setTheme((SimpleTheme) TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), Terrain.GRASS, DEFAULT_MAX_HEIGHT_ANVIL, 58, 62, false, true, 20, 1.0).getTheme());
-            heightMapTileFactoryEditor1.setChangeListener(this);
+            themeEditor.setTheme((SimpleTheme) TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), Terrain.GRASS, DEFAULT_MAX_HEIGHT_ANVIL, 58, 62, false, true, 20, 1.0).getTheme());
+            themeEditor.setChangeListener(this);
             comboBoxPlatform.setSelectedItem(JAVA_ANVIL);
             labelNoUndo.setText(" ");
             checkBoxCreateTiles.setEnabled(false);
@@ -92,7 +102,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         }
 
         pack();
-        setLocationRelativeTo(parent);
+        setDefaultSizeAndLocation(this, 60);
 
         setControlStates();
         initialising = false;
@@ -144,6 +154,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         }
         buttonSaveAsDefaults.setEnabled(true);
         buttonLoadDefaults.setEnabled(true);
+        updatePreview();
     }
 
     private HeightMapImporter createImporter() {
@@ -182,7 +193,8 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         if (currentDimension != null) {
             importer.setTileFactory(currentDimension.getTileFactory());
         } else {
-            SimpleTheme theme = heightMapTileFactoryEditor1.getTheme();
+            themeEditor.save();
+            SimpleTheme theme = themeEditor.getTheme();
             theme.setMaxHeight(maxHeight);
             importer.setTileFactory(new HeightMapTileFactory(seed, new SumHeightMap(new ConstantHeightMap(waterLevel - 4), new NoiseHeightMap((float) 20, 1.0, 1, 0)), maxHeight, false, theme));
         }
@@ -198,7 +210,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
 
     private void setControlStates() {
         File file = new File(fieldFilename.getText());
-        if (file.isFile() && ((selectedFile == null) || (! file.equals(selectedFile)))) {
+        if (file.isFile() && (!file.equals(selectedFile))) {
             selectedFile = file;
             loadImage();
         }
@@ -238,9 +250,10 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
                 int imageLowValue = Integer.MAX_VALUE;
                 imageHighValue = Integer.MIN_VALUE;
                 int imageMaxHeight = (int) Math.pow(2, bitDepth) - 1;
+                boolean invert = checkBoxInvert.isSelected();
 outer:          for (int x = 0; x < width; x++) {
                     for (int y = 0; y < height; y++) {
-                        int value = raster.getSample(x, y, 0);
+                        int value = invert ? (imageMaxHeight - raster.getSample(x, y, 0)) : raster.getSample(x, y, 0);
                         if (value < imageLowValue) {
                             imageLowValue = value;
                         }
@@ -261,6 +274,7 @@ outer:          for (int x = 0; x < width; x++) {
 
                 labelImageDimensions.setText(String.format("Image size: %d x %d, %d bits, lowest value: %d, highest value: %d", width, height, bitDepth, imageLowValue, imageHighValue));
                 updateWorldDimensions();
+                updatePreview();
             }
         } catch (IOException e) {
             logger.error("I/O error loading image " + selectedFile, e);
@@ -295,7 +309,16 @@ outer:          for (int x = 0; x < width; x++) {
 
     private void updateWorldDimensions() {
         int scale = (Integer) spinnerScale.getValue();
-        labelWorldDimensions.setText("Scaled size: " + (image.getWidth() * scale / 100) + " x " + (image.getHeight() * scale / 100) + " blocks");
+        int scaledWidth = image.getWidth() * scale / 100;
+        int scaledHeight = image.getHeight() * scale / 100;
+        labelWorldDimensions.setText("Scaled size: " + scaledWidth + " x " + scaledHeight + " blocks");
+        String westEastTime = blocksToWalkingTime(scaledWidth);
+        String northSouthTime = blocksToWalkingTime(scaledHeight);
+        if (westEastTime.equals(northSouthTime)) {
+            labelWalkingTime.setText(westEastTime);
+        } else {
+            labelWalkingTime.setText("West to east: " + westEastTime + ", north to south: " + northSouthTime);
+        }
     }
     
     private void updateImageWaterLevel() {
@@ -328,14 +351,15 @@ outer:          for (int x = 0; x < width; x++) {
         }
         spinnerWorldMiddle.setValue(defaultTheme.getWaterHeight());
         updateImageWaterLevel();
-        heightMapTileFactoryEditor1.setTheme((SimpleTheme) defaultTheme);
+        updatePreview();
+        themeEditor.setTheme((SimpleTheme) defaultTheme);
         buttonLoadDefaults.setEnabled(false);
         buttonSaveAsDefaults.setEnabled(false);
     }
 
     private void saveAsDefaults() {
-        if (heightMapTileFactoryEditor1.save()) {
-            Theme defaults = heightMapTileFactoryEditor1.getTheme();
+        if (themeEditor.save()) {
+            Theme defaults = themeEditor.getTheme();
             Configuration.getInstance().setHeightMapDefaultTheme(defaults);
             buttonResetDefaults.setEnabled(true);
             buttonLoadDefaults.setEnabled(false);
@@ -349,7 +373,8 @@ outer:          for (int x = 0; x < width; x++) {
             buttonResetDefaults.setEnabled(false);
             spinnerWorldMiddle.setValue(theme.getWaterHeight());
             updateImageWaterLevel();
-            heightMapTileFactoryEditor1.setTheme((SimpleTheme) theme);
+            updatePreview();
+            themeEditor.setTheme((SimpleTheme) theme);
             buttonLoadDefaults.setEnabled(true);
             buttonSaveAsDefaults.setEnabled(true);
         } else {
@@ -421,8 +446,24 @@ outer:          for (int x = 0; x < width; x++) {
 
         // Set levels to reasonable defaults
         selectDefaultVerticalScaling();
+        updatePreview();
 
         labelWarning.setVisible((comboBoxPlatform.getSelectedItem() == JAVA_MCREGION) && (platformMaxHeight != DEFAULT_MAX_HEIGHT_MCREGION));
+    }
+
+    private void updatePreview() {
+        doLaterOnEventThread(UPDATE_HEIGHT_MAP_PREVIEW, 250, () -> {
+            if (image != null) {
+                TileProvider previewProvider = createImporter().getPreviewProvider(colourScheme, contourLines, contourSeparation, lightOrigin);
+                if (previewProvider != null) {
+                    if (tiledImageViewer2.getTileProviderCount() == 0) {
+                        tiledImageViewer2.addTileProvider(previewProvider);
+                    } else {
+                        tiledImageViewer2.replaceTileProvider(0, previewProvider);
+                    }
+                }
+            }
+        });
     }
 
     /** This method is called from within the constructor to
@@ -435,8 +476,8 @@ outer:          for (int x = 0; x < width; x++) {
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
-        jLabel14 = new javax.swing.JLabel();
         buttonGroup1 = new javax.swing.ButtonGroup();
+        tiledImageViewer2 = new org.pepsoft.util.swing.TiledImageViewer();
         jLabel1 = new javax.swing.JLabel();
         fieldFilename = new javax.swing.JTextField();
         buttonSelectFile = new javax.swing.JButton();
@@ -472,8 +513,10 @@ outer:          for (int x = 0; x < width; x++) {
         spinnerOffsetX = new javax.swing.JSpinner();
         jLabel12 = new javax.swing.JLabel();
         spinnerOffsetY = new javax.swing.JSpinner();
+        jLabel14 = new javax.swing.JLabel();
+        labelWalkingTime = new javax.swing.JLabel();
         jPanel3 = new javax.swing.JPanel();
-        heightMapTileFactoryEditor1 = new org.pepsoft.worldpainter.themes.impl.simple.SimpleThemeEditor();
+        themeEditor = new org.pepsoft.worldpainter.themes.impl.simple.SimpleThemeEditor();
         buttonLoadDefaults = new javax.swing.JButton();
         buttonSaveAsDefaults = new javax.swing.JButton();
         buttonResetDefaults = new javax.swing.JButton();
@@ -482,8 +525,9 @@ outer:          for (int x = 0; x < width; x++) {
         checkBoxOnlyRaise = new javax.swing.JCheckBox();
         jLabel13 = new javax.swing.JLabel();
         comboBoxPlatform = new javax.swing.JComboBox<>();
+        tiledImageViewerContainer1 = new org.pepsoft.util.swing.TiledImageViewerContainer();
 
-        jLabel14.setText("jLabel14");
+        tiledImageViewer2.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Import Height Map");
@@ -515,6 +559,11 @@ outer:          for (int x = 0; x < width; x++) {
         });
 
         checkBoxInvert.setText("Invert (white is low, black is high)");
+        checkBoxInvert.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxInvertActionPerformed(evt);
+            }
+        });
 
         jTabbedPane1.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
@@ -679,6 +728,10 @@ outer:          for (int x = 0; x < width; x++) {
             }
         });
 
+        jLabel14.setText("Edge to edge walking time:");
+
+        labelWalkingTime.setText("...");
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
@@ -713,8 +766,12 @@ outer:          for (int x = 0; x < width; x++) {
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addComponent(checkBoxVoid)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(spinnerVoidBelow, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(49, Short.MAX_VALUE))
+                        .addComponent(spinnerVoidBelow, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addComponent(jLabel14)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(labelWalkingTime)))
+                .addContainerGap(71, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -730,6 +787,10 @@ outer:          for (int x = 0; x < width; x++) {
                     .addComponent(spinnerOffsetY, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(labelWorldDimensions)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel14)
+                    .addComponent(labelWalkingTime))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
@@ -775,7 +836,7 @@ outer:          for (int x = 0; x < width; x++) {
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(heightMapTileFactoryEditor1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(themeEditor, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(buttonResetDefaults)
@@ -789,7 +850,7 @@ outer:          for (int x = 0; x < width; x++) {
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(heightMapTileFactoryEditor1, javax.swing.GroupLayout.DEFAULT_SIZE, 186, Short.MAX_VALUE)
+                .addComponent(themeEditor, javax.swing.GroupLayout.DEFAULT_SIZE, 206, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(buttonLoadDefaults)
@@ -816,6 +877,8 @@ outer:          for (int x = 0; x < width; x++) {
             }
         });
 
+        tiledImageViewerContainer1.setMinimumSize(new java.awt.Dimension(384, 22));
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -823,59 +886,63 @@ outer:          for (int x = 0; x < width; x++) {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jTabbedPane1)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(fieldFilename)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(buttonSelectFile))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                    .addGroup(layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(buttonOk)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buttonCancel))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(checkBoxCreateTiles)
-                        .addGap(18, 18, 18)
-                        .addComponent(checkBoxOnlyRaise)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(labelNoUndo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addComponent(fieldFilename)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(buttonSelectFile))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel13)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(comboBoxPlatform, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addComponent(jLabel1)
                             .addComponent(labelImageDimensions)
                             .addComponent(checkBoxInvert)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel13)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(comboBoxPlatform, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                                .addComponent(checkBoxCreateTiles)
+                                .addGap(18, 18, 18)
+                                .addComponent(checkBoxOnlyRaise)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(labelNoUndo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(18, 18, 18)
+                        .addComponent(tiledImageViewerContainer1, javax.swing.GroupLayout.DEFAULT_SIZE, 384, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(fieldFilename, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(buttonSelectFile))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(labelImageDimensions)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(checkBoxInvert)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(fieldFilename, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(buttonSelectFile))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(labelImageDimensions)
+                        .addGap(4, 4, 4)
+                        .addComponent(checkBoxInvert)
+                        .addGap(18, 18, 18)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel13)
+                            .addComponent(comboBoxPlatform, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(18, 18, 18)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(checkBoxCreateTiles)
+                            .addComponent(labelNoUndo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(checkBoxOnlyRaise))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jTabbedPane1))
+                    .addComponent(tiledImageViewerContainer1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel13)
-                    .addComponent(comboBoxPlatform, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(checkBoxCreateTiles)
-                    .addComponent(labelNoUndo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(checkBoxOnlyRaise))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTabbedPane1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(buttonCancel)
                     .addComponent(buttonOk))
@@ -892,6 +959,7 @@ outer:          for (int x = 0; x < width; x++) {
             spinnerImageHigh.setValue(lowLevel);
         }
         updateImageWaterLevel();
+        updatePreview();
     }//GEN-LAST:event_spinnerImageLowStateChanged
 
     private void buttonCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCancelActionPerformed
@@ -905,6 +973,7 @@ outer:          for (int x = 0; x < width; x++) {
             spinnerImageLow.setValue(highLevel);
         }
         updateImageWaterLevel();
+        updatePreview();
     }//GEN-LAST:event_spinnerImageHighStateChanged
 
     private void spinnerWorldLowStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerWorldLowStateChanged
@@ -918,6 +987,7 @@ outer:          for (int x = 0; x < width; x++) {
             spinnerWorldHigh.setValue(lowLevel);
         }
         updateImageWaterLevel();
+        updatePreview();
     }//GEN-LAST:event_spinnerWorldLowStateChanged
 
     private void spinnerWorldMiddleStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerWorldMiddleStateChanged
@@ -931,6 +1001,7 @@ outer:          for (int x = 0; x < width; x++) {
 //            spinnerWorldHigh.setValue(middleLevel);
 //        }
         updateImageWaterLevel();
+        updatePreview();
     }//GEN-LAST:event_spinnerWorldMiddleStateChanged
 
     private void spinnerWorldHighStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerWorldHighStateChanged
@@ -944,6 +1015,7 @@ outer:          for (int x = 0; x < width; x++) {
 //            spinnerWorldMiddle.setValue(highLevel);
 //        }
         updateImageWaterLevel();
+        updatePreview();
     }//GEN-LAST:event_spinnerWorldHighStateChanged
 
     private void buttonSelectFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonSelectFileActionPerformed
@@ -998,19 +1070,20 @@ outer:          for (int x = 0; x < width; x++) {
     private void spinnerScaleStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerScaleStateChanged
         if (image != null) {
             updateWorldDimensions();
+            updatePreview();
         }
     }//GEN-LAST:event_spinnerScaleStateChanged
 
     private void buttonOkActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonOkActionPerformed
         if (jTabbedPane1.getSelectedIndex() == 0) {
-            heightMapTileFactoryEditor1.setWaterHeight((int) spinnerWorldMiddle.getValue());
-            if (heightMapTileFactoryEditor1.save()) {
+            themeEditor.setWaterHeight((int) spinnerWorldMiddle.getValue());
+            if (themeEditor.save()) {
                 ok();
             } else {
                 jTabbedPane1.setSelectedIndex(1);
             }
-        } else if (heightMapTileFactoryEditor1.save()) {
-            spinnerWorldMiddle.setValue(heightMapTileFactoryEditor1.getTheme().getWaterHeight());
+        } else if (themeEditor.save()) {
+            spinnerWorldMiddle.setValue(themeEditor.getTheme().getWaterHeight());
             ok();
         }
     }//GEN-LAST:event_buttonOkActionPerformed
@@ -1023,11 +1096,11 @@ outer:          for (int x = 0; x < width; x++) {
         if (! initialising) {
             switch (jTabbedPane1.getSelectedIndex()) {
                 case 0:
-                    heightMapTileFactoryEditor1.save();
-                    spinnerWorldMiddle.setValue(heightMapTileFactoryEditor1.getTheme().getWaterHeight());
+                    themeEditor.save();
+                    spinnerWorldMiddle.setValue(themeEditor.getTheme().getWaterHeight());
                     break;
                 case 1:
-                    heightMapTileFactoryEditor1.setWaterHeight((int) spinnerWorldMiddle.getValue());
+                    themeEditor.setWaterHeight((int) spinnerWorldMiddle.getValue());
                     break;
             }
         }
@@ -1040,12 +1113,14 @@ outer:          for (int x = 0; x < width; x++) {
     private void spinnerOffsetXStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerOffsetXStateChanged
         if (image != null) {
             updateWorldDimensions();
+            updatePreview();
         }
     }//GEN-LAST:event_spinnerOffsetXStateChanged
 
     private void spinnerOffsetYStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerOffsetYStateChanged
         if (image != null) {
             updateWorldDimensions();
+            updatePreview();
         }
     }//GEN-LAST:event_spinnerOffsetYStateChanged
 
@@ -1065,6 +1140,12 @@ outer:          for (int x = 0; x < width; x++) {
         platformChanged();
     }//GEN-LAST:event_comboBoxPlatformActionPerformed
 
+    private void checkBoxInvertActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxInvertActionPerformed
+        if (image != null) {
+            loadImage();
+        }
+    }//GEN-LAST:event_checkBoxInvertActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonCancel;
     private javax.swing.ButtonGroup buttonGroup1;
@@ -1080,7 +1161,6 @@ outer:          for (int x = 0; x < width; x++) {
     private javax.swing.JComboBox<Integer> comboBoxHeight;
     private javax.swing.JComboBox<Platform> comboBoxPlatform;
     private javax.swing.JTextField fieldFilename;
-    private org.pepsoft.worldpainter.themes.impl.simple.SimpleThemeEditor heightMapTileFactoryEditor1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
@@ -1102,6 +1182,7 @@ outer:          for (int x = 0; x < width; x++) {
     private javax.swing.JLabel labelImageDimensions;
     private javax.swing.JLabel labelImageWaterLevel;
     private javax.swing.JLabel labelNoUndo;
+    private javax.swing.JLabel labelWalkingTime;
     private javax.swing.JLabel labelWarning;
     private javax.swing.JLabel labelWorldDimensions;
     private javax.swing.JSpinner spinnerImageHigh;
@@ -1113,15 +1194,23 @@ outer:          for (int x = 0; x < width; x++) {
     private javax.swing.JSpinner spinnerWorldHigh;
     private javax.swing.JSpinner spinnerWorldLow;
     private javax.swing.JSpinner spinnerWorldMiddle;
+    private org.pepsoft.worldpainter.themes.impl.simple.SimpleThemeEditor themeEditor;
+    private org.pepsoft.util.swing.TiledImageViewer tiledImageViewer2;
+    private org.pepsoft.util.swing.TiledImageViewerContainer tiledImageViewerContainer1;
     // End of variables declaration//GEN-END:variables
 
     private final long seed = new Random().nextLong();
     private final Dimension currentDimension;
+    private final ColourScheme colourScheme;
+    private final boolean contourLines;
+    private final int contourSeparation;
+    private final TileRenderer.LightOrigin lightOrigin;
     private File selectedFile, heightMapDir;
     private volatile BufferedImage image;
     private int bitDepth = 8, imageHighValue = 255;
     private boolean initialising = true;
 
+    private static final String UPDATE_HEIGHT_MAP_PREVIEW = ImportHeightMapDialog.class.getName() + ".updateHeightMap";
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ImportHeightMapDialog.class);
     private static final long serialVersionUID = 1L;
 }

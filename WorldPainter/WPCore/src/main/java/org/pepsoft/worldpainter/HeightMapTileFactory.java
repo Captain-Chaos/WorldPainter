@@ -94,17 +94,14 @@ public class HeightMapTileFactory extends AbstractTileFactory {
         theme.setMaxHeight(maxHeight, HeightTransform.IDENTITY);
     }
 
-    /**
-     * Always returns {@code true} since height map tile factories are
-     * endless.
-     */
     @Override
     public boolean isTilePresent(int x, int y) {
-        return true;
+        Rectangle extent = getExtent();
+        return (extent == null) || extent.contains(x, y);
     }
 
     @Override
-    public final Tile createTile(int tileX, int tileY) {
+    public Tile createTile(int tileX, int tileY) {
         final int maxY = getMaxHeight() - 1, myWaterHeight = getWaterHeight();
         final Tile tile = new Tile(tileX, tileY, maxHeight);
         tile.inhibitEvents();
@@ -130,7 +127,16 @@ public class HeightMapTileFactory extends AbstractTileFactory {
 
     @Override
     public Rectangle getExtent() {
-        return null; // Height map tile factories are endless
+        Rectangle heightMapExtent = heightMap.getExtent();
+        if (heightMapExtent != null) {
+            int tileX1 = heightMapExtent.x >> TILE_SIZE_BITS;
+            int tileY1 = heightMapExtent.y >> TILE_SIZE_BITS;
+            int tileX2 = (heightMapExtent.x + heightMapExtent.width - 1) >> TILE_SIZE_BITS;
+            int tileY2 = (heightMapExtent.y + heightMapExtent.height - 1) >> TILE_SIZE_BITS;
+            return new Rectangle(tileX1, tileY1, (tileX2 - tileX1) + 1, (tileY2 - tileY1) + 1);
+        } else {
+            return null;
+        }
     }
 
     @Override

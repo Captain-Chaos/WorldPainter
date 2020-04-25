@@ -101,6 +101,21 @@ public class MinecraftUtil {
         return regionDir;
     }
 
+    public static String blocksToWalkingTime(int blocks) {
+        int mins = (int) (blocks / 256f + 0.5f);
+        if (mins < 60) {
+            return mins + " min.";
+        } else {
+            int hours = mins / 60;
+            mins -= 60 * hours;
+            if (mins == 0) {
+                return hours + "hr.";
+            } else {
+                return hours + "hr., " + mins + " min.";
+            }
+        }
+    }
+
     private static final Logger logger = LoggerFactory.getLogger(MinecraftUtil.class);
 
     @FunctionalInterface

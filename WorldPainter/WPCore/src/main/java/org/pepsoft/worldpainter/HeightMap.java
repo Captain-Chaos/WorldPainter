@@ -4,6 +4,11 @@
  */
 package org.pepsoft.worldpainter;
 
+import org.pepsoft.worldpainter.heightMaps.ConstantHeightMap;
+import org.pepsoft.worldpainter.heightMaps.DifferenceHeightMap;
+import org.pepsoft.worldpainter.heightMaps.ProductHeightMap;
+import org.pepsoft.worldpainter.heightMaps.SumHeightMap;
+
 import javax.swing.*;
 import java.awt.*;
 import java.io.Serializable;
@@ -124,4 +129,50 @@ public interface HeightMap extends Serializable {
      * @return The range of this height map.
      */
     float[] getRange();
+
+    /**
+     * Create a new height map which is the sum of this and another height map.
+     */
+    default SumHeightMap plus(HeightMap addend) {
+        return new SumHeightMap(this, addend);
+    }
+
+    /**
+     * Create a new height map which is the sum of this and a constant value.
+     */
+    default SumHeightMap plus(float addend) {
+        return new SumHeightMap(this, new ConstantHeightMap(addend));
+    }
+
+    /**
+     * Create a new height map which is the difference of this and another
+     * height map.
+     */
+    default DifferenceHeightMap minus(HeightMap subtrahend) {
+        return new DifferenceHeightMap(this, subtrahend);
+    }
+
+    /**
+     * Create a new height map which is the difference of this and a constant
+     * value.
+     */
+    default DifferenceHeightMap minus(float subtrahend) {
+        return new DifferenceHeightMap(this, new ConstantHeightMap(subtrahend));
+    }
+
+    /**
+     * Create a new height map which is the product of this and another
+     * height map.
+     */
+    default ProductHeightMap times(HeightMap subtrahend) {
+        return new ProductHeightMap(this, subtrahend);
+    }
+
+    /**
+     * Create a new height map which is the product of this and a constant
+     * value.
+     */
+    default ProductHeightMap times(float subtrahend) {
+        return new ProductHeightMap(this, new ConstantHeightMap(subtrahend));
+    }
 }

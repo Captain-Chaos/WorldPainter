@@ -14,8 +14,8 @@ import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.pepsoft.minecraft.Constants.*;
@@ -31,10 +31,9 @@ import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
  * @author pepijn
  */
 public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dimension.Listener, Tile.Listener {
-    public WPTileProvider(Dimension dimension, ColourScheme colourScheme, BiomeScheme biomeScheme, CustomBiomeManager customBiomeManager, Collection<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin, boolean showBorder, org.pepsoft.util.swing.TileProvider surroundingTileProvider, boolean active) {
+    public WPTileProvider(Dimension dimension, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Collection<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin, boolean showBorder, org.pepsoft.util.swing.TileProvider surroundingTileProvider, boolean active) {
         tileProvider = dimension;
         this.colourScheme = colourScheme;
-        this.biomeScheme = biomeScheme;
         this.hiddenLayers = (hiddenLayers != null) ? new HashSet<>(hiddenLayers) : null;
         this.contourLines = contourLines;
         this.contourSeparation = contourSeparation;
@@ -51,10 +50,9 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
         tileRendererRef = createNewTileRendererRef();
     }
 
-    public WPTileProvider(TileProvider tileProvider, ColourScheme colourScheme, BiomeScheme biomeScheme, CustomBiomeManager customBiomeManager, Collection<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin, boolean showBorder, org.pepsoft.util.swing.TileProvider surroundingTileProvider) {
+    public WPTileProvider(TileProvider tileProvider, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Collection<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin, boolean showBorder, org.pepsoft.util.swing.TileProvider surroundingTileProvider) {
         this.tileProvider = tileProvider;
         this.colourScheme = colourScheme;
-        this.biomeScheme = biomeScheme;
         this.hiddenLayers = (hiddenLayers != null) ? new HashSet<>(hiddenLayers) : null;
         this.contourLines = contourLines;
         this.contourSeparation = contourSeparation;
@@ -290,7 +288,17 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
 
     @Override
     public Rectangle getExtent() {
-        return tileProvider.getExtent();
+        Rectangle tileProviderExtent = tileProvider.getExtent();
+        Rectangle surroundingTileProviderExtent = (surroundingTileProvider != null) ? surroundingTileProvider.getExtent() : null;
+        if (tileProviderExtent != null) {
+            if (surroundingTileProviderExtent != null) {
+                return tileProviderExtent.union(surroundingTileProviderExtent);
+            } else {
+                return tileProviderExtent;
+            }
+        } else {
+            return surroundingTileProviderExtent;
+        }
     }
     
     @Override
@@ -630,7 +638,7 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
     @NotNull
     private ThreadLocal<TileRenderer> createNewTileRendererRef() {
         return ThreadLocal.withInitial(() -> {
-            TileRenderer tileRenderer = new TileRenderer(tileProvider, colourScheme, biomeScheme, customBiomeManager, zoom);
+            TileRenderer tileRenderer = new TileRenderer(tileProvider, colourScheme, customBiomeManager, zoom);
             synchronized (WPTileProvider.this) {
                 if (hiddenLayers != null) {
                     tileRenderer.addHiddenLayers(hiddenLayers);
@@ -650,7 +658,6 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
 
     private final TileProvider tileProvider;
     private final ColourScheme colourScheme;
-    private final BiomeScheme biomeScheme;
     private final Set<Layer> hiddenLayers;
     private final boolean contourLines, active, showBorder;
     private final int contourSeparation;
