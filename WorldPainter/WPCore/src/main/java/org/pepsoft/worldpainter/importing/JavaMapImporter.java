@@ -277,8 +277,8 @@ public class JavaMapImporter extends MapImporter {
 
                 // Sanity checks
                 if (chunk instanceof MC114AnvilChunk) {
-                    MC114AnvilChunk mc113Chunk = (MC114AnvilChunk) chunk;
-                    if ((mc113Chunk.getSections() == null) || (! stream(mc113Chunk.getSections()).anyMatch(s -> (s != null) && (s.level >= 0)))) {
+                    MC114AnvilChunk mc114Chunk = (MC114AnvilChunk) chunk;
+                    if ((mc114Chunk.getSections() == null) || (stream(mc114Chunk.getSections()).noneMatch(s -> (s != null) && (s.level >= 0)))) {
                         logger.warn("Skipping chunk " + chunkX + "," + chunkZ + " because it has no sections, or no sections with y >= 0");
                         return true;
                     }
