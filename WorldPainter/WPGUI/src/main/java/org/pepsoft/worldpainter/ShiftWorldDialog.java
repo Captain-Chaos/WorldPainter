@@ -60,7 +60,8 @@ public class ShiftWorldDialog extends WorldPainterDialog implements ProgressRece
         jCheckBox1.setEnabled(oppositeDim != Integer.MIN_VALUE);
 
         getRootPane().setDefaultButton(buttonShift);
-        
+
+        scaleToUI();
         setLocationRelativeTo(parent);
     }
 

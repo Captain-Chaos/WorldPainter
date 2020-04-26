@@ -131,7 +131,8 @@ public class CustomMaterialDialog extends WorldPainterDialog implements Property
         init(material);
 
         rootPane.setDefaultButton(buttonOK);
-        
+
+        scaleToUI();
         setLocationRelativeTo(parent);
     }
 

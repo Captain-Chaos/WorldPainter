@@ -28,6 +28,7 @@ import javax.swing.event.ListSelectionEvent;
 import java.util.*;
 
 import static org.pepsoft.minecraft.Material.*;
+import static org.pepsoft.util.GUIUtils.scaleToUI;
 import static org.pepsoft.worldpainter.Platform.Capability.POPULATE;
 
 /**
@@ -117,6 +118,8 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
         tableCustomLayers.setDefaultRenderer(CustomLayer.class, new CustomLayersTableCellRenderer());
         tableCustomLayers.getSelectionModel().addListSelectionListener((ListSelectionEvent e) -> setControlStates());
+
+        scaleToUI(this);
     }
 
     public void setColourScheme(ColourScheme colourScheme) {

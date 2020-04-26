@@ -190,7 +190,8 @@ public class NewWorldDialog extends WorldPainterDialog {
         } else {
             theme = SimpleTheme.createDefault((Terrain) comboBoxSurfaceMaterial.getSelectedItem(), Integer.parseInt((String) comboBoxMaxHeight.getSelectedItem()), (Integer) spinnerWaterLevel.getValue());
         }
-        
+
+        scaleToUI();
         pack();
         setLocationRelativeTo(app);
         fieldSeed.setText(Long.toString(seed));

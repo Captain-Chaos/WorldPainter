@@ -112,6 +112,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
         rootPane.setDefaultButton(buttonMerge);
 
         setControlStates();
+        scaleToUI();
         pack();
     }
 

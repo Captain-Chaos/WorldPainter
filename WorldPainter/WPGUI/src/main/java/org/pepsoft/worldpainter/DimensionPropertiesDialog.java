@@ -37,7 +37,8 @@ public class DimensionPropertiesDialog extends WorldPainterDialog {
         }
         
         rootPane.setDefaultButton(jButton2);
-        
+
+        scaleToUI();
         pack();
         setLocationRelativeTo(parent);
     }

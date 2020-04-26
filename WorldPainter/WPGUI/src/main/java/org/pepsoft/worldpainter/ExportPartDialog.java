@@ -19,6 +19,7 @@ public class ExportPartDialog extends WorldPainterDialog {
         super(parent);
         initComponents();
         getRootPane().setDefaultButton(buttonExport);
+        scaleToUI();
         setLocationRelativeTo(parent);
     }
 

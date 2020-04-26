@@ -101,6 +101,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             loadDefaults();
         }
 
+        scaleToUI();
         pack();
         setDefaultSizeAndLocation(this, 60);
 

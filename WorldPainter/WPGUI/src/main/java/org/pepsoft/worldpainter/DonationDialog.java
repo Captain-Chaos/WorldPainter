@@ -54,6 +54,7 @@ public final class DonationDialog extends WorldPainterDialog {
         }
         
         rootPane.setDefaultButton(jButton1);
+        scaleToUI();
         pack();
     }
 

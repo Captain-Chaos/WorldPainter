@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import static org.pepsoft.util.GUIUtils.scaleToUI;
 import static org.pepsoft.worldpainter.Constants.*;
 
 /**
@@ -189,6 +190,7 @@ public class BiomesViewerFrame extends JFrame {
         toolBar.add(Box.createHorizontalGlue());
         getContentPane().add(toolBar, BorderLayout.SOUTH);
 
+        scaleToUI(this);
         setSize(800, 600);
     }
 

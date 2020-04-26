@@ -30,6 +30,7 @@ public class DeleteLayersDialog extends WorldPainterDialog {
         jList1.getSelectionModel().addListSelectionListener(e -> setControlStates());
         setControlStates();
 
+        scaleToUI();
         setLocationRelativeTo(parent);
     }
 

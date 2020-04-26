@@ -60,6 +60,7 @@ public class PreferencesDialog extends WorldPainterDialog {
         loadSettings();
         
         rootPane.setDefaultButton(buttonOK);
+        scaleToUI();
         pack();
         setLocationRelativeTo(parent);
     }

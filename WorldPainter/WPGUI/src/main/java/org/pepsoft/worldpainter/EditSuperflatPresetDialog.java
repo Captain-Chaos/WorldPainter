@@ -61,6 +61,7 @@ public class EditSuperflatPresetDialog extends WorldPainterDialog {
         setControlStates();
         
         getRootPane().setDefaultButton(buttonOK);
+        scaleToUI();
         pack();
         setLocationRelativeTo(parent);
     }

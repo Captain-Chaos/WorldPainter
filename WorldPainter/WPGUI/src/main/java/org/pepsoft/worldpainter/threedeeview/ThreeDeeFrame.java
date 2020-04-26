@@ -28,6 +28,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import static org.pepsoft.util.GUIUtils.scaleToUI;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 import static org.pepsoft.worldpainter.util.LayoutUtils.setDefaultSizeAndLocation;
 
@@ -137,6 +138,7 @@ public class ThreeDeeFrame extends JFrame implements WindowListener {
         inputMap.put(KeyStroke.getKeyStroke('+'), "zoomIn");
         
         setSize(800, 600);
+        scaleToUI(this);
         setDefaultSizeAndLocation(this, 60);
         
         setDimension(dimension);

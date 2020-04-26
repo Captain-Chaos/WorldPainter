@@ -29,6 +29,7 @@ public class AddLayerDialog extends WorldPainterDialog {
         spinnerFactor.setEditor(new NumberEditor(spinnerFactor, "0"));
         
         rootPane.setDefaultButton(buttonOK);
+        scaleToUI();
         pack();
         setLocationRelativeTo(parent);
     }

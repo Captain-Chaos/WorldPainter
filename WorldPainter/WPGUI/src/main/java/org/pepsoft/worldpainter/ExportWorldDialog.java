@@ -225,7 +225,8 @@ dims:   for (Dimension dim: world.getDimensions()) {
         rootPane.setDefaultButton(buttonExport);
 
         setControlStates();
-        
+
+        scaleToUI();
         pack();
         setLocationRelativeTo(parent);
     }

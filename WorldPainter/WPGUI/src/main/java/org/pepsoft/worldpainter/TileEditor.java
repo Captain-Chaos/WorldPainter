@@ -51,7 +51,8 @@ public class TileEditor extends WorldPainterDialog implements TileSelector.Liste
         tileSelector1.addListener(this);
 
         getRootPane().setDefaultButton(buttonClose);
-        
+
+        scaleToUI();
         setLocationRelativeTo(parent);
     }
     

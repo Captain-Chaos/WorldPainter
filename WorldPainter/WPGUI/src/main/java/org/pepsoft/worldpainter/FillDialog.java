@@ -72,7 +72,8 @@ public class FillDialog extends WorldPainterDialog implements Listener {
         brushOptions1.setListener(this);
         
         getRootPane().setDefaultButton(buttonFill);
-        
+
+        scaleToUI();
         pack(); // The comboboxes' preferred sizes have changed because the
                 // models have been set
         setLocationRelativeTo(parent);

@@ -30,6 +30,7 @@ public class CustomBiomeDialog extends WorldPainterDialog {
         colourEditor2.setColour(customBiome.getColour());
 
         rootPane.setDefaultButton(buttonOK);
+        scaleToUI();
         pack();
         setLocationRelativeTo(parent);
     }

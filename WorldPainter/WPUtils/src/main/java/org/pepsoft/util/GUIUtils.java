@@ -1,10 +1,20 @@
 package org.pepsoft.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.swing.*;
+import javax.swing.plaf.FontUIResource;
+import javax.swing.plaf.InsetsUIResource;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
+import java.util.Map;
+
+import static java.awt.Image.SCALE_SMOOTH;
+import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 
 /**
  * Created by pepijn on 13-Jan-17.
@@ -35,6 +45,89 @@ public class GUIUtils {
         } else {
             BufferedImageOp op = new AffineTransformOp(AffineTransform.getScaleInstance(getUIScaleInt(), getUIScaleInt()), AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
             return op.filter(image, null);
+        }
+    }
+
+    public static void scaleToUI(Container container) {
+        for (Component component: container.getComponents()) {
+            if (component instanceof JTable) {
+                JTable table = (JTable) component;
+                table.setRowHeight((int) (table.getRowHeight() * UI_SCALE_FLOAT + 0.5f));
+                table.setRowMargin((int) (table.getRowMargin() * UI_SCALE_FLOAT + 0.5f));
+            } else if (component instanceof Container) {
+                scaleToUI((Container) component);
+            }
+        }
+    }
+
+    /**
+     * Adjusts the {@link UIManager} defaults to show the Java 2D UI at the
+     * specified scale.
+     */
+    public static void scaleLookAndFeel(float scale) {
+        for (Map.Entry<Object, Object> entry: UIManager.getDefaults().entrySet()) {
+            Object key = entry.getKey();
+            Object value = UIManager.get(key);
+            if (value instanceof FontUIResource) {
+                FontUIResource previousResource = (FontUIResource) value;
+                FontUIResource newResource = new FontUIResource(previousResource.getFamily(), previousResource.getStyle(), (int) (previousResource.getSize() * scale + 0.5f));
+                UIManager.put(key, newResource);
+                logger.debug("Scaled FontUIResource {}", key);
+            } else if (value instanceof InsetsUIResource) {
+                InsetsUIResource oldResource = (InsetsUIResource) value;
+                InsetsUIResource newResource = new InsetsUIResource((int) (oldResource.top * scale + 0.5f),
+                        (int) (oldResource.left * scale + 0.5f),
+                        (int) (oldResource.bottom * scale + 0.5f),
+                        (int) (oldResource.right * scale + 0.5f));
+                UIManager.put(key, newResource);
+                logger.debug("Scaled InsetsUIResource {}", key);
+            } else if (value instanceof Insets) {
+                Insets oldResource = (Insets) value;
+                Insets newResource = new Insets((int) (oldResource.top * scale + 0.5f),
+                        (int) (oldResource.left * scale + 0.5f),
+                        (int) (oldResource.bottom * scale + 0.5f),
+                        (int) (oldResource.right * scale + 0.5f));
+                UIManager.put(key, newResource);
+                logger.debug("Scaled Insets {}", key);
+            } else if ((value instanceof Integer) && (key instanceof String) &&
+                    (((String) key).toLowerCase().contains("margin")
+                            || ((String) key).toLowerCase().contains("thickness")
+                            || ((String) key).toLowerCase().contains("gap")
+                            || ((String) key).toLowerCase().contains("width")
+                            || ((String) key).toLowerCase().contains("height")
+                            || ((String) key).toLowerCase().contains("spacing")
+                            || ((String) key).toLowerCase().contains("size")
+                            || ((String) key).toLowerCase().contains("length")
+                            || ((String) key).toLowerCase().contains("offset")
+                            || ((String) key).toLowerCase().contains("shift")
+                            || ((String) key).toLowerCase().contains("indent")
+                            || ((String) key).toLowerCase().contains("padding"))) {
+                int oldValue = (Integer) value;
+                int newValue = (int) (oldValue * scale + 0.5f);
+                UIManager.put(key, newValue);
+                logger.debug("Scaled integer {}", key);
+            } else if (value instanceof ImageIcon) {
+                ImageIcon icon = (ImageIcon) value;
+                Image scaledImage = icon.getImage().getScaledInstance((int) (icon.getIconWidth() * scale + 0.5f + 0.5f), -1, SCALE_SMOOTH);
+                UIManager.put(key, new ImageIcon(scaledImage));
+                logger.debug("Scaled ImageIcon {}", key);
+            } else if (value instanceof Icon) {
+                Icon icon = (Icon) value;
+                BufferedImage image = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(), TYPE_INT_ARGB);
+                Graphics2D g2 = image.createGraphics();
+                try {
+                    icon.paintIcon(null, g2, 0, 0);
+                    Image scaledImage = image.getScaledInstance((int) (icon.getIconWidth() * scale + 0.5f + 0.5f), -1, SCALE_SMOOTH);
+                    UIManager.put(key, new ImageIcon(scaledImage));
+                    logger.debug("Scaled Icon {}", key);
+                } catch (NullPointerException e) {
+                    logger.debug("Did NOT scale Icon {} due to NullPointerException", key);
+                }
+            } else if ((value instanceof Color) || (value instanceof Boolean)) {
+                // Ignore silently
+            } else {
+                logger.debug("Did NOT scale {}: {}} ({}})", key, value, (value != null) ? value.getClass().getSimpleName() : "null");
+            }
         }
     }
 
@@ -90,4 +183,6 @@ public class GUIUtils {
 
     private static float UI_SCALE_FLOAT = SYSTEM_UI_SCALE_FLOAT;
     private static int UI_SCALE = SYSTEM_UI_SCALE;
+
+    private static final Logger logger = LoggerFactory.getLogger(GUIUtils.class);
 }

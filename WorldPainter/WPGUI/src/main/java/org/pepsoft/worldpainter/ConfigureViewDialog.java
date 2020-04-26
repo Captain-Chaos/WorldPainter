@@ -127,6 +127,7 @@ public class ConfigureViewDialog extends WorldPainterDialog implements WindowLis
             checkBoxShowBiomes.setEnabled(false);
         }
         setControlStates();
+        scaleToUI();
         setLocationRelativeTo(parent);
         
         if (enableOverlay) {

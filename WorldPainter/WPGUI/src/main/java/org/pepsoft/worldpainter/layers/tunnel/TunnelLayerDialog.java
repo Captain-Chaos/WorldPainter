@@ -6,30 +6,23 @@
 package org.pepsoft.worldpainter.layers.tunnel;
 
 import org.pepsoft.worldpainter.*;
-import org.pepsoft.worldpainter.layers.AbstractEditLayerDialog;
+import org.pepsoft.worldpainter.exporting.IncidentalLayerExporter;
+import org.pepsoft.worldpainter.layers.*;
+import org.pepsoft.worldpainter.layers.groundcover.GroundCoverLayer;
+import org.pepsoft.worldpainter.layers.plants.PlantLayer;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.Mode;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import java.awt.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import java.awt.Dimension;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-
-import org.pepsoft.worldpainter.exporting.IncidentalLayerExporter;
-import org.pepsoft.worldpainter.layers.Bo2Layer;
-import org.pepsoft.worldpainter.layers.CustomLayer;
-import org.pepsoft.worldpainter.layers.EditLayerDialog;
-import org.pepsoft.worldpainter.layers.Layer;
-import org.pepsoft.worldpainter.layers.LayerManager;
-import org.pepsoft.worldpainter.layers.LayerTableCellRenderer;
-import org.pepsoft.worldpainter.layers.groundcover.GroundCoverLayer;
-import org.pepsoft.worldpainter.layers.plants.PlantLayer;
 
 /**
  *
@@ -74,7 +67,8 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         
         noiseSettingsEditorFloor.addChangeListener(this);
         noiseSettingsEditorRoof.addChangeListener(this);
-        
+
+        scaleToUI();
         setLocationRelativeTo(parent);
     }
 

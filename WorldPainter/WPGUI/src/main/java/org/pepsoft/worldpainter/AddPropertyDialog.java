@@ -18,6 +18,7 @@ public class AddPropertyDialog extends WorldPainterDialog {
     public AddPropertyDialog(Window parent) {
         super(parent);
         initComponents();
+        scaleToUI();
         setLocationRelativeTo(parent);
     }
 

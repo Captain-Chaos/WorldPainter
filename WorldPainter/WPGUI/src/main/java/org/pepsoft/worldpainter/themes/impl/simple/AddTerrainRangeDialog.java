@@ -32,7 +32,8 @@ public class AddTerrainRangeDialog extends WorldPainterDialog {
         spinnerLevel.setModel(new SpinnerNumberModel(maxHeight / 2, 1, maxHeight - 1, 1));
 
         getRootPane().setDefaultButton(buttonOK);
-        
+
+        scaleToUI();
         pack();
         setLocationRelativeTo(parent);
     }

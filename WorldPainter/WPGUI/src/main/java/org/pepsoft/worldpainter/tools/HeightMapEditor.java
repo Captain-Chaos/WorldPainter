@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
+import static org.pepsoft.util.GUIUtils.scaleToUI;
 import static org.pepsoft.worldpainter.Terrain.GRASS;
 
 /**
@@ -74,6 +75,7 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
                 jSplitPane3.setDividerLocation(1.0);
             }
         });
+        scaleToUI(this);
     }
 
     // HeightMapListener

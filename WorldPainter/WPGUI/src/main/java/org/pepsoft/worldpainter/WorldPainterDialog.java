@@ -4,14 +4,14 @@
  */
 package org.pepsoft.worldpainter;
 
-import java.awt.Window;
-import java.awt.event.*;
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
-import javax.swing.InputMap;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.KeyStroke;
+import org.pepsoft.util.GUIUtils;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 /**
  * A WorldPainter dialog window. Provides the following features:
@@ -99,7 +99,18 @@ public class WorldPainterDialog extends JDialog {
     protected void cancel() {
         dispose();
     }
-    
+
+    /**
+     * Goes through all child components and applies any additional UI scaling
+     * that is necessary because it is not possible via the UIManager defaults.
+     *
+     * <p>Should be called by subclasses <em>after</em> they have added all
+     * their components.
+     */
+    protected void scaleToUI() {
+        GUIUtils.scaleToUI(this);
+    }
+
     private boolean cancelled = true;
     
     private static final long serialVersionUID = 1L;

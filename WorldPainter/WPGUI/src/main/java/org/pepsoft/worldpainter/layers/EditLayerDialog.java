@@ -91,6 +91,7 @@ public class EditLayerDialog<L extends Layer> extends AbstractEditLayerDialog<L>
             }
         });
 
+        scaleToUI();
         pack();
         setLocationRelativeTo(parent);
     }

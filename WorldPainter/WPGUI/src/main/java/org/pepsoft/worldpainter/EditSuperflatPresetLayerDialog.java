@@ -21,6 +21,7 @@ public class EditSuperflatPresetLayerDialog extends WorldPainterDialog {
         super(parent);
         this.layer = layer;
         initComponents();
+        scaleToUI();
     }
 
     /**

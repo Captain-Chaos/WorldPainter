@@ -53,6 +53,7 @@ public class TextDialog extends WorldPainterDialog {
         jTextArea1.requestFocusInWindow();
         
         rootPane.setDefaultButton(jButton2);
+        scaleToUI();
         pack();
         setLocationRelativeTo(parent);
     }

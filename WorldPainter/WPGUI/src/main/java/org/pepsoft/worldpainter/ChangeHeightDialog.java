@@ -44,7 +44,8 @@ public class ChangeHeightDialog extends WorldPainterDialog {
         comboBoxNewHeight.setSelectedItem(Integer.toString(maxHeight));
         
         getRootPane().setDefaultButton(buttonOK);
-        
+
+        scaleToUI();
         setLocationRelativeTo(parent);
     }
     

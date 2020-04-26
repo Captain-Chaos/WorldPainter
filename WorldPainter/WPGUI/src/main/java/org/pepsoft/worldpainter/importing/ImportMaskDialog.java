@@ -57,6 +57,7 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
         
         loadDefaults();
 
+        scaleToUI();
         pack();
         setLocationRelativeTo(parent);
 

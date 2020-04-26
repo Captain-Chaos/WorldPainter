@@ -60,7 +60,8 @@ public class RotateWorldDialog extends WorldPainterDialog implements ProgressRec
         jCheckBox1.setEnabled(oppositeDim != -1);
 
         getRootPane().setDefaultButton(buttonRotate);
-        
+
+        scaleToUI();
         setLocationRelativeTo(parent);
     }
 

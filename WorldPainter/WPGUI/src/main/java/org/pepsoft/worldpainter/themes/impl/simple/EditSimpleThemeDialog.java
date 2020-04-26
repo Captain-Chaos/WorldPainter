@@ -22,6 +22,7 @@ public class EditSimpleThemeDialog extends WorldPainterDialog {
         initComponents();
         simpleThemeEditor1.setTheme(theme);
         getRootPane().setDefaultButton(buttonOK);
+        scaleToUI();
         pack();
         setLocationRelativeTo(parent);
     }

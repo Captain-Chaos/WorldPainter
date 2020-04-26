@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.pepsoft.util.GUIUtils.scaleToUI;
 import static org.pepsoft.worldpainter.layers.combined.CombinedLayerTableModel.COLUMN_FACTOR;
 import static org.pepsoft.worldpainter.layers.combined.CombinedLayerTableModel.COLUMN_LAYER;
 
@@ -60,6 +61,7 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> {
                 settingsChanged();
             }
         });
+        scaleToUI(tableLayers);
     }
 
     // LayerEditor
