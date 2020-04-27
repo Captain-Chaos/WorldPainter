@@ -38,6 +38,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.ResourceBundle;
 
+import static org.pepsoft.util.GUIUtils.scaleToUI;
+
 /**
  *
  * @author pepijn
@@ -65,7 +67,9 @@ public class AboutDialog extends javax.swing.JDialog implements WindowListener {
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "close");
 
         rootPane.setDefaultButton(buttonClose);
-        
+
+        scaleToUI(this);
+        jLabel1.setIcon(new ImageIcon(scaleToUI(((ImageIcon) jLabel1.getIcon()).getImage(), true)));
         setLocationRelativeTo(parent);
         addWindowListener(this);
     }

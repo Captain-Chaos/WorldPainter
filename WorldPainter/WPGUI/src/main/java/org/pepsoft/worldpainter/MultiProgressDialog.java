@@ -11,17 +11,19 @@
 
 package org.pepsoft.worldpainter;
 
-import java.awt.*;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
-import javax.swing.*;
-
+import org.pepsoft.util.SubProgressReceiver;
 import org.pepsoft.util.swing.ProgressComponent.Listener;
 import org.pepsoft.util.swing.ProgressTask;
-import org.pepsoft.util.SubProgressReceiver;
 import org.pepsoft.worldpainter.util.FileInUseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+
+import static org.pepsoft.util.GUIUtils.scaleToUI;
 
 /**
  *
@@ -34,6 +36,7 @@ public abstract class MultiProgressDialog<T> extends javax.swing.JDialog impleme
         initComponents();
         setTitle(title);
 
+        scaleToUI(this);
         setLocationRelativeTo(parent);
         
         addComponentListener(this);

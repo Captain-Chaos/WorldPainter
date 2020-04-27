@@ -11,11 +11,10 @@
 
 package org.pepsoft.worldpainter;
 
-import java.awt.Desktop;
-import java.awt.Dialog;
-import java.awt.Frame;
-import java.awt.Toolkit;
-import java.awt.Window;
+import org.pepsoft.worldpainter.layers.Layer;
+
+import javax.swing.*;
+import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
@@ -25,13 +24,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.Set;
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
-import javax.swing.InputMap;
-import javax.swing.JComponent;
-import javax.swing.JOptionPane;
-import javax.swing.KeyStroke;
-import org.pepsoft.worldpainter.layers.Layer;
+
+import static org.pepsoft.util.GUIUtils.scaleToUI;
 
 /**
  *
@@ -221,7 +215,8 @@ public class ErrorDialog extends javax.swing.JDialog {
 
         InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "cancel");
-        
+
+        scaleToUI(this);
         setLocationRelativeTo(parent);
     }
 

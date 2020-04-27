@@ -404,7 +404,7 @@ public class Main {
                 // Install configured look and feel
                 try {
                     String laf;
-                    if (getUIScale() > 1.0f) {
+                    if (getUIScale() != 1.0f) {
                         laf = UIManager.getSystemLookAndFeelClassName();
                     } else {
                         switch (lookAndFeel) {

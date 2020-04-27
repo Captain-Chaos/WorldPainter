@@ -14,7 +14,11 @@ import java.awt.image.BufferedImageOp;
 import java.util.Map;
 
 import static java.awt.Image.SCALE_SMOOTH;
+import static java.awt.RenderingHints.*;
+import static java.awt.image.AffineTransformOp.TYPE_BICUBIC;
+import static java.awt.image.AffineTransformOp.TYPE_NEAREST_NEIGHBOR;
 import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
+import static java.lang.Math.round;
 
 /**
  * Created by pepijn on 13-Jan-17.
@@ -28,7 +32,7 @@ public class GUIUtils {
      */
     public static void setUIScale(float uiScale) {
         UI_SCALE_FLOAT = uiScale;
-        UI_SCALE = Math.round(uiScale);
+        UI_SCALE = round(uiScale);
     }
 
     /**
@@ -39,21 +43,73 @@ public class GUIUtils {
      * @return The original image if {@code UI_SCALE} is 1, or an
      * appropriately scaled copy otherwise.
      */
-    public static BufferedImage scaleToUI(BufferedImage image) {
-        if (getUIScaleInt() == 1) {
-            return image;
+    public static BufferedImage scaleToUI(Image image) {
+        return scaleToUI(image, false);
+    }
+
+    /**
+     * Scale an image according to {@link #UI_SCALE}.
+     *
+     * @param image The image to scale.
+     * @param smooth Whether to do smooth scaling. When this is {@code true},
+     *               the image is scaled to the floating point UI scale using
+     *               bicubic scaling. When it is {@code false}, it is scaled to
+     *               the UI scale rounded to the nearest integer, using nearest
+     *               neighbour scaling.
+     * @return The original image if {@code UI_SCALE} is 1, or an
+     * appropriately scaled copy otherwise.
+     */
+    public static BufferedImage scaleToUI(Image image, boolean smooth) {
+        if (((UI_SCALE_FLOAT == 1.0f) || ((! smooth) && (UI_SCALE == 1))) && (image instanceof BufferedImage)) {
+            return (BufferedImage) image;
+        } else if (image instanceof BufferedImage) {
+            BufferedImageOp op;
+            if (smooth) {
+                op = new AffineTransformOp(AffineTransform.getScaleInstance(getUIScale(), getUIScale()), TYPE_BICUBIC);
+            } else {
+                op = new AffineTransformOp(AffineTransform.getScaleInstance(getUIScaleInt(), getUIScaleInt()), TYPE_NEAREST_NEIGHBOR);
+            }
+            return op.filter((BufferedImage) image, null);
         } else {
-            BufferedImageOp op = new AffineTransformOp(AffineTransform.getScaleInstance(getUIScaleInt(), getUIScaleInt()), AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
-            return op.filter(image, null);
+            BufferedImage scaledImage;
+            if (smooth) {
+                scaledImage = new BufferedImage(round(image.getWidth(null) * getUIScale()), round(image.getHeight(null) * getUIScale()), TYPE_INT_ARGB);
+                Graphics2D g2 = scaledImage.createGraphics();
+                try {
+                    g2.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BICUBIC);
+                    g2.drawImage(image, AffineTransform.getScaleInstance(getUIScale(), getUIScale()), null);
+                } finally {
+                    g2.dispose();
+                }
+            } else {
+                scaledImage = new BufferedImage(image.getWidth(null) * getUIScaleInt(), image.getHeight(null) * getUIScaleInt(), TYPE_INT_ARGB);
+                Graphics2D g2 = scaledImage.createGraphics();
+                try {
+                    g2.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+                    g2.drawImage(image, AffineTransform.getScaleInstance(getUIScaleInt(), getUIScaleInt()), null);
+                } finally {
+                    g2.dispose();
+                }
+            }
+            return scaledImage;
         }
     }
 
     public static void scaleToUI(Container container) {
+        if (UI_SCALE_FLOAT == 1.0f) {
+            return;
+        }
+        if (container instanceof Window) {
+            Window window = (Window) container;
+            window.setSize((int) (window.getWidth() * UI_SCALE_FLOAT + 0.5f), (int) (window.getHeight() * UI_SCALE_FLOAT + 0.5f));
+        }
         for (Component component: container.getComponents()) {
             if (component instanceof JTable) {
                 JTable table = (JTable) component;
                 table.setRowHeight((int) (table.getRowHeight() * UI_SCALE_FLOAT + 0.5f));
                 table.setRowMargin((int) (table.getRowMargin() * UI_SCALE_FLOAT + 0.5f));
+            } else if (component instanceof JTextArea) {
+                component.setFont(UIManager.getFont("TextField.font"));
             } else if (component instanceof Container) {
                 scaleToUI((Container) component);
             }
@@ -65,6 +121,9 @@ public class GUIUtils {
      * specified scale.
      */
     public static void scaleLookAndFeel(float scale) {
+        if (scale == 1.0f) {
+            return;
+        }
         for (Map.Entry<Object, Object> entry: UIManager.getDefaults().entrySet()) {
             Object key = entry.getKey();
             Object value = UIManager.get(key);
@@ -151,7 +210,7 @@ public class GUIUtils {
      * <p><strong>Note:</strong> for now UI scaling is only activated on <!-- TODO -->
      * Windows, until the current support on Mac and Linux can be investigated. <!-- TODO -->
      */
-    public static final int SYSTEM_UI_SCALE = Math.round(SYSTEM_UI_SCALE_FLOAT);
+    public static final int SYSTEM_UI_SCALE = round(SYSTEM_UI_SCALE_FLOAT);
 
     /**
      * How many times to scale pixel sizes to display at approximately the
@@ -170,7 +229,7 @@ public class GUIUtils {
      * originally intended size for assets which were designed for 92-96 dpi
      * screens.
      *
-     * <p>This is {@link #UI_SCALE_FLOAT} rounded to the nearest integer and is
+     * <p>This is {@link #getUIScale()} rounded to the nearest integer and is
      * intended for small images that don't scale well to non integer factors
      * such as icons.
      *
