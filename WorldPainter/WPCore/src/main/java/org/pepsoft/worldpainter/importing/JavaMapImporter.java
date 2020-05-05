@@ -213,16 +213,11 @@ public class JavaMapImporter extends MapImporter {
                 try {
                     world.setSuperflatPreset(SuperflatPreset.fromMinecraft1_12_2(generatorOptionsStr));
                 } catch (IllegalArgumentException e) {
-                    // Note that we have no idea if this even occurs in practice
-                    try {
-                        world.setSuperflatPreset(SuperflatPreset.fromMinecraft1_13_2(generatorOptionsStr));
-                    } catch (IllegalArgumentException e2) {
-                        // We can't parse the string as a superflat preset, so just store it as-is
-                        world.setGeneratorOptions(generatorOptionsStr);
-                    }
+                    logger.warn("Could not parse generatorOptions \"" + generatorOptionsStr + "\" as Minecraft 1.12.2 Superflat preset");
+                    world.setGeneratorOptions(generatorOptionsStr);
                 }
             } else if (generatorOptions instanceof CompoundTag) {
-                world.setSuperflatPreset(SuperflatPreset.fromMinecraft1_13_2((CompoundTag) generatorOptions));
+                world.setSuperflatPreset(SuperflatPreset.fromMinecraft1_15_2((CompoundTag) generatorOptions));
             } else if (generatorOptions != null) {
                 throw new IllegalArgumentException("Unexpected type of generatorOptions encountered: " + generatorOptions);
             }

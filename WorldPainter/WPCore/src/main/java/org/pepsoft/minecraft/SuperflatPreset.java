@@ -4,18 +4,23 @@ import com.google.common.collect.ImmutableMap;
 import org.jnbt.*;
 import org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.*;
+import java.util.Map.Entry;
 
-import static java.util.Arrays.asList;
+import static java.util.Arrays.stream;
 import static java.util.Collections.emptyMap;
+import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.*;
 
 public class SuperflatPreset implements Serializable {
-    public SuperflatPreset(int biome, List<Layer> layers, Set<Structure> structures) {
+    public SuperflatPreset(int biome, List<Layer> layers, Map<Structure, Map<String, String>> structures) {
         this.biome = biome;
         this.layers = layers;
-        this.structures = structures;
+        // Deep copy of map to avoid unserializable or read only implementations
+        structuresMap = structures.entrySet().stream().collect(toMap(Entry::getKey, entry -> new HashMap<>(entry.getValue())));
     }
 
     public int getBiome() {
@@ -34,29 +39,35 @@ public class SuperflatPreset implements Serializable {
         this.layers = layers;
     }
 
-    public Set<Structure> getStructures() {
-        return structures;
+    public Map<Structure, Map<String, String>> getStructures() {
+        return structuresMap;
     }
 
-    public void setStructures(Set<Structure> structures) {
-        this.structures = structures;
+    public void setStructures(Map<Structure, Map<String, String>> structures) {
+        // Deep copy of map to avoid unserializable or read only implementations
+        structuresMap = structures.entrySet().stream().collect(toMap(Entry::getKey, entry -> new HashMap<>(entry.getValue())));
     }
 
     public String toMinecraft1_12_2() {
         return "3;" + layers.stream().map(layer -> ((layer.thickness == 1) ? "" : (layer.thickness + "*")) + layer.materialName).collect(joining(",")) +
                 ';' + biome +
-                ';' + structures.stream().map(structure -> structure.name().toLowerCase()).collect(joining(","));
+                ';' + structuresMap.entrySet().stream().map(entry -> entry.getKey().name().toLowerCase()
+                    + (entry.getValue().isEmpty()
+                        ? ""
+                        : "(" + entry.getValue().entrySet().stream().map(attr -> attr.getKey() + "=" + attr.getValue()).collect(joining(" ")) + ")"))
+                    .collect(joining(","));
     }
 
-    public CompoundTag toMinecraft1_13_2() {
+    public CompoundTag toMinecraft1_15_2() {
         return new CompoundTag("generatorOptions", ImmutableMap.of(
                 "biome", new StringTag("biome", "minecraft:" + Minecraft1_13Biomes.BIOME_NAMES[biome].toLowerCase().replace(' ', '_')),
                 "layers", new ListTag<>("layers", CompoundTag.class, layers.stream().map(layer -> new CompoundTag("", ImmutableMap.of(
                         "block", new StringTag("block", layer.materialName),
                         "height", new ShortTag("height", (short) layer.thickness)))).collect(toList())),
-                "structures", new CompoundTag("structures", structures.stream().collect(toMap(
-                        structure -> structure.name().toLowerCase(),
-                        structure -> new CompoundTag(structure.name().toLowerCase(), emptyMap()))))
+                "structures", new CompoundTag("structures", structuresMap.entrySet().stream().collect(toMap(
+                        structure -> structure.getKey().name().toLowerCase(),
+                        structure -> new CompoundTag(structure.getKey().name().toLowerCase(),
+                                structure.getValue().entrySet().stream().collect(toMap(Entry::getKey, entry -> new StringTag(entry.getKey(), entry.getValue())))))))
         ));
     }
 
@@ -67,12 +78,12 @@ public class SuperflatPreset implements Serializable {
         SuperflatPreset that = (SuperflatPreset) o;
         return biome == that.biome &&
                 layers.equals(that.layers) &&
-                structures.equals(that.structures);
+                structuresMap.equals(that.structuresMap);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(biome, layers, structures);
+        return Objects.hash(biome, layers, structuresMap);
     }
 
     @Override
@@ -80,61 +91,65 @@ public class SuperflatPreset implements Serializable {
         return "SuperflatPreset{" +
                 "biome=" + biome +
                 ", layers=" + layers +
-                ", structures=" + structures +
+                ", structures=" + structuresMap +
                 '}';
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        if (structures != null) {
+            structuresMap = structures.stream().collect(toMap(identity(), s -> emptyMap()));
+            structures = null;
+        }
     }
 
     public static SuperflatPreset fromMinecraft1_12_2(String str) {
         String[] tokens = str.split(";");
         if ((tokens.length < 3) || (! tokens[0].equals("3"))) {
-            throw new IllegalArgumentException("Invalid Superflat preset for Minecraft 1.12.2");
+            throw new IllegalArgumentException("Invalid Superflat preset for Minecraft 1.12.2: " + str + " (too few tokens, or invalid version)");
         }
-        List<Layer> layers = Arrays.stream(tokens[1].split(",")).map(layerDescriptor -> {
+        List<Layer> layers = stream(tokens[1].split(",")).map(layerDescriptor -> {
             int p = layerDescriptor.indexOf('*');
             if (p == -1) {
                 return new Layer(layerDescriptor, 1);
             } else {
-                return new Layer(layerDescriptor.substring(p + 1), Integer.valueOf(layerDescriptor.substring(0, p)));
+                return new Layer(layerDescriptor.substring(p + 1), Integer.parseInt(layerDescriptor.substring(0, p)));
             }
         }).collect(toList());
-        int biome = Integer.valueOf(tokens[2]);
-        Set<Structure> structures = EnumSet.noneOf(Structure.class);
+        int biome = Integer.parseInt(tokens[2]);
+        Map<Structure, Map<String, String>> structures = new HashMap<>();
         if (tokens[3] != null) {
-            Arrays.stream(tokens[3].split(",")).forEach(structureName -> structures.add(Structure.valueOf(structureName.toUpperCase())));
+            stream(tokens[3].split(",")).forEach(structure -> {
+                int p = structure.indexOf('(');
+                if (p == -1) {
+                    structures.put(Structure.valueOf(structure.toUpperCase()), emptyMap());
+                } else {
+                    Structure key = Structure.valueOf(structure.substring(0, p).toUpperCase());
+                    Map<String, String> params = new HashMap<>();
+                    for (String attr: structure.substring(p + 1, structure.length() - 1).split(" ")) {
+                        p = attr.indexOf('=');
+                        if (p == -1) {
+                            throw new IllegalArgumentException("Invalid Superflat preset for Minecraft 1.12.2: " + str + " (parameter missing =)");
+                        }
+                        params.put(attr.substring(0, p), attr.substring(p + 1));
+                    }
+                    structures.put(key, params);
+                }
+            });
         }
         return new SuperflatPreset(biome, layers, structures);
     }
 
-    public static SuperflatPreset fromMinecraft1_13_2(String str) {
-        String[] tokens = str.split(";");
-        if (tokens.length < 2) {
-            throw new IllegalArgumentException("Invalid Superflat preset for Minecraft 1.12.2");
-        }
-        List<Layer> layers = Arrays.stream(tokens[0].split(",")).map(layerDescriptor -> {
-            int p = layerDescriptor.indexOf('*');
-            if (p == -1) {
-                return new Layer(layerDescriptor, 1);
-            } else {
-                return new Layer(layerDescriptor.substring(p + 1), Integer.valueOf(layerDescriptor.substring(0, p)));
-            }
-        }).collect(toList());
-        Set<Structure> structures = EnumSet.noneOf(Structure.class);
-        if (tokens[2] != null) {
-            Arrays.stream(tokens[2].split(",")).forEach(structureName -> structures.add(Structure.valueOf(structureName.toUpperCase())));
-        }
-        return new SuperflatPreset(getBiomeByMinecraftName(tokens[1]), layers, structures);
-    }
-
-    public static SuperflatPreset fromMinecraft1_13_2(CompoundTag tag) {
-        String biomeName = ((StringTag) tag.getTag("biome")).getValue();
-        List<Layer> layers = ((ListTag<CompoundTag>) tag.getTag("layers")).getValue().stream()
-                .map(layerTag -> new Layer(((StringTag) layerTag.getTag("block")).getValue(), ((NumberTag) layerTag.getTag("height")).intValue()))
-                .collect(toList());
-        Set<Structure> structures = EnumSet.noneOf(Structure.class);
-        ((CompoundTag) tag.getTag("structures")).getValue().forEach((name, structureTag) -> {
-            structures.add(Structure.valueOf(structureTag.getName().toUpperCase()));
-        });
-        return new SuperflatPreset(getBiomeByMinecraftName(biomeName), layers, structures);
+    @SuppressWarnings("unchecked") // Guaranteed by Minecraft
+    public static SuperflatPreset fromMinecraft1_15_2(CompoundTag tag) {
+        return new SuperflatPreset(getBiomeByMinecraftName(((StringTag) tag.getTag("biome")).getValue()),
+                ((ListTag<CompoundTag>) tag.getTag("layers")).getValue().stream()
+                        .map(layerTag -> new Layer(((StringTag) layerTag.getTag("block")).getValue(), ((NumberTag) layerTag.getTag("height")).intValue()))
+                        .collect(toList()),
+                ((CompoundTag) tag.getTag("structures")).getValue().values().stream()
+                        .collect(toMap(structureTag -> Structure.valueOf(structureTag.getName().toUpperCase()),
+                                structureTag -> ((CompoundTag) structureTag).getValue().entrySet().stream().collect(toMap(Entry::getKey, paramEntry -> ((StringTag) paramEntry.getValue()).getValue()))))
+        );
     }
 
     public static Builder builder(int biome, Structure... structures) {
@@ -153,7 +168,9 @@ public class SuperflatPreset implements Serializable {
 
     private int biome;
     private List<Layer> layers;
+    @Deprecated
     private Set<Structure> structures;
+    private Map<Structure, Map<String, String>> structuresMap;
 
     private static final long serialVersionUID = 1L;
 
@@ -207,16 +224,16 @@ public class SuperflatPreset implements Serializable {
         private static final long serialVersionUID = 1L;
     }
 
-    public enum Structure {VILLAGE, BIOME_1, DECORATION, STRONGHOLD, MINESHAFT, LAKE, LAVA_LAKE, DUNGEON, OCEANMONUMENT}
+    public enum Structure {VILLAGE, BIOME_1, DECORATION, STRONGHOLD, MINESHAFT, LAKE, LAVA_LAKE, DUNGEON, OCEANMONUMENT, DESERT_PYRAMID, FORTRESS, MANSION, ENDCITY, PILLAGER_OUTPOST, RUINED_PORTAL‌, BASTION_REMNANT‌}
 
     public static class Builder {
         private final int biome;
-        private final Set<Structure> structures;
+        private final Map<Structure, Map<String, String>> structures;
         private final List<Layer> layers = new ArrayList<>();
 
         Builder(int biome, Structure... structures) {
             this.biome = biome;
-            this.structures = ((structures != null) && (structures.length > 0)) ? EnumSet.copyOf(asList(structures)) : EnumSet.noneOf(Structure.class);
+            this.structures = ((structures != null) && (structures.length > 0)) ? stream(structures).collect(toMap(identity(), s-> emptyMap())) : emptyMap();
         }
 
         public Builder addLayer(String materialName, int thickness) {

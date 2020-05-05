@@ -135,7 +135,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
             if (platform != JAVA_ANVIL_1_14) {
                 level.setGeneratorOptions(new StringTag(TAG_GENERATOR_OPTIONS_, superflatPresetBuilder.build().toMinecraft1_12_2()));
             } else {
-                level.setGeneratorOptions(superflatPresetBuilder.build().toMinecraft1_13_2());
+                level.setGeneratorOptions(superflatPresetBuilder.build().toMinecraft1_15_2());
             }
             level.setGenerator(Generator.FLAT);
         } else {
@@ -151,7 +151,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
                 if (world.getSuperflatPreset() != null) {
                     level.setGeneratorOptions((platform == JAVA_ANVIL)
                             ? new StringTag(TAG_GENERATOR_OPTIONS_, world.getSuperflatPreset().toMinecraft1_12_2())
-                            : world.getSuperflatPreset().toMinecraft1_13_2());
+                            : world.getSuperflatPreset().toMinecraft1_15_2());
                 } else {
                     level.setGeneratorOptions(new StringTag(TAG_GENERATOR_OPTIONS_, world.getGeneratorOptions()));
                 }

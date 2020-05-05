@@ -675,7 +675,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
                     // Is it in XML format from the alpha/beta?
                     try {
                         CompoundTag tag = (CompoundTag) XMLTransformer.fromXML(new StringReader(generatorOptions));
-                        superflatPreset = SuperflatPreset.fromMinecraft1_13_2(tag);
+                        superflatPreset = SuperflatPreset.fromMinecraft1_15_2(tag);
                         generatorOptions = null;
                     } catch (ClassCastException | IOException e2) {
                         // It's not recognisable; give up

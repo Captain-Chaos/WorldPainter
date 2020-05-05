@@ -11,6 +11,7 @@
 
 package org.pepsoft.worldpainter;
 
+import org.pepsoft.worldpainter.superflat.EditSuperflatPresetDialog;
 import org.pepsoft.minecraft.SuperflatPreset;
 import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.util.IconUtils;
@@ -30,9 +31,7 @@ import java.util.List;
 import java.util.*;
 
 import static java.util.stream.Collectors.toSet;
-import static javax.swing.JOptionPane.INFORMATION_MESSAGE;
-import static org.pepsoft.minecraft.Constants.DIFFICULTY_HARD;
-import static org.pepsoft.minecraft.Constants.DIFFICULTY_PEACEFUL;
+import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_14;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
@@ -41,6 +40,7 @@ import static org.pepsoft.worldpainter.Generator.CUSTOM;
 import static org.pepsoft.worldpainter.Generator.DEFAULT;
 import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 import static org.pepsoft.worldpainter.Platform.Capability.POPULATE;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
 import static org.pepsoft.worldpainter.util.MaterialUtils.gatherBlocksWithoutIds;
 
 /**
@@ -189,7 +189,7 @@ public class ExportWorldDialog extends WorldPainterDialog {
             radioButtonExportSelection.setText("export " + selectedTiles.size() + " selected tiles");
             radioButtonExportSelection.setSelected(true);
         }
-        checkBoxMapFeatures.setSelected(world.isMapFeatures());
+        checkBoxMapFeatures.setSelected(platform.capabilities.contains(POPULATE) && world.isMapFeatures());
         comboBoxDifficulty.setSelectedIndex(world.getDifficulty());
         borderChanged(dim0.getBorder());
 
@@ -447,6 +447,7 @@ dims:   for (Dimension dim: world.getDimensions()) {
             } else {
                 world.setGeneratorOptions(null);
             }
+            world.setSuperflatPreset(superflatPreset);
         }
         if (radioButtonExportEverything.isSelected()) {
             world.setDimensionsToExport(null);
@@ -904,16 +905,17 @@ dims:   for (Dimension dim: world.getDimensions()) {
                     generatorOptions = editedGeneratorOptions;
                 }
             } else {
-                // TODOMC13
-                JOptionPane.showMessageDialog(this, "Coming soon: superflat preset editing!", "Temporarily Disabled", INFORMATION_MESSAGE);
-//                if (superflatPreset == null) {
-//                    superflatPreset = SuperflatPreset.builder(BIOME_PLAINS).addLayer(MC_BEDROCK, 1).addLayer(MC_DIRT, 2).addLayer(MC_GRASS_BLOCK, 1).build();
-//                }
-//                EditSuperflatPresetDialog dialog = new EditSuperflatPresetDialog(this, world.getPlatform(), superflatPreset, checkBoxMapFeatures.isSelected());
-//                dialog.setVisible(true);
-//                if (! dialog.isCancelled()) {
-//                    // TODO
-//                }
+                SuperflatPreset mySuperflatPreset = (superflatPreset != null)
+                        ? superflatPreset
+                        : SuperflatPreset.builder(BIOME_PLAINS)
+                            .addLayer(MC_BEDROCK, 1)
+                            .addLayer(MC_DIRT, 2)
+                            .addLayer((comboBoxMinecraftVersion.getSelectedItem() == JAVA_ANVIL_1_14) ? MC_GRASS_BLOCK : "minecraft:grass", 1).build();
+                EditSuperflatPresetDialog dialog = new EditSuperflatPresetDialog(this, world.getPlatform(), mySuperflatPreset);
+                dialog.setVisible(true);
+                if (! dialog.isCancelled()) {
+                    superflatPreset = mySuperflatPreset;
+                }
             }
         }
     }//GEN-LAST:event_buttonGeneratorOptionsActionPerformed
