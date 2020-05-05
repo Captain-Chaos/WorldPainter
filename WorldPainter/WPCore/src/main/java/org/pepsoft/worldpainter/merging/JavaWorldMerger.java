@@ -1034,7 +1034,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                         if ((clearTrees && existingBlock.treeRelated)
                                 || (clearVegetation && existingBlock.vegetation)
                                 || (clearManMadeAboveGround && (! existingBlock.natural))) {
-                            setToAir(existingChunk, x, y, z);
+                            setToAirOrWater(existingChunk, x, y, z, existingBlock);
                         } else if (existingBlock.terrain) {
                             aboveGround = false;
                         }
@@ -1045,7 +1045,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                         if (clearManMadeBelowGround && (! existingBlock.natural)) {
                             final Material newMaterial = findMostPrevalentSolidSurroundingMaterial(existingChunk, x, y, z);
                             if (newMaterial == AIR) {
-                                setToAir(existingChunk, x, y, z);
+                                setToAirOrWater(existingChunk, x, y, z, existingBlock);
                             } else {
                                 existingChunk.setMaterial(x, z, y, newMaterial);
                                 existingChunk.setSkyLightLevel(x, z, y, 0);
@@ -1075,22 +1075,28 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         }
     }
 
-    private void setToAir(final Chunk chunk, final int x, final int y, final int z) {
-        chunk.setMaterial(x, z, y, AIR);
-        // Note that these lighting calculations aren't strictly necessary since
-        // the lighting will be fully recalculated later on, but it doesn't hurt
-        // and it might improve performance and/or fill in gaps in the logic
+    private void setToAirOrWater(final Chunk chunk, final int x, final int y, final int z, final Material existingMaterial) {
         int maxZ = world.getMaxHeight() - 1;
-        int skyLightLevelAbove = (z < maxZ) ? chunk.getSkyLightLevel(x, z + 1, y) : 15;
-        int skyLightLevelBelow = (z > 0) ? chunk.getSkyLightLevel(x, z - 1, y) : 0;
+        if (existingMaterial.watery || existingMaterial.is(WATERLOGGED)) {
+            chunk.setMaterial(x, y, z, WATER);
+            // TODO skylight adjustment for under water
+            // TODO also set to water if water to the side or above
+        } else {
+            chunk.setMaterial(x, z, y, AIR);
+            // Note that these lighting calculations aren't strictly necessary since
+            // the lighting will be fully recalculated later on, but it doesn't hurt
+            // and it might improve performance and/or fill in gaps in the logic
+            int skyLightLevelAbove = (z < maxZ) ? chunk.getSkyLightLevel(x, z + 1, y) : 15;
+            int skyLightLevelBelow = (z > 0) ? chunk.getSkyLightLevel(x, z - 1, y) : 0;
+            if (skyLightLevelAbove == 15) {
+                // Propagate full daylight down
+                chunk.setSkyLightLevel(x, z, y, 15);
+            } else {
+                chunk.setSkyLightLevel(x, z, y, Math.max(Math.max(skyLightLevelAbove, skyLightLevelBelow) - 1, 0));
+            }
+        }
         int blockLightLevelAbove = (z < maxZ) ? chunk.getSkyLightLevel(x, z + 1, y) : 0;
         int blockLightLevelBelow = (z > 0) ? chunk.getBlockLightLevel(x, z - 1, y) : 0;
-        if (skyLightLevelAbove == 15) {
-            // Propagate full daylight down
-            chunk.setSkyLightLevel(x, z, y, 15);
-        } else {
-            chunk.setSkyLightLevel(x, z, y, Math.max(Math.max(skyLightLevelAbove, skyLightLevelBelow) - 1, 0));
-        }
         chunk.setBlockLightLevel(x, z, y, Math.max(Math.max(blockLightLevelAbove, blockLightLevelBelow) - 1, 0));
     }
 
