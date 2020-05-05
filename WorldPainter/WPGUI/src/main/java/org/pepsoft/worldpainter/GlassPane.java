@@ -34,7 +34,7 @@ public class GlassPane extends javax.swing.JPanel {
     /** Creates new form GlassPane */
     public GlassPane() {
         initComponents();
-        if (getUIScaleInt() >= 1) {
+        if (getUIScaleInt() != 1) {
             jLabel1.setIcon(IconUtils.loadScaledIcon("org/pepsoft/worldpainter/scale_bar.png")); // NOI18N
             jLabel2.setIcon(IconUtils.loadScaledIcon("org/pepsoft/worldpainter/north_arrow_up.png")); // NOI18N
         }
