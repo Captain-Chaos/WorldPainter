@@ -73,7 +73,6 @@ public class MapImportDialog extends WorldPainterDialog {
         
         getRootPane().setDefaultButton(buttonOK);
 
-        scaleToUI();
         setLocationRelativeTo(app);
     }
 
