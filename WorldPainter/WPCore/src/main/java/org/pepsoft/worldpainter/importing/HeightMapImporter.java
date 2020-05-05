@@ -125,6 +125,7 @@ public class HeightMapImporter {
         final int x2 = extent.x + extent.width - 1;
         final int y1 = extent.y;
         final int y2 = extent.y + extent.height - 1;
+        calculateFlags();
         final int tileX1 = extentInTiles.x;
         final int tileY1 = extentInTiles.y;
         final int tileX2 = extentInTiles.x + extentInTiles.width - 1;
@@ -135,7 +136,6 @@ public class HeightMapImporter {
         final PerlinNoise noiseGenerator = new PerlinNoise(0);
         noiseGenerator.setSeed(dimension.getSeed());
         int tileCount = 0;
-        calculateFlags();
         for (int tileX = tileX1; tileX <= tileX2; tileX++) {
             for (int tileY = tileY1; tileY <= tileY2; tileY++) {
                 boolean tileIsNew;
