@@ -315,11 +315,11 @@ public class JavaMapImporter extends MapImporter {
                                 if ((name == MC_SNOW) || (name == MC_ICE)|| (name == MC_FROSTED_ICE)) {
                                     frost = true;
                                 }
-                                if ((waterLevel == 0) && ((name == MC_ICE)
+                                if ((waterLevel == 0)
+                                        && ((name == MC_ICE)
                                         || (name == MC_FROSTED_ICE)
-                                        || (name == MC_BUBBLE_COLUMN)
-                                        || (((name == MC_WATER) || (name == MC_LAVA))
-                                        && (material.getProperty(LEVEL) == 0))
+                                        || (material.watery)
+                                        || (((name == MC_WATER) || (name == MC_LAVA)) && (material.getProperty(LEVEL) == 0))
                                         || material.is(WATERLOGGED))) {
                                     waterLevel = y;
                                     if (name == MC_LAVA) {

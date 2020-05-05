@@ -110,7 +110,7 @@ public final class Material implements Serializable {
             blockLight = (int) spec.get("blockLight");
             lightSource = (blockLight > 0);
             natural = (boolean) spec.get("natural");
-            dry = (boolean) spec.get("dry");
+            watery = (boolean) spec.get("watery");
             category = determineCategory();
         } else {
             if (logger.isDebugEnabled()) {
@@ -132,7 +132,7 @@ public final class Material implements Serializable {
             blockLight = 0;
             lightSource = false;
             natural = false;
-            dry = true;
+            watery = false;
             category = CATEGORY_UNKNOWN;
         }
 
@@ -236,7 +236,7 @@ public final class Material implements Serializable {
             blockLight = (int) spec.get("blockLight");
             lightSource = (blockLight > 0);
             natural = (boolean) spec.get("natural");
-            dry = (boolean) spec.get("dry");
+            watery = (boolean) spec.get("watery");
             category = determineCategory();
         } else {
             if (logger.isDebugEnabled()) {
@@ -258,7 +258,7 @@ public final class Material implements Serializable {
             blockLight = 0;
             lightSource = false;
             natural = false;
-            dry = true;
+            watery = false;
             category = CATEGORY_UNKNOWN;
         }
 
@@ -1273,9 +1273,10 @@ public final class Material implements Serializable {
     public final transient boolean natural;
 
     /**
-     * Whether the block can occur out of water.
+     * Whether the block always contains water (and can therefore only exist
+     * "under water") rather than having a waterlogged property.
      */
-    public final transient boolean dry;
+    public final transient boolean watery;
 
     /**
      * The horizontal orientation scheme(s) detected for this material, or
@@ -1383,7 +1384,7 @@ public final class Material implements Serializable {
                 materialSpecs.put("vegetation", csvDataSource.getBoolean("vegetation"));
                 materialSpecs.put("blockLight", csvDataSource.getInt("blockLight"));
                 materialSpecs.put("natural", csvDataSource.getBoolean("natural"));
-                materialSpecs.put("dry", csvDataSource.getBoolean("dry"));
+                materialSpecs.put("watery", csvDataSource.getBoolean("watery"));
                 MATERIAL_SPECS.computeIfAbsent(name, s -> new HashSet<>()).add(materialSpecs);
                 csvDataSource.next();
             } while (! csvDataSource.isEndOfFile());

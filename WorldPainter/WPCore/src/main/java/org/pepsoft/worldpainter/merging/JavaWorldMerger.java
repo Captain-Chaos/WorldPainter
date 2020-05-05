@@ -1415,8 +1415,19 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
     private void mergeAboveGroundBlock(final Chunk existingChunk, final Chunk newChunk, final int x, final int y, final int z, final int dy, final boolean frost) {
         final Material existingMaterial = existingChunk.getMaterial(x, y - dy, z);
         final Material newMaterial = newChunk.getMaterial(x, y, z);
+//        if ((existingMaterial.isNamedOneOf(MC_KELP, MC_KELP_PLANT, MC_SEAGRASS, MC_TALL_SEAGRASS)
+//                || ((existingMaterial.isNamed(MC_SEA_PICKLE) || existingMaterial.name.contains("_coral")) && existingMaterial.is(WATERLOGGED)))
+//                && newMaterial.isNamed(MC_AIR)) {
+//            System.out.println(existingMaterial + " becoming dry");
+//        } else if (((existingMaterial.isNamed(MC_SEA_PICKLE) || existingMaterial.name.contains("_coral")) && (! existingMaterial.is(WATERLOGGED)))
+//                && newMaterial.isNamed(MC_WATER)) {
+//            System.out.println(existingMaterial + " becoming wet");
+//        }
+        final boolean existingMaterialIsWatery = existingMaterial.isNamed(MC_WATER) || existingMaterial.is(WATERLOGGED) || existingMaterial.watery;
+        final boolean newMaterialIsWatery = newMaterial.isNamed(MC_WATER) || newMaterial.is(WATERLOGGED) || newMaterial.watery;
         if  (((existingMaterial == AIR) // replace *all* fluids (and ice) from the existing map with fluids (or lack thereof) from the new map
-                    || existingMaterial.isNamedOneOf(MC_ICE, MC_WATER, MC_LAVA))
+                    || existingMaterial.isNamedOneOf(MC_ICE, MC_LAVA)
+                    || existingMaterial == STATIONARY_WATER)
 
                 || (existingMaterial.insubstantial // the existing block is insubstantial and the new block is not (but treat water and lava separately below)
                         && (newMaterial != AIR)
@@ -1427,13 +1438,13 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                 || ((! frost) && existingMaterial.isNamed(MC_SNOW))
 
                 // the existing block is insubstantial and the new block would wash it away
-                || (newMaterial.isNamedOneOf(MC_WATER) && existingMaterial.insubstantial && existingMaterial.dry)
+                || (newMaterialIsWatery && existingMaterial.insubstantial && (! existingMaterial.hasProperty(WATERLOGGED)) && (! existingMaterial.watery))
 
                 // the existing block is insubstantial and the new block would burn it away
                 || (newMaterial.isNamedOneOf(MC_LAVA) && existingMaterial.insubstantial)
 
                 // the existing block is an underwater block which would now be above the water
-                || ((! existingMaterial.dry) && (! newMaterial.isNamed(MC_WATER)))) {
+                || (existingMaterial.watery && (! newMaterialIsWatery))) {
             // Leave the new block in place
         } else {
             // Copy the existing block over the new block, modifying it if necessary
@@ -1443,11 +1454,9 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
             } else {
                 if (existingMaterial.hasProperty(WATERLOGGED)) {
                     // The block has a waterlogged property; manage it correctly
-                    boolean existingMaterialIsWaterLogged = existingMaterial.getProperty(WATERLOGGED);
-                    boolean newMaterialIsWater = newMaterial.isNamed(MC_WATER) || newMaterial.getProperty(WATERLOGGED, false);
-                    if (existingMaterialIsWaterLogged && (! newMaterialIsWater)) {
+                    if (existingMaterialIsWatery && (! newMaterialIsWatery)) {
                         newChunk.setMaterial(x, y, z, existingMaterial.withProperty(WATERLOGGED, false));
-                    } else if ((! existingMaterialIsWaterLogged) && newMaterialIsWater) {
+                    } else if ((! existingMaterialIsWatery) && newMaterialIsWatery) {
                         newChunk.setMaterial(x, y, z, existingMaterial.withProperty(WATERLOGGED, true));
                     } else {
                         newChunk.setMaterial(x, y, z, existingMaterial);
@@ -1460,7 +1469,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                     copyEntityTileData(existingChunk, newChunk, x, y, z, dy); // TODOMC13 this doesn't seem to be working?
                 }
             }
-            newChunk.setSkyLightLevel(x, y, z, existingChunk.getSkyLightLevel(  x, y - dy, z));
+            newChunk.setSkyLightLevel(x, y, z, existingChunk.getSkyLightLevel(x, y - dy, z));
             newChunk.setBlockLightLevel(x, y, z, existingChunk.getBlockLightLevel(x, y - dy, z));
         }
     }
