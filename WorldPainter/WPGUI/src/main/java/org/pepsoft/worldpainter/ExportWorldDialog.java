@@ -189,7 +189,7 @@ public class ExportWorldDialog extends WorldPainterDialog {
             radioButtonExportSelection.setText("export " + selectedTiles.size() + " selected tiles");
             radioButtonExportSelection.setSelected(true);
         }
-        checkBoxMapFeatures.setSelected(platform.capabilities.contains(POPULATE) && world.isMapFeatures());
+        checkBoxMapFeatures.setSelected(world.isMapFeatures());
         comboBoxDifficulty.setSelectedIndex(world.getDifficulty());
         borderChanged(dim0.getBorder());
 
@@ -329,15 +329,14 @@ dims:   for (Dimension dim: world.getDimensions()) {
         }
         Generator generator = Generator.values()[comboBoxGenerator.getSelectedIndex()];
         if ((surfacePropertiesEditor.isPopulateSelected()
-                || world.getDimension(DIM_NORMAL).getAllLayers(true).contains(Populate.INSTANCE)
-                || checkBoxMapFeatures.isSelected())
+                || world.getDimension(DIM_NORMAL).getAllLayers(true).contains(Populate.INSTANCE))
                 && (!platform.capabilities.contains(POPULATE))) {
-            sb.append("<li>Population and structure generation not supported for<br>map format " + platform.displayName + "; they will be disabled");
+            sb.append("<li>Population and not supported for<br>map format " + platform.displayName + "; it will not have an effect");
             showWarning = true;
         } else if ((! radioButtonExportSelection.isSelected()) || (selectedDimension == DIM_NORMAL)) {
             // The surface dimension is going to be exported
             if ((generator == Generator.FLAT) && (surfacePropertiesEditor.isPopulateSelected() || world.getDimension(DIM_NORMAL).getAllLayers(true).contains(Populate.INSTANCE))) {
-                sb.append("<li>The Superflat world type is selected and Populate is in use.<br>Minecraft will <em>not</em> populate any chunks for Superflat maps.");
+                sb.append("<li>The Superflat world type is selected and Populate is in use.<br>Minecraft will <em>not</em> populate generated chunks for Superflat maps.");
                 showWarning = true;
             }
         }
@@ -441,7 +440,7 @@ dims:   for (Dimension dim: world.getDimensions()) {
         world.setAllowCheats(checkBoxAllowCheats.isSelected());
         if (! endlessBorder) {
             world.setGenerator(generator);
-            world.setMapFeatures(platform.capabilities.contains(POPULATE) && checkBoxMapFeatures.isSelected());
+            world.setMapFeatures(checkBoxMapFeatures.isSelected());
             if ((generatorOptions != null) && (! generatorOptions.trim().isEmpty())) {
                 world.setGeneratorOptions(generatorOptions.trim());
             } else {
@@ -506,7 +505,6 @@ dims:   for (Dimension dim: world.getDimensions()) {
         checkBoxAllowCheats.setEnabled((comboBoxMinecraftVersion.getSelectedItem() != JAVA_MCREGION) && notHardcore);
         buttonGeneratorOptions.setEnabled((! endlessBorder) && ((comboBoxGenerator.getSelectedItem() == Generator.FLAT) || (comboBoxGenerator.getSelectedItem() == CUSTOM)));
         comboBoxDifficulty.setEnabled(notHardcore);
-        checkBoxMapFeatures.setEnabled(platform.capabilities.contains(POPULATE));
     }
 
     private void selectDir() {
