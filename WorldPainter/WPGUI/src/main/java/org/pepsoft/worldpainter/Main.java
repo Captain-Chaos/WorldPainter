@@ -442,14 +442,14 @@ public class Main {
                 } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
                     logger.warn("Could not install selected look and feel", e);
                 }
-            }
 
-            if (myConfig.getUiScale() != 0.0f) {
-                GUIUtils.setUIScale(myConfig.getUiScale());
-            }
-            if (getUIScale() != 1.0f) {
-                // Scale the look and feel to the UI
-                GUIUtils.scaleLookAndFeel(getUIScale());
+                if (myConfig.getUiScale() != 0.0f) {
+                    GUIUtils.setUIScale(myConfig.getUiScale());
+                }
+                if (getUIScale() != 1.0f) {
+                    // Scale the look and feel to the UI
+                    GUIUtils.scaleLookAndFeel(getUIScale());
+                }
             }
 
             // Don't paint values above sliders in GTK look and feel
