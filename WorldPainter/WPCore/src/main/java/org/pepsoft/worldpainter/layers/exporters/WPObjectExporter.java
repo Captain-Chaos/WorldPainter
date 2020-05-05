@@ -453,16 +453,19 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                 material = material.withProperty(PERSISTENT, true);
             }
         }
-        if ((! material.opaque)
-                && ((! material.veryInsubstantial) || (! material.dry))
-                && material.isNotNamed(MC_CAVE_AIR)) {
-            // Assume that any material that is not solid (and not
-            // insubstantial, so that it could exist under water) can be
-            // waterlogged. TODO: is this good enough?
+        if (material.hasProperty(WATERLOGGED)
+                || ((! material.opaque)
+                        && (! material.watery) // These blocks always contain water and therefore don't have a "waterlogged" property; TODO: should we not place these blocks in dry places?
+//                        && (! material.veryInsubstantial) TODO this makes no sense, does it? insubstantial blocks can be waterlogged?
+                        && material.isNotNamedOneOf(MC_AIR, MC_CAVE_AIR))) {
+            // Assume that any material that is not opaque, is not known to
+            // always contain water (and therefore has no waterlogged property)
+            // and is not air or cave air can be waterlogged. TODO: is this good enough?
             // Check if the block is under water and set the waterlogged property accordingly
             Material existingMaterial = world.getMaterialAt(x, y, z);
             if ((existingMaterial.isNamed(MC_WATER) && (existingMaterial.getProperty(LEVEL) == 0))
-                    || existingMaterial.is(WATERLOGGED)) {
+                    || existingMaterial.is(WATERLOGGED)
+                    || existingMaterial.watery) {
                 material = material.withProperty(WATERLOGGED, true);
             } else {
                 material = material.withProperty(WATERLOGGED, false);
