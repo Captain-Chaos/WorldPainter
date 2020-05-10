@@ -1,3 +1,11 @@
+-- Version 2.7.8, released 5-5-2020
+
+ * Superflat preset editing has been re-enabled (but is not very useful for Minecraft 1.14+ maps as Minecraft will not apply it to the generated chunks; it will only affect Minecraft-generated chunks outside the generated map)
+ * The Importing and Merging of water and water related blocks has been improved in various small ways. This should fix holes in the water after Importing or missing blocks after Merging
+ * Some small further improvements in UI scaling
+ * Don't scale the UI in Safe Mode. This allows you to disable it if UI scaling turns out to cause problems on your operating system
+ * Bug fix: the height map import preview broke importing height maps into existing worlds; this has been fixed
+
 -- Version 2.7.7, released 24-4-2020
 
  * High resolution displays are better supported. WorldPainter should now scale its UI automatically according to your operating system setting. You can also adjust the UI scale manually on the Preferences screen. Note that visual themes are only supported at 100% scale
