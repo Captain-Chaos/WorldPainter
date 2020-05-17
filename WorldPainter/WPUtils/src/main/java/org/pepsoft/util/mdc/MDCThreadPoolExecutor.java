@@ -53,7 +53,9 @@ public class MDCThreadPoolExecutor extends ThreadPoolExecutor {
             try {
                 runnable.run();
             } finally {
-                MDC.clear();
+                if (mdcContextMap != null) {
+                    MDC.clear();
+                }
             }
         };
     }

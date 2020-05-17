@@ -79,7 +79,11 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
         thread = new Thread(task.getName()) {
             @Override
             public void run() {
-                MDC.setContextMap(mdcContextMap);
+                if (mdcContextMap != null) {
+                    MDC.setContextMap(mdcContextMap);
+                } else {
+                    MDC.clear();
+                }
                 try {
                     try {
                         result = task.execute(ProgressComponent.this);
@@ -90,7 +94,9 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
                 } catch (Throwable t) {
                     exceptionThrown(t);
                 } finally {
-                    MDC.clear();
+                    if (mdcContextMap != null) {
+                        MDC.clear();
+                    }
                 }
             }
         };
