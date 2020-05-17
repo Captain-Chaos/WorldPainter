@@ -20,7 +20,7 @@ import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_14;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.*;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_14Biomes.*;
 
 /**
  *

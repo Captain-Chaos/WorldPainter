@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.*;
 
 import static javax.swing.BoxLayout.PAGE_AXIS;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.*;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_14Biomes.*;
 import static org.pepsoft.worldpainter.layers.BiomesPanel.BiomeOption.*;
 
 /**
@@ -326,7 +326,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
     private int selectedBiome = BIOME_PLAINS, selectedBaseBiome = BIOME_PLAINS;
 
     private static final int[] BIOME_ORDER = {
-        BIOME_PLAINS, BIOME_FOREST, BIOME_SWAMPLAND, BIOME_JUNGLE,
+        BIOME_PLAINS, BIOME_FOREST, BIOME_SWAMPLAND, BIOME_JUNGLE, BIOME_BAMBOO_JUNGLE,
         BIOME_BIRCH_FOREST, BIOME_ROOFED_FOREST, BIOME_EXTREME_HILLS, BIOME_MUSHROOM_ISLAND,
         BIOME_TAIGA, BIOME_MEGA_TAIGA, BIOME_MEGA_SPRUCE_TAIGA, BIOME_ICE_PLAINS,
         BIOME_DESERT, BIOME_SAVANNA, BIOME_MESA, BIOME_ICE_PLAINS_SPIKES,
@@ -420,6 +420,8 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         new BiomeDescriptor("Eroded Badlands", 165, 37, ERODED),
         new BiomeDescriptor("Modified Wooded Badlands Plateau", 166, 37, MODIFIED, WOODED, PLATEAU),
         new BiomeDescriptor("Modified Badlands Plateau", 167, 37, MODIFIED, PLATEAU),
+        new BiomeDescriptor("Bamboo Jungle", 168, 168),
+        new BiomeDescriptor("Bamboo Jungle Hills", 169, 168, HILLS),
     };
 
     public enum BiomeOption {HILLS, SHORE, EDGE, PLATEAU, MOUNTAINOUS, VARIANT, FROZEN, SNOWY, DEEP, WOODED, WARM,

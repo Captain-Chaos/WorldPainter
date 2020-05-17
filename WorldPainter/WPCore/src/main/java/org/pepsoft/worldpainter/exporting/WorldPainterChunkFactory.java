@@ -25,7 +25,7 @@ import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Platform.Capability.BIOMES;
 import static org.pepsoft.worldpainter.Platform.Capability.POPULATE;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.*;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_14Biomes.*;
 
 /**
  *

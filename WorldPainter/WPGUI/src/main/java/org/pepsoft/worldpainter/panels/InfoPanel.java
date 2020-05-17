@@ -12,7 +12,7 @@ import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.WorldPainter;
 import org.pepsoft.worldpainter.biomeschemes.BiomeHelper;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
-import org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes;
+import org.pepsoft.worldpainter.biomeschemes.Minecraft1_14Biomes;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.selection.SelectionBlock;
 import org.pepsoft.worldpainter.selection.SelectionChunk;
@@ -112,7 +112,7 @@ public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener
             biome = dim.getAutoBiome(tile, x, y);
         }
         if (biome < 0) {
-            biome = Minecraft1_13Biomes.BIOME_PLAINS;
+            biome = Minecraft1_14Biomes.BIOME_PLAINS;
         }
         if ((automaticBiome != currentAutomaticBiome) || (biome != currentBiome)) {
             labelBiome.setText(biomeHelper.getBiomeName(biome) + " (" + biome + ")");

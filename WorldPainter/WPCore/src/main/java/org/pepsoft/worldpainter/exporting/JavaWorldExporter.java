@@ -29,7 +29,7 @@ import static org.pepsoft.minecraft.SuperflatPreset.Structure.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.Dimension.Border.ENDLESS_WATER;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.BIOME_VOID;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_14Biomes.BIOME_VOID;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_OCEAN;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
 

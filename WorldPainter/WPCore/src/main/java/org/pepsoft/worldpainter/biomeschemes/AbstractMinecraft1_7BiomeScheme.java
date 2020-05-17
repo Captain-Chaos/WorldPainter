@@ -7,10 +7,6 @@ package org.pepsoft.worldpainter.biomeschemes;
 import org.pepsoft.worldpainter.BiomeScheme;
 import org.pepsoft.worldpainter.ColourScheme;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-
 import static org.pepsoft.minecraft.Constants.*;
 
 /**
@@ -122,109 +118,5 @@ public abstract class AbstractMinecraft1_7BiomeScheme extends AbstractBiomeSchem
     @Override
     public String getBiomeName(int biome) {
         return BIOME_NAMES[biome];
-    }
-    
-    static final boolean[][][] BIOME_PATTERNS = new boolean[168][][];
-
-    static {
-        try {
-            BufferedImage image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/swamp_pattern.png"));
-            BIOME_PATTERNS[BIOME_SWAMPLAND] = createPattern(image);
-            BIOME_PATTERNS[BIOME_SWAMPLAND_M] = createPattern(image);
-
-            image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/mountains_pattern.png"));
-            BIOME_PATTERNS[BIOME_EXTREME_HILLS] = createPattern(image);
-            BIOME_PATTERNS[BIOME_EXTREME_HILLS_M] = createPattern(image);
-            BIOME_PATTERNS[BIOME_EXTREME_HILLS_PLUS] = createPattern(image);
-            BIOME_PATTERNS[BIOME_EXTREME_HILLS_PLUS_M] = createPattern(image);
-            BIOME_PATTERNS[BIOME_ICE_MOUNTAINS] = createPattern(image);
-
-            image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/deciduous_trees_pattern.png"));
-            BIOME_PATTERNS[BIOME_FOREST] = createPattern(image);
-            BIOME_PATTERNS[BIOME_FLOWER_FOREST] = createPattern(image);
-
-            image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/roofed_trees_pattern.png"));
-            BIOME_PATTERNS[BIOME_ROOFED_FOREST] = createPattern(image);
-            
-            image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/birch_trees_pattern.png"));
-            BIOME_PATTERNS[BIOME_BIRCH_FOREST] = createPattern(image);
-            
-            image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/spruce_trees_pattern.png"));
-            BIOME_PATTERNS[BIOME_TAIGA] = createPattern(image);
-            BIOME_PATTERNS[BIOME_COLD_TAIGA] = createPattern(image);
-
-            image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/pine_trees_pattern.png"));
-            BIOME_PATTERNS[BIOME_MEGA_TAIGA] = createPattern(image);
-            BIOME_PATTERNS[BIOME_MEGA_SPRUCE_TAIGA] = createPattern(image);
-            
-            image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/hills_pattern.png"));
-            BIOME_PATTERNS[BIOME_DESERT_HILLS] = createPattern(image);
-            BIOME_PATTERNS[BIOME_EXTREME_HILLS_EDGE] = createPattern(image);
-
-            image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/deciduous_hills_pattern.png"));
-            BIOME_PATTERNS[BIOME_FOREST_HILLS] = createPattern(image);
-
-            image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/roofed_hills_pattern.png"));
-            BIOME_PATTERNS[BIOME_ROOFED_FOREST_M] = createPattern(image);
-            
-            image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/birch_hills_pattern.png"));
-            BIOME_PATTERNS[BIOME_BIRCH_FOREST_M] = createPattern(image);
-            BIOME_PATTERNS[BIOME_BIRCH_FOREST_HILLS] = createPattern(image);
-            BIOME_PATTERNS[BIOME_BIRCH_FOREST_HILLS_M] = createPattern(image);
-            
-            image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/spruce_hills_pattern.png"));
-            BIOME_PATTERNS[BIOME_TAIGA_M] = createPattern(image);
-            BIOME_PATTERNS[BIOME_TAIGA_HILLS] = createPattern(image);
-            BIOME_PATTERNS[BIOME_COLD_TAIGA_HILLS] = createPattern(image);
-            BIOME_PATTERNS[BIOME_COLD_TAIGA_M] = createPattern(image);
-
-            image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/pine_hills_pattern.png"));
-            BIOME_PATTERNS[BIOME_MEGA_TAIGA_HILLS] = createPattern(image);
-            BIOME_PATTERNS[BIOME_MEGA_SPRUCE_TAIGA_HILLS] = createPattern(image);
-            
-            image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/jungle_trees_pattern.png"));
-            BIOME_PATTERNS[BIOME_JUNGLE] = createPattern(image);
-
-            image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/jungle_hills_pattern.png"));
-            BIOME_PATTERNS[BIOME_JUNGLE_HILLS] = createPattern(image);
-            BIOME_PATTERNS[BIOME_JUNGLE_M] = createPattern(image);
-
-            image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/savanna_pattern.png"));
-            BIOME_PATTERNS[BIOME_SAVANNA] = createPattern(image);
-            BIOME_PATTERNS[BIOME_SAVANNA_PLATEAU] = createPattern(image);
-
-            image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/savanna_hills_pattern.png"));
-            BIOME_PATTERNS[BIOME_SAVANNA_M] = createPattern(image);
-            BIOME_PATTERNS[BIOME_SAVANNA_PLATEAU_M] = createPattern(image);
-            
-            image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/mesa_pattern.png"));
-            BIOME_PATTERNS[BIOME_MESA] = createPattern(image);
-            BIOME_PATTERNS[BIOME_MESA_PLATEAU] = createPattern(image);
-            BIOME_PATTERNS[BIOME_MESA_PLATEAU_F] = createPattern(image);
-            BIOME_PATTERNS[BIOME_MESA_PLATEAU_F_M] = createPattern(image);
-            BIOME_PATTERNS[BIOME_MESA_PLATEAU_M] = createPattern(image);
-
-            image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/mesa_bryce_pattern.png"));
-            BIOME_PATTERNS[BIOME_MESA_BRYCE] = createPattern(image);
-
-            image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/jungle_edge_pattern.png"));
-            BIOME_PATTERNS[BIOME_JUNGLE_EDGE] = createPattern(image);
-
-            image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/jungle_edge_hills_pattern.png"));
-            BIOME_PATTERNS[BIOME_JUNGLE_EDGE_M] = createPattern(image);
-        } catch (IOException e) {
-            throw new RuntimeException("I/O error loading image", e);
-        }
-    }
-
-    private static boolean[][] createPattern(BufferedImage image) {
-        boolean[][] pattern = new boolean[16][];
-        for (int x = 0; x < 16; x++) {
-            pattern[x] = new boolean[16];
-            for (int y = 0; y < 16; y++) {
-                pattern[x][y] = image.getRGB(x, y) != -1;
-            }
-        }
-        return pattern;
     }
 }

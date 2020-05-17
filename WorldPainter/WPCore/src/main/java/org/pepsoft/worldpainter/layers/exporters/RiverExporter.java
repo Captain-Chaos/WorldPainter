@@ -25,7 +25,7 @@ import java.util.List;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.TINY_BLOBS;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.BIOME_RIVER;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_14Biomes.BIOME_RIVER;
 
 /**
  *

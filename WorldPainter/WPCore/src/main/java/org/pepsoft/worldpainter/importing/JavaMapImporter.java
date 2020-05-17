@@ -35,8 +35,8 @@ import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.Platform.Capability.BLOCK_BASED;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.BIOME_NAMES;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.HIGHEST_BIOME_ID;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_14Biomes.BIOME_NAMES;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_14Biomes.HIGHEST_BIOME_ID;
 
 /**
  * An importer of Minecraft-like maps (with Minecraft-compatible

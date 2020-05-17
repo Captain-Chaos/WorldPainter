@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.FIRST_UNALLOCATED_ID;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_14Biomes.FIRST_UNALLOCATED_ID;
 
 /**
  * Coordinates loading, saving and editing of custom biomes.
@@ -64,7 +64,7 @@ public class CustomBiomeManager {
     public boolean addCustomBiome(Window parent, CustomBiome customBiome) {
         if (isBiomePresent(customBiome.getId())) {
             if (parent != null) {
-                JOptionPane.showMessageDialog(parent, "The specified ID (" + customBiome.getId() + ") is already a regular biome (named " + Minecraft1_13Biomes.BIOME_NAMES[customBiome.getId()] + ")", "ID Already In Use", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(parent, "The specified ID (" + customBiome.getId() + ") is already a regular biome (named " + Minecraft1_14Biomes.BIOME_NAMES[customBiome.getId()] + ")", "ID Already In Use", JOptionPane.ERROR_MESSAGE);
             }
             return false;
         }
@@ -132,7 +132,7 @@ public class CustomBiomeManager {
     }
 
     private static boolean isBiomePresent(int biome) {
-        return (biome <= Minecraft1_13Biomes.HIGHEST_BIOME_ID) && (Minecraft1_13Biomes.BIOME_NAMES[biome] != null);
+        return (biome <= Minecraft1_14Biomes.HIGHEST_BIOME_ID) && (Minecraft1_14Biomes.BIOME_NAMES[biome] != null);
     }
 
     private final List<CustomBiomeListener> listeners = new ArrayList<>();

@@ -17,7 +17,7 @@ import static org.pepsoft.worldpainter.biomeschemes.AbstractMinecraft1_7BiomeSch
  *
  * @author pepijn
  */
-public abstract class AbstractMinecraft1_13BiomeScheme extends AbstractBiomeScheme implements Minecraft1_13Biomes {
+public abstract class AbstractMinecraft1_14BiomeScheme extends AbstractBiomeScheme implements Minecraft1_14Biomes {
     @Override
     public final int getBiomeCount() {
         return BIOME_NAMES.length;
@@ -62,6 +62,8 @@ public abstract class AbstractMinecraft1_13BiomeScheme extends AbstractBiomeSche
             case BIOME_JUNGLE_EDGE:
             case BIOME_JUNGLE_M:
             case BIOME_JUNGLE_EDGE_M:
+            case BIOME_BAMBOO_JUNGLE:
+            case BIOME_BAMBOO_JUNGLE_HILLS:
                 return colourScheme.getColour(BLK_LEAVES, DATA_JUNGLE);
             case BIOME_ICE_PLAINS:
             case BIOME_ICE_MOUNTAINS:

@@ -12,7 +12,7 @@ import org.pepsoft.worldpainter.LayerListCellRenderer;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiome;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
-import org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes;
+import org.pepsoft.worldpainter.biomeschemes.Minecraft1_14Biomes;
 import org.pepsoft.worldpainter.layers.AbstractLayerEditor;
 import org.pepsoft.worldpainter.layers.CombinedLayer;
 import org.pepsoft.worldpainter.layers.Layer;
@@ -137,8 +137,8 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> {
         
         List<Integer> allBiomes = new ArrayList<>();
         allBiomes.add(-1);
-        for (int i = 0; i < Minecraft1_13Biomes.BIOME_NAMES.length; i++) {
-            if (Minecraft1_13Biomes.BIOME_NAMES[i] != null) {
+        for (int i = 0; i < Minecraft1_14Biomes.BIOME_NAMES.length; i++) {
+            if (Minecraft1_14Biomes.BIOME_NAMES[i] != null) {
                 allBiomes.add(i);
             }
         }

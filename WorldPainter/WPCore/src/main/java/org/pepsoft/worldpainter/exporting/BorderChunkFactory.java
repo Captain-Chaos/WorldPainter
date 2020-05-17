@@ -21,7 +21,7 @@ import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_14;
 import static org.pepsoft.worldpainter.Platform.Capability.BIOMES;
 import static org.pepsoft.worldpainter.Terrain.BEACHES;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_13Biomes.*;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_14Biomes.*;
 
 /**
  *
