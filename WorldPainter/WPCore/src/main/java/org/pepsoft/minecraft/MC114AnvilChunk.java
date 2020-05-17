@@ -71,7 +71,16 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
                     }
                 }
             }
-            biomes = getIntArray(TAG_BIOMES);
+            Tag biomesTag = getTag(TAG_BIOMES);
+            if (biomesTag instanceof IntArrayTag) {
+                biomes = getIntArray(TAG_BIOMES);
+            } else if (biomesTag instanceof ByteArrayTag) {
+                byte[] biomesArray = ((ByteArrayTag) biomesTag).getValue();
+                biomes = new int[biomesArray.length];
+                for (int i = 0; i < biomesArray.length; i++) {
+                    biomes[i] = biomesArray[i] & 0xff;
+                }
+            }
             heightMaps = new HashMap<>();
             Map<String, Tag> heightMapTags = getMap(TAG_HEIGHT_MAPS);
             if (heightMapTags != null) {
