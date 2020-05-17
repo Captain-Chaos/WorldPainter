@@ -13,6 +13,8 @@ package org.pepsoft.util.swing;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
+import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
+import org.slf4j.MDC;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -23,6 +25,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import static org.pepsoft.util.AwtUtils.doOnEventThread;
 
@@ -72,14 +75,22 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
         }
         jButton1.setEnabled(cancelable);
         jProgressBar1.setIndeterminate(true);
+        Map<String, String> mdcContextMap = MDC.getCopyOfContextMap();
         thread = new Thread(task.getName()) {
             @Override
             public void run() {
+                MDC.setContextMap(mdcContextMap);
                 try {
-                    result = task.execute(ProgressComponent.this);
+                    try {
+                        result = task.execute(ProgressComponent.this);
+                    } catch (RuntimeException | Error e) {
+                        throw new MDCCapturingRuntimeException(e);
+                    }
                     done();
                 } catch (Throwable t) {
                     exceptionThrown(t);
+                } finally {
+                    MDC.clear();
                 }
             }
         };

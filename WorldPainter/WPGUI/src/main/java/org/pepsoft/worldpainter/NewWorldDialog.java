@@ -14,6 +14,7 @@ package org.pepsoft.worldpainter;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.ProgressReceiver;
+import org.pepsoft.util.mdc.MDCThreadPoolExecutor;
 import org.pepsoft.worldpainter.Dimension.Border;
 import org.pepsoft.worldpainter.biomeschemes.Minecraft1_2BiomeScheme;
 import org.pepsoft.worldpainter.history.HistoryEntry;
@@ -35,7 +36,6 @@ import java.awt.*;
 import java.util.List;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -353,7 +353,7 @@ public class NewWorldDialog extends WorldPainterDialog {
         final Dimension dimension = new Dimension(world, minecraftSeed, tileFactory, dim, maxHeight);
         dimension.setEventsInhibited(true);
         try {
-            ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+            ExecutorService executorService = MDCThreadPoolExecutor.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
             final AtomicBoolean cancelled = new AtomicBoolean();
             if (tiles != null) {
                 logger.info("Creating new dimension with " + tiles.size() + " preselected tiles");

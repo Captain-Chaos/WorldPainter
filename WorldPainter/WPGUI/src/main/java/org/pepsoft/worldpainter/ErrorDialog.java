@@ -23,9 +23,11 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import static org.pepsoft.util.GUIUtils.scaleToUI;
+import static org.pepsoft.util.mdc.MDCUtils.gatherMdcContext;
 
 /**
  *
@@ -44,6 +46,7 @@ public class ErrorDialog extends javax.swing.JDialog {
         init(parent);
     }
 
+    @SuppressWarnings("StringConcatenationInsideStringBufferAppend") // Readability
     public void setException(Throwable exception) {
         logger.error(exception.getClass().getSimpleName() + ": " + exception.getMessage(), exception);
         
@@ -58,7 +61,7 @@ public class ErrorDialog extends javax.swing.JDialog {
                 + "WorldPainter is already using the recommended maximum\n"
                 + "amount of memory, so it is not recommended to give it\n"
                 + "more. To be able to perform the operation you should\n"
-                + "install more memory.");
+                + "install more memory (and reinstall WorldPainter).");
             jButton1.setEnabled(false);
             jButton1.setToolTipText("Not necessary to mail details of out of memory errors");
             jButton3.setEnabled(false);
@@ -78,59 +81,38 @@ public class ErrorDialog extends javax.swing.JDialog {
 
         StringBuilder sb = new StringBuilder();
         String eol = System.getProperty("line.separator");
-        sb.append(exception.getClass().getName());
-        sb.append(": ");
-        sb.append(exception.getMessage());
-        sb.append(eol);
+        sb.append(exception.getClass().getName()).append(": ").append(exception.getMessage()).append(eol);
         StackTraceElement[] stackTrace = exception.getStackTrace();
-        for (int i = 0; i < Math.min(stackTrace.length, 5); i++) {
-            sb.append("\tat ");
-            sb.append(stackTrace[i].getClassName());
-            sb.append('.');
-            sb.append(stackTrace[i].getMethodName());
-            sb.append('(');
-            sb.append(stackTrace[i].getFileName());
-            sb.append(':');
-            sb.append(stackTrace[i].getLineNumber());
-            sb.append(')');
-            sb.append(eol);
+        for (int i = 0; i < Math.min(stackTrace.length, 10); i++) {
+            sb.append("\tat " + stackTrace[i].getClassName() + '.' + stackTrace[i].getMethodName() + '(' + stackTrace[i].getFileName() + ':' + stackTrace[i].getLineNumber() + ')' + eol);
         }
         sb.append(eol);
         if (rootCause != exception) {
-            sb.append("Root cause:");
-            sb.append(eol);
-            sb.append(rootCause.getClass().getName());
-            sb.append(": ");
-            sb.append(rootCause.getMessage());
-            sb.append(eol);
+            sb.append("Root cause:" + eol);
+            sb.append(rootCause.getClass().getName() + ": " + rootCause.getMessage() + eol);
             stackTrace = rootCause.getStackTrace();
             for (int i = 0; i < Math.min(stackTrace.length, 5); i++) {
-                sb.append("\tat ");
-                sb.append(stackTrace[i].getClassName());
-                sb.append('.');
-                sb.append(stackTrace[i].getMethodName());
-                sb.append('(');
-                sb.append(stackTrace[i].getFileName());
-                sb.append(':');
-                sb.append(stackTrace[i].getLineNumber());
-                sb.append(')');
-                sb.append(eol);
+                sb.append("\tat " + stackTrace[i].getClassName() + '.' + stackTrace[i].getMethodName() + '(' + stackTrace[i].getFileName() + ':' + stackTrace[i].getLineNumber() + ')' + eol);
             }
             sb.append(eol);
         }
         sb.append("WorldPainter version: " + Version.VERSION + " (" + Version.BUILD + ")" + eol);
         sb.append(eol);
         for (String propertyName: SYSTEM_PROPERTIES) {
-            sb.append(propertyName);
-            sb.append(": ");
-            sb.append(System.getProperty(propertyName));
-            sb.append(eol);
+            sb.append(propertyName + ": " + System.getProperty(propertyName) + eol);
         }
         sb.append(eol);
         Runtime runtime = Runtime.getRuntime();
         sb.append("Free memory: " + runtime.freeMemory() + " bytes" + eol);
         sb.append("Total memory size: " + runtime.totalMemory() + " bytes" + eol);
         sb.append("Max memory size: " + runtime.maxMemory() + " bytes" + eol);
+
+        Map<String, String> mdcContextMap = gatherMdcContext(exception);
+        if (! mdcContextMap.isEmpty()) {
+            sb.append(eol);
+            sb.append("Diagnostic context:" + eol);
+            mdcContextMap.forEach((key, value) -> sb.append("\t" + key + ": " + value + eol));
+        }
 
         // The app may be in an unstable state, so if an exception occurs while
         // interrogating it, swallow it to prevent endless loops

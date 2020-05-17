@@ -7,6 +7,7 @@ import org.pepsoft.util.ParallelProgressManager;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.SubProgressReceiver;
+import org.pepsoft.util.mdc.MDCThreadPoolExecutor;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.Tile;
@@ -33,7 +34,10 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.AIR;
@@ -242,7 +246,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             logger.info("Using " + threads + " thread(s) for export (cores: " + runtime.availableProcessors() + ", available memory: " + (maxMemoryAvailable / 1048576L) + " MB)");
 
             final Map<Point, List<Fixup>> fixups = new HashMap<>();
-            ExecutorService executor = Executors.newFixedThreadPool(threads, new ThreadFactory() {
+            ExecutorService executor = MDCThreadPoolExecutor.newFixedThreadPool(threads, new ThreadFactory() {
                 @Override
                 public synchronized Thread newThread(Runnable r) {
                     Thread thread = new Thread(threadGroup, r, "Exporter-" + nextID++);
@@ -293,7 +297,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                                 }
                             }
                             synchronized (fixups) {
-                                if ((exportResults.fixups != null) && (! exportResults.fixups.isEmpty())) {
+                                if ((exportResults.fixups != null) && (!exportResults.fixups.isEmpty())) {
                                     fixups.put(new Point(regionCoords.x, regionCoords.y), exportResults.fixups);
                                 }
                                 exportedRegions.add(regionCoords);

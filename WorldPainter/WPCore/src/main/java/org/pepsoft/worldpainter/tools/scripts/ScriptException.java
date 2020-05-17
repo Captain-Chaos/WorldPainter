@@ -24,13 +24,15 @@
 
 package org.pepsoft.worldpainter.tools.scripts;
 
+import org.pepsoft.worldpainter.exception.WPException;
+
 /**
  * A checked exception, thrown if an exception occurs during the execution of a
  * script.
  * 
  * @author SchmitzP
  */
-public class ScriptException extends Exception {
+public class ScriptException extends WPException {
     public ScriptException() {
         // Do nothing
     }

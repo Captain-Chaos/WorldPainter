@@ -1,5 +1,7 @@
 package org.pepsoft.worldpainter;
 
+import org.pepsoft.worldpainter.exception.WPException;
+
 import java.io.InputStream;
 import java.util.Map;
 
@@ -9,7 +11,7 @@ import java.util.Map;
  *
  * Created by Pepijn Schmitz on 02-07-15.
  */
-public class UnloadableWorldException extends Exception {
+public class UnloadableWorldException extends WPException {
     public UnloadableWorldException(Throwable cause, Map<String, Object> metadata) {
         super(cause);
         this.metadata = metadata;

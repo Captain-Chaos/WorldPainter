@@ -13,6 +13,7 @@ import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ParallelProgressManager;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
+import org.pepsoft.util.mdc.MDCThreadPoolExecutor;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.exporting.*;
@@ -27,7 +28,6 @@ import java.io.*;
 import java.util.List;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -551,7 +551,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
 
             final Map<Point, List<Fixup>> fixups = new HashMap<>();
             final Set<Point> exportedRegions = new HashSet<>();
-            ExecutorService executor = Executors.newFixedThreadPool(threads, new ThreadFactory() {
+            ExecutorService executor = MDCThreadPoolExecutor.newFixedThreadPool(threads, new ThreadFactory() {
                 @Override
                 public synchronized Thread newThread(Runnable r) {
                     Thread thread = new Thread(threadGroup, r, "Merger-" + nextID++);
@@ -601,7 +601,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                                         minecraftWorld.save(worldDir, dimension.getDim());
                                     }
                                     synchronized (fixups) {
-                                        if (! regionFixups.isEmpty()) {
+                                        if (!regionFixups.isEmpty()) {
                                             fixups.put(new Point(regionCoords.x, regionCoords.y), regionFixups);
                                         }
                                         exportedRegions.add(regionCoords);
