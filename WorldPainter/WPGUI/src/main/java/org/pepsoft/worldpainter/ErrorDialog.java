@@ -96,6 +96,14 @@ public class ErrorDialog extends javax.swing.JDialog {
             }
             sb.append(eol);
         }
+
+        Map<String, String> mdcContextMap = gatherMdcContext(exception);
+        if (! mdcContextMap.isEmpty()) {
+            sb.append("Diagnostic context:" + eol);
+            mdcContextMap.forEach((key, value) -> sb.append("\t" + key + ": " + value + eol));
+            sb.append(eol);
+        }
+
         sb.append("WorldPainter version: " + Version.VERSION + " (" + Version.BUILD + ")" + eol);
         sb.append(eol);
         for (String propertyName: SYSTEM_PROPERTIES) {
@@ -106,13 +114,6 @@ public class ErrorDialog extends javax.swing.JDialog {
         sb.append("Free memory: " + runtime.freeMemory() + " bytes" + eol);
         sb.append("Total memory size: " + runtime.totalMemory() + " bytes" + eol);
         sb.append("Max memory size: " + runtime.maxMemory() + " bytes" + eol);
-
-        Map<String, String> mdcContextMap = gatherMdcContext(exception);
-        if (! mdcContextMap.isEmpty()) {
-            sb.append(eol);
-            sb.append("Diagnostic context:" + eol);
-            mdcContextMap.forEach((key, value) -> sb.append("\t" + key + ": " + value + eol));
-        }
 
         // The app may be in an unstable state, so if an exception occurs while
         // interrogating it, swallow it to prevent endless loops
