@@ -5,11 +5,13 @@
 package org.pepsoft.worldpainter.vo;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  *
  * @author pepijn
  */
+@SuppressWarnings("unused") // Used at compile time by EventVO.get- and setAttribute
 public final class AttributeKeyVO<T> implements Serializable {
     public AttributeKeyVO(String key) {
         this.key = key;
@@ -34,12 +36,8 @@ public final class AttributeKeyVO<T> implements Serializable {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        @SuppressWarnings("unchecked") // Guaranteed by Java (above)
-        final AttributeKeyVO<T> other = (AttributeKeyVO<T>) obj;
-        if ((this.key == null) ? (other.key != null) : !this.key.equals(other.key)) {
-            return false;
-        }
-        return true;
+        final AttributeKeyVO<?> other = (AttributeKeyVO<?>) obj;
+        return Objects.equals(this.key, other.key);
     }
 
     @Override

@@ -5,10 +5,12 @@
 package org.pepsoft.worldpainter.vo;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
+
+import static java.util.stream.Collectors.toMap;
 
 /**
  *
@@ -38,14 +40,18 @@ public final class EventVO implements Serializable {
         return key;
     }
 
-    public Map<AttributeKeyVO<? extends Serializable>, Serializable> getAttributes() {
-        return (attributes != null) ? Collections.unmodifiableMap(attributes) : null;
+    public Map<String, Serializable> getAttributes() {
+        return (attributes != null) ? attributes.entrySet().stream().collect(toMap(entry -> entry.getKey().getKey(), Entry::getValue)) : null;
+    }
+
+    public void setAttributes(Map<String, Serializable> attributes) {
+        this.attributes = (attributes != null) ? attributes.entrySet().stream().collect(toMap(entry -> new AttributeKeyVO<>(entry.getKey()), Entry::getValue)) : null;
     }
 
     public <T extends Serializable> EventVO setAttribute(AttributeKeyVO<T> key, T value) {
         if (value != null) {
             if (attributes == null) {
-                attributes = new HashMap<AttributeKeyVO<? extends Serializable>, Serializable>();
+                attributes = new HashMap<>();
             }
             attributes.put(key, value);
         } else if ((attributes != null) && attributes.containsKey(key)) {
@@ -74,9 +80,9 @@ public final class EventVO implements Serializable {
     private final String key;
     private Map<AttributeKeyVO<? extends Serializable>, Serializable> attributes;
     
-    public static final AttributeKeyVO<Long> ATTRIBUTE_COUNT = new AttributeKeyVO<Long>("count");
-    public static final AttributeKeyVO<Long> ATTRIBUTE_DURATION = new AttributeKeyVO<Long>("duration");
-    public static final AttributeKeyVO<Date> ATTRIBUTE_TIMESTAMP = new AttributeKeyVO<Date>("timestamp");
+    public static final AttributeKeyVO<Long> ATTRIBUTE_COUNT = new AttributeKeyVO<>("count");
+    public static final AttributeKeyVO<Long> ATTRIBUTE_DURATION = new AttributeKeyVO<>("duration");
+    public static final AttributeKeyVO<Date> ATTRIBUTE_TIMESTAMP = new AttributeKeyVO<>("timestamp");
 
     private static final long serialVersionUID = 1L;
 }
