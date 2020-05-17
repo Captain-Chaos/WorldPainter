@@ -1158,14 +1158,8 @@ public final class Material implements Serializable {
         // and data value, so in that case return the corresponding legacy
         // instance
         if (identity != null) {
-            if (identity.name.equals("minecraft:oak_button")) {
-                System.out.println("Resolving oak button");
-            }
             return get(identity);
         } else {
-            if (blockType == 143) {
-                System.out.println("Resolving oak button");
-            }
             int index = (blockType << 4) | data;
             if (index >= LEGACY_MATERIALS.length) {
                 return get(new Identity("legacy:block_" + blockType, singletonMap("data_value", Integer.toString(data))));
