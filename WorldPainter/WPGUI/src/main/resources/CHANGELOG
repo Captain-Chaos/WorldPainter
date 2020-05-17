@@ -1,3 +1,10 @@
+-- Version 2.7.9, released 17-5-2020
+
+ * Added support for the Bamboo Jungle biome
+ * Expanded support for Importing older Minecraft 1.13+ maps by solving an error with byte-valued biome maps
+ * Don't scale the UI in Safe Mode, allowing it to be used for fixing UI scaling problems
+ * Bug fix: properly report the size of the map when Importing an existing Minecraft map
+
 -- Version 2.7.8, released 5-5-2020
 
  * Superflat preset editing has been re-enabled (but is not very useful for Minecraft 1.14+ maps as Minecraft will not apply it to the generated chunks; it will only affect Minecraft-generated chunks outside the generated map)
