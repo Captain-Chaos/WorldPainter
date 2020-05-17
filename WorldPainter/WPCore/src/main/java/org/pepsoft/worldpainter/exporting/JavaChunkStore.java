@@ -63,7 +63,7 @@ public class JavaChunkStore implements ChunkStore {
                 for (int x = 0; x < 32; x++) {
                     for (int z = 0; z < 32; z++) {
                         if (region.containsChunk(x, z)) {
-                            coords.add(new MinecraftCoords(x, z));
+                            coords.add(new MinecraftCoords(region.getX() * 32 + x, region.getZ() * 32 + z));
                         }
                     }
                 }
