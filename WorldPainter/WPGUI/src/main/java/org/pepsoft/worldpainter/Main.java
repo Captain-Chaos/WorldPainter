@@ -140,8 +140,10 @@ public class Main {
         for (String arg: args) {
             if (arg.trim().toLowerCase().equals("--safe")) {
                 safeMode = true;
-            } else if (new File(arg).isFile()) {
-                myFile = new File(args[0]);
+            } else if (new File(arg).isFile() && (myFile == null)) {
+                myFile = new File(arg);
+            } else {
+                throw new IllegalArgumentException("Unrecognised or invalid command line option, or file does not exist: " + arg);
             }
         }
         final File file = myFile;
@@ -394,11 +396,12 @@ public class Main {
                 in.close();
             }
         }
-        
+
         final Configuration.LookAndFeel lookAndFeel = (config.getLookAndFeel() != null) ? config.getLookAndFeel() : Configuration.LookAndFeel.SYSTEM;
         SwingUtilities.invokeLater(() -> {
             Configuration myConfig = Configuration.getInstance();
             if (myConfig.isSafeMode()) {
+                GUIUtils.setUIScale(1.0f);
                 logger.info("[SAFE MODE] Not installing visual theme");
             } else {
                 // Install configured look and feel
