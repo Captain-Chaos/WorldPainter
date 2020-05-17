@@ -8,6 +8,7 @@ import org.pepsoft.minecraft.MinecraftMapTileProvider;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.swing.TileProvider;
 import org.pepsoft.util.swing.TiledImageViewer;
+import org.pepsoft.worldpainter.AbstractMain;
 import org.pepsoft.worldpainter.util.MinecraftUtil;
 
 import javax.swing.*;
@@ -20,8 +21,10 @@ import java.io.IOException;
  *
  * @author pepijn
  */
-public class MapViewer {
+public class MapViewer extends AbstractMain {
     public static void main(String[] args) throws IOException {
+        initialisePlatform();
+
         File mySavesDir = null;
         File minecraftDir = MinecraftUtil.findMinecraftDir();
         if (minecraftDir != null) {

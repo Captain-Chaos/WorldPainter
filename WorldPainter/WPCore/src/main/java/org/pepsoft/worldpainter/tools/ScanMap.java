@@ -2,6 +2,8 @@ package org.pepsoft.worldpainter.tools;
 
 import org.pepsoft.minecraft.ChunkStore;
 import org.pepsoft.minecraft.MC114AnvilChunk;
+import org.pepsoft.minecraft.MC12AnvilChunk;
+import org.pepsoft.minecraft.MCRegionChunk;
 import org.pepsoft.worldpainter.AbstractMain;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
@@ -24,7 +26,15 @@ public class ScanMap extends AbstractMain {
         Platform platform = platformManager.identifyMap(worldDir);
         ChunkStore chunkStore = platformManager.getChunkStore(platform, worldDir, DIM_NORMAL);
         chunkStore.visitChunks(chunk -> {
-            String status = ((MC114AnvilChunk) chunk).getStatus();
+            String status = "???";
+            if (chunk instanceof MC114AnvilChunk) {
+                status = ((MC114AnvilChunk) chunk).getStatus();
+                heightmapTypes.addAll(((MC114AnvilChunk) chunk).getHeightMaps().keySet());
+            } else if (chunk instanceof MC12AnvilChunk) {
+                status = "112";
+            } else if (chunk instanceof MCRegionChunk) {
+                status = "MCR";
+            }
             if (chunk.getxPos() < bounds[0]) {
                 bounds[0] = chunk.getxPos();
             }
@@ -38,7 +48,6 @@ public class ScanMap extends AbstractMain {
                 bounds[3] = chunk.getzPos();
             }
             statusMap.put(new Point(chunk.getxPos(), chunk.getzPos()), status);
-            heightmapTypes.addAll(((MC114AnvilChunk) chunk).getHeightMaps().keySet());
             return true;
         });
         char[] line = new char[(bounds[1] - bounds[0]) * 4 + 3];

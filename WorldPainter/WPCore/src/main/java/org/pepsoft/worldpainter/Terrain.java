@@ -5,17 +5,16 @@
 
 package org.pepsoft.worldpainter;
 
+import com.google.common.collect.ImmutableSet;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.util.RandomField;
 
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.Random;
+import java.util.*;
 
+import static java.util.Collections.singleton;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
@@ -2899,6 +2898,11 @@ public enum Terrain {
         } else {
             return topLayerMaterial;
         }
+    }
+
+    // TODO: override this where necessary before seriously using this!
+    public Set<Material> getAllMaterials() {
+        return (topMaterial == topLayerMaterial) ? singleton(topMaterial) : ImmutableSet.of(topMaterial, topLayerMaterial);
     }
 
     public String getDescription() {

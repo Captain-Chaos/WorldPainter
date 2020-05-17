@@ -1,5 +1,6 @@
 package org.pepsoft.worldpainter.util;
 
+import org.pepsoft.minecraft.Material;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.layers.Bo2Layer;
 import org.pepsoft.worldpainter.layers.Layer;
@@ -85,5 +86,34 @@ public class MaterialUtils {
             }
         }
         return nameOnlyMaterials;
+    }
+
+    public static Set<Material> gatherAllMaterials(World2 world, Platform platform) {
+        Set<Material> allMaterials = new HashSet<>();
+        // Check custom materials
+        Arrays.stream(MixedMaterialManager.getInstance().getMaterials()).forEach(material -> {
+            for (MixedMaterial.Row row: material.getRows()) {
+                allMaterials.add(row.material);
+            }
+        });
+        for (Dimension dimension: world.getDimensions()) {
+            // Check custom object layers
+            for (Layer layer: dimension.getAllLayers(true)) {
+                if (layer instanceof Bo2Layer) {
+                    for (WPObject object: ((Bo2Layer) layer).getObjectProvider().getAllObjects()) {
+                        allMaterials.addAll(object.getAllMaterials());
+                    }
+                } else if (layer instanceof PlantLayer) {
+                    for (Plant plant: ((PlantLayer) layer).getConfiguredPlants().keySet()) {
+                        allMaterials.addAll(plant.realise(plant.getMaxGrowth(), platform).getAllMaterials());
+                    }
+                }
+            }
+            // Check all terrain types
+            dimension.visitTiles().andDo(tile -> tile.getAllTerrains().forEach(terrain -> allMaterials.addAll(terrain.getAllMaterials())));
+            // Check the underground material
+            allMaterials.addAll(dimension.getSubsurfaceMaterial().getAllMaterials());
+        }
+        return allMaterials;
     }
 }
