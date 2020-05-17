@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.joining;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
@@ -242,7 +242,7 @@ public class JavaMapImporter extends MapImporter {
         return warnings;
     }
 
-    @SuppressWarnings("StringEquality") // Interned strings
+    @SuppressWarnings({"StringEquality", "StringConcatenationInsideStringBufferAppend"}) // Interned strings; readability
     private String importDimension(File worldDir, Dimension dimension, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
         if (progressReceiver != null) {
             progressReceiver.setMessage(dimension.getName() + " dimension");
@@ -273,8 +273,17 @@ public class JavaMapImporter extends MapImporter {
                 // Sanity checks
                 if (chunk instanceof MC114AnvilChunk) {
                     MC114AnvilChunk mc114Chunk = (MC114AnvilChunk) chunk;
-                    if ((mc114Chunk.getSections() == null) || (stream(mc114Chunk.getSections()).noneMatch(s -> (s != null) && (s.level >= 0)))) {
-                        logger.warn("Skipping chunk " + chunkX + "," + chunkZ + " because it has no sections, or no sections with y >= 0");
+                    boolean sectionFound = false;
+                    for (MC114AnvilChunk.Section section: mc114Chunk.getSections()) {
+                        if (section != null) {
+                            sectionFound = true;
+                            break;
+                        }
+                    }
+                    if (! sectionFound) {
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Skipping chunk " + chunkX + "," + chunkZ + " because it has no sections, or no sections with y >= 0");
+                        }
                         return true;
                     }
                 }
@@ -294,6 +303,7 @@ public class JavaMapImporter extends MapImporter {
 
                 boolean manMadeStructuresBelowGround = false;
                 boolean manMadeStructuresAboveGround = false;
+                final boolean collectDebugInfo = logger.isDebugEnabled();
                 try {
                     for (int xx = 0; xx < 16; xx++) {
                         for (int zz = 0; zz < 16; zz++) {
@@ -309,7 +319,9 @@ public class JavaMapImporter extends MapImporter {
                                     } else {
                                         manMadeStructuresBelowGround = true;
                                     }
-                                    manMadeBlockTypes.add(material.name);
+                                    if (collectDebugInfo) {
+                                        manMadeBlockTypes.add(material.name);
+                                    }
                                 }
                                 String name = material.name;
                                 if ((name == MC_SNOW) || (name == MC_ICE)|| (name == MC_FROSTED_ICE)) {
@@ -363,7 +375,7 @@ public class JavaMapImporter extends MapImporter {
                             }
                             if (importBiomes && chunk.isBiomesAvailable()) {
                                 final int biome = chunk.getBiome(xx, zz);
-                                if (((biome > HIGHEST_BIOME_ID) || (BIOME_NAMES[biome] == null)) && (biome != 255)) {
+                                if (collectDebugInfo && ((biome > HIGHEST_BIOME_ID) || (BIOME_NAMES[biome] == null)) && (biome != 255)) {
                                     unknownBiomes.add(biome);
                                 }
                                 // If the biome is set (around the edges of the map Minecraft sets it to
@@ -412,11 +424,11 @@ public class JavaMapImporter extends MapImporter {
         if (progressReceiver != null) {
             progressReceiver.setProgress(1.0f);
         }
-        
-        System.err.println("Man-made block types encountered:");
-        manMadeBlockTypes.forEach(System.err::println);
-        System.err.println("Unknown biome IDs encountered:");
-        unknownBiomes.forEach(System.err::println);
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("Man-made block types encountered: {}", String.join(", ", manMadeBlockTypes));
+            logger.debug("Unknown biome IDs encountered: {}", unknownBiomes.stream().map(Object::toString).collect(joining(", ")));
+        }
         
         return reportBuilder.length() != 0 ? reportBuilder.toString() : null;
     }
@@ -495,6 +507,7 @@ public class JavaMapImporter extends MapImporter {
             }
         });
         Material.getAllMaterials().forEach(material -> {
+            //noinspection StringEquality String is interned
             if (material.terrain && (material.namespace != LEGACY) && (! TERRAIN_MAPPING.containsKey(material.name))) {
                 throw new IllegalStateException("Material \"" + material + "\" missing from terrain mapping%n");
             }

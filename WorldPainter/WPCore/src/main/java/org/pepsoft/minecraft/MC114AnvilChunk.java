@@ -8,6 +8,8 @@ package org.pepsoft.minecraft;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.jnbt.*;
+import org.pepsoft.minecraft.MC114AnvilChunk.Section.IncompleteSectionException;
+import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,12 +63,17 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
             // this is a bug
             if (sectionTags != null) {
                 for (CompoundTag sectionTag: sectionTags) {
-                    Section section = new Section(sectionTag);
-                    if (! section.isEmpty()) {
+                    try {
+                        Section section = new Section(sectionTag);
                         if ((section.level >= 0) && (section.level < sections.length)) {
                             sections[section.level] = section;
-                        } else {
+                        } else if (! section.isEmpty()) {
                             logger.warn("Ignoring non-empty out of bounds chunk section @ " + getxPos() + "," + section.level + "," + getzPos());
+                        }
+                    } catch (IncompleteSectionException e) {
+                        // Ignore sections that don't have blocks
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Block states and/or palette missing from section @ y=" + ((ByteTag) sectionTag.getTag(TAG_Y)).getValue());
                         }
                     }
                 }
@@ -712,7 +719,7 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
                     }
                 }
             } else {
-                logger.warn("Block states and/or palette missing from section @ y=" + level);
+                throw new IncompleteSectionException();
             }
             byte[] skyLightBytes = getByteArray(TAG_SKY_LIGHT);
             if (skyLightBytes == null) {
@@ -875,6 +882,10 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
         final byte[] skyLight;
         final byte[] blockLight;
         final Material[] materials;
+
+        static class IncompleteSectionException extends MDCCapturingRuntimeException {
+            // Empty
+        }
     }
 
     private static final Set<String> populatedStatuses = ImmutableSet.of(
