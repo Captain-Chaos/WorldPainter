@@ -1,3 +1,7 @@
+-- Version 2.7.10, released 17-5-2020
+
+ * Bug fix: fix a bug introduced in the previous version that prevented the loading of worlds
+
 -- Version 2.7.9, released 17-5-2020
 
  * Added support for the Bamboo Jungle biome
