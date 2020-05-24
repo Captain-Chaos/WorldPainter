@@ -103,7 +103,8 @@ import static java.util.stream.Collectors.toSet;
 import static javax.swing.JOptionPane.*;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.util.AwtUtils.doOnEventThread;
-import static org.pepsoft.util.GUIUtils.*;
+import static org.pepsoft.util.GUIUtils.getUIScale;
+import static org.pepsoft.util.GUIUtils.getUIScaleInt;
 import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
 import static org.pepsoft.util.swing.ProgressDialog.NO_FOCUS_STEALING;
 import static org.pepsoft.worldpainter.Constants.*;
@@ -183,7 +184,7 @@ public final class App extends JFrame implements RadiusControl,
         } else if (config.getWindowBounds() != null) {
             setBounds(config.getWindowBounds());
         } else {
-            setSize(1024, 896);
+            setSize((int) (1024 * getUIScale()), (int) (896 * getUIScale()));
             setLocationRelativeTo(null);
         }
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -293,7 +294,6 @@ public final class App extends JFrame implements RadiusControl,
         }
 
         MainFrame.setMainFrame(this);
-        scaleToUI(this);
     }
 
     public World2 getWorld() {
