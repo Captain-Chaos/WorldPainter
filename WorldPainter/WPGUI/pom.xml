@@ -46,21 +46,21 @@
         <!--<dependency>-->
             <!--<groupId>com.jidesoft</groupId>-->
             <!--<artifactId>jide-oss</artifactId>-->
-            <!--<version>3.7.3</version>-->
+            <!--<version>3.7.9</version>-->
         <!--</dependency>-->
         <dependency>
             <!-- Commercial product; you will need to download the evaluation version, or obtain a license to use JIDE
                  (an open source license is free). -->
             <groupId>com.jidesoft</groupId>
             <artifactId>jide-common</artifactId>
-            <version>3.7.3</version>
+            <version>3.7.9</version>
         </dependency>
         <dependency>
             <!-- Commercial product; you will need to download the evaluation version, or obtain a license to use JIDE
                  (an open source license is free). -->
             <groupId>com.jidesoft</groupId>
             <artifactId>jide-dock</artifactId>
-            <version>3.7.3</version>
+            <version>3.7.9</version>
         </dependency>
         <dependency>
             <!-- Commercial product; you will need to download the evaluation version, or obtain a license to use JIDE
@@ -68,7 +68,7 @@
                  work correctly. -->
             <groupId>com.jidesoft</groupId>
             <artifactId>jide-plaf-jdk7</artifactId>
-            <version>3.7.3</version>
+            <version>3.7.9</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
