@@ -108,8 +108,8 @@ public class Plants {
             return new AgingPlant(name, material.withProperty(PICKLES, growth), category, iconName, maxGrowth);
         }
     };
-    public static final Plant BAMBOO = new VariableHeightPlant("Bamboo", Material.BAMBOO, Material.BAMBOO, PLANTS_AND_FLOWERS, "block/bamboo_stage0", 16);
-    public static final Plant BAMBOO_SAPLING = new SimplePlant("Bamboo Sapling", Material.BAMBOO_SAPLING, SAPLINGS);
+    public static final Plant BAMBOO = new VariableHeightPlant("Bamboo", Material.BAMBOO, Material.BAMBOO, PLANTS_AND_FLOWERS, "block/bamboo_large_leaves.png", 16);
+    public static final Plant BAMBOO_SAPLING = new SimplePlant("Bamboo Sapling", Material.BAMBOO_SAPLING, SAPLINGS, "block/bamboo_stage0.png");
 
     // The code which uses this assumes there will never be more than 128
     // plants. If that ever happens it needs to be overhauled!
