@@ -1721,6 +1721,8 @@ public final class Material implements Serializable {
      * Sweet Berry Bush with age 0. For older Sweet Berry Bush, set the "age" property up to 3.
      */
     public static final Material SWEET_BERRY_BUSH = get(MC_SWEET_BERRY_BUSH, MC_AGE, 0);
+    public static final Material BAMBOO = get(MC_BAMBOO, MC_AGE, 0, MC_STAGE, 0);
+    public static final Material BAMBOO_SAPLING = get(MC_BAMBOO_SAPLING, MC_STAGE, 0);
 
     // Namespaces
 

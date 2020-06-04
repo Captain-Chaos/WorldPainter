@@ -108,6 +108,8 @@ public class Plants {
             return new AgingPlant(name, material.withProperty(PICKLES, growth), category, iconName, maxGrowth);
         }
     };
+    public static final Plant BAMBOO = new VariableHeightPlant("Bamboo", Material.BAMBOO, Material.BAMBOO, PLANTS_AND_FLOWERS, "block/bamboo_stage0", 16);
+    public static final Plant BAMBOO_SAPLING = new SimplePlant("Bamboo Sapling", Material.BAMBOO_SAPLING, SAPLINGS);
 
     // The code which uses this assumes there will never be more than 128
     // plants. If that ever happens it needs to be overhauled!
@@ -124,7 +126,7 @@ public class Plants {
             FIRE_CORAL, HORN_CORAL, TUBE_CORAL_FAN, BRAIN_CORAL_FAN,
             BUBBLE_CORAL_FAN, FIRE_CORAL_FAN, HORN_CORAL_FAN, KELP, SEAGRASS,
             TALL_SEAGRASS, SEA_PICKLE, CORNFLOWER, LILY_OF_THE_VALLEY,
-            WITHER_ROSE, SWEET_BERRY_BUSH};
+            WITHER_ROSE, SWEET_BERRY_BUSH, BAMBOO, BAMBOO_SAPLING};
 
     private static final Random RANDOM = new Random();
 }
