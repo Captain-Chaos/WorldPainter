@@ -23,7 +23,7 @@ import java.beans.PropertyVetoException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.pepsoft.util.AwtUtils.doOnEventThread;
+import static org.pepsoft.util.AwtUtils.doOnEventThreadAndWait;
 
 /**
  * A localised operation which uses the mouse or tablet to indicate where and
@@ -184,7 +184,7 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
     @Override
     public void interrupt() {
         if (timer != null) {
-            doOnEventThread(() -> {
+            doOnEventThreadAndWait(() -> {
                 if (timer != null) {
                     logOperation(undo ? statisticsKeyUndo : statisticsKey);
                     timer.stop();
