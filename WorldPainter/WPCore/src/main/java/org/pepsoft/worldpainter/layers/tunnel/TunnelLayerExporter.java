@@ -222,6 +222,8 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
         }
 
         // Second/third pass: render floor layers
+        // TODO make TunnelFloorDimension much more intelligent, so that "distance to edge" can work and the normal
+        //  exporting can be used rather than the incidental exporting
         List<Fixup> fixups = new ArrayList<>();
         final Map<Layer, TunnelLayer.LayerSettings> floorLayers = layer.getFloorLayers();
         if ((floorLayers != null) && (! floorLayers.isEmpty())) {
