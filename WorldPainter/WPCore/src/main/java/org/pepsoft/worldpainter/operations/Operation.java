@@ -83,4 +83,14 @@ public interface Operation {
      * {@code null} if the operation has no options.
      */
     JPanel getOptionsPanel();
+
+    /**
+     * Interrupt the operation if it is a continuous operations that is
+     * currently in progress (for instance because a button is being held down).
+     * This will be called in some circumstances to prevent hanging operations
+     * due to focus stealing or similar problems. It must emulate the user
+     * ceasing to press the button or otherwise signalling that the operation
+     * should no longer be applied.
+     */
+    void interrupt();
 }

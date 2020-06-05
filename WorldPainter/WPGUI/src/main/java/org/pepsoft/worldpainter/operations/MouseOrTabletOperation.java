@@ -16,10 +16,14 @@ import org.pepsoft.worldpainter.vo.EventVO;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.beans.PropertyVetoException;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.pepsoft.util.AwtUtils.doOnEventThread;
 
 /**
  * A localised operation which uses the mouse or tablet to indicate where and
@@ -177,6 +181,24 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
         this.level = level;
     }
 
+    @Override
+    public void interrupt() {
+        if (timer != null) {
+            doOnEventThread(() -> {
+                if (timer != null) {
+                    logOperation(undo ? statisticsKeyUndo : statisticsKey);
+                    timer.stop();
+                    timer = null;
+                    finished();
+                    Dimension dimension = getDimension();
+                    if (dimension != null) {
+                        dimension.armSavePoint();
+                    }
+                }
+            });
+        }
+    }
+
     // PenListener (these methods are invoked in non-legacy mode, even for mouse events)
     
     @Override
@@ -225,17 +247,16 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
                     first = true;
                     undo = eraser || (buttonType == PButton.Type.RIGHT) || altDown;
                     if (!oneShot) {
-                        if (timer == null) {
-                            timer = new Timer(delay, e -> {
-                                Point worldCoords = view.viewToWorld((int) x, (int) y);
-                                tick(worldCoords.x, worldCoords.y, undo, first, (stylus || eraser) ? dynamicLevel : 1.0f);
-                                view.updateStatusBar(worldCoords.x, worldCoords.y);
-                                first = false;
-                            });
-                            timer.setInitialDelay(0);
-                            timer.start();
-                            //                    start = System.currentTimeMillis();
-                        }
+                        interrupt(); // Make sure any operation in progress (due to timing issues perhaps) is interrupted
+                        timer = new Timer(delay, e -> {
+                            Point worldCoords = view.viewToWorld((int) x, (int) y);
+                            tick(worldCoords.x, worldCoords.y, undo, first, (stylus || eraser) ? dynamicLevel : 1.0f);
+                            view.updateStatusBar(worldCoords.x, worldCoords.y);
+                            first = false;
+                        });
+                        timer.setInitialDelay(0);
+                        timer.start();
+//                        start = System.currentTimeMillis();
                     } else {
                         Point worldCoords = view.viewToWorld((int) x, (int) y);
                         SwingUtilities.invokeLater(() -> {
@@ -250,20 +271,7 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
                     }
                 } else {
                     // Button released
-                    if (!oneShot) {
-                        SwingUtilities.invokeLater(() -> {
-                            if (timer != null) {
-                                logOperation(undo ? statisticsKeyUndo : statisticsKey);
-                                timer.stop();
-                                timer = null;
-                            }
-                            finished();
-                            Dimension dimension = getDimension();
-                            if (dimension != null) {
-                                dimension.armSavePoint();
-                            }
-                        });
-                    }
+                    interrupt();
                 }
                 break;
         }
@@ -285,17 +293,16 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
         shiftDown = me.isShiftDown();
         first = true;
         if (! oneShot) {
-            if (timer == null) {
-                timer = new Timer(delay, e -> {
-                    Point worldCoords = view.viewToWorld((int) x, (int) y);
-                    tick(worldCoords.x, worldCoords.y, undo, first, 1.0f);
-                    view.updateStatusBar(worldCoords.x, worldCoords.y);
-                    first = false;
-                });
-                timer.setInitialDelay(0);
-                timer.start();
-//                start = System.currentTimeMillis();
-            }
+            interrupt(); // Make sure any operation in progress (due to timing issues perhaps) is interrupted
+            timer = new Timer(delay, e -> {
+                Point worldCoords = view.viewToWorld((int) x, (int) y);
+                tick(worldCoords.x, worldCoords.y, undo, first, 1.0f);
+                view.updateStatusBar(worldCoords.x, worldCoords.y);
+                first = false;
+            });
+            timer.setInitialDelay(0);
+            timer.start();
+//            start = System.currentTimeMillis();
         } else {
             Point worldCoords = view.viewToWorld((int) x, (int) y);
             tick(worldCoords.x, worldCoords.y, undo, true, 1.0f);
@@ -310,18 +317,7 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
 
     @Override
     public void mouseReleased(MouseEvent me) {
-        if (! oneShot) {
-            if (timer != null) {
-                logOperation(undo ? statisticsKeyUndo : statisticsKey);
-                timer.stop();
-                timer = null;
-            }
-            finished();
-            Dimension dimension = getDimension();
-            if (dimension != null) {
-                dimension.armSavePoint();
-            }
-        }
+        interrupt();
     }
 
     @Override public void mouseClicked(MouseEvent me) {}
@@ -342,7 +338,7 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
         ctrlDown = me.isControlDown() || me.isMetaDown();
         shiftDown = me.isShiftDown();
     }
-    
+
     @Override
     protected void activate() throws PropertyVetoException {
         if (legacy) {
@@ -357,6 +353,7 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
 
     @Override
     protected void deactivate() {
+        interrupt();
         if (legacy) {
             view.removeMouseMotionListener(this);
             view.removeMouseListener(this);

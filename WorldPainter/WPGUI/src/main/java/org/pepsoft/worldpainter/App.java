@@ -1428,6 +1428,9 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     public void deselectTool() {
+        if (activeOperation != null) {
+            activeOperation.interrupt();
+        }
         toolButtonGroup.clearSelection();
     }
 
@@ -1887,7 +1890,7 @@ public final class App extends JFrame implements RadiusControl,
             usageVO.setEvents(eventLog);
         }
         usageVO.setWPVersion(Version.VERSION);
-        Main.privateContext.submitUsageData(usageVO);
+        Main.privateContext.submitUsageData(usageVO, false);
     }
 
     private void newWorld() {
@@ -2270,6 +2273,10 @@ public final class App extends JFrame implements RadiusControl,
 
     private void autosave() {
         try {
+            if (activeOperation != null) {
+                activeOperation.interrupt();
+            }
+
             if (logger.isDebugEnabled()) {
                 logger.debug("[AUTOSAVE] Autosaving");
             }
