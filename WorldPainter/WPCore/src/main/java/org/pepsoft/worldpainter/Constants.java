@@ -7,6 +7,7 @@ package org.pepsoft.worldpainter;
 
 import org.pepsoft.util.Version;
 import org.pepsoft.worldpainter.vo.AttributeKeyVO;
+import org.pepsoft.worldpainter.vo.ExceptionVO;
 
 /**
  *
@@ -63,6 +64,16 @@ public final class Constants {
     public static final AttributeKeyVO<String> ATTRIBUTE_KEY_SCRIPT_NAME = new AttributeKeyVO<>("script.name");
     public static final AttributeKeyVO<String> ATTRIBUTE_KEY_PLATFORM = new AttributeKeyVO<>("platform");
     public static final AttributeKeyVO<Boolean> ATTRIBUTE_KEY_SAFE_MODE = new AttributeKeyVO<>("safeMode");
+    public static final AttributeKeyVO<ExceptionVO> ATTRIBUTE_KEY_EXCEPTION = new AttributeKeyVO<>("exception");
+    public static final AttributeKeyVO<String> ATTRIBUTE_KEY_UUID = new AttributeKeyVO<>("uuid");
+    public static final AttributeKeyVO<String> ATTRIBUTE_KEY_VERSION = new AttributeKeyVO<>("version");
+    public static final AttributeKeyVO<String> ATTRIBUTE_KEY_BUILD = new AttributeKeyVO<>("build");
+    public static final AttributeKeyVO<Long> ATTRIBUTE_KEY_FREE_MEMORY = new AttributeKeyVO<>("memory.free");
+    public static final AttributeKeyVO<Long> ATTRIBUTE_KEY_TOTAL_MEMORY = new AttributeKeyVO<>("memory.total");
+    public static final AttributeKeyVO<Long> ATTRIBUTE_KEY_MAX_MEMORY = new AttributeKeyVO<>("memory.max");
+
+    public static final String ATTRIBUTE_KEY_MDC_ENTRY = "mdc";
+    public static final String ATTRIBUTE_KEY_SYSTEM_PROPERTY = "systemProperty";
 
     public static final String EVENT_KEY_ACTION_NEW_WORLD         = "action.newWorld";
     public static final String EVENT_KEY_ACTION_EXPORT_WORLD      = "action.exportWorld";
@@ -79,6 +90,7 @@ public final class Constants {
     public static final String EVENT_KEY_DONATION_ASK_LATER       = "donation.askLater";
     public static final String EVENT_KEY_DONATION_NO_THANKS       = "donation.noThanks";
     public static final String EVENT_KEY_DONATION_CLOSED          = "donation.closed";
+    public static final String EVENT_KEY_EXCEPTION                = "exception";
 
     public static final int BIOME_ALGORITHM_1_1                 =  4;
     public static final int BIOME_ALGORITHM_1_2_AND_1_3_DEFAULT =  5;

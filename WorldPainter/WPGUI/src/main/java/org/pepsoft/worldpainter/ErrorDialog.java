@@ -12,6 +12,10 @@
 package org.pepsoft.worldpainter;
 
 import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.vo.AttributeKeyVO;
+import org.pepsoft.worldpainter.vo.EventVO;
+import org.pepsoft.worldpainter.vo.ExceptionVO;
+import org.pepsoft.worldpainter.vo.UsageVO;
 
 import javax.swing.*;
 import java.awt.*;
@@ -25,9 +29,14 @@ import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
+import static java.lang.Boolean.TRUE;
+import static java.util.Collections.singletonList;
+import static org.pepsoft.util.AwtUtils.doOnEventThread;
 import static org.pepsoft.util.GUIUtils.scaleToUI;
 import static org.pepsoft.util.mdc.MDCUtils.gatherMdcContext;
+import static org.pepsoft.worldpainter.Constants.*;
 
 /**
  *
@@ -48,13 +57,20 @@ public class ErrorDialog extends javax.swing.JDialog {
 
     @SuppressWarnings("StringConcatenationInsideStringBufferAppend") // Readability
     public void setException(Throwable exception) {
-        logger.error(exception.getClass().getSimpleName() + ": " + exception.getMessage(), exception);
-        
+        UUID uuid = UUID.randomUUID();
+        logger.error("[" + uuid + "] " + exception.getClass().getSimpleName() + ": " + exception.getMessage(), exception);
+
+        event = new EventVO(EVENT_KEY_EXCEPTION);
+        event.addTimestamp();
+        event.setAttribute(ATTRIBUTE_KEY_EXCEPTION, new ExceptionVO(exception));
+        event.setAttribute(ATTRIBUTE_KEY_UUID, uuid.toString());
+
         Throwable rootCause = exception;
         while (rootCause.getCause() != null) {
             rootCause = rootCause.getCause();
         }
 
+        Configuration config = Configuration.getInstance();
         if (rootCause instanceof OutOfMemoryError) {
             setTitle("Out of Memory");
             jTextArea1.setText("Not enough memory available for that operation!\n\n"
@@ -63,17 +79,38 @@ public class ErrorDialog extends javax.swing.JDialog {
                 + "more. To be able to perform the operation you should\n"
                 + "install more memory (and reinstall WorldPainter).");
             jButton1.setEnabled(false);
-            jButton1.setToolTipText("Not necessary to mail details of out of memory errors");
+            jButton1.setToolTipText("Not necessary to send details of out of memory errors");
             jButton3.setEnabled(false);
         } else {
             String message = rootCause.getMessage();
             if ((message != null) && (message.length() > 250)) {
                 message = message.substring(0, 247) + "...";
             }
+            String requestedActionLine;
+            if (Main.privateContext != null) {
+                // We can submit the error
+                if ((config != null) && TRUE.equals(config.getPingAllowed())) {
+                    // Automatic submission is allowed; submit it automatically
+                    mode = Mode.SEND_AUTOMATICALLY;
+                    requestedActionLine = "The details of this error are being automatically submitted to the creator of this program.\n\n";
+                } else {
+                    mode = Mode.SEND_MANUALLY;
+                    requestedActionLine = "Please help debug the problem by using the Send Report button below to send the details of this error to the creator of this program.\n\n";
+                }
+            } else {
+                jButton1.setText("Email Details...");
+                if ((! Desktop.isDesktopSupported()) || (! Desktop.getDesktop().isSupported(Desktop.Action.MAIL))) {
+                    jButton1.setToolTipText("Emailing not supported on this system; please use the \"copy to clipboard\" button and mail the details to worldpainter@pepsoft.org.");
+                } else {
+                    jButton1.setEnabled(true);
+                }
+                mode = Mode.REPORTING_DISABLED;
+                requestedActionLine = "Please help debug the problem by using the button below to email the details of this error to the creator of this program.\n\n";
+            }
             String text = "An unexpected error has occurred.\n\n"
                 + "Type: " + rootCause.getClass().getName() + "\n"
                 + "Message: " + message + "\n\n"
-                + "Please help debug the problem by using the button below to email the details of this error to the creator of this program.\n\n"
+                + requestedActionLine
                 + "The program may now be in an unstable state. It is recommended to restart it as soon as possible.";
             jTextArea1.setText(text);
         }
@@ -102,18 +139,26 @@ public class ErrorDialog extends javax.swing.JDialog {
             sb.append("Diagnostic context:" + eol);
             mdcContextMap.forEach((key, value) -> sb.append("\t" + key + ": " + value + eol));
             sb.append(eol);
+
+            mdcContextMap.forEach((key, value) -> event.setAttribute(new AttributeKeyVO<>(ATTRIBUTE_KEY_MDC_ENTRY + '.' + key), value));
         }
 
         sb.append("WorldPainter version: " + Version.VERSION + " (" + Version.BUILD + ")" + eol);
+        event.setAttribute(ATTRIBUTE_KEY_VERSION, Version.VERSION);
+        event.setAttribute(ATTRIBUTE_KEY_BUILD, Version.BUILD);
         sb.append(eol);
         for (String propertyName: SYSTEM_PROPERTIES) {
             sb.append(propertyName + ": " + System.getProperty(propertyName) + eol);
+            event.setAttribute(new AttributeKeyVO<>(ATTRIBUTE_KEY_SYSTEM_PROPERTY + '.' + propertyName), System.getProperty(propertyName));
         }
         sb.append(eol);
         Runtime runtime = Runtime.getRuntime();
         sb.append("Free memory: " + runtime.freeMemory() + " bytes" + eol);
         sb.append("Total memory size: " + runtime.totalMemory() + " bytes" + eol);
         sb.append("Max memory size: " + runtime.maxMemory() + " bytes" + eol);
+        event.setAttribute(ATTRIBUTE_KEY_FREE_MEMORY, runtime.freeMemory());
+        event.setAttribute(ATTRIBUTE_KEY_TOTAL_MEMORY, runtime.totalMemory());
+        event.setAttribute(ATTRIBUTE_KEY_MAX_MEMORY, runtime.maxMemory());
 
         // The app may be in an unstable state, so if an exception occurs while
         // interrogating it, swallow it to prevent endless loops
@@ -176,16 +221,16 @@ public class ErrorDialog extends javax.swing.JDialog {
         if (! "true".equals(System.getProperty("org.pepsoft.worldpainter.devMode"))) {
             logger.error(body);
         }
+
+        if (mode == Mode.SEND_AUTOMATICALLY) {
+            submitInBackground(config);
+        }
     }
 
     private void init(Window parent) {
         initComponents();
 
         getRootPane().setDefaultButton(jButton2);
-        if ((! Desktop.isDesktopSupported()) || (! Desktop.getDesktop().isSupported(Desktop.Action.MAIL))) {
-            jButton1.setEnabled(false);
-            jButton1.setToolTipText("Emailing not supported on this system; please use the \"copy to clipboard\" button and mail the details to worldpainter@pepsoft.org.");
-        }
 
         ActionMap actionMap = rootPane.getActionMap();
         actionMap.put("cancel", new AbstractAction("cancel") {
@@ -228,6 +273,42 @@ public class ErrorDialog extends javax.swing.JDialog {
         clipboard.setContents(data, data);
         JOptionPane.showMessageDialog(this, "The information has been copied to the clipboard. Please paste\nit in a new email and send it to worldpainter@pepsoft.org.", "Information Copied", JOptionPane.INFORMATION_MESSAGE);
     }
+
+    private void submitInBackground(Configuration config) {
+        jButton1.setText("Sending...");
+        jButton1.setEnabled(false);
+        jButton2.setEnabled(false);
+        new Thread("Exception Submitter") {
+            @Override
+            public void run() {
+                try {
+                    UsageVO usageVO = new UsageVO();
+                    usageVO.setEvents(singletonList(event));
+                    usageVO.setLaunchCount(config.getLaunchCount());
+                    usageVO.setInstall(config.getUuid());
+                    usageVO.setWPVersion(Version.VERSION);
+                    Main.privateContext.submitUsageData(usageVO, true);
+                    doOnEventThread(() -> {
+                        jButton1.setText("Report Sent");
+                        jButton2.setEnabled(true);
+                    });
+                } catch (RuntimeException e) {
+                    logger.error("{} while trying to submit exception report to server (message: {})", e.getClass().getSimpleName(), e.getMessage(), e);
+                    doOnEventThread(() -> {
+                        JOptionPane.showMessageDialog(ErrorDialog.this, "Submitting error report failed.\nPlease use the \"Email Details...\" button below\nto email the report.");
+                        jButton1.setText("Email Details...");
+                        if ((! Desktop.isDesktopSupported()) || (! Desktop.getDesktop().isSupported(Desktop.Action.MAIL))) {
+                            jButton1.setToolTipText("Emailing not supported on this system; please use the \"copy to clipboard\" button and mail the details to worldpainter@pepsoft.org.");
+                        } else {
+                            jButton1.setEnabled(true);
+                        }
+                        mode = Mode.REPORTING_DISABLED;
+                        jButton2.setEnabled(true);
+                    });
+                }
+            }
+        }.start();
+    }
     
     public static void main(String[] args) {
         ErrorDialog dialog = new ErrorDialog((Frame) null);
@@ -252,11 +333,19 @@ public class ErrorDialog extends javax.swing.JDialog {
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Unexpected Error");
 
-        jButton1.setText("Email Details...");
-        jButton1.addActionListener(this::jButton1ActionPerformed);
+        jButton1.setText("Send Report");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
 
         jButton2.setText("Close");
-        jButton2.addActionListener(this::jButton2ActionPerformed);
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
 
         jTextArea1.setEditable(false);
         jTextArea1.setFont(getFont());
@@ -266,7 +355,11 @@ public class ErrorDialog extends javax.swing.JDialog {
         jTextArea1.setOpaque(false);
 
         jButton3.setText("Copy details to clipboard");
-        jButton3.addActionListener(this::jButton3ActionPerformed);
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -301,7 +394,16 @@ public class ErrorDialog extends javax.swing.JDialog {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        email();
+        switch (mode) {
+            case REPORTING_DISABLED:
+                email();
+                break;
+            case SEND_MANUALLY:
+                submitInBackground(Configuration.getInstance());
+                break;
+            default:
+                throw new IllegalStateException("mode " + mode);
+        }
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
@@ -320,6 +422,8 @@ public class ErrorDialog extends javax.swing.JDialog {
     // End of variables declaration//GEN-END:variables
 
     private String body;
+    private EventVO event;
+    private Mode mode = Mode.REPORTING_UNNECESSARY;
 
     private static final double GB = 1024.0 * 1024.0 * 1024.0;
     
@@ -340,4 +444,6 @@ public class ErrorDialog extends javax.swing.JDialog {
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ErrorDialog.class);
     private static final long serialVersionUID = 1L;
+
+    enum Mode { REPORTING_UNNECESSARY, SEND_AUTOMATICALLY, SEND_MANUALLY, REPORTING_DISABLED }
 }

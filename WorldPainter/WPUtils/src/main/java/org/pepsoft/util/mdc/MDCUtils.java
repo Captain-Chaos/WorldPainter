@@ -1,8 +1,8 @@
 package org.pepsoft.util.mdc;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+
+import static java.util.stream.Collectors.toMap;
 
 /**
  * Utility methods for working with the classes and interfaces in this package.
@@ -19,15 +19,16 @@ public final class MDCUtils {
      * together. May be an empty {@code Map}, but never {@code null}.
      */
     public static Map<String, String> gatherMdcContext(Throwable exception) {
-        Map<String, String> mdcContext = new HashMap<>();
+        Map<String, Set<String>> mdcContext = new HashMap<>();
         do {
             Optional.of(exception)
                     .filter(e -> e instanceof MDCContextProvider)
                     .map(e -> ((MDCContextProvider) e).getMdcContext())
                     .ifPresent(context -> context.forEach((key, value)
-                            -> mdcContext.merge(key, value, (previousValue, newValue) -> previousValue + "," + newValue)));
+                            -> mdcContext.computeIfAbsent(key, k -> new HashSet<>()).add(value)));
             exception = exception.getCause();
         } while (exception != null);
-        return mdcContext;
+        return mdcContext.entrySet().stream()
+                .collect(toMap(Map.Entry::getKey, entry -> String.join(",", entry.getValue())));
     }
 }

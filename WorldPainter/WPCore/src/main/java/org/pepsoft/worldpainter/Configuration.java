@@ -759,7 +759,13 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     public synchronized List<EventVO> getEventLog() {
         return (eventLog != null) ? new ArrayList<>(eventLog) : null;
     }
-    
+
+    public synchronized void removeEvents(Collection<EventVO> events) {
+        if (eventLog != null) {
+            eventLog.removeAll(events);
+        }
+    }
+
     public synchronized void clearStatistics() {
         if (eventLog != null) {
             eventLog = new LinkedList<>();
