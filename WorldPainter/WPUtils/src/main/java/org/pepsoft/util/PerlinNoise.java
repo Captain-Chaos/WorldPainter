@@ -6,6 +6,8 @@
 package org.pepsoft.util;
 
 import com.kenperlin.ImprovedNoise;
+import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -85,7 +87,7 @@ public final class PerlinNoise implements Serializable, Cloneable {
         try {
             return super.clone();
         } catch (CloneNotSupportedException e) {
-            throw new RuntimeException(e);
+            throw new MDCCapturingRuntimeException(e);
         }
     }
 
@@ -138,7 +140,7 @@ public final class PerlinNoise implements Serializable, Cloneable {
                 }
             }
         } catch (IOException e) {
-            throw new RuntimeException("I/O error while trying to load noise levels from classpath", e);
+            throw new MDCCapturingRuntimeException("I/O error while trying to load noise levels from classpath", e);
         }
     }
 }

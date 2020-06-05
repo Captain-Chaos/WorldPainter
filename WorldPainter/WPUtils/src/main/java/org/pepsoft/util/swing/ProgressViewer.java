@@ -12,6 +12,7 @@ package org.pepsoft.util.swing;
 
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
+import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
 
 import javax.swing.*;
 
@@ -34,7 +35,7 @@ final class ProgressViewer extends javax.swing.JPanel implements ProgressReceive
             try {
                 setMessage(lastMessage);
             } catch (OperationCancelled operationCancelled) {
-                throw new RuntimeException("Operation cancelled");
+                throw new MDCCapturingRuntimeException("Operation cancelled");
             }
         }
     }

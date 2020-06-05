@@ -11,6 +11,7 @@
 package org.pepsoft.util.swing;
 
 import org.pepsoft.util.ProgressReceiver;
+import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
 
 import java.awt.*;
 import java.awt.event.ComponentEvent;
@@ -92,7 +93,7 @@ public class ProgressDialog<T> extends javax.swing.JDialog implements ComponentL
             } else if (dialog.exception instanceof RuntimeException) {
                 throw (RuntimeException) dialog.exception;
             } else {
-                throw new RuntimeException("Checked exception thrown by task", dialog.exception);
+                throw new MDCCapturingRuntimeException("Checked exception thrown by task", dialog.exception);
             }
         } else {
             return dialog.result;
@@ -137,7 +138,7 @@ public class ProgressDialog<T> extends javax.swing.JDialog implements ComponentL
                 } catch (RuntimeException | Error e) {
                     throw e;
                 } catch (Exception e) {
-                    throw new RuntimeException(e.getClass().getSimpleName() + " while performing task \"" + name + "\" (message: " + e.getMessage() + ")", e);
+                    throw new MDCCapturingRuntimeException(e.getClass().getSimpleName() + " while performing task \"" + name + "\" (message: " + e.getMessage() + ")", e);
                 }
             }
         }, options);

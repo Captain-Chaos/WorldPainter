@@ -4,6 +4,8 @@
  */
 package org.pepsoft.util;
 
+import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
@@ -107,7 +109,7 @@ public class MemoryUtils {
                                     objectSize += getSize(value, processedObjects, stopAt/*, trail + '.' + field.getName()*/);
                                 }
                             } catch (IllegalAccessException e) {
-                                throw new RuntimeException("Access denied trying to read field " + field.getName() + " of type " + myType.getName(), e);
+                                throw new MDCCapturingRuntimeException("Access denied trying to read field " + field.getName() + " of type " + myType.getName(), e);
                             }
                         }
                     }

@@ -18,6 +18,8 @@
 
 package org.pepsoft.util;
 
+import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -320,7 +322,7 @@ public final class XDG {
                 }
             }
         } catch (IOException e) {
-            throw new RuntimeException("I/O error reading " + script);
+            throw new MDCCapturingRuntimeException("I/O error reading " + script);
         }
     }
 

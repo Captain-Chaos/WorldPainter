@@ -11,6 +11,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.pepsoft.util.StreamUtils;
 import org.pepsoft.util.Version;
+import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -134,7 +135,7 @@ public final class PluginManager {
             }
             return plugins;
         } catch (IOException e) {
-            throw new RuntimeException("I/O error while loading plugins", e);
+            throw new MDCCapturingRuntimeException("I/O error while loading plugins", e);
         }
     }
 

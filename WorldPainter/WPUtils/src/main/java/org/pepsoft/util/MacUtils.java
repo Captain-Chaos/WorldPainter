@@ -18,6 +18,8 @@
 
 package org.pepsoft.util;
 
+import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
+
 import java.io.File;
 import java.util.List;
 
@@ -119,7 +121,7 @@ public abstract class MacUtils {
             try {
                 IMPL = (MacUtils) Class.forName("org.pepsoft.util.MacUtilsJava9").newInstance();
             } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-                throw new RuntimeException(e.getClass().getSimpleName() + " while loading Mac OS X support for Java 9", e);
+                throw new MDCCapturingRuntimeException(e.getClass().getSimpleName() + " while loading Mac OS X support for Java 9", e);
             }
         } else {
             IMPL = new MacUtilsJava8();

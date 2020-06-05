@@ -1,5 +1,7 @@
 package org.pepsoft.util;
 
+import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
+
 import java.awt.*;
 
 import static org.pepsoft.util.SystemUtils.JAVA_9;
@@ -26,7 +28,7 @@ abstract class ProgressHelper {
             try {
                 IMPL = (ProgressHelper) Class.forName("org.pepsoft.util.ProgressHelperJava9").newInstance();
             } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-                throw new RuntimeException(e.getClass().getSimpleName() + " while loading progress reporting support for Java 9", e);
+                throw new MDCCapturingRuntimeException(e.getClass().getSimpleName() + " while loading progress reporting support for Java 9", e);
             }
         } else if (SystemUtils.isWindows()) {
             IMPL = new ProgressHelperWindowsJava8();

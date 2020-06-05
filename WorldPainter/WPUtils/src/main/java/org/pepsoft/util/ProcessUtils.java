@@ -4,6 +4,8 @@
  */
 package org.pepsoft.util;
 
+import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -22,7 +24,7 @@ public class ProcessUtils {
             stdoutCopier.start();
             stderrCopier.start();
         } catch (IOException e) {
-            throw new RuntimeException("I/O error while trying to execute " + Arrays.asList(args), e);
+            throw new MDCCapturingRuntimeException("I/O error while trying to execute " + Arrays.asList(args), e);
         }
     }
     
@@ -35,9 +37,9 @@ public class ProcessUtils {
             stderrCopier.start();
             return process.waitFor();
         } catch (IOException e) {
-            throw new RuntimeException("I/O error while trying to execute " + Arrays.asList(args), e);
+            throw new MDCCapturingRuntimeException("I/O error while trying to execute " + Arrays.asList(args), e);
         } catch (InterruptedException e) {
-            throw new RuntimeException("Thread interrupted while waiting for " + Arrays.asList(args) + " to finish", e);
+            throw new MDCCapturingRuntimeException("Thread interrupted while waiting for " + Arrays.asList(args) + " to finish", e);
         }
     }
     

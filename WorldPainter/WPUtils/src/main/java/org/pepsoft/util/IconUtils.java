@@ -12,6 +12,7 @@ import javax.imageio.ImageIO;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import org.jetbrains.annotations.NonNls;
+import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
 
 import static org.pepsoft.util.GUIUtils.getUIScaleInt;
 import static org.pepsoft.util.GUIUtils.scaleToUI;
@@ -76,7 +77,7 @@ public final class IconUtils {
                 return null;
             }
         } catch (IOException e) {
-            throw new RuntimeException("I/O error loading image " + path, e);
+            throw new MDCCapturingRuntimeException("I/O error loading image " + path, e);
         }
     }
 
@@ -117,7 +118,7 @@ public final class IconUtils {
                 return null;
             }
         } catch (IOException e) {
-            throw new RuntimeException("I/O error loading image " + path, e);
+            throw new MDCCapturingRuntimeException("I/O error loading image " + path, e);
         }
     }
 

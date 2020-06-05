@@ -18,6 +18,8 @@
 
 package org.pepsoft.util;
 
+import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
+
 import javax.swing.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
@@ -49,7 +51,7 @@ public class AwtUtils {
                 if (e instanceof RuntimeException) {
                     throw (RuntimeException) e;
                 } else {
-                    throw new RuntimeException(e.getClass().getSimpleName() + " thrown by task", e);
+                    throw new MDCCapturingRuntimeException(e.getClass().getSimpleName() + " thrown by task", e);
                 }
             }
         } else {
@@ -68,14 +70,14 @@ public class AwtUtils {
                     }
                 });
             } catch (InterruptedException e) {
-                throw new RuntimeException("Thread interrupted while waiting for task to execute on event dispatch thread", e);
+                throw new MDCCapturingRuntimeException("Thread interrupted while waiting for task to execute on event dispatch thread", e);
             } catch (InvocationTargetException e) {
                 Throwable cause = e.getTargetException();
-                throw new RuntimeException(cause.getClass().getSimpleName() + " thrown by task on event dispatch thread", cause);
+                throw new MDCCapturingRuntimeException(cause.getClass().getSimpleName() + " thrown by task on event dispatch thread", cause);
             }
             synchronized (exception) {
                 if (exception[0] != null) {
-                    throw new RuntimeException(exception[0].getClass().getSimpleName() + " thrown by task on event dispatch thread", exception[0]);
+                    throw new MDCCapturingRuntimeException(exception[0].getClass().getSimpleName() + " thrown by task on event dispatch thread", exception[0]);
                 }
             }
             synchronized (result) {
@@ -116,10 +118,10 @@ public class AwtUtils {
             try {
                 SwingUtilities.invokeAndWait(task);
             } catch (InterruptedException e) {
-                throw new RuntimeException("Thread interrupted while waiting for task to execute on event dispatch thread", e);
+                throw new MDCCapturingRuntimeException("Thread interrupted while waiting for task to execute on event dispatch thread", e);
             } catch (InvocationTargetException e) {
                 Throwable cause = e.getTargetException();
-                throw new RuntimeException(cause.getClass().getSimpleName() + " thrown by task on event dispatch thread", cause);
+                throw new MDCCapturingRuntimeException(cause.getClass().getSimpleName() + " thrown by task on event dispatch thread", cause);
             }
         }
     }
