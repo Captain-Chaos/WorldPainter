@@ -1,3 +1,9 @@
+-- Version 2.7.11, released 5-6-2020
+
+ * Improved error reporting: detailed diagnostic information is now sent directly to the WorldPainter server when an error occurs, rather than relying on email. This will hopefully help with prioritising errors better and fixing them sooner. If "send usage information" is turned on, error reports will be sent automatically. If it is off, you will be asked to click the Send Report button explicitly in order to send the error details to the WorldPainter server. If sending the information automatically fails, you will still be asked to email the information, or use the "copy to clipboard" button
+ * Attempt to avoid operations becoming stuck if an autosave or other interruption happens while one is active. Autosaves should not happen at all while an operation is being applied, but at least hopefully if it does it will not result in the operation getting stuck and continue applying unwanted changes. Please let me know if that still happens!
+ * Bug fix: don't increase the size of the main window repeatedly when starting WorldPainter on a hi-dpi monitor
+
 -- Version 2.7.10, released 17-5-2020
 
  * Bug fix: fix a bug introduced in the previous version that prevented the loading of worlds
