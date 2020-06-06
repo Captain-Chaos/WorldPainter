@@ -9,6 +9,7 @@ import jpen.*;
 import jpen.event.PenListener;
 import jpen.owner.multiAwt.AwtPenToolkit;
 import org.pepsoft.util.SystemUtils;
+import org.pepsoft.worldpainter.App;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.EventLogger;
 import org.pepsoft.worldpainter.WorldPainterView;
@@ -23,6 +24,10 @@ import java.beans.PropertyVetoException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.awt.event.MouseEvent.BUTTON1;
+import static java.awt.event.MouseEvent.BUTTON3;
+import static jpen.PButton.Type.RIGHT;
+import static jpen.PKind.Type.*;
 import static org.pepsoft.util.AwtUtils.doOnEventThreadAndWait;
 
 /**
@@ -194,6 +199,7 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
                     if (dimension != null) {
                         dimension.armSavePoint();
                     }
+                    App.getInstance().resumeAutosave();
                 }
             });
         }
@@ -222,10 +228,22 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
 
     @Override
     public void penButtonEvent(PButtonEvent pbe) {
+        if (pbe.getDeviceTime() <= lastHandledEventTimestamp) {
+            // For some bizarre reason we get old events delivered twice; ignore them
+            // TODO is this a bug in Java (it happens in 8 and 14 so seems unlikely)?
+            //  JPen (it also happens in legacy mode so seems unlikely)?
+            //  JIDE docking framework (more likely; it is in the call stack for the duplicate event; JPen also listens
+            //  to AWT mouse events so might be being triggered by the same fake event)
+            // TODO note that for JPen the first _actual_ mouse down event after this happens is never delivered. Does
+            //  JPens inner state get confused by the fake event because it thinks the mouse button is already down?)
+            return;
+        } else {
+            lastHandledEventTimestamp = pbe.getDeviceTime();
+        }
         PKind.Type penKindType = pbe.pen.getKind().getType();
-        final boolean stylus = penKindType == PKind.Type.STYLUS;
-        final boolean eraser = penKindType == PKind.Type.ERASER;
-        if ((! stylus) && (! eraser) && (penKindType != PKind.Type.CURSOR)) {
+        final boolean stylus = penKindType == STYLUS;
+        final boolean eraser = penKindType == ERASER;
+        if ((! stylus) && (! eraser) && (penKindType != CURSOR)) {
             // We don't want events from keyboards, etc.
             return;
         }
@@ -245,7 +263,7 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
                 if (pbe.button.value) {
                     // Button pressed
                     first = true;
-                    undo = eraser || (buttonType == PButton.Type.RIGHT) || altDown;
+                    undo = eraser || (buttonType == RIGHT) || altDown;
                     if (!oneShot) {
                         interrupt(); // Make sure any operation in progress (due to timing issues perhaps) is interrupted
                         timer = new Timer(delay, e -> {
@@ -256,22 +274,33 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
                         });
                         timer.setInitialDelay(0);
                         timer.start();
+                        operationStartedWithButton = buttonType.ordinal();
+                        App.getInstance().pauseAutosave();
 //                        start = System.currentTimeMillis();
                     } else {
                         Point worldCoords = view.viewToWorld((int) x, (int) y);
                         SwingUtilities.invokeLater(() -> {
-                            tick(worldCoords.x, worldCoords.y, undo, true, 1.0f);
-                            view.updateStatusBar(worldCoords.x, worldCoords.y);
-                            Dimension dimension = getDimension();
-                            if (dimension != null) {
-                                dimension.armSavePoint();
+                            App.getInstance().pauseAutosave();
+                            try {
+                                tick(worldCoords.x, worldCoords.y, undo, true, 1.0f);
+                                view.updateStatusBar(worldCoords.x, worldCoords.y);
+                                Dimension dimension = getDimension();
+                                if (dimension != null) {
+                                    dimension.armSavePoint();
+                                }
+                                logOperation(undo ? statisticsKeyUndo : statisticsKey);
+                            } finally {
+                                App.getInstance().resumeAutosave();
                             }
-                            logOperation(undo ? statisticsKeyUndo : statisticsKey);
                         });
                     }
                 } else {
                     // Button released
-                    interrupt();
+                    // Finish the operation, but only if the button being
+                    // released is the one that actually started it
+                    if (buttonType.ordinal() == operationStartedWithButton) {
+                        interrupt();
+                    }
                 }
                 break;
         }
@@ -285,10 +314,25 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
     
     @Override
     public void mousePressed(MouseEvent me) {
+        if (me.getWhen() <= lastHandledEventTimestamp) {
+            // For some bizarre reason we get old events delivered twice; ignore them
+            // TODO is this a bug in Java (it happens in 8 and 14 so seems unlikely)?
+            //  JIDE docking framework (more likely; it is in the call stack for the duplicate event; JPen also listens
+            //  to AWT mouse events so might be being triggered by the same fake event)
+            return;
+        } else {
+            lastHandledEventTimestamp = me.getWhen();
+        }
+        if ((me.getButton() != BUTTON1) && (me.getButton() != BUTTON3)) {
+            // Only interested in left and right mouse buttons
+            // TODO: the right mouse button is not button three on two-button
+            //  mice, is it?
+            return;
+        }
         x = me.getX();
         y = me.getY();
         altDown = me.isAltDown() || me.isAltGraphDown();
-        undo = (me.getButton() == MouseEvent.BUTTON3) || altDown;
+        undo = (me.getButton() == BUTTON3) || altDown;
         ctrlDown = me.isControlDown() || me.isMetaDown();
         shiftDown = me.isShiftDown();
         first = true;
@@ -302,22 +346,49 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
             });
             timer.setInitialDelay(0);
             timer.start();
+            operationStartedWithButton = me.getButton();
+            App.getInstance().pauseAutosave();
 //            start = System.currentTimeMillis();
         } else {
             Point worldCoords = view.viewToWorld((int) x, (int) y);
-            tick(worldCoords.x, worldCoords.y, undo, true, 1.0f);
-            view.updateStatusBar(worldCoords.x, worldCoords.y);
-            Dimension dimension = getDimension();
-            if (dimension != null) {
-                dimension.armSavePoint();
+            try {
+                tick(worldCoords.x, worldCoords.y, undo, true, 1.0f);
+                view.updateStatusBar(worldCoords.x, worldCoords.y);
+                Dimension dimension = getDimension();
+                if (dimension != null) {
+                    dimension.armSavePoint();
+                }
+                logOperation(undo ? statisticsKeyUndo : statisticsKey);
+            } finally {
+                App.getInstance().resumeAutosave();
             }
-            logOperation(undo ? statisticsKeyUndo : statisticsKey);
         }
+        me.consume();
     }
 
     @Override
     public void mouseReleased(MouseEvent me) {
-        interrupt();
+        if (me.getWhen() <= lastHandledEventTimestamp) {
+            // For some bizarre reason we get old events delivered twice; ignore them
+            // TODO is this a bug in Java (it happens in 8 and 14 so seems unlikely)?
+            //  JIDE docking framework (more likely; it is in the call stack for the duplicate event; JPen also listens
+            //  to AWT mouse events so might be being triggered by the same fake event)
+            return;
+        } else {
+            lastHandledEventTimestamp = me.getWhen();
+        }
+        if ((me.getButton() != BUTTON1) && (me.getButton() != BUTTON3)) {
+            // Only interested in left and right mouse buttons
+            // TODO: the right mouse button is not button three on two-button
+            //  mice, is it?
+            return;
+        }
+        // Finish the operation, but only if the button being
+        // released is the one that actually started it
+        if (me.getButton() == operationStartedWithButton) {
+            interrupt();
+            me.consume();
+        }
     }
 
     @Override public void mouseClicked(MouseEvent me) {}
@@ -458,6 +529,8 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
     private volatile float x, y;
     private float level = 1.0f;
 //    private long start;
+    private volatile int operationStartedWithButton;
+    private long lastHandledEventTimestamp = Long.MIN_VALUE;
 
     private static final Map<String, Long> operationCounts = new HashMap<>();
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MouseOrTabletOperation.class);

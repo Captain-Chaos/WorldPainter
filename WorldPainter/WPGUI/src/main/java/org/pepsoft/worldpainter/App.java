@@ -1084,6 +1084,27 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
 
+    /**
+     * Stop autosaving temporarily (until {@link #resumeAutosave()} is called).
+     * Can be called multiple times; autosaving will not be resumed until
+     * {@link #resumeAutosave()} has been called as many times as this method
+     * was. Must be called on the event thread.
+     */
+    public void pauseAutosave() {
+        pauseAutosave++;
+    }
+
+    /**
+     * Resume autosaving (if it is enabled and not otherwise inhibited, only
+     * after calling the method as many times as {@link #pauseAutosave()} was,
+     * and only after the configured guard time). Must be called on the event
+     * thread.
+     */
+    public void resumeAutosave() {
+        autosaveInhibitedUntil = System.currentTimeMillis() + Configuration.getInstance().getAutosaveDelay();
+        pauseAutosave = Math.max(pauseAutosave - 1, 0);
+    }
+
     void changeWorldHeight(Window parent) {
         ChangeHeightDialog dialog = new ChangeHeightDialog(parent, world);
         dialog.setVisible(true);
@@ -1112,27 +1133,6 @@ public final class App extends JFrame implements RadiusControl,
         if (! dialog.isCancelled()) {
             currentUndoManager.armSavePoint();
         }
-    }
-
-    /**
-     * Stop autosaving temporarily (until {@link #resumeAutosave()} is called).
-     * Can be called multiple times; autosaving will not be resumed until
-     * {@link #resumeAutosave()} has been called as many times as this method
-     * was. Must be called on the event thread.
-     */
-    void pauseAutosave() {
-        pauseAutosave++;
-    }
-
-    /**
-     * Resume autosaving (if it is enabled and not otherwise inhibited, only
-     * after calling the method as many times as {@link #pauseAutosave()} was,
-     * and only after the configured guard time). Must be called on the event
-     * thread.
-     */
-    void resumeAutosave() {
-        autosaveInhibitedUntil = System.currentTimeMillis() + Configuration.getInstance().getAutosaveDelay();
-        pauseAutosave = Math.max(pauseAutosave - 1, 0);
     }
 
     private void addRecentlyUsedWorld(File file) {
