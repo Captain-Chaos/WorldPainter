@@ -1753,7 +1753,7 @@ public final class Material implements Serializable {
                 throw new NullPointerException("name");
             }
             if (name.indexOf(':') == -1) {
-                throw new IllegalArgumentException("name");
+                throw new IllegalArgumentException("name \"" + name + "\"");
             }
             this.name = name;
             this.properties = ((properties != null) && (! properties.isEmpty())) ? ImmutableMap.copyOf(properties) : null;
