@@ -15,6 +15,7 @@ import org.intellij.lang.annotations.Language;
 import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.GUIUtils;
+import org.pepsoft.util.SystemUtils;
 import org.pepsoft.util.plugins.PluginManager;
 import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
 import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
@@ -69,6 +70,16 @@ public class Main {
 
         System.setProperty("sun.awt.exception.handler", ExceptionHandler.class.getName());
         Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler());
+
+        // Set some hardcoded system properties we always want set:
+        if (SystemUtils.isMac()) {
+            // Use the Mac style top of screen menu bar
+            System.setProperty("apple.laf.useScreenMenuBar", "true");
+        }
+        // Work around a bug in the JIDE Docking Framework which otherwise
+        // causes duplicate mouse events on focus switches resulting in
+        // uncommanded edits
+        System.setProperty("docking.focusWorkaround1", "true");
 
         // Use a file lock to make sure only one instance is running with autosave enabled
         File configDir = Configuration.getConfigDir();

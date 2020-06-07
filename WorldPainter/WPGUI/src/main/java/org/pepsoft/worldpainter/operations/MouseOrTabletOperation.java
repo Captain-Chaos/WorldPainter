@@ -228,18 +228,6 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
 
     @Override
     public void penButtonEvent(PButtonEvent pbe) {
-        if (pbe.getDeviceTime() <= lastHandledEventTimestamp) {
-            // For some bizarre reason we get old events delivered twice; ignore them
-            // TODO is this a bug in Java (it happens in 8 and 14 so seems unlikely)?
-            //  JPen (it also happens in legacy mode so seems unlikely)?
-            //  JIDE docking framework (more likely; it is in the call stack for the duplicate event; JPen also listens
-            //  to AWT mouse events so might be being triggered by the same fake event)
-            // TODO note that for JPen the first _actual_ mouse down event after this happens is never delivered. Does
-            //  JPens inner state get confused by the fake event because it thinks the mouse button is already down?)
-            return;
-        } else {
-            lastHandledEventTimestamp = pbe.getDeviceTime();
-        }
         PKind.Type penKindType = pbe.pen.getKind().getType();
         final boolean stylus = penKindType == STYLUS;
         final boolean eraser = penKindType == ERASER;
@@ -314,15 +302,6 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
     
     @Override
     public void mousePressed(MouseEvent me) {
-        if (me.getWhen() <= lastHandledEventTimestamp) {
-            // For some bizarre reason we get old events delivered twice; ignore them
-            // TODO is this a bug in Java (it happens in 8 and 14 so seems unlikely)?
-            //  JIDE docking framework (more likely; it is in the call stack for the duplicate event; JPen also listens
-            //  to AWT mouse events so might be being triggered by the same fake event)
-            return;
-        } else {
-            lastHandledEventTimestamp = me.getWhen();
-        }
         if ((me.getButton() != BUTTON1) && (me.getButton() != BUTTON3)) {
             // Only interested in left and right mouse buttons
             // TODO: the right mouse button is not button three on two-button
@@ -369,15 +348,6 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
 
     @Override
     public void mouseReleased(MouseEvent me) {
-        if (me.getWhen() <= lastHandledEventTimestamp) {
-            // For some bizarre reason we get old events delivered twice; ignore them
-            // TODO is this a bug in Java (it happens in 8 and 14 so seems unlikely)?
-            //  JIDE docking framework (more likely; it is in the call stack for the duplicate event; JPen also listens
-            //  to AWT mouse events so might be being triggered by the same fake event)
-            return;
-        } else {
-            lastHandledEventTimestamp = me.getWhen();
-        }
         if ((me.getButton() != BUTTON1) && (me.getButton() != BUTTON3)) {
             // Only interested in left and right mouse buttons
             // TODO: the right mouse button is not button three on two-button
@@ -531,7 +501,6 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
     private float level = 1.0f;
 //    private long start;
     private volatile int operationStartedWithButton;
-    private long lastHandledEventTimestamp = Long.MIN_VALUE;
 
     private static final Map<String, Long> operationCounts = new HashMap<>();
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MouseOrTabletOperation.class);
