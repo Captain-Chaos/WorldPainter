@@ -1,3 +1,8 @@
+-- Version 2.7.14, released 7-6-2020
+
+ * Don't try to place vines from custom objects under water
+ * Bug fix: make the Fill tool work with continuous layers again
+
 -- Version 2.7.13, released 6-6-2020
 
  * More robust prevention of unwanted autosaves and uncommanded operations
