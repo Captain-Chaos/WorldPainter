@@ -2,6 +2,7 @@ package org.pepsoft.worldpainter.operations;
 
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.WorldPainterView;
+import org.pepsoft.worldpainter.brushes.Brush;
 import org.pepsoft.worldpainter.painting.DimensionPainter;
 import org.pepsoft.worldpainter.painting.Paint;
 
@@ -10,7 +11,7 @@ import javax.swing.*;
 /**
  * Created by pepijn on 14-5-15.
  */
-public class Fill extends MouseOrTabletOperation implements PaintOperation {
+public class Fill extends AbstractBrushOperation implements PaintOperation {
     public Fill(WorldPainterView view) {
         super("Fill", "Flood fill an area of the world with any kind of layer or terrain", view, "operation.fill");
     }
@@ -39,7 +40,17 @@ public class Fill extends MouseOrTabletOperation implements PaintOperation {
 
     @Override
     public void setPaint(Paint paint) {
+        if (getBrush() != null) {
+            paint.setBrush(getBrush());
+        }
         painter.setPaint(paint);
+    }
+
+    @Override
+    protected void brushChanged(Brush newBrush) {
+        if (painter.getPaint() != null) {
+            painter.getPaint().setBrush(newBrush);
+        }
     }
 
     private final DimensionPainter painter = new DimensionPainter();

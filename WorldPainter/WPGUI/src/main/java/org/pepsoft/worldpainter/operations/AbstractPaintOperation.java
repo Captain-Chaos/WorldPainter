@@ -53,6 +53,7 @@ public abstract class AbstractPaintOperation extends RadiusOperation implements 
 
     @Override
     protected void brushChanged(Brush newBrush) {
+        super.brushChanged(newBrush);
         if (paint != null) {
             paint.setBrush(newBrush);
         }

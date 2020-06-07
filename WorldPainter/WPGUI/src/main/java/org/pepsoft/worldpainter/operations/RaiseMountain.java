@@ -6,7 +6,6 @@
 package org.pepsoft.worldpainter.operations;
 
 import org.pepsoft.util.PerlinNoise;
-import static org.pepsoft.worldpainter.Constants.MEDIUM_BLOBS;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.MapDragControl;
 import org.pepsoft.worldpainter.RadiusControl;
@@ -14,6 +13,8 @@ import org.pepsoft.worldpainter.WorldPainter;
 import org.pepsoft.worldpainter.brushes.Brush;
 
 import javax.swing.*;
+
+import static org.pepsoft.worldpainter.Constants.MEDIUM_BLOBS;
 
 /**
  *
@@ -69,13 +70,14 @@ public class RaiseMountain extends RadiusOperation {
     
     @Override
     protected final void brushChanged(Brush brush) {
-        final int radius = getEffectiveRadius();
+        super.brushChanged(brush);
         if (brush == null) {
             return;
         }
 
         // Some calculations to support brushes where the centre point is not
         // the brightest point and/or where the brightest point is less than 1.0
+        final int radius = getEffectiveRadius();
         float strength = brush.getFullStrength(0, 0);
         if (strength == 1.0f) {
             peakDX = 0;

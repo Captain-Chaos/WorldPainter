@@ -23,8 +23,6 @@
 
 package org.pepsoft.worldpainter.operations;
 
-import java.lang.reflect.InvocationTargetException;
-import javax.swing.SwingUtilities;
 import jpen.PButton;
 import jpen.PButtonEvent;
 import jpen.PKind;
@@ -34,12 +32,15 @@ import org.pepsoft.worldpainter.RadiusControl;
 import org.pepsoft.worldpainter.WorldPainterView;
 import org.pepsoft.worldpainter.brushes.Brush;
 
+import javax.swing.*;
+import java.lang.reflect.InvocationTargetException;
+
 /**
  * An operation which uses a brush to affect an area of the dimension.
  *
  * @author pepijn
  */
-public abstract class RadiusOperation extends MouseOrTabletOperation implements BrushOperation {
+public abstract class RadiusOperation extends AbstractBrushOperation {
     /**
      * Create a new {@code RadiusOperation}.
      *
@@ -126,23 +127,8 @@ public abstract class RadiusOperation extends MouseOrTabletOperation implements 
         this.mapDragControl = mapDragControl;
     }
 
-    @Override
-    public final Brush getBrush() {
-        return brush;
-    }
-
-    @Override
-    public final void setBrush(Brush brush) {
-        this.brush = brush;
-        if (brush != null) {
-            brush.setRadius(radius);
-            brush.setLevel(getLevel());
-        }
-        brushChanged(brush);
-    }
-
     public final int getEffectiveRadius() {
-        return (brush != null) ? brush.getEffectiveRadius() : radius;
+        return (getBrush() != null) ? getBrush().getEffectiveRadius() : radius;
     }
 
     public final void setRadius(int radius) {
@@ -150,6 +136,7 @@ public abstract class RadiusOperation extends MouseOrTabletOperation implements 
             throw new IllegalArgumentException();
         }
         this.radius = radius;
+        final Brush brush = getBrush();
         if (brush != null) {
             brush.setRadius(radius);
             brushChanged(brush);
@@ -158,22 +145,14 @@ public abstract class RadiusOperation extends MouseOrTabletOperation implements 
 
     public final float getStrength(int centerX, int centerY, int x, int y) {
         return filterEnabled
-            ? filter.modifyStrength(x, y, brush.getStrength(x - centerX, y - centerY))
-            : brush.getStrength(x - centerX, y - centerY);
+            ? filter.modifyStrength(x, y, getBrush().getStrength(x - centerX, y - centerY))
+            : getBrush().getStrength(x - centerX, y - centerY);
     }
 
     public final float getFullStrength(int centerX, int centerY, int x, int y) {
         return filterEnabled
-            ? filter.modifyStrength(x, y, brush.getFullStrength(x - centerX, y - centerY))
-            : brush.getFullStrength(x - centerX, y - centerY);
-    }
-    
-    @Override
-    public void setLevel(float level) {
-        super.setLevel(level);
-        if (brush != null) {
-            brush.setLevel(level);
-        }
+            ? filter.modifyStrength(x, y, getBrush().getFullStrength(x - centerX, y - centerY))
+            : getBrush().getFullStrength(x - centerX, y - centerY);
     }
     
     @Override
@@ -230,15 +209,17 @@ public abstract class RadiusOperation extends MouseOrTabletOperation implements 
         mapDragControl.setMapDraggingInhibited(false);
         super.deactivate();
     }
-    
+
     protected void brushChanged(Brush newBrush) {
-        // Do nothing
+        super.brushChanged(newBrush);
+        if (newBrush != null) {
+            newBrush.setRadius(radius);
+        }
     }
 
     private final RadiusControl radiusControl;
     private final MapDragControl mapDragControl;
     private int radius;
-    private Brush brush = null;
     private boolean filterEnabled;
     private Filter filter = null;
 }
