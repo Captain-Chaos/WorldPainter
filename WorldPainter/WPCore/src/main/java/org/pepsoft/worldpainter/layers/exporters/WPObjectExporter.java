@@ -453,25 +453,27 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                 material = material.withProperty(PERSISTENT, true);
             }
         }
+        boolean existingMaterialContainsWater = world.getMaterialAt(x, y, z).containsWater();
         if (material.hasProperty(WATERLOGGED)
                 || ((! material.opaque)
                         && (! material.watery) // These blocks always contain water and therefore don't have a "waterlogged" property; TODO: should we not place these blocks in dry places?
 //                        && (! material.veryInsubstantial) TODO this makes no sense, does it? insubstantial blocks can be waterlogged?
-                        && material.isNotNamedOneOf(MC_AIR, MC_CAVE_AIR))) {
+                        && material.isNotNamedOneOf(MC_WATER, MC_LAVA, MC_AIR, MC_CAVE_AIR, MC_VINE))) { // TODO refactor the "can be waterlogged" mechanism
             // Assume that any material that is not opaque, is not known to
             // always contain water (and therefore has no waterlogged property)
-            // and is not air or cave air can be waterlogged. TODO: is this good enough?
+            // and is not air or cave air can be waterlogged. TODO: Q: is this good enough? A: no, see e.g. vines and probably many more
             // Check if the block is under water and set the waterlogged property accordingly
-            Material existingMaterial = world.getMaterialAt(x, y, z);
-            if ((existingMaterial.isNamed(MC_WATER) && (existingMaterial.getProperty(LEVEL) == 0))
-                    || existingMaterial.is(WATERLOGGED)
-                    || existingMaterial.watery) {
+            if (existingMaterialContainsWater) {
                 material = material.withProperty(WATERLOGGED, true);
             } else {
                 material = material.withProperty(WATERLOGGED, false);
             }
         }
-        world.setMaterialAt(x, y, z, material);
+        // Don't replace water with insubstantial blocks that don't have a
+        // waterlogged property (assume such a block would be washed away)
+        if (!material.veryInsubstantial || !existingMaterialContainsWater || (material.hasProperty(WATERLOGGED))) {
+            world.setMaterialAt(x, y, z, material);
+        }
     }
 
     private static final String[] AIR_AND_FLUIDS = {MC_AIR, MC_WATER, MC_LAVA};

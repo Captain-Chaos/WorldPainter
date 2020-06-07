@@ -805,6 +805,14 @@ public final class Material implements Serializable {
         return ! material.name.equals(this.name);
     }
 
+    /**
+     * Indicate whether the block is filled with water (in addition to whatever
+     * else may be there).
+     */
+    public boolean containsWater() {
+        return watery || is(WATERLOGGED) || (isNamed(MC_WATER) && (getProperty(LEVEL) == 0));
+    }
+
     private HorizontalOrientationScheme[] determineHorizontalOrientations(Identity identity) {
         if (identity.properties != null) {
             List<HorizontalOrientationScheme> horizontalOrientationSchemes = new ArrayList<>();
