@@ -1,3 +1,7 @@
+-- Version 2.7.13, released 6-6-2020
+
+ * More robust prevention of unwanted autosaves and uncommanded operations
+
 -- Version 2.7.12, released 5-6-2020
 
  * Bug fix: fix intermittent sticking operations in legacy mouse mode
