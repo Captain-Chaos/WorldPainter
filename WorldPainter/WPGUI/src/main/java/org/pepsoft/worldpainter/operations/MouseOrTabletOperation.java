@@ -351,6 +351,7 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
 //            start = System.currentTimeMillis();
         } else {
             Point worldCoords = view.viewToWorld((int) x, (int) y);
+            App.getInstance().pauseAutosave();
             try {
                 tick(worldCoords.x, worldCoords.y, undo, true, 1.0f);
                 view.updateStatusBar(worldCoords.x, worldCoords.y);
