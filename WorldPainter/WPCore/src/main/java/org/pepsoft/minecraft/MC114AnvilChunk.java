@@ -9,7 +9,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.jnbt.*;
 import org.pepsoft.minecraft.MC114AnvilChunk.Section.IncompleteSectionException;
-import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
+import org.pepsoft.worldpainter.exception.WPRuntimeException;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -883,7 +883,7 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
         final byte[] blockLight;
         final Material[] materials;
 
-        static class IncompleteSectionException extends MDCCapturingRuntimeException {
+        static class IncompleteSectionException extends WPRuntimeException {
             // Empty
         }
     }

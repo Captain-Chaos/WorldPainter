@@ -283,11 +283,28 @@ public class JavaChunkStore implements ChunkStore {
             return visitRegions(region -> {
                 for (int x = 0; x < 32; x++) {
                     for (int z = 0; z < 32; z++) {
-                        if (region.containsChunk(x, z)) {
-                            try (NBTInputStream in = new NBTInputStream(region.getChunkDataInputStream(x, z))) {
-                                CompoundTag tag = (CompoundTag) in.readTag();
-                                Chunk chunk = platformProvider.createChunk(platform, tag, maxHeight, readOnly);
-                                if (! visitor.visitChunk(chunk)) {
+                        boolean exceptionFromChunkVisitor = false;
+                        try {
+                            if (region.containsChunk(x, z)) {
+                                try (NBTInputStream in = new NBTInputStream(region.getChunkDataInputStream(x, z))) {
+                                    CompoundTag tag = (CompoundTag) in.readTag();
+                                    Chunk chunk = platformProvider.createChunk(platform, tag, maxHeight, readOnly);
+                                    exceptionFromChunkVisitor = true;
+                                    if (!visitor.visitChunk(chunk)) {
+                                        return false;
+                                    }
+                                }
+                            }
+                        } catch (RuntimeException e) {
+                            // If it was the chunk visitor that threw the
+                            // exception just propagate it; if it was the
+                            // loading of the chunk that failed then log it and
+                            // report it to the visitor
+                            if (exceptionFromChunkVisitor) {
+                                throw e;
+                            } else {
+                                logger.error("{} while visiting chunk {},{} in region {},{} (message: \"{}\")", e.getClass().getSimpleName(), x, z, region.getX(), region.getZ(), e.getMessage(), e);
+                                if (!visitor.chunkError(new MinecraftCoords(x, z), e.getClass().getSimpleName() + ": " + e.getMessage())) {
                                     return false;
                                 }
                             }

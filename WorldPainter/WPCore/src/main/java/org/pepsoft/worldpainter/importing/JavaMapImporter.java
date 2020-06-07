@@ -8,6 +8,7 @@ import org.jnbt.CompoundTag;
 import org.jnbt.StringTag;
 import org.jnbt.Tag;
 import org.pepsoft.minecraft.*;
+import org.pepsoft.minecraft.ChunkStore.ChunkVisitor;
 import org.pepsoft.util.LongAttributeKey;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
@@ -257,158 +258,167 @@ public class JavaMapImporter extends MapImporter {
         final int total = chunkStore.getChunkCount();
         final AtomicInteger count = new AtomicInteger();
         final StringBuilder reportBuilder = new StringBuilder();
-        if (! chunkStore.visitChunks(chunk -> {
-            try {
-                if (progressReceiver != null) {
-                    progressReceiver.setProgress((float) count.getAndIncrement() / total);
-                }
-                final MinecraftCoords chunkCoords = chunk.getCoords();
-                if ((chunksToSkip != null) && chunksToSkip.contains(chunkCoords)) {
-                    return true;
-                }
-
-                final int chunkX = chunkCoords.x;
-                final int chunkZ = chunkCoords.z;
-
-                // Sanity checks
-                if (chunk instanceof MC114AnvilChunk) {
-                    MC114AnvilChunk mc114Chunk = (MC114AnvilChunk) chunk;
-                    boolean sectionFound = false;
-                    for (MC114AnvilChunk.Section section: mc114Chunk.getSections()) {
-                        if (section != null) {
-                            sectionFound = true;
-                            break;
-                        }
+        if (! chunkStore.visitChunks(new ChunkVisitor() {
+            @Override
+            public boolean visitChunk(Chunk chunk) {
+                try {
+                    if (progressReceiver != null) {
+                        progressReceiver.setProgress((float) count.getAndIncrement() / total);
                     }
-                    if (! sectionFound) {
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("Skipping chunk " + chunkX + "," + chunkZ + " because it has no sections, or no sections with y >= 0");
-                        }
+                    final MinecraftCoords chunkCoords = chunk.getCoords();
+                    if ((chunksToSkip != null) && chunksToSkip.contains(chunkCoords)) {
                         return true;
                     }
-                }
 
-                final Point tileCoords = new Point(chunkX >> 3, chunkZ >> 3);
-                Tile tile = dimension.getTile(tileCoords);
-                if (tile == null) {
-                    tile = dimension.getTileFactory().createTile(tileCoords.x, tileCoords.y);
-                    for (int xx = 0; xx < 8; xx++) {
-                        for (int yy = 0; yy < 8; yy++) {
-                            newChunks.add(new Point((tileCoords.x << TILE_SIZE_BITS) | (xx << 4), (tileCoords.y << TILE_SIZE_BITS) | (yy << 4)));
-                        }
-                    }
-                    dimension.addTile(tile);
-                }
-                newChunks.remove(new Point(chunkX << 4, chunkZ << 4));
+                    final int chunkX = chunkCoords.x;
+                    final int chunkZ = chunkCoords.z;
 
-                boolean manMadeStructuresBelowGround = false;
-                boolean manMadeStructuresAboveGround = false;
-                final boolean collectDebugInfo = logger.isDebugEnabled();
-                try {
-                    for (int xx = 0; xx < 16; xx++) {
-                        for (int zz = 0; zz < 16; zz++) {
-                            float height = -1.0f;
-                            int waterLevel = 0;
-                            boolean floodWithLava = false, frost = false;
-                            Terrain terrain = Terrain.BEDROCK;
-                            for (int y = Math.min(maxY, chunk.getHighestNonAirBlock(xx, zz)); y >= 0; y--) {
-                                Material material = chunk.getMaterial(xx, y, zz);
-                                if (!material.natural) {
-                                    if (height == -1.0f) {
-                                        manMadeStructuresAboveGround = true;
-                                    } else {
-                                        manMadeStructuresBelowGround = true;
-                                    }
-                                    if (collectDebugInfo) {
-                                        manMadeBlockTypes.add(material.name);
-                                    }
-                                }
-                                String name = material.name;
-                                if ((name == MC_SNOW) || (name == MC_ICE)|| (name == MC_FROSTED_ICE)) {
-                                    frost = true;
-                                }
-                                if ((waterLevel == 0)
-                                        && ((name == MC_ICE)
-                                        || (name == MC_FROSTED_ICE)
-                                        || (material.watery)
-                                        || (((name == MC_WATER) || (name == MC_LAVA)) && (material.getProperty(LEVEL) == 0))
-                                        || material.is(WATERLOGGED))) {
-                                    waterLevel = y;
-                                    if (name == MC_LAVA) {
-                                        floodWithLava = true;
-                                    }
-                                } else if (height == -1.0f) {
-                                    if (TERRAIN_MAPPING.containsKey(name)) {
-                                        // Terrain found
-                                        height = y - 0.4375f; // Value that falls in the middle of the lowest one eighth which will still round to the same integer value and will receive a one layer thick smooth snow block (principle of least surprise)
-                                        terrain = TERRAIN_MAPPING.get(name);
-                                    }
-                                }
-                            }
-                            // Use smooth snow, if present, to better approximate world height, so smooth snow will survive merge
-                            final int intHeight = (int) (height + 0.5f);
-                            if ((height != -1.0f) && (intHeight < maxY)) {
-                                Material materialAbove = chunk.getMaterial(xx, intHeight + 1, zz);
-                                if (materialAbove.isNamed(MC_SNOW)) {
-                                    int layers = materialAbove.getProperty(LAYERS);
-                                    height += layers * 0.125;
-                                }
-                            }
-                            if ((waterLevel == 0) && (height >= 61.5f)) {
-                                waterLevel = 62;
-                            }
-
-                            final int blockX = (chunkX << 4) | xx;
-                            final int blockY = (chunkZ << 4) | zz;
-                            final Point coords = new Point(blockX, blockY);
-                            dimension.setTerrainAt(coords, terrain);
-                            dimension.setHeightAt(coords, Math.max(height, 0.0f));
-                            dimension.setWaterLevelAt(blockX, blockY, waterLevel);
-                            if (frost) {
-                                dimension.setBitLayerValueAt(Frost.INSTANCE, blockX, blockY, true);
-                            }
-                            if (floodWithLava) {
-                                dimension.setBitLayerValueAt(FloodWithLava.INSTANCE, blockX, blockY, true);
-                            }
-                            if (height == -1.0f) {
-                                dimension.setBitLayerValueAt(org.pepsoft.worldpainter.layers.Void.INSTANCE, blockX, blockY, true);
-                            }
-                            if (importBiomes && chunk.isBiomesAvailable()) {
-                                final int biome = chunk.getBiome(xx, zz);
-                                if (collectDebugInfo && ((biome > HIGHEST_BIOME_ID) || (BIOME_NAMES[biome] == null)) && (biome != 255)) {
-                                    unknownBiomes.add(biome);
-                                }
-                                // If the biome is set (around the edges of the map Minecraft sets it to
-                                // 255, presumably as a marker that it has yet to be calculated), copy
-                                // it to the dimension. However, if it matches what the automatic biome
-                                // would be, don't copy it, so that WorldPainter will automatically
-                                // adjust the biome when the user makes changes
-                                if ((biome != 255) && (biome != dimension.getAutoBiome(blockX, blockY))) {
-                                    dimension.setLayerValueAt(Biome.INSTANCE, blockX, blockY, biome);
-                                }
+                    // Sanity checks
+                    if (chunk instanceof MC114AnvilChunk) {
+                        MC114AnvilChunk mc114Chunk = (MC114AnvilChunk) chunk;
+                        boolean sectionFound = false;
+                        for (MC114AnvilChunk.Section section: mc114Chunk.getSections()) {
+                            if (section != null) {
+                                sectionFound = true;
+                                break;
                             }
                         }
+                        if (!sectionFound) {
+                            if (logger.isDebugEnabled()) {
+                                logger.debug("Skipping chunk " + chunkX + "," + chunkZ + " because it has no sections, or no sections with y >= 0");
+                            }
+                            return true;
+                        }
                     }
-                } catch (NullPointerException e) {
-                    reportBuilder.append("Null pointer exception while reading chunk " + chunkX + "," + chunkZ + "; skipping chunk" + EOL);
-                    logger.error("Null pointer exception while reading chunk " + chunkX + "," + chunkZ + "; skipping chunk", e);
-                    return true;
-                } catch (ArrayIndexOutOfBoundsException e) {
-                    reportBuilder.append("Array index out of bounds while reading chunk " + chunkX + "," + chunkZ + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
-                    logger.error("Array index out of bounds while reading chunk " + chunkX + "," + chunkZ + "; skipping chunk", e);
-                    return true;
+
+                    final Point tileCoords = new Point(chunkX >> 3, chunkZ >> 3);
+                    Tile tile = dimension.getTile(tileCoords);
+                    if (tile == null) {
+                        tile = dimension.getTileFactory().createTile(tileCoords.x, tileCoords.y);
+                        for (int xx = 0; xx < 8; xx++) {
+                            for (int yy = 0; yy < 8; yy++) {
+                                newChunks.add(new Point((tileCoords.x << TILE_SIZE_BITS) | (xx << 4), (tileCoords.y << TILE_SIZE_BITS) | (yy << 4)));
+                            }
+                        }
+                        dimension.addTile(tile);
+                    }
+                    newChunks.remove(new Point(chunkX << 4, chunkZ << 4));
+
+                    boolean manMadeStructuresBelowGround = false;
+                    boolean manMadeStructuresAboveGround = false;
+                    final boolean collectDebugInfo = logger.isDebugEnabled();
+                    try {
+                        for (int xx = 0; xx < 16; xx++) {
+                            for (int zz = 0; zz < 16; zz++) {
+                                float height = -1.0f;
+                                int waterLevel = 0;
+                                boolean floodWithLava = false, frost = false;
+                                Terrain terrain = Terrain.BEDROCK;
+                                for (int y = Math.min(maxY, chunk.getHighestNonAirBlock(xx, zz)); y >= 0; y--) {
+                                    Material material = chunk.getMaterial(xx, y, zz);
+                                    if (!material.natural) {
+                                        if (height == -1.0f) {
+                                            manMadeStructuresAboveGround = true;
+                                        } else {
+                                            manMadeStructuresBelowGround = true;
+                                        }
+                                        if (collectDebugInfo) {
+                                            manMadeBlockTypes.add(material.name);
+                                        }
+                                    }
+                                    String name = material.name;
+                                    if ((name == MC_SNOW) || (name == MC_ICE) || (name == MC_FROSTED_ICE)) {
+                                        frost = true;
+                                    }
+                                    if ((waterLevel == 0)
+                                            && ((name == MC_ICE)
+                                            || (name == MC_FROSTED_ICE)
+                                            || (material.watery)
+                                            || (((name == MC_WATER) || (name == MC_LAVA)) && (material.getProperty(LEVEL) == 0))
+                                            || material.is(WATERLOGGED))) {
+                                        waterLevel = y;
+                                        if (name == MC_LAVA) {
+                                            floodWithLava = true;
+                                        }
+                                    } else if (height == -1.0f) {
+                                        if (TERRAIN_MAPPING.containsKey(name)) {
+                                            // Terrain found
+                                            height = y - 0.4375f; // Value that falls in the middle of the lowest one eighth which will still round to the same integer value and will receive a one layer thick smooth snow block (principle of least surprise)
+                                            terrain = TERRAIN_MAPPING.get(name);
+                                        }
+                                    }
+                                }
+                                // Use smooth snow, if present, to better approximate world height, so smooth snow will survive merge
+                                final int intHeight = (int) (height + 0.5f);
+                                if ((height != -1.0f) && (intHeight < maxY)) {
+                                    Material materialAbove = chunk.getMaterial(xx, intHeight + 1, zz);
+                                    if (materialAbove.isNamed(MC_SNOW)) {
+                                        int layers = materialAbove.getProperty(LAYERS);
+                                        height += layers * 0.125;
+                                    }
+                                }
+                                if ((waterLevel == 0) && (height >= 61.5f)) {
+                                    waterLevel = 62;
+                                }
+
+                                final int blockX = (chunkX << 4) | xx;
+                                final int blockY = (chunkZ << 4) | zz;
+                                final Point coords = new Point(blockX, blockY);
+                                dimension.setTerrainAt(coords, terrain);
+                                dimension.setHeightAt(coords, Math.max(height, 0.0f));
+                                dimension.setWaterLevelAt(blockX, blockY, waterLevel);
+                                if (frost) {
+                                    dimension.setBitLayerValueAt(Frost.INSTANCE, blockX, blockY, true);
+                                }
+                                if (floodWithLava) {
+                                    dimension.setBitLayerValueAt(FloodWithLava.INSTANCE, blockX, blockY, true);
+                                }
+                                if (height == -1.0f) {
+                                    dimension.setBitLayerValueAt(org.pepsoft.worldpainter.layers.Void.INSTANCE, blockX, blockY, true);
+                                }
+                                if (importBiomes && chunk.isBiomesAvailable()) {
+                                    final int biome = chunk.getBiome(xx, zz);
+                                    if (collectDebugInfo && ((biome > HIGHEST_BIOME_ID) || (BIOME_NAMES[biome] == null)) && (biome != 255)) {
+                                        unknownBiomes.add(biome);
+                                    }
+                                    // If the biome is set (around the edges of the map Minecraft sets it to
+                                    // 255, presumably as a marker that it has yet to be calculated), copy
+                                    // it to the dimension. However, if it matches what the automatic biome
+                                    // would be, don't copy it, so that WorldPainter will automatically
+                                    // adjust the biome when the user makes changes
+                                    if ((biome != 255) && (biome != dimension.getAutoBiome(blockX, blockY))) {
+                                        dimension.setLayerValueAt(Biome.INSTANCE, blockX, blockY, biome);
+                                    }
+                                }
+                            }
+                        }
+                    } catch (NullPointerException e) {
+                        reportBuilder.append("Null pointer exception while reading chunk " + chunkX + "," + chunkZ + "; skipping chunk" + EOL);
+                        logger.error("Null pointer exception while reading chunk " + chunkX + "," + chunkZ + "; skipping chunk", e);
+                        return true;
+                    } catch (ArrayIndexOutOfBoundsException e) {
+                        reportBuilder.append("Array index out of bounds while reading chunk " + chunkX + "," + chunkZ + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
+                        logger.error("Array index out of bounds while reading chunk " + chunkX + "," + chunkZ + "; skipping chunk", e);
+                        return true;
+                    }
+
+                    if (((readOnlyOption == ReadOnlyOption.MAN_MADE) && (manMadeStructuresBelowGround || manMadeStructuresAboveGround))
+                            || ((readOnlyOption == ReadOnlyOption.MAN_MADE_ABOVE_GROUND) && manMadeStructuresAboveGround)
+                            || (readOnlyOption == ReadOnlyOption.ALL)) {
+                        dimension.setBitLayerValueAt(ReadOnly.INSTANCE, chunkX << 4, chunkZ << 4, true);
+                    }
+                } catch (ProgressReceiver.OperationCancelled e) {
+                    return false;
                 }
 
-                if (((readOnlyOption == ReadOnlyOption.MAN_MADE) && (manMadeStructuresBelowGround || manMadeStructuresAboveGround))
-                        || ((readOnlyOption == ReadOnlyOption.MAN_MADE_ABOVE_GROUND) && manMadeStructuresAboveGround)
-                        || (readOnlyOption == ReadOnlyOption.ALL)) {
-                    dimension.setBitLayerValueAt(ReadOnly.INSTANCE, chunkX << 4, chunkZ << 4, true);
-                }
-            } catch (ProgressReceiver.OperationCancelled e) {
-                return false;
+                return true;
             }
 
-            return true;
+            @Override
+            public boolean chunkError(MinecraftCoords coords, String message) {
+                reportBuilder.append("\"" + message + "\" while reading chunk " + coords.x + "," + coords.z + "; skipping chunk" +EOL);
+                return true;
+            }
         })) {
             throw new ProgressReceiver.OperationCancelled("Operation cancelled");
         }

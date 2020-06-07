@@ -67,6 +67,9 @@ public final class NBTInputStream implements Closeable {
      * @param is The input stream.
      */
     public NBTInputStream(InputStream is) {
+        if (is == null) {
+            throw new NullPointerException("is");
+        }
         if (is instanceof DataInput) {
             this.is = (DataInput) is;
         } else {
@@ -82,6 +85,9 @@ public final class NBTInputStream implements Closeable {
      * @param littleEndian Whether the stream contains little endian data.
      */
     public NBTInputStream(InputStream is, boolean littleEndian) {
+        if (is == null) {
+            throw new NullPointerException("is");
+        }
         this.is = littleEndian ? new LittleEndianDataInputStream(is) : new DataInputStream(is);
     }
 

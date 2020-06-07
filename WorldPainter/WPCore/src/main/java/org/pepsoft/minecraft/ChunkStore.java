@@ -85,5 +85,24 @@ public interface ChunkStore extends ChunkProvider {
          * {@code false} if no more chunks need to be visited.
          */
         boolean visitChunk(Chunk chunk);
+
+        /**
+         * This is called when a chunk is skipped due to a loading error, to
+         * give the visitor the opportunity to record the error or abort the
+         * process. When this is called {@link #visitChunk(Chunk)} is
+         * <em>not</em> called for that chunk!
+         *
+         * <p>The default implementation just returns {@code true} so that the
+         * process continues.
+         *
+         * @param coords The coordinates of the problematic chunk, or
+         * {@code null} if they are not known or do not apply.
+         * @param message A message describing the problem with the chunk
+         * @return {@code true} if more chunks should be visited, or
+         * {@code false} if no more chunks should be visited.
+         */
+        default boolean chunkError(MinecraftCoords coords, String message) {
+            return true;
+        }
     }
 }

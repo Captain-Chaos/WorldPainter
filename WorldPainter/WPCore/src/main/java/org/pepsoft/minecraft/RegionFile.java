@@ -58,9 +58,15 @@ package org.pepsoft.minecraft;
 
  */
 
+import org.pepsoft.worldpainter.exception.WPRuntimeException;
+
 import java.io.*;
 import java.util.ArrayList;
-import java.util.zip.*;
+import java.util.zip.DeflaterOutputStream;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.InflaterInputStream;
+
+import static java.lang.String.format;
 
 public final class RegionFile implements AutoCloseable {
 
@@ -213,7 +219,7 @@ public final class RegionFile implements AutoCloseable {
 
         if (sectorNumber + numSectors > sectorFree.size()) {
             debugln("READ", x, z, "invalid sector");
-            return null;
+            throw new InvalidRegionFileException(format("READ %d,%d: invalid sector in region %d,%d", x, z, this.x, this.z));
         }
 
         file.seek(sectorNumber * SECTOR_BYTES);
@@ -221,7 +227,7 @@ public final class RegionFile implements AutoCloseable {
 
         if (length > SECTOR_BYTES * numSectors) {
             debugln("READ", x, z, "invalid length: " + length + " > 4096 * " + numSectors);
-            return null;
+            throw new InvalidRegionFileException(format("READ %d,%d: invalid length: %d > 4096 * %d in region %d,%d", x, z, length, numSectors, this.x, this.z));
         }
 
         byte version = file.readByte();
@@ -435,6 +441,12 @@ public final class RegionFile implements AutoCloseable {
         @Override
         public void close() throws IOException {
             RegionFile.this.write(x, z, buf, count);
+        }
+    }
+
+    static class InvalidRegionFileException extends WPRuntimeException {
+        InvalidRegionFileException(String message) {
+            super(message);
         }
     }
 }
