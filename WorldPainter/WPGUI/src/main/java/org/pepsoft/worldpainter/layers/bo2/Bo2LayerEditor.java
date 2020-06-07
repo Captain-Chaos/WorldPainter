@@ -49,7 +49,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
     public Bo2LayerEditor() {
         initComponents();
         
-        listModel = new DefaultListModel();
+        listModel = new DefaultListModel<>();
         listObjects.setModel(listModel);
         listObjects.setCellRenderer(new WPObjectListCellRenderer());
         
@@ -211,7 +211,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
         String name = fieldName.getText();
         List<WPObject> objects = new ArrayList<>(listModel.getSize());
         for (int i = 0; i < listModel.getSize(); i++) {
-            objects.add((WPObject) listModel.getElementAt(i));
+            objects.add(listModel.getElementAt(i));
         }
         Bo2ObjectProvider objectProvider = new Bo2ObjectTube(name, objects);
         if (layer == null) {
@@ -337,7 +337,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
             if (checkForNameOnlyMaterials) {
                 Set<String> materialNamesEncountered = new HashSet<>();
                 object.visitBlocks((o, x, y, z, material) -> {
-                    if (! materialNamesEncountered.contains(material.name)) {
+                    if (!materialNamesEncountered.contains(material.name)) {
                         materialNamesEncountered.add(material.name);
                         if (material.blockType == -1) {
                             nameOnlyMaterialsNames.add(material.name);
@@ -347,6 +347,9 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                 });
             }
             listModel.addElement(object);
+        } catch (IllegalArgumentException e) {
+            logger.error("IllegalArgumentException while trying to load custom object " + file, e);
+            JOptionPane.showMessageDialog(this, e.getMessage() + " while loading " + file.getName() + "; it was not added", "Illegal Argument", JOptionPane.ERROR_MESSAGE);
         } catch (IOException e) {
             logger.error("I/O error while trying to load custom object " + file, e);
             JOptionPane.showMessageDialog(this, "I/O error while loading " + file.getName() + "; it was not added", "I/O Error", JOptionPane.ERROR_MESSAGE);
@@ -377,7 +380,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
         }
         CustomObjectManager customObjectManager = CustomObjectManager.getInstance();
         for (int index: indices) {
-            WPObject object = (WPObject) listModel.getElementAt(index);
+            WPObject object = listModel.getElementAt(index);
             File file = object.getAttribute(ATTRIBUTE_FILE);
             if (file != null) {
                 if (file.isFile() && file.canRead()) {
@@ -404,7 +407,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                 noFiles.append(object.getName()).append('\n');
             }
         }
-        if ((noFiles.length() > 0) || (notFound.length() > 0)) {
+        if ((noFiles.length() > 0) || (notFound.length() > 0) || (errors.length() > 0)) {
             StringBuilder message = new StringBuilder();
             message.append("Not all files could be reloaded!\n");
             if (noFiles.length() > 0) {
@@ -414,6 +417,10 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
             if (notFound.length() > 0) {
                 message.append("\nThe following files were missing or not accessible:\n");
                 message.append(notFound);
+            }
+            if (errors.length() > 0) {
+                message.append("\nThe following files experienced I/O errors while loading:\n");
+                message.append(errors);
             }
             JOptionPane.showMessageDialog(this, message, "Not All Files Reloaded", JOptionPane.ERROR_MESSAGE);
         } else {
@@ -426,7 +433,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
         List<WPObject> selectedObjects = new ArrayList<>(listObjects.getSelectedIndices().length);
         int[] selectedIndices = listObjects.getSelectedIndices();
         for (int i = selectedIndices.length - 1; i >= 0; i--) {
-            selectedObjects.add((WPObject) listModel.getElementAt(selectedIndices[i]));
+            selectedObjects.add(listModel.getElementAt(selectedIndices[i]));
         }
         EditObjectAttributes dialog = new EditObjectAttributes(SwingUtilities.getWindowAncestor(this), selectedObjects, colourScheme);
         dialog.setVisible(true);
@@ -447,7 +454,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
         }
         boolean decayingLeavesFound = false;
         boolean nonDecayingLeavesFound = false;
-outer:  for (Enumeration<WPObject> e = (Enumeration<WPObject>) listModel.elements(); e.hasMoreElements(); ) {
+outer:  for (Enumeration<WPObject> e = listModel.elements(); e.hasMoreElements(); ) {
             WPObject object = e.nextElement();
             int leafDecayMode = object.getAttribute(ATTRIBUTE_LEAF_DECAY_MODE);
             switch (leafDecayMode) {
@@ -555,7 +562,7 @@ outer:  for (Enumeration<WPObject> e = (Enumeration<WPObject>) listModel.element
     }
 
     private void setLeavesDecay() {
-        for (Enumeration<WPObject> e = (Enumeration<WPObject>) listModel.elements(); e.hasMoreElements(); ) {
+        for (Enumeration<WPObject> e = listModel.elements(); e.hasMoreElements(); ) {
             WPObject object = e.nextElement();
             object.setAttribute(ATTRIBUTE_LEAF_DECAY_MODE, LEAF_DECAY_ON);
         }
@@ -563,7 +570,7 @@ outer:  for (Enumeration<WPObject> e = (Enumeration<WPObject>) listModel.element
     }
 
     private void setLeavesNoDecay() {
-        for (Enumeration<WPObject> e = (Enumeration<WPObject>) listModel.elements(); e.hasMoreElements(); ) {
+        for (Enumeration<WPObject> e = listModel.elements(); e.hasMoreElements(); ) {
             WPObject object = e.nextElement();
             object.setAttribute(ATTRIBUTE_LEAF_DECAY_MODE, LEAF_DECAY_OFF);
         }
@@ -571,9 +578,9 @@ outer:  for (Enumeration<WPObject> e = (Enumeration<WPObject>) listModel.element
     }
 
     private void resetLeafDecay() {
-        for (Enumeration<WPObject> e = (Enumeration<WPObject>) listModel.elements(); e.hasMoreElements(); ) {
+        for (Enumeration<WPObject> e = listModel.elements(); e.hasMoreElements(); ) {
             WPObject object = e.nextElement();
-            object.getAttributes().remove(ATTRIBUTE_LEAF_DECAY_MODE);
+            object.getAttributes().remove(ATTRIBUTE_LEAF_DECAY_MODE.key);
         }
         refreshLeafDecaySettings();
     }
@@ -596,7 +603,6 @@ outer:  for (Enumeration<WPObject> e = (Enumeration<WPObject>) listModel.element
      * WARNING: Do NOT modify this code. The content of this method is always
      * regenerated by the Form Editor.
      */
-    @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
@@ -610,7 +616,7 @@ outer:  for (Enumeration<WPObject> e = (Enumeration<WPObject>) listModel.element
         buttonSetNoDecay = new javax.swing.JButton();
         buttonReset = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
-        listObjects = new javax.swing.JList();
+        listObjects = new javax.swing.JList<>();
         jLabel6 = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
         jPanel2 = new javax.swing.JPanel();
@@ -709,11 +715,6 @@ outer:  for (Enumeration<WPObject> e = (Enumeration<WPObject>) listModel.element
                     .addComponent(buttonReset)))
         );
 
-        listObjects.setModel(new javax.swing.AbstractListModel() {
-            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
-            public int getSize() { return strings.length; }
-            public Object getElementAt(int i) { return strings[i]; }
-        });
         listObjects.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 listObjectsMouseClicked(evt);
@@ -911,7 +912,7 @@ outer:  for (Enumeration<WPObject> e = (Enumeration<WPObject>) listModel.element
         if (evt.getClickCount() == 2) {
             int row = listObjects.getSelectedIndex();
             if (row != -1) {
-                WPObject object = (WPObject) listModel.getElementAt(row);
+                WPObject object = listModel.getElementAt(row);
                 EditObjectAttributes dialog = new EditObjectAttributes(SwingUtilities.getWindowAncestor(this), object, colourScheme);
                 dialog.setVisible(true);
                 if (! dialog.isCancelled()) {
@@ -973,11 +974,11 @@ outer:  for (Enumeration<WPObject> e = (Enumeration<WPObject>) listModel.element
     private javax.swing.JLabel labelBlocksPerAttempt;
     private javax.swing.JLabel labelEffectiveLeafDecaySetting;
     private javax.swing.JLabel labelLeafDecayTitle;
-    private javax.swing.JList listObjects;
+    private javax.swing.JList<WPObject> listObjects;
     private javax.swing.JSpinner spinnerBlocksPerAttempt;
     // End of variables declaration//GEN-END:variables
 
-    private final DefaultListModel listModel;
+    private final DefaultListModel<WPObject> listModel;
     private final NumberFormat numberFormat = NumberFormat.getInstance();
     private ColourScheme colourScheme;
     private int selectedColour = Color.ORANGE.getRGB();

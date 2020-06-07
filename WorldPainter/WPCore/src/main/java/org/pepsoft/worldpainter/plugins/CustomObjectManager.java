@@ -37,7 +37,11 @@ public class CustomObjectManager extends AbstractProviderManager<String, CustomO
         String name = file.getName().toLowerCase();
         int p = name.lastIndexOf('.');
         String extension = (p != -1) ? name.substring(p + 1).trim() : name.trim();
-        return providersByExtension.get(extension).loadObject(file);
+        CustomObjectProvider provider = providersByExtension.get(extension);
+        if (provider == null) {
+            throw new IllegalArgumentException("Extension " + extension + " not supported");
+        }
+        return provider.loadObject(file);
     }
 
     /**
