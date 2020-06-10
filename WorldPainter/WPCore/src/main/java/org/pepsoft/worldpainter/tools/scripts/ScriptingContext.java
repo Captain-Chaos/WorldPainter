@@ -152,7 +152,18 @@ public class ScriptingContext {
      */
     public MappingOp applyLayer(Layer layer) throws ScriptException {
         checkGoCalled("applyLayer");
-        return new MappingOp(this, layer);
+        return new MappingOp(this, layer, false);
+    }
+
+    /**
+     * Applies a layer directly to the world without the need for a heightmap.
+     * @param layer layer to apply to the world
+     * @return
+     */
+
+    public MappingOp applyLayerDirectly(Layer layer) throws ScriptException {
+        checkGoCalled("applyLayerDirectly");
+        return new MappingOp(this, layer, true);
     }
     
     /**

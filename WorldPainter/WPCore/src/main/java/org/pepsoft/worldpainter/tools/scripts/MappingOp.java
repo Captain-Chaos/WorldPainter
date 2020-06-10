@@ -57,11 +57,12 @@ public class MappingOp extends AbstractOperation<Void> {
         Arrays.fill(mapping, -1);
     }
     
-    public MappingOp(ScriptingContext context, Layer layer) throws ScriptException {
+    public MappingOp(ScriptingContext context, Layer layer, boolean direct) throws ScriptException {
         super(context);
         if (layer == null) {
             throw new ScriptException("layer may not be null");
         }
+        this.direct = direct;
         this.layer = layer;
         switch (layer.dataSize) {
             case BIT:
@@ -264,7 +265,7 @@ public class MappingOp extends AbstractOperation<Void> {
             }
         }
         final boolean colourMapPresent = ! colourMapping.isEmpty();
-        if ((greyScaleMapPresent || colourMapPresent) && (heightMap == null)) {
+        if ((greyScaleMapPresent || colourMapPresent) && (heightMap == null) && !direct) {
             throw new ScriptException("Mapping specified but no height map specified");
         } else if (heightMap != null) {
             if ((! greyScaleMapPresent) && (! colourMapPresent)) {
@@ -459,6 +460,7 @@ public class MappingOp extends AbstractOperation<Void> {
     private long storedColour = -1L;
     private Mode mode = Mode.SET;
     private Filter filter;
+    private boolean direct = false;
    
     enum Mode {
         SET, SET_WHEN_LOWER, SET_WHEN_HIGHER, SET_TERRAIN
