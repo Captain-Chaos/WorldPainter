@@ -471,10 +471,29 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
         }
         // Don't replace water with insubstantial blocks that don't have a
         // waterlogged property (assume such a block would be washed away)
-        if (!material.veryInsubstantial || !existingMaterialContainsWater || (material.hasProperty(WATERLOGGED))) {
+        if ((!material.veryInsubstantial) || (!existingMaterialContainsWater) || material.containsWater()) {
             world.setMaterialAt(x, y, z, material);
         }
     }
+
+    // TODO centralise block merging logic and make it more readable by being systematic (haven't we already done that somewhere?)
+    // For merging (new fluids are leading):
+    // Existing block: | air | water | lava | insubstantial | solid |
+    // New block:  air |     |   x   |  x   |               |       |
+    //           water |     |       |      |               |       |
+    //            lava |     |       |      |               |       |
+    //   insubstantial |     |       |      |               |       |
+    //           solid |     |       |      |               |       |
+    // x = new block replaces existing block
+    // Manage water separately:
+    // If the new block contains water and the existing block is not solid,
+    //     the final block must contain water. If that is not possible it should
+    //     be replaced with water
+    // If the new block does not contain water and the existing block is not solid,
+    //     the final block must not contain water. If that is not possible it
+    //     should be replaced with air
+
+    // For custom objects (fluids should be merged):
 
     private static final String[] AIR_AND_FLUIDS = {MC_AIR, MC_WATER, MC_LAVA};
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WPObjectExporter.class);
