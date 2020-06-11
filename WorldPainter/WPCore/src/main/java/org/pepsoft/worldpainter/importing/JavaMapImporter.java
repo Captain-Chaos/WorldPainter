@@ -509,7 +509,7 @@ public class JavaMapImporter extends MapImporter {
         Material.getAllMaterials().forEach(material -> {
             //noinspection StringEquality String is interned
             if (material.terrain && (material.namespace != LEGACY) && (! TERRAIN_MAPPING.containsKey(material.name))) {
-                throw new IllegalStateException("Material \"" + material + "\" missing from terrain mapping%n");
+                throw new IllegalStateException("Material \"" + material + "\" missing from terrain mapping");
             }
         });
     }
