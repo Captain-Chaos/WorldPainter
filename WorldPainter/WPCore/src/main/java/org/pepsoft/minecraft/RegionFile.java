@@ -444,7 +444,7 @@ public final class RegionFile implements AutoCloseable {
         }
     }
 
-    static class InvalidRegionFileException extends WPRuntimeException {
+    public static class InvalidRegionFileException extends WPRuntimeException {
         InvalidRegionFileException(String message) {
             super(message);
         }
