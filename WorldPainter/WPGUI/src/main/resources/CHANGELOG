@@ -1,3 +1,9 @@
+-- Version 2.7.15, released 12-6-2020
+
+ * Allow Importing from and Merging with maps with corrupted chunks. Of course this may result in damaged and/or missing chunks!
+ * Grass blocks and other blocks that should not exist under water are now correctly turned to dirt underneath water plants
+ * Bug fix: once again place water plants from the Custom Plants layer and Custom Object layers
+
 -- Version 2.7.14, released 7-6-2020
 
  * Don't try to place vines from custom objects under water
