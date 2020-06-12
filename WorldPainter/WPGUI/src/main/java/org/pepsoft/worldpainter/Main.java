@@ -80,6 +80,9 @@ public class Main {
         // causes duplicate mouse events on focus switches resulting in
         // uncommanded edits
         System.setProperty("docking.focusWorkaround1", "true");
+        // Disable Java2D's automatic UI scaling, as it does not do a good job
+        // with the editor view; we want to do it ourselves
+        System.setProperty("sun.java2d.uiScale.enabled", "false");
 
         // Use a file lock to make sure only one instance is running with autosave enabled
         File configDir = Configuration.getConfigDir();
