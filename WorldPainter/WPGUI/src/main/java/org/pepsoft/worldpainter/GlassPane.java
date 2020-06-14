@@ -92,10 +92,10 @@ public class GlassPane extends javax.swing.JPanel {
     }
     
     private JLabel createSoloLabel(Layer layer) {
-        BufferedImage image = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(20, 20, Transparency.TRANSLUCENT);
+        BufferedImage image = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(20 * getUIScaleInt(), 20 * getUIScaleInt(), Transparency.TRANSLUCENT);
         Graphics2D g2 = image.createGraphics();
         try {
-            g2.drawImage(layer.getIcon(), 2, 2, null);
+            g2.drawImage(layer.getIcon(), 2 * getUIScaleInt(), 2 * getUIScaleInt(), null);
         } finally {
             g2.dispose();
         }
