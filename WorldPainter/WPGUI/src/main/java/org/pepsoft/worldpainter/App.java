@@ -2477,20 +2477,18 @@ public final class App extends JFrame implements RadiusControl,
         }
         view.setRadius(radius);
         view.setBrushShape(brush.getBrushShape());
-        final Cursor cursor = Toolkit.getDefaultToolkit().createCustomCursor(IconUtils.loadScaledImage("org/pepsoft/worldpainter/cursor.png"), new Point(15 * getUIScaleInt(), 15 * getUIScaleInt()), "Custom Crosshair");
-        view.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                setCursor(cursor);
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                setCursor(null);
-            }
-        });
 
         glassPane = new GlassPane();
+        final BufferedImage cursorImage = IconUtils.loadUnscaledImage("org/pepsoft/worldpainter/cursor.png");
+        final java.awt.Dimension bestCursorSize = Toolkit.getDefaultToolkit().getBestCursorSize(32 * getUIScaleInt(), 32 * getUIScaleInt());
+        if ((bestCursorSize.width != 0) && (bestCursorSize.height == bestCursorSize.width)) {
+            int hotspot = 15;
+            if (bestCursorSize.width != 32) {
+                hotspot = (int) (15 * ((float) bestCursorSize.width / 32) + 0.5f);
+            }
+            final Cursor cursor = Toolkit.getDefaultToolkit().createCustomCursor(cursorImage, new Point(hotspot, hotspot), "Custom Crosshair");
+            glassPane.setCursor(cursor);
+        }
         JRootPane privateRootPane = new JRootPane();
         privateRootPane.putClientProperty(HELP_KEY_KEY, "Editor");
         privateRootPane.setContentPane(view);
