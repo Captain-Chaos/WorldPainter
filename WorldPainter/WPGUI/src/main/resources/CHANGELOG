@@ -1,3 +1,7 @@
+-- Version 2.7.16, released 14-6-2020
+
+ * Work around a bug in the docking framework that stopped the scrollbars from working
+
 -- Version 2.7.15, released 12-6-2020
 
  * Allow Importing from and Merging with maps with corrupted chunks. Of course this may result in damaged and/or missing chunks!
