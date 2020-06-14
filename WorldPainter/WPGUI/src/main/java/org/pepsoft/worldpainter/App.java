@@ -2489,14 +2489,14 @@ public final class App extends JFrame implements RadiusControl,
                 setCursor(null);
             }
         });
-        TiledImageViewerContainer viewContainer = new TiledImageViewerContainer(view);
 
         glassPane = new GlassPane();
         JRootPane privateRootPane = new JRootPane();
         privateRootPane.putClientProperty(HELP_KEY_KEY, "Editor");
-        privateRootPane.setContentPane(viewContainer);
+        privateRootPane.setContentPane(view);
         privateRootPane.setGlassPane(glassPane);
         glassPane.setVisible(true);
+        TiledImageViewerContainer viewContainer = new TiledImageViewerContainer(privateRootPane);
 
         // Set up docking framework
         JPanel contentContainer = new JPanel(new BorderLayout());
@@ -2511,7 +2511,7 @@ public final class App extends JFrame implements RadiusControl,
         dockingManager.setTabbedPaneCustomizer(tabbedPane -> tabbedPane.setTabPlacement(JTabbedPane.LEFT));
         Workspace workspace = dockingManager.getWorkspace();
         workspace.setLayout(new BorderLayout());
-        workspace.add(privateRootPane, BorderLayout.CENTER);
+        workspace.add(viewContainer, BorderLayout.CENTER);
 
         setJMenuBar(createMenuBar());
         

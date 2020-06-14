@@ -6,14 +6,10 @@
 
 package org.pepsoft.util.swing;
 
-import java.awt.BorderLayout;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Rectangle;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
-import javax.swing.JPanel;
-import javax.swing.JScrollBar;
 
 /**
  * A container for a {@link TiledImageViewer}, which adds scrollbars around it.
@@ -49,7 +45,7 @@ public class TiledImageViewerContainer extends JPanel implements TiledImageViewe
         verticalScrollbar.addAdjustmentListener(this);
     }
 
-    public TiledImageViewerContainer(TiledImageViewer view) {
+    public TiledImageViewerContainer(Component view) {
         this();
         setView(view);
     }
@@ -58,16 +54,36 @@ public class TiledImageViewerContainer extends JPanel implements TiledImageViewe
         return view;
     }
 
-    public void setView(TiledImageViewer view) {
+    public void setView(Component view) {
         if (this.view != null) {
             this.view.setViewListener(null);
             viewContainer.remove(this.view);
         }
-        this.view = view;
         if (view != null) {
-            view.setViewListener(this);
+            TiledImageViewer tiledImageViewer = findTiledImageViewer(view);
+            if (tiledImageViewer == null) {
+                throw new IllegalArgumentException("Specified component does not contain a TiledImageViewer");
+            }
+            this.view = tiledImageViewer;
+            this.view.setViewListener(this);
             viewContainer.add(view, BorderLayout.CENTER);
+        } else {
+            this.view = null;
         }
+    }
+
+    private TiledImageViewer findTiledImageViewer(Component component) {
+        if (component instanceof TiledImageViewer) {
+            return (TiledImageViewer) component;
+        } else if (component instanceof Container) {
+            for (Component child: ((Container) component).getComponents()) {
+                TiledImageViewer tiledImageViewer = findTiledImageViewer(child);
+                if (tiledImageViewer != null) {
+                    return tiledImageViewer;
+                }
+            }
+        }
+        return null;
     }
 
     /**
