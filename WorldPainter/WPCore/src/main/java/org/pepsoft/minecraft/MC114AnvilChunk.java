@@ -687,34 +687,38 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
                 level = getByte(TAG_Y);
                 materials = new Material[4096];
                 long[] blockStates = getLongArray(TAG_BLOCK_STATES);
-                List<CompoundTag> palette = getList(TAG_PALETTE);
-                if ((blockStates != null) && (palette != null)) {
-                    final int wordSize = Math.max(4, (int) Math.ceil(Math.log(palette.size()) / Math.log(2)));
+                List<CompoundTag> paletteList = getList(TAG_PALETTE);
+                if ((blockStates != null) && (paletteList != null)) {
+                    final Material[] palette = new Material[paletteList.size()];
+                    for (int i = 0; i < palette.length; i++) {
+                        palette[i] = getMaterial(paletteList, i);
+                    }
+                    final int wordSize = Math.max(4, (int) Math.ceil(Math.log(palette.length) / Math.log(2)));
                     final int blockStateArrayLengthInBytes = blockStates.length * 8;
                     final int expectedPackedBlockStateArrayLengthInBytes = wordSize * 512;
                     if (logger.isTraceEnabled()) {
-                        logger.trace("Palette size: {}; block states array length in bytes: {}; inferred block state word size: {}; length in bytes of 4096 words: {}", palette.size(), blockStateArrayLengthInBytes, wordSize, expectedPackedBlockStateArrayLengthInBytes);
+                        logger.trace("Palette size: {}; block states array length in bytes: {}; inferred block state word size: {}; length in bytes of 4096 words: {}", palette.length, blockStateArrayLengthInBytes, wordSize, expectedPackedBlockStateArrayLengthInBytes);
                     }
                     if (wordSize == 4) {
                         // Optimised special case
                         for (int w = 0; w < 4096; w += 16) {
                             final long data = blockStates[w >> 4];
-                            materials[w] = getMaterial(palette, (int) (data & 0xf));
-                            materials[w + 1] = getMaterial(palette, (int) ((data & 0xf0) >> 4));
-                            materials[w + 2] = getMaterial(palette, (int) ((data & 0xf00) >> 8));
-                            materials[w + 3] = getMaterial(palette, (int) ((data & 0xf000) >> 12));
-                            materials[w + 4] = getMaterial(palette, (int) ((data & 0xf0000) >> 16));
-                            materials[w + 5] = getMaterial(palette, (int) ((data & 0xf00000) >> 20));
-                            materials[w + 6] = getMaterial(palette, (int) ((data & 0xf000000) >> 24));
-                            materials[w + 7] = getMaterial(palette, (int) ((data & 0xf0000000L) >> 28));
-                            materials[w + 8] = getMaterial(palette, (int) ((data & 0xf00000000L) >> 32));
-                            materials[w + 9] = getMaterial(palette, (int) ((data & 0xf000000000L) >> 36));
-                            materials[w + 10] = getMaterial(palette, (int) ((data & 0xf0000000000L) >> 40));
-                            materials[w + 11] = getMaterial(palette, (int) ((data & 0xf00000000000L) >> 44));
-                            materials[w + 12] = getMaterial(palette, (int) ((data & 0xf000000000000L) >> 48));
-                            materials[w + 13] = getMaterial(palette, (int) ((data & 0xf0000000000000L) >> 52));
-                            materials[w + 14] = getMaterial(palette, (int) ((data & 0xf00000000000000L) >> 56));
-                            materials[w + 15] = getMaterial(palette, (int) ((data & 0xf000000000000000L) >>> 60));
+                            materials[w] = palette[(int) (data & 0xf)];
+                            materials[w + 1] = palette[(int) ((data & 0xf0) >> 4)];
+                            materials[w + 2] = palette[(int) ((data & 0xf00) >> 8)];
+                            materials[w + 3] = palette[(int) ((data & 0xf000) >> 12)];
+                            materials[w + 4] = palette[(int) ((data & 0xf0000) >> 16)];
+                            materials[w + 5] = palette[(int) ((data & 0xf00000) >> 20)];
+                            materials[w + 6] = palette[(int) ((data & 0xf000000) >> 24)];
+                            materials[w + 7] = palette[(int) ((data & 0xf0000000L) >> 28)];
+                            materials[w + 8] = palette[(int) ((data & 0xf00000000L) >> 32)];
+                            materials[w + 9] = palette[(int) ((data & 0xf000000000L) >> 36)];
+                            materials[w + 10] = palette[(int) ((data & 0xf0000000000L) >> 40)];
+                            materials[w + 11] = palette[(int) ((data & 0xf00000000000L) >> 44)];
+                            materials[w + 12] = palette[(int) ((data & 0xf000000000000L) >> 48)];
+                            materials[w + 13] = palette[(int) ((data & 0xf0000000000000L) >> 52)];
+                            materials[w + 14] = palette[(int) ((data & 0xf00000000000000L) >> 56)];
+                            materials[w + 15] = palette[(int) ((data & 0xf000000000000000L) >>> 60)];
                         }
                     } else if (blockStateArrayLengthInBytes != expectedPackedBlockStateArrayLengthInBytes) {
                         // A weird format where the block states are packed per
@@ -725,7 +729,7 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
                         outer:
                         for (long packedStates: blockStates) {
                             for (int offset = 0; offset < bitsInUse; offset += wordSize) {
-                                materials[materialIndex++] = getMaterial(palette, (int) ((packedStates & (mask << offset)) >>> offset));
+                                materials[materialIndex++] = palette[(int) ((packedStates & (mask << offset)) >>> offset)];
                                 if (materialIndex >= 4096) {
                                     // The last long was not fully used
                                     break outer;
@@ -740,7 +744,7 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
                             for (int b = 0; b < wordSize; b++) {
                                 index |= bitSet.get(wordOffset + b) ? 1 << b : 0;
                             }
-                            materials[w] = getMaterial(palette, index);
+                            materials[w] = palette[index];
                         }
                     }
                 } else {
