@@ -50,6 +50,10 @@ public final class UsageVO implements Serializable {
         return "UsageVO{" + "wpVersion=" + wpVersion + ", install=" + install + ", events=" + events + ", launchCount=" + launchCount + '}';
     }
 
+    public String toSummary() {
+        return "UsageVO{" + "wpVersion=" + wpVersion + ", install=" + install + ", " + events.size() + " events, launchCount=" + launchCount + '}';
+    }
+
     private String wpVersion;
     private UUID install;
     private List<EventVO> events;
