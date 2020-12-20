@@ -570,6 +570,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
         private final Placement placement;
 
         private static final FrostExporter frostExporter = new FrostExporter();
+        private static final long serialVersionUID = 1L;
     }
 
     public enum Placement { NONE, FLOATING, ON_LAND }

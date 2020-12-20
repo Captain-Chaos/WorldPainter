@@ -3,13 +3,15 @@ package org.pepsoft.worldpainter.exporting;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Platform;
 
+import java.io.Serializable;
+
 /**
  * A delayed rendering operation, invoked after a region and all its neighbours
  * have been rendered, meant for operations which straddle region boundaries.
  *
  * @author SchmitzP
  */
-public interface Fixup {
+public interface Fixup extends Serializable {
     /**
      * Perform the fixup. May do nothing if it is determined that the operation
      * no longer applies or is blocked due to earlier fixups.
