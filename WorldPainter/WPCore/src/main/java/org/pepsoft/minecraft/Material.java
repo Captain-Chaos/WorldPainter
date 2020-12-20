@@ -1161,6 +1161,13 @@ public final class Material implements Serializable {
         return legacyStringRep;
     }
 
+    /**
+     * Get the full, non abreviated identity of this material as a string.
+     */
+    public String toFullString() {
+        return identity.toString() + ((blockType != -1) ? ("; id=" + blockType + "; data=" + data) : "");
+    }
+
     private Object readResolve() throws ObjectStreamException {
         // If identity is not set this is a legacy material with only a block ID
         // and data value, so in that case return the corresponding legacy
