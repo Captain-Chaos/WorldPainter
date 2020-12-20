@@ -94,9 +94,7 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
                 } catch (Throwable t) {
                     exceptionThrown(t);
                 } finally {
-                    if (mdcContextMap != null) {
-                        MDC.clear();
-                    }
+                    MDC.clear();
                 }
             }
         };
