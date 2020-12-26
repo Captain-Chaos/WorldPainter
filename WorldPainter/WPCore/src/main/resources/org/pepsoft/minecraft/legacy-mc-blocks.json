@@ -42,7 +42,10 @@
   {
     "blockId": 2,
     "dataValue": 0,
-    "name": "minecraft:grass_block"
+    "name": "minecraft:grass_block",
+    "properties": {
+      "snowy": "false"
+    }
   },
   {
     "blockId": 3,
@@ -57,7 +60,10 @@
   {
     "blockId": 3,
     "dataValue": 2,
-    "name": "minecraft:podzol"
+    "name": "minecraft:podzol",
+    "properties": {
+      "snowy": "false"
+    }
   },
   {
     "blockId": 4,
@@ -5956,7 +5962,10 @@
   {
     "blockId": 110,
     "dataValue": 0,
-    "name": "minecraft:mycelium"
+    "name": "minecraft:mycelium",
+    "properties": {
+      "snowy": "false"
+    }
   },
   {
     "blockId": 111,

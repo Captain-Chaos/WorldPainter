@@ -992,7 +992,7 @@ public enum Terrain {
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(23);
     },
-    PERMADIRT("Permadirt", Material.PERMADIRT, Material.PERMADIRT, "dirt on which no grass will grow", BIOME_PLAINS),
+    PERMADIRT("Coarse Dirt", Material.PERMADIRT, Material.PERMADIRT, "dirt on which no grass will grow", BIOME_PLAINS),
     PODZOL("Podzol", Material.PODZOL, Material.DIRT, "podzol", BIOME_PLAINS),
     RED_SAND("Red Sand", Material.RED_SAND, Material.RED_SAND, "red sand", BIOME_MESA),
     HARDENED_CLAY("Terracotta", Material.HARDENED_CLAY, Material.HARDENED_CLAY, "terracotta", BIOME_MESA),

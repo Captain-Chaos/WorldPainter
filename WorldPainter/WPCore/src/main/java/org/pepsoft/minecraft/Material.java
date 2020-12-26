@@ -96,13 +96,9 @@ public final class Material implements Serializable {
         Map<String, Object> spec = findSpec(identity);
         if (spec != null) {
             opacity = (int) spec.get("opacity");
-            transparent = (opacity == 0);
-            translucent = (opacity < 15);
-            opaque = (opacity == 15);
             terrain = (boolean) spec.get("terrain");
             insubstantial = (boolean) spec.get("insubstantial");
             veryInsubstantial = (boolean) spec.get("veryInsubstantial");
-            solid = !veryInsubstantial;
             resource = (boolean) spec.get("resource");
             tileEntity = (boolean) spec.get("tileEntity");
             treeRelated = (boolean) spec.get("treeRelated");
@@ -118,13 +114,9 @@ public final class Material implements Serializable {
             }
             // Use reasonable defaults for unknown blocks
             opacity = 0;
-            transparent = true;
-            translucent = true;
-            opaque = false;
             terrain = false;
             insubstantial = false;
             veryInsubstantial = false;
-            solid = true;
             resource = false;
             tileEntity = false;
             treeRelated = false;
@@ -135,6 +127,13 @@ public final class Material implements Serializable {
             watery = false;
             category = CATEGORY_UNKNOWN;
         }
+
+        transparent = (opacity == 0);
+        translucent = (opacity < 15);
+        opaque = (opacity == 15);
+        solid = ! veryInsubstantial;
+        hasPropertySnowy = hasProperty(MC_SNOWY);
+        canSupportSnow = determineCanSupportSnow();
 
         if (namespace != null) {
             ALL_NAMESPACES.add(namespace);
@@ -222,13 +221,9 @@ public final class Material implements Serializable {
         Map<String, Object> spec = findSpec(identity);
         if (spec != null) {
             opacity = (int) spec.get("opacity");
-            transparent = (opacity == 0);
-            translucent = (opacity < 15);
-            opaque = (opacity == 15);
             terrain = (boolean) spec.get("terrain");
             insubstantial = (boolean) spec.get("insubstantial");
             veryInsubstantial = (boolean) spec.get("veryInsubstantial");
-            solid = !veryInsubstantial;
             resource = (boolean) spec.get("resource");
             tileEntity = (boolean) spec.get("tileEntity");
             treeRelated = (boolean) spec.get("treeRelated");
@@ -244,13 +239,9 @@ public final class Material implements Serializable {
             }
             // Use reasonable defaults for unknown blocks
             opacity = 0;
-            transparent = true;
-            translucent = true;
-            opaque = false;
             terrain = false;
             insubstantial = false;
             veryInsubstantial = false;
-            solid = true;
             resource = false;
             tileEntity = false;
             treeRelated = false;
@@ -261,6 +252,13 @@ public final class Material implements Serializable {
             watery = false;
             category = CATEGORY_UNKNOWN;
         }
+
+        transparent = (opacity == 0);
+        translucent = (opacity < 15);
+        opaque = (opacity == 15);
+        solid = ! veryInsubstantial;
+        hasPropertySnowy = hasProperty(MC_SNOWY);
+        canSupportSnow = determineCanSupportSnow();
 
         ALL_NAMESPACES.add(namespace);
         SIMPLE_NAMES_BY_NAMESPACE.computeIfAbsent(namespace, name -> new HashSet<>(singleton(name))).add(simpleName);
@@ -947,6 +945,15 @@ public final class Material implements Serializable {
         }
     }
 
+    private boolean determineCanSupportSnow() {
+        return (solid
+                    && opaque
+                    && (! ("bottom".equals(getProperty(MC_TYPE)) && (name.endsWith("_slab") || name.endsWith("_stairs"))))
+                    && (! NO_SNOW_ON.contains(name)))
+                || SNOW_ON.contains(name)
+                || name.endsWith("_leaves");
+    }
+
     private String createStringRep() {
         StringBuilder sb = new StringBuilder();
         if (! namespace.equals(MINECRAFT)) {
@@ -1331,6 +1338,18 @@ public final class Material implements Serializable {
      */
     public final transient String namespace;
 
+    /**
+     * Whether snow may be placed on this block.
+     */
+    public final transient boolean canSupportSnow;
+
+    // Optimised versions of hasProperty(...):
+
+    /**
+     * Whether the material has the property {@code snowy}.
+     */
+    public final transient boolean hasPropertySnowy;
+
     private final Identity identity;
     private final transient String stringRep, legacyStringRep;
 
@@ -1411,6 +1430,9 @@ public final class Material implements Serializable {
     private static final Set<String> ALL_NAMESPACES = new HashSet<>();
     private static final Map<String, Set<String>> SIMPLE_NAMES_BY_NAMESPACE = new HashMap<>();
     private static final Map<String, Material> DEFAULT_MATERIALS_BY_NAME = new HashMap<>();
+
+    private static final Set<String> SNOW_ON = ImmutableSet.of(MC_SNOW_BLOCK);
+    private static final Set<String> NO_SNOW_ON = ImmutableSet.of(MC_END_PORTAL_FRAME, MC_PACKED_ICE, MC_GRASS_PATH, MC_FARMLAND);
 
     static {
         for (int i = 0; i < 4096; i++) {

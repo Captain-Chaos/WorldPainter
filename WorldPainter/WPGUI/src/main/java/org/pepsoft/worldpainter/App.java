@@ -1005,6 +1005,11 @@ public final class App extends JFrame implements RadiusControl,
                             }
                         }
                         break;
+                    case MISSING_CUSTOM_TERRAINS:
+                        JOptionPane.showMessageDialog(this, "One or more Custom Terrain Types were missing. This can happen in rare\n" +
+                                "circumstances; for example by using Undo after removing a Custom Terrain\n" +
+                                "Type. The missing Custom Terrain Type(s) have been replaced with Magenta\n" +
+                                "Wool and will have to be reconfigured from the Custom Terrain panel.", "Missing Custom Terrain Types", WARNING_MESSAGE);
                 }
             }
         }
@@ -5353,6 +5358,9 @@ public final class App extends JFrame implements RadiusControl,
             return;
         }
         if (JOptionPane.showConfirmDialog(this, "Are you sure you want to delete custom terrain \"" + name + "\"?\nThis operation cannot be undone.", "Confirm Deletion", YES_NO_OPTION) == YES_OPTION) {
+            // Clear all the undo managers, because we don't know which of them may have a version in their history
+            // which is still using the terrain
+            undoManagers.values().forEach(UndoManager::clear);
             MixedMaterialManager.getInstance().clear(mixedMaterial);
             setCustomMaterial(index, null);
             if (customMaterialButtons[index].isSelected()) {

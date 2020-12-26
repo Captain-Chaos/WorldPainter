@@ -26,8 +26,11 @@ import java.io.*;
 import java.util.List;
 import java.util.*;
 
+import static org.pepsoft.minecraft.Material.WOOL_MAGENTA;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
+import static org.pepsoft.worldpainter.World2.Warning.MISSING_CUSTOM_TERRAINS;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
 
 /**
  *
@@ -526,6 +529,14 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         return warnings;
     }
 
+    private void addWarning(Warning warning) {
+        if (warnings == null) {
+            warnings = EnumSet.of(warning);
+        } else {
+            warnings.add(warning);
+        }
+    }
+
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         propertyChangeSupport = new PropertyChangeSupport(this);
@@ -578,7 +589,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
                     // Automatic biomes was enabled; biome information should
                     // be present throughout; no need to do anything. Schedule a
                     // warning to warn the user about the change though
-                    warnings = EnumSet.of(Warning.AUTO_BIOMES_DISABLED);
+                    addWarning(Warning.AUTO_BIOMES_DISABLED);
                 } else if (customBiomes) {
                     // Custom biomes was enabled; a mix of initialised and
                     // uninitialised tiles may be present which would be
@@ -616,7 +627,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
                     } else if (tilesWithoutBiomesFound) {
                         // There are only uninitialised tiles. Leave it like that,
                         // but warn the user that automatic biomes is now active
-                        warnings = EnumSet.of(Warning.AUTO_BIOMES_ENABLED);
+                        addWarning(Warning.AUTO_BIOMES_ENABLED);
                     }
                 } else {
                     // Neither custom nor automatic biomes was enabled; all
@@ -624,7 +635,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
                     // anyway just to make sure. Schedule a warning to warn the user
                     // that automatic biomes are now active
                     dim.clearLayerData(Biome.INSTANCE);
-                    warnings = EnumSet.of(Warning.AUTO_BIOMES_ENABLED);
+                    addWarning(Warning.AUTO_BIOMES_ENABLED);
                 }
             }
         }
@@ -682,6 +693,25 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
                     }
                 }
             }
+        }
+        if (wpVersion < 8) {
+            // Check for missing custom terrain types and warn/repair
+            BitSet customTerrainsInUse = new BitSet();
+            for (Dimension dimension: dimensions.values()) {
+                for (Terrain terrain: dimension.getAllTerrains()) {
+                    if (terrain.isCustom()) {
+                        customTerrainsInUse.set(terrain.getCustomTerrainIndex());
+                    }
+                }
+            }
+            customTerrainsInUse.stream().forEach(index -> {
+                if (getMixedMaterial(index) == null) {
+                    logger.error("Mixed material {} was missing; replaced with magenta wool", index);
+                    MixedMaterial replacementMaterial = new MixedMaterial("Missing Custom Terrain " + index, new MixedMaterial.Row(WOOL_MAGENTA, 1, 1.0f), BIOME_PLAINS, null);
+                    setMixedMaterial(index, replacementMaterial);
+                    addWarning(MISSING_CUSTOM_TERRAINS);
+                }
+            });
         }
         wpVersion = CURRENT_WP_VERSION;
         
@@ -787,12 +817,27 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
      */
     public static final String METADATA_KEY_PLUGINS = "org.pepsoft.worldpainter.plugins";
 
-    private static final int CURRENT_WP_VERSION = 7;
+    private static final int CURRENT_WP_VERSION = 8;
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(World2.class);
     private static final long serialVersionUID = 2011062401L;
 
-    enum Warning {AUTO_BIOMES_ENABLED, AUTO_BIOMES_DISABLED}
+    enum Warning {
+        /**
+         * Warn the user that automatic biomes are now the default and are enabled.
+         */
+        AUTO_BIOMES_ENABLED,
+
+        /**
+         * Warn the user that automatic biomes were previously in use but are now disabled.
+         */
+        AUTO_BIOMES_DISABLED,
+
+        /**
+         * Warn the user that one or more custom terrain types were missing and have been replaced with magenta wool.
+         */
+        MISSING_CUSTOM_TERRAINS
+    }
     
     public static class BorderSettings implements Serializable, org.pepsoft.util.undo.Cloneable<BorderSettings> {
         public int getCentreX() {

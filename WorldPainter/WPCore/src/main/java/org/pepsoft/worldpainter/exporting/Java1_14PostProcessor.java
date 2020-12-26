@@ -94,8 +94,7 @@ public class Java1_14PostProcessor extends PostProcessor {
                         minecraftWorld.setMaterialAt(x, y, z - 1, DIRT);
                         materialBelow = DIRT;
                     }
-                    // TODO: can  we do this more efficiently?
-                    if (materialBelow.hasProperty(MC_SNOWY)) {
+                    if (materialBelow.hasPropertySnowy) {
                         // The material below has a "snowy" property, so make sure it is set correctly
                         if (material.isNamed(MC_SNOW) || material.isNamed(MC_SNOW_BLOCK)) {
                             // It should be snowy, change it if it isn't
