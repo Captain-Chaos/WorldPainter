@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
@@ -558,7 +559,9 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public Set<Terrain> getAllTerrains() {
-        return tiles.values().parallelStream().flatMap(tile -> tile.getAllTerrains().parallelStream()).collect(toSet());
+        // This method is called during deserialization of World2, and if that is being deserialized because _this_
+        // dimension refers to it, tiles is null at this point:
+        return (tiles != null) ? tiles.values().parallelStream().flatMap(tile -> tile.getAllTerrains().parallelStream()).collect(toSet()) : emptySet();
     }
 
     public void setTerrainAt(Point coords, Terrain terrain) {

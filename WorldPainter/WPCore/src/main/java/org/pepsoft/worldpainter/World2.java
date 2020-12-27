@@ -698,6 +698,10 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
             // Check for missing custom terrain types and warn/repair
             BitSet customTerrainsInUse = new BitSet();
             for (Dimension dimension: dimensions.values()) {
+                // If this object is being deserialized because it is referred to from a Dimension (which happens when
+                // deserializing the Configuration), then dimension.tiles is not initialised yet and will be null.
+                // getAllTerrains() will return an empty set in that case, which is fine, because such a world could not
+                // contain any missing custom terrains
                 for (Terrain terrain: dimension.getAllTerrains()) {
                     if (terrain.isCustom()) {
                         customTerrainsInUse.set(terrain.getCustomTerrainIndex());

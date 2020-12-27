@@ -1,3 +1,10 @@
+-- Version 2.7.18, released 27-12-2020
+
+ * Bug fix: blocks covered by snow are once again correctly made snowy
+ * Bug fix: don't place snow on Grass Path blocks
+ * Detect missing custom terrain types on loading and replace them with magenta wool; try to prevent this situation from occurring in the future by clearing the undo buffer after removing a custom terrain type
+ * Rename Permadirt to Coarse Dirt
+
 -- Version 2.7.17, released 9-8-2020
 
  * Fix the errors that occurred when Importing Minecraft 1.16 maps. (PLEASE NOTE: otherwise no support has yet been added for new block types, etc.)
