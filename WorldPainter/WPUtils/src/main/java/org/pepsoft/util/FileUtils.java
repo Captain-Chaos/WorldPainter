@@ -280,7 +280,7 @@ public class FileUtils {
                     fileDialog.setDirectory(fileOrDir.getPath());
                 } else {
                     fileDialog.setDirectory(fileOrDir.getParent());
-                    fileDialog.setDirectory(fileOrDir.getName());
+                    fileDialog.setFile(fileOrDir.getName());
                 }
             }
             if (fileFilter != null) {
@@ -344,7 +344,7 @@ public class FileUtils {
                     fileDialog.setDirectory(fileOrDir.getPath());
                 } else {
                     fileDialog.setDirectory(fileOrDir.getParent());
-                    fileDialog.setDirectory(fileOrDir.getName());
+                    fileDialog.setFile(fileOrDir.getName());
                 }
             }
             fileDialog.setFilenameFilter((file, s) -> fileFilter.accept(new File(file, s)));
