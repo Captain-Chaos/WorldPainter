@@ -3,8 +3,8 @@ package org.pepsoft.worldpainter;
 import org.pepsoft.minecraft.Constants;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.FileUtils;
-import org.pepsoft.util.plugins.PluginManager;
 import org.pepsoft.util.ProgressReceiver;
+import org.pepsoft.util.plugins.PluginManager;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,7 +84,7 @@ public class ExportTester extends RegressionIT {
                 World2 world = loadWorld(file);
                 if ((! (world.getPlatform() == JAVA_ANVIL))
                         && (! (world.getPlatform() == JAVA_MCREGION))
-                        && (! (world.getPlatform() == JAVA_ANVIL_1_14))) {
+                        && (! (world.getPlatform() == JAVA_ANVIL_1_15))) {
                     logger.warn("Don't know how to export platform {}; skipping", world.getPlatform().displayName);
                     continue;
                 }
@@ -97,9 +97,9 @@ public class ExportTester extends RegressionIT {
                     logger.error(t.getClass().getSimpleName() + ": " + t.getMessage(), t);
                 }
 
-                if ((world.getPlatform() != JAVA_ANVIL_1_14) && (world.getMaxHeight() == DEFAULT_MAX_HEIGHT_ANVIL)) {
-                    // Also test the new Minecraft 1.14 support
-                    world.setPlatform(JAVA_ANVIL_1_14);
+                if ((world.getPlatform() != JAVA_ANVIL_1_15) && (world.getMaxHeight() == DEFAULT_MAX_HEIGHT_ANVIL)) {
+                    // Also test the new Minecraft 1.15 support
+                    world.setPlatform(JAVA_ANVIL_1_15);
                     try {
                         mapDir = exportJavaWorld(world, baseDir);
                         verifyJavaMap(world, mapDir);

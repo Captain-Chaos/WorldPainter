@@ -1,7 +1,7 @@
 package org.pepsoft.worldpainter.tools;
 
 import org.pepsoft.minecraft.ChunkStore;
-import org.pepsoft.minecraft.MC114AnvilChunk;
+import org.pepsoft.minecraft.MC115AnvilChunk;
 import org.pepsoft.minecraft.MC12AnvilChunk;
 import org.pepsoft.minecraft.MCRegionChunk;
 import org.pepsoft.worldpainter.AbstractMain;
@@ -27,9 +27,9 @@ public class ScanMap extends AbstractMain {
         ChunkStore chunkStore = platformManager.getChunkStore(platform, worldDir, DIM_NORMAL);
         chunkStore.visitChunks(chunk -> {
             String status = "???";
-            if (chunk instanceof MC114AnvilChunk) {
-                status = ((MC114AnvilChunk) chunk).getStatus();
-                heightmapTypes.addAll(((MC114AnvilChunk) chunk).getHeightMaps().keySet());
+            if (chunk instanceof MC115AnvilChunk) {
+                status = ((MC115AnvilChunk) chunk).getStatus();
+                heightmapTypes.addAll(((MC115AnvilChunk) chunk).getHeightMaps().keySet());
             } else if (chunk instanceof MC12AnvilChunk) {
                 status = "112";
             } else if (chunk instanceof MCRegionChunk) {

@@ -11,7 +11,6 @@
 
 package org.pepsoft.worldpainter;
 
-import org.pepsoft.minecraft.Level;
 import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
@@ -33,7 +32,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
+import static org.pepsoft.worldpainter.Platform.Capability.*;
 
 /**
  *
@@ -163,7 +162,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
         // Check for warnings
         StringBuilder sb = new StringBuilder("<html>Please confirm that you want to merge the world<br>notwithstanding the following warnings:<br><ul>");
         boolean showWarning = false;
-        if ((radioButtonExportSelection.isSelected()) && (! disableWarning)) {
+        if ((radioButtonExportSelection.isSelected()) && (! disableTileSelectionWarning)) {
             String dim;
             switch (selectedDimension) {
                 case DIM_NORMAL:
@@ -179,7 +178,11 @@ public class MergeWorldDialog extends WorldPainterDialog {
                     throw new InternalError();
             }
             sb.append("<li>A tile selection is active! Only " + selectedTiles.size() + " tiles of the<br>" + dim + " dimension are going to be merged.");
-            showWarning = showWarning || (! disableWarning);
+            showWarning = true;
+        }
+        if (platform.capabilities.contains(BIOMES_3D)) {
+            sb.append("<li>The target format supports 3D biomes<br>but WorldPainter does not yet support these.<br>Any 3D biomes present will be replaced with<br>the 2D biomes from WorldPainter.");
+            showWarning = true;
         }
         sb.append("</ul>Do you want to continue with the merge?</html>");
         if (showWarning && (JOptionPane.showConfirmDialog(this, sb.toString(), "Review Warnings", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION)) {
@@ -292,26 +295,19 @@ public class MergeWorldDialog extends WorldPainterDialog {
         boolean levelDatSelected = file.isFile() && (file.getName().equalsIgnoreCase("level.dat"));
         if (levelDatSelected) {
             levelDatFile = file;
-            try {
-                platform = PlatformManager.getInstance().identifyMap(file.getParentFile());
-                if (platform != null) {
-                    Level level = Level.load(levelDatFile);
-                    if (level.getVersion() != org.pepsoft.minecraft.Constants.VERSION_ANVIL) {
-                        if (radioButtonBiomes.isSelected()) {
-                            radioButtonAll.setSelected(true);
-                        }
-                        radioButtonBiomes.setEnabled(false);
-                    } else {
-                        radioButtonBiomes.setEnabled(true);
+            platform = PlatformManager.getInstance().identifyMap(file.getParentFile());
+            if (platform != null) {
+                if (! (platform.capabilities.contains(BIOMES) || platform.capabilities.contains(BIOMES_3D))) {
+                    if (radioButtonBiomes.isSelected()) {
+                        radioButtonAll.setSelected(true);
                     }
-                    labelPlatform.setText(platform.displayName);
+                    radioButtonBiomes.setEnabled(false);
                 } else {
-                    labelPlatform.setText("no supported format detected");
+                    radioButtonBiomes.setEnabled(true);
                 }
-            } catch (IOException e) {
-                levelDatFile = null;
-                labelPlatform.setText(null);
-                throw new RuntimeException("I/O error while loading level.dat", e);
+                labelPlatform.setText(platform.displayName);
+            } else {
+                labelPlatform.setText("no supported format detected");
             }
         } else {
             levelDatFile = null;
@@ -376,7 +372,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
             radioButtonExportSelection.setText("merge " + selectedTiles.size() + " selected tiles");
             pack();
             setControlStates();
-            disableWarning = true;
+            disableTileSelectionWarning = true;
         }
     }
 
@@ -835,7 +831,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
     private volatile File backupDir;
     private int selectedDimension;
     private Set<Point> selectedTiles;
-    private boolean disableWarning;
+    private boolean disableTileSelectionWarning;
 
     private static final Logger logger = LoggerFactory.getLogger(MergeWorldDialog.class);
     private static final long serialVersionUID = 1L;

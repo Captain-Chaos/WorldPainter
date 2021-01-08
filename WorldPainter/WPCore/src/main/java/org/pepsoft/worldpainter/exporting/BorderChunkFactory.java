@@ -7,8 +7,11 @@ package org.pepsoft.worldpainter.exporting;
 
 import org.pepsoft.minecraft.ChunkFactory;
 import org.pepsoft.util.PerlinNoise;
-import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Dimension.Border;
+import org.pepsoft.worldpainter.Platform;
+import org.pepsoft.worldpainter.Terrain;
+import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 
@@ -18,10 +21,10 @@ import java.util.Set;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.MEDIUM_BLOBS;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_14;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
 import static org.pepsoft.worldpainter.Platform.Capability.BIOMES;
 import static org.pepsoft.worldpainter.Terrain.BEACHES;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_14Biomes.*;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_15Biomes.*;
 
 /**
  *
@@ -56,7 +59,7 @@ public class BorderChunkFactory {
             int biome;
             switch(border) {
                 case VOID:
-                    biome = (platform == JAVA_ANVIL_1_14) ? BIOME_VOID : BIOME_PLAINS;
+                    biome = (platform == JAVA_ANVIL_1_15) ? BIOME_VOID : BIOME_PLAINS;
                     break;
                 case LAVA:
                     biome = BIOME_PLAINS;

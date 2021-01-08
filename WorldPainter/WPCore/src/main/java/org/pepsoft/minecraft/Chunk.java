@@ -20,21 +20,25 @@ public interface Chunk {
     /**
      * @deprecated Use {@link #getMaterial(int, int, int)}
      */
+    @Deprecated
     int getBlockType(int x, int y, int z);
 
     /**
      * @deprecated Use {@link #setMaterial(int, int, int, Material)}
      */
+    @Deprecated
     void setBlockType(int x, int y, int z, int blockType);
 
     /**
      * @deprecated Use {@link #getMaterial(int, int, int)}
      */
+    @Deprecated
     int getDataValue(int x, int y, int z);
 
     /**
      * @deprecated Use {@link #setMaterial(int, int, int, Material)}
      */
+    @Deprecated
     void setDataValue(int x, int y, int z, int dataValue);
 
     int getHeight(int x, int z);
@@ -66,10 +70,34 @@ public interface Chunk {
     int getMaxHeight();
 
     boolean isBiomesAvailable();
-    
+
+    /**
+     * Get a 2D biome, stored per column. Throws an {@link UnsupportedOperationException} when invoked on a format which
+     * does not support 2D biomes.
+     */
     int getBiome(int x, int z);
 
+    /**
+     * Set a 2D biome, stored per column. Throws an {@link UnsupportedOperationException} when invoked on a format which
+     * does not support 2D biomes.
+     */
     void setBiome(int x, int z, int biome);
+
+    /**
+     * Get a 3D biome, stored per 4x4x4 block. The coordinates are that of the 4x4x4 block, not of an individual block.
+     * Throws an {@link UnsupportedOperationException} when invoked on a format which does not support 3D biomes.
+     */
+    default int get3DBiome(int x, int y, int z) {
+        throw new UnsupportedOperationException("Not supported");
+    }
+
+    /**
+     * Set a 3D biome, stored per 4x4x4 block. The coordinates are that of the 4x4x4 block, not of an individual block.
+     * Throws an {@link UnsupportedOperationException} when invoked on a format which does not support 3D biomes.
+     */
+    default void set3DBiome(int x, int y, int z, int biome) {
+        throw new UnsupportedOperationException("Not supported");
+    }
 
     boolean isReadOnly();
 

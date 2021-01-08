@@ -83,8 +83,8 @@ public class MinecraftMapTileProvider implements TileProvider {
                 Chunk chunk = chunkStore.getChunk(chunkX, chunkY);
                 if (chunk != null) {
                     String status = null;
-                    if (chunk instanceof MC114AnvilChunk) {
-                        status = ((MC114AnvilChunk) chunk).status;
+                    if (chunk instanceof MC115AnvilChunk) {
+                        status = ((MC115AnvilChunk) chunk).status;
                     }
                     for (int blockX = 0; blockX < 16; blockX++) {
                         for (int blockY = 0; blockY < 16; blockY++) {

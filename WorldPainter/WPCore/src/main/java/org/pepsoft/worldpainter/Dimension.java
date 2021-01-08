@@ -44,7 +44,7 @@ import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_14Biomes.*;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_15Biomes.*;
 
 /**
  *
@@ -1258,80 +1258,98 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public final int getAutoBiome(int x, int y) {
-        Tile tile = getTile(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
-        if (tile != null) {
-            return getAutoBiome(tile, x & TILE_SIZE_MASK, y & TILE_SIZE_MASK);
-        } else {
-            return -1;
+        switch (dim) {
+            case DIM_NETHER:
+            case DIM_NETHER_CEILING:
+                return BIOME_HELL;
+            case DIM_END:
+            case DIM_END_CEILING:
+                return BIOME_SKY;
+            default:
+                Tile tile = getTile(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
+                if (tile != null) {
+                    return getAutoBiome(tile, x & TILE_SIZE_MASK, y & TILE_SIZE_MASK);
+                } else {
+                    return -1;
+                }
         }
     }
 
     public final int getAutoBiome(Tile tile, int x, int y) {
-        int biome;
-        if (tile.getBitLayerValue(Frost.INSTANCE, x, y)) {
-            if (tile.getBitLayerValue(River.INSTANCE, x, y)) {
-                biome = BIOME_FROZEN_RIVER;
-            } else if ((tile.getLayerValue(DeciduousForest.INSTANCE, x, y) > 0)
-                    || (tile.getLayerValue(PineForest.INSTANCE, x, y) > 0)
-                    || (tile.getLayerValue(SwampLand.INSTANCE, x, y) > 0)
-                    || (tile.getLayerValue(Jungle.INSTANCE, x, y) > 0)) {
-                biome = BIOME_COLD_TAIGA;
-            } else if (tile.getTerrain(x, y) == Terrain.WATER) {
-                biome = BIOME_FROZEN_RIVER;
-            } else {
-                int waterLevel = tile.getWaterLevel(x, y) - tile.getIntHeight(x, y);
-                if ((waterLevel > 0) && (! tile.getBitLayerValue(FloodWithLava.INSTANCE, x, y))) {
-                    if (waterLevel <= 5) {
+        switch (dim) {
+            case DIM_NETHER:
+            case DIM_NETHER_CEILING:
+                return BIOME_HELL;
+            case DIM_END:
+            case DIM_END_CEILING:
+                return BIOME_SKY;
+            default:
+                int biome;
+                if (tile.getBitLayerValue(Frost.INSTANCE, x, y)) {
+                    if (tile.getBitLayerValue(River.INSTANCE, x, y)) {
+                        biome = BIOME_FROZEN_RIVER;
+                    } else if ((tile.getLayerValue(DeciduousForest.INSTANCE, x, y) > 0)
+                            || (tile.getLayerValue(PineForest.INSTANCE, x, y) > 0)
+                            || (tile.getLayerValue(SwampLand.INSTANCE, x, y) > 0)
+                            || (tile.getLayerValue(Jungle.INSTANCE, x, y) > 0)) {
+                        biome = BIOME_COLD_TAIGA;
+                    } else if (tile.getTerrain(x, y) == Terrain.WATER) {
                         biome = BIOME_FROZEN_RIVER;
                     } else {
-                        biome = BIOME_FROZEN_OCEAN;
+                        int waterLevel = tile.getWaterLevel(x, y) - tile.getIntHeight(x, y);
+                        if ((waterLevel > 0) && (!tile.getBitLayerValue(FloodWithLava.INSTANCE, x, y))) {
+                            if (waterLevel <= 5) {
+                                biome = BIOME_FROZEN_RIVER;
+                            } else {
+                                biome = BIOME_FROZEN_OCEAN;
+                            }
+                        } else {
+                            biome = BIOME_ICE_PLAINS;
+                        }
                     }
                 } else {
-                    biome = BIOME_ICE_PLAINS;
-                }
-            }
-        } else {
-            if (tile.getBitLayerValue(River.INSTANCE, x, y)) {
-                biome = BIOME_RIVER;
-            } else if (tile.getLayerValue(SwampLand.INSTANCE, x, y) > 0) {
-                biome = BIOME_SWAMPLAND;
-            } else if (tile.getLayerValue(Jungle.INSTANCE, x, y) > 0) {
-                biome = BIOME_JUNGLE;
-            } else {
-                int waterLevel = tile.getWaterLevel(x, y) - tile.getIntHeight(x, y);
-                if ((waterLevel > 0) && (! tile.getBitLayerValue(FloodWithLava.INSTANCE, x, y))) {
-                    if (waterLevel <= 5) {
+                    if (tile.getBitLayerValue(River.INSTANCE, x, y)) {
                         biome = BIOME_RIVER;
-                    } else if (waterLevel <= 20) {
-                        biome = BIOME_OCEAN;
+                    } else if (tile.getLayerValue(SwampLand.INSTANCE, x, y) > 0) {
+                        biome = BIOME_SWAMPLAND;
+                    } else if (tile.getLayerValue(Jungle.INSTANCE, x, y) > 0) {
+                        biome = BIOME_JUNGLE;
                     } else {
-                        biome = BIOME_DEEP_OCEAN;
-                    }
-                } else {
-                    final Terrain terrain = tile.getTerrain(x, y);
-                    // TODO: we have reports from the wild of the custom terrain
-                    // returned here somehow not being configured, so check that
-                    // even though we don't understand how that could happen
-                    final int defaultBiome = terrain.isConfigured() ? terrain.getDefaultBiome() : BIOME_PLAINS;
-                    if (((tile.getLayerValue(DeciduousForest.INSTANCE, x, y) > 0)
-                            || (tile.getLayerValue(PineForest.INSTANCE, x, y) > 0))
-                            && (defaultBiome != BIOME_DESERT)
-                            && (defaultBiome != BIOME_DESERT_HILLS)
-                            && (defaultBiome != BIOME_DESERT_M)
-                            && (defaultBiome != BIOME_MESA)
-                            && (defaultBiome != BIOME_MESA_BRYCE)
-                            && (defaultBiome != BIOME_MESA_PLATEAU)
-                            && (defaultBiome != BIOME_MESA_PLATEAU_F)
-                            && (defaultBiome != BIOME_MESA_PLATEAU_F_M)
-                            && (defaultBiome != BIOME_MESA_PLATEAU_M)) {
-                        biome = BIOME_FOREST;
-                    } else {
-                        biome = defaultBiome;
+                        int waterLevel = tile.getWaterLevel(x, y) - tile.getIntHeight(x, y);
+                        if ((waterLevel > 0) && (!tile.getBitLayerValue(FloodWithLava.INSTANCE, x, y))) {
+                            if (waterLevel <= 5) {
+                                biome = BIOME_RIVER;
+                            } else if (waterLevel <= 20) {
+                                biome = BIOME_OCEAN;
+                            } else {
+                                biome = BIOME_DEEP_OCEAN;
+                            }
+                        } else {
+                            final Terrain terrain = tile.getTerrain(x, y);
+                            // TODO: we have reports from the wild of the custom terrain
+                            // returned here somehow not being configured, so check that
+                            // even though we don't understand how that could happen
+                            final int defaultBiome = terrain.isConfigured() ? terrain.getDefaultBiome() : BIOME_PLAINS;
+                            if (((tile.getLayerValue(DeciduousForest.INSTANCE, x, y) > 0)
+                                    || (tile.getLayerValue(PineForest.INSTANCE, x, y) > 0))
+                                    && (defaultBiome != BIOME_DESERT)
+                                    && (defaultBiome != BIOME_DESERT_HILLS)
+                                    && (defaultBiome != BIOME_DESERT_M)
+                                    && (defaultBiome != BIOME_MESA)
+                                    && (defaultBiome != BIOME_MESA_BRYCE)
+                                    && (defaultBiome != BIOME_MESA_PLATEAU)
+                                    && (defaultBiome != BIOME_MESA_PLATEAU_F)
+                                    && (defaultBiome != BIOME_MESA_PLATEAU_F_M)
+                                    && (defaultBiome != BIOME_MESA_PLATEAU_M)) {
+                                biome = BIOME_FOREST;
+                            } else {
+                                biome = defaultBiome;
+                            }
+                        }
                     }
                 }
-            }
+                return biome;
         }
-        return biome;
     }
 
     /**

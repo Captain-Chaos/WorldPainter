@@ -5,6 +5,7 @@
 package org.pepsoft.minecraft;
 
 import org.jnbt.CompoundTag;
+
 import static org.pepsoft.minecraft.Constants.*;
 
 /**
@@ -13,7 +14,7 @@ import static org.pepsoft.minecraft.Constants.*;
  */
 public class Painting extends Entity {
     public Painting() {
-        super(LEGACY_ID_PAINTING); // TODO add MC 1.14 support
+        super(LEGACY_ID_PAINTING); // TODO add MC 1.15 support
     }
 
     public Painting(CompoundTag tag) {

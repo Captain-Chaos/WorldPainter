@@ -6,7 +6,6 @@
 package org.pepsoft.minecraft;
 
 import org.jnbt.CompoundTag;
-import org.jnbt.Tag;
 import org.pepsoft.minecraft.exception.IncompatibleMaterialException;
 
 import java.io.IOException;

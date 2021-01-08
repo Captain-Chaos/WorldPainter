@@ -169,7 +169,7 @@ public class MemoryChunk implements Chunk, MinecraftWorld, Serializable {
     
     @Override
     public boolean isBiomesAvailable() {
-        return biomes != null;
+        return (biomes != null) || (biomes3d != null);
     }
     
     @Override
@@ -186,6 +186,22 @@ public class MemoryChunk implements Chunk, MinecraftWorld, Serializable {
             biomes = new byte[256];
         }
         biomes[x + z * 16] = (byte) biome;
+    }
+
+    @Override
+    public int get3DBiome(int x, int y, int z) {
+        return biomes3d[x + z * 4 + y * 16] & 0xFF;
+    }
+
+    @Override
+    public void set3DBiome(int x, int y, int z, int biome) {
+        if (readOnly) {
+            return;
+        }
+        if (biomes3d == null) {
+            biomes3d = new byte[1024];
+        }
+        biomes3d[x + z * 4 + y * 16] = (byte) biome;
     }
 
     @Override
@@ -454,7 +470,7 @@ public class MemoryChunk implements Chunk, MinecraftWorld, Serializable {
     final Section[] sections;
     final int[] heightMap;
     final int xPos, zPos;
-    byte[] biomes;
+    byte[] biomes, biomes3d;
     boolean terrainPopulated, lightPopulated;
     final List<Entity> entities;
     final List<TileEntity> tileEntities;

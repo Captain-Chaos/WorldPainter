@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.*;
 
 import static javax.swing.BoxLayout.PAGE_AXIS;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_14Biomes.*;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_15Biomes.*;
 import static org.pepsoft.worldpainter.layers.BiomesPanel.BiomeOption.*;
 
 /**

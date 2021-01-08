@@ -2,7 +2,7 @@ package org.pepsoft.minecraft;
 
 import com.google.common.collect.ImmutableMap;
 import org.jnbt.*;
-import org.pepsoft.worldpainter.biomeschemes.Minecraft1_14Biomes;
+import org.pepsoft.worldpainter.biomeschemes.Minecraft1_15Biomes;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -60,7 +60,7 @@ public class SuperflatPreset implements Serializable {
 
     public CompoundTag toMinecraft1_15_2() {
         return new CompoundTag("generatorOptions", ImmutableMap.of(
-                "biome", new StringTag("biome", "minecraft:" + Minecraft1_14Biomes.BIOME_NAMES[biome].toLowerCase().replace(' ', '_')),
+                "biome", new StringTag("biome", "minecraft:" + Minecraft1_15Biomes.BIOME_NAMES[biome].toLowerCase().replace(' ', '_')),
                 "layers", new ListTag<>("layers", CompoundTag.class, layers.stream().map(layer -> new CompoundTag("", ImmutableMap.of(
                         "block", new StringTag("block", layer.materialName),
                         "height", new ShortTag("height", (short) layer.thickness)))).collect(toList())),
@@ -158,8 +158,8 @@ public class SuperflatPreset implements Serializable {
 
     private static int getBiomeByMinecraftName(String name) {
         name = name.substring(name.indexOf(':') + 1).replace('_', ' ');
-        for (int i = 0; i < Minecraft1_14Biomes.BIOME_NAMES.length; i++) {
-            if (name.equalsIgnoreCase(Minecraft1_14Biomes.BIOME_NAMES[i])) {
+        for (int i = 0; i < Minecraft1_15Biomes.BIOME_NAMES.length; i++) {
+            if (name.equalsIgnoreCase(Minecraft1_15Biomes.BIOME_NAMES[i])) {
                 return i;
             }
         }

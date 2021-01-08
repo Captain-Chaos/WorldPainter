@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.*;
 
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_14;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
 
 /**
  * A utility class for generating previews of layers. It renders a layer to a
@@ -174,7 +174,7 @@ public class LayerPreviewCreator {
 
         // Phase three: generate terrain and render first pass layers, if any
         timestamp = now;
-        WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(dimension, pass1Exporters, JAVA_ANVIL_1_14, previewHeight);
+        WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(dimension, pass1Exporters, JAVA_ANVIL_1_15, previewHeight);
         for (int x = 0; x < 8; x++) {
             for (int y = 0; y < 8; y++) {
                 Chunk chunk = chunkFactory.createChunk(x, y).chunk;
@@ -191,7 +191,7 @@ public class LayerPreviewCreator {
             timestamp = now;
             Rectangle area = new Rectangle(128, 128);
             for (SecondPassLayerExporter exporter: pass2Exporters.values()) {
-                exporter.render(dimension, area, area, minecraftWorldObject, JAVA_ANVIL_1_14);
+                exporter.render(dimension, area, area, minecraftWorldObject, JAVA_ANVIL_1_15);
             }
             now = System.currentTimeMillis();
             if (logger.isDebugEnabled()) {
@@ -203,7 +203,7 @@ public class LayerPreviewCreator {
         timestamp = now;
         now = System.currentTimeMillis();
         try {
-            new Java1_14PostProcessor().postProcess(minecraftWorldObject, new Rectangle(-8, -8, 136, 136), null);
+            new Java1_15PostProcessor().postProcess(minecraftWorldObject, new Rectangle(-8, -8, 136, 136), null);
         } catch (ProgressReceiver.OperationCancelled e) {
             // Can't happen since we didn't pass in a progress receiver
             throw new InternalError();

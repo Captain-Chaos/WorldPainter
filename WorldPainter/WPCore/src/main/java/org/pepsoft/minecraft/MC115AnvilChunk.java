@@ -8,7 +8,7 @@ package org.pepsoft.minecraft;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.jnbt.*;
-import org.pepsoft.minecraft.MC114AnvilChunk.Section.IncompleteSectionException;
+import org.pepsoft.minecraft.MC115AnvilChunk.Section.IncompleteSectionException;
 import org.pepsoft.worldpainter.exception.WPRuntimeException;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import org.slf4j.Logger;
@@ -23,12 +23,12 @@ import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.AIR;
 
 /**
- * An "Anvil" chunk for Minecraft 1.14 and higher.
+ * An "Anvil" chunk for Minecraft 1.15 and higher.
  * 
  * @author pepijn
  */
-public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
-    public MC114AnvilChunk(int xPos, int zPos, int maxHeight) {
+public final class MC115AnvilChunk extends NBTChunk implements MinecraftWorld {
+    public MC115AnvilChunk(int xPos, int zPos, int maxHeight) {
         super(new CompoundTag(TAG_LEVEL, new HashMap<>()));
         this.xPos = xPos;
         this.zPos = zPos;
@@ -47,11 +47,11 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
         debugChunk = (xPos == (debugWorldX >> 4)) && (zPos == (debugWorldZ >> 4));
     }
 
-    public MC114AnvilChunk(CompoundTag tag, int maxHeight) {
+    public MC115AnvilChunk(CompoundTag tag, int maxHeight) {
         this(tag, maxHeight, false);
     }
 
-    public MC114AnvilChunk(CompoundTag tag, int maxHeight, boolean readOnly) {
+    public MC115AnvilChunk(CompoundTag tag, int maxHeight, boolean readOnly) {
         super((CompoundTag) tag.getTag(TAG_LEVEL));
         try {
             this.maxHeight = maxHeight;
@@ -87,6 +87,10 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
                 for (int i = 0; i < biomesArray.length; i++) {
                     biomes[i] = biomesArray[i] & 0xff;
                 }
+            }
+            // TODO: migrate biomes map to 1.15 format
+            if ((biomes != null) && (biomes.length < 1024)) {
+                throw new UnsupportedOperationException("Old biomes map not yet supported");
             }
             heightMaps = new HashMap<>();
             Map<String, Tag> heightMapTags = getMap(TAG_HEIGHT_MAPS);
@@ -208,7 +212,7 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
 
         CompoundTag tag = new CompoundTag("", Collections.emptyMap());
         tag.setTag(TAG_LEVEL, super.toNBT());
-        tag.setTag(TAG_DATA_VERSION, new IntTag(TAG_DATA_VERSION, DATA_VERSION_MC_1_14_4));
+        tag.setTag(TAG_DATA_VERSION, new IntTag(TAG_DATA_VERSION, DATA_VERSION_MC_1_15));
         return tag;
     }
 
@@ -341,18 +345,28 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
     
     @Override
     public int getBiome(int x, int z) {
-        return biomes[x + z * 16];
+        throw new UnsupportedOperationException("Not supported");
     }
     
     @Override
     public void setBiome(int x, int z, int biome) {
+        throw new UnsupportedOperationException("Not supported");
+    }
+
+    @Override
+    public int get3DBiome(int x, int y, int z) {
+        return biomes[x + z * 4 + y * 16] & 0xFF;
+    }
+
+    @Override
+    public void set3DBiome(int x, int y, int z, int biome) {
         if (readOnly) {
             return;
         }
         if (biomes == null) {
-            biomes = new int[256];
+            biomes = new int[1024];
         }
-        biomes[x + z * 16] = biome;
+        biomes[x + z * 4 + y * 16] = (byte) biome;
     }
 
     @Override
@@ -382,7 +396,7 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
         if (terrainPopulated) {
             status = STATUS_FULL;
         } else {
-            throw new UnsupportedOperationException("Terrain population not support for Minecraft 1.14");
+            throw new UnsupportedOperationException("Terrain population not support for Minecraft 1.15");
         }
     }
 
@@ -598,7 +612,7 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final MC114AnvilChunk other = (MC114AnvilChunk) obj;
+        final MC115AnvilChunk other = (MC115AnvilChunk) obj;
         if (this.xPos != other.xPos) {
             return false;
         }
@@ -620,7 +634,7 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
      * @throws UnsupportedOperationException Always
      */
     @Override
-    public MC114AnvilChunk clone() {
+    public MC115AnvilChunk clone() {
         throw new UnsupportedOperationException("MC113AnvilChunk.clone() not supported");
     }
     
@@ -653,7 +667,7 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
     }
 
     private void writeObject(ObjectOutputStream out) throws IOException {
-        throw new IOException("MC113AnvilChunk is not serializable");
+        throw new IOException("MC114AnvilChunk is not serializable");
     }
 
     static int blockOffset(int x, int y, int z) {
@@ -665,7 +679,7 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
     final Section[] sections;
     final int xPos, zPos;
     int[] biomes;
-    boolean lightPopulated; // TODO: is this still used by MC 1.14?
+    boolean lightPopulated; // TODO: is this still used by MC 1.15?
     final List<Entity> entities;
     final List<TileEntity> tileEntities;
     final int maxHeight;
@@ -678,7 +692,7 @@ public final class MC114AnvilChunk extends NBTChunk implements MinecraftWorld {
     private static long debugWorldX, debugWorldZ, debugXInChunk, debugZInChunk;
 
     private static final Random RANDOM = new Random();
-    private static final Logger logger = LoggerFactory.getLogger(MC114AnvilChunk.class);
+    private static final Logger logger = LoggerFactory.getLogger(MC115AnvilChunk.class);
 
     public static class Section extends AbstractNBTItem {
         Section(CompoundTag tag) {

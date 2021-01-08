@@ -8,9 +8,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * All Minecraft 1.13 biome IDs, plus names and other info.
+ * All Minecraft 1.15 biome IDs, plus names and other info.
  */
-public interface Minecraft1_14Biomes extends Minecraft1_7Biomes {
+public interface Minecraft1_15Biomes extends Minecraft1_7Biomes {
     int BIOME_END_SMALL_ISLANDS = 40;
     int BIOME_END_MIDLANDS = 41;
     int BIOME_END_HIGHLANDS = 42;

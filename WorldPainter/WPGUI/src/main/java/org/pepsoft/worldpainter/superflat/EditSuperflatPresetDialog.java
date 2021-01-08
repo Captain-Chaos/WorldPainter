@@ -11,7 +11,7 @@ import org.pepsoft.worldpainter.DefaultPlugin;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.WorldPainterDialog;
 import org.pepsoft.worldpainter.biomeschemes.AbstractMinecraft1_1BiomeScheme;
-import org.pepsoft.worldpainter.biomeschemes.Minecraft1_14Biomes;
+import org.pepsoft.worldpainter.biomeschemes.Minecraft1_15Biomes;
 import org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes;
 
 import javax.swing.*;
@@ -44,7 +44,7 @@ public class EditSuperflatPresetDialog extends WorldPainterDialog {
         } else {
             // Default to 1.13 biomes for now, even for other platforms
             // TODO move available biomes to Platform
-            biomeNames = Minecraft1_14Biomes.BIOME_NAMES;
+            biomeNames = Minecraft1_15Biomes.BIOME_NAMES;
         }
         Integer[] availableBiomes = IntStream.range(0, biomeNames.length).filter(i -> biomeNames[i] != null).boxed().toArray(Integer[]::new);
         comboBoxBiome.setModel(new DefaultComboBoxModel<>(availableBiomes));

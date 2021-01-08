@@ -20,7 +20,7 @@ import static org.pepsoft.minecraft.Constants.TAG_ITEMS;
  */
 public class Chest extends TileEntity implements ItemContainer {
     public Chest() {
-        super(LEGACY_ID_CHEST); // TODO add MC 1.14 support
+        super(LEGACY_ID_CHEST); // TODO add MC 1.15 support
     }
 
     public Chest(CompoundTag tag) {

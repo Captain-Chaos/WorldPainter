@@ -44,8 +44,10 @@ import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayer;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayerDialog;
 import org.pepsoft.worldpainter.operations.*;
+import org.pepsoft.worldpainter.painting.LayerPaint;
 import org.pepsoft.worldpainter.painting.Paint;
-import org.pepsoft.worldpainter.painting.*;
+import org.pepsoft.worldpainter.painting.PaintFactory;
+import org.pepsoft.worldpainter.painting.TerrainPaint;
 import org.pepsoft.worldpainter.panels.BrushOptions;
 import org.pepsoft.worldpainter.panels.DefaultFilter;
 import org.pepsoft.worldpainter.panels.InfoPanel;
@@ -750,27 +752,23 @@ public final class App extends JFrame implements RadiusControl,
         }
         // TODO: apparently this was sometimes invoked at or soon after startup,
         // with biomeNames being null, causing a NPE. How is this possible?
-        if (dimension.getDim() == 0) {
-            int biome = tile.getLayerValue(Biome.INSTANCE, xInTile, yInTile);
-            // TODO: is this too slow?
-            if (biome == 255) {
-                biome = dimension.getAutoBiome(x, y);
-                if (biome != -1) {
-                    if (biomeNames[biome] == null) {
-                        setTextIfDifferent(biomeLabel, "Auto biome: biome " + biome);
-                    } else {
-                        setTextIfDifferent(biomeLabel, "Auto biome: " + biomeNames[biome]);
-                    }
-                }
-            } else if (biome != -1) {
+        int biome = tile.getLayerValue(Biome.INSTANCE, xInTile, yInTile);
+        // TODO: is this too slow?
+        if (biome == 255) {
+            biome = dimension.getAutoBiome(x, y);
+            if (biome != -1) {
                 if (biomeNames[biome] == null) {
-                    setTextIfDifferent(biomeLabel, MessageFormat.format(strings.getString("biome.0"), biome));
+                    setTextIfDifferent(biomeLabel, "Auto biome: biome " + biome);
                 } else {
-                    setTextIfDifferent(biomeLabel, MessageFormat.format(strings.getString("biome.0"), biomeNames[biome]));
+                    setTextIfDifferent(biomeLabel, "Auto biome: " + biomeNames[biome]);
                 }
             }
-        } else {
-            setTextIfDifferent(biomeLabel, strings.getString("biome-"));
+        } else if (biome != -1) {
+            if (biomeNames[biome] == null) {
+                setTextIfDifferent(biomeLabel, MessageFormat.format(strings.getString("biome.0"), biome));
+            } else {
+                setTextIfDifferent(biomeLabel, MessageFormat.format(strings.getString("biome.0"), biomeNames[biome]));
+            }
         }
     }
 
@@ -5242,32 +5240,23 @@ public final class App extends JFrame implements RadiusControl,
         addEndCeilingMenuItem.setEnabled(platform.supportedDimensions.contains(DIM_END) && end && (! endCeiling));
         removeEndCeilingMenuItem.setEnabled(endCeiling);
         if (dimension != null) {
+            final boolean biomesSupported = platform.capabilities.contains(BIOMES) || platform.capabilities.contains(BIOMES_3D);
             switch (dimension.getDim()) {
                 case DIM_NORMAL:
-                    setSpawnPointToggleButton.setEnabled(platform.capabilities.contains(SET_SPAWN_POINT));
-                    ACTION_MOVE_TO_SPAWN.setEnabled(platform.capabilities.contains(SET_SPAWN_POINT));
-                    biomesPanel.setEnabled(platform.capabilities.contains(BIOMES));
-                    layerControls.get(Biome.INSTANCE).setEnabled(platform.capabilities.contains(BIOMES));
-                    break;
                 case DIM_NORMAL_CEILING:
-                    if ((paint instanceof DiscreteLayerPaint) && ((DiscreteLayerPaint) paint).getLayer().equals(Biome.INSTANCE)) {
-                        // TODO: select another paint & panel
-                    }
                     setSpawnPointToggleButton.setEnabled(platform.capabilities.contains(SET_SPAWN_POINT));
                     ACTION_MOVE_TO_SPAWN.setEnabled(platform.capabilities.contains(SET_SPAWN_POINT));
-                    biomesPanel.setEnabled(false);
-                    layerControls.get(Biome.INSTANCE).setEnabled(false);
+                    biomesPanel.setEnabled(biomesSupported);
+                    layerControls.get(Biome.INSTANCE).setEnabled(biomesSupported);
                     break;
                 default:
                     if (activeOperation instanceof SetSpawnPoint) {
                         deselectTool();
-                    } else if ((paint instanceof DiscreteLayerPaint) && ((DiscreteLayerPaint) paint).getLayer().equals(Biome.INSTANCE)) {
-                        // TODO: select another paint & panel
                     }
                     setSpawnPointToggleButton.setEnabled(false);
                     ACTION_MOVE_TO_SPAWN.setEnabled(false);
-                    biomesPanel.setEnabled(false);
-                    layerControls.get(Biome.INSTANCE).setEnabled(false);
+                    biomesPanel.setEnabled(biomesSupported);
+                    layerControls.get(Biome.INSTANCE).setEnabled(biomesSupported);
                     break;
             }
             boolean enableHighResHeightMapMenuItem = dimension.getMaxHeight() <= 256;

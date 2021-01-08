@@ -418,7 +418,7 @@ public class CustomMaterialDialog extends WorldPainterDialog implements Property
     }
 
     private String createName(Material material) {
-        return (platform == DefaultPlugin.JAVA_ANVIL_1_14) /* TODO make dynamic */ ? material.toString() : material.toLegacyString();
+        return (platform == DefaultPlugin.JAVA_ANVIL_1_15) /* TODO make dynamic */ ? material.toString() : material.toLegacyString();
     }
 
     private boolean isExtendedBlockIds() {

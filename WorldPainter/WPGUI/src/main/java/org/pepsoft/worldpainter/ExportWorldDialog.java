@@ -11,7 +11,6 @@
 
 package org.pepsoft.worldpainter;
 
-import org.pepsoft.worldpainter.superflat.EditSuperflatPresetDialog;
 import org.pepsoft.minecraft.SuperflatPreset;
 import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.util.IconUtils;
@@ -20,6 +19,7 @@ import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.Populate;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
+import org.pepsoft.worldpainter.superflat.EditSuperflatPresetDialog;
 import org.pepsoft.worldpainter.util.EnumListCellRenderer;
 
 import javax.swing.*;
@@ -33,7 +33,7 @@ import java.util.*;
 import static java.util.stream.Collectors.toSet;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_14;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.GameType.*;
 import static org.pepsoft.worldpainter.Generator.CUSTOM;
@@ -319,8 +319,8 @@ dims:   for (Dimension dim: world.getDimensions()) {
         StringBuilder sb = new StringBuilder("<html>Please confirm that you want to export the world<br>notwithstanding the following warnings:<br><ul>");
         boolean showWarning = false;
         Configuration config = Configuration.getInstance();
-        if ((platform == JAVA_ANVIL_1_14) && (! config.isBeta113WarningDisplayed())) {
-            sb.append("<li><strong>Minecraft 1.14 support is still in beta!</strong><br>" +
+        if ((platform == JAVA_ANVIL_1_15) && (! config.isBeta113WarningDisplayed())) {
+            sb.append("<li><strong>Minecraft 1.15 support is still in beta!</strong><br>" +
                     "Be careful and keep backups. If you encounter<br>" +
                     "problems, please report them on GitHub:<br>" +
                     "https://www.worldpainter.net/issues<br>" +
@@ -478,7 +478,7 @@ dims:   for (Dimension dim: world.getDimensions()) {
         comboBoxDifficulty.setEnabled(false);
 
         config.setExportDirectory(world.getPlatform(), baseDir);
-        if (platform == JAVA_ANVIL_1_14) {
+        if (platform == JAVA_ANVIL_1_15) {
             config.setBeta113WarningDisplayed(true);
         }
 
@@ -862,7 +862,7 @@ dims:   for (Dimension dim: world.getDimensions()) {
             nameOnlyMaterials = gatherBlocksWithoutIds(world, newPlatform);
 
             // Temporary workaround TODO make the chest work again
-            if (newPlatform == JAVA_ANVIL_1_14) {
+            if (newPlatform == JAVA_ANVIL_1_15) {
                 checkBoxGoodies.setEnabled(false);
                 checkBoxGoodies.setSelected(false);
             } else {
@@ -908,7 +908,7 @@ dims:   for (Dimension dim: world.getDimensions()) {
                         : SuperflatPreset.builder(BIOME_PLAINS)
                             .addLayer(MC_BEDROCK, 1)
                             .addLayer(MC_DIRT, 2)
-                            .addLayer((comboBoxMinecraftVersion.getSelectedItem() == JAVA_ANVIL_1_14) ? MC_GRASS_BLOCK : "minecraft:grass", 1).build();
+                            .addLayer((comboBoxMinecraftVersion.getSelectedItem() == JAVA_ANVIL_1_15) ? MC_GRASS_BLOCK : "minecraft:grass", 1).build();
                 EditSuperflatPresetDialog dialog = new EditSuperflatPresetDialog(this, world.getPlatform(), mySuperflatPreset);
                 dialog.setVisible(true);
                 if (! dialog.isCancelled()) {

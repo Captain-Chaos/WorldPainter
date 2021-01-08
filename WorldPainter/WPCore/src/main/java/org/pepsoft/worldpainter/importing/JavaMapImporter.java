@@ -35,9 +35,10 @@ import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
-import static org.pepsoft.worldpainter.Platform.Capability.BLOCK_BASED;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_14Biomes.BIOME_NAMES;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_14Biomes.HIGHEST_BIOME_ID;
+import static org.pepsoft.worldpainter.Platform.Capability.*;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_15Biomes.BIOME_NAMES;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_15Biomes.HIGHEST_BIOME_ID;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.*;
 
 /**
  * An importer of Minecraft-like maps (with Minecraft-compatible
@@ -253,7 +254,9 @@ public class JavaMapImporter extends MapImporter {
         final Set<Point> newChunks = new HashSet<>();
         final Set<String> manMadeBlockTypes = new HashSet<>();
         final Set<Integer> unknownBiomes = new HashSet<>();
-        final boolean importBiomes = (platform != JAVA_MCREGION) && (dimension.getDim() == DIM_NORMAL);
+        final boolean import2DBiomes = platform.capabilities.contains(BIOMES);
+        final boolean import3DBiomes = platform.capabilities.contains(BIOMES_3D);
+        final int defaultBiome = (dimension.getDim() == DIM_NETHER) ? BIOME_HELL : (dimension.getDim() == DIM_END ? BIOME_SKY : BIOME_PLAINS);
         final ChunkStore chunkStore = PlatformManager.getInstance().getChunkStore(platform, worldDir, dimension.getDim());
         final int total = chunkStore.getChunkCount();
         final AtomicInteger count = new AtomicInteger();
@@ -274,10 +277,10 @@ public class JavaMapImporter extends MapImporter {
                     final int chunkZ = chunkCoords.z;
 
                     // Sanity checks
-                    if (chunk instanceof MC114AnvilChunk) {
-                        MC114AnvilChunk mc114Chunk = (MC114AnvilChunk) chunk;
+                    if (chunk instanceof MC115AnvilChunk) {
+                        MC115AnvilChunk mc115Chunk = (MC115AnvilChunk) chunk;
                         boolean sectionFound = false;
-                        for (MC114AnvilChunk.Section section: mc114Chunk.getSections()) {
+                        for (MC115AnvilChunk.Section section: mc115Chunk.getSections()) {
                             if (section != null) {
                                 sectionFound = true;
                                 break;
@@ -376,10 +379,24 @@ public class JavaMapImporter extends MapImporter {
                                 if (height == -1.0f) {
                                     dimension.setBitLayerValueAt(org.pepsoft.worldpainter.layers.Void.INSTANCE, blockX, blockY, true);
                                 }
-                                if (importBiomes && chunk.isBiomesAvailable()) {
-                                    final int biome = chunk.getBiome(xx, zz);
-                                    if (collectDebugInfo && ((biome > HIGHEST_BIOME_ID) || (BIOME_NAMES[biome] == null)) && (biome != 255)) {
-                                        unknownBiomes.add(biome);
+                                if (import2DBiomes || import3DBiomes) {
+                                    final int biome;
+                                    if (chunk.isBiomesAvailable()) {
+                                        if (import2DBiomes) {
+                                            biome = chunk.getBiome(xx, zz);
+                                        } else {
+                                            // We accept a reduction in resolution here, and we lose 3D biome
+                                            // information
+                                            // TODO make this clear to the user
+                                            // TODO add way of editing 3D biomes
+                                            // TODO apparently for DIM_NORMAL this should use the bottom layer, although using the actual height also appears to work
+                                            biome = chunk.get3DBiome(xx >> 2, dimension.getIntHeightAt(blockX, blockY) >> 2, zz >> 2);
+                                        }
+                                        if (collectDebugInfo && ((biome > HIGHEST_BIOME_ID) || (BIOME_NAMES[biome] == null)) && (biome != 255)) {
+                                            unknownBiomes.add(biome);
+                                        }
+                                    } else {
+                                        biome = defaultBiome;
                                     }
                                     // If the biome is set (around the edges of the map Minecraft sets it to
                                     // 255, presumably as a marker that it has yet to be calculated), copy

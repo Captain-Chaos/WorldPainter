@@ -5,9 +5,10 @@
 
 package org.pepsoft.minecraft;
 
-import java.util.HashMap;
 import org.jnbt.CompoundTag;
 import org.jnbt.StringTag;
+
+import java.util.HashMap;
 
 import static org.pepsoft.minecraft.Constants.*;
 
@@ -66,7 +67,7 @@ public class TileEntity extends AbstractNBTItem {
                 case LEGACY_ID_CHEST:
                 case ID_CHEST:
                     return new Chest(tileEntityTag);
-                case LEGACY_ID_SIGN: // TODO add MC 1.14 support
+                case LEGACY_ID_SIGN: // TODO add MC 1.15 support
                     return new WallSign(tileEntityTag);
             }
         }

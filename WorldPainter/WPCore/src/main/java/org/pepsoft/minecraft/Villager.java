@@ -15,7 +15,7 @@ import static org.pepsoft.minecraft.Constants.TAG_PROFESSION;
  */
 public class Villager extends Mob {
     public Villager() {
-        super(LEGACY_ID_VILLAGER); // TODO add MC 1.14 support
+        super(LEGACY_ID_VILLAGER); // TODO add MC 1.15 support
     }
     
     public Villager(CompoundTag tag) {
@@ -23,7 +23,7 @@ public class Villager extends Mob {
     }
     
     public Villager(int profession) {
-        super(LEGACY_ID_VILLAGER); // TODO add MC 1.14 support
+        super(LEGACY_ID_VILLAGER); // TODO add MC 1.15 support
         setProfession(profession);
     }
     

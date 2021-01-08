@@ -9,7 +9,6 @@ import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
 
 import static org.pepsoft.minecraft.Constants.*;
-import static org.pepsoft.worldpainter.biomeschemes.AbstractMinecraft1_7BiomeScheme.BIOME_PATTERNS;
 
 /**
  * An abstract base class for {@link BiomeScheme}s which provide the biomes as
@@ -17,7 +16,7 @@ import static org.pepsoft.worldpainter.biomeschemes.AbstractMinecraft1_7BiomeSch
  *
  * @author pepijn
  */
-public abstract class AbstractMinecraft1_14BiomeScheme extends AbstractBiomeScheme implements Minecraft1_14Biomes {
+public abstract class AbstractMinecraft1_15BiomeScheme extends AbstractBiomeScheme implements Minecraft1_15Biomes {
     @Override
     public final int getBiomeCount() {
         return BIOME_NAMES.length;

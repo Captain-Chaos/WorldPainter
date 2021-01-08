@@ -17,7 +17,7 @@ import static org.pepsoft.minecraft.Constants.*;
  */
 public class Player extends Mob {
     public Player() {
-        super(LEGACY_ID_PLAYER); // TODO add MC 1.14 support
+        super(LEGACY_ID_PLAYER); // TODO add MC 1.15 support
         setList(TAG_INVENTORY, CompoundTag.class, Collections.emptyList());
         setInt(TAG_SCORE, 0);
         setInt(TAG_DIMENSION, 0);

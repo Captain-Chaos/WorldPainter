@@ -5,11 +5,11 @@
 
 package org.pepsoft.minecraft;
 
-import java.util.HashMap;
-import java.util.UUID;
-
 import org.jnbt.CompoundTag;
 import org.jnbt.StringTag;
+
+import java.util.HashMap;
+import java.util.UUID;
 
 import static org.pepsoft.minecraft.Constants.*;
 
@@ -97,7 +97,7 @@ public class Entity extends AbstractNBTItem {
             entityTag = (CompoundTag) entityTag.getTag(TAG_NBT_);
         }
         String id = ((StringTag) entityTag.getTag(TAG_ID_)).getValue();
-        switch (id) { // TODO add MC 1.14 support
+        switch (id) { // TODO add MC 1.15 support
             case LEGACY_ID_PLAYER:
                 return new Player(entityTag);
             case LEGACY_ID_VILLAGER:

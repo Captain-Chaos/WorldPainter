@@ -14,7 +14,7 @@ import java.util.Arrays;
 
 import static org.pepsoft.minecraft.Constants.MC_WATER;
 import static org.pepsoft.minecraft.Material.AIR;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_14;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
 
 /**
  * A lighting calculator for MinecraftWorlds.
@@ -265,7 +265,7 @@ public class LightingCalculator {
 
     private int getTransparency(Material material) {
         // TODOMC13: make this generic:
-        if ((platform == JAVA_ANVIL_1_14) && material.isNamed(MC_WATER)) {
+        if ((platform == JAVA_ANVIL_1_15) && material.isNamed(MC_WATER)) {
             return 1;
         } else {
             return material.opacity;
@@ -275,8 +275,8 @@ public class LightingCalculator {
     private int calculateSkyLightLevel(int x, int y, int z, Material material) {
         int skyLightLevel = getSkyLightLevelAt(x, y + 1, z);
         // TODOMC13: make this generic:
-        if ((skyLightLevel == 15) && (platform == JAVA_ANVIL_1_14) && (material.isNamed(MC_WATER)) && ((y >= maxHeight - 1) || (world.getMaterialAt(x, z, y + 1) == AIR))) {
-            // This seems to be a special case in MC 1.14. TODO: keep an eye on whether this was a bug or intended behaviour!
+        if ((skyLightLevel == 15) && (platform == JAVA_ANVIL_1_15) && (material.isNamed(MC_WATER)) && ((y >= maxHeight - 1) || (world.getMaterialAt(x, z, y + 1) == AIR))) {
+            // This seems to be a special case in MC 1.15. TODO: keep an eye on whether this was a bug or intended behaviour!
             return 15;
         }
         int highestSurroundingSkyLight = skyLightLevel;

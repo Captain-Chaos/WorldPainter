@@ -15,7 +15,7 @@ public final class Constants {
         // Prevent instantiation
     }
 
-    // MC 1.14 block names
+    // MC 1.15 block names
 
     public static final String MC_ACACIA_BARK = "minecraft:acacia_bark";
     public static final String MC_ACACIA_DOOR = "minecraft:acacia_door";
@@ -504,7 +504,7 @@ public final class Constants {
     public static final String MC_WITHER_ROSE = "minecraft:wither_rose";
     public static final String MC_SWEET_BERRY_BUSH = "minecraft:sweet_berry_bush";
 
-    // MC 1.14 property names
+    // MC 1.15 property names
 
     public static final String MC_SNOWY       = "snowy";
     public static final String MC_NORTH       = "north";
@@ -656,6 +656,7 @@ public final class Constants {
 
     public static final int DATA_VERSION_MC_1_12_2 = 1343;
     public static final int DATA_VERSION_MC_1_14_4 = 1976;
+    public static final int DATA_VERSION_MC_1_15   = 2230;
 
     // Legacy (pre-MC 1.13) block IDs
 

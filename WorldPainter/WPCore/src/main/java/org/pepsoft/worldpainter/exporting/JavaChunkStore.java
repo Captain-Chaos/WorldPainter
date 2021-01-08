@@ -24,13 +24,14 @@ import java.util.regex.Pattern;
 import static org.pepsoft.minecraft.Block.BLOCK_TYPE_NAMES;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 
 /**
  * Created by Pepijn on 15-12-2016.
  */
 public class JavaChunkStore implements ChunkStore {
     public JavaChunkStore(Platform platform, File regionDir, boolean honourReadOnlyChunks, Dimension dimension, int maxHeight) {
-        if (! ((platform == JAVA_MCREGION) || (platform == JAVA_ANVIL) || (platform == JAVA_ANVIL_1_14))) {
+        if (! ((platform == JAVA_MCREGION) || (platform == JAVA_ANVIL) || (platform == JAVA_ANVIL_1_15))) {
             throw new IllegalArgumentException("Unsupported platform " + platform);
         }
         this.platform = platform;
@@ -91,7 +92,7 @@ public class JavaChunkStore implements ChunkStore {
 //        updateStatistics();
 //        long start = System.currentTimeMillis();
         // Do some sanity checks first
-        if ((platform == JAVA_MCREGION) || (platform == JAVA_ANVIL)) {
+        if (! platform.capabilities.contains(NAME_BASED)) {
             // Check that all tile entities for which the chunk contains data are
             // actually there
             for (Iterator<TileEntity> i = chunk.getTileEntities().iterator(); i.hasNext(); ) {
@@ -127,7 +128,7 @@ public class JavaChunkStore implements ChunkStore {
                     occupiedCoords.add(coords);
                 }
             }
-        } else if (platform == JAVA_ANVIL_1_14) {
+        } else {
             // TODOMC13: similar sanity checks
         }
 

@@ -10,7 +10,7 @@ import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.Tile;
-import org.pepsoft.worldpainter.biomeschemes.Minecraft1_14Biomes;
+import org.pepsoft.worldpainter.biomeschemes.Minecraft1_15Biomes;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.Annotations;
 import org.pepsoft.worldpainter.layers.Biome;
@@ -24,8 +24,8 @@ import java.awt.image.IndexColorModel;
 import java.awt.image.Raster;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
@@ -427,7 +427,7 @@ outer:          for (int x = 0; x < width; x++) {
                 }
             } else if (layer.equals(Biome.INSTANCE)) {
                 // Biomes are a discrete layer which can only be mapped one on one
-                if ((inputType == InputType.EIGHT_BIT_GREY_SCALE || inputType == InputType.SIXTEEN_BIT_GREY_SCALE) && (imageHighValue <= Minecraft1_14Biomes.HIGHEST_BIOME_ID )) {
+                if ((inputType == InputType.EIGHT_BIT_GREY_SCALE || inputType == InputType.SIXTEEN_BIT_GREY_SCALE) && (imageHighValue <= Minecraft1_15Biomes.HIGHEST_BIOME_ID )) {
                     possibleLayers.add(layer);
                 }
             } else if (layer.getDataSize() == Layer.DataSize.BIT || layer.getDataSize() == Layer.DataSize.BIT_PER_CHUNK) {

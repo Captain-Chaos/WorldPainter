@@ -79,6 +79,6 @@ public class CompareChunks {
                 ? new MCRegionChunk(chunkTag, level.getMaxHeight())
                 : (((level.getDataVersion() <= DATA_VERSION_MC_1_12_2) || (level.getDataVersion() == 0))
                 ? new MC12AnvilChunk(chunkTag, level.getMaxHeight())
-                : new MC114AnvilChunk(chunkTag, level.getMaxHeight()));
+                : new MC115AnvilChunk(chunkTag, level.getMaxHeight()));
     }
 }

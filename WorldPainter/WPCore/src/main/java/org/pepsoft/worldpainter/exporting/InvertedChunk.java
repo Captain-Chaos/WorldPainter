@@ -211,6 +211,16 @@ public class InvertedChunk implements Chunk {
     }
 
     @Override
+    public int get3DBiome(int x, int y, int z) {
+        return chunk.get3DBiome(x, (maxHeight >> 2) - y, z);
+    }
+
+    @Override
+    public void set3DBiome(int x, int y, int z, int biome) {
+        chunk.set3DBiome(x, (maxHeight >> 2) - y, z, biome);
+    }
+
+    @Override
     public boolean isReadOnly() {
         return chunk.isReadOnly();
     }

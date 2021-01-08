@@ -1256,7 +1256,7 @@ public final class Material implements Serializable {
     /**
      * Whether the block is a tile entity.
      */
-    // TODOMC13 make this valid for MC 1.14 blocks
+    // TODOMC13 make this valid for MC 1.15 blocks
     public final transient boolean tileEntity;
 
     /**

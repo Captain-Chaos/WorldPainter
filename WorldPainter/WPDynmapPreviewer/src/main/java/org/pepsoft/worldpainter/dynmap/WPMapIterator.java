@@ -6,7 +6,7 @@ import org.dynmap.renderer.RenderPatchFactory;
 import org.dynmap.utils.BlockStep;
 import org.dynmap.utils.MapIterator;
 import org.pepsoft.minecraft.Chunk;
-import org.pepsoft.minecraft.MC114AnvilChunk;
+import org.pepsoft.minecraft.MC115AnvilChunk;
 import org.pepsoft.minecraft.MC12AnvilChunk;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 
@@ -120,8 +120,8 @@ class WPMapIterator implements MapIterator {
         Chunk chunk = world.getChunk(x >> 4, y >> 4);
         if (chunk instanceof MC12AnvilChunk) {
             return ! ((MC12AnvilChunk) chunk).isSectionPresent(height >> 4);
-        } else if (chunk instanceof MC114AnvilChunk) {
-            return ! ((MC114AnvilChunk) chunk).isSectionPresent(height >> 4);
+        } else if (chunk instanceof MC115AnvilChunk) {
+            return ! ((MC115AnvilChunk) chunk).isSectionPresent(height >> 4);
         } else {
             return chunk == null;
         }

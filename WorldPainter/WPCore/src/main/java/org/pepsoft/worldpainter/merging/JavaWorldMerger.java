@@ -853,6 +853,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                                 int chunkX = chunk.getxPos(), chunkZ = chunk.getzPos();
                                 for (int xx = 0; xx < 16; xx++) {
                                     for (int zz = 0; zz < 16; zz++) {
+                                        // TODO support 3D biomes
                                         chunk.setBiome(xx, zz, dimension.getLayerValueAt(Biome.INSTANCE, (chunkX << 4) | xx, (chunkZ << 4) | zz));
                                     }
                                 }
@@ -956,8 +957,8 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                                 existingChunk = ((DefaultPlatformProvider) platformProvider).createChunk(platform, in.readTag(), maxHeight);
 
                                 // Sanity checks
-                                if ((existingChunk instanceof MC114AnvilChunk)
-                                        && ((MC114AnvilChunk) existingChunk).getStatus().equals(STATUS_STRUCTURE_STARTS)
+                                if ((existingChunk instanceof MC115AnvilChunk)
+                                        && ((MC115AnvilChunk) existingChunk).getStatus().equals(STATUS_STRUCTURE_STARTS)
                                         && (newChunk != null)) {
                                     logger.warn("Replacing chunk " + chunkX + "," + chunkY + "from existing map because it has status structure_starts");
                                     existingChunk = null;
@@ -1222,6 +1223,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
     }
     
     private Chunk mergeChunk(Chunk existingChunk, Chunk newChunk, Dimension dimension) {
+        // TODO support 3D biomes
         if (logger.isDebugEnabled()) {
             logger.debug("Merging chunks at " + existingChunk.getxPos() + "," + existingChunk.getzPos());
         }

@@ -172,7 +172,8 @@ public final class Platform implements Serializable {
 
     public enum Capability {
         /**
-         * Has the concept of a per-column biome, identified by a number.
+         * Has the concept of a 2D, per-column biome, identified by a number. This is mutually exclusive with
+         * {@link #BIOMES_3D}.
          */
         BIOMES,
 
@@ -208,6 +209,12 @@ public final class Platform implements Serializable {
          * should be populated by the game according to the biome painted in
          * WorldPainter.
          */
-        POPULATE
+        POPULATE,
+
+        /**
+         * Has the concept of a 3D, per-4x4x4-cube biome, identified by a number. This is mutually exclusive with
+         * {@link #BIOMES}.
+         */
+        BIOMES_3D
     }
 }

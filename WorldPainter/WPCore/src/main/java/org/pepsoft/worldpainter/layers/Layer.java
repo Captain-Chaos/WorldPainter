@@ -199,5 +199,7 @@ public abstract class Layer implements Serializable, Comparable<Layer> {
 
     private static final long serialVersionUID = 2011032901L;
 
-    public enum DataSize {BIT, NIBBLE, BYTE, BIT_PER_CHUNK, NONE}
+    public enum DataSize {
+        BIT, NIBBLE, BYTE, BIT_PER_CHUNK, NONE
+    }
 }
