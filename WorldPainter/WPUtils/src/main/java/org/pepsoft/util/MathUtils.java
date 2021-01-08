@@ -169,6 +169,19 @@ public final class MathUtils {
         return (float) Math.sqrt(d * d + dz * dz);
     }
 
+    /**
+     * Calculates the distance between two points in 3D space.
+     *
+     * @param dx The difference along the x axis between the two points.
+     * @param dy The difference along the y axis between the two points.
+     * @param dz The difference along the z axis between the two points.
+     * @return The distance between the two points.
+     */
+    public static double getDistance(double dx, double dy, double dz) {
+        final double d = Math.sqrt(dx * dx + dy * dy);
+        return Math.sqrt(d * d + dz * dz);
+    }
+
     public static float getDistance(int dx, int dy, int dz) {
         dx = Math.abs(dx);
         dy = Math.abs(dy);

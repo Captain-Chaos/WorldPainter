@@ -11,7 +11,6 @@ import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import org.pepsoft.worldpainter.exporting.SecondPassLayerExporter;
 import org.pepsoft.worldpainter.layers.Caves;
 import org.pepsoft.worldpainter.layers.Layer;
-import org.pepsoft.worldpainter.util.GeometryUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,9 +22,10 @@ import java.util.List;
 import java.util.Random;
 
 import static org.pepsoft.minecraft.Constants.*;
-import static org.pepsoft.minecraft.Material.AIR;
+import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
+import static org.pepsoft.worldpainter.util.GeometryUtil.visitFilledAbsoluteSphere;
 
 /**
  * Created by Pepijn on 15-1-2017.
@@ -45,11 +45,13 @@ public class CavesExporter extends AbstractLayerExporter<Caves> implements Secon
         final Random random = new Random();
         final CaveSettings caveSettings = new CaveSettings();
         caveSettings.minZ = minZ;
+        caveSettings.waterLevel = settings.waterLevel;
+        caveSettings.floodWithLava = settings.floodWithLava;
         // Grow the area we will check for spawning caves, such that parts of
         // caves which start outside the exported area are still rendered inside
         // the exported area
         final Rectangle spawnArea = (Rectangle) exportedArea.clone();
-        spawnArea.grow(MAX_CAVE_LENGTH, MAX_CAVE_LENGTH);
+        spawnArea.grow((int) Math.ceil(MAX_CAVE_LENGTH + caveSettings.maxRadius), (int) Math.ceil(MAX_CAVE_LENGTH + caveSettings.maxRadius));
         // Go tile by tile, so we can quickly check whether the tile even
         // exists and contains the layer and if not skip it entirely
         final int tileX1 = spawnArea.x >> TILE_SIZE_BITS, tileX2 = (spawnArea.x + spawnArea.width - 1) >> TILE_SIZE_BITS;
@@ -72,7 +74,7 @@ public class CavesExporter extends AbstractLayerExporter<Caves> implements Secon
                                 if (cavesValue > random.nextInt(CAVE_CHANCE)) {
                                     caveSettings.start = new Point3i(x, y, z);
                                     caveSettings.length = MathUtils.clamp(0, (int) ((random.nextGaussian() + 2.0) * (MAX_CAVE_LENGTH / 3.0) + 0.5), MAX_CAVE_LENGTH);
-                                    createTunnel(minecraftWorld, dimension, new Random(random.nextLong()), caveSettings, surfaceBreaking, minimumLevel);
+                                    createTunnel(minecraftWorld, exportedArea, dimension, new Random(random.nextLong()), caveSettings, surfaceBreaking, minimumLevel);
                                 }
                             }
                         }
@@ -83,24 +85,28 @@ public class CavesExporter extends AbstractLayerExporter<Caves> implements Secon
         return null;
     }
 
-    private void createTunnel(MinecraftWorld world, Dimension dimension, Random random, CaveSettings tunnelSettings, boolean surfaceBreaking, int minimumLevel) {
-        Point3d location = new Point3d(tunnelSettings.start.x, tunnelSettings.start.y, tunnelSettings.start.z);
+    private void createTunnel(MinecraftWorld world, Rectangle exportedArea, Dimension dimension, Random random, CaveSettings tunnelSettings, boolean surfaceBreaking, int minimumLevel) {
+        Point3d location = new Point3d(tunnelSettings.start.x + random.nextDouble() - 0.5, tunnelSettings.start.y + random.nextDouble() - 0.5, tunnelSettings.start.z + random.nextDouble() - 0.5);
         Vector3d direction = getRandomDirection(random);
-        final double minRadius = tunnelSettings.minRadius, maxRadius = tunnelSettings.maxRadius,
-                radiusChangeSpeed = tunnelSettings.radiusChangeSpeed;
-        double length = 0.0, radius = (maxRadius + minRadius) / 2.0, radiusDelta = 0.0;
-        final int maxLength = tunnelSettings.length, twistiness = tunnelSettings.twistiness;
+        final float minRadius = tunnelSettings.minRadius, maxRadius = tunnelSettings.maxRadius,
+                radiusChangeSpeed = tunnelSettings.radiusChangeSpeed, twistiness = tunnelSettings.twistiness;
+        float length = 0.0f, radius = (maxRadius + minRadius) / 2.0f, radiusDelta = 0.0f;
+        final int maxLength = tunnelSettings.length;
         if (logger.isTraceEnabled()) {
             logger.trace("Creating tunnel @ {},{},{} of length {}; radius: {} - {} (variability: {}); twistiness: {}",
                     tunnelSettings.start.x, tunnelSettings.start.y, tunnelSettings.start.z, maxLength, tunnelSettings.minRadius, tunnelSettings.maxRadius,
                     radiusChangeSpeed, twistiness);
         }
+        long segmentSeed = random.nextLong();
         while (length < maxLength) {
             if ((minimumLevel == 0) && (dimension.getLayerValueAt(Caves.INSTANCE, (int) location.x, (int) location.y) < 1)) {
                 // Don't stray into areas where the layer isn't present at all
                 return;
             }
-            excavate(world, dimension, random, tunnelSettings, location, radius, surfaceBreaking);
+            if (((location.x + radius) >= exportedArea.x) && ((location.x - radius) <= (exportedArea.x + exportedArea.width))
+                    && ((location.y + radius) >= exportedArea.y) && ((location.y - radius) <= (exportedArea.y + exportedArea.height))) {
+                excavate(world, dimension, new Random((long) (segmentSeed + length)), tunnelSettings, location, radius, surfaceBreaking);
+            }
             length += direction.length();
             location.add(direction);
             final Vector3d dirChange = getRandomDirection(random);
@@ -118,29 +124,22 @@ public class CavesExporter extends AbstractLayerExporter<Caves> implements Secon
 
         // TODOMC13: remove water above openings
 
-        // TODOMC13: flood the caves
-
-        boolean intrudingStone = settings.intrudingStone,
+        final boolean intrudingStone = settings.intrudingStone,
                 roughWalls = settings.roughWalls,
-                removeFloatingBlocks = settings.removeFloatingBlocks;
-        int minZ = settings.minZ;
-        // TODO: change visitFilledSphere so the sphere doesn't have single-block spikes at the x, y, and z axes
-        GeometryUtil.visitFilledSphere((int) Math.ceil(radius), ((dx, dy, dz, d) -> {
-            if (d > radius) {
-                return true;
-            }
-            int z = (int) (location.z + dz);
+                removeFloatingBlocks = settings.removeFloatingBlocks,
+                floodWithLava = settings.floodWithLava;
+        final int minZ = settings.minZ, waterLevel = settings.waterLevel;
+        visitFilledAbsoluteSphere(location.x, location.y, location.z, (float) radius, ((x, y, z, d) -> {
             // TODO: efficiently check maxZ per x,y:
             if (z >= minZ) {
-                int x = (int) (location.x + dx);
-                int y = (int) (location.y + dy);
                 int terrainHeight = dimension.getIntHeightAt(x, y);
                 int maxZ = terrainHeight - (surfaceBreaking ? 0 : dimension.getTopLayerDepth(x, y, terrainHeight));
                 if (z > maxZ) {
                     return true;
                 }
                 Material material = world.getMaterialAt(x, y, z);
-                if (material.isNamedOneOf(MC_AIR, MC_CAVE_AIR)){
+                if (material.isNamedOneOf(MC_AIR, MC_CAVE_AIR)
+                        || ((z <= waterLevel) && (floodWithLava ? material.isNamed(MC_LAVA) : material.isNamed(MC_WATER)))) {
                     // Already excavated
                     return true;
                 }
@@ -155,27 +154,28 @@ public class CavesExporter extends AbstractLayerExporter<Caves> implements Secon
                                 || random.nextBoolean())) {
                             // Treat andesite, etc. as "harder" than regular stone
                             // so it protrudes slightly into the cave
-                            world.setMaterialAt(x, y, z, AIR);
+                            excavateBlock(world, x, y, z, settings);
                             blockExcavated = true;
                         }
                     } else if (random.nextBoolean()) {
-                        world.setMaterialAt(x, y, z, AIR);
+                        // TODO: do this better, with continuous and consistent variation
+                        excavateBlock(world, x, y, z, settings);
                         blockExcavated = true;
                     }
                 } else {
-                    world.setMaterialAt(x, y, z, AIR);
+                    excavateBlock(world, x, y, z, settings);
                     blockExcavated = true;
                 }
                 if (blockExcavated && removeFloatingBlocks && (radius - d <= 2)) {
-                    checkForFloatingBlock(world, x - 1, y, z, maxZ);
-                    checkForFloatingBlock(world, x, y - 1, z, maxZ);
-                    checkForFloatingBlock(world, x + 1, y, z, maxZ);
-                    checkForFloatingBlock(world, x, y + 1, z, maxZ);
+                    checkForFloatingBlock(world, x - 1, y, z, maxZ, settings);
+                    checkForFloatingBlock(world, x, y - 1, z, maxZ, settings);
+                    checkForFloatingBlock(world, x + 1, y, z, maxZ, settings);
+                    checkForFloatingBlock(world, x, y + 1, z, maxZ, settings);
                     if (z > 1) {
-                        checkForFloatingBlock(world, x, y, z - 1, maxZ);
+                        checkForFloatingBlock(world, x, y, z - 1, maxZ, settings);
                     }
                     if (z < maxZ) {
-                        checkForFloatingBlock(world, x, y, z + 1, maxZ);
+                        checkForFloatingBlock(world, x, y, z + 1, maxZ, settings);
                     }
                 }
             }
@@ -183,25 +183,33 @@ public class CavesExporter extends AbstractLayerExporter<Caves> implements Secon
         }));
     }
 
-    static void checkForFloatingBlock(MinecraftWorld world, int x, int y, int z, int maxZ) {
+    static void excavateBlock(MinecraftWorld world, int x, int y, int z, CaveSettings settings) {
+        world.setMaterialAt(x, y, z, (z <= settings.waterLevel)
+                ? (settings.floodWithLava ? STATIONARY_LAVA : STATIONARY_WATER)
+                : AIR);
+    }
+
+    /**
+     * Check if the indicated block is a "floating block" and if so remove it.
+     */
+    static void checkForFloatingBlock(MinecraftWorld world, int x, int y, int z, int maxZ, CaveSettings settings) {
         Material material = world.getMaterialAt(x, y, z);
         if (material.isNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_PODZOL, MC_FARMLAND, MC_GRASS_PATH, MC_SAND, MC_RED_SAND, MC_GRAVEL)) {
             if (((z > 0) && (!world.getMaterialAt(x, y, z - 1).solid))
-                    && ((z < maxZ) && (!world.getMaterialAt(x, y, z + 1).solid))) {
+                    && ((z <= maxZ) && (!world.getMaterialAt(x, y, z + 1).solid))) {
                 // The block is only one layer thick
-                world.setMaterialAt(x, y, z, AIR);
+                excavateBlock(world, x, y, z, settings);
                 // TODO: this isn't removing nearly all one-block thick dirt. Why?
             }
-        } else if (material.isNotNamedOneOf(MC_AIR, MC_WATER, MC_LAVA)) {
+        } else if (material.isNotNamedOneOf(MC_AIR, MC_WATER, MC_LAVA) && (! material.name.endsWith("_leaves"))) {
             if ((! world.getMaterialAt(x - 1, y, z).solid)
                     && (! world.getMaterialAt(x, y - 1, z).solid)
                     && (! world.getMaterialAt(x + 1, y, z).solid)
                     && (! world.getMaterialAt(x, y + 1, z).solid)
                     && ((z > 0) && (! world.getMaterialAt(x, y, z - 1).solid))
-                    && ((z < maxZ) && (! world.getMaterialAt(x, y, z + 1).solid))) {
+                    && ((z <= maxZ) && (! world.getMaterialAt(x, y, z + 1).solid))) {
                 // The block is floating in the air
-                // TODO: this does not take leaves into account, which count as an insubstantial block but can be attached to other leaves!
-                world.setMaterialAt(x, y, z, AIR);
+                excavateBlock(world, x, y, z, settings);
             }
         }
     }
@@ -226,9 +234,9 @@ public class CavesExporter extends AbstractLayerExporter<Caves> implements Secon
      */
     static class CaveSettings {
         Point3i start;
-        int length, minZ, minRadius = 2, maxRadius = 4, twistiness = 2;
-        boolean intrudingStone = true, roughWalls, removeFloatingBlocks = true;
-        double radiusChangeSpeed = 0.2;
+        int length, minZ, waterLevel;
+        float minRadius = 1.5f, maxRadius = 3.25f, twistiness = 3, radiusChangeSpeed = 0.2f;
+        boolean intrudingStone = true, roughWalls, removeFloatingBlocks = true, floodWithLava;
     }
 
     /**

@@ -103,7 +103,6 @@ public final class GeometryUtil {
         return true;
     }
 
-
     /**
      * Visit all the points inside a spherical volume in an integer coordinate
      * space with the centre at 0,0,0. The order in which the points are visited
@@ -129,6 +128,31 @@ public final class GeometryUtil {
             }
         }
         return true;
+    }
+
+    /**
+     * Visit all the points in integer coordinate space inside a spherical volume in an floating point coordinate space
+     * with a specified center. The order in which the points are visited is not defined. The visitor may abort the
+     * process at any point by returning {@code false}.
+     *
+     * @param x The X coordinate of the center of the sphere
+     * @param y The Y coordinate of the center of the sphere
+     * @param z The Z coordinate of the center of the sphere
+     * @param radius The radius of the sphere to visit.
+     * @param visitor The visitor to invoke for each point.
+     * @return {@code true} if the visitor returned true for each point (and therefore every point was visited).
+     *     {@code false} if the visitor returned {@code false} for some point and the process was aborted.
+     */
+    public static boolean visitFilledAbsoluteSphere(double x, double y, double z, float radius, AbsoluteVolumeVisitor visitor) {
+        final int centerX = (int) Math.round(x), centerY = (int) Math.round(y), centerZ = (int) Math.round(z);
+        return visitFilledSphere((int) (Math.ceil(radius) + 1), (dx, dy, dz, d) -> {
+            final int actualX = centerX + dx, actualY = centerY + dy, actualZ = centerZ + dz;
+            final float actualDistance = (float) MathUtils.getDistance(x - actualX, y - actualY, z - actualZ);
+            if (actualDistance <= radius) {
+                return visitor.visit(actualX, actualY, actualZ, actualDistance);
+            }
+            return true;
+        });
     }
 
     /**
@@ -276,5 +300,20 @@ public final class GeometryUtil {
          * {@code false} if no more points should be visited in the volume.
          */
         boolean visit(int dx, int dy, int dz, float d);
+    }
+
+    @FunctionalInterface
+    public interface AbsoluteVolumeVisitor {
+        /**
+         * Visit the specified location in absolute integer coordinates.
+         *
+         * @param x The x coordinate to visit.
+         * @param y The y coordinate to visit.
+         * @param z The z coordinate to visit.
+         * @param d The distance from the origin.
+         * @return {@code true} if the process should continue;
+         * {@code false} if no more points should be visited in the volume.
+         */
+        boolean visit(int x, int y, int z, float d);
     }
 }
