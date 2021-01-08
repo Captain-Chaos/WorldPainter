@@ -109,7 +109,7 @@ public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, Chunk
             }
         }
         if (backupDir.isDirectory()) {
-            sb.append("<br><br>Backup of existing map created in:<br>").append(backupDir);
+            sb.append("<br>Backup of existing map created in:<br>").append(backupDir);
         }
         sb.append("</html>");
         return sb.toString();
@@ -158,11 +158,15 @@ public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, Chunk
         final long totalBlocks = stats.surfaceArea * world.getMaxHeight();
         if (duration > 0) {
             sb.append("Generated " + formatter.format(totalBlocks) + " blocks, or " + formatter.format(totalBlocks / duration) + " blocks per second<br>");
-            final long kbPerSecond = stats.size / duration / 1024;
-            sb.append("Map size: " + formatter.format(stats.size / 1024 / 1024) + " MB, or " + ((kbPerSecond < 1024) ? (formatter.format(kbPerSecond) + " KB") : (formatter.format(kbPerSecond / 1024) + " MB")) + " per second");
+            if (stats.size > 0) {
+                final long kbPerSecond = stats.size / duration / 1024;
+                sb.append("Map size: " + formatter.format(stats.size / 1024 / 1024) + " MB, or " + ((kbPerSecond < 1024) ? (formatter.format(kbPerSecond) + " KB") : (formatter.format(kbPerSecond / 1024) + " MB")) + " per second<br>");
+            }
         } else {
             sb.append("Generated " + formatter.format(totalBlocks) + " blocks<br>");
-            sb.append("Map size: " + formatter.format(stats.size / 1024 / 1024) + " MB");
+            if (stats.size > 0) {
+                sb.append("Map size: " + formatter.format(stats.size / 1024 / 1024) + " MB<br>");
+            }
         }
     }
     
