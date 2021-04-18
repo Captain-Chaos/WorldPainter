@@ -169,9 +169,14 @@ public class MemoryChunk implements Chunk, MinecraftWorld, Serializable {
     
     @Override
     public boolean isBiomesAvailable() {
-        return (biomes != null) || (biomes3d != null);
+        return biomes != null;
     }
-    
+
+    @Override
+    public boolean is3DBiomesAvailable() {
+        return biomes3d != null;
+    }
+
     @Override
     public int getBiome(int x, int z) {
         return biomes[x + z * 16] & 0xFF;

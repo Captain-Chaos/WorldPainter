@@ -254,8 +254,8 @@ public class JavaMapImporter extends MapImporter {
         final Set<Point> newChunks = new HashSet<>();
         final Set<String> manMadeBlockTypes = new HashSet<>();
         final Set<Integer> unknownBiomes = new HashSet<>();
-        final boolean import2DBiomes = platform.capabilities.contains(BIOMES);
-        final boolean import3DBiomes = platform.capabilities.contains(BIOMES_3D);
+        final boolean importBiomes = platform.capabilities.contains(BIOMES) || platform.capabilities.contains(BIOMES_3D);
+//        final boolean import3DBiomes = platform.capabilities.contains(BIOMES_3D);
         final int defaultBiome = (dimension.getDim() == DIM_NETHER) ? BIOME_HELL : (dimension.getDim() == DIM_END ? BIOME_SKY : BIOME_PLAINS);
         final ChunkStore chunkStore = PlatformManager.getInstance().getChunkStore(platform, worldDir, dimension.getDim());
         final int total = chunkStore.getChunkCount();
@@ -379,24 +379,22 @@ public class JavaMapImporter extends MapImporter {
                                 if (height == -1.0f) {
                                     dimension.setBitLayerValueAt(org.pepsoft.worldpainter.layers.Void.INSTANCE, blockX, blockY, true);
                                 }
-                                if (import2DBiomes || import3DBiomes) {
+                                if (importBiomes) {
                                     final int biome;
                                     if (chunk.isBiomesAvailable()) {
-                                        if (import2DBiomes) {
-                                            biome = chunk.getBiome(xx, zz);
-                                        } else {
-                                            // We accept a reduction in resolution here, and we lose 3D biome
-                                            // information
-                                            // TODO make this clear to the user
-                                            // TODO add way of editing 3D biomes
-                                            // TODO apparently for DIM_NORMAL this should use the bottom layer, although using the actual height also appears to work
-                                            biome = chunk.get3DBiome(xx >> 2, dimension.getIntHeightAt(blockX, blockY) >> 2, zz >> 2);
-                                        }
-                                        if (collectDebugInfo && ((biome > HIGHEST_BIOME_ID) || (BIOME_NAMES[biome] == null)) && (biome != 255)) {
-                                            unknownBiomes.add(biome);
-                                        }
+                                        biome = chunk.getBiome(xx, zz);
+                                    } else if (chunk.is3DBiomesAvailable()) {
+                                        // We accept a reduction in resolution here, and we lose 3D biome
+                                        // information
+                                        // TODO make this clear to the user
+                                        // TODO add way of editing 3D biomes
+                                        // TODO apparently for DIM_NORMAL this should use the bottom layer, although using the actual height also appears to work
+                                        biome = chunk.get3DBiome(xx >> 2, dimension.getIntHeightAt(blockX, blockY) >> 2, zz >> 2);
                                     } else {
                                         biome = defaultBiome;
+                                    }
+                                    if (collectDebugInfo && ((biome > HIGHEST_BIOME_ID) || (BIOME_NAMES[biome] == null)) && (biome != 255)) {
+                                        unknownBiomes.add(biome);
                                     }
                                     // If the biome is set (around the edges of the map Minecraft sets it to
                                     // 255, presumably as a marker that it has yet to be calculated), copy

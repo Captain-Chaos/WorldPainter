@@ -12,6 +12,7 @@ import org.pepsoft.worldpainter.plugins.PlatformManager;
 
 import static org.pepsoft.minecraft.Material.BEDROCK;
 import static org.pepsoft.worldpainter.Platform.Capability.BIOMES;
+import static org.pepsoft.worldpainter.Platform.Capability.BIOMES_3D;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_15Biomes.BIOME_PLAINS;
 
 /**
@@ -33,6 +34,15 @@ public class BedrockWallChunk {
                     result.chunk.setMaterial(x, y, z, BEDROCK);
                 }
                 result.chunk.setHeight(x, z, maxY);
+            }
+        }
+        if (platform.capabilities.contains(BIOMES_3D)) {
+            for (int x = 0; x < 4; x++) {
+                for (int z = 0; z < 4; z++) {
+                    for (int y = 0; y < maxHeight; y += 4) {
+                        result.chunk.set3DBiome(x, y >> 2, z, BIOME_PLAINS);
+                    }
+                }
             }
         }
         result.chunk.setTerrainPopulated(true);

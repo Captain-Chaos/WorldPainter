@@ -23,6 +23,7 @@ import static org.pepsoft.worldpainter.Constants.MEDIUM_BLOBS;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
 import static org.pepsoft.worldpainter.Platform.Capability.BIOMES;
+import static org.pepsoft.worldpainter.Platform.Capability.BIOMES_3D;
 import static org.pepsoft.worldpainter.Terrain.BEACHES;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_15Biomes.*;
 
@@ -55,24 +56,32 @@ public class BorderChunkFactory {
         final ChunkFactory.ChunkCreationResult result = new ChunkFactory.ChunkCreationResult();
         result.chunk = PlatformManager.getInstance().createChunk(platform, chunkX, chunkZ, maxHeight);
         final int maxY = maxHeight - 1;
+        final int biome;
+        switch(border) {
+            case VOID:
+                biome = (platform == JAVA_ANVIL_1_15) ? BIOME_VOID : BIOME_PLAINS;
+                break;
+            case LAVA:
+                biome = BIOME_PLAINS;
+                break;
+            case WATER:
+                biome = BIOME_OCEAN;
+                break;
+            default:
+                throw new InternalError();
+        }
         if (platform.capabilities.contains(BIOMES)) {
-            int biome;
-            switch(border) {
-                case VOID:
-                    biome = (platform == JAVA_ANVIL_1_15) ? BIOME_VOID : BIOME_PLAINS;
-                    break;
-                case LAVA:
-                    biome = BIOME_PLAINS;
-                    break;
-                case WATER:
-                    biome = BIOME_OCEAN;
-                    break;
-                default:
-                    throw new InternalError();
-            }
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
                     result.chunk.setBiome(x, z, biome);
+                }
+            }
+        } else if (platform.capabilities.contains(BIOMES_3D)) {
+            for (int x = 0; x < 4; x++) {
+                for (int z = 0; z < 4; z++) {
+                    for (int y = 0; y < maxHeight; y += 4) {
+                        result.chunk.set3DBiome(x, y >> 2, z, biome);
+                    }
                 }
             }
         }

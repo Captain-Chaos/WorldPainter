@@ -16,7 +16,6 @@ import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -114,9 +113,11 @@ public class WorldPainterChunkFactory implements ChunkFactory {
         }
 
         if (copyBiomes && biomesSupported3D) {
+            final int chunkXInWorld = (tileX << TILE_SIZE_BITS) | xOffsetInTile;
+            final int chunkZInWorld = (tileY << TILE_SIZE_BITS) | yOffsetInTile;
             for (int x = 0; x < 16; x += 4) {
                 for (int z = 0; z < 16; z += 4) {
-                    final int biome = getMostPrevalentBiome(tile, xOffsetInTile + x, yOffsetInTile + z, defaultBiome);
+                    final int biome = dimension.getMostPrevalentBiome((chunkXInWorld | x) >> 2, (chunkZInWorld | z) >> 2, defaultBiome);
                     // Set the whole column to this biome since we don't have 3D biome support yet
                     // TODO add 3D biome support
                     final int xx = x >> 2, zz = z >> 2;
@@ -129,10 +130,10 @@ public class WorldPainterChunkFactory implements ChunkFactory {
 
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
-                final int xInTile = xOffsetInTile + x;
-                final int yInTile = yOffsetInTile + z;
-                final int worldX = tileX * TILE_SIZE + xInTile;
-                final int worldY = tileY * TILE_SIZE + yInTile;
+                final int xInTile = xOffsetInTile | x;
+                final int yInTile = yOffsetInTile | z;
+                final int worldX = (tileX << TILE_SIZE_BITS) | xInTile;
+                final int worldY = (tileY << TILE_SIZE_BITS) | yInTile;
 
                 if (copyBiomes && biomesSupported2D) {
                     int biome = dimension.getLayerValueAt(Biome.INSTANCE, worldX, worldY);
@@ -259,39 +260,6 @@ public class WorldPainterChunkFactory implements ChunkFactory {
         return result;
     }
 
-    /**
-     * Get the most prevalent biome in a 4x4 area of a tile.
-     */
-    private int getMostPrevalentBiome(final Tile tile, final int x, final int y, final int defaultBiome) {
-        final int xx2 = x + 4, yy2 = y + 4;
-        final int[] histogram = biomeHistogramRef.get();
-        Arrays.fill(histogram, 0);
-        for (int xx = x; xx < xx2; xx++) {
-            for (int yy = y; yy < yy2; yy++) {
-                int biome = tile.getLayerValue(Biome.INSTANCE, xx, yy);
-                if (biome == 255) {
-                    biome = dimension.getAutoBiome(tile, xx, yy);
-                    if ((biome < 0) || (biome > 254)) {
-                        biome = defaultBiome;
-                    }
-                }
-                histogram[biome]++;
-                if (histogram[biome] > 7) {
-                    // This biome will win or tie; choose it
-                    return biome;
-                }
-            }
-        }
-        int mostPrevalentBiome = -1, mostPrevalentBiomePrevalence = -1;
-        for (int i = 0; i < 255; i++) {
-            if (histogram[i] > mostPrevalentBiomePrevalence) {
-                mostPrevalentBiome = i;
-                mostPrevalentBiomePrevalence = histogram[i];
-            }
-        }
-        return mostPrevalentBiome;
-    }
-
     private boolean isAdjacentWater(Tile tile, int height, int x, int y) {
         if ((x < 0) || (x >= TILE_SIZE) || (y < 0) || (y >= TILE_SIZE)) {
             return false;
@@ -309,7 +277,6 @@ public class WorldPainterChunkFactory implements ChunkFactory {
     private final Set<Layer> minimumLayers;
     private final PerlinNoise sugarCaneNoise = new PerlinNoise(0);
     private final Map<Layer, LayerExporter> exporters;
-    private final ThreadLocal<int[]> biomeHistogramRef = ThreadLocal.withInitial(() -> new int[255]);
 
     private static final long SUGAR_CANE_SEED_OFFSET = 127411424;
     private static final float SUGAR_CANE_CHANCE = PerlinNoise.getLevelForPromillage(325);

@@ -35,6 +35,9 @@ import java.util.stream.Collectors;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.Platform.Capability.BIOMES;
+import static org.pepsoft.worldpainter.Platform.Capability.BIOMES_3D;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
 
 /**
  *
@@ -785,6 +788,10 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
      * Merge only the biomes, leave everything else the same.
      */
     public void mergeBiomes(File backupDir, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
+        if (! (platform.capabilities.contains(BIOMES) || platform.capabilities.contains(BIOMES_3D))) {
+            throw new IllegalArgumentException("Platform " + platform + " does not support biomes");
+        }
+
         // Read existing level.dat file and perform sanity checks
         Level level = performSanityChecks(true);
 
@@ -851,10 +858,20 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                                     chunk = ((DefaultPlatformProvider) platformProvider).createChunk(platform, tag, level.getMaxHeight());
                                 }
                                 int chunkX = chunk.getxPos(), chunkZ = chunk.getzPos();
-                                for (int xx = 0; xx < 16; xx++) {
-                                    for (int zz = 0; zz < 16; zz++) {
-                                        // TODO support 3D biomes
-                                        chunk.setBiome(xx, zz, dimension.getLayerValueAt(Biome.INSTANCE, (chunkX << 4) | xx, (chunkZ << 4) | zz));
+                                if (platform.capabilities.contains(BIOMES)) {
+                                    for (int xx = 0; xx < 16; xx++) {
+                                        for (int zz = 0; zz < 16; zz++) {
+                                            chunk.setBiome(xx, zz, dimension.getLayerValueAt(Biome.INSTANCE, (chunkX << 4) | xx, (chunkZ << 4) | zz));
+                                        }
+                                    }
+                                } else {
+                                    for (int xx = 0; xx < 4; xx++) {
+                                        for (int zz = 0; zz < 4; zz++) {
+                                            final int biome = dimension.getMostPrevalentBiome((chunkX << 2) | xx, (chunkZ << 2) | zz, BIOME_PLAINS);
+                                            for (int y = 0; y < chunk.getMaxHeight(); y += 4) {
+                                                chunk.set3DBiome(xx, y >> 2, zz, biome);
+                                            }
+                                        }
                                     }
                                 }
                                 try (NBTOutputStream out = new NBTOutputStream(newRegion.getChunkDataOutputStream(x, z))) {

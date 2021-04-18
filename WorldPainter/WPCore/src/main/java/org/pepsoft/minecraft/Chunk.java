@@ -69,7 +69,18 @@ public interface Chunk {
     
     int getMaxHeight();
 
+    /**
+     * Indicates whether 2D biomes are available. See {@link #getBiome(int, int)} and {@link #setBiome(int, int, int)}.
+     */
     boolean isBiomesAvailable();
+
+    /**
+     * Indicates whether 3D biomes are available. See {@link #get3DBiome(int, int, int)} and
+     * {@link #set3DBiome(int, int, int, int)}.
+     */
+    default boolean is3DBiomesAvailable() {
+        return false;
+    }
 
     /**
      * Get a 2D biome, stored per column. Throws an {@link UnsupportedOperationException} when invoked on a format which

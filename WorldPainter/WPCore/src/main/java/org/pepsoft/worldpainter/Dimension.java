@@ -1552,6 +1552,47 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         changeNo++;
     }
 
+    /**
+     * Get the most prevalent biome in a 4x4 area.
+     *
+     * @param x X coordinate of the 4x4 area (in 4x4 areas).
+     * @param y Y coordinate of the 4x4 area (in 4x4 areas).
+     * @param defaultBiome The biome to return for areas where the biome is not defined.
+     */
+    public int getMostPrevalentBiome(final int x, final int y, final int defaultBiome) {
+        final Tile tile = getTile(x >> 5, y >> 5);
+        if (tile == null) {
+            return defaultBiome;
+        }
+        final int xx1 = (x << 2) & TILE_SIZE_MASK, yy1 = (y << 2) & TILE_SIZE_MASK, xx2 = xx1 + 4, yy2 = yy1 + 4;
+        final int[] histogram = biomeHistogramRef.get();
+        Arrays.fill(histogram, 0);
+        for (int xx = xx1; xx < xx2; xx++) {
+            for (int yy = yy1; yy < yy2; yy++) {
+                int biome = tile.getLayerValue(Biome.INSTANCE, xx, yy);
+                if (biome == 255) {
+                    biome = getAutoBiome(tile, xx, yy);
+                    if ((biome < 0) || (biome > 254)) {
+                        biome = defaultBiome;
+                    }
+                }
+                histogram[biome]++;
+                if (histogram[biome] > 7) {
+                    // This biome will win or tie; choose it
+                    return biome;
+                }
+            }
+        }
+        int mostPrevalentBiome = -1, mostPrevalentBiomePrevalence = -1;
+        for (int i = 0; i < 255; i++) {
+            if (histogram[i] > mostPrevalentBiomePrevalence) {
+                mostPrevalentBiome = i;
+                mostPrevalentBiomePrevalence = histogram[i];
+            }
+        }
+        return mostPrevalentBiome;
+    }
+
     // Tile.Listener
 
     @Override
@@ -1666,6 +1707,8 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         propertyChangeSupport = new PropertyChangeSupport(this);
         garden = new WPGarden();
         topLayerDepthNoise = new PerlinNoise(seed + TOP_LAYER_DEPTH_SEED_OFFSET);
+        rememberedChangeNo = -1;
+        biomeHistogramRef = ThreadLocal.withInitial(() -> new int[255]);
 
         for (Tile tile: tiles.values()) {
             tile.addListener(this);
@@ -1820,6 +1863,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     private transient WPGarden garden = new WPGarden();
     private transient PerlinNoise topLayerDepthNoise;
     private transient long changeNo, rememberedChangeNo = -1;
+    private transient ThreadLocal<int[]> biomeHistogramRef = ThreadLocal.withInitial(() -> new int[255]);
 
     public static final int[] POSSIBLE_AUTO_BIOMES = {BIOME_PLAINS, BIOME_FOREST,
         BIOME_SWAMPLAND, BIOME_JUNGLE, BIOME_MESA, BIOME_DESERT, BIOME_BEACH,

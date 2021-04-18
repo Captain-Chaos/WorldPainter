@@ -88,9 +88,9 @@ public final class MC115AnvilChunk extends NBTChunk implements MinecraftWorld {
                     biomes[i] = biomesArray[i] & 0xff;
                 }
             }
-            // TODO: migrate biomes map to 1.15 format
-            if ((biomes != null) && (biomes.length < 1024)) {
-                throw new UnsupportedOperationException("Old biomes map not yet supported");
+            if ((biomes != null) && (biomes.length >= 1024)) {
+                biomes3d = biomes;
+                biomes = null;
             }
             heightMaps = new HashMap<>();
             Map<String, Tag> heightMapTags = getMap(TAG_HEIGHT_MAPS);
@@ -192,7 +192,9 @@ public final class MC115AnvilChunk extends NBTChunk implements MinecraftWorld {
             }
             setList(TAG_SECTIONS, CompoundTag.class, sectionTags);
         }
-        if (biomes != null) {
+        if (biomes3d != null) {
+            setIntArray(TAG_BIOMES, biomes3d);
+        } else if (biomes != null) {
             setIntArray(TAG_BIOMES, biomes);
         }
         // TODO heightMaps
@@ -342,20 +344,32 @@ public final class MC115AnvilChunk extends NBTChunk implements MinecraftWorld {
     public boolean isBiomesAvailable() {
         return (biomes != null) && (biomes.length > 0);
     }
-    
+
+    public boolean is3DBiomesAvailable() {
+        return (biomes3d != null) && (biomes3d.length > 0);
+    }
+
     @Override
     public int getBiome(int x, int z) {
-        throw new UnsupportedOperationException("Not supported");
+        return biomes[x + z * 16];
     }
     
     @Override
     public void setBiome(int x, int z, int biome) {
-        throw new UnsupportedOperationException("Not supported");
+        if (readOnly) {
+            return;
+        }
+        if (biomes3d != null) {
+            throw new IllegalStateException("This chunk already has 3D biomes");
+        } else if (biomes == null) {
+            biomes = new int[256];
+        }
+        biomes[x + z * 16] = biome;
     }
 
     @Override
     public int get3DBiome(int x, int y, int z) {
-        return biomes[x + z * 4 + y * 16] & 0xFF;
+        return biomes3d[x + z * 4 + y * 16] & 0xFF;
     }
 
     @Override
@@ -363,10 +377,12 @@ public final class MC115AnvilChunk extends NBTChunk implements MinecraftWorld {
         if (readOnly) {
             return;
         }
-        if (biomes == null) {
-            biomes = new int[1024];
+        if (biomes != null) {
+            throw new IllegalStateException("This chunk already has 2D biomes");
+        } else if (biomes3d == null) {
+            biomes3d = new int[1024];
         }
-        biomes[x + z * 4 + y * 16] = (byte) biome;
+        biomes3d[x + z * 4 + y * 16] = (byte) biome;
     }
 
     @Override
@@ -678,7 +694,7 @@ public final class MC115AnvilChunk extends NBTChunk implements MinecraftWorld {
 
     final Section[] sections;
     final int xPos, zPos;
-    int[] biomes;
+    int[] biomes, biomes3d;
     boolean lightPopulated; // TODO: is this still used by MC 1.15?
     final List<Entity> entities;
     final List<TileEntity> tileEntities;

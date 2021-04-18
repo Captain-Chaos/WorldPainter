@@ -201,6 +201,11 @@ public class InvertedChunk implements Chunk {
     }
 
     @Override
+    public boolean is3DBiomesAvailable() {
+        return chunk.is3DBiomesAvailable();
+    }
+
+    @Override
     public int getBiome(int x, int z) {
         return chunk.getBiome(x, z);
     }
