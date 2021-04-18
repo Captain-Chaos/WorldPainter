@@ -31,8 +31,7 @@ public class Plants {
     public static final Plant DEAD_SHRUB = new SimplePlant("Dead Shrub", Material.DEAD_SHRUBS, PLANTS_AND_FLOWERS) {
         @Override
         public boolean isValidFoundation(MinecraftWorld world, int x, int y, int z) {
-            final Material material = world.getMaterialAt(x, y, z);
-            return material.isNamed(MC_SAND) || material.isNamed(MC_RED_SAND) || material.isNamed(MC_TERRACOTTA);
+            return world.getMaterialAt(x, y, z).isNamedOneOf(MC_SAND, MC_RED_SAND, MC_DIRT, MC_TERRACOTTA, MC_PODZOL, MC_COARSE_DIRT);
         }
     };
     public static final Plant DANDELION = new SimplePlant("Dandelion", Material.DANDELION, PLANTS_AND_FLOWERS);
