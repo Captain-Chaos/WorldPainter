@@ -1,3 +1,16 @@
+-- Version 2.8.0, released 18-04-2021
+
+ * Biomes are now correctly Imported and Exported for Minecraft 1.15+
+   - This solves the striped biomes when Importing Minecraft 1.15+ maps
+   - This means the minimum supported post-1.12 version of Minecraft is now 1.15
+   - Minecraft 1.15 biomes are stored in 4x4x4 chunks. You can still edit them at block level (as Minecraft 1.12 still stores them at block level) but they will be "rounded of" to 4x4 areas when Exported
+   - WorldPainter does not yet support 3D biomes. The biome at ground level is Imported, and applied top to bottom when Exporting or Merging
+ * Biome editing is now also enabled for the Nether and End dimensions
+ * Improvements to the Caves layer:
+   - Better shape (no single block extrusions)
+   - Flooding with water or lava works
+   - Better removal of floating blocks
+
 -- Version 2.7.18, released 27-12-2020
 
  * Bug fix: blocks covered by snow are once again correctly made snowy
