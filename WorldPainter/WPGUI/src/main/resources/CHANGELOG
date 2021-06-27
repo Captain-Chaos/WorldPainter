@@ -1,3 +1,8 @@
+-- Version 2.8.1, released 28-5-2021
+
+ * Make it work on Java 16.
+ * Bug fix: allow dead shrubs to be planted on dirt, podzol and coarse dirt
+
 -- Version 2.8.0, released 18-04-2021
 
  * Biomes are now correctly Imported and Exported for Minecraft 1.15+
