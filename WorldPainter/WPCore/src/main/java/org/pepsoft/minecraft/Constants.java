@@ -33,6 +33,8 @@ public final class Constants {
     public static final String MC_ANDESITE = "minecraft:andesite";
     public static final String MC_ANVIL = "minecraft:anvil";
     public static final String MC_AZURE_BLUET = "minecraft:azure_bluet";
+    public static final String MC_BAMBOO = "minecraft:bamboo";
+    public static final String MC_BAMBOO_SAPLING = "minecraft:bamboo_sapling";
     public static final String MC_BARRIER = "minecraft:barrier";
     public static final String MC_BEACON = "minecraft:beacon";
     public static final String MC_BEDROCK = "minecraft:bedrock";
