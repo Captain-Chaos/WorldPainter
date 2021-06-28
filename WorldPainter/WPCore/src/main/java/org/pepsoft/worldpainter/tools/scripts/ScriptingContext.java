@@ -140,7 +140,18 @@ public class ScriptingContext {
      */
     public MappingOp applyHeightMap(HeightMap heightMap) throws ScriptException {
         checkGoCalled("applyHeightMap");
-        return new MappingOp(this, heightMap);
+        return new MappingOp(this, heightMap, false);
+    }
+
+
+    /**
+     * Map a height map to a portion of the world. Affects the terrain of the world.
+     * @param heightMap the height map to apply.
+     * @return
+     */
+    public MappingOp addHeightMap(HeightMap heightMap) throws ScriptException {
+        checkGoCalled("addHeightMap");
+        return new MappingOp(this, heightMap, true);
     }
     
     /**

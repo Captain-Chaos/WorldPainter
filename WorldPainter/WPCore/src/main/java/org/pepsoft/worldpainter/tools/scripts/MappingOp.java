@@ -24,23 +24,28 @@
 
 package org.pepsoft.worldpainter.tools.scripts;
 
+import org.pepsoft.util.ProgressReceiver;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.HeightMap;
-import org.pepsoft.worldpainter.Terrain;
-import org.pepsoft.worldpainter.World2;
+import org.pepsoft.worldpainter.heightMaps.BitmapHeightMap;
 import org.pepsoft.worldpainter.heightMaps.TransformingHeightMap;
+import org.pepsoft.worldpainter.importing.HeightMapImporter;
 import org.pepsoft.worldpainter.layers.Annotations;
 import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.operations.Filter;
 import org.pepsoft.worldpainter.panels.DefaultFilter;
+import org.pepsoft.worldpainter.themes.Theme;
 
 import java.awt.*;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 
 /**
  *
@@ -48,12 +53,13 @@ import static org.pepsoft.worldpainter.Constants.*;
  */
 @SuppressWarnings("unused") // Used from scripts
 public class MappingOp extends AbstractOperation<Void> {
-    public MappingOp(ScriptingContext context, HeightMap heightMap) throws ScriptException {
+    public MappingOp(ScriptingContext context, HeightMap heightMap, boolean affectsHeight) throws ScriptException {
         super(context);
         if (heightMap == null) {
             throw new ScriptException("heightMap may not be null");
         }
         this.heightMap = heightMap;
+        this.affectsHeight = affectsHeight;
         Arrays.fill(mapping, -1);
     }
     
@@ -250,12 +256,51 @@ public class MappingOp extends AbstractOperation<Void> {
         if ((heightMap == null) && (layer == null) && (terrainIndex == -1)) {
             throw new ScriptException("No data source (heightMap, layer or terrain) specified");
         }
-        if ((mode != Mode.SET_TERRAIN) && (layer == null)) {
+        if ((mode != Mode.SET_TERRAIN) && (layer == null) && (!affectsHeight)) {
             throw new ScriptException("layer not specified");
         }
         if (world == null) {
             throw new ScriptException("world not specified");
         }
+
+        final Dimension dimension = world.getDimension(dimIndex);
+        if (dimension == null) {
+            throw new ScriptException("Non existent dimension specified");
+        }
+
+        if (affectsHeight) {
+            BitmapHeightMap bitMap = (BitmapHeightMap) heightMap;
+            HeightMapImporter importer = new HeightMapImporter();
+
+            HeightMap adjustedHeightMap = bitMap;
+            if ((scale != 100) || (offsetX != 0) || (offsetY != 0)) {
+                if (scale != 100) {
+                    bitMap.setSmoothScaling(true);
+                }
+                adjustedHeightMap = new TransformingHeightMap(heightMap.getName() + " transformed", bitMap, scale, scale, offsetX, offsetY, 0);
+            }
+
+            importer.setHeightMap(adjustedHeightMap);
+            importer.setImageFile(bitMap.getImageFile());
+
+            importer.setTileFactory(dimension.getTileFactory());
+            String name = heightMap.getName();
+            int p = name.lastIndexOf('.');
+            if (p != -1) {
+                name = name.substring(0, p);
+            }
+            importer.setName(name);
+            // TODO autoselect this and make it configurable:
+            importer.setPlatform(JAVA_ANVIL);
+            try {
+                importer.importToDimension(dimension, true, null);
+                return null;
+            } catch (ProgressReceiver.OperationCancelled e) {
+                // Can never happen since we don't pass a progress receiver in
+                throw new InternalError();
+            }
+        }
+
         boolean greyScaleMapPresent = false;
         for (int mappedValue: mapping) {
             if (mappedValue != -1) {
@@ -323,10 +368,6 @@ public class MappingOp extends AbstractOperation<Void> {
                     }
                 }
             }
-        }
-        final Dimension dimension = world.getDimension(dimIndex);
-        if (dimension == null) {
-            throw new ScriptException("Non existent dimension specified");
         }
         
         final HeightMap scaledHeightMap;
@@ -450,6 +491,7 @@ public class MappingOp extends AbstractOperation<Void> {
         }
     }
 
+    private boolean affectsHeight;
     private final int[] mapping = new int[65536];
     private final Map<Integer, Integer> colourMapping = new HashMap<>();
     private HeightMap heightMap;
