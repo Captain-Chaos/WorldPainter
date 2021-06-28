@@ -1,6 +1,8 @@
 package org.pepsoft.worldpainter.layers.bo2;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import org.jnbt.*;
 import org.pepsoft.minecraft.Entity;
 import org.pepsoft.minecraft.Material;
@@ -22,17 +24,27 @@ import static org.pepsoft.minecraft.Material.AIR;
  * Created by Pepijn on 26-6-2016.
  */
 public class Structure extends AbstractObject implements Bo2ObjectProvider {
-    private Structure(CompoundTag root, String name, Map<Point3i, Material> blocks, List<Entity> entities, List<TileEntity> tileEntities) {
+    private Structure(CompoundTag root, String name, Map<Integer, Map<Point3i, Material>> blocks, List<Entity> entities, Map<Integer, List<TileEntity>> tileEntities) {
         this.root = root;
         this.name = name;
         this.blocks = blocks;
         this.entities = entities;
         this.tileEntities = tileEntities;
+        this.rng = new Random();
     }
 
     @Override
     public WPObject getObject() {
-        return this;
+        int size = this.blocks.size();
+        if (size == 1)
+            return this;
+
+        Map<Integer, Map<Point3i, Material>> blocks = Maps.newHashMap();
+        Map<Integer, List<TileEntity>> tiles = Maps.newHashMap();
+        int index = rng.nextInt(size);
+        blocks.put(0, this.blocks.get(index));
+        tiles.put(0, this.tileEntities.get(index));
+        return new Structure(root, name, blocks, entities, tiles);
     }
 
     @Override
@@ -42,7 +54,7 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
 
     @Override
     public void setSeed(long seed) {
-        // Do nothing
+        this.rng.setSeed(seed);
     }
 
     @Override
@@ -65,16 +77,16 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
 
     @Override
     public Material getMaterial(int x, int y, int z) {
-        return blocks.get(new Point3i(x, y, z));
+        return blocks.get(0).get(new Point3i(x, y, z));
     }
 
     @Override
     public boolean getMask(int x, int y, int z) {
         if (getAttribute(ATTRIBUTE_IGNORE_AIR)) {
-            Material material = blocks.get(new Point3i(x, y, z));
+            Material material = blocks.get(0).get(new Point3i(x, y, z));
             return (material != null) && (material != AIR);
         } else {
-            return blocks.containsKey(new Point3i(x, y, z));
+            return blocks.get(0).containsKey(new Point3i(x, y, z));
         }
     }
 
@@ -85,7 +97,7 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
 
     @Override
     public List<TileEntity> getTileEntities() {
-        return tileEntities;
+        return tileEntities.get(0);
     }
 
     @Override
@@ -139,10 +151,29 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
             root = (CompoundTag) in.readTag();
         }
 
-        // Load the palette
+        // Load the palette(s)
         ListTag paletteTag = (ListTag) root.getTag(TAG_PALETTE_);
-        Material[] palette = new Material[paletteTag.getValue().size()];
-        for (int i = 0; i < palette.length; i++) {
+        ArrayList<ListTag> palettes = new ArrayList<>();
+        if (paletteTag != null) {
+            // single palette
+            palettes.add(paletteTag);
+        } else {
+            // assume use of multiple palettes
+            paletteTag = (ListTag) root.getTag(TAG_PALETTES);
+            for (int i = 0; i < paletteTag.getValue().size(); i++) {
+                palettes.add((ListTag)paletteTag.getValue().get(i));
+            }
+        }
+
+        // Load the blocks and tile entities
+        Map<Integer, Map<Point3i, Material>> blocks = Maps.newHashMap();
+        Map<Integer, List<TileEntity>> tileEntities = Maps.newHashMap();
+        ListTag<CompoundTag> blocksTag = (ListTag<CompoundTag>) root.getTag(TAG_BLOCKS_);
+
+        for (int i = 0; i < palettes.size(); i++) {
+            paletteTag = palettes.get(i);
+            Material[] palette = new Material[paletteTag.getValue().size()];
+
             CompoundTag entryTag = (CompoundTag) paletteTag.getValue().get(i);
             String name = ((StringTag) entryTag.getTag(TAG_NAME)).getValue();
             CompoundTag propertiesTag = (CompoundTag) entryTag.getTag(TAG_PROPERTIES);
@@ -150,27 +181,28 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
                     ? propertiesTag.getValue().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> ((StringTag) entry.getValue()).getValue()))
                     : null;
             palette[i] = Material.get(name, properties);
-        }
 
-        // Load the blocks and tile entities
-        Map<Point3i, Material> blocks = new HashMap<>();
-        ListTag<CompoundTag> blocksTag = (ListTag<CompoundTag>) root.getTag(TAG_BLOCKS_);
-        List<TileEntity> tileEntities = new ArrayList<>();
-        for (CompoundTag blockTag: blocksTag.getValue()) {
-            List<IntTag> posTags = ((ListTag<IntTag>) blockTag.getTag(TAG_POS_)).getValue();
-            int x = posTags.get(0).getValue();
-            int y = posTags.get(2).getValue();
-            int z = posTags.get(1).getValue();
-            blocks.put(new Point3i(x, y, z), palette[((IntTag) blockTag.getTag(TAG_STATE_)).getValue()]);
-            CompoundTag nbtTag = (CompoundTag) blockTag.getTag(TAG_NBT_);
-            if (nbtTag != null) {
-                // This block is a tile entity
-                TileEntity tileEntity = TileEntity.fromNBT(nbtTag);
-                tileEntity.setX(x);
-                tileEntity.setY(z);
-                tileEntity.setZ(y);
-                tileEntities.add(tileEntity);
+            Map<Point3i, Material> tempBlocks = Maps.newHashMap();
+            List<TileEntity> tempTiles = new ArrayList<>();
+            for (CompoundTag blockTag: blocksTag.getValue()) {
+                List<IntTag> posTags = ((ListTag<IntTag>) blockTag.getTag(TAG_POS_)).getValue();
+                int x = posTags.get(0).getValue();
+                int y = posTags.get(2).getValue();
+                int z = posTags.get(1).getValue();
+                tempBlocks.put(new Point3i(x, y, z), palette[((IntTag) blockTag.getTag(TAG_STATE_)).getValue()]);
+                CompoundTag nbtTag = (CompoundTag) blockTag.getTag(TAG_NBT_);
+                if (nbtTag != null) {
+                    // This block is a tile entity
+                    TileEntity tileEntity = TileEntity.fromNBT(nbtTag);
+                    tileEntity.setX(x);
+                    tileEntity.setY(z);
+                    tileEntity.setZ(y);
+                    tempTiles.add(tileEntity);
+                }
             }
+
+            blocks.put(i, tempBlocks);
+            tileEntities.put(i, tempTiles);
         }
 
         // Load the entities
@@ -182,18 +214,20 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
 
         // Remove palette, blocks and entities from the tag so we don't waste space
         root.setTag(TAG_PALETTE_, null);
+        root.setTag(TAG_PALETTES, null);
         root.setTag(TAG_BLOCKS_, null);
         root.setTag(TAG_ENTITIES_, null);
 
-        return new Structure(root, objectName, blocks, (! entities.isEmpty()) ? ImmutableList.copyOf(entities) : null, (! tileEntities.isEmpty()) ? ImmutableList.copyOf(tileEntities) : null);
+        return new Structure(root, objectName, blocks, (! entities.isEmpty()) ? ImmutableList.copyOf(entities) : null, (! tileEntities.isEmpty()) ? ImmutableMap.copyOf(tileEntities) : null);
     }
 
     private final CompoundTag root;
-    private final Map<Point3i, Material> blocks;
+    private final Map<Integer, Map<Point3i, Material>> blocks;
     private String name;
     private Map<String, Serializable> attributes;
     private final List<Entity> entities;
-    private final List<TileEntity> tileEntities;
+    private final Map<Integer, List<TileEntity>> tileEntities;
+    private Random rng;
 
     public static final AttributeKey<Boolean> ATTRIBUTE_IGNORE_AIR = new AttributeKey<>("Structure.ignoreAir", true);
 
