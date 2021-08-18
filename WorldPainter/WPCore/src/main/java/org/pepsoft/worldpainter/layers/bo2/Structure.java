@@ -28,7 +28,7 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
         this.root = root;
         this.name = name;
         this.blocks = null; // TODO remove in a future update (3.0 release)
-        this.pallets = blocks;
+        this.palettes = blocks;
         this.entities = entities;
         this.tileEntities = tileEntities;
         this.rng = new Random();
@@ -37,7 +37,7 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
     @Override
     public WPObject getObject() {
         return this;
-        /* TODO: add support for selecting pallets
+        /* TODO: add support for selecting palettes
         int size = this.blocks.size();
         if (size == 1)
             return this;
@@ -81,16 +81,16 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
 
     @Override
     public Material getMaterial(int x, int y, int z) {
-        return pallets.get(0).get(new Point3i(x, y, z));
+        return palettes.get(0).get(new Point3i(x, y, z));
     }
 
     @Override
     public boolean getMask(int x, int y, int z) {
         if (getAttribute(ATTRIBUTE_IGNORE_AIR)) {
-            Material material = pallets.get(0).get(new Point3i(x, y, z));
+            Material material = palettes.get(0).get(new Point3i(x, y, z));
             return (material != null) && (material != AIR);
         } else {
-            return pallets.get(0).containsKey(new Point3i(x, y, z));
+            return palettes.get(0).containsKey(new Point3i(x, y, z));
         }
     }
 
@@ -234,7 +234,7 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
 
     private final CompoundTag root;
     @Deprecated private final Map<Point3i, Material> blocks;
-    private final List<Map<Point3i, Material>> pallets;
+    private final List<Map<Point3i, Material>> palettes;
     private String name;
     private Map<String, Serializable> attributes;
     private final List<Entity> entities;
