@@ -24,10 +24,11 @@ import static org.pepsoft.minecraft.Material.AIR;
  * Created by Pepijn on 26-6-2016.
  */
 public class Structure extends AbstractObject implements Bo2ObjectProvider {
-    private Structure(CompoundTag root, String name, Map<Integer, Map<Point3i, Material>> blocks, List<Entity> entities, Map<Integer, List<TileEntity>> tileEntities) {
+    private Structure(CompoundTag root, String name, List<Map<Point3i, Material>> blocks, List<Entity> entities, Map<Integer, List<TileEntity>> tileEntities) {
         this.root = root;
         this.name = name;
-        this.blocks = blocks;
+        this.blocks = null; // TODO remove in a future update (3.0 release)
+        this.pallets = blocks;
         this.entities = entities;
         this.tileEntities = tileEntities;
         this.rng = new Random();
@@ -35,6 +36,8 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
 
     @Override
     public WPObject getObject() {
+        return this;
+        /* TODO: add support for selecting pallets
         int size = this.blocks.size();
         if (size == 1)
             return this;
@@ -45,6 +48,7 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
         blocks.put(0, this.blocks.get(index));
         tiles.put(0, this.tileEntities.get(index));
         return new Structure(root, name, blocks, entities, tiles);
+        */
     }
 
     @Override
@@ -77,16 +81,16 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
 
     @Override
     public Material getMaterial(int x, int y, int z) {
-        return blocks.get(0).get(new Point3i(x, y, z));
+        return pallets.get(0).get(new Point3i(x, y, z));
     }
 
     @Override
     public boolean getMask(int x, int y, int z) {
         if (getAttribute(ATTRIBUTE_IGNORE_AIR)) {
-            Material material = blocks.get(0).get(new Point3i(x, y, z));
+            Material material = pallets.get(0).get(new Point3i(x, y, z));
             return (material != null) && (material != AIR);
         } else {
-            return blocks.get(0).containsKey(new Point3i(x, y, z));
+            return pallets.get(0).containsKey(new Point3i(x, y, z));
         }
     }
 
@@ -159,14 +163,14 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
             palettes.add(paletteTag);
         } else {
             // assume use of multiple palettes
-            paletteTag = (ListTag) root.getTag(TAG_PALETTES);
+            paletteTag = (ListTag) root.getTag(TAG_PALETTES_);
             for (int i = 0; i < paletteTag.getValue().size(); i++) {
                 palettes.add((ListTag)paletteTag.getValue().get(i));
             }
         }
 
         // Load the blocks and tile entities
-        Map<Integer, Map<Point3i, Material>> blocks = Maps.newHashMap();
+        List<Map<Point3i, Material>> blocks = new ArrayList<>();
         Map<Integer, List<TileEntity>> tileEntities = Maps.newHashMap();
         ListTag<CompoundTag> blocksTag = (ListTag<CompoundTag>) root.getTag(TAG_BLOCKS_);
 
@@ -201,7 +205,7 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
                 }
             }
 
-            blocks.put(i, tempBlocks);
+            blocks.add(tempBlocks);
             tileEntities.put(i, tempTiles);
         }
 
@@ -214,15 +218,23 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
 
         // Remove palette, blocks and entities from the tag so we don't waste space
         root.setTag(TAG_PALETTE_, null);
-        root.setTag(TAG_PALETTES, null);
+        root.setTag(TAG_PALETTES_, null);
         root.setTag(TAG_BLOCKS_, null);
         root.setTag(TAG_ENTITIES_, null);
 
         return new Structure(root, objectName, blocks, (! entities.isEmpty()) ? ImmutableList.copyOf(entities) : null, (! tileEntities.isEmpty()) ? ImmutableMap.copyOf(tileEntities) : null);
     }
 
+    private Object readResolve() {
+        if (blocks != null) { // old versions have non-null blocks field
+            return new Structure(root, name, new ArrayList<>(Collections.singletonList(blocks)), entities, tileEntities);
+        }
+        return this;
+    }
+
     private final CompoundTag root;
-    private final Map<Integer, Map<Point3i, Material>> blocks;
+    @Deprecated private final Map<Point3i, Material> blocks;
+    private final List<Map<Point3i, Material>> pallets;
     private String name;
     private Map<String, Serializable> attributes;
     private final List<Entity> entities;

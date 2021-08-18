@@ -634,7 +634,7 @@ public final class Constants {
     public static final String TAG_PALETTE                 = "Palette";
     /** Lower case variant. */
     public static final String TAG_PALETTE_                = "palette";
-    public static final String TAG_PALETTES                = "palettes";
+    public static final String TAG_PALETTES_               = "palettes";
     public static final String TAG_NAME                    = "Name";
     public static final String TAG_PROPERTIES              = "Properties";
     public static final String TAG_SNAPSHOT                = "Snapshot";
