@@ -65,7 +65,9 @@ public class EditObjectAttributes extends javax.swing.JDialog {
             }
             Point3i offset = object.getOffset();
             offsets.put(object, offset);
-            String offsetStr = "<html><u>" + offset.x + ", " + offset.y + ", " + offset.z + "</u></html>";
+            int yVariation = object.getAttribute(ATTRIBUTE_Y_VARIATION);
+            yVariations.put(object,yVariation);
+            String offsetStr = "<html><u>" + offset.x + ", " + offset.y + ", " + offset.z +" (" + yVariation + ")</u></html>";
             labelOffset.setText(offsetStr);
             checkBoxRandomRotation.setSelected(object.getAttribute(ATTRIBUTE_RANDOM_ROTATION));
             checkBoxRandomRotation.setTristateMode(false);
@@ -128,6 +130,7 @@ public class EditObjectAttributes extends javax.swing.JDialog {
             for (WPObject object: objects) {
                 if (! object.getOffset().equals(origin)) {
                     offsets.put(object, object.getOffset());
+                    yVariations.put(object, object.getAttribute(ATTRIBUTE_Y_VARIATION));//not shure if this line is nessecary or just wrong...
                 }
                 int frequency = object.getAttribute(ATTRIBUTE_FREQUENCY);
                 frequencyTotal += frequency;
@@ -190,12 +193,15 @@ public class EditObjectAttributes extends javax.swing.JDialog {
         }
         WPObject object = objects.iterator().next();
         Point3i offset = offsets.get(object);
-        OffsetEditor dialog = new OffsetEditor(this, (offset != null) ? offset : new Point3i(), object, colourScheme);
+        Integer yVariation = yVariations.get(object);
+        OffsetEditor dialog = new OffsetEditor(this, (offset != null) ? offset : new Point3i(),(yVariation != null) ? yVariation : 0, object, colourScheme);
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             offset = dialog.getOffset();
+            yVariation = dialog.getYVariation();
+            yVariations.put(object,yVariation);
             offsets.put(object, offset);
-            String offsetStr = "<html><u>" + offset.x + ", " + offset.y + ", " + offset.z + "</u></html>";
+            String offsetStr = "<html><u>" + offset.x + ", " + offset.y + ", " + offset.z +" (" + yVariation + ")</u></html>";
             labelOffset.setText(offsetStr);
         }
     }
@@ -223,6 +229,12 @@ public class EditObjectAttributes extends javax.swing.JDialog {
                 attributes.put(ATTRIBUTE_OFFSET.key, offset);
             } else {
                 attributes.remove(ATTRIBUTE_OFFSET.key);
+            }
+            Integer yVariation = yVariations.get(object);
+            if (yVariation != null) {
+                attributes.put(ATTRIBUTE_Y_VARIATION.key, yVariation);
+            } else {
+                attributes.remove(ATTRIBUTE_Y_VARIATION.key);
             }
             if (! checkBoxRandomRotation.isMixed()) {
                 attributes.put(ATTRIBUTE_RANDOM_ROTATION.key, checkBoxRandomRotation.isSelected());
@@ -282,13 +294,15 @@ public class EditObjectAttributes extends javax.swing.JDialog {
             if (offset == null) {
                 // This object has size zero or consists of nothing but air!
                 offsets.clear();
+                yVariations.clear();
                 if (singleSelection) {
-                    labelOffset.setText("<html><u>0, 0, 0</u></html>");
+                    labelOffset.setText("<html><u>0, 0, 0 (0)</u></html>");
                 }
             } else {
                 offsets.put(object, offset);
+                yVariations.put(object,0);
                 if (singleSelection) {
-                    String offsetStr = "<html><u>" + offset.x + ", " + offset.y + ", " + offset.z + "</u></html>";
+                    String offsetStr = "<html><u>" + offset.x + ", " + offset.y + ", " + offset.z +" (" + 0 + ")</u></html>";
                     labelOffset.setText(offsetStr);
                 }
             }
@@ -300,9 +314,10 @@ public class EditObjectAttributes extends javax.swing.JDialog {
 
     private void resetOffset() {
         offsets.clear();
+        yVariations.clear();
         boolean singleSelection = objects.size() == 1;
         if (singleSelection) {
-            labelOffset.setText("<html><u>0, 0, 0</u></html>");
+            labelOffset.setText("<html><u>0, 0, 0 (0)</u></html>");
         } else {
             JOptionPane.showMessageDialog(this, objects.size() + " offsets reset");
         }
@@ -683,6 +698,7 @@ public class EditObjectAttributes extends javax.swing.JDialog {
     private final Collection<WPObject> objects;
     private final File file;
     private final Map<WPObject, Point3i> offsets = new HashMap<>();
+    private final Map<WPObject, Integer> yVariations = new HashMap<>();
     private final ColourScheme colourScheme;
     private boolean cancelled = true;
     

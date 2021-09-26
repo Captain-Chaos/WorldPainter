@@ -25,6 +25,7 @@ import javax.vecmath.Point3i;
 import java.awt.*;
 import java.util.List;
 import java.util.UUID;
+import java.util.Random;
 
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
@@ -80,7 +81,10 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
     public static void renderObject(MinecraftWorld world, Dimension dimension, WPObject object, int x, int y, int z, boolean obliterate) {
         try {
             final Point3i dim = object.getDimensions();
-            final Point3i offset = object.getOffset();
+            Random rand = new Random((long)x << 32 | y & 0xFFFFFFFFL);//create a random number generator with te seed to be x and y (converted into a long (seed))
+            final Point3i offsetTemp = object.getOffset();
+            final int yVariance = Math.abs(object.getAttribute(ATTRIBUTE_Y_VARIATION));//should always be positive.
+            final Point3i offset = new Point3i(offsetTemp.x,offsetTemp.y,offsetTemp.z+(rand.nextInt(yVariance+1)-(yVariance+1)/2));//add a random number to the vertical component. it will be placed in a range of yVrariance where the yoffset is the middle. (the first +1 is becuase rand.nextInt(0) is illegal (it uses the modulo operator rand % n where n needs to be one bigger than the range you want) the second +1 is so it prioritizes moving down.)
             final int undergroundMode = object.getAttribute(ATTRIBUTE_UNDERGROUND_MODE);
             final int leafDecayMode = object.getAttribute(ATTRIBUTE_LEAF_DECAY_MODE);
             final boolean bottomless = dimension.isBottomless();

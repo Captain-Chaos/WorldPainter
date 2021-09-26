@@ -264,6 +264,7 @@ public interface WPObject extends Serializable, Cloneable {
     AttributeKey<Boolean> ATTRIBUTE_SPAWN_ON_WATER   = new AttributeKey<>("WPObject.spawnOnWater", false);
     AttributeKey<Boolean> ATTRIBUTE_SPAWN_ON_LAVA    = new AttributeKey<>("WPObject.spawnOnLava", false);
     AttributeKey<Integer> ATTRIBUTE_FREQUENCY        = new AttributeKey<>("WPObject.frequency", 100);
+    AttributeKey<Integer> ATTRIBUTE_Y_VARIATION      = new AttributeKey<>("WPObject.yVariation", 0);
     /**
      * Collision mode. Possible values:
      * 

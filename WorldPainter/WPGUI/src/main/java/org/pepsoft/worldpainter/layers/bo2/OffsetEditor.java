@@ -27,7 +27,7 @@ public class OffsetEditor extends javax.swing.JDialog {
     /**
      * Creates new form OffsetEditor
      */
-    public OffsetEditor(Window parent, Point3i offset, WPObject object, ColourScheme colourScheme) {
+    public OffsetEditor(Window parent, Point3i offset, int yVariation, WPObject object, ColourScheme colourScheme) {
         super(parent, ModalityType.DOCUMENT_MODAL);
         
         initComponents();
@@ -39,6 +39,7 @@ public class OffsetEditor extends javax.swing.JDialog {
         spinnerX.setValue(offset.x);
         spinnerY.setValue(offset.y);
         spinnerZ.setValue(offset.z);
+        spinnerYVariation.setValue(yVariation);
         
         ActionMap actionMap = rootPane.getActionMap();
         actionMap.put("cancel", new AbstractAction("cancel") {
@@ -86,6 +87,10 @@ public class OffsetEditor extends javax.swing.JDialog {
     public Point3i getOffset() {
         return new Point3i((Integer) spinnerX.getValue(), (Integer) spinnerY.getValue(), (Integer) spinnerZ.getValue());
     }
+    
+    public int getYVariation(){
+        return (Integer)spinnerYVariation.getValue();
+    }
 
     private void updateOffsetViewer() {
         offsetViewer1.setOffset(getOffset());
@@ -106,6 +111,8 @@ public class OffsetEditor extends javax.swing.JDialog {
         spinnerY = new javax.swing.JSpinner();
         jLabel4 = new javax.swing.JLabel();
         spinnerZ = new javax.swing.JSpinner();
+        jLabel6 = new javax.swing.JLabel();
+        spinnerYVariation = new javax.swing.JSpinner();
         buttonCancel = new javax.swing.JButton();
         buttonOK = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
@@ -118,23 +125,54 @@ public class OffsetEditor extends javax.swing.JDialog {
         jLabel2.setText("X axis (west to east):");
 
         spinnerX.setModel(new javax.swing.SpinnerNumberModel(0, -999, 999, 1));
-        spinnerX.addChangeListener(this::spinnerXStateChanged);
+        spinnerX.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerXStateChanged(evt);
+            }
+        });
 
         jLabel3.setText("Z axis (north to south):");
 
         spinnerY.setModel(new javax.swing.SpinnerNumberModel(0, -999, 999, 1));
-        spinnerY.addChangeListener(this::spinnerYStateChanged);
+        spinnerY.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerYStateChanged(evt);
+            }
+        });
 
         jLabel4.setText("Y axis (vertical):");
 
         spinnerZ.setModel(new javax.swing.SpinnerNumberModel(0, -999, 999, 1));
-        spinnerZ.addChangeListener(this::spinnerZStateChanged);
+        spinnerZ.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerZStateChanged(evt);
+            }
+        });
+
+        jLabel6.setText("Y variation (vertical):");
+
+        spinnerYVariation.setModel(new javax.swing.SpinnerNumberModel(0, 0, 999, 1));
+        spinnerYVariation.setMinimumSize(new java.awt.Dimension(78, 22));
+        spinnerYVariation.setPreferredSize(new java.awt.Dimension(78, 22));
+        spinnerYVariation.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerYVariationStateChanged(evt);
+            }
+        });
 
         buttonCancel.setText("Cancel");
-        buttonCancel.addActionListener(this::buttonCancelActionPerformed);
+        buttonCancel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonCancelActionPerformed(evt);
+            }
+        });
 
         buttonOK.setText("OK");
-        buttonOK.addActionListener(this::buttonOKActionPerformed);
+        buttonOK.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonOKActionPerformed(evt);
+            }
+        });
 
         jPanel1.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
 
@@ -142,7 +180,7 @@ public class OffsetEditor extends javax.swing.JDialog {
         offsetViewer1.setLayout(offsetViewer1Layout);
         offsetViewer1Layout.setHorizontalGroup(
             offsetViewer1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addGap(0, 277, Short.MAX_VALUE)
         );
         offsetViewer1Layout.setVerticalGroup(
             offsetViewer1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -153,11 +191,11 @@ public class OffsetEditor extends javax.swing.JDialog {
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(offsetViewer1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(offsetViewer1, javax.swing.GroupLayout.DEFAULT_SIZE, 277, Short.MAX_VALUE)
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(offsetViewer1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(offsetViewer1, javax.swing.GroupLayout.DEFAULT_SIZE, 349, Short.MAX_VALUE)
         );
 
         jTextArea1.setEditable(false);
@@ -181,12 +219,14 @@ public class OffsetEditor extends javax.swing.JDialog {
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jLabel2)
                                     .addComponent(jLabel3)
-                                    .addComponent(jLabel4))
+                                    .addComponent(jLabel4)
+                                    .addComponent(jLabel6, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(spinnerZ, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(spinnerY, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(spinnerX, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(spinnerZ)
+                                    .addComponent(spinnerY)
+                                    .addComponent(spinnerX)
+                                    .addComponent(spinnerYVariation, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                             .addComponent(jTextArea1))
                         .addGap(18, 18, 18)
                         .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -214,8 +254,12 @@ public class OffsetEditor extends javax.swing.JDialog {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel4)
                             .addComponent(spinnerZ, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel6)
+                            .addComponent(spinnerYVariation, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(18, 18, 18)
-                        .addComponent(jTextArea1, javax.swing.GroupLayout.PREFERRED_SIZE, 220, Short.MAX_VALUE))
+                        .addComponent(jTextArea1, javax.swing.GroupLayout.DEFAULT_SIZE, 229, Short.MAX_VALUE))
                     .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -248,17 +292,23 @@ public class OffsetEditor extends javax.swing.JDialog {
         updateOffsetViewer();
     }//GEN-LAST:event_spinnerZStateChanged
 
+    private void spinnerYVariationStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerYVariationStateChanged
+        // TODO add your handling code here:
+    }//GEN-LAST:event_spinnerYVariationStateChanged
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonCancel;
     private javax.swing.JButton buttonOK;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel6;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JTextArea jTextArea1;
     private org.pepsoft.worldpainter.layers.bo2.OffsetViewer offsetViewer1;
     private javax.swing.JSpinner spinnerX;
     private javax.swing.JSpinner spinnerY;
+    private javax.swing.JSpinner spinnerYVariation;
     private javax.swing.JSpinner spinnerZ;
     // End of variables declaration//GEN-END:variables
 
