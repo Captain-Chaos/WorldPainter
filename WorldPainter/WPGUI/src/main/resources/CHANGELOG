@@ -1,4 +1,9 @@
+-- Version 2.8.3, released 6-11-2021
+
+ * Implement a workaround for Importing maps that had previously been Exported with incorrect biome IDs due to the bug fixed in version 2.8.2
+
 -- Version 2.8.2, released 5-11-2021
+
  * Bug fix: correctly export biomes with ID's higher than 127 in Minecraft 1.15+ format
 
 -- Version 2.8.1, released 28-5-2021
