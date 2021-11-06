@@ -1,3 +1,6 @@
+-- Version 2.8.2, released 5-11-2021
+ * Bug fix: correctly export biomes with ID's higher than 127 in Minecraft 1.15+ format
+
 -- Version 2.8.1, released 28-5-2021
 
  * Make it work on Java 16.

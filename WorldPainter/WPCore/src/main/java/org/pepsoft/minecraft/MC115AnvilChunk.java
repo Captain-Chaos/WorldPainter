@@ -6,7 +6,6 @@
 package org.pepsoft.minecraft;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import org.jnbt.*;
 import org.pepsoft.minecraft.MC115AnvilChunk.Section.IncompleteSectionException;
 import org.pepsoft.worldpainter.exception.WPRuntimeException;
@@ -369,7 +368,7 @@ public final class MC115AnvilChunk extends NBTChunk implements MinecraftWorld {
 
     @Override
     public int get3DBiome(int x, int y, int z) {
-        return biomes3d[x + z * 4 + y * 16] & 0xFF;
+        return biomes3d[x + z * 4 + y * 16];
     }
 
     @Override
@@ -382,7 +381,7 @@ public final class MC115AnvilChunk extends NBTChunk implements MinecraftWorld {
         } else if (biomes3d == null) {
             biomes3d = new int[1024];
         }
-        biomes3d[x + z * 4 + y * 16] = (byte) biome;
+        biomes3d[x + z * 4 + y * 16] = biome;
     }
 
     @Override
@@ -959,11 +958,4 @@ public final class MC115AnvilChunk extends NBTChunk implements MinecraftWorld {
             }
         }
     }
-
-    private static final Set<String> populatedStatuses = ImmutableSet.of(
-            // 1.14:
-            "features", "light", "full",
-
-            // 1.13:
-            "decorated", "fullchunk", "postprocessed");
 }
