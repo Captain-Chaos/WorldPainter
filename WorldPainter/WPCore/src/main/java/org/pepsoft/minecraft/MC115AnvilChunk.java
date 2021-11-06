@@ -87,9 +87,12 @@ public final class MC115AnvilChunk extends NBTChunk implements MinecraftWorld {
                     biomes[i] = biomesArray[i] & 0xff;
                 }
             }
-            if ((biomes != null) && (biomes.length >= 1024)) {
-                biomes3d = biomes;
-                biomes = null;
+            if (biomes != null) {
+                fixNegativeValues(biomes);
+                if (biomes.length >= 1024) {
+                    biomes3d = biomes;
+                    biomes = null;
+                }
             }
             heightMaps = new HashMap<>();
             Map<String, Tag> heightMapTags = getMap(TAG_HEIGHT_MAPS);
@@ -639,7 +642,18 @@ public final class MC115AnvilChunk extends NBTChunk implements MinecraftWorld {
     public MC115AnvilChunk clone() {
         throw new UnsupportedOperationException("MC113AnvilChunk.clone() not supported");
     }
-    
+
+    /**
+     * Fix negative values caused by an earlier bug where biomes ids were cast to a byte.
+     */
+    private void fixNegativeValues(int[] biomes) {
+        for (int i = 0; i < biomes.length; i++) {
+            if (biomes[i] < 0) {
+                biomes[i] = biomes[i] & 0xff;
+            }
+        }
+    }
+
     private int getDataByte(byte[] array, int x, int y, int z) {
         int blockOffset = blockOffset(x, y, z);
         byte dataByte = array[blockOffset / 2];
