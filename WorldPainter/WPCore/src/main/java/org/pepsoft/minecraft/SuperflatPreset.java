@@ -224,7 +224,7 @@ public class SuperflatPreset implements Serializable {
         private static final long serialVersionUID = 1L;
     }
 
-    public enum Structure {VILLAGE, BIOME_1, DECORATION, STRONGHOLD, MINESHAFT, LAKE, LAVA_LAKE, DUNGEON, OCEANMONUMENT, DESERT_PYRAMID, FORTRESS, MANSION, ENDCITY, PILLAGER_OUTPOST, RUINED_PORTAL‌, BASTION_REMNANT‌}
+    public enum Structure {VILLAGE, BIOME_1, DECORATION, STRONGHOLD, MINESHAFT, LAKE, LAVA_LAKE, DUNGEON, OCEANMONUMENT, DESERT_PYRAMID, FORTRESS, MANSION, ENDCITY, PILLAGER_OUTPOST, RUINED_PORTAL, BASTION_REMNANT}
 
     public static class Builder {
         private final int biome;
