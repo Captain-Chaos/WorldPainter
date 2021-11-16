@@ -74,18 +74,8 @@ public class ScriptingTool {
             System.exit(1);
         }
         String scriptFileName = scriptFile.getName();
-        int p = scriptFileName.lastIndexOf('.');
-        if (p == -1) {
-            System.err.println("Script file name " + scriptFileName + " has no extension");
-            System.exit(1);
-        }
-        String extension = scriptFileName.substring(p + 1);
         ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
-        ScriptEngine scriptEngine = scriptEngineManager.getEngineByExtension(extension);
-        if (scriptEngine == null) {
-            System.err.println("Script file language " + extension + " not supported");
-            System.exit(1);
-        }
+        ScriptEngine scriptEngine = scriptEngineManager.getEngineByName("graal.js");
         scriptEngine.put(ScriptEngine.FILENAME, scriptFileName);
 
         // Load the default platform descriptors so that they don't get blocked

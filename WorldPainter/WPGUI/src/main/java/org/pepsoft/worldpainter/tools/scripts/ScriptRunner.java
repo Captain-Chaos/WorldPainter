@@ -319,7 +319,7 @@ public class ScriptRunner extends WorldPainterDialog {
                     Configuration config = Configuration.getInstance();
                     int p = scriptFileName.lastIndexOf('.');
                     String extension = scriptFileName.substring(p + 1);
-                    ScriptEngine scriptEngine = scriptEngineManager.getEngineByExtension(extension);
+                    ScriptEngine scriptEngine = scriptEngineManager.getEngineByName("graal.js");
                     scriptEngine.put(ScriptEngine.FILENAME, scriptFileName);
                     config.setRecentScriptFiles(new ArrayList<>(recentScriptFiles));
 
