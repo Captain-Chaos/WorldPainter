@@ -208,7 +208,7 @@ public class JavaMapImporter extends MapImporter {
         world.setGenerator(level.getGenerator());
         if (level.getGenerator() == Generator.CUSTOM) {
             world.setGeneratorOptions(level.getGeneratorName());
-        } else {
+        } else if (level.getGenerator() != null) {
             Tag generatorOptions = level.getGeneratorOptions();
             if (generatorOptions instanceof StringTag) {
                 String generatorOptionsStr = ((StringTag) generatorOptions).getValue();

@@ -225,6 +225,12 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
 
     public synchronized void setTerrain(int x, int y, Terrain terrain) {
         ensureWriteable(TERRAIN);
+        // Sanity checks because of NPE's observed in the wild from this method
+        if (this.terrain == null) {
+            throw new NullPointerException("setTerrain(" + x + ", " + y + ", " + terrain + "): this.terrain is null for tile @ " + this.x + "," + this.y);
+        } else if (terrain == null) {
+            throw new NullPointerException("setTerrain(" + x + ", " + y + ", null): terrain parameter is null for tile @ " + this.x + "," + this.y);
+        }
         this.terrain[x | (y << TILE_SIZE_BITS)] = (byte) terrain.ordinal();
         terrainChanged();
     }

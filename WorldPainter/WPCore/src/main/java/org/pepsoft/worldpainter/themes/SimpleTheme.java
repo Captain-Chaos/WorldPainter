@@ -5,23 +5,19 @@
  */
 package org.pepsoft.worldpainter.themes;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import org.pepsoft.util.PerlinNoise;
-import static org.pepsoft.worldpainter.Constants.SMALL_BLOBS;
-import static org.pepsoft.worldpainter.Constants.TINY_BLOBS;
 import org.pepsoft.worldpainter.HeightTransform;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.layers.Frost;
 import org.pepsoft.worldpainter.layers.Layer;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.util.*;
+
+import static org.pepsoft.worldpainter.Constants.SMALL_BLOBS;
+import static org.pepsoft.worldpainter.Constants.TINY_BLOBS;
 
 /**
  *
@@ -56,6 +52,10 @@ public class SimpleTheme implements Theme, Cloneable {
     public void apply(Tile tile, int x, int y) {
         int height = tile.getIntHeight(x, y);
         Terrain terrain = getTerrain(x, y, clamp(height, maxHeight - 1));
+        // Sanity checks because of NPE's observed in the wild from this method
+        if (terrain == null) {
+            throw new NullPointerException("apply(" + tile + ", " + x + ", " + y + ": getTerrain() returned null for " + this);
+        }
         if (tile.getTerrain(x, y) != terrain) {
             tile.setTerrain(x, y, terrain);
         }
@@ -194,6 +194,19 @@ public class SimpleTheme implements Theme, Cloneable {
         }
     }
 
+    @Override
+    public String toString() {
+        return "SimpleTheme{" +
+                "seed=" + seed +
+                ", waterHeight=" + waterHeight +
+                ", maxHeight=" + maxHeight +
+                ", terrainRanges=" + terrainRanges +
+                ", randomise=" + randomise +
+                ", beaches=" + beaches +
+                ", layerMap=" + layerMap +
+                '}';
+    }
+
     protected Terrain getTerrain(int x, int y, int height) {
         if (beaches && (height >= (waterHeight - 2)) && (height <= (waterHeight + 1))) {
             return Terrain.BEACHES;
@@ -310,7 +323,6 @@ public class SimpleTheme implements Theme, Cloneable {
     private Layer[] layerCache, bitLayerCache;
     private int[][] layerLevelCache, bitLayerLevelCache;
     
-    private static final long SEED_OFFSET = 131;
     private static final Random random = new Random();
     private static final long serialVersionUID = 1L;
 }
