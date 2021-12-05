@@ -1,3 +1,16 @@
+-- Version 2.8.4, released 5-12-2021
+
+ * The Minecraft 1.15+ format is now the default format for new worlds
+ * Add experimental support for Minecraft 1.17 with increased build heights up to 2032 (although higher than 320 is not recommended for performance reasons)
+   - Note that Minecraft 1.18 CANNOT load such maps! Minecraft 1.18 *can* load maps that were exported in Minecraft 1.15+ format. WorldPainter cannot yet Import maps from Minecraft 1.18
+   - If you set the build height to 320 (the default), you will later be able to export the map in Minecraft 1.18 format, once support is added to WorldPainter
+ * Bug fixes: a range of frequent errors has been fixed, including but not limited to:
+   - The Text tool now works with all layers
+   - The Flood tool no longer causes errors when invoked repeatedly
+   - Errors attempting to show a progress bar in the Windows task bar
+   - Importing and Exporting of maps with a non standard world type (it will be reset to the default world type), or Superflat presets without structures
+   - The Populate layer can now be obtained from scripts
+
 -- Version 2.8.3, released 6-11-2021
 
  * Implement a workaround for Importing maps that had previously been Exported with incorrect biome IDs due to the bug fixed in version 2.8.2
