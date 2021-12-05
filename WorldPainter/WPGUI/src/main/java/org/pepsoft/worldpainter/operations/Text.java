@@ -2,6 +2,7 @@ package org.pepsoft.worldpainter.operations;
 
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.WorldPainterView;
+import org.pepsoft.worldpainter.brushes.Brush;
 import org.pepsoft.worldpainter.layers.Annotations;
 import org.pepsoft.worldpainter.layers.exporters.AnnotationsExporter;
 import org.pepsoft.worldpainter.painting.DimensionPainter;
@@ -14,7 +15,7 @@ import java.awt.*;
 /**
  * Created by pepijn on 14-5-15.
  */
-public class Text extends MouseOrTabletOperation implements PaintOperation {
+public class Text extends AbstractBrushOperation implements PaintOperation {
     public Text(WorldPainterView view) {
         super("Text", "Draw text using any layer or terrain at different sizes, fonts and angles", view, "operation.text");
     }
@@ -26,7 +27,17 @@ public class Text extends MouseOrTabletOperation implements PaintOperation {
 
     @Override
     public void setPaint(Paint paint) {
+        if (getBrush() != null) {
+            paint.setBrush(getBrush());
+        }
         painter.setPaint(paint);
+    }
+
+    @Override
+    protected void brushChanged(Brush newBrush) {
+        if (painter.getPaint() != null) {
+            painter.getPaint().setBrush(newBrush);
+        }
     }
 
     @Override
