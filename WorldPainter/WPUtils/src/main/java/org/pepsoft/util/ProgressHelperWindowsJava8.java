@@ -69,7 +69,7 @@ class ProgressHelperWindowsJava8 extends ProgressHelper {
                 taskbarList = COMRuntime.newInstance(ITaskbarList3.class);
                 long hwndVal = JAWTUtils.getNativePeerHandle(window);
                 hwnd = (Pointer<Integer>) Pointer.pointerToAddress(hwndVal);
-            } catch (ClassNotFoundException | RuntimeException | NoClassDefFoundError e) {
+            } catch (ClassNotFoundException | RuntimeException | NoClassDefFoundError | UnsatisfiedLinkError e) {
                 // Probably too old a Windows version
                 taskbarList = null;
                 hwnd = null;
