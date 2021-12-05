@@ -118,7 +118,7 @@ public class SuperflatPreset implements Serializable {
         }).collect(toList());
         int biome = Integer.parseInt(tokens[2]);
         Map<Structure, Map<String, String>> structures = new HashMap<>();
-        if (tokens[3] != null) {
+        if ((tokens.length >= 4) && (tokens[3] != null)) {
             stream(tokens[3].split(",")).forEach(structure -> {
                 int p = structure.indexOf('(');
                 if (p == -1) {
