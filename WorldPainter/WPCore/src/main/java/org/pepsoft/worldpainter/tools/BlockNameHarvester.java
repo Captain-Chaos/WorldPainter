@@ -1,6 +1,5 @@
 package org.pepsoft.worldpainter.tools;
 
-import org.json.simple.JSONValue;
 import org.pepsoft.minecraft.Level;
 import org.pepsoft.minecraft.MC12AnvilChunk;
 import org.pepsoft.minecraft.Material;
@@ -17,9 +16,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.pepsoft.minecraft.Block.BLOCKS;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
+import static org.pepsoft.util.ObjectMapperHolder.OBJECT_MAPPER;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
@@ -134,8 +135,8 @@ public class BlockNameHarvester {
                     blockSpecs.add(blockSpec);
                 }
             }
-            try (Writer out = new OutputStreamWriter(new FileOutputStream("legacy-mc-blocks.json"), "UTF-8")) {
-                out.write(JSONValue.toJSONString(blockSpecs));
+            try (Writer out = new OutputStreamWriter(new FileOutputStream("legacy-mc-blocks.json"), UTF_8)) {
+                OBJECT_MAPPER.writeValue(out, blockSpecs);
             }
         }
     }

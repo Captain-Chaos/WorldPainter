@@ -1,15 +1,14 @@
 package org.pepsoft.worldpainter;
 
 import org.pepsoft.minecraft.Direction;
-import org.pepsoft.util.plugins.PluginManager;
 import org.pepsoft.util.WPCustomObjectInputStream;
+import org.pepsoft.util.plugins.PluginManager;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.Resources;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter;
 import org.pepsoft.worldpainter.objects.AbstractObject;
-import org.pepsoft.worldpainter.plugins.Plugin;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.pepsoft.worldpainter.vo.EventVO;
 
@@ -62,16 +61,9 @@ public class WorldIO {
             metadata.put(World2.METADATA_KEY_TIMESTAMP, new Date());
             if (WPPluginManager.getInstance() != null) {
                 List<String[]> pluginArray = new ArrayList<>();
-                for (Plugin plugin : WPPluginManager.getInstance().getAllPlugins()) {
-                    if (plugin.getName().equals("Default")
-                            || plugin.getName().equals("DefaultPlatforms")
-                            || plugin.getName().equals("DefaultCustomObjects")
-                            || plugin.getName().equals("DefaultLayerEditorProvider")) {
-                        // Don't include the system plugins
-                        continue;
-                    }
-                    pluginArray.add(new String[]{plugin.getName(), plugin.getVersion()});
-                }
+                WPPluginManager.getInstance().getAllPlugins().stream()
+                    .filter(plugin -> ! plugin.getClass().getName().startsWith("org.pepsoft.worldpainter"))
+                    .forEach(plugin -> pluginArray.add(new String[]{plugin.getName(), plugin.getVersion()}));
                 if (! pluginArray.isEmpty()) {
                     metadata.put(World2.METADATA_KEY_PLUGINS, pluginArray.toArray(new String[pluginArray.size()][]));
                 }

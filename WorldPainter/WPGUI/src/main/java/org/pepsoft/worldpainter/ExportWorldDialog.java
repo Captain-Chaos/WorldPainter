@@ -33,8 +33,7 @@ import java.util.*;
 import static java.util.stream.Collectors.toSet;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
+import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.GameType.*;
 import static org.pepsoft.worldpainter.Generator.CUSTOM;
 import static org.pepsoft.worldpainter.Generator.DEFAULT;
@@ -319,8 +318,8 @@ dims:   for (Dimension dim: world.getDimensions()) {
         StringBuilder sb = new StringBuilder("<html>Please confirm that you want to export the world<br>notwithstanding the following warnings:<br><ul>");
         boolean showWarning = false;
         Configuration config = Configuration.getInstance();
-        if ((platform == JAVA_ANVIL_1_15) && (! config.isBeta113WarningDisplayed())) {
-            sb.append("<li><strong>Minecraft 1.15 support is still in beta!</strong><br>" +
+        if ((platform == JAVA_ANVIL_1_18) && (! config.isBeta118WarningDisplayed())) {
+            sb.append("<li><strong>Minecraft 1.18 support is still in preview!</strong><br>" +
                     "Be careful and keep backups. If you encounter<br>" +
                     "problems, please report them on GitHub:<br>" +
                     "https://www.worldpainter.net/issues<br>" +
@@ -330,7 +329,7 @@ dims:   for (Dimension dim: world.getDimensions()) {
         Generator generator = Generator.values()[comboBoxGenerator.getSelectedIndex()];
         if ((surfacePropertiesEditor.isPopulateSelected()
                 || world.getDimension(DIM_NORMAL).getAllLayers(true).contains(Populate.INSTANCE))
-                && (!platform.capabilities.contains(POPULATE))) {
+                && (! platform.capabilities.contains(POPULATE))) {
             sb.append("<li>Population and not supported for<br>map format " + platform.displayName + "; it will not have an effect");
             showWarning = true;
         } else if ((! radioButtonExportSelection.isSelected()) || (selectedDimension == DIM_NORMAL)) {
@@ -339,6 +338,11 @@ dims:   for (Dimension dim: world.getDimensions()) {
                 sb.append("<li>The Superflat world type is selected and Populate is in use.<br>Minecraft will <em>not</em> populate generated chunks for Superflat maps.");
                 showWarning = true;
             }
+        }
+        if (! platform.supportedGenerators.contains(generator)) {
+            sb.append("<li>Map format " + platform.displayName + " does not support world type " + generator.getDisplayName() + ".<br>The world type will be reset to " + platform.supportedGenerators.get(0).getDisplayName() + ".");
+            generator = platform.supportedGenerators.get(0);
+            showWarning = true;
         }
         if (radioButtonExportSelection.isSelected()) {
             if (selectedDimension == DIM_NORMAL) {
@@ -478,8 +482,8 @@ dims:   for (Dimension dim: world.getDimensions()) {
         comboBoxDifficulty.setEnabled(false);
 
         config.setExportDirectory(world.getPlatform(), baseDir);
-        if (platform == JAVA_ANVIL_1_15) {
-            config.setBeta113WarningDisplayed(true);
+        if (platform == JAVA_ANVIL_1_18) {
+            config.setBeta118WarningDisplayed(true);
         }
 
         ExportProgressDialog dialog = new ExportProgressDialog(this, world, baseDir, name);
@@ -862,7 +866,7 @@ dims:   for (Dimension dim: world.getDimensions()) {
             nameOnlyMaterials = gatherBlocksWithoutIds(world, newPlatform);
 
             // Temporary workaround TODO make the chest work again
-            if (newPlatform == JAVA_ANVIL_1_15) {
+            if ((newPlatform == JAVA_ANVIL_1_15) || (newPlatform == JAVA_ANVIL_1_17) || (newPlatform == JAVA_ANVIL_1_18)) {
                 checkBoxGoodies.setEnabled(false);
                 checkBoxGoodies.setSelected(false);
             } else {
@@ -903,12 +907,13 @@ dims:   for (Dimension dim: world.getDimensions()) {
                     generatorOptions = editedGeneratorOptions;
                 }
             } else {
+                Platform platform = (Platform) comboBoxMinecraftVersion.getSelectedItem();
                 SuperflatPreset mySuperflatPreset = (superflatPreset != null)
                         ? superflatPreset
                         : SuperflatPreset.builder(BIOME_PLAINS)
                             .addLayer(MC_BEDROCK, 1)
                             .addLayer(MC_DIRT, 2)
-                            .addLayer((comboBoxMinecraftVersion.getSelectedItem() == JAVA_ANVIL_1_15) ? MC_GRASS_BLOCK : "minecraft:grass", 1).build();
+                            .addLayer(((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18) /* TODO make dynamic */) ? MC_GRASS_BLOCK : "minecraft:grass", 1).build();
                 EditSuperflatPresetDialog dialog = new EditSuperflatPresetDialog(this, world.getPlatform(), mySuperflatPreset);
                 dialog.setVisible(true);
                 if (! dialog.isCancelled()) {

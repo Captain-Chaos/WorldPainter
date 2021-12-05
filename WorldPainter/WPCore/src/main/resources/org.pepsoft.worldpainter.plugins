@@ -3,7 +3,10 @@
   "version": "${project.version}",
   "classes": [
     "org.pepsoft.worldpainter.DefaultPlugin",
-    "org.pepsoft.worldpainter.DefaultPlatformProvider",
+    "org.pepsoft.worldpainter.platforms.MCRegionPlatformProvider",
+    "org.pepsoft.worldpainter.platforms.Anvil1_2PlatformProvider",
+    "org.pepsoft.worldpainter.platforms.Anvil1_15PlatformProvider",
+    "org.pepsoft.worldpainter.platforms.Anvil1_17PlatformProvider",
     "org.pepsoft.worldpainter.DefaultCustomObjectProvider"
   ]
 }

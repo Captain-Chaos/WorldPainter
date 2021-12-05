@@ -335,10 +335,7 @@ public class Main {
                     StringBuilder sb = new StringBuilder();
                     List<Plugin> plugins = WPPluginManager.getInstance().getAllPlugins();
                     plugins.stream()
-                            .filter(plugin -> ! (plugin.getName().equals("Default")
-                                    || plugin.getName().equals("DefaultPlatforms")
-                                    || plugin.getName().equals("DefaultCustomObjects")
-                                    || plugin.getName().equals("DefaultLayerEditorProvider")))
+                            .filter(plugin -> ! plugin.getClass().getName().startsWith("org.pepsoft.worldpainter"))
                             .forEach(plugin -> {
                         if (sb.length() > 0) {
                             sb.append(',');

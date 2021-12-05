@@ -35,7 +35,6 @@ import java.net.URLClassLoader;
 import java.nio.charset.Charset;
 import java.text.MessageFormat;
 import java.util.List;
-import java.util.Properties;
 import java.util.ResourceBundle;
 
 import static org.pepsoft.util.GUIUtils.scaleToUI;
@@ -186,49 +185,42 @@ public class AboutDialog extends javax.swing.JDialog implements WindowListener {
         }
         File minecraftDir = MinecraftUtil.findMinecraftDir();
         File configDir = Configuration.getConfigDir();
-        String message = "";
+        StringBuilder message = new StringBuilder();
         if (Configuration.getInstance().isSafeMode()) {
-            message += "WorldPainter is running in safe mode\n";
+            message.append("WorldPainter is running in safe mode\n");
         }
-        message += MessageFormat.format(strings.getString("worldpainter.version.0.njava.version.1.noperating.system.2.3.version.4.n"), Version.VERSION, Version.BUILD, System.getProperty("java.version"), System.getProperty("os.name"), System.getProperty("os.arch"), System.getProperty("os.version"));
+        message.append(MessageFormat.format(strings.getString("worldpainter.version.0.njava.version.1.noperating.system.2.3.version.4.n"), Version.VERSION, Version.BUILD, System.getProperty("java.version"), System.getProperty("os.name"), System.getProperty("os.arch"), System.getProperty("os.version")));
         if (installDir != null) {
-            message += MessageFormat.format(strings.getString("installation.directory.0.n"), installDir);
+            message.append(MessageFormat.format(strings.getString("installation.directory.0.n"), installDir));
         }
-        message += MessageFormat.format(strings.getString("worldpainter.config.directory.0.ninstallation.id.1.n"), configDir, Configuration.getInstance().getUuid());
+        message.append(MessageFormat.format(strings.getString("worldpainter.config.directory.0.ninstallation.id.1.n"), configDir, Configuration.getInstance().getUuid()));
         List<Plugin> plugins = WPPluginManager.getInstance().getAllPlugins();
-        for (Plugin plugin: plugins) {
-            Properties properties = plugin.getProperties();
-            String name = properties.getProperty(Plugin.PROPERTY_NAME);
-            if (! (name.equals("Default")
-                    || plugin.getName().equals("DefaultPlatforms")
-                    || plugin.getName().equals("DefaultCustomObjects")
-                    || name.equals("DefaultLayerEditorProvider"))) { // NOI18N
-                String version = properties.getProperty(Plugin.PROPERTY_VERSION);
-                message += MessageFormat.format(strings.getString("0.plugin.version.1.n"), name, version);
-            }
-        }
+        // NOI18N
+        plugins.stream()
+                .filter(plugin -> ! plugin.getClass().getName().startsWith("org.pepsoft.worldpainter"))
+                .forEach(plugin -> message.append(MessageFormat.format(strings.getString("0.plugin.version.1.n"), plugin.getName(), plugin.getVersion())));
         if (minecraftDir != null) {
-            message += MessageFormat.format(strings.getString("minecraft.data.directory.0.n"), minecraftDir);
+            message.append(MessageFormat.format(strings.getString("minecraft.data.directory.0.n"), minecraftDir));
         }
         Runtime runtime = Runtime.getRuntime();
         int dataSize = (world != null) ? world.measureSize() : 0;
         int undoDataSize = (undoManager != null) ? undoManager.getDataSize() : 0;
 //        int imageSize = view.getImageSize();
         int overlayImageSize = view.getOverlayImageSize();
-        message += MessageFormat.format(strings.getString("available.cpu.cores.0.nmaximum.configured.memory.1.mb.ncurrently.allocated.memory.2.mb.n"), runtime.availableProcessors(), runtime.maxMemory() / 1024 / 1024, runtime.totalMemory() / 1024 / 1024);
+        message.append(MessageFormat.format(strings.getString("available.cpu.cores.0.nmaximum.configured.memory.1.mb.ncurrently.allocated.memory.2.mb.n"), runtime.availableProcessors(), runtime.maxMemory() / 1024 / 1024, runtime.totalMemory() / 1024 / 1024));
         if (dataSize > 0) {
-            message += MessageFormat.format(strings.getString("world.data.size.0.kb.n"), dataSize / 1024);
+            message.append(MessageFormat.format(strings.getString("world.data.size.0.kb.n"), dataSize / 1024));
         }
         if ((undoDataSize - dataSize) > 0) {
-            message += MessageFormat.format(strings.getString("additional.undo.data.size.0.kb.n"), (undoDataSize - dataSize) / 1024);
+            message.append(MessageFormat.format(strings.getString("additional.undo.data.size.0.kb.n"), (undoDataSize - dataSize) / 1024));
         }
 //        if (imageSize > 0) {
 //            message += MessageFormat.format(strings.getString("world.image.data.size.0.kb.n"), imageSize / 1024);
 //        }
         if (overlayImageSize > 0) {
-            message += MessageFormat.format(strings.getString("overlay.image.data.size.0.kb.n"), overlayImageSize / 1024);
+            message.append(MessageFormat.format(strings.getString("overlay.image.data.size.0.kb.n"), overlayImageSize / 1024));
         }
-        return message;
+        return message.toString();
     }
     
     /** This method is called from within the constructor to

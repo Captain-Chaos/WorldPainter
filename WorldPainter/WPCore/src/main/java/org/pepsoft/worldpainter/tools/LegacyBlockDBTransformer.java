@@ -1,11 +1,9 @@
 package org.pepsoft.worldpainter.tools;
 
-import org.json.simple.JSONArray;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-
 import java.io.*;
 import java.util.*;
+
+import static org.pepsoft.util.ObjectMapperHolder.OBJECT_MAPPER;
 
 @SuppressWarnings("unchecked")
 public class LegacyBlockDBTransformer {
@@ -20,7 +18,7 @@ public class LegacyBlockDBTransformer {
                 }
             }
             @SuppressWarnings("unchecked") // Guaranteed by contents of file
-                    List<Map<String, Object>> blockSpecs = (List< Map<String, Object>>) new JSONParser().parse(sb.toString());
+            List<Map<String, Object>> blockSpecs = (List<Map<String, Object>>) OBJECT_MAPPER.readValue(sb.toString(), List.class);
 
             // Find properties which have only one value
             Map<String, Map<String, Set<String>>> allProperties = new HashMap<>();
@@ -68,13 +66,10 @@ public class LegacyBlockDBTransformer {
 
             // Dump the block database
             try (Writer out = new FileWriter("legacy-mc-blocks.json")) {
-                JSONArray.writeJSONString(blockSpecs, out);
+                OBJECT_MAPPER.writeValue(out, blockSpecs);
             }
         } catch (IOException e) {
             throw new RuntimeException("I/O error while reading Minecraft block database mc-blocks.json from classpath", e);
-        } catch (ParseException e) {
-            throw new RuntimeException("JSON parsing error while reading Minecraft block database mc-blocks.json from classpath", e);
         }
-
     }
 }

@@ -27,9 +27,13 @@ public class JavaMapRecognizer implements MapRecognizer {
                 } else if (version == VERSION_ANVIL) {
                     if (level.getDataVersion() <= DATA_VERSION_MC_1_12_2) {
                         return JAVA_ANVIL;
-                    } else {
+                    } else if ((level.getDataVersion() <= DATA_VERSION_MC_1_16_5) || (level.getMaxHeight() == DEFAULT_MAX_HEIGHT_ANVIL)) { /* TODO change || to && */
                         return JAVA_ANVIL_1_15;
-                    }
+                    } else /*if (level.getDataVersion() <= DATA_VERSION_MC_1_17_1)*/ {
+                        return JAVA_ANVIL_1_17;
+                    } /*else {
+                        return JAVA_ANVIL_1_18;
+                    }*/ // TODO restore when starting back on 1.18 support
                 } else {
                     return null;
                 }

@@ -11,6 +11,7 @@ import org.pepsoft.worldpainter.exporting.JavaMinecraftWorld;
 import org.pepsoft.worldpainter.exporting.JavaWorldExporter;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import org.pepsoft.worldpainter.layers.NotPresent;
+import org.pepsoft.worldpainter.platforms.JavaPlatformProvider;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.pepsoft.worldpainter.util.MinecraftWorldUtils;
@@ -145,7 +146,7 @@ public class RegressionIT {
         }
 
         Platform platform = world.getPlatform();
-        DefaultPlatformProvider platformProvider = (DefaultPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
+        JavaPlatformProvider platformProvider = (JavaPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
         int maxHeight = dimension.getMaxHeight();
         int[] lowestChunkX = {Integer.MAX_VALUE}, highestChunkX = {Integer.MIN_VALUE};
         int[] lowestChunkZ = {Integer.MAX_VALUE}, highestChunkZ = {Integer.MIN_VALUE};

@@ -32,6 +32,8 @@ import java.util.*;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.minecraft.Material.DIRT;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
 
 /**
  *
@@ -684,12 +686,12 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         this.snapshotWarningDisplayed = snapshotWarningDisplayed;
     }
 
-    public boolean isBeta113WarningDisplayed() {
-        return beta113WarningDisplayed;
+    public boolean isBeta118WarningDisplayed() {
+        return beta118WarningDisplayed;
     }
 
-    public void setBeta113WarningDisplayed(boolean beta113WarningDisplayed) {
-        this.beta113WarningDisplayed = beta113WarningDisplayed;
+    public void setBeta118WarningDisplayed(boolean beta118WarningDisplayed) {
+        this.beta118WarningDisplayed = beta118WarningDisplayed;
     }
 
     // Transient settings which aren't stored on disk
@@ -802,7 +804,6 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         }
         if (minecraftJars == null) {
             minecraftJars = new HashMap<>();
-            minecraft1_9_p3Jar = null;
         }
         if (uuid == null) {
             uuid = UUID.randomUUID();
@@ -819,7 +820,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
             defaultMaxHeight = DEFAULT_MAX_HEIGHT_ANVIL;
         }
         if (defaultTerrainAndLayerSettings == null) {
-            defaultTerrainAndLayerSettings = new World2(DefaultPlugin.JAVA_ANVIL, World2.DEFAULT_OCEAN_SEED, TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), surface, defaultMaxHeight, level, waterLevel, lava, beaches, 20, 1.0), defaultMaxHeight).getDimension(Constants.DIM_NORMAL);
+            defaultTerrainAndLayerSettings = new World2(JAVA_ANVIL, World2.DEFAULT_OCEAN_SEED, TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), surface, defaultMaxHeight, level, waterLevel, lava, beaches, 20, 1.0), defaultMaxHeight).getDimension(Constants.DIM_NORMAL);
         }
         
         // New legacy mechanism with version number
@@ -946,10 +947,10 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
             }
         }
         if (version < 15) {
-            defaultPlatform = DefaultPlugin.JAVA_ANVIL;
+            defaultPlatform = JAVA_ANVIL;
             exportDirectories = new HashMap<>();
             if (exportDirectory != null) {
-                exportDirectories.put(DefaultPlugin.JAVA_ANVIL, exportDirectory);
+                exportDirectories.put(JAVA_ANVIL, exportDirectory);
                 exportDirectories.put(DefaultPlugin.JAVA_MCREGION, exportDirectory);
                 exportDirectory = null;
             }
@@ -972,7 +973,11 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
             // Do nothing; this only exists to signal Dynmap metadata removal
             // because it may be corrupted
         }
-        // TODOMC13 once it's out of beta: migrate default platform to 1.15 if it's currently set to Anvil
+        if (version < 19) {
+            if (defaultPlatformId.equals(JAVA_ANVIL.id)) {
+                defaultPlatformId = JAVA_ANVIL_1_15.id;
+            }
+        }
         version = CURRENT_VERSION;
         
         // Bug fix: make sure terrain ranges map conforms to surface material setting
@@ -1103,8 +1108,6 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private File exportDirectory;
     private File savesDirectory, customObjectsDirectory;
     @Deprecated
-    private File minecraft1_9_p3Jar;
-    @Deprecated
     private World.Border border;
     private Border border2;
     private Boolean pingAllowed;
@@ -1151,14 +1154,12 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private Platform defaultPlatform;
     @Deprecated
     private Map<Platform, File> exportDirectories;
-    @Deprecated
-    private boolean java10onMacMessageDisplayed;
     private boolean autosaveEnabled = true;
     private int autosaveDelay = 10000, autosaveInterval = 300000; // Ten seconds delay; five minutes interval
-    private String defaultPlatformId = DefaultPlugin.JAVA_ANVIL.id; // TODOMC13 set this to 1.15 once it's out of beta
+    private String defaultPlatformId = DefaultPlugin.JAVA_ANVIL_1_15.id;
     private Map<String, File> exportDirectoriesById = new HashMap<>();
     private boolean snapshotWarningDisplayed;
-    private boolean beta113WarningDisplayed;
+    private boolean beta118WarningDisplayed;
 
     /**
      * The acceleration type is only stored here at runtime. It is saved to disk
@@ -1174,7 +1175,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Configuration.class);
     private static final long serialVersionUID = 2011041801L;
     private static final int CIRCULAR_WORLD = -1;
-    private static final int CURRENT_VERSION = 18;
+    private static final int CURRENT_VERSION = 19;
     public static final String ADVANCED_SETTING_PREFIX = "org.pepsoft.worldpainter";
 
     public enum DonationStatus {DONATED, NO_THANK_YOU}

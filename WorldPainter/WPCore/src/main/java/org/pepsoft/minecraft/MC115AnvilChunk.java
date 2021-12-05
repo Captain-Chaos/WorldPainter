@@ -382,7 +382,7 @@ public final class MC115AnvilChunk extends NBTChunk implements MinecraftWorld {
         if (biomes != null) {
             throw new IllegalStateException("This chunk already has 2D biomes");
         } else if (biomes3d == null) {
-            biomes3d = new int[1024];
+            biomes3d = new int[16 * (maxHeight / 4)];
         }
         biomes3d[x + z * 4 + y * 16] = biome;
     }

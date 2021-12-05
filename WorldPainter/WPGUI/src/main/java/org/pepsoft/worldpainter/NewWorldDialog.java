@@ -39,10 +39,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static java.util.Arrays.stream;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.minecraft.Material.LAVA;
 import static org.pepsoft.minecraft.Material.WATER;
 import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_17;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.Platform.Capability.SEED;
 import static org.pepsoft.worldpainter.Terrain.*;
@@ -703,27 +705,19 @@ public class NewWorldDialog extends WorldPainterDialog {
         }
         updateWalkingTimes();
 
-        int minExponent = (int) Math.ceil(Math.log(platform.minMaxHeight)/Math.log(2));
-        int maxExponent = (int) Math.floor(Math.log(platform.maxMaxHeight)/Math.log(2));
-        List<Integer> maxHeights = new ArrayList<>();
-        for (int i = minExponent; i <= maxExponent; i++) {
-            maxHeights.add((int) Math.pow(2, i));
-        }
-        int minMaxHeight = maxHeights.get(0);
-        int maxMaxHeight = maxHeights.get(maxHeights.size() - 1);
         Integer currentMaxHeight = (Integer) comboBoxMaxHeight.getSelectedItem();
         boolean atDefault = (currentMaxHeight == null) || (currentMaxHeight == previousPlatform.standardMaxHeight);
-        comboBoxMaxHeight.setModel(new DefaultComboBoxModel<>(maxHeights.toArray(new Integer[maxHeights.size()])));
+        comboBoxMaxHeight.setModel(new DefaultComboBoxModel<>(stream(platform.maxHeights).boxed().toArray(Integer[]::new)));
         if (atDefault) {
             comboBoxMaxHeight.setSelectedItem(platform.standardMaxHeight);
-        } else if (currentMaxHeight < minMaxHeight){
-            comboBoxMaxHeight.setSelectedItem(minMaxHeight);
-        } else if (currentMaxHeight > maxMaxHeight) {
-            comboBoxMaxHeight.setSelectedItem(maxMaxHeight);
+        } else if (currentMaxHeight < platform.minMaxHeight){
+            comboBoxMaxHeight.setSelectedItem(platform.minMaxHeight);
+        } else if (currentMaxHeight > platform.maxMaxHeight) {
+            comboBoxMaxHeight.setSelectedItem(platform.maxMaxHeight);
         } else {
             comboBoxMaxHeight.setSelectedItem(currentMaxHeight);
         }
-        comboBoxMaxHeight.setEnabled(maxHeights.size() > 1);
+        comboBoxMaxHeight.setEnabled(platform.maxHeights.length > 1);
         maxHeightChanged(true);
 
         if ((platform == JAVA_MCREGION)) {
@@ -749,6 +743,10 @@ public class NewWorldDialog extends WorldPainterDialog {
             ((SpinnerNumberModel) spinnerWaterLevel.getModel()).setMaximum(maxHeight - 1);
 
             if ((platform == JAVA_MCREGION) && (exp != 7)) {
+                labelWarning.setText("Only with mods!");
+                labelWarning.setVisible(true);
+            } else if ((platform == JAVA_ANVIL_1_17) && (maxHeight > 320)) {
+                labelWarning.setText("May impact performance");
                 labelWarning.setVisible(true);
             } else {
                 labelWarning.setVisible(false);

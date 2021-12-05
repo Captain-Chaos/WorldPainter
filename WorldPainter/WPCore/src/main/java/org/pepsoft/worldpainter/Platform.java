@@ -5,10 +5,7 @@ import com.google.common.collect.Sets;
 
 import java.io.ObjectStreamException;
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A descriptor for a WorldPainter-supported map storage format. Implements the
@@ -18,18 +15,36 @@ import java.util.Set;
  * <p>Created by Pepijn on 11-12-2016.
  */
 public final class Platform implements Serializable {
-    public Platform(String id, String displayName, int minMaxHeight, int standardMaxHeight,
-                    int maxMaxHeight, int minX, int maxX, int minY, int maxY, List<GameType> supportedGameTypes,
-                    List<Generator> supportedGenerators, List<Integer> supportedDimensions, Set<Capability> capabilities) {
+    public Platform(String id, String displayName, int minMaxHeight, int standardMaxHeight, int maxMaxHeight, int minX,
+                    int maxX, int minY, int maxY, List<GameType> supportedGameTypes,
+                    List<Generator> supportedGenerators, List<Integer> supportedDimensions,
+                    Set<Capability> capabilities) {
+        this(id, displayName, defaultMaxHeightsFromTo(minMaxHeight, maxMaxHeight), standardMaxHeight, minX, maxX, minY, maxY, supportedGameTypes, supportedGenerators, supportedDimensions, capabilities);
+    }
+
+    private static int[] defaultMaxHeightsFromTo(int minMaxHeight, int maxMaxHeight) {
+        int minExponent = (int) Math.ceil(Math.log(minMaxHeight)/Math.log(2));
+        int maxExponent = (int) Math.floor(Math.log(maxMaxHeight)/Math.log(2));
+        List<Integer> maxHeights = new ArrayList<>();
+        for (int i = minExponent; i <= maxExponent; i++) {
+            maxHeights.add((int) Math.pow(2, i));
+        }
+        return maxHeights.stream().mapToInt(Integer::intValue).toArray();
+    }
+
+    public Platform(String id, String displayName, int[] maxHeights, int standardMaxHeight, int minX, int maxX,
+                    int minY, int maxY, List<GameType> supportedGameTypes, List<Generator> supportedGenerators,
+                    List<Integer> supportedDimensions, Set<Capability> capabilities) {
         synchronized (ALL_PLATFORMS) {
             if (ALL_PLATFORMS.containsKey(id)) {
                 throw new IllegalStateException("There is already a platform with ID " + id);
             }
             this.id = id;
             this.displayName = displayName;
-            this.minMaxHeight = minMaxHeight;
+            this.minMaxHeight = maxHeights[0];
+            this.maxHeights = maxHeights;
             this.standardMaxHeight = standardMaxHeight;
-            this.maxMaxHeight = maxMaxHeight;
+            this.maxMaxHeight = maxHeights[maxHeights.length - 1];
             this.minX = minX;
             this.maxX = maxX;
             this.minY = minY;
@@ -165,6 +180,12 @@ public final class Platform implements Serializable {
      * The set of capabilities supported by this platform.
      */
     public final Set<Capability> capabilities;
+
+    /**
+     * The list of maxHeights to present to the user. The plugin <em>may</em> support other maxHeights, or may not, but
+     * if it is in this list it must be supported. The list must be in ascending order.
+     */
+    public final int[] maxHeights;
 
     private static final Map<String, Platform> ALL_PLATFORMS = new HashMap<>();
 

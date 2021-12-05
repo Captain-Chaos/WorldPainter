@@ -6,7 +6,7 @@ import org.pepsoft.worldpainter.Platform;
 import javax.vecmath.Point3i;
 
 import static org.pepsoft.minecraft.Constants.BLK_LARGE_FLOWERS;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
+import static org.pepsoft.worldpainter.DefaultPlugin.*;
 
 /**
  * A simple double high plant without growth stages using vanilla Minecraft
@@ -58,7 +58,7 @@ final class DoubleHighPlant extends Plant {
     @Override
     public Material getMaterial(int x, int y, int z) {
         if (z > 0) {
-            if (platform == JAVA_ANVIL_1_15) {
+            if ((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18) /* TODO make dynamic */) {
                 return material.withProperty("half", "upper");
             } else {
                 return UPPER_DOUBLE_HIGH_PLANT;
@@ -73,9 +73,8 @@ final class DoubleHighPlant extends Plant {
         return new DoubleHighPlant(name, material, category, iconName, platform);
     }
 
-    protected final Platform platform;
+    private final Platform platform;
 
-    @SuppressWarnings("deprecation") // Legacy support
     private static final Material UPPER_DOUBLE_HIGH_PLANT = Material.get(BLK_LARGE_FLOWERS, 8);
     private static final Point3i DIMENSIONS = new Point3i(1, 1, 2);
 }

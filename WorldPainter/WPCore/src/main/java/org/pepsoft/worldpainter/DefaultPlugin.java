@@ -85,4 +85,25 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
             Arrays.asList(DEFAULT, FLAT, LARGE_BIOMES, CUSTOM),
             Arrays.asList(DIM_NORMAL, DIM_NETHER, DIM_END),
             EnumSet.of(PRECALCULATED_LIGHT, SET_SPAWN_POINT, BLOCK_BASED, NAME_BASED, SEED, BIOMES_3D));
+
+    public static final Platform JAVA_ANVIL_1_17 = new Platform(
+            "org.pepsoft.anvil.1.17",
+            "[EXPERIMENTAL] Minecraft 1.17 (Anvil)",
+            new int[] { 256, 320, 512, 1024, 1536, 2032 }, 320,
+            Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE,
+            Arrays.asList(SURVIVAL, CREATIVE, ADVENTURE, HARDCORE),
+            Arrays.asList(DEFAULT, FLAT, LARGE_BIOMES, CUSTOM),
+            Arrays.asList(DIM_NORMAL, DIM_NETHER, DIM_END),
+            EnumSet.of(PRECALCULATED_LIGHT, SET_SPAWN_POINT, BLOCK_BASED, NAME_BASED, SEED, BIOMES_3D));
+
+    // TODO should not be used yet!
+    public static final Platform JAVA_ANVIL_1_18 = new Platform(
+            "org.pepsoft.anvil.1.18",
+            "[PREVIEW] Minecraft 1.18 or later (Anvil)",
+            new int[] { 256, 320 }, 320,
+            Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE,
+            Arrays.asList(SURVIVAL, CREATIVE, ADVENTURE, HARDCORE),
+            Arrays.asList(DEFAULT, FLAT, LARGE_BIOMES, CUSTOM),
+            Arrays.asList(DIM_NORMAL, DIM_NETHER, DIM_END),
+            EnumSet.of(PRECALCULATED_LIGHT, SET_SPAWN_POINT, BLOCK_BASED, NAME_BASED, SEED, BIOMES_3D));
 }

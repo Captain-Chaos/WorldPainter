@@ -6,9 +6,15 @@
 package org.pepsoft.minecraft;
 
 import org.jnbt.*;
+import org.pepsoft.minecraft.datapack.DataPack;
+import org.pepsoft.minecraft.datapack.Descriptor;
+import org.pepsoft.minecraft.datapack.Meta;
 import org.pepsoft.worldpainter.AccessDeniedException;
 import org.pepsoft.worldpainter.Generator;
 import org.pepsoft.worldpainter.Platform;
+import org.pepsoft.worldpainter.exception.WPRuntimeException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.*;
@@ -16,6 +22,8 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import static java.nio.charset.StandardCharsets.US_ASCII;
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toList;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.MAX_HEIGHT;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
@@ -29,11 +37,10 @@ public final class Level extends AbstractNBTItem {
         super(new CompoundTag(TAG_DATA, new HashMap<>()));
         if ((platform != JAVA_ANVIL)
                 && (platform != JAVA_MCREGION)
-                && (platform != JAVA_ANVIL_1_15)) {
+                && (platform != JAVA_ANVIL_1_15)
+                && (platform != JAVA_ANVIL_1_17)
+                && (platform != JAVA_ANVIL_1_18)) {
             throw new IllegalArgumentException("Not a supported platform: " + platform);
-        }
-        if ((mapHeight & (mapHeight - 1)) != 0) {
-            throw new IllegalArgumentException("mapHeight " + mapHeight + " not a power of two");
         }
         if (mapHeight != ((platform == JAVA_MCREGION) ? DEFAULT_MAX_HEIGHT_MCREGION : DEFAULT_MAX_HEIGHT_ANVIL)) {
             setInt(TAG_MAP_HEIGHT, mapHeight);
@@ -56,9 +63,6 @@ public final class Level extends AbstractNBTItem {
 
     public Level(CompoundTag tag, int mapHeight) {
         super((CompoundTag) tag.getTag(TAG_DATA));
-        if ((mapHeight & (mapHeight - 1)) != 0) {
-            throw new IllegalArgumentException("mapHeight " + mapHeight + " not a power of two");
-        }
         int version = getInt(TAG_VERSION_);
         if ((version != VERSION_UNKNOWN) && (version != VERSION_MCREGION) && (version != VERSION_ANVIL)) {
             // TODO refactor support for non-vanilla level.dat files (VERSION_UNKNOWN) out of here
@@ -93,7 +97,13 @@ public final class Level extends AbstractNBTItem {
         try (DataOutputStream sessionOut = new DataOutputStream(new FileOutputStream(sessionLockFile))) {
             sessionOut.writeLong(System.currentTimeMillis());
         }
-        
+
+        // Create and enable datapack(s) if necessary
+        if ((getVersion() == VERSION_ANVIL) && (maxHeight != DEFAULT_MAX_HEIGHT_ANVIL)) {
+            enableDataPacks("vanilla", "file/worldpainter.zip");
+            createDataPack(worldDir);
+        }
+
         // Write level.dat file
         File levelDatFile = new File(worldDir, "level.dat");
         // Make it show at the top of the single player map list:
@@ -104,9 +114,8 @@ public final class Level extends AbstractNBTItem {
         
         // If height is non-standard, write DynamicHeight mod and Height Mod
         // files
-        int mapHeight = getMapHeight();
-        if (mapHeight != 0) {
-            int exp = (int) (Math.log(mapHeight) / Math.log(2));
+        if ((getVersion() == VERSION_MCREGION) && (maxHeight != DEFAULT_MAX_HEIGHT_MCREGION)) {
+            int exp = (int) (Math.log(maxHeight) / Math.log(2));
             PrintWriter writer = new PrintWriter(new File(worldDir, "maxheight.txt"), "US-ASCII");
             try {
                 writer.println("#DynamicHeight Save Format 2");
@@ -122,9 +131,9 @@ public final class Level extends AbstractNBTItem {
                 writer.println("#" + new Date());
                 writer.println("height=" + exp);
                 writer.println("version=1");
-                writer.println("midheight=" + mapHeight + ".0");
-                writer.println("waterlevel=" + (mapHeight / 2 - 2) + ".0");
-                writer.println("genheight=" + mapHeight + ".0");
+                writer.println("midheight=" + maxHeight + ".0");
+                writer.println("waterlevel=" + (maxHeight / 2 - 2) + ".0");
+                writer.println("genheight=" + maxHeight + ".0");
             } finally {
                 writer.close();
             }
@@ -208,12 +217,19 @@ public final class Level extends AbstractNBTItem {
     }
     
     public Generator getGenerator() {
-        if ("FLAT".equals(getGeneratorName()) || "flat".equals(getGeneratorName())) {
+        String generatorName = getGeneratorName();
+        if (generatorName == null) {
+            return Generator.UNKNOWN;
+        } else if ("FLAT".equalsIgnoreCase(generatorName)) {
             return Generator.FLAT;
-        } else if ("largeBiomes".equals(getGeneratorName())) {
+        } else if ("largeBiomes".equals(generatorName)) {
             return Generator.LARGE_BIOMES;
-        } else if ("DEFAULT".equals(getGeneratorName()) || "default".equals(getGeneratorName())) {
+        } else if ("DEFAULT".equalsIgnoreCase(generatorName)) {
             return Generator.DEFAULT;
+        } else if ("BUFFET".equalsIgnoreCase(generatorName)) {
+            return Generator.BUFFET;
+        } else if ("CUSTOMIZED".equalsIgnoreCase(generatorName)) {
+            return Generator.CUSTOMIZED;
         } else {
             return Generator.CUSTOM;
         }
@@ -274,7 +290,7 @@ public final class Level extends AbstractNBTItem {
     public double getBorderDamagePerBlock() {
         return getDouble(TAG_BORDER_DAMAGE_PER_BLOCK);
     }
-    
+
     public void setName(String name) {
         setString(TAG_LEVEL_NAME, name);
     }
@@ -317,6 +333,9 @@ public final class Level extends AbstractNBTItem {
 
     public void setGenerator(Generator generator) {
         switch (generator) {
+            case UNKNOWN:
+                // Do nothing
+                break;
             case DEFAULT:
                 if (getVersion() == VERSION_MCREGION) {
                     setString(TAG_GENERATOR_NAME_, "DEFAULT");
@@ -340,6 +359,9 @@ public final class Level extends AbstractNBTItem {
                     setInt(TAG_GENERATOR_VERSION_, 0);
                 }
                 break;
+            case BUFFET:
+            case CUSTOMIZED:
+                throw new IllegalArgumentException(generator.getDisplayName() + " not supported for Exporting");
             default:
                 throw new IllegalArgumentException("Use setGeneratorName(String) for generator " + generator);
         }
@@ -396,6 +418,26 @@ public final class Level extends AbstractNBTItem {
     public void setBorderDamagePerBlock(double borderDamagePerBlock) {
         setDouble(TAG_BORDER_DAMAGE_PER_BLOCK, borderDamagePerBlock);
     }
+
+    @SuppressWarnings("unchecked") // Guaranteed by this method/Minecraft
+    public void enableDataPacks(String... dataPacks) {
+        CompoundTag dataPacksTag = (CompoundTag) getTag("DataPacks");
+        if (dataPacksTag == null) {
+            dataPacksTag = new CompoundTag("", new HashMap<>());
+            setTag("DataPacks", dataPacksTag);
+        }
+        List<String> enabledDataPacks = new ArrayList<>();
+        ListTag<StringTag> enabledTag = (ListTag<StringTag>) dataPacksTag.getTag("Enabled");
+        if (enabledTag != null) {
+            enabledTag.getValue().forEach(tag -> enabledDataPacks.add(tag.getValue()));
+        }
+        stream(dataPacks).forEach(dataPack -> {
+            if (! enabledDataPacks.contains(dataPack)) {
+                enabledDataPacks.add(dataPack);
+            }
+        });
+        dataPacksTag.setTag("Enabled", new ListTag<>("", StringTag.class, enabledDataPacks.stream().map(dataPack -> new StringTag("", dataPack)).collect(toList())));
+    }
     
     @Override
     public CompoundTag toNBT() {
@@ -408,8 +450,27 @@ public final class Level extends AbstractNBTItem {
         }
         return new CompoundTag("", values);
     }
+
+    public static void setCachedLevel(File file, Level level) {
+        if ((file != null) || (level != null)) {
+            Objects.requireNonNull(file, "file");
+            Objects.requireNonNull(level, "level");
+            if (! file.getName().equals("level.dat")) {
+                throw new IllegalArgumentException(file + " is not named level.dat");
+            } else if (! file.isFile()) {
+                throw new IllegalArgumentException(file + " does not exist or is not a file");
+            }
+        }
+        cachedFile = file;
+        cachedLevel = level;
+    }
     
+    @SuppressWarnings("unchecked") // Guaranteed by save()/Minecraft
     public static Level load(File levelDatFile) throws IOException {
+        if (levelDatFile.equals(cachedFile)) {
+            return cachedLevel;
+        }
+
         Tag tag;
         try (NBTInputStream in = new NBTInputStream(new GZIPInputStream(new FileInputStream(levelDatFile)))) {
             tag = in.readTag();
@@ -417,33 +478,64 @@ public final class Level extends AbstractNBTItem {
 
         CompoundTag data = (CompoundTag) ((CompoundTag) tag).getTag(TAG_DATA);
         int maxHeight;
+        File worldDir = levelDatFile.getParentFile();
         if (data.containsTag(TAG_VERSION_)) {
             int version = ((IntTag) data.getTag(TAG_VERSION_)).getValue();
             maxHeight = (version == VERSION_MCREGION) ? DEFAULT_MAX_HEIGHT_MCREGION : DEFAULT_MAX_HEIGHT_ANVIL;
             // TODO get rid of this hardcoded stuff and move it into the platform provider plugin API
             if (version == VERSION_MCREGION) {
-                if (data.getTag(TAG_MAP_HEIGHT) != null) {
-                    maxHeight = ((IntTag) data.getTag(TAG_MAP_HEIGHT)).getValue();
-                } else {
-                    File maxheightFile = new File(levelDatFile.getParentFile(), "maxheight.txt");
-                    if (! maxheightFile.isFile()) {
-                        maxheightFile = new File(levelDatFile.getParentFile(), "Height.txt");
-                    }
-                    if (maxheightFile.isFile()) {
-                        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(maxheightFile), US_ASCII))) {
-                            String line;
-                            while ((line = reader.readLine()) != null) {
-                                if (line.startsWith("height=")) {
-                                    int exp = Integer.parseInt(line.substring(7));
-                                    maxHeight = 1 << exp;
-                                    break;
-                                }
+                File maxheightFile = new File(worldDir, "maxheight.txt");
+                if (! maxheightFile.isFile()) {
+                    maxheightFile = new File(worldDir, "Height.txt");
+                }
+                if (maxheightFile.isFile()) {
+                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(maxheightFile), US_ASCII))) {
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            if (line.startsWith("height=")) {
+                                int exp = Integer.parseInt(line.substring(7));
+                                maxHeight = 1 << exp;
+                                logger.debug("Map height {} detected from {} while loading {}", maxHeight, maxheightFile.getName(), levelDatFile);
+                                break;
                             }
                         }
                     }
                 }
+            } else if (data.containsTag("DataPacks")) {
+                CompoundTag dataPacksTag = (CompoundTag) data.getTag("DataPacks");
+                ListTag<StringTag> enabledTag = (ListTag<StringTag>) dataPacksTag.getTag("Enabled");
+                if (enabledTag != null) {
+                    boolean maxHeightEncountered = false;
+                    for (StringTag datapackTag: enabledTag.getValue()) {
+                        String name = datapackTag.getValue();
+                        if (name.startsWith("file/")) {
+                            DataPack datapack = DataPack.load(worldDir, name);
+                            for (Map.Entry<String, Descriptor> entry: datapack.getDescriptors().entrySet()) {
+                                if ((entry.getValue() instanceof org.pepsoft.minecraft.datapack.Dimension) && entry.getKey().endsWith("overworld.json")) {
+                                    int height = ((org.pepsoft.minecraft.datapack.Dimension) entry.getValue()).getHeight();
+                                    if (height != 0) {
+                                        if (maxHeightEncountered && (height != maxHeight)) {
+                                            throw new IllegalArgumentException(String.format("Multiple different maxHeights (%d and %d) encountered in data packs", maxHeight, height));
+                                        } else {
+                                            logger.debug("Map height {} detected from data pack {} while loading {}", height, entry.getKey(), levelDatFile);
+                                            maxHeight = height;
+                                            maxHeightEncountered = true;
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            logger.debug("Skipping datapack {} while loading level {}", name, levelDatFile);
+                            // TODO add support for internal datapacks
+                        }
+                    }
+                }
+                // TODO
+            } else if (data.getTag(TAG_MAP_HEIGHT) != null) {
+                maxHeight = ((IntTag) data.getTag(TAG_MAP_HEIGHT)).getValue();
+                logger.debug("Map height {} detected from {} tag while loading {}", maxHeight, TAG_MAP_HEIGHT, levelDatFile);
             }
-        } else if (new File(levelDatFile.getParentFile(), "region3d").isDirectory()) { // TODO hardcoded support for CC plugin; make this dynamic
+        } else if (new File(worldDir, "region3d").isDirectory()) { // TODO hardcoded support for CC plugin; make this dynamic
             maxHeight = MAX_HEIGHT;
         } else {
             // TODO refactor map importing
@@ -453,9 +545,35 @@ public final class Level extends AbstractNBTItem {
         return new Level((CompoundTag) tag, maxHeight);
     }
 
+    private void createDataPack(File worldDir) {
+        try {
+            File datapackDir = new File(worldDir, "datapacks");
+            datapackDir.mkdirs();
+            File datapackFile = new File(datapackDir, "worldpainter.zip");
+            DataPack datapack = new DataPack();
+            datapack.addDescriptor("pack.mcmeta", Meta.builder()
+                    .pack(Meta.Pack.builder()
+                            .packFormat(7)
+                            .description("WorldPainter Settings").build()).build());
+            datapack.addDescriptor("data/minecraft/dimension_type/overworld.json", org.pepsoft.minecraft.datapack.Dimension.builder()
+                    .logicalHeight(maxHeight)
+//                    PROBLEEM: bij min_y = -64 worden de hoogste chunks niet geladen? logical_height/height moet inclusief abs(min_y) zijn?
+                    .minY(0)
+                    .height(maxHeight)
+                    .build());
+            datapack.write(new FileOutputStream(datapackFile));
+        } catch (IOException e) {
+            throw new WPRuntimeException("I/O error creating datapack", e);
+        }
+    }
+
     private final int maxHeight;
     private final Map<Integer, Dimension> dimensions = new HashMap<>();
     private final Set<Tag> extraTags;
-    
+
+    private static volatile File cachedFile;
+    private static volatile Level cachedLevel;
+
+    private static final Logger logger = LoggerFactory.getLogger(Level.class);
     private static final long serialVersionUID = 1L;
 }

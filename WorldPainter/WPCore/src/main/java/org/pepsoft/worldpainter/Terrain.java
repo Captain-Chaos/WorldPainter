@@ -18,7 +18,7 @@ import static java.util.Collections.singleton;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
+import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_15Biomes.*;
 
 /**
@@ -60,7 +60,7 @@ public enum Terrain {
                             || (roseNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, 1 / SMALL_BLOBS) > FLOWER_CHANCE)) {
                         Material flower = FLOWER_TYPES[flowerTypeField.getValue(x, y)];
                         if (flower.blockType == BLK_LARGE_FLOWERS) {
-                            if (platform == JAVA_ANVIL_1_15) {
+                            if ((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18) /* TODO make dynamic */) {
                                 return flower.withProperty(HALF, "upper");
                             } else {
                                 return LARGE_FLOWER_TOP;
@@ -80,7 +80,7 @@ public enum Terrain {
                     // Keep the "1 / SMALLBLOBS" for consistency with existing maps
                     final float grassValue = grassNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, 1 / SMALL_BLOBS) + (rnd.nextFloat() * 0.3f - 0.15f);
                     if ((grassValue > DOUBLE_TALL_GRASS_CHANCE) && (tallGrassNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, 1 / SMALL_BLOBS) > 0)) {
-                        if (platform == JAVA_ANVIL_1_15) {
+                        if ((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18)) {
                             if (rnd.nextInt(4) == 0) {
                                 return DOUBLE_TALL_FERN_BOTTOM.withProperty(HALF, "upper");
                             } else {

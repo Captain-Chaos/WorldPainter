@@ -5,11 +5,10 @@ import org.jnbt.CompoundTag;
 import org.jnbt.NBTInputStream;
 import org.jnbt.NBTOutputStream;
 import org.pepsoft.minecraft.*;
-import org.pepsoft.worldpainter.DefaultPlatformProvider;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.layers.ReadOnly;
-import org.pepsoft.worldpainter.plugins.PlatformManager;
+import org.pepsoft.worldpainter.platforms.JavaPlatformProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,16 +29,16 @@ import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
  * Created by Pepijn on 15-12-2016.
  */
 public class JavaChunkStore implements ChunkStore {
-    public JavaChunkStore(Platform platform, File regionDir, boolean honourReadOnlyChunks, Dimension dimension, int maxHeight) {
-        if (! ((platform == JAVA_MCREGION) || (platform == JAVA_ANVIL) || (platform == JAVA_ANVIL_1_15))) {
-            throw new IllegalArgumentException("Unsupported platform " + platform);
-        }
-        this.platform = platform;
-        this.platformProvider = (DefaultPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
+    public JavaChunkStore(JavaPlatformProvider platformProvider, File regionDir, boolean honourReadOnlyChunks, Dimension dimension, int maxHeight) {
+        this.platformProvider = platformProvider;
         this.regionDir = regionDir;
         this.honourReadOnlyChunks = honourReadOnlyChunks;
         this.dimension = dimension;
         this.maxHeight = maxHeight;
+        platform = platformProvider.getPlatform();
+        if (! ((platform == JAVA_MCREGION) || (platform == JAVA_ANVIL) || (platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18))) {
+            throw new IllegalArgumentException("Unsupported platform " + platform);
+        }
     }
 
     @Override
@@ -348,7 +347,7 @@ public class JavaChunkStore implements ChunkStore {
 //    }
 
     private final Platform platform;
-    private final DefaultPlatformProvider platformProvider;
+    private final JavaPlatformProvider platformProvider;
     private final File regionDir;
     private final Map<Point, RegionFile> regionFiles = new HashMap<>();
     private final boolean honourReadOnlyChunks;

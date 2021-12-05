@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
+import static org.pepsoft.worldpainter.DefaultPlugin.*;
 
 /**
  * An abstract {@link WorldExporter} for block based platforms.
@@ -575,8 +575,8 @@ public abstract class AbstractWorldExporter implements WorldExporter {
 //        }
 
         // TODO: trying to do this for every region should work but is not very
-        // elegant
-        if ((platform != JAVA_ANVIL_1_15) && (dimension.getDim() == 0) && world.isCreateGoodiesChest()) { // Temporary workaround TODO make the chest work again
+        //  elegant
+        if ((platform != JAVA_ANVIL_1_15) && (platform != JAVA_ANVIL_1_17) && (platform != JAVA_ANVIL_1_18) /* TODO make dynamic */ && (dimension.getDim() == 0) && world.isCreateGoodiesChest()) { // Temporary workaround TODO make the chest work again
             Point goodiesPoint = (Point) world.getSpawnPoint().clone();
             goodiesPoint.translate(3, 3);
             int height = Math.min(dimension.getIntHeightAt(goodiesPoint) + 1, dimension.getMaxHeight() - 1);

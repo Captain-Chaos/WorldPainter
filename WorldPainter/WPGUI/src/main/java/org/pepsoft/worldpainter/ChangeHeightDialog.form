@@ -7,6 +7,7 @@
   </Properties>
   <SyntheticProperties>
     <SyntheticProperty name="formSizePolicy" type="int" value="1"/>
+    <SyntheticProperty name="generateCenter" type="boolean" value="false"/>
   </SyntheticProperties>
   <AuxValues>
     <AuxValue name="FormSettings_autoResourcing" type="java.lang.Integer" value="0"/>
@@ -136,22 +137,12 @@
       </Properties>
     </Component>
     <Component class="javax.swing.JComboBox" name="comboBoxNewHeight">
-      <Properties>
-        <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
-          <StringArray count="7">
-            <StringItem index="0" value="32"/>
-            <StringItem index="1" value="64"/>
-            <StringItem index="2" value="128"/>
-            <StringItem index="3" value="256"/>
-            <StringItem index="4" value="512"/>
-            <StringItem index="5" value="1024"/>
-            <StringItem index="6" value="2048"/>
-          </StringArray>
-        </Property>
-      </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="comboBoxNewHeightActionPerformed"/>
       </Events>
+      <AuxValues>
+        <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;Integer&gt;"/>
+      </AuxValues>
     </Component>
     <Component class="javax.swing.JButton" name="buttonCancel">
       <Properties>
@@ -245,7 +236,7 @@
         <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
           <Image iconType="3" name="/org/pepsoft/worldpainter/icons/error.png"/>
         </Property>
-        <Property name="text" type="java.lang.String" value="Only Minecraft 1.1, with mods!"/>
+        <Property name="text" type="java.lang.String" value="Only with mods!"/>
       </Properties>
     </Component>
   </SubComponents>

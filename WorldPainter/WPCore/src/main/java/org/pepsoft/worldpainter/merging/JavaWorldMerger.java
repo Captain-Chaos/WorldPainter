@@ -19,6 +19,7 @@ import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.*;
+import org.pepsoft.worldpainter.platforms.JavaPlatformProvider;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.util.FileInUseException;
 import org.pepsoft.worldpainter.vo.EventVO;
@@ -240,10 +241,6 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             level.setSpawnZ(spawnPoint.y);
         }
  
-        // Save the level.dat file. This will also create a session.lock file, hopefully kicking out any Minecraft
-        // instances which may have the map open:
-        level.save(worldDir);
-
         // Copy everything that we are not going to generate
         File[] files = backupDir.listFiles();
         //noinspection ConstantConditions // Cannot happen because we previously loaded level.dat from it
@@ -255,7 +252,8 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                     && (! file.getName().equalsIgnoreCase("maxheight.txt"))
                     && (! file.getName().equalsIgnoreCase("Height.txt"))
                     && (((selectedDimensions != null) && (! selectedDimensions.contains(DIM_NETHER))) || (! file.getName().equalsIgnoreCase("DIM-1")))
-                    && (((selectedDimensions != null) && (! selectedDimensions.contains(DIM_END))) || (! file.getName().equalsIgnoreCase("DIM1")))) {
+                    && (((selectedDimensions != null) && (! selectedDimensions.contains(DIM_END))) || (! file.getName().equalsIgnoreCase("DIM1")))
+                    && (! file.getName().equalsIgnoreCase("worldpainter.zip"))) {
                 if (file.isFile()) {
                     FileUtils.copyFileToDir(file, worldDir);
                 } else if (file.isDirectory()) {
@@ -265,6 +263,10 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                 }
             }
         }
+
+        // Save the level.dat file. This will also create a session.lock file, hopefully kicking out any Minecraft
+        // instances which may have the map open:
+        level.save(worldDir);
 
         if ((selectedDimensions == null) ? (world.getDimension(DIM_NORMAL) != null) : selectedDimensions.contains(DIM_NORMAL)) {
             mergeDimension(worldDir, backupDir, world.getDimension(DIM_NORMAL), progressReceiver);
@@ -484,7 +486,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
             // Read the region coordinates of the existing map
             final File backupRegionDir = new File(backupDimensionDir, "region");
             // TODO: support any platform
-            File[] existingRegionFiles = ((DefaultPlatformProvider) platformProvider).getRegionFiles(platform, backupRegionDir);
+            File[] existingRegionFiles = ((JavaPlatformProvider) platformProvider).getRegionFiles(platform, backupRegionDir);
             Map<Point, File> existingRegions = new HashMap<>();
             for (File file: existingRegionFiles) {
                 String[] parts = file.getName().split("\\.");
@@ -833,7 +835,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         }
         // Find all the region files of the existing level
         // TODO make this work with other platforms, or at least more generic
-        File[] oldRegionFiles = ((DefaultPlatformProvider) platformProvider).getRegionFiles(platform, new File(backupDir, "region"));
+        File[] oldRegionFiles = ((JavaPlatformProvider) platformProvider).getRegionFiles(platform, new File(backupDir, "region"));
 
         // Process each region file, copying every chunk unmodified, except
         // for the biomes
@@ -855,7 +857,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                                 try (NBTInputStream in = new NBTInputStream(oldRegion.getChunkDataInputStream(x, z))) {
                                     CompoundTag tag = (CompoundTag) in.readTag();
                                     // TODO make this work with other platforms, or at least more generic
-                                    chunk = ((DefaultPlatformProvider) platformProvider).createChunk(platform, tag, level.getMaxHeight());
+                                    chunk = ((JavaPlatformProvider) platformProvider).createChunk(platform, tag, level.getMaxHeight());
                                 }
                                 int chunkX = chunk.getxPos(), chunkZ = chunk.getzPos();
                                 if (platform.capabilities.contains(BIOMES)) {
@@ -946,7 +948,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                     if (regionFile == null) {
                         try {
                             // TODO support any platform
-                            regionFile = ((DefaultPlatformProvider) platformProvider).getRegionFile(platform, oldRegionDir, coords, true);
+                            regionFile = ((JavaPlatformProvider) platformProvider).getRegionFile(platform, oldRegionDir, coords, true);
                             regionFiles.put(coords, regionFile);
                         } catch (IOException e) {
                             reportBuilder.append("I/O error while opening region " + regionX + "," + regionY + " (message: \"" + e.getMessage() + "\"); skipping region" + EOL);
@@ -971,7 +973,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                             }
                             try (NBTInputStream in = new NBTInputStream(chunkData)) {
                                 // TODO: support any platform
-                                existingChunk = ((DefaultPlatformProvider) platformProvider).createChunk(platform, in.readTag(), maxHeight);
+                                existingChunk = ((JavaPlatformProvider) platformProvider).createChunk(platform, in.readTag(), maxHeight);
 
                                 // Sanity checks
                                 if ((existingChunk instanceof MC115AnvilChunk)
@@ -1188,7 +1190,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                     if (regionFile == null) {
                         try {
                             // TODO: support any platform
-                            regionFile = ((DefaultPlatformProvider) platformProvider).getRegionFile(platform, oldRegionDir, coords, true);
+                            regionFile = ((JavaPlatformProvider) platformProvider).getRegionFile(platform, oldRegionDir, coords, true);
                             regionFiles.put(coords, regionFile);
                         } catch (IOException e) {
                             reportBuilder.append("I/O error while opening region " + regionX + "," + regionY + " (message: \"" + e.getMessage() + "\"); skipping region" + EOL);
@@ -1224,7 +1226,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                             continue;
                         }
                         // TODO: support any platform
-                        minecraftWorld.addChunk(((DefaultPlatformProvider) platformProvider).createChunk(platform, tag, maxHeight));
+                        minecraftWorld.addChunk(((JavaPlatformProvider) platformProvider).createChunk(platform, tag, maxHeight));
                     }
                 }
             }
