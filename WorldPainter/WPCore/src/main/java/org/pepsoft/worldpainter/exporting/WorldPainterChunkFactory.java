@@ -121,8 +121,8 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                     // Set the whole column to this biome since we don't have 3D biome support yet
                     // TODO add 3D biome support
                     final int xx = x >> 2, zz = z >> 2;
-                    for (int y = 0; y < 64; y++) {
-                        chunk.set3DBiome(xx, y, zz, biome);
+                    for (int y = 0; y < maxHeight; y += 4) {
+                        chunk.set3DBiome(xx, y >> 2, zz, biome);
                     }
                 }
             }
