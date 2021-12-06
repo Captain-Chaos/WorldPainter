@@ -1,3 +1,7 @@
+-- Version 2.8.6, released 6-12-2021
+
+ * Bug fix: make custom layer previews work without errors by correctly filling the 3D biomes up to the level height
+
 -- Version 2.8.5, released 5-12-2021
 
  * Bug fix: make the Preferences screen work again
