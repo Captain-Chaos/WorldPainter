@@ -1,3 +1,7 @@
+-- Version 2.8.5, released 5-12-2021
+
+ * Bug fix: make the Preferences screen work again
+
 -- Version 2.8.4, released 5-12-2021
 
  * The Minecraft 1.15+ format is now the default format for new worlds
