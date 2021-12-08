@@ -343,7 +343,8 @@ public class Java1_2PostProcessor extends PostProcessor {
                     // Iterate over one column from bottom to top
                     Material materialBelow = (minZ <= 0) ? AIR : minecraftWorld.getMaterialAt(x, y, minZ - 1);
                     Material materialAbove = minecraftWorld.getMaterialAt(x, y, minZ);
-                    for (int z = minZ; z <= maxZ; z++) {
+                    final int columnMaxZ = Math.min(minecraftWorld.getHighestNonAirBlock(x, y), maxZ);
+                    for (int z = minZ; z <= columnMaxZ; z++) {
                         Material material = materialAbove;
                         materialAbove = (z < worldMaxZ) ? minecraftWorld.getMaterialAt(x, y, z + 1) : AIR;
                         if (flowWater && (material == STATIONARY_WATER) && (! isWaterContained(minecraftWorld, x, y, z, materialBelow))) {

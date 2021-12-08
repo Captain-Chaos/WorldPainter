@@ -94,7 +94,8 @@ public class Java1_15PostProcessor extends PostProcessor {
 //                if ((minZ == 0) && (blockTypeAbove != BLK_BEDROCK) && (blockTypeAbove != BLK_AIR) && (blockTypeAbove != BLK_STATIONARY_WATER) && (blockTypeAbove != BLK_STATIONARY_LAVA)) {
 //                    logger.warn("Non-bedrock block @ " + x + "," + y + ",0: " + BLOCKS[blockTypeAbove].name);
 //                }
-                for (int z = minZ; z <= maxZ; z++) {
+                final int columnMaxZ = Math.min(minecraftWorld.getHighestNonAirBlock(x, y), maxZ);
+                for (int z = minZ; z <= columnMaxZ; z++) {
                     Material material = materialAbove;
                     materialAbove = (z < worldMaxZ) ? minecraftWorld.getMaterialAt(x, y, z + 1) : AIR;
                     if (((materialBelow.isNamed(MC_GRASS_BLOCK)) || (materialBelow.isNamed(MC_MYCELIUM)) || (materialBelow.isNamed(MC_FARMLAND)))
@@ -368,7 +369,8 @@ public class Java1_15PostProcessor extends PostProcessor {
                     // Iterate over one column from bottom to top
                     Material materialBelow = (minZ <= 0) ? AIR : minecraftWorld.getMaterialAt(x, y, minZ - 1);
                     Material materialAbove = minecraftWorld.getMaterialAt(x, y, minZ);
-                    for (int z = minZ; z <= maxZ; z++) {
+                    final int columnMaxZ = Math.min(minecraftWorld.getHighestNonAirBlock(x, y), maxZ);
+                    for (int z = minZ; z <= columnMaxZ; z++) {
                         Material material = materialAbove;
                         materialAbove = (z < worldMaxZ) ? minecraftWorld.getMaterialAt(x, y, z + 1) : AIR;
                         if (flowWater && material.containsWater() && (! isWaterContained(minecraftWorld, x, y, z, materialBelow))) {
