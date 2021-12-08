@@ -110,6 +110,15 @@ public interface Chunk {
         throw new UnsupportedOperationException("Not supported");
     }
 
+    /**
+     * Mark a block to be updated by Minecraft when next loaded. Coordinates local to chunk.
+     *
+     * <p>The default implementation does nothing.
+     */
+    default void markForUpdateChunk(int x, int y, int z) {
+        // Do nothing
+    }
+
     boolean isReadOnly();
 
     boolean isLightPopulated();

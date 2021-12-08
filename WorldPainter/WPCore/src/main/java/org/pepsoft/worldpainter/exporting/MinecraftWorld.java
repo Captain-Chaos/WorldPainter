@@ -49,7 +49,20 @@ public interface MinecraftWorld extends ChunkProvider {
      * Fails silently if {@code height} is too large.
      */
     void setMaterialAt(int x, int y, int height, Material material);
-    
+
+    /**
+     * Mark a block to be updated by Minecraft when next loaded. Coordinates in world coordinates.
+     *
+     * <p>The default implementation uses {@link #getChunk(int, int)} to get the chunk, and if it exists invokes
+     * {@link Chunk#markForUpdateChunk(int, int, int)} on it.
+     */
+    default void markForUpdateWorld(int x, int y, int height) {
+        Chunk chunk = getChunk(x >> 4, y >> 4);
+        if (chunk != null) {
+            chunk.markForUpdateChunk(x & 0xf, height, y & 0xf);
+        }
+    }
+
     int getMaxHeight();
 
     void addEntity(int x, int y, int height, Entity entity);

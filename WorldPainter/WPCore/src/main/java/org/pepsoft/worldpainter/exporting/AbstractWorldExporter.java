@@ -747,7 +747,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
 
                 // Post processing. Fix covered grass blocks, things like that
                 long t3 = System.currentTimeMillis();
-                PlatformManager.getInstance().getPostProcessor(platform).postProcess(minecraftWorld, new Rectangle(regionCoords.x << 9, regionCoords.y << 9, 512, 512), (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.55f, 0.1f) : null);
+                PlatformManager.getInstance().getPostProcessor(platform).postProcess(minecraftWorld, new Rectangle(regionCoords.x << 9, regionCoords.y << 9, 512, 512), dimension.getExportSettings(), (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.55f, 0.1f) : null);
 
                 // Third pass. Calculate lighting
                 long t4 = System.currentTimeMillis();
@@ -929,6 +929,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         }
         // Make sure to honour the read-only layer: TODO: this means nothing at the moment. Is it still relevant?
         try (CachingMinecraftWorld minecraftWorld = new CachingMinecraftWorld(worldDir, dimension.getDim(), dimension.getMaxHeight(), platform, false, 512)) {
+            ExportSettings exportSettings = dimension.getExportSettings();
             for (Map.Entry<Point, List<Fixup>> entry: fixups.entrySet()) {
                 if (progressReceiver != null) {
                     progressReceiver.setMessage("Performing fixups for region " + entry.getKey().x + "," + entry.getKey().y);
@@ -938,7 +939,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                     logger.debug("Performing " + regionFixups.size() + " fixups for region " + entry.getKey().x + "," + entry.getKey().y);
                 }
                 for (Fixup fixup: regionFixups) {
-                    fixup.fixup(minecraftWorld, dimension, platform);
+                    fixup.fixup(minecraftWorld, dimension, platform, exportSettings);
                     if (progressReceiver != null) {
                         progressReceiver.setProgress((float) ++count / total);
                     }

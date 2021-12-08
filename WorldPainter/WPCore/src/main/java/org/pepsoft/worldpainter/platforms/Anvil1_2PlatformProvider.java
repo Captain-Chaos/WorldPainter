@@ -4,7 +4,6 @@ import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.minecraft.MC12AnvilChunk;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.Version;
-import org.pepsoft.worldpainter.exporting.Java1_2PostProcessor;
 import org.pepsoft.worldpainter.exporting.PostProcessor;
 
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;

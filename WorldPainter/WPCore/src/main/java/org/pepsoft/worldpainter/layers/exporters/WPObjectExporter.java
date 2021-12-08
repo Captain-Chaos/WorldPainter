@@ -12,10 +12,7 @@ import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Platform;
-import org.pepsoft.worldpainter.exporting.AbstractLayerExporter;
-import org.pepsoft.worldpainter.exporting.Fixup;
-import org.pepsoft.worldpainter.exporting.LightingCalculator;
-import org.pepsoft.worldpainter.exporting.MinecraftWorld;
+import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.layers.Frost;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.objects.WPObject;
@@ -508,7 +505,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
         }
 
         @Override
-        public void fixup(MinecraftWorld world, Dimension dimension, Platform platform) {
+        public void fixup(MinecraftWorld world, Dimension dimension, Platform platform, ExportSettings exportSettings) {
             // Recheck whether there is room
             if (isRoom(world, dimension, object, x, y, z, placement)) {
                 if (logger.isTraceEnabled()) {
@@ -531,7 +528,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                 bounds.setZ1(Math.max(bounds.getZ1() - 1, 0));
                 bounds.setZ2(Math.min(bounds.getZ2() + 1, world.getMaxHeight() - 1));
                 try {
-                    PlatformManager.getInstance().getPostProcessor(platform).postProcess(world, bounds, null);
+                    PlatformManager.getInstance().getPostProcessor(platform).postProcess(world, bounds, exportSettings, null);
                 } catch (ProgressReceiver.OperationCancelled e) {
                     // Can't happen since we don't pass in a progress receiver
                     throw new InternalError();

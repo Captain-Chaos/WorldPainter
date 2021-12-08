@@ -10,7 +10,6 @@ import java.awt.*;
 
 import static org.pepsoft.minecraft.Block.BLOCKS;
 import static org.pepsoft.minecraft.Constants.*;
-import static org.pepsoft.minecraft.Constants.BLK_STATIONARY_LAVA;
 import static org.pepsoft.minecraft.Material.*;
 
 /**
@@ -26,13 +25,15 @@ public abstract class PostProcessor {
      *
      * @param minecraftWorld The {@code MinecraftWorld} to post process.
      * @param area The area of the world to post process from top to bottom.
+     * @param exportSettings The export settings to apply, if any. May be {@code null}, in which case the post processor
+     *                       should use default settings.
      * @param progressReceiver The optional progress receiver to which to report
      *                         progress. May be {@code null}.
      * @throws ProgressReceiver.OperationCancelled If the progress receiver
      * threw an {@code OperationCancelled} exception.
      */
-    public void postProcess(MinecraftWorld minecraftWorld, Rectangle area, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
-        postProcess(minecraftWorld, new Box(area.x, area.x + area.width, area.y, area.y + area.height, 0, minecraftWorld.getMaxHeight()), progressReceiver);
+    public void postProcess(MinecraftWorld minecraftWorld, Rectangle area, ExportSettings exportSettings, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
+        postProcess(minecraftWorld, new Box(area.x, area.x + area.width, area.y, area.y + area.height, 0, minecraftWorld.getMaxHeight()), exportSettings, progressReceiver);
     }
 
     /**
@@ -41,12 +42,14 @@ public abstract class PostProcessor {
      *
      * @param minecraftWorld The {@code MinecraftWorld} to post process.
      * @param volume The three dimensional area of the world to post process.
+     * @param exportSettings The export settings to apply, if any. May be {@code null}, in which case the post processor
+     *                       should use default settings.
      * @param progressReceiver The optional progress receiver to which to report
      *                         progress. May be {@code null}.
      * @throws ProgressReceiver.OperationCancelled If the progress receiver
      * threw an {@code OperationCancelled} exception.
      */
-    public abstract void postProcess(MinecraftWorld minecraftWorld, Box volume, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled;
+    public abstract void postProcess(MinecraftWorld minecraftWorld, Box volume, ExportSettings exportSettings, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled;
 
     protected void dropBlock(MinecraftWorld world, int x, int y, int z) {
         int solidFloor = z - 1;
@@ -88,6 +91,32 @@ public abstract class PostProcessor {
         }
     }
 
+    protected boolean isWaterContained(MinecraftWorld world, int x, int y, int z, Material materialBelow) {
+        if ((! materialBelow.containsWater()) && (! materialBelow.solid)) {
+            return false;
+        } else {
+            final Material materialNorth = world.getMaterialAt(x, y - 1, z), materialEast = world.getMaterialAt(x + 1, y, z),
+                    materialSouth = world.getMaterialAt(x, y + 1, z), materialWest = world.getMaterialAt(x - 1, y, z);
+            return (materialNorth.containsWater() || materialNorth.solid)
+                    && (materialEast.containsWater() || materialEast.solid)
+                    && (materialSouth.containsWater() || materialSouth.solid)
+                    && (materialWest.containsWater() || materialWest.solid);
+        }
+    }
+
+    protected boolean isLavaContained(MinecraftWorld world, int x, int y, int z, Material materialBelow) {
+        if ((! materialBelow.isNamed(MC_LAVA)) && (! materialBelow.solid)) {
+            return false;
+        } else {
+            final Material materialNorth = world.getMaterialAt(x, y - 1, z), materialEast = world.getMaterialAt(x + 1, y, z),
+                    materialSouth = world.getMaterialAt(x, y + 1, z), materialWest = world.getMaterialAt(x - 1, y, z);
+            return (materialNorth.isNamed(MC_LAVA) || materialNorth.solid)
+                    && (materialEast.isNamed(MC_LAVA) || materialEast.solid)
+                    && (materialSouth.isNamed(MC_LAVA) || materialSouth.solid)
+                    && (materialWest.isNamed(MC_LAVA) || materialWest.solid);
+        }
+    }
+
     public static final boolean enabled = ! "false".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.enforceBlockRules"));
 
     private static final Logger logger = LoggerFactory.getLogger(PostProcessor.class);
@@ -97,6 +126,4 @@ public abstract class PostProcessor {
             logger.warn("Block rule enforcement disabled");
         }
     }
-
-    public enum FloatMode {DROP, SUPPORT, LEAVE_FLOATING}
 }

@@ -1,14 +1,19 @@
-package org.pepsoft.worldpainter.exporting;
+package org.pepsoft.worldpainter.platforms;
 
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.Box;
 import org.pepsoft.util.ProgressReceiver;
+import org.pepsoft.worldpainter.exporting.ExportSettings;
+import org.pepsoft.worldpainter.exporting.MinecraftWorld;
+import org.pepsoft.worldpainter.exporting.PostProcessor;
 import org.pepsoft.worldpainter.objects.MinecraftWorldObject;
+import org.pepsoft.worldpainter.platforms.JavaExportSettings.FloatMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.pepsoft.minecraft.Block.*;
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Material.*;
 
 /**
  * Helper class which can post process a fully rendered Minecraft 1.2 to 1.12.2
@@ -31,27 +36,30 @@ public class Java1_2PostProcessor extends PostProcessor {
      *
      * @param minecraftWorld The {@code MinecraftWorld} to post process.
      * @param volume The three dimensional area of the world to post process.
+     * @param exportSettings The export settings to apply.
      * @param progressReceiver The optional progress receiver to which to report
      *                         progress. May be {@code null}.
      * @throws ProgressReceiver.OperationCancelled If the progress receiver
      * threw an {@code OperationCancelled} exception.
      */
     @Override
-    public void postProcess(MinecraftWorld minecraftWorld, Box volume, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
+    public void postProcess(MinecraftWorld minecraftWorld, Box volume, ExportSettings exportSettings, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
         if (! enabled) {
             return;
         }
         if (progressReceiver != null) {
-            progressReceiver.setMessage("Enforcing Minecraft rules on exported blocks");
+            progressReceiver.setMessage("Post processing exported blocks (first pass)");
         }
         final int worldMaxZ = minecraftWorld.getMaxHeight() - 1;
         final int x1, y1, x2, y2, minZ, maxZ;
         // TODO: make these configurable:
-        final FloatMode sandMode = "false".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.supportSand")) ? FloatMode.LEAVE_FLOATING : FloatMode.SUPPORT;
-        final FloatMode gravelMode = FloatMode.LEAVE_FLOATING;
-        final FloatMode cementMode = FloatMode.LEAVE_FLOATING;
-        final FloatMode waterMode = FloatMode.LEAVE_FLOATING;
-        final FloatMode lavaMode = FloatMode.LEAVE_FLOATING;
+        final JavaExportSettings settings = (exportSettings instanceof JavaExportSettings) ? (JavaExportSettings) exportSettings : new JavaExportSettings();
+        final FloatMode sandMode = "false".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.supportSand")) ? FloatMode.LEAVE_FLOATING : settings.sandMode;
+        final FloatMode gravelMode = settings.gravelMode;
+        final FloatMode cementMode = settings.cementMode;
+        final FloatMode waterMode = settings.waterMode;
+        final FloatMode lavaMode = settings.lavaMode;
+        final boolean flowLava = settings.flowLava, flowWater = settings.flowWater;
         if (minecraftWorld instanceof MinecraftWorldObject) {
             // Special support for MinecraftWorldObjects to constrain the area
             // further
@@ -323,6 +331,37 @@ public class Java1_2PostProcessor extends PostProcessor {
             if (progressReceiver != null) {
                 progressReceiver.setProgress((float) (x - x1 + 1) / (x2 - x1 + 1));
             }
+        }
+
+        if (flowWater || flowLava) {
+            if (progressReceiver != null) {
+                progressReceiver.setMessage("Post processing exported blocks (fluids pass)");
+            }
+            // Pass 2 (water and lava pass)
+            for (int x = x1; x <= x2; x++) {
+                for (int y = y1; y <= y2; y++) {
+                    // Iterate over one column from bottom to top
+                    Material materialBelow = (minZ <= 0) ? AIR : minecraftWorld.getMaterialAt(x, y, minZ - 1);
+                    Material materialAbove = minecraftWorld.getMaterialAt(x, y, minZ);
+                    for (int z = minZ; z <= maxZ; z++) {
+                        Material material = materialAbove;
+                        materialAbove = (z < worldMaxZ) ? minecraftWorld.getMaterialAt(x, y, z + 1) : AIR;
+                        if (flowWater && (material == STATIONARY_WATER) && (! isWaterContained(minecraftWorld, x, y, z, materialBelow))) {
+                            minecraftWorld.setMaterialAt(x, y, z, WATER);
+                            material = WATER;
+                        } else if (flowLava && (material == STATIONARY_LAVA) && (! isLavaContained(minecraftWorld, x, y, z, materialBelow))) {
+                            minecraftWorld.setMaterialAt(x, y, z, LAVA);
+                            material = LAVA;
+                        }
+                        materialBelow = material;
+                    }
+                }
+                if (progressReceiver != null) {
+                    progressReceiver.setProgress(0.75f + (float) (x - x1 + 1) / (x2 - x1 + 1) * 0.25f);
+                }
+            }
+        } else if (progressReceiver != null) {
+            progressReceiver.setProgress(1.0f);
         }
     }
 

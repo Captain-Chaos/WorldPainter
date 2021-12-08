@@ -13,6 +13,7 @@ import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.undo.UndoManager;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiome;
 import org.pepsoft.worldpainter.brushes.Brush;
+import org.pepsoft.worldpainter.exporting.ExportSettings;
 import org.pepsoft.worldpainter.gardenofeden.Garden;
 import org.pepsoft.worldpainter.gardenofeden.Seed;
 import org.pepsoft.worldpainter.layers.*;
@@ -1191,6 +1192,19 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         }
     }
 
+    public ExportSettings getExportSettings() {
+        return exportSettings;
+    }
+
+    public void setExportSettings(ExportSettings exportSettings) {
+        if ((this.exportSettings == null) ? (exportSettings != null) : (! exportSettings.equals(this.exportSettings))) {
+            ExportSettings oldExportSettings = this.exportSettings;
+            this.exportSettings = exportSettings;
+            changeNo++;
+            propertyChangeSupport.firePropertyChange("exportSettings", oldExportSettings, exportSettings);
+        }
+    }
+
     public void applyTheme(Point coords) {
         applyTheme(coords.x, coords.y);
     }
@@ -1853,6 +1867,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     private int ceilingHeight = maxHeight;
     private Map<String, Object> attributes;
     private LayerAnchor subsurfaceLayerAnchor = LayerAnchor.BEDROCK, topLayerAnchor = LayerAnchor.BEDROCK;
+    private ExportSettings exportSettings;
     private transient List<Listener> listeners = new ArrayList<>();
     private transient boolean eventsInhibited;
     private transient Set<Tile> dirtyTiles = new HashSet<>();

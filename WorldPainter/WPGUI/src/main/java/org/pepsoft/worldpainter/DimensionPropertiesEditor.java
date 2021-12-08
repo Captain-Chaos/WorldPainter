@@ -11,6 +11,8 @@
 package org.pepsoft.worldpainter;
 
 import org.pepsoft.worldpainter.Dimension.LayerAnchor;
+import org.pepsoft.worldpainter.exporting.ExportSettings;
+import org.pepsoft.worldpainter.exporting.ExportSettingsEditor;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.exporters.AnnotationsExporter.AnnotationsSettings;
 import org.pepsoft.worldpainter.layers.exporters.CavernsExporter.CavernsSettings;
@@ -19,12 +21,18 @@ import org.pepsoft.worldpainter.layers.exporters.ChasmsExporter.ChasmsSettings;
 import org.pepsoft.worldpainter.layers.exporters.FrostExporter.FrostSettings;
 import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter.ResourcesExporterSettings;
 import org.pepsoft.worldpainter.layers.exporters.TreesExporter.TreeLayerSettings;
+import org.pepsoft.worldpainter.plugins.PlatformManager;
+import org.pepsoft.worldpainter.plugins.PlatformProvider;
 import org.pepsoft.worldpainter.themes.SimpleTheme;
 import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.JSpinner.NumberEditor;
 import javax.swing.event.ListSelectionEvent;
+import java.awt.*;
+import java.util.List;
 import java.util.*;
 
 import static org.pepsoft.minecraft.Material.*;
@@ -139,6 +147,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         switch (mode) {
             case EXPORT:
                 jTabbedPane1.remove(1);
+                initialisePostProcessingTab();
                 break;
             case DEFAULT_SETTINGS:
                 spinnerMinecraftSeed.setEnabled(false);
@@ -160,6 +169,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         this.dimension = dimension;
         if (dimension != null) {
             setPlatform(dimension.getWorld().getPlatform());
+            initialisePostProcessingTab();
             loadSettings();
         }
     }
@@ -171,6 +181,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     public void setPlatform(Platform platform) {
         if (platform != this.platform) {
             this.platform = platform;
+            platformProvider = PlatformManager.getInstance().getPlatformProvider(platform);
             if ((platform == null) || platform.capabilities.contains(POPULATE)) {
                 checkBoxPopulate.setSelected(dimension.isPopulate());
                 checkBoxPopulate.setToolTipText(null);
@@ -493,6 +504,14 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             customLayersTableModel.save();
             dimension.changed();
         }
+
+        // export settings
+        for (Component component: jTabbedPane1.getComponents()) {
+            if (component instanceof ExportSettingsEditor) {
+                ExportSettingsEditor editor = (ExportSettingsEditor) component;
+                dimension.setExportSettings(editor.getExportSettings());
+            }
+        }
         
         return true;
     }
@@ -507,6 +526,24 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
     public boolean isPopulateSelected() {
         return checkBoxPopulate.isSelected();
+    }
+
+    private void initialisePostProcessingTab() {
+        if ((mode == Mode.EXPORT) && (dimension != null)) {
+            ExportSettings exportSettings = dimension.getExportSettings();
+            if (exportSettings == null) {
+                exportSettings = platformProvider.getDefaultExportSettings();
+            }
+            if (exportSettings != null) {
+                try {
+                    ExportSettingsEditor editor = platformProvider.getExportSettingsEditor();
+                    editor.setExportSettings(exportSettings);
+                    jTabbedPane1.addTab("Post Processing", editor);
+                } catch (RuntimeException e) {
+                    logger.warn("Could not initialise post processing tab", e);
+                }
+            }
+        }
     }
 
     private Dimension.Border getSelectedBorder() {
@@ -2751,7 +2788,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 .addComponent(jLabel82, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 282, Short.MAX_VALUE)
                     .addGroup(jPanel7Layout.createSequentialGroup()
                         .addComponent(buttonCustomLayerUp)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -3151,11 +3188,13 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
     private Dimension dimension;
     private Platform platform;
+    private PlatformProvider platformProvider;
     private CustomLayersTableModel customLayersTableModel;
     private Mode mode;
     private List<BorderListener> borderListeners = new ArrayList<>();
     private Dimension.LayerAnchor subsurfaceLayerAnchor;
-    
+
+    private static final Logger logger = LoggerFactory.getLogger(DimensionPropertiesEditor.class);
     private static final long serialVersionUID = 1L;
     
     public enum Mode {EXPORT, DEFAULT_SETTINGS, EDITOR}

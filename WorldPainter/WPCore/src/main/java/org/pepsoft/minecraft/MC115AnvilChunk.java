@@ -39,7 +39,6 @@ public final class MC115AnvilChunk extends NBTChunk implements MinecraftWorld {
         tileEntities = new ArrayList<>();
         readOnly = false;
         lightPopulated = true;
-        liquidTicks = new ArrayList<>();
 
         setTerrainPopulated(true);
 
@@ -50,6 +49,7 @@ public final class MC115AnvilChunk extends NBTChunk implements MinecraftWorld {
         this(tag, maxHeight, false);
     }
 
+    @SuppressWarnings("ConstantConditions") // Guaranteed by containsTag()
     public MC115AnvilChunk(CompoundTag tag, int maxHeight, boolean readOnly) {
         super((CompoundTag) tag.getTag(TAG_LEVEL));
         try {
@@ -121,7 +121,9 @@ public final class MC115AnvilChunk extends NBTChunk implements MinecraftWorld {
             status = getString(TAG_STATUS).intern();
             lightPopulated = getBoolean(TAG_LIGHT_POPULATED);
             inhabitedTime = getLong(TAG_INHABITED_TIME);
-            liquidTicks = getList(TAG_LIQUID_TICKS);
+            if (containsTag(TAG_LIQUID_TICKS)) {
+                liquidTicks.addAll(getList(TAG_LIQUID_TICKS));
+            }
 
             debugChunk = (xPos == (debugWorldX >> 4)) && (zPos == (debugWorldZ >> 4));
         } catch (Section.ExceptionParsingSectionException e) {
@@ -385,6 +387,16 @@ public final class MC115AnvilChunk extends NBTChunk implements MinecraftWorld {
             biomes3d = new int[16 * (maxHeight / 4)];
         }
         biomes3d[x + z * 4 + y * 16] = biome;
+    }
+
+    @Override
+    public void markForUpdateChunk(int x, int y, int z) {
+        Material material = getMaterial(x, y, z);
+        if (material.isNamedOneOf(MC_WATER, MC_LAVA)) {
+            addLiquidTick(x, y, z);
+        } else {
+            throw new UnsupportedOperationException("Don't know how to mark " + material + " for update");
+        }
     }
 
     @Override
@@ -702,7 +714,7 @@ public final class MC115AnvilChunk extends NBTChunk implements MinecraftWorld {
     long inhabitedTime;
     String status;
     final Map<String, long[]> heightMaps;
-    final List<CompoundTag> liquidTicks;
+    final List<CompoundTag> liquidTicks = new ArrayList<>();
     final boolean debugChunk;
 
     private static long debugWorldX, debugWorldZ, debugXInChunk, debugZInChunk;

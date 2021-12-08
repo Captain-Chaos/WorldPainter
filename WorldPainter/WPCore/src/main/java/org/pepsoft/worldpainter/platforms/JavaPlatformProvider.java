@@ -8,9 +8,7 @@ import org.pepsoft.minecraft.RegionFile;
 import org.pepsoft.minecraft.mapexplorer.JavaMapRecognizer;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.World2;
-import org.pepsoft.worldpainter.exporting.JavaChunkStore;
-import org.pepsoft.worldpainter.exporting.JavaWorldExporter;
-import org.pepsoft.worldpainter.exporting.WorldExporter;
+import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.mapexplorer.MapRecognizer;
 import org.pepsoft.worldpainter.plugins.BlockBasedPlatformProvider;
 import org.pepsoft.worldpainter.util.MinecraftUtil;
@@ -95,6 +93,16 @@ public abstract class JavaPlatformProvider extends AbstractPlatformProvider impl
     @Override
     public MapRecognizer getMapRecognizer() {
         return new JavaMapRecognizer();
+    }
+
+    @Override
+    public ExportSettings getDefaultExportSettings() {
+        return new JavaExportSettings();
+    }
+
+    @Override
+    public ExportSettingsEditor getExportSettingsEditor() {
+        return new JavaExportSettingsEditor();
     }
 
     @SuppressWarnings("ConstantConditions") // Yes, we just checked that

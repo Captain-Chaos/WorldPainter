@@ -503,6 +503,8 @@ public final class Constants {
     public static final String MC_LILY_OF_THE_VALLEY = "minecraft:lily_of_the_valley";
     public static final String MC_WITHER_ROSE = "minecraft:wither_rose";
     public static final String MC_SWEET_BERRY_BUSH = "minecraft:sweet_berry_bush";
+    public static final String MC_FLOWING_WATER = "minecraft:flowing_water";
+    public static final String MC_FLOWING_LAVA = "minecraft:flowing_lava";
 
     // MC 1.15 property names
 

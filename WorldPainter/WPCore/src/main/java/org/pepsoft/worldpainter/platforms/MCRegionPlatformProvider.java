@@ -7,7 +7,6 @@ import org.pepsoft.minecraft.MCRegionChunk;
 import org.pepsoft.minecraft.NBTChunk;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.Version;
-import org.pepsoft.worldpainter.exporting.Java1_2PostProcessor;
 import org.pepsoft.worldpainter.exporting.PostProcessor;
 
 import java.awt.*;

@@ -20,6 +20,7 @@ import org.pepsoft.worldpainter.layers.pockets.UndergroundPocketsLayer;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayer;
 import org.pepsoft.worldpainter.objects.MinecraftWorldObject;
 import org.pepsoft.worldpainter.objects.WPObject;
+import org.pepsoft.worldpainter.platforms.Java1_15PostProcessor;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
 
 import javax.imageio.ImageIO;
@@ -203,7 +204,7 @@ public class LayerPreviewCreator {
         timestamp = now;
         now = System.currentTimeMillis();
         try {
-            new Java1_15PostProcessor().postProcess(minecraftWorldObject, new Rectangle(-8, -8, 136, 136), null);
+            new Java1_15PostProcessor().postProcess(minecraftWorldObject, new Rectangle(-8, -8, 136, 136), null, null);
         } catch (ProgressReceiver.OperationCancelled e) {
             // Can't happen since we didn't pass in a progress receiver
             throw new InternalError();
