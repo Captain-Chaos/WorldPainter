@@ -1,3 +1,12 @@
+-- Version 2.8.7, released 8-12-2021
+
+ * It is now possible to change the post processing settings to have WorldPainter handle floating fluids and other blocks in various ways. This is done from the new Post Processing tab on the Export screen:
+   + For both water and lava you can configure:
+     - Whether floating blocks should be extended downwards until they hit a solid block
+     - Whether uncontained blocks should be turned into flowing water or lava so that Minecraft will cause them to flow out upon loading
+   + For sand, gravel and cement (separately):
+     - Whether floating blocks should be left floating, supported by turning the lowermost block into stone or sandstone, or be dropped down on a solid block underneath
+
 -- Version 2.8.6, released 6-12-2021
 
  * Bug fix: make custom layer previews work without errors by correctly filling the 3D biomes up to the level height
