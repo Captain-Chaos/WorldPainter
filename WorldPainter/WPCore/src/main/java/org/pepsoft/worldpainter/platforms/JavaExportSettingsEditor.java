@@ -85,15 +85,14 @@ public class JavaExportSettingsEditor extends ExportSettingsEditor {
 
     @Override
     public JavaExportSettings getExportSettings() {
-        JavaExportSettings exportSettings = new JavaExportSettings();
-        exportSettings.waterMode  = radioButtonWaterFloat.isSelected()  ? LEAVE_FLOATING : DROP;
-        exportSettings.lavaMode   = radioButtonLavaFloat.isSelected()   ? LEAVE_FLOATING : DROP;
-        exportSettings.sandMode   = radioButtonSandFloat.isSelected()   ? LEAVE_FLOATING : (radioButtonSandSupport.isSelected()   ? SUPPORT : DROP);
-        exportSettings.gravelMode = radioButtonGravelFloat.isSelected() ? LEAVE_FLOATING : (radioButtonGravelSupport.isSelected() ? SUPPORT : DROP);
-        exportSettings.cementMode = radioButtonCementFloat.isSelected() ? LEAVE_FLOATING : (radioButtonCementSupport.isSelected() ? SUPPORT : DROP);
-        exportSettings.flowWater  = checkBoxWaterFlow.isSelected();
-        exportSettings.flowLava   = checkBoxLavaFlow.isSelected();
-        return exportSettings;
+        return new JavaExportSettings(
+            radioButtonWaterFloat.isSelected()  ? LEAVE_FLOATING : DROP,
+            radioButtonLavaFloat.isSelected()   ? LEAVE_FLOATING : DROP,
+            radioButtonSandFloat.isSelected()   ? LEAVE_FLOATING : (radioButtonSandSupport.isSelected()   ? SUPPORT : DROP),
+            radioButtonGravelFloat.isSelected() ? LEAVE_FLOATING : (radioButtonGravelSupport.isSelected() ? SUPPORT : DROP),
+            radioButtonCementFloat.isSelected() ? LEAVE_FLOATING : (radioButtonCementSupport.isSelected() ? SUPPORT : DROP),
+            checkBoxWaterFlow.isSelected(),
+            checkBoxLavaFlow.isSelected());
     }
 
     /**

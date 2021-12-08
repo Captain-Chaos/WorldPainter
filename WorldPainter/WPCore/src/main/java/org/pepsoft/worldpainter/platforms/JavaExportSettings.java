@@ -17,6 +17,26 @@ import static org.pepsoft.worldpainter.platforms.JavaExportSettings.FloatMode.LE
  * @author Pepijn
  */
 public class JavaExportSettings extends ExportSettings {
+    public JavaExportSettings() {
+        waterMode = DROP;
+        lavaMode = DROP;
+        sandMode = LEAVE_FLOATING;
+        gravelMode = LEAVE_FLOATING;
+        cementMode = LEAVE_FLOATING;
+        flowWater = true;
+        flowLava = true;
+    }
+
+    public JavaExportSettings(FloatMode waterMode, FloatMode lavaMode, FloatMode sandMode, FloatMode gravelMode, FloatMode cementNode, boolean flowWater, boolean flowLava) {
+        this.waterMode = waterMode;
+        this.lavaMode = lavaMode;
+        this.sandMode = sandMode;
+        this.gravelMode = gravelMode;
+        this.cementMode = cementNode;
+        this.flowWater = flowWater;
+        this.flowLava = flowLava;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -30,8 +50,8 @@ public class JavaExportSettings extends ExportSettings {
         return Objects.hash(waterMode, lavaMode, sandMode, gravelMode, cementMode, flowWater, flowLava);
     }
 
-    FloatMode waterMode = DROP, lavaMode = DROP, sandMode = LEAVE_FLOATING, gravelMode = LEAVE_FLOATING, cementMode = LEAVE_FLOATING;
-    boolean flowWater = true, flowLava = true;
+    final FloatMode waterMode, lavaMode, sandMode, gravelMode, cementMode;
+    final boolean flowWater, flowLava;
     
     private static final long serialVersionUID = 1L;
 

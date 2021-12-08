@@ -26,7 +26,8 @@ public abstract class PostProcessor {
      * @param minecraftWorld The {@code MinecraftWorld} to post process.
      * @param area The area of the world to post process from top to bottom.
      * @param exportSettings The export settings to apply, if any. May be {@code null}, in which case the post processor
-     *                       should use default settings.
+     *                       should use default settings. If the settings are of an unsupported type and/or belong to a
+     *                       different platform, they must be silently ignored rather than cause an exception.
      * @param progressReceiver The optional progress receiver to which to report
      *                         progress. May be {@code null}.
      * @throws ProgressReceiver.OperationCancelled If the progress receiver
@@ -43,7 +44,8 @@ public abstract class PostProcessor {
      * @param minecraftWorld The {@code MinecraftWorld} to post process.
      * @param volume The three dimensional area of the world to post process.
      * @param exportSettings The export settings to apply, if any. May be {@code null}, in which case the post processor
-     *                       should use default settings.
+     *                       should use default settings. If the settings are of an unsupported type and/or belong to a
+     *      *                different platform, they must be silently ignored rather than cause an exception.
      * @param progressReceiver The optional progress receiver to which to report
      *                         progress. May be {@code null}.
      * @throws ProgressReceiver.OperationCancelled If the progress receiver
