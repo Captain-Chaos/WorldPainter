@@ -98,7 +98,7 @@ public class Java1_15PostProcessor extends PostProcessor {
                 for (int z = minZ; z <= columnMaxZ; z++) {
                     Material material = materialAbove;
                     materialAbove = (z < worldMaxZ) ? minecraftWorld.getMaterialAt(x, y, z + 1) : AIR;
-                    if (((materialBelow.isNamed(MC_GRASS_BLOCK)) || (materialBelow.isNamed(MC_MYCELIUM)) || (materialBelow.isNamed(MC_FARMLAND)))
+                    if (((materialBelow.isNamedOneOf(MC_GRASS_BLOCK, MC_MYCELIUM, MC_FARMLAND)))
                             && (material.containsWater() || (material == ICE) || material.opaque)) {
                         // Covered grass, mycelium or tilled earth block, should
                         // be dirt

@@ -86,10 +86,10 @@ public abstract class PostProcessor {
                 break;
             }
         }
-        if ((solidFloor >= 0) && (solidFloor < (z - 1))){
-            // Make the lowest block flowing, so that Minecraft will continue it
-            // sideways
-            world.setMaterialAt(x, y, solidFloor + 1,lava ? LAVA : WATER);
+        if ((solidFloor >= 0) && (solidFloor < (z - 1))) {
+            if (world.getMaterialAt(x, y, solidFloor).isNamedOneOf(MC_GRASS_BLOCK, MC_MYCELIUM, MC_FARMLAND)) {
+                world.setMaterialAt(x, y, solidFloor, DIRT);
+            }
         }
     }
 
