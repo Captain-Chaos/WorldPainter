@@ -20,6 +20,7 @@ import java.util.*;
 import static java.util.stream.Collectors.toList;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.AIR;
+import static org.pepsoft.minecraft.Material.WATERLOGGED;
 
 /**
  * An "Anvil" chunk for Minecraft 1.15 and higher.
@@ -155,7 +156,7 @@ public final class MC115AnvilChunk extends NBTChunk implements MinecraftWorld {
         return heightMaps;
     }
 
-    public void addLiquidTick(int x, int y, int z) {
+    private void addLiquidTick(int x, int y, int z) {
         // Liquid ticks are in world coordinates for some reason
         x = (xPos << 4) | x;
         z = (zPos << 4) | z;
@@ -167,11 +168,18 @@ public final class MC115AnvilChunk extends NBTChunk implements MinecraftWorld {
                 return;
             }
         }
+        String id;
+        Material material = getMaterial(x & 0xf, y, z & 0xf);
+        if (material.isNamed(MC_WATER) || material.is(WATERLOGGED)) {
+            id = MC_WATER;
+        } else {
+            id = material.name;
+        }
         liquidTicks.add(new CompoundTag("", ImmutableMap.<String, Tag>builder()
                 .put(TAG_X_, new IntTag(TAG_X_, x))
                 .put(TAG_Y_, new IntTag(TAG_Y_, y))
                 .put(TAG_Z_, new IntTag(TAG_Z_, z))
-                .put(TAG_I_, new StringTag(TAG_I_, getMaterial(x & 0xf, y, z & 0xf).name))
+                .put(TAG_I_, new StringTag(TAG_I_, id))
                 .put(TAG_P_, new IntTag(TAG_P_, 0))
                 .put(TAG_T_, new IntTag(TAG_T_, RANDOM.nextInt(30) + 1)).build()));
     }
@@ -392,7 +400,7 @@ public final class MC115AnvilChunk extends NBTChunk implements MinecraftWorld {
     @Override
     public void markForUpdateChunk(int x, int y, int z) {
         Material material = getMaterial(x, y, z);
-        if (material.isNamedOneOf(MC_WATER, MC_LAVA)) {
+        if (material.isNamedOneOf(MC_WATER, MC_LAVA) || material.is(WATERLOGGED)) {
             addLiquidTick(x, y, z);
         } else {
             throw new UnsupportedOperationException("Don't know how to mark " + material + " for update");

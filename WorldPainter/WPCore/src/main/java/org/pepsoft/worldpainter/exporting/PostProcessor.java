@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 
-import static org.pepsoft.minecraft.Block.BLOCKS;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 
@@ -56,12 +55,12 @@ public abstract class PostProcessor {
     protected void dropBlock(MinecraftWorld world, int x, int y, int z) {
         int solidFloor = z - 1;
         for (; solidFloor > 0; solidFloor--) {
-            int blockType = world.getBlockTypeAt(x, y, solidFloor);
-            if (BLOCKS[blockType].insubstantial) {
+            Material material = world.getMaterialAt(x, y, solidFloor);
+            if (material.insubstantial) {
                 // Remove insubstantial blocks (as the falling block would have
                 // obliterated them) but keep looking for a solid floor
                 world.setMaterialAt(x, y, solidFloor, AIR);
-            } else if ((blockType != BLK_AIR) && (blockType != BLK_WATER) && (blockType != BLK_STATIONARY_WATER) && (blockType != BLK_LAVA) && (blockType != BLK_STATIONARY_LAVA)) {
+            } else if (material.isNotNamedOneOf(MC_AIR, MC_WATER, MC_LAVA)) {
                 break;
             }
         }
@@ -76,11 +75,11 @@ public abstract class PostProcessor {
     }
 
     protected void dropFluid(MinecraftWorld world, int x, int y, int z) {
-        boolean lava = world.getBlockTypeAt(x, y, z) == BLK_LAVA || world.getBlockTypeAt(x, y, z) == BLK_STATIONARY_LAVA;
+        boolean lava = world.getMaterialAt(x, y, z).isNamed(MC_LAVA);
         int solidFloor = z - 1;
         for (; solidFloor > 0; solidFloor--) {
-            int blockType = world.getBlockTypeAt(x, y, solidFloor);
-            if (blockType == BLK_AIR || BLOCKS[blockType].insubstantial) {
+            Material material = world.getMaterialAt(x, y, solidFloor);
+            if (material == AIR || material.insubstantial) {
                 world.setMaterialAt(x, y, solidFloor, lava ? STATIONARY_LAVA : STATIONARY_WATER);
             } else {
                 break;

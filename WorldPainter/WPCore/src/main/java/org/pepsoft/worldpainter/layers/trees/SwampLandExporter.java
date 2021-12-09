@@ -17,7 +17,8 @@ import java.awt.*;
 import java.util.List;
 import java.util.Random;
 
-import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Constants.MC_WATER;
+import static org.pepsoft.minecraft.Material.AIR;
 
 /**
  *
@@ -54,9 +55,9 @@ public class SwampLandExporter extends TreesExporter<TreeLayer> {
                         if ((waterLevel > terrainLevel) && (waterLevel < maxZ)) {
                             int strength = Math.max(minimumLevel, dimension.getLayerValueAt(layer, x, y));
                             if ((strength > 0) && (random.nextInt(3840) <= (strength * strength))) {
-                                int blockType = world.getBlockTypeAt(x, y, waterLevel);
-                                int blockTypeAbove = world.getBlockTypeAt(x, y, waterLevel + 1);
-                                if (((blockType == BLK_WATER) || (blockType == BLK_STATIONARY_WATER)) && (blockTypeAbove == BLK_AIR)) {
+                                Material material = world.getMaterialAt(x, y, waterLevel);
+                                Material materialAbove = world.getMaterialAt(x, y, waterLevel + 1);
+                                if (material.isNamed(MC_WATER) && (materialAbove == AIR)) {
                                     world.setMaterialAt(x, y, waterLevel + 1, Material.LILY_PAD);
                                 }
                             }
