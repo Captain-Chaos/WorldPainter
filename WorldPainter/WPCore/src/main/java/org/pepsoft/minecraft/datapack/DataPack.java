@@ -1,19 +1,17 @@
 package org.pepsoft.minecraft.datapack;
 
-import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
+import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
 import static com.fasterxml.jackson.core.JsonGenerator.Feature.AUTO_CLOSE_TARGET;
@@ -39,29 +37,26 @@ public class DataPack {
 
     public static DataPack load(File dir, String name) throws IOException {
         DataPack dataPack = new DataPack();
-        try (ZipInputStream in = new ZipInputStream(new FileInputStream(new File(dir, "datapacks/" + name.substring(5))))) {
-            ZipEntry entry;
+        try (ZipFile in = new ZipFile(new File(dir, "datapacks/" + name.substring(5)))) {
             ObjectReader reader = new ObjectReader(OBJECT_MAPPER, OBJECT_MAPPER.getDeserializationConfig()
                     .with(SNAKE_CASE)
                     .withoutFeatures(AUTO_CLOSE_SOURCE)
                     .withoutFeatures(FAIL_ON_UNKNOWN_PROPERTIES)) { /* We have to make a subclass because there is no public way to change the propertyNamingStrategy. */ };
-            while ((entry = in.getNextEntry()) != null) {
-                if (entry.isDirectory()) {
-                    continue;
-                }
-                final String descName = entry.getName();
-                try {
-                    if (descName.equals("pack.mcmeta")) {
-                        dataPack.addDescriptor(descName, reader.readValue(in, Meta.class));
-                    } else if (descName.startsWith("data/minecraft/dimension_type")) {
-                        dataPack.addDescriptor(descName, reader.readValue(in, Dimension.class));
-                    } else {
-                        logger.debug("Ignoring descriptor {} from data pack {}", descName, name);
-                    }
-                } catch (JacksonException e) {
-                    logger.error("{} while reading descriptor {} from data pack {} in map {} (message: {})", e.getClass().getSimpleName(), descName, name, dir, e.getMessage());
-                }
-            }
+            in.stream().filter(entry -> ! entry.isDirectory())
+                    .forEach(entry -> {
+                        final String descName = entry.getName();
+                        try {
+                            if (descName.equals("pack.mcmeta")) {
+                                dataPack.addDescriptor(descName, reader.readValue(in.getInputStream(entry), Meta.class));
+                            } else if (descName.startsWith("data/minecraft/dimension_type")) {
+                                dataPack.addDescriptor(descName, reader.readValue(in.getInputStream(entry), Dimension.class));
+                            } else {
+                                logger.debug("Ignoring descriptor {} from data pack {}", descName, name);
+                            }
+                        } catch (IOException e) {
+                            logger.error("{} while reading descriptor {} from data pack {} in map {} (message: {})", e.getClass().getSimpleName(), descName, name, dir, e.getMessage());
+                        }
+                    });
         }
         return dataPack;
     }
