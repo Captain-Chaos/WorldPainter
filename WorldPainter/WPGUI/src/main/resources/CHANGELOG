@@ -1,3 +1,9 @@
+-- Version 2.8.8, released 9-12-2021
+
+ * Bug fix: attempt to fix an error Importing maps using data packs using an uncommon ZIP format
+ * Bug fix: make Custom Object Layer previews work again without errors
+ * Bug fix: fix various errors during Export caused by the new flowing water support
+
 -- Version 2.8.7, released 8-12-2021
 
  * It is now possible to change the post processing settings to have WorldPainter handle floating fluids and other blocks in various ways. This is done from the new Post Processing tab on the Export screen:
