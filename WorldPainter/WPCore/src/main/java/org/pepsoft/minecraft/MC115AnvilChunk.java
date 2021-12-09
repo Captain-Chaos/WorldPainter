@@ -400,7 +400,7 @@ public final class MC115AnvilChunk extends NBTChunk implements MinecraftWorld {
     @Override
     public void markForUpdateChunk(int x, int y, int z) {
         Material material = getMaterial(x, y, z);
-        if (material.isNamedOneOf(MC_WATER, MC_LAVA) || material.is(WATERLOGGED)) {
+        if (material.isNamedOneOf(MC_WATER, MC_LAVA) || material.containsWater()) {
             addLiquidTick(x, y, z);
         } else {
             throw new UnsupportedOperationException("Don't know how to mark " + material + " for update");

@@ -65,10 +65,10 @@ public enum Category {
                     || material.isNamed(MC_SAND)
                     || material.isNamed(MC_RED_SAND)
                     || material.isNamed(MC_FARMLAND))
-                    && (isWater(world, x - 1, y, z)
-                    || isWater(world, x, y - 1, z)
-                    || isWater(world, x + 1, y, z)
-                    || isWater(world, x, y + 1, z));
+                    && (isWatery(world, x - 1, y, z)
+                    || isWatery(world, x, y - 1, z)
+                    || isWatery(world, x + 1, y, z)
+                    || isWatery(world, x, y + 1, z));
         }
     },
 
@@ -89,7 +89,7 @@ public enum Category {
         boolean isValidFoundation(MinecraftWorld world, int x, int y, int z) {
             // Just check whether the location is flooded; a special case in
             // the exporter will check for the water surface
-            return isWater(world, x, y, z + 1);
+            return isWatery(world, x, y, z + 1);
         }
     },
 
@@ -113,7 +113,7 @@ public enum Category {
         boolean isValidFoundation(MinecraftWorld world, int x, int y, int z) {
             // TODOMC13 it's not clear on what blocks water plants can be
             //  planted so for now allow all solid blocks
-            return world.getMaterialAt(x, y, z).solid && isWater(world, x, y, z + 1);
+            return world.getMaterialAt(x, y, z).solid && world.getMaterialAt(x, y, z + 1).isNamed(MC_WATER);
         }
     };
 
@@ -124,8 +124,8 @@ public enum Category {
         return material.isNamed(MC_CACTUS) || (! material.veryInsubstantial);
     }
 
-    protected final boolean isWater(MinecraftWorld world, int x, int y, int height) {
+    protected final boolean isWatery(MinecraftWorld world, int x, int y, int height) {
         Material material = world.getMaterialAt(x, y, height);
-        return material.isNamed(MC_WATER) || material.getProperty(WATERLOGGED, false);
+        return material.isNamed(MC_WATER) || material.watery || material.is(WATERLOGGED);
     }
 }

@@ -161,7 +161,7 @@ public class Java1_2PostProcessor extends PostProcessor {
                             break;
                         case BLK_WATER:
                         case BLK_STATIONARY_WATER:
-                            if (BLOCKS[blockTypeBelow].veryInsubstantial) {
+                            if ((blockTypeBelow != BLK_WATER) && (blockTypeBelow != BLK_STATIONARY_WATER) && BLOCKS[blockTypeBelow].veryInsubstantial) {
                                 switch (waterMode) {
                                     case DROP:
                                         dropFluid(minecraftWorld, x, y, z);
@@ -176,7 +176,7 @@ public class Java1_2PostProcessor extends PostProcessor {
                             break;
                         case BLK_LAVA:
                         case BLK_STATIONARY_LAVA:
-                            if (BLOCKS[blockTypeBelow].veryInsubstantial) {
+                            if ((blockTypeBelow != BLK_LAVA) && (blockTypeBelow != BLK_STATIONARY_LAVA) && BLOCKS[blockTypeBelow].veryInsubstantial) {
                                 switch (lavaMode) {
                                     case DROP:
                                         dropFluid(minecraftWorld, x, y, z);

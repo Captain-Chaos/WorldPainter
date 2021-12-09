@@ -196,7 +196,7 @@ public class Java1_15PostProcessor extends PostProcessor {
                             }
                             break;
                         case MC_LAVA:
-                            if (materialBelow.veryInsubstantial) {
+                            if (materialBelow.veryInsubstantial && material.isNotNamed(MC_LAVA)) {
                                 switch (lavaMode) {
                                     case DROP:
                                         dropFluid(minecraftWorld, x, y, z);
@@ -339,7 +339,7 @@ public class Java1_15PostProcessor extends PostProcessor {
                             }
                             break;
                     }
-                    if (material.containsWater() && materialBelow.veryInsubstantial) {
+                    if (material.containsWater() && materialBelow.veryInsubstantial && (! materialBelow.containsWater())) {
                         switch (waterMode) {
                             case DROP:
                                 dropFluid(minecraftWorld, x, y, z);

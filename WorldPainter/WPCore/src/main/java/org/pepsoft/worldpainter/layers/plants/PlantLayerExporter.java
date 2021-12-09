@@ -72,12 +72,17 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
                                     if ((! blockRulesEnforced) || plant.isValidFoundation(minecraftWorld, worldX, worldY, height)) {
                                         int waterLevel = tile.getWaterLevel(x, y);
                                         if (waterLevel > height) {
-                                            if (height + plant.getDimensions().z > waterLevel - 1) {
-                                                int newHeight = waterLevel - height - 1;
+                                            // Constrain the height to ensure the plant does not stick out of the water:
+                                            if (height + plant.getDimensions().z > waterLevel) {
+                                                int newHeight = waterLevel - height;
                                                 if (newHeight < 1) {
                                                     continue;
                                                 } else {
                                                     plant = plant.realise(newHeight, platform);
+                                                    // Some plants can't shrink down to fit
+                                                    if (plant.getDimensions().z > newHeight) {
+                                                        continue;
+                                                    }
                                                 }
                                             }
                                             renderObject(minecraftWorld, dimension, plant, worldX, worldY, height + 1, false);
