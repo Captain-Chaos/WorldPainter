@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.*;
 
+import static com.google.common.primitives.Ints.asList;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_MCREGION;
 import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
@@ -427,14 +428,11 @@ outer:          for (int x = 0; x < width; x++) {
             comboBoxHeight.setEnabled(false);
         } else {
             maxHeight = platform.standardMaxHeight;
-            List<Integer> maxHeights = new ArrayList<>();
-            for (int height = platform.minMaxHeight; height <= platform.maxMaxHeight; height *= 2) {
-                maxHeights.add(height);
-            }
+            List<Integer> maxHeights = asList(platform.maxHeights);
             comboBoxHeight.setModel(new DefaultComboBoxModel<>(maxHeights.toArray(new Integer[maxHeights.size()])));
             comboBoxHeight.setEnabled(true);
         }
-        comboBoxHeight.setSelectedItem(maxHeight);
+        comboBoxHeight.setSelectedItem(platform.standardMaxHeight);
         maxHeightChanged();
         spinnerWorldHigh.setValue(Math.min(maxHeight - 1, (int) Math.pow(2, bitDepth) - 1));
     }
