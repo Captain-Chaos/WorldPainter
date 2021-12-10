@@ -16,6 +16,6 @@ public class Meta extends Descriptor {
     @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class Pack {
         int packFormat;
-        String description;
+        Object description;
     }
 }
