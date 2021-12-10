@@ -1,3 +1,8 @@
+-- Version 2.8.9, released 9-12-2021
+
+ * Bug fix: fix water and lava dropping to stop at existing water or lava (and not obliterate plants)
+ * Bug fix: also place water plants in one block deep water
+
 -- Version 2.8.8, released 9-12-2021
 
  * Bug fix: attempt to fix an error Importing maps using data packs using an uncommon ZIP format
