@@ -144,11 +144,12 @@ public class PreferencesDialog extends WorldPainterDialog {
         }
         if (config.getUiScale() == 0.0f) {
             radioButtonUIScaleAuto.setSelected(true);
+            sliderUIScale.setValue((int) (GUIUtils.SYSTEM_UI_SCALE_FLOAT * 100));
         } else {
             radioButtonUIScaleManual.setSelected(true);
             sliderUIScale.setValue((int) (config.getUiScale() * 100));
         }
-        updateUIScale();
+        updateLabelUIScale();
         
         switch (config.getAccelerationType()) {
             case DEFAULT:
@@ -294,9 +295,8 @@ public class PreferencesDialog extends WorldPainterDialog {
         sliderUIScale.setEnabled(radioButtonUIScaleManual.isSelected());
     }
 
-    private void updateUIScale() {
+    private void updateLabelUIScale() {
         if (radioButtonUIScaleAuto.isSelected()) {
-            sliderUIScale.setValue((int) (GUIUtils.SYSTEM_UI_SCALE_FLOAT * 100));
             labelUIScale.setText((int) (GUIUtils.SYSTEM_UI_SCALE_FLOAT * 100) + "%");
         } else {
             labelUIScale.setText(sliderUIScale.getValue() + "%");
@@ -1438,16 +1438,17 @@ public class PreferencesDialog extends WorldPainterDialog {
 
     private void radioButtonUIScaleAutoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonUIScaleAutoActionPerformed
         setControlStates();
-        updateUIScale();
+        sliderUIScale.setValue((int) (GUIUtils.SYSTEM_UI_SCALE_FLOAT * 100));
+        updateLabelUIScale();
     }//GEN-LAST:event_radioButtonUIScaleAutoActionPerformed
 
     private void radioButtonUIScaleManualActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonUIScaleManualActionPerformed
         setControlStates();
-        updateUIScale();
+        updateLabelUIScale();
     }//GEN-LAST:event_radioButtonUIScaleManualActionPerformed
 
     private void sliderUIScaleStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sliderUIScaleStateChanged
-        updateUIScale();
+        updateLabelUIScale();
     }//GEN-LAST:event_sliderUIScaleStateChanged
 
     private void comboBoxLookAndFeelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxLookAndFeelActionPerformed
