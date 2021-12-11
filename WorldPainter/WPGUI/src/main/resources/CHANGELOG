@@ -1,3 +1,8 @@
+-- Version 2.8.10, released 11-12-2021
+
+ * Add support for data pack format 7 to prevent errors when importing maps using them
+ * Bug fix: allow selection of 320 blocks map height when importing height maps
+
 -- Version 2.8.9, released 9-12-2021
 
  * Bug fix: fix water and lava dropping to stop at existing water or lava (and not obliterate plants)
