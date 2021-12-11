@@ -2,6 +2,7 @@
 
  * Add support for data pack format 7 to prevent errors when importing maps using them
  * Bug fix: allow selection of 320 blocks map height when importing height maps
+ * Bug fix: properly drop lava in post processing step
 
 -- Version 2.8.9, released 9-12-2021
 
