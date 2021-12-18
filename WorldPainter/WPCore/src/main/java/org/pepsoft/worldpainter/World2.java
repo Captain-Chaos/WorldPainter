@@ -514,7 +514,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     }
     
     @SuppressWarnings("unchecked")
-    public int measureSize() {
+    public long measureSize() {
         dimensions.values().forEach(org.pepsoft.worldpainter.Dimension::ensureAllReadable);
         return MemoryUtils.getSize(this, new HashSet<>(Arrays.asList(UndoManager.class, Dimension.Listener.class, PropertyChangeSupport.class, Layer.class, Terrain.class)));
     }

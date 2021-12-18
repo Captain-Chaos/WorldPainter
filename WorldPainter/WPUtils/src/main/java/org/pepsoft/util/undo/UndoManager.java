@@ -354,7 +354,7 @@ public class UndoManager {
         this.stopAt = new HashSet<>(Arrays.asList(stopAt));
     }
     
-    public int getDataSize() {
+    public long getDataSize() {
         return MemoryUtils.getSize(history, stopAt);
     }
     
@@ -443,12 +443,12 @@ public class UndoManager {
         int index = 0;
         long totalDataSize = 0;
         for (Map<BufferKey<?>, Object> frame: history) {
-            int frameSize = MemoryUtils.getSize(frame, stopAt);
+            long frameSize = MemoryUtils.getSize(frame, stopAt);
             totalDataSize += frameSize;
             logger.debug(((index == currentFrame) ? "* " : "  ") + " " + ((index < 10) ? "0" : "") + index + ": " + frame.size() + " buffers (size: " + (frameSize / 1024) + " KB)");
             index++;
         }
-        logger.debug("   Total data size: " + (totalDataSize / 1024) + " KB");
+        logger.debug("   Total data size: " + (totalDataSize / 1024L) + " KB");
     }
     
     private void updateActions() {

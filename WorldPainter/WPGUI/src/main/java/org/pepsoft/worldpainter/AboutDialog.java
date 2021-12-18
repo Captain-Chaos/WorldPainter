@@ -203,22 +203,22 @@ public class AboutDialog extends javax.swing.JDialog implements WindowListener {
             message.append(MessageFormat.format(strings.getString("minecraft.data.directory.0.n"), minecraftDir));
         }
         Runtime runtime = Runtime.getRuntime();
-        int dataSize = (world != null) ? world.measureSize() : 0;
-        int undoDataSize = (undoManager != null) ? undoManager.getDataSize() : 0;
-//        int imageSize = view.getImageSize();
-        int overlayImageSize = view.getOverlayImageSize();
-        message.append(MessageFormat.format(strings.getString("available.cpu.cores.0.nmaximum.configured.memory.1.mb.ncurrently.allocated.memory.2.mb.n"), runtime.availableProcessors(), runtime.maxMemory() / 1024 / 1024, runtime.totalMemory() / 1024 / 1024));
-        if (dataSize > 0) {
-            message.append(MessageFormat.format(strings.getString("world.data.size.0.kb.n"), dataSize / 1024));
+        long dataSize = (world != null) ? world.measureSize() : 0L;
+        long undoDataSize = (undoManager != null) ? undoManager.getDataSize() : 0L;
+//        long imageSize = view.getImageSize();
+        long overlayImageSize = view.getOverlayImageSize();
+        message.append(MessageFormat.format(strings.getString("available.cpu.cores.0.nmaximum.configured.memory.1.mb.ncurrently.allocated.memory.2.mb.n"), runtime.availableProcessors(), runtime.maxMemory() / 1024L / 1024L, runtime.totalMemory() / 1024L / 1024L));
+        if (dataSize > 0L) {
+            message.append(MessageFormat.format(strings.getString("world.data.size.0.kb.n"), dataSize / 1024L));
         }
-        if ((undoDataSize - dataSize) > 0) {
-            message.append(MessageFormat.format(strings.getString("additional.undo.data.size.0.kb.n"), (undoDataSize - dataSize) / 1024));
+        if ((undoDataSize - dataSize) > 0L) {
+            message.append(MessageFormat.format(strings.getString("additional.undo.data.size.0.kb.n"), (undoDataSize - dataSize) / 1024L));
         }
-//        if (imageSize > 0) {
-//            message += MessageFormat.format(strings.getString("world.image.data.size.0.kb.n"), imageSize / 1024);
+//        if (imageSize > 0L) {
+//            message += MessageFormat.format(strings.getString("world.image.data.size.0.kb.n"), imageSize / 1024L);
 //        }
-        if (overlayImageSize > 0) {
-            message.append(MessageFormat.format(strings.getString("overlay.image.data.size.0.kb.n"), overlayImageSize / 1024));
+        if (overlayImageSize > 0L) {
+            message.append(MessageFormat.format(strings.getString("overlay.image.data.size.0.kb.n"), overlayImageSize / 1024L));
         }
         return message.toString();
     }
