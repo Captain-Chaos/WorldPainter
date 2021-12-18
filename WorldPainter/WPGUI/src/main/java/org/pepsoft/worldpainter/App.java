@@ -2135,30 +2135,46 @@ public final class App extends JFrame implements RadiusControl,
 
                 @Override
                 public java.lang.Void execute(ProgressReceiver progressReceiver) throws OperationCancelled {
+                    File tempFile = new File (normalisedFile.getParentFile(), normalisedFile.getName() + ".tmp");
+                    if (tempFile.exists()) {
+                        throw new RuntimeException("Temporary file " + tempFile.getName() + " already exists; delete it and try again");
+                    }
                     try {
-                        Configuration config = Configuration.getInstance();
-                        if ((config.getWorldFileBackups() > 0) && normalisedFile.isFile()) {
-                            progressReceiver.setMessage(strings.getString("creating.backup.s"));
-                            for (int i = config.getWorldFileBackups(); i > 0; i--) {
-                                File nextBackupFile = (i > 1) ? BackupUtil.getBackupFile(normalisedFile, i - 1) : normalisedFile;
-                                if (nextBackupFile.isFile()) {
-                                    File backupFile = BackupUtil.getBackupFile(normalisedFile, i);
-                                    if (backupFile.isFile()) {
-                                        if (!backupFile.delete()) {
-                                            throw new RuntimeException("Could not delete old backup file " + backupFile);
-                                        }
-                                    }
-                                    if (!nextBackupFile.renameTo(backupFile)) {
-                                        throw new RuntimeException("Could not move " + nextBackupFile + " to " + backupFile);
-                                    }
-                                }
-                            }
-                            progressReceiver.setMessage(null);
-                        }
-
+                        // Save the world to a temporary file first, to ensure that there is enough space
                         world.addHistoryEntry(HistoryEntry.WORLD_SAVED, normalisedFile);
                         WorldIO worldIO = new WorldIO(world);
-                        worldIO.save(new FileOutputStream(normalisedFile));
+                        worldIO.save(new FileOutputStream(tempFile));
+
+                        // If that succeeded, move the existing file out of the way by rotating (if enabled) or deleting
+                        // it
+                        Configuration config = Configuration.getInstance();
+                        if (normalisedFile.isFile()) {
+                            if (config.getWorldFileBackups() > 0) {
+                                progressReceiver.setMessage(strings.getString("creating.backup.s"));
+                                for (int i = config.getWorldFileBackups(); i > 0; i--) {
+                                    File nextBackupFile = (i > 1) ? BackupUtil.getBackupFile(normalisedFile, i - 1) : normalisedFile;
+                                    if (nextBackupFile.isFile()) {
+                                        File backupFile = BackupUtil.getBackupFile(normalisedFile, i);
+                                        if (backupFile.isFile()) {
+                                            if (! backupFile.delete()) {
+                                                throw new RuntimeException("Could not delete old backup file " + backupFile.getName());
+                                            }
+                                        }
+                                        if (! nextBackupFile.renameTo(backupFile)) {
+                                            throw new RuntimeException("Could not move " + nextBackupFile.getName() + " to " + backupFile.getName());
+                                        }
+                                    }
+                                }
+                                progressReceiver.setMessage(null);
+                            } else if (! normalisedFile.delete()) {
+                                throw new RuntimeException("Could not delete existing file " + normalisedFile.getName() + "; world is saved as " + tempFile.getName());
+                            }
+                        }
+
+                        // Finally, move the temporary file to the final location
+                        if (! tempFile.renameTo(normalisedFile)) {
+                            throw new RuntimeException("Could not move " + tempFile.getName() + " to " + normalisedFile.getName() + "; world is saved as " + tempFile.getName());
+                        }
 
                         Map<String, byte[]> layoutData = config.getJideLayoutData();
                         if (layoutData == null) {
@@ -2330,7 +2346,10 @@ public final class App extends JFrame implements RadiusControl,
         } catch (RuntimeException | Error e) {
             logger.error("An exception occurred while trying to autosave world", e);
             DesktopUtils.beep();
-            JOptionPane.showMessageDialog(this, "An error occurred while trying to autosave the world.\nIt has not been autosaved. If this keeps happening,\nplease report it to the author.", "Autosave Failed", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "An error occurred while trying to autosave the world.\n" +
+                    "One possibility is that the disk is full; please make space.\n" +
+                    "It has not been autosaved. If this keeps happening,\n" +
+                    "please report it to the author.", "Autosave Failed", JOptionPane.WARNING_MESSAGE);
         }
     }
 
