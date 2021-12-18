@@ -959,7 +959,8 @@ public abstract class AbstractWorldExporter implements WorldExporter {
     protected final Semaphore performingFixups = new Semaphore(1);
     protected final Platform platform;
 
-    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMddHHmmss");
+    protected static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMddHHmmss");
+
     private static final Object TIMING_FILE_LOCK = new Object();
     private static final Logger logger = LoggerFactory.getLogger(AbstractWorldExporter.class);
 

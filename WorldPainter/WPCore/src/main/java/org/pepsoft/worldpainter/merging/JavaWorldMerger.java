@@ -221,9 +221,15 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         
         // Record start of export
         long start = System.currentTimeMillis();
-        
-        // Backup existing level
+
+        // Make sure the minimum free disk space is met
         File worldDir = levelDatFile.getParentFile();
+        Configuration config = Configuration.getInstance();
+        if (config != null) {
+            deleteBackups(worldDir, config.getMinimumFreeSpaceForMaps());
+        }
+
+        // Backup existing level
         if (! worldDir.renameTo(backupDir)) {
             throw new FileInUseException("Could not move " + worldDir + " to " + backupDir);
         }
@@ -231,7 +237,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             throw new IOException("Could not create " + worldDir);
         }
         
-        // Modify it if necessary and write it to the the new level
+        // Modify it if necessary and write it to the new level
         if ((selectedDimensions == null) || selectedDimensions.contains(DIM_NORMAL)) {
             Dimension surfaceDimension = world.getDimension(DIM_NORMAL);
             level.setSeed(surfaceDimension.getMinecraftSeed());
@@ -308,7 +314,6 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         }
 
         // Log an event
-        Configuration config = Configuration.getInstance();
         if (config != null) {
             EventVO event = new EventVO(EVENT_KEY_ACTION_MERGE_WORLD).duration(System.currentTimeMillis() - start);
             event.setAttribute(EventVO.ATTRIBUTE_TIMESTAMP, new Date(start));
@@ -702,6 +707,12 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                     }
                     performFixups(worldDir, dimension, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.9f, 0.1f) : null, fixups);
                 }
+            }
+
+            // Make sure the minimum free disk space is met again
+            // TODO do this more often, while writing the region files
+            if (Configuration.getInstance() != null) {
+                deleteBackups(worldDir, Configuration.getInstance().getMinimumFreeSpaceForMaps());
             }
 
             if (progressReceiver != null) {

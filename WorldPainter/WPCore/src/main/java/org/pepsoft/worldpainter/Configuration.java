@@ -686,12 +686,20 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         this.snapshotWarningDisplayed = snapshotWarningDisplayed;
     }
 
-    public boolean isBeta118WarningDisplayed() {
+    public synchronized boolean isBeta118WarningDisplayed() {
         return beta118WarningDisplayed;
     }
 
-    public void setBeta118WarningDisplayed(boolean beta118WarningDisplayed) {
+    public synchronized void setBeta118WarningDisplayed(boolean beta118WarningDisplayed) {
         this.beta118WarningDisplayed = beta118WarningDisplayed;
+    }
+
+    public synchronized int getMinimumFreeSpaceForMaps() {
+        return minimumFreeSpaceForMaps;
+    }
+
+    public synchronized void setMinimumFreeSpaceForMaps(int minimumFreeSpaceForMaps) {
+        this.minimumFreeSpaceForMaps = minimumFreeSpaceForMaps;
     }
 
     // Transient settings which aren't stored on disk
@@ -978,6 +986,9 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
                 defaultPlatformId = JAVA_ANVIL_1_15.id;
             }
         }
+        if (minimumFreeSpaceForMaps == 0) {
+            minimumFreeSpaceForMaps = 2;
+        }
         version = CURRENT_VERSION;
         
         // Bug fix: make sure terrain ranges map conforms to surface material setting
@@ -1160,6 +1171,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private Map<String, File> exportDirectoriesById = new HashMap<>();
     private boolean snapshotWarningDisplayed;
     private boolean beta118WarningDisplayed;
+    private int minimumFreeSpaceForMaps = 1;
 
     /**
      * The acceleration type is only stored here at runtime. It is saved to disk
