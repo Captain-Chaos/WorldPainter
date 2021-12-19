@@ -73,10 +73,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
 
         // Make sure the minimum free disk space is met
         File worldDir = new File(baseDir, FileUtils.sanitiseName(name));
-        Configuration config = Configuration.getInstance();
-        if (config != null) {
-            deleteBackups(worldDir, config.getMinimumFreeSpaceForMaps());
-        }
+        deleteBackups(worldDir);
 
         // Backup existing level
         logger.info("Exporting world " + world.getName() + " to map at " + worldDir + " in " + platform.displayName + " format");
@@ -233,6 +230,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
             }
 
             // Log an event
+            Configuration config = Configuration.getInstance();
             if (config != null) {
                 EventVO event = new EventVO(EVENT_KEY_ACTION_EXPORT_WORLD).duration(System.currentTimeMillis() - start);
                 event.setAttribute(EventVO.ATTRIBUTE_TIMESTAMP, new Date(start));
@@ -304,9 +302,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
 
         // Make sure the minimum free disk space is met again
         // TODO do this more often, while writing the region files
-        if (Configuration.getInstance() != null) {
-            deleteBackups(worldDir, Configuration.getInstance().getMinimumFreeSpaceForMaps());
-        }
+        deleteBackups(worldDir);
 
         // Calculate total size of dimension
         Set<Point> regions = new HashSet<>();
@@ -345,15 +341,19 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
     }
 
     /**
-     * Deletes backups, oldest first, until there is at least {@code minimumFreeSpace} GB free.
+     * Deletes backups, oldest first, until there is at least {@link Configuration}{@code .minimumFreeSpaceForMaps} GB
+     * free, and only if enabled.
      *
      * @param worldDir The directory to which the world is being exported.
-     * @param minimumFreeSpace The number of GB of free space to ensure.
      */
-    protected synchronized void deleteBackups(File worldDir, int minimumFreeSpace) throws IOException {
-        Set<File> backupsDirs = new HashSet<>();
-        File baseDir = worldDir.getParentFile();
-        File minecraftDir = baseDir.getParentFile();
+    protected synchronized void deleteBackups(File worldDir) throws IOException {
+        Configuration config = Configuration.getInstance();
+        if (config == null) {
+            return;
+        }
+        final Set<File> backupsDirs = new HashSet<>();
+        final File baseDir = worldDir.getParentFile();
+        final File minecraftDir = baseDir.getParentFile();
         File backupsDir = new File(minecraftDir, "backups");
         if (backupsDir.isDirectory()) {
             backupsDirs.add(backupsDir);
@@ -363,7 +363,16 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
             backupsDirs.add(backupsDir);
         }
         if (! backupsDirs.isEmpty()) {
-            doDeleteBackups(backupsDirs, minimumFreeSpace);
+            final FileStore fileStore = Files.getFileStore(backupsDirs.iterator().next().toPath());
+            final int minimumFreeSpace = config.getMinimumFreeSpaceForMaps();
+            if (fileStore.getUsableSpace() >= (minimumFreeSpace * GB)) {
+                return;
+            }
+            if (config.isAutoDeleteBackups()) {
+                doDeleteBackups(backupsDirs, minimumFreeSpace, fileStore);
+            } else {
+                logger.warn("There is less than {} GB free on file system {}, but warnings are disabled", minimumFreeSpace, fileStore);
+            }
         }
     }
 
@@ -371,18 +380,14 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
      * Delete backups from the specified directories until there is {@code minimumFreeSpace} GB free. If multiple
      * directories are specified, they must lie on the same file system.
      */
-    private void doDeleteBackups(Collection<? extends File> backupsDirs, int minimumFreeSpace) throws IOException {
-        final FileStore fileStore = Files.getFileStore(backupsDirs.iterator().next().toPath());
-        if (fileStore.getUsableSpace() >= (minimumFreeSpace * GB)) {
-            return;
-        }
+    private void doDeleteBackups(Collection<? extends File> backupsDirs, int minimumFreeSpace, FileStore fileStore) throws IOException {
         final List<File> allBackupDirs = backupsDirs.stream().map(backupsDir -> backupsDir.listFiles(file -> file.isDirectory() && BACKUP_DIR_PATTERN.matcher(file.getName()).matches()))
                 .filter(Objects::nonNull)
                 .flatMap(Arrays::stream)
                 .collect(toList());
         while ((fileStore.getUsableSpace() < (minimumFreeSpace * GB)) && (! allBackupDirs.isEmpty())) {
             // Try to postpone deleting the last backup for a map as long as possible by deleting the backups for maps
-            // which still have multiple backups first, with the following algorithm:
+            // which still have multiple backups first
 
             // Sort the backup dirs by date and group by original name:
             final Map<String, List<File>> dirsByOriginalName = allBackupDirs.stream()
@@ -410,5 +415,4 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
 
     private static final Logger logger = LoggerFactory.getLogger(JavaWorldExporter.class);
     private static final Pattern BACKUP_DIR_PATTERN = Pattern.compile("^.+\\.\\d{14}$");
-    private static final long GB = 1024L * 1024L * 1024L;
 }

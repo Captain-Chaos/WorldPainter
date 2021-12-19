@@ -102,4 +102,6 @@ public final class Constants {
 
     public static final int MIN_HEIGHT = -8388608;
     public static final int MAX_HEIGHT = 8388608;
+
+    public static final long GB = 1024L * 1024L * 1024L;
 }

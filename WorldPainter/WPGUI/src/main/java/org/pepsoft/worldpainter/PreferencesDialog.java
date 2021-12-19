@@ -188,6 +188,8 @@ public class PreferencesDialog extends WorldPainterDialog {
         spinnerAutoSaveGuardTime.setValue(config.getAutosaveDelay() / 1000);
         spinnerAutoSaveInterval.setValue(config.getAutosaveInterval() / 1000);
         spinnerFreeSpaceForMaps.setValue(config.getMinimumFreeSpaceForMaps());
+        checkBoxAutoDeleteBackups.setSelected(config.isAutoDeleteBackups());
+        checkBoxDiskSpaceWarningsOnSave.setSelected(config.isDiskSpaceWarningOnSave());
         
         setControlStates();
     }
@@ -272,6 +274,8 @@ public class PreferencesDialog extends WorldPainterDialog {
         config.setAutosaveDelay(((Integer) spinnerAutoSaveGuardTime.getValue()) * 1000);
         config.setAutosaveInterval(((Integer) spinnerAutoSaveInterval.getValue()) * 1000);
         config.setMinimumFreeSpaceForMaps((Integer) spinnerFreeSpaceForMaps.getValue());
+        config.setAutoDeleteBackups(checkBoxAutoDeleteBackups.isSelected());
+        config.setDiskSpaceWarningOnSave(checkBoxDiskSpaceWarningsOnSave.isSelected());
         
         try {
             config.save();
@@ -295,6 +299,7 @@ public class PreferencesDialog extends WorldPainterDialog {
         spinnerAutoSaveGuardTime.setEnabled(autosaveEnabled && (! autosaveInhibited));
         spinnerAutoSaveInterval.setEnabled(autosaveEnabled && (! autosaveInhibited));
         sliderUIScale.setEnabled(radioButtonUIScaleManual.isSelected());
+        spinnerFreeSpaceForMaps.setEnabled(checkBoxAutoDeleteBackups.isSelected() || checkBoxDiskSpaceWarningsOnSave.isSelected());
     }
 
     private void updateLabelUIScale() {
@@ -368,7 +373,9 @@ public class PreferencesDialog extends WorldPainterDialog {
         jLabel50 = new javax.swing.JLabel();
         spinnerFreeSpaceForMaps = new javax.swing.JSpinner();
         jLabel51 = new javax.swing.JLabel();
+        checkBoxAutoDeleteBackups = new javax.swing.JCheckBox();
         jLabel52 = new javax.swing.JLabel();
+        checkBoxDiskSpaceWarningsOnSave = new javax.swing.JCheckBox();
         jPanel5 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jLabel18 = new javax.swing.JLabel();
@@ -562,11 +569,27 @@ public class PreferencesDialog extends WorldPainterDialog {
 
         jLabel50.setText("Minimum free space on drive:");
 
-        spinnerFreeSpaceForMaps.setModel(new javax.swing.SpinnerNumberModel(1, 1, 999, 1));
+        spinnerFreeSpaceForMaps.setModel(new javax.swing.SpinnerNumberModel(2, 1, 999, 1));
 
         jLabel51.setText("GB");
 
-        jLabel52.setText("<html><i>When Exporting or Merging maps, or saving .world files to the disk containing the map backups, map backups will be automatically deleted, oldest first, to ensure at least this much free disk space.<br> When saving world files on a different disk, a warning will be displayed if the available disk space is less than this.</i></html>");
+        checkBoxAutoDeleteBackups.setSelected(true);
+        checkBoxAutoDeleteBackups.setText("Delete old map backups on Export and Merge as necessary");
+        checkBoxAutoDeleteBackups.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxAutoDeleteBackupsActionPerformed(evt);
+            }
+        });
+
+        jLabel52.setText("<html><i>When the free space drops below this:</i></html>");
+
+        checkBoxDiskSpaceWarningsOnSave.setSelected(true);
+        checkBoxDiskSpaceWarningsOnSave.setText("Show warning when Saving .world files");
+        checkBoxDiskSpaceWarningsOnSave.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxDiskSpaceWarningsOnSaveActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -609,39 +632,40 @@ public class PreferencesDialog extends WorldPainterDialog {
                         .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(18, 18, 18)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel49)
                     .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jLabel20)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(spinnerWorldBackups, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(checkBoxAutoSave)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(19, 19, 19)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel49)
                             .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(jLabel20)
+                                .addComponent(jLabel45)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(spinnerWorldBackups, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(checkBoxAutoSave)
+                                .addComponent(spinnerAutoSaveGuardTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 0, 0)
+                                .addComponent(jLabel47))
                             .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addGap(19, 19, 19)
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(jPanel1Layout.createSequentialGroup()
-                                        .addComponent(jLabel45)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(spinnerAutoSaveGuardTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jLabel47))
-                                    .addGroup(jPanel1Layout.createSequentialGroup()
-                                        .addComponent(jLabel46)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(spinnerAutoSaveInterval, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jLabel48))))
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(jLabel50)
+                                .addComponent(jLabel46)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(spinnerFreeSpaceForMaps, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel51)))
-                        .addContainerGap(166, Short.MAX_VALUE))
+                                .addComponent(spinnerAutoSaveInterval, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 0, 0)
+                                .addComponent(jLabel48))))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jLabel50)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(spinnerFreeSpaceForMaps, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel51))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(10, 10, 10)
-                        .addComponent(jLabel52, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))))
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(checkBoxAutoDeleteBackups)
+                            .addComponent(jLabel52, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(checkBoxDiskSpaceWarningsOnSave))))
+                .addContainerGap(59, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -705,7 +729,11 @@ public class PreferencesDialog extends WorldPainterDialog {
                                     .addComponent(spinnerFreeSpaceForMaps, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(jLabel51))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel52, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addComponent(jLabel52, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(checkBoxAutoDeleteBackups)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(checkBoxDiskSpaceWarningsOnSave)))
                         .addGap(0, 130, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -1330,8 +1358,8 @@ public class PreferencesDialog extends WorldPainterDialog {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jTabbedPane1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(buttonCancel)
                     .addComponent(buttonOK))
@@ -1508,6 +1536,14 @@ public class PreferencesDialog extends WorldPainterDialog {
         // Do nothing
     }//GEN-LAST:event_comboBoxLookAndFeelActionPerformed
 
+    private void checkBoxAutoDeleteBackupsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxAutoDeleteBackupsActionPerformed
+        setControlStates();
+    }//GEN-LAST:event_checkBoxAutoDeleteBackupsActionPerformed
+
+    private void checkBoxDiskSpaceWarningsOnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxDiskSpaceWarningsOnSaveActionPerformed
+        setControlStates();
+    }//GEN-LAST:event_checkBoxDiskSpaceWarningsOnSaveActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonCancel;
     private javax.swing.ButtonGroup buttonGroup1;
@@ -1517,6 +1553,7 @@ public class PreferencesDialog extends WorldPainterDialog {
     private javax.swing.JButton buttonModePreset;
     private javax.swing.JButton buttonOK;
     private javax.swing.JButton buttonReset;
+    private javax.swing.JCheckBox checkBoxAutoDeleteBackups;
     private javax.swing.JCheckBox checkBoxAutoSave;
     private javax.swing.JCheckBox checkBoxBeaches;
     private javax.swing.JCheckBox checkBoxCheats;
@@ -1524,6 +1561,7 @@ public class PreferencesDialog extends WorldPainterDialog {
     private javax.swing.JCheckBox checkBoxChestOfGoodies;
     private javax.swing.JCheckBox checkBoxCircular;
     private javax.swing.JCheckBox checkBoxContours;
+    private javax.swing.JCheckBox checkBoxDiskSpaceWarningsOnSave;
     private javax.swing.JCheckBox checkBoxExtendedBlockIds;
     private javax.swing.JCheckBox checkBoxGrid;
     private javax.swing.JCheckBox checkBoxLava;

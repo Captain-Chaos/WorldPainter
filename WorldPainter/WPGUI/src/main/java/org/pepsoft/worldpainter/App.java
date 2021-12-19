@@ -88,6 +88,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.file.FileStore;
+import java.nio.file.Files;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -2070,6 +2072,22 @@ public final class App extends JFrame implements RadiusControl,
                 return false;
             }
 
+            Configuration config = Configuration.getInstance();
+            try {
+                FileStore fileStore = Files.getFileStore(file.toPath());
+                int minimumFreeSpace = config.getMinimumFreeSpaceForMaps();
+                if (fileStore.getUsableSpace() < (minimumFreeSpace * GB)) {
+                    if (config.isDiskSpaceWarningOnSave()) {
+                        DesktopUtils.beep();
+                        JOptionPane.showMessageDialog(this, "There is less than " + minimumFreeSpace + " GB free on file system " + fileStore, "Free Space Low", WARNING_MESSAGE);
+                    } else {
+                        logger.warn("There is less than {} GB free on file system {}, but warnings are disabled", minimumFreeSpace, fileStore);
+                    }
+                }
+            } catch (IOException e) {
+                logger.error("I/O error while checking disk space", e);
+            }
+
             // Normalise the filename
             String name = file.getName();
             name = name.trim();
@@ -2147,7 +2165,6 @@ public final class App extends JFrame implements RadiusControl,
 
                         // If that succeeded, move the existing file out of the way by rotating (if enabled) or deleting
                         // it
-                        Configuration config = Configuration.getInstance();
                         if (normalisedFile.isFile()) {
                             if (config.getWorldFileBackups() > 0) {
                                 progressReceiver.setMessage(strings.getString("creating.backup.s"));
@@ -2191,28 +2208,25 @@ public final class App extends JFrame implements RadiusControl,
             }, NOT_CANCELABLE);
 
             // Log an event
-            Configuration config = Configuration.getInstance();
-            if (config != null) {
-                EventVO event = new EventVO(EVENT_KEY_ACTION_SAVE_WORLD).addTimestamp();
-                event.setAttribute(ATTRIBUTE_KEY_MAX_HEIGHT, world.getMaxHeight());
-                Dimension loadedDimension = world.getDimension(0);
-                event.setAttribute(ATTRIBUTE_KEY_TILES, loadedDimension.getTiles().size());
-                logLayers(loadedDimension, event, "");
-                loadedDimension = world.getDimension(1);
-                if (loadedDimension != null) {
-                    event.setAttribute(ATTRIBUTE_KEY_NETHER_TILES, loadedDimension.getTiles().size());
-                    logLayers(loadedDimension, event, "nether.");
-                }
-                loadedDimension = world.getDimension(2);
-                if (loadedDimension != null) {
-                    event.setAttribute(ATTRIBUTE_KEY_END_TILES, loadedDimension.getTiles().size());
-                    logLayers(loadedDimension, event, "end.");
-                }
-                if (world.getImportedFrom() != null) {
-                    event.setAttribute(ATTRIBUTE_KEY_IMPORTED_WORLD, true);
-                }
-                config.logEvent(event);
+            EventVO event = new EventVO(EVENT_KEY_ACTION_SAVE_WORLD).addTimestamp();
+            event.setAttribute(ATTRIBUTE_KEY_MAX_HEIGHT, world.getMaxHeight());
+            Dimension loadedDimension = world.getDimension(0);
+            event.setAttribute(ATTRIBUTE_KEY_TILES, loadedDimension.getTiles().size());
+            logLayers(loadedDimension, event, "");
+            loadedDimension = world.getDimension(1);
+            if (loadedDimension != null) {
+                event.setAttribute(ATTRIBUTE_KEY_NETHER_TILES, loadedDimension.getTiles().size());
+                logLayers(loadedDimension, event, "nether.");
             }
+            loadedDimension = world.getDimension(2);
+            if (loadedDimension != null) {
+                event.setAttribute(ATTRIBUTE_KEY_END_TILES, loadedDimension.getTiles().size());
+                logLayers(loadedDimension, event, "end.");
+            }
+            if (world.getImportedFrom() != null) {
+                event.setAttribute(ATTRIBUTE_KEY_IMPORTED_WORLD, true);
+            }
+            config.logEvent(event);
 
             if (currentUndoManager != null) {
                 currentUndoManager.armSavePoint();
@@ -2229,7 +2243,7 @@ public final class App extends JFrame implements RadiusControl,
             lastSelectedFile = file;
             addRecentlyUsedWorld(file);
 
-            Configuration.getInstance().setWorldDirectory(file.getParentFile());
+            config.setWorldDirectory(file.getParentFile());
 
             return true;
         } finally {

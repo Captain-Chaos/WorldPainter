@@ -224,10 +224,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
 
         // Make sure the minimum free disk space is met
         File worldDir = levelDatFile.getParentFile();
-        Configuration config = Configuration.getInstance();
-        if (config != null) {
-            deleteBackups(worldDir, config.getMinimumFreeSpaceForMaps());
-        }
+        deleteBackups(worldDir);
 
         // Backup existing level
         if (! worldDir.renameTo(backupDir)) {
@@ -314,6 +311,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         }
 
         // Log an event
+        Configuration config = Configuration.getInstance();
         if (config != null) {
             EventVO event = new EventVO(EVENT_KEY_ACTION_MERGE_WORLD).duration(System.currentTimeMillis() - start);
             event.setAttribute(EventVO.ATTRIBUTE_TIMESTAMP, new Date(start));
@@ -711,9 +709,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
 
             // Make sure the minimum free disk space is met again
             // TODO do this more often, while writing the region files
-            if (Configuration.getInstance() != null) {
-                deleteBackups(worldDir, Configuration.getInstance().getMinimumFreeSpaceForMaps());
-            }
+            deleteBackups(worldDir);
 
             if (progressReceiver != null) {
                 progressReceiver.setProgress(1.0f);
