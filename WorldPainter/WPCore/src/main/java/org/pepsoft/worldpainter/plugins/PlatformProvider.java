@@ -8,6 +8,7 @@ import org.pepsoft.worldpainter.exporting.WorldExporter;
 import org.pepsoft.worldpainter.mapexplorer.MapRecognizer;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * A support provider for a WorldPainter {@link Platform}.
@@ -33,6 +34,19 @@ public interface PlatformProvider extends Provider<Platform> {
      * @return The default export directory for the specified platform.
      */
     File getDefaultExportDir(Platform platform);
+
+    /**
+     * Indicate into which directory the existing map, if any, would be backed up if it were being exported into
+     * {@code exportDir}, but do <em>not</em> create it if it does not exist.
+     *
+     * @param exportDir The directory into which the world would be going to be exported.
+     * @return The directory to which the existing map at that location, if any, should be backed up, or {@code null} if
+     * this is not supported or it cannot be determined.
+     * @throws IOException If an I/O error occurs while determining the backup directory.
+     */
+    default File selectBackupDir(File exportDir) throws IOException {
+        return null;
+    }
 
     /**
      * Obtain a {@link MapRecognizer} which can recognize directories as

@@ -27,6 +27,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.*;
 
@@ -40,6 +41,7 @@ import static org.pepsoft.worldpainter.Generator.DEFAULT;
 import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 import static org.pepsoft.worldpainter.Platform.Capability.POPULATE;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
+import static org.pepsoft.worldpainter.util.BackupUtils.cleanUpBackups;
 import static org.pepsoft.worldpainter.util.MaterialUtils.gatherBlocksWithoutIds;
 
 /**
@@ -402,6 +404,15 @@ dims:   for (Dimension dim: world.getDimensions()) {
 
         File baseDir = new File(fieldDirectory.getText().trim());
         String name = fieldName.getText().trim();
+
+        // Make sure the minimum free disk space is met
+        try {
+            if (! cleanUpBackups(baseDir, null)) {
+                return;
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("I/O error while cleaning backups", e);
+        }
 
         if (! surfacePropertiesEditor.saveSettings()) {
             jTabbedPane1.setSelectedIndex(0);

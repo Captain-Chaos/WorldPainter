@@ -33,6 +33,7 @@ import java.util.*;
 
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
+import static org.pepsoft.worldpainter.util.BackupUtils.cleanUpBackups;
 
 /**
  *
@@ -190,6 +191,15 @@ public class MergeWorldDialog extends WorldPainterDialog {
         }
 
         final boolean replaceChunks = radioButtonReplaceChunks.isSelected();
+
+        // Make sure the minimum free disk space is met
+        try {
+            if (! cleanUpBackups(levelDatFile.getParentFile().getParentFile(), null)) {
+                return;
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("I/O error while cleaning backups", e);
+        }
 
         fieldLevelDatFile.setEnabled(false);
         buttonSelectDirectory.setEnabled(false);

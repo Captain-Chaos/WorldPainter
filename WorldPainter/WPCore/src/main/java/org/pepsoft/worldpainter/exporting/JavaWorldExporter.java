@@ -21,19 +21,10 @@ import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.io.*;
-import java.nio.file.FileStore;
-import java.nio.file.Files;
-import java.text.ParseException;
-import java.util.List;
 import java.util.*;
-import java.util.regex.Pattern;
 
-import static java.util.Comparator.comparing;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toList;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.SuperflatPreset.Structure.*;
-import static org.pepsoft.util.FileUtils.deleteDir;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.Dimension.Border.ENDLESS_WATER;
@@ -71,11 +62,8 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
             throw new IllegalArgumentException("Custom world generator name not set");
         }
 
-        // Make sure the minimum free disk space is met
-        File worldDir = new File(baseDir, FileUtils.sanitiseName(name));
-        deleteBackups(worldDir);
-
         // Backup existing level
+        File worldDir = new File(baseDir, FileUtils.sanitiseName(name));
         logger.info("Exporting world " + world.getName() + " to map at " + worldDir + " in " + platform.displayName + " format");
         if (worldDir.isDirectory()) {
             if (backupDir != null) {
@@ -300,10 +288,6 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
 
         ChunkFactory.Stats collectedStats = parallelExportRegions(dimension, worldDir, progressReceiver);
 
-        // Make sure the minimum free disk space is met again
-        // TODO do this more often, while writing the region files
-        deleteBackups(worldDir);
-
         // Calculate total size of dimension
         Set<Point> regions = new HashSet<>();
         if (selectedTiles != null) {
@@ -340,79 +324,6 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
         return collectedStats;
     }
 
-    /**
-     * Deletes backups, oldest first, until there is at least {@link Configuration}{@code .minimumFreeSpaceForMaps} GB
-     * free, and only if enabled.
-     *
-     * @param worldDir The directory to which the world is being exported.
-     */
-    protected synchronized void deleteBackups(File worldDir) throws IOException {
-        Configuration config = Configuration.getInstance();
-        if (config == null) {
-            return;
-        }
-        final Set<File> backupsDirs = new HashSet<>();
-        final File baseDir = worldDir.getParentFile();
-        final File minecraftDir = baseDir.getParentFile();
-        File backupsDir = new File(minecraftDir, "backups");
-        if (backupsDir.isDirectory()) {
-            backupsDirs.add(backupsDir);
-        }
-        backupsDir = new File(System.getProperty("user.home"), "WorldPainter Backups");
-        if (backupsDir.isDirectory() && backupsDir.toPath().getRoot().equals(worldDir.toPath().getRoot())) {
-            backupsDirs.add(backupsDir);
-        }
-        if (! backupsDirs.isEmpty()) {
-            final FileStore fileStore = Files.getFileStore(backupsDirs.iterator().next().toPath());
-            final int minimumFreeSpace = config.getMinimumFreeSpaceForMaps();
-            if (fileStore.getUsableSpace() >= (minimumFreeSpace * GB)) {
-                return;
-            }
-            if (config.isAutoDeleteBackups()) {
-                doDeleteBackups(backupsDirs, minimumFreeSpace, fileStore);
-            } else {
-                logger.warn("There is less than {} GB free on file system {}, but warnings are disabled", minimumFreeSpace, fileStore);
-            }
-        }
-    }
-
-    /**
-     * Delete backups from the specified directories until there is {@code minimumFreeSpace} GB free. If multiple
-     * directories are specified, they must lie on the same file system.
-     */
-    private void doDeleteBackups(Collection<? extends File> backupsDirs, int minimumFreeSpace, FileStore fileStore) throws IOException {
-        final List<File> allBackupDirs = backupsDirs.stream().map(backupsDir -> backupsDir.listFiles(file -> file.isDirectory() && BACKUP_DIR_PATTERN.matcher(file.getName()).matches()))
-                .filter(Objects::nonNull)
-                .flatMap(Arrays::stream)
-                .collect(toList());
-        while ((fileStore.getUsableSpace() < (minimumFreeSpace * GB)) && (! allBackupDirs.isEmpty())) {
-            // Try to postpone deleting the last backup for a map as long as possible by deleting the backups for maps
-            // which still have multiple backups first
-
-            // Sort the backup dirs by date and group by original name:
-            final Map<String, List<File>> dirsByOriginalName = allBackupDirs.stream()
-                    .collect(groupingBy(dir -> dir.getName().substring(0, dir.getName().length() - 15)));
-            // Split into a list of backup directories for maps which only have one backup, and those for maps for which
-            // there are still multiple backups, and sort both by date:
-            final List<File> dirsWithOneBackup = dirsByOriginalName.values().stream().filter(list -> list.size() == 1).flatMap(Collection::stream).sorted(comparing(dir -> parseDate(dir.getName()))).collect(toList());
-            final List<File> dirsWithMultipleBackups = dirsByOriginalName.values().stream().filter(list -> list.size() > 1).flatMap(Collection::stream).sorted(comparing(dir -> parseDate(dir.getName()))).collect(toList());
-            final File backupToDelete = dirsWithMultipleBackups.isEmpty() ? dirsWithOneBackup.get(0) : dirsWithMultipleBackups.get(0);
-            logger.info("Deleting map backup {} to make space on drive", backupToDelete);
-            if (! deleteDir(backupToDelete)) {
-                throw new IOException("Could not (fully) delete backup directory " + backupToDelete);
-            }
-            allBackupDirs.remove(backupToDelete);
-        }
-    }
-
-    private Date parseDate (String name){
-        try {
-            return DATE_FORMAT.parse(name.substring(name.length() - 14));
-        } catch (ParseException e) {
-            throw new RuntimeException("Could not parse date in filename \"" + name + '"', e);
-        }
-    }
 
     private static final Logger logger = LoggerFactory.getLogger(JavaWorldExporter.class);
-    private static final Pattern BACKUP_DIR_PATTERN = Pattern.compile("^.+\\.\\d{14}$");
 }

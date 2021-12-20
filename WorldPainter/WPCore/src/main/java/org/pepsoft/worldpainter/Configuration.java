@@ -710,14 +710,6 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         this.autoDeleteBackups = autoDeleteBackups;
     }
 
-    public synchronized boolean isDiskSpaceWarningOnSave() {
-        return diskSpaceWarningOnSave;
-    }
-
-    public synchronized void setDiskSpaceWarningOnSave(boolean diskSpaceWarningOnSave) {
-        this.diskSpaceWarningOnSave = diskSpaceWarningOnSave;
-    }
-
     // Transient settings which aren't stored on disk
 
     public boolean isAutosaveInhibited() {
@@ -1003,9 +995,8 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
             }
         }
         if (minimumFreeSpaceForMaps == 0) {
-            minimumFreeSpaceForMaps = 2;
+            minimumFreeSpaceForMaps = 5;
             autoDeleteBackups = true;
-            diskSpaceWarningOnSave = true;
         }
         version = CURRENT_VERSION;
         
@@ -1190,7 +1181,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private boolean snapshotWarningDisplayed;
     private boolean beta118WarningDisplayed;
     private int minimumFreeSpaceForMaps = 1;
-    private boolean autoDeleteBackups = true, diskSpaceWarningOnSave = true;
+    private boolean autoDeleteBackups = true;
 
     /**
      * The acceleration type is only stored here at runtime. It is saved to disk

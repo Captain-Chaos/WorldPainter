@@ -91,6 +91,11 @@ public abstract class JavaPlatformProvider extends AbstractPlatformProvider impl
     }
 
     @Override
+    public File selectBackupDir(File exportDir) {
+        return new File(exportDir.getParentFile(), "backups");
+    }
+
+    @Override
     public MapRecognizer getMapRecognizer() {
         return new JavaMapRecognizer();
     }

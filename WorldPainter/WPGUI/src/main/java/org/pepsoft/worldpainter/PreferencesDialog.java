@@ -14,6 +14,7 @@ import org.pepsoft.util.GUIUtils;
 import org.pepsoft.worldpainter.TileRenderer.LightOrigin;
 import org.pepsoft.worldpainter.themes.SimpleTheme;
 import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
+import org.pepsoft.worldpainter.util.BackupUtils;
 import org.pepsoft.worldpainter.util.EnumListCellRenderer;
 
 import javax.swing.*;
@@ -189,7 +190,6 @@ public class PreferencesDialog extends WorldPainterDialog {
         spinnerAutoSaveInterval.setValue(config.getAutosaveInterval() / 1000);
         spinnerFreeSpaceForMaps.setValue(config.getMinimumFreeSpaceForMaps());
         checkBoxAutoDeleteBackups.setSelected(config.isAutoDeleteBackups());
-        checkBoxDiskSpaceWarningsOnSave.setSelected(config.isDiskSpaceWarningOnSave());
         
         setControlStates();
     }
@@ -275,7 +275,6 @@ public class PreferencesDialog extends WorldPainterDialog {
         config.setAutosaveInterval(((Integer) spinnerAutoSaveInterval.getValue()) * 1000);
         config.setMinimumFreeSpaceForMaps((Integer) spinnerFreeSpaceForMaps.getValue());
         config.setAutoDeleteBackups(checkBoxAutoDeleteBackups.isSelected());
-        config.setDiskSpaceWarningOnSave(checkBoxDiskSpaceWarningsOnSave.isSelected());
         
         try {
             config.save();
@@ -299,7 +298,6 @@ public class PreferencesDialog extends WorldPainterDialog {
         spinnerAutoSaveGuardTime.setEnabled(autosaveEnabled && (! autosaveInhibited));
         spinnerAutoSaveInterval.setEnabled(autosaveEnabled && (! autosaveInhibited));
         sliderUIScale.setEnabled(radioButtonUIScaleManual.isSelected());
-        spinnerFreeSpaceForMaps.setEnabled(checkBoxAutoDeleteBackups.isSelected() || checkBoxDiskSpaceWarningsOnSave.isSelected());
     }
 
     private void updateLabelUIScale() {
@@ -326,6 +324,19 @@ public class PreferencesDialog extends WorldPainterDialog {
             defaultSettings.setBorderLevel(heightMapTileFactory.getWaterHeight());
             SortedMap<Integer, Terrain> terrainRanges = theme.getTerrainRanges();
             comboBoxSurfaceMaterial.setSelectedItem(terrainRanges.get(terrainRanges.headMap(waterLevel + 3).lastKey()));
+        }
+    }
+    
+    private void cleanUpBackupsNow() {
+        Configuration config = Configuration.getInstance();
+        int oldMinimumFreeSpaceForMaps = config.getMinimumFreeSpaceForMaps();
+        config.setMinimumFreeSpaceForMaps((Integer) spinnerFreeSpaceForMaps.getValue());
+        try {
+            BackupUtils.cleanUpBackups(null, this);
+        } catch (IOException e) {
+            throw new RuntimeException("I/O error while cleaning backups", e);
+        } finally {
+            config.setMinimumFreeSpaceForMaps(oldMinimumFreeSpaceForMaps);
         }
     }
     
@@ -374,8 +385,7 @@ public class PreferencesDialog extends WorldPainterDialog {
         spinnerFreeSpaceForMaps = new javax.swing.JSpinner();
         jLabel51 = new javax.swing.JLabel();
         checkBoxAutoDeleteBackups = new javax.swing.JCheckBox();
-        jLabel52 = new javax.swing.JLabel();
-        checkBoxDiskSpaceWarningsOnSave = new javax.swing.JCheckBox();
+        buttonCleanUpBackupsNow = new javax.swing.JButton();
         jPanel5 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jLabel18 = new javax.swing.JLabel();
@@ -574,20 +584,18 @@ public class PreferencesDialog extends WorldPainterDialog {
         jLabel51.setText("GB");
 
         checkBoxAutoDeleteBackups.setSelected(true);
-        checkBoxAutoDeleteBackups.setText("Delete old map backups on Export and Merge as necessary");
+        checkBoxAutoDeleteBackups.setText("Offer to delete old map backups on Export and Merge as necessary");
         checkBoxAutoDeleteBackups.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 checkBoxAutoDeleteBackupsActionPerformed(evt);
             }
         });
 
-        jLabel52.setText("<html><i>When the free space drops below this:</i></html>");
-
-        checkBoxDiskSpaceWarningsOnSave.setSelected(true);
-        checkBoxDiskSpaceWarningsOnSave.setText("Show warning when Saving .world files");
-        checkBoxDiskSpaceWarningsOnSave.addActionListener(new java.awt.event.ActionListener() {
+        buttonCleanUpBackupsNow.setText("Clean Up Backups Now");
+        buttonCleanUpBackupsNow.setToolTipText("Delete backups, oldest first, until there is at least the indicated amount of space free");
+        buttonCleanUpBackupsNow.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                checkBoxDiskSpaceWarningsOnSaveActionPerformed(evt);
+                buttonCleanUpBackupsNowActionPerformed(evt);
             }
         });
 
@@ -662,10 +670,9 @@ public class PreferencesDialog extends WorldPainterDialog {
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(10, 10, 10)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(checkBoxAutoDeleteBackups)
-                            .addComponent(jLabel52, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(checkBoxDiskSpaceWarningsOnSave))))
-                .addContainerGap(59, Short.MAX_VALUE))
+                            .addComponent(buttonCleanUpBackupsNow)
+                            .addComponent(checkBoxAutoDeleteBackups))))
+                .addContainerGap(19, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -729,11 +736,9 @@ public class PreferencesDialog extends WorldPainterDialog {
                                     .addComponent(spinnerFreeSpaceForMaps, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(jLabel51))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel52, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(checkBoxAutoDeleteBackups)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(checkBoxDiskSpaceWarningsOnSave)))
+                                .addComponent(buttonCleanUpBackupsNow)))
                         .addGap(0, 130, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -1540,12 +1545,13 @@ public class PreferencesDialog extends WorldPainterDialog {
         setControlStates();
     }//GEN-LAST:event_checkBoxAutoDeleteBackupsActionPerformed
 
-    private void checkBoxDiskSpaceWarningsOnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxDiskSpaceWarningsOnSaveActionPerformed
-        setControlStates();
-    }//GEN-LAST:event_checkBoxDiskSpaceWarningsOnSaveActionPerformed
+    private void buttonCleanUpBackupsNowActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCleanUpBackupsNowActionPerformed
+        cleanUpBackupsNow();
+    }//GEN-LAST:event_buttonCleanUpBackupsNowActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonCancel;
+    private javax.swing.JButton buttonCleanUpBackupsNow;
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.ButtonGroup buttonGroup2;
     private javax.swing.ButtonGroup buttonGroup3;
@@ -1561,7 +1567,6 @@ public class PreferencesDialog extends WorldPainterDialog {
     private javax.swing.JCheckBox checkBoxChestOfGoodies;
     private javax.swing.JCheckBox checkBoxCircular;
     private javax.swing.JCheckBox checkBoxContours;
-    private javax.swing.JCheckBox checkBoxDiskSpaceWarningsOnSave;
     private javax.swing.JCheckBox checkBoxExtendedBlockIds;
     private javax.swing.JCheckBox checkBoxGrid;
     private javax.swing.JCheckBox checkBoxLava;
@@ -1623,7 +1628,6 @@ public class PreferencesDialog extends WorldPainterDialog {
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel50;
     private javax.swing.JLabel jLabel51;
-    private javax.swing.JLabel jLabel52;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;

@@ -27,7 +27,7 @@ package org.pepsoft.worldpainter.tools.scripts;
 import org.pepsoft.worldpainter.Configuration;
 import org.pepsoft.worldpainter.World2;
 import org.pepsoft.worldpainter.WorldIO;
-import org.pepsoft.worldpainter.util.BackupUtil;
+import org.pepsoft.worldpainter.util.BackupUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -69,9 +69,9 @@ public class SaveWorldOp extends AbstractOperation<Void> {
             Configuration config = Configuration.getInstance();
             if ((config.getWorldFileBackups() > 0) && file.isFile()) {
                 for (int i = config.getWorldFileBackups(); i > 0; i--) {
-                    File nextBackupFile = (i > 1) ? BackupUtil.getBackupFile(file, i - 1) : file;
+                    File nextBackupFile = (i > 1) ? BackupUtils.getBackupFile(file, i - 1) : file;
                     if (nextBackupFile.isFile()) {
-                        File backupFile = BackupUtil.getBackupFile(file, i);
+                        File backupFile = BackupUtils.getBackupFile(file, i);
                         if (backupFile.isFile()) {
                             if (! backupFile.delete()) {
                                 throw new ScriptException("Could not delete old backup file " + backupFile);

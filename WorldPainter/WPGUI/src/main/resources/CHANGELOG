@@ -1,3 +1,14 @@
+-- Version 2.8.11, released ...
+
+ * Various measures to prevent problems due to lack of disk space were implemented:
+   + When Exporting or Merging maps:
+     - If there is less than a configurable amount of free space, WorldPainter will offer to delete backups, oldest first, until the minimum amount of free space is reached
+     - WorldPainter tries to ensure that at least one backup remains of every map for as long as possible, but if there is not enough space for that it will delete backups of maps for which there is only one backup left
+     - This measure can be disabled, or the limit changed from the default of 5 GB, on the Preferences screen. It is also possible to manually trigger a backups clean up from there
+   + When Saving .world files:
+     - The file is saved to a temporary file first, so that if that fails (e.g. because the disk is full) the existing file, if any, is not corrupted
+ * Mac OS X binaries are now universal binaries so that they will use the native M1 version of Java on M1 Macs for improved performance
+
 -- Version 2.8.10, released 11-12-2021
 
  * Add support for data pack format 7 to prevent errors when importing maps using them

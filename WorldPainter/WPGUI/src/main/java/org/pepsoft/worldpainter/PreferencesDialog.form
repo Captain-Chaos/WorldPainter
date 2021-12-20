@@ -164,15 +164,14 @@
                               <Component id="jLabel51" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <Group type="102" alignment="0" attributes="0">
-                              <EmptySpace min="-2" pref="10" max="-2" attributes="0"/>
+                              <EmptySpace min="10" pref="10" max="-2" attributes="0"/>
                               <Group type="103" groupAlignment="0" attributes="0">
+                                  <Component id="buttonCleanUpBackupsNow" min="-2" max="-2" attributes="0"/>
                                   <Component id="checkBoxAutoDeleteBackups" min="-2" max="-2" attributes="0"/>
-                                  <Component id="jLabel52" min="-2" max="-2" attributes="0"/>
-                                  <Component id="checkBoxDiskSpaceWarningsOnSave" alignment="0" min="-2" max="-2" attributes="0"/>
                               </Group>
                           </Group>
                       </Group>
-                      <EmptySpace pref="59" max="32767" attributes="0"/>
+                      <EmptySpace pref="19" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -248,11 +247,9 @@
                                           <Component id="jLabel51" alignment="3" min="-2" max="-2" attributes="0"/>
                                       </Group>
                                       <EmptySpace max="-2" attributes="0"/>
-                                      <Component id="jLabel52" min="-2" max="-2" attributes="0"/>
-                                      <EmptySpace max="-2" attributes="0"/>
                                       <Component id="checkBoxAutoDeleteBackups" min="-2" max="-2" attributes="0"/>
                                       <EmptySpace max="-2" attributes="0"/>
-                                      <Component id="checkBoxDiskSpaceWarningsOnSave" min="-2" max="-2" attributes="0"/>
+                                      <Component id="buttonCleanUpBackupsNow" min="-2" max="-2" attributes="0"/>
                                   </Group>
                               </Group>
                               <EmptySpace min="0" pref="130" max="32767" attributes="0"/>
@@ -482,24 +479,19 @@
             <Component class="javax.swing.JCheckBox" name="checkBoxAutoDeleteBackups">
               <Properties>
                 <Property name="selected" type="boolean" value="true"/>
-                <Property name="text" type="java.lang.String" value="Delete old map backups on Export and Merge as necessary"/>
+                <Property name="text" type="java.lang.String" value="Offer to delete old map backups on Export and Merge as necessary"/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="checkBoxAutoDeleteBackupsActionPerformed"/>
               </Events>
             </Component>
-            <Component class="javax.swing.JLabel" name="jLabel52">
+            <Component class="javax.swing.JButton" name="buttonCleanUpBackupsNow">
               <Properties>
-                <Property name="text" type="java.lang.String" value="&lt;html&gt;&lt;i&gt;When the free space drops below this:&lt;/i&gt;&lt;/html&gt;"/>
-              </Properties>
-            </Component>
-            <Component class="javax.swing.JCheckBox" name="checkBoxDiskSpaceWarningsOnSave">
-              <Properties>
-                <Property name="selected" type="boolean" value="true"/>
-                <Property name="text" type="java.lang.String" value="Show warning when Saving .world files"/>
+                <Property name="text" type="java.lang.String" value="Clean Up Backups Now"/>
+                <Property name="toolTipText" type="java.lang.String" value="Delete backups, oldest first, until there is at least the indicated amount of space free"/>
               </Properties>
               <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="checkBoxDiskSpaceWarningsOnSaveActionPerformed"/>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonCleanUpBackupsNowActionPerformed"/>
               </Events>
             </Component>
           </SubComponents>

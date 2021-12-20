@@ -222,11 +222,8 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         // Record start of export
         long start = System.currentTimeMillis();
 
-        // Make sure the minimum free disk space is met
-        File worldDir = levelDatFile.getParentFile();
-        deleteBackups(worldDir);
-
         // Backup existing level
+        File worldDir = levelDatFile.getParentFile();
         if (! worldDir.renameTo(backupDir)) {
             throw new FileInUseException("Could not move " + worldDir + " to " + backupDir);
         }
@@ -707,10 +704,6 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                 }
             }
 
-            // Make sure the minimum free disk space is met again
-            // TODO do this more often, while writing the region files
-            deleteBackups(worldDir);
-
             if (progressReceiver != null) {
                 progressReceiver.setProgress(1.0f);
             }
@@ -719,7 +712,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
             // Undo any changes we made (such as applying any combined layers)
             if (dimension.undoChanges()) {
                 // TODO: some kind of cleverer undo mechanism (undo history
-                // cloning?) so we don't mess up the user's redo history
+                //  cloning?) so we don't mess up the user's redo history
                 dimension.clearRedo();
                 dimension.armSavePoint();
             }
