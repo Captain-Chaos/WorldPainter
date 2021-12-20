@@ -58,7 +58,7 @@ import org.pepsoft.worldpainter.threedeeview.ThreeDeeFrame;
 import org.pepsoft.worldpainter.tools.BiomesViewerFrame;
 import org.pepsoft.worldpainter.tools.RespawnPlayerDialog;
 import org.pepsoft.worldpainter.tools.scripts.ScriptRunner;
-import org.pepsoft.worldpainter.util.BackupUtil;
+import org.pepsoft.worldpainter.util.BackupUtils;
 import org.pepsoft.worldpainter.util.BetterAction;
 import org.pepsoft.worldpainter.util.LayoutUtils;
 import org.pepsoft.worldpainter.vo.AttributeKeyVO;
@@ -88,8 +88,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.nio.file.FileStore;
-import java.nio.file.Files;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -2072,22 +2070,6 @@ public final class App extends JFrame implements RadiusControl,
                 return false;
             }
 
-            Configuration config = Configuration.getInstance();
-            try {
-                FileStore fileStore = Files.getFileStore(file.toPath());
-                int minimumFreeSpace = config.getMinimumFreeSpaceForMaps();
-                if (fileStore.getUsableSpace() < (minimumFreeSpace * GB)) {
-                    if (config.isDiskSpaceWarningOnSave()) {
-                        DesktopUtils.beep();
-                        JOptionPane.showMessageDialog(this, "There is less than " + minimumFreeSpace + " GB free on file system " + fileStore, "Free Space Low", WARNING_MESSAGE);
-                    } else {
-                        logger.warn("There is less than {} GB free on file system {}, but warnings are disabled", minimumFreeSpace, fileStore);
-                    }
-                }
-            } catch (IOException e) {
-                logger.error("I/O error while checking disk space", e);
-            }
-
             // Normalise the filename
             String name = file.getName();
             name = name.trim();
@@ -2145,6 +2127,7 @@ public final class App extends JFrame implements RadiusControl,
                 }
             }
 
+            Configuration config = Configuration.getInstance();
             ProgressDialog.executeTask(this, new ProgressTask<java.lang.Void>() {
                 @Override
                 public String getName() {
@@ -2169,9 +2152,9 @@ public final class App extends JFrame implements RadiusControl,
                             if (config.getWorldFileBackups() > 0) {
                                 progressReceiver.setMessage(strings.getString("creating.backup.s"));
                                 for (int i = config.getWorldFileBackups(); i > 0; i--) {
-                                    File nextBackupFile = (i > 1) ? BackupUtil.getBackupFile(normalisedFile, i - 1) : normalisedFile;
+                                    File nextBackupFile = (i > 1) ? BackupUtils.getBackupFile(normalisedFile, i - 1) : normalisedFile;
                                     if (nextBackupFile.isFile()) {
-                                        File backupFile = BackupUtil.getBackupFile(normalisedFile, i);
+                                        File backupFile = BackupUtils.getBackupFile(normalisedFile, i);
                                         if (backupFile.isFile()) {
                                             if (! backupFile.delete()) {
                                                 throw new RuntimeException("Could not delete old backup file " + backupFile.getName());
