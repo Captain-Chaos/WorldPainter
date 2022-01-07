@@ -61,6 +61,7 @@ import org.pepsoft.worldpainter.tools.scripts.ScriptRunner;
 import org.pepsoft.worldpainter.util.BackupUtils;
 import org.pepsoft.worldpainter.util.BetterAction;
 import org.pepsoft.worldpainter.util.LayoutUtils;
+import org.pepsoft.worldpainter.util.LazyLoadingIconToggleButton;
 import org.pepsoft.worldpainter.vo.AttributeKeyVO;
 import org.pepsoft.worldpainter.vo.EventVO;
 import org.pepsoft.worldpainter.vo.UsageVO;
@@ -3489,24 +3490,13 @@ public final class App extends JFrame implements RadiusControl,
         int desiredBrushRotation = (activeOperation instanceof PaintOperation) ? brushRotation : toolBrushRotation;
         if (desiredBrushRotation != previousBrushRotation) {
 //            long start = System.currentTimeMillis();
-            if (desiredBrushRotation == 0) {
-                for (Map.Entry<Brush, JToggleButton> entry: brushButtons.entrySet()) {
-                    Brush brush = entry.getKey();
-                    JToggleButton button = entry.getValue();
-                    if (button.isSelected() && (activeOperation instanceof BrushOperation)) {
-                        button.setIcon(createBrushIcon(brush, 0));
-                        ((BrushOperation) activeOperation).setBrush(brush);
-                    }
-                }
-            } else {
-                for (Map.Entry<Brush, JToggleButton> entry: brushButtons.entrySet()) {
-                    Brush brush = entry.getKey();
-                    JToggleButton button = entry.getValue();
-                    if (button.isSelected() && (activeOperation instanceof BrushOperation)) {
-                        button.setIcon(createBrushIcon(brush, desiredBrushRotation));
-                        Brush rotatedBrush = RotatedBrush.rotate(brush, desiredBrushRotation);
-                        ((BrushOperation) activeOperation).setBrush(rotatedBrush);
-                    }
+            if (activeOperation instanceof BrushOperation) {
+                Brush brush = (activeOperation instanceof PaintOperation) ? this.brush : this.toolBrush;
+                if (desiredBrushRotation == 0) {
+                    ((BrushOperation) activeOperation).setBrush(brush);
+                } else {
+                    Brush rotatedBrush = RotatedBrush.rotate(brush, desiredBrushRotation);
+                    ((BrushOperation) activeOperation).setBrush(rotatedBrush);
                 }
             }
             view.setBrushRotation(desiredBrushRotation);
@@ -3515,13 +3505,6 @@ public final class App extends JFrame implements RadiusControl,
 //            }
             previousBrushRotation = desiredBrushRotation;
         }
-    }
-
-    /**
-     * Update the image of a single brush button
-     */
-    private void updateBrushRotation(Brush brush, JToggleButton button) {
-        button.setIcon(createBrushIcon(brush, button.isSelected() ? ((activeOperation instanceof PaintOperation) ? brushRotation : toolBrushRotation) : 0));
     }
 
     private void registerCustomLayer(final CustomLayer layer, boolean activate) {
@@ -5143,7 +5126,6 @@ public final class App extends JFrame implements RadiusControl,
                 JToggleButton button = entry.getValue();
                 if (button.isSelected()) {
                     button.setSelected(false);
-                    updateBrushRotation(entry.getKey(), button);
                     break;
                 }
             }
@@ -5152,12 +5134,11 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private JComponent createBrushButton(final Brush brush) {
-        final JToggleButton button = new JToggleButton(createBrushIcon(brush, 0));
+        final JToggleButton button = new LazyLoadingIconToggleButton((int) (32 * getUIScale()), () -> createBrushIcon(brush));
         button.setMargin(new Insets(2, 2, 2, 2));
         button.setToolTipText(brush.getName());
         button.addItemListener(e -> {
             if (! programmaticChange) {
-                updateBrushRotation(brush, button);
                 if (e.getStateChange() == ItemEvent.SELECTED) {
                     int effectiveRotation;
                     if (activeOperation instanceof PaintOperation) {
@@ -5185,12 +5166,8 @@ public final class App extends JFrame implements RadiusControl,
         return button;
     }
     
-    private Icon createBrushIcon(Brush brush, int degrees) {
-        brush = brush.clone();
+    private Icon createBrushIcon(Brush brush) {
         brush.setRadius((int) (16 * getUIScale()) - 1);
-        if (degrees != 0) {
-            brush = RotatedBrush.rotate(brush, degrees);
-        }
         return new ImageIcon(createBrushImage(brush));
     }
 

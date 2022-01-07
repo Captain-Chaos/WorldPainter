@@ -11,14 +11,15 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.*;
 
 /**
- * A brush which can rotate another brush an arbitrary angle around its center.
+ * A brush which can rotate another brush an arbitrary angle around its center. Radius and level are propagated to the
+ * encapsulated brush.
  * 
  * @author SchmitzP
  */
 public final class RotatedBrush extends AbstractBrush {
     private RotatedBrush(Brush brush, int degrees) {
         super(brush.getName());
-        this.brush = brush.clone();
+        this.brush = brush;
         this.degrees = degrees;
         radius = brush.getRadius();
         level = brush.getLevel();
