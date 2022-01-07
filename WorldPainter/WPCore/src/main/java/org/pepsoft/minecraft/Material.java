@@ -342,10 +342,10 @@ public final class Material implements Serializable {
      *                 which to get the value.
      * @param <T> The property type.
      * @return The value of the specified property transformed to the specified
-     * type.
+     * type, or {@code null} if the property is not set.
      */
     public <T> T getProperty(Property<T> property) {
-        return (identity.properties != null) ? property.fromString(identity.properties.get(property.name)) : null;
+        return getProperty(property, null);
     }
 
     /**
@@ -360,15 +360,10 @@ public final class Material implements Serializable {
      *                     is not set on the material.
      * @param <T> The property type.
      * @return The value of the specified property transformed to the specified
-     * type.
+     * type, or {@code defaultValue} if the property is not set.
      */
     public <T> T getProperty(Property<T> property, T defaultValue) {
-        if (identity.properties != null) {
-            String value = identity.properties.get(property.name);
-            return (value != null) ? property.fromString(value) : defaultValue;
-        } else {
-            return defaultValue;
-        }
+        return hasProperty(property) ? property.fromString(identity.properties.get(property.name)) : defaultValue;
     }
 
     /**
