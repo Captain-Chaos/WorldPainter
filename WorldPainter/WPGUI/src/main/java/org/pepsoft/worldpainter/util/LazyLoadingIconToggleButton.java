@@ -1,16 +1,18 @@
 package org.pepsoft.worldpainter.util;
 
 import org.pepsoft.util.AwtUtils;
+import org.pepsoft.util.LifoBlockingDeque;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.pepsoft.worldpainter.util.LazyLoadingIconToggleButton.State.*;
 
 /**
@@ -58,7 +60,7 @@ public class LazyLoadingIconToggleButton extends JToggleButton {
     private final Supplier<Icon> iconSupplier;
     private State state = NOT_LOADED;
 
-    private static final ExecutorService iconLoader = Executors.newFixedThreadPool(1);
+    private static final ExecutorService iconLoader = new ThreadPoolExecutor(1, 1, 0, MILLISECONDS, new LifoBlockingDeque<>());
     private static final Map<Integer, Icon> emptyIcons = new HashMap<>();
 
     enum State { NOT_LOADED, LOADING, LOADED}
