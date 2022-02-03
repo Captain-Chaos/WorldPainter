@@ -26,7 +26,7 @@ public class ImportTester extends AbstractMain {
         File savesDir = new File(args[0]);
         for (File mapDir: savesDir.listFiles()) {
             if (mapDir.isDirectory()) {
-                Platform platform = PlatformManager.getInstance().identifyMap(mapDir);
+                Platform platform = PlatformManager.getInstance().identifyPlatform(mapDir);
                 JavaMapImporter importer = new JavaMapImporter(platform, tileFactory, new File(mapDir, "level.dat"),
                         false, null, MapImporter.ReadOnlyOption.NONE,
                         new HashSet<>(asList(((BlockBasedPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform)).getDimensions(platform, mapDir))));

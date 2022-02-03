@@ -23,7 +23,7 @@ public class DumpBlockData extends AbstractMain {
         Map<String, Map<String, Set<String>>> allProperties = new HashMap<>();
         File worldDir = new File(args[0]);
         PlatformManager platformManager = PlatformManager.getInstance();
-        Platform platform = platformManager.identifyMap(worldDir);
+        Platform platform = platformManager.identifyPlatform(worldDir);
         ChunkStore chunkStore = platformManager.getChunkStore(platform, worldDir, DIM_NORMAL);
         chunkStore.visitChunks(chunk -> {
             for (int y = 0; y < DEFAULT_MAX_HEIGHT_ANVIL; y++) {

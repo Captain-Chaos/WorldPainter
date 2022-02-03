@@ -305,7 +305,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
         boolean levelDatSelected = file.isFile() && (file.getName().equalsIgnoreCase("level.dat"));
         if (levelDatSelected) {
             levelDatFile = file;
-            platform = PlatformManager.getInstance().identifyMap(file.getParentFile());
+            platform = PlatformManager.getInstance().identifyPlatform(file.getParentFile());
             if (platform != null) {
                 if (! (platform.capabilities.contains(BIOMES) || platform.capabilities.contains(BIOMES_3D))) {
                     if (radioButtonBiomes.isSelected()) {

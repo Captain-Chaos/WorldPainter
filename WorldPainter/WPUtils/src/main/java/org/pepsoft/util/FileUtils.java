@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NonNls;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileView;
 import java.awt.*;
 import java.io.*;
 import java.nio.charset.Charset;
@@ -17,6 +18,11 @@ import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.*;
+
+import static java.awt.FileDialog.LOAD;
+import static java.lang.Boolean.TRUE;
+import static javax.swing.JFileChooser.APPROVE_OPTION;
+import static javax.swing.JFileChooser.FILES_AND_DIRECTORIES;
 
 /**
  *
@@ -266,53 +272,126 @@ public class FileUtils {
      * dialog.
      */
     public static File selectFileForOpen(Window parent, String title, File fileOrDir, final FileFilter fileFilter) {
-        if (SystemUtils.isMac()) {
-            // On Macs the AWT file dialog looks much closer to native than the
-            // Swing one, so use it
-            FileDialog fileDialog;
-            if (parent instanceof Frame) {
-                fileDialog = new FileDialog((Frame) parent, title, FileDialog.LOAD);
-            } else {
-                fileDialog = new FileDialog((Dialog) parent, title, FileDialog.LOAD);
-            }
-            if (fileOrDir != null) {
-                if (fileOrDir.isDirectory()) {
-                    fileDialog.setDirectory(fileOrDir.getPath());
+        Boolean old = UIManager.getBoolean("FileChooser.readOnly");
+        UIManager.put("FileChooser.readOnly", TRUE);
+        try {
+            if (SystemUtils.isMac()) {
+                // On Macs the AWT file dialog looks much closer to native than the
+                // Swing one, so use it
+                FileDialog fileDialog;
+                if (parent instanceof Frame) {
+                    fileDialog = new FileDialog((Frame) parent, title, LOAD);
                 } else {
-                    fileDialog.setDirectory(fileOrDir.getParent());
-                    fileDialog.setFile(fileOrDir.getName());
+                    fileDialog = new FileDialog((Dialog) parent, title, LOAD);
                 }
-            }
-            if (fileFilter != null) {
-                fileDialog.setFilenameFilter((file, s) -> fileFilter.accept(new File(file, s)));
-            }
-            fileDialog.setVisible(true);
-            File[] files = fileDialog.getFiles();
-            if (files.length == 1) {
-                return files[0];
-            } else {
-                return null;
-            }
-        } else {
-            JFileChooser fileChooser;
-            if (fileOrDir != null) {
-                if (fileOrDir.isDirectory()) {
-                    fileChooser = new JFileChooser(fileOrDir);
+                if (fileOrDir != null) {
+                    if (fileOrDir.isDirectory()) {
+                        fileDialog.setDirectory(fileOrDir.getPath());
+                    } else {
+                        fileDialog.setDirectory(fileOrDir.getParent());
+                        fileDialog.setFile(fileOrDir.getName());
+                    }
+                }
+                if (fileFilter != null) {
+                    fileDialog.setFilenameFilter((file, s) -> fileFilter.accept(new File(file, s)));
+                }
+                fileDialog.setVisible(true);
+                File[] files = fileDialog.getFiles();
+                if (files.length == 1) {
+                    return files[0];
                 } else {
-                    fileChooser = new JFileChooser(fileOrDir.getParentFile());
-                    fileChooser.setSelectedFile(fileOrDir);
+                    return null;
                 }
             } else {
-                fileChooser = new JFileChooser();
+                JFileChooser fileChooser;
+                if (fileOrDir != null) {
+                    if (fileOrDir.isDirectory()) {
+                        fileChooser = new JFileChooser(fileOrDir);
+                    } else {
+                        fileChooser = new JFileChooser(fileOrDir.getParentFile());
+                        fileChooser.setSelectedFile(fileOrDir);
+                    }
+                } else {
+                    fileChooser = new JFileChooser();
+                }
+                fileChooser.setDialogTitle(title);
+                fileChooser.setFileFilter(fileFilter);
+                fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                if (fileChooser.showOpenDialog(parent) == APPROVE_OPTION) {
+                    return fileChooser.getSelectedFile();
+                } else {
+                    return null;
+                }
             }
-            fileChooser.setDialogTitle(title);
-            fileChooser.setFileFilter(fileFilter);
-            fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-            if (fileChooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION) {
-                return fileChooser.getSelectedFile();
+        } finally {
+            UIManager.put("FileChooser.readOnly", old);
+        }
+    }
+
+    /**
+     * Select a single existing directory for loading.
+     *
+     * @param parent The window relative to which the modal file dialog should be displayed.
+     * @param title The text for the title bar of the file dialog.
+     * @param dir A directory to preselect.
+     * @param description A description of the type of directory to select.
+     * @return The selected directory, or {@code null} if the user cancelled the dialog.
+     */
+    public static File selectDirectoryForOpen(Window parent, String title, File dir, String description, FileView fileView) {
+        Boolean old = UIManager.getBoolean("FileChooser.readOnly");
+        UIManager.put("FileChooser.readOnly", TRUE);
+        try {
+            if ((SystemUtils.isMac()) && (fileView == null)) { // TODO support FileFiew or similar functionality on Mac OS
+                // On Macs the AWT file dialog looks much closer to native than the
+                // Swing one, so use it
+                FileDialog fileDialog;
+                if (parent instanceof Frame) {
+                    fileDialog = new FileDialog((Frame) parent, title, LOAD);
+                } else {
+                    fileDialog = new FileDialog((Dialog) parent, title, LOAD);
+                }
+                if (dir != null) {
+                    fileDialog.setDirectory(dir.getPath());
+                }
+                fileDialog.setFilenameFilter((directory, name) -> new File(directory, name).isDirectory());
+                fileDialog.setVisible(true);
+                File[] files = fileDialog.getFiles();
+                if (files.length == 1) {
+                    return files[0];
+                } else {
+                    return null;
+                }
             } else {
-                return null;
+                JFileChooser fileChooser;
+                if (dir != null) {
+                    fileChooser = new JFileChooser(dir);
+                } else {
+                    fileChooser = new JFileChooser();
+                }
+                fileChooser.setDialogTitle(title);
+                fileChooser.setFileFilter(new FileFilter() {
+                    @Override
+                    public boolean accept(File f) {
+                        return f.isDirectory();
+                    }
+
+                    @Override
+                    public String getDescription() {
+                        return description;
+                    }
+                });
+                fileChooser.setFileSelectionMode(FILES_AND_DIRECTORIES);
+                if (fileView != null) {
+                    fileChooser.setFileView(fileView);
+                }
+                if (fileChooser.showOpenDialog(parent) == APPROVE_OPTION) {
+                    return fileChooser.getSelectedFile();
+                } else {
+                    return null;
+                }
             }
+        } finally {
+            UIManager.put("FileChooser.readOnly", old);
         }
     }
 
@@ -329,53 +408,59 @@ public class FileUtils {
      * the dialog.
      */
     public static File[] selectFilesForOpen(Window parent, String title, File fileOrDir, final FileFilter fileFilter) {
-        if (SystemUtils.isMac()) {
-            // On Macs the AWT file dialog looks much closer to native than the
-            // Swing one, so use it
-            FileDialog fileDialog;
-            if (parent instanceof Frame) {
-                fileDialog = new FileDialog((Frame) parent, title, FileDialog.LOAD);
-            } else {
-                fileDialog = new FileDialog((Dialog) parent, title, FileDialog.LOAD);
-            }
-            fileDialog.setMultipleMode(true);
-            if (fileOrDir != null) {
-                if (fileOrDir.isDirectory()) {
-                    fileDialog.setDirectory(fileOrDir.getPath());
+        Boolean old = UIManager.getBoolean("FileChooser.readOnly");
+        UIManager.put("FileChooser.readOnly", TRUE);
+        try {
+            if (SystemUtils.isMac()) {
+                // On Macs the AWT file dialog looks much closer to native than the
+                // Swing one, so use it
+                FileDialog fileDialog;
+                if (parent instanceof Frame) {
+                    fileDialog = new FileDialog((Frame) parent, title, LOAD);
                 } else {
-                    fileDialog.setDirectory(fileOrDir.getParent());
-                    fileDialog.setFile(fileOrDir.getName());
+                    fileDialog = new FileDialog((Dialog) parent, title, LOAD);
                 }
-            }
-            fileDialog.setFilenameFilter((file, s) -> fileFilter.accept(new File(file, s)));
-            fileDialog.setVisible(true);
-            File[] files = fileDialog.getFiles();
-            if (files.length > 0) {
-                return files;
-            } else {
-                return null;
-            }
-        } else {
-            JFileChooser fileChooser;
-            if (fileOrDir != null) {
-                if (fileOrDir.isDirectory()) {
-                    fileChooser = new JFileChooser(fileOrDir);
+                fileDialog.setMultipleMode(true);
+                if (fileOrDir != null) {
+                    if (fileOrDir.isDirectory()) {
+                        fileDialog.setDirectory(fileOrDir.getPath());
+                    } else {
+                        fileDialog.setDirectory(fileOrDir.getParent());
+                        fileDialog.setFile(fileOrDir.getName());
+                    }
+                }
+                fileDialog.setFilenameFilter((file, s) -> fileFilter.accept(new File(file, s)));
+                fileDialog.setVisible(true);
+                File[] files = fileDialog.getFiles();
+                if (files.length > 0) {
+                    return files;
                 } else {
-                    fileChooser = new JFileChooser(fileOrDir.getParentFile());
-                    fileChooser.setSelectedFile(fileOrDir);
+                    return null;
                 }
             } else {
-                fileChooser = new JFileChooser();
+                JFileChooser fileChooser;
+                if (fileOrDir != null) {
+                    if (fileOrDir.isDirectory()) {
+                        fileChooser = new JFileChooser(fileOrDir);
+                    } else {
+                        fileChooser = new JFileChooser(fileOrDir.getParentFile());
+                        fileChooser.setSelectedFile(fileOrDir);
+                    }
+                } else {
+                    fileChooser = new JFileChooser();
+                }
+                fileChooser.setMultiSelectionEnabled(true);
+                fileChooser.setDialogTitle(title);
+                fileChooser.setFileFilter(fileFilter);
+                fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                if (fileChooser.showOpenDialog(parent) == APPROVE_OPTION) {
+                    return fileChooser.getSelectedFiles();
+                } else {
+                    return null;
+                }
             }
-            fileChooser.setMultiSelectionEnabled(true);
-            fileChooser.setDialogTitle(title);
-            fileChooser.setFileFilter(fileFilter);
-            fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-            if (fileChooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION) {
-                return fileChooser.getSelectedFiles();
-            } else {
-                return null;
-            }
+        } finally {
+            UIManager.put("FileChooser.readOnly", old);
         }
     }
 
@@ -433,7 +518,7 @@ public class FileUtils {
             fileChooser.setDialogTitle(title);
             fileChooser.setFileFilter(fileFilter);
             fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-            if (fileChooser.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
+            if (fileChooser.showSaveDialog(parent) == APPROVE_OPTION) {
                 return fileChooser.getSelectedFile();
             } else {
                 return null;

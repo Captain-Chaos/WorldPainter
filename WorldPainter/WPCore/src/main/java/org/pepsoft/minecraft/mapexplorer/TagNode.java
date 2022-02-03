@@ -7,6 +7,7 @@ package org.pepsoft.minecraft.mapexplorer;
 
 import org.jnbt.*;
 import org.pepsoft.util.DesktopUtils;
+import org.pepsoft.worldpainter.mapexplorer.AbstractNode;
 import org.pepsoft.worldpainter.mapexplorer.Node;
 
 import javax.swing.*;
@@ -20,7 +21,7 @@ import java.util.Map;
  *
  * @author pepijn
  */
-public class TagNode extends Node {
+public class TagNode extends AbstractNode {
     public TagNode(Tag tag) {
         this.tag = tag;
     }

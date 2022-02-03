@@ -5,13 +5,14 @@
 
 package org.pepsoft.minecraft.mapexplorer;
 
-import org.jnbt.NBTInputStream;
-import org.jnbt.Tag;
+import org.jnbt.*;
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.worldpainter.mapexplorer.Node;
 
 import javax.swing.*;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 /**
@@ -40,16 +41,41 @@ public class NBTFileNode extends FileSystemNode {
 
     @Override
     protected Node[] loadChildren() {
-        try (InputStream in = new BufferedInputStream(new FileInputStream(file))) {
-            in.mark(2);
+        try {
             Tag tag;
-            if ((in.read() == 0x1f) && (in.read() == 0x8b)) {
-                // Gzip signature
-                in.reset();
-                tag = new NBTInputStream(new GZIPInputStream(in)).readTag();
-            } else {
-                in.reset();
-                tag = new NBTInputStream(in).readTag();
+            try (InputStream in = new BufferedInputStream(new FileInputStream(file))) {
+                in.mark(2);
+                if ((in.read() == 0x1f) && (in.read() == 0x8b)) {
+                    // Gzip signature
+                    in.reset();
+                    tag = new NBTInputStream(new GZIPInputStream(in)).readTag();
+                } else {
+                    in.reset();
+                    try (NBTInputStream levelIn = new NBTInputStream(in)) {
+                        tag = levelIn.readTag();
+                        if (! (tag instanceof CompoundTag)) {
+                            List<Tag> tags = new ArrayList<>();
+                            while (! (tag instanceof EndTag)) {
+                                tags.add(tag);
+                                tag = levelIn.readTag();
+                            }
+                            tag = new ListTag<>("", Tag.class, tags);
+                        }
+                    }
+                }
+            } catch (EOFException e) {
+                // Gamble that this means little endian content
+                try (NBTInputStream in = new NBTInputStream(new FileInputStream(file), true)) {
+                    tag = in.readTag();
+                    if (! (tag instanceof CompoundTag)) {
+                        List<Tag> tags = new ArrayList<>();
+                        while (! (tag instanceof EndTag)) {
+                            tags.add(tag);
+                            tag = in.readTag();
+                        }
+                        tag = new ListTag<>("", Tag.class, tags);
+                    }
+                }
             }
             return new Node[] {new TagNode(tag)};
         } catch (IOException e) {

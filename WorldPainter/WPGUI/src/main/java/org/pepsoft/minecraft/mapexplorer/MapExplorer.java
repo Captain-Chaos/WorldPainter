@@ -16,7 +16,6 @@ import org.pepsoft.worldpainter.Main;
 import org.pepsoft.worldpainter.MouseAdapter;
 import org.pepsoft.worldpainter.mapexplorer.Node;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
-import org.pepsoft.worldpainter.util.MinecraftUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,23 +93,23 @@ public class MapExplorer {
         }
         WPPluginManager.initialise(config.getUuid());
 
-        File defaultDir;
-        if (args.length > 0) {
-            defaultDir = new File(args[0]);
-        } else {
-            File minecraftDir = MinecraftUtil.findMinecraftDir();
-            if (minecraftDir != null) {
-                defaultDir = new File(minecraftDir, "saves");
-            } else {
-                defaultDir = new File(System.getProperty("user.home"));
-            }
-        }
+//        File defaultDir;
+//        if (args.length > 0) {
+//            defaultDir = new File(args[0]);
+//        } else {
+//            File minecraftDir = MinecraftUtil.findMinecraftDir();
+//            if (minecraftDir != null) {
+//                defaultDir = new File(minecraftDir, "saves");
+//            } else {
+//                defaultDir = new File(System.getProperty("user.home"));
+//            }
+//        }
 
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Minecraft Map Explorer");
             frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-            splitPane.setLeftComponent(createTreePanel(defaultDir));
+            splitPane.setLeftComponent(createTreePanel(/*defaultDir*/));
             splitPane.setRightComponent(createDetailsPanel());
             frame.getContentPane().add(splitPane, CENTER);
             frame.setSize(1024, 768);
@@ -144,7 +143,7 @@ public class MapExplorer {
     }
 
     @NotNull
-    private static Component createTreePanel(File defaultDir) {
+    private static Component createTreePanel(/*File defaultDir*/) {
         MapTreeModel treeModel = new MapTreeModel();
         JTree tree = new JTree(treeModel);
         tree.setRootVisible(false);
@@ -152,8 +151,8 @@ public class MapExplorer {
         tree.getSelectionModel().setSelectionMode(SINGLE_TREE_SELECTION);
         tree.setCellRenderer(new MapTreeCellRenderer());
         JScrollPane scrollPane = new JScrollPane(tree);
-        tree.expandPath(treeModel.getPath(defaultDir));
-        tree.scrollPathToVisible(treeModel.getPath(defaultDir));
+//        tree.expandPath(treeModel.getPath(defaultDir));
+//        tree.scrollPathToVisible(treeModel.getPath(defaultDir));
         // Automatically expand any nodes if they only have one child
         tree.addTreeExpansionListener(new TreeExpansionListener() {
             @Override
@@ -205,6 +204,9 @@ public class MapExplorer {
                     detailsArea.setIcon(null);
                     detailsArea.setText("<html><pre>" + tag + "</pre></html>");
                 }
+            } else if (node instanceof DataNode) {
+                data = ((DataNode) node).getData();
+                updateBinaryData();
             } else if (node instanceof FileSystemNode) {
                 if (node instanceof NBTFileNode) {
                     clearDetails();

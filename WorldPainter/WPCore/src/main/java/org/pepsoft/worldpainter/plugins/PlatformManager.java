@@ -1,12 +1,13 @@
 package org.pepsoft.worldpainter.plugins;
 
+import com.google.common.collect.ImmutableList;
 import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.minecraft.ChunkStore;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.World2;
 import org.pepsoft.worldpainter.exporting.PostProcessor;
 import org.pepsoft.worldpainter.exporting.WorldExporter;
-import org.pepsoft.worldpainter.mapexplorer.MapRecognizer;
+import org.pepsoft.worldpainter.plugins.PlatformProvider.MapInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +16,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 
 /**
@@ -55,25 +56,33 @@ public class PlatformManager extends AbstractProviderManager<Platform, PlatformP
     }
 
     /**
-     * Identify the platform of a map.
+     * Identify the platform a map.
      *
      * @param worldDir The directory to identify.
-     * @return The platform of the specified map, or {@code null} if no platform
+     * @return The platform of the specified map, or {@code null} if no platform provider claimed support.
+     */
+    public Platform identifyPlatform(File worldDir) {
+        MapInfo mapInfo = identifyMap(worldDir);
+        return (mapInfo != null) ? mapInfo.platform : null;
+    }
+
+    /**
+     * Identify a map.
+     *
+     * @param worldDir The directory to identify.
+     * @return The identifying information, including platform, of the specified map, or {@code null} if no platform
      * provider claimed support.
      */
-    public Platform identifyMap(File worldDir) {
-        Set<Platform> candidates = new HashSet<>();
+    public MapInfo identifyMap(File worldDir) {
+        Set<MapInfo> candidates = new HashSet<>();
         for (PlatformProvider provider: getImplementations()) {
-            MapRecognizer mapRecognizer = provider.getMapRecognizer();
-            if (mapRecognizer != null) {
-                try {
-                    Platform platform = mapRecognizer.identifyPlatform(worldDir);
-                    if (platform != null) {
-                        candidates.add(platform);
-                    }
-                } catch (RuntimeException e) {
-                    logger.warn("{} while asking provider {} to identify {}; skipping platform", e.getClass().getSimpleName(), provider.getClass().getName(), worldDir, e);
+            try {
+                MapInfo mapInfo = provider.identifyMap(worldDir);
+                if (mapInfo != null) {
+                    candidates.add(mapInfo);
                 }
+            } catch (RuntimeException e) {
+                logger.warn("{} while asking provider {} to identify {}; skipping platform", e.getClass().getSimpleName(), provider.getClass().getName(), worldDir, e);
             }
         }
         if (candidates.isEmpty()) {
@@ -81,14 +90,28 @@ public class PlatformManager extends AbstractProviderManager<Platform, PlatformP
         } else if (candidates.size() == 1) {
             return candidates.iterator().next();
         } else {
-            // If one of the candidates is ourselves, discount it, assuming that
-            // the plugin did a more specific check and is probably right
-            // TODO: make this more generic
-            candidates.removeAll(asList(JAVA_MCREGION, JAVA_ANVIL, JAVA_ANVIL_1_15, JAVA_ANVIL_1_17, JAVA_ANVIL_1_18));
-            if (candidates.size() == 1) {
+            Set<MapInfo> defaultCandidates = new HashSet<>(), pluginCandidates = new HashSet<>();
+            candidates.forEach(mapInfo -> {
+                if (DEFAULT_PLATFORMS.contains(mapInfo.platform)) {
+                    defaultCandidates.add(mapInfo);
+                } else {
+                    pluginCandidates.add(mapInfo);
+                }
+            });
+            if (pluginCandidates.size() == 1) {
                 return candidates.iterator().next();
+            } else if (pluginCandidates.size() > 1) {
+                throw new RuntimeException("Multiple platform providers (" + pluginCandidates + ") claimed support for this map");
             } else {
-                throw new RuntimeException("Multiple platform providers (" + candidates + ") claimed support for this map");
+                // Multiple default platforms matched; pick the newest one
+                for (int i = DEFAULT_PLATFORMS.size() - 1; i >= 0; i--) {
+                    Platform platform = DEFAULT_PLATFORMS.get(i);
+                    List<MapInfo> mapInfos = candidates.stream().filter(mapInfo -> mapInfo.platform == platform).collect(toList());
+                    if (! mapInfos.isEmpty()) {
+                        return mapInfos.get(0);
+                    }
+                }
+                throw new InternalError("Should never happen");
             }
         }
     }
@@ -96,6 +119,9 @@ public class PlatformManager extends AbstractProviderManager<Platform, PlatformP
     public static PlatformManager getInstance() {
         return INSTANCE;
     }
+
+    // TODO: make this more generic
+    public static final List<Platform> DEFAULT_PLATFORMS = ImmutableList.of(JAVA_MCREGION, JAVA_ANVIL, JAVA_ANVIL_1_15, JAVA_ANVIL_1_17, JAVA_ANVIL_1_18);
 
     private static final PlatformManager INSTANCE = new PlatformManager();
     private static final Logger logger = LoggerFactory.getLogger(PlatformManager.class);

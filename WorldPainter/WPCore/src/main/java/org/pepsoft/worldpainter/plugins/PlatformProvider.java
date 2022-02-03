@@ -7,6 +7,7 @@ import org.pepsoft.worldpainter.exporting.ExportSettingsEditor;
 import org.pepsoft.worldpainter.exporting.WorldExporter;
 import org.pepsoft.worldpainter.mapexplorer.MapRecognizer;
 
+import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 
@@ -49,15 +50,43 @@ public interface PlatformProvider extends Provider<Platform> {
     }
 
     /**
-     * Obtain a {@link MapRecognizer} which can recognize directories as
-     * containing maps corresponding to any platform supported by this
-     * provider.
-     *
-     * @return A {@link MapRecognizer} which can recognize directories as
-     * containing maps corresponding to any platform supported by this
-     * plugin.
+     * @deprecated Will never be called. Do not implement. The default implementation throws an
+     * {@link UnsupportedOperationException}.
      */
-    MapRecognizer getMapRecognizer();
+    @Deprecated
+    default MapRecognizer getMapRecognizer() {
+        throw new UnsupportedOperationException("Deprecated");
+    }
+
+    /**
+     * Identify the map in the specified directory, if it is a map supported by the plugin to which this provider
+     * belongs, and provide some identifying information if so.
+     *
+     * <p>The default implementation returns {@code null}. This will make it harder to select maps of the type(s)
+     * supported by this platform provider for users when they wish to Import a map. If the platform provider does not
+     * support Importing this is not relevant.
+     *
+     * @param dir The directory to identify.
+     * @return Identifying information of the specified map if this class could identify it, or {@code null} if it was
+     * not recognised.
+     */
+    default MapInfo identifyMap(File dir) {
+        return null;
+    }
+
+    class MapInfo {
+        public MapInfo(File dir, Platform platform, String name, Icon icon) {
+            this.dir = dir;
+            this.platform = platform;
+            this.name = name;
+            this.icon = icon;
+        }
+
+        public File dir;
+        public Platform platform;
+        public String name;
+        public Icon icon;
+    }
     
     /**
      * Get the default {@link ExportSettings} for this platform, or {@code null} if the platform has no export settings.

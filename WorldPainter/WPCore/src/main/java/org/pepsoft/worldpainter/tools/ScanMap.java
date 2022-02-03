@@ -23,7 +23,7 @@ public class ScanMap extends AbstractMain {
         Set<String> heightmapTypes = new HashSet<>();
         File worldDir = new File(args[0]);
         PlatformManager platformManager = PlatformManager.getInstance();
-        Platform platform = platformManager.identifyMap(worldDir);
+        Platform platform = platformManager.identifyPlatform(worldDir);
         ChunkStore chunkStore = platformManager.getChunkStore(platform, worldDir, DIM_NORMAL);
         chunkStore.visitChunks(chunk -> {
             String status = "???";

@@ -36,7 +36,7 @@ public class Statistics {
 //        int totalBlockCount = 0, totalBlocksPerLevel = 0;
         System.out.println("Scanning " + worldDir);
         PlatformManager platformManager = PlatformManager.getInstance();
-        Platform platform = platformManager.identifyMap(worldDir);
+        Platform platform = platformManager.identifyPlatform(worldDir);
         ChunkStore chunkStore = platformManager.getChunkStore(platform, worldDir, DIM_NORMAL);
         chunkStore.visitChunks(chunk -> {
             for (int xx = 0; xx < 16; xx++) {

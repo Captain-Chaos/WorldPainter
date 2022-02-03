@@ -185,7 +185,7 @@
   <SubComponents>
     <Component class="javax.swing.JLabel" name="jLabel1">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Select the level.dat file of an existing Minecraft map:"/>
+        <Property name="text" type="java.lang.String" value="Select an existing map:"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JTextField" name="fieldFilename">

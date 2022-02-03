@@ -1,6 +1,7 @@
 package org.pepsoft.minecraft.mapexplorer;
 
 import org.pepsoft.util.DesktopUtils;
+import org.pepsoft.worldpainter.mapexplorer.AbstractNode;
 import org.pepsoft.worldpainter.mapexplorer.Node;
 
 import javax.swing.*;
@@ -10,9 +11,14 @@ import java.io.File;
 /**
  * Created by Pepijn on 15-6-2016.
  */
-public class FileSystemNode extends Node {
+public class FileSystemNode extends AbstractNode {
     public FileSystemNode(File file) {
+        this(file, null);
+    }
+
+    public FileSystemNode(File file, String displayName) {
         this.file = file;
+        this.displayName = (displayName == null) ? FILE_SYSTEM_VIEW.getSystemDisplayName(file) : displayName;
     }
 
     @Override
@@ -27,7 +33,7 @@ public class FileSystemNode extends Node {
 
     @Override
     public String getName() {
-        return FILE_SYSTEM_VIEW.getSystemDisplayName(file);
+        return displayName;
     }
 
     @Override
@@ -45,6 +51,7 @@ public class FileSystemNode extends Node {
     }
 
     protected final File file;
+    private final String displayName;
 
     private static final FileSystemView FILE_SYSTEM_VIEW = FileSystemView.getFileSystemView();
 }

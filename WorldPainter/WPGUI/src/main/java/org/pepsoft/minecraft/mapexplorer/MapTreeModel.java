@@ -5,6 +5,7 @@
 
 package org.pepsoft.minecraft.mapexplorer;
 
+import org.pepsoft.worldpainter.mapexplorer.AbstractNode;
 import org.pepsoft.worldpainter.mapexplorer.Node;
 
 import javax.swing.event.TreeModelListener;
@@ -18,10 +19,6 @@ import java.util.LinkedList;
  * @author pepijn
  */
 public class MapTreeModel implements TreeModel {
-    public MapTreeModel() {
-        rootNode = new RootNode();
-    }
-
     public TreePath getPath(File dir) {
         LinkedList<File> components = new LinkedList<>();
         while (dir != null) {
@@ -55,17 +52,17 @@ public class MapTreeModel implements TreeModel {
 
     @Override
     public Object getChild(Object parent, int index) {
-        return ((Node) parent).getChildren()[index];
+        return ((AbstractNode) parent).getChildren()[index];
     }
 
     @Override
     public int getChildCount(Object parent) {
-        return ((Node) parent).getChildren().length;
+        return ((AbstractNode) parent).getChildren().length;
     }
 
     @Override
     public boolean isLeaf(Object node) {
-        return ((Node) node).isLeaf();
+        return ((AbstractNode) node).isLeaf();
     }
 
     @Override
@@ -94,5 +91,5 @@ public class MapTreeModel implements TreeModel {
         // Do nothing
     }
 
-    private final Node rootNode;
+    private final RootNode rootNode = new RootNode();
 }

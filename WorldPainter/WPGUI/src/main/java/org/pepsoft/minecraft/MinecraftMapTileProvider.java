@@ -32,7 +32,7 @@ public class MinecraftMapTileProvider implements TileProvider {
         Level level = Level.load(new File(mapDir, "level.dat"));
         maxHeight = level.getMaxHeight();
         PlatformManager platformManager = PlatformManager.getInstance();
-        Platform platform = platformManager.identifyMap(mapDir);
+        Platform platform = platformManager.identifyPlatform(mapDir);
 
         // Open the map
         chunkStore = platformManager.getChunkStore(platform, mapDir, DIM_NORMAL);
